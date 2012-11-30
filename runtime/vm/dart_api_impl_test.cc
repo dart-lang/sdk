@@ -521,8 +521,8 @@ TEST_CASE(IsString) {
   EXPECT(Dart_IsStringLatin1(str8));
   EXPECT(!Dart_IsExternalString(str8));
 
-  Dart_Handle ext8 = Dart_NewExternalUTF8String(data8, ARRAY_SIZE(data8),
-                                                NULL, NULL);
+  Dart_Handle ext8 = Dart_NewExternalLatin1String(data8, ARRAY_SIZE(data8),
+                                                  NULL, NULL);
   EXPECT_VALID(ext8);
   EXPECT(Dart_IsString(ext8));
   EXPECT(Dart_IsExternalString(ext8));
@@ -575,13 +575,13 @@ TEST_CASE(NewString) {
 TEST_CASE(ExternalStringGetPeer) {
   Dart_Handle result;
 
-  uint8_t data8[] = { 'o', 'n', 'e', 0x7F };
+  uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
   int peer_data = 123;
   void* peer = NULL;
 
   // Success.
-  Dart_Handle ext8 = Dart_NewExternalUTF8String(data8, ARRAY_SIZE(data8),
-                                                &peer_data, NULL);
+  Dart_Handle ext8 = Dart_NewExternalLatin1String(data8, ARRAY_SIZE(data8),
+                                                  &peer_data, NULL);
   EXPECT_VALID(ext8);
 
   result = Dart_ExternalStringGetPeer(ext8, &peer);
@@ -596,7 +596,8 @@ TEST_CASE(ExternalStringGetPeer) {
 
   // String is not external.
   peer = NULL;
-  Dart_Handle str8 = Dart_NewStringFromUTF8(data8, ARRAY_SIZE(data8));
+  uint8_t utf8_data8[] = { 'o', 'n', 'e', 0x7F };
+  Dart_Handle str8 = Dart_NewStringFromUTF8(utf8_data8, ARRAY_SIZE(data8));
   EXPECT_VALID(str8);
   result = Dart_ExternalStringGetPeer(str8, &peer);
   EXPECT(Dart_IsError(result));
@@ -630,7 +631,7 @@ TEST_CASE(ExternalStringCallback) {
     Dart_EnterScope();
 
     uint8_t data8[] = { 'h', 'e', 'l', 'l', 'o' };
-    Dart_Handle obj8 = Dart_NewExternalUTF8String(
+    Dart_Handle obj8 = Dart_NewExternalLatin1String(
         data8,
         ARRAY_SIZE(data8),
         &peer8,
@@ -2014,7 +2015,7 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   EXPECT_EQ(7, global_epilogue_callback_status);
 
   // Garbage collect old space again.  Callbacks are persistent so the
-  // prolog status value should change again.
+  // prologue status value should change again.
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   EXPECT_EQ(12, global_prologue_callback_status);
   EXPECT_EQ(7, global_epilogue_callback_status);
@@ -2330,79 +2331,6 @@ UNIT_TEST_CASE(SetMessageCallbacks) {
 // Only ia32 and x64 can run execution tests.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
-
-TEST_CASE(ClassBasics) {
-  const char* kScriptChars =
-      "class MyClass {\n"
-      "}\n"
-      "class MyDefault {\n"
-      "}\n"
-      "interface MyInterface default MyDefault {\n"
-      "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle cls = Dart_GetClass(lib, NewString("MyClass"));
-  Dart_Handle interface = Dart_GetClass(lib, NewString("MyInterface"));
-
-  // Test Dart_IsClass and Dart_IsInterface.
-  EXPECT(Dart_IsClass(cls));
-  EXPECT(!Dart_IsClass(interface));
-  EXPECT(!Dart_IsClass(Dart_True()));
-
-  EXPECT(!Dart_IsInterface(cls));
-  EXPECT(Dart_IsInterface(interface));
-  EXPECT(!Dart_IsInterface(Dart_True()));
-
-  EXPECT(!Dart_IsInterface(cls));
-  EXPECT(Dart_IsInterface(interface));
-  EXPECT(!Dart_IsInterface(Dart_True()));
-
-  // Test Dart_ClassName
-  Dart_Handle cls_name = Dart_ClassName(cls);
-  EXPECT_VALID(cls_name);
-  const char* cls_name_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
-  EXPECT_STREQ("MyClass", cls_name_cstr);
-
-  cls_name = Dart_ClassName(interface);
-  EXPECT_VALID(cls_name);
-  cls_name_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
-  EXPECT_STREQ("MyInterface", cls_name_cstr);
-
-  EXPECT_ERROR(Dart_ClassName(Dart_True()),
-               "Dart_ClassName expects argument 'clazz' to be of type Class.");
-  EXPECT_ERROR(Dart_ClassName(Dart_NewApiError("MyError")), "MyError");
-
-  // Test Dart_ClassGetLibrary
-  Dart_Handle cls_lib = Dart_ClassGetLibrary(cls);
-  Dart_Handle cls_lib_name = Dart_LibraryName(cls_lib);
-  EXPECT_VALID(cls_lib_name);
-  const char* cls_lib_name_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(cls_lib_name, &cls_lib_name_cstr));
-  EXPECT_STREQ(TestCase::url(), cls_lib_name_cstr);
-
-  EXPECT_ERROR(
-      Dart_ClassGetLibrary(Dart_True()),
-      "Dart_ClassGetLibrary expects argument 'clazz' to be of type Class.");
-  EXPECT_ERROR(Dart_ClassGetLibrary(Dart_NewApiError("MyError")), "MyError");
-
-
-  Dart_Handle dflt = Dart_ClassGetDefault(interface);
-  EXPECT_VALID(dflt);
-  EXPECT(Dart_IsClass(dflt));
-  Dart_Handle dflt_name = Dart_ClassName(dflt);
-  EXPECT_VALID(dflt_name);
-  const char* dflt_name_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(dflt_name, &dflt_name_cstr));
-  EXPECT_STREQ("MyDefault", dflt_name_cstr);
-
-  EXPECT(Dart_IsNull(Dart_ClassGetDefault(cls)));
-  EXPECT_ERROR(
-      Dart_ClassGetDefault(Dart_True()),
-      "Dart_ClassGetDefault expects argument 'clazz' to be of type Class.");
-  EXPECT_ERROR(Dart_ClassGetDefault(Dart_NewApiError("MyError")), "MyError");
-}
-
 TEST_CASE(ClassTypedefsEtc) {
   const char* kScriptChars =
       "class SomeClass {\n"
@@ -2451,16 +2379,16 @@ TEST_CASE(ClassTypedefsEtc) {
                "class 'SomeClass' is not a function-type class.");
 }
 
-#define CHECK_INTERFACE(handle, name)                                   \
-  {                                                                     \
-    Dart_Handle tmp = (handle);                                         \
-    EXPECT_VALID(tmp);                                                  \
-    EXPECT(Dart_IsInterface(tmp));                                      \
-    Dart_Handle intf_name = Dart_ClassName(tmp);                        \
-    EXPECT_VALID(intf_name);                                            \
-    const char* intf_name_cstr = "";                                    \
-    EXPECT_VALID(Dart_StringToCString(intf_name, &intf_name_cstr));     \
-    EXPECT_STREQ((name), intf_name_cstr);                               \
+#define CHECK_ABSTRACT_CLASS(handle, name)                                     \
+  {                                                                            \
+    Dart_Handle tmp = (handle);                                                \
+    EXPECT_VALID(tmp);                                                         \
+    EXPECT(Dart_IsAbstractClass(tmp));                                         \
+    Dart_Handle intf_name = Dart_ClassName(tmp);                               \
+    EXPECT_VALID(intf_name);                                                   \
+    const char* intf_name_cstr = "";                                           \
+    EXPECT_VALID(Dart_StringToCString(intf_name, &intf_name_cstr));            \
+    EXPECT_STREQ((name), intf_name_cstr);                                      \
   }
 
 
@@ -2475,10 +2403,10 @@ TEST_CASE(ClassGetInterfaces) {
       "class MyClass2 implements MyInterface0, MyInterface1 {\n"
       "}\n"
       "\n"
-      "interface MyInterface0 {\n"
+      "abstract class MyInterface0 {\n"
       "}\n"
       "\n"
-      "interface MyInterface1 extends MyInterface0 {\n"
+      "abstract class MyInterface1 implements MyInterface0 {\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -2498,7 +2426,7 @@ TEST_CASE(ClassGetInterfaces) {
   len = -1;
   EXPECT_VALID(Dart_ClassGetInterfaceCount(cls1, &len));
   EXPECT_EQ(1, len);
-  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(cls1, 0), "MyInterface1");
+  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(cls1, 0), "MyInterface1");
 
   EXPECT_ERROR(Dart_ClassGetInterfaceAt(cls1, -1),
                "Dart_ClassGetInterfaceAt: argument 'index' out of bounds");
@@ -2510,8 +2438,8 @@ TEST_CASE(ClassGetInterfaces) {
   EXPECT_EQ(2, len);
 
   // TODO(turnidge): The test relies on the ordering here.  Sort this.
-  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(cls2, 0), "MyInterface0");
-  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(cls2, 1), "MyInterface1");
+  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(cls2, 0), "MyInterface0");
+  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(cls2, 1), "MyInterface1");
 
   len = -1;
   EXPECT_VALID(Dart_ClassGetInterfaceCount(intf0, &len));
@@ -2520,7 +2448,7 @@ TEST_CASE(ClassGetInterfaces) {
   len = -1;
   EXPECT_VALID(Dart_ClassGetInterfaceCount(intf1, &len));
   EXPECT_EQ(1, len);
-  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(intf1, 0), "MyInterface0");
+  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(intf1, 0), "MyInterface0");
 
   // Error cases.
   EXPECT_ERROR(Dart_ClassGetInterfaceCount(Dart_True(), &len),
@@ -6250,11 +6178,28 @@ static bool RunLoopTestCallback(const char* script_name,
 }
 
 
+// The error string from the last unhandled exception. This value is only
+// valid until the next Dart_ExitScope().
+static char* last_exception = NULL;
+
+
+static void RunLoopUnhandledExceptionCallback(Dart_Handle exception) {
+  Dart_Handle error_string = Dart_ToString(exception);
+  EXPECT_VALID(error_string);
+  const char* error_text;
+  Dart_Handle result = Dart_StringToCString(error_string, &error_text);
+  // Duplicate the string since error text is freed when callback is finished.
+  last_exception = strdup(error_text);
+  EXPECT_VALID(result);
+}
+
+
 // Common code for RunLoop_Success/RunLoop_Failure.
 static void RunLoopTest(bool throw_exception_child,
                         bool throw_exception_parent) {
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
+  Isolate::SetUnhandledExceptionCallback(RunLoopUnhandledExceptionCallback);
   RunLoopTestCallback(NULL, NULL, NULL, NULL);
 
   Dart_EnterScope();
@@ -6267,11 +6212,24 @@ static void RunLoopTest(bool throw_exception_child,
   args[1] = (throw_exception_parent ? Dart_True() : Dart_False());
   result = Dart_Invoke(lib, NewString("main"), 2, args);
   EXPECT_VALID(result);
-  result = Dart_RunLoop();
-  if (throw_exception_parent) {
-    EXPECT_ERROR(result, "Exception: MakeParentExit");
+  if (throw_exception_child) {
+    // TODO(tball): fix race-condition
+    // EXPECT_NOTNULL(last_exception);
+    // EXPECT_STREQ("UnhandledException", last_exception);
   } else {
-    EXPECT_VALID(result);
+    result = Dart_RunLoop();
+    if (throw_exception_parent) {
+      EXPECT_ERROR(result, "Exception: MakeParentExit");
+      EXPECT_NOTNULL(last_exception);
+      EXPECT_STREQ("UnhandledException", last_exception);
+    } else {
+      EXPECT_VALID(result);
+      EXPECT(last_exception == NULL);
+    }
+  }
+  if (last_exception != NULL) {
+    free(last_exception);
+    last_exception = NULL;
   }
 
   Dart_ExitScope();
@@ -7218,7 +7176,7 @@ TEST_CASE(MakeExternalString) {
     uint8_t data8[] = { 'h', 'e', 'l', 'l', 'o' };
     const char* err = "string";
     Dart_Handle err_str = NewString(err);
-    Dart_Handle ext_err_str = Dart_NewExternalUTF8String(
+    Dart_Handle ext_err_str = Dart_NewExternalLatin1String(
         data8, ARRAY_SIZE(data8), NULL, NULL);
     Dart_Handle result = Dart_MakeExternalString(Dart_Null(),
                                                  data8,

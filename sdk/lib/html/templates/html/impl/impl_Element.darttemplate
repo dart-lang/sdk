@@ -301,171 +301,6 @@ class _FrozenElementListIterator implements Iterator<Element> {
   bool get hasNext => _index < _list.length;
 }
 
-class _ElementAttributeMap implements Map<String, String> {
-
-  final Element _element;
-
-  _ElementAttributeMap(this._element);
-
-  bool containsValue(String value) {
-    final attributes = _element.$dom_attributes;
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      if(value == attributes[i].value) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool containsKey(String key) {
-    return _element.$dom_hasAttribute(key);
-  }
-
-  String operator [](String key) {
-    return _element.$dom_getAttribute(key);
-  }
-
-  void operator []=(String key, value) {
-    _element.$dom_setAttribute(key, '$value');
-  }
-
-  String putIfAbsent(String key, String ifAbsent()) {
-    if (!containsKey(key)) {
-      this[key] = ifAbsent();
-    }
-    return this[key];
-  }
-
-  String remove(String key) {
-    String value = _element.$dom_getAttribute(key);
-    _element.$dom_removeAttribute(key);
-    return value;
-  }
-
-  void clear() {
-    final attributes = _element.$dom_attributes;
-    for (int i = attributes.length - 1; i >= 0; i--) {
-      remove(attributes[i].name);
-    }
-  }
-
-  void forEach(void f(String key, String value)) {
-    final attributes = _element.$dom_attributes;
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      final item = attributes[i];
-      f(item.name, item.value);
-    }
-  }
-
-  Collection<String> get keys {
-    // TODO(jacobr): generate a lazy collection instead.
-    final attributes = _element.$dom_attributes;
-    final keys = new List<String>(attributes.length);
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      keys[i] = attributes[i].name;
-    }
-    return keys;
-  }
-
-  Collection<String> get values {
-    // TODO(jacobr): generate a lazy collection instead.
-    final attributes = _element.$dom_attributes;
-    final values = new List<String>(attributes.length);
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      values[i] = attributes[i].value;
-    }
-    return values;
-  }
-
-  /**
-   * The number of {key, value} pairs in the map.
-   */
-  int get length {
-    return _element.$dom_attributes.length;
-  }
-
-  /**
-   * Returns true if there is no {key, value} pair in the map.
-   */
-  bool get isEmpty {
-    return length == 0;
-  }
-}
-
-/**
- * Provides a Map abstraction on top of data-* attributes, similar to the
- * dataSet in the old DOM.
- */
-class _DataAttributeMap implements Map<String, String> {
-
-  final Map<String, String> $dom_attributes;
-
-  _DataAttributeMap(this.$dom_attributes);
-
-  // interface Map
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => values.some((v) => v == value);
-
-  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
-
-  String operator [](String key) => $dom_attributes[_attr(key)];
-
-  void operator []=(String key, value) {
-    $dom_attributes[_attr(key)] = '$value';
-  }
-
-  String putIfAbsent(String key, String ifAbsent()) =>
-    $dom_attributes.putIfAbsent(_attr(key), ifAbsent);
-
-  String remove(String key) => $dom_attributes.remove(_attr(key));
-
-  void clear() {
-    // Needs to operate on a snapshot since we are mutating the collection.
-    for (String key in keys) {
-      remove(key);
-    }
-  }
-
-  void forEach(void f(String key, String value)) {
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        f(_strip(key), value);
-      }
-    });
-  }
-
-  Collection<String> get keys {
-    final keys = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        keys.add(_strip(key));
-      }
-    });
-    return keys;
-  }
-
-  Collection<String> get values {
-    final values = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        values.add(value);
-      }
-    });
-    return values;
-  }
-
-  int get length => keys.length;
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool get isEmpty => length == 0;
-
-  // Helpers.
-  String _attr(String key) => 'data-$key';
-  bool _matches(String key) => key.startsWith('data-');
-  String _strip(String key) => key.substring(5);
-}
-
 class _ElementCssClassSet extends CssClassSet {
 
   final Element _element;
@@ -491,24 +326,7 @@ class _ElementCssClassSet extends CssClassSet {
   }
 }
 
-class _SimpleClientRect implements ClientRect {
-  final num left;
-  final num top;
-  final num width;
-  final num height;
-  num get right => left + width;
-  num get bottom => top + height;
-
-  const _SimpleClientRect(this.left, this.top, this.width, this.height);
-
-  bool operator ==(ClientRect other) {
-    return other != null && left == other.left && top == other.top
-        && width == other.width && height == other.height;
-  }
-
-  String toString() => "($left, $top, $width, $height)";
-}
-
+/// @domName $DOMNAME
 abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   factory $CLASSNAME.html(String html) =>
@@ -528,6 +346,14 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     for (String key in value.keys) {
       attributes[key] = value[key];
     }
+  }
+
+  /**
+   * Deprecated, use innerHtml instead.
+   */
+  String get innerHTML => this.innerHtml;
+  void set innerHTML(String value) {
+    this.innerHtml = value;
   }
 
   void set elements(Collection<Element> value) {
@@ -578,6 +404,14 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
   }
 
+  /**
+   * Gets a map for manipulating the attributes of a particular namespace.
+   * This is primarily useful for SVG attributes such as xref:link.
+   */
+  Map<String, String> getNamespacedAttributes(String namespace) {
+    return new _NamespacedAttributeMap(this, namespace);
+  }
+
   /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> get computedStyle {
      // TODO(jacobr): last param should be null, see b/5045788
@@ -592,9 +426,16 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   /**
+   * Adds the specified element to after the last child of this.
+   */
+  void append(Element e) {
+    this.children.add(e);
+  }
+
+  /**
    * Adds the specified text as a text node after the last child of this.
    */
-  void addText(String text) {
+  void appendText(String text) {
     this.insertAdjacentText('beforeend', text);
   }
 
@@ -602,8 +443,8 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this.
    */
-  void addHtml(String text) {
-    this.insertAdjacentHTML('beforeend', text);
+  void appendHtml(String text) {
+    this.insertAdjacentHtml('beforeend', text);
   }
 
   // Hooks to support custom WebComponents.
@@ -651,20 +492,20 @@ $if DART2JS
     }
   }
 
-  void _insertAdjacentText(String where, String text)
-      native 'insertAdjacentText';
+  @JSName('insertAdjacentText')
+  void _insertAdjacentText(String where, String text) native;
 
   /** @domName Element.insertAdjacentHTML */
-  void insertAdjacentHTML(String where, String text) {
-    if (JS('bool', '!!#.insertAdjacentHTML', this)) {
-      _insertAdjacentHTML(where, text);
+  void insertAdjacentHtml(String where, String text) {
+    if (JS('bool', '!!#.insertAdjacentHtml', this)) {
+      _insertAdjacentHtml(where, text);
     } else {
       _insertAdjacentNode(where, new DocumentFragment.html(text));
     }
   }
 
-  void _insertAdjacentHTML(String where, String text)
-      native 'insertAdjacentHTML';
+  @JSName('insertAdjacentHTML')
+  void _insertAdjacentHTML(String where, String text) native;
 
   /** @domName Element.insertAdjacentHTML */
   Element insertAdjacentElement(String where, Element element) {
@@ -676,8 +517,8 @@ $if DART2JS
     return element;
   }
 
-  void _insertAdjacentElement(String where, Element element)
-      native 'insertAdjacentElement';
+  @JSName('insertAdjacentElement')
+  void _insertAdjacentElement(String where, Element element) native;
 
   void _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {
@@ -741,7 +582,7 @@ class _ElementFactoryProvider {
       }
     }
     final Element temp = new Element.tag(parentTag);
-    temp.innerHTML = html;
+    temp.innerHtml = html;
 
     Element element;
     if (temp.children.length == 1) {

@@ -14,6 +14,7 @@ html_interface_renames = {
     'Location': 'LocalLocation',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
+    'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'WebKitAnimation': 'Animation',
     'WebKitAnimationEvent': 'AnimationEvent',
@@ -75,18 +76,24 @@ _private_html_members = set([
   'Element.className',
   'Element.firstElementChild',
   'Element.getAttribute',
+  'Element.getAttributeNS',
   'Element.getElementsByClassName',
   'Element.getElementsByTagName',
   'Element.hasAttribute',
+  'Element.hasAttributeNS',
   'Element.lastElementChild',
   'Element.querySelector',
   'Element.querySelectorAll',
   'Element.removeAttribute',
+  'Element.removeAttributeNS',
   'Element.setAttribute',
+  'Element.setAttributeNS',
   'Event.initEvent',
+  'UIEvent.initUIEvent',
   'EventTarget.addEventListener',
   'EventTarget.dispatchEvent',
   'EventTarget.removeEventListener',
+  'KeyboardEvent.keyIdentifier',
   'LocalWindow.getComputedStyle',
   'MouseEvent.initMouseEvent',
   'Node.appendChild',
@@ -94,8 +101,12 @@ _private_html_members = set([
   'Node.childNodes',
   'Node.firstChild',
   'Node.lastChild',
+  "Node.localName",
+  'Node.namespaceURI',
   'Node.removeChild',
   'Node.replaceChild',
+  'UIEvent.keyCode',
+  'UIEvent.charCode',
   'ShadowRoot.getElementById',
   'ShadowRoot.getElementsByClassName',
   'ShadowRoot.getElementsByTagName',
@@ -112,6 +123,7 @@ _private_html_members = set([
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 _renamed_html_members = {
+    'Document.createCDATASection': 'createCDataSection',
     'Document.defaultView': 'window',
     'Element.webkitMatchesSelector' : 'matchesSelector',
     'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
@@ -191,16 +203,13 @@ _removed_html_members = set([
     'Document.webkitCurrentFullScreenElement',
     'Document.webkitFullScreenKeyboardInputAllowed',
     "DocumentType.*",
-    "Element.hasAttributeNS",
-    "Element.getAttributeNS",
     "Element.setAttributeNode",
     "Element.getAttributeNode",
     "Element.removeAttributeNode",
-    "Element.removeAttributeNS",
     "Element.setAttributeNodeNS",
     "Element.getAttributeNodeNS",
-    "Element.setAttributeNS",
     "Event.srcElement",
+    "EventSource.URL",
     "BodyElement.text",
     "AnchorElement.text",
     "OptionElement.text",
@@ -249,8 +258,10 @@ _removed_html_members = set([
     "Document.version",
     "Document.manifest",
     "HTMLIsIndexElement.*",
+    "MenuElement.compact",
     "HTMLOptionsCollection.*",
     "HTMLPropertiesCollection.*",
+    "KeyboardEvent.initKeyboardEvent",
     "SelectElement.remove",
     "NamedNodeMap.*",
     "Node.isEqualNode",
@@ -260,9 +271,7 @@ _removed_html_members = set([
     "Node.get:DOCUMENT_POSITION_FOLLOWING",
     "Node.lookupNamespaceURI",
     "Node.get:ELEMENT_NODE",
-    "Node.get:namespaceURI",
     "Node.get:DOCUMENT_FRAGMENT_NODE",
-    "Node.get:localName",
     "Node.isDefaultNamespace",
     "Node.compareDocumentPosition",
     "Node.get:baseURI",
@@ -313,6 +322,7 @@ class HtmlRenamer(object):
         return interface.id[len('HTML'):]
     return self.DartifyTypeName(interface.id)
 
+
   def RenameMember(self, interface_name, member_node, member, member_prefix=''):
     """
     Returns the name of the member in the HTML library or None if the member is
@@ -328,10 +338,13 @@ class HtmlRenamer(object):
 
     name = self._FindMatch(interface, member, member_prefix,
                            _renamed_html_members)
+
     target_name = _renamed_html_members[name] if name else member
     if self._FindMatch(interface, member, member_prefix, _private_html_members):
       if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
         target_name = '$dom_' + target_name
+
+    target_name = self._DartifyMemberName(target_name)
     return target_name
 
   def _FindMatch(self, interface, member, member_prefix, candidates):
@@ -352,10 +365,19 @@ class HtmlRenamer(object):
     Gets the name of the library this type should live in.
     This is private because this should use interfaces to resolve the library.
     """
-
     if idl_type_name.startswith('SVG'):
       return 'svg'
+    if 'Audio' in idl_type_name:
+      return 'web_audio'
+
+    if self._database.HasInterface(idl_type_name):
+      interface = self._database.GetInterface(idl_type_name)
+      for parent in self._database.Hierarchy(interface):
+        if parent.id == 'AudioNode':
+          return 'web_audio'
+
     return 'html'
+
 
   def DartifyTypeName(self, type_name):
     """Converts a DOM name to a Dart-friendly class name. """
@@ -366,6 +388,14 @@ class HtmlRenamer(object):
 
     # Strip off the SVG prefix.
     name = re.sub(r'^SVG', '', type_name)
+    return self._CamelCaseName(name)
+
+  def _DartifyMemberName(self, member_name):
+    # Strip off any OpenGL ES suffixes.
+    name = re.sub(r'OES$', '', member_name)
+    return self._CamelCaseName(name)
+
+  def _CamelCaseName(self, name):
 
     def toLower(match):
       return match.group(1) + match.group(2).lower() + match.group(3)

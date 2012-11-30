@@ -59,6 +59,8 @@ import subprocess
 import tempfile
 import utils
 
+HOST_OS = utils.GuessOS()
+
 # TODO(dgrove): Only import modules following Google style guide.
 from os.path import basename, dirname, join, realpath, exists, isdir
 
@@ -85,15 +87,14 @@ def Copy(src, dest):
 # TODO(zundel): this excludes the analyzer from the sdk build until builders
 # have all prerequisite software installed.  Also update dart.gyp.
 def ShouldCopyAnalyzer():
-  os = utils.GuessOS()
-  return os == 'linux' or os == 'macos'
+  return HOST_OS == 'linux' or HOST_OS == 'macos'
 
 
 def CopyShellScript(src_file, dest_dir):
   '''Copies a shell/batch script to the given destination directory. Handles
      using the appropriate platform-specific file extension.'''
   file_extension = ''
-  if utils.GuessOS() == 'win32':
+  if HOST_OS == 'win32':
     file_extension = '.bat'
 
   src = src_file + file_extension
@@ -149,7 +150,7 @@ def Main(argv):
   build_dir = os.path.dirname(argv[1])
   dart_file_extension = ''
   analyzer_file_extension = ''
-  if utils.GuessOS() == 'win32':
+  if HOST_OS == 'win32':
     dart_file_extension = '.exe'
     analyzer_file_extension = '.bat'  # TODO(zundel): test on Windows
     dart_import_lib_src = join(HOME, build_dir, 'dart.lib')
@@ -159,8 +160,11 @@ def Main(argv):
   dart_dest_binary = join(BIN, 'dart' + dart_file_extension)
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
-  if utils.GuessOS() != 'win32':
+  # Strip the binaries on platforms where that is supported.
+  if HOST_OS == 'linux':
     subprocess.call(['strip', dart_dest_binary])
+  elif HOST_OS == 'macos':
+    subprocess.call(['strip', '-x', dart_dest_binary])
 
   if ShouldCopyAnalyzer():
     # Copy analyzer into sdk/bin
@@ -201,7 +205,8 @@ def Main(argv):
   for library in ['_internal', 'collection', 'core', 'crypto', 'io', 'isolate',
                   join('html', 'dart2js'), join('html', 'dartium'), 'json',
                   'math', 'mirrors', 'scalarlist', join('svg', 'dart2js'),
-                  join('svg', 'dartium'), 'uri', 'utf']:
+                  join('svg', 'dartium'), 'uri', 'utf',
+                  join('web_audio', 'dart2js'), join('web_audio', 'dartium')]:
     copytree(join(HOME, 'sdk', 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
@@ -211,11 +216,11 @@ def Main(argv):
   os.makedirs(PKG)
 
   #
-  # Create and populate pkg/{args, intl, logging, meta, unittest}
+  # Create and populate pkg/{args, intl, logging, meta, unittest, ...}
   #
 
-  for library in ['args', 'htmlescape', 'intl', 'logging',
-                  'meta', 'unittest']:
+  for library in ['args', 'htmlescape', 'http', 'intl', 'logging',
+                  'meta', 'oauth2', 'unittest']:
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
                                     '*.py', '*.gypi', '*.sh'))
@@ -249,21 +254,21 @@ def Main(argv):
            ignore=ignore_patterns('.svn', 'sdk'))
 
   # Copy in 7zip for Windows.
-  if utils.GuessOS() == 'win32':
+  if HOST_OS == 'win32':
     copytree(join(HOME, 'third_party', '7zip'),
              join(join(UTIL, 'pub'), '7zip'),
              ignore=ignore_patterns('.svn'))
 
-    ReplaceInFiles([
-        join(UTIL, 'pub', 'io.dart'),
-      ], [
-        ("var pathTo7zip = '../../third_party/7zip/7za.exe';",
-         "var pathTo7zip = '7zip/7za.exe';"),
-      ])
+  ReplaceInFiles([
+      join(UTIL, 'pub', 'io.dart'),
+    ], [
+      ("../../third_party/7zip/7za.exe",
+       "7zip/7za.exe"),
+    ])
 
   # Copy in cURL on all operating systems, since we need the certificates file
   # even outside Windows. Leave out the EXE on non-Windows systems, though.
-  curl_ignore_patterns = ignore_patterns('.svn') if utils.GuessOS() == 'win32' \
+  curl_ignore_patterns = ignore_patterns('.svn') if HOST_OS == 'win32' \
       else ignore_patterns('.svn', '*.exe')
   copytree(join(HOME, 'third_party', 'curl'),
            join(join(UTIL, 'pub'), 'curl'),
@@ -272,10 +277,10 @@ def Main(argv):
   ReplaceInFiles([
       join(UTIL, 'pub', 'curl_client.dart'),
     ], [
-      ("var pathToCurl = '../../third_party/curl/curl.exe';",
-       "var pathToCurl = 'curl/curl.exe';"),
-      ("var pathToCertificates = '../../third_party/curl/ca-certificates.crt';",
-       "var pathToCertificates = 'curl/ca-certificates.crt';"),
+      ("../../third_party/curl/curl.exe",
+       "curl/curl.exe"),
+      ("../../third_party/curl/ca-certificates.crt",
+       "curl/ca-certificates.crt"),
     ])
 
   version = utils.GetVersion()

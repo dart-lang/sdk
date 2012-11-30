@@ -49,7 +49,7 @@ class EventListenerList {
   }
 }
 
-
+/// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */

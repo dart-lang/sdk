@@ -104,7 +104,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     String errorString = getErrorString(error, false, false);
     assertEquals(
         Joiner.on("\n").join(
-            "my/path/Test.dart:1: no such type \"Foo\" (sourced from Test_app)",
+            "my/path/Test.dart:1:3: no such type \"Foo\" (sourced from Test_app)",
             "     1: lineAAA",
             "          ~~~",
             ""),
@@ -122,7 +122,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     String errorString = getErrorString(error, false, false);
     assertEquals(
         Joiner.on("\n").join(
-            "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)",
+            "my/path/Test.dart:2:3: no such type \"Foo\" (sourced from Test_app)",
             "     1: lineAAA",
             "     2: lineBBB",
             "          ~~~~~",
@@ -141,7 +141,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     assertEquals(
         Joiner.on("\n").join(
             WARNING_BOLD_COLOR
-                + "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)"
+                + "my/path/Test.dart:2:3: no such type \"Foo\" (sourced from Test_app)"
                 + NO_COLOR,
             "     1: lineAAA",
             "     2: li" + WARNING_COLOR + "neBBB" + NO_COLOR,
@@ -153,7 +153,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     assertEquals(
         Joiner.on("\n").join(
             ERROR_BOLD_COLOR
-                + "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)"
+                + "my/path/Test.dart:2:3: no such type \"Foo\" (sourced from Test_app)"
                 + NO_COLOR,
             "     1: lineAAA",
             "     2: li" + ERROR_COLOR + "neBBB" + NO_COLOR,
@@ -172,7 +172,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     String errorString = getErrorString(error, false, false);
     assertEquals(
         Joiner.on("\n").join(
-            "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)",
+            "my/path/Test.dart:2:3: no such type \"Foo\" (sourced from Test_app)",
             "     1: lineAAA",
             "     2: lineBBB",
             "          ~~~",
@@ -191,7 +191,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     assertEquals(
         Joiner.on("\n").join(
             WARNING_BOLD_COLOR
-                + "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)"
+                + "my/path/Test.dart:2:3: no such type \"Foo\" (sourced from Test_app)"
                 + NO_COLOR,
             "     1: lineAAA",
             "     2: li" + WARNING_COLOR + "neB" + NO_COLOR + "BB",
@@ -203,7 +203,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     assertEquals(
         Joiner.on("\n").join(
             ERROR_BOLD_COLOR
-                + "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)"
+                + "my/path/Test.dart:2:3: no such type \"Foo\" (sourced from Test_app)"
                 + NO_COLOR,
             "     1: lineAAA",
             "     2: li" + ERROR_COLOR + "neB" + NO_COLOR + "BB",

@@ -45,7 +45,8 @@ const String DEFAULT_HELPERLIB = r'''
   abstract class JavaScriptIndexingBehavior {}
   class JSInvocationMirror {}
   S() {}
-  assertHelper(a){}''';
+  assertHelper(a){}
+  throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}''';
 
 const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSArray {
@@ -53,6 +54,10 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   class JSString {
     var length;
+  }
+  class JSNumber {
+  }
+  class ObjectInterceptor {
   }
   getInterceptor(x) {}''';
 

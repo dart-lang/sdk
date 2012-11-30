@@ -423,7 +423,6 @@ class RawClass : public RawObject {
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawType* super_type_;
-  RawObject* factory_class_;  // UnresolvedClass (until finalization) or Class.
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawArray* canonical_types_;  // Canonicalized types of this class.
@@ -433,13 +432,13 @@ class RawClass : public RawObject {
   }
 
   cpp_vtable handle_vtable_;
-  intptr_t instance_size_;  // Size if fixed length or 0 if variable length.
+  intptr_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   intptr_t id_;  // Class Id, also index in the class table.
-  intptr_t type_arguments_instance_field_offset_;  // May be kNoTypeArguments.
-  intptr_t next_field_offset_;  // Offset of the next instance field.
+  intptr_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
+  intptr_t next_field_offset_in_words_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   intptr_t token_pos_;
-  uint8_t state_bits_;  // state, is_const, is_interface.
+  uint8_t state_bits_;  // state, is_const, is_implemented.
 
   friend class Instance;
   friend class Object;
@@ -457,9 +456,8 @@ class RawUnresolvedClass : public RawObject {
   }
   RawLibraryPrefix* library_prefix_;  // Library prefix qualifier for the ident.
   RawString* ident_;  // Name of the unresolved identifier.
-  RawClass* factory_signature_class_;  // Expected type parameters for factory.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->factory_signature_class_);
+    return reinterpret_cast<RawObject**>(&ptr()->ident_);
   }
   intptr_t token_pos_;
 };
@@ -604,7 +602,7 @@ class RawField : public RawObject {
   RawString* name_;
   RawClass* owner_;
   RawAbstractType* type_;
-  RawInstance* value_;  // Offset for instance and value for static fields.
+  RawInstance* value_;  // Offset in words for instance and value for static.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->value_); }
 
   intptr_t token_pos_;

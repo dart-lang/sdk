@@ -20,7 +20,7 @@ void main() {
     var client = new MockClient((request) {
       return new Future.immediate(new http.Response(
           JSON.stringify(request.bodyFields), 200,
-          headers: {'content-type': 'application/json'}));
+          request: request, headers: {'content-type': 'application/json'}));
     });
 
     expect(client.post("http://example.com/foo", fields: {

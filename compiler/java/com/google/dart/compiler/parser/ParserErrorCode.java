@@ -141,6 +141,7 @@ public enum ParserErrorCode implements ErrorCode {
   UNREACHABLE_CODE_IN_CASE(ErrorSeverity.WARNING, "Unreachable code in case statement"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION("Unexpected token in string interpolation: %s"),
+  URI_CANNOT_USE_INTERPOLATION("URIs cannot use string interpolation"),
   VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION("'var' is not allowed on a method definition"),
   VOID_FIELD("Field cannot be of type void"),
   VOID_PARAMETER("Parameter cannot be of type void");

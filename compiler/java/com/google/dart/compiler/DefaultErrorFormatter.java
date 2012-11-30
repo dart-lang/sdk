@@ -24,22 +24,42 @@ public class DefaultErrorFormatter implements ErrorFormatter {
 
   @Override
   public void format(DartCompilationError event) {
-    String sourceName = "<unknown-source-file>";
-    Source sourceFile = event.getSource();
-    String includeFrom = getImportString(sourceFile);
-
-    if (sourceFile != null) {
-      sourceName = sourceFile.getUri().toString();
-    }
-    outputStream.printf("%s:%d:%d: %s%s\n",
-        sourceName,
-        event.getLineNumber(),
-        event.getColumnNumber(),
-        event.getMessage(),
-        includeFrom);
+    StringBuilder buf = new StringBuilder();
+    appendError(buf, event);
+    outputStream.print(buf);
+    outputStream.print("\n");
   }
 
-  public String getImportString(Source sourceFile) {
+  protected void appendError(StringBuilder buf, DartCompilationError error) {
+    Source source = error.getSource();
+    String sourceName = getSourceName(source);
+    int line = error.getLineNumber();
+    int col = error.getColumnNumber();
+    int length = error.getLength();
+    if (errorFormat == ErrorFormat.MACHINE) {
+      buf.append(String.format(
+          "%s|%s|%s|%s|%d|%d|%d|%s",
+          escapePipe(error.getErrorCode().getErrorSeverity().toString()),
+          escapePipe(error.getErrorCode().getSubSystem().toString()),
+          escapePipe(error.getErrorCode().toString()),
+          escapePipe(sourceName),
+          line,
+          col,
+          length,
+          escapePipe(error.getMessage())));
+    } else {
+      String includeFrom = getImportString(source);
+      buf.append(String.format(
+          "%s:%d:%d: %s%s",
+          sourceName,
+          line,
+          col,
+          error.getMessage(),
+          includeFrom));
+    }
+  }
+
+  protected static String getImportString(Source sourceFile) {
     String includeFrom = "";
     if (sourceFile instanceof DartSource) {
       LibrarySource lib = ((DartSource) sourceFile).getLibrary();
@@ -48,5 +68,26 @@ public class DefaultErrorFormatter implements ErrorFormatter {
       }
     }
     return includeFrom;
+  }
+  
+  protected static String getSourceName(Source source) {
+    if (source instanceof UrlDartSource) {
+      return source.getUri().toString();
+    }
+    if (source != null) {
+      return source.getName();
+    }
+    return "<unknown-source-file>";
+  }
+
+  protected static String escapePipe(String input) {
+    StringBuilder result = new StringBuilder();
+    for (char c : input.toCharArray()) {
+      if (c == '\\' || c == '|') {
+        result.append('\\');
+      }
+      result.append(c);
+    }
+    return result.toString();
   }
 }

@@ -89,10 +89,6 @@ class Enqueuer {
       if (isResolutionQueue && getCachedElements(element) != null) return;
       compiler.internalErrorOnElement(element, "Work list is closed.");
     }
-    if (!isResolutionQueue &&
-        identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
-      registerInstantiatedClass(element.getEnclosingClass());
-    }
     if (elements == null) {
       elements = getCachedElements(element);
     }
@@ -139,8 +135,10 @@ class Enqueuer {
 
   void registerInstantiatedClass(ClassElement cls) {
     if (universe.instantiatedClasses.contains(cls)) return;
-    universe.instantiatedClasses.add(cls);
-    onRegisterInstantiatedClass(cls);
+    if (!cls.isAbstract(compiler)) {
+      universe.instantiatedClasses.add(cls);
+      onRegisterInstantiatedClass(cls);
+    }
     compiler.backend.registerInstantiatedClass(cls, this);
   }
 
@@ -173,6 +171,7 @@ class Enqueuer {
     if (member.isField()) {
       // Native fields need to go into instanceMembersByName as they are virtual
       // instantiation points and escape points.
+      // Test the enclosing class, since the metadata has not been parsed yet.
       if (!member.enclosingElement.isNative()) return;
     }
 
@@ -212,6 +211,7 @@ class Enqueuer {
       }
     } else if (member.kind == ElementKind.FIELD &&
                member.enclosingElement.isNative()) {
+      nativeEnqueuer.registerField(member);
       if (universe.hasInvokedGetter(member, compiler) ||
           universe.hasInvocation(member, compiler)) {
         nativeEnqueuer.registerFieldLoad(member);
@@ -228,10 +228,9 @@ class Enqueuer {
       // supertypes.
       cls.ensureResolved(compiler);
 
-      for (Link<DartType> supertypes = cls.allSupertypesAndSelf;
-           !supertypes.isEmpty; supertypes = supertypes.tail) {
-        cls = supertypes.head.element;
-        if (seenClasses.contains(cls)) continue;
+      void processClass(ClassElement cls) {
+        if (seenClasses.contains(cls)) return;
+
         seenClasses.add(cls);
         cls.ensureResolved(compiler);
         cls.implementation.forEachMember(processInstantiatedClassMember);
@@ -254,6 +253,11 @@ class Enqueuer {
             }
           });
         }
+      }
+      processClass(cls);
+      for (Link<DartType> supertypes = cls.allSupertypes;
+           !supertypes.isEmpty; supertypes = supertypes.tail) {
+        processClass(supertypes.head.element);
       }
     });
   }

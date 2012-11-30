@@ -253,6 +253,14 @@ class Isolate : public BaseIsolate {
     return interrupt_callback_;
   }
 
+  static void SetUnhandledExceptionCallback(
+      Dart_IsolateUnhandledExceptionCallback cb) {
+    unhandled_exception_callback_ = cb;
+  }
+  static Dart_IsolateUnhandledExceptionCallback UnhandledExceptionCallback() {
+    return unhandled_exception_callback_;
+  }
+
   static void SetShutdownCallback(Dart_IsolateShutdownCallback cb) {
     shutdown_callback_ = cb;
   }
@@ -350,6 +358,7 @@ class Isolate : public BaseIsolate {
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;
+  static Dart_IsolateUnhandledExceptionCallback unhandled_exception_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);

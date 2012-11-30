@@ -33,7 +33,6 @@ audiocontext_test: Fail # Issue 4517
 audioelement_test: Fail # Issue 4517
 blob_constructor_test: Fail # Issue 4517
 css_test: Fail # Issue 4517
-htmlaudioelement_test: Fail # Issue 4517
 form_data_test: Fail # Possibly Issue 4517
 fileapi_test: Fail # Possibly Issue 4517
 websql_test: Pass, Fail # Possibly Issue 4517
@@ -76,7 +75,6 @@ indexeddb_3_test: Fail
 indexeddb_4_test: Fail
 inner_frame_test: Skip
 isolates_test: Skip
-js_interop_2_test: Fail
 localstorage_test: Fail
 measurement_test: Fail, Pass
 messageevent_test: Fail
@@ -85,8 +83,8 @@ serialized_script_value_test: Fail
 storage_test: Fail, Pass
 svgelement_test/additionalConstructors: Fail
 svgelement_test/elementset: Fail
-svgelement_test/innerHTML: Fail
-svgelement_test/outerHTML: Fail
+svgelement_test/innerHtml: Fail
+svgelement_test/outerHtml: Fail
 svgelement2_test: Fail
 svg_3_test: Fail
 typed_arrays_1_test: Fail
@@ -134,7 +132,6 @@ indexeddb_1_test: Fail
 indexeddb_2_test: Fail
 indexeddb_3_test: Fail
 indexeddb_4_test: Fail
-js_interop_2_test: Fail
 messageevent_test: Fail
 mutationobserver_test: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
@@ -146,8 +143,8 @@ svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement_test/elementset: Fail
 element_test/eventListening: Fail
-svgelement_test/innerHTML: Fail
-svgelement_test/outerHTML: Fail
+svgelement_test/innerHtml: Fail
+svgelement_test/outerHtml: Fail
 svgelement2_test: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
 websocket_test: Fail
@@ -201,8 +198,8 @@ svgelement_test/css: Crash
 svgelement_test/additionalConstructors: Fail
 svgelement_test/elementget: Fail
 svgelement_test/elementset: Fail
-svgelement_test/innerHTML: Crash, Fail
-svgelement_test/outerHTML: Fail
+svgelement_test/innerHtml: Crash, Fail
+svgelement_test/outerHtml: Fail
 svgelement_test/svg: Fail
 url_test: Fail
 

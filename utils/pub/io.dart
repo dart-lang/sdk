@@ -11,7 +11,10 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:uri';
 
+// TODO(nweiz): Make this import better.
+import '../../pkg/http/lib/http.dart' as http;
 import 'utils.dart';
+import 'curl_client.dart';
 
 bool _isGitInstalledCache;
 
@@ -31,13 +34,14 @@ void printError(value) {
   stderr.writeString('\n');
 }
 
+
 /**
  * Joins a number of path string parts into a single path. Handles
  * platform-specific path separators. Parts can be [String], [Directory], or
  * [File] objects.
  */
 String join(part1, [part2, part3, part4]) {
-  final parts = _getPath(part1).replaceAll('\\', '/').split('/');
+  final parts = _sanitizePath(part1).split('/');
 
   for (final part in [part2, part3, part4]) {
     if (part == null) continue;
@@ -65,7 +69,7 @@ String join(part1, [part2, part3, part4]) {
 // TODO(rnystrom): Copied from file_system (so that we don't have to add
 // file_system to the SDK). Should unify.
 String basename(file) {
-  file = _getPath(file).replaceAll('\\', '/');
+  file = _sanitizePath(file);
 
   int lastSlash = file.lastIndexOf('/', file.length);
   if (lastSlash == -1) {
@@ -82,7 +86,7 @@ String basename(file) {
 // TODO(nweiz): Copied from file_system (so that we don't have to add
 // file_system to the SDK). Should unify.
 String dirname(file) {
-  file = _getPath(file).replaceAll('\\', '/');
+  file = _sanitizePath(file);
 
   int lastSlash = file.lastIndexOf('/', file.length);
   if (lastSlash == -1) {
@@ -91,6 +95,11 @@ String dirname(file) {
     return file.substring(0, lastSlash);
   }
 }
+
+/// Returns whether or not [entry] is nested somewhere within [dir]. This just
+/// performs a path comparison; it doesn't look at the actual filesystem.
+bool isBeneath(entry, dir) =>
+  _sanitizePath(entry).startsWith('${_sanitizePath(dir)}/');
 
 /**
  * Asynchronously determines if [path], which can be a [String] file path, a
@@ -157,8 +166,16 @@ Future<File> createFileFromStream(InputStream stream, path) {
     completer.complete(file);
   };
 
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
   completeError(error) {
-    if (!completer.isComplete) completer.completeException(error);
+    if (!completer.isComplete) completer.completeException(error, stackTrace);
   }
 
   stream.onError = completeError;
@@ -228,12 +245,11 @@ Future<Directory> deleteDir(dir) {
 /**
  * Asynchronously lists the contents of [dir], which can be a [String] directory
  * path or a [Directory]. If [recursive] is `true`, lists subdirectory contents
- * (defaults to `false`). If [includeSpecialFiles] is `true`, includes
- * hidden `.DS_Store` files (defaults to `false`, other hidden files may be
- * omitted later).
+ * (defaults to `false`). If [includeHiddenFiles] is `true`, includes files
+ * beginning with `.` (defaults to `false`).
  */
 Future<List<String>> listDir(dir,
-    [bool recursive = false, bool includeSpecialFiles = false]) {
+    {bool recursive: false, bool includeHiddenFiles: false}) {
   final completer = new Completer<List<String>>();
   final contents = <String>[];
 
@@ -246,12 +262,18 @@ Future<List<String>> listDir(dir,
     if (done) completer.complete(contents);
   };
 
-  lister.onError = (error) => completer.completeException(error);
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
+  lister.onError = (error) => completer.completeException(error, stackTrace);
   lister.onDir = (file) => contents.add(file);
   lister.onFile = (file) {
-    if (!includeSpecialFiles) {
-      if (basename(file) == '.DS_Store') return;
-    }
+    if (!includeHiddenFiles && basename(file).startsWith('.')) return;
     contents.add(file);
   };
 
@@ -368,8 +390,60 @@ String getFullPath(entry) {
 /// Resolves [path] relative to the location of pub.dart.
 String relativeToPub(String path) {
   var scriptPath = new File(new Options().script).fullPathSync();
-  var scriptDir = new Path.fromNative(scriptPath).directoryPath;
-  return scriptDir.append(path).canonicalize().toNativePath();
+
+  // Walk up until we hit the "util(s)" directory. This lets us figure out where
+  // we are if this function is called from pub.dart, or one of the tests,
+  // which also live under "utils", or from the SDK where pub is in "util".
+  var utilDir = new Path.fromNative(scriptPath).directoryPath;
+  while (utilDir.filename != 'utils' && utilDir.filename != 'util') {
+    if (utilDir.filename == '') throw 'Could not find path to pub.';
+    utilDir = utilDir.directoryPath;
+  }
+
+  return utilDir.append('pub').append(path).canonicalize().toNativePath();
+}
+
+/// A StringInputStream reading from stdin.
+final _stringStdin = new StringInputStream(stdin);
+
+/// Returns a single line read from a [StringInputStream]. By default, reads
+/// from stdin.
+///
+/// A [StringInputStream] passed to this should have no callbacks registered.
+Future<String> readLine([StringInputStream stream]) {
+  if (stream == null) stream = _stringStdin;
+  if (stream.closed) return new Future.immediate('');
+  void removeCallbacks() {
+    stream.onClosed = null;
+    stream.onLine = null;
+    stream.onError = null;
+  }
+
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
+  var completer = new Completer();
+  stream.onClosed = () {
+    removeCallbacks();
+    completer.complete('');
+  };
+
+  stream.onLine = () {
+    removeCallbacks();
+    completer.complete(stream.readLine());
+  };
+
+  stream.onError = (e) {
+    removeCallbacks();
+    completer.completeException(e, stackTrace);
+  };
+
+  return completer.future;
 }
 
 // TODO(nweiz): make this configurable
@@ -379,106 +453,149 @@ String relativeToPub(String path) {
  */
 final HTTP_TIMEOUT = 30 * 1000;
 
-/**
- * Opens an input stream for a HTTP GET request to [uri], which may be a
- * [String] or [Uri].
- *
- * Callers should be sure to use [timeout] to make sure that the HTTP request
- * doesn't last indefinitely
- */
-Future<InputStream> httpGet(uri) {
-  // TODO(nweiz): This could return an InputStream synchronously if issue 3657
-  // were fixed and errors could be propagated through it. Then we could also
-  // automatically attach a timeout to that stream.
-  uri = _getUri(uri);
+/// An HTTP client that transforms 40* errors and socket exceptions into more
+/// user-friendly error messages.
+class PubHttpClient extends http.BaseClient {
+  final http.Client _inner;
 
-  var completer = new Completer<InputStream>();
-  var client = new HttpClient();
-  var connection = client.getUrl(uri);
+  PubHttpClient([http.Client inner])
+    : _inner = inner == null ? new http.Client() : inner;
 
-  connection.onError = (e) {
-    // Show a friendly error if the URL couldn't be resolved.
-    if (e is SocketIOException &&
-        e.osError != null &&
-        (e.osError.errorCode == 8 ||
-         e.osError.errorCode == -2 ||
-         e.osError.errorCode == -5 ||
-         e.osError.errorCode == 11004)) {
-      e = 'Could not resolve URL "${uri.origin}".';
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    // TODO(nweiz): remove this when issue 4061 is fixed.
+    var stackTrace;
+    try {
+      throw null;
+    } catch (_, localStackTrace) {
+      stackTrace = localStackTrace;
     }
 
-    client.shutdown();
-    completer.completeException(e);
-  };
+    // TODO(nweiz): Ideally the timeout would extend to reading from the
+    // response input stream, but until issue 3657 is fixed that's not feasible.
+    return timeout(_inner.send(request).chain((streamedResponse) {
+      if (streamedResponse.statusCode < 400) {
+        return new Future.immediate(streamedResponse);
+      }
 
-  connection.onResponse = (response) {
-    if (response.statusCode >= 400) {
-      client.shutdown();
-      completer.completeException(
-          new PubHttpException(response.statusCode, response.reasonPhrase));
-      return;
-    }
-
-    completer.complete(response.inputStream);
-  };
-
-  return completer.future;
+      return http.Response.fromStream(streamedResponse).transform((response) {
+        throw new PubHttpException(response);
+      });
+    }).transformException((e) {
+      if (e is SocketIOException &&
+          e.osError != null &&
+          (e.osError.errorCode == 8 ||
+           e.osError.errorCode == -2 ||
+           e.osError.errorCode == -5 ||
+           e.osError.errorCode == 11004)) {
+        throw 'Could not resolve URL "${request.url.origin}".';
+      }
+      throw e;
+    }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
+  }
 }
 
-/**
- * Opens an input stream for a HTTP GET request to [uri], which may be a
- * [String] or [Uri]. Completes with the result of the request as a String.
- */
-Future<String> httpGetString(uri) {
-  var future = httpGet(uri).chain((stream) => consumeInputStream(stream))
-      .transform((bytes) => new String.fromCharCodes(bytes));
-  return timeout(future, HTTP_TIMEOUT, 'Timed out while fetching URL "$uri".');
-}
+/// The HTTP client to use for all HTTP requests.
+final httpClient = new PubHttpClient();
+
+final curlClient = new PubHttpClient(new CurlClient());
 
 /**
  * Takes all input from [source] and writes it to [sink].
  *
- * [onClosed] is called when [source] is closed.
+ * Returns a future that completes when [source] is closed.
  */
-void pipeInputToInput(InputStream source, ListInputStream sink,
-    [void onClosed()]) {
+Future pipeInputToInput(InputStream source, ListInputStream sink) {
+  var completer = new Completer();
   source.onClosed = () {
     sink.markEndOfStream();
-    if (onClosed != null) onClosed();
+    completer.complete(null);
   };
   source.onData = () => sink.write(source.read());
   // TODO(nweiz): propagate this error to the sink. See issue 3657.
   source.onError = (e) { throw e; };
+  return completer.future;
 }
 
 /**
  * Buffers all input from an InputStream and returns it as a future.
  */
 Future<List<int>> consumeInputStream(InputStream stream) {
+  if (stream.closed) return new Future.immediate(<int>[]);
+
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
   var completer = new Completer<List<int>>();
   var buffer = <int>[];
   stream.onClosed = () => completer.complete(buffer);
   stream.onData = () => buffer.addAll(stream.read());
-  stream.onError = (e) => completer.completeException(e);
+  stream.onError = (e) => completer.completeException(e, stackTrace);
+  return completer.future;
+}
+
+/// Buffers all input from a StringInputStream and returns it as a future.
+Future<String> consumeStringInputStream(StringInputStream stream) {
+  if (stream.closed) return new Future.immediate('');
+
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
+  var completer = new Completer<String>();
+  var buffer = new StringBuffer();
+  stream.onClosed = () => completer.complete(buffer.toString());
+  stream.onData = () => buffer.add(stream.read());
+  stream.onError = (e) => completer.completeException(e, stackTrace);
   return completer.future;
 }
 
 /// Spawns and runs the process located at [executable], passing in [args].
-/// Returns a [Future] that will complete the results of the process after it
-/// has ended.
+/// Returns a [Future] that will complete with the results of the process after
+/// it has ended.
 ///
 /// The spawned process will inherit its parent's environment variables. If
 /// [environment] is provided, that will be used to augment (not replace) the
 /// the inherited variables.
-///
-/// If [pipeStdout] and/or [pipeStderr] are set, all output from the
-/// subprocess's output streams are sent to the parent process's output streams.
-/// Output from piped streams won't be available in the result object.
 Future<PubProcessResult> runProcess(String executable, List<String> args,
-    {workingDir, Map<String, String> environment, bool pipeStdout: false,
-    bool pipeStderr: false}) {
-  int exitCode;
+    {workingDir, Map<String, String> environment}) {
+  return _doProcess(Process.run, executable, args, workingDir, environment)
+      .transform((result) {
+    // TODO(rnystrom): Remove this and change to returning one string.
+    List<String> toLines(String output) {
+      var lines = output.split(NEWLINE_PATTERN);
+      if (!lines.isEmpty && lines.last == "") lines.removeLast();
+      return lines;
+    }
+    return new PubProcessResult(toLines(result.stdout),
+                                toLines(result.stderr),
+                                result.exitCode);
+  });
+}
 
+/// Spawns the process located at [executable], passing in [args]. Returns a
+/// [Future] that will complete with the [Process] once it's been started.
+///
+/// The spawned process will inherit its parent's environment variables. If
+/// [environment] is provided, that will be used to augment (not replace) the
+/// the inherited variables.
+Future<Process> startProcess(String executable, List<String> args,
+    {workingDir, Map<String, String> environment}) =>
+  _doProcess(Process.start, executable, args, workingDir, environment);
+
+/// Calls [fn] with appropriately modified arguments. [fn] should have the same
+/// signature as [Process.start], except that the returned [Future] may have a
+/// type other than [Process].
+Future _doProcess(Function fn, String executable, List<String> args, workingDir,
+    Map<String, String> environment) {
   // TODO(rnystrom): Should dart:io just handle this?
   // Spawning a process on Windows will not look for the executable in the
   // system path. So, if executable looks like it needs that (i.e. it doesn't
@@ -499,39 +616,55 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
     environment.forEach((key, value) => options.environment[key] = value);
   }
 
-  var future = Process.run(executable, args, options);
-  return future.transform((result) {
-    // TODO(rnystrom): Remove this and change to returning one string.
-    List<String> toLines(String output) {
-      var lines = output.split(NEWLINE_PATTERN);
-      if (!lines.isEmpty && lines.last == "") lines.removeLast();
-      return lines;
-    }
-    return new PubProcessResult(toLines(result.stdout),
-                                toLines(result.stderr),
-                                result.exitCode);
-  });
+  return fn(executable, args, options);
+}
+
+/// Closes [response] while ignoring the body of [request]. Returns a Future
+/// that completes once the response is closed.
+///
+/// Due to issue 6984, it's necessary to drain the request body before closing
+/// the response.
+Future closeHttpResponse(HttpRequest request, HttpResponse response) {
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
+  var completer = new Completer();
+  request.inputStream.onError = (e) =>
+      completer.completeException(e, stackTrace);
+  request.inputStream.onData = request.inputStream.read;
+  request.inputStream.onClosed = () {
+    response.outputStream.close();
+    completer.complete(null);
+  };
+  return completer.future;
 }
 
 /**
  * Wraps [input] to provide a timeout. If [input] completes before
  * [milliseconds] have passed, then the return value completes in the same way.
  * However, if [milliseconds] pass before [input] has completed, it completes
- * with a [TimeoutException] with [message].
+ * with a [TimeoutException] with [description] (which should be a fragment
+ * describing the action that timed out).
  *
  * Note that timing out will not cancel the asynchronous operation behind
  * [input].
  */
-Future timeout(Future input, int milliseconds, String message) {
+Future timeout(Future input, int milliseconds, String description) {
   var completer = new Completer();
   var timer = new Timer(milliseconds, (_) {
     if (completer.future.isComplete) return;
-    completer.completeException(new TimeoutException(message));
+    completer.completeException(new TimeoutException(
+        'Timed out while $description.'));
   });
   input.handleException((e) {
     if (completer.future.isComplete) return false;
     timer.cancel();
-    completer.completeException(e);
+    completer.completeException(e, input.stackTrace);
     return true;
   });
   input.then((value) {
@@ -547,7 +680,7 @@ Future timeout(Future input, int milliseconds, String message) {
 /// will be deleted.
 Future withTempDir(Future fn(String path)) {
   var tempDir;
-  var future = new Directory('').createTemp().chain((dir) {
+  var future = createTempDir().chain((dir) {
     tempDir = dir;
     return fn(tempDir.path);
   });
@@ -638,7 +771,7 @@ Future<bool> extractTarGz(InputStream stream, destination) {
     process.stderr.pipe(stderr, close: false);
   });
   processFuture.handleException((error) {
-    completer.completeException(error);
+    completer.completeException(error, processFuture.stackTrace);
     return true;
   });
 
@@ -660,6 +793,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
 
   var tempDir;
 
+  // TODO(rnystrom): Use withTempDir().
   return createTempDir().chain((temp) {
     // Write the archive to a temp file.
     tempDir = temp;
@@ -704,16 +838,76 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
   }).transform((_) => true);
 }
 
+/// Create a .tar.gz archive from a list of entries. Each entry can be a
+/// [String], [Directory], or [File] object. The root of the archive is
+/// considered to be [baseDir], which defaults to the current working directory.
+/// Returns an [InputStream] that will emit the contents of the archive.
+InputStream createTarGz(List contents, {baseDir}) {
+  // TODO(nweiz): Propagate errors to the returned stream (including non-zero
+  // exit codes). See issue 3657.
+  var stream = new ListInputStream();
+
+  if (baseDir == null) baseDir = currentWorkingDir;
+  baseDir = getFullPath(baseDir);
+  contents = contents.map((entry) {
+    entry = getFullPath(entry);
+    if (!isBeneath(entry, baseDir)) {
+      throw 'Entry $entry is not inside $baseDir.';
+    }
+    return new Path.fromNative(entry).relativeTo(new Path.fromNative(baseDir))
+        .toNativePath();
+  });
+
+  if (Platform.operatingSystem != "windows") {
+    var args = ["--create", "--gzip", "--directory", baseDir];
+    args.addAll(contents.map(_getPath));
+    // TODO(nweiz): It's possible that enough command-line arguments will make
+    // the process choke, so at some point we should save the arguments to a
+    // file and pass them in via --files-from for tar and -i@filename for 7zip.
+    startProcess("tar", args).then((process) {
+      pipeInputToInput(process.stdout, stream);
+      process.stderr.pipe(stderr, close: false);
+    });
+    return stream;
+  }
+
+  withTempDir((tempDir) {
+    // Create the tar file.
+    var tarFile = join(tempDir, "intermediate.tar");
+    var args = ["a", "-w$baseDir", tarFile];
+    args.addAll(contents.map((entry) => '-i!"$entry"'));
+
+    // Note: This line of code gets munged by create_sdk.py to be the correct
+    // relative path to 7zip in the SDK.
+    var pathTo7zip = '../../third_party/7zip/7za.exe';
+    var command = relativeToPub(pathTo7zip);
+
+    // We're passing 'baseDir' both as '-w' and setting it as the working
+    // directory explicitly here intentionally. The former ensures that the
+    // files added to the archive have the correct relative path in the archive.
+    // The latter enables relative paths in the "-i" args to be resolved.
+    return runProcess(command, args, workingDir: baseDir).chain((_) {
+      // GZIP it. 7zip doesn't support doing both as a single operation. Send
+      // the output to stdout.
+      args = ["a", "unused", "-tgzip", "-so", tarFile];
+      return startProcess(command, args);
+    }).chain((process) {
+      process.stderr.pipe(stderr, close: false);
+      return pipeInputToInput(process.stdout, stream);
+    });
+  });
+  return stream;
+}
+
 /**
  * Exception thrown when an HTTP operation fails.
  */
 class PubHttpException implements Exception {
-  final int statusCode;
-  final String reason;
+  final http.Response response;
 
-  const PubHttpException(this.statusCode, this.reason);
+  const PubHttpException(this.response);
 
-  String toString() => 'HTTP error $statusCode: $reason';
+  String toString() => 'HTTP error ${response.statusCode}: ${response.reason}';
 }
 
 /**
@@ -750,6 +944,16 @@ String _getPath(entry) {
   if (entry is File) return entry.name;
   if (entry is Directory) return entry.path;
   throw 'Entry $entry is not a supported type.';
+}
+
+/// Gets the path string for [entry] as in [_getPath], but normalizes
+/// backslashes to forward slashes on Windows.
+String _sanitizePath(entry) {
+  entry = _getPath(entry);
+  if (Platform.operatingSystem == 'windows') {
+    entry = entry.replaceAll('\\', '/');
+  }
+  return entry;
 }
 
 /**

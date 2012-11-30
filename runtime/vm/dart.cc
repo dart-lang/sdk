@@ -4,6 +4,7 @@
 
 #include "vm/dart.h"
 
+#include "vm/code_observers.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/freelist.h"
@@ -49,8 +50,9 @@ class PremarkingVisitor : public ObjectVisitor {
 
 // TODO(turnidge): We should add a corresponding Dart::Cleanup.
 const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
-                    Dart_IsolateInterruptCallback interrupt,
-                    Dart_IsolateShutdownCallback shutdown) {
+                           Dart_IsolateInterruptCallback interrupt,
+                           Dart_IsolateUnhandledExceptionCallback unhandled,
+                           Dart_IsolateShutdownCallback shutdown) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized.";
@@ -61,6 +63,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   PortMap::InitOnce();
   FreeListElement::InitOnce();
   Api::InitOnce();
+  CodeObservers::InitOnce();
   // Create the VM isolate and finish the VM initialization.
   ASSERT(thread_pool_ == NULL);
   thread_pool_ = new ThreadPool();
@@ -90,6 +93,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
   Isolate::SetInterruptCallback(interrupt);
+  Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
   return NULL;
 }
@@ -190,5 +194,6 @@ void Dart::ShutdownIsolate() {
     (callback)(callback_data);
   }
 }
+
 
 }  // namespace dart

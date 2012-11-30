@@ -4,6 +4,7 @@
 
 part of html;
 
+/// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
 
   Document get document => JS('Document', '#.document', this);
@@ -24,7 +25,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into
   // _LocationWrapper.
-  LocalLocation get location() {
+  LocalLocation get location {
     // Firefox work-around for Location.  The Firefox location object cannot be
     // made to behave like a Dart object so must be wrapped.
     var result = _location;
@@ -57,7 +58,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   }
   // Prevent compiled from thinking 'location' property is available for a Dart
   // member.
-  _protect_location() native 'location';
+  @JSName('location')
+  _protect_location() native;
 
   static _isDartLocation(thing) {
     // On Firefox the code that implements 'is Location' fails to find the patch
@@ -89,11 +91,11 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
     _cancelAnimationFrame(id);
   }
 
-  int _requestAnimationFrame(RequestAnimationFrameCallback callback)
-      native 'requestAnimationFrame';
+  @JSName('requestAnimationFrame')
+  int _requestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
-  void _cancelAnimationFrame(int id)
-      native 'cancelAnimationFrame';
+  @JSName('cancelAnimationFrame')
+  void _cancelAnimationFrame(int id) native;
 
   _ensureRequestAnimationFrame() {
     if (JS('bool',
@@ -121,7 +123,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
        this);
   }
 
-  IDBFactory get indexedDB() =>
+  IDBFactory get indexedDB =>
       JS('IDBFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);

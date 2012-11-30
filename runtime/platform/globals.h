@@ -46,7 +46,13 @@
 #if defined(_WIN32)
 #include "platform/c99_support_win.h"
 #include "platform/inttypes_support_win.h"
+#include "platform/floating_point_win.h"
 #endif
+
+#if !defined(_WIN32)
+#include "platform/floating_point.h"
+#endif
+
 
 // Target OS detection.
 // for more information on predefined macros:

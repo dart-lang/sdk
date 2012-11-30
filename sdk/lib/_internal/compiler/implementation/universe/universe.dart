@@ -330,6 +330,7 @@ class Selector {
 
   bool equalsUntyped(Selector other) {
     return name == other.name
+           && kind == other.kind
            && identical(library, other.library)
            && argumentCount == other.argumentCount
            && namedArguments.length == other.namedArguments.length

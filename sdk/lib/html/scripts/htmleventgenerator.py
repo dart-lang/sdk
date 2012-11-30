@@ -196,16 +196,25 @@ class HtmlEventGenerator(object):
 
   def ProcessInterface(self, interface, html_interface_name, custom_events,
                        events_implementation_emitter):
-    events = set([attr for attr in interface.attributes
+    event_names = set([attr.id[2:] for attr in interface.attributes
                   if attr.type.id == 'EventListener'])
-    if not events and interface.id not in _html_explicit_event_classes:
+
+    # Document and DocumentFragment actually derive from Element, so omit
+    # any events which are duplicated with that.
+    if interface.id == 'Document' or interface.id == 'DocumentFragment':
+      element_interface = self._database.GetInterface('Element')
+      for attr in element_interface.attributes:
+        if attr.type.id == 'EventListener' and attr.id[2:] in event_names:
+          event_names.remove(attr.id[2:])
+
+    if not event_names and interface.id not in _html_explicit_event_classes:
       return None
 
     self._event_classes.add(interface.id)
     events_class_name = html_interface_name + 'Events'
     parent_events_class_name = self._GetParentEventsClassName(interface)
 
-    if not events:
+    if not event_names:
       return parent_events_class_name
 
     template_file = 'impl_%s.darttemplate' % events_class_name
@@ -222,8 +231,8 @@ class HtmlEventGenerator(object):
         SUPER='%s' % parent_events_class_name)
 
     dom_event_names = set()
-    for event in events:
-      dom_name = event.id[2:]
+    for event in event_names:
+      dom_name = event
       dom_name = _on_attribute_to_event_name_mapping.get(dom_name, dom_name)
       dom_event_names.add(dom_name)
     if html_interface_name in _html_manual_events:
@@ -239,7 +248,7 @@ class HtmlEventGenerator(object):
         implementation_events_members.Emit(
             "\n"
             "  EventListenerList get $NAME => this['$DOM_NAME'];\n",
-            NAME=html_name,
+          NAME=html_name,
             DOM_NAME=dom_name)
 
     return events_class_name

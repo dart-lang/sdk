@@ -10,8 +10,11 @@
 [ $runtime == drt || $runtime == dartium || $runtime == opera]
 *: Skip
 
-# Git on Windows is embarrassingly slow.
-# TODO(rnystrom): Get them fast enough to reliably not time out (#5271).
+# TODO(nweiz): Figure out why this is failing.
 [ $system == windows ]
-install/git/*: Slow, Pass, Timeout
-update/git/*: Slow, Pass, Timeout
+pub_lish_test: Fail
+
+# TODO(nweiz): The "pub lish" and oauth2 tests often fail mysteriously on
+# Windows. See issues 7015 and 7016.
+oauth2_test: Skip
+curl_client_test: Skip

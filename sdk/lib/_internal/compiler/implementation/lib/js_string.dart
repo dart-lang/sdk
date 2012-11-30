@@ -49,11 +49,18 @@ class JSString implements String {
 
   List<String> split(Pattern pattern) {
     checkNull(pattern);
-    return stringSplitUnchecked(this, pattern);
+    if (pattern is String) {
+      return JS('JSArray', r'#.split(#)', this, pattern);
+    } else if (pattern is JSSyntaxRegExp) {
+      var re = regExpGetNative(pattern);
+      return JS('JSArray', r'#.split(#)', this, re);
+    } else {
+      throw "String.split(Pattern) UNIMPLEMENTED";
+    }
   }
 
   List<String> splitChars() {
-    return JS('List', r'#.split("")', this);
+    return JS('JSArray', r'#.split("")', this);
   }
 
   bool startsWith(String other) {

@@ -259,4 +259,21 @@ class Futures {
     }
     return result;
   }
+
+  /**
+   * Runs [f] for each element in [input] in order, moving to the next element
+   * only when the [Future] returned by [f] completes. Returns a [Future] that
+   * completes when all elements have been processed.
+   *
+   * The return values of all [Future]s are discarded. Any errors will cause the
+   * iteration to stop and will be piped through the returned [Future].
+   */
+  static Future forEach(Iterable input, Future f(element)) {
+    var iterator = input.iterator();
+    Future nextElement(_) {
+      if (!iterator.hasNext) return new Future.immediate(null);
+      return f(iterator.next()).chain(nextElement);
+    }
+    return nextElement(null);
+  }
 }

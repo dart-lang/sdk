@@ -22,7 +22,7 @@ class _SvgElementFactoryProvider {
       parentTag = new SvgSvgElement();
     }
 
-    parentTag.innerHTML = svg;
+    parentTag.innerHtml = svg;
     if (parentTag.elements.length == 1) return parentTag.elements.removeLast();
 
     throw new ArgumentError(

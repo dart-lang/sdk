@@ -617,6 +617,49 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
   }
 
+  /**
+   * When class implements "noSuchMethod", we presume that it will handle unimplemented methods.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6964
+   */
+  public void test_warnAbstract_onConcreteClassDeclaration_hasUnimplementedMethod_noSuchMethod()
+      throws Exception {
+    // report by default
+    {
+      AnalyzeLibraryResult libraryResult =
+          analyzeLibrary(
+              "class A {",
+              "  void foo();",
+              "  noSuchMethod(InvocationMirror m) {}",
+              "}",
+              "main() {",
+              "  new A();",
+              "}");
+      assertErrors(
+          libraryResult.getErrors(),
+          errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
+    }
+    // disable warnings if has "noSuchMethod"
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean reportNoMemberWhenHasInterceptor() {
+          return false;
+        }
+      });
+      AnalyzeLibraryResult libraryResult =
+          analyzeLibrary(
+              "class A {",
+              "  void foo();",
+              "  noSuchMethod(InvocationMirror m) {}",
+              "}",
+              "main() {",
+              "  new A();",
+              "}");
+      assertErrors(libraryResult.getErrors());
+    }
+  }
+
   public void test_warnAbstract_onConcreteClassDeclaration_hasUnimplemented_getter()
       throws Exception {
     AnalyzeLibraryResult libraryResult =
@@ -3049,6 +3092,37 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "v1", "Event", INFERRED);
     assertInferredElementTypeString(testUnit, "v2", "Event", INFERRED);
     assertInferredElementTypeString(testUnit, "v3", "Event", INFERRED);
+  }
+
+  /**
+   * Sometimes inferred type is too generic - such as "Object" or "Collection", so there are no
+   * reason to reports problems.
+   */
+  public void test_typesPropagation_dontWant_ifTooGeneric() throws Exception {
+    compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+      @Override
+      public boolean typeChecksForInferredTypes() {
+        return true;
+      }
+    });
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef void HandlerObject(Object o);",
+        "typedef void HandlerCollection(Collection o);",
+        "fObject(HandlerObject h) {}",
+        "fCollection(HandlerCollection h) {}",
+        "main() {",
+        "  fObject((x) {",
+        "    x.myNoSuchField;",
+        "    x.myNoSuchMethod();",
+        "  });",
+        "  fCollection((x) {",
+        "    x.myNoSuchField;",
+        "    x.myNoSuchMethod();",
+        "  });",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
   }
 
   /**
@@ -5694,5 +5768,75 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors(),
         errEx(ResolverErrorCode.VARIABLE_REFERENCES_SAME_NAME_IN_INITIALIZER, 3, 11, 1));
+  }
+
+  public void test_ForEachStatement_method() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  Iterator<int> iterator() {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  for (int v in a) {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+
+  public void test_ForEachStatement_negative_method_invalidReturnType() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int iterator() {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  for (int v in a) {}",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE, 7, 17, 1));
+  }
+
+  /**
+   * It was negative test, but in the new <code>Iterator</code> field should be also supported.
+   */
+  public void test_ForEachStatement_field() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  Iterator iterator;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  for (int v in a) {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+//    Map<String, ClassNodeElement> fieldNotMethod = loadSource(
+//        "class A {",
+//        "  int iterator;",
+//        "}",
+//        "class B {",
+//        "  main() { for (int i in new A()) {}}",
+//        "}");
+//    analyzeClasses(fieldNotMethod, TypeErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
+  }
+
+  public void test_ForEachStatement_negative_field_invalidReturnType() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int iterator;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  for (int v in a) {}",
+        "}",
+        "");
+    assertErrors(result.getErrors(),
+        errEx(TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE, 7, 17, 1));
   }
 }

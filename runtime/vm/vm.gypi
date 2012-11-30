@@ -31,7 +31,7 @@
       ],
       'sources/': [
         # Exclude all _test.[cc|h] files.
-        ['exclude', '_test\\.cc|h$'],
+        ['exclude', '_test\\.(cc|h)$'],
       ],
       'include_dirs': [
         '..',
@@ -57,7 +57,26 @@
           'sources/' : [
             ['exclude', 'gdbjit.cc'],
           ],
-       }]],
+       }],
+       ['dart_vtune_support==0', {
+          'sources/' : [
+            ['exclude', 'vtune\\.(cc|h)$'],
+          ],
+       }],
+       ['dart_vtune_support==1', {
+          'include_dirs': ['<(dart_vtune_root)/include'],
+          'defines': ['DART_VTUNE_SUPPORT'],
+          'link_settings': {
+            'conditions': [
+              ['OS=="linux"', {
+                 'libraries': ['-ljitprofiling'],
+              }],
+              ['OS=="win"', {
+                 'libraries': ['-ljitprofiling.lib'],
+              }],
+            ],
+          },
+        }]],
     },
     {
       'target_name': 'libdart_lib_withcore',
@@ -121,7 +140,9 @@
     {
       'target_name': 'generate_corelib_cc_file',
       'type': 'none',
-      'includes': [
+      'variables': {
+        'core_dart': '<(SHARED_INTERMEDIATE_DIR)/core_gen.dart',
+      },'includes': [
         # Load the shared core library sources.
         '../../sdk/lib/core/corelib_sources.gypi',
       ],
@@ -134,11 +155,27 @@
       ],
       'actions': [
         {
+          'action_name': 'generate_core_dart',
+          'inputs': [
+            '../tools/concat_library.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(core_dart)',
+          ],
+          'action': [
+            'python',
+            '<@(_inputs)',
+            '--output', '<(core_dart)',
+          ],
+          'message': 'Generating ''<(core_dart)'' file.',
+        },
+        {
           'action_name': 'generate_corelib_cc',
           'inputs': [
             '../tools/create_string_literal.py',
             '<(builtin_in_cc_file)',
-            '<@(_sources)',
+            '<(core_dart)',
           ],
           'outputs': [
             '<(corelib_cc_file)',
@@ -150,7 +187,7 @@
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'vm/bootstrap.h',
             '--var_name', 'dart::Bootstrap::corelib_source_',
-            '<@(_sources)',
+            '<(core_dart)',
           ],
           'message': 'Generating ''<(corelib_cc_file)'' file.'
         },
@@ -197,6 +234,9 @@
     {
       'target_name': 'generate_collection_cc_file',
       'type': 'none',
+      'variables': {
+        'collection_dart': '<(SHARED_INTERMEDIATE_DIR)/collection_gen.dart',
+      },
       'includes': [
         # Load the shared collection library sources.
         '../../sdk/lib/collection/collection_sources.gypi',
@@ -210,11 +250,27 @@
       ],
       'actions': [
         {
+          'action_name': 'generate_collection_dart',
+          'inputs': [
+            '../tools/concat_library.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(collection_dart)',
+          ],
+          'action': [
+            'python',
+            '<@(_inputs)',
+            '--output', '<(collection_dart)',
+          ],
+          'message': 'Generating ''<(collection_dart)'' file.',
+        },
+        {
           'action_name': 'generate_collection_cc',
           'inputs': [
             '../tools/create_string_literal.py',
             '<(builtin_in_cc_file)',
-            '<@(_sources)',
+            '<(collection_dart)',
           ],
           'outputs': [
             '<(collection_cc_file)',
@@ -226,7 +282,7 @@
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'vm/bootstrap.h',
             '--var_name', 'dart::Bootstrap::collection_source_',
-            '<@(_sources)',
+            '<(collection_dart)',
           ],
           'message': 'Generating ''<(collection_cc_file)'' file.'
         },
@@ -235,6 +291,9 @@
     {
       'target_name': 'generate_math_cc_file',
       'type': 'none',
+      'variables': {
+        'math_dart': '<(SHARED_INTERMEDIATE_DIR)/math_gen.dart',
+      },
       'includes': [
         # Load the shared math library sources.
         '../../sdk/lib/math/math_sources.gypi',
@@ -248,11 +307,27 @@
       ],
       'actions': [
         {
+          'action_name': 'generate_math_dart',
+          'inputs': [
+            '../tools/concat_library.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(math_dart)',
+          ],
+          'action': [
+            'python',
+            '<@(_inputs)',
+            '--output', '<(math_dart)',
+          ],
+          'message': 'Generating ''<(math_dart)'' file.',
+        },
+        {
           'action_name': 'generate_math_cc',
           'inputs': [
             '../tools/create_string_literal.py',
             '<(builtin_in_cc_file)',
-            '<@(_sources)',
+            '<(math_dart)',
           ],
           'outputs': [
             '<(math_cc_file)',
@@ -264,7 +339,7 @@
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'vm/bootstrap.h',
             '--var_name', 'dart::Bootstrap::math_source_',
-            '<@(_sources)',
+            '<(math_dart)',
           ],
           'message': 'Generating ''<(math_cc_file)'' file.'
         },
@@ -311,6 +386,9 @@
     {
       'target_name': 'generate_mirrors_cc_file',
       'type': 'none',
+      'variables': {
+        'mirrors_dart': '<(SHARED_INTERMEDIATE_DIR)/mirrors_gen.dart',
+      },
       'includes': [
         # Load the shared core library sources.
         '../../sdk/lib/mirrors/mirrors_sources.gypi',
@@ -324,11 +402,27 @@
       ],
       'actions': [
         {
+          'action_name': 'generate_mirrors_dart',
+          'inputs': [
+            '../tools/concat_library.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(mirrors_dart)',
+          ],
+          'action': [
+            'python',
+            '<@(_inputs)',
+            '--output', '<(mirrors_dart)',
+          ],
+          'message': 'Generating ''<(mirrors_dart)'' file.',
+        },
+        {
           'action_name': 'generate_mirrors_cc',
           'inputs': [
             '../tools/create_string_literal.py',
             '<(builtin_in_cc_file)',
-            '<@(_sources)',
+            '<(mirrors_dart)',
           ],
           'outputs': [
             '<(mirrors_cc_file)',
@@ -340,7 +434,7 @@
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'vm/bootstrap.h',
             '--var_name', 'dart::Bootstrap::mirrors_source_',
-            '<@(_sources)',
+            '<(mirrors_dart)',
           ],
           'message': 'Generating ''<(mirrors_cc_file)'' file.'
         },
@@ -387,6 +481,9 @@
     {
       'target_name': 'generate_isolate_cc_file',
       'type': 'none',
+      'variables': {
+        'isolate_dart': '<(SHARED_INTERMEDIATE_DIR)/isolate_gen.dart',
+      },
       'includes': [
         # Load the runtime implementation sources.
         '../../sdk/lib/isolate/isolate_sources.gypi',
@@ -400,11 +497,27 @@
       ],
       'actions': [
         {
+          'action_name': 'generate_isolate_dart',
+          'inputs': [
+            '../tools/concat_library.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(isolate_dart)',
+          ],
+          'action': [
+            'python',
+            '<@(_inputs)',
+            '--output', '<(isolate_dart)',
+          ],
+          'message': 'Generating ''<(isolate_dart)'' file.',
+        },
+        {
           'action_name': 'generate_isolate_cc',
           'inputs': [
             '../tools/create_string_literal.py',
             '<(builtin_in_cc_file)',
-            '<@(_sources)',
+            '<(isolate_dart)',
           ],
           'outputs': [
             '<(isolate_cc_file)',
@@ -416,7 +529,7 @@
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'vm/bootstrap.h',
             '--var_name', 'dart::Bootstrap::isolate_source_',
-            '<@(_sources)',
+            '<(isolate_dart)',
           ],
           'message': 'Generating ''<(isolate_cc_file)'' file.'
         },
@@ -463,6 +576,9 @@
     {
       'target_name': 'generate_scalarlist_cc_file',
       'type': 'none',
+      'variables': {
+        'scalarlist_dart': '<(SHARED_INTERMEDIATE_DIR)/scalarlist_gen.dart',
+      },
       'includes': [
         # Load the shared library sources.
         '../../sdk/lib/scalarlist/scalarlist_sources.gypi',
@@ -476,11 +592,27 @@
       ],
       'actions': [
         {
+          'action_name': 'generate_scalarlist_dart',
+          'inputs': [
+            '../tools/concat_library.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(scalarlist_dart)',
+          ],
+          'action': [
+            'python',
+            '<@(_inputs)',
+            '--output', '<(scalarlist_dart)',
+          ],
+          'message': 'Generating ''<(scalarlist_dart)'' file.',
+        },
+        {
           'action_name': 'generate_scalarlist_cc',
           'inputs': [
             '../tools/create_string_literal.py',
             '<(builtin_in_cc_file)',
-            '<@(_sources)',
+            '<(scalarlist_dart)',
           ],
           'outputs': [
             '<(scalarlist_cc_file)',
@@ -492,7 +624,7 @@
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'vm/bootstrap.h',
             '--var_name', 'dart::Bootstrap::scalarlist_source_',
-            '<@(_sources)',
+            '<(scalarlist_dart)',
           ],
           'message': 'Generating ''<(scalarlist_cc_file)'' file.'
         },

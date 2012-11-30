@@ -195,4 +195,34 @@ abstract class KeyCode {
   static const int WIN_KEY = 224;
   static const int MAC_FF_META = 224;
   static const int WIN_IME = 229;
+
+  /** A sentinel value if the keycode could not be determined. */
+  static const int UNKNOWN = -1;
+
+  /**
+   * Returns true if the keyCode produces a (US keyboard) character.
+   * Note: This does not (yet) cover characters on non-US keyboards (Russian,
+   * Hebrew, etc.).
+   */
+  static bool isCharacterKey(int keyCode) {
+    if ((keyCode >= ZERO && keyCode <= NINE) ||
+        (keyCode >= NUM_ZERO && keyCode <= NUM_MULTIPLY) ||
+        (keyCode >= A && keyCode <= Z)) {
+      return true;
+    }
+ 
+    // Safari sends zero key code for non-latin characters.
+    if (_Device.isWebKit && keyCode == 0) {
+      return true;
+    }
+ 
+    return (keyCode == SPACE || keyCode == QUESTION_MARK || keyCode == NUM_PLUS
+        || keyCode == NUM_MINUS || keyCode == NUM_PERIOD ||
+        keyCode == NUM_DIVISION || keyCode == SEMICOLON ||
+        keyCode == FF_SEMICOLON || keyCode == DASH || keyCode == EQUALS ||
+        keyCode == FF_EQUALS || keyCode == COMMA || keyCode == PERIOD ||
+        keyCode == SLASH || keyCode == APOSTROPHE || keyCode == SINGLE_QUOTE ||
+        keyCode == OPEN_SQUARE_BRACKET || keyCode == BACKSLASH ||
+        keyCode == CLOSE_SQUARE_BRACKET);
+  }
 }

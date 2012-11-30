@@ -202,7 +202,7 @@ class SsaBuilderTask extends CompilerTask {
               new OptionalParameterTypes(signature.optionalParameterCount);
           int index = 0;
           signature.forEachOptionalParameter((Element parameter) {
-            Constant defaultValue = compiler.compileVariable(parameter);
+            Constant defaultValue = builder.compileVariable(parameter);
             HType type = HGraph.mapConstantTypeToSsaType(defaultValue);
             defaultValueTypes.update(index, parameter.name, type);
             index++;
@@ -988,6 +988,24 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   /**
+   * Compiles compile-time constants. Never returns [:null:]. If the
+   * initial value is not a compile-time constants, it reports an
+   * internal error.
+   */
+  Constant compileConstant(VariableElement element) {
+    return compiler.constantHandler.compileConstant(element);
+  }
+
+  Constant compileVariable(VariableElement element) {
+    return compiler.constantHandler.compileVariable(element);
+  }
+
+  bool isLazilyInitialized(VariableElement element) {
+    Constant initialValue = compileVariable(element);
+    return initialValue == null;
+  }
+
+  /**
    * Documentation wanted -- johnniwinther
    *
    * Invariant: [functionElement] must be an implementation element.
@@ -1524,8 +1542,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // }
 
       // Fetch the original default value of [element];
-      ConstantHandler handler = compiler.constantHandler;
-      Constant constant = handler.compileVariable(element);
+      Constant constant = compileVariable(element);
       HConstant defaultValue = constant == null
           ? graph.addConstantNull(constantSystem)
           : graph.addConstant(constant);
@@ -2458,11 +2475,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (element.isField() && !element.isAssignable()) {
         // A static final or const. Get its constant value and inline it if
         // the value can be compiled eagerly.
-        value = compiler.compileVariable(element);
+        value = compileVariable(element);
       }
       if (value != null) {
         stack.add(graph.addConstant(value));
-      } else if (element.isField() && compiler.isLazilyInitialized(element)) {
+      } else if (element.isField() && isLazilyInitialized(element)) {
         push(new HLazyStatic(element));
       } else {
         // TODO(5346): Try to avoid the need for calling [declaration] before
@@ -2741,14 +2758,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return pop();
     }
 
-    HInstruction compileConstant(Element parameter) {
+    HInstruction handleConstant(Element parameter) {
       Constant constant;
       TreeElements calleeElements =
           compiler.enqueuer.resolution.getCachedElements(element);
       if (calleeElements.isParameterChecked(parameter)) {
         constant = SentinelConstant.SENTINEL;
       } else {
-        constant = compiler.compileConstant(parameter);
+        constant = compileConstant(parameter);
       }
       return graph.addConstant(constant);
     }
@@ -2757,7 +2774,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                        list,
                                        element,
                                        compileArgument,
-                                       compileConstant,
+                                       handleConstant,
                                        compiler);
   }
 
@@ -2802,7 +2819,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     List<HInstruction> inputs = <HInstruction>[];
     Set<ClassElement> interceptedClasses =
-        interceptors.getInterceptedClassesOn(selector);
+        getInterceptedClassesOn(node, selector);
     if (interceptedClasses != null) {
       inputs.add(invokeInterceptor(interceptedClasses, receiver, node));
     }
@@ -3060,6 +3077,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction analyzeTypeArgument(DartType argument, Node currentNode) {
+    if (argument == compiler.types.dynamicType) {
+      // Represent [dynamic] as [null].
+      return graph.addConstantNull(constantSystem);
+    }
+
     // These variables are shared between invocations of the helper methods.
     HInstruction typeInfo;
     StringBuffer template = new StringBuffer();
@@ -3119,7 +3141,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else if (type is InterfaceType) {
         bool isFirstVariable = true;
         InterfaceType interfaceType = type;
-        bool hasTypeArguments = !interfaceType.typeArguments.isEmpty;
+        bool hasTypeArguments = !interfaceType.isRaw;
         if (!isInQuotes) template.add("'");
         template.add(backend.namer.getName(type.element));
         if (hasTypeArguments) {
@@ -3157,9 +3179,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              HInstruction newObject) {
     if (!compiler.world.needsRti(type.element)) return;
     List<HInstruction> inputs = <HInstruction>[];
-    type.typeArguments.forEach((DartType argument) {
-      inputs.add(analyzeTypeArgument(argument, currentNode));
-    });
+    if (!type.isRaw) {
+      type.typeArguments.forEach((DartType argument) {
+        inputs.add(analyzeTypeArgument(argument, currentNode));
+      });
+    }
     callSetRuntimeTypeInfo(type.element, inputs, newObject);
   }
 
@@ -3194,7 +3218,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
-        return new HBoundedType.exact(cls.type);
+        return new HBoundedType.exact(cls.thisType);
       } else {
         return HType.UNKNOWN;
       }
@@ -3229,7 +3253,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
     if (compiler.world.needsRti(constructor.enclosingElement)) {
-      if (!type.typeArguments.isEmpty) {
+      if (!type.isRaw) {
         type.typeArguments.forEach((DartType argument) {
           inputs.add(analyzeTypeArgument(argument, node));
         });
@@ -3423,8 +3447,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
-    if (!Elements.isErroneousElement(element) &&
-        !Elements.isMalformedElement(element)) {
+    if (!Elements.isUnresolved(element)) {
       FunctionElement function = element;
       element = function.redirectionTarget;
     }
@@ -3446,12 +3469,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
       stack.add(graph.addConstant(constant));
-    } else if (Elements.isMalformedElement(element)) {
-      Message message =
-          MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER.message([element]);
-      generateRuntimeError(node.send, message.toString());
     } else {
-      visitNewSend(node.send, elements.getType(node));
+      DartType dartType = elements.getType(node);
+      if (dartType.kind == TypeKind.MALFORMED_TYPE &&
+          compiler.enableTypeAssertions) {
+        Message message = MessageKind.MALFORMED_TYPE_REFERENCE.message([node]);
+        generateRuntimeError(node.send, message.toString());
+      } else {
+        visitNewSend(node.send, dartType);
+      }
     }
   }
 

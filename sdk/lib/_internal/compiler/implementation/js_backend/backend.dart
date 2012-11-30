@@ -101,6 +101,13 @@ class HTypeList {
                                           HTypeMap types) {
     HTypeList result;
     int argumentsCount = node.inputs.length - 1;
+    int startInvokeIndex = HInvoke.ARGUMENTS_OFFSET;
+
+    if (node.isInterceptorCall) {
+      argumentsCount--;
+      startInvokeIndex++;
+    }
+
     if (selector.namedArgumentCount > 0) {
       result =
           new HTypeList.withNamedArguments(
@@ -108,8 +115,9 @@ class HTypeList {
     } else {
       result = new HTypeList(argumentsCount);
     }
+
     for (int i = 0; i < result.types.length; i++) {
-      result.types[i] = types[node.inputs[i + 1]];
+      result.types[i] = types[node.inputs[i + startInvokeIndex]];
     }
     return result;
   }
@@ -129,38 +137,6 @@ class HTypeList {
     HTypeList result = this;
     for (int i = 0; i < length; i++) {
       HType newType = this[i].union(other[i], compiler);
-      if (result == this && newType != this[i]) {
-        // Create a new argument types object with the matching types copied.
-        result = new HTypeList(length);
-        result.types.setRange(0, i, this.types);
-      }
-      if (result != this) {
-        result.types[i] = newType;
-      }
-      if (result[i] != HType.UNKNOWN) onlyUnknown = false;
-    }
-    return onlyUnknown ? HTypeList.ALL_UNKNOWN : result;
-  }
-
-  /**
-   * Create the union of this [HTypeList] object with the types used by
-   * the [node]. If the union results in exactly the same types the receiver
-   * is returned. Otherwise a different [HTypeList] object is returned
-   * with the type union information.
-   */
-  HTypeList unionWithInvoke(HInvoke node, HTypeMap types, Compiler compiler) {
-    // Union an all unknown list with something stays all unknown.
-    if (allUnknown) return this;
-
-    bool allUnknown = true;
-    if (length != node.inputs.length - 1) {
-      return HTypeList.ALL_UNKNOWN;
-    }
-
-    bool onlyUnknown = true;
-    HTypeList result = this;
-    for (int i = 0; i < length; i++) {
-      HType newType = this[i].union(types[node.inputs[i + 1]], compiler);
       if (result == this && newType != this[i]) {
         // Create a new argument types object with the matching types copied.
         result = new HTypeList(length);
@@ -473,18 +449,22 @@ class ArgumentTypesRegistry {
 
   Compiler get compiler => backend.compiler;
 
+  bool updateTypes(HTypeList oldTypes, HTypeList newTypes, var key, var map) {
+    if (oldTypes.allUnknown) return false;
+    newTypes = oldTypes.union(newTypes, backend.compiler);
+    if (identical(newTypes, oldTypes)) return false;
+    map[key] = newTypes;
+    return true;
+  }
+
   void registerStaticInvocation(HInvokeStatic node, HTypeMap types) {
     Element element = node.element;
     assert(invariant(node, element.isDeclaration));
     HTypeList oldTypes = staticTypeMap[element];
+    HTypeList newTypes = new HTypeList.fromStaticInvocation(node, types);
     if (oldTypes == null) {
-      staticTypeMap[element] = new HTypeList.fromStaticInvocation(node, types);
-    } else {
-      if (oldTypes.allUnknown) return;
-      HTypeList newTypes =
-          oldTypes.unionWithInvoke(node, types, backend.compiler);
-      if (identical(newTypes, oldTypes)) return;
       staticTypeMap[element] = newTypes;
+    } else if (updateTypes(oldTypes, newTypes, element, staticTypeMap)) {
       if (optimizedStaticFunctions.contains(element)) {
         backend.scheduleForRecompilation(element);
       }
@@ -524,10 +504,7 @@ class ArgumentTypesRegistry {
       selectorTypeMap[selector] = providedTypes;
     } else {
       HTypeList oldTypes = selectorTypeMap[selector];
-      HTypeList newTypes =
-           oldTypes.unionWithInvoke(node, types, backend.compiler);
-      if (identical(newTypes, oldTypes)) return;
-      selectorTypeMap[selector] = newTypes;
+      updateTypes(oldTypes, providedTypes, selector, selectorTypeMap);
     }
 
     // If we're not compiling, we don't have to do anything.
@@ -657,6 +634,10 @@ class JavaScriptBackend extends Backend {
   ClassElement objectInterceptorClass;
   Element jsArrayLength;
   Element jsStringLength;
+  Element jsArrayRemoveLast;
+  Element jsArrayAdd;
+  Element jsStringSplit;
+  Element jsStringConcat;
   Element getInterceptorMethod;
   bool _interceptorsAreInitialized = false;
 
@@ -694,7 +675,24 @@ class JavaScriptBackend extends Backend {
    * name to the list of members that have that name. This map is used
    * by the codegen to know whether a send must be intercepted or not.
    */
-  final Map<SourceString, Set<Element>> interceptedElements;  
+  final Map<SourceString, Set<Element>> interceptedElements;
+
+  /**
+   * A map of specialized versions of the [getInterceptorMethod].
+   * Since [getInterceptorMethod] is a hot method at runtime, we're
+   * always specializing it based on the incoming type. The keys in
+   * the map are the names of these specialized versions. Note that
+   * the generic version that contains all possible type checks is
+   * also stored in this map.
+   */
+  final Map<String, Collection<ClassElement>> specializedGetInterceptors;
+
+  /**
+   * Set of classes whose instances are intercepted. Implemented as a
+   * [LinkedHashMap] to preserve the insertion order.
+   * TODO(ngeoffray): Use a BitSet instead.
+   */
+  final Map<ClassElement, ClassElement> interceptedClasses;
 
   List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
@@ -702,14 +700,19 @@ class JavaScriptBackend extends Backend {
 
   final RuntimeTypeInformation rti;
 
-  JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
-      : namer = determineNamer(compiler),
+  JavaScriptBackend(Compiler compiler,
+                    bool generateSourceMap,
+                    bool disableEval)
+      : namer = new Namer(compiler),
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         interceptors = new Interceptors(compiler),
         usedInterceptors = new Set<Selector>(),
         interceptedElements = new Map<SourceString, Set<Element>>(),
         rti = new RuntimeTypeInformation(compiler),
+        specializedGetInterceptors =
+            new Map<String, Collection<ClassElement>>(),
+        interceptedClasses = new LinkedHashMap<ClassElement, ClassElement>(),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = disableEval
         ? new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)
@@ -721,22 +724,9 @@ class JavaScriptBackend extends Backend {
     fieldTypes = new FieldTypesRegistry(this);
   }
 
-  static Namer determineNamer(Compiler compiler) {
-    return compiler.enableMinification ?
-        new MinifyNamer(compiler) :
-        new Namer(compiler);
-  }
-
   bool isInterceptorClass(Element element) {
     if (element == null) return false;
-    return element == jsStringClass
-        || element == jsArrayClass
-        || element == jsIntClass
-        || element == jsDoubleClass
-        || element == jsNullClass
-        || element == jsFunctionClass
-        || element == jsBoolClass
-        || element == jsNumberClass;
+    return interceptedClasses.containsKey(element);
   }
 
   void addInterceptedSelector(Selector selector) {
@@ -761,33 +751,47 @@ class JavaScriptBackend extends Backend {
     return result;
   }
 
+  List<ClassElement> getListOfInterceptedClasses() {
+      return <ClassElement>[jsStringClass, jsArrayClass, jsIntClass,
+                            jsDoubleClass, jsNumberClass, jsNullClass,
+                            jsFunctionClass, jsBoolClass];
+  }
+
   void initializeInterceptorElements() {
     objectInterceptorClass =
         compiler.findInterceptor(const SourceString('ObjectInterceptor'));
     getInterceptorMethod =
         compiler.findInterceptor(const SourceString('getInterceptor'));
-    jsStringClass =
-        compiler.findInterceptor(const SourceString('JSString'));
-    jsArrayClass =
-        compiler.findInterceptor(const SourceString('JSArray'));
-    jsNumberClass =
-        compiler.findInterceptor(const SourceString('JSNumber'));
-    jsIntClass =
-        compiler.findInterceptor(const SourceString('JSInt'));
-    jsDoubleClass =
-        compiler.findInterceptor(const SourceString('JSDouble'));
-    jsNullClass =
-        compiler.findInterceptor(const SourceString('JSNull'));
-    jsFunctionClass =
-        compiler.findInterceptor(const SourceString('JSFunction'));
-    jsBoolClass =
-        compiler.findInterceptor(const SourceString('JSBool'));
+    List<ClassElement> classes = [
+      jsStringClass = compiler.findInterceptor(const SourceString('JSString')),
+      jsArrayClass = compiler.findInterceptor(const SourceString('JSArray')),
+      jsNumberClass = compiler.findInterceptor(const SourceString('JSNumber')),
+      jsIntClass = compiler.findInterceptor(const SourceString('JSInt')),
+      jsDoubleClass = compiler.findInterceptor(const SourceString('JSDouble')),
+      jsNullClass = compiler.findInterceptor(const SourceString('JSNull')),
+      jsFunctionClass =
+          compiler.findInterceptor(const SourceString('JSFunction')),
+      jsBoolClass = compiler.findInterceptor(const SourceString('JSBool'))];
+
     jsArrayClass.ensureResolved(compiler);
     jsArrayLength =
         jsArrayClass.lookupLocalMember(const SourceString('length'));
+    jsArrayRemoveLast =
+        jsArrayClass.lookupLocalMember(const SourceString('removeLast'));
+    jsArrayAdd =
+        jsArrayClass.lookupLocalMember(const SourceString('add'));
+
     jsStringClass.ensureResolved(compiler);
     jsStringLength =
         jsStringClass.lookupLocalMember(const SourceString('length'));
+    jsStringSplit =
+        jsStringClass.lookupLocalMember(const SourceString('split'));
+    jsStringConcat =
+        jsStringClass.lookupLocalMember(const SourceString('concat'));
+
+    for (ClassElement cls in classes) {
+      if (cls != null) interceptedClasses[cls] = null;
+    }
   }
 
   void addInterceptors(ClassElement cls) {
@@ -800,24 +804,32 @@ class JavaScriptBackend extends Backend {
       includeSuperMembers: true);
   }
 
+  String registerSpecializedGetInterceptor(Set<ClassElement> classes) {
+    compiler.enqueuer.codegen.registerInstantiatedClass(objectInterceptorClass);
+    if (classes.contains(compiler.objectClass)) {
+      // We can't use a specialized [getInterceptorMethod], so we make
+      // sure we emit the one with all checks.
+      String name = namer.getName(getInterceptorMethod);
+      specializedGetInterceptors.putIfAbsent(name, () {
+        // It is important to take the order provided by this list,
+        // because we want the int type check to happen before the
+        // double type check: the double type check covers the int
+        // type check.
+        return interceptedClasses.keys;
+      });
+      return namer.isolateAccess(getInterceptorMethod);
+    } else {
+      String name = namer.getSpecializedName(getInterceptorMethod, classes);
+      specializedGetInterceptors[name] = classes;
+      return '${namer.CURRENT_ISOLATE}.$name';
+    }
+  }
+
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
     ClassElement result = null;
     if (!_interceptorsAreInitialized) {
       initializeInterceptorElements();
       _interceptorsAreInitialized = true;
-      // The null interceptor and the function interceptor are
-      // currently always instantiated if a new class is instantiated.
-      // TODO(ngeoffray): do this elsewhere for the function
-      // interceptor?
-      if (jsNullClass != null) {
-        addInterceptors(jsNullClass);
-        enqueuer.registerInstantiatedClass(jsNullClass);
-      }
-      if (jsFunctionClass != null) {
-        addInterceptors(jsFunctionClass);
-        enqueuer.registerInstantiatedClass(jsFunctionClass);
-      }
-      enqueuer.addToWorkList(getInterceptorMethod);
     }
     if (cls == compiler.stringClass) {
       result = jsStringClass;
@@ -825,12 +837,16 @@ class JavaScriptBackend extends Backend {
       result = jsArrayClass;
     } else if (cls == compiler.intClass) {
       result = jsIntClass;
+      enqueuer.registerInstantiatedClass(jsNumberClass);
     } else if (cls == compiler.doubleClass) {
       result = jsDoubleClass;
+      enqueuer.registerInstantiatedClass(jsNumberClass);
     } else if (cls == compiler.functionClass) {
       result = jsFunctionClass;
     } else if (cls == compiler.boolClass) {
       result = jsBoolClass;
+    } else if (cls == compiler.nullClass) {
+      result = jsNullClass;
     }
 
     if (result == null) return;

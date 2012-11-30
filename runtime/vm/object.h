@@ -454,25 +454,30 @@ class Class : public Object {
  public:
   intptr_t instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
-    return raw_ptr()->instance_size_;
+    return (raw_ptr()->instance_size_in_words_ * kWordSize);
   }
-  void set_instance_size(intptr_t value) const {
-    ASSERT(Utils::IsAligned(value, kObjectAlignment));
-    raw_ptr()->instance_size_ = value;
+  void set_instance_size(intptr_t value_in_bytes) const {
+    ASSERT(kWordSize != 0);
+    set_instance_size_in_words(value_in_bytes / kWordSize);
   }
-  static intptr_t instance_size_offset() {
-    return OFFSET_OF(RawClass, instance_size_);
+  void set_instance_size_in_words(intptr_t value) const {
+    ASSERT(Utils::IsAligned((value * kWordSize), kObjectAlignment));
+    raw_ptr()->instance_size_in_words_ = value;
   }
 
   intptr_t next_field_offset() const {
-    return raw_ptr()->next_field_offset_;
+    return raw_ptr()->next_field_offset_in_words_ * kWordSize;
   }
-  void set_next_field_offset(intptr_t value) const {
-    ASSERT((Utils::IsAligned(value, kObjectAlignment) &&
-            (value == raw_ptr()->instance_size_)) ||
-           (!Utils::IsAligned(value, kObjectAlignment) &&
-            (value + kWordSize == raw_ptr()->instance_size_)));
-    raw_ptr()->next_field_offset_ = value;
+  void set_next_field_offset(intptr_t value_in_bytes) const {
+    ASSERT(kWordSize != 0);
+    set_next_field_offset_in_words(value_in_bytes / kWordSize);
+  }
+  void set_next_field_offset_in_words(intptr_t value) const {
+    ASSERT((Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
+            (value == raw_ptr()->instance_size_in_words_)) ||
+           (!Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
+            ((value + 1) == raw_ptr()->instance_size_in_words_)));
+    raw_ptr()->next_field_offset_in_words_ = value;
   }
 
   cpp_vtable handle_vtable() const { return raw_ptr()->handle_vtable_; }
@@ -540,15 +545,28 @@ class Class : public Object {
 
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
-  intptr_t type_arguments_instance_field_offset() const {
+  intptr_t type_arguments_field_offset() const {
     ASSERT(is_finalized() || is_prefinalized());
-    return raw_ptr()->type_arguments_instance_field_offset_;
+    if (raw_ptr()->type_arguments_field_offset_in_words_ == kNoTypeArguments) {
+      return kNoTypeArguments;
+    }
+    return raw_ptr()->type_arguments_field_offset_in_words_ * kWordSize;
   }
-  void set_type_arguments_instance_field_offset(intptr_t value) const {
-    raw_ptr()->type_arguments_instance_field_offset_ = value;
+  void set_type_arguments_field_offset(intptr_t value_in_bytes) const {
+    intptr_t value;
+    if (value_in_bytes == kNoTypeArguments) {
+      value = kNoTypeArguments;
+    } else {
+      ASSERT(kWordSize != 0);
+      value = value_in_bytes / kWordSize;
+    }
+    set_type_arguments_field_offset_in_words(value);
   }
-  static intptr_t type_arguments_instance_field_offset_offset() {
-    return OFFSET_OF(RawClass, type_arguments_instance_field_offset_);
+  void set_type_arguments_field_offset_in_words(intptr_t value) const {
+    raw_ptr()->type_arguments_field_offset_in_words_ = value;
+  }
+  static intptr_t type_arguments_field_offset_in_words_offset() {
+    return OFFSET_OF(RawClass, type_arguments_field_offset_in_words_);
   }
 
   // The super type of this class, Object type if not explicitly specified.
@@ -560,21 +578,6 @@ class Class : public Object {
 
   // Asserts that the class of the super type has been resolved.
   RawClass* SuperClass() const;
-
-  // Return true if this interface has a factory class.
-  bool HasFactoryClass() const;
-
-  // Return true if the factory class of this interface is resolved.
-  bool HasResolvedFactoryClass() const;
-
-  // Return the resolved factory class of this interface.
-  RawClass* FactoryClass() const;
-
-  // Return the unresolved factory class of this interface.
-  RawUnresolvedClass* UnresolvedFactoryClass() const;
-
-  // Set the resolved or unresolved factory class of this interface.
-  void set_factory_class(const Object& value) const;
 
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
@@ -676,10 +679,10 @@ class Class : public Object {
     return RoundedAllocationSize(sizeof(RawClass));
   }
 
-  bool is_interface() const {
-    return InterfaceBit::decode(raw_ptr()->state_bits_);
+  bool is_implemented() const {
+    return ImplementedBit::decode(raw_ptr()->state_bits_);
   }
-  void set_is_interface() const;
+  void set_is_implemented() const;
 
   bool is_abstract() const {
     return AbstractBit::decode(raw_ptr()->state_bits_);
@@ -724,13 +727,10 @@ class Class : public Object {
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();
 
-  // Allocate instance classes and interfaces.
+  // Allocate instance classes.
   static RawClass* New(const String& name,
                        const Script& script,
                        intptr_t token_pos);
-  static RawClass* NewInterface(const String& name,
-                                const Script& script,
-                                intptr_t token_pos);
   static RawClass* NewNativeWrapper(const Library& library,
                                     const String& name,
                                     int num_fields);
@@ -756,13 +756,13 @@ class Class : public Object {
  private:
   enum {
     kConstBit = 1,
-    kInterfaceBit = 2,
+    kImplementedBit = 2,
     kAbstractBit = 3,
     kStateTagBit = 4,
     kStateTagSize = 2,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
-  class InterfaceBit : public BitField<bool, kInterfaceBit, 1> {};
+  class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class StateBits : public BitField<RawClass::ClassState,
                                     kStateTagBit, kStateTagSize> {};  // NOLINT
@@ -819,11 +819,6 @@ class UnresolvedClass : public Object {
   RawString* ident() const { return raw_ptr()->ident_; }
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
 
-  RawClass* factory_signature_class() const {
-    return raw_ptr()->factory_signature_class_;
-  }
-  void set_factory_signature_class(const Class& value) const;
-
   RawString* Name() const;
 
   static intptr_t InstanceSize() {
@@ -853,12 +848,6 @@ class AbstractTypeArguments : public Object {
   // Returns true if both arguments represent vectors of equal types.
   static bool AreEqual(const AbstractTypeArguments& arguments,
                        const AbstractTypeArguments& other_arguments);
-
-  // Returns true if both arguments represent vectors of possibly still
-  // unresolved identical types.
-  static bool AreIdentical(const AbstractTypeArguments& arguments,
-                           const AbstractTypeArguments& other_arguments,
-                           bool check_type_parameter_bounds);
 
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
@@ -896,7 +885,7 @@ class AbstractTypeArguments : public Object {
   }
 
   // Check that this type argument vector is within the declared bounds of the
-  // given class or interface. If not, set malformed_error (if not yet set).
+  // given class. If not, set malformed_error (if not yet set).
   bool IsWithinBoundsOf(const Class& cls,
                         const AbstractTypeArguments& bounds_instantiator,
                         Error* malformed_error) const;
@@ -1591,7 +1580,7 @@ class Field : public Object {
   bool is_const() const { return ConstBit::decode(raw_ptr()->kind_bits_); }
 
   inline intptr_t Offset() const;
-  inline void SetOffset(intptr_t value) const;
+  inline void SetOffset(intptr_t value_in_bytes) const;
 
   RawInstance* value() const;
   void set_value(const Instance& value) const;
@@ -3177,8 +3166,6 @@ class AbstractType : public Instance {
   virtual intptr_t token_pos() const;
   virtual bool IsInstantiated() const;
   virtual bool Equals(const Instance& other) const;
-  virtual bool IsIdentical(const AbstractType& other,
-                           bool check_type_parameter_bound) const;
 
   // Instantiate this type using the given type argument vector.
   // Return a new type, or return 'this' if it is already instantiated.
@@ -3240,15 +3227,6 @@ class AbstractType : public Instance {
 
   // Check if this type represents the 'Function' type.
   bool IsFunctionType() const;
-
-  // Check if this type is an interface type.
-  bool IsInterfaceType() const {
-    if (!HasResolvedTypeClass()) {
-      return false;
-    }
-    const Class& cls = Class::Handle(type_class());
-    return !cls.IsNull() && cls.is_interface();
-  }
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const {
@@ -3316,8 +3294,6 @@ class Type : public AbstractType {
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated() const;
   virtual bool Equals(const Instance& other) const;
-  virtual bool IsIdentical(const AbstractType& other,
-                           bool check_type_parameter_bound) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const;
@@ -3353,7 +3329,7 @@ class Type : public AbstractType {
   // The 'double' type.
   static RawType* Double();
 
-  // The 'num' interface type.
+  // The 'num' type.
   static RawType* Number();
 
   // The 'String' type.
@@ -3362,7 +3338,7 @@ class Type : public AbstractType {
   // The 'Array' type.
   static RawType* ArrayType();
 
-  // The 'Function' interface type.
+  // The 'Function' type.
   static RawType* Function();
 
   // The finalized type of the given non-parameterized class.
@@ -3416,8 +3392,6 @@ class TypeParameter : public AbstractType {
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated() const { return false; }
   virtual bool Equals(const Instance& other) const;
-  virtual bool IsIdentical(const AbstractType& other,
-                           bool check_type_parameter_bound) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
@@ -3465,6 +3439,10 @@ class Number : public Instance {
 class Integer : public Number {
  public:
   static RawInteger* New(const String& str, Heap::Space space = Heap::kNew);
+
+  // Returns a canonical Integer object allocated in the old gen space.
+  static RawInteger* NewCanonical(const String& str);
+
   static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
 
   virtual double AsDoubleValue() const;
@@ -3623,6 +3601,9 @@ class Bigint : public Integer {
 
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
 
+  // Returns a canonical Bigint object allocated in the old gen space.
+  static RawBigint* NewCanonical(const String& str);
+
   RawBigint* ArithmeticOp(Token::Kind operation, const Bigint& other) const;
 
  private:
@@ -3730,13 +3711,23 @@ class String : public Instance {
    public:
     explicit CodePointIterator(const String& str)
         : str_(str),
+          ch_(0),
           index_(-1),
-          ch_(-1) {
+          end_(str.Length()) {
     }
 
-    int32_t Current() {
+    CodePointIterator(const String& str, intptr_t start, intptr_t length)
+        : str_(str),
+          ch_(0),
+          index_(start - 1),
+          end_(start + length) {
+      ASSERT(start >= 0);
+      ASSERT(end_ <= str.Length());
+    }
+
+    int32_t Current() const {
       ASSERT(index_ >= 0);
-      ASSERT(index_ < str_.Length());
+      ASSERT(index_ < end_);
       return ch_;
     }
 
@@ -3744,8 +3735,9 @@ class String : public Instance {
 
    private:
     const String& str_;
-    intptr_t index_;
     int32_t ch_;
+    intptr_t index_;
+    intptr_t end_;
     DISALLOW_IMPLICIT_CONSTRUCTORS(CodePointIterator);
   };
 
@@ -3990,6 +3982,11 @@ class OneByteString : public AllStatic {
                                intptr_t len,
                                Heap::Space space);
   static RawOneByteString* New(const String& str,
+                               Heap::Space space);
+  // 'other' must be OneByteString.
+  static RawOneByteString* New(const String& other_one_byte_string,
+                               intptr_t other_start_index,
+                               intptr_t other_len,
                                Heap::Space space);
 
   static RawOneByteString* Concat(const String& str1,
@@ -5922,13 +5919,15 @@ bool Function::HasCode() const {
 
 intptr_t Field::Offset() const {
   ASSERT(!is_static());  // Offset is valid only for instance fields.
-  return Smi::Value(reinterpret_cast<RawSmi*>(raw_ptr()->value_));
+  intptr_t value = Smi::Value(reinterpret_cast<RawSmi*>(raw_ptr()->value_));
+  return (value * kWordSize);
 }
 
 
-void Field::SetOffset(intptr_t value) const {
+void Field::SetOffset(intptr_t value_in_bytes) const {
   ASSERT(!is_static());  // SetOffset is valid only for instance fields.
-  raw_ptr()->value_ = Smi::New(value);
+  ASSERT(kWordSize != 0);
+  raw_ptr()->value_ = Smi::New(value_in_bytes / kWordSize);
 }
 
 

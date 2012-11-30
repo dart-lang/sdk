@@ -35,7 +35,7 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
     }
     try {
       // Force the creation of an escaped relative URI to deal with spaces, etc.
-      URI uri = getUri().resolve(new URI(null, null, relPath, null, null)).normalize();
+      URI uri = getImportBaseUri().resolve(new URI(null, null, relPath, null, null)).normalize();
       String path = uri.getPath();
       // Resolve relative reference out of one system library into another
       if (PackageLibraryManager.isDartUri(uri)) {
@@ -69,7 +69,7 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
     }
     try {
       // Force the creation of an escaped relative URI to deal with spaces, etc.
-      URI uri = getUri().resolve(new URI(null, null, relPath, null, null)).normalize();
+      URI uri = getImportBaseUri().resolve(new URI(null, null, relPath, null, null)).normalize();
       if (PackageLibraryManager.isPackageUri(uri)) {
         URI fileUri = packageLibraryManager.resolveDartUri(uri);
         if (fileUri != null) {
@@ -121,5 +121,13 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
     String path = uri.getPath();
     return path == null || new File(path).exists();
   }
-  
+
+  /**
+   * @return the {@link URI} to use as a base for resolving imports. Usually same as {@link #getUri()},
+   * but in case of Dart code in HTML may be mapped {@link URI}.
+   */
+  protected URI getImportBaseUri() {
+    return getUri();
+  }
+
 }

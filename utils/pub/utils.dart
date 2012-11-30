@@ -9,6 +9,7 @@ library utils;
 
 import 'dart:crypto';
 import 'dart:isolate';
+import 'dart:uri';
 
 /** A pair of values. */
 class Pair<E, F> {
@@ -122,11 +123,11 @@ String sha1(String source) =>
   CryptoUtils.bytesToHex(new SHA1().update(source.charCodes).digest());
 
 /**
- * Returns a [Future] that completes in [milliSeconds].
+ * Returns a [Future] that completes in [milliseconds].
  */
-Future sleep(int milliSeconds) {
+Future sleep(int milliseconds) {
   var completer = new Completer();
-  new Timer(milliSeconds, completer.complete);
+  new Timer(milliseconds, completer.complete);
   return completer.future;
 }
 
@@ -134,11 +135,14 @@ Future sleep(int milliSeconds) {
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
   future.handleException((e) {
-    completer.completeException(e);
+    completer.completeException(e, future.stackTrace);
     return true;
   });
   future.then(completer.complete);
 }
+
+// TODO(nweiz): unify the following functions with the utility functions in
+// pkg/http.
 
 /// Like [String.split], but only splits on the first occurrence of the pattern.
 /// This will always return an array of two elements or fewer.
@@ -150,3 +154,49 @@ List<String> split1(String toSplit, String pattern) {
   return [toSplit.substring(0, index),
     toSplit.substring(index + pattern.length)];
 }
+
+/// Adds additional query parameters to [url], overwriting the original
+/// parameters if a name conflict occurs.
+Uri addQueryParameters(Uri url, Map<String, String> parameters) {
+  var queryMap = queryToMap(url.query);
+  mapAddAll(queryMap, parameters);
+  return url.resolve("?${mapToQuery(queryMap)}");
+}
+
+/// Convert a URL query string (or `application/x-www-form-urlencoded` body)
+/// into a [Map] from parameter names to values.
+Map<String, String> queryToMap(String queryList) {
+  var map = <String>{};
+  for (var pair in queryList.split("&")) {
+    var split = split1(pair, "=");
+    if (split.isEmpty) continue;
+    var key = urlDecode(split[0]);
+    var value = split.length > 1 ? urlDecode(split[1]) : "";
+    map[key] = value;
+  }
+  return map;
+}
+
+/// Convert a [Map] from parameter names to values to a URL query string.
+String mapToQuery(Map<String, String> map) {
+  var pairs = <List<String>>[];
+  map.forEach((key, value) {
+    key = encodeUriComponent(key);
+    value = (value == null || value.isEmpty) ? null : encodeUriComponent(value);
+    pairs.add([key, value]);
+  });
+  return Strings.join(pairs.map((pair) {
+    if (pair[1] == null) return pair[0];
+    return "${pair[0]}=${pair[1]}";
+  }), "&");
+}
+
+/// Add all key/value pairs from [source] to [destination], overwriting any
+/// pre-existing values.
+void mapAddAll(Map destination, Map source) =>
+  source.forEach((key, value) => destination[key] = value);
+
+/// Decodes a URL-encoded string. Unlike [decodeUriComponent], this includes
+/// replacing `+` with ` `.
+String urlDecode(String encoded) =>
+  decodeUriComponent(encoded.replaceAll("+", " "));

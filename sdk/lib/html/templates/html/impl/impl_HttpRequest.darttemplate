@@ -4,6 +4,7 @@
 
 part of html;
 
+/// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME.get(String url, onComplete($CLASSNAME request)) =>
       _$(CLASSNAME)FactoryProvider.create$(CLASSNAME)_get(url, onComplete);

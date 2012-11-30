@@ -262,6 +262,11 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
     if (status != SECSuccess) {
       ThrowPRException("Unsuccessful SSL_OptionSetDefault enable TLS call.");
     }
+    status = SSL_ConfigServerSessionIDCache(0, 0, 0, NULL);
+    if (status != SECSuccess) {
+      ThrowPRException("Unsuccessful SSL_ConfigServerSessionIDCache call.");
+    }
+
   } else {
     ThrowException("Called SSLFilter::InitializeLibrary more than once");
   }

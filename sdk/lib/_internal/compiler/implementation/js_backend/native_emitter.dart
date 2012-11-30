@@ -31,9 +31,6 @@ class NativeEmitter {
   // Caches the methods that have a native body.
   Set<FunctionElement> nativeMethods;
 
-  // Caches the methods that redirect to a JS method.
-  Map<FunctionElement, String> redirectingMethods;
-
   // Do we need the native emitter to take care of handling
   // noSuchMethod for us? This flag is set to true in the emitter if
   // it finds any native class that needs noSuchMethod handling.
@@ -46,15 +43,10 @@ class NativeEmitter {
         directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         overriddenMethods = new Set<FunctionElement>(),
         nativeMethods = new Set<FunctionElement>(),
-        redirectingMethods = new Map<FunctionElement, String>(),
         nativeBuffer = new CodeBuffer();
 
   Compiler get compiler => emitter.compiler;
   JavaScriptBackend get backend => compiler.backend;
-
-  void addRedirectingMethod(FunctionElement element, String name) {
-    redirectingMethods[element] = name;
-  }
 
   String get dynamicName {
     Element element = compiler.findHelper(
@@ -98,14 +90,15 @@ class NativeEmitter {
   String get defineNativeClassFunction {
     return """
 function(cls, desc) {
-  var fields = desc[''] || [];
   var generateGetterSetter = ${emitter.generateGetterSetterFunction};
-  for (var i = 0; i < fields.length; i++) {
-    generateGetterSetter(fields[i], desc);
+  var fields = desc[''];
+  var fields_array = fields ? fields.split(',') : [];
+  for (var i = 0; i < fields_array.length; i++) {
+    generateGetterSetter(fields_array[i], desc);
   }
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   for (var method in desc) {
-    if (method !== '') {
+    if (method) {  """/* Short version of: if (method != '') */"""
       if (hasOwnProperty.call(desc, method)) {
         $dynamicName(method)[cls] = desc[method];
       }
@@ -115,7 +108,7 @@ function(cls, desc) {
   }
 
   void generateNativeLiteral(ClassElement classElement) {
-    String quotedNative = classElement.nativeName.slowToString();
+    String quotedNative = classElement.nativeTagInfo.slowToString();
     String nativeCode = quotedNative.substring(2, quotedNative.length - 1);
     String className = backend.namer.getName(classElement);
     nativeBuffer.add(className);
@@ -142,8 +135,8 @@ function(cls, desc) {
     return identical(quotedName[1], '@');
   }
 
-  String toNativeName(ClassElement cls) {
-    String quotedName = cls.nativeName.slowToString();
+  String toNativeTag(ClassElement cls) {
+    String quotedName = cls.nativeTagInfo.slowToString();
     if (isNativeGlobal(quotedName)) {
       // Global object, just be like the other types for now.
       return quotedName.substring(3, quotedName.length - 1);
@@ -156,7 +149,7 @@ function(cls, desc) {
     nativeClasses.add(classElement);
 
     assert(classElement.backendMembers.isEmpty);
-    String quotedName = classElement.nativeName.slowToString();
+    String quotedName = classElement.nativeTagInfo.slowToString();
     if (isNativeLiteral(quotedName)) {
       generateNativeLiteral(classElement);
       // The native literal kind needs to be dealt with specially when
@@ -168,7 +161,7 @@ function(cls, desc) {
     CodeBuffer getterSetterBuffer = new CodeBuffer();
     CodeBuffer methodBuffer = new CodeBuffer();
 
-    emitter.emitClassFields(classElement, fieldBuffer, false);
+    emitter.emitClassFields(classElement, fieldBuffer, false, isNative: true);
     emitter.emitClassGettersSetters(classElement, getterSetterBuffer, false);
     emitter.emitInstanceMembers(classElement, methodBuffer, false);
 
@@ -178,8 +171,8 @@ function(cls, desc) {
       return;
     }
 
-    String nativeName = toNativeName(classElement);
-    nativeBuffer.add("$defineNativeClassName('$nativeName', ");
+    String nativeTag = toNativeTag(classElement);
+    nativeBuffer.add("$defineNativeClassName('$nativeTag', ");
     nativeBuffer.add('{');
     bool firstInMap = true;
     if (!fieldBuffer.isEmpty) {
@@ -206,34 +199,47 @@ function(cls, desc) {
     return result == null ? const<ClassElement>[] : result;
   }
 
-  void potentiallyConvertDartClosuresToJs(CodeBuffer code,
+  void potentiallyConvertDartClosuresToJs(List<js.Statement> statements,
                                           FunctionElement member,
-                                          List<String> argumentsBuffer) {
+                                          List<js.Parameter> stubParameters) {
     FunctionSignature parameters = member.computeSignature(compiler);
     Element converter =
         compiler.findHelper(const SourceString('convertDartClosureToJS'));
     String closureConverter = backend.namer.isolateAccess(converter);
+    Set<String> stubParameterNames = new Set<String>.from(
+        stubParameters.map((param) => param.name));
     parameters.forEachParameter((Element parameter) {
       String name = parameter.name.slowToString();
-      // If [name] is not in [argumentsBuffer], then the parameter is
-      // an optional parameter that was not provided for that stub.
-      if (argumentsBuffer.indexOf(name) == -1) return;
-      DartType type = parameter.computeType(compiler).unalias(compiler);
-      if (type is FunctionType) {
-        // The parameter type is a function type either directly or through
-        // typedef(s).
-        int arity = type.computeArity();
-        code.add('  $name = $closureConverter($name, $arity);\n');
+      // If [name] is not in [stubParameters], then the parameter is an optional
+      // parameter that was not provided for this stub.
+      for (js.Parameter stubParameter in stubParameters) {
+        if (stubParameter.name == name) {
+          DartType type = parameter.computeType(compiler).unalias(compiler);
+          if (type is FunctionType) {
+            // The parameter type is a function type either directly or through
+            // typedef(s).
+            int arity = type.computeArity();
+
+            statements.add(
+                new js.ExpressionStatement(
+                    new js.Assignment(
+                        new js.VariableUse(name),
+                        new js.VariableUse(closureConverter)
+                            .callWith([new js.VariableUse(name),
+                                       new js.LiteralNumber('$arity')]))));
+            break;
+          }
+        }
       }
     });
   }
 
-  String generateParameterStub(Element member,
-                               String invocationName,
-                               String stubParameters,
-                               List<String> argumentsBuffer,
-                               int indexOfLastOptionalArgumentInParameters,
-                               CodeBuffer buffer) {
+  List<js.Statement> generateParameterStubStatements(
+      Element member,
+      String invocationName,
+      List<js.Parameter> stubParameters,
+      List<js.Expression> argumentsBuffer,
+      int indexOfLastOptionalArgumentInParameters) {
     // The target JS function may check arguments.length so we need to
     // make sure not to pass any unspecified optional arguments to it.
     // For example, for the following Dart method:
@@ -243,36 +249,91 @@ function(cls, desc) {
     // must be turned into a JS call to:
     //   foo(null, y).
 
-    List<String> nativeArgumentsBuffer = argumentsBuffer.getRange(
-        0, indexOfLastOptionalArgumentInParameters + 1);
-
     ClassElement classElement = member.enclosingElement;
-    String nativeName = classElement.nativeName.slowToString();
-    String nativeArguments = Strings.join(nativeArgumentsBuffer, ",");
+    //String nativeTagInfo = classElement.nativeName.slowToString();
+    String nativeTagInfo = classElement.nativeTagInfo.slowToString();
 
-    CodeBuffer code = new CodeBuffer();
-    potentiallyConvertDartClosuresToJs(code, member, argumentsBuffer);
+    List<js.Statement> statements = <js.Statement>[];
+    potentiallyConvertDartClosuresToJs(statements, member, stubParameters);
+
+    String target;
+    List<js.Expression> arguments;
 
     if (!nativeMethods.contains(member)) {
-      // When calling a method that has a native body, we call it
-      // with our calling conventions.
-      String arguments = Strings.join(argumentsBuffer, ",");
-      code.add('  return this.${backend.namer.getName(member)}($arguments)');
+      // When calling a method that has a native body, we call it with our
+      // calling conventions.
+      target = backend.namer.getName(member);
+      arguments = argumentsBuffer;
     } else {
-      // When calling a JS method, we call it with the native name.
-      String name = redirectingMethods[member];
-      if (name == null) name = member.name.slowToString();
-      code.add('  return this.$name($nativeArguments);');
+      // When calling a JS method, we call it with the native name, and only the
+      // arguments up until the last one provided.
+      target = member.nativeName();
+      arguments = argumentsBuffer.getRange(
+          0, indexOfLastOptionalArgumentInParameters + 1);
     }
+    statements.add(
+        new js.Return(
+            new js.VariableUse('this').dot(target).callWith(arguments)));
 
-    if (isNativeLiteral(nativeName) || !overriddenMethods.contains(member)) {
+    if (isNativeLiteral(nativeTagInfo) || !overriddenMethods.contains(member)) {
       // Call the method directly.
-      buffer.add(code.toString());
+      return statements;
     } else {
-      native.generateMethodWithPrototypeCheck(
-          compiler, buffer, invocationName, code.toString(), stubParameters);
+      return <js.Statement>[
+          generateMethodBodyWithPrototypeCheck(
+              invocationName, new js.Block(statements), stubParameters)];
     }
   }
+
+  // If a method is overridden, we must check if the prototype of 'this' has the
+  // method available. Otherwise, we may end up calling the method from the
+  // super class. If the method is not available, we make a direct call to
+  // Object.prototype.$methodName.  This method will patch the prototype of
+  // 'this' to the real method.
+  js.Statement generateMethodBodyWithPrototypeCheck(
+      String methodName,
+      js.Statement body,
+      List<js.Parameter> parameters) {
+    return new js.If(
+        new js.VariableUse('Object')
+            .dot('getPrototypeOf')
+            .callWith([new js.VariableUse('this')])
+            .dot('hasOwnProperty')
+            .callWith([new js.LiteralString("'$methodName'")]),
+        body,
+        new js.Block(
+            <js.Statement>[
+                new js.Return(
+                    new js.VariableUse('Object')
+                        .dot('prototype').dot(methodName).dot('call')
+                        .callWith(
+                            <js.Expression>[new js.VariableUse('this')]
+                                ..addAll(parameters.map((param) =>
+                                        new js.VariableUse(param.name)))))
+            ]));
+  }
+
+  js.Block generateMethodBodyWithPrototypeCheckForElement(
+      FunctionElement element,
+      js.Block body,
+      List<js.Parameter> parameters) {
+    String methodName;
+    Namer namer = backend.namer;
+    if (element.kind == ElementKind.FUNCTION) {
+      methodName = namer.instanceMethodName(element);
+    } else if (element.kind == ElementKind.GETTER) {
+      methodName = namer.getterName(element.getLibrary(), element.name);
+    } else if (element.kind == ElementKind.SETTER) {
+      methodName = namer.setterName(element.getLibrary(), element.name);
+    } else {
+      compiler.internalError('unexpected kind: "${element.kind}"',
+          element: element);
+    }
+
+    return new js.Block(
+        [generateMethodBodyWithPrototypeCheck(methodName, body, parameters)]);
+  }
+
 
   void emitDynamicDispatchMetadata() {
     if (classesWithDynamicDispatch.isEmpty) return;
@@ -327,14 +388,14 @@ function(cls, desc) {
       // Expression fragments for this set of cls keys.
       List<js.Expression> expressions = <js.Expression>[];
       // TODO: Remove if cls is abstract.
-      List<String> subtags = [toNativeName(classElement)];
+      List<String> subtags = [toNativeTag(classElement)];
       void walk(ClassElement cls) {
         for (final ClassElement subclass in getDirectSubclasses(cls)) {
           ClassElement tag = subclass;
           js.Expression existing = tagDefns[tag];
           if (existing == null) {
             // [subclass] is still within the subtree between dispatch classes.
-            subtags.add(toNativeName(tag));
+            subtags.add(toNativeTag(tag));
             walk(subclass);
           } else {
             // [subclass] is one of the preorderDispatchClasses, so CSE this
@@ -404,7 +465,7 @@ function(cls, desc) {
           new js.ArrayInitializer.from(
               preorderDispatchClasses.map((cls) =>
                   new js.ArrayInitializer.from([
-                      new js.LiteralString("'${toNativeName(cls)}'"),
+                      new js.LiteralString("'${toNativeTag(cls)}'"),
                       tagDefns[cls]])));
 
       //  $.dynamicSetMetadata(table);

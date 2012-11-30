@@ -7,7 +7,7 @@ main() {
   useHtmlConfiguration();
   evaluateJavaScript(code) {
     final scriptTag = new Element.tag('script');
-    scriptTag.innerHTML = code;
+    scriptTag.innerHtml = code;
     document.body.nodes.add(scriptTag);
   }
   evaluateJavaScript('(testRunner || layoutTestController).setCanOpenWindows()');

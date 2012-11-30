@@ -12,12 +12,15 @@ abstract class C {
 class D implements C {
   final int i;
   const D(this.i);
+  m() => 'called m';
 }
 
 main() {
   const C c = const C(42);
   D d = c;
   Expect.equals(42, d.i);
+  Expect.equals('called m', d.m());
   d = new C(42);
   Expect.equals(42, d.i);
+  Expect.equals('called m', d.m());
 }

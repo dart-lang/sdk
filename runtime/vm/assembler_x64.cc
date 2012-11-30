@@ -328,7 +328,7 @@ void Assembler::movq(Register dst, const Immediate& imm) {
 
 
 // Use 0x89 encoding (instead of 0x8B encoding), which is expected by gdb64
-// older than 7.3.1-gg5 when disassembling a function's prolog (movq rbp, rsp)
+// older than 7.3.1-gg5 when disassembling a function's prologue (movq rbp, rsp)
 // for proper unwinding of Dart frames (use --generate_gdb_symbols and -O0).
 void Assembler::movq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1799,8 +1799,8 @@ void Assembler::Bind(Label* label) {
 
 
 void Assembler::EnterFrame(intptr_t frame_size) {
-  if (prolog_offset_ == -1) {
-    prolog_offset_ = CodeSize();
+  if (prologue_offset_ == -1) {
+    prologue_offset_ = CodeSize();
   }
   pushq(RBP);
   movq(RBP, RSP);

@@ -8,16 +8,23 @@ package com.google.dart.compiler.ast;
  * Represents a Dart 'catch' block.
  */
 public class DartCatchBlock extends DartStatement {
-  private DartParameter exception;
-  private DartParameter stackTrace;
-  private DartBlock block;
+  private final int onTokenOffset;
+  private final DartParameter exception;
+  private final DartParameter stackTrace;
+  private final DartBlock block;
 
   public DartCatchBlock(DartBlock block,
+                        int onTokenOffset,
                         DartParameter exception,
                         DartParameter stackTrace) {
     this.block = becomeParentOf(block);
+    this.onTokenOffset = onTokenOffset;
     this.exception = becomeParentOf(exception);
     this.stackTrace = becomeParentOf(stackTrace);
+  }
+
+  public int getOnTokenOffset() {
+    return onTokenOffset;
   }
 
   public DartParameter getException() {

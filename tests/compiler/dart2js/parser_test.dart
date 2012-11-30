@@ -293,6 +293,18 @@ void testMissingCloseParen() {
   Expect.throws(parse, check);
 }
 
+void testMissingCloseBraceInClass() {
+  final String source = 'class Foo {'; // Missing close '}'.
+  parse() {
+    fullParseUnit(source, diagnosticHandler: new Collector());
+  }
+  check(Collector c) {
+    Expect.equals(EOF_TOKEN, c.token);
+    return true;
+  }
+  Expect.throws(parse, check);
+}
+
 void main() {
   testGenericTypes();
   // TODO(ahe): Enable this test when we handle library prefixes.
@@ -308,4 +320,5 @@ void main() {
   testPostfix();
   testOperatorParse();
   testMissingCloseParen();
+  testMissingCloseBraceInClass();
 }

@@ -46,6 +46,27 @@ import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 import java.util.List;
 
 public class SyntaxTest extends AbstractParserTest {
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6881
+   */
+  public void test_uri_adjacent() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "import 'myLib' '.dart';",
+        ""));
+  }
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6881
+   */
+  public void test_uri_interpolation() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "import 'my$x' '.dart';",
+        "var a = 'Lib';",
+        ""),
+        ParserErrorCode.URI_CANNOT_USE_INTERPOLATION, 1, 8);
+  }
+
   public void test_exportDirective_combinators() {
     parseUnit("test.dart", Joiner.on("\n").join(
         "library lib;",

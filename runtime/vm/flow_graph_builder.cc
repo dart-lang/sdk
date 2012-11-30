@@ -1886,13 +1886,13 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
   // The receiver cannot be null; extract its AbstractTypeArguments object.
   // Note that in the factory case, the instantiator is the first parameter
   // of the factory, i.e. already an AbstractTypeArguments object.
-  intptr_t type_arguments_instance_field_offset =
-      instantiator_class.type_arguments_instance_field_offset();
-  ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
+  intptr_t type_arguments_field_offset =
+      instantiator_class.type_arguments_field_offset();
+  ASSERT(type_arguments_field_offset != Class::kNoTypeArguments);
 
   return Bind(new LoadFieldInstr(
       instantiator,
-      type_arguments_instance_field_offset,
+      type_arguments_field_offset,
       Type::ZoneHandle()));  // Not an instance, no type.
 }
 

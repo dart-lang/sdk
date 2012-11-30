@@ -167,7 +167,6 @@ namespace dart {
   KW(kIMPLEMENTS, "implements", 0, kPseudoKeyword)                             \
   KW(kIMPORT, "import", 0, kPseudoKeyword)                                     \
   KW(kIN, "in", 0, kKeyword)                                                   \
-  KW(kINTERFACE, "interface", 0, kPseudoKeyword)                               \
   KW(kIS, "is", 10, kKeyword)                                                  \
   KW(kLIBRARY, "library", 0, kPseudoKeyword)                                   \
   KW(kNEW, "new", 0, kKeyword)                                                 \

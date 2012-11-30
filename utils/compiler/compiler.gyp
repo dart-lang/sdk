@@ -57,10 +57,6 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
-
-            # TODO(ahe): Remove option when http://dartbug.com/5989 is fixed.
-            '--optimization_counter_threshold=-1',
-
             # Note: we don't store the snapshot in the location where
             # the dart2js script is looking for it.  The motivation
             # for that is to support an incremental development model

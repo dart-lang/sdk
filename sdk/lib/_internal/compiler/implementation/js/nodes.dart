@@ -429,6 +429,9 @@ class LiteralStatement extends Statement {
 
 abstract class Expression extends Node {
   int get precedenceLevel;
+
+  PropertyAccess dot(String name) => new PropertyAccess.field(this, name);
+  Call callWith(List<Expression> arguments) => new Call(this, arguments);
 }
 
 class LiteralExpression extends Expression {

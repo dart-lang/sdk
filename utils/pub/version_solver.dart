@@ -557,7 +557,7 @@ class Dependency {
    */
   VersionConstraint get constraint {
     if (_refs.isEmpty) return null;
-    return new VersionConstraint.intersect(
+    return new VersionConstraint.intersection(
         _refs.values.map((ref) => ref.constraint));
   }
 

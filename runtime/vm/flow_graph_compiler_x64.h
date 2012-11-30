@@ -298,6 +298,9 @@ class FlowGraphCompiler : public ValueObject {
                                                    Label* is_instance_lbl,
                                                    Label* is_not_instance_lbl);
 
+  // Returns true if checking against this type is a direct class id comparison.
+  bool TypeCheckAsClassEquality(const AbstractType& type);
+
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
 
   void CopyParameters();

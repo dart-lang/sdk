@@ -31,7 +31,10 @@ def main():
         for source in arguments:
             with open(source, 'r') as inpt:
                 for line in inpt:
-                    if line.startswith('#source'):
+                    # Drop unneeded library tags as all the library's files
+                    # are concatenated into one big file here:
+                    # The 'part' and 'part of' library tags are removed.
+                    if line.startswith('#source') or line.startswith('part '):
                         line = '// %s' % line
                     output.write(line)
     shutil.move(tmp_name, options.output)

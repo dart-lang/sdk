@@ -1,0 +1,606 @@
+{
+"PathSegLinetoVerticalRel.dart":
+  {
+
+  },
+"DefsElement.dart":
+  {
+
+  },
+"LineElement.dart":
+  {
+
+  },
+"SwitchElement.dart":
+  {
+
+  },
+"Rect.dart":
+  {
+
+  },
+"Matrix.dart":
+  {
+
+  },
+"VKernElement.dart":
+  {
+
+  },
+"RenderingIntent.dart":
+  {
+
+  },
+"AnimatedBoolean.dart":
+  {
+
+  },
+"Angle.dart":
+  {
+
+  },
+"MissingGlyphElement.dart":
+  {
+
+  },
+"ZoomEvent.dart":
+  {
+
+  },
+"RadialGradientElement.dart":
+  {
+
+  },
+"AltGlyphDefElement.dart":
+  {
+
+  },
+"PathSegCurvetoQuadraticRel.dart":
+  {
+
+  },
+"FEPointLightElement.dart":
+  {
+
+  },
+"ScriptElement.dart":
+  {
+
+  },
+"GradientElement.dart":
+  {
+
+  },
+"FETileElement.dart":
+  {
+
+  },
+"PathSegList.dart":
+  {
+
+  },
+"AnimateTransformElement.dart":
+  {
+
+  },
+"TSpanElement.dart":
+  {
+
+  },
+"FEGaussianBlurElement.dart":
+  {
+
+  },
+"PathSegCurvetoQuadraticAbs.dart":
+  {
+
+  },
+"AnimateElement.dart":
+  {
+
+  },
+"ExternalResourcesRequired.dart":
+  {
+
+  },
+"FontFaceNameElement.dart":
+  {
+
+  },
+"UriReference.dart":
+  {
+
+  },
+"Length.dart":
+  {
+
+  },
+"FEMergeElement.dart":
+  {
+
+  },
+"Point.dart":
+  {
+
+  },
+"AnimatedTransformList.dart":
+  {
+
+  },
+"ViewSpec.dart":
+  {
+
+  },
+"Transformable.dart":
+  {
+
+  },
+"FEDisplacementMapElement.dart":
+  {
+
+  },
+"PathSegArcRel.dart":
+  {
+
+  },
+"Stylable.dart":
+  {
+
+  },
+"PathSegLinetoRel.dart":
+  {
+
+  },
+"PathSegCurvetoCubicSmoothRel.dart":
+  {
+
+  },
+"FEMorphologyElement.dart":
+  {
+
+  },
+"ElementInstance.dart":
+  {
+
+  },
+"AnimateMotionElement.dart":
+  {
+
+  },
+"AElement.dart":
+  {
+
+  },
+"FontElement.dart":
+  {
+
+  },
+"AnimatedInteger.dart":
+  {
+
+  },
+"PathElement.dart":
+  {
+
+  },
+"FEColorMatrixElement.dart":
+  {
+
+  },
+"PathSegLinetoHorizontalAbs.dart":
+  {
+
+  },
+"NumberList.dart":
+  {
+
+  },
+"RectElement.dart":
+  {
+
+  },
+"MPathElement.dart":
+  {
+
+  },
+"PathSegClosePath.dart":
+  {
+
+  },
+"FEFloodElement.dart":
+  {
+
+  },
+"FontFaceSrcElement.dart":
+  {
+
+  },
+"Number.dart":
+  {
+
+  },
+"PolylineElement.dart":
+  {
+
+  },
+"AnimatedLengthList.dart":
+  {
+
+  },
+"FECompositeElement.dart":
+  {
+
+  },
+"FontFaceFormatElement.dart":
+  {
+
+  },
+"TransformList.dart":
+  {
+
+  },
+"FEDropShadowElement.dart":
+  {
+
+  },
+"SvgSvgElement.dart":
+  {
+
+  },
+"PreserveAspectRatio.dart":
+  {
+
+  },
+"ForeignObjectElement.dart":
+  {
+
+  },
+"FESpotLightElement.dart":
+  {
+
+  },
+"DescElement.dart":
+  {
+
+  },
+"FontFaceUriElement.dart":
+  {
+
+  },
+"ImageElement.dart":
+  {
+
+  },
+"AnimatedPreserveAspectRatio.dart":
+  {
+
+  },
+"PathSegCurvetoQuadraticSmoothAbs.dart":
+  {
+
+  },
+"GElement.dart":
+  {
+
+  },
+"PathSegMovetoRel.dart":
+  {
+
+  },
+"Paint.dart":
+  {
+
+  },
+"AnimatedEnumeration.dart":
+  {
+
+  },
+"FEFuncAElement.dart":
+  {
+
+  },
+"CircleElement.dart":
+  {
+
+  },
+"SetElement.dart":
+  {
+
+  },
+"TitleElement.dart":
+  {
+
+  },
+"PatternElement.dart":
+  {
+
+  },
+"AnimatedString.dart":
+  {
+
+  },
+"FEFuncRElement.dart":
+  {
+
+  },
+"SvgDocument.dart":
+  {
+
+  },
+"FEMergeNodeElement.dart":
+  {
+
+  },
+"Exception.dart":
+  {
+
+  },
+"UseElement.dart":
+  {
+
+  },
+"PathSegLinetoVerticalAbs.dart":
+  {
+
+  },
+"FontFaceElement.dart":
+  {
+
+  },
+"PathSegCurvetoCubicRel.dart":
+  {
+
+  },
+"Color.dart":
+  {
+
+  },
+"PathSegArcAbs.dart":
+  {
+
+  },
+"FilterPrimitiveStandardAttributes.dart":
+  {
+
+  },
+"AnimationElement.dart":
+  {
+
+  },
+"AltGlyphElement.dart":
+  {
+
+  },
+"MarkerElement.dart":
+  {
+
+  },
+"FEDiffuseLightingElement.dart":
+  {
+
+  },
+"FETurbulenceElement.dart":
+  {
+
+  },
+"SvgElement.dart":
+  {
+
+  },
+"Transform.dart":
+  {
+
+  },
+"Locatable.dart":
+  {
+
+  },
+"UnitTypes.dart":
+  {
+
+  },
+"ViewElement.dart":
+  {
+
+  },
+"FEConvolveMatrixElement.dart":
+  {
+
+  },
+"FEDistantLightElement.dart":
+  {
+
+  },
+"PolygonElement.dart":
+  {
+
+  },
+"MetadataElement.dart":
+  {
+
+  },
+"ZoomAndPan.dart":
+  {
+
+  },
+"ClipPathElement.dart":
+  {
+
+  },
+"TextPositioningElement.dart":
+  {
+
+  },
+"StopElement.dart":
+  {
+
+  },
+"SymbolElement.dart":
+  {
+
+  },
+"HKernElement.dart":
+  {
+
+  },
+"GlyphRefElement.dart":
+  {
+
+  },
+"PathSegCurvetoCubicAbs.dart":
+  {
+
+  },
+"GlyphElement.dart":
+  {
+
+  },
+"MaskElement.dart":
+  {
+
+  },
+"TextContentElement.dart":
+  {
+
+  },
+"FilterElement.dart":
+  {
+
+  },
+"FEFuncGElement.dart":
+  {
+
+  },
+"EllipseElement.dart":
+  {
+
+  },
+"Tests.dart":
+  {
+
+  },
+"AnimatedLength.dart":
+  {
+
+  },
+"PathSegCurvetoQuadraticSmoothRel.dart":
+  {
+
+  },
+"StyleElement.dart":
+  {
+
+  },
+"CursorElement.dart":
+  {
+
+  },
+"FitToViewBox.dart":
+  {
+
+  },
+"TextElement.dart":
+  {
+
+  },
+"FEFuncBElement.dart":
+  {
+
+  },
+"FEOffsetElement.dart":
+  {
+
+  },
+"FEImageElement.dart":
+  {
+
+  },
+"LangSpace.dart":
+  {
+
+  },
+"FESpecularLightingElement.dart":
+  {
+
+  },
+"PointList.dart":
+  {
+
+  },
+"LinearGradientElement.dart":
+  {
+
+  },
+"PathSegMovetoAbs.dart":
+  {
+
+  },
+"AnimatedNumberList.dart":
+  {
+
+  },
+"PathSegLinetoHorizontalRel.dart":
+  {
+
+  },
+"LengthList.dart":
+  {
+
+  },
+"ComponentTransferFunctionElement.dart":
+  {
+
+  },
+"StringList.dart":
+  {
+
+  },
+"FEComponentTransferElement.dart":
+  {
+
+  },
+"PathSegCurvetoCubicSmoothAbs.dart":
+  {
+
+  },
+"PathSegLinetoAbs.dart":
+  {
+
+  },
+"AnimatedNumber.dart":
+  {
+
+  },
+"TextPathElement.dart":
+  {
+
+  },
+"AnimatedRect.dart":
+  {
+
+  },
+"AnimatedAngle.dart":
+  {
+
+  },
+"AltGlyphItemElement.dart":
+  {
+
+  },
+"TRefElement.dart":
+  {
+
+  },
+"AnimateColorElement.dart":
+  {
+
+  },
+"PathSeg.dart":
+  {
+
+  },
+"FEBlendElement.dart":
+  {
+
+  }
+}

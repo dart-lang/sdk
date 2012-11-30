@@ -242,7 +242,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
   void onInit() {
     _installErrorHandler();
     _messageHandler = _handleMessage; // We need to make just one closure.
-    document.query('#group-divs').innerHTML = "";
+    document.query('#group-divs').innerHtml = "";
   }
 
   void onStart() {
@@ -355,7 +355,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
       testItem.classes.clear();
       testItem.classes.add('test-it');
       testItem.classes.add('status-pending');
-      testItem.query('#$_actionIdPrefix$id').innerHTML = '';
+      testItem.query('#$_actionIdPrefix$id').innerHtml = '';
     }
   }
 

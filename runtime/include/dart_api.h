@@ -622,6 +622,19 @@ typedef bool (*Dart_IsolateInterruptCallback)();
 // TODO(turnidge): Define and implement unwinding.
 
 /**
+ * An isolate unhandled exception callback function.
+ *
+ * This callback, provided by the embedder, is called when an unhandled
+ * exception or internal error is thrown during isolate execution. When the
+ * callback is invoked, Dart_CurrentIsolate can be used to figure out which
+ * isolate was running when the exception was thrown.
+ *
+ * \param error The unhandled exception or error.  This handle's scope is
+ *   only valid until the embedder returns from this callback.
+ */
+typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
+
+/**
  * An isolate shutdown callback function.
  *
  * This callback, provided by the embedder, is called after the vm
@@ -644,12 +657,18 @@ typedef void (*Dart_IsolateShutdownCallback)(void* callback_data);
  *   See Dart_IsolateCreateCallback.
  * \param interrupt A function to be called when an isolate is interrupted.
  *   See Dart_IsolateInterruptCallback.
+ * \param unhandled_exception A function to be called if an isolate has an
+ *   unhandled exception.  Set Dart_IsolateUnhandledExceptionCallback.
+ * \param shutdown A function to be called when an isolate is shutdown.
+ *   See Dart_IsolateShutdownCallback.
  *
  * \return True if initialization is successful.
  */
-DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
-                                 Dart_IsolateInterruptCallback interrupt,
-                                 Dart_IsolateShutdownCallback shutdown);
+DART_EXPORT bool Dart_Initialize(
+    Dart_IsolateCreateCallback create,
+    Dart_IsolateInterruptCallback interrupt,
+    Dart_IsolateUnhandledExceptionCallback unhandled_exception,
+    Dart_IsolateShutdownCallback shutdown);
 
 /**
  * Sets command line flags. Should be called before Dart_Initialize.
@@ -1406,10 +1425,10 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
                                                    void** peer);
 
 /**
- * Returns a String which references an external array of UTF-8 encoded
- * characters.
+ * Returns a String which references an external array of
+ * Latin-1 (ISO-8859-1) encoded characters.
  *
- * \param utf8_array An array of UTF-8 encoded characters. This must not move.
+ * \param latin1_array Array of Latin-1 encoded characters. This must not move.
  * \param length The length of the characters array.
  * \param peer An external pointer to associate with this string.
  * \param cback A callback to be called when this string is finalized.
@@ -1417,10 +1436,11 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
  * \return The String object if no error occurs. Otherwise returns
  *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewExternalUTF8String(const uint8_t* utf8_array,
-                                                   intptr_t length,
-                                                   void* peer,
-                                                   Dart_PeerFinalizer cback);
+DART_EXPORT Dart_Handle Dart_NewExternalLatin1String(
+    const uint8_t* latin1_array,
+    intptr_t length,
+    void* peer,
+    Dart_PeerFinalizer cback);
 
 /**
  * Returns a String which references an external array of UTF-16 encoded
@@ -1986,27 +2006,13 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
 
 /**
  * Is this a class handle?
- *
- * Most parts of the dart embedding api do not distinguish between
- * classes and interfaces.  For example, Dart_GetClass can return a
- * class or an interface and Dart_New can instantiate a class or an
- * interface.  The exceptions are Dart_IsClass and Dart_IsInterface,
- * which can be used to distinguish whether a handle refers to a class
- * or an interface.
  */
 DART_EXPORT bool Dart_IsClass(Dart_Handle handle);
 
 /**
- * Is this an interface handle?
- *
- * Most parts of the dart embedding api do not distinguish between
- * classes and interfaces.  For example, Dart_GetClass can return a
- * class or an interface and Dart_New can instantiate a class or an
- * interface.  The exceptions are Dart_IsClass and Dart_IsInterface,
- * which can be used to distinguish whether a handle refers to a class
- * or an interface.
+ * Is this an abstract class handle?
  */
-DART_EXPORT bool Dart_IsInterface(Dart_Handle handle);
+DART_EXPORT bool Dart_IsAbstractClass(Dart_Handle handle);
 
 /**
  * Returns the class name for the provided class or interface.
@@ -2017,16 +2023,6 @@ DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle clazz);
  * Returns the library for the provided class or interface.
  */
 DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz);
-
-/**
- * Returns the default factory class for the provided class or
- * interface.
- *
- * Only interfaces may have default fadctory classes.  If the class or
- * interface has no default factory class, this function returns
- * Dart_Null().
- */
-DART_EXPORT Dart_Handle Dart_ClassGetDefault(Dart_Handle clazz);
 
 /**
  * Returns the number of interfaces directly implemented by some class

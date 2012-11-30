@@ -81,6 +81,11 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   "utf": const LibraryInfo(
       "utf/utf.dart"),
 
+  "web_audio": const LibraryInfo(
+        "web_audio/dartium/web_audio_dartium.dart",
+        category: "Client",
+        dart2jsPath: "web_audio/dart2js/web_audio_dart2js.dart"),
+
   "_js_helper": const LibraryInfo(
       "_internal/compiler/implementation/lib/js_helper.dart",
       category: "Internal",

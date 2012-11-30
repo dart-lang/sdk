@@ -912,6 +912,9 @@ static FieldElementImplementation fieldFromNode(DartField node,
     if (element.getModifiers().isExternal()) {
       return false;
     }
+    if (element.getModifiers().isNative()) {
+      return false;
+    }
     if (element.getModifiers().isStatic()) {
       return false;
     }

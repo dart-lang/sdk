@@ -102,7 +102,7 @@ class MultipartRequest extends BaseRequest {
       writeLine();
     });
 
-    forEachFuture(files, (file) {
+    Futures.forEach(files, (file) {
       writeAscii('--$boundary\r\n');
       writeAscii(_headerForFile(file));
       return writeInputToInput(file.finalize(), stream)

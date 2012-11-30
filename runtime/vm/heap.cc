@@ -6,7 +6,6 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
-#include "vm/compiler_stats.h"
 #include "vm/flags.h"
 #include "vm/heap_profiler.h"
 #include "vm/isolate.h"

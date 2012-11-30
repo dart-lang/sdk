@@ -513,7 +513,7 @@ void HeapProfiler::WriteClassDump(const RawClass* raw_class) {
   }
   // instance size (in bytes)
   // TODO(cshapiro): properly account for variable sized objects
-  sub.Write32(raw_class->ptr()->instance_size_);
+  sub.Write32(raw_class->ptr()->instance_size_in_words_);
   // size of constant pool and number of records that follow:
   sub.Write16(0);
   // Number of static fields

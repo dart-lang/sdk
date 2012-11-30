@@ -540,7 +540,7 @@ class Primitives {
       var performance = JS('var', 'window.performance');
       if (performance != null && 
           JS('bool', 'typeof #.webkitNow == "function"', performance)) {
-        return JS('num', '#.webkitNow()', performance);
+        return (1000 * JS('num', '#.webkitNow()', performance)).floor();
       }
     }
     return 1000 * dateNow();
@@ -557,7 +557,7 @@ class Primitives {
       if (end <= kMaxApply) {
         subarray = array;
       } else {
-        subarray = JS('List<int>', r'array.slice(#, #)',
+        subarray = JS('=List', r'array.slice(#, #)',
                       i, i + kMaxApply < end ? i + kMaxApply : end);
       }
       result = JS('String', '# + String.fromCharCode.apply(#, #)',
@@ -972,9 +972,6 @@ throwAbstractClassInstantiationError(className) {
  *
  * Some native exceptions are mapped to new Dart instances, others are
  * returned unmodified.
- *
- * TODO(erikcorry): Fix this to produce consistent result regardless of
- * minification.
  */
 unwrapException(ex) {
   // Note that we are checking if the object has the property. If it
@@ -1220,6 +1217,23 @@ class Creates {
 class Returns {
   final String types;
   const Returns(this.types);
+}
+
+/**
+ * A metadata annotation placed on native methods and fields of native classes
+ * to specify the JavaScript name.
+ *
+ * This example declares a Dart field + getter + setter called `$dom_title` that
+ * corresponds to the JavaScript property `title`.
+ *
+ *     class Docmument native "*Foo" {
+ *       @JSName('title')
+ *       String $dom_title;
+ *     }
+ */
+class JSName {
+  final String name;
+  const JSName(this.name);
 }
 
 /**

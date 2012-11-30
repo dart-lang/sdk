@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// PackageRoot=tests/standalone/package/packages/
+// PackageRoot=packages/
 
 library package_isolate_test;
 import 'package:shared.dart' as shared;

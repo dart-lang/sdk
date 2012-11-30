@@ -18,8 +18,14 @@ import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dar
 // TODO(amouravski): There is currently magic that looks at dart:* libraries
 // rather than the declared library names. This changed due to recent syntax
 // changes. We should only need to look at the library 'html'.
-const List<String> HTML_LIBRARY_NAMES = const ['dart:html', 'dart:svg'];
-const List<String> HTML_DECLARED_NAMES = const ['html', 'svg'];
+const List<String> HTML_LIBRARY_NAMES = const [
+    'dart:html',
+    'dart:svg',
+    'dart:web_audio'];
+const List<String> HTML_DECLARED_NAMES = const [
+    'html',
+    'svg',
+    'web_audio'];
 
 /**
  * A class for computing a many-to-many mapping between the types and

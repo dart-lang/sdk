@@ -65,7 +65,7 @@ class HtmlEnhancedConfiguration extends Configuration {
       cssElement = document.head.query('#${_CSSID}');
     }
 
-    cssElement.innerHTML = _htmlTestCSS;
+    cssElement.innerHtml = _htmlTestCSS;
   }
 
   void onStart() {
@@ -89,7 +89,7 @@ class HtmlEnhancedConfiguration extends Configuration {
   void _showInteractiveResultsInPage(int passed, int failed, int errors,
       List<TestCase> results, bool isLayoutTest, String uncaughtError) {
     if (isLayoutTest && passed == results.length) {
-      document.body.innerHTML = "PASS";
+      document.body.innerHtml = "PASS";
     } else {
       // changed the StringBuffer to an Element fragment
       Element te = new Element.html('<div class="unittest-table"></div>');

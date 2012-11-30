@@ -44,7 +44,7 @@ rem
 setlocal EnableDelayedExpansion
 set DART_SDK=""
 if [%FOUND_SDK%] == [0] (
-  if exist "%DART_ANALYZER_HOME%\lib\core\core_runtime.dart" (
+  if exist "%DART_ANALYZER_HOME%\lib\core\core.dart" (
     set DART_SDK=--dart-sdk %DART_ANALYZER_HOME%
   ) else (
     for /f %%i in ('echo %DART_ANALYZER_HOME%') do set DART_SDK_HOME=%%~dpi\dart-sdk
@@ -64,7 +64,7 @@ endlocal & set "DART_SDK=%DART_SDK%" & set "DART_SDK_HOME=%DART_SDK_HOME%"
 
 rem DART_SDK=""
 rem if [ $FOUND_SDK = 0 ] ; then
-rem   if [ -f $DART_ANALYZER_HOME/lib/core/core_runtime.dart ] ; then
+rem   if [ -f $DART_ANALYZER_HOME/lib/core/core.dart ] ; then
 rem     DART_SDK="--dart-sdk $DART_ANALYZER_HOME"
 rem   else
 rem     DART_SDK_HOME=$(dirname $DART_ANALYZER_HOME)/dart-sdk

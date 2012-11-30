@@ -48,10 +48,19 @@ static inline double trunc(double x) {
 }
 
 static inline double round(double x) {
-  if (x < 0) {
-    return ceil(x - 0.5);
+  if (!_finite(x)) {
+    return x;
+  }
+
+  double intpart;
+  double fractpart = modf(x, &intpart);
+
+  if (fractpart >= 0.5) {
+    return intpart + 1;
+  } else if (fractpart > -0.5) {
+    return intpart;
   } else {
-    return floor(x + 0.5);
+    return intpart - 1;
   }
 }
 

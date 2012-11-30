@@ -91,8 +91,7 @@ static void ShutdownIsolate(uword parameter) {
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     if (!error.IsNull()) {
-      OS::PrintErr("%s\n", error.ToErrorCString());
-      exit(255);
+      OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
     }
   }
   {

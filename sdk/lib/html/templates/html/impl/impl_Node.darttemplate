@@ -112,6 +112,7 @@ $endif
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
+/// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   _ChildNodeListLazy get nodes {
     return new _ChildNodeListLazy(this);

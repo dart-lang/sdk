@@ -94,6 +94,7 @@ abstract class ConcreteType {
 
   ConcreteType union(ConcreteType other);
   bool isUnkown();
+  bool isEmpty();
   Set<BaseType> get baseTypes;
 
   /**
@@ -109,6 +110,7 @@ abstract class ConcreteType {
 class UnknownConcreteType implements ConcreteType {
   const UnknownConcreteType();
   bool isUnkown() => true;
+  bool isEmpty() => false;
   bool operator ==(ConcreteType other) => identical(this, other);
   Set<BaseType> get baseTypes =>
       new Set<BaseType>.from([const UnknownBaseType()]);
@@ -131,6 +133,7 @@ class UnionType implements ConcreteType {
   UnionType(this.baseTypes);
 
   bool isUnkown() => false;
+  bool isEmpty() => baseTypes.isEmpty;
 
   bool operator ==(ConcreteType other) {
     if (other is! UnionType) return false;
@@ -366,6 +369,14 @@ class ConcreteTypesInferrer {
   final Compiler compiler;
 
   /**
+   * When true, the string litteral [:"__dynamic_for_test":] is inferred to
+   * have the unknown type.
+   */
+  // TODO(polux): get rid of this hack once we have a natural way of inferring
+  // the unknown type.
+  bool testMode = false;
+
+  /**
    * Constants representing builtin base types. Initialized in [analyzeMain]
    * and not in the constructor because the compiler elements are not yet
    * populated.
@@ -479,9 +490,9 @@ class ConcreteTypesInferrer {
   /**
    * Returns all the members with name [methodName].
    */
-  List<FunctionElement> getMembersByName(SourceString methodName) {
+  List<Element> getMembersByName(SourceString methodName) {
     // TODO(polux): make this faster!
-    var result = new List<FunctionElement>();
+    var result = new List<Element>();
     for (ClassElement cls in compiler.enqueuer.resolution.seenClasses) {
       Element elem = cls.lookupLocalMember(methodName);
       if (elem != null) {
@@ -601,13 +612,11 @@ class ConcreteTypesInferrer {
     ConcreteType result = new ConcreteType.empty();
     Map<Element, ConcreteType> argumentMap =
         associateArguments(function, argumentsTypes);
-    argumentMap.forEach((Element parameter, ConcreteType type) {
-      augmentParameterType(parameter, type);
-    });
     // if the association failed, this send will never occur or will fail
     if (argumentMap == null) {
       return new ConcreteType.empty();
     }
+    argumentMap.forEach(augmentParameterType);
     ConcreteTypeCartesianProduct product =
         new ConcreteTypeCartesianProduct(receiverType, argumentMap);
     for (ConcreteTypesEnvironment environment in product) {
@@ -1010,14 +1019,14 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType analyzeSetNode(Node receiver, ConcreteType argumentType,
-                              SourceString source) {
+                              SourceString name) {
     ConcreteType receiverType = analyze(receiver);
 
-    void augmentField(BaseType baseReceiverType, Element fieldOrSetter) {
-      if (fieldOrSetter.isField()) {
-        inferrer.augmentFieldType(fieldOrSetter, argumentType);
-      } else {
-        AbstractFieldElement abstractField = fieldOrSetter;
+    void augmentField(BaseType baseReceiverType, Element member) {
+      if (member.isField()) {
+        inferrer.augmentFieldType(member, argumentType);
+      } else if (member.isAbstractField()){
+        AbstractFieldElement abstractField = member;
         FunctionElement setter = abstractField.setter;
         // TODO(polux): A setter always returns void so there's no need to
         // invalidate its callers even if it is called with new arguments.
@@ -1028,50 +1037,77 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         inferrer.getSendReturnType(setter, baseReceiverType,
             new ArgumentsTypes([argumentType], new Map()));
       }
+      // since this is a sendSet we ignore non-fields
     }
 
     if (receiverType.isUnkown()) {
-      for (FunctionElement member in inferrer.getMembersByName(source)) {
+      for (Element member in inferrer.getMembersByName(name)) {
+        if (!(member.isField() || member.isAbstractField())) continue;
         Element classElem = member.getEnclosingClass();
         BaseType baseReceiverType = new ClassBaseType(classElem);
         augmentField(baseReceiverType, member);
       }
     } else {
-      for (ClassBaseType baseReceiverType in receiverType.baseTypes) {
-        Element member = baseReceiverType.element.lookupMember(source);
+      for (BaseType baseReceiverType in receiverType.baseTypes) {
+        if (!baseReceiverType.isClass()) continue;
+        ClassBaseType baseReceiverClassType = baseReceiverType;
+        Element member = baseReceiverClassType.element.lookupMember(name);
         if (member != null) {
-          augmentField(baseReceiverType, member);
+          augmentField(baseReceiverClassType, member);
         }
       }
     }
     return argumentType;
   }
 
-  SourceString canonicalizeCompoundOperator(String op) {
+  SourceString canonicalizeCompoundOperator(SourceString op) {
     // TODO(ahe): This class should work on elements or selectors, not
     // names.  Otherwise, it is repeating work the resolver has
     // already done (or should have done).  In this case, the problem
     // is that the resolver is not recording the selectors it is
     // registering in registerBinaryOperator in
     // ResolverVisitor.visitSendSet.
-    if (op == '++') return const SourceString(r'+');
-    else return const SourceString(r'-');
+    String stringValue = op.stringValue;
+    if (stringValue == '++') return const SourceString(r'+');
+    else if (stringValue == '--') return const SourceString(r'-');
+    else return Elements.mapToUserOperatorOrNull(op);
   }
 
   // TODO(polux): handle sendset as expression
   ConcreteType visitSendSet(SendSet node) {
-    Identifier selector = node.selector;
-    final name = node.assignmentOperator.source.stringValue;
+    // Operator []= has a different behaviour than other send sets: it is
+    // actually a send whose return type is that of its second argument.
+    if (node.selector.asIdentifier().source.stringValue == '[]') {
+      ConcreteType receiverType = analyze(node.receiver);
+      ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
+      analyzeDynamicSend(receiverType, const SourceString('[]='),
+                         argumentsTypes);
+      return argumentsTypes.positional[1];
+    }
+
+    // All other operators have a single argument (++ and -- have an implicit
+    // argument: 1). We will store its type in argumentType.
     ConcreteType argumentType;
-    if (name == '++' || name == '--') {
+    SourceString operatorName = node.assignmentOperator.source;
+    SourceString compoundOperatorName =
+        canonicalizeCompoundOperator(node.assignmentOperator.source);
+    // ++, --, +=, -=, ...
+    if (compoundOperatorName != null) {
       ConcreteType receiverType = visitGetterSend(node);
-      SourceString canonicalizedMethodName = canonicalizeCompoundOperator(name);
-      List<ConcreteType> positionalArguments = <ConcreteType>[
-          new ConcreteType.singleton(inferrer.baseTypes.intBaseType)];
-      ArgumentsTypes argumentsTypes =
-          new ArgumentsTypes(positionalArguments, new Map());
-      argumentType = analyzeDynamicSend(receiverType, canonicalizedMethodName,
+      // argumentsTypes is either computed from the actual arguments or [{int}]
+      // in case of ++ or --.
+      ArgumentsTypes argumentsTypes;
+      if (operatorName.stringValue == '++'
+          || operatorName.stringValue == '--') {
+        List<ConcreteType> positionalArguments = <ConcreteType>[
+            new ConcreteType.singleton(inferrer.baseTypes.intBaseType)];
+        argumentsTypes = new ArgumentsTypes(positionalArguments, new Map());
+      } else {
+        argumentsTypes = analyzeArguments(node.arguments);
+      }
+      argumentType = analyzeDynamicSend(receiverType, compoundOperatorName,
                                         argumentsTypes);
+    // The simple assignment case: receiver = argument.
     } else {
       argumentType = analyze(node.argumentsNode);
     }
@@ -1098,6 +1134,12 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitLiteralString(LiteralString node) {
+    // TODO(polux): get rid of this hack once we have a natural way of inferring
+    // the unknown type.
+    if (inferrer.testMode
+        && node.dartString.slowToString() == "__dynamic_for_test") {
+      return new ConcreteType.unknown();
+    }
     return new ConcreteType.singleton(inferrer.baseTypes.stringBaseType);
   }
 
@@ -1316,22 +1358,24 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       assert(node.receiver != null);
 
       ConcreteType result = new ConcreteType.empty();
-      void augmentResult(BaseType baseReceiverType, Element getterOrField) {
-        if (getterOrField.isField()) {
-          result = result.union(analyzeFieldRead(getterOrField));
-        } else {
+      void augmentResult(BaseType baseReceiverType, Element member) {
+        if (member.isField()) {
+          result = result.union(analyzeFieldRead(member));
+        } else if (member.isAbstractField()){
           // call to a getter
-          AbstractFieldElement abstractField = getterOrField;
+          AbstractFieldElement abstractField = member;
           result = result.union(analyzeGetterSend(baseReceiverType,
                                                   abstractField.getter));
         }
+        // since this is a get we ignore non-fields
       }
 
       ConcreteType receiverType = analyze(node.receiver);
       if (receiverType.isUnkown()) {
         List<Element> members =
             inferrer.getMembersByName(node.selector.asIdentifier().source);
-        for (final member in members) {
+        for (Element member in members) {
+          if (!(member.isField() || member.isAbstractField())) continue;
           Element classElement = member.getEnclosingClass();
           ClassBaseType baseReceiverType = new ClassBaseType(classElement);
           augmentResult(baseReceiverType, member);
@@ -1356,56 +1400,19 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     inferrer.fail(node, 'not implemented');
   }
 
-  // TODO(polux): handle unary operators and share this list with the rest of
-  // dart2js.
-  final Set<SourceString> operators = new Set<SourceString>()
-      ..add(const SourceString('=='))
-      ..add(const SourceString('!='))
-      ..add(const SourceString('~'))
-      ..add(const SourceString('[]'))
-      ..add(const SourceString('[]='))
-      ..add(const SourceString('*'))
-      ..add(const SourceString('*='))
-      ..add(const SourceString('/'))
-      ..add(const SourceString('/='))
-      ..add(const SourceString('%'))
-      ..add(const SourceString('%='))
-      ..add(const SourceString('~/'))
-      ..add(const SourceString('~/='))
-      ..add(const SourceString('+'))
-      ..add(const SourceString('+='))
-      ..add(const SourceString('-'))
-      ..add(const SourceString('-='))
-      ..add(const SourceString('<<'))
-      ..add(const SourceString('<<='))
-      ..add(const SourceString('>>'))
-      ..add(const SourceString('>>='))
-      ..add(const SourceString('>='))
-      ..add(const SourceString('>'))
-      ..add(const SourceString('<='))
-      ..add(const SourceString('<'))
-      ..add(const SourceString('&'))
-      ..add(const SourceString('&='))
-      ..add(const SourceString('^'))
-      ..add(const SourceString('^='))
-      ..add(const SourceString('|'))
-      ..add(const SourceString('|='));
-
-  SourceString canonicalizeMethodName(SourceString s) {
-    return operators.contains(s)
-        ? Elements.constructOperatorName(s, false)
-        : s;
-  }
-
   ConcreteType analyzeDynamicSend(ConcreteType receiverType,
                                   SourceString canonicalizedMethodName,
                                   ArgumentsTypes argumentsTypes) {
     ConcreteType result = new ConcreteType.empty();
 
     if (receiverType.isUnkown()) {
-      List<FunctionElement> methods =
+      List<Element> methods =
           inferrer.getMembersByName(canonicalizedMethodName);
-      for (FunctionElement method in methods) {
+      for (Element element in methods) {
+        // TODO(polux): when we handle closures, we must handle sends to fields
+        // that are closures.
+        if (!element.isFunction()) continue;
+        FunctionElement method = element;
         inferrer.addCaller(method, currentMethod);
         Element classElem = method.enclosingElement;
         ClassBaseType baseReceiverType = new ClassBaseType(classElem);
@@ -1430,6 +1437,14 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     return result;
   }
 
+  SourceString canonicalizeMethodName(SourceString name) {
+    // TODO(polux): handle unary-
+    SourceString operatorName =
+        Elements.constructOperatorNameOrNull(name, false);
+    if (operatorName != null) return operatorName;
+    return name;
+  }
+
   ConcreteType visitDynamicSend(Send node) {
     ConcreteType receiverType = (node.receiver != null)
         ? analyze(node.receiver)
@@ -1438,7 +1453,16 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     SourceString name =
         canonicalizeMethodName(node.selector.asIdentifier().source);
     ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
-    return analyzeDynamicSend(receiverType, name, argumentsTypes);
+    if (name.stringValue == '!=') {
+      ConcreteType returnType = analyzeDynamicSend(receiverType,
+                                                   const SourceString('=='),
+                                                   argumentsTypes);
+      return returnType.isEmpty()
+          ? returnType
+          : new ConcreteType.singleton(inferrer.baseTypes.boolBaseType);
+    } else {
+      return analyzeDynamicSend(receiverType, name, argumentsTypes);
+    }
   }
 
   ConcreteType visitForeignSend(Send node) {

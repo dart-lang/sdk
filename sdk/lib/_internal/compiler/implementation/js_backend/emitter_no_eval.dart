@@ -108,7 +108,6 @@ $classesCollector.$mangledName = {'': function $mangledName(self, target) {
     List<String> fields = <String>[];
     visitClassFields(classElement, (Element member,
                                     String name,
-                                    String accessorName,
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
@@ -135,40 +134,16 @@ $classesCollector.$mangledName = {'': function $mangledName(self, target) {
 
   void emitClassFields(ClassElement classElement,
                        CodeBuffer buffer,
-                       bool emitEndingComma) {
+                       bool emitEndingComma,
+                       { String superClass: "",
+                         bool isNative: false}) {
     if (emitEndingComma) buffer.add(', ');
   }
 
-  void emitClassGettersSetters(ClassElement classElement,
-                               CodeBuffer buffer,
-                               bool emitLeadingComma) {
-    emitComma() {
-      if (emitLeadingComma) {
-        buffer.add(",\n ");
-      } else {
-        emitLeadingComma = true;
-      }
-    }
-
-    visitClassFields(classElement, (Element member,
-                                    String name,
-                                    String accessorName,
-                                    bool needsGetter,
-                                    bool needsSetter,
-                                    bool needsCheckedSetter) {
-      if (needsGetter) {
-        emitComma();
-        generateGetter(member, name, accessorName, buffer);
-      }
-      if (needsSetter) {
-        emitComma();
-        generateSetter(member, name, accessorName, buffer);
-      }
-      if (needsCheckedSetter) {
-        assert(!needsSetter);
-        emitComma();
-        generateCheckedSetter(member, name, accessorName, buffer);
-      }
-    });
+  bool getterAndSetterCanBeImplementedByFieldSpec(Element member,
+                                                  String name,
+                                                  bool needsGetter,
+                                                  bool needsSetter) {
+    return false;
   }
 }

@@ -34,6 +34,23 @@ class StringScanner extends ArrayBasedScanner<SourceString> {
     tail.next = new StringToken.fromSource(info, value, tokenStart);
     tail = tail.next;
   }
+
+  void unmatchedBeginGroup(BeginGroupToken begin) {
+    SourceString error = new SourceString('unmatched "${begin.stringValue}"');
+    Token close =
+        new StringToken.fromSource(BAD_INPUT_INFO, error, begin.charOffset);
+    // We want to ensure that unmatched BeginGroupTokens are reported
+    // as errors. However, the rest of the parser assume the groups
+    // are well-balanced and will never look at the endGroup
+    // token. This is a nice property that allows us to skip quickly
+    // over correct code. By inserting an additional error token in
+    // the stream, we can keep ignoring endGroup tokens.
+    Token next =
+        new StringToken.fromSource(BAD_INPUT_INFO, error, begin.charOffset);
+    begin.endGroup = close;
+    close.next = next;
+    next.next = begin.next;
+  }
 }
 
 class SubstringWrapper implements SourceString {

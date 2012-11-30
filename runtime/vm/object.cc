@@ -11,6 +11,7 @@
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_generator.h"
+#include "vm/code_observers.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/compiler_stats.h"
@@ -18,7 +19,6 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/datastream.h"
-#include "vm/debuginfo.h"
 #include "vm/deopt_instructions.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
@@ -35,8 +35,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, generate_gdb_symbols, false,
-    "Generate symbols of generated dart functions for debugging with GDB");
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
@@ -273,7 +271,7 @@ void Object::InitOnce() {
     cls.set_id(Class::kClassId);
     cls.raw_ptr()->state_bits_ = 0;
     cls.set_is_finalized();
-    cls.raw_ptr()->type_arguments_instance_field_offset_ =
+    cls.raw_ptr()->type_arguments_field_offset_in_words_ =
         Class::kNoTypeArguments;
     cls.raw_ptr()->num_native_fields_ = 0;
     cls.InitEmptyFields();
@@ -304,7 +302,7 @@ void Object::InitOnce() {
 
   cls = Class::New<Instance>(kDynamicCid);
   cls.set_is_finalized();
-  cls.set_is_interface();
+  cls.set_is_abstract();
   dynamic_class_ = cls.raw();
 
   // Allocate the remaining VM internal classes.
@@ -557,13 +555,13 @@ RawError* Object::Init(Isolate* isolate) {
   // Since they are pre-finalized, CalculateFieldOffsets() is not called, so we
   // need to set the offset of their type_arguments_ field, which is explicitly
   // declared in RawArray.
-  cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
+  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
 
   // Set up the growable object array class (Has to be done after the array
   // class is setup as one of its field is an array object).
   cls = Class::New<GrowableObjectArray>();
   object_store->set_growable_object_array_class(cls);
-  cls.set_type_arguments_instance_field_offset(
+  cls.set_type_arguments_field_offset(
       GrowableObjectArray::type_arguments_offset());
 
   // canonical_type_arguments_ are NULL terminated.
@@ -634,7 +632,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
-  cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
+  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
   name = Symbols::ImmutableArray();
   RegisterPrivateClass(cls, name, core_lib);
@@ -1371,7 +1369,7 @@ RawClass* Class::New() {
   // VM backed classes are almost ready: run checks and resolve class
   // references, but do not recompute size.
   result.set_is_prefinalized();
-  result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
+  result.raw_ptr()->type_arguments_field_offset_in_words_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
@@ -1525,7 +1523,7 @@ intptr_t Class::NumTypeArguments() const {
 bool Class::HasTypeArguments() const {
   if (!IsSignatureClass() && (is_finalized() || is_prefinalized())) {
     // More efficient than calling NumTypeArguments().
-    return type_arguments_instance_field_offset() != kNoTypeArguments;
+    return type_arguments_field_offset() != kNoTypeArguments;
   } else {
     // No need to check NumTypeArguments() if class has type parameters.
     return (NumTypeParameters() > 0) || (NumTypeArguments() > 0);
@@ -1544,40 +1542,6 @@ RawClass* Class::SuperClass() const {
 
 void Class::set_super_type(const Type& value) const {
   StorePointer(&raw_ptr()->super_type_, value.raw());
-}
-
-
-bool Class::HasFactoryClass() const {
-  const Object& factory_class = Object::Handle(raw_ptr()->factory_class_);
-  return !factory_class.IsNull();
-}
-
-
-bool Class::HasResolvedFactoryClass() const {
-  ASSERT(HasFactoryClass());
-  const Object& factory_class = Object::Handle(raw_ptr()->factory_class_);
-  return factory_class.IsClass();
-}
-
-
-RawClass* Class::FactoryClass() const {
-  ASSERT(HasResolvedFactoryClass());
-  Class& type_class = Class::Handle();
-  type_class ^= raw_ptr()->factory_class_;
-  return type_class.raw();
-}
-
-
-RawUnresolvedClass* Class::UnresolvedFactoryClass() const {
-  ASSERT(!HasResolvedFactoryClass());
-  UnresolvedClass& unresolved_factory_class = UnresolvedClass::Handle();
-  unresolved_factory_class ^= raw_ptr()->factory_class_;
-  return unresolved_factory_class.raw();
-}
-
-
-void Class::set_factory_class(const Object& value) const {
-  StorePointer(&raw_ptr()->factory_class_, value.raw());
 }
 
 
@@ -1624,7 +1588,7 @@ void Class::CalculateFieldOffsets() const {
   if (super.IsNull()) {
     offset = sizeof(RawObject);
   } else {
-    type_args_field_offset = super.type_arguments_instance_field_offset();
+    type_args_field_offset = super.type_arguments_field_offset();
     offset = super.next_field_offset();
     ASSERT(offset > 0);
     // We should never call CalculateFieldOffsets for native wrapper
@@ -1642,7 +1606,7 @@ void Class::CalculateFieldOffsets() const {
       offset += kWordSize;
     }
   }
-  set_type_arguments_instance_field_offset(type_args_field_offset);
+  set_type_arguments_field_offset(type_args_field_offset);
   ASSERT(offset != 0);
   Field& field = Field::Handle();
   intptr_t len = flds.Length();
@@ -1791,7 +1755,7 @@ RawClass* Class::New(intptr_t index) {
   result.set_next_field_offset(FakeInstance::InstanceSize());
   result.set_id(index);
   result.raw_ptr()->state_bits_ = 0;
-  result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
+  result.raw_ptr()->type_arguments_field_offset_in_words_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
@@ -1816,15 +1780,6 @@ RawClass* Class::New(const String& name,
                      const Script& script,
                      intptr_t token_pos) {
   Class& result = Class::Handle(New<Instance>(name, script, token_pos));
-  return result.raw();
-}
-
-
-RawClass* Class::NewInterface(const String& name,
-                              const Script& script,
-                              intptr_t token_pos) {
-  Class& result = Class::Handle(New<Instance>(name, script, token_pos));
-  result.set_is_interface();
   return result.raw();
 }
 
@@ -1856,7 +1811,7 @@ RawClass* Class::NewSignatureClass(const String& name,
   result.set_type_parameters(type_parameters);
   result.SetFields(empty_array);
   result.SetFunctions(empty_array);
-  result.set_type_arguments_instance_field_offset(
+  result.set_type_arguments_field_offset(
       Closure::type_arguments_offset());
   // Implements interface "Function".
   const Type& function_type = Type::Handle(Type::Function());
@@ -1951,9 +1906,10 @@ void Class::set_token_pos(intptr_t token_pos) const {
 }
 
 
-void Class::set_is_interface() const {
-  set_state_bits(InterfaceBit::update(true, raw_ptr()->state_bits_));
+void Class::set_is_implemented() const {
+  set_state_bits(ImplementedBit::update(true, raw_ptr()->state_bits_));
 }
+
 
 void Class::set_is_abstract() const {
   set_state_bits(AbstractBit::update(true, raw_ptr()->state_bits_));
@@ -2080,6 +2036,11 @@ bool Class::TypeTest(
     ASSERT(test_kind == kIsMoreSpecificThan);
     return true;
   }
+  // Check for ObjectType. Any type that is not NullType or DynamicType (already
+  // checked above), is more specific than ObjectType.
+  if (other.IsObjectClass()) {
+    return true;
+  }
   // Check for reflexivity.
   if (raw() == other.raw()) {
     const intptr_t len = NumTypeArguments();
@@ -2102,8 +2063,7 @@ bool Class::TypeTest(
                                    len,
                                    malformed_error);
   }
-  // TODO(regis): Check for interface type S implementing method call() of
-  // function type T.
+  // TODO(regis): Check if type S has a call() method of function type T.
   // Check for two function types.
   if (IsSignatureClass() && other.IsSignatureClass()) {
     const Function& fun = Function::Handle(signature_function());
@@ -2114,9 +2074,8 @@ bool Class::TypeTest(
                         other_type_arguments,
                         malformed_error);
   }
-  // Check for 'direct super type' in the case of an interface
-  // (i.e. other.is_interface()) or implicit interface (i.e.
-  // !other.is_interface()) and check for transitivity at the same time.
+  // Check for 'direct super type' specified in the implements clause
+  // and check for transitivity at the same time.
   Array& interfaces = Array::Handle(this->interfaces());
   AbstractType& interface = AbstractType::Handle();
   Class& interface_class = Class::Handle();
@@ -2157,15 +2116,6 @@ bool Class::TypeTest(
                                  malformed_error)) {
       return true;
     }
-  }
-  // Check the interface case.
-  if (is_interface()) {
-    // We already checked the case where 'other' is an interface. Now, 'this',
-    // an interface, cannot be more specific than a class, except class Object,
-    // because although Object is not considered an interface by the vm, it is
-    // one. In other words, all classes implementing this interface also extend
-    // class Object. An interface is also more specific than the DynamicType.
-    return (other.IsDynamicClass() || other.IsObjectClass());
   }
   const Class& super_class = Class::Handle(SuperClass());
   if (super_class.IsNull()) {
@@ -2388,8 +2338,7 @@ RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
 
 
 const char* Class::ToCString() const {
-  const char* format = is_interface()
-      ? "%s Interface: %s" : "%s Class: %s";
+  const char* format = "%s Class: %s";
   const Library& lib = Library::Handle(library());
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
   const char* class_name = String::Handle(Name()).ToCString();
@@ -2451,11 +2400,6 @@ void UnresolvedClass::set_ident(const String& ident) const {
 void UnresolvedClass::set_library_prefix(
     const LibraryPrefix& library_prefix) const {
   StorePointer(&raw_ptr()->library_prefix_, library_prefix.raw());
-}
-
-
-void UnresolvedClass::set_factory_signature_class(const Class& value) const {
-  StorePointer(&raw_ptr()->factory_signature_class_, value.raw());
 }
 
 
@@ -2593,34 +2537,6 @@ bool AbstractTypeArguments::AreEqual(
     return arguments.IsDynamicTypes(false, arguments.Length());
   }
   return arguments.Equals(other_arguments);
-}
-
-
-bool AbstractTypeArguments::AreIdentical(
-    const AbstractTypeArguments& arguments,
-    const AbstractTypeArguments& other_arguments,
-    bool check_type_parameter_bounds) {
-  if (arguments.raw() == other_arguments.raw()) {
-    return true;
-  }
-  if (arguments.IsNull() || other_arguments.IsNull()) {
-    return false;
-  }
-  intptr_t num_types = arguments.Length();
-  if (num_types != other_arguments.Length()) {
-    return false;
-  }
-  AbstractType& type = AbstractType::Handle();
-  AbstractType& other_type = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_types; i++) {
-    type = arguments.TypeAt(i);
-    ASSERT(!type.IsNull());
-    other_type = other_arguments.TypeAt(i);
-    if (!type.IsIdentical(other_type, check_type_parameter_bounds)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 
@@ -4214,7 +4130,7 @@ int32_t Function::SourceFingerprint() const {
 
 bool Function::CheckSourceFingerprint(intptr_t fp) const {
   if (SourceFingerprint() != fp) {
-    OS::Print("FP mismatch while recogbnizing method %s:"
+    OS::Print("FP mismatch while recognizing method %s:"
       " expecting %"Pd" found %d\n",
       ToFullyQualifiedCString(),
       fp,
@@ -4497,7 +4413,7 @@ RawLiteralToken* LiteralToken::New(Token::Kind kind, const String& literal) {
   result.set_kind(kind);
   result.set_literal(literal);
   if (kind == Token::kINTEGER) {
-    const Integer& value = Integer::Handle(Integer::New(literal, Heap::kOld));
+    const Integer& value = Integer::Handle(Integer::NewCanonical(literal));
     ASSERT(value.IsSmi() || value.IsOld());
     result.set_value(value);
   } else if (kind == Token::kDOUBLE) {
@@ -6392,17 +6308,14 @@ RawError* Library::CompileAll() {
     ClassDictionaryIterator it(lib);
     while (it.HasNext()) {
       cls ^= it.GetNextClass();
-      if (!cls.is_interface()) {
-        error = Compiler::CompileAllFunctions(cls);
-        if (!error.IsNull()) {
-          return error.raw();
-        }
+      error = Compiler::CompileAllFunctions(cls);
+      if (!error.IsNull()) {
+        return error.raw();
       }
     }
     Array& anon_classes = Array::Handle(lib.raw_ptr()->anonymous_classes_);
     for (int i = 0; i < lib.raw_ptr()->num_anonymous_; i++) {
       cls ^= anon_classes.At(i);
-      ASSERT(!cls.is_interface());
       error = Compiler::CompileAllFunctions(cls);
       if (!error.IsNull()) {
         return error.raw();
@@ -7132,46 +7045,12 @@ RawCode* Code::FinalizeCode(const char* name,
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
                       instrs.size());
   assembler->FinalizeInstructions(region);
-  Dart_FileWriterFunction perf_events_writer = Dart::perf_events_writer();
-  if (perf_events_writer != NULL) {
-    const char* format = "%"Px" %"Px" %s%s\n";
-    uword addr = instrs.EntryPoint();
-    uword size = instrs.size();
-    const char* marker = optimized ? "*" : "";
-    intptr_t len = OS::SNPrint(NULL, 0, format, addr, size, marker, name);
-    char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(buffer, len + 1, format, addr, size, marker, name);
-    (*perf_events_writer)(buffer, len);
-  }
-  DebugInfo* pprof_symbol_generator = Dart::pprof_symbol_generator();
-  if (pprof_symbol_generator != NULL) {
-    ASSERT(strlen(name) != 0);
-    pprof_symbol_generator->AddCode(instrs.EntryPoint(), instrs.size());
-    pprof_symbol_generator->AddCodeRegion(name,
-                                          instrs.EntryPoint(),
-                                          instrs.size());
-  }
-  if (FLAG_generate_gdb_symbols) {
-    ASSERT(strlen(name) != 0);
-    intptr_t prolog_offset = assembler->prolog_offset();
-    if (prolog_offset > 0) {
-      // In order to ensure that gdb sees the first instruction of a function
-      // as the prolog sequence we register two symbols for the cases when
-      // the prolog sequence is not the first instruction:
-      // <name>_entry is used for code preceding the prolog sequence.
-      // <name> for rest of the code (first instruction is prolog sequence).
-      const char* kFormat = "%s_%s";
-      intptr_t len = OS::SNPrint(NULL, 0, kFormat, name, "entry");
-      char* pname = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-      OS::SNPrint(pname, (len + 1), kFormat, name, "entry");
-      DebugInfo::RegisterSection(pname, instrs.EntryPoint(), prolog_offset);
-      DebugInfo::RegisterSection(name,
-                                 (instrs.EntryPoint() + prolog_offset),
-                                 (instrs.size() - prolog_offset));
-    } else {
-      DebugInfo::RegisterSection(name, instrs.EntryPoint(), instrs.size());
-    }
-  }
+
+  CodeObservers::NotifyAll(name,
+                           instrs.EntryPoint(),
+                           assembler->prologue_offset(),
+                           instrs.size(),
+                           optimized);
 
   const ZoneGrowableArray<int>& pointer_offsets =
       assembler->GetPointerOffsets();
@@ -7203,9 +7082,7 @@ RawCode* Code::FinalizeCode(const Function& function,
                             Assembler* assembler,
                             bool optimized) {
   // Calling ToFullyQualifiedCString is very expensive, try to avoid it.
-  if (FLAG_generate_gdb_symbols ||
-      Dart::perf_events_writer() != NULL ||
-      Dart::pprof_symbol_generator() != NULL) {
+  if (CodeObservers::AreActive()) {
     return FinalizeCode(function.ToFullyQualifiedCString(),
                         assembler,
                         optimized);
@@ -8223,7 +8100,7 @@ RawType* Instance::GetType() const {
 
 RawAbstractTypeArguments* Instance::GetTypeArguments() const {
   const Class& cls = Class::Handle(clazz());
-  intptr_t field_offset = cls.type_arguments_instance_field_offset();
+  intptr_t field_offset = cls.type_arguments_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
   type_arguments ^= *FieldAddrAtOffset(field_offset);
@@ -8233,7 +8110,7 @@ RawAbstractTypeArguments* Instance::GetTypeArguments() const {
 
 void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
   const Class& cls = Class::Handle(clazz());
-  intptr_t field_offset = cls.type_arguments_instance_field_offset();
+  intptr_t field_offset = cls.type_arguments_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
   SetFieldAtOffset(field_offset, value);
 }
@@ -8489,14 +8366,6 @@ void AbstractType::set_malformed_error(const Error& value) const {
 
 
 bool AbstractType::Equals(const Instance& other) const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
-
-bool AbstractType::IsIdentical(const AbstractType& other,
-                               bool check_type_parameter_bound) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -8926,27 +8795,6 @@ bool Type::Equals(const Instance& other) const {
 }
 
 
-bool Type::IsIdentical(const AbstractType& other,
-                       bool check_type_parameter_bounds) const {
-  if (raw() == other.raw()) {
-    return true;
-  }
-  if (!other.IsType()) {
-    return false;
-  }
-  // Both type classes may not be resolved yet.
-  String& name = String::Handle(TypeClassName());
-  String& other_name = String::Handle(Type::Cast(other).TypeClassName());
-  if (!name.Equals(other_name)) {
-    return false;
-  }
-  return AbstractTypeArguments::AreIdentical(
-      AbstractTypeArguments::Handle(arguments()),
-      AbstractTypeArguments::Handle(other.arguments()),
-      false);  // Bounds are only checked at the top level.
-}
-
-
 RawAbstractType* Type::Canonicalize() const {
   ASSERT(IsFinalized());
   if (IsCanonical() || IsMalformed()) {
@@ -9111,38 +8959,6 @@ bool TypeParameter::Equals(const Instance& other) const {
 }
 
 
-bool TypeParameter::IsIdentical(const AbstractType& other,
-                                bool check_type_parameter_bound) const {
-  if (raw() == other.raw()) {
-    return true;
-  }
-  if (!other.IsTypeParameter()) {
-    return false;
-  }
-  const TypeParameter& other_type_param = TypeParameter::Cast(other);
-  // IsIdentical may be called on type parameters belonging to different
-  // classes, e.g. to an interface and to its default factory class.
-  // Therefore, both type parameters may have different parameterized classes
-  // and different indices. Compare the type parameter names only, and their
-  // bounds if requested.
-  String& type_param_name = String::Handle(name());
-  String& other_type_param_name = String::Handle(other_type_param.name());
-  if (!type_param_name.Equals(other_type_param_name)) {
-    return false;
-  }
-  if (check_type_parameter_bound) {
-    AbstractType& this_bound = AbstractType::Handle(bound());
-    AbstractType& other_bound = AbstractType::Handle(other_type_param.bound());
-    // Bounds are only checked at the top level.
-    const bool check_type_parameter_bounds = false;
-    if (!this_bound.IsIdentical(other_bound, check_type_parameter_bounds)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
 void TypeParameter::set_parameterized_class(const Class& value) const {
   // Set value may be null.
   StorePointer(&raw_ptr()->parameterized_class_, value.raw());
@@ -9243,8 +9059,7 @@ const char* Integer::ToCString() const {
 
 
 RawInteger* Integer::New(const String& str, Heap::Space space) {
-  // We are not supposed to have integers represented as two byte or
-  // four byte strings.
+  // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
   int64_t value;
   if (!OS::StringToInt64(str.ToCString(), &value)) {
@@ -9254,6 +9069,23 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
     return big.raw();
   }
   return Integer::New(value, space);
+}
+
+
+RawInteger* Integer::NewCanonical(const String& str) {
+  // We are not supposed to have integers represented as two byte strings.
+  ASSERT(str.IsOneByteString());
+  int64_t value;
+  if (!OS::StringToInt64(str.ToCString(), &value)) {
+    const Bigint& big = Bigint::Handle(Bigint::NewCanonical(str));
+    ASSERT(!BigintOperations::FitsIntoSmi(big));
+    ASSERT(!BigintOperations::FitsIntoMint(big));
+    return big.raw();
+  }
+  if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
+    return Smi::New(value);
+  }
+  return Mint::NewCanonical(value);
 }
 
 
@@ -9858,6 +9690,10 @@ bool Bigint::Equals(const Instance& other) const {
 
   const Bigint& other_bgi = Bigint::Cast(other);
 
+  if (this->IsNegative() != other_bgi.IsNegative()) {
+    return false;
+  }
+
   intptr_t len = this->Length();
   if (len != other_bgi.Length()) {
     return false;
@@ -9877,6 +9713,36 @@ RawBigint* Bigint::New(const String& str, Heap::Space space) {
       BigintOperations::NewFromCString(str.ToCString(), space));
   ASSERT(!BigintOperations::FitsIntoMint(result));
   return result.raw();
+}
+
+
+RawBigint* Bigint::NewCanonical(const String& str) {
+  const Bigint& value = Bigint::Handle(
+      BigintOperations::NewFromCString(str.ToCString(), Heap::kOld));
+  ASSERT(!BigintOperations::FitsIntoMint(value));
+  const Class& cls =
+      Class::Handle(Isolate::Current()->object_store()->bigint_class());
+  const Array& constants = Array::Handle(cls.constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Bigint& canonical_value = Bigint::Handle();
+  intptr_t index = 0;
+  while (index < constants_len) {
+    canonical_value ^= constants.At(index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.Equals(value)) {
+      return canonical_value.raw();
+    }
+    index++;
+  }
+  // The value needs to be added to the constants list. Grow the list if
+  // it is full.
+  cls.InsertCanonicalConstant(index, value);
+  value.SetCanonical();
+  return value.raw();
 }
 
 
@@ -9977,8 +9843,9 @@ intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
   ASSERT(len >= 0);
   ASSERT((begin_index + len) <= str.Length());
   StringHasher hasher;
-  for (intptr_t i = 0; i < len; i++) {
-    hasher.Add(str.CharAt(begin_index + i));
+  CodePointIterator it(str, begin_index, len);
+  while (it.Next()) {
+    hasher.Add(it.Current());
   }
   return hasher.Finalize(String::kHashBits);
 }
@@ -10001,7 +9868,12 @@ intptr_t String::Hash(const uint8_t* characters, intptr_t len) {
 
 
 intptr_t String::Hash(const uint16_t* characters, intptr_t len) {
-  return HashImpl(characters, len);
+  StringHasher hasher;
+  intptr_t i = 0;
+  while (i < len) {
+    hasher.Add(Utf16::Next(characters, &i, len));
+  }
+  return hasher.Finalize(String::kHashBits);
 }
 
 
@@ -10215,7 +10087,7 @@ RawString* String::New(const uint16_t* utf16_array,
                        Heap::Space space) {
   bool is_one_byte_string = true;
   for (intptr_t i = 0; i < array_len; ++i) {
-    if (utf16_array[i] > 0xFF) {
+    if (!Utf::IsLatin1(utf16_array[i])) {
       is_one_byte_string = false;
       break;
     }
@@ -10233,11 +10105,11 @@ RawString* String::New(const int32_t* utf32_array,
   bool is_one_byte_string = true;
   intptr_t utf16_len = array_len;
   for (intptr_t i = 0; i < array_len; ++i) {
-    if (utf32_array[i] > 0xFF) {
+    if (!Utf::IsLatin1(utf32_array[i])) {
       is_one_byte_string = false;
-    }
-    if (utf32_array[i] > 0xFFFF) {
-      utf16_len += 1;
+      if (Utf::IsSupplementary(utf32_array[i])) {
+        utf16_len += 1;
+      }
     }
   }
   if (is_one_byte_string) {
@@ -10314,7 +10186,7 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   if (dst.IsOneByteString()) {
     NoGCScope no_gc;
     for (intptr_t i = 0; i < array_len; ++i) {
-      ASSERT(utf16_array[i] <= 0xFF);
+      ASSERT(Utf::IsLatin1(utf16_array[i]));
       *OneByteString::CharAddr(dst, i + dst_offset) = utf16_array[i];
     }
   } else {
@@ -10469,7 +10341,7 @@ RawString* String::SubString(const String& str,
   intptr_t char_size = str.CharSize();
   if (char_size == kTwoByteChar) {
     for (intptr_t i = begin_index; i < begin_index + length; ++i) {
-      if (str.CharAt(i) > 0xFF) {
+      if (!Utf::IsLatin1(str.CharAt(i))) {
         is_one_byte_string = false;
         break;
       }
@@ -10519,15 +10391,16 @@ RawString* String::MakeExternal(void* array,
                                 intptr_t length,
                                 void* peer,
                                 Dart_PeerFinalizer cback) const {
+  NoGCScope no_gc;
   ASSERT(array != NULL);
   intptr_t str_length = this->Length();
   ASSERT(length >= (str_length * this->CharSize()));
   intptr_t class_id = raw()->GetClassId();
   intptr_t used_size = 0;
   intptr_t original_size = 0;
-  uword tags = 0;
-  NoGCScope no_gc;
+  uword tags = raw_ptr()->tags_;
 
+  ASSERT(!IsCanonical());
   if (class_id == kOneByteStringCid) {
     used_size = ExternalOneByteString::InstanceSize();
     original_size = OneByteString::InstanceSize(str_length);
@@ -10604,10 +10477,10 @@ RawString* String::Transform(int32_t (*mapping)(int32_t ch),
   if (!has_mapping) {
     return str.raw();
   }
-  if (dst_max <= 0xFF) {
+  if (Utf::IsLatin1(dst_max)) {
     return OneByteString::Transform(mapping, str, space);
   }
-  ASSERT(dst_max > 0xFF);
+  ASSERT(Utf::IsBmp(dst_max) || Utf::IsSupplementary(dst_max));
   return TwoByteString::Transform(mapping, str, space);
 }
 
@@ -10626,20 +10499,20 @@ RawString* String::ToLowerCase(const String& str, Heap::Space space) {
 
 bool String::CodePointIterator::Next() {
   ASSERT(index_ >= -1);
-  ASSERT(index_ < str_.Length());
-  int d = Utf16::Length(ch_);
-  if (index_ == (str_.Length() - d)) {
-    return false;
-  }
-  index_ += d;
-  ch_ = str_.CharAt(index_);
-  if (Utf16::IsLeadSurrogate(ch_) && (index_ != (str_.Length() - 1))) {
-    int32_t ch2 = str_.CharAt(index_ + 1);
-    if (Utf16::IsTrailSurrogate(ch2)) {
-      ch_ = Utf16::Decode(ch_, ch2);
+  intptr_t length = Utf16::Length(ch_);
+  if (index_ < (end_ - length)) {
+    index_ += length;
+    ch_ = str_.CharAt(index_);
+    if (Utf16::IsLeadSurrogate(ch_) && (index_ < (end_ - 1))) {
+      int32_t ch2 = str_.CharAt(index_ + 1);
+      if (Utf16::IsTrailSurrogate(ch2)) {
+        ch_ = Utf16::Decode(ch_, ch2);
+      }
     }
+    return true;
   }
-  return true;
+  index_ = end_;
+  return false;
 }
 
 
@@ -10774,7 +10647,7 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      Heap::Space space) {
   const String& result =String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
-    ASSERT(characters[i] <= 0xFF);
+    ASSERT(Utf::IsLatin1(characters[i]));
     *CharAddr(result, i) = characters[i];
   }
   return OneByteString::raw(result);
@@ -10786,7 +10659,7 @@ RawOneByteString* OneByteString::New(const int32_t* characters,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
-    ASSERT(characters[i] <= 0xFF);
+    ASSERT(Utf::IsLatin1(characters[i]));
     *CharAddr(result, i) = characters[i];
   }
   return OneByteString::raw(result);
@@ -10798,6 +10671,22 @@ RawOneByteString* OneByteString::New(const String& str,
   intptr_t len = str.Length();
   const String& result = String::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, str, 0, len);
+  return OneByteString::raw(result);
+}
+
+
+RawOneByteString* OneByteString::New(const String& other_one_byte_string,
+                                     intptr_t other_start_index,
+                                     intptr_t other_len,
+                                     Heap::Space space) {
+  const String& result = String::Handle(OneByteString::New(other_len, space));
+  ASSERT(other_one_byte_string.IsOneByteString());
+  if (other_len > 0) {
+    NoGCScope no_gc;
+    memmove(OneByteString::CharAddr(result, 0),
+            OneByteString::CharAddr(other_one_byte_string, other_start_index),
+            other_len);
+  }
   return OneByteString::raw(result);
 }
 
@@ -10840,7 +10729,7 @@ RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
   const String& result = String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
     int32_t ch = mapping(str.CharAt(i));
-    ASSERT(ch >= 0 && ch <= 0xFF);
+    ASSERT(Utf::IsLatin1(ch));
     *CharAddr(result, i) = ch;
   }
   return OneByteString::raw(result);
@@ -10925,7 +10814,7 @@ RawTwoByteString* TwoByteString::New(intptr_t utf16_len,
     NoGCScope no_gc;
     intptr_t j = 0;
     for (intptr_t i = 0; i < array_len; ++i) {
-      if (utf32_array[i] > 0xffff) {
+      if (Utf::IsSupplementary(utf32_array[i])) {
         ASSERT(j < (utf16_len - 1));
         Utf16::Encode(utf32_array[i], CharAddr(result, j));
         j += 2;

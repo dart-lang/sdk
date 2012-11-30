@@ -4,6 +4,7 @@
 
 part of html;
 
+/// @domName $DOMNAME
 class $CLASSNAME$EXTENDS implements Map<String, String> $NATIVESPEC {
 
   // TODO(nweiz): update this when maps support lazy iteration

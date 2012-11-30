@@ -152,6 +152,12 @@ class _StringBase {
     if (startIndex > endIndex) {
       throw new RangeError.value(startIndex);
     }
+    if (startIndex == endIndex) {
+      return "";
+    }
+    if ((startIndex + 1) == endIndex) {
+      return this[startIndex];
+    }
     return _substringUnchecked(startIndex, endIndex);
   }
 
@@ -263,6 +269,9 @@ class _StringBase {
   }
 
   List<String> split(Pattern pattern) {
+    if ((pattern is String) && pattern.isEmpty) {
+      return splitChars();
+    }
     int length = this.length;
     Iterator iterator = pattern.allMatches(this).iterator();
     if (length == 0 && iterator.hasNext) {
@@ -369,6 +378,8 @@ class _OneByteString extends _StringBase implements String {
       ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 
+  String _substringUnchecked(int startIndex, int endIndex)
+      native "OneByteString_substringUnchecked";
 }
 
 

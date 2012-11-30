@@ -96,7 +96,6 @@ class ClassFinalizer : public AllStatic {
   static RawClass* ResolveClass(const Class& cls,
                                 const UnresolvedClass& unresolved_class);
   static void ResolveSuperType(const Class& cls);
-  static void ResolveFactoryClass(const Class& cls);
   static void ResolveRedirectingFactoryTarget(
       const Class& cls,
       const Function& factory,

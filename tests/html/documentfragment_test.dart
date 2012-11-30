@@ -45,7 +45,7 @@ main() {
     expect(style.length, isZero);
     // TODO(jacobr): these checks throw UnimplementedErrors in dartium.
     // expect(style.parentRule, isNull);
-    // expect(style.getPropertyCSSValue('color'), isNull);
+    // expect(style.getPropertyCssValue('color'), isNull);
     // expect(style.getPropertyShorthand('color'), isNull);
     // expect(style.isPropertyImplicit('color'), isFalse);
 
@@ -182,18 +182,18 @@ main() {
     });
   });
 
-  test('setting innerHTML works', () {
+  test('setting innerHtml works', () {
     var fragment = new DocumentFragment();
     fragment.nodes.add(new Text("foo"));
-    fragment.innerHTML = "<a>bar</a>baz";
+    fragment.innerHtml = "<a>bar</a>baz";
     expect(_nodeStrings(fragment.nodes), equals(["A", "baz"]));
   });
 
-  test('getting innerHTML works', () {
+  test('getting innerHtml works', () {
     var fragment = new DocumentFragment();
     fragment.nodes.addAll([new Text("foo"), new Element.html("<A>bar</A>")]);
-    expect(fragment.innerHTML, "foo<a>bar</a>");
-    expect(fragment.outerHTML, "foo<a>bar</a>");
+    expect(fragment.innerHtml, "foo<a>bar</a>");
+    expect(fragment.outerHtml, "foo<a>bar</a>");
   });
 
   group('insertAdjacentElement', () {
@@ -203,28 +203,28 @@ main() {
       var fragment = getFragment();
       expect(fragment.insertAdjacentElement("beforeBegin",
           new Element.tag("b")), isNull);
-      expect(fragment.innerHTML, "<a>foo</a>");
+      expect(fragment.innerHtml, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       var fragment = getFragment();
       expect(fragment.insertAdjacentElement("afterEnd",
           new Element.tag("b")), isNull);
-      expect(fragment.innerHTML, "<a>foo</a>");
+      expect(fragment.innerHtml, "<a>foo</a>");
     });
 
     test('afterBegin inserts the element', () {
       var fragment = getFragment();
       var el = new Element.tag("b");
       expect(fragment.insertAdjacentElement("afterBegin", el), equals(el));
-      expect(fragment.innerHTML, "<b></b><a>foo</a>");
+      expect(fragment.innerHtml, "<b></b><a>foo</a>");
     });
 
     test('beforeEnd inserts the element', () {
       var fragment = getFragment();
       var el = new Element.tag("b");
       expect(fragment.insertAdjacentElement("beforeEnd", el), equals(el));
-      expect(fragment.innerHTML, "<a>foo</a><b></b>");
+      expect(fragment.innerHtml, "<a>foo</a><b></b>");
     });
   });
 
@@ -234,53 +234,53 @@ main() {
     test('beforeBegin does nothing', () {
       var fragment = getFragment();
       fragment.insertAdjacentText("beforeBegin", "foo");
-      expect(fragment.innerHTML, "<a>foo</a>");
+      expect(fragment.innerHtml, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       var fragment = getFragment();
       fragment.insertAdjacentText("afterEnd", "foo");
-      expect(fragment.innerHTML, "<a>foo</a>");
+      expect(fragment.innerHtml, "<a>foo</a>");
     });
 
     test('afterBegin inserts the text', () {
       var fragment = getFragment();
       fragment.insertAdjacentText("afterBegin", "foo");
-      expect(fragment.innerHTML, "foo<a>foo</a>");
+      expect(fragment.innerHtml, "foo<a>foo</a>");
     });
 
     test('beforeEnd inserts the text', () {
       var fragment = getFragment();
       fragment.insertAdjacentText("beforeEnd", "foo");
-      expect(fragment.innerHTML, "<a>foo</a>foo");
+      expect(fragment.innerHtml, "<a>foo</a>foo");
     });
   });
 
-  group('insertAdjacentHTML', () {
+  group('insertAdjacentHtml', () {
     getFragment() => new DocumentFragment.html("<a>foo</a>");
 
     test('beforeBegin does nothing', () {
       var fragment = getFragment();
-      fragment.insertAdjacentHTML("beforeBegin", "foo<br>");
-      expect(fragment.innerHTML, "<a>foo</a>");
+      fragment.insertAdjacentHtml("beforeBegin", "foo<br>");
+      expect(fragment.innerHtml, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       var fragment = getFragment();
-      fragment.insertAdjacentHTML("afterEnd", "<br>foo");
-      expect(fragment.innerHTML, "<a>foo</a>");
+      fragment.insertAdjacentHtml("afterEnd", "<br>foo");
+      expect(fragment.innerHtml, "<a>foo</a>");
     });
 
     test('afterBegin inserts the HTML', () {
       var fragment = getFragment();
-      fragment.insertAdjacentHTML("afterBegin", "foo<br>");
-      expect(fragment.innerHTML, "foo<br><a>foo</a>");
+      fragment.insertAdjacentHtml("afterBegin", "foo<br>");
+      expect(fragment.innerHtml, "foo<br><a>foo</a>");
     });
 
     test('beforeEnd inserts the HTML', () {
       var fragment = getFragment();
-      fragment.insertAdjacentHTML("beforeEnd", "<br>foo");
-      expect(fragment.innerHTML, "<a>foo</a><br>foo");
+      fragment.insertAdjacentHtml("beforeEnd", "<br>foo");
+      expect(fragment.innerHtml, "<a>foo</a><br>foo");
     });
   });
 

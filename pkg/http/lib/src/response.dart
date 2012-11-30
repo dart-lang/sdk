@@ -7,6 +7,7 @@ library response;
 import 'dart:io';
 import 'dart:scalarlist';
 
+import 'base_request.dart';
 import 'base_response.dart';
 import 'streamed_response.dart';
 import 'utils.dart';
@@ -28,13 +29,15 @@ class Response extends BaseResponse {
   Response(
       String body,
       int statusCode,
-      {Map<String, String> headers: const <String>{},
+      {BaseRequest request,
+       Map<String, String> headers: const <String>{},
        bool isRedirect: false,
        bool persistentConnection: true,
        String reasonPhrase})
     : this.bytes(
         encodeString(body, _encodingForHeaders(headers)),
         statusCode,
+        request: request,
         headers: headers,
         isRedirect: isRedirect,
         persistentConnection: persistentConnection,
@@ -44,7 +47,8 @@ class Response extends BaseResponse {
   Response.bytes(
       List<int> bodyBytes,
       int statusCode,
-      {Map<String, String> headers: const <String>{},
+      {BaseRequest request,
+       Map<String, String> headers: const <String>{},
        bool isRedirect: false,
        bool persistentConnection: true,
        String reasonPhrase})
@@ -52,6 +56,7 @@ class Response extends BaseResponse {
       super(
         statusCode,
         bodyBytes.length,
+        request: request,
         headers: headers,
         isRedirect: isRedirect,
         persistentConnection: persistentConnection,
@@ -64,6 +69,7 @@ class Response extends BaseResponse {
       return new Response.bytes(
           body,
           response.statusCode,
+          request: response.request,
           headers: response.headers,
           isRedirect: response.isRedirect,
           persistentConnection: response.persistentConnection,

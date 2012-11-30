@@ -131,7 +131,7 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
 
 RawSmi* BaseReader::ReadAsSmi() {
   intptr_t value = ReadIntptrValue();
-  ASSERT((value & kSmiTagMask) == 0);
+  ASSERT((value & kSmiTagMask) == kSmiTag);
   return reinterpret_cast<RawSmi*>(value);
 }
 
@@ -179,7 +179,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   ASSERT(kind_ != Snapshot::kFull);
   // Read the class header information and lookup the class.
   intptr_t class_header = ReadIntptrValue();
-  ASSERT((class_header & kSmiTagMask) != 0);
+  ASSERT((class_header & kSmiTagMask) != kSmiTag);
   Class& cls = Class::ZoneHandle(isolate(), Class::null());
   cls = LookupInternalClass(class_header);
   AddBackRef(object_id, &cls, kIsDeserialized);
@@ -198,8 +198,8 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
 
 RawObject* SnapshotReader::ReadObjectImpl() {
   int64_t value = Read<int64_t>();
-  if ((value & kSmiTagMask) == 0) {
-    return Integer::New((value >> kSmiTagShift), HEAP_SPACE(kind_));
+  if ((value & kSmiTagMask) == kSmiTag) {
+    return NewInteger(value);
   }
   return ReadObjectImpl(value);
 }
@@ -221,8 +221,8 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value) {
 
 RawObject* SnapshotReader::ReadObjectRef() {
   int64_t header_value = Read<int64_t>();
-  if ((header_value & kSmiTagMask) == 0) {
-    return Integer::New((header_value >> kSmiTagShift), HEAP_SPACE(kind_));
+  if ((header_value & kSmiTagMask) == kSmiTag) {
+    return NewInteger(header_value);
   }
   ASSERT((header_value <= kIntptrMax) && (header_value >= kIntptrMin));
   if (IsVMIsolateObject(header_value)) {
@@ -255,7 +255,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     }
     return result.raw();
   }
-  ASSERT((class_header & kSmiTagMask) != 0);
+  ASSERT((class_header & kSmiTagMask) != kSmiTag);
   cls_ = LookupInternalClass(class_header);
   ASSERT(!cls_.IsNull());
 
@@ -574,6 +574,19 @@ RawLanguageError* SnapshotReader::NewLanguageError() {
 }
 
 
+RawObject* SnapshotReader::NewInteger(int64_t value) {
+  ASSERT((value & kSmiTagMask) == kSmiTag);
+  value = value >> kSmiTagShift;
+  if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
+    return Smi::New(value);
+  }
+  if (kind_ == Snapshot::kFull) {
+    return NewMint(value);
+  }
+  return Mint::NewCanonical(value);
+}
+
+
 RawClass* SnapshotReader::LookupInternalClass(intptr_t class_header) {
   // If the header is an object Id, lookup singleton VM classes or classes
   // stored in the object store.
@@ -704,7 +717,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     }
     return result->raw();
   }
-  ASSERT((class_header & kSmiTagMask) != 0);
+  ASSERT((class_header & kSmiTagMask) != kSmiTag);
   cls_ = LookupInternalClass(class_header);
   ASSERT(!cls_.IsNull());
   switch (cls_.id()) {
@@ -1020,6 +1033,19 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
     return true;
   }
 
+  // Check if the object is a Mint and could potentially be a Smi
+  // on other architectures (64 bit), if so write it out as int64_t value.
+  if (rawobj->GetClassId() == kMintCid) {
+    int64_t value = reinterpret_cast<RawMint*>(rawobj)->ptr()->value_;
+    const intptr_t kSmi64Bits = 62;
+    const int64_t kSmi64Max = (static_cast<int64_t>(1) << kSmi64Bits) - 1;
+    const int64_t kSmi64Min = -(static_cast<int64_t>(1) << kSmi64Bits);
+    if (value <= kSmi64Max && value >= kSmi64Min) {
+      Write<int64_t>((value << kSmiTagShift) | kSmiTag);
+      return true;
+    }
+  }
+
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
   if (rawobj->GetClassId() == kCodeCid) {
@@ -1089,7 +1115,8 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
       Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
     }
     // Object is regular dart instance.
-    intptr_t instance_size = cls->ptr()->instance_size_;
+    intptr_t instance_size =
+        cls->ptr()->instance_size_in_words_ << kWordSizeLog2;
     ASSERT(instance_size != 0);
 
     // Write out the serialization header value for this object.

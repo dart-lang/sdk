@@ -110,8 +110,16 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
         DartLibraryCalls::HandleMessage(
             message->dest_port(), message->reply_port(), msg));
     delete message;
-    if (result.IsError()) {
-      isolate_->object_store()->set_sticky_error(Error::Cast(result));
+    if (result.IsError() || result.IsUnhandledException()) {
+      if (result.IsError()) {
+        isolate_->object_store()->set_sticky_error(Error::Cast(result));
+      }
+      if (Isolate::UnhandledExceptionCallback() != NULL) {
+        Dart_EnterScope();
+        Dart_Handle error = Api::NewHandle(isolate_, result.raw());
+        (Isolate::UnhandledExceptionCallback())(error);
+        Dart_ExitScope();
+      }
       return false;
     }
     ASSERT(result.IsNull());
@@ -446,6 +454,8 @@ void Isolate::Shutdown() {
 
 Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
 Dart_IsolateInterruptCallback Isolate::interrupt_callback_ = NULL;
+Dart_IsolateUnhandledExceptionCallback
+    Isolate::unhandled_exception_callback_ = NULL;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = NULL;
 
 

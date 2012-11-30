@@ -11,6 +11,8 @@
     'hashmap.h',
     'inttypes_support_win.h',
     'json.h',
+    'floating_point.h',
+    'floating_point_win.h',
     'thread.h',
     'thread_linux.h',
     'thread_macos.h',

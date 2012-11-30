@@ -644,7 +644,7 @@ class ResolverTask extends CompilerTask {
       ResolverVisitor visitor =
           visitorFor(annotation.annotatedElement.enclosingElement);
       node.accept(visitor);
-      annotation.value = compiler.constantHandler.compileNodeWithDefinitions(
+      annotation.value = compiler.metadataHandler.compileNodeWithDefinitions(
           node, visitor.mapping, isConst: true);
 
       annotation.resolutionState = STATE_DONE;
@@ -1038,7 +1038,7 @@ class TypeResolver {
 
   TypeResolver(this.compiler);
 
-  bool anyMalformedTypesInThere(Link<DartType> list) {
+  bool anyMalformedTypes(Link<DartType> list) {
     for (Link<DartType> link = list;
         !link.isEmpty;
         link = link.tail) {
@@ -1136,20 +1136,36 @@ class TypeResolver {
           // Use the canonical type if it has no type parameters.
           type = cls.computeType(compiler);
         } else {
-          // In checked mode malformed-ness of the type argument bubbles up.
-          if (anyMalformedTypesInThere(arguments) &&
-              compiler.enableTypeAssertions) {
-            type = new MalformedType(
-                new MalformedTypeElement(node, element));
+          if (anyMalformedTypes(arguments)) {
+            // Build interface type (with malformed arguments in it) and
+            // call [whenResolved] to let [ConstructorResolver] create
+            // constructor selectors, which are used by 
+            // [SsaBuilder.visitNewSend] to figure out what class needs 
+            // to be built.
+            whenResolved(node,
+                         new InterfaceType(cls.declaration, arguments));
+            // Return malformed type element below so that
+            // [ConstructorResolver.visitTypeAnnotation] gets [:MalformedType:]
+            // and can map (via resolver.mapping) NewExpression node to
+            // this malformed type.
+            // [SsaBuilder.visitNewExpression] picks up the fact that
+            // NewExpression is mapped to malformed type and generates
+            // runtime error in checked mode.
+            type = new MalformedType(new MalformedTypeElement(node, element));
+            return type;
           } else {
-            type = new InterfaceType(cls.declaration, arguments);
+            if (arguments.isEmpty) {
+              // Use the canonical raw type if the class is generic.
+              type = cls.rawType;
+            } else {
+              type = new InterfaceType(cls.declaration, arguments);
+            }
           }
         }
       } else if (element.isTypedef()) {
         TypedefElement typdef = element;
         // TODO(ahe): Should be [ensureResolved].
         compiler.resolveTypedef(typdef);
-        typdef.computeType(compiler);
         Link<DartType> arguments = resolveTypeArguments(
             node, typdef.typeVariables, inStaticContext,
             scope, onFailure, whenResolved);
@@ -1157,7 +1173,11 @@ class TypeResolver {
           // Return the canonical type if it has no type parameters.
           type = typdef.computeType(compiler);
         } else {
-          type = new TypedefType(typdef, arguments);
+          if (arguments.isEmpty) {
+            type = typdef.rawType;
+          } else {
+           type = new TypedefType(typdef, arguments);
+          }
         }
       } else if (element.isTypeVariable()) {
         if (inStaticContext) {
@@ -1808,6 +1828,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // unqualified.
     useElement(node, target);
     registerSend(selector, target);
+    if (node.isPropertyAccess) {
+      // It might be the closurization of a method.
+      world.registerInstantiatedClass(compiler.functionClass);
+    }
     return node.isPropertyAccess ? target : null;
   }
 
@@ -1926,6 +1950,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralBool(LiteralBool node) {
+    world.registerInstantiatedClass(compiler.boolClass);
   }
 
   visitLiteralString(LiteralString node) {
@@ -1933,6 +1958,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralNull(LiteralNull node) {
+    world.registerInstantiatedClass(compiler.nullClass);
   }
 
   visitStringJuxtaposition(StringJuxtaposition node) {
@@ -1961,7 +1987,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   void handleRedirectingFactoryBody(Return node) {
     Element redirectionTarget = resolveRedirectingFactory(node);
     var type = mapping.getType(node.expression);
-    if (type is InterfaceType && !type.typeArguments.isEmpty) {
+    if (type is InterfaceType && !type.isRaw) {
       unimplemented(node.expression, 'type arguments on redirecting factory');
     }
     useElement(node.expression, redirectionTarget);
@@ -1984,6 +2010,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
     constructor.defaultImplementation = redirectionTarget;
     world.registerStaticUse(redirectionTarget);
+    world.registerInstantiatedClass(
+        redirectionTarget.enclosingElement.declaration);
   }
 
   visitThrow(Throw node) {
@@ -2549,8 +2577,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       } else {
         objectElement.ensureResolved(compiler);
       }
-      // TODO(ahe): This should be objectElement.computeType(...).
-      element.supertype = new InterfaceType(objectElement);
+      element.supertype = objectElement.computeType(compiler);
     }
     assert(element.interfaces == null);
     Link<DartType> interfaces = const Link<DartType>();
@@ -2779,7 +2806,11 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
     return visit(node.selector);
   }
 
-  SourceString visitIdentifier(Identifier node) => node.source;
+  SourceString visitIdentifier(Identifier node) {
+    // The variable is initialized to null.
+    resolver.world.registerInstantiatedClass(compiler.nullClass);
+    return node.source;
+  }
 
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {

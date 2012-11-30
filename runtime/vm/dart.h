@@ -18,9 +18,11 @@ class ThreadPool;
 
 class Dart : public AllStatic {
  public:
-  static const char* InitOnce(Dart_IsolateCreateCallback create,
-                              Dart_IsolateInterruptCallback interrupt,
-                              Dart_IsolateShutdownCallback shutdown);
+  static const char* InitOnce(
+      Dart_IsolateCreateCallback create,
+      Dart_IsolateInterruptCallback interrupt,
+      Dart_IsolateUnhandledExceptionCallback unhandled,
+      Dart_IsolateShutdownCallback shutdown);
 
   static Isolate* CreateIsolate(const char* name_prefix);
   static RawError* InitializeIsolate(const uint8_t* snapshot, void* data);

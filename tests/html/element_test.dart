@@ -464,6 +464,34 @@ main() {
         attributes['style'] = 'width: 300px;';
         expect(attributes.length, 5);
       });
+
+      test('namespaces', () {
+        var element = new svg.SvgElement.svg(
+          '''<svg xmlns="http://www.w3.org/2000/svg"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+            <image xlink:href="foo" data-foo="bar"/>
+          </svg>''').elements[0];
+
+        var attributes = element.attributes;
+        expect(attributes.length, 1);
+        expect(attributes['data-foo'], 'bar');
+
+        var xlinkAttrs =
+            element.getNamespacedAttributes('http://www.w3.org/1999/xlink');
+        expect(xlinkAttrs.length, 1);
+        expect(xlinkAttrs['href'], 'foo');
+
+        xlinkAttrs.remove('href');
+        expect(xlinkAttrs.length, 0);
+
+        xlinkAttrs['href'] = 'bar';
+        expect(xlinkAttrs['href'], 'bar');
+
+        var randomAttrs = element.getNamespacedAttributes('http://example.com');
+        expect(randomAttrs.length, 0);
+        randomAttrs['href'] = 'bar';
+        expect(randomAttrs.length, 1);
+      });
   });
 
   group('children', () {

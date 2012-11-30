@@ -191,26 +191,9 @@ TEST_CASE(InstanceClass) {
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
             one_field_class.instance_size());
   EXPECT_EQ(header_size, field.Offset());
-}
-
-
-TEST_CASE(Interface) {
-  String& class_name = String::Handle(Symbols::New("EmptyClass"));
-  Script& script = Script::Handle();
-  const Class& factory_class =
-      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
-  const Array& no_fields = Array::Handle(Object::empty_array());
-  // Finalizes the class.
-  factory_class.SetFields(no_fields);
-
-  String& interface_name = String::Handle(Symbols::New("MyInterface"));
-  const Class& interface = Class::Handle(
-      Class::NewInterface(interface_name, script, Scanner::kDummyTokenIndex));
-  EXPECT(interface.is_interface());
-  EXPECT(!factory_class.is_interface());
-  EXPECT(!interface.HasFactoryClass());
-  interface.set_factory_class(factory_class);
-  EXPECT_EQ(factory_class.raw(), interface.FactoryClass());
+  EXPECT(!one_field_class.is_implemented());
+  one_field_class.set_is_implemented();
+  EXPECT(one_field_class.is_implemented());
 }
 
 
@@ -328,13 +311,13 @@ TEST_CASE(Mint) {
     const String& smi_str = String::Handle(String::New("1"));
     const String& mint1_str = String::Handle(String::New("2147419168"));
     const String& mint2_str = String::Handle(String::New("-2147419168"));
-    Integer& i = Integer::Handle(Integer::New(smi_str));
+    Integer& i = Integer::Handle(Integer::NewCanonical(smi_str));
     EXPECT(i.IsSmi());
-    i = Integer::New(mint1_str);
+    i = Integer::NewCanonical(mint1_str);
     EXPECT(i.IsMint());
     EXPECT(!i.IsZero());
     EXPECT(!i.IsNegative());
-    i = Integer::New(mint2_str);
+    i = Integer::NewCanonical(mint2_str);
     EXPECT(i.IsMint());
     EXPECT(!i.IsZero());
     EXPECT(i.IsNegative());
@@ -456,7 +439,7 @@ TEST_CASE(Bigint) {
   EXPECT(b.IsNull());
   const char* cstr = "18446744073709551615000";
   const String& test = String::Handle(String::New(cstr));
-  b = Bigint::New(test);
+  b = Bigint::NewCanonical(test);
   const char* str = b.ToCString();
   EXPECT_STREQ(cstr, str);
 
@@ -493,15 +476,17 @@ TEST_CASE(Bigint) {
 
 TEST_CASE(Integer) {
   Integer& i = Integer::Handle();
-  i = Integer::New(String::Handle(String::New("12")));
+  i = Integer::NewCanonical(String::Handle(String::New("12")));
   EXPECT(i.IsSmi());
-  i = Integer::New(String::Handle(String::New("-120")));
+  i = Integer::NewCanonical(String::Handle(String::New("-120")));
   EXPECT(i.IsSmi());
-  i = Integer::New(String::Handle(String::New("0")));
+  i = Integer::NewCanonical(String::Handle(String::New("0")));
   EXPECT(i.IsSmi());
-  i = Integer::New(String::Handle(String::New("12345678901234567890")));
+  i = Integer::NewCanonical(
+      String::Handle(String::New("12345678901234567890")));
   EXPECT(i.IsBigint());
-  i = Integer::New(String::Handle(String::New("-12345678901234567890111222")));
+  i = Integer::NewCanonical(
+      String::Handle(String::New("-12345678901234567890111222")));
   EXPECT(i.IsBigint());
 }
 
@@ -1706,6 +1691,23 @@ TEST_CASE(StringCodePointIterator) {
   EXPECT(it3.Next());
   EXPECT_EQ(0x1D463, it3.Current());
   EXPECT(!it3.Next());
+}
+
+
+TEST_CASE(StringCodePointIteratorRange) {
+  const String& str = String::Handle(String::New("foo bar baz"));
+
+  String::CodePointIterator it0(str, 3, 0);
+  EXPECT(!it0.Next());
+
+  String::CodePointIterator it1(str, 4, 3);
+  EXPECT(it1.Next());
+  EXPECT_EQ('b', it1.Current());
+  EXPECT(it1.Next());
+  EXPECT_EQ('a', it1.Current());
+  EXPECT(it1.Next());
+  EXPECT_EQ('r', it1.Current());
+  EXPECT(!it1.Next());
 }
 
 

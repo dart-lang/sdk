@@ -524,7 +524,7 @@ abstract class Dart2JsContainerMirror extends Dart2JsElementMirror
     _ensureMembers();
     return new AsFilteredImmutableMap<String, MemberMirror, MethodMirror>(
         _members,
-        (MemberMirror member) => member is MethodMirror);
+        (MemberMirror member) => member is MethodMirror ? member : null);
   }
 
   Map<String, MethodMirror> get getters {
@@ -532,7 +532,8 @@ abstract class Dart2JsContainerMirror extends Dart2JsElementMirror
     return new AsFilteredImmutableMap<String, MemberMirror, MethodMirror>(
         _members,
         (MemberMirror member) =>
-            member is MethodMirror && (member as MethodMirror).isGetter);
+            member is MethodMirror && (member as MethodMirror).isGetter ?
+                member : null);
   }
 
   Map<String, MethodMirror> get setters {
@@ -540,14 +541,15 @@ abstract class Dart2JsContainerMirror extends Dart2JsElementMirror
     return new AsFilteredImmutableMap<String, MemberMirror, MethodMirror>(
         _members,
         (MemberMirror member) =>
-            member is MethodMirror && (member as MethodMirror).isSetter);
+            member is MethodMirror && (member as MethodMirror).isSetter ?
+                member : null);
   }
 
   Map<String, VariableMirror> get variables {
     _ensureMembers();
     return new AsFilteredImmutableMap<String, MemberMirror, VariableMirror>(
         _members,
-        (MemberMirror member) => member is VariableMirror);
+        (MemberMirror member) => member is VariableMirror ? member : null);
   }
 }
 
@@ -1169,11 +1171,13 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   List<TypeMirror> get typeArguments {
     if (_typeArguments == null) {
       _typeArguments = <TypeMirror>[];
-      Link<DartType> type = _interfaceType.typeArguments;
-      while (type != null && type.head != null) {
-        _typeArguments.add(_convertTypeToTypeMirror(mirrors, type.head,
-            mirrors.compiler.types.dynamicType));
-        type = type.tail;
+      if (!_interfaceType.isRaw) {
+        Link<DartType> type = _interfaceType.typeArguments;
+        while (type != null && type.head != null) {
+          _typeArguments.add(_convertTypeToTypeMirror(mirrors, type.head,
+              mirrors.compiler.types.dynamicType));
+          type = type.tail;
+        }
       }
     }
     return _typeArguments;

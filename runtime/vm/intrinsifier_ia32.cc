@@ -181,7 +181,7 @@ static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
   ASSERT(!cls.IsNull());
   ASSERT(cls.HasTypeArguments());
   ASSERT(cls.NumTypeArguments() == 1);
-  const intptr_t field_offset = cls.type_arguments_instance_field_offset();
+  const intptr_t field_offset = cls.type_arguments_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
   return field_offset;
 }

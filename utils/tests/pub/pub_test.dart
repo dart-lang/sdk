@@ -22,6 +22,7 @@ final USAGE_STRING = """
     Available commands:
       help      display help information for Pub
       install   install the current package's dependencies
+      publish   publish the current package to pub.dartlang.org
       update    update the current package's dependencies to the latest versions
       version   print Pub version
 

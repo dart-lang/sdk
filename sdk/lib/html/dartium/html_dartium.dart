@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:json';
 import 'dart:nativewrappers';
 import 'dart:svg' as svg;
+import 'dart:web_audio' as web_audio;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -12,6 +13,7 @@ import 'dart:svg' as svg;
 // Auto-generated dart:html library.
 
 
+// Not actually used, but imported since dart:html can generate these objects.
 
 
 
@@ -92,66 +94,6 @@ class AbstractWorkerEvents extends Events {
   AbstractWorkerEvents(EventTarget _ptr) : super(_ptr);
 
   EventListenerList get error => this['error'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName AnalyserNode
-class AnalyserNode extends AudioNode {
-  AnalyserNode.internal(): super.internal();
-
-
-  /** @domName AnalyserNode.fftSize */
-  int get fftSize native "AnalyserNode_fftSize_Getter";
-
-
-  /** @domName AnalyserNode.fftSize */
-  void set fftSize(int value) native "AnalyserNode_fftSize_Setter";
-
-
-  /** @domName AnalyserNode.frequencyBinCount */
-  int get frequencyBinCount native "AnalyserNode_frequencyBinCount_Getter";
-
-
-  /** @domName AnalyserNode.maxDecibels */
-  num get maxDecibels native "AnalyserNode_maxDecibels_Getter";
-
-
-  /** @domName AnalyserNode.maxDecibels */
-  void set maxDecibels(num value) native "AnalyserNode_maxDecibels_Setter";
-
-
-  /** @domName AnalyserNode.minDecibels */
-  num get minDecibels native "AnalyserNode_minDecibels_Getter";
-
-
-  /** @domName AnalyserNode.minDecibels */
-  void set minDecibels(num value) native "AnalyserNode_minDecibels_Setter";
-
-
-  /** @domName AnalyserNode.smoothingTimeConstant */
-  num get smoothingTimeConstant native "AnalyserNode_smoothingTimeConstant_Getter";
-
-
-  /** @domName AnalyserNode.smoothingTimeConstant */
-  void set smoothingTimeConstant(num value) native "AnalyserNode_smoothingTimeConstant_Setter";
-
-
-  /** @domName AnalyserNode.getByteFrequencyData */
-  void getByteFrequencyData(Uint8Array array) native "AnalyserNode_getByteFrequencyData_Callback";
-
-
-  /** @domName AnalyserNode.getByteTimeDomainData */
-  void getByteTimeDomainData(Uint8Array array) native "AnalyserNode_getByteTimeDomainData_Callback";
-
-
-  /** @domName AnalyserNode.getFloatFrequencyData */
-  void getFloatFrequencyData(Float32Array array) native "AnalyserNode_getFloatFrequencyData_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -721,554 +663,6 @@ class Attr extends Node {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AudioBuffer
-class AudioBuffer extends NativeFieldWrapperClass1 {
-  AudioBuffer.internal();
-
-
-  /** @domName AudioBuffer.duration */
-  num get duration native "AudioBuffer_duration_Getter";
-
-
-  /** @domName AudioBuffer.gain */
-  num get gain native "AudioBuffer_gain_Getter";
-
-
-  /** @domName AudioBuffer.gain */
-  void set gain(num value) native "AudioBuffer_gain_Setter";
-
-
-  /** @domName AudioBuffer.length */
-  int get length native "AudioBuffer_length_Getter";
-
-
-  /** @domName AudioBuffer.numberOfChannels */
-  int get numberOfChannels native "AudioBuffer_numberOfChannels_Getter";
-
-
-  /** @domName AudioBuffer.sampleRate */
-  num get sampleRate native "AudioBuffer_sampleRate_Getter";
-
-
-  /** @domName AudioBuffer.getChannelData */
-  Float32Array getChannelData(int channelIndex) native "AudioBuffer_getChannelData_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void AudioBufferCallback(AudioBuffer audioBuffer);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName AudioBufferSourceNode
-class AudioBufferSourceNode extends AudioSourceNode {
-  AudioBufferSourceNode.internal(): super.internal();
-
-  static const int FINISHED_STATE = 3;
-
-  static const int PLAYING_STATE = 2;
-
-  static const int SCHEDULED_STATE = 1;
-
-  static const int UNSCHEDULED_STATE = 0;
-
-
-  /** @domName AudioBufferSourceNode.buffer */
-  AudioBuffer get buffer native "AudioBufferSourceNode_buffer_Getter";
-
-
-  /** @domName AudioBufferSourceNode.buffer */
-  void set buffer(AudioBuffer value) native "AudioBufferSourceNode_buffer_Setter";
-
-
-  /** @domName AudioBufferSourceNode.gain */
-  AudioGain get gain native "AudioBufferSourceNode_gain_Getter";
-
-
-  /** @domName AudioBufferSourceNode.loop */
-  bool get loop native "AudioBufferSourceNode_loop_Getter";
-
-
-  /** @domName AudioBufferSourceNode.loop */
-  void set loop(bool value) native "AudioBufferSourceNode_loop_Setter";
-
-
-  /** @domName AudioBufferSourceNode.loopEnd */
-  num get loopEnd native "AudioBufferSourceNode_loopEnd_Getter";
-
-
-  /** @domName AudioBufferSourceNode.loopEnd */
-  void set loopEnd(num value) native "AudioBufferSourceNode_loopEnd_Setter";
-
-
-  /** @domName AudioBufferSourceNode.loopStart */
-  num get loopStart native "AudioBufferSourceNode_loopStart_Getter";
-
-
-  /** @domName AudioBufferSourceNode.loopStart */
-  void set loopStart(num value) native "AudioBufferSourceNode_loopStart_Setter";
-
-
-  /** @domName AudioBufferSourceNode.playbackRate */
-  AudioParam get playbackRate native "AudioBufferSourceNode_playbackRate_Getter";
-
-
-  /** @domName AudioBufferSourceNode.playbackState */
-  int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
-
-  void start(/*double*/ when, [/*double*/ grainOffset, /*double*/ grainDuration]) {
-    if ((when is num || when == null) && !?grainOffset && !?grainDuration) {
-      _start_1(when);
-      return;
-    }
-    if ((when is num || when == null) && (grainOffset is num || grainOffset == null) && (grainDuration is num || grainDuration == null)) {
-      _start_2(when, grainOffset, grainDuration);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName AudioBufferSourceNode.start_1 */
-  void _start_1(when) native "AudioBufferSourceNode_start_1_Callback";
-
-
-  /** @domName AudioBufferSourceNode.start_2 */
-  void _start_2(when, grainOffset, grainDuration) native "AudioBufferSourceNode_start_2_Callback";
-
-
-  /** @domName AudioBufferSourceNode.stop */
-  void stop(num when) native "AudioBufferSourceNode_stop_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class AudioContext extends EventTarget {
-  factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
-  AudioContext.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  AudioContextEvents get on =>
-    new AudioContextEvents(this);
-
-
-  /** @domName AudioContext.activeSourceCount */
-  int get activeSourceCount native "AudioContext_activeSourceCount_Getter";
-
-
-  /** @domName AudioContext.currentTime */
-  num get currentTime native "AudioContext_currentTime_Getter";
-
-
-  /** @domName AudioContext.destination */
-  AudioDestinationNode get destination native "AudioContext_destination_Getter";
-
-
-  /** @domName AudioContext.listener */
-  AudioListener get listener native "AudioContext_listener_Getter";
-
-
-  /** @domName AudioContext.sampleRate */
-  num get sampleRate native "AudioContext_sampleRate_Getter";
-
-
-  /** @domName AudioContext.createAnalyser */
-  AnalyserNode createAnalyser() native "AudioContext_createAnalyser_Callback";
-
-
-  /** @domName AudioContext.createBiquadFilter */
-  BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
-
-  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [/*float*/ sampleRate]) {
-    if ((buffer_OR_numberOfChannels is int || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is int || mixToMono_OR_numberOfFrames == null) && (sampleRate is num || sampleRate == null)) {
-      return _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate);
-    }
-    if ((buffer_OR_numberOfChannels is ArrayBuffer || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is bool || mixToMono_OR_numberOfFrames == null) && !?sampleRate) {
-      return _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames);
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName AudioContext.createBuffer_1 */
-  AudioBuffer _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate) native "AudioContext_createBuffer_1_Callback";
-
-
-  /** @domName AudioContext.createBuffer_2 */
-  AudioBuffer _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames) native "AudioContext_createBuffer_2_Callback";
-
-
-  /** @domName AudioContext.createBufferSource */
-  AudioBufferSourceNode createBufferSource() native "AudioContext_createBufferSource_Callback";
-
-  ChannelMergerNode createChannelMerger([/*unsigned long*/ numberOfInputs]) {
-    if (?numberOfInputs) {
-      return _createChannelMerger_1(numberOfInputs);
-    }
-    return _createChannelMerger_2();
-  }
-
-
-  /** @domName AudioContext.createChannelMerger_1 */
-  ChannelMergerNode _createChannelMerger_1(numberOfInputs) native "AudioContext_createChannelMerger_1_Callback";
-
-
-  /** @domName AudioContext.createChannelMerger_2 */
-  ChannelMergerNode _createChannelMerger_2() native "AudioContext_createChannelMerger_2_Callback";
-
-  ChannelSplitterNode createChannelSplitter([/*unsigned long*/ numberOfOutputs]) {
-    if (?numberOfOutputs) {
-      return _createChannelSplitter_1(numberOfOutputs);
-    }
-    return _createChannelSplitter_2();
-  }
-
-
-  /** @domName AudioContext.createChannelSplitter_1 */
-  ChannelSplitterNode _createChannelSplitter_1(numberOfOutputs) native "AudioContext_createChannelSplitter_1_Callback";
-
-
-  /** @domName AudioContext.createChannelSplitter_2 */
-  ChannelSplitterNode _createChannelSplitter_2() native "AudioContext_createChannelSplitter_2_Callback";
-
-
-  /** @domName AudioContext.createConvolver */
-  ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
-
-  DelayNode createDelay([/*double*/ maxDelayTime]) {
-    if (?maxDelayTime) {
-      return _createDelay_1(maxDelayTime);
-    }
-    return _createDelay_2();
-  }
-
-
-  /** @domName AudioContext.createDelay_1 */
-  DelayNode _createDelay_1(maxDelayTime) native "AudioContext_createDelay_1_Callback";
-
-
-  /** @domName AudioContext.createDelay_2 */
-  DelayNode _createDelay_2() native "AudioContext_createDelay_2_Callback";
-
-
-  /** @domName AudioContext.createDynamicsCompressor */
-  DynamicsCompressorNode createDynamicsCompressor() native "AudioContext_createDynamicsCompressor_Callback";
-
-
-  /** @domName AudioContext.createGain */
-  GainNode createGain() native "AudioContext_createGain_Callback";
-
-
-  /** @domName AudioContext.createMediaElementSource */
-  MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native "AudioContext_createMediaElementSource_Callback";
-
-
-  /** @domName AudioContext.createMediaStreamSource */
-  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native "AudioContext_createMediaStreamSource_Callback";
-
-
-  /** @domName AudioContext.createOscillator */
-  OscillatorNode createOscillator() native "AudioContext_createOscillator_Callback";
-
-
-  /** @domName AudioContext.createPanner */
-  PannerNode createPanner() native "AudioContext_createPanner_Callback";
-
-  ScriptProcessorNode createScriptProcessor(/*unsigned long*/ bufferSize, [/*unsigned long*/ numberOfInputChannels, /*unsigned long*/ numberOfOutputChannels]) {
-    if (?numberOfOutputChannels) {
-      return _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
-    }
-    if (?numberOfInputChannels) {
-      return _createScriptProcessor_2(bufferSize, numberOfInputChannels);
-    }
-    return _createScriptProcessor_3(bufferSize);
-  }
-
-
-  /** @domName AudioContext.createScriptProcessor_1 */
-  ScriptProcessorNode _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createScriptProcessor_1_Callback";
-
-
-  /** @domName AudioContext.createScriptProcessor_2 */
-  ScriptProcessorNode _createScriptProcessor_2(bufferSize, numberOfInputChannels) native "AudioContext_createScriptProcessor_2_Callback";
-
-
-  /** @domName AudioContext.createScriptProcessor_3 */
-  ScriptProcessorNode _createScriptProcessor_3(bufferSize) native "AudioContext_createScriptProcessor_3_Callback";
-
-
-  /** @domName AudioContext.createWaveShaper */
-  WaveShaperNode createWaveShaper() native "AudioContext_createWaveShaper_Callback";
-
-
-  /** @domName AudioContext.createWaveTable */
-  WaveTable createWaveTable(Float32Array real, Float32Array imag) native "AudioContext_createWaveTable_Callback";
-
-
-  /** @domName AudioContext.decodeAudioData */
-  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native "AudioContext_decodeAudioData_Callback";
-
-
-  /** @domName AudioContext.startRendering */
-  void startRendering() native "AudioContext_startRendering_Callback";
-
-}
-
-class AudioContextEvents extends Events {
-  AudioContextEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get complete => this['complete'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName AudioDestinationNode
-class AudioDestinationNode extends AudioNode {
-  AudioDestinationNode.internal(): super.internal();
-
-
-  /** @domName AudioDestinationNode.numberOfChannels */
-  int get numberOfChannels native "AudioDestinationNode_numberOfChannels_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName HTMLAudioElement
-class AudioElement extends MediaElement {
-
-  factory AudioElement([String src]) {
-    if (!?src) {
-      return _AudioElementFactoryProvider.createAudioElement();
-    }
-    return _AudioElementFactoryProvider.createAudioElement(src);
-  }
-  AudioElement.internal(): super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName AudioGain
-class AudioGain extends AudioParam {
-  AudioGain.internal(): super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName AudioListener
-class AudioListener extends NativeFieldWrapperClass1 {
-  AudioListener.internal();
-
-
-  /** @domName AudioListener.dopplerFactor */
-  num get dopplerFactor native "AudioListener_dopplerFactor_Getter";
-
-
-  /** @domName AudioListener.dopplerFactor */
-  void set dopplerFactor(num value) native "AudioListener_dopplerFactor_Setter";
-
-
-  /** @domName AudioListener.speedOfSound */
-  num get speedOfSound native "AudioListener_speedOfSound_Getter";
-
-
-  /** @domName AudioListener.speedOfSound */
-  void set speedOfSound(num value) native "AudioListener_speedOfSound_Setter";
-
-
-  /** @domName AudioListener.setOrientation */
-  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native "AudioListener_setOrientation_Callback";
-
-
-  /** @domName AudioListener.setPosition */
-  void setPosition(num x, num y, num z) native "AudioListener_setPosition_Callback";
-
-
-  /** @domName AudioListener.setVelocity */
-  void setVelocity(num x, num y, num z) native "AudioListener_setVelocity_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName AudioNode
-class AudioNode extends NativeFieldWrapperClass1 {
-  AudioNode.internal();
-
-
-  /** @domName AudioNode.context */
-  AudioContext get context native "AudioNode_context_Getter";
-
-
-  /** @domName AudioNode.numberOfInputs */
-  int get numberOfInputs native "AudioNode_numberOfInputs_Getter";
-
-
-  /** @domName AudioNode.numberOfOutputs */
-  int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
-
-  void connect(destination, /*unsigned long*/ output, [/*unsigned long*/ input]) {
-    if ((destination is AudioNode || destination == null) && (output is int || output == null) && (input is int || input == null)) {
-      _connect_1(destination, output, input);
-      return;
-    }
-    if ((destination is AudioParam || destination == null) && (output is int || output == null) && !?input) {
-      _connect_2(destination, output);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName AudioNode.connect_1 */
-  void _connect_1(destination, output, input) native "AudioNode_connect_1_Callback";
-
-
-  /** @domName AudioNode.connect_2 */
-  void _connect_2(destination, output) native "AudioNode_connect_2_Callback";
-
-
-  /** @domName AudioNode.disconnect */
-  void disconnect(int output) native "AudioNode_disconnect_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName AudioParam
-class AudioParam extends NativeFieldWrapperClass1 {
-  AudioParam.internal();
-
-
-  /** @domName AudioParam.defaultValue */
-  num get defaultValue native "AudioParam_defaultValue_Getter";
-
-
-  /** @domName AudioParam.maxValue */
-  num get maxValue native "AudioParam_maxValue_Getter";
-
-
-  /** @domName AudioParam.minValue */
-  num get minValue native "AudioParam_minValue_Getter";
-
-
-  /** @domName AudioParam.name */
-  String get name native "AudioParam_name_Getter";
-
-
-  /** @domName AudioParam.units */
-  int get units native "AudioParam_units_Getter";
-
-
-  /** @domName AudioParam.value */
-  num get value native "AudioParam_value_Getter";
-
-
-  /** @domName AudioParam.value */
-  void set value(num value) native "AudioParam_value_Setter";
-
-
-  /** @domName AudioParam.cancelScheduledValues */
-  void cancelScheduledValues(num startTime) native "AudioParam_cancelScheduledValues_Callback";
-
-
-  /** @domName AudioParam.exponentialRampToValueAtTime */
-  void exponentialRampToValueAtTime(num value, num time) native "AudioParam_exponentialRampToValueAtTime_Callback";
-
-
-  /** @domName AudioParam.linearRampToValueAtTime */
-  void linearRampToValueAtTime(num value, num time) native "AudioParam_linearRampToValueAtTime_Callback";
-
-
-  /** @domName AudioParam.setTargetAtTime */
-  void setTargetAtTime(num target, num time, num timeConstant) native "AudioParam_setTargetAtTime_Callback";
-
-
-  /** @domName AudioParam.setValueAtTime */
-  void setValueAtTime(num value, num time) native "AudioParam_setValueAtTime_Callback";
-
-
-  /** @domName AudioParam.setValueCurveAtTime */
-  void setValueCurveAtTime(Float32Array values, num time, num duration) native "AudioParam_setValueCurveAtTime_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName AudioProcessingEvent
-class AudioProcessingEvent extends Event {
-  AudioProcessingEvent.internal(): super.internal();
-
-
-  /** @domName AudioProcessingEvent.inputBuffer */
-  AudioBuffer get inputBuffer native "AudioProcessingEvent_inputBuffer_Getter";
-
-
-  /** @domName AudioProcessingEvent.outputBuffer */
-  AudioBuffer get outputBuffer native "AudioProcessingEvent_outputBuffer_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName AudioSourceNode
-class AudioSourceNode extends AudioNode {
-  AudioSourceNode.internal(): super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName HTMLBRElement
 class BRElement extends _Element_Merged {
 
@@ -1436,58 +830,6 @@ class BeforeLoadEvent extends Event {
 
   /** @domName BeforeLoadEvent.url */
   String get url native "BeforeLoadEvent_url_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName BiquadFilterNode
-class BiquadFilterNode extends AudioNode {
-  BiquadFilterNode.internal(): super.internal();
-
-  static const int ALLPASS = 7;
-
-  static const int BANDPASS = 2;
-
-  static const int HIGHPASS = 1;
-
-  static const int HIGHSHELF = 4;
-
-  static const int LOWPASS = 0;
-
-  static const int LOWSHELF = 3;
-
-  static const int NOTCH = 6;
-
-  static const int PEAKING = 5;
-
-
-  /** @domName BiquadFilterNode.Q */
-  AudioParam get Q native "BiquadFilterNode_Q_Getter";
-
-
-  /** @domName BiquadFilterNode.frequency */
-  AudioParam get frequency native "BiquadFilterNode_frequency_Getter";
-
-
-  /** @domName BiquadFilterNode.gain */
-  AudioParam get gain native "BiquadFilterNode_gain_Getter";
-
-
-  /** @domName BiquadFilterNode.type */
-  int get type native "BiquadFilterNode_type_Getter";
-
-
-  /** @domName BiquadFilterNode.type */
-  void set type(int value) native "BiquadFilterNode_type_Setter";
-
-
-  /** @domName BiquadFilterNode.getFrequencyResponse */
-  void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2261,7 +1603,7 @@ class CSSPrimitiveValue extends CSSValue {
 
 
   /** @domName CSSPrimitiveValue.getRGBColorValue */
-  RGBColor getRGBColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
+  RGBColor getRgbColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
 
 
   /** @domName CSSPrimitiveValue.getRectValue */
@@ -2352,6 +1694,7 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
+/// @domName CSSStyleDeclaration
 class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
   factory CSSStyleDeclaration() => _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration();
   factory CSSStyleDeclaration.css(String css) =>
@@ -2377,7 +1720,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
 
 
   /** @domName CSSStyleDeclaration.getPropertyCSSValue */
-  CSSValue getPropertyCSSValue(String propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
+  CSSValue getPropertyCssValue(String propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
 
 
   /** @domName CSSStyleDeclaration.getPropertyPriority */
@@ -5747,6 +5090,7 @@ class CSSValue extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName HTMLCanvasElement
 class CanvasElement extends _Element_Merged {
 
   factory CanvasElement({int width, int height}) {
@@ -5779,7 +5123,7 @@ class CanvasElement extends _Element_Merged {
 
 
   /** @domName HTMLCanvasElement.toDataURL */
-  String toDataURL(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
+  String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
 
 
   CanvasRenderingContext2D get context2d => getContext('2d');
@@ -5833,6 +5177,7 @@ class CanvasRenderingContext extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName CanvasRenderingContext2D
 class CanvasRenderingContext2D extends CanvasRenderingContext {
   CanvasRenderingContext2D.internal(): super.internal();
 
@@ -6520,30 +5865,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ChannelMergerNode
-class ChannelMergerNode extends AudioNode {
-  ChannelMergerNode.internal(): super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName ChannelSplitterNode
-class ChannelSplitterNode extends AudioNode {
-  ChannelSplitterNode.internal(): super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName CharacterData
 class CharacterData extends Node {
   CharacterData.internal(): super.internal();
@@ -6870,34 +6191,6 @@ class ContentElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ConvolverNode
-class ConvolverNode extends AudioNode {
-  ConvolverNode.internal(): super.internal();
-
-
-  /** @domName ConvolverNode.buffer */
-  AudioBuffer get buffer native "ConvolverNode_buffer_Getter";
-
-
-  /** @domName ConvolverNode.buffer */
-  void set buffer(AudioBuffer value) native "ConvolverNode_buffer_Setter";
-
-
-  /** @domName ConvolverNode.normalize */
-  bool get normalize native "ConvolverNode_normalize_Getter";
-
-
-  /** @domName ConvolverNode.normalize */
-  void set normalize(bool value) native "ConvolverNode_normalize_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName Coordinates
 class Coordinates extends NativeFieldWrapperClass1 {
   Coordinates.internal();
@@ -6978,6 +6271,7 @@ class Crypto extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName CustomEvent
 class CustomEvent extends Event {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
@@ -7238,7 +6532,7 @@ class DOMImplementation extends NativeFieldWrapperClass1 {
 
 
   /** @domName DOMImplementation.createCSSStyleSheet */
-  CSSStyleSheet createCSSStyleSheet(String title, String media) native "DOMImplementation_createCSSStyleSheet_Callback";
+  CSSStyleSheet createCssStyleSheet(String title, String media) native "DOMImplementation_createCSSStyleSheet_Callback";
 
 
   /** @domName DOMImplementation.createDocument */
@@ -7250,7 +6544,7 @@ class DOMImplementation extends NativeFieldWrapperClass1 {
 
 
   /** @domName DOMImplementation.createHTMLDocument */
-  HtmlDocument createHTMLDocument(String title) native "DOMImplementation_createHTMLDocument_Callback";
+  HtmlDocument createHtmlDocument(String title) native "DOMImplementation_createHTMLDocument_Callback";
 
 
   /** @domName DOMImplementation.hasFeature */
@@ -8171,22 +7465,6 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DelayNode
-class DelayNode extends AudioNode {
-  DelayNode.internal(): super.internal();
-
-
-  /** @domName DelayNode.delayTime */
-  AudioParam get delayTime native "DelayNode_delayTime_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName HTMLDetailsElement
 class DetailsElement extends _Element_Merged {
 
@@ -8377,6 +7655,7 @@ class DivElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName Document
 class Document extends Node 
 {
 
@@ -8496,7 +7775,7 @@ class Document extends Node
 
 
   /** @domName Document.createCDATASection */
-  CDATASection createCDATASection(String data) native "Document_createCDATASection_Callback";
+  CDATASection createCDataSection(String data) native "Document_createCDATASection_Callback";
 
 
   /** @domName Document.createDocumentFragment */
@@ -8540,7 +7819,7 @@ class Document extends Node
 
 
   /** @domName Document.getCSSCanvasContext */
-  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
+  CanvasRenderingContext getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
 
   /** @domName Document.getElementById */
@@ -8636,99 +7915,9 @@ class Document extends Node
 class DocumentEvents extends ElementEvents {
   DocumentEvents(EventTarget _ptr) : super(_ptr);
 
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get beforeCopy => this['beforecopy'];
-
-  EventListenerList get beforeCut => this['beforecut'];
-
-  EventListenerList get beforePaste => this['beforepaste'];
-
-  EventListenerList get blur => this['blur'];
-
-  EventListenerList get change => this['change'];
-
-  EventListenerList get click => this['click'];
-
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  EventListenerList get copy => this['copy'];
-
-  EventListenerList get cut => this['cut'];
-
-  EventListenerList get doubleClick => this['dblclick'];
-
-  EventListenerList get drag => this['drag'];
-
-  EventListenerList get dragEnd => this['dragend'];
-
-  EventListenerList get dragEnter => this['dragenter'];
-
-  EventListenerList get dragLeave => this['dragleave'];
-
-  EventListenerList get dragOver => this['dragover'];
-
-  EventListenerList get dragStart => this['dragstart'];
-
-  EventListenerList get drop => this['drop'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get focus => this['focus'];
-
-  EventListenerList get input => this['input'];
-
-  EventListenerList get invalid => this['invalid'];
-
-  EventListenerList get keyDown => this['keydown'];
-
-  EventListenerList get keyPress => this['keypress'];
-
-  EventListenerList get keyUp => this['keyup'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get mouseDown => this['mousedown'];
-
-  EventListenerList get mouseMove => this['mousemove'];
-
-  EventListenerList get mouseOut => this['mouseout'];
-
-  EventListenerList get mouseOver => this['mouseover'];
-
-  EventListenerList get mouseUp => this['mouseup'];
-
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  EventListenerList get paste => this['paste'];
-
   EventListenerList get readyStateChange => this['readystatechange'];
 
-  EventListenerList get reset => this['reset'];
-
-  EventListenerList get scroll => this['scroll'];
-
-  EventListenerList get search => this['search'];
-
-  EventListenerList get select => this['select'];
-
   EventListenerList get selectionChange => this['selectionchange'];
-
-  EventListenerList get selectStart => this['selectstart'];
-
-  EventListenerList get submit => this['submit'];
-
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  EventListenerList get touchEnd => this['touchend'];
-
-  EventListenerList get touchMove => this['touchmove'];
-
-  EventListenerList get touchStart => this['touchstart'];
-
-  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
-
-  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 
   EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
 
@@ -8754,6 +7943,7 @@ class _FrozenCssClassSet extends CssClassSet {
   bool get frozen => true;
 }
 
+/// @domName DocumentFragment
 class DocumentFragment extends Node {
   factory DocumentFragment() => _DocumentFragmentFactoryProvider.createDocumentFragment();
 
@@ -8792,21 +7982,21 @@ class DocumentFragment extends Node {
   List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
-  String get innerHTML {
+  String get innerHtml {
     final e = new Element.tag("div");
     e.nodes.add(this.clone(true));
-    return e.innerHTML;
+    return e.innerHtml;
   }
 
-  String get outerHTML => innerHTML;
+  String get outerHtml => innerHtml;
 
-  // TODO(nweiz): Do we want to support some variant of innerHTML for XML and/or
+  // TODO(nweiz): Do we want to support some variant of innerHtml for XML and/or
   // SVG strings?
-  void set innerHTML(String value) {
+  void set innerHtml(String value) {
     this.nodes.clear();
 
     final e = new Element.tag("div");
-    e.innerHTML = value;
+    e.innerHtml = value;
 
     // Copy list first since we don't want liveness during iteration.
     List nodes = new List.from(e.nodes);
@@ -8836,16 +8026,20 @@ class DocumentFragment extends Node {
     this._insertAdjacentNode(where, new Text(text));
   }
 
-  void insertAdjacentHTML(String where, String text) {
+  void insertAdjacentHtml(String where, String text) {
     this._insertAdjacentNode(where, new DocumentFragment.html(text));
   }
 
-  void addText(String text) {
+  void append(Element element) {
+    this.children.add(element);
+  }
+
+  void appendText(String text) {
     this.insertAdjacentText('beforeend', text);
   }
 
-  void addHtml(String text) {
-    this.insertAdjacentHTML('beforeend', text);
+  void appendHtml(String text) {
+    this.insertAdjacentHtml('beforeend', text);
   }
 
   // If we can come up with a semi-reasonable default value for an Element
@@ -8869,7 +8063,7 @@ class DocumentFragment extends Node {
     }
     return null;
   }
-  Element get $m_lastElementChild() => elements.last;
+  Element get $m_lastElementChild => elements.last;
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
   Element get offsetParent => null;
@@ -9045,42 +8239,6 @@ class DocumentType extends Node {
 
   /** @domName DocumentType.remove */
   void remove() native "DocumentType_remove_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DynamicsCompressorNode
-class DynamicsCompressorNode extends AudioNode {
-  DynamicsCompressorNode.internal(): super.internal();
-
-
-  /** @domName DynamicsCompressorNode.attack */
-  AudioParam get attack native "DynamicsCompressorNode_attack_Getter";
-
-
-  /** @domName DynamicsCompressorNode.knee */
-  AudioParam get knee native "DynamicsCompressorNode_knee_Getter";
-
-
-  /** @domName DynamicsCompressorNode.ratio */
-  AudioParam get ratio native "DynamicsCompressorNode_ratio_Getter";
-
-
-  /** @domName DynamicsCompressorNode.reduction */
-  AudioParam get reduction native "DynamicsCompressorNode_reduction_Getter";
-
-
-  /** @domName DynamicsCompressorNode.release */
-  AudioParam get release native "DynamicsCompressorNode_release_Getter";
-
-
-  /** @domName DynamicsCompressorNode.threshold */
-  AudioParam get threshold native "DynamicsCompressorNode_threshold_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9401,171 +8559,6 @@ class _FrozenElementListIterator implements Iterator<Element> {
   bool get hasNext => _index < _list.length;
 }
 
-class _ElementAttributeMap implements Map<String, String> {
-
-  final Element _element;
-
-  _ElementAttributeMap(this._element);
-
-  bool containsValue(String value) {
-    final attributes = _element.$dom_attributes;
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      if(value == attributes[i].value) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool containsKey(String key) {
-    return _element.$dom_hasAttribute(key);
-  }
-
-  String operator [](String key) {
-    return _element.$dom_getAttribute(key);
-  }
-
-  void operator []=(String key, value) {
-    _element.$dom_setAttribute(key, '$value');
-  }
-
-  String putIfAbsent(String key, String ifAbsent()) {
-    if (!containsKey(key)) {
-      this[key] = ifAbsent();
-    }
-    return this[key];
-  }
-
-  String remove(String key) {
-    String value = _element.$dom_getAttribute(key);
-    _element.$dom_removeAttribute(key);
-    return value;
-  }
-
-  void clear() {
-    final attributes = _element.$dom_attributes;
-    for (int i = attributes.length - 1; i >= 0; i--) {
-      remove(attributes[i].name);
-    }
-  }
-
-  void forEach(void f(String key, String value)) {
-    final attributes = _element.$dom_attributes;
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      final item = attributes[i];
-      f(item.name, item.value);
-    }
-  }
-
-  Collection<String> get keys {
-    // TODO(jacobr): generate a lazy collection instead.
-    final attributes = _element.$dom_attributes;
-    final keys = new List<String>(attributes.length);
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      keys[i] = attributes[i].name;
-    }
-    return keys;
-  }
-
-  Collection<String> get values {
-    // TODO(jacobr): generate a lazy collection instead.
-    final attributes = _element.$dom_attributes;
-    final values = new List<String>(attributes.length);
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      values[i] = attributes[i].value;
-    }
-    return values;
-  }
-
-  /**
-   * The number of {key, value} pairs in the map.
-   */
-  int get length {
-    return _element.$dom_attributes.length;
-  }
-
-  /**
-   * Returns true if there is no {key, value} pair in the map.
-   */
-  bool get isEmpty {
-    return length == 0;
-  }
-}
-
-/**
- * Provides a Map abstraction on top of data-* attributes, similar to the
- * dataSet in the old DOM.
- */
-class _DataAttributeMap implements Map<String, String> {
-
-  final Map<String, String> $dom_attributes;
-
-  _DataAttributeMap(this.$dom_attributes);
-
-  // interface Map
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => values.some((v) => v == value);
-
-  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
-
-  String operator [](String key) => $dom_attributes[_attr(key)];
-
-  void operator []=(String key, value) {
-    $dom_attributes[_attr(key)] = '$value';
-  }
-
-  String putIfAbsent(String key, String ifAbsent()) =>
-    $dom_attributes.putIfAbsent(_attr(key), ifAbsent);
-
-  String remove(String key) => $dom_attributes.remove(_attr(key));
-
-  void clear() {
-    // Needs to operate on a snapshot since we are mutating the collection.
-    for (String key in keys) {
-      remove(key);
-    }
-  }
-
-  void forEach(void f(String key, String value)) {
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        f(_strip(key), value);
-      }
-    });
-  }
-
-  Collection<String> get keys {
-    final keys = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        keys.add(_strip(key));
-      }
-    });
-    return keys;
-  }
-
-  Collection<String> get values {
-    final values = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        values.add(value);
-      }
-    });
-    return values;
-  }
-
-  int get length => keys.length;
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool get isEmpty => length == 0;
-
-  // Helpers.
-  String _attr(String key) => 'data-$key';
-  bool _matches(String key) => key.startsWith('data-');
-  String _strip(String key) => key.substring(5);
-}
-
 class _ElementCssClassSet extends CssClassSet {
 
   final Element _element;
@@ -9591,24 +8584,7 @@ class _ElementCssClassSet extends CssClassSet {
   }
 }
 
-class _SimpleClientRect implements ClientRect {
-  final num left;
-  final num top;
-  final num width;
-  final num height;
-  num get right => left + width;
-  num get bottom => top + height;
-
-  const _SimpleClientRect(this.left, this.top, this.width, this.height);
-
-  bool operator ==(ClientRect other) {
-    return other != null && left == other.left && top == other.top
-        && width == other.width && height == other.height;
-  }
-
-  String toString() => "($left, $top, $width, $height)";
-}
-
+/// @domName Element
 abstract class Element extends Node implements ElementTraversal {
 
   factory Element.html(String html) =>
@@ -9628,6 +8604,14 @@ abstract class Element extends Node implements ElementTraversal {
     for (String key in value.keys) {
       attributes[key] = value[key];
     }
+  }
+
+  /**
+   * Deprecated, use innerHtml instead.
+   */
+  String get innerHTML => this.innerHtml;
+  void set innerHTML(String value) {
+    this.innerHtml = value;
   }
 
   void set elements(Collection<Element> value) {
@@ -9678,6 +8662,14 @@ abstract class Element extends Node implements ElementTraversal {
     }
   }
 
+  /**
+   * Gets a map for manipulating the attributes of a particular namespace.
+   * This is primarily useful for SVG attributes such as xref:link.
+   */
+  Map<String, String> getNamespacedAttributes(String namespace) {
+    return new _NamespacedAttributeMap(this, namespace);
+  }
+
   /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> get computedStyle {
      // TODO(jacobr): last param should be null, see b/5045788
@@ -9692,9 +8684,16 @@ abstract class Element extends Node implements ElementTraversal {
   }
 
   /**
+   * Adds the specified element to after the last child of this.
+   */
+  void append(Element e) {
+    this.children.add(e);
+  }
+
+  /**
    * Adds the specified text as a text node after the last child of this.
    */
-  void addText(String text) {
+  void appendText(String text) {
     this.insertAdjacentText('beforeend', text);
   }
 
@@ -9702,8 +8701,8 @@ abstract class Element extends Node implements ElementTraversal {
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this.
    */
-  void addHtml(String text) {
-    this.insertAdjacentHTML('beforeend', text);
+  void appendHtml(String text) {
+    this.insertAdjacentHtml('beforeend', text);
   }
 
   // Hooks to support custom WebComponents.
@@ -9760,7 +8759,7 @@ abstract class Element extends Node implements ElementTraversal {
   String id;
 
   /// @domName HTMLElement.innerHTML; @docsEditable true
-  String innerHTML;
+  String innerHtml;
 
   /// @domName HTMLElement.isContentEditable; @docsEditable true
   bool get isContentEditable;
@@ -9769,7 +8768,7 @@ abstract class Element extends Node implements ElementTraversal {
   String lang;
 
   /// @domName HTMLElement.outerHTML; @docsEditable true
-  String get outerHTML;
+  String get outerHtml;
 
   /// @domName HTMLElement.spellcheck; @docsEditable true
   bool spellcheck;
@@ -9793,7 +8792,7 @@ abstract class Element extends Node implements ElementTraversal {
   Element insertAdjacentElement(String where, Element element);
 
   /// @domName HTMLElement.insertAdjacentHTML; @docsEditable true
-  void insertAdjacentHTML(String where, String html);
+  void insertAdjacentHtml(String where, String html);
 
   /// @domName HTMLElement.insertAdjacentText; @docsEditable true
   void insertAdjacentText(String where, String text);
@@ -9913,6 +8912,10 @@ abstract class Element extends Node implements ElementTraversal {
   String $dom_getAttribute(String name) native "Element_getAttribute_Callback";
 
 
+  /** @domName Element.getAttributeNS */
+  String $dom_getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
+
+
   /** @domName Element.getBoundingClientRect */
   ClientRect getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
 
@@ -9933,6 +8936,10 @@ abstract class Element extends Node implements ElementTraversal {
   bool $dom_hasAttribute(String name) native "Element_hasAttribute_Callback";
 
 
+  /** @domName Element.hasAttributeNS */
+  bool $dom_hasAttributeNS(String namespaceURI, String localName) native "Element_hasAttributeNS_Callback";
+
+
   /** @domName Element.querySelector */
   Element $dom_querySelector(String selectors) native "Element_querySelector_Callback";
 
@@ -9947,6 +8954,10 @@ abstract class Element extends Node implements ElementTraversal {
 
   /** @domName Element.removeAttribute */
   void $dom_removeAttribute(String name) native "Element_removeAttribute_Callback";
+
+
+  /** @domName Element.removeAttributeNS */
+  void $dom_removeAttributeNS(String namespaceURI, String localName) native "Element_removeAttributeNS_Callback";
 
 
   /** @domName Element.scrollByLines */
@@ -9975,6 +8986,10 @@ abstract class Element extends Node implements ElementTraversal {
 
   /** @domName Element.setAttribute */
   void $dom_setAttribute(String name, String value) native "Element_setAttribute_Callback";
+
+
+  /** @domName Element.setAttributeNS */
+  void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
 
 
   /** @domName Element.webkitMatchesSelector */
@@ -10031,7 +9046,7 @@ class _ElementFactoryProvider {
       }
     }
     final Element temp = new Element.tag(parentTag);
-    temp.innerHTML = html;
+    temp.innerHtml = html;
 
     Element element;
     if (temp.children.length == 1) {
@@ -10372,7 +9387,7 @@ class Entry extends NativeFieldWrapperClass1 {
 
 
   /** @domName Entry.toURL */
-  String toURL() native "Entry_toURL_Callback";
+  String toUrl() native "Entry_toURL_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10436,7 +9451,7 @@ class EntrySync extends NativeFieldWrapperClass1 {
 
 
   /** @domName EntrySync.toURL */
-  String toURL() native "EntrySync_toURL_Callback";
+  String toUrl() native "EntrySync_toURL_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10478,6 +9493,7 @@ class ErrorEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName Event
 class Event extends NativeFieldWrapperClass1 {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -10654,10 +9670,6 @@ class EventSource extends EventTarget {
   static const int OPEN = 1;
 
 
-  /** @domName EventSource.URL */
-  String get URL native "EventSource_URL_Getter";
-
-
   /** @domName EventSource.readyState */
   int get readyState native "EventSource_readyState_Getter";
 
@@ -10742,7 +9754,7 @@ class EventListenerList {
   }
 }
 
-
+/// @domName EventTarget
 class EventTarget extends NativeFieldWrapperClass1 {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
@@ -11045,7 +10057,7 @@ class FileReader extends EventTarget {
 
 
   /** @domName FileReader.readAsDataURL */
-  void readAsDataURL(Blob blob) native "FileReader_readAsDataURL_Callback";
+  void readAsDataUrl(Blob blob) native "FileReader_readAsDataURL_Callback";
 
   void readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
     if (?encoding) {
@@ -11107,7 +10119,7 @@ class FileReaderSync extends NativeFieldWrapperClass1 {
 
 
   /** @domName FileReaderSync.readAsDataURL */
-  String readAsDataURL(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
+  String readAsDataUrl(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
 
   String readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
     if (?encoding) {
@@ -11847,22 +10859,6 @@ class FrameSetElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName GainNode
-class GainNode extends AudioNode {
-  GainNode.internal(): super.internal();
-
-
-  /** @domName GainNode.gain */
-  AudioGain get gain native "GainNode_gain_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName Gamepad
 class Gamepad extends NativeFieldWrapperClass1 {
   Gamepad.internal();
@@ -12249,11 +11245,11 @@ class HashChangeEvent extends Event {
 
 
   /** @domName HashChangeEvent.newURL */
-  String get newURL native "HashChangeEvent_newURL_Getter";
+  String get newUrl native "HashChangeEvent_newURL_Getter";
 
 
   /** @domName HashChangeEvent.oldURL */
-  String get oldURL native "HashChangeEvent_oldURL_Getter";
+  String get oldUrl native "HashChangeEvent_oldURL_Getter";
 
 
   /** @domName HashChangeEvent.initHashChangeEvent */
@@ -12321,6 +11317,7 @@ class HeadingElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName HTMLDocument
 class HtmlDocument extends Document {
   HtmlDocument.internal(): super.internal();
 
@@ -12419,6 +11416,7 @@ class HtmlElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName XMLHttpRequest
 class HttpRequest extends EventTarget {
   factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
@@ -12468,7 +11466,7 @@ class HttpRequest extends EventTarget {
 
 
   /** @domName XMLHttpRequest.responseXML */
-  Document get responseXML native "XMLHttpRequest_responseXML_Getter";
+  Document get responseXml native "XMLHttpRequest_responseXML_Getter";
 
 
   /** @domName XMLHttpRequest.status */
@@ -13103,6 +12101,7 @@ class IDBKey extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName IDBKeyRange
 class IDBKeyRange extends NativeFieldWrapperClass1 {
   /**
    * @domName IDBKeyRange.only
@@ -14858,11 +13857,32 @@ class JavaScriptCallFrame extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-/// @domName KeyboardEvent
+/// @domName KeyboardEvent; @docsEditable true
 class KeyboardEvent extends UIEvent {
+
+  factory KeyboardEvent(String type, Window view,
+      [bool canBubble = true, bool cancelable = true, 
+      String keyIdentifier = null, int keyLocation = 1, bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false,
+      bool altGraphKey = false]) {
+    final e = document.$dom_createEvent("KeyboardEvent");
+    e.$dom_initKeyboardEvent(type, canBubble, cancelable, view, keyIdentifier,
+        keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
+    return e;
+  }
+
+  /** @domName KeyboardEvent.initKeyboardEvent */
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
+      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      bool altKey, bool shiftKey, bool metaKey,
+      bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
+ 
+  /** @domName KeyboardEvent.keyCode */
+  int get keyCode => $dom_keyCode;
+  
+  /** @domName KeyboardEvent.charCode */
+  int get charCode => $dom_charCode;
   KeyboardEvent.internal(): super.internal();
 
 
@@ -14879,7 +13899,7 @@ class KeyboardEvent extends UIEvent {
 
 
   /** @domName KeyboardEvent.keyIdentifier */
-  String get keyIdentifier native "KeyboardEvent_keyIdentifier_Getter";
+  String get $dom_keyIdentifier native "KeyboardEvent_keyIdentifier_Getter";
 
 
   /** @domName KeyboardEvent.keyLocation */
@@ -14892,10 +13912,6 @@ class KeyboardEvent extends UIEvent {
 
   /** @domName KeyboardEvent.shiftKey */
   bool get shiftKey native "KeyboardEvent_shiftKey_Getter";
-
-
-  /** @domName KeyboardEvent.initKeyboardEvent */
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15329,6 +14345,7 @@ class LocalMediaStream extends MediaStream implements EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName Window
 class LocalWindow extends EventTarget implements Window {
 
   /**
@@ -15635,7 +14652,7 @@ class LocalWindow extends EventTarget implements Window {
 
 
   /** @domName DOMWindow.getMatchedCSSRules */
-  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
+  List<CSSRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
 
 
   /** @domName DOMWindow.getSelection */
@@ -15739,7 +14756,7 @@ class LocalWindow extends EventTarget implements Window {
 
 
   /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
 }
 
@@ -16477,22 +15494,6 @@ class MediaElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaElementAudioSourceNode
-class MediaElementAudioSourceNode extends AudioSourceNode {
-  MediaElementAudioSourceNode.internal(): super.internal();
-
-
-  /** @domName MediaElementAudioSourceNode.mediaElement */
-  MediaElement get mediaElement native "MediaElementAudioSourceNode_mediaElement_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName MediaError
 class MediaError extends NativeFieldWrapperClass1 {
   MediaError.internal();
@@ -16553,7 +15554,7 @@ class MediaKeyEvent extends Event {
 
 
   /** @domName MediaKeyEvent.defaultURL */
-  String get defaultURL native "MediaKeyEvent_defaultURL_Getter";
+  String get defaultUrl native "MediaKeyEvent_defaultURL_Getter";
 
 
   /** @domName MediaKeyEvent.errorCode */
@@ -16781,22 +15782,6 @@ class MediaStreamEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaStreamAudioSourceNode
-class MediaStreamAudioSourceNode extends AudioSourceNode {
-  MediaStreamAudioSourceNode.internal(): super.internal();
-
-
-  /** @domName MediaStreamAudioSourceNode.mediaStream */
-  MediaStream get mediaStream native "MediaStreamAudioSourceNode_mediaStream_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName MediaStreamEvent
 class MediaStreamEvent extends Event {
   MediaStreamEvent.internal(): super.internal();
@@ -16974,14 +15959,6 @@ class MenuElement extends _Element_Merged {
 
   factory MenuElement() => document.$dom_createElement("menu");
   MenuElement.internal(): super.internal();
-
-
-  /** @domName HTMLMenuElement.compact */
-  bool get compact native "HTMLMenuElement_compact_Getter";
-
-
-  /** @domName HTMLMenuElement.compact */
-  void set compact(bool value) native "HTMLMenuElement_compact_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17265,6 +16242,7 @@ class ModElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName MouseEvent
 class MouseEvent extends UIEvent {
   factory MouseEvent(String type, Window view, int detail, int screenX,
       int screenY, int clientX, int clientY, int button, [bool canBubble = true,
@@ -17414,6 +16392,7 @@ class MutationEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName MutationObserver
 class MutationObserver extends NativeFieldWrapperClass1 {
 
   factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
@@ -17904,6 +16883,7 @@ class _ChildNodeListLazy implements List {
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
+/// @domName Node
 class Node extends EventTarget {
   _ChildNodeListLazy get nodes {
     return new _ChildNodeListLazy(this);
@@ -17999,6 +16979,14 @@ class Node extends EventTarget {
 
   /** @domName Node.lastChild */
   Node get $dom_lastChild native "Node_lastChild_Getter";
+
+
+  /** @domName Node.localName */
+  String get $dom_localName native "Node_localName_Getter";
+
+
+  /** @domName Node.namespaceURI */
+  String get $dom_namespaceUri native "Node_namespaceURI_Getter";
 
 
   /** @domName Node.nextSibling */
@@ -18172,6 +17160,111 @@ class NodeIterator extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName NodeList
+class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
+  NodeList.internal();
+
+
+  /** @domName NodeList.length */
+  int get length native "NodeList_length_Getter";
+
+  Node operator[](int index) native "NodeList_item_Callback";
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  bool contains(Node element) => _Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<Node>:
+
+  void sort([Comparator<Node> compare = Comparable.compare]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start]) {
+    if (start == null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Node get first => this[0];
+
+  Node get last => this[length - 1];
+
+  Node removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  // -- end List<Node> mixins.
+
+
+  /** @domName NodeList.item */
+  Node _item(int index) native "NodeList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName Notation
 class Notation extends Node {
   Notation.internal(): super.internal();
@@ -18295,7 +17388,7 @@ class NotificationCenter extends NativeFieldWrapperClass1 {
 
 
   /** @domName NotificationCenter.createHTMLNotification */
-  Notification createHTMLNotification(String url) native "NotificationCenter_createHTMLNotification_Callback";
+  Notification createHtmlNotification(String url) native "NotificationCenter_createHTMLNotification_Callback";
 
 
   /** @domName NotificationCenter.createNotification */
@@ -18367,19 +17460,19 @@ class OESVertexArrayObject extends NativeFieldWrapperClass1 {
 
 
   /** @domName OESVertexArrayObject.bindVertexArrayOES */
-  void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
+  void bindVertexArray(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
 
 
   /** @domName OESVertexArrayObject.createVertexArrayOES */
-  WebGLVertexArrayObjectOES createVertexArrayOES() native "OESVertexArrayObject_createVertexArrayOES_Callback";
+  WebGLVertexArrayObjectOES createVertexArray() native "OESVertexArrayObject_createVertexArrayOES_Callback";
 
 
   /** @domName OESVertexArrayObject.deleteVertexArrayOES */
-  void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_deleteVertexArrayOES_Callback";
+  void deleteVertexArray(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_deleteVertexArrayOES_Callback";
 
 
   /** @domName OESVertexArrayObject.isVertexArrayOES */
-  bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_isVertexArrayOES_Callback";
+  bool isVertexArray(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_isVertexArrayOES_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18601,22 +17694,6 @@ class ObjectElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName OfflineAudioCompletionEvent
-class OfflineAudioCompletionEvent extends Event {
-  OfflineAudioCompletionEvent.internal(): super.internal();
-
-
-  /** @domName OfflineAudioCompletionEvent.renderedBuffer */
-  AudioBuffer get renderedBuffer native "OfflineAudioCompletionEvent_renderedBuffer_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName HTMLOptGroupElement
 class OptGroupElement extends _Element_Merged {
 
@@ -18714,68 +17791,6 @@ class OptionElement extends _Element_Merged {
 
   /** @domName HTMLOptionElement.value */
   void set value(String value) native "HTMLOptionElement_value_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName OscillatorNode
-class OscillatorNode extends AudioSourceNode {
-  OscillatorNode.internal(): super.internal();
-
-  static const int CUSTOM = 4;
-
-  static const int FINISHED_STATE = 3;
-
-  static const int PLAYING_STATE = 2;
-
-  static const int SAWTOOTH = 2;
-
-  static const int SCHEDULED_STATE = 1;
-
-  static const int SINE = 0;
-
-  static const int SQUARE = 1;
-
-  static const int TRIANGLE = 3;
-
-  static const int UNSCHEDULED_STATE = 0;
-
-
-  /** @domName OscillatorNode.detune */
-  AudioParam get detune native "OscillatorNode_detune_Getter";
-
-
-  /** @domName OscillatorNode.frequency */
-  AudioParam get frequency native "OscillatorNode_frequency_Getter";
-
-
-  /** @domName OscillatorNode.playbackState */
-  int get playbackState native "OscillatorNode_playbackState_Getter";
-
-
-  /** @domName OscillatorNode.type */
-  int get type native "OscillatorNode_type_Getter";
-
-
-  /** @domName OscillatorNode.type */
-  void set type(int value) native "OscillatorNode_type_Setter";
-
-
-  /** @domName OscillatorNode.setWaveTable */
-  void setWaveTable(WaveTable waveTable) native "OscillatorNode_setWaveTable_Callback";
-
-
-  /** @domName OscillatorNode.start */
-  void start(num when) native "OscillatorNode_start_Callback";
-
-
-  /** @domName OscillatorNode.stop */
-  void stop(num when) native "OscillatorNode_stop_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18920,114 +17935,6 @@ class PageTransitionEvent extends Event {
 
   /** @domName PageTransitionEvent.persisted */
   bool get persisted native "PageTransitionEvent_persisted_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName PannerNode
-class PannerNode extends AudioNode {
-  PannerNode.internal(): super.internal();
-
-  static const int EQUALPOWER = 0;
-
-  static const int EXPONENTIAL_DISTANCE = 2;
-
-  static const int HRTF = 1;
-
-  static const int INVERSE_DISTANCE = 1;
-
-  static const int LINEAR_DISTANCE = 0;
-
-  static const int SOUNDFIELD = 2;
-
-
-  /** @domName PannerNode.coneGain */
-  AudioGain get coneGain native "PannerNode_coneGain_Getter";
-
-
-  /** @domName PannerNode.coneInnerAngle */
-  num get coneInnerAngle native "PannerNode_coneInnerAngle_Getter";
-
-
-  /** @domName PannerNode.coneInnerAngle */
-  void set coneInnerAngle(num value) native "PannerNode_coneInnerAngle_Setter";
-
-
-  /** @domName PannerNode.coneOuterAngle */
-  num get coneOuterAngle native "PannerNode_coneOuterAngle_Getter";
-
-
-  /** @domName PannerNode.coneOuterAngle */
-  void set coneOuterAngle(num value) native "PannerNode_coneOuterAngle_Setter";
-
-
-  /** @domName PannerNode.coneOuterGain */
-  num get coneOuterGain native "PannerNode_coneOuterGain_Getter";
-
-
-  /** @domName PannerNode.coneOuterGain */
-  void set coneOuterGain(num value) native "PannerNode_coneOuterGain_Setter";
-
-
-  /** @domName PannerNode.distanceGain */
-  AudioGain get distanceGain native "PannerNode_distanceGain_Getter";
-
-
-  /** @domName PannerNode.distanceModel */
-  int get distanceModel native "PannerNode_distanceModel_Getter";
-
-
-  /** @domName PannerNode.distanceModel */
-  void set distanceModel(int value) native "PannerNode_distanceModel_Setter";
-
-
-  /** @domName PannerNode.maxDistance */
-  num get maxDistance native "PannerNode_maxDistance_Getter";
-
-
-  /** @domName PannerNode.maxDistance */
-  void set maxDistance(num value) native "PannerNode_maxDistance_Setter";
-
-
-  /** @domName PannerNode.panningModel */
-  int get panningModel native "PannerNode_panningModel_Getter";
-
-
-  /** @domName PannerNode.panningModel */
-  void set panningModel(int value) native "PannerNode_panningModel_Setter";
-
-
-  /** @domName PannerNode.refDistance */
-  num get refDistance native "PannerNode_refDistance_Getter";
-
-
-  /** @domName PannerNode.refDistance */
-  void set refDistance(num value) native "PannerNode_refDistance_Setter";
-
-
-  /** @domName PannerNode.rolloffFactor */
-  num get rolloffFactor native "PannerNode_rolloffFactor_Getter";
-
-
-  /** @domName PannerNode.rolloffFactor */
-  void set rolloffFactor(num value) native "PannerNode_rolloffFactor_Setter";
-
-
-  /** @domName PannerNode.setOrientation */
-  void setOrientation(num x, num y, num z) native "PannerNode_setOrientation_Callback";
-
-
-  /** @domName PannerNode.setPosition */
-  void setPosition(num x, num y, num z) native "PannerNode_setPosition_Callback";
-
-
-  /** @domName PannerNode.setVelocity */
-  void setVelocity(num x, num y, num z) native "PannerNode_setVelocity_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19389,6 +18296,7 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName WebKitPoint
 class Point extends NativeFieldWrapperClass1 {
   factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
   Point.internal();
@@ -20033,7 +18941,7 @@ class RTCStatsResponse extends NativeFieldWrapperClass1 {
 
 
 /// @domName RadioNodeList
-class RadioNodeList extends _NodeList {
+class RadioNodeList extends NodeList {
   RadioNodeList.internal(): super.internal();
 
 
@@ -20667,32 +19575,6 @@ class ScriptElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ScriptProcessorNode
-class ScriptProcessorNode extends AudioNode implements EventTarget {
-  ScriptProcessorNode.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  ScriptProcessorNodeEvents get on =>
-    new ScriptProcessorNodeEvents(this);
-
-
-  /** @domName ScriptProcessorNode.bufferSize */
-  int get bufferSize native "ScriptProcessorNode_bufferSize_Getter";
-
-}
-
-class ScriptProcessorNodeEvents extends Events {
-  ScriptProcessorNodeEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get audioProcess => this['audioprocess'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName ScriptProfile
 class ScriptProfile extends NativeFieldWrapperClass1 {
   ScriptProfile.internal();
@@ -20723,7 +19605,7 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 
 
   /** @domName ScriptProfileNode.callUID */
-  int get callUID native "ScriptProfileNode_callUID_Getter";
+  int get callUid native "ScriptProfileNode_callUID_Getter";
 
 
   /** @domName ScriptProfileNode.functionName */
@@ -20941,6 +19823,7 @@ class ShadowElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName ShadowRoot
 class ShadowRoot extends DocumentFragment {
 
   factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
@@ -20960,11 +19843,11 @@ class ShadowRoot extends DocumentFragment {
 
 
   /** @domName ShadowRoot.innerHTML */
-  String get innerHTML native "ShadowRoot_innerHTML_Getter";
+  String get innerHtml native "ShadowRoot_innerHTML_Getter";
 
 
   /** @domName ShadowRoot.innerHTML */
-  void set innerHTML(String value) native "ShadowRoot_innerHTML_Setter";
+  void set innerHtml(String value) native "ShadowRoot_innerHTML_Setter";
 
 
   /** @domName ShadowRoot.resetStyleInheritance */
@@ -21674,6 +20557,7 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName Storage
 class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
   // TODO(nweiz): update this when maps support lazy iteration
@@ -22460,6 +21344,7 @@ class TableSectionElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName Text
 class Text extends CharacterData {
   factory Text(String data) => _TextFactoryProvider.createText(data);
   Text.internal(): super.internal();
@@ -22920,7 +21805,7 @@ class TextTrackCue extends EventTarget {
 
 
   /** @domName TextTrackCue.getCueAsHTML */
-  DocumentFragment getCueAsHTML() native "TextTrackCue_getCueAsHTML_Callback";
+  DocumentFragment getCueAsHtml() native "TextTrackCue_getCueAsHTML_Callback";
 
 
   /** @domName TextTrackCue.removeEventListener */
@@ -23603,13 +22488,25 @@ class TreeWalker extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName UIEvent
+/// @domName UIEvent; @docsEditable true
 class UIEvent extends Event {
+  // In JS, canBubble and cancelable are technically required parameters to
+  // init*Event. In practice, though, if they aren't provided they simply
+  // default to false (since that's Boolean(undefined)).
+  //
+  // Contrary to JS, we default canBubble and cancelable to true, since that's
+  // what people want most of the time anyway.
+  factory UIEvent(String type, Window view, int detail,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = document.$dom_createEvent("UIEvent");
+    e.$dom_initUIEvent(type, canBubble, cancelable, view, detail);
+    return e;
+  }
   UIEvent.internal(): super.internal();
 
 
   /** @domName UIEvent.charCode */
-  int get charCode native "UIEvent_charCode_Getter";
+  int get $dom_charCode native "UIEvent_charCode_Getter";
 
 
   /** @domName UIEvent.detail */
@@ -23617,7 +22514,7 @@ class UIEvent extends Event {
 
 
   /** @domName UIEvent.keyCode */
-  int get keyCode native "UIEvent_keyCode_Getter";
+  int get $dom_keyCode native "UIEvent_keyCode_Getter";
 
 
   /** @domName UIEvent.layerX */
@@ -23645,7 +22542,7 @@ class UIEvent extends Event {
 
 
   /** @domName UIEvent.initUIEvent */
-  void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native "UIEvent_initUIEvent_Callback";
+  void $dom_initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native "UIEvent_initUIEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24316,26 +23213,6 @@ class VideoElement extends MediaElement {
 
 
 typedef void VoidCallback();
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName WaveShaperNode
-class WaveShaperNode extends AudioNode {
-  WaveShaperNode.internal(): super.internal();
-
-
-  /** @domName WaveShaperNode.curve */
-  Float32Array get curve native "WaveShaperNode_curve_Getter";
-
-
-  /** @domName WaveShaperNode.curve */
-  void set curve(Float32Array value) native "WaveShaperNode_curve_Setter";
-
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26027,6 +24904,7 @@ class WebKitNamedFlow extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName WebSocket
 class WebSocket extends EventTarget {
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
   WebSocket.internal(): super.internal();
@@ -26045,7 +24923,7 @@ class WebSocket extends EventTarget {
 
 
   /** @domName WebSocket.URL */
-  String get URL native "WebSocket_URL_Getter";
+  String get Url native "WebSocket_URL_Getter";
 
 
   /** @domName WebSocket.binaryType */
@@ -26133,6 +25011,7 @@ class WebSocketEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName WheelEvent
 class WheelEvent extends MouseEvent {
   WheelEvent.internal(): super.internal();
 
@@ -26290,11 +25169,11 @@ class WorkerContext extends EventTarget {
 
 
   /** @domName WorkerContext.webkitResolveLocalFileSystemSyncURL */
-  EntrySync webkitResolveLocalFileSystemSyncURL(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
+  EntrySync webkitResolveLocalFileSystemSyncUrl(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
 
 
   /** @domName WorkerContext.webkitResolveLocalFileSystemURL */
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
 
 }
 
@@ -26488,7 +25367,7 @@ class XPathNSResolver extends NativeFieldWrapperClass1 {
 
 
   /** @domName XPathNSResolver.lookupNamespaceURI */
-  String lookupNamespaceURI(String prefix) native "XPathNSResolver_lookupNamespaceURI_Callback";
+  String lookupNamespaceUri(String prefix) native "XPathNSResolver_lookupNamespaceURI_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26612,14 +25491,6 @@ class XSLTProcessor extends NativeFieldWrapperClass1 {
 
 class _ArrayBufferFactoryProvider {
   static ArrayBuffer createArrayBuffer(int length) native "ArrayBuffer_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _AudioElementFactoryProvider {
-  static AudioElement createAudioElement([String src]) native "HTMLAudioElement_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27134,11 +26005,11 @@ class _Element_Merged extends Element {
 
 
   /** @domName HTMLElement.innerHTML */
-  String get innerHTML native "HTMLElement_innerHTML_Getter";
+  String get innerHtml native "HTMLElement_innerHTML_Getter";
 
 
   /** @domName HTMLElement.innerHTML */
-  void set innerHTML(String value) native "HTMLElement_innerHTML_Setter";
+  void set innerHtml(String value) native "HTMLElement_innerHTML_Setter";
 
 
   /** @domName HTMLElement.isContentEditable */
@@ -27154,7 +26025,7 @@ class _Element_Merged extends Element {
 
 
   /** @domName HTMLElement.outerHTML */
-  String get outerHTML native "HTMLElement_outerHTML_Getter";
+  String get outerHtml native "HTMLElement_outerHTML_Getter";
 
 
   /** @domName HTMLElement.spellcheck */
@@ -27206,7 +26077,7 @@ class _Element_Merged extends Element {
 
 
   /** @domName HTMLElement.insertAdjacentHTML */
-  void insertAdjacentHTML(String where, String html) native "HTMLElement_insertAdjacentHTML_Callback";
+  void insertAdjacentHtml(String where, String html) native "HTMLElement_insertAdjacentHTML_Callback";
 
 
   /** @domName HTMLElement.insertAdjacentText */
@@ -27839,111 +26710,6 @@ class _MutationObserverFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-
-/// @domName NodeList
-class _NodeList extends NativeFieldWrapperClass1 implements List<Node> {
-  _NodeList.internal();
-
-
-  /** @domName NodeList.length */
-  int get length native "NodeList_length_Getter";
-
-  Node operator[](int index) native "NodeList_item_Callback";
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<Node> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(Node element) => _Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => _Collections.every(this, f);
-
-  bool some(bool f(Node element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<Node>:
-
-  void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  Node get first => this[0];
-
-  Node get last => this[length - 1];
-
-  Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
-
-  // -- end List<Node> mixins.
-
-
-  /** @domName NodeList.item */
-  Node _item(int index) native "NodeList_item_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _NotificationFactoryProvider {
   static Notification createNotification(String title, [Map options]) native "Notification_constructor_Callback";
@@ -28501,6 +27267,228 @@ class _XSLTProcessorFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
+abstract class _AttributeMap implements Map<String, String> {
+
+  bool containsValue(String value) {
+    for (var v in this.values) {
+      if (value == v) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  String putIfAbsent(String key, String ifAbsent()) {
+    if (!containsKey(key)) {
+      this[key] = ifAbsent();
+    }
+    return this[key];
+  }
+
+  void clear() {
+    for (var key in keys) {
+      remove(key);
+    }
+  }
+
+  void forEach(void f(String key, String value)) {
+    for (var key in keys) {
+      var value = this[key];
+      f(key, value);
+    }
+  }
+
+  Collection<String> get keys {
+    // TODO: generate a lazy collection instead.
+    var attributes = _element.$dom_attributes;
+    var keys = new List<String>();
+    for (int i = 0, len = attributes.length; i < len; i++) {
+      if (_matches(attributes[i])) {
+        keys.add(attributes[i].$dom_localName);
+      }
+    }
+    return keys;
+  }
+
+  Collection<String> get values {
+    // TODO: generate a lazy collection instead.
+    var attributes = _element.$dom_attributes;
+    var values = new List<String>();
+    for (int i = 0, len = attributes.length; i < len; i++) {
+      if (_matches(attributes[i])) {
+        values.add(attributes[i].value);
+      }
+    }
+    return values;
+  }
+
+  /**
+   * Returns true if there is no {key, value} pair in the map.
+   */
+  bool get isEmpty {
+    return length == 0;
+  }
+
+  /**
+   * Checks to see if the node should be included in this map.
+   */
+  bool _matches(Node node);
+}
+
+/**
+ * Wrapper to expose [Element.attributes] as a typed map.
+ */
+class _ElementAttributeMap extends _AttributeMap {
+
+  final Element _element;
+
+  _ElementAttributeMap(this._element);
+
+  bool containsKey(String key) {
+    return _element.$dom_hasAttribute(key);
+  }
+
+  String operator [](String key) {
+    return _element.$dom_getAttribute(key);
+  }
+
+  void operator []=(String key, value) {
+    _element.$dom_setAttribute(key, '$value');
+  }
+
+  String remove(String key) {
+    String value = _element.$dom_getAttribute(key);
+    _element.$dom_removeAttribute(key);
+    return value;
+  }
+
+  /**
+   * The number of {key, value} pairs in the map.
+   */
+  int get length {
+    return keys.length;
+  }
+
+  bool _matches(Node node) => node.$dom_namespaceUri == null;
+}
+
+/**
+ * Wrapper to expose namespaced attributes as a typed map.
+ */
+class _NamespacedAttributeMap extends _AttributeMap {
+
+  final Element _element;
+  final String _namespace;
+
+  _NamespacedAttributeMap(this._element, this._namespace);
+
+  bool containsKey(String key) {
+    return _element.$dom_hasAttributeNS(_namespace, key);
+  }
+
+  String operator [](String key) {
+    return _element.$dom_getAttributeNS(_namespace, key);
+  }
+
+  void operator []=(String key, value) {
+    _element.$dom_setAttributeNS(_namespace, key, '$value');
+  }
+
+  String remove(String key) {
+    String value = this[key];
+    _element.$dom_removeAttributeNS(_namespace, key);
+    return value;
+  }
+
+  /**
+   * The number of {key, value} pairs in the map.
+   */
+  int get length {
+    return keys.length;
+  }
+
+  bool _matches(Node node) => node.$dom_namespaceUri == _namespace;
+}
+
+
+/**
+ * Provides a Map abstraction on top of data-* attributes, similar to the
+ * dataSet in the old DOM.
+ */
+class _DataAttributeMap implements Map<String, String> {
+
+  final Map<String, String> $dom_attributes;
+
+  _DataAttributeMap(this.$dom_attributes);
+
+  // interface Map
+
+  // TODO: Use lazy iterator when it is available on Map.
+  bool containsValue(String value) => values.some((v) => v == value);
+
+  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
+
+  String operator [](String key) => $dom_attributes[_attr(key)];
+
+  void operator []=(String key, value) {
+    $dom_attributes[_attr(key)] = '$value';
+  }
+
+  String putIfAbsent(String key, String ifAbsent()) =>
+    $dom_attributes.putIfAbsent(_attr(key), ifAbsent);
+
+  String remove(String key) => $dom_attributes.remove(_attr(key));
+
+  void clear() {
+    // Needs to operate on a snapshot since we are mutating the collection.
+    for (String key in keys) {
+      remove(key);
+    }
+  }
+
+  void forEach(void f(String key, String value)) {
+    $dom_attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        f(_strip(key), value);
+      }
+    });
+  }
+
+  Collection<String> get keys {
+    final keys = new List<String>();
+    $dom_attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        keys.add(_strip(key));
+      }
+    });
+    return keys;
+  }
+
+  Collection<String> get values {
+    final values = new List<String>();
+    $dom_attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        values.add(value);
+      }
+    });
+    return values;
+  }
+
+  int get length => keys.length;
+
+  // TODO: Use lazy iterator when it is available on Map.
+  bool get isEmpty => length == 0;
+
+  // Helpers.
+  String _attr(String key) => 'data-$key';
+  bool _matches(String key) => key.startsWith('data-');
+  String _strip(String key) => key.substring(5);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /**
  * An object representing the top-level context object for web scripting.
  *
@@ -28530,7 +27518,7 @@ abstract class Window {
   History get history;
 
   /**
-   * Indicates whether this window is closed.
+   * Indicates whether this window has been closed.
    *
    *     print(window.closed); // 'false'
    *     window.close();
@@ -28583,6 +27571,34 @@ abstract class Window {
   Window get top;
 
   // Methods.
+  /**
+   * Closes the window.
+   *
+   * This method should only succeed if the [Window] object is
+   * **script-closeable** and the window calling [close] is allowed to navigate
+   * the window.
+   *
+   * A window is script-closeable if it is either a window
+   * that was opened by another window, or if it is a window with only one
+   * document in its history.
+   *
+   * A window might not be allowed to navigate, and therefore close, another
+   * window due to browser security features.
+   *
+   *     var other = window.open('http://www.example.com', 'foo');
+   *     // Closes other window, as it is script-closeable.
+   *     other.close();
+   *     print(other.closed()); // 'true'
+   *
+   *     window.location('http://www.mysite.com', 'foo');
+   *     // Does not close this window, as the history has changed.
+   *     window.close();
+   *     print(window.closed()); // 'false'
+   *
+   * See also:
+   *
+   * * [Window close discussion](http://www.w3.org/TR/html5/browsers.html#dom-window-close) from the W3C
+   */
   void close();
   void postMessage(var message, String targetOrigin, [List messagePorts = null]);
 }
@@ -28837,6 +27853,410 @@ class FilteredElementList implements List {
 
 
 /**
+ * Works with KeyboardEvent and KeyEvent to determine how to expose information
+ * about Key(board)Events. This class functions like an EventListenerList, and
+ * provides a consistent interface for the Dart
+ * user, despite the fact that a multitude of browsers that have varying
+ * keyboard default behavior.
+ *
+ * This class is very much a work in progress, and we'd love to get information
+ * on how we can make this class work with as many international keyboards as
+ * possible. Bugs welcome! 
+ */
+class KeyboardEventController {
+  // This code inspired by Closure's KeyHandling library.
+  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
+  
+  /**
+   * The set of keys that have been pressed down without seeing their
+   * corresponding keyup event.
+   */
+  List<KeyboardEvent> _keyDownList;
+
+  /** The set of functions that wish to be notified when a KeyEvent happens. */
+  List<Function> _callbacks;
+
+  /** The type of KeyEvent we are tracking (keyup, keydown, keypress). */
+  String _type;
+
+  /** The element we are watching for events to happen on. */
+  EventTarget _target;
+
+  // The distance to shift from upper case alphabet Roman letters to lower case.
+  int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
+
+  // Instance members referring to the internal event handlers because closures
+  // are not hashable.
+  var _keyUp, _keyDown, _keyPress;
+
+  /**
+   * An enumeration of key identifiers currently part of the W3C draft for DOM3
+   * and their mappings to keyCodes.
+   * http://www.w3.org/TR/DOM-Level-3-Events/keyset.html#KeySet-Set
+   */
+  static Map<String, int> _keyIdentifier = {
+    'Up': KeyCode.UP,
+    'Down': KeyCode.DOWN,
+    'Left': KeyCode.LEFT,
+    'Right': KeyCode.RIGHT,
+    'Enter': KeyCode.ENTER,
+    'F1': KeyCode.F1,
+    'F2': KeyCode.F2,
+    'F3': KeyCode.F3,
+    'F4': KeyCode.F4,
+    'F5': KeyCode.F5,
+    'F6': KeyCode.F6,
+    'F7': KeyCode.F7,
+    'F8': KeyCode.F8,
+    'F9': KeyCode.F9,
+    'F10': KeyCode.F10,
+    'F11': KeyCode.F11,
+    'F12': KeyCode.F12,
+    'U+007F': KeyCode.DELETE,
+    'Home': KeyCode.HOME,
+    'End': KeyCode.END,
+    'PageUp': KeyCode.PAGE_UP,
+    'PageDown': KeyCode.PAGE_DOWN,
+    'Insert': KeyCode.INSERT
+  };
+
+  /** Named constructor to add an onKeyPress event listener to our handler. */
+  KeyboardEventController.keypress(EventTarget target) {
+    _KeyboardEventController(target, 'keypress');
+  }
+  
+  /** Named constructor to add an onKeyUp event listener to our handler. */
+  KeyboardEventController.keyup(EventTarget target) {
+    _KeyboardEventController(target, 'keyup');
+  }
+
+  /** Named constructor to add an onKeyDown event listener to our handler. */
+  KeyboardEventController.keydown(EventTarget target) {
+    _KeyboardEventController(target, 'keydown');
+  }
+  
+  /**
+   * General constructor, performs basic initialization for our improved
+   * KeyboardEvent controller.
+   */
+  _KeyboardEventController(EventTarget target, String type) {
+    _callbacks = [];
+    _type = type;
+    _target = target;
+    _keyDown = processKeyDown;
+    _keyUp = processKeyUp;
+    _keyPress = processKeyPress;
+  }
+
+  /**
+   * Hook up all event listeners under the covers so we can estimate keycodes
+   * and charcodes when they are not provided.
+   */
+  void _initializeAllEventListeners() {
+    _keyDownList = [];
+    _target.on.keyDown.add(_keyDown, true);
+    _target.on.keyPress.add(_keyPress, true);
+    _target.on.keyUp.add(_keyUp, true);
+  }
+
+  /** Add a callback that wishes to be notified when a KeyEvent occurs. */
+  void add(void callback(KeyEvent)) {
+    if (_callbacks.length == 0) {
+      _initializeAllEventListeners();
+    }
+    _callbacks.add(callback);
+  }
+  
+  /**
+   * Notify all callback listeners that a KeyEvent of the relevant type has
+   * occurred.
+   */
+  bool _dispatch(KeyEvent event) {
+    if (event.type == _type) {
+      // Make a copy of the listeners in case a callback gets removed while
+      // dispatching from the list.
+      List callbacksCopy = new List.from(_callbacks);
+      for(var callback in callbacksCopy) {
+        callback(event);
+      }
+    }
+  }
+
+  /** Remove the given callback from the listeners list. */
+  void remove(void callback(KeyEvent)) {
+    var index = _callbacks.indexOf(callback);
+    if (index != -1) {
+      _callbacks.removeAt(index);
+    }
+    if (_callbacks.length == 0) {
+      // If we have no listeners, don't bother keeping track of keypresses.
+      _target.on.keyDown.remove(_keyDown);
+      _target.on.keyPress.remove(_keyPress);
+      _target.on.keyUp.remove(_keyUp);
+    }
+  }
+
+  /** Determine if caps lock is one of the currently depressed keys. */
+  bool get _capsLockOn =>
+      _keyDownList.some((var element) => element.keyCode == KeyCode.CAPS_LOCK);
+
+  /**
+   * Given the previously recorded keydown key codes, see if we can determine
+   * the keycode of this keypress [event]. (Generally browsers only provide
+   * charCode information for keypress events, but with a little
+   * reverse-engineering, we can also determine the keyCode.) Returns
+   * KeyCode.UNKNOWN if the keycode could not be determined.
+   */
+  int _determineKeyCodeForKeypress(KeyboardEvent event) {
+    // Note: This function is a work in progress. We'll expand this function
+    // once we get more information about other keyboards.
+    for (var prevEvent in _keyDownList) {
+      if (prevEvent._shadowCharCode == event.charCode) {
+        return prevEvent.keyCode;
+      }
+      if ((event.shiftKey || _capsLockOn) && event.charCode >= "A".charCodes[0]
+          && event.charCode <= "Z".charCodes[0] && event.charCode +
+          _ROMAN_ALPHABET_OFFSET == prevEvent._shadowCharCode) {
+        return prevEvent.keyCode;
+      }
+    }
+    return KeyCode.UNKNOWN;
+  }
+
+  /**
+   * Given the charater code returned from a keyDown [event], try to ascertain
+   * and return the corresponding charCode for the character that was pressed.
+   * This information is not shown to the user, but used to help polyfill
+   * keypress events.
+   */
+  int _findCharCodeKeyDown(KeyboardEvent event) {
+    if (event.keyLocation == 3) { // Numpad keys.
+      switch (event.keyCode) {
+        case KeyCode.NUM_ZERO:
+          // Even though this function returns _charCodes_, for some cases the
+          // KeyCode == the charCode we want, in which case we use the keycode
+          // constant for readability.
+          return KeyCode.ZERO;
+        case KeyCode.NUM_ONE:
+          return KeyCode.ONE;
+        case KeyCode.NUM_TWO:
+          return KeyCode.TWO;
+        case KeyCode.NUM_THREE:
+          return KeyCode.THREE;
+        case KeyCode.NUM_FOUR:
+          return KeyCode.FOUR;
+        case KeyCode.NUM_FIVE:
+          return KeyCode.FIVE;
+        case KeyCode.NUM_SIX:
+          return KeyCode.SIX;
+        case KeyCode.NUM_SEVEN:
+          return KeyCode.SEVEN;
+        case KeyCode.NUM_EIGHT:
+          return KeyCode.EIGHT;
+        case KeyCode.NUM_NINE:
+          return KeyCode.NINE;
+        case KeyCode.NUM_MULTIPLY:
+          return 42; // Char code for *
+        case KeyCode.NUM_PLUS:
+          return 43; // +
+        case KeyCode.NUM_MINUS:
+          return 45; // -
+        case KeyCode.NUM_PERIOD:
+          return 46; // .
+        case KeyCode.NUM_DIVISION:
+          return 47; // /
+      }
+    } else if (event.keyCode >= 65 && event.keyCode <= 90) {
+      // Set the "char code" for key down as the lower case letter. Again, this
+      // will not show up for the user, but will be helpful in estimating
+      // keyCode locations and other information during the keyPress event.
+      return event.keyCode + _ROMAN_ALPHABET_OFFSET;
+    }
+    switch(event.keyCode) {
+      case KeyCode.SEMICOLON:
+        return KeyCode.FF_SEMICOLON;
+      case KeyCode.EQUALS:
+        return KeyCode.FF_EQUALS;
+      case KeyCode.COMMA:
+        return 44; // Ascii value for ,
+      case KeyCode.DASH:
+        return 45; // -
+      case KeyCode.PERIOD:
+        return 46; // .
+      case KeyCode.SLASH:
+        return 47; // /
+      case KeyCode.APOSTROPHE:
+        return 96; // `
+      case KeyCode.OPEN_SQUARE_BRACKET:
+        return 91; // [
+      case KeyCode.BACKSLASH:
+        return 92; // \
+      case KeyCode.CLOSE_SQUARE_BRACKET:
+        return 93; // ]
+      case KeyCode.SINGLE_QUOTE:
+        return 39; // '
+    }
+    return event.keyCode;
+  }
+
+  /**
+   * Returns true if the key fires a keypress event in the current browser.
+   */
+  bool _firesKeyPressEvent(KeyEvent event) {
+    if (!_Device.isIE && !_Device.isWebKit) {
+      return true;
+    }
+    
+    if (_Device.userAgent.contains('Mac') && event.altKey) {
+      return KeyCode.isCharacterKey(event.keyCode);
+    }
+ 
+    // Alt but not AltGr which is represented as Alt+Ctrl.
+    if (event.altKey && !event.ctrlKey) {
+      return false;
+    }
+ 
+    // Saves Ctrl or Alt + key for IE and WebKit, which won't fire keypress.
+    if (!event.shiftKey &&
+        (_keyDownList.last.keyCode == KeyCode.CTRL ||
+         _keyDownList.last.keyCode == KeyCode.ALT ||
+         _Device.userAgent.contains('Mac') &&
+         _keyDownList.last.keyCode == KeyCode.META)) {
+      return false;
+    }
+ 
+    // Some keys with Ctrl/Shift do not issue keypress in WebKit.
+    if (_Device.isWebKit && event.ctrlKey && event.shiftKey && (
+        event.keycode == KeyCode.BACKSLASH ||
+        event.keycode == KeyCode.OPEN_SQUARE_BRACKET ||
+        event.keycode == KeyCode.CLOSE_SQUARE_BRACKET ||
+        event.keycode == KeyCode.TILDE ||
+        event.keycode == KeyCode.SEMICOLON || event.keycode == KeyCode.DASH ||
+        event.keycode == KeyCode.EQUALS || event.keycode == KeyCode.COMMA ||
+        event.keycode == KeyCode.PERIOD || event.keycode == KeyCode.SLASH ||
+        event.keycode == KeyCode.APOSTROPHE ||
+        event.keycode == KeyCode.SINGLE_QUOTE)) {
+      return false;
+    }
+ 
+    switch (event.keyCode) {
+      case KeyCode.ENTER:
+        // IE9 does not fire keypress on ENTER.
+        return !_Device.isIE;
+      case KeyCode.ESC:
+        return !_Device.isWebKit;
+    }
+ 
+    return KeyCode.isCharacterKey(event.keyCode);
+  }
+
+  /**
+   * Normalize the keycodes to the IE KeyCodes (this is what Chrome, IE, and
+   * Opera all use).
+   */
+  int _normalizeKeyCodes(KeyboardEvent event) {
+    // Note: This may change once we get input about non-US keyboards.
+    if (_Device.isFirefox) {
+      switch(event.keyCode) {
+        case KeyCode.FF_EQUALS:
+          return KeyCode.EQUALS;
+        case KeyCode.FF_SEMICOLON:
+          return KeyCode.SEMICOLON;
+        case KeyCode.MAC_FF_META:
+          return KeyCode.META;
+        case KeyCode.WIN_KEY_FF_LINUX:
+          return KeyCode.WIN_KEY;
+      }
+    }
+    return event.keyCode;
+  }
+
+  /** Handle keydown events. */
+  void processKeyDown(KeyboardEvent e) {
+    // Ctrl-Tab and Alt-Tab can cause the focus to be moved to another window
+    // before we've caught a key-up event.  If the last-key was one of these
+    // we reset the state.
+    if (_keyDownList.length > 0 &&
+        (_keyDownList.last.keyCode == KeyCode.CTRL && !e.ctrlKey ||
+         _keyDownList.last.keyCode == KeyCode.ALT && !e.altKey ||
+         _Device.userAgent.contains('Mac') &&
+         _keyDownList.last.keyCode == KeyCode.META && !e.metaKey)) {
+      _keyDownList = [];
+    }
+
+    var event = new KeyEvent(e);
+    event._shadowKeyCode = _normalizeKeyCodes(event);
+    // Technically a "keydown" event doesn't have a charCode. This is
+    // calculated nonetheless to provide us with more information in giving
+    // as much information as possible on keypress about keycode and also
+    // charCode.
+    event._shadowCharCode = _findCharCodeKeyDown(event);
+    if (_keyDownList.length > 0 && event.keyCode != _keyDownList.last.keyCode &&
+        !_firesKeyPressEvent(event)) {
+      // Some browsers have quirks not firing keypress events where all other
+      // browsers do. This makes them more consistent.
+      processKeyPress(event);
+    }
+    _keyDownList.add(event);
+    _dispatch(event);
+  }
+
+  /** Handle keypress events. */
+  void processKeyPress(KeyboardEvent event) {
+    var e = new KeyEvent(event);
+    // IE reports the character code in the keyCode field for keypress events.
+    // There are two exceptions however, Enter and Escape.
+    if (_Device.isIE) {
+      if (e.keyCode == KeyCode.ENTER || e.keyCode == KeyCode.ESC) {
+        e._shadowCharCode = 0;
+      } else {
+        e._shadowCharCode = e.keyCode;
+      }
+    } else if (_Device.isOpera) {
+      // Opera reports the character code in the keyCode field.
+      e._shadowCharCode = KeyCode.isCharacterKey(keyCode) ? e.keyCode : 0;
+    }
+    // Now we guestimate about what the keycode is that was actually
+    // pressed, given previous keydown information.
+    e._shadowKeyCode = _determineKeyCodeForKeypress(e);
+
+    // Correct the key value for certain browser-specific quirks.
+    if (e._shadowKeyIdentifier &&
+        _keyIdentifier.contains(e._shadowKeyIdentifier)) {
+      // This is needed for Safari Windows because it currently doesn't give a
+      // keyCode/which for non printable keys.
+      e._shadowKeyCode = _keyIdentifier[keyIdentifier];
+    }
+    e._shadowAltKey = _keyDownList.some((var element) => element.altKey);
+    _dispatch(e);
+  }
+
+  /** Handle keyup events. */
+  void processKeyUp(KeyboardEvent event) {
+    var e = new KeyEvent(event);
+    KeyboardEvent toRemove = null;
+    for (var key in _keyDownList) {
+      if (key.keyCode == e.keyCode) {
+        toRemove = key;
+      }
+    }
+    if (toRemove != null) {
+      _keyDownList = _keyDownList.filter((element) => element != toRemove);
+    } else if (_keyDownList.length > 0) {
+      // This happens when we've reached some international keyboard case we
+      // haven't accounted for or we haven't correctly eliminated all browser
+      // inconsistencies. Filing bugs on when this is reached is welcome! 
+      _keyDownList.removeLast(); 
+    }
+    _dispatch(e);
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
  * Defines the keycode values for keys that are returned by 
  * KeyboardEvent.keyCode.
  * 
@@ -29027,6 +28447,36 @@ abstract class KeyCode {
   static const int WIN_KEY = 224;
   static const int MAC_FF_META = 224;
   static const int WIN_IME = 229;
+
+  /** A sentinel value if the keycode could not be determined. */
+  static const int UNKNOWN = -1;
+
+  /**
+   * Returns true if the keyCode produces a (US keyboard) character.
+   * Note: This does not (yet) cover characters on non-US keyboards (Russian,
+   * Hebrew, etc.).
+   */
+  static bool isCharacterKey(int keyCode) {
+    if ((keyCode >= ZERO && keyCode <= NINE) ||
+        (keyCode >= NUM_ZERO && keyCode <= NUM_MULTIPLY) ||
+        (keyCode >= A && keyCode <= Z)) {
+      return true;
+    }
+ 
+    // Safari sends zero key code for non-latin characters.
+    if (_Device.isWebKit && keyCode == 0) {
+      return true;
+    }
+ 
+    return (keyCode == SPACE || keyCode == QUESTION_MARK || keyCode == NUM_PLUS
+        || keyCode == NUM_MINUS || keyCode == NUM_PERIOD ||
+        keyCode == NUM_DIVISION || keyCode == SEMICOLON ||
+        keyCode == FF_SEMICOLON || keyCode == DASH || keyCode == EQUALS ||
+        keyCode == FF_EQUALS || keyCode == COMMA || keyCode == PERIOD ||
+        keyCode == SLASH || keyCode == APOSTROPHE || keyCode == SINGLE_QUOTE ||
+        keyCode == OPEN_SQUARE_BRACKET || keyCode == BACKSLASH ||
+        keyCode == CLOSE_SQUARE_BRACKET);
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29767,7 +29217,7 @@ class _DocumentFragmentFactoryProvider {
 
   static DocumentFragment createDocumentFragment_html(String html) {
     final fragment = new DocumentFragment();
-    fragment.innerHTML = html;
+    fragment.innerHtml = html;
     return fragment;
   }
 
@@ -29775,7 +29225,7 @@ class _DocumentFragmentFactoryProvider {
   // factory DocumentFragment.xml(String xml) {
   //   final fragment = new DocumentFragment();
   //   final e = new XMLElement.tag("xml");
-  //   e.innerHTML = xml;
+  //   e.innerHtml = xml;
   //
   //   // Copy list first since we don't want liveness during iteration.
   //   final List nodes = new List.from(e.nodes);
@@ -29786,7 +29236,7 @@ class _DocumentFragmentFactoryProvider {
   static DocumentFragment createDocumentFragment_svg(String svgContent) {
     final fragment = new DocumentFragment();
     final e = new svg.SVGSVGElement();
-    e.innerHTML = svgContent;
+    e.innerHtml = svgContent;
 
     // Copy list first since we don't want liveness during iteration.
     final List nodes = new List.from(e.nodes);
@@ -29794,18 +29244,113 @@ class _DocumentFragmentFactoryProvider {
     return fragment;
   }
 }
+/**
+ * A custom KeyboardEvent that attempts to eliminate cross-browser
+ * inconsistencies, and also provide both keyCode and charCode information
+ * for all key events (when such information can be determined).
+ *
+ * This class is very much a work in progress, and we'd love to get information
+ * on how we can make this class work with as many international keyboards as
+ * possible. Bugs welcome!
+ */
+class KeyEvent implements KeyboardEvent {
+  /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
+  KeyboardEvent _parent;
+
+  /** The "fixed" value of whether the alt key is being pressed. */
+  bool _shadowAltKey;
+
+  /** Caculated value of what the estimated charCode is for this event. */
+  int _shadowCharCode;
+
+  /** Caculated value of what the estimated keyCode is for this event. */
+  int _shadowKeyCode;
+
+  /** Caculated value of what the estimated keyCode is for this event. */
+  int get keyCode => _shadowKeyCode;
+
+  /** Caculated value of what the estimated charCode is for this event. */
+  int get charCode => this.type == 'keypress' ? _shadowCharCode : 0;
+
+  /** Caculated value of whether the alt key is pressed is for this event. */
+  bool get altKey => _shadowAltKey;
+
+  /** Caculated value of what the estimated keyCode is for this event. */
+  int get which => keyCode;
+
+  /** Accessor to the underlying keyCode value is the parent event. */
+  int get _realKeyCode => _parent.keyCode;
+  
+  /** Accessor to the underlying charCode value is the parent event. */
+  int get _realCharCode => _parent.charCode;
+
+  /** Accessor to the underlying altKey value is the parent event. */
+  bool get _realAltKey => _parent.altKey;
+
+  /** Construct a KeyEvent with [parent] as event we're emulating. */
+  KeyEvent(KeyboardEvent parent) {
+    _parent = parent;
+    _shadowAltKey = _realAltKey;
+    _shadowCharCode = _realCharCode;
+    _shadowKeyCode = _realKeyCode;
+  }
+ 
+  /** True if the altGraphKey is pressed during this event. */
+  bool get altGraphKey => _parent.altGraphKey;
+  bool get bubbles => _parent.bubbles;
+  /** True if this event can be cancelled. */
+  bool get cancelable => _parent.cancelable;
+  bool get cancelBubble => _parent.cancelBubble;
+  set cancelBubble(bool cancel) => _parent = cancel;
+  /** Accessor to the clipboardData available for this event. */
+  Clipboard get clipboardData => _parent.clipboardData;
+  /** True if the ctrl key is pressed during this event. */
+  bool get ctrlKey => _parent.ctrlKey;
+  /** Accessor to the target this event is listening to for changes. */
+  EventTarget get currentTarget => _parent.currentTarget;
+  bool get defaultPrevented => _parent.defaultPrevented;
+  int get detail => _parent.detail;
+  int get eventPhase => _parent.eventPhase;
+  /**
+   * Accessor to the part of the keyboard that the key was pressed from (one of
+   * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
+   * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
+   */
+  int get keyLocation => _parent.keyLocation;
+  int get layerX => _parent.layerX;
+  int get layerY => _parent.layerY;
+  /** True if the Meta (or Mac command) key is pressed during this event. */
+  bool get metaKey => _parent.metaKey;
+  int get pageX => _parent.pageX;
+  int get pageY => _parent.pageY;
+  bool get returnValue => _parent.returnValue;
+  set returnValue(bool value) => _parent = value;
+  /** True if the shift key was pressed during this event. */
+  bool get shiftKey => _parent.shiftKey;
+  int get timeStamp => _parent.timeStamp;
+  /**
+   * The type of key event that occurred. One of "keydown", "keyup", or
+   * "keypress".
+   */
+  String get type => _parent.type;
+  Window get view => _parent.view;
+  void preventDefault() => _parent.preventDefault();
+  void stopImmediatePropagation() => _parent.stopImmediatePropagation();
+  void stopPropagation() => _parent.stopPropagation();
+  void $dom_initUIEvent(String type, bool canBubble, bool cancelable,
+      LocalWindow view, int detail) {
+    throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
+  }
+  void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
+      bool cancelableArg) {
+    throw new UnsupportedError("Cannot initialize an Event from a KeyEvent.");
+  }
+  String get _shadowKeyIdentifier => _parent.$dom_keyIdentifier;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-class _AudioContextFactoryProvider {
-  static AudioContext createAudioContext() => _createAudioContext();
-  static _createAudioContext([int numberOfChannels,
-                              int numberOfFrames,
-                              int sampleRate])
-      native "AudioContext_constructor_Callback";
-}
 
 class _IDBKeyRangeFactoryProvider {
 
@@ -30774,13 +30319,13 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements Window {
   _DOMWindowCrossFrame.internal();
 
   // Fields.
-  History get history() native "DOMWindow_history_cross_frame_Getter";
-  Location get location() native "DOMWindow_location_cross_frame_Getter";
-  bool get closed() native "DOMWindow_closed_Getter";
-  int get length() native "DOMWindow_length_Getter";
-  Window get opener() native "DOMWindow_opener_Getter";
-  Window get parent() native "DOMWindow_parent_Getter";
-  Window get top() native "DOMWindow_top_Getter";
+  History get history native "DOMWindow_history_cross_frame_Getter";
+  Location get location native "DOMWindow_location_cross_frame_Getter";
+  bool get closed native "DOMWindow_closed_Getter";
+  int get length native "DOMWindow_length_Getter";
+  Window get opener native "DOMWindow_opener_Getter";
+  Window get parent native "DOMWindow_parent_Getter";
+  Window get top native "DOMWindow_top_Getter";
 
   // Methods.
   void close() native "DOMWindow_close_Callback";

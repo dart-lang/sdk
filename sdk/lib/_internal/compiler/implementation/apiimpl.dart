@@ -31,7 +31,9 @@ class Compiler extends leg.Compiler {
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
             enableMinification: hasOption(options, '--minify'),
             enableNativeLiveTypeAnalysis:
-              hasOption(options, '--enable-native-live-type-analysis'),
+              hasOption(options, '--disable-native-live-type-analysis')
+                  ? false
+                  : hasOption(options, '--enable-native-live-type-analysis'),
             emitJavaScript: !hasOption(options, '--output-type=dart'),
             disallowUnsafeEval: hasOption(options, '--disallow-unsafe-eval'),
             analyzeAll: hasOption(options, '--analyze-all'),
@@ -100,23 +102,25 @@ class Compiler extends leg.Compiler {
   }
 
   leg.Script readScript(Uri uri, [tree.Node node]) {
-    if (uri.scheme == 'dart') uri = translateDartUri(uri, node);
-    var translated = translateUri(uri, node);
-    String text = "";
-    try {
-      // TODO(ahe): We expect the future to be complete and call value
-      // directly. In effect, we don't support truly asynchronous API.
-      text = provider(translated).value;
-    } catch (exception) {
-      if (node != null) {
-        cancel("$exception", node: node);
-      } else {
-        reportDiagnostic(null, "$exception", api.Diagnostic.ERROR);
-        throw new leg.CompilerCancelledException("$exception");
+    return fileReadingTask.measure(() {
+      if (uri.scheme == 'dart') uri = translateDartUri(uri, node);
+      var translated = translateUri(uri, node);
+      String text = "";
+      try {
+        // TODO(ahe): We expect the future to be complete and call value
+        // directly. In effect, we don't support truly asynchronous API.
+        text = provider(translated).value;
+      } catch (exception) {
+        if (node != null) {
+          cancel("$exception", node: node);
+        } else {
+          reportDiagnostic(null, "$exception", api.Diagnostic.ERROR);
+          throw new leg.CompilerCancelledException("$exception");
+        }
       }
-    }
-    SourceFile sourceFile = new SourceFile(translated.toString(), text);
-    return new leg.Script(uri, sourceFile);
+      SourceFile sourceFile = new SourceFile(translated.toString(), text);
+      return new leg.Script(uri, sourceFile);
+    });
   }
 
   Uri translateUri(Uri uri, tree.Node node) {
@@ -156,9 +160,14 @@ class Compiler extends leg.Compiler {
 
   bool run(Uri uri) {
     bool success = super.run(uri);
+    int cumulated = 0;
     for (final task in tasks) {
+      cumulated += task.timing;
       log('${task.name} took ${task.timing}msec');
     }
+    int total = totalCompileTime.elapsedMilliseconds;
+    log('Total compile-time ${total}msec;'
+        ' unaccounted ${total - cumulated}msec');
     return success;
   }
 

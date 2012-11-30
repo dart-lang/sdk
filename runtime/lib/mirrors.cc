@@ -259,7 +259,7 @@ static Dart_Handle CreateLazyMirror(Dart_Handle target) {
     return Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
   }
 
-  if (Dart_IsClass(target) || Dart_IsInterface(target)) {
+  if (Dart_IsClass(target)) {
     if (Dart_ClassIsFunctionType(target)) {
       Dart_Handle cls_name = NewString("_LazyFunctionTypeMirror");
       Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
@@ -364,7 +364,7 @@ static Dart_Handle CreateTypeVariableMirror(Dart_Handle type_var,
 
 static Dart_Handle CreateTypeVariableMap(Dart_Handle owner,
                                          Dart_Handle owner_mirror) {
-  ASSERT(Dart_IsClass(owner) || Dart_IsInterface(owner));
+  ASSERT(Dart_IsClass(owner));
   // TODO(turnidge): This should be an immutable map.
   Dart_Handle map = MapNew();
   if (Dart_IsError(map)) {
@@ -436,7 +436,7 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
                                      Dart_Handle intf_name,
                                      Dart_Handle lib,
                                      Dart_Handle lib_mirror) {
-  ASSERT(Dart_IsClass(intf) || Dart_IsInterface(intf));
+  ASSERT(Dart_IsClass(intf));
   if (Dart_ClassIsTypedef(intf)) {
     // This class is actually a typedef.  Represent it specially in
     // reflection.
@@ -454,7 +454,8 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
   if (Dart_IsNull(super_class)) {
     super_class = Dart_GetClass(CoreLib(), NewString("Object"));
   }
-  Dart_Handle default_class = Dart_ClassGetDefault(intf);
+  // TODO(turnidge): Simplify code, now that default classes have been removed.
+  Dart_Handle default_class = Dart_Null();
 
   Dart_Handle intf_mirror = CreateLazyMirror(intf);
   if (Dart_IsError(intf_mirror)) {

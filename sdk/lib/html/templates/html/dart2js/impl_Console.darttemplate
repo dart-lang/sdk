@@ -4,6 +4,7 @@
 
 part of html;
 
+/// @domName $DOMNAME
 class $CLASSNAME
     // Console is sometimes a singleton bag-of-properties without a prototype.
     native "=(typeof console == 'undefined' ? {} : console)" {

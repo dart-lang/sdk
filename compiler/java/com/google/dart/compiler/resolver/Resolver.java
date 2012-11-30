@@ -723,23 +723,10 @@ public class Resolver {
       }
 
       DartBlock body = functionNode.getBody();
-      boolean isInterface = false;
-      boolean isAbstractClass = false;
-      if (ElementKind.of(member.getEnclosingElement()).equals(ElementKind.CLASS)) {
-        ClassElement cl = (ClassElement) member.getEnclosingElement();
-        isInterface = cl.isInterface();
-        isAbstractClass = cl.getModifiers().isAbstract();
-      }
-
       if (body == null) {
         if (member.getModifiers().isStatic() && !member.getModifiers().isExternal()) {
           onError(functionNode, ResolverErrorCode.STATIC_METHOD_MUST_HAVE_BODY);
         }
-//        else if (!Elements.isNonFactoryConstructor(member) && !member.getModifiers().isAbstract()
-//            && !member.getModifiers().isExternal() && node.getRedirectedTypeName() == null
-//            && !(isInterface || isAbstractClass)) {
-//          onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
-//        }
       }
       resolve(functionNode.getBody());
 
@@ -1768,7 +1755,11 @@ public class Resolver {
           }
         break;
         case TYPE_VARIABLE:
-          onError(x.getConstructor(), ResolverErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
+          if (x.isConst() ) {
+            onError(x.getConstructor(), ResolverErrorCode.CONST_EXPRESSION_CANT_USE_TYPE_VAR);
+          } else {
+            onError(x.getConstructor(), ResolverErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
+          }
           return null;
         default:
           break;

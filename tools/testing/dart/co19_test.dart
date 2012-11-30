@@ -35,7 +35,8 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
     const <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk', '--checked']];
 
 void main() {
-  File scriptFile = new File(new Options().script);
+  Options options = new Options();
+  File scriptFile = new File(options.script);
   Path scriptPath =
       new Path.fromNative(scriptFile.fullPathSync())
       .directoryPath.directoryPath.directoryPath.append('test.dart');
@@ -46,6 +47,7 @@ void main() {
   for (var commandLine in COMMAND_LINES) {
     List arguments = <String>[];
     arguments.addAll(COMMON_ARGUMENTS);
+    arguments.addAll(options.arguments);
     arguments.addAll(commandLine);
     arguments.add('co19');
     configurations.addAll(optionsParser.parse(arguments));

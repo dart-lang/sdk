@@ -1,0 +1,8 @@
+// DO NOT EDIT
+// Auto-generated dart:audio library.
+
+library web_audio;
+
+import 'dart:html';
+
+$!GENERATED_DART_FILES

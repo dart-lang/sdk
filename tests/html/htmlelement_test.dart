@@ -8,11 +8,11 @@ main() {
   test('InnerHTML', () {
     Element element = new Element.tag('div');
     element.id = 'test';
-    element.innerHTML = 'Hello World';
+    element.innerHtml = 'Hello World';
     document.body.nodes.add(element);
 
     element = document.query('#test');
-    expect(element.innerHTML, 'Hello World');
+    expect(element.innerHtml, 'Hello World');
     element.remove();
   });
   test('HTMLTable', () {
@@ -68,7 +68,7 @@ main() {
     expect(keys, unorderedEquals(['foo', 'bar']));
     expect(values, unorderedEquals(['foo-value', 'bar-value']));
 
-    expect(new List<String>.from(div.dataAttributes.keys), 
+    expect(new List<String>.from(div.dataAttributes.keys),
         unorderedEquals(['foo', 'bar']));
     expect(new List<String>.from(div.dataAttributes.values),
         unorderedEquals(['foo-value', 'bar-value']));

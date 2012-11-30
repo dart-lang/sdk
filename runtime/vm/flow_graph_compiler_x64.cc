@@ -132,12 +132,10 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   if (is_raw_type) {
     const Register kClassIdReg = R10;
     // dynamic type argument, check only classes.
-    // List is a very common case.
     __ LoadClassId(kClassIdReg, kInstanceReg);
-    if (!type_class.is_interface()) {
-      __ cmpl(kClassIdReg, Immediate(type_class.id()));
-      __ j(EQUAL, is_instance_lbl);
-    }
+    __ cmpl(kClassIdReg, Immediate(type_class.id()));
+    __ j(EQUAL, is_instance_lbl);
+    // List is a very common case.
     if (type_class.IsListClass()) {
       GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
     }
@@ -216,11 +214,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   __ Bind(&compare_classes);
   const Register kClassIdReg = R10;
   __ LoadClassId(kClassIdReg, kInstanceReg);
-  // If type is an interface, we can skip the class equality check.
-  if (!type_class.is_interface()) {
-    __ cmpl(kClassIdReg, Immediate(type_class.id()));
-    __ j(EQUAL, is_instance_lbl);
-  }
+  __ cmpl(kClassIdReg, Immediate(type_class.id()));
+  __ j(EQUAL, is_instance_lbl);
   // Bool interface can be implemented only by core class Bool.
   // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
   if (type.IsBoolType()) {
@@ -390,6 +385,20 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
   if (type.IsVoidType()) {
     // A non-null value is returned from a void function, which will result in a
     // type error. A null value is handled prior to executing this inline code.
+    return SubtypeTestCache::null();
+  }
+  if (TypeCheckAsClassEquality(type)) {
+    const intptr_t type_cid = Class::Handle(type.type_class()).id();
+    const Register kInstanceReg = RAX;
+    __ testq(kInstanceReg, Immediate(kSmiTagMask));
+    if (type_cid == kSmiCid) {
+      __ j(ZERO, is_instance_lbl);
+    } else {
+      __ j(ZERO, is_not_instance_lbl);
+      __ CompareClassId(kInstanceReg, type_cid);
+      __ j(EQUAL, is_instance_lbl);
+    }
+    __ jmp(is_not_instance_lbl);
     return SubtypeTestCache::null();
   }
   if (type.IsInstantiated()) {
@@ -779,41 +788,32 @@ void FlowGraphCompiler::CopyParameters() {
     // stack.
     __ addq(RSP, Immediate(StackSize() * kWordSize));
   }
-  // The calls immediately below have empty stackmaps because we have just
+  // The call below has an empty stackmap because we have just
   // dropped the spill slots.
   BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
-  if (function.IsClosureFunction()) {
-    // TODO(regis): Call NoSuchMethod with "call" as name of original function.
-    // We do not use GenerateCallRuntime because of the non-standard (empty)
-    // stackmap used here.
-    __ CallRuntime(kClosureArgumentMismatchRuntimeEntry);
-    AddCurrentDescriptor(PcDescriptors::kOther,
-                         Isolate::kNoDeoptId,
-                         0);  // No token position.
-  } else {
-    // Invoke noSuchMethod function.
-    const int kNumArgsChecked = 1;
-    ICData& ic_data = ICData::ZoneHandle();
-    ic_data = ICData::New(function,
-                          String::Handle(function.name()),
-                          Isolate::kNoDeoptId,
-                          kNumArgsChecked);
-    __ LoadObject(RBX, ic_data);
-    // RBP - 8 : PC marker, allows easy identification of RawInstruction obj.
-    // RBP : points to previous frame pointer.
-    // RBP + 8 : points to return address.
-    // RBP + 16 : address of last argument (arg n-1).
-    // RSP + 16 + 8*(n-1) : address of first argument (arg 0).
-    // RBX : ic-data.
-    // R10 : arguments descriptor array.
-    __ call(&StubCode::CallNoSuchMethodFunctionLabel());
-  }
+
+  // Invoke noSuchMethod function passing the original name of the function.
+  // If the function is a closure function, use "call" as the original name.
+  const String& name = String::Handle(
+      function.IsClosureFunction() ? Symbols::Call() : function.name());
+  const int kNumArgsChecked = 1;
+  const ICData& ic_data = ICData::ZoneHandle(
+      ICData::New(function, name, Isolate::kNoDeoptId, kNumArgsChecked));
+  __ LoadObject(RBX, ic_data);
+  // RBP - 8 : PC marker, allows easy identification of RawInstruction obj.
+  // RBP : points to previous frame pointer.
+  // RBP + 8 : points to return address.
+  // RBP + 16 : address of last argument (arg n-1).
+  // RSP + 16 + 8*(n-1) : address of first argument (arg 0).
+  // RBX : ic-data.
+  // R10 : arguments descriptor array.
+  __ call(&StubCode::CallNoSuchMethodFunctionLabel());
   if (is_optimizing()) {
     stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
                                       empty_stack_bitmap,
                                       0);  // No registers.
   }
-
+  // The noSuchMethod call may return.
   __ LeaveFrame();
   __ ret();
 
@@ -915,11 +915,38 @@ void FlowGraphCompiler::CompileGraph() {
       __ cmpq(RAX, Immediate(Smi::RawValue(num_fixed_params)));
       __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
       if (function.IsClosureFunction()) {
-        // TODO(regis): Call NoSuchMethod with "call" as name of original
-        // function.
-        GenerateCallRuntime(function.token_pos(),
-                            kClosureArgumentMismatchRuntimeEntry,
-                            prologue_locs);
+        if (StackSize() != 0) {
+          // We need to unwind the space we reserved for locals and copied
+          // parameters. The NoSuchMethodFunction stub does not expect to see
+          // that area on the stack.
+          __ addq(RSP, Immediate(StackSize() * kWordSize));
+        }
+        // The call below has an empty stackmap because we have just
+        // dropped the spill slots.
+        BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
+
+        // Invoke noSuchMethod function passing "call" as the function name.
+        const String& name = String::Handle(Symbols::Call());
+        const int kNumArgsChecked = 1;
+        const ICData& ic_data = ICData::ZoneHandle(
+            ICData::New(function, name, Isolate::kNoDeoptId, kNumArgsChecked));
+        __ LoadObject(RBX, ic_data);
+        // RBP - 8 : PC marker, for easy identification of RawInstruction obj.
+        // RBP : points to previous frame pointer.
+        // RBP + 8 : points to return address.
+        // RBP + 16 : address of last argument (arg n-1).
+        // RSP + 16 + 8*(n-1) : address of first argument (arg 0).
+        // RBX : ic-data.
+        // R10 : arguments descriptor array.
+        __ call(&StubCode::CallNoSuchMethodFunctionLabel());
+        if (is_optimizing()) {
+          stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
+                                            empty_stack_bitmap,
+                                            0);  // No registers.
+        }
+        // The noSuchMethod call may return.
+        __ LeaveFrame();
+        __ ret();
       } else {
         __ Stop("Wrong number of arguments");
       }

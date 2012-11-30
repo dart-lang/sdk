@@ -117,6 +117,10 @@ public class CommandLineOptions {
         usage = "For debugging, continue on with resolution even if there are parse errors.")
     private boolean resolveDespiteParseErrors;
 
+    @Option(name = "--type-checks-for-inferred-types",
+        usage = "[not in spec] Enables 'interface has no method/field' for receivers with inferred types.")
+    private boolean typeChecksForInferredTypes = false;
+
     @Option(name = "--version",
         usage = "Show analyzer version")
     private boolean showVersion = false;
@@ -157,7 +161,7 @@ public class CommandLineOptions {
      * Returns whether inferred types should be used for type checks.
      */
     public boolean typeChecksForInferredTypes() {
-      return false;
+      return this.typeChecksForInferredTypes;
     }
     
     /**

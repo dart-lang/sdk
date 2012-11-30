@@ -85,27 +85,7 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
         buf.append(event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING
             ? WARNING_BOLD_COLOR : ERROR_BOLD_COLOR);
       }
-      if (errorFormat == ErrorFormat.MACHINE) {
-        buf.append(String.format(
-            "%s|%s|%s|%s|%d|%d|%d|%s",
-            escapePipe(event.getErrorCode().getErrorSeverity().toString()),
-            escapePipe(event.getErrorCode().getSubSystem().toString()),
-            escapePipe(event.getErrorCode().toString()),
-            escapePipe(getSourceName(sourceFile)),
-            event.getLineNumber(),
-            1 + col,
-            length,
-            escapePipe(event.getMessage())));
-      } else {
-        String sourceName = sourceFile.getUri().toString();
-        String includeFrom = getImportString(sourceFile);
-        buf.append(String.format(
-            "%s:%d: %s%s",
-            sourceName,
-            event.getLineNumber(),
-            event.getMessage(),
-            includeFrom));
-      }
+      appendError(buf, event);
       if (useColor) {
         buf.append(NO_COLOR);
       }
@@ -152,24 +132,6 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
         Closeables.closeQuietly(reader);
       }
     }
-  }
-  
-  private static String getSourceName(Source source) {
-    if (source instanceof UrlDartSource) {
-      return source.getUri().toString();
-    }
-    return source.getName();
-  }
-
-  private String escapePipe(String input) {
-    StringBuilder result = new StringBuilder();
-    for (char c : input.toCharArray()) {
-      if (c == '\\' || c == '|') {
-        result.append('\\');
-      }
-      result.append(c);
-    }
-    return result.toString();
   }
 
   private String getLineAt(BufferedReader reader, int line) throws IOException {

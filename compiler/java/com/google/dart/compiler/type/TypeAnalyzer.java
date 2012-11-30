@@ -663,7 +663,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // report problem
       if (member == null && problemTarget != null) {
         if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(itype)) {
-          if (typeChecksForInferredTypes || !TypeQuality.isInferred(receiver)) {
+          if (typeChecksForInferredTypes && !isTooGenericInferredType(receiver)
+              || !TypeQuality.isInferred(receiver)) {
             ErrorCode code = TypeQuality.isInferred(receiver)
                 ? TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED
                 : TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
@@ -1606,7 +1607,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // remember unimplemented members
       {
         List<Element> unimplementedMembers = findUnimplementedMembers(element);
-        if (!node.getModifiers().isAbstract() && !unimplementedMembers.isEmpty()) {
+        if (!node.getModifiers().isAbstract() && !unimplementedMembers.isEmpty() &&
+            (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(type))) {
           StringBuilder sb = getUnimplementedMembersMessage(element, unimplementedMembers);
           onError(node.getName(), TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS,
               node.getName(), sb.toString());
@@ -1785,9 +1787,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Member iteratorMember = lookupMember(iterableType, "iterator", iterableExpression);
       Type elementType = null;
       if (iteratorMember != null) {
+        Type memberReturnType = null;
         if (TypeKind.of(iteratorMember.getType()) == TypeKind.FUNCTION) {
           FunctionType iteratorMethod = (FunctionType) iteratorMember.getType();
-          InterfaceType asInstanceOf = types.asInstanceOf(iteratorMethod.getReturnType(),
+          memberReturnType = iteratorMethod.getReturnType();
+        } else if (ElementKind.of(iteratorMember.getElement()) == ElementKind.FIELD) {
+          memberReturnType = iteratorMember.getType();
+        }
+        if (memberReturnType != null) {
+          InterfaceType asInstanceOf = types.asInstanceOf(memberReturnType,
               dynamicIteratorType.getElement());
           if (asInstanceOf != null) {
             elementType = asInstanceOf.getArguments().get(0);
@@ -1795,8 +1803,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           } else {
             InterfaceType expectedIteratorType = dynamicIteratorType.subst(
                 Arrays.asList(variableType), dynamicIteratorType.getElement().getTypeParameters());
-            typeError(iterableExpression,
-                TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE,
+            typeError(iterableExpression, TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE,
                 expectedIteratorType);
           }
         } else {
@@ -2369,7 +2376,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // report "not a member"
       if (member == null) {
         if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(cls)) {
-          if (typeChecksForInferredTypes || !TypeQuality.isInferred(receiver)) {
+          if (typeChecksForInferredTypes && !isTooGenericInferredType(receiver)
+              || !TypeQuality.isInferred(receiver)) {
             TypeErrorCode errorCode = TypeQuality.isInferred(receiver)
                 ? TypeErrorCode.NOT_A_MEMBER_OF_INFERRED : TypeErrorCode.NOT_A_MEMBER_OF;
             typeError(node.getName(), errorCode, name, cls);
@@ -3616,5 +3624,19 @@ public class TypeAnalyzer implements DartCompilationPhase {
     return type != null
         && Elements.isCoreLibrarySource(type.getElement().getSourceInfo().getSource())
         && type.getElement().getName().equals(name);
+  }
+
+  /**
+   * Sometimes inferred type is too generic - such as "Object" or "Collection", so there are no
+   * reason to reports problems.
+   */
+  private static boolean isTooGenericInferredType(Type type) {
+    if (TypeQuality.of(type) == TypeQuality.INFERRED) {
+      String typeName = type.getElement().getName();
+      if ("Object".equals(typeName) || "Collection".equals(typeName)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

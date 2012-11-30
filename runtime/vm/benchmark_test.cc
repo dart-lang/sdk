@@ -203,10 +203,8 @@ BENCHMARK(DartStringAccess) {
   // Create strings.
   uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
   int external_peer_data = 123;
-  Dart_Handle external_string = Dart_NewExternalUTF8String(data8,
-                                                           ARRAY_SIZE(data8),
-                                                           &external_peer_data,
-                                                           NULL);
+  Dart_Handle external_string = Dart_NewExternalLatin1String(
+      data8, ARRAY_SIZE(data8), &external_peer_data, NULL);
   Dart_Handle internal_string = NewString("two");
 
   // Run benchmark.

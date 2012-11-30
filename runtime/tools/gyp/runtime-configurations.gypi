@@ -8,6 +8,16 @@
     # If we have not set dart_io_support to 1 in Dart's all.gypi or common.gypi,
     # then do not build the native libraries supporting  dart:io.
     'dart_io_support%': 0,
+    # Intel VTune related variables.
+    'dart_vtune_support%': 0,
+    'conditions': [
+      ['OS=="linux"', {
+        'dart_vtune_root%': '/opt/intel/vtune_amplifier_xe',
+      }],
+      ['OS=="win"', {
+        'dart_vtune_root%': 'C:/Program Files (x86)/Intel/VTune Amplifier XE 2013',
+      }],
+    ],
   },
 
   'target_defaults': {
@@ -41,6 +51,18 @@
         'xcode_settings': {
           'ARCHS': [ 'i386' ],
         },
+        'conditions': [
+          ['OS=="linux" and dart_vtune_support==1', {
+            'ldflags': ['-L<(dart_vtune_root)/lib32'],
+          }],
+          ['OS=="win" and dart_vtune_support==1', {
+            'msvs_settings': {
+              'VCLinkerTool': {
+                'AdditionalLibraryDirectories': ['<(dart_vtune_root)/lib32'],
+              },
+            },
+          }],
+        ],
       },
 
       'Dart_x64_Base': {
@@ -48,6 +70,18 @@
         'xcode_settings': {
           'ARCHS': [ 'x86_64' ],
         },
+        'conditions': [
+          ['OS=="linux" and dart_vtune_support==1', {
+            'ldflags': ['-L<(dart_vtune_root)/lib64'],
+          }],
+          ['OS=="win" and dart_vtune_support==1', {
+            'msvs_settings': {
+              'VCLinkerTool': {
+                'AdditionalLibraryDirectories': ['<(dart_vtune_root)/lib32'],
+              },
+            },
+          }],
+        ],
       },
 
       'Dart_simarm_Base': {

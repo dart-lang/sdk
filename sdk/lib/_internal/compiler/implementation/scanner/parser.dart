@@ -849,6 +849,7 @@ class Parser {
       token = parseMember(token);
       ++count;
     }
+    expect('}', token);
     listener.endClassBody(count, begin, token);
     return token;
   }

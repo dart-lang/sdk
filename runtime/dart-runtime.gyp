@@ -101,5 +101,12 @@
         },
       ],
     },
+    {
+      'target_name': 'runtime_packages',
+      'type': 'none',
+      'dependencies': [
+        '../pkg/pkg.gyp:pkg_packages',
+      ],
+    },
   ],
 }

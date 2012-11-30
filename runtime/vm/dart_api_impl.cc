@@ -736,10 +736,12 @@ DART_EXPORT const char* Dart_VersionString() {
   return Version::String();
 }
 
-DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
-                                 Dart_IsolateInterruptCallback interrupt,
-                                 Dart_IsolateShutdownCallback shutdown) {
-  const char* err_msg = Dart::InitOnce(create, interrupt, shutdown);
+DART_EXPORT bool Dart_Initialize(
+    Dart_IsolateCreateCallback create,
+    Dart_IsolateInterruptCallback interrupt,
+    Dart_IsolateUnhandledExceptionCallback unhandled,
+    Dart_IsolateShutdownCallback shutdown) {
+  const char* err_msg = Dart::InitOnce(create, interrupt, unhandled, shutdown);
   if (err_msg != NULL) {
     OS::PrintErr("Dart_Initialize: %s\n", err_msg);
     return false;
@@ -1615,18 +1617,19 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewExternalUTF8String(const uint8_t* utf8_array,
-                                                   intptr_t length,
-                                                   void* peer,
-                                                   Dart_PeerFinalizer cback) {
+DART_EXPORT Dart_Handle Dart_NewExternalLatin1String(
+    const uint8_t* latin1_array,
+    intptr_t length,
+    void* peer,
+    Dart_PeerFinalizer cback) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (utf8_array == NULL && length != 0) {
-    RETURN_NULL_ERROR(utf8_array);
+  if (latin1_array == NULL && length != 0) {
+    RETURN_NULL_ERROR(latin1_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(isolate,
-                        String::NewExternal(utf8_array, length, peer, cback));
+                        String::NewExternal(latin1_array, length, peer, cback));
 }
 
 
@@ -1746,6 +1749,10 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
   }
   if (array == NULL) {
     RETURN_NULL_ERROR(array);
+  }
+  if (str_obj.IsCanonical()) {
+    return Api::NewError("Dart_MakeExternalString "
+                         "cannot externalize a read-only string.");
   }
   intptr_t str_size = (str_obj.Length() * str_obj.CharSize());
   if ((length < str_size) || (length > String::kMaxElements)) {
@@ -2456,26 +2463,23 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
 }
 
 
-// --- Classes and Interfaces ---
+// --- Classes ---
 
 
 DART_EXPORT bool Dart_IsClass(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
-  if (obj.IsClass()) {
-    return !Class::Cast(obj).is_interface();
-  }
-  return false;
+  return obj.IsClass();
 }
 
 
-DART_EXPORT bool Dart_IsInterface(Dart_Handle handle) {
+DART_EXPORT bool Dart_IsAbstractClass(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
   if (obj.IsClass()) {
-    return Class::Cast(obj).is_interface();
+    return Class::Cast(obj).is_abstract();
   }
   return false;
 }
@@ -2511,27 +2515,6 @@ DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz) {
 #endif
 
   return Api::NewHandle(isolate, cls.library());
-}
-
-
-DART_EXPORT Dart_Handle Dart_ClassGetDefault(Dart_Handle clazz) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
-  }
-
-  // Finalize all classes.
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError("%s", msg);
-  }
-
-  if (cls.HasFactoryClass() && cls.HasResolvedFactoryClass()) {
-    return Api::NewHandle(isolate, cls.FactoryClass());
-  }
-  return Api::Null(isolate);
 }
 
 
@@ -3334,40 +3317,13 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
     return Api::NewError("%s", msg);
   }
 
-  // Check for interfaces with default implementations.
-  if (cls.is_interface()) {
-    // Make sure that the constructor is found in the interface.
-    result = ResolveConstructor(
-        "Dart_New", cls, base_constructor_name, dot_name, number_of_arguments);
-    if (result.IsError()) {
-      return Api::NewHandle(isolate, result.raw());
-    }
-
-    ASSERT(cls.HasResolvedFactoryClass());
-    const Class& factory_class = Class::Handle(cls.FactoryClass());
-
-    // If the factory class implements the requested interface, then
-    // we use the name of the factory class when looking up the
-    // constructor.  Otherwise we use the original interface name when
-    // looking up the constructor.
-    const TypeArguments& no_type_args = TypeArguments::Handle(isolate);
-    Error& error = Error::Handle();
-    if (factory_class.IsSubtypeOf(no_type_args, cls, no_type_args, &error)) {
-      base_constructor_name = factory_class.Name();
-    }
-    if (!error.IsNull()) {
-      return Api::NewHandle(isolate, error.raw());
-    }
-
-    cls = cls.FactoryClass();
-  }
-
   // Resolve the constructor.
   result = ResolveConstructor(
       "Dart_New", cls, base_constructor_name, dot_name, number_of_arguments);
   if (result.IsError()) {
     return Api::NewHandle(isolate, result.raw());
   }
+  // TODO(turnidge): Support redirecting factories.
   ASSERT(result.IsFunction());
   Function& constructor = Function::Handle(isolate);
   constructor ^= result.raw();

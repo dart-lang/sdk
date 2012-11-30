@@ -8,6 +8,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/symbols.h"
+#include "vm/unicode.h"
 
 namespace dart {
 
@@ -30,15 +31,15 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     }
     intptr_t value = Smi::Cast(index_object).Value();
-    if (value < 0) {
+    if (Utf::IsOutOfRange(value)) {
       GrowableArray<const Object*> args;
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     } else {
-      if (value > 0x7F) {
+      if (!Utf::IsLatin1(value)) {
         is_one_byte_string = false;
-      }
-      if (value > 0xFFFF) {
-        utf16_len += 1;
+        if (Utf::IsSupplementary(value)) {
+          utf16_len += 1;
+        }
       }
     }
     utf32_array[i] = value;
@@ -51,13 +52,25 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
 
 
 DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
-  GET_NATIVE_ARGUMENT(String, receiver, arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   GET_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
   intptr_t start = start_obj.Value();
   intptr_t end = end_obj.Value();
   return String::SubString(receiver, start, (end - start));
+}
+
+
+DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
+  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  ASSERT(receiver.IsOneByteString());
+  GET_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
+
+  const intptr_t start = start_obj.Value();
+  const intptr_t end = end_obj.Value();
+  return OneByteString::New(receiver, start, end - start, Heap::kNew);
 }
 
 

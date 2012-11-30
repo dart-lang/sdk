@@ -23,15 +23,7 @@
             'webdriver/lib',
           ],
           'outputs': [
-            '<(PRODUCT_DIR)/packages/args',
-            '<(PRODUCT_DIR)/packages/fixnum',
-            '<(PRODUCT_DIR)/packages/htmlescape',
-            '<(PRODUCT_DIR)/packages/http',
-            '<(PRODUCT_DIR)/packages/intl',
-            '<(PRODUCT_DIR)/packages/logging',
-            '<(PRODUCT_DIR)/packages/meta',
-            '<(PRODUCT_DIR)/packages/unittest',
-            '<(PRODUCT_DIR)/packages/webdriver',
+            '<(PRODUCT_DIR)/packages',
           ],
           'action': [
             'python', '../tools/make_links.py',

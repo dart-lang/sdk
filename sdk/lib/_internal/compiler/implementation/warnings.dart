@@ -327,6 +327,8 @@ Length: #{3}''');
   static const ASSERT_IS_GIVEN_NAMED_ARGUMENTS = const MessageKind(
       "assert takes no named arguments, but given #{1}.");
 
+  static const MALFORMED_TYPE_REFERENCE = const MessageKind(
+      "Malformed type reference encountered in #{1}.");
 
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");

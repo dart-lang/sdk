@@ -94,12 +94,12 @@ List<String> buildScript(String name,
   // Tell the VM to grow the heap more aggressively. This should only
   // be necessary temporarily until the VM is better at detecting how
   // applications use memory.
-  // TODO(ahe): Remove this option.
-  options = ' --heap_growth_rate=32$options';
+  // TODO(ahe): Remove this option (http://dartbug.com/6495).
+  options = ' --heap_growth_rate=512$options';
 
   // Tell the VM to don't bother inlining methods. So far it isn't
   // paying off but the VM team is working on fixing that.
-  // TODO(ahe): Remove this option.
+  // TODO(ahe): Remove this option (http://dartbug.com/6495).
   options = ' --no_use_inlining$options';
 
   return [
@@ -143,8 +143,12 @@ REM Does the path have a trailing slash? If so, remove it.
 if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 set arguments=%*
-set SNAPSHOTNAME=%SCRIPTPATH%dart2js.snapshot
-if exist %SNAPSHOTNAME% set SNAPSHOT=--use_script_snapshot=%SNAPSHOTNAME%
+set SNAPSHOT=
+set SNAPSHOTNAME=%SCRIPTPATH%${pathWin}.snapshot
+if exist %SNAPSHOTNAME% (
+  echo Using snapshot "%SNAPSHOTNAME%" 1>&2
+  set SNAPSHOT=--use_script_snapshot=%SNAPSHOTNAME%
+)
 
 "%SCRIPTPATH%\dart.exe"$options %SNAPSHOT% "%SCRIPTPATH%$pathWin" %arguments%
 '''.replaceAll('\n', '\r\n')];

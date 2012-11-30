@@ -589,6 +589,23 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   }
 
   /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6859
+   */
+  public void test_reportMissingImport_dart() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library app;",
+            "import 'dart:mirrors as mirrors';",
+            ""));
+    compile();
+    // Check that errors where reported (and in correct time).
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 33));
+  }
+
+  /**
    * Test that same prefix can be used to import several libraries.
    */
   public void test_samePrefix_severalLibraries() throws Exception {

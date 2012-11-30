@@ -53,7 +53,7 @@ DEFINE_NATIVE_ENTRY(Math_atan, 1) {
 DEFINE_NATIVE_ENTRY(Math_atan2, 2) {
   GET_NATIVE_ARGUMENT(Double, operand1, arguments->NativeArgAt(0));
   GET_NATIVE_ARGUMENT(Double, operand2, arguments->NativeArgAt(1));
-  return Double::New(atan2(operand1.value(), operand2.value()));
+  return Double::New(atan2_ieee(operand1.value(), operand2.value()));
 }
 
 DEFINE_NATIVE_ENTRY(Math_exp, 1) {

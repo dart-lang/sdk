@@ -174,14 +174,14 @@ class PlaceholderCollector extends Visitor {
   void collectFunctionDeclarationPlaceholders(
       FunctionElement element, FunctionExpression node) {
     if (element.isGenerativeConstructor() || element.isFactoryConstructor()) {
-      DartType type = element.getEnclosingClass().type.asRaw();
+      DartType type = element.getEnclosingClass().thisType.asRaw();
       makeConstructorPlaceholder(node.name, element, type);
       Return bodyAsReturn = node.body.asReturn();
       if (bodyAsReturn != null && bodyAsReturn.isRedirectingFactoryBody) {
         // Factory redirection.
         FunctionElement redirectTarget = element.defaultImplementation;
         assert(redirectTarget != null && redirectTarget != element);
-        type = redirectTarget.getEnclosingClass().type.asRaw();
+        type = redirectTarget.getEnclosingClass().thisType.asRaw();
         makeConstructorPlaceholder(
             bodyAsReturn.expression, redirectTarget, type);
       }
@@ -365,8 +365,14 @@ class PlaceholderCollector extends Visitor {
     Element constructor = treeElements[send];
     assert(constructor != null);
     assert(send.receiver == null);
-    if (!Elements.isErroneousElement(constructor) &&
-        !Elements.isMalformedElement(constructor)) {
+
+    // For constructors that refer to malformed class types retrieve
+    // class type like it is done in [ SsaBuilder.visitNewSend ].
+    if (type.kind == TypeKind.MALFORMED_TYPE) {
+      type = constructor.getEnclosingClass().thisType;
+    }
+
+    if (!Elements.isUnresolved(constructor)) {
       makeConstructorPlaceholder(node.send.selector, constructor, type);
       // TODO(smok): Should this be in visitNamedArgument?
       // Field names can be exposed as names of optional arguments, e.g.

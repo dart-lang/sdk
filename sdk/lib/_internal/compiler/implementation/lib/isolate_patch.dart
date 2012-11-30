@@ -188,9 +188,9 @@ class _Manager {
   }
 
   void _nativeDetectEnvironment() {
-    JS("void", r"# = $isWorker", isWorker);
-    JS("void", r"# = $supportsWorkers", supportsWorkers);
-    JS("void", r"# = typeof(window) == 'undefined'", fromCommandLine);
+    isWorker = JS("bool", r"$isWorker");
+    supportsWorkers = JS("bool", r"$supportsWorkers");
+    fromCommandLine = JS("bool", r"typeof(window) == 'undefined'");
   }
 
   void _nativeInitWorkerMessageHandler() {

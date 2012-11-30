@@ -4,31 +4,38 @@
 
 class _Path implements Path {
   final String _path;
+  final bool isWindowsShare;
 
-  _Path(String source) : _path = source;
-  _Path.fromNative(String source) : _path = _clean(source);
+  _Path(String source) : _path = source, isWindowsShare = false;
 
-  int get hashCode => _path.hashCode;
+  _Path.fromNative(String source)
+      : _path = _clean(source), isWindowsShare = _isWindowsShare(source);
+
+  _Path._internal(String this._path, bool this.isWindowsShare);
 
   static String _clean(String source) {
-    switch (Platform.operatingSystem) {
-      case 'windows':
-        return _cleanWindows(source);
-      default:
-        return source;
-    }
+    if (Platform.operatingSystem == 'windows') return _cleanWindows(source);
+    return source;
   }
 
-  static String _cleanWindows(source) {
+  static String _cleanWindows(String source) {
     // Change \ to /.
     var clean = source.replaceAll('\\', '/');
     // Add / before intial [Drive letter]:
     if (clean.length >= 2 && clean[1] == ':') {
       clean = '/$clean';
     }
+    if (_isWindowsShare(source)) {
+      return clean.substring(1, clean.length);
+    }
     return clean;
   }
 
+  static bool _isWindowsShare(String source) {
+    return Platform.operatingSystem == 'windows' && source.startsWith('\\\\');
+  }
+
+  int get hashCode => _path.hashCode;
   bool get isEmpty => _path.isEmpty;
   bool get isAbsolute => _path.startsWith('/');
   bool get hasTrailingSeparator => _path.endsWith('/');
@@ -42,7 +49,8 @@ class _Path implements Path {
     // Throws an exception if no such path exists, or the case is not
     // implemented yet.
     var basePath = base.toString();
-    if (base.isAbsolute && _path.startsWith(basePath)) {
+    if (base.isAbsolute && _path.startsWith(basePath) &&
+        base.isWindowsShare == isWindowsShare) {
       if (_path == basePath) return new Path('.');
       if (base.hasTrailingSeparator) {
         return new Path(_path.substring(basePath.length));
@@ -50,7 +58,8 @@ class _Path implements Path {
       if (_path[basePath.length] == '/') {
         return new Path(_path.substring(basePath.length + 1));
       }
-    } else if (base.isAbsolute && isAbsolute) {
+    } else if (base.isAbsolute && isAbsolute &&
+               base.isWindowsShare == isWindowsShare) {
       List<String> baseSegments = base.canonicalize().segments();
       List<String> pathSegments = canonicalize().segments();
       int common = 0;
@@ -90,9 +99,11 @@ class _Path implements Path {
       return further.canonicalize();
     }
     if (hasTrailingSeparator) {
-      return new Path('$_path${further}').canonicalize();
+      var joined = new _Path._internal('$_path${further}', isWindowsShare);
+      return joined.canonicalize();
     }
-    return new Path('$_path/${further}').canonicalize();
+    var joined = new _Path._internal('$_path/${further}', isWindowsShare);
+    return joined.canonicalize();
   }
 
   // Note: The URI RFC names for these operations are normalize, resolve, and
@@ -182,7 +193,8 @@ class _Path implements Path {
         segmentsToJoin.add('');
       }
     }
-    return new Path(Strings.join(segmentsToJoin, '/'));
+    return new _Path._internal(Strings.join(segmentsToJoin, '/'),
+                               isWindowsShare);
   }
 
   String toNativePath() {
@@ -195,6 +207,9 @@ class _Path implements Path {
         nativePath = nativePath.substring(1);
       }
       nativePath = nativePath.replaceAll('/', '\\');
+      if (isWindowsShare) {
+        return '\\$nativePath';
+      }
       return nativePath;
     }
     return _path;
@@ -209,11 +224,11 @@ class _Path implements Path {
 
   Path append(String finalSegment) {
     if (isEmpty) {
-      return new Path(finalSegment);
+      return new _Path._internal(finalSegment, isWindowsShare);
     } else if (hasTrailingSeparator) {
-      return new Path('$_path$finalSegment');
+      return new _Path._internal('$_path$finalSegment', isWindowsShare);
     } else {
-      return new Path('$_path/$finalSegment');
+      return new _Path._internal('$_path/$finalSegment', isWindowsShare);
     }
   }
 
@@ -234,7 +249,8 @@ class _Path implements Path {
     int pos = _path.lastIndexOf('/');
     if (pos < 0) return new Path('');
     while (pos > 0 && _path[pos - 1] == '/') --pos;
-    return new Path((pos > 0) ? _path.substring(0, pos) : '/');
+    var dirPath = (pos > 0) ? _path.substring(0, pos) : '/';
+    return new _Path._internal(dirPath, isWindowsShare);
   }
 
   String get filename {

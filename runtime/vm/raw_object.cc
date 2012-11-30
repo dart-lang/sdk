@@ -48,7 +48,8 @@ intptr_t RawObject::SizeFromClass() const {
   ASSERT(IsHeapObject());
 
   RawClass* raw_class = isolate->class_table()->At(GetClassId());
-  intptr_t instance_size = raw_class->ptr()->instance_size_;
+  intptr_t instance_size =
+      raw_class->ptr()->instance_size_in_words_ << kWordSizeLog2;
   intptr_t class_id = raw_class->ptr()->id_;
 
   if (instance_size == 0) {
@@ -598,7 +599,7 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
   if (instance_size == 0) {
     RawClass* cls =
         visitor->isolate()->class_table()->At(raw_obj->GetClassId());
-    instance_size = cls->ptr()->instance_size_;
+    instance_size = cls->ptr()->instance_size_in_words_ << kWordSizeLog2;
   }
 
   // Calculate the first and last raw object pointer fields.

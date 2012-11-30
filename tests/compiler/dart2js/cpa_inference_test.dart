@@ -111,6 +111,14 @@ class AnalysisResult {
   }
 
   /**
+   * Checks that the inferred type of the node corresponding to the last
+   * occurence of [: variable; :] in the program is the unknown concrete type.
+   */
+  void checkNodeHasUnknownType(String variable) {
+    return Expect.isTrue(inferrer.inferredTypes[findNode(variable)].isUnkown());
+  }
+
+  /**
    * Checks that [: className#fieldName :]'s inferred type is the concrete type
    * made of [baseTypes].
    */
@@ -120,11 +128,26 @@ class AnalysisResult {
         concreteFrom(baseTypes),
         inferrer.inferredFieldTypes[findField(className, fieldName)]);
   }
+
+  /**
+   * Checks that [: className#fieldName :]'s inferred type is the unknown
+   * concrete type.
+   */
+  void checkFieldHasUknownType(String className, String fieldName) {
+    return Expect.isTrue(
+        inferrer.inferredFieldTypes[findField(className, fieldName)]
+                .isUnkown());
+  }
 }
 
 const String CORELIB = r'''
   print(var obj) {}
-  abstract class num { operator +(x); operator *(x); operator -(x); }
+  abstract class num { 
+    operator +(x);
+    operator *(x);
+    operator -(x);
+    operator ==(x);
+  }
   abstract class int extends num { }
   abstract class double extends num { }
   class bool {}
@@ -144,8 +167,20 @@ AnalysisResult analyze(String code) {
   MockCompiler compiler = new MockCompiler(coreSource: CORELIB,
                                            enableConcreteTypeInference: true);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
+  compiler.typesTask.concreteTypesInferrer.testMode = true;
   compiler.runCompiler(uri);
   return new AnalysisResult(compiler);
+}
+
+testDynamicBackDoor() {
+  final String source = r"""
+    main () {
+      var x = "__dynamic_for_test";
+      x;
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasUnknownType('x');
 }
 
 testLiterals() {
@@ -267,6 +302,15 @@ testFor2() {
   result.checkNodeHasType('bar', [result.int]);
 }
 
+testToplevelVariable() {
+  final String source = r"""
+      final top = 'abc';
+      main() { var foo = top; foo; }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('foo', [result.string]);
+}
+
 testNonRecusiveFunction() {
   final String source = r"""
       f(x, y) => true ? x : y;
@@ -296,6 +340,49 @@ testMutuallyRecusiveFunction() {
       """;
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('foo', [result.int, result.string]);
+}
+
+testSimpleSend() {
+  final String source = r"""
+      class A {
+        f(x) => x;
+      }
+      class B {
+        f(x) => 'abc';
+      }
+      class C {
+        f(x) => 3.14;
+      }
+      class D {
+        var f;  // we check that this field is ignored in calls to dynamic.f() 
+        D(this.f);
+      }
+      main() {
+        new B(); new D(42); // we instantiate B and D but not C
+        var foo = new A().f(42);
+        var bar = "__dynamic_for_test".f(42);
+        foo; bar;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('foo', [result.int]);
+  result.checkNodeHasType('bar', [result.int, result.string]);
+}
+
+testSendToClosureField() {
+  final String source = r"""
+      f(x) => x;
+      class A {
+        var g;
+        A(this.g);
+      }
+      main() {
+        var foo = new A(f).g(42);
+        foo;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('foo', [result.int]);
 }
 
 testSendToThis1() {
@@ -356,18 +443,27 @@ testGetters() {
         get y => x;
         get z => y;
       }
+      class B {
+        var x;
+        B(this.x);
+      }
       main() {
         var a = new A(42);
+        var b = new B('abc');
         var foo = a.x;
         var bar = a.y;
         var baz = a.z;
-        foo; bar; baz;
+        var qux = null.x;
+        var quux = "__dynamic_for_test".x;
+        foo; bar; baz; qux; quux;
       }
       """;
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('foo', [result.int]);
   result.checkNodeHasType('bar', [result.int]);
   result.checkNodeHasType('baz', [result.int]);
+  result.checkNodeHasType('qux', []);
+  result.checkNodeHasType('quux', [result.int, result.string]);
 }
 
 testSetters() {
@@ -379,15 +475,34 @@ testSetters() {
         set y(a) { x = a; z = a; }
         set z(a) { w = a; }
       }
+      class B {
+        var x;
+        B(this.x);
+      }
       main() {
         var a = new A(42, 42);
+        var b = new B(42);
         a.x = 'abc';
         a.y = true;
+        null.x = 42;  // should be ignored
+        "__dynamic_for_test".x = null;
+        "__dynamic_for_test".y = 3.14;
       }
       """;
   AnalysisResult result = analyze(source);
-  result.checkFieldHasType('A', 'x', [result.int, result.string, result.bool]);
-  result.checkFieldHasType('A', 'w', [result.int, result.bool]);
+  result.checkFieldHasType('B', 'x',
+                           [result.int,         // new B(42)
+                            result.nullType]);  // dynamic.x = null
+  result.checkFieldHasType('A', 'x',
+                           [result.int,       // new A(42, ...)
+                            result.string,    // a.x = 'abc'
+                            result.bool,      // a.y = true
+                            result.nullType,  // dynamic.x = null
+                            result.double]);  // dynamic.y = 3.14
+  result.checkFieldHasType('A', 'w',
+                           [result.int,       // new A(..., 42)
+                            result.bool,      // a.y = true
+                            result.double]);  // dynamic.y = double
 }
 
 testNamedParameters() {
@@ -527,25 +642,55 @@ testOperators() {
   result.checkNodeHasType('y', [result.string]);
 }
 
+testSetIndexOperator() {
+  final String source = r"""
+      class A {
+        var witness1;
+        var witness2;
+        operator []=(i, x) { witness1 = i; witness2 = x; }
+      }
+      main() {
+        var x = new A()[42] = "abc";
+        x;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.string]);
+  // TODO(polux): the two following results should be [:[null, string:], see
+  // testFieldInitialization().
+  result.checkFieldHasType('A', 'witness1', [result.int]);
+  result.checkFieldHasType('A', 'witness2', [result.string]);
+}
+
 testCompoundOperators1() {
   final String source = r"""
       class A {
         operator +(x) => "foo";
       }
       main() {
-        var x1 = 1; x1++;
-        var x2 = 1; ++x2;
-        var x3 = new A(); x3++;
-        var x4 = new A(); ++x4;
+        var x1 = 1;
+        x1++;
+        var x2 = 1;
+        ++x2;
+        var x3 = 1;
+        x3 += 42;
+        var x4 = new A();
+        x4++;
+        var x5 = new A();
+        ++x5;
+        var x6 = new A();
+        x6 += true;
 
-        x1; x2; x3; x4;
+        x1; x2; x3; x4; x5; x6;
       }
       """;
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('x1', [result.int]);
   result.checkNodeHasType('x2', [result.int]);
-  result.checkNodeHasType('x3', [result.string]);
+  result.checkNodeHasType('x3', [result.int]);
   result.checkNodeHasType('x4', [result.string]);
+  result.checkNodeHasType('x5', [result.string]);
+  result.checkNodeHasType('x6', [result.string]);
 }
 
 
@@ -553,24 +698,58 @@ testCompoundOperators2() {
   final String source = r"""
     class A {
       var xx;
+      var yy;
       var witness1;
       var witness2;
+      var witness3;
+      var witness4;
 
-      A(this.xx);
+      A(this.xx, this.yy);
       get x { witness1 = "foo"; return xx; }
-      set x(y) { witness2 = "foo"; xx = y; }
+      set x(a) { witness2 = "foo"; xx = a; }
+      get y { witness3 = "foo"; return yy; }
+      set y(a) { witness4 = "foo"; yy = a; }
     }
     main () {
-      var a = new A(1);
+      var a = new A(1, 1);
       a.x++;
+      a.y++; 
     }
     """;
   AnalysisResult result = analyze(source);
   result.checkFieldHasType('A', 'xx', [result.int]);
-  // TODO(polux): the two following results should be {null, string}, see
-  // fieldInitialization().
+  result.checkFieldHasType('A', 'yy', [result.int]);
+  // TODO(polux): the four following results should be [:[null, string]:], see
+  // testFieldInitialization().
   result.checkFieldHasType('A', 'witness1', [result.string]);
   result.checkFieldHasType('A', 'witness2', [result.string]);
+  result.checkFieldHasType('A', 'witness3', [result.string]);
+  result.checkFieldHasType('A', 'witness4', [result.string]);
+}
+
+testInequality() {
+  final String source = r"""
+      class A {
+        var witness;
+        operator ==(x) { witness = "foo"; return "abc"; }
+      }
+      class B {
+        operator ==(x) { throw "error"; }
+      }
+      main() {
+        var foo = 1 != 2;
+        var bar = new A() != 2;
+        var baz = new B() != 2;
+        foo; bar; baz;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('foo', [result.bool]);
+  result.checkNodeHasType('bar', [result.bool]);
+  result.checkNodeHasType('baz', []);
+  // TODO(polux): the following result should be [:[null, string]:], see
+  // fieldInitialization().
+  result.checkFieldHasType('A', 'witness', [result.string]);
 }
 
 testFieldInitialization() {
@@ -588,7 +767,43 @@ testFieldInitialization() {
   result.checkFieldHasType('A', 'y', [result.int]);
 }
 
+testSendWithWrongArity() {
+  final String source = r"""
+    f(x) { }
+    class A { g(x) { } }
+    main () {
+      var x = f();
+      var y = f(1, 2);
+      var z = new A().g();
+      var w = new A().g(1, 2);
+      x; y; z; w;
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', []);
+  result.checkNodeHasType('y', []);
+  result.checkNodeHasType('z', []);
+  result.checkNodeHasType('w', []);
+}
+
+testDynamicIsAbsorbing() {
+  final String source = r"""
+    main () {
+      var x = 1;
+      if (true) {
+        x = "__dynamic_for_test";
+      } else {
+        x = 42;
+      }
+      x;
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasUnknownType('x');
+}
+
 void main() {
+  testDynamicBackDoor();
   testLiterals();
   testRedefinition();
   testIfThenElse();
@@ -596,9 +811,12 @@ void main() {
   testWhile();
   testFor1();
   testFor2();
+  // testToplevelVariable();  // toplevel variables are not yet supported
   testNonRecusiveFunction();
   testRecusiveFunction();
   testMutuallyRecusiveFunction();
+  testSimpleSend();
+  // testSendToClosureField();  // closures are not yet supported
   testSendToThis1();
   testSendToThis2();
   testConstructor();
@@ -613,5 +831,9 @@ void main() {
   testOperators();
   testCompoundOperators1();
   testCompoundOperators2();
+  testSetIndexOperator();
+  testInequality();
   // testFieldInitialization(); // TODO(polux)
+  testSendWithWrongArity();
+  testDynamicIsAbsorbing();
 }

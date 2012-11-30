@@ -2,10 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# When a spawned isolate throws an uncaught exception, we terminate the vm.
-cc/RunLoop_ExceptionChild: Fail
-
-cc/SymbolUnicode: Fail
+cc/New: Crash # Issue 6958.
+cc/TypeVariableReflection: Crash # Issue 6958.
+cc/LibraryGetClassNames: Fail # Issue 6958.
+cc/ImportLibrary5: Fail # Issue 6958.
+cc/CustomIsolates: Crash # Default factory classes are removed.
 
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash

@@ -19,9 +19,25 @@ abstract class Path {
 
   /**
    * Creates a Path from a String that uses the native filesystem's conventions.
-   * On Windows, this converts '\' to '/', and adds a '/' before a drive letter.
+   *
+   * On Windows, this converts '\' to '/' and has special handling for drive
+   * letters and shares.
+   *
+   * If the path contains a drive letter a '/' is added before the drive letter.
+   *
+   *     new Path.fromNative(r'c:\a\b').toString() == '/c:/a/b'
+   *
    * A path starting with '/c:/' (or any other character instead of 'c') is
    * treated specially.  Backwards links ('..') cannot cancel the drive letter.
+   *
+   * If the path is a share path this is recorded in the Path object and
+   * maintained in operations on the Path object.
+   *
+   *     var share = new Path.fromNative(r'\\share\a\b\c');
+   *     share.isWindowsShare == true
+   *     share.toString() == '/share/a/b/c'
+   *     share.toNativePath() == r'\\share\a\b\c'
+   *     share.append('final').isWindowsShare == true
    */
   factory Path.fromNative(String source) => new _Path.fromNative(source);
 
@@ -34,6 +50,11 @@ abstract class Path {
    * Is this path an absolute path, beginning with a path separator?
    */
   bool get isAbsolute;
+
+  /**
+   * Is this path a Windows share path?
+   */
+  bool get isWindowsShare;
 
   /**
    * Does this path end with a path separator?

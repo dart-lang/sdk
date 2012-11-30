@@ -63,7 +63,7 @@ main() {
     test('overwrites nodes when set', () {
       final el = new XMLElement.xml("<xml>1<a/><b/>2<c/>3<d/></xml>");
       el.children = [new XMLElement.tag('x'), new XMLElement.tag('y')];
-      expect(el.outerHTML, "<xml><x></x><y></y></xml>");
+      expect(el.outerHtml, "<xml><x></x><y></y></xml>");
     });
   });
 
@@ -388,9 +388,9 @@ main() {
     });
   });
 
-  test('set innerHTML', () {
+  test('set innerHtml', () {
     final el = makeElement();
-    el.innerHTML = "<foo>Bar<baz/></foo>";
+    el.innerHtml = "<foo>Bar<baz/></foo>";
     expect(el.nodes.length, 1);
     final node = el.nodes[0];
     expect(node, isXMLElement);
@@ -399,13 +399,13 @@ main() {
     expect(node.nodes[1].tagName, 'baz');
   });
 
-  test('get innerHTML/outerHTML', () {
+  test('get innerHtml/outerHtml', () {
     final el = makeElement();
-    expect(el.innerHTML, "<foo></foo><bar></bar>");
+    expect(el.innerHtml, "<foo></foo><bar></bar>");
     el.nodes.clear();
     el.nodes.addAll([new Text("foo"), new XMLElement.xml("<a>bar</a>")]);
-    expect(el.innerHTML, "foo<a>bar</a>");
-    expect(el.outerHTML, "<xml>foo<a>bar</a></xml>");
+    expect(el.innerHtml, "foo<a>bar</a>");
+    expect(el.outerHtml, "<xml>foo<a>bar</a></xml>");
   });
 
   test('query', () {
@@ -435,22 +435,22 @@ main() {
       final el = makeElement();
       expect(el.insertAdjacentElement("beforeBegin", new XMLElement.tag("b")),
           isNull);
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
     });
 
     test('afterEnd with no parent does nothing', () {
       final el = makeElement();
       expect(
         el.insertAdjacentElement("afterEnd", new XMLElement.tag("b")), isNull);
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
     });
 
     test('beforeBegin with parent inserts the element', () {
       final el = makeElementWithParent();
       final newEl = new XMLElement.tag("b");
       expect(el.insertAdjacentElement("beforeBegin", newEl), newEl);
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
-      expect(el.parent.innerHTML,
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHtml,
           "<before></before><b></b><xml><foo></foo><bar></bar>"
           "</xml><after></after>");
     });
@@ -459,8 +459,8 @@ main() {
       final el = makeElementWithParent();
       final newEl = new XMLElement.tag("b");
       expect(el.insertAdjacentElement("afterEnd", newEl), newEl);
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
-      expect(el.parent.innerHTML,
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHtml,
           "<before></before><xml><foo></foo><bar></bar></xml><b>"
           "</b><after></after>");
     });
@@ -469,14 +469,14 @@ main() {
       final el = makeElement();
       final newEl = new XMLElement.tag("b");
       expect(el.insertAdjacentElement("afterBegin", newEl), newEl);
-      expect(el.innerHTML, "<b></b><foo></foo><bar></bar>");
+      expect(el.innerHtml, "<b></b><foo></foo><bar></bar>");
     });
 
     test('beforeEnd inserts the element', () {
       final el = makeElement();
       final newEl = new XMLElement.tag("b");
       expect(el.insertAdjacentElement("beforeEnd", newEl), newEl);
-      expect(el.innerHTML, "<foo></foo><bar></bar><b></b>");
+      expect(el.innerHtml, "<foo></foo><bar></bar><b></b>");
     });
   });
 
@@ -484,20 +484,20 @@ main() {
     test('beforeBegin with no parent does nothing', () {
       final el = makeElement();
       el.insertAdjacentText("beforeBegin", "foo");
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
     });
 
     test('afterEnd with no parent does nothing', () {
       final el = makeElement();
       el.insertAdjacentText("afterEnd", "foo");
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
     });
 
     test('beforeBegin with parent inserts the text', () {
       final el = makeElementWithParent();
       el.insertAdjacentText("beforeBegin", "foo");
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
-      expect(el.parent.innerHTML,
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHtml,
           "<before></before>foo<xml><foo></foo><bar></bar></xml>"
           "<after></after>");
     });
@@ -505,8 +505,8 @@ main() {
     test('afterEnd with parent inserts the text', () {
       final el = makeElementWithParent();
       el.insertAdjacentText("afterEnd", "foo");
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
-      expect(el.parent.innerHTML,
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHtml,
           "<before></before><xml><foo></foo><bar></bar></xml>foo"
           "<after></after>");
     });
@@ -514,57 +514,57 @@ main() {
     test('afterBegin inserts the text', () {
       final el = makeElement();
       el.insertAdjacentText("afterBegin", "foo");
-      expect(el.innerHTML, "foo<foo></foo><bar></bar>");
+      expect(el.innerHtml, "foo<foo></foo><bar></bar>");
     });
 
     test('beforeEnd inserts the text', () {
       final el = makeElement();
       el.insertAdjacentText("beforeEnd", "foo");
-      expect(el.innerHTML, "<foo></foo><bar></bar>foo");
+      expect(el.innerHtml, "<foo></foo><bar></bar>foo");
     });
   });
 
-  group('insertAdjacentHTML', () {
+  group('insertAdjacentHtml', () {
     test('beforeBegin with no parent does nothing', () {
       final el = makeElement();
-      el.insertAdjacentHTML("beforeBegin", "foo<b/>");
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      el.insertAdjacentHtml("beforeBegin", "foo<b/>");
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
     });
 
     test('afterEnd with no parent does nothing', () {
       final el = makeElement();
-      el.insertAdjacentHTML("afterEnd", "<b/>foo");
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      el.insertAdjacentHtml("afterEnd", "<b/>foo");
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
     });
 
     test('beforeBegin with parent inserts the HTML', () {
       final el = makeElementWithParent();
-      el.insertAdjacentHTML("beforeBegin", "foo<b/>");
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
-      expect(el.parent.innerHTML,
+      el.insertAdjacentHtml("beforeBegin", "foo<b/>");
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHtml,
           "<before></before>foo<b></b><xml><foo></foo><bar></bar>"
           "</xml><after></after>");
     });
 
     test('afterEnd with parent inserts the HTML', () {
       final el = makeElementWithParent();
-      el.insertAdjacentHTML("afterEnd", "foo<b/>");
-      expect(el.innerHTML, "<foo></foo><bar></bar>");
-      expect(el.parent.innerHTML,
+      el.insertAdjacentHtml("afterEnd", "foo<b/>");
+      expect(el.innerHtml, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHtml,
           "<before></before><xml><foo></foo><bar></bar></xml>foo"
           "<b></b><after></after>");
     });
 
     test('afterBegin inserts the HTML', () {
       final el = makeElement();
-      el.insertAdjacentHTML("afterBegin", "foo<b/>");
-      expect(el.innerHTML, "foo<b></b><foo></foo><bar></bar>");
+      el.insertAdjacentHtml("afterBegin", "foo<b/>");
+      expect(el.innerHtml, "foo<b></b><foo></foo><bar></bar>");
     });
 
     test('beforeEnd inserts the HTML', () {
       final el = makeElement();
-      el.insertAdjacentHTML("beforeEnd", "<b/>foo");
-      expect(el.innerHTML, "<foo></foo><bar></bar><b></b>foo");
+      el.insertAdjacentHtml("beforeEnd", "<b/>foo");
+      expect(el.innerHtml, "<foo></foo><bar></bar><b></b>foo");
     });
   });
 

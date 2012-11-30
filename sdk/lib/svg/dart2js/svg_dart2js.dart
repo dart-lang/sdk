@@ -31,7 +31,7 @@ class _SvgElementFactoryProvider {
       parentTag = new SvgSvgElement();
     }
 
-    parentTag.innerHTML = svg;
+    parentTag.innerHtml = svg;
     if (parentTag.elements.length == 1) return parentTag.elements.removeLast();
 
     throw new ArgumentError(
@@ -86,16 +86,19 @@ class AElement extends SvgElement implements Transformable, Tests, UriReference,
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -762,16 +765,19 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -838,16 +844,19 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -902,10 +911,12 @@ class Color extends CSSValue native "*SVGColor" {
   void setColor(int colorType, String rgbColor, String iccColor) native;
 
   /// @domName SVGColor.setRGBColor; @docsEditable true
-  void setRGBColor(String rgbColor) native;
+  @JSName('setRGBColor')
+  void setRgbColor(String rgbColor) native;
 
   /// @domName SVGColor.setRGBColorICCColor; @docsEditable true
-  void setRGBColorICCColor(String rgbColor, String iccColor) native;
+  @JSName('setRGBColorICCColor')
+  void setRgbColorIccColor(String rgbColor, String iccColor) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1023,16 +1034,19 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1081,6 +1095,7 @@ class DescElement extends SvgElement implements Stylable, LangSpace native "*SVG
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1258,16 +1273,19 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1295,32 +1313,6 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
 
   /// @domName SVGTransformable.transform; @docsEditable true
   final AnimatedTransformList transform;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName SVGException; @docsEditable true
-class Exception native "*SVGException" {
-
-  static const int SVG_INVALID_VALUE_ERR = 1;
-
-  static const int SVG_MATRIX_NOT_INVERTABLE = 2;
-
-  static const int SVG_WRONG_TYPE_ERR = 0;
-
-  /// @domName SVGException.code; @docsEditable true
-  final int code;
-
-  /// @domName SVGException.message; @docsEditable true
-  final String message;
-
-  /// @domName SVGException.name; @docsEditable true
-  final String name;
-
-  /// @domName SVGException.toString; @docsEditable true
-  String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1380,6 +1372,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1435,6 +1428,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1474,6 +1468,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1545,6 +1540,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1625,6 +1621,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1676,6 +1673,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1737,6 +1735,7 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1805,6 +1804,7 @@ class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardA
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1841,6 +1841,7 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1921,6 +1922,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -1973,6 +1975,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2014,6 +2017,7 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2082,6 +2086,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2127,6 +2132,7 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2192,6 +2198,7 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2263,6 +2270,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2329,6 +2337,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2390,6 +2399,7 @@ class FilterElement extends SvgElement implements UriReference, ExternalResource
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2424,7 +2434,7 @@ abstract class FilterPrimitiveStandardAttributes implements Stylable {
 
   // From SVGStylable
 
-  AnimatedString className;
+  AnimatedString $dom_svgClassName;
 
   CSSStyleDeclaration style;
 
@@ -2550,16 +2560,19 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2623,16 +2636,19 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2699,6 +2715,7 @@ class GlyphRefElement extends SvgElement implements UriReference, Stylable nativ
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2745,6 +2762,7 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -2819,16 +2837,19 @@ class ImageElement extends SvgElement implements Transformable, Tests, UriRefere
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -3086,16 +3107,19 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -3262,6 +3286,7 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -3314,6 +3339,7 @@ class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourc
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -3606,61 +3632,80 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
   final PathSegList pathSegList;
 
   /// @domName SVGPathElement.createSVGPathSegArcAbs; @docsEditable true
-  PathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+  @JSName('createSVGPathSegArcAbs')
+  PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
   /// @domName SVGPathElement.createSVGPathSegArcRel; @docsEditable true
-  PathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+  @JSName('createSVGPathSegArcRel')
+  PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
   /// @domName SVGPathElement.createSVGPathSegClosePath; @docsEditable true
-  PathSegClosePath createSVGPathSegClosePath() native;
+  @JSName('createSVGPathSegClosePath')
+  PathSegClosePath createSvgPathSegClosePath() native;
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoCubicAbs; @docsEditable true
-  PathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
+  @JSName('createSVGPathSegCurvetoCubicAbs')
+  PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoCubicRel; @docsEditable true
-  PathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
+  @JSName('createSVGPathSegCurvetoCubicRel')
+  PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs; @docsEditable true
-  PathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
+  @JSName('createSVGPathSegCurvetoCubicSmoothAbs')
+  PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel; @docsEditable true
-  PathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
+  @JSName('createSVGPathSegCurvetoCubicSmoothRel')
+  PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticAbs; @docsEditable true
-  PathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
+  @JSName('createSVGPathSegCurvetoQuadraticAbs')
+  PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticRel; @docsEditable true
-  PathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
+  @JSName('createSVGPathSegCurvetoQuadraticRel')
+  PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs; @docsEditable true
-  PathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
+  @JSName('createSVGPathSegCurvetoQuadraticSmoothAbs')
+  PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel; @docsEditable true
-  PathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
+  @JSName('createSVGPathSegCurvetoQuadraticSmoothRel')
+  PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
 
   /// @domName SVGPathElement.createSVGPathSegLinetoAbs; @docsEditable true
-  PathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y) native;
+  @JSName('createSVGPathSegLinetoAbs')
+  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) native;
 
   /// @domName SVGPathElement.createSVGPathSegLinetoHorizontalAbs; @docsEditable true
-  PathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x) native;
+  @JSName('createSVGPathSegLinetoHorizontalAbs')
+  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) native;
 
   /// @domName SVGPathElement.createSVGPathSegLinetoHorizontalRel; @docsEditable true
-  PathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x) native;
+  @JSName('createSVGPathSegLinetoHorizontalRel')
+  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) native;
 
   /// @domName SVGPathElement.createSVGPathSegLinetoRel; @docsEditable true
-  PathSegLinetoRel createSVGPathSegLinetoRel(num x, num y) native;
+  @JSName('createSVGPathSegLinetoRel')
+  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) native;
 
   /// @domName SVGPathElement.createSVGPathSegLinetoVerticalAbs; @docsEditable true
-  PathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y) native;
+  @JSName('createSVGPathSegLinetoVerticalAbs')
+  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) native;
 
   /// @domName SVGPathElement.createSVGPathSegLinetoVerticalRel; @docsEditable true
-  PathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y) native;
+  @JSName('createSVGPathSegLinetoVerticalRel')
+  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) native;
 
   /// @domName SVGPathElement.createSVGPathSegMovetoAbs; @docsEditable true
-  PathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y) native;
+  @JSName('createSVGPathSegMovetoAbs')
+  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) native;
 
   /// @domName SVGPathElement.createSVGPathSegMovetoRel; @docsEditable true
-  PathSegMovetoRel createSVGPathSegMovetoRel(num x, num y) native;
+  @JSName('createSVGPathSegMovetoRel')
+  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) native;
 
   /// @domName SVGPathElement.getPathSegAtLength; @docsEditable true
   int getPathSegAtLength(num distance) native;
@@ -3696,16 +3741,19 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -4285,6 +4333,7 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -4320,6 +4369,7 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
 // WARNING: Do not edit - generated code.
 
 
+/// @domName SVGPoint
 class Point native "*SVGPoint" {
   factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
 
@@ -4406,16 +4456,19 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -4485,16 +4538,19 @@ class PolylineElement extends SvgElement implements Transformable, Tests, Stylab
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -4666,16 +4722,19 @@ class RectElement extends SvgElement implements Transformable, Tests, Stylable, 
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -4772,6 +4831,7 @@ class StopElement extends SvgElement implements Stylable native "*SVGStopElement
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -4906,7 +4966,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 /// @domName SVGStylable
 abstract class Stylable {
 
-  AnimatedString className;
+  AnimatedString $dom_svgClassName;
 
   CSSStyleDeclaration style;
 
@@ -4961,7 +5021,8 @@ class SvgDocument extends Document native "*SVGDocument" {
   final SvgSvgElement rootElement;
 
   /// @domName SVGDocument.createEvent; @docsEditable true
-  Event $dom_createEvent(String eventType) native "createEvent";
+  @JSName('createEvent')
+  Event $dom_createEvent(String eventType) native;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4995,6 +5056,7 @@ class _AttributeClassSet extends CssClassSet {
   }
 }
 
+/// @domName SVGElement
 class SvgElement extends Element native "*SVGElement" {
   factory SvgElement.tag(String tag) =>
       _SvgElementFactoryProvider.createSvgElement_tag(tag);
@@ -5025,25 +5087,25 @@ class SvgElement extends Element native "*SVGElement" {
     children.addAll(value);
   }
 
-  String get outerHTML {
+  String get outerHtml {
     final container = new Element.tag("div");
     final SvgElement cloned = this.clone(true);
     container.children.add(cloned);
-    return container.innerHTML;
+    return container.innerHtml;
   }
 
-  String get innerHTML {
+  String get innerHtml {
     final container = new Element.tag("div");
     final SvgElement cloned = this.clone(true);
     container.children.addAll(cloned.children);
-    return container.innerHTML;
+    return container.innerHtml;
   }
 
-  void set innerHTML(String svg) {
+  void set innerHtml(String svg) {
     final container = new Element.tag("div");
     // Wrap the SVG string in <svg> so that SvgElements are created, rather than
     // HTMLElements.
-    container.innerHTML = '<svg version="1.1">$svg</svg>';
+    container.innerHtml = '<svg version="1.1">$svg</svg>';
     this.children = container.children[0].children;
   }
 
@@ -5058,7 +5120,8 @@ class SvgElement extends Element native "*SVGElement" {
   }
 
   /// @domName SVGElement.ownerSVGElement; @docsEditable true
-  final SvgSvgElement ownerSVGElement;
+  @JSName('ownerSVGElement')
+  final SvgSvgElement ownerSvgElement;
 
   /// @domName SVGElement.viewportElement; @docsEditable true
   final SvgElement viewportElement;
@@ -5072,6 +5135,33 @@ class SvgElement extends Element native "*SVGElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName SVGException; @docsEditable true
+class SvgException native "*SVGException" {
+
+  static const int SVG_INVALID_VALUE_ERR = 1;
+
+  static const int SVG_MATRIX_NOT_INVERTABLE = 2;
+
+  static const int SVG_WRONG_TYPE_ERR = 0;
+
+  /// @domName SVGException.code; @docsEditable true
+  final int code;
+
+  /// @domName SVGException.message; @docsEditable true
+  final String message;
+
+  /// @domName SVGException.name; @docsEditable true
+  final String name;
+
+  /// @domName SVGException.toString; @docsEditable true
+  String toString() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName SVGSVGElement
 class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable, Locatable, ExternalResourcesRequired, ZoomAndPan, LangSpace native "*SVGSVGElement" {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 
@@ -5131,28 +5221,36 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
   bool checkIntersection(SvgElement element, Rect rect) native;
 
   /// @domName SVGSVGElement.createSVGAngle; @docsEditable true
-  Angle createSVGAngle() native;
+  @JSName('createSVGAngle')
+  Angle createSvgAngle() native;
 
   /// @domName SVGSVGElement.createSVGLength; @docsEditable true
-  Length createSVGLength() native;
+  @JSName('createSVGLength')
+  Length createSvgLength() native;
 
   /// @domName SVGSVGElement.createSVGMatrix; @docsEditable true
-  Matrix createSVGMatrix() native;
+  @JSName('createSVGMatrix')
+  Matrix createSvgMatrix() native;
 
   /// @domName SVGSVGElement.createSVGNumber; @docsEditable true
-  Number createSVGNumber() native;
+  @JSName('createSVGNumber')
+  Number createSvgNumber() native;
 
   /// @domName SVGSVGElement.createSVGPoint; @docsEditable true
-  Point createSVGPoint() native;
+  @JSName('createSVGPoint')
+  Point createSvgPoint() native;
 
   /// @domName SVGSVGElement.createSVGRect; @docsEditable true
-  Rect createSVGRect() native;
+  @JSName('createSVGRect')
+  Rect createSvgRect() native;
 
   /// @domName SVGSVGElement.createSVGTransform; @docsEditable true
-  Transform createSVGTransform() native;
+  @JSName('createSVGTransform')
+  Transform createSvgTransform() native;
 
   /// @domName SVGSVGElement.createSVGTransformFromMatrix; @docsEditable true
-  Transform createSVGTransformFromMatrix(Matrix matrix) native;
+  @JSName('createSVGTransformFromMatrix')
+  Transform createSvgTransformFromMatrix(Matrix matrix) native;
 
   /// @domName SVGSVGElement.deselectAll; @docsEditable true
   void deselectAll() native;
@@ -5167,11 +5265,11 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
   Element getElementById(String elementId) native;
 
   /// @domName SVGSVGElement.getEnclosureList; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native;
 
   /// @domName SVGSVGElement.getIntersectionList; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native;
 
   /// @domName SVGSVGElement.pauseAnimations; @docsEditable true
@@ -5225,16 +5323,19 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -5299,16 +5400,19 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -5370,6 +5474,7 @@ class SymbolElement extends SvgElement implements FitToViewBox, ExternalResource
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -5483,6 +5588,7 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -5528,10 +5634,12 @@ class TextElement extends TextPositioningElement implements Transformable native
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -5618,6 +5726,7 @@ class TitleElement extends SvgElement implements Stylable, LangSpace native "*SV
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
@@ -5782,7 +5891,8 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   Transform consolidate() native;
 
   /// @domName SVGTransformList.createSVGTransformFromMatrix; @docsEditable true
-  Transform createSVGTransformFromMatrix(Matrix matrix) native;
+  @JSName('createSVGTransformFromMatrix')
+  Transform createSvgTransformFromMatrix(Matrix matrix) native;
 
   /// @domName SVGTransformList.getItem; @docsEditable true
   Transform getItem(int index) native;
@@ -5904,16 +6014,19 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  @JSName('getCTM')
+  Matrix getCtm() native;
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  @JSName('getScreenCTM')
+  Matrix getScreenCtm() native;
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
+  // Shadowing definition.
   /// @domName SVGStylable.className; @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 

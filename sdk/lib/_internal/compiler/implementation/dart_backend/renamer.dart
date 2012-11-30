@@ -88,7 +88,7 @@ void renamePlaceholders(
     // js-helpers.
     StringBuffer result = new StringBuffer(renameElement(type.element));
     if (type is InterfaceType) {
-      if (!type.typeArguments.isEmpty) {
+      if (!type.isRaw) {
         result.add('<');
         Link<DartType> argumentsLink = type.typeArguments;
         result.add(renameType(argumentsLink.head, renameElement));
@@ -285,7 +285,7 @@ void renamePlaceholders(
   }
 
   // Rename constructors.
-  placeholderCollector.constructorPlaceholders.forEach(
+  sortedForEach(placeholderCollector.constructorPlaceholders,
       (Element constructor, List<ConstructorPlaceholder> placeholders) {
         for (ConstructorPlaceholder ph in placeholders) {
           renames[ph.node] =

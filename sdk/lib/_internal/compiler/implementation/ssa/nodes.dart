@@ -1509,6 +1509,7 @@ class HForeign extends HInstruction {
     if (declaredType.slowToString() == 'double') return HType.DOUBLE;
     if (declaredType.slowToString() == 'num') return HType.NUMBER;
     if (declaredType.slowToString() == 'String') return HType.STRING;
+    if (declaredType.slowToString() == 'JSArray') return HType.READABLE_ARRAY;
     return HType.UNKNOWN;
   }
 
@@ -2370,7 +2371,7 @@ class HStatic extends HInstruction {
 }
 
 class HInterceptor extends HInstruction {
-  final Set<ClassElement> interceptedClasses;
+  Set<ClassElement> interceptedClasses;
   HInterceptor(this.interceptedClasses, HInstruction receiver)
       : super(<HInstruction>[receiver]);
   String toString() => 'interceptor on $interceptedClasses';
@@ -2379,9 +2380,16 @@ class HInterceptor extends HInstruction {
 
   void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
+    setUseGvn();
   }
 
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
+  bool typeEquals(other) => other is HInterceptor;
+  bool dataEquals(HInterceptor other) {
+    return interceptedClasses == other.interceptedClasses
+        || (interceptedClasses.length == other.interceptedClasses.length
+            && interceptedClasses.containsAll(other.interceptedClasses));
+  }
 }
 
 /** An [HLazyStatic] is a static that is initialized lazily at first read. */

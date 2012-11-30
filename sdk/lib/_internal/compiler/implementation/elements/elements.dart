@@ -355,9 +355,11 @@ class Element implements Spannable {
     }
   }
 
-  bool _isNative = false;
-  void setNative() { _isNative = true; }
-  bool isNative() => _isNative;
+  String _nativeName = null;
+  bool isNative() => _nativeName != null;
+  String nativeName() => _nativeName;
+  /// Marks this element as a native element.
+  void setNative(String name) { _nativeName = name; }
 
   FunctionElement asFunctionElement() => null;
 
@@ -838,6 +840,19 @@ class PrefixElement extends Element {
 class TypedefElement extends Element implements TypeDeclarationElement {
   Typedef cachedNode;
   TypedefType cachedType;
+
+  /**
+   * Canonicalize raw version of [cachedType].
+   *
+   * See [ClassElement.rawType] for motivation.
+   *
+   * The [rawType] is computed together with [cachedType] in [computeType].
+   */
+  TypedefType rawType;
+
+  /**
+   * The type annotation which defines this typedef.
+   */
   DartType alias;
 
   bool isResolved = false;
@@ -862,6 +877,16 @@ class TypedefElement extends Element implements TypeDeclarationElement {
     Link<DartType> parameters =
         TypeDeclarationElement.createTypeVariables(this, node.typeParameters);
     cachedType = new TypedefType(this, parameters);
+    if (parameters.isEmpty) {
+      rawType = cachedType;
+    } else {
+      var dynamicParameters = const Link<DartType>();
+      parameters.forEach((_) {
+        dynamicParameters =
+            dynamicParameters.prepend(compiler.types.dynamicType);
+      });
+      rawType = new TypedefType(this, dynamicParameters);
+    }
     compiler.resolveTypedef(this);
     return cachedType;
   }
@@ -1383,11 +1408,40 @@ abstract class TypeDeclarationElement implements Element {
 abstract class ClassElement extends ScopeContainerElement
     implements TypeDeclarationElement {
   final int id;
-  InterfaceType type;
+  /**
+   * The type of [:this:] for this class declaration.
+   *
+   * The type of [:this:] is the interface type based on this element in which
+   * the type arguments are the declared type variables. For instance,
+   * [:List<E>:] for [:List:] and [:Map<K,V>:] for [:Map:].
+   *
+   * This type is computed in [computeType].
+   */
+  InterfaceType thisType;
+
+  /**
+   * The raw type for this class declaration.
+   *
+   * The raw type is the interface type base on this element in which the type
+   * arguments are all [dynamic]. For instance [:List<dynamic>:] for [:List:]
+   * and [:Map<dynamic,dynamic>:] for [:Map:]. For non-generic classes [rawType]
+   * is the same as [thisType].
+   *
+   * The [rawType] field is a canonicalization of the raw type and should be
+   * used to distinguish explicit and implicit uses of the [dynamic]
+   * type arguments. For instance should [:List:] be the [rawType] of the
+   * [:List:] class element whereas [:List<dynamic>:] should be its own
+   * instantiation of [InterfaceType] with [:dynamic:] as type argument. Using
+   * this distinction, we can print the raw type with type arguments only when
+   * the input source has used explicit type arguments.
+   *
+   * This type is computed together with [thisType] in [computeType].
+   */
+  InterfaceType rawType;
   DartType supertype;
   DartType defaultClass;
   Link<DartType> interfaces;
-  SourceString nativeName;
+  SourceString nativeTagInfo;
   int supertypeLoadState;
   int resolutionState;
 
@@ -1409,18 +1463,29 @@ abstract class ClassElement extends ScopeContainerElement
   ClassNode parseNode(Compiler compiler);
 
   InterfaceType computeType(compiler) {
-    if (type == null) {
+    if (thisType == null) {
       if (origin == null) {
         ClassNode node = parseNode(compiler);
         Link<DartType> parameters =
             TypeDeclarationElement.createTypeVariables(this,
                                                        node.typeParameters);
-        type = new InterfaceType(this, parameters);
+        thisType = new InterfaceType(this, parameters);
+        if (parameters.isEmpty) {
+          rawType = thisType;
+        } else {
+          var dynamicParameters = const Link<DartType>();
+          parameters.forEach((_) {
+            dynamicParameters =
+                dynamicParameters.prepend(compiler.types.dynamicType);
+          });
+          rawType = new InterfaceType(this, dynamicParameters);
+        }
       } else {
-        type = origin.computeType(compiler);
+        thisType = origin.computeType(compiler);
+        rawType = origin.rawType;
       }
     }
-    return type;
+    return thisType;
   }
 
   bool get isPatched => patch != null;
@@ -1435,7 +1500,7 @@ abstract class ClassElement extends ScopeContainerElement
   bool isObject(Compiler compiler) =>
       identical(declaration, compiler.objectClass);
 
-  Link<DartType> get typeVariables => type.typeArguments;
+  Link<DartType> get typeVariables => thisType.typeArguments;
 
   ClassElement ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
@@ -1724,14 +1789,10 @@ abstract class ClassElement extends ScopeContainerElement
   }
 
   bool isInterface() => false;
-  bool isNative() => nativeName != null;
+  bool isNative() => nativeTagInfo != null;
   int get hashCode => id;
 
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
-
-  Link<DartType> get allSupertypesAndSelf {
-    return allSupertypes.prepend(new InterfaceType(this));
-  }
 
   String toString() {
     if (origin != null) {
@@ -1852,7 +1913,7 @@ class Elements {
     } else if (identical(value, '[]')) {
       return const SourceString(r'operator$index');
     } else if (identical(value, '[]=')) {
-      return const SourceString(r'oprator$indexSet');
+      return const SourceString(r'operator$indexSet');
     } else if (identical(value, '*')) {
       return const SourceString(r'operator$mul');
     } else if (identical(value, '/')) {
@@ -1890,7 +1951,8 @@ class Elements {
     }
   }
 
-  static SourceString constructOperatorName(SourceString op, bool isUnary) {
+  static SourceString constructOperatorNameOrNull(SourceString op,
+                                                  bool isUnary) {
     String value = op.stringValue;
     if ((identical(value, '==')) ||
         (identical(value, '~')) ||
@@ -1915,11 +1977,17 @@ class Elements {
     } else if (identical(value, '-')) {
       return isUnary ? const SourceString('unary-') : op;
     } else {
-      throw 'Unhandled operator: ${op.slowToString()}';
+      return null;
     }
   }
 
-  static SourceString mapToUserOperator(SourceString op) {
+  static SourceString constructOperatorName(SourceString op, bool isUnary) {
+    SourceString operatorName = constructOperatorNameOrNull(op, isUnary);
+    if (operatorName == null) throw 'Unhandled operator: ${op.slowToString()}';
+    else return operatorName;
+  }
+
+  static SourceString mapToUserOperatorOrNull(SourceString op) {
     String value = op.stringValue;
 
     if (identical(value, '!=')) return const SourceString('==');
@@ -1935,7 +2003,13 @@ class Elements {
     if (identical(value, '^=')) return const SourceString('^');
     if (identical(value, '|=')) return const SourceString('|');
 
-    throw 'Unhandled operator: ${op.slowToString()}';
+    return null;
+  }
+
+  static SourceString mapToUserOperator(SourceString op) {
+    SourceString userOperator = mapToUserOperatorOrNull(op);
+    if (userOperator == null) throw 'Unhandled operator: ${op.slowToString()}';
+    else return userOperator;
   }
 
   static bool isNumberOrStringSupertype(Element element, Compiler compiler) {

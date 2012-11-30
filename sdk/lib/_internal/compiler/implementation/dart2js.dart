@@ -164,6 +164,7 @@ void compile(List<String> argv) {
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler('--disallow-unsafe-eval', passThrough),
     new OptionHandler('--analyze-all', passThrough),
+    new OptionHandler('--disable-native-live-type-analysis', passThrough),
     new OptionHandler('--enable-native-live-type-analysis', passThrough),
     new OptionHandler('--reject-deprecated-language-features', passThrough),
     new OptionHandler('--report-sdk-use-of-deprecated-language-features',

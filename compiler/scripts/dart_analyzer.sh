@@ -5,8 +5,11 @@
 
 set -e
 
-SCRIPT_DIR=$(dirname $0)
-DART_ANALYZER_HOME=$(dirname $SCRIPT_DIR)
+# Setting SCRIPT_DIR this way is ugly, but is needed to handle the case where
+# dart-sdk/bin has been symlinked to. On MacOS, readlink doesn't work
+# with this case.
+SCRIPT_DIR="$(cd "${0%/*}" ; pwd -P)"
+DART_ANALYZER_HOME="$(cd "${SCRIPT_DIR%/*}" ; pwd -P)"
 
 FOUND_BATCH=0
 FOUND_SDK=0
@@ -26,7 +29,7 @@ done
 
 DART_SDK=""
 if [ $FOUND_SDK = 0 ] ; then
-  if [ -f $DART_ANALYZER_HOME/lib/core/core_runtime.dart ] ; then
+  if [ -f $DART_ANALYZER_HOME/lib/core/core.dart ] ; then
     DART_SDK="--dart-sdk $DART_ANALYZER_HOME"
   else
     DART_SDK_HOME=$(dirname $DART_ANALYZER_HOME)/dart-sdk

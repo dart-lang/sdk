@@ -90,8 +90,8 @@ main() {
   eventTest('HashChangeEvent',
       () => new HashChangeEvent('foo', 'http://old.url', 'http://new.url'),
       (ev) {
-    expect(ev.oldURL, equals('http//old.url'));
-    expect(ev.newURL, equals('http://new.url'));
+    expect(ev.oldUrl, equals('http//old.url'));
+    expect(ev.newUrl, equals('http://new.url'));
   });
 
   eventTest('KeyboardEvent',

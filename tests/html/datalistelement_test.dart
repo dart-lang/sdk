@@ -18,7 +18,7 @@ main() {
   setUp(() {
       div = new DivElement();
       document.body.nodes.add(div);
-      div.innerHTML = """
+      div.innerHtml = """
 <input id="input" list="browsers" />
 <datalist id="browsers">
   <option value="Chrome">

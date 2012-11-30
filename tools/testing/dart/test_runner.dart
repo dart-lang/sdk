@@ -785,8 +785,13 @@ class RunningProcess {
     void processExitHandler(int returnCode) {
       commandCompleteHandler(command, returnCode);
     }
-    
-    Future processFuture = Process.start(command.executable, command.arguments);
+    ProcessOptions options = new ProcessOptions();
+    options.environment = new Map<String, String>.from(Platform.environment);
+    options.environment['DART_CONFIGURATION'] =
+        TestUtils.configurationDir(testCase.configuration);
+    Future processFuture = Process.start(command.executable,
+                                         command.arguments,
+                                         options);
     processFuture.then((Process p) {
       process = p;
       process.onExit = processExitHandler;

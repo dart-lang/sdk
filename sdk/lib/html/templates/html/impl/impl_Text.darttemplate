@@ -6,6 +6,7 @@
 
 part of html;
 
+/// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME(String data) => _$(CLASSNAME)FactoryProvider.create$CLASSNAME(data);
 $!MEMBERS

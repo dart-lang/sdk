@@ -197,11 +197,11 @@ class Version implements Comparable, VersionConstraint {
  * version that is "2.0.0" or greater. Version objects themselves implement
  * this to match a specific version.
  */
-interface VersionConstraint default _VersionConstraintFactory {
+abstract class VersionConstraint {
   /**
    * A [VersionConstraint] that allows no versions: i.e. the empty set.
    */
-  VersionConstraint.empty();
+  factory VersionConstraint.empty() => const _EmptyVersion();
 
   /**
    * Parses a version constraint. This string is a space-separated series of
@@ -218,7 +218,19 @@ interface VersionConstraint default _VersionConstraintFactory {
    *     <=5.1.4
    *     >2.0.4 <=2.4.6
    */
-  VersionConstraint.parse(String text);
+  factory VersionConstraint.parse(String text) {
+    if (text.trim() == '') {
+      throw new FormatException('Cannot parse an empty string.');
+    }
+
+    // Split it into space-separated parts.
+    var constraints = <VersionConstraint>[];
+    for (var part in text.split(' ')) {
+      constraints.add(_parseSingleConstraint(part));
+    }
+
+    return new VersionConstraint.intersection(constraints);
+  }
 
   /**
    * Creates a new version constraint that is the intersection of [constraints].
@@ -226,7 +238,14 @@ interface VersionConstraint default _VersionConstraintFactory {
    * constraints is empty, then it returns a VersionConstraint that allows all
    * versions.
    */
-  VersionConstraint.intersect(Collection<VersionConstraint> constraints);
+  factory VersionConstraint.intersection(
+      Collection<VersionConstraint> constraints) {
+    var constraint = new VersionRange();
+    for (var other in constraints) {
+      constraint = constraint.intersect(other);
+    }
+    return constraint;
+  }
 
   /**
    * Returns `true` if this constraint allows no versions.
@@ -243,6 +262,32 @@ interface VersionConstraint default _VersionConstraintFactory {
    * both this and [other].
    */
   VersionConstraint intersect(VersionConstraint other);
+
+  static VersionConstraint _parseSingleConstraint(String text) {
+    if (text == 'any') {
+      return new VersionRange();
+    }
+
+    // TODO(rnystrom): Consider other syntaxes for version constraints. This
+    // one is whitespace sensitive (you can't do "< 1.2.3") and "<" is
+    // unfortunately meaningful in YAML, requiring it to be quoted in a
+    // pubspec.
+    // See if it's a comparison operator followed by a version, like ">1.2.3".
+    var match = new RegExp(r"^([<>]=?)?(.*)$").firstMatch(text);
+    if (match != null) {
+      var comparison = match[1];
+      var version = new Version.parse(match[2]);
+      switch (match[1]) {
+        case '<=': return new VersionRange(max: version, includeMax: true);
+        case '<': return new VersionRange(max: version, includeMax: false);
+        case '>=': return new VersionRange(min: version, includeMin: true);
+        case '>': return new VersionRange(min: version, includeMin: false);
+      }
+    }
+
+    // Otherwise, it must be an explicit version.
+    return new Version.parse(text);
+  }
 }
 
 /**
@@ -373,57 +418,4 @@ class _EmptyVersion implements VersionConstraint {
   bool allows(Version other) => false;
   VersionConstraint intersect(VersionConstraint other) => this;
   String toString() => '<empty>';
-}
-
-class _VersionConstraintFactory {
-  factory VersionConstraint.empty() => const _EmptyVersion();
-
-  factory VersionConstraint.parse(String text) {
-    if (text.trim() == '') {
-      throw new FormatException('Cannot parse an empty string.');
-    }
-
-    // Split it into space-separated parts.
-    var constraints = <VersionConstraint>[];
-    for (var part in text.split(' ')) {
-      constraints.add(parseSingleConstraint(part));
-    }
-
-    return new VersionConstraint.intersect(constraints);
-  }
-
-  factory VersionConstraint.intersect(
-      Collection<VersionConstraint> constraints) {
-    var constraint = new VersionRange();
-    for (var other in constraints) {
-      constraint = constraint.intersect(other);
-    }
-    return constraint;
-  }
-
-  static VersionConstraint parseSingleConstraint(String text) {
-    if (text == 'any') {
-      return new VersionRange();
-    }
-
-    // TODO(rnystrom): Consider other syntaxes for version constraints. This
-    // one is whitespace sensitive (you can't do "< 1.2.3") and "<" is
-    // unfortunately meaningful in YAML, requiring it to be quoted in a
-    // pubspec.
-    // See if it's a comparison operator followed by a version, like ">1.2.3".
-    var match = new RegExp(r"^([<>]=?)?(.*)$").firstMatch(text);
-    if (match != null) {
-      var comparison = match[1];
-      var version = new Version.parse(match[2]);
-      switch (match[1]) {
-        case '<=': return new VersionRange(max: version, includeMax: true);
-        case '<': return new VersionRange(max: version, includeMax: false);
-        case '>=': return new VersionRange(min: version, includeMin: true);
-        case '>': return new VersionRange(min: version, includeMin: false);
-      }
-    }
-
-    // Otherwise, it must be an explicit version.
-    return new Version.parse(text);
-  }
 }

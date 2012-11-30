@@ -521,8 +521,8 @@ void Scanner::ScanEscapedCodePoint(int32_t* code_point) {
     }
   }
   if (is_valid &&
-      ((*code_point > 0x10FFFF) ||
-       ((*code_point & 0xFFFFF800) == 0xD800))) {
+      ((Utf::IsOutOfRange(*code_point) ||
+        (Utf16::IsSurrogate(*code_point))))) {
     ErrorMsg("invalid code point");
   }
 }

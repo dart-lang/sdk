@@ -925,17 +925,40 @@ class _RequestHandlerRegistration {
 
 // HTTP server waiting for socket connections. The connections are
 // managed by the server and as requests are received the request.
-class _HttpServer implements HttpServer {
-  _HttpServer() : _connections = new Set<_HttpConnection>(),
-                  _handlers = new List<_RequestHandlerRegistration>(),
-                  _closeQueue = new _CloseQueue();
+// HTTPS connections are also supported, if the _HttpServer.httpsServer
+// constructor is used and a certificate name is provided in listen,
+// or a SecureServerSocket is provided to listenOn.
+class _HttpServer implements HttpServer, HttpsServer {
+  _HttpServer() : this._internal(isSecure: false);
 
-  void listen(String host, int port, {int backlog: 128}) {
-    listenOn(new ServerSocket(host, port, backlog));
+  _HttpServer.httpsServer() : this._internal(isSecure: true);
+
+  _HttpServer._internal({ bool isSecure: false })
+      : _secure = isSecure,
+        _connections = new Set<_HttpConnection>(),
+        _handlers = new List<_RequestHandlerRegistration>(),
+        _closeQueue = new _CloseQueue();
+
+  void listen(String host,
+              int port,
+              {int backlog: 128,
+              String certificate_name}) {
+    if (_secure) {
+      listenOn(new SecureServerSocket(host, port, backlog, certificate_name));
+    } else {
+      listenOn(new ServerSocket(host, port, backlog));
+    }
     _closeServer = true;
   }
 
   void listenOn(ServerSocket serverSocket) {
+    if (_secure && serverSocket is! SecureServerSocket) {
+        throw new HttpException(
+            'HttpsServer.listenOn was called with non-secure server socket');
+    } else if (!_secure && serverSocket is SecureServerSocket) {
+        throw new HttpException(
+            'HttpServer.listenOn was called with a secure server socket');
+    }
     void onConnection(Socket socket) {
       // Accept the client connection.
       _HttpConnection connection = new _HttpConnection(this);
@@ -1051,6 +1074,7 @@ class _HttpServer implements HttpServer {
 
   ServerSocket _server;  // The server listen socket.
   bool _closeServer = false;
+  bool _secure;
   Set<_HttpConnection> _connections;  // Set of currently connected clients.
   List<_RequestHandlerRegistration> _handlers;
   Object _defaultHandler;
@@ -1463,17 +1487,18 @@ class _HttpClientConnection
   }
 
   void _onError(e) {
+    // Cancel any pending data in the HTTP parser.
+    _httpParser.cancel();
     if (_socketConn != null) {
       _client._closeSocketConnection(_socketConn);
     }
-    if (_onErrorCallback != null) {
+    // Report the error.
+    if (_response != null && _response._streamErrorHandler != null) {
+       _response._streamErrorHandler(e);
+    } else if (_onErrorCallback != null) {
       _onErrorCallback(e);
     } else {
       throw e;
-    }
-    // Propagate the error to the streams.
-    if (_response != null && _response._streamErrorHandler != null) {
-       _response._streamErrorHandler(e);
     }
   }
 
@@ -1704,7 +1729,7 @@ class _HttpClient implements HttpClient {
   HttpClientConnection _openUrl(String method,
                                 Uri url,
                                 [_HttpClientConnection connection]) {
-    if (url.scheme != "http") {
+    if (url.scheme != "http" && url.scheme != "https") {
       throw new HttpException("Unsupported URL scheme ${url.scheme}");
     }
     return _open(method, url, connection);
@@ -1743,8 +1768,8 @@ class _HttpClient implements HttpClient {
     });
     if (force) {
       _activeSockets.forEach((_SocketConnection socketConn) {
-        socketConn._socket.close();
         socketConn._httpClientConnection._onClientShutdown();
+        socketConn._close();
       });
     }
     if (_evictionTimer != null) _cancelEvictionTimer();
@@ -1769,7 +1794,8 @@ class _HttpClient implements HttpClient {
                               int port,
                               _ProxyConfiguration proxyConfiguration,
                               int proxyIndex,
-                              bool reusedConnection) {
+                              bool reusedConnection,
+                              bool secure) {
 
       void _connectionOpened(_SocketConnection socketConn,
                              _HttpClientConnection connection,
@@ -1821,8 +1847,15 @@ class _HttpClient implements HttpClient {
       // otherwise create a new one.
       String key = _connectionKey(connectHost, connectPort);
       Queue socketConnections = _openSockets[key];
+      // Remove active connections that are of the wrong type (HTTP or HTTPS).
+      while (socketConnections != null &&
+             !socketConnections.isEmpty &&
+             secure != (socketConnections.first._socket is SecureSocket)) {
+        socketConnection.removeFirst()._close();
+      }
       if (socketConnections == null || socketConnections.isEmpty) {
-        Socket socket = new Socket(connectHost, connectPort);
+        Socket socket = secure ? new SecureSocket(connectHost, connectPort) :
+                                 new Socket(connectHost, connectPort);
         // Until the connection is established handle connection errors
         // here as the HttpClientConnection object is not yet associated
         // with the socket.
@@ -1831,7 +1864,7 @@ class _HttpClient implements HttpClient {
           if (proxyIndex < proxyConfiguration.proxies.length) {
             // Try the next proxy in the list.
             _establishConnection(
-                host, port, proxyConfiguration, proxyIndex, false);
+                host, port, proxyConfiguration, proxyIndex, false, secure);
           } else {
             // Report the error through the HttpClientConnection object to
             // the client.
@@ -1845,7 +1878,7 @@ class _HttpClient implements HttpClient {
           // the connected socket.
           socket.onError = null;
           _SocketConnection socketConn =
-          new _SocketConnection(connectHost, connectPort, socket);
+              new _SocketConnection(connectHost, connectPort, socket);
           _activeSockets.add(socketConn);
           _connectionOpened(socketConn, connection, !proxy.isDirect);
         };
@@ -1861,10 +1894,17 @@ class _HttpClient implements HttpClient {
       }
     }
 
+    // Find out if we want a secure socket.
+    bool is_secure = (url.scheme == "https");
+
     // Find the TCP host and port.
     String host = url.domain;
-    int port = url.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : url.port;
-
+    int port = url.port;
+    if (port == 0) {
+      port = is_secure ?
+          HttpClient.DEFAULT_HTTPS_PORT :
+          HttpClient.DEFAULT_HTTP_PORT;
+    }
     // Create a new connection object if we are not re-using an existing one.
     var reusedConnection = false;
     if (connection == null) {
@@ -1883,7 +1923,12 @@ class _HttpClient implements HttpClient {
     }
 
     // Establish the connection starting with the first proxy configured.
-    _establishConnection(host, port, proxyConfiguration, 0, reusedConnection);
+    _establishConnection(host,
+                         port,
+                         proxyConfiguration,
+                         0,
+                         reusedConnection,
+                         is_secure);
 
     return connection;
   }

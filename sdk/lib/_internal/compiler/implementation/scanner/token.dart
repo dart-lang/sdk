@@ -141,7 +141,15 @@ class Token implements Spannable {
   /**
    * The number of characters parsed by this token.
    */
-  int get slowCharCount => slowToString().length;
+  int get slowCharCount {
+    if (info == BAD_INPUT_INFO) {
+      // This is a token that wraps around an error message. Return 1
+      // instead of the size of the length of the error message.
+      return 1;
+    } else {
+      return slowToString().length;
+    }
+  }
 }
 
 /**

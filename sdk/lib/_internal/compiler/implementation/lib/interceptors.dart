@@ -23,15 +23,10 @@ class ObjectInterceptor {
  * to emit a call to an intercepted method, that is a method that is
  * defined in an interceptor class.
  */
-getInterceptor(object) {
-  if (object is String) return const JSString();
-  if (isJsArray(object)) return const JSArray();
-  if (object is int) return const JSInt();
-  if (object is double) return const JSDouble();
-  if (object is bool) return const JSBool();
-  if (object == null) return const JSNull();
-  if (JS('String', 'typeof #', object) == 'function') return const JSFunction();
-  return const ObjectInterceptor();
+getInterceptor() {
+  // This is a magic method: the compiler does specialization of it
+  // depending on the uses of intercepted methods and instantiated
+  // primitive types.
 }
 
 /**
