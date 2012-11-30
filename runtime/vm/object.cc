@@ -9843,8 +9843,9 @@ intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
   ASSERT(len >= 0);
   ASSERT((begin_index + len) <= str.Length());
   StringHasher hasher;
-  for (intptr_t i = 0; i < len; i++) {
-    hasher.Add(str.CharAt(begin_index + i));
+  CodePointIterator it(str, begin_index, len);
+  while (it.Next()) {
+    hasher.Add(it.Current());
   }
   return hasher.Finalize(String::kHashBits);
 }
@@ -9867,7 +9868,12 @@ intptr_t String::Hash(const uint8_t* characters, intptr_t len) {
 
 
 intptr_t String::Hash(const uint16_t* characters, intptr_t len) {
-  return HashImpl(characters, len);
+  StringHasher hasher;
+  intptr_t i = 0;
+  while (i < len) {
+    hasher.Add(Utf16::Next(characters, &i, len));
+  }
+  return hasher.Finalize(String::kHashBits);
 }
 
 
@@ -10493,20 +10499,20 @@ RawString* String::ToLowerCase(const String& str, Heap::Space space) {
 
 bool String::CodePointIterator::Next() {
   ASSERT(index_ >= -1);
-  ASSERT(index_ < str_.Length());
-  int d = Utf16::Length(ch_);
-  if (index_ == (str_.Length() - d)) {
-    return false;
-  }
-  index_ += d;
-  ch_ = str_.CharAt(index_);
-  if (Utf16::IsLeadSurrogate(ch_) && (index_ != (str_.Length() - 1))) {
-    int32_t ch2 = str_.CharAt(index_ + 1);
-    if (Utf16::IsTrailSurrogate(ch2)) {
-      ch_ = Utf16::Decode(ch_, ch2);
+  intptr_t length = Utf16::Length(ch_);
+  if (index_ < (end_ - length)) {
+    index_ += length;
+    ch_ = str_.CharAt(index_);
+    if (Utf16::IsLeadSurrogate(ch_) && (index_ < (end_ - 1))) {
+      int32_t ch2 = str_.CharAt(index_ + 1);
+      if (Utf16::IsTrailSurrogate(ch2)) {
+        ch_ = Utf16::Decode(ch_, ch2);
+      }
     }
+    return true;
   }
-  return true;
+  index_ = end_;
+  return false;
 }
 
 

@@ -93,6 +93,21 @@ class Utf16 : AllStatic {
     return (ch & 0xFFFFFC00) == 0xDC00;
   }
 
+  // Returns the character at i and advances i to the next character
+  // boundary.
+  static int32_t Next(const uint16_t* characters, intptr_t* i, intptr_t len) {
+    int32_t ch = characters[*i];
+    if (Utf16::IsLeadSurrogate(ch) && (*i < (len - 1))) {
+      int32_t ch2 = characters[*i + 1];
+      if (Utf16::IsTrailSurrogate(ch2)) {
+        ch = Utf16::Decode(ch, ch2);
+        *i += 1;
+      }
+    }
+    *i += 1;
+    return ch;
+  }
+
   // Decodes a surrogate pair into a supplementary code point.
   static int32_t Decode(int32_t lead, int32_t trail) {
     return 0x10000 + ((lead & 0x3FF) << 10) + (trail & 0x3FF);

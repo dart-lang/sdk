@@ -3711,13 +3711,23 @@ class String : public Instance {
    public:
     explicit CodePointIterator(const String& str)
         : str_(str),
+          ch_(0),
           index_(-1),
-          ch_(-1) {
+          end_(str.Length()) {
+    }
+
+    CodePointIterator(const String& str, intptr_t start, intptr_t length)
+        : str_(str),
+          ch_(0),
+          index_(start - 1),
+          end_(start + length) {
+      ASSERT(start >= 0);
+      ASSERT(end_ <= str.Length());
     }
 
     int32_t Current() {
       ASSERT(index_ >= 0);
-      ASSERT(index_ < str_.Length());
+      ASSERT(index_ < end_);
       return ch_;
     }
 
@@ -3725,8 +3735,9 @@ class String : public Instance {
 
    private:
     const String& str_;
-    intptr_t index_;
     int32_t ch_;
+    intptr_t index_;
+    intptr_t end_;
     DISALLOW_IMPLICIT_CONSTRUCTORS(CodePointIterator);
   };
 

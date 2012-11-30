@@ -7,7 +7,6 @@ cc/TypeVariableReflection: Crash # Issue 6958.
 cc/LibraryGetClassNames: Fail # Issue 6958.
 cc/ImportLibrary5: Fail # Issue 6958.
 cc/CustomIsolates: Crash # Default factory classes are removed.
-cc/SymbolUnicode: Fail
 
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash

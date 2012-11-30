@@ -1694,6 +1694,23 @@ TEST_CASE(StringCodePointIterator) {
 }
 
 
+TEST_CASE(StringCodePointIteratorRange) {
+  const String& str = String::Handle(String::New("foo bar baz"));
+
+  String::CodePointIterator it0(str, 3, 0);
+  EXPECT(!it0.Next());
+
+  String::CodePointIterator it1(str, 4, 3);
+  EXPECT(it1.Next());
+  EXPECT_EQ('b', it1.Current());
+  EXPECT(it1.Next());
+  EXPECT_EQ('a', it1.Current());
+  EXPECT(it1.Next());
+  EXPECT_EQ('r', it1.Current());
+  EXPECT(!it1.Next());
+}
+
+
 TEST_CASE(GrowableObjectArray) {
   const int kArrayLen = 5;
   Smi& value = Smi::Handle();
