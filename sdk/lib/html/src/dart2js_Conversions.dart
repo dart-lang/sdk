@@ -94,6 +94,39 @@ _convertDartToNative_ImageData(ImageData imageData) {
 }
 
 
+/// Converts a JavaScript object with properties into a Dart Map.
+/// Not suitable for nested objects.
+Map _convertNativeToDart_Dictionary(object) {
+  if (object == null) return null;
+  var dict = {};
+  for (final key in JS('=List', 'Object.getOwnPropertyNames(#)', object)) {
+    dict[key] = JS('var', '#[#]', object, key);
+  }
+  return dict;
+}
+
+/// Converts a flat Dart map into a JavaScript object with properties.
+_convertDartToNative_Dictionary(Map dict) {
+  if (dict == null) return null;
+  var object = JS('var', '{}');
+  dict.forEach((String key, value) {
+      JS('void', '#[#] = #', object, key, value);
+    });
+  return object;
+}
+
+
+/**
+ * Ensures that the input is a JavaScript Array.
+ *
+ * Creates a new JavaScript array if necessary, otherwise returns the original.
+ */
+List _convertDartToNative_StringArray(List<String> input) {
+  // TODO(sra).  Implement this.
+  return input;
+}
+
+
 // -----------------------------------------------------------------------------
 
 /**
@@ -107,7 +140,7 @@ _convertDartToNative_ImageData(ImageData imageData) {
  */
 _convertNativeToDart_IDBKey(nativeKey) {
   containsDate(object) {
-    if (isJavaScriptDate(object)) return true;
+    if (_isJavaScriptDate(object)) return true;
     if (object is List) {
       for (int i = 0; i < object.length; i++) {
         if (containsDate(object[i])) return true;
@@ -139,9 +172,280 @@ _convertDartToNative_IDBKey(dartKey) {
 
 /// May modify original.  If so, action is idempotent.
 _convertNativeToDart_IDBAny(object) {
-  return convertNativeToDart_AcceptStructuredClone(object, mustCopy: false);
+  return _convertNativeToDart_AcceptStructuredClone(object, mustCopy: false);
 }
 
+/// Converts a Dart value into a JavaScript SerializedScriptValue.
+_convertDartToNative_SerializedScriptValue(value) {
+  return _convertDartToNative_PrepareForStructuredClone(value);
+}
+
+/// Since the source object may be viewed via a JavaScript event listener the
+/// original may not be modified.
+_convertNativeToDart_SerializedScriptValue(object) {
+  return _convertNativeToDart_AcceptStructuredClone(object, mustCopy: true);
+}
+
+
+/**
+ * Converts a Dart value into a JavaScript SerializedScriptValue.  Returns the
+ * original input or a functional 'copy'.  Does not mutate the original.
+ *
+ * The main transformation is the translation of Dart Maps are converted to
+ * JavaScript Objects.
+ *
+ * The algorithm is essentially a dry-run of the structured clone algorithm
+ * described at
+ * http://www.whatwg.org/specs/web-apps/current-work/multipage/common-dom-interfaces.html#structured-clone
+ * https://www.khronos.org/registry/typedarray/specs/latest/#9
+ *
+ * Since the result of this function is expected to be passed only to JavaScript
+ * operations that perform the structured clone algorithm which does not mutate
+ * its output, the result may share structure with the input [value].
+ */
+_convertDartToNative_PrepareForStructuredClone(value) {
+
+  // TODO(sra): Replace slots with identity hash table.
+  var values = [];
+  var copies = [];  // initially 'null', 'true' during initial DFS, then a copy.
+
+  int findSlot(value) {
+    int length = values.length;
+    for (int i = 0; i < length; i++) {
+      if (identical(values[i], value)) return i;
+    }
+    values.add(value);
+    copies.add(null);
+    return length;
+  }
+  readSlot(int i) => copies[i];
+  writeSlot(int i, x) { copies[i] = x; }
+  cleanupSlots() {}  // Will be needed if we mark objects with a property.
+
+  // Returns the input, or a clone of the input.
+  walk(e) {
+    if (e == null) return e;
+    if (e is bool) return e;
+    if (e is num) return e;
+    if (e is String) return e;
+    if (e is Date) {
+      // TODO(sra).
+      throw new UnimplementedError('structured clone of Date');
+    }
+    if (e is RegExp) {
+      // TODO(sra).
+      throw new UnimplementedError('structured clone of RegExp');
+    }
+
+    // The browser's internal structured cloning algorithm will copy certain
+    // types of object, but it will copy only its own implementations and not
+    // just any Dart implementations of the interface.
+
+    // TODO(sra): The JavaScript objects suitable for direct cloning by the
+    // structured clone algorithm could be tagged with an private interface.
+
+    if (e is File) return e;
+    if (e is Blob) return e;
+    if (e is _FileList) return e;
+
+    // TODO(sra): Firefox: How to convert _TypedImageData on the other end?
+    if (e is ImageData) return e;
+    if (e is ArrayBuffer) return e;
+
+    if (e is ArrayBufferView) return e;
+
+    if (e is Map) {
+      var slot = findSlot(e);
+      var copy = readSlot(slot);
+      if (copy != null) return copy;
+      copy = JS('var', '{}');
+      writeSlot(slot, copy);
+      e.forEach((key, value) {
+          JS('void', '#[#] = #', copy, key, walk(value));
+        });
+      return copy;
+    }
+
+    if (e is List) {
+      // Since a JavaScript Array is an instance of Dart List it is possible to
+      // avoid making a copy of the list if there is no need to copy anything
+      // reachable from the array.  We defer creating a new array until a cycle
+      // is detected or a subgraph was copied.
+      int length = e.length;
+      var slot = findSlot(e);
+      var copy = readSlot(slot);
+      if (copy != null) {
+        if (true == copy) {  // Cycle, so commit to making a copy.
+          copy = JS('=List', 'new Array(#)', length);
+          writeSlot(slot, copy);
+        }
+        return copy;
+      }
+
+      int i = 0;
+
+      if (_isJavaScriptArray(e) &&
+          // We have to copy immutable lists, otherwise the structured clone
+          // algorithm will copy the .immutable$list marker property, making the
+          // list immutable when received!
+          !_isImmutableJavaScriptArray(e)) {
+        writeSlot(slot, true);  // Deferred copy.
+        for ( ; i < length; i++) {
+          var element = e[i];
+          var elementCopy = walk(element);
+          if (!identical(elementCopy, element)) {
+            copy = readSlot(slot);   // Cyclic reference may have created it.
+            if (true == copy) {
+              copy = JS('=List', 'new Array(#)', length);
+              writeSlot(slot, copy);
+            }
+            for (int j = 0; j < i; j++) {
+              copy[j] = e[j];
+            }
+            copy[i] = elementCopy;
+            i++;
+            break;
+          }
+        }
+        if (copy == null) {
+          copy = e;
+          writeSlot(slot, copy);
+        }
+      } else {
+        // Not a JavaScript Array.  We are forced to make a copy.
+        copy = JS('=List', 'new Array(#)', length);
+        writeSlot(slot, copy);
+      }
+
+      for ( ; i < length; i++) {
+        copy[i] = walk(e[i]);
+      }
+      return copy;
+    }
+
+    throw new UnimplementedError('structured clone of other type');
+  }
+
+  var copy = walk(value);
+  cleanupSlots();
+  return copy;
+}
+
+/**
+ * Converts a native value into a Dart object.
+ *
+ * If [mustCopy] is [:false:], may return the original input.  May mutate the
+ * original input (but will be idempotent if mutation occurs).  It is assumed
+ * that this conversion happens on native serializable script values such values
+ * from native DOM calls.
+ *
+ * [object] is the result of a structured clone operation.
+ *
+ * If necessary, JavaScript Dates are converted into Dart Dates.
+ *
+ * If [mustCopy] is [:true:], the entire object is copied and the original input
+ * is not mutated.  This should be the case where Dart and JavaScript code can
+ * access the value, for example, via multiple event listeners for
+ * MessageEvents.  Mutating the object to make it more 'Dart-like' would corrupt
+ * the value as seen from the JavaScript listeners.
+ */
+_convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
+
+  // TODO(sra): Replace slots with identity hash table that works on non-dart
+  // objects.
+  var values = [];
+  var copies = [];
+
+  int findSlot(value) {
+    int length = values.length;
+    for (int i = 0; i < length; i++) {
+      if (identical(values[i], value)) return i;
+    }
+    values.add(value);
+    copies.add(null);
+    return length;
+  }
+  readSlot(int i) => copies[i];
+  writeSlot(int i, x) { copies[i] = x; }
+
+  walk(e) {
+    if (e == null) return e;
+    if (e is bool) return e;
+    if (e is num) return e;
+    if (e is String) return e;
+
+    if (_isJavaScriptDate(e)) {
+      // TODO(sra).
+      throw new UnimplementedError('structured clone of Date');
+    }
+
+    if (_isJavaScriptRegExp(e)) {
+      // TODO(sra).
+      throw new UnimplementedError('structured clone of RegExp');
+    }
+
+    if (_isJavaScriptSimpleObject(e)) {
+      // TODO(sra): If mustCopy is false, swizzle the prototype for one of a Map
+      // implementation that uses the properies as storage.
+      var slot = findSlot(e);
+      var copy = readSlot(slot);
+      if (copy != null) return copy;
+      copy = {};
+
+      writeSlot(slot, copy);
+      for (final key in JS('=List', 'Object.keys(#)', e)) {
+        copy[key] = walk(JS('var', '#[#]', e, key));
+      }
+      return copy;
+    }
+
+    if (_isJavaScriptArray(e)) {
+      var slot = findSlot(e);
+      var copy = readSlot(slot);
+      if (copy != null) return copy;
+
+      int length = e.length;
+      // Since a JavaScript Array is an instance of Dart List, we can modify it
+      // in-place unless we must copy.
+      copy = mustCopy ? JS('=List', 'new Array(#)', length) : e;
+      writeSlot(slot, copy);
+
+      for (int i = 0; i < length; i++) {
+        copy[i] = walk(e[i]);
+      }
+      return copy;
+    }
+
+    // Assume anything else is already a valid Dart object, either by having
+    // already been processed, or e.g. a clonable native class.
+    return e;
+  }
+
+  var copy = walk(object);
+  return copy;
+}
+
+
+bool _isJavaScriptDate(value) => JS('bool', '# instanceof Date', value);
+bool _isJavaScriptRegExp(value) => JS('bool', '# instanceof RegExp', value);
+bool _isJavaScriptArray(value) => JS('bool', '# instanceof Array', value);
+bool _isJavaScriptSimpleObject(value) =>
+    JS('bool', 'Object.getPrototypeOf(#) === Object.prototype', value);
+bool _isImmutableJavaScriptArray(value) =>
+    JS('bool', r'!!(#.immutable$list)', value);
+
+
+
+const String _serializedScriptValue =
+    'num|String|bool|'
+    '=List|=Object|'
+    'Blob|File|ArrayBuffer|ArrayBufferView'
+    // TODO(sra): Add Date, RegExp.
+    ;
+const _annotation_Creates_SerializedScriptValue =
+    const Creates(_serializedScriptValue);
+const _annotation_Returns_SerializedScriptValue =
+    const Returns(_serializedScriptValue);
 
 const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add Date.
 const _annotation_Creates_IDBKey = const Creates(_idbKey);
