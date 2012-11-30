@@ -11379,7 +11379,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.outerWidth; @docsEditable true
   final int outerWidth;
 
-  /// @domName Window.pagePopupController; @docsEditable true
+  /// @domName DOMWindow.pagePopupController; @docsEditable true
   final PagePopupController pagePopupController;
 
   /// @domName Window.pageXOffset; @docsEditable true
@@ -11445,13 +11445,13 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   Window get top => _convertNativeToDart_Window(this._top);
   dynamic get _top => JS("dynamic", "#.top", this);
 
-  /// @domName Window.webkitIndexedDB; @docsEditable true
+  /// @domName DOMWindow.webkitIndexedDB; @docsEditable true
   final IDBFactory webkitIndexedDB;
 
-  /// @domName Window.webkitNotifications; @docsEditable true
+  /// @domName DOMWindow.webkitNotifications; @docsEditable true
   final NotificationCenter webkitNotifications;
 
-  /// @domName Window.webkitStorageInfo; @docsEditable true
+  /// @domName DOMWindow.webkitStorageInfo; @docsEditable true
   final StorageInfo webkitStorageInfo;
 
   /// @domName Window.window; @docsEditable true
@@ -11510,7 +11510,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.moveTo; @docsEditable true
   void moveTo(num x, num y) native;
 
-  /// @domName Window.openDatabase; @docsEditable true
+  /// @domName DOMWindow.openDatabase; @docsEditable true
   @Creates('Database') @Creates('DatabaseSync')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
@@ -11574,10 +11574,10 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.webkitConvertPointFromPageToNode; @docsEditable true
   Point webkitConvertPointFromPageToNode(Node node, Point p) native;
 
-  /// @domName Window.webkitRequestFileSystem; @docsEditable true
+  /// @domName DOMWindow.webkitRequestFileSystem; @docsEditable true
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /// @domName Window.webkitResolveLocalFileSystemURL; @docsEditable true
+  /// @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true
   void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "webkitResolveLocalFileSystemURL";
 
 }
@@ -22064,7 +22064,7 @@ class KeyboardEventController {
   }
 
   /** Determine if caps lock is one of the currently depressed keys. */
-  bool get _capsLockOn() =>
+  bool get _capsLockOn =>
       _keyDownList.some((var element) => element.keyCode == KeyCode.CAPS_LOCK);
 
   /**

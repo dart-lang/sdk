@@ -27997,7 +27997,7 @@ class KeyboardEventController {
   }
 
   /** Determine if caps lock is one of the currently depressed keys. */
-  bool get _capsLockOn() =>
+  bool get _capsLockOn =>
       _keyDownList.some((var element) => element.keyCode == KeyCode.CAPS_LOCK);
 
   /**
