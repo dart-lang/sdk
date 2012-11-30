@@ -53,7 +53,10 @@ def Main(argv):
     print 'Error: Do not run this script from a bleeding_edge checkout.'
     return -1
 
-  version = '%d.%d.%d+%d' % (major, minor, build, patch)
+  if patch != 0:
+    version = '%d.%d.%d+%d' % (major, minor, build, patch)
+  else:
+    version = '%d.%d.%d' % (major, minor, build)
 
   tmpDir = tempfile.mkdtemp()
   pkgName = argv[1].split('/').pop()
