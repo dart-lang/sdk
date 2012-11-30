@@ -4,6 +4,6 @@
 
 // A perfectly legal dart library for use with script and library tests.
 
-#library("ScriptLib");
+library ScriptLib;
 
 const int script_lib = 1;

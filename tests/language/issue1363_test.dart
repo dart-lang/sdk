@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_type_checks
 
-#library('Issue1363Test.dart');
-#import('issue1363_lib.dart', prefix:'lib');
+library Issue1363Test.dart;
+import 'issue1363_lib.dart' as lib;
 
 main() {
   new C().test();

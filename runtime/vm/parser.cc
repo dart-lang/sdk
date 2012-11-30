@@ -4073,10 +4073,17 @@ void Parser::ParseLibraryIncludeObsoleteSyntax() {
 void Parser::ParseLibraryName() {
   ASSERT(CurrentToken() == Token::kLIBRARY);
   ConsumeToken();
-  // TODO(hausner): Exact syntax of library name still unclear: identifier,
-  // qualified identifier or even multiple dots allowed? For now we just
-  // accept simple identifiers.
-  const String& lib_name = *ExpectIdentifier("library name expected");
+  String& lib_name = *ExpectIdentifier("library name expected");
+  if (CurrentToken() == Token::kPERIOD) {
+    const String& dot = String::Handle(Symbols::Dot());
+    while (CurrentToken() == Token::kPERIOD) {
+      ConsumeToken();
+      lib_name = String::Concat(lib_name, dot);
+      lib_name = String::Concat(lib_name,
+          *ExpectIdentifier("malformed library name"));
+    }
+    lib_name = Symbols::New(lib_name);
+  }
   library_.SetName(lib_name);
   ExpectSemicolon();
 }
@@ -4114,7 +4121,7 @@ void Parser::ParseLibraryImportExport() {
   String& prefix = String::Handle();
   if (is_import && IsLiteral("as")) {
     ConsumeToken();
-    prefix = ExpectIdentifier("prefix expected")->raw();
+    prefix = ExpectIdentifier("prefix identifier expected")->raw();
   }
 
   Array& show_names = Array::Handle();
@@ -4283,12 +4290,13 @@ void Parser::ParsePartHeader() {
       ErrorMsg("'part of' expected");
     }
     ConsumeToken();
-    // TODO(hausner): Exact syntax of library name still unclear: identifier,
-    // qualified identifier or even multiple dots allowed? For now we just
-    // accept simple identifiers.
     // The VM is not required to check that the library name matches the
     // name of the current library, so we ignore it.
     ExpectIdentifier("library name expected");
+    while (CurrentToken() == Token::kPERIOD) {
+      ConsumeToken();
+      ExpectIdentifier("malformed library name");
+    }
     ExpectSemicolon();
   } else {
     SetPosition(metadata_pos);

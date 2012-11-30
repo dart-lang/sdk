@@ -4,6 +4,6 @@
 
 // Imported library has source file with library tags.
 
-#library("Script2NegativeSource");
+library Script2NegativeSource;
 
 const int script_2_negative_source = 1;

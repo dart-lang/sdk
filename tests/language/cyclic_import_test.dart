@@ -1,5 +1,5 @@
-#library('CyclicImportTest');
-#import('sub/sub.dart');
+library CyclicImportTest;
+import 'sub/sub.dart';
 
 var value = 42;
 

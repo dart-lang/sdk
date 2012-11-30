@@ -18,8 +18,6 @@
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
-part_test: Fail
-part2_test: Fail
 gc_test: Pass, Fail # Issue 1487
 pseudo_kw_illegal_test/14: Fail  # Issue 356
 first_class_types_constants_test: Fail # Issue 6282
@@ -284,7 +282,6 @@ closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewri
 compile_time_constant10_test/none: Fail # issue 5215.
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
-disable_privacy_test: Fail # Issue 1882: Needs --disable_privacy support.
 factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 
@@ -443,43 +440,44 @@ type_variable_bounds_test/07: Pass
 
 
 # test issue 6512
-arithmetic_test: Fail, OK
-call_constructor_on_unresolvable_class_test/none: Fail, OK
-call_constructor_on_unresolvable_class_test/01: Fail, OK
-call_constructor_on_unresolvable_class_test/02: Fail, OK
-call_constructor_on_unresolvable_class_test/07: Fail, OK
-call_constructor_on_unresolvable_class_test/03: Fail, OK
-closure_type_test: Fail, OK
-const_var_test: Fail, OK
-ct_const4_test: Fail, OK
-cyclic_import_test: Fail, OK
-function_type_alias3_test: Fail, OK
-getter_setter_in_lib_test: Fail, OK
-import_collection_no_prefix_test: Fail, OK
-import_core_no_prefix_test: Fail, OK
-import_core_prefix_test: Fail, OK
-import_core_test: Fail, OK
-intrinsified_methods_test: Fail, OK
-issue1363_test: Fail, OK
-library5_test: Fail, OK
-library_private_in_constructor_test: Fail, OK
-numbers_test: Fail, OK
-prefix101_test: Fail, OK
+arithmetic_test: Pass, Fail, OK
+call_constructor_on_unresolvable_class_test/none: Pass, Fail, OK
+call_constructor_on_unresolvable_class_test/01: Pass, Fail, OK
+call_constructor_on_unresolvable_class_test/02: Pass, Fail, OK
+call_constructor_on_unresolvable_class_test/07: Pass, Fail, OK
+call_constructor_on_unresolvable_class_test/03: Pass, Fail, OK
+closure_type_test: Pass, Fail, OK
+const_var_test: Pass, Fail, OK
+ct_const4_test: Pass, Fail, OK
+cyclic_import_test: Pass, Fail, OK
+function_type_alias3_test: Pass, Fail, OK
+getter_setter_in_lib_test: Pass, Fail, OK
+import_collection_no_prefix_test: Pass, Fail, OK
+import_core_no_prefix_test: Pass, Fail, OK
+import_core_prefix_test: Pass, Fail, OK
+import_core_test: Pass, Fail, OK
+intrinsified_methods_test: Pass, Fail, OK
+issue1363_test: Pass, Fail, OK
+library5_test: Pass, Fail, OK
+library_private_in_constructor_test: Pass, Fail, OK
+numbers_test: Pass, Fail, OK
+prefix101_test: Pass, Fail, OK
 prefix10_negative_test: Pass
-prefix10_test: Fail, OK
-prefix11_test: Fail, OK
-prefix12_test: Fail, OK
+prefix10_test: Pass, Fail, OK
+prefix11_test: Pass, Fail, OK
+prefix12_test: Pass, Fail, OK
 prefix1_negative_test: Pass
-prefix21_test: Fail, OK
+prefix21_test: Pass, Fail, OK
 prefix4_negative_test: Pass
 prefix5_negative_test: Pass
-prefix_new_test: Fail, OK
-prefix_test: Fail, OK
+prefix_new_test: Pass, Fail, OK
+prefix_test: Pass, Fail, OK
 private_member3_negative_test: Pass
-private_member_test: Fail, OK
-top_level_prefixed_declaration_test: Fail, OK
-typed_message_test: Fail, OK
+private_member_test: Pass, Fail, OK
+top_level_prefixed_declaration_test: Pass, Fail, OK
+typed_message_test: Pass, Fail, OK
 
+prefix6_negative_test: Fail
 
 # test issue 6818
 type_variable_identifier_expression_negative_test: Fail, OK
@@ -540,7 +538,7 @@ first_class_types_literals_test: Fail # issue 6282
 call_test: Fail # Issue 1604
 
 [ $runtime == chrome ]
-string_escape1_negative_test: Skip
+
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip
@@ -697,7 +695,7 @@ bad_constructor_test/06: Fail
 argument_definition_test/*: Skip # Not implemented.
 argument_definition2_test: Skip # Not implemented. Fails in minified tests.
 argument_definition3_test: Skip # Not implemented. Fails in minified tests.
-const_var_test: Fail # Map literals take 2 type arguments.
+const_var_test: Pass, Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 field1_negative_test: Fail, OK # Bad test: assumes eager loading.
@@ -732,8 +730,6 @@ method_override2_test/00: Fail
 method_override2_test/02: Fail
 method_override2_test/03: Fail
 operator1_negative_test: Fail
-prefix18_negative_test: Fail
-prefix20_negative_test: Fail
 static_final_field_negative_test: Fail
 static_top_level_test/00: Fail
 static_top_level_test/01: Fail
@@ -769,7 +765,7 @@ closure_in_initializer_test: Fail
 gc_test: Fail
 super_first_constructor_test: Fail
 # VM specific tests.
-disable_privacy_test: Fail, Ok
+disable_privacy_test: Pass, Fail, Ok
 # This test hard codes name of file being run and precise position.
 generic_test: Fail, Ok
 # Minified mode failures.

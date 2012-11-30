@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('lib1');
-#import('library_same_name_used_lib2.dart', prefix:'lib2');
+library lib1;
+import 'library_same_name_used_lib2.dart' as lib2;
 
 interface X {
 }

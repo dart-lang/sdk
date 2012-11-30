@@ -4,8 +4,8 @@
 
 // Dart test program importing the core library explicitly.
 
-#library("ImportCollectionNoPrefixTest.dart");
-#import("dart:collection");
+library ImportCollectionNoPrefixTest.dart;
+import "dart:collection";
 
 main() {
   var e = new SplayTreeMap();

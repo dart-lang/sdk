@@ -4,8 +4,8 @@
 
 // Imported library has source file with library tags.
 
-#library("Script2NegativeTest.dart");
-#import("script2_negative_lib.dart");
+library Script2NegativeTest.dart;
+import "script2_negative_lib.dart";
 
 main() {
   print("Should not reach here.");
