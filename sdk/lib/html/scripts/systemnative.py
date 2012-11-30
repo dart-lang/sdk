@@ -98,7 +98,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def ImplementationTemplate(self):
     template = None
-    interface_name = self._interface_type_info.interface_name()
+    interface_name = self._interface.doc_js_name
     if interface_name == self._interface.id or not self._database.HasInterface(interface_name):
       template_file = 'impl_%s.darttemplate' % interface_name
       template = self._template_loader.TryLoad(template_file)

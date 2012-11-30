@@ -4366,12 +4366,9 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-/// @domName SVGPoint
+/// @domName SVGPoint; @docsEditable true
 class Point native "*SVGPoint" {
-  factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
 
   /// @domName SVGPoint.x; @docsEditable true
   num x;
@@ -4381,7 +4378,6 @@ class Point native "*SVGPoint" {
 
   /// @domName SVGPoint.matrixTransform; @docsEditable true
   Point matrixTransform(Matrix matrix) native;
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

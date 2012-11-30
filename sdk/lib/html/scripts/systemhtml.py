@@ -425,7 +425,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       return self._template_loader.Load('pure_interface.darttemplate')
 
     template_file = ('impl_%s.darttemplate' %
-                     self._interface_type_info.interface_name())
+                     self._interface.doc_js_name)
     return (self._template_loader.TryLoad(template_file) or
             self._template_loader.Load('dart2js_impl.darttemplate'))
 

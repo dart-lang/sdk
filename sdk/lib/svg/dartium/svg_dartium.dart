@@ -5702,7 +5702,6 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
 
 /// @domName SVGPoint
 class Point extends NativeFieldWrapperClass1 {
-  factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
   Point.internal();
 
 
