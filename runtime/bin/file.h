@@ -60,8 +60,9 @@ class File {
     kFlushRequest = 13,
     kReadByteRequest = 14,
     kWriteByteRequest = 15,
-    kReadListRequest = 16,
-    kWriteListRequest = 17
+    kReadRequest = 16,
+    kReadListRequest = 17,
+    kWriteListRequest = 18
   };
 
   ~File();

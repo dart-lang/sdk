@@ -65,22 +65,15 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
       _closeFile();
       return;
     }
-    // If there is currently a _fillBuffer call waiting on readList,
+    // If there is currently a _fillBuffer call waiting on read,
     // let it fill the buffer instead of us.
     if (_activeFillBufferCall) return;
     _activeFillBufferCall = true;
-    if (_data.length != size) {
-      _data = new Uint8List(size);
-      // Maintain the invariant signalling that the buffer is empty.
-      _position = _data.length;
-    }
-    var future = _openedFile.readList(_data, 0, _data.length);
-    future.then((read) {
-      _filePosition += read;
-      if (read != _data.length) {
-        _data = _data.getRange(0, read);
-      }
+    var future = _openedFile.read(size);
+    future.then((data) {
+      _data = data;
       _position = 0;
+      _filePosition += _data.length;
       _activeFillBufferCall = false;
 
       if (_fileLength == _filePosition) {
@@ -319,8 +312,9 @@ const int _LAST_MODIFIED_REQUEST = 12;
 const int _FLUSH_REQUEST = 13;
 const int _READ_BYTE_REQUEST = 14;
 const int _WRITE_BYTE_REQUEST = 15;
-const int _READ_LIST_REQUEST = 16;
-const int _WRITE_LIST_REQUEST = 17;
+const int _READ_REQUEST = 16;
+const int _READ_LIST_REQUEST = 17;
+const int _WRITE_LIST_REQUEST = 18;
 
 // Base class for _File and _RandomAccessFile with shared functions.
 class _FileBase {
@@ -785,6 +779,43 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       throw new FileIOException("readByte failed for file '$_name'", result);
     }
     return result;
+  }
+
+  Future<List<int>> read(int bytes) {
+    _ensureFileService();
+    Completer<List<int>> completer = new Completer<List<int>>();
+    if (bytes is !int) {
+      // Complete asynchronously so the user has a chance to setup
+      // handlers without getting exceptions when registering the
+      // then handler.
+      new Timer(0, (t) {
+        completer.completeException(new FileIOException(
+            "Invalid arguments to read for file '$_name'"));
+      });
+      return completer.future;
+    };
+    if (closed) return _completeWithClosedException(completer);
+    List request = new List(3);
+    request[0] = _READ_REQUEST;
+    request[1] = _id;
+    request[2] = bytes;
+    return _fileService.call(request).transform((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+                                     "read failed for file '$_name'");
+      }
+      return response[1];
+    });
+  }
+
+  external static _read(int id, int bytes);
+
+  List<int> readSync(int bytes) {
+    if (bytes is !int) {
+      throw new FileIOException(
+          "Invalid arguments to readSync for file '$_name'");
+    }
+    return _read(_id, bytes);
   }
 
   Future<int> readList(List<int> buffer, int offset, int bytes) {

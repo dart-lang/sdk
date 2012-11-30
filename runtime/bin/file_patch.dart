@@ -21,6 +21,7 @@ patch class _File {
 patch class _RandomAccessFile {
   /* patch */ static int _close(int id) native "File_Close";
   /* patch */ static _readByte(int id) native "File_ReadByte";
+  /* patch */ static _read(int id, int bytes) native "File_Read";
   /* patch */ static _readList(int id, List<int> buffer, int offset, int bytes)
       native "File_ReadList";
   /* patch */ static _writeByte(int id, int value) native "File_WriteByte";

@@ -304,6 +304,17 @@ abstract class RandomAccessFile {
   int readByteSync();
 
   /**
+   * Reads from a file and returns the result as a list of bytes.
+   */
+  Future<List<int>> read(int bytes);
+
+  /**
+   * Synchronously reads from a file and returns the result in a
+   * list of bytes.
+   */
+  List<int> readSync(int bytes);
+
+  /**
    * Read a List<int> from the file. Returns a [:Future<int>:] that
    * completes with an indication of how much was read.
    */

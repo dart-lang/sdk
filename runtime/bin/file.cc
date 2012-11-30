@@ -6,6 +6,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/io_buffer.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 
@@ -147,6 +148,41 @@ void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
       Dart_Handle err = DartUtils::NewDartOSError();
       if (Dart_IsError(err)) Dart_PropagateError(err);
       Dart_SetReturnValue(args, err);
+    }
+  } else {
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
+  ASSERT(file != NULL);
+  Dart_Handle length_object = Dart_GetNativeArgument(args, 1);
+  int64_t length = 0;
+  if (DartUtils::GetInt64Value(length_object, &length)) {
+    uint8_t* buffer = NULL;
+    Dart_Handle external_array = IOBuffer::Allocate(length, &buffer);
+    int bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
+    if (bytes_read < 0) {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) Dart_PropagateError(err);
+      Dart_SetReturnValue(args, err);
+    } else {
+      if (bytes_read < length) {
+        // TODO(ager): cache the 'length' string if this becomes a bottle neck.
+        Dart_SetField(external_array,
+                      DartUtils::NewString("length"),
+                      Dart_NewInteger(bytes_read));
+      }
+      Dart_SetReturnValue(args, external_array);
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
@@ -758,6 +794,39 @@ static void FinalizeExternalByteArray(void* peer) {
 }
 
 
+static CObject* FileReadRequest(const CObjectArray& request) {
+  if (request.Length() == 3 &&
+      request[1]->IsIntptr() &&
+      request[2]->IsInt32OrInt64()) {
+    File* file = CObjectToFilePointer(request[1]);
+    ASSERT(file != NULL);
+    if (!file->IsClosed()) {
+      int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
+      uint8_t* buffer = new uint8_t[length];
+      int bytes_read = file->Read(buffer, length);
+      if (bytes_read >= 0) {
+        void* peer = reinterpret_cast<void*>(buffer);
+        CObject* external_array =
+            new CObjectExternalUint8Array(
+                CObject::NewExternalUint8Array(bytes_read,
+                                               buffer,
+                                               peer,
+                                               FinalizeExternalByteArray));
+        CObjectArray* result = new CObjectArray(CObject::NewArray(2));
+        result->SetAt(0, new CObjectIntptr(CObject::NewInt32(0)));
+        result->SetAt(1, external_array);
+        return result;
+      } else {
+        return CObject::NewOSError();
+      }
+    } else {
+      return CObject::FileClosedError();
+    }
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
 static CObject* FileReadListRequest(const CObjectArray& request) {
   if (request.Length() == 3 &&
       request[1]->IsIntptr() &&
@@ -896,6 +965,9 @@ void FileService(Dart_Port dest_port_id,
           break;
         case File::kWriteByteRequest:
           response = FileWriteByteRequest(request);
+          break;
+        case File::kReadRequest:
+          response = FileReadRequest(request);
           break;
         case File::kReadListRequest:
           response = FileReadListRequest(request);
