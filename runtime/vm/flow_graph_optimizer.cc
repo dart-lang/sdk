@@ -1015,6 +1015,7 @@ void FlowGraphOptimizer::InlineStringLengthGetter(InstanceCallInstr* call) {
   AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
   LoadFieldInstr* load = BuildLoadStringLength(call->ArgumentAt(0)->value());
+  load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
   call->ReplaceWith(load, current_iterator());
   RemovePushArguments(call);
 }

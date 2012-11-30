@@ -2460,7 +2460,30 @@ void LoadFieldInstr::InferRange() {
                        RangeBoundary::FromConstant(Array::kMaxElements));
     return;
   }
+  if ((range_ == NULL) &&
+      (recognized_kind() == MethodRecognizer::kStringBaseLength)) {
+    range_ = new Range(RangeBoundary::FromConstant(0),
+                       RangeBoundary::FromConstant(String::kMaxElements));
+    return;
+  }
   Definition::InferRange();
+}
+
+
+
+void StringCharCodeAtInstr::InferRange() {
+  switch (class_id_) {
+    case kOneByteStringCid:
+      range_ = new Range(RangeBoundary::FromConstant(0),
+                         RangeBoundary::FromConstant(0xFF));
+      break;
+    case kTwoByteStringCid:
+      range_ = new Range(RangeBoundary::FromConstant(0),
+                         RangeBoundary::FromConstant(0xFFFF));
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
 }
 
 

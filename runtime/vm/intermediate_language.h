@@ -2694,6 +2694,8 @@ class StringCharCodeAtInstr : public TemplateDefinition<2> {
 
   virtual bool AffectedBySideEffect() const { return true; }
 
+  virtual void InferRange();
+
  private:
   const intptr_t class_id_;
 
