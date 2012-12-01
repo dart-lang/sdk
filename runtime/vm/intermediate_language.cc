@@ -1136,11 +1136,6 @@ RawAbstractType* StringFromCharCodeInstr::CompileType() const {
 }
 
 
-intptr_t StringFromCharCodeInstr::ResultCid() const {
-  return kDynamicCid;
-}
-
-
 RawAbstractType* LoadIndexedInstr::CompileType() const {
   switch (class_id_) {
     case kArrayCid:

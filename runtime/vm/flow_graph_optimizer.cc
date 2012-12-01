@@ -1184,7 +1184,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         BuildStringCharCodeAt(call, class_ids[0]);
     InsertBefore(call, load_char_code, NULL, Definition::kValue);
     StringFromCharCodeInstr* char_at =
-        new StringFromCharCodeInstr(new Value(load_char_code));
+        new StringFromCharCodeInstr(new Value(load_char_code),
+                                    kOneByteStringCid);
     call->ReplaceWith(char_at, current_iterator());
     RemovePushArguments(call);
     return true;

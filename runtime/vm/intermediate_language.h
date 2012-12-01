@@ -2705,7 +2705,8 @@ class StringCharCodeAtInstr : public TemplateDefinition<2> {
 
 class StringFromCharCodeInstr : public TemplateDefinition<1> {
  public:
-  explicit StringFromCharCodeInstr(Value* char_code) {
+  explicit StringFromCharCodeInstr(Value* char_code,
+                                   intptr_t cid) : cid_(cid) {
     ASSERT(char_code != NULL);
     ASSERT(char_code->definition()->IsStringCharCodeAt() &&
            (char_code->definition()->AsStringCharCodeAt()->class_id() ==
@@ -2722,13 +2723,15 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const;
+  virtual intptr_t ResultCid() const {  return cid_; }
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual bool AffectedBySideEffect() const { return false; }
 
  private:
+  const intptr_t cid_;
+
   DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
 };
 
