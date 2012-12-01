@@ -302,7 +302,7 @@ RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
 RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
                                       const Instance& key,
                                       const Instance& value) {
-  String& name = String::Handle(String::New("[]="));
+  String& name = String::Handle(Symbols::AssignIndexToken());
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(map, name, 3, 0));
   ASSERT(!function.IsNull());

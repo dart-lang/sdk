@@ -1838,7 +1838,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   if (instance.IsNull()) {
     return Api::NewError("Object does not implement the List interface");
   }
-  String& name = String::Handle(isolate, String::New("length"));
+  String& name = String::Handle(isolate, Symbols::Length());
   name = Field::GetterName(name);
   const Function& function =
       Function::Handle(isolate, Resolver::ResolveDynamic(instance, name, 1, 0));
@@ -1904,7 +1904,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, String::New("[]"));
+      String& name = String::Handle(isolate, Symbols::IndexToken());
       const Function& function =
           Function::Handle(isolate,
                            Resolver::ResolveDynamic(instance, name, 2, 0));
@@ -1956,7 +1956,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, String::New("[]="));
+      String& name = String::Handle(isolate, Symbols::AssignIndexToken());
       const Function& function =
           Function::Handle(isolate,
                            Resolver::ResolveDynamic(instance, name, 3, 0));
@@ -2038,7 +2038,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, String::New("[]"));
+      String& name = String::Handle(isolate, Symbols::IndexToken());
       const Function& function =
           Function::Handle(isolate,
                            Resolver::ResolveDynamic(instance, name, 2, 0));
@@ -2126,7 +2126,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, String::New("[]="));
+      String& name = String::Handle(isolate, Symbols::AssignIndexToken());
       const Function& function =
           Function::Handle(isolate,
                            Resolver::ResolveDynamic(instance, name, 3, 0));

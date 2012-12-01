@@ -20,6 +20,7 @@ class ObjectPointerVisitor;
   V(Equals, "=")                                                               \
   V(EqualOperator, "==")                                                       \
   V(Identical, "identical")                                                    \
+  V(Length, "length")                                                          \
   V(IndexToken, "[]")                                                          \
   V(AssignIndexToken, "[]=")                                                   \
   V(TopLevel, "::")                                                            \
