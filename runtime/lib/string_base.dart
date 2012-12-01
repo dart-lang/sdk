@@ -389,6 +389,16 @@ class _OneByteString extends _StringBase implements String {
 
   String _substringUncheckedNative(int startIndex, int endIndex)
       native "OneByteString_substringUnchecked";
+
+  List<String> _splitWithCharCode(int charCode)
+      native "OneByteString_splitWithCharCode";
+
+  List<String> split(Pattern pattern) {
+    if ((pattern is _OneByteString) && (pattern.length == 1)) {
+      return _splitWithCharCode(pattern.charCodeAt(0));
+    }
+    return super.split(pattern);
+  }
 }
 
 

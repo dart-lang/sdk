@@ -75,6 +75,7 @@ namespace dart {
   V(StringBase_createFromCodePoints, 1)                                        \
   V(StringBase_substringUnchecked, 3)                                          \
   V(OneByteString_substringUnchecked, 3)                                       \
+  V(OneByteString_splitWithCharCode, 2)                                        \
   V(String_getHashCode, 1)                                                     \
   V(String_getLength, 1)                                                       \
   V(String_charAt, 2)                                                          \
