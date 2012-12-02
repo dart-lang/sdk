@@ -17,30 +17,30 @@ _js_custom_members = set([
     'AudioContext.createGain',
     'AudioContext.createScriptProcessor',
     'CSSStyleDeclaration.setProperty',
-    'CanvasElement.getContext',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
     'Element.insertAdjacentText',
     'Element.remove',
     'ElementEvents.mouseWheel',
+    'HTMLCanvasElement.getContext',
+    'HTMLSelectElement.options',
+    'HTMLSelectElement.selectedOptions',
+    'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
-    'SelectElement.options',
-    'SelectElement.selectedOptions',
-    'TableElement.createTBody',
-    'LocalWindow.cancelAnimationFrame',
-    'LocalWindow.document',
-    'LocalWindow.indexedDB',
-    'LocalWindow.location',
-    'LocalWindow.open',
-    'LocalWindow.requestAnimationFrame',
-    'LocalWindow.webkitCancelAnimationFrame',
-    'LocalWindow.webkitRequestAnimationFrame',
-    'Url.createObjectURL',
-    'Url.revokeObjectURL',
+    'URL.createObjectURL',
+    'URL.revokeObjectURL',
     'WheelEvent.wheelDeltaX',
     'WheelEvent.wheelDeltaY',
+    'Window.cancelAnimationFrame',
+    'Window.document',
+    'Window.indexedDB',
+    'Window.location',
+    'Window.open',
+    'Window.requestAnimationFrame',
+    'Window.webkitCancelAnimationFrame',
+    'Window.webkitRequestAnimationFrame',
     ])
 
 
@@ -854,8 +854,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     return FindConversion(idl_type, 'set', self._interface.id, member)
 
   def _HasCustomImplementation(self, member_name):
-    member_name = '%s.%s' % (self._interface_type_info.interface_name(),
-                             member_name)
+    member_name = '%s.%s' % (self._interface.doc_js_name, member_name)
     return member_name in _js_custom_members
 
   def _RenamingAnnotation(self, idl_name, member_name):
