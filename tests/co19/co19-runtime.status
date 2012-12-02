@@ -106,6 +106,7 @@ Language/11_Expressions/28_Postfix_Expressions_A01_t05: Fail # TODO(vm-team): Pl
 Language/11_Expressions/29_Assignable_Expressions_A01_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/29_Assignable_Expressions_A01_t08: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/29_Assignable_Expressions_A01_t09: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Expressions/30_Identifier_Reference_A01_t08: Skip # Issue 7089
 Language/11_Expressions/30_Identifier_Reference_A05_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A06_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A06_t02: Fail # TODO(vm-team): Please triage this failure.
