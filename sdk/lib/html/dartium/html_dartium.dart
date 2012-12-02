@@ -1,5 +1,6 @@
 library html;
 
+import 'dart:html_common';
 import 'dart:isolate';
 import 'dart:json';
 import 'dart:nativewrappers';
@@ -5971,7 +5972,7 @@ class Clipboard extends NativeFieldWrapperClass1 {
 
 
   /** @domName Clipboard.files */
-  List<File> get files native "Clipboard_files_Getter";
+  FileList get files native "Clipboard_files_Getter";
 
 
   /** @domName Clipboard.items */
@@ -6625,18 +6626,18 @@ class DOMMimeTypeArray extends NativeFieldWrapperClass1 implements List<DOMMimeT
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(DOMMimeType element) => _Collections.contains(this, element);
+  bool contains(DOMMimeType element) => Collections.contains(this, element);
 
-  void forEach(void f(DOMMimeType element)) => _Collections.forEach(this, f);
+  void forEach(void f(DOMMimeType element)) => Collections.forEach(this, f);
 
-  Collection map(f(DOMMimeType element)) => _Collections.map(this, [], f);
+  Collection map(f(DOMMimeType element)) => Collections.map(this, [], f);
 
   Collection<DOMMimeType> filter(bool f(DOMMimeType element)) =>
-     _Collections.filter(this, <DOMMimeType>[], f);
+     Collections.filter(this, <DOMMimeType>[], f);
 
-  bool every(bool f(DOMMimeType element)) => _Collections.every(this, f);
+  bool every(bool f(DOMMimeType element)) => Collections.every(this, f);
 
-  bool some(bool f(DOMMimeType element)) => _Collections.some(this, f);
+  bool some(bool f(DOMMimeType element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -6788,18 +6789,18 @@ class DOMPluginArray extends NativeFieldWrapperClass1 implements List<DOMPlugin>
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(DOMPlugin element) => _Collections.contains(this, element);
+  bool contains(DOMPlugin element) => Collections.contains(this, element);
 
-  void forEach(void f(DOMPlugin element)) => _Collections.forEach(this, f);
+  void forEach(void f(DOMPlugin element)) => Collections.forEach(this, f);
 
-  Collection map(f(DOMPlugin element)) => _Collections.map(this, [], f);
+  Collection map(f(DOMPlugin element)) => Collections.map(this, [], f);
 
   Collection<DOMPlugin> filter(bool f(DOMPlugin element)) =>
-     _Collections.filter(this, <DOMPlugin>[], f);
+     Collections.filter(this, <DOMPlugin>[], f);
 
-  bool every(bool f(DOMPlugin element)) => _Collections.every(this, f);
+  bool every(bool f(DOMPlugin element)) => Collections.every(this, f);
 
-  bool some(bool f(DOMPlugin element)) => _Collections.some(this, f);
+  bool some(bool f(DOMPlugin element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -10068,6 +10069,111 @@ class FileException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName FileList
+class FileList extends NativeFieldWrapperClass1 implements List<File> {
+  FileList.internal();
+
+
+  /** @domName FileList.length */
+  int get length native "FileList_length_Getter";
+
+  File operator[](int index) native "FileList_item_Callback";
+
+  void operator[]=(int index, File value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<File> mixins.
+  // File is the element type.
+
+  // From Iterable<File>:
+
+  Iterator<File> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<File>(this);
+  }
+
+  // From Collection<File>:
+
+  void add(File value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(File value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<File> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  bool contains(File element) => Collections.contains(this, element);
+
+  void forEach(void f(File element)) => Collections.forEach(this, f);
+
+  Collection map(f(File element)) => Collections.map(this, [], f);
+
+  Collection<File> filter(bool f(File element)) =>
+     Collections.filter(this, <File>[], f);
+
+  bool every(bool f(File element)) => Collections.every(this, f);
+
+  bool some(bool f(File element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<File>:
+
+  void sort([Comparator<File> compare = Comparable.compare]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(File element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(File element, [int start]) {
+    if (start == null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  File get first => this[0];
+
+  File get last => this[length - 1];
+
+  File removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [File initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<File> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <File>[]);
+
+  // -- end List<File> mixins.
+
+
+  /** @domName FileList.item */
+  File item(int index) native "FileList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName FileReader
 class FileReader extends EventTarget {
 
@@ -10387,18 +10493,18 @@ class Float32Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(num element) => _Collections.contains(this, element);
+  bool contains(num element) => Collections.contains(this, element);
 
-  void forEach(void f(num element)) => _Collections.forEach(this, f);
+  void forEach(void f(num element)) => Collections.forEach(this, f);
 
-  Collection map(f(num element)) => _Collections.map(this, [], f);
+  Collection map(f(num element)) => Collections.map(this, [], f);
 
   Collection<num> filter(bool f(num element)) =>
-     _Collections.filter(this, <num>[], f);
+     Collections.filter(this, <num>[], f);
 
-  bool every(bool f(num element)) => _Collections.every(this, f);
+  bool every(bool f(num element)) => Collections.every(this, f);
 
-  bool some(bool f(num element)) => _Collections.some(this, f);
+  bool some(bool f(num element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -10520,18 +10626,18 @@ class Float64Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(num element) => _Collections.contains(this, element);
+  bool contains(num element) => Collections.contains(this, element);
 
-  void forEach(void f(num element)) => _Collections.forEach(this, f);
+  void forEach(void f(num element)) => Collections.forEach(this, f);
 
-  Collection map(f(num element)) => _Collections.map(this, [], f);
+  Collection map(f(num element)) => Collections.map(this, [], f);
 
   Collection<num> filter(bool f(num element)) =>
-     _Collections.filter(this, <num>[], f);
+     Collections.filter(this, <num>[], f);
 
-  bool every(bool f(num element)) => _Collections.every(this, f);
+  bool every(bool f(num element)) => Collections.every(this, f);
 
-  bool some(bool f(num element)) => _Collections.some(this, f);
+  bool some(bool f(num element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -11081,18 +11187,18 @@ class HTMLAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -11194,18 +11300,18 @@ class HTMLCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -13084,11 +13190,11 @@ class InputElement extends _Element_Merged {
 
 
   /** @domName HTMLInputElement.files */
-  List<File> get files native "HTMLInputElement_files_Getter";
+  FileList get files native "HTMLInputElement_files_Getter";
 
 
   /** @domName HTMLInputElement.files */
-  void set files(List<File> value) native "HTMLInputElement_files_Setter";
+  void set files(FileList value) native "HTMLInputElement_files_Setter";
 
 
   /** @domName HTMLInputElement.form */
@@ -13508,18 +13614,18 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -13641,18 +13747,18 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -13774,18 +13880,18 @@ class Int8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -16627,18 +16733,18 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -16890,18 +16996,18 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -17260,18 +17366,18 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -19376,18 +19482,18 @@ class SQLResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Map element) => _Collections.contains(this, element);
+  bool contains(Map element) => Collections.contains(this, element);
 
-  void forEach(void f(Map element)) => _Collections.forEach(this, f);
+  void forEach(void f(Map element)) => Collections.forEach(this, f);
 
-  Collection map(f(Map element)) => _Collections.map(this, [], f);
+  Collection map(f(Map element)) => Collections.map(this, [], f);
 
   Collection<Map> filter(bool f(Map element)) =>
-     _Collections.filter(this, <Map>[], f);
+     Collections.filter(this, <Map>[], f);
 
-  bool every(bool f(Map element)) => _Collections.every(this, f);
+  bool every(bool f(Map element)) => Collections.every(this, f);
 
-  bool some(bool f(Map element)) => _Collections.some(this, f);
+  bool some(bool f(Map element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -20067,18 +20173,18 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SourceBuffer element) => _Collections.contains(this, element);
+  bool contains(SourceBuffer element) => Collections.contains(this, element);
 
-  void forEach(void f(SourceBuffer element)) => _Collections.forEach(this, f);
+  void forEach(void f(SourceBuffer element)) => Collections.forEach(this, f);
 
-  Collection map(f(SourceBuffer element)) => _Collections.map(this, [], f);
+  Collection map(f(SourceBuffer element)) => Collections.map(this, [], f);
 
   Collection<SourceBuffer> filter(bool f(SourceBuffer element)) =>
-     _Collections.filter(this, <SourceBuffer>[], f);
+     Collections.filter(this, <SourceBuffer>[], f);
 
-  bool every(bool f(SourceBuffer element)) => _Collections.every(this, f);
+  bool every(bool f(SourceBuffer element)) => Collections.every(this, f);
 
-  bool some(bool f(SourceBuffer element)) => _Collections.some(this, f);
+  bool some(bool f(SourceBuffer element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -20268,18 +20374,18 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechGrammar element) => _Collections.contains(this, element);
+  bool contains(SpeechGrammar element) => Collections.contains(this, element);
 
-  void forEach(void f(SpeechGrammar element)) => _Collections.forEach(this, f);
+  void forEach(void f(SpeechGrammar element)) => Collections.forEach(this, f);
 
-  Collection map(f(SpeechGrammar element)) => _Collections.map(this, [], f);
+  Collection map(f(SpeechGrammar element)) => Collections.map(this, [], f);
 
   Collection<SpeechGrammar> filter(bool f(SpeechGrammar element)) =>
-     _Collections.filter(this, <SpeechGrammar>[], f);
+     Collections.filter(this, <SpeechGrammar>[], f);
 
-  bool every(bool f(SpeechGrammar element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechGrammar element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechGrammar element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechGrammar element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -21927,18 +22033,18 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(TextTrackCue element) => _Collections.contains(this, element);
+  bool contains(TextTrackCue element) => Collections.contains(this, element);
 
-  void forEach(void f(TextTrackCue element)) => _Collections.forEach(this, f);
+  void forEach(void f(TextTrackCue element)) => Collections.forEach(this, f);
 
-  Collection map(f(TextTrackCue element)) => _Collections.map(this, [], f);
+  Collection map(f(TextTrackCue element)) => Collections.map(this, [], f);
 
   Collection<TextTrackCue> filter(bool f(TextTrackCue element)) =>
-     _Collections.filter(this, <TextTrackCue>[], f);
+     Collections.filter(this, <TextTrackCue>[], f);
 
-  bool every(bool f(TextTrackCue element)) => _Collections.every(this, f);
+  bool every(bool f(TextTrackCue element)) => Collections.every(this, f);
 
-  bool some(bool f(TextTrackCue element)) => _Collections.some(this, f);
+  bool some(bool f(TextTrackCue element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -22040,18 +22146,18 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(TextTrack element) => _Collections.contains(this, element);
+  bool contains(TextTrack element) => Collections.contains(this, element);
 
-  void forEach(void f(TextTrack element)) => _Collections.forEach(this, f);
+  void forEach(void f(TextTrack element)) => Collections.forEach(this, f);
 
-  Collection map(f(TextTrack element)) => _Collections.map(this, [], f);
+  Collection map(f(TextTrack element)) => Collections.map(this, [], f);
 
   Collection<TextTrack> filter(bool f(TextTrack element)) =>
-     _Collections.filter(this, <TextTrack>[], f);
+     Collections.filter(this, <TextTrack>[], f);
 
-  bool every(bool f(TextTrack element)) => _Collections.every(this, f);
+  bool every(bool f(TextTrack element)) => Collections.every(this, f);
 
-  bool some(bool f(TextTrack element)) => _Collections.some(this, f);
+  bool some(bool f(TextTrack element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -22313,18 +22419,18 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Touch element) => _Collections.contains(this, element);
+  bool contains(Touch element) => Collections.contains(this, element);
 
-  void forEach(void f(Touch element)) => _Collections.forEach(this, f);
+  void forEach(void f(Touch element)) => Collections.forEach(this, f);
 
-  Collection map(f(Touch element)) => _Collections.map(this, [], f);
+  Collection map(f(Touch element)) => Collections.map(this, [], f);
 
   Collection<Touch> filter(bool f(Touch element)) =>
-     _Collections.filter(this, <Touch>[], f);
+     Collections.filter(this, <Touch>[], f);
 
-  bool every(bool f(Touch element)) => _Collections.every(this, f);
+  bool every(bool f(Touch element)) => Collections.every(this, f);
 
-  bool some(bool f(Touch element)) => _Collections.some(this, f);
+  bool some(bool f(Touch element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -22695,18 +22801,18 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -22828,18 +22934,18 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -22961,18 +23067,18 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -25615,18 +25721,18 @@ class _CSSRuleList extends NativeFieldWrapperClass1 implements List<CSSRule> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(CSSRule element) => _Collections.contains(this, element);
+  bool contains(CSSRule element) => Collections.contains(this, element);
 
-  void forEach(void f(CSSRule element)) => _Collections.forEach(this, f);
+  void forEach(void f(CSSRule element)) => Collections.forEach(this, f);
 
-  Collection map(f(CSSRule element)) => _Collections.map(this, [], f);
+  Collection map(f(CSSRule element)) => Collections.map(this, [], f);
 
   Collection<CSSRule> filter(bool f(CSSRule element)) =>
-     _Collections.filter(this, <CSSRule>[], f);
+     Collections.filter(this, <CSSRule>[], f);
 
-  bool every(bool f(CSSRule element)) => _Collections.every(this, f);
+  bool every(bool f(CSSRule element)) => Collections.every(this, f);
 
-  bool some(bool f(CSSRule element)) => _Collections.some(this, f);
+  bool some(bool f(CSSRule element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -25720,18 +25826,18 @@ class _CSSValueList extends CSSValue implements List<CSSValue> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(CSSValue element) => _Collections.contains(this, element);
+  bool contains(CSSValue element) => Collections.contains(this, element);
 
-  void forEach(void f(CSSValue element)) => _Collections.forEach(this, f);
+  void forEach(void f(CSSValue element)) => Collections.forEach(this, f);
 
-  Collection map(f(CSSValue element)) => _Collections.map(this, [], f);
+  Collection map(f(CSSValue element)) => Collections.map(this, [], f);
 
   Collection<CSSValue> filter(bool f(CSSValue element)) =>
-     _Collections.filter(this, <CSSValue>[], f);
+     Collections.filter(this, <CSSValue>[], f);
 
-  bool every(bool f(CSSValue element)) => _Collections.every(this, f);
+  bool every(bool f(CSSValue element)) => Collections.every(this, f);
 
-  bool some(bool f(CSSValue element)) => _Collections.some(this, f);
+  bool some(bool f(CSSValue element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -25825,18 +25931,18 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(ClientRect element) => _Collections.contains(this, element);
+  bool contains(ClientRect element) => Collections.contains(this, element);
 
-  void forEach(void f(ClientRect element)) => _Collections.forEach(this, f);
+  void forEach(void f(ClientRect element)) => Collections.forEach(this, f);
 
-  Collection map(f(ClientRect element)) => _Collections.map(this, [], f);
+  Collection map(f(ClientRect element)) => Collections.map(this, [], f);
 
   Collection<ClientRect> filter(bool f(ClientRect element)) =>
-     _Collections.filter(this, <ClientRect>[], f);
+     Collections.filter(this, <ClientRect>[], f);
 
-  bool every(bool f(ClientRect element)) => _Collections.every(this, f);
+  bool every(bool f(ClientRect element)) => Collections.every(this, f);
 
-  bool some(bool f(ClientRect element)) => _Collections.some(this, f);
+  bool some(bool f(ClientRect element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -25940,16 +26046,16 @@ class _DOMStringList extends NativeFieldWrapperClass1 implements List<String> {
 
   // contains() defined by IDL.
 
-  void forEach(void f(String element)) => _Collections.forEach(this, f);
+  void forEach(void f(String element)) => Collections.forEach(this, f);
 
-  Collection map(f(String element)) => _Collections.map(this, [], f);
+  Collection map(f(String element)) => Collections.map(this, [], f);
 
   Collection<String> filter(bool f(String element)) =>
-     _Collections.filter(this, <String>[], f);
+     Collections.filter(this, <String>[], f);
 
-  bool every(bool f(String element)) => _Collections.every(this, f);
+  bool every(bool f(String element)) => Collections.every(this, f);
 
-  bool some(bool f(String element)) => _Collections.some(this, f);
+  bool some(bool f(String element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -26191,18 +26297,18 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Entry element) => _Collections.contains(this, element);
+  bool contains(Entry element) => Collections.contains(this, element);
 
-  void forEach(void f(Entry element)) => _Collections.forEach(this, f);
+  void forEach(void f(Entry element)) => Collections.forEach(this, f);
 
-  Collection map(f(Entry element)) => _Collections.map(this, [], f);
+  Collection map(f(Entry element)) => Collections.map(this, [], f);
 
   Collection<Entry> filter(bool f(Entry element)) =>
-     _Collections.filter(this, <Entry>[], f);
+     Collections.filter(this, <Entry>[], f);
 
-  bool every(bool f(Entry element)) => _Collections.every(this, f);
+  bool every(bool f(Entry element)) => Collections.every(this, f);
 
-  bool some(bool f(Entry element)) => _Collections.some(this, f);
+  bool some(bool f(Entry element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -26296,18 +26402,18 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(EntrySync element) => _Collections.contains(this, element);
+  bool contains(EntrySync element) => Collections.contains(this, element);
 
-  void forEach(void f(EntrySync element)) => _Collections.forEach(this, f);
+  void forEach(void f(EntrySync element)) => Collections.forEach(this, f);
 
-  Collection map(f(EntrySync element)) => _Collections.map(this, [], f);
+  Collection map(f(EntrySync element)) => Collections.map(this, [], f);
 
   Collection<EntrySync> filter(bool f(EntrySync element)) =>
-     _Collections.filter(this, <EntrySync>[], f);
+     Collections.filter(this, <EntrySync>[], f);
 
-  bool every(bool f(EntrySync element)) => _Collections.every(this, f);
+  bool every(bool f(EntrySync element)) => Collections.every(this, f);
 
-  bool some(bool f(EntrySync element)) => _Collections.some(this, f);
+  bool some(bool f(EntrySync element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -26362,111 +26468,6 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 
 class _EventSourceFactoryProvider {
   static EventSource createEventSource(String scriptUrl) native "EventSource_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName FileList
-class _FileList extends NativeFieldWrapperClass1 implements List<File> {
-  _FileList.internal();
-
-
-  /** @domName FileList.length */
-  int get length native "FileList_length_Getter";
-
-  File operator[](int index) native "FileList_item_Callback";
-
-  void operator[]=(int index, File value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<File> mixins.
-  // File is the element type.
-
-  // From Iterable<File>:
-
-  Iterator<File> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<File>(this);
-  }
-
-  // From Collection<File>:
-
-  void add(File value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(File value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<File> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(File element) => _Collections.contains(this, element);
-
-  void forEach(void f(File element)) => _Collections.forEach(this, f);
-
-  Collection map(f(File element)) => _Collections.map(this, [], f);
-
-  Collection<File> filter(bool f(File element)) =>
-     _Collections.filter(this, <File>[], f);
-
-  bool every(bool f(File element)) => _Collections.every(this, f);
-
-  bool some(bool f(File element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<File>:
-
-  void sort([Comparator<File> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(File element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(File element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  File get first => this[0];
-
-  File get last => this[length - 1];
-
-  File removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [File initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<File> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <File>[]);
-
-  // -- end List<File> mixins.
-
-
-  /** @domName FileList.item */
-  File item(int index) native "FileList_item_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26538,18 +26539,18 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Gamepad element) => _Collections.contains(this, element);
+  bool contains(Gamepad element) => Collections.contains(this, element);
 
-  void forEach(void f(Gamepad element)) => _Collections.forEach(this, f);
+  void forEach(void f(Gamepad element)) => Collections.forEach(this, f);
 
-  Collection map(f(Gamepad element)) => _Collections.map(this, [], f);
+  Collection map(f(Gamepad element)) => Collections.map(this, [], f);
 
   Collection<Gamepad> filter(bool f(Gamepad element)) =>
-     _Collections.filter(this, <Gamepad>[], f);
+     Collections.filter(this, <Gamepad>[], f);
 
-  bool every(bool f(Gamepad element)) => _Collections.every(this, f);
+  bool every(bool f(Gamepad element)) => Collections.every(this, f);
 
-  bool some(bool f(Gamepad element)) => _Collections.some(this, f);
+  bool some(bool f(Gamepad element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -26692,18 +26693,18 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(MediaStream element) => _Collections.contains(this, element);
+  bool contains(MediaStream element) => Collections.contains(this, element);
 
-  void forEach(void f(MediaStream element)) => _Collections.forEach(this, f);
+  void forEach(void f(MediaStream element)) => Collections.forEach(this, f);
 
-  Collection map(f(MediaStream element)) => _Collections.map(this, [], f);
+  Collection map(f(MediaStream element)) => Collections.map(this, [], f);
 
   Collection<MediaStream> filter(bool f(MediaStream element)) =>
-     _Collections.filter(this, <MediaStream>[], f);
+     Collections.filter(this, <MediaStream>[], f);
 
-  bool every(bool f(MediaStream element)) => _Collections.every(this, f);
+  bool every(bool f(MediaStream element)) => Collections.every(this, f);
 
-  bool some(bool f(MediaStream element)) => _Collections.some(this, f);
+  bool some(bool f(MediaStream element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -26901,18 +26902,18 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechInputResult element) => _Collections.contains(this, element);
+  bool contains(SpeechInputResult element) => Collections.contains(this, element);
 
-  void forEach(void f(SpeechInputResult element)) => _Collections.forEach(this, f);
+  void forEach(void f(SpeechInputResult element)) => Collections.forEach(this, f);
 
-  Collection map(f(SpeechInputResult element)) => _Collections.map(this, [], f);
+  Collection map(f(SpeechInputResult element)) => Collections.map(this, [], f);
 
   Collection<SpeechInputResult> filter(bool f(SpeechInputResult element)) =>
-     _Collections.filter(this, <SpeechInputResult>[], f);
+     Collections.filter(this, <SpeechInputResult>[], f);
 
-  bool every(bool f(SpeechInputResult element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechInputResult element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechInputResult element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -27014,18 +27015,18 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechRecognitionResult element) => _Collections.contains(this, element);
+  bool contains(SpeechRecognitionResult element) => Collections.contains(this, element);
 
-  void forEach(void f(SpeechRecognitionResult element)) => _Collections.forEach(this, f);
+  void forEach(void f(SpeechRecognitionResult element)) => Collections.forEach(this, f);
 
-  Collection map(f(SpeechRecognitionResult element)) => _Collections.map(this, [], f);
+  Collection map(f(SpeechRecognitionResult element)) => Collections.map(this, [], f);
 
   Collection<SpeechRecognitionResult> filter(bool f(SpeechRecognitionResult element)) =>
-     _Collections.filter(this, <SpeechRecognitionResult>[], f);
+     Collections.filter(this, <SpeechRecognitionResult>[], f);
 
-  bool every(bool f(SpeechRecognitionResult element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechRecognitionResult element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechRecognitionResult element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -27119,18 +27120,18 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(StyleSheet element) => _Collections.contains(this, element);
+  bool contains(StyleSheet element) => Collections.contains(this, element);
 
-  void forEach(void f(StyleSheet element)) => _Collections.forEach(this, f);
+  void forEach(void f(StyleSheet element)) => Collections.forEach(this, f);
 
-  Collection map(f(StyleSheet element)) => _Collections.map(this, [], f);
+  Collection map(f(StyleSheet element)) => Collections.map(this, [], f);
 
   Collection<StyleSheet> filter(bool f(StyleSheet element)) =>
-     _Collections.filter(this, <StyleSheet>[], f);
+     Collections.filter(this, <StyleSheet>[], f);
 
-  bool every(bool f(StyleSheet element)) => _Collections.every(this, f);
+  bool every(bool f(StyleSheet element)) => Collections.every(this, f);
 
-  bool some(bool f(StyleSheet element)) => _Collections.some(this, f);
+  bool some(bool f(StyleSheet element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -27232,18 +27233,18 @@ class _WebKitAnimationList extends NativeFieldWrapperClass1 implements List<Anim
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Animation element) => _Collections.contains(this, element);
+  bool contains(Animation element) => Collections.contains(this, element);
 
-  void forEach(void f(Animation element)) => _Collections.forEach(this, f);
+  void forEach(void f(Animation element)) => Collections.forEach(this, f);
 
-  Collection map(f(Animation element)) => _Collections.map(this, [], f);
+  Collection map(f(Animation element)) => Collections.map(this, [], f);
 
   Collection<Animation> filter(bool f(Animation element)) =>
-     _Collections.filter(this, <Animation>[], f);
+     Collections.filter(this, <Animation>[], f);
 
-  bool every(bool f(Animation element)) => _Collections.every(this, f);
+  bool every(bool f(Animation element)) => Collections.every(this, f);
 
-  bool some(bool f(Animation element)) => _Collections.some(this, f);
+  bool some(bool f(Animation element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -29133,66 +29134,6 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   timer = new _Timer(() { canceller(id); });
   return timer;
 };
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * The [Collections] class implements static methods useful when
- * writing a class that implements [Collection] and the [iterator]
- * method.
- */
-class _Collections {
-  static bool contains(Iterable<Object> iterable, Object element) {
-    for (final e in iterable) {
-      if (e == element) return true;
-    }
-    return false;
-  }
-
-  static void forEach(Iterable<Object> iterable, void f(Object o)) {
-    for (final e in iterable) {
-      f(e);
-    }
-  }
-
-  static List map(Iterable<Object> source,
-                  List<Object> destination,
-                  f(o)) {
-    for (final e in source) {
-      destination.add(f(e));
-    }
-    return destination;
-  }
-
-  static bool some(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (f(e)) return true;
-    }
-    return false;
-  }
-
-  static bool every(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (!f(e)) return false;
-    }
-    return true;
-  }
-
-  static List filter(Iterable<Object> source,
-                     List<Object> destination,
-                     bool f(o)) {
-    for (final e in source) {
-      if (f(e)) destination.add(e);
-    }
-    return destination;
-  }
-
-  static bool isEmpty(Iterable<Object> iterable) {
-    return !iterable.iterator().hasNext;
-  }
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

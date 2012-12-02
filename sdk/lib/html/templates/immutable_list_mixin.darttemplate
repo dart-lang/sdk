@@ -25,21 +25,21 @@
   }
 
 $if DEFINE_CONTAINS
-  bool contains($E element) => _Collections.contains(this, element);
+  bool contains($E element) => Collections.contains(this, element);
 $else
   // contains() defined by IDL.
 $endif
 
-  void forEach(void f($E element)) => _Collections.forEach(this, f);
+  void forEach(void f($E element)) => Collections.forEach(this, f);
 
-  Collection map(f($E element)) => _Collections.map(this, [], f);
+  Collection map(f($E element)) => Collections.map(this, [], f);
 
   Collection<$E> filter(bool f($E element)) =>
-     _Collections.filter(this, <$E>[], f);
+     Collections.filter(this, <$E>[], f);
 
-  bool every(bool f($E element)) => _Collections.every(this, f);
+  bool every(bool f($E element)) => Collections.every(this, f);
 
-  bool some(bool f($E element)) => _Collections.some(this, f);
+  bool some(bool f($E element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 

@@ -1,5 +1,6 @@
 library html;
 
+import 'dart:html_common';
 import 'dart:isolate';
 import 'dart:json';
 import 'dart:svg' as svg;
@@ -4781,8 +4782,7 @@ class Clipboard native "*Clipboard" {
   String effectAllowed;
 
   /// @domName Clipboard.files; @docsEditable true
-  @Returns('_FileList') @Creates('_FileList')
-  final List<File> files;
+  final FileList files;
 
   /// @domName Clipboard.items; @docsEditable true
   final DataTransferItemList items;
@@ -5290,18 +5290,18 @@ class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(DOMMimeType element) => _Collections.contains(this, element);
+  bool contains(DOMMimeType element) => Collections.contains(this, element);
 
-  void forEach(void f(DOMMimeType element)) => _Collections.forEach(this, f);
+  void forEach(void f(DOMMimeType element)) => Collections.forEach(this, f);
 
-  Collection map(f(DOMMimeType element)) => _Collections.map(this, [], f);
+  Collection map(f(DOMMimeType element)) => Collections.map(this, [], f);
 
   Collection<DOMMimeType> filter(bool f(DOMMimeType element)) =>
-     _Collections.filter(this, <DOMMimeType>[], f);
+     Collections.filter(this, <DOMMimeType>[], f);
 
-  bool every(bool f(DOMMimeType element)) => _Collections.every(this, f);
+  bool every(bool f(DOMMimeType element)) => Collections.every(this, f);
 
-  bool some(bool f(DOMMimeType element)) => _Collections.some(this, f);
+  bool some(bool f(DOMMimeType element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -5431,18 +5431,18 @@ class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> nati
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(DOMPlugin element) => _Collections.contains(this, element);
+  bool contains(DOMPlugin element) => Collections.contains(this, element);
 
-  void forEach(void f(DOMPlugin element)) => _Collections.forEach(this, f);
+  void forEach(void f(DOMPlugin element)) => Collections.forEach(this, f);
 
-  Collection map(f(DOMPlugin element)) => _Collections.map(this, [], f);
+  Collection map(f(DOMPlugin element)) => Collections.map(this, [], f);
 
   Collection<DOMPlugin> filter(bool f(DOMPlugin element)) =>
-     _Collections.filter(this, <DOMPlugin>[], f);
+     Collections.filter(this, <DOMPlugin>[], f);
 
-  bool every(bool f(DOMPlugin element)) => _Collections.every(this, f);
+  bool every(bool f(DOMPlugin element)) => Collections.every(this, f);
 
-  bool some(bool f(DOMPlugin element)) => _Collections.some(this, f);
+  bool some(bool f(DOMPlugin element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -5810,11 +5810,11 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
   /// @domName DedicatedWorkerContext.postMessage; @docsEditable true
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
-      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
       return;
     }
-    var message_2 = _convertDartToNative_SerializedScriptValue(message);
+    var message_2 = convertDartToNative_SerializedScriptValue(message);
     _postMessage_2(message_2);
     return;
   }
@@ -5901,17 +5901,17 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   /// @domName DirectoryEntry.getDirectory; @docsEditable true
   void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
-      var options_1 = _convertDartToNative_Dictionary(options);
+      var options_1 = convertDartToNative_Dictionary(options);
       _getDirectory_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (?successCallback) {
-      var options_2 = _convertDartToNative_Dictionary(options);
+      var options_2 = convertDartToNative_Dictionary(options);
       _getDirectory_2(path, options_2, successCallback);
       return;
     }
     if (?options) {
-      var options_3 = _convertDartToNative_Dictionary(options);
+      var options_3 = convertDartToNative_Dictionary(options);
       _getDirectory_3(path, options_3);
       return;
     }
@@ -5930,17 +5930,17 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   /// @domName DirectoryEntry.getFile; @docsEditable true
   void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
-      var options_1 = _convertDartToNative_Dictionary(options);
+      var options_1 = convertDartToNative_Dictionary(options);
       _getFile_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (?successCallback) {
-      var options_2 = _convertDartToNative_Dictionary(options);
+      var options_2 = convertDartToNative_Dictionary(options);
       _getFile_2(path, options_2, successCallback);
       return;
     }
     if (?options) {
-      var options_3 = _convertDartToNative_Dictionary(options);
+      var options_3 = convertDartToNative_Dictionary(options);
       _getFile_3(path, options_3);
       return;
     }
@@ -5972,7 +5972,7 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
   /// @domName DirectoryEntrySync.getDirectory; @docsEditable true
   DirectoryEntrySync getDirectory(String path, Map flags) {
-    var flags_1 = _convertDartToNative_Dictionary(flags);
+    var flags_1 = convertDartToNative_Dictionary(flags);
     return _getDirectory_1(path, flags_1);
   }
   @JSName('getDirectory')
@@ -5980,7 +5980,7 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
   /// @domName DirectoryEntrySync.getFile; @docsEditable true
   FileEntrySync getFile(String path, Map flags) {
-    var flags_1 = _convertDartToNative_Dictionary(flags);
+    var flags_1 = convertDartToNative_Dictionary(flags);
     return _getFile_1(path, flags_1);
   }
   @JSName('getFile')
@@ -8219,6 +8219,105 @@ class FileException native "*FileException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName FileList; @docsEditable true
+class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
+
+  /// @domName FileList.length; @docsEditable true
+  final int length;
+
+  File operator[](int index) => JS("File", "#[#]", this, index);
+
+  void operator[]=(int index, File value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<File> mixins.
+  // File is the element type.
+
+  // From Iterable<File>:
+
+  Iterator<File> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<File>(this);
+  }
+
+  // From Collection<File>:
+
+  void add(File value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(File value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<File> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  bool contains(File element) => Collections.contains(this, element);
+
+  void forEach(void f(File element)) => Collections.forEach(this, f);
+
+  Collection map(f(File element)) => Collections.map(this, [], f);
+
+  Collection<File> filter(bool f(File element)) =>
+     Collections.filter(this, <File>[], f);
+
+  bool every(bool f(File element)) => Collections.every(this, f);
+
+  bool some(bool f(File element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<File>:
+
+  void sort([Comparator<File> compare = Comparable.compare]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(File element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(File element, [int start]) {
+    if (start == null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  File get first => this[0];
+
+  File get last => this[length - 1];
+
+  File removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [File initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<File> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <File>[]);
+
+  // -- end List<File> mixins.
+
+  /// @domName FileList.item; @docsEditable true
+  File item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName FileReader; @docsEditable true
 class FileReader extends EventTarget native "*FileReader" {
 
@@ -8470,18 +8569,18 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(num element) => _Collections.contains(this, element);
+  bool contains(num element) => Collections.contains(this, element);
 
-  void forEach(void f(num element)) => _Collections.forEach(this, f);
+  void forEach(void f(num element)) => Collections.forEach(this, f);
 
-  Collection map(f(num element)) => _Collections.map(this, [], f);
+  Collection map(f(num element)) => Collections.map(this, [], f);
 
   Collection<num> filter(bool f(num element)) =>
-     _Collections.filter(this, <num>[], f);
+     Collections.filter(this, <num>[], f);
 
-  bool every(bool f(num element)) => _Collections.every(this, f);
+  bool every(bool f(num element)) => Collections.every(this, f);
 
-  bool some(bool f(num element)) => _Collections.some(this, f);
+  bool some(bool f(num element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -8581,18 +8680,18 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(num element) => _Collections.contains(this, element);
+  bool contains(num element) => Collections.contains(this, element);
 
-  void forEach(void f(num element)) => _Collections.forEach(this, f);
+  void forEach(void f(num element)) => Collections.forEach(this, f);
 
-  Collection map(f(num element)) => _Collections.map(this, [], f);
+  Collection map(f(num element)) => Collections.map(this, [], f);
 
   Collection<num> filter(bool f(num element)) =>
-     _Collections.filter(this, <num>[], f);
+     Collections.filter(this, <num>[], f);
 
-  bool every(bool f(num element)) => _Collections.every(this, f);
+  bool every(bool f(num element)) => Collections.every(this, f);
 
-  bool some(bool f(num element)) => _Collections.some(this, f);
+  bool some(bool f(num element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -8939,18 +9038,18 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -9045,18 +9144,18 @@ class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -9529,7 +9628,7 @@ class IDBCursor native "*IDBCursor" {
 
   /// @domName IDBCursor.update; @docsEditable true
   IDBRequest update(/*any*/ value) {
-    var value_1 = _convertDartToNative_SerializedScriptValue(value);
+    var value_1 = convertDartToNative_SerializedScriptValue(value);
     return _update_1(value_1);
   }
   @JSName('update')
@@ -9544,7 +9643,7 @@ class IDBCursor native "*IDBCursor" {
 class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
 
   /// @domName IDBCursorWithValue.value; @docsEditable true
-  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
+  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
   final Object value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9622,7 +9721,7 @@ class IDBDatabase extends EventTarget native "*IDBDatabase" {
   /// @domName IDBDatabase.createObjectStore; @docsEditable true
   IDBObjectStore createObjectStore(String name, [Map options]) {
     if (?options) {
-      var options_1 = _convertDartToNative_Dictionary(options);
+      var options_1 = convertDartToNative_Dictionary(options);
       return _createObjectStore_1(name, options_1);
     }
     return _createObjectStore_2(name);
@@ -9789,10 +9888,10 @@ class IDBIndex native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('get')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
+  @Returns('IDBRequest') @Creates('IDBRequest') @annotation_Creates_SerializedScriptValue
   IDBRequest _get_1(IDBKeyRange key) native;
   @JSName('get')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
+  @Returns('IDBRequest') @Creates('IDBRequest') @annotation_Creates_SerializedScriptValue
   IDBRequest _get_2(key) native;
 
   /// @domName IDBIndex.getKey; @docsEditable true
@@ -9807,10 +9906,10 @@ class IDBIndex native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('getKey')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
+  @Returns('IDBRequest') @Creates('IDBRequest') @annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
   IDBRequest _getKey_1(IDBKeyRange key) native;
   @JSName('getKey')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
+  @Returns('IDBRequest') @Creates('IDBRequest') @annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
   IDBRequest _getKey_2(key) native;
 
   /// @domName IDBIndex.openCursor; @docsEditable true
@@ -10038,11 +10137,11 @@ class IDBObjectStore native "*IDBObjectStore" {
   /// @domName IDBObjectStore.add; @docsEditable true
   IDBRequest add(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
-      var value_1 = _convertDartToNative_SerializedScriptValue(value);
+      var value_1 = convertDartToNative_SerializedScriptValue(value);
       var key_2 = _convertDartToNative_IDBKey(key);
       return _add_1(value_1, key_2);
     }
-    var value_3 = _convertDartToNative_SerializedScriptValue(value);
+    var value_3 = convertDartToNative_SerializedScriptValue(value);
     return _add_2(value_3);
   }
   @JSName('add')
@@ -10080,12 +10179,12 @@ class IDBObjectStore native "*IDBObjectStore" {
   IDBIndex createIndex(String name, keyPath, [Map options]) {
     if ((?keyPath && (keyPath is List<String> || keyPath == null)) &&
         !?options) {
-      List keyPath_1 = _convertDartToNative_StringArray(keyPath);
+      List keyPath_1 = convertDartToNative_StringArray(keyPath);
       return _createIndex_1(name, keyPath_1);
     }
     if ((?keyPath && (keyPath is List<String> || keyPath == null))) {
-      List keyPath_2 = _convertDartToNative_StringArray(keyPath);
-      var options_3 = _convertDartToNative_Dictionary(options);
+      List keyPath_2 = convertDartToNative_StringArray(keyPath);
+      var options_3 = convertDartToNative_Dictionary(options);
       return _createIndex_2(name, keyPath_2, options_3);
     }
     if ((?keyPath && (keyPath is String || keyPath == null)) &&
@@ -10093,7 +10192,7 @@ class IDBObjectStore native "*IDBObjectStore" {
       return _createIndex_3(name, keyPath);
     }
     if ((?keyPath && (keyPath is String || keyPath == null))) {
-      var options_4 = _convertDartToNative_Dictionary(options);
+      var options_4 = convertDartToNative_Dictionary(options);
       return _createIndex_4(name, keyPath, options_4);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -10138,10 +10237,10 @@ class IDBObjectStore native "*IDBObjectStore" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('get')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
+  @Returns('IDBRequest') @Creates('IDBRequest') @annotation_Creates_SerializedScriptValue
   IDBRequest _getObject_1(IDBKeyRange key) native;
   @JSName('get')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
+  @Returns('IDBRequest') @Creates('IDBRequest') @annotation_Creates_SerializedScriptValue
   IDBRequest _getObject_2(key) native;
 
   /// @domName IDBObjectStore.index; @docsEditable true
@@ -10190,11 +10289,11 @@ class IDBObjectStore native "*IDBObjectStore" {
   /// @domName IDBObjectStore.put; @docsEditable true
   IDBRequest put(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
-      var value_1 = _convertDartToNative_SerializedScriptValue(value);
+      var value_1 = convertDartToNative_SerializedScriptValue(value);
       var key_2 = _convertDartToNative_IDBKey(key);
       return _put_1(value_1, key_2);
     }
-    var value_3 = _convertDartToNative_SerializedScriptValue(value);
+    var value_3 = convertDartToNative_SerializedScriptValue(value);
     return _put_2(value_3);
   }
   @JSName('put')
@@ -10594,8 +10693,7 @@ class InputElement extends Element implements Element native "*HTMLInputElement"
   bool disabled;
 
   /// @domName HTMLInputElement.files; @docsEditable true
-  @Returns('_FileList') @Creates('_FileList')
-  List<File> files;
+  FileList files;
 
   /// @domName HTMLInputElement.form; @docsEditable true
   final FormElement form;
@@ -10793,18 +10891,18 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -10904,18 +11002,18 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -11015,18 +11113,18 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -11346,7 +11444,7 @@ class LocalHistory implements History native "*History" {
   /// @domName History.state; @docsEditable true
   dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
   @JSName('state')
-  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
+  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
   final dynamic _state;
 
   /// @domName History.back; @docsEditable true
@@ -11797,12 +11895,12 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
     if (?message &&
         !?messagePorts) {
-      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, targetOrigin);
       return;
     }
     if (?message) {
-      var message_2 = _convertDartToNative_SerializedScriptValue(message);
+      var message_2 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_2(message_2, targetOrigin, messagePorts);
       return;
     }
@@ -12738,9 +12836,9 @@ class MessageChannel native "*MessageChannel" {
 class MessageEvent extends Event native "*MessageEvent" {
 
   /// @domName MessageEvent.data; @docsEditable true
-  dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
+  dynamic get data => convertNativeToDart_SerializedScriptValue(this._data);
   @JSName('data')
-  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
+  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
   final dynamic _data;
 
   /// @domName MessageEvent.lastEventId; @docsEditable true
@@ -12791,11 +12889,11 @@ class MessagePort extends EventTarget native "*MessagePort" {
   /// @domName MessagePort.postMessage; @docsEditable true
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
-      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
       return;
     }
-    var message_2 = _convertDartToNative_SerializedScriptValue(message);
+    var message_2 = convertDartToNative_SerializedScriptValue(message);
     _postMessage_2(message_2);
     return;
   }
@@ -13070,7 +13168,7 @@ class MutationObserver native "*MutationObserver" {
 
   /// @domName MutationObserver._observe; @docsEditable true
   void _observe(Node target, Map options) {
-    var options_1 = _convertDartToNative_Dictionary(options);
+    var options_1 = convertDartToNative_Dictionary(options);
     __observe_1(target, options_1);
     return;
   }
@@ -13221,18 +13319,18 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -13365,11 +13463,11 @@ class Navigator native "*Navigator" {
   /// @domName Navigator.webkitGetUserMedia; @docsEditable true
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) {
     if (?errorCallback) {
-      var options_1 = _convertDartToNative_Dictionary(options);
+      var options_1 = convertDartToNative_Dictionary(options);
       _webkitGetUserMedia_1(options_1, successCallback, errorCallback);
       return;
     }
-    var options_2 = _convertDartToNative_Dictionary(options);
+    var options_2 = convertDartToNative_Dictionary(options);
     _webkitGetUserMedia_2(options_2, successCallback);
     return;
   }
@@ -13461,18 +13559,18 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -13801,18 +13899,18 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -14381,7 +14479,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   /// @domName PeerConnection00.addStream; @docsEditable true
   void addStream(MediaStream stream, [Map mediaStreamHints]) {
     if (?mediaStreamHints) {
-      var mediaStreamHints_1 = _convertDartToNative_Dictionary(mediaStreamHints);
+      var mediaStreamHints_1 = convertDartToNative_Dictionary(mediaStreamHints);
       _addStream_1(stream, mediaStreamHints_1);
       return;
     }
@@ -14399,7 +14497,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   /// @domName PeerConnection00.createAnswer; @docsEditable true
   SessionDescription createAnswer(String offer, [Map mediaHints]) {
     if (?mediaHints) {
-      var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
+      var mediaHints_1 = convertDartToNative_Dictionary(mediaHints);
       return _createAnswer_1(offer, mediaHints_1);
     }
     return _createAnswer_2(offer);
@@ -14412,7 +14510,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   /// @domName PeerConnection00.createOffer; @docsEditable true
   SessionDescription createOffer([Map mediaHints]) {
     if (?mediaHints) {
-      var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
+      var mediaHints_1 = convertDartToNative_Dictionary(mediaHints);
       return _createOffer_1(mediaHints_1);
     }
     return _createOffer_2();
@@ -14445,7 +14543,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   /// @domName PeerConnection00.startIce; @docsEditable true
   void startIce([Map iceOptions]) {
     if (?iceOptions) {
-      var iceOptions_1 = _convertDartToNative_Dictionary(iceOptions);
+      var iceOptions_1 = convertDartToNative_Dictionary(iceOptions);
       _startIce_1(iceOptions_1);
       return;
     }
@@ -14611,9 +14709,9 @@ class Point native "*WebKitPoint" {
 class PopStateEvent extends Event native "*PopStateEvent" {
 
   /// @domName PopStateEvent.state; @docsEditable true
-  dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
+  dynamic get state => convertNativeToDart_SerializedScriptValue(this._state);
   @JSName('state')
-  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
+  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
   final dynamic _state;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14908,7 +15006,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   /// @domName RTCPeerConnection.addStream; @docsEditable true
   void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (?mediaConstraints) {
-      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
+      var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
       _addStream_1(stream, mediaConstraints_1);
       return;
     }
@@ -14926,7 +15024,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   /// @domName RTCPeerConnection.createAnswer; @docsEditable true
   void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
-      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
+      var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
       _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
       return;
     }
@@ -14941,7 +15039,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   /// @domName RTCPeerConnection.createDataChannel; @docsEditable true
   RTCDataChannel createDataChannel(String label, [Map options]) {
     if (?options) {
-      var options_1 = _convertDartToNative_Dictionary(options);
+      var options_1 = convertDartToNative_Dictionary(options);
       return _createDataChannel_1(label, options_1);
     }
     return _createDataChannel_2(label);
@@ -14954,7 +15052,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   /// @domName RTCPeerConnection.createOffer; @docsEditable true
   void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
-      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
+      var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
       _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
       return;
     }
@@ -14989,13 +15087,13 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   /// @domName RTCPeerConnection.updateIce; @docsEditable true
   void updateIce([Map configuration, Map mediaConstraints]) {
     if (?mediaConstraints) {
-      var configuration_1 = _convertDartToNative_Dictionary(configuration);
-      var mediaConstraints_2 = _convertDartToNative_Dictionary(mediaConstraints);
+      var configuration_1 = convertDartToNative_Dictionary(configuration);
+      var mediaConstraints_2 = convertDartToNative_Dictionary(mediaConstraints);
       _updateIce_1(configuration_1, mediaConstraints_2);
       return;
     }
     if (?configuration) {
-      var configuration_3 = _convertDartToNative_Dictionary(configuration);
+      var configuration_3 = convertDartToNative_Dictionary(configuration);
       _updateIce_2(configuration_3);
       return;
     }
@@ -15398,18 +15496,18 @@ class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Map element) => _Collections.contains(this, element);
+  bool contains(Map element) => Collections.contains(this, element);
 
-  void forEach(void f(Map element)) => _Collections.forEach(this, f);
+  void forEach(void f(Map element)) => Collections.forEach(this, f);
 
-  Collection map(f(Map element)) => _Collections.map(this, [], f);
+  Collection map(f(Map element)) => Collections.map(this, [], f);
 
   Collection<Map> filter(bool f(Map element)) =>
-     _Collections.filter(this, <Map>[], f);
+     Collections.filter(this, <Map>[], f);
 
-  bool every(bool f(Map element)) => _Collections.every(this, f);
+  bool every(bool f(Map element)) => Collections.every(this, f);
 
-  bool some(bool f(Map element)) => _Collections.some(this, f);
+  bool some(bool f(Map element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -15454,7 +15552,7 @@ class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   /// @domName SQLResultSetRowList.item; @docsEditable true
   Map item(int index) {
-    return _convertNativeToDart_Dictionary(_item_1(index));
+    return convertNativeToDart_Dictionary(_item_1(index));
   }
   @JSName('item')
   @Creates('=Object')
@@ -15902,18 +16000,18 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SourceBuffer element) => _Collections.contains(this, element);
+  bool contains(SourceBuffer element) => Collections.contains(this, element);
 
-  void forEach(void f(SourceBuffer element)) => _Collections.forEach(this, f);
+  void forEach(void f(SourceBuffer element)) => Collections.forEach(this, f);
 
-  Collection map(f(SourceBuffer element)) => _Collections.map(this, [], f);
+  Collection map(f(SourceBuffer element)) => Collections.map(this, [], f);
 
   Collection<SourceBuffer> filter(bool f(SourceBuffer element)) =>
-     _Collections.filter(this, <SourceBuffer>[], f);
+     Collections.filter(this, <SourceBuffer>[], f);
 
-  bool every(bool f(SourceBuffer element)) => _Collections.every(this, f);
+  bool every(bool f(SourceBuffer element)) => Collections.every(this, f);
 
-  bool some(bool f(SourceBuffer element)) => _Collections.some(this, f);
+  bool some(bool f(SourceBuffer element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -16060,18 +16158,18 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechGrammar element) => _Collections.contains(this, element);
+  bool contains(SpeechGrammar element) => Collections.contains(this, element);
 
-  void forEach(void f(SpeechGrammar element)) => _Collections.forEach(this, f);
+  void forEach(void f(SpeechGrammar element)) => Collections.forEach(this, f);
 
-  Collection map(f(SpeechGrammar element)) => _Collections.map(this, [], f);
+  Collection map(f(SpeechGrammar element)) => Collections.map(this, [], f);
 
   Collection<SpeechGrammar> filter(bool f(SpeechGrammar element)) =>
-     _Collections.filter(this, <SpeechGrammar>[], f);
+     Collections.filter(this, <SpeechGrammar>[], f);
 
-  bool every(bool f(SpeechGrammar element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechGrammar element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechGrammar element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechGrammar element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -17099,18 +17197,18 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(TextTrackCue element) => _Collections.contains(this, element);
+  bool contains(TextTrackCue element) => Collections.contains(this, element);
 
-  void forEach(void f(TextTrackCue element)) => _Collections.forEach(this, f);
+  void forEach(void f(TextTrackCue element)) => Collections.forEach(this, f);
 
-  Collection map(f(TextTrackCue element)) => _Collections.map(this, [], f);
+  Collection map(f(TextTrackCue element)) => Collections.map(this, [], f);
 
   Collection<TextTrackCue> filter(bool f(TextTrackCue element)) =>
-     _Collections.filter(this, <TextTrackCue>[], f);
+     Collections.filter(this, <TextTrackCue>[], f);
 
-  bool every(bool f(TextTrackCue element)) => _Collections.every(this, f);
+  bool every(bool f(TextTrackCue element)) => Collections.every(this, f);
 
-  bool some(bool f(TextTrackCue element)) => _Collections.some(this, f);
+  bool some(bool f(TextTrackCue element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -17205,18 +17303,18 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(TextTrack element) => _Collections.contains(this, element);
+  bool contains(TextTrack element) => Collections.contains(this, element);
 
-  void forEach(void f(TextTrack element)) => _Collections.forEach(this, f);
+  void forEach(void f(TextTrack element)) => Collections.forEach(this, f);
 
-  Collection map(f(TextTrack element)) => _Collections.map(this, [], f);
+  Collection map(f(TextTrack element)) => Collections.map(this, [], f);
 
   Collection<TextTrack> filter(bool f(TextTrack element)) =>
-     _Collections.filter(this, <TextTrack>[], f);
+     Collections.filter(this, <TextTrack>[], f);
 
-  bool every(bool f(TextTrack element)) => _Collections.every(this, f);
+  bool every(bool f(TextTrack element)) => Collections.every(this, f);
 
-  bool some(bool f(TextTrack element)) => _Collections.some(this, f);
+  bool some(bool f(TextTrack element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -17436,18 +17534,18 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Touch element) => _Collections.contains(this, element);
+  bool contains(Touch element) => Collections.contains(this, element);
 
-  void forEach(void f(Touch element)) => _Collections.forEach(this, f);
+  void forEach(void f(Touch element)) => Collections.forEach(this, f);
 
-  Collection map(f(Touch element)) => _Collections.map(this, [], f);
+  Collection map(f(Touch element)) => Collections.map(this, [], f);
 
   Collection<Touch> filter(bool f(Touch element)) =>
-     _Collections.filter(this, <Touch>[], f);
+     Collections.filter(this, <Touch>[], f);
 
-  bool every(bool f(Touch element)) => _Collections.every(this, f);
+  bool every(bool f(Touch element)) => Collections.every(this, f);
 
-  bool some(bool f(Touch element)) => _Collections.some(this, f);
+  bool some(bool f(Touch element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -17727,18 +17825,18 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -17838,18 +17936,18 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -17949,18 +18047,18 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  bool contains(int element) => Collections.contains(this, element);
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -19719,11 +19817,11 @@ class Worker extends AbstractWorker native "*Worker" {
   /// @domName Worker.postMessage; @docsEditable true
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) {
     if (?messagePorts) {
-      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
       return;
     }
-    var message_2 = _convertDartToNative_SerializedScriptValue(message);
+    var message_2 = convertDartToNative_SerializedScriptValue(message);
     _postMessage_2(message_2);
     return;
   }
@@ -20142,18 +20240,18 @@ class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(CSSRule element) => _Collections.contains(this, element);
+  bool contains(CSSRule element) => Collections.contains(this, element);
 
-  void forEach(void f(CSSRule element)) => _Collections.forEach(this, f);
+  void forEach(void f(CSSRule element)) => Collections.forEach(this, f);
 
-  Collection map(f(CSSRule element)) => _Collections.map(this, [], f);
+  Collection map(f(CSSRule element)) => Collections.map(this, [], f);
 
   Collection<CSSRule> filter(bool f(CSSRule element)) =>
-     _Collections.filter(this, <CSSRule>[], f);
+     Collections.filter(this, <CSSRule>[], f);
 
-  bool every(bool f(CSSRule element)) => _Collections.every(this, f);
+  bool every(bool f(CSSRule element)) => Collections.every(this, f);
 
-  bool some(bool f(CSSRule element)) => _Collections.some(this, f);
+  bool some(bool f(CSSRule element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -20241,18 +20339,18 @@ class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexi
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(CSSValue element) => _Collections.contains(this, element);
+  bool contains(CSSValue element) => Collections.contains(this, element);
 
-  void forEach(void f(CSSValue element)) => _Collections.forEach(this, f);
+  void forEach(void f(CSSValue element)) => Collections.forEach(this, f);
 
-  Collection map(f(CSSValue element)) => _Collections.map(this, [], f);
+  Collection map(f(CSSValue element)) => Collections.map(this, [], f);
 
   Collection<CSSValue> filter(bool f(CSSValue element)) =>
-     _Collections.filter(this, <CSSValue>[], f);
+     Collections.filter(this, <CSSValue>[], f);
 
-  bool every(bool f(CSSValue element)) => _Collections.every(this, f);
+  bool every(bool f(CSSValue element)) => Collections.every(this, f);
 
-  bool some(bool f(CSSValue element)) => _Collections.some(this, f);
+  bool some(bool f(CSSValue element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -20340,18 +20438,18 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(ClientRect element) => _Collections.contains(this, element);
+  bool contains(ClientRect element) => Collections.contains(this, element);
 
-  void forEach(void f(ClientRect element)) => _Collections.forEach(this, f);
+  void forEach(void f(ClientRect element)) => Collections.forEach(this, f);
 
-  Collection map(f(ClientRect element)) => _Collections.map(this, [], f);
+  Collection map(f(ClientRect element)) => Collections.map(this, [], f);
 
   Collection<ClientRect> filter(bool f(ClientRect element)) =>
-     _Collections.filter(this, <ClientRect>[], f);
+     Collections.filter(this, <ClientRect>[], f);
 
-  bool every(bool f(ClientRect element)) => _Collections.every(this, f);
+  bool every(bool f(ClientRect element)) => Collections.every(this, f);
 
-  bool some(bool f(ClientRect element)) => _Collections.some(this, f);
+  bool some(bool f(ClientRect element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -20450,16 +20548,16 @@ class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native 
 
   // contains() defined by IDL.
 
-  void forEach(void f(String element)) => _Collections.forEach(this, f);
+  void forEach(void f(String element)) => Collections.forEach(this, f);
 
-  Collection map(f(String element)) => _Collections.map(this, [], f);
+  Collection map(f(String element)) => Collections.map(this, [], f);
 
   Collection<String> filter(bool f(String element)) =>
-     _Collections.filter(this, <String>[], f);
+     Collections.filter(this, <String>[], f);
 
-  bool every(bool f(String element)) => _Collections.every(this, f);
+  bool every(bool f(String element)) => Collections.every(this, f);
 
-  bool some(bool f(String element)) => _Collections.some(this, f);
+  bool some(bool f(String element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -20567,18 +20665,18 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Entry element) => _Collections.contains(this, element);
+  bool contains(Entry element) => Collections.contains(this, element);
 
-  void forEach(void f(Entry element)) => _Collections.forEach(this, f);
+  void forEach(void f(Entry element)) => Collections.forEach(this, f);
 
-  Collection map(f(Entry element)) => _Collections.map(this, [], f);
+  Collection map(f(Entry element)) => Collections.map(this, [], f);
 
   Collection<Entry> filter(bool f(Entry element)) =>
-     _Collections.filter(this, <Entry>[], f);
+     Collections.filter(this, <Entry>[], f);
 
-  bool every(bool f(Entry element)) => _Collections.every(this, f);
+  bool every(bool f(Entry element)) => Collections.every(this, f);
 
-  bool some(bool f(Entry element)) => _Collections.some(this, f);
+  bool some(bool f(Entry element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -20666,18 +20764,18 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(EntrySync element) => _Collections.contains(this, element);
+  bool contains(EntrySync element) => Collections.contains(this, element);
 
-  void forEach(void f(EntrySync element)) => _Collections.forEach(this, f);
+  void forEach(void f(EntrySync element)) => Collections.forEach(this, f);
 
-  Collection map(f(EntrySync element)) => _Collections.map(this, [], f);
+  Collection map(f(EntrySync element)) => Collections.map(this, [], f);
 
   Collection<EntrySync> filter(bool f(EntrySync element)) =>
-     _Collections.filter(this, <EntrySync>[], f);
+     Collections.filter(this, <EntrySync>[], f);
 
-  bool every(bool f(EntrySync element)) => _Collections.every(this, f);
+  bool every(bool f(EntrySync element)) => Collections.every(this, f);
 
-  bool some(bool f(EntrySync element)) => _Collections.some(this, f);
+  bool some(bool f(EntrySync element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -20731,105 +20829,6 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 class _EventSourceFactoryProvider {
   static EventSource createEventSource(String scriptUrl) =>
       JS('EventSource', 'new EventSource(#)', scriptUrl);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName FileList; @docsEditable true
-class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
-
-  /// @domName FileList.length; @docsEditable true
-  final int length;
-
-  File operator[](int index) => JS("File", "#[#]", this, index);
-
-  void operator[]=(int index, File value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<File> mixins.
-  // File is the element type.
-
-  // From Iterable<File>:
-
-  Iterator<File> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<File>(this);
-  }
-
-  // From Collection<File>:
-
-  void add(File value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(File value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<File> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(File element) => _Collections.contains(this, element);
-
-  void forEach(void f(File element)) => _Collections.forEach(this, f);
-
-  Collection map(f(File element)) => _Collections.map(this, [], f);
-
-  Collection<File> filter(bool f(File element)) =>
-     _Collections.filter(this, <File>[], f);
-
-  bool every(bool f(File element)) => _Collections.every(this, f);
-
-  bool some(bool f(File element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<File>:
-
-  void sort([Comparator<File> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(File element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(File element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  File get first => this[0];
-
-  File get last => this[length - 1];
-
-  File removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [File initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<File> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <File>[]);
-
-  // -- end List<File> mixins.
-
-  /// @domName FileList.item; @docsEditable true
-  File item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20902,18 +20901,18 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Gamepad element) => _Collections.contains(this, element);
+  bool contains(Gamepad element) => Collections.contains(this, element);
 
-  void forEach(void f(Gamepad element)) => _Collections.forEach(this, f);
+  void forEach(void f(Gamepad element)) => Collections.forEach(this, f);
 
-  Collection map(f(Gamepad element)) => _Collections.map(this, [], f);
+  Collection map(f(Gamepad element)) => Collections.map(this, [], f);
 
   Collection<Gamepad> filter(bool f(Gamepad element)) =>
-     _Collections.filter(this, <Gamepad>[], f);
+     Collections.filter(this, <Gamepad>[], f);
 
-  bool every(bool f(Gamepad element)) => _Collections.every(this, f);
+  bool every(bool f(Gamepad element)) => Collections.every(this, f);
 
-  bool some(bool f(Gamepad element)) => _Collections.some(this, f);
+  bool some(bool f(Gamepad element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -21054,18 +21053,18 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(MediaStream element) => _Collections.contains(this, element);
+  bool contains(MediaStream element) => Collections.contains(this, element);
 
-  void forEach(void f(MediaStream element)) => _Collections.forEach(this, f);
+  void forEach(void f(MediaStream element)) => Collections.forEach(this, f);
 
-  Collection map(f(MediaStream element)) => _Collections.map(this, [], f);
+  Collection map(f(MediaStream element)) => Collections.map(this, [], f);
 
   Collection<MediaStream> filter(bool f(MediaStream element)) =>
-     _Collections.filter(this, <MediaStream>[], f);
+     Collections.filter(this, <MediaStream>[], f);
 
-  bool every(bool f(MediaStream element)) => _Collections.every(this, f);
+  bool every(bool f(MediaStream element)) => Collections.every(this, f);
 
-  bool some(bool f(MediaStream element)) => _Collections.some(this, f);
+  bool some(bool f(MediaStream element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -21306,18 +21305,18 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechInputResult element) => _Collections.contains(this, element);
+  bool contains(SpeechInputResult element) => Collections.contains(this, element);
 
-  void forEach(void f(SpeechInputResult element)) => _Collections.forEach(this, f);
+  void forEach(void f(SpeechInputResult element)) => Collections.forEach(this, f);
 
-  Collection map(f(SpeechInputResult element)) => _Collections.map(this, [], f);
+  Collection map(f(SpeechInputResult element)) => Collections.map(this, [], f);
 
   Collection<SpeechInputResult> filter(bool f(SpeechInputResult element)) =>
-     _Collections.filter(this, <SpeechInputResult>[], f);
+     Collections.filter(this, <SpeechInputResult>[], f);
 
-  bool every(bool f(SpeechInputResult element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechInputResult element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechInputResult element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -21414,18 +21413,18 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechRecognitionResult element) => _Collections.contains(this, element);
+  bool contains(SpeechRecognitionResult element) => Collections.contains(this, element);
 
-  void forEach(void f(SpeechRecognitionResult element)) => _Collections.forEach(this, f);
+  void forEach(void f(SpeechRecognitionResult element)) => Collections.forEach(this, f);
 
-  Collection map(f(SpeechRecognitionResult element)) => _Collections.map(this, [], f);
+  Collection map(f(SpeechRecognitionResult element)) => Collections.map(this, [], f);
 
   Collection<SpeechRecognitionResult> filter(bool f(SpeechRecognitionResult element)) =>
-     _Collections.filter(this, <SpeechRecognitionResult>[], f);
+     Collections.filter(this, <SpeechRecognitionResult>[], f);
 
-  bool every(bool f(SpeechRecognitionResult element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechRecognitionResult element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechRecognitionResult element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -21513,18 +21512,18 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(StyleSheet element) => _Collections.contains(this, element);
+  bool contains(StyleSheet element) => Collections.contains(this, element);
 
-  void forEach(void f(StyleSheet element)) => _Collections.forEach(this, f);
+  void forEach(void f(StyleSheet element)) => Collections.forEach(this, f);
 
-  Collection map(f(StyleSheet element)) => _Collections.map(this, [], f);
+  Collection map(f(StyleSheet element)) => Collections.map(this, [], f);
 
   Collection<StyleSheet> filter(bool f(StyleSheet element)) =>
-     _Collections.filter(this, <StyleSheet>[], f);
+     Collections.filter(this, <StyleSheet>[], f);
 
-  bool every(bool f(StyleSheet element)) => _Collections.every(this, f);
+  bool every(bool f(StyleSheet element)) => Collections.every(this, f);
 
-  bool some(bool f(StyleSheet element)) => _Collections.some(this, f);
+  bool some(bool f(StyleSheet element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -21636,18 +21635,18 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Animation element) => _Collections.contains(this, element);
+  bool contains(Animation element) => Collections.contains(this, element);
 
-  void forEach(void f(Animation element)) => _Collections.forEach(this, f);
+  void forEach(void f(Animation element)) => Collections.forEach(this, f);
 
-  Collection map(f(Animation element)) => _Collections.map(this, [], f);
+  Collection map(f(Animation element)) => Collections.map(this, [], f);
 
   Collection<Animation> filter(bool f(Animation element)) =>
-     _Collections.filter(this, <Animation>[], f);
+     Collections.filter(this, <Animation>[], f);
 
-  bool every(bool f(Animation element)) => _Collections.every(this, f);
+  bool every(bool f(Animation element)) => Collections.every(this, f);
 
-  bool some(bool f(Animation element)) => _Collections.some(this, f);
+  bool some(bool f(Animation element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -23575,66 +23574,6 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   timer = new _Timer(() { canceller(id); });
   return timer;
 };
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * The [Collections] class implements static methods useful when
- * writing a class that implements [Collection] and the [iterator]
- * method.
- */
-class _Collections {
-  static bool contains(Iterable<Object> iterable, Object element) {
-    for (final e in iterable) {
-      if (e == element) return true;
-    }
-    return false;
-  }
-
-  static void forEach(Iterable<Object> iterable, void f(Object o)) {
-    for (final e in iterable) {
-      f(e);
-    }
-  }
-
-  static List map(Iterable<Object> source,
-                  List<Object> destination,
-                  f(o)) {
-    for (final e in source) {
-      destination.add(f(e));
-    }
-    return destination;
-  }
-
-  static bool some(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (f(e)) return true;
-    }
-    return false;
-  }
-
-  static bool every(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (!f(e)) return false;
-    }
-    return true;
-  }
-
-  static List filter(Iterable<Object> source,
-                     List<Object> destination,
-                     bool f(o)) {
-    for (final e in source) {
-      if (f(e)) destination.add(e);
-    }
-    return destination;
-  }
-
-  static bool isEmpty(Iterable<Object> iterable) {
-    return !iterable.iterator().hasNext;
-  }
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24457,39 +24396,6 @@ _convertDartToNative_ImageData(ImageData imageData) {
 }
 
 
-/// Converts a JavaScript object with properties into a Dart Map.
-/// Not suitable for nested objects.
-Map _convertNativeToDart_Dictionary(object) {
-  if (object == null) return null;
-  var dict = {};
-  for (final key in JS('=List', 'Object.getOwnPropertyNames(#)', object)) {
-    dict[key] = JS('var', '#[#]', object, key);
-  }
-  return dict;
-}
-
-/// Converts a flat Dart map into a JavaScript object with properties.
-_convertDartToNative_Dictionary(Map dict) {
-  if (dict == null) return null;
-  var object = JS('var', '{}');
-  dict.forEach((String key, value) {
-      JS('void', '#[#] = #', object, key, value);
-    });
-  return object;
-}
-
-
-/**
- * Ensures that the input is a JavaScript Array.
- *
- * Creates a new JavaScript array if necessary, otherwise returns the original.
- */
-List _convertDartToNative_StringArray(List<String> input) {
-  // TODO(sra).  Implement this.
-  return input;
-}
-
-
 // -----------------------------------------------------------------------------
 
 /**
@@ -24503,7 +24409,7 @@ List _convertDartToNative_StringArray(List<String> input) {
  */
 _convertNativeToDart_IDBKey(nativeKey) {
   containsDate(object) {
-    if (_isJavaScriptDate(object)) return true;
+    if (isJavaScriptDate(object)) return true;
     if (object is List) {
       for (int i = 0; i < object.length; i++) {
         if (containsDate(object[i])) return true;
@@ -24535,280 +24441,9 @@ _convertDartToNative_IDBKey(dartKey) {
 
 /// May modify original.  If so, action is idempotent.
 _convertNativeToDart_IDBAny(object) {
-  return _convertNativeToDart_AcceptStructuredClone(object, mustCopy: false);
+  return convertNativeToDart_AcceptStructuredClone(object, mustCopy: false);
 }
 
-/// Converts a Dart value into a JavaScript SerializedScriptValue.
-_convertDartToNative_SerializedScriptValue(value) {
-  return _convertDartToNative_PrepareForStructuredClone(value);
-}
-
-/// Since the source object may be viewed via a JavaScript event listener the
-/// original may not be modified.
-_convertNativeToDart_SerializedScriptValue(object) {
-  return _convertNativeToDart_AcceptStructuredClone(object, mustCopy: true);
-}
-
-
-/**
- * Converts a Dart value into a JavaScript SerializedScriptValue.  Returns the
- * original input or a functional 'copy'.  Does not mutate the original.
- *
- * The main transformation is the translation of Dart Maps are converted to
- * JavaScript Objects.
- *
- * The algorithm is essentially a dry-run of the structured clone algorithm
- * described at
- * http://www.whatwg.org/specs/web-apps/current-work/multipage/common-dom-interfaces.html#structured-clone
- * https://www.khronos.org/registry/typedarray/specs/latest/#9
- *
- * Since the result of this function is expected to be passed only to JavaScript
- * operations that perform the structured clone algorithm which does not mutate
- * its output, the result may share structure with the input [value].
- */
-_convertDartToNative_PrepareForStructuredClone(value) {
-
-  // TODO(sra): Replace slots with identity hash table.
-  var values = [];
-  var copies = [];  // initially 'null', 'true' during initial DFS, then a copy.
-
-  int findSlot(value) {
-    int length = values.length;
-    for (int i = 0; i < length; i++) {
-      if (identical(values[i], value)) return i;
-    }
-    values.add(value);
-    copies.add(null);
-    return length;
-  }
-  readSlot(int i) => copies[i];
-  writeSlot(int i, x) { copies[i] = x; }
-  cleanupSlots() {}  // Will be needed if we mark objects with a property.
-
-  // Returns the input, or a clone of the input.
-  walk(e) {
-    if (e == null) return e;
-    if (e is bool) return e;
-    if (e is num) return e;
-    if (e is String) return e;
-    if (e is Date) {
-      // TODO(sra).
-      throw new UnimplementedError('structured clone of Date');
-    }
-    if (e is RegExp) {
-      // TODO(sra).
-      throw new UnimplementedError('structured clone of RegExp');
-    }
-
-    // The browser's internal structured cloning algorithm will copy certain
-    // types of object, but it will copy only its own implementations and not
-    // just any Dart implementations of the interface.
-
-    // TODO(sra): The JavaScript objects suitable for direct cloning by the
-    // structured clone algorithm could be tagged with an private interface.
-
-    if (e is File) return e;
-    if (e is Blob) return e;
-    if (e is _FileList) return e;
-
-    // TODO(sra): Firefox: How to convert _TypedImageData on the other end?
-    if (e is ImageData) return e;
-    if (e is ArrayBuffer) return e;
-
-    if (e is ArrayBufferView) return e;
-
-    if (e is Map) {
-      var slot = findSlot(e);
-      var copy = readSlot(slot);
-      if (copy != null) return copy;
-      copy = JS('var', '{}');
-      writeSlot(slot, copy);
-      e.forEach((key, value) {
-          JS('void', '#[#] = #', copy, key, walk(value));
-        });
-      return copy;
-    }
-
-    if (e is List) {
-      // Since a JavaScript Array is an instance of Dart List it is possible to
-      // avoid making a copy of the list if there is no need to copy anything
-      // reachable from the array.  We defer creating a new array until a cycle
-      // is detected or a subgraph was copied.
-      int length = e.length;
-      var slot = findSlot(e);
-      var copy = readSlot(slot);
-      if (copy != null) {
-        if (true == copy) {  // Cycle, so commit to making a copy.
-          copy = JS('=List', 'new Array(#)', length);
-          writeSlot(slot, copy);
-        }
-        return copy;
-      }
-
-      int i = 0;
-
-      if (_isJavaScriptArray(e) &&
-          // We have to copy immutable lists, otherwise the structured clone
-          // algorithm will copy the .immutable$list marker property, making the
-          // list immutable when received!
-          !_isImmutableJavaScriptArray(e)) {
-        writeSlot(slot, true);  // Deferred copy.
-        for ( ; i < length; i++) {
-          var element = e[i];
-          var elementCopy = walk(element);
-          if (!identical(elementCopy, element)) {
-            copy = readSlot(slot);   // Cyclic reference may have created it.
-            if (true == copy) {
-              copy = JS('=List', 'new Array(#)', length);
-              writeSlot(slot, copy);
-            }
-            for (int j = 0; j < i; j++) {
-              copy[j] = e[j];
-            }
-            copy[i] = elementCopy;
-            i++;
-            break;
-          }
-        }
-        if (copy == null) {
-          copy = e;
-          writeSlot(slot, copy);
-        }
-      } else {
-        // Not a JavaScript Array.  We are forced to make a copy.
-        copy = JS('=List', 'new Array(#)', length);
-        writeSlot(slot, copy);
-      }
-
-      for ( ; i < length; i++) {
-        copy[i] = walk(e[i]);
-      }
-      return copy;
-    }
-
-    throw new UnimplementedError('structured clone of other type');
-  }
-
-  var copy = walk(value);
-  cleanupSlots();
-  return copy;
-}
-
-/**
- * Converts a native value into a Dart object.
- *
- * If [mustCopy] is [:false:], may return the original input.  May mutate the
- * original input (but will be idempotent if mutation occurs).  It is assumed
- * that this conversion happens on native serializable script values such values
- * from native DOM calls.
- *
- * [object] is the result of a structured clone operation.
- *
- * If necessary, JavaScript Dates are converted into Dart Dates.
- *
- * If [mustCopy] is [:true:], the entire object is copied and the original input
- * is not mutated.  This should be the case where Dart and JavaScript code can
- * access the value, for example, via multiple event listeners for
- * MessageEvents.  Mutating the object to make it more 'Dart-like' would corrupt
- * the value as seen from the JavaScript listeners.
- */
-_convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
-
-  // TODO(sra): Replace slots with identity hash table that works on non-dart
-  // objects.
-  var values = [];
-  var copies = [];
-
-  int findSlot(value) {
-    int length = values.length;
-    for (int i = 0; i < length; i++) {
-      if (identical(values[i], value)) return i;
-    }
-    values.add(value);
-    copies.add(null);
-    return length;
-  }
-  readSlot(int i) => copies[i];
-  writeSlot(int i, x) { copies[i] = x; }
-
-  walk(e) {
-    if (e == null) return e;
-    if (e is bool) return e;
-    if (e is num) return e;
-    if (e is String) return e;
-
-    if (_isJavaScriptDate(e)) {
-      // TODO(sra).
-      throw new UnimplementedError('structured clone of Date');
-    }
-
-    if (_isJavaScriptRegExp(e)) {
-      // TODO(sra).
-      throw new UnimplementedError('structured clone of RegExp');
-    }
-
-    if (_isJavaScriptSimpleObject(e)) {
-      // TODO(sra): If mustCopy is false, swizzle the prototype for one of a Map
-      // implementation that uses the properies as storage.
-      var slot = findSlot(e);
-      var copy = readSlot(slot);
-      if (copy != null) return copy;
-      copy = {};
-
-      writeSlot(slot, copy);
-      for (final key in JS('=List', 'Object.keys(#)', e)) {
-        copy[key] = walk(JS('var', '#[#]', e, key));
-      }
-      return copy;
-    }
-
-    if (_isJavaScriptArray(e)) {
-      var slot = findSlot(e);
-      var copy = readSlot(slot);
-      if (copy != null) return copy;
-
-      int length = e.length;
-      // Since a JavaScript Array is an instance of Dart List, we can modify it
-      // in-place unless we must copy.
-      copy = mustCopy ? JS('=List', 'new Array(#)', length) : e;
-      writeSlot(slot, copy);
-
-      for (int i = 0; i < length; i++) {
-        copy[i] = walk(e[i]);
-      }
-      return copy;
-    }
-
-    // Assume anything else is already a valid Dart object, either by having
-    // already been processed, or e.g. a clonable native class.
-    return e;
-  }
-
-  var copy = walk(object);
-  return copy;
-}
-
-
-bool _isJavaScriptDate(value) => JS('bool', '# instanceof Date', value);
-bool _isJavaScriptRegExp(value) => JS('bool', '# instanceof RegExp', value);
-bool _isJavaScriptArray(value) => JS('bool', '# instanceof Array', value);
-bool _isJavaScriptSimpleObject(value) =>
-    JS('bool', 'Object.getPrototypeOf(#) === Object.prototype', value);
-bool _isImmutableJavaScriptArray(value) =>
-    JS('bool', r'!!(#.immutable$list)', value);
-
-
-
-const String _serializedScriptValue =
-    'num|String|bool|'
-    '=List|=Object|'
-    'Blob|File|ArrayBuffer|ArrayBufferView'
-    // TODO(sra): Add Date, RegExp.
-    ;
-const _annotation_Creates_SerializedScriptValue =
-    const Creates(_serializedScriptValue);
-const _annotation_Returns_SerializedScriptValue =
-    const Returns(_serializedScriptValue);
 
 const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add Date.
 const _annotation_Creates_IDBKey = const Creates(_idbKey);

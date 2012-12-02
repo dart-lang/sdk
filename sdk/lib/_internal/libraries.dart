@@ -38,6 +38,13 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       category: "Client",
       dart2jsPath: "html/dart2js/html_dart2js.dart"),
 
+  "html_common": const LibraryInfo(
+      "html/html_common/html_common.dart",
+      category: "Client",
+      dart2jsPath: "html/html_common/html_common_dart2js.dart",
+      documented: false,
+      implementation: true),
+
   "io": const LibraryInfo(
       "io/io.dart",
       category: "Server",
