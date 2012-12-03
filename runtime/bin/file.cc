@@ -19,6 +19,16 @@ int File::service_ports_size_ = 0;
 Dart_Port* File::service_ports_ = NULL;
 int File::service_ports_index_ = 0;
 
+
+// The file pointer has been passed into Dart as an intptr_t and it is safe
+// to pull it out of Dart as a 64-bit integer, cast it to an intptr_t and
+// from there to a File pointer.
+static File* GetFilePointer(Dart_Handle handle) {
+  intptr_t value = DartUtils::GetIntptrValue(handle);
+  return reinterpret_cast<File*>(value);
+}
+
+
 bool File::ReadFully(void* buffer, int64_t num_bytes) {
   int64_t remaining = num_bytes;
   char* current_buffer = reinterpret_cast<char*>(buffer);
@@ -67,7 +77,7 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* filename =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
-  int mode = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+  int64_t mode = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
   File::DartFileOpenMode dart_file_mode =
       static_cast<File::DartFileOpenMode>(mode);
   File::FileOpenMode file_mode = File::DartModeToFileMode(dart_file_mode);
@@ -101,9 +111,7 @@ void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t value =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(value);
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   delete file;
   Dart_SetReturnValue(args, Dart_NewInteger(0));
@@ -113,12 +121,10 @@ void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t value =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(value);
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   uint8_t buffer;
-  int bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
+  int64_t bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
   if (bytes_read == 1) {
     Dart_SetReturnValue(args, Dart_NewInteger(buffer));
   } else if (bytes_read == 0) {
@@ -134,14 +140,12 @@ void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t file_ptr =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(file_ptr);
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
-  int64_t value = 0;
-  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &value)) {
-    uint8_t buffer = static_cast<uint8_t>(value & 0xff);
-    int bytes_written = file->Write(reinterpret_cast<void*>(&buffer), 1);
+  int64_t byte = 0;
+  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &byte)) {
+    uint8_t buffer = static_cast<uint8_t>(byte & 0xff);
+    int64_t bytes_written = file->Write(reinterpret_cast<void*>(&buffer), 1);
     if (bytes_written >= 0) {
       Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
     } else {
@@ -161,16 +165,14 @@ void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t value =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(value);
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   Dart_Handle length_object = Dart_GetNativeArgument(args, 1);
   int64_t length = 0;
   if (DartUtils::GetInt64Value(length_object, &length)) {
     uint8_t* buffer = NULL;
     Dart_Handle external_array = IOBuffer::Allocate(length, &buffer);
-    int bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
+    int64_t bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
     if (bytes_read < 0) {
       Dart_Handle err = DartUtils::NewDartOSError();
       if (Dart_IsError(err)) Dart_PropagateError(err);
@@ -196,26 +198,24 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t value =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(value);
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
   ASSERT(Dart_IsList(buffer_obj));
   // Offset and length arguments are checked in Dart code to be
   // integers and have the property that (offset + length) <=
   // list.length. Therefore, it is safe to extract their value as
-  // 64-bit integers.
-  int64_t offset =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
-  int64_t length =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
+  // intptr_t.
+  intptr_t offset =
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
+  intptr_t length =
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
   intptr_t array_len = 0;
   Dart_Handle result = Dart_ListLength(buffer_obj, &array_len);
   if (Dart_IsError(result)) Dart_PropagateError(result);
   ASSERT((offset + length) <= array_len);
   uint8_t* buffer = new uint8_t[length];
-  int bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
+  int64_t bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
   if (bytes_read >= 0) {
     result = Dart_ListSetAsBytes(buffer_obj, offset, buffer, bytes_read);
     if (Dart_IsError(result)) {
@@ -235,20 +235,18 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t value =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(value);
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
   ASSERT(Dart_IsList(buffer_obj));
   // Offset and length arguments are checked in Dart code to be
   // integers and have the property that (offset + length) <=
   // list.length. Therefore, it is safe to extract their value as
-  // 64-bit integers.
-  int64_t offset =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
-  int64_t length =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
+  // intptr_t.
+  intptr_t offset =
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
+  intptr_t length =
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
   intptr_t buffer_len = 0;
   Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
   if (Dart_IsError(result)) Dart_PropagateError(result);
@@ -259,7 +257,7 @@ void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
     delete[] buffer;
     Dart_PropagateError(result);
   }
-  int bytes_written = file->Write(reinterpret_cast<void*>(buffer), length);
+  int64_t bytes_written = file->Write(reinterpret_cast<void*>(buffer), length);
   if (bytes_written >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
   } else {
@@ -274,9 +272,7 @@ void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t value =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(value);
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   intptr_t return_value = file->Position();
   if (return_value >= 0) {
@@ -292,9 +288,7 @@ void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t value =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(value);
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   int64_t position = 0;
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &position)) {
@@ -317,9 +311,7 @@ void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t value =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(value);
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   int64_t length = 0;
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
@@ -342,9 +334,7 @@ void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t value =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(value);
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   intptr_t return_value = file->Length();
   if (return_value >= 0) {
@@ -392,9 +382,7 @@ void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t value =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(value);
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   if (file->Flush()) {
     Dart_SetReturnValue(args, Dart_True());
@@ -477,8 +465,9 @@ void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  int fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = File::OpenStdio(fd);
+  int64_t fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  ASSERT(fd == 0 || fd == 1 || fd == 2);
+  File* file = File::OpenStdio(static_cast<int>(fd));
   Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
   Dart_ExitScope();
 }
@@ -486,8 +475,9 @@ void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  int fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File::StdioHandleType type = File::GetStdioHandleType(fd);
+  int64_t fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  ASSERT(fd == 0 || fd == 1 || fd == 2);
+  File::StdioHandleType type = File::GetStdioHandleType(static_cast<int>(fd));
   Dart_SetReturnValue(args, Dart_NewInteger(type));
   Dart_ExitScope();
 }
@@ -750,7 +740,7 @@ static CObject* FileReadByteRequest(const CObjectArray& request) {
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
       uint8_t buffer;
-      int bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
+      int64_t bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
       if (bytes_read > 0) {
         return new CObjectIntptr(CObject::NewIntptr(buffer));
       } else if (bytes_read == 0) {
@@ -775,9 +765,9 @@ static CObject* FileWriteByteRequest(const CObjectArray& request) {
     if (!file->IsClosed()) {
       int64_t byte = CObjectInt32OrInt64ToInt64(request[2]);
       uint8_t buffer = static_cast<uint8_t>(byte & 0xff);
-      int bytes_written = file->Write(reinterpret_cast<void*>(&buffer), 1);
+      int64_t bytes_written = file->Write(reinterpret_cast<void*>(&buffer), 1);
       if (bytes_written > 0) {
-        return new CObjectIntptr(CObject::NewIntptr(bytes_written));
+        return new CObjectInt64(CObject::NewInt64(bytes_written));
       } else {
         return CObject::NewOSError();
       }
@@ -803,7 +793,7 @@ static CObject* FileReadRequest(const CObjectArray& request) {
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
       uint8_t* buffer = new uint8_t[length];
-      int bytes_read = file->Read(buffer, length);
+      int64_t bytes_read = file->Read(buffer, length);
       if (bytes_read >= 0) {
         void* peer = reinterpret_cast<void*>(buffer);
         CObject* external_array =
@@ -836,7 +826,7 @@ static CObject* FileReadListRequest(const CObjectArray& request) {
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
       uint8_t* buffer = new uint8_t[length];
-      int bytes_read = file->Read(buffer, length);
+      int64_t bytes_read = file->Read(buffer, length);
       if (bytes_read >= 0) {
         void* peer = reinterpret_cast<void*>(buffer);
         CObject* external_array =
@@ -847,7 +837,7 @@ static CObject* FileReadListRequest(const CObjectArray& request) {
                                                FinalizeExternalByteArray));
         CObjectArray* result = new CObjectArray(CObject::NewArray(3));
         result->SetAt(0, new CObjectIntptr(CObject::NewInt32(0)));
-        result->SetAt(1, new CObjectIntptr(CObject::NewIntptr(bytes_read)));
+        result->SetAt(1, new CObjectInt64(CObject::NewInt64(bytes_read)));
         result->SetAt(2, external_array);
         return result;
       } else {
@@ -882,7 +872,7 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
         for (int i = 0; i < length; i++) {
           if (array[i + offset]->IsInt32OrInt64()) {
             int64_t value = CObjectInt32OrInt64ToInt64(array[i + offset]);
-            buffer_start[i] = value & 0xFF;
+            buffer_start[i] = static_cast<uint8_t>(value & 0xFF);
           } else {
             // Unsupported type.
             delete[] buffer_start;
@@ -897,7 +887,7 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
         delete[] buffer_start;
       }
       if (bytes_written >= 0) {
-        return new CObjectIntptr(CObject::NewIntptr(bytes_written));
+        return new CObjectInt64(CObject::NewInt64(bytes_written));
       } else {
         return CObject::NewOSError();
       }

@@ -65,6 +65,15 @@ int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
 }
 
 
+intptr_t DartUtils::GetIntptrValue(Dart_Handle value_obj) {
+  ASSERT(Dart_IsInteger(value_obj));
+  int64_t value = 0;
+  Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
+  ASSERT(!Dart_IsError(result));
+  return static_cast<intptr_t>(value);
+}
+
+
 bool DartUtils::GetInt64Value(Dart_Handle value_obj, int64_t* value) {
   bool valid = Dart_IsInteger(value_obj);
   if (valid) {
@@ -644,7 +653,7 @@ Dart_CObject* CObject::NewUint8Array(int length) {
 }
 
 
-Dart_CObject* CObject::NewExternalUint8Array(int length,
+Dart_CObject* CObject::NewExternalUint8Array(int64_t length,
                                              uint8_t* data,
                                              void* peer,
                                              Dart_PeerFinalizer callback) {

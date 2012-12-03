@@ -112,5 +112,5 @@ void FUNCTION_NAME(Exit)(Dart_NativeArguments args) {
   // Ignore result if passing invalid argument and just exit 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
   Dart_ExitScope();
-  exit(status);
+  exit(static_cast<int>(status));
 }

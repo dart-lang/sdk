@@ -76,6 +76,10 @@ class DartUtils {
   // Assumes that the value object is known to be an integer object
   // that fits in a signed 64-bit integer.
   static int64_t GetIntegerValue(Dart_Handle value_obj);
+  // Assumes that the value object is known to be an intptr_t. This should
+  // only be known when the value has been put into Dart as a pointer encoded
+  // in a 64-bit integer. This is the case for file and directory operations.
+  static intptr_t GetIntptrValue(Dart_Handle value_obj);
   // Checks that the value object is an integer object that fits in a
   // signed 64-bit integer. If it is, the value is returned in the
   // value out parameter and true is returned. Otherwise, false is
@@ -210,7 +214,7 @@ class CObject {
   static Dart_CObject* NewString(const char* str);
   static Dart_CObject* NewArray(int length);
   static Dart_CObject* NewUint8Array(int length);
-  static Dart_CObject* NewExternalUint8Array(int length,
+  static Dart_CObject* NewExternalUint8Array(int64_t length,
                                              uint8_t* data,
                                              void* peer,
                                              Dart_PeerFinalizer callback);
@@ -308,7 +312,8 @@ class CObjectIntptr : public CObject {
     if (type() == Dart_CObject::kInt32) {
       result = cobject_->value.as_int32;
     } else {
-      result = cobject_->value.as_int64;
+      ASSERT(sizeof(result) == 8);
+      result = static_cast<intptr_t>(cobject_->value.as_int64);
     }
     return result;
   }
