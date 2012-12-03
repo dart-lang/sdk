@@ -238,7 +238,13 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   handleFieldAnnotations(Element element) {
     if (element.enclosingElement.isNative()) {
-      setNativeName(element);
+      // Exclude non-instance (static) fields - they not really native and are
+      // compiled as isolate globals.  Access of a property of a constructor
+      // function or a non-method property in the prototype chain, must be coded
+      // using a JS-call.
+      if (element.isInstanceMember()) {
+        setNativeName(element);
+      }
     }
   }
 
