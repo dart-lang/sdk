@@ -463,7 +463,7 @@ class Primitives {
 
   static int parseInt(String string) {
     checkString(string);
-    var match = JS('=List',
+    var match = JS('=List|Null',
                    r'/^\s*[+-]?(?:0(x)[a-f0-9]+|\d+)\s*$/i.exec(#)',
                    string);
     if (match == null) {

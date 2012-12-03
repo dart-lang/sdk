@@ -290,9 +290,24 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     for (var type in behavior.typesInstantiated) {
       if (matchedTypeConstraints.contains(type)) continue;
       matchedTypeConstraints.add(type);
-      if (type is SpecialType) {
-        // The two special types (=Object, =List) are always instantiated.
-        continue;
+      if (type == SpecialType.JsArray) {
+        world.registerInstantiatedClass(compiler.listClass);
+      } else if (type == SpecialType.JsObject) {
+        world.registerInstantiatedClass(compiler.objectClass);
+      } else if (type is InterfaceType) {
+        if (type.element == compiler.intClass) {
+          world.registerInstantiatedClass(compiler.intClass);
+        } else if (type.element == compiler.doubleClass) {
+          world.registerInstantiatedClass(compiler.doubleClass);
+        } else if (type.element == compiler.numClass) {
+          world.registerInstantiatedClass(compiler.numClass);
+        } else if (type.element == compiler.stringClass) {
+          world.registerInstantiatedClass(compiler.stringClass);
+        } else if (type.element == compiler.nullClass) {
+          world.registerInstantiatedClass(compiler.nullClass);
+        } else if (type.element == compiler.boolClass) {
+          world.registerInstantiatedClass(compiler.boolClass);
+        }
       }
       assert(type is DartType);
       enqueueUnusedClassesMatching(

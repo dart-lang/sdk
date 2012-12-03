@@ -1820,7 +1820,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (target != null &&
           target.kind == ElementKind.FOREIGN &&
           selector.name == const SourceString('JS')) {
-        world.nativeEnqueuer.registerJsCall(node, this);
+        world.registerJsCall(node, this);
       }
     }
 

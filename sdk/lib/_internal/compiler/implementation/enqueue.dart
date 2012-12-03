@@ -394,6 +394,11 @@ class Enqueuer {
     universe.isChecks.add(type);
   }
 
+  void registerJsCall(Send node, ResolverVisitor resolver) {
+    nativeEnqueuer.registerJsCall(node, resolver);
+  }
+  
+
   void forEach(f(WorkItem work)) {
     while (!queue.isEmpty) {
       f(queue.removeLast()); // TODO(kasperl): Why isn't this removeFirst?

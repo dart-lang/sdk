@@ -314,14 +314,17 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant visitLiteralBool(LiteralBool node) {
+    handler.registerInstantiatedClass(compiler.boolClass);
     return constantSystem.createBool(node.value);
   }
 
   Constant visitLiteralDouble(LiteralDouble node) {
+    handler.registerInstantiatedClass(compiler.doubleClass);
     return constantSystem.createDouble(node.value);
   }
 
   Constant visitLiteralInt(LiteralInt node) {
+    handler.registerInstantiatedClass(compiler.intClass);
     return constantSystem.createInt(node.value);
   }
 

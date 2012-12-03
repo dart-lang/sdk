@@ -765,9 +765,11 @@ class JavaScriptBackend extends Backend {
     List<ClassElement> classes = [
       jsStringClass = compiler.findInterceptor(const SourceString('JSString')),
       jsArrayClass = compiler.findInterceptor(const SourceString('JSArray')),
-      jsNumberClass = compiler.findInterceptor(const SourceString('JSNumber')),
+      // The int class must be before the double class, because the
+      // emitter relies on this list for the order of type checks.
       jsIntClass = compiler.findInterceptor(const SourceString('JSInt')),
       jsDoubleClass = compiler.findInterceptor(const SourceString('JSDouble')),
+      jsNumberClass = compiler.findInterceptor(const SourceString('JSNumber')),
       jsNullClass = compiler.findInterceptor(const SourceString('JSNull')),
       jsFunctionClass =
           compiler.findInterceptor(const SourceString('JSFunction')),
@@ -794,14 +796,17 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void addInterceptors(ClassElement cls) {
-    cls.ensureResolved(compiler);
-    cls.forEachMember((ClassElement classElement, Element member) {
-        Set<Element> set = interceptedElements.putIfAbsent(
-            member.name, () => new Set<Element>());
-        set.add(member);
-      },
-      includeSuperMembers: true);
+  void addInterceptors(ClassElement cls, Enqueuer enqueuer) {
+    if (enqueuer.isResolutionQueue) {
+      cls.ensureResolved(compiler);
+      cls.forEachMember((ClassElement classElement, Element member) {
+          Set<Element> set = interceptedElements.putIfAbsent(
+              member.name, () => new Set<Element>());
+          set.add(member);
+        },
+        includeSuperMembers: true);
+    }
+    enqueuer.registerInstantiatedClass(cls);
   }
 
   String registerSpecializedGetInterceptor(Set<ClassElement> classes) {
@@ -811,11 +816,16 @@ class JavaScriptBackend extends Backend {
       // sure we emit the one with all checks.
       String name = namer.getName(getInterceptorMethod);
       specializedGetInterceptors.putIfAbsent(name, () {
-        // It is important to take the order provided by this list,
+        // It is important to take the order provided by the map,
         // because we want the int type check to happen before the
         // double type check: the double type check covers the int
-        // type check.
-        return interceptedClasses.keys;
+        // type check. Also we don't need to do a number type check
+        // because that is covered by the double type check.
+        List<ClassElement> keys = <ClassElement>[];
+        interceptedClasses.forEach((ClassElement cls, _) {
+          if (cls != jsNumberClass) keys.add(cls);
+        });
+        return keys;
       });
       return namer.isolateAccess(getInterceptorMethod);
     } else {
@@ -832,26 +842,26 @@ class JavaScriptBackend extends Backend {
       _interceptorsAreInitialized = true;
     }
     if (cls == compiler.stringClass) {
-      result = jsStringClass;
+      addInterceptors(jsStringClass, enqueuer);
     } else if (cls == compiler.listClass) {
-      result = jsArrayClass;
+      addInterceptors(jsArrayClass, enqueuer);
     } else if (cls == compiler.intClass) {
-      result = jsIntClass;
-      enqueuer.registerInstantiatedClass(jsNumberClass);
+      addInterceptors(jsIntClass, enqueuer);
+      addInterceptors(jsNumberClass, enqueuer);
     } else if (cls == compiler.doubleClass) {
-      result = jsDoubleClass;
-      enqueuer.registerInstantiatedClass(jsNumberClass);
+      addInterceptors(jsDoubleClass, enqueuer);
+      addInterceptors(jsNumberClass, enqueuer);
     } else if (cls == compiler.functionClass) {
-      result = jsFunctionClass;
+      addInterceptors(jsFunctionClass, enqueuer);
     } else if (cls == compiler.boolClass) {
-      result = jsBoolClass;
+      addInterceptors(jsBoolClass, enqueuer);
     } else if (cls == compiler.nullClass) {
-      result = jsNullClass;
+      addInterceptors(jsNullClass, enqueuer);
+    } else if (cls == compiler.numClass) {
+      addInterceptors(jsIntClass, enqueuer);
+      addInterceptors(jsDoubleClass, enqueuer);
+      addInterceptors(jsNumberClass, enqueuer);
     }
-
-    if (result == null) return;
-    if (enqueuer.isResolutionQueue) addInterceptors(result);
-    enqueuer.registerInstantiatedClass(result);
   }
 
   Element get cyclicThrowHelper {

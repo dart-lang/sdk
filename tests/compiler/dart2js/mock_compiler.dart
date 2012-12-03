@@ -57,6 +57,16 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   class JSNumber {
   }
+  class JSInt {
+  }
+  class JSDouble {
+  }
+  class JSNull {
+  }
+  class JSBool {
+  }
+  class JSFunction {
+  }
   class ObjectInterceptor {
   }
   getInterceptor(x) {}''';
