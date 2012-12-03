@@ -11,7 +11,7 @@ patch class Expando<T> {
     var result = null;
     for (int i = 0; i < _data.length; ++i) {
       var key = _data[i].key;
-      if (key === object) {
+      if (identical(key, object)) {
         result = _data[i].value;
         break;
       }
@@ -32,7 +32,7 @@ patch class Expando<T> {
     int i = 0;
     for (; i < _data.length; ++i) {
       var key = _data[i].key;
-      if (key === object) {
+      if (identical(key, object)) {
         break;
       }
       if (key == null) {

@@ -57,7 +57,7 @@ class Expect {
 
   /**
    * Checks whether the expected and actual values are identical
-   * (using `===`).
+   * (using `identical`).
    */
   static void identical(var expected, var actual, [String reason = null]) {
     if (_identical(expected, actual)) return;
@@ -100,7 +100,7 @@ class Expect {
 
   /**
    * Checks that all elements in [expected] and [actual] are equal `==`.
-   * This is different than the typical check for identity equality `===`
+   * This is different than the typical check for identity equality `identical`
    * used by the standard list implementation.  It should also produce nicer
    * error messages than just calling `Expect.equals(expected, actual)`.
    */
