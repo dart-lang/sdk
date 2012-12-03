@@ -41,7 +41,7 @@ class NativeEnqueuer {
   void registerElement(Element element) {}
 
   /// Notification of native field.  Adds information from metadata attributes.
-  void registerField(Element field) {}
+  void handleFieldAnnotations(Element field) {}
 
   /// Computes types instantiated due to getting a native field.
   void registerFieldLoad(Element field) {}
@@ -223,23 +223,28 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   registerElement(Element element) {
     if (element.isFunction() || element.isGetter() || element.isSetter()) {
-      return registerMethod(element);
+      handleMethodAnnotations(element);
+      if (element.isNative()) {
+        registerMethodUsed(element);
+      }
+    } else if (element.isField()) {
+      handleFieldAnnotations(element);
+      if (element.isNative()) {
+        registerFieldLoad(element);
+        registerFieldStore(element);
+      }
     }
   }
 
-  registerField(Element element) {
+  handleFieldAnnotations(Element element) {
     if (element.enclosingElement.isNative()) {
       setNativeName(element);
     }
   }
 
-  registerMethod(Element method) {
+  handleMethodAnnotations(Element method) {
     if (isNativeMethod(method)) {
       setNativeName(method);
-      processNativeBehavior(
-          NativeBehavior.ofMethod(method, compiler),
-          method);
-      flushQueue();
     }
   }
 
@@ -262,6 +267,13 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       if (identical(token.stringValue, 'native')) return true;
       return false;
     });
+  }
+
+  void registerMethodUsed(Element method) {
+    processNativeBehavior(
+        NativeBehavior.ofMethod(method, compiler),
+        method);
+      flushQueue();
   }
 
   void registerFieldLoad(Element field) {
@@ -290,11 +302,15 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     for (var type in behavior.typesInstantiated) {
       if (matchedTypeConstraints.contains(type)) continue;
       matchedTypeConstraints.add(type);
-      if (type == SpecialType.JsArray) {
-        world.registerInstantiatedClass(compiler.listClass);
-      } else if (type == SpecialType.JsObject) {
-        world.registerInstantiatedClass(compiler.objectClass);
-      } else if (type is InterfaceType) {
+      if (type is SpecialType) {
+        if (type == SpecialType.JsArray) {
+          world.registerInstantiatedClass(compiler.listClass);
+        } else if (type == SpecialType.JsObject) {
+          world.registerInstantiatedClass(compiler.objectClass);
+        }
+        continue;
+      }
+      if (type is InterfaceType) {
         if (type.element == compiler.intClass) {
           world.registerInstantiatedClass(compiler.intClass);
         } else if (type.element == compiler.doubleClass) {
