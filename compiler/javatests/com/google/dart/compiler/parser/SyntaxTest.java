@@ -1615,10 +1615,6 @@ public class SyntaxTest extends AbstractParserTest {
         (byte) 0x27,
         (byte) 0x3B};
     String source = new String(bytes, "UTF-8");
-//    {
-//      String sourceNormalized = Normalizer.normalize(source, Normalizer.Form.NFC);
-//      assertEquals("var s='Å';", sourceNormalized);
-//    }
     DartParserRunner parserRunner = parseSource(source);
     assertErrors(
         parserRunner.getErrors(),
