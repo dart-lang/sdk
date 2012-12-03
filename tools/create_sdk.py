@@ -223,7 +223,7 @@ def Main(argv):
                   'meta', 'oauth2', 'unittest']:
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
-                                    '*.py', '*.gypi', '*.sh'))
+                                    '*.py', '*.gypi', '*.sh', 'packages'))
 
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')
