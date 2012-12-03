@@ -6,6 +6,7 @@ package com.google.dart.compiler.ast;
 
 import com.google.common.collect.ImmutableList;
 import com.google.dart.compiler.common.AbstractNode;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class LibraryNode extends AbstractNode {
    * @param text the text comprising the node (not <code>null</code>)
    */
   public LibraryNode(String text) {
-    this.text = text;
+    this.text = StringUtils.trim(text);
     this.prefix = null;
     this.combinators = ImmutableList.<ImportCombinator>of();
     this.exported = false;
@@ -34,7 +35,7 @@ public class LibraryNode extends AbstractNode {
 
   public LibraryNode(DartImportDirective importDirective) {
     setSourceInfo(importDirective.getSourceInfo());
-    this.text = importDirective.getLibraryUri().getValue();
+    this.text = StringUtils.trim(importDirective.getLibraryUri().getValue());
     this.prefix = importDirective.getPrefixValue();
     this.combinators = importDirective.getCombinators();
     this.exported = importDirective.isExported();
@@ -42,7 +43,7 @@ public class LibraryNode extends AbstractNode {
 
   public LibraryNode(DartExportDirective exportDirective) {
     setSourceInfo(exportDirective.getSourceInfo());
-    this.text = exportDirective.getLibraryUri().getValue();
+    this.text = StringUtils.trim(exportDirective.getLibraryUri().getValue());
     this.prefix = null;
     this.combinators = exportDirective.getCombinators();
     this.exported = false;

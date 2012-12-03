@@ -23,16 +23,18 @@ Language/12_Statements/09_Switch_A02_t03: Fail # TODO(analyzer-team): Please tri
 Language/12_Statements/10_Try_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/10_Try_A03_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/10_Try_A03_t03: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t29: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t21: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t23: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # TODO(analyzer-team): Please triage this failure.
 Language/14_Types/5_Function_Types_A04_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules_A01_t11: Fail # TODO(analyzer-team): Please triage this failure.
+
+
+# co19 issue 336 (allow use same prefix for several imports)
+Language/13_Libraries_and_Scripts/1_Imports_A02_t29: Fail
+
+
+# co19 issue 337 (export in scripts is allowed in 0.13)
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t21: Fail
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t23: Fail
 
 
 # co19 issue 335 (assignment to final is warning, not error)

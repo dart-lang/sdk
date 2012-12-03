@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -156,7 +157,7 @@ public class LibraryUnit {
   }
 
   public Iterable<LibraryUnit> getImportedLibraries() {
-    Set<LibraryUnit> libraries = Sets.newHashSet();
+    LinkedHashSet<LibraryUnit> libraries = Sets.newLinkedHashSet();
     for (LibraryImport libraryImport : imports) {
       libraries.add(libraryImport.getLibrary());
     }

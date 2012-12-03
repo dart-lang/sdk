@@ -10,6 +10,7 @@ package com.google.dart.compiler;
 public enum DartCompilerErrorCode implements ErrorCode {
   CONSOLE_WEB_MIX(ErrorSeverity.INFO,
       "Libraries 'dart:io' (console apps only) and 'dart:html' (web apps only) cannot be used together"),
+  DUPLICATE_IMPORTED_LIBRARY_NAME("a library with name '%s' was already imported: %s"),
   ENTRY_POINT_METHOD_CANNOT_HAVE_PARAMETERS(ErrorSeverity.WARNING, 
       "Main entry point method cannot have parameters"),
   ENTRY_POINT_METHOD_MAY_NOT_BE_GETTER(ErrorSeverity.WARNING,
@@ -20,7 +21,8 @@ public enum DartCompilerErrorCode implements ErrorCode {
       + "part directive, so cannot itself contain directives other than a 'part of' directive"),
   IO("Input/Output error: %s"),
   MIRRORS_NOT_FULLY_IMPLEMENTED(ErrorSeverity.WARNING, "dart:mirrors is not fully implemented yet"),
-  MISSING_LIBRARY_DIRECTIVE("a library which is imported is missing a library directive: %s"),
+  MISSING_LIBRARY_DIRECTIVE_IMPORT("a library which is imported is missing a library directive: %s"),
+  MISSING_LIBRARY_DIRECTIVE_EXPORT("a library which is exported is missing a library directive: %s"),
   MISSING_SOURCE("Cannot find referenced source: %s"),
   MISSING_PART_OF_DIRECTIVE("Unit is part of library '%s', but has no 'part of' directive"),
   UNIT_WAS_ALREADY_INCLUDED("Unit '%s' was already included"),

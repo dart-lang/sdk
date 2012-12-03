@@ -439,44 +439,6 @@ interface_factory1_negative_test: Pass
 type_variable_bounds_test/07: Pass
 
 
-# test issue 6512
-arithmetic_test: Pass, Fail, OK
-call_constructor_on_unresolvable_class_test/none: Pass, Fail, OK
-call_constructor_on_unresolvable_class_test/01: Pass, Fail, OK
-call_constructor_on_unresolvable_class_test/02: Pass, Fail, OK
-call_constructor_on_unresolvable_class_test/07: Pass, Fail, OK
-call_constructor_on_unresolvable_class_test/03: Pass, Fail, OK
-closure_type_test: Pass, Fail, OK
-const_var_test: Pass, Fail, OK
-ct_const4_test: Pass, Fail, OK
-cyclic_import_test: Pass, Fail, OK
-function_type_alias3_test: Pass, Fail, OK
-getter_setter_in_lib_test: Pass, Fail, OK
-import_collection_no_prefix_test: Pass, Fail, OK
-import_core_no_prefix_test: Pass, Fail, OK
-import_core_prefix_test: Pass, Fail, OK
-import_core_test: Pass, Fail, OK
-intrinsified_methods_test: Pass, Fail, OK
-issue1363_test: Pass, Fail, OK
-library5_test: Pass, Fail, OK
-library_private_in_constructor_test: Pass, Fail, OK
-numbers_test: Pass, Fail, OK
-prefix101_test: Pass, Fail, OK
-prefix10_negative_test: Pass
-prefix10_test: Pass, Fail, OK
-prefix11_test: Pass, Fail, OK
-prefix12_test: Pass, Fail, OK
-prefix1_negative_test: Pass
-prefix21_test: Pass, Fail, OK
-prefix4_negative_test: Pass
-prefix5_negative_test: Pass
-prefix_new_test: Pass, Fail, OK
-prefix_test: Pass, Fail, OK
-private_member3_negative_test: Pass
-private_member_test: Pass, Fail, OK
-top_level_prefixed_declaration_test: Pass, Fail, OK
-typed_message_test: Pass, Fail, OK
-
 prefix6_negative_test: Fail
 
 # test issue 6818

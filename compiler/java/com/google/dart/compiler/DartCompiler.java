@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPartOfDirective;
 import com.google.dart.compiler.ast.DartToSourceVisitor;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.LibraryExport;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
@@ -626,7 +627,24 @@ public class DartCompiler {
           }
         }
 
+        // check that each exported library has a library directive
+        for (LibraryExport libraryExport : lib.getExports()) {
+          LibraryUnit exportedLibrary = libraryExport.getLibrary();
+          String exportedLibraryName = getLibraryName(exportedLibrary);
+          // no => error
+          if (exportedLibraryName == null) {
+            SourceInfo info = findExportDirective(lib, exportedLibrary);
+            if (info != null) {
+              Source expSource = exportedLibrary.getSelfDartUnit().getSourceInfo().getSource();
+              context.onError(new DartCompilationError(info,
+                  DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE_EXPORT,
+                  ((DartSource) expSource).getRelativePath()));
+            }
+          }
+        }
+          
         // check that each imported library has a library directive
+        Map<String, LibraryUnit> nameToImportedLibrary = Maps.newHashMap();
         for (LibraryUnit importedLib  : lib.getImportedLibraries()) {
 
           if (PackageLibraryManager.isDartUri(importedLib.getSource().getUri())) {
@@ -641,26 +659,33 @@ public class DartCompiler {
             continue;
           }
 
-          boolean foundLibraryDirective = false;
-          for (DartDirective directive : unit.getDirectives()) {
-            if (directive instanceof DartLibraryDirective) {
-              foundLibraryDirective = true;
-              break;
-            }
-          }
-          if (!foundLibraryDirective) {
-            // find the imported path node (which corresponds to the import directive node)
-            SourceInfo info = null;
-            for (LibraryNode importPath : lib.getImportPaths()) {
-              if (importPath.getText().equals(importedLib.getSelfSourcePath().getText())) {
-                info = importPath.getSourceInfo();
-                break;
-              }
-            }
+          // find imported library name
+          String importedLibraryName = getLibraryName(importedLib);
+          
+          // no name => error
+          if (importedLibraryName == null) {
+            SourceInfo info = findImportDirective(lib, importedLib);
             if (info != null) {
               context.onError(new DartCompilationError(info,
-                  DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE,
+                  DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE_IMPORT,
                   ((DartSource) unit.getSourceInfo().getSource()).getRelativePath()));
+            }
+          }
+          
+          // has already library with such name => error
+          if (importedLibraryName != null) {
+            LibraryUnit prevLibraryWithSameName = nameToImportedLibrary.get(importedLibraryName);
+            if (prevLibraryWithSameName != null) {
+              SourceInfo info = findImportDirective(lib, importedLib);
+              if (info != null) {
+                Source prevSource = prevLibraryWithSameName.getSelfDartUnit().getSourceInfo().getSource();
+                context.onError(new DartCompilationError(info,
+                    DartCompilerErrorCode.DUPLICATE_IMPORTED_LIBRARY_NAME,
+                    importedLibraryName,
+                    ((DartSource) prevSource).getRelativePath()));
+              }
+            } else {
+              nameToImportedLibrary.put(importedLibraryName, importedLib);
             }
           }
         }
@@ -698,6 +723,43 @@ public class DartCompiler {
           }
         }
       }
+    }
+    
+    /**
+     * @return the name of the given {@link LibraryUnit} specified in {@link DartLibraryDirective}.
+     */
+    private static String getLibraryName(LibraryUnit libraryUnit) {
+      DartUnit unit = libraryUnit.getSelfDartUnit();
+      for (DartDirective directive : unit.getDirectives()) {
+        if (directive instanceof DartLibraryDirective) {
+          return ((DartLibraryDirective) directive).getLibraryName();
+        }
+      }
+      return null;
+    }
+
+    /**
+     * @return the {@link SourceInfo} of the import directive in "lib" for "importedLib".
+     */
+    private static SourceInfo findImportDirective(LibraryUnit lib, LibraryUnit importedLib) {
+      for (LibraryNode importPath : lib.getImportPaths()) {
+        if (importPath.getText().equals(importedLib.getSelfSourcePath().getText())) {
+          return importPath.getSourceInfo();
+        }
+      }
+      return null;
+    }
+    
+    /**
+     * @return the {@link SourceInfo} of the export directive in "lib" for "importedLib".
+     */
+    private static SourceInfo findExportDirective(LibraryUnit lib, LibraryUnit importedLib) {
+      for (LibraryNode exportPath : lib.getExportPaths()) {
+        if (exportPath.getText().equals(importedLib.getSelfSourcePath().getText())) {
+          return exportPath.getSourceInfo();
+        }
+      }
+      return null;
     }
 
     private static boolean isLibrarySelfUnit(LibraryUnit lib, DartSource unitSource) {
