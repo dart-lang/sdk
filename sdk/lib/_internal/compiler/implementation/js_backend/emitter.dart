@@ -93,6 +93,10 @@ class CodeEmitterTask extends CompilerTask {
 
   String get defineClassName
       => '${namer.ISOLATE}.\$defineClass';
+  String get currentGenerateAccessorName
+      => '${namer.CURRENT_ISOLATE}.\$generateAccessor';
+  String get generateAccessorHolder
+      => '$isolatePropertiesName.\$generateAccessor';
   String get finishClassesName
       => '${namer.ISOLATE}.\$finishClasses';
   String get finishIsolateConstructorName
@@ -110,17 +114,17 @@ class CodeEmitterTask extends CompilerTask {
   final String SETTER_SUFFIX = "!";
   final String GETTER_SETTER_SUFFIX = "=";
 
-  String get generateGetterSetterFunction {
+  String get generateAccessorFunction {
     return """
-  function(field, prototype) {
-    var len = field.length;
-    var lastChar = field[len - 1];
-    var needsGetter = lastChar == '$GETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
-    var needsSetter = lastChar == '$SETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
-    if (needsGetter || needsSetter) field = field.substring(0, len - 1);
-    if (needsGetter) {
-      var getterString = "return this." + field + ";";
-  """
+function generateAccessor(field, prototype) {
+  var len = field.length;
+  var lastChar = field[len - 1];
+  var needsGetter = lastChar == '$GETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
+  var needsSetter = lastChar == '$SETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
+  if (needsGetter || needsSetter) field = field.substring(0, len - 1);
+  if (needsGetter) {
+    var getterString = "return this." + field + ";";
+"""
   /* The supportsProtoCheck below depends on the getter/setter convention.
          When changing here, update the protoCheck too. */
   """
@@ -150,7 +154,6 @@ class CodeEmitterTask extends CompilerTask {
     // });
     return """
 function(cls, fields, prototype) {
-  var generateGetterSetter = $generateGetterSetterFunction;
   var constructor;
   if (typeof fields == 'function') {
     constructor = fields;
@@ -160,7 +163,7 @@ function(cls, fields, prototype) {
     for (var i = 0; i < fields.length; i++) {
       if (i != 0) str += ", ";
       var field = fields[i];
-      field = generateGetterSetter(field, prototype);
+      field = generateAccessor(field, prototype);
       str += field;
       body += "this." + field + " = " + field + ";\\n";
     }
@@ -344,6 +347,10 @@ $lazyInitializerLogic
 
   void addDefineClassAndFinishClassFunctionsIfNecessary(CodeBuffer buffer) {
     if (needsDefineClass) {
+      // Declare function called generateAccessor.  This is used in
+      // defineClassFunction (it's a local declaration in init()).
+      buffer.add("$generateAccessorFunction;\n");
+      buffer.add("$generateAccessorHolder = generateAccessor\n");
       buffer.add("$defineClassName = $defineClassFunction;\n");
       buffer.add(protoSupportCheck);
       buffer.add("$pendingClassesName = {};\n");
