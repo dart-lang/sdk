@@ -29,6 +29,7 @@ _js_custom_members = set([
     'IDBDatabase.transaction',
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
+    'Navigator.language',
     'URL.createObjectURL',
     'URL.revokeObjectURL',
     'WheelEvent.wheelDeltaX',
