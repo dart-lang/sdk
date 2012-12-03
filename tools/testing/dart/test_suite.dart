@@ -1515,6 +1515,12 @@ class TestUtils {
                   "Expected ${dir} to already exist");
     var segments = relativePath.segments();
     for (String segment in segments) {
+      // Ugly hack: if Windows absolute path starts with a drive,
+      // rewrite [base] properly.
+      if (segment.length == 2 && segment.endsWith(':')) {
+        base = segment + '\\';
+        continue;
+      }
       base = base.append(segment);
       dir = new Directory.fromPath(base);
       if (!dir.existsSync()) {
