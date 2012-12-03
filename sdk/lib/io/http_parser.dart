@@ -76,6 +76,7 @@ class _State {
   static const int FAILURE = 28;
 
   static const int FIRST_BODY_STATE = CHUNK_SIZE_STARTING_CR;
+  static const int FIRST_PARSE_STOP_STATE = CLOSED;
 }
 
 // HTTP version of the request or response being parsed.
@@ -158,9 +159,7 @@ class _HttpParser {
       }
       while (_buffer != null &&
              _index < _lastIndex &&
-             _state != _State.CANCELED &&
-             _state != _State.FAILURE &&
-             _state != _State.UPGRADED) {
+             _state <= _State.FIRST_PARSE_STOP_STATE) {
         int byte = _buffer[_index++];
         switch (_state) {
           case _State.START:
