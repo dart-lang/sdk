@@ -11,6 +11,7 @@ part of dart2js;
  */
 class ConstantHandler extends CompilerTask {
   final ConstantSystem constantSystem;
+  final bool isMetadata;
 
   /**
    * Contains the initial value of fields. Must contain all static and global
@@ -31,7 +32,8 @@ class ConstantHandler extends CompilerTask {
   /** Caches the createRuntimeType function if registered. */
   Element createRuntimeTypeFunction = null;
 
-  ConstantHandler(Compiler compiler, this.constantSystem)
+  ConstantHandler(Compiler compiler, this.constantSystem,
+                  { bool this.isMetadata: false })
       : initialVariableValues = new Map<VariableElement, dynamic>(),
         compiledConstants = new Set<Constant>(),
         pendingVariables = new Set<VariableElement>(),
@@ -50,14 +52,17 @@ class ConstantHandler extends CompilerTask {
   }
 
   void registerInstantiatedClass(ClassElement element) {
+    if (isMetadata) return;
     compiler.enqueuer.codegen.registerInstantiatedClass(element);
   }
 
   void registerStaticUse(Element element) {
+    if (isMetadata) return;
     compiler.enqueuer.codegen.registerStaticUse(element);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
+    if (isMetadata) return;
     compiler.enqueuer.codegen.registerGetOfStaticFunction(element);
   }
 

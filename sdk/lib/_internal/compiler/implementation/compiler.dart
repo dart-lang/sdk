@@ -264,7 +264,8 @@ abstract class Compiler implements DiagnosticListener {
       enqueuer = new EnqueueTask(this)];
 
     tasks.addAll(backend.tasks);
-    metadataHandler = new ConstantHandler(this, backend.constantSystem);
+    metadataHandler = new ConstantHandler(
+        this, backend.constantSystem, isMetadata: true);
   }
 
   Universe get resolverWorld => enqueuer.resolution.universe;
