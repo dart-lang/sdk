@@ -1028,15 +1028,14 @@ class StandardTestSuite extends TestSuite {
     var minified = configuration['minified'] ? '-minified' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
                   "$checked$minified";
-    var generatedTestPath = Strings.join([
-        buildDir,
-        'generated_tests',
-        dirName,
-        testUniqueName
-    ], '/');
+    Path generatedTestPath = new Path.fromNative(buildDir)
+        .append('generated_tests')
+        .append(dirName)
+        .append(testUniqueName);
 
-    TestUtils.mkdirRecursive(new Path('.'), new Path(generatedTestPath));
-    return new File(generatedTestPath).fullPathSync().replaceAll('\\', '/');
+    TestUtils.mkdirRecursive(new Path('.'), generatedTestPath);
+    return new File.fromPath(generatedTestPath).fullPathSync()
+        .replaceAll('\\', '/');
   }
 
   String get scriptType {
