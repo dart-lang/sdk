@@ -21,13 +21,20 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
       LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
-    // initKeyEvent is the call in Firefox, initKeyboardEvent for all other
-    // browsers.
-    var function = JS('dynamic', '#.initKeyboardEvent || #.initKeyEvent', this,
-        this);
-    JS('void', '#(#, #, #, #, #, #, #, #, #, #, #)', function, type,
-        canBubble, cancelable, view, keyIdentifier, keyLocation, ctrlKey,
-        altKey, shiftKey, metaKey, altGraphKey);
+    if (JS('bool', 'typeof(#.initKeyEvent) == "function"', this)) {
+      // initKeyEvent is only in Firefox (instead of initKeyboardEvent). It has
+      // a slightly different signature, and allows you to specify keyCode and
+      // charCode as the last two arguments, but we just set them as the default
+      // since they can't be specified in other browsers.
+      JS('void', '#.initKeyEvent(#, #, #, #, #, #, #, #, 0, 0)', this,
+          type, canBubble, cancelable, view, 
+          ctrlKey, altKey, shiftKey, metaKey);
+    } else {
+      // initKeyboardEvent is for all other browsers.
+      JS('void', '#.initKeyboardEvent(#, #, #, #, #, #, #, #, #, #, #)', this,
+          type, canBubble, cancelable, view, keyIdentifier, keyLocation,
+          ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
+    }
   }
 
   /** @domName KeyboardEvent.keyCode */
