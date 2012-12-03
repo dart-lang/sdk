@@ -6,8 +6,6 @@ import "dart:io";
 import "dart:uri";
 import "dart:isolate";
 
-
-int testGoogleUrlCount = 0;
 void testGoogleUrl() {
   HttpClient client = new HttpClient();
 
@@ -19,38 +17,19 @@ void testGoogleUrl() {
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse response) {
-      testGoogleUrlCount++;
       Expect.isTrue(response.statusCode < 500);
-      if (requestUri.path.length == 0) {
-        Expect.isTrue(response.statusCode != 404);
-      }
+      Expect.isTrue(response.statusCode != 404);
       response.inputStream.onData = () {
         response.inputStream.read();
       };
       response.inputStream.onClosed = () {
-        if (testGoogleUrlCount == 4) client.shutdown();
+        client.shutdown();
       };
     };
     conn.onError = (error) => Expect.fail("Unexpected IO error $error");
   }
 
-  testUrl('https://www.google.dk');
-  testUrl('https://www.google.dk');
-  testUrl('https://www.google.dk/#q=foo');
-  testUrl('https://www.google.dk/#hl=da&q=foo');
-}
-
-void testBadHostName() {
-  HttpClient client = new HttpClient();
-  HttpClientConnection connection = client.getUrl(
-      new Uri.fromString("https://some.bad.host.name.7654321/"));
-  connection.onRequest = (HttpClientRequest request) {
-    Expect.fail("Should not open a request on bad hostname");
-  };
-  ReceivePort port = new ReceivePort();
-  connection.onError = (Exception error) {
-    port.close();  // We expect onError to be called, due to bad host name.
-  };
+  testUrl('https://www.google.com');
 }
 
 void InitializeSSL() {
@@ -60,5 +39,4 @@ void InitializeSSL() {
 void main() {
   InitializeSSL();
   testGoogleUrl();
-  testBadHostName();
 }

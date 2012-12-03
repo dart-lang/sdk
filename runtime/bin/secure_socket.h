@@ -77,7 +77,8 @@ class SSLFilter {
   void Handshake();
   void RegisterHandshakeCompleteCallback(Dart_Handle handshake_complete);
   static void InitializeLibrary(const char* certificate_database,
-                                const char* password);
+                                const char* password,
+                                bool use_builtin_root_certificates);
 
   intptr_t ProcessBuffer(int bufferIndex);
 

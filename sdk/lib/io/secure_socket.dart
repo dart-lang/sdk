@@ -21,7 +21,22 @@ abstract class SecureSocket implements Socket {
    * client connections, and server certificates to provide on server
    * connections.  The password argument should be used when creating
    * secure server sockets, to allow the private key of the server
-   * certificate to be fetched.
+   * certificate to be fetched.  If useBuiltinRoots is true (the default),
+   * then a built-in set of root certificates for trusted certificate
+   * authorities is merged with the certificates in the database.
+   *
+   * Examples:
+   *   1) Use only the builtin root certificates:
+   *     SecureSocket.initialize(); or
+   *
+   *   2) Use a specified database and the builtin roots:
+   *     SecureSocket.initialize(database: 'path/to/my/database',
+   *                             password: 'my_password');
+   *
+   *   3) Use a specified database, without builtin roots:
+   *     SecureSocket.initialize(database: 'path/to/my/database',
+   *                             password: 'my_password'.
+   *                             useBuiltinRoots: false);
    *
    * The database should be an NSS certificate database directory
    * containing a cert9.db file, not a cert8.db file.  This version of
@@ -29,8 +44,9 @@ abstract class SecureSocket implements Socket {
    * front of the absolute path of the database directory, or setting the
    * environment variable NSS_DEFAULT_DB_TYPE to "sql".
    */
-  external static void setCertificateDatabase(String certificateDatabase,
-                                              [String password]);
+  external static void initialize({String database,
+                                   String password,
+                                   bool useBuiltinRoots: true});
 }
 
 
@@ -196,7 +212,7 @@ class _SecureSocket implements SecureSocket {
 
   List<int> read([int len]) {
     if (_closedRead) {
-      throw new SocketException("Reading from a closed socket");
+      throw new SocketIOException("Reading from a closed socket");
     }
     if (_status != CONNECTED) {
       return new List<int>(0);
@@ -221,7 +237,7 @@ class _SecureSocket implements SecureSocket {
 
   int readList(List<int> data, int offset, int bytes) {
     if (_closedRead) {
-      throw new SocketException("Reading from a closed socket");
+      throw new SocketIOException("Reading from a closed socket");
     }
     if (offset < 0 || bytes < 0 || offset + bytes > data.length) {
       throw new ArgumentError(
@@ -255,7 +271,7 @@ class _SecureSocket implements SecureSocket {
   // up handlers to flush the pipeline when possible.
   int writeList(List<int> data, int offset, int bytes) {
     if (_closedWrite) {
-      throw new SocketException("Writing to a closed socket");
+      throw new SocketIOException("Writing to a closed socket");
     }
     if (_status != CONNECTED) return 0;
     var buffer = _secureFilter.buffers[WRITE_PLAINTEXT];
@@ -298,10 +314,14 @@ class _SecureSocket implements SecureSocket {
 
   void _secureDataHandler() {
     if (_status == HANDSHAKE) {
-      _secureHandshake();
+      try {
+        _secureHandshake();
+      } catch (e) { _reportError(e, "SecureSocket error"); }
     } else {
-      _writeEncryptedData();  // TODO(whesse): Removing this causes a failure.
-      _readEncryptedData();
+      try {
+        _writeEncryptedData();  // TODO(whesse): Removing this causes a failure.
+        _readEncryptedData();
+      } catch (e) { _reportError(e, "SecureSocket error"); }
       if (!_filterReadEmpty) {
         // Call the onData event.
         if (scheduledDataEvent != null) {
@@ -329,6 +349,7 @@ class _SecureSocket implements SecureSocket {
     } else {
       e = new SocketIOException('$message (${error.toString()})', null);
     }
+    close(false);
     bool reported = false;
     if (_socketErrorHandler != null) {
       reported = true;
@@ -340,7 +361,6 @@ class _SecureSocket implements SecureSocket {
     if (_outputStream != null) {
       reported = reported || _outputStream._onSocketError(e);
     }
-
     if (!reported) throw e;
   }
 

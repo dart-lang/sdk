@@ -159,7 +159,7 @@ void FUNCTION_NAME(SecureSocket_ProcessBuffer)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(SecureSocket_SetCertificateDatabase)
+void FUNCTION_NAME(SecureSocket_InitializeLibrary)
     (Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle certificate_database_object =
@@ -169,10 +169,11 @@ void FUNCTION_NAME(SecureSocket_SetCertificateDatabase)
   if (Dart_IsString(certificate_database_object)) {
     ThrowIfError(Dart_StringToCString(certificate_database_object,
                                       &certificate_database));
-  } else {
+  } else if (!Dart_IsNull(certificate_database_object)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "Non-String certificate directory argument to SetCertificateDatabase"));
   }
+  // Leave certificate_database as NULL if no value was provided.
 
   Dart_Handle password_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
   // Check that the type is string or null,
@@ -188,7 +189,18 @@ void FUNCTION_NAME(SecureSocket_SetCertificateDatabase)
         "Password argument to SetCertificateDatabase is not a String or null"));
   }
 
-  SSLFilter::InitializeLibrary(certificate_database, password);
+  Dart_Handle builtin_roots_object =
+      ThrowIfError(Dart_GetNativeArgument(args, 2));
+  // Check that the type is boolean, and get the boolean value from it.
+  bool builtin_roots = true;
+  if (Dart_IsBoolean(builtin_roots_object)) {
+    ThrowIfError(Dart_BooleanValue(builtin_roots_object, &builtin_roots));
+  } else {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "UseBuiltinRoots argument to SetCertificateDatabase is not a bool"));
+  }
+
+  SSLFilter::InitializeLibrary(certificate_database, password, builtin_roots);
   Dart_ExitScope();
 }
 
@@ -241,14 +253,31 @@ void SSLFilter::RegisterHandshakeCompleteCallback(Dart_Handle complete) {
 
 
 void SSLFilter::InitializeLibrary(const char* certificate_database,
-                                  const char* password) {
+                                  const char* password,
+                                  bool use_builtin_root_certificates) {
   MutexLocker locker(&mutex_);
   if (!library_initialized_) {
     library_initialized_ = true;
     password_ = strdup(password);  // This one copy persists until Dart exits.
     PR_Init(PR_USER_THREAD, PR_PRIORITY_NORMAL, 0);
     // TODO(whesse): Verify there are no UTF-8 issues here.
-    SECStatus status = NSS_Init(certificate_database);
+    PRUint32 init_flags = NSS_INIT_READONLY;
+    if (certificate_database == NULL) {
+      // Passing the empty string as the database path does not try to open
+      // a database in the current directory.
+      certificate_database = "";
+      // The flag NSS_INIT_NOCERTDB is documented to do what we want here,
+      // however it causes the builtins not to be available on Windows.
+      init_flags |= NSS_INIT_FORCEOPEN;
+    }
+    if (!use_builtin_root_certificates) {
+      init_flags |= NSS_INIT_NOMODDB;
+    }
+    SECStatus status = NSS_Initialize(certificate_database,
+                                      "",
+                                      "",
+                                      SECMOD_DB,
+                                      init_flags);
     if (status != SECSuccess) {
       ThrowPRException("Unsuccessful NSS_Init call.");
     }

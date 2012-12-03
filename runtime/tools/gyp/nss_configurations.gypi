@@ -10,9 +10,8 @@
 {
   'variables': {
     # Used by third_party/nss, which is from Chromium.
-    # When the NSS and related libraries gyp files are processed in
-    # Dartium, do not override the settings from Dartium.  The targets will
-    # not be built.
+    # Include the built-in set of root certificate authorities.
+    'exclude_nss_root_certs': 0,
     'os_posix%': 1,
     'os_bsd%': 0,
     'chromeos%': 0,

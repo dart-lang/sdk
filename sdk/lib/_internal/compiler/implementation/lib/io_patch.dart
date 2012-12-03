@@ -171,8 +171,9 @@ patch class Socket {
 }
 
 patch class SecureSocket {
-  patch static void setCertificateDatabase(String certificateDatabase,
-                                           [String password]) {
+  patch static void initialize({String database,
+                                String password,
+                                bool useBuiltinRoots: true}) {
     throw new UnsupportedError("SecureSocket.setCertificateDatabase");
   }
 }

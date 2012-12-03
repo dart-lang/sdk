@@ -98,8 +98,8 @@ const CLIENT_NAMES = const ['able', 'baker', 'camera', 'donut', 'echo'];
 void main() {
   Path scriptDir = new Path.fromNative(new Options().script).directoryPath;
   Path certificateDatabase = scriptDir.append('pkcert');
-  SecureSocket.setCertificateDatabase(certificateDatabase.toNativePath(),
-                                   'dartdart');
+  SecureSocket.initialize(database: certificateDatabase.toNativePath(),
+                          password: 'dartdart');
 
   var server = new SecureTestServer();
   int port = server.start();
