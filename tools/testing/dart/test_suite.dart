@@ -1506,7 +1506,7 @@ class TestUtils {
    * [base] directory if that [relativePath] does not already exist.
    */
   static Directory mkdirRecursive(Path base, Path relativePath) {
-    print("======= $base|relativePath|${relativePath.isAbsolute}|${relativePath.segments}");
+    print("======= $base|$relativePath|${relativePath.isAbsolute}|${relativePath.segments()}");
     if (relativePath.isAbsolute) {
       base = new Path('/');
     }
