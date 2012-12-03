@@ -285,7 +285,7 @@ DEFINE_NATIVE_ENTRY(Int8Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Int8Array_newTransferrable, 1) {
+DEFINE_NATIVE_ENTRY(Int8Array_newTransferable, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int8Array::kMaxElements);
@@ -319,7 +319,7 @@ DEFINE_NATIVE_ENTRY(Uint8Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Uint8Array_newTransferrable, 1) {
+DEFINE_NATIVE_ENTRY(Uint8Array_newTransferable, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint8Array::kMaxElements);
@@ -353,7 +353,7 @@ DEFINE_NATIVE_ENTRY(Int16Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Int16Array_newTransferrable, 1) {
+DEFINE_NATIVE_ENTRY(Int16Array_newTransferable, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int16Array::kMaxElements);
@@ -387,7 +387,7 @@ DEFINE_NATIVE_ENTRY(Uint16Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Uint16Array_newTransferrable, 1) {
+DEFINE_NATIVE_ENTRY(Uint16Array_newTransferable, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint16Array::kMaxElements);
@@ -421,7 +421,7 @@ DEFINE_NATIVE_ENTRY(Int32Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Int32Array_newTransferrable, 1) {
+DEFINE_NATIVE_ENTRY(Int32Array_newTransferable, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int32Array::kMaxElements);
@@ -455,7 +455,7 @@ DEFINE_NATIVE_ENTRY(Uint32Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Uint32Array_newTransferrable, 1) {
+DEFINE_NATIVE_ENTRY(Uint32Array_newTransferable, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint32Array::kMaxElements);
@@ -489,7 +489,7 @@ DEFINE_NATIVE_ENTRY(Int64Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Int64Array_newTransferrable, 1) {
+DEFINE_NATIVE_ENTRY(Int64Array_newTransferable, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int64Array::kMaxElements);
@@ -523,7 +523,7 @@ DEFINE_NATIVE_ENTRY(Uint64Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Uint64Array_newTransferrable, 1) {
+DEFINE_NATIVE_ENTRY(Uint64Array_newTransferable, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint64Array::kMaxElements);
@@ -557,7 +557,7 @@ DEFINE_NATIVE_ENTRY(Float32Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Float32Array_newTransferrable, 1) {
+DEFINE_NATIVE_ENTRY(Float32Array_newTransferable, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float32Array::kMaxElements);
@@ -591,7 +591,7 @@ DEFINE_NATIVE_ENTRY(Float64Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Float64Array_newTransferrable, 1) {
+DEFINE_NATIVE_ENTRY(Float64Array_newTransferable, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float64Array::kMaxElements);
