@@ -4,15 +4,15 @@
 // Check that duplicate types in implements/extends list are
 // compile-time errors.
 
-interface I { }
-interface J { }
-interface K<T> { }
+abstract class I { }
+abstract class J { }
+abstract class K<T> { }
 
 class X implements I, J, I { }               /// 01: compile-time error
 class X implements J, I, K<int>, K<int> { }  /// 02: compile-time error
 
-interface Z extends I, J, J { }              /// 03: compile-time error
-interface Z extends K<int>, K<int> { }       /// 04: compile-time error
+abstract class Z implements I, J, J { }              /// 03: compile-time error
+abstract class Z implements K<int>, K<int> { }       /// 04: compile-time error
 
 main() {
   return null;

@@ -4,9 +4,7 @@
 
 // Extending a type parameter is not allowed.
 
-interface A<T> extends T default B { }
-
-class B { }
+abstract class A<T> extends T { }
 
 main() {
   A a = new A();

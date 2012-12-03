@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test checking that static/instance field shadowing do not conflict.
@@ -8,43 +8,43 @@
 
 // bool.
 class MyBool implements bool {}                     /// 01: compile-time error
-interface MyBoolInterface extends bool default F {  /// 02: compile-time error
+abstract class MyBoolInterface implements bool default F {  /// 02: compile-time error
   MyBoolInterface();                                /// 02: continued
 }                                                   /// 02: continued
 
 // num.
 class MyNum implements num {}                       /// 03: compile-time error
-interface MyNumInterface extends num default F {    /// 04: compile-time error
+abstract class MyNumInterface implements num default F {    /// 04: compile-time error
   MyNumInterface();                                 /// 04: continued
 }                                                   /// 04: continued
 
 // int.
 class MyInt implements int {}                       /// 05: compile-time error
-interface MyIntInterface extends int default F {    /// 06: compile-time error
+abstract class MyIntInterface implements int default F {    /// 06: compile-time error
   MyIntInterface();                                 /// 06: continued
 }                                                   /// 06: continued
 
 // double.
 class MyDouble implements double {}                     /// 07: compile-time error
-interface MyDoubleInterface extends double default F {  /// 08: compile-time error
+abstract class MyDoubleInterface implements double default F {  /// 08: compile-time error
   MyDoubleInterface();                                  /// 08: continued
 }                                                       /// 08: continued
 
 // String.
 class MyString implements String {}                     /// 09: compile-time error
-interface MyStringInterface extends String default F {  /// 10: compile-time error
+abstract class MyStringInterface implements String default F {  /// 10: compile-time error
   MyStringInterface();                                  /// 10: continued
 }                                                       /// 10: continued
 
 // Function.
 class MyFunction implements Function {}                     /// 11: compile-time error
-interface MyFunctionInterface extends Function default F {  /// 12: compile-time error
+abstract class MyFunctionInterface implements Function default F {  /// 12: compile-time error
   MyFunctionInterface();                                    /// 12: continued
 }                                                           /// 12: continued
 
 // dynamic.
 class MyDynamic implements dynamic {}                      /// 13: compile-time error
-interface MyDynamicInterface extends dynamic default F {   /// 14: compile-time error
+abstract class MyDynamicInterface implements dynamic default F {   /// 14: compile-time error
   MyDynamicInterface();                                    /// 14: continued
 }                                                          /// 14: continued
 

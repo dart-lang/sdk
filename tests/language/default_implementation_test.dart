@@ -5,8 +5,8 @@
 
 // @static-clean
 
-interface Point default PointImplementation {
-  Point(int x, int y);
+abstract class Point {
+  factory Point(int x, int y) = PointImplementation;
 
   final int x;
   final int y;

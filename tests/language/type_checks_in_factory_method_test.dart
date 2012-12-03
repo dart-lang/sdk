@@ -1,11 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_checked_mode
 // Tests the type checking when passing code into closure from inside a factory method
 
-interface Foo<T> default Bar<T> {
-  Foo.from();
+abstract class Foo<T> {
+  factory Foo.from() = Bar<T>.from;
 }
 
 class Bar<T> implements Foo<T> {

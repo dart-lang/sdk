@@ -100,7 +100,7 @@ class NativeClass
 native "FooBar" /// 30: compile-time error
 {}
 
-interface Fisk {}
+abstract class Fisk {}
 
 class BoolImplementation implements Fisk
 native "Boolean" /// 31: compile-time error
@@ -114,7 +114,7 @@ class ListFactory<E> implements List<E>
 native "Array" /// 33: compile-time error
 {}
 
-interface I extends UNKNOWN; /// 34: compile-time error
+abstract class I implements UNKNOWN; /// 34: compile-time error
 
 class XWindow extends DOMWindow
 hest "*Window" /// 35: compile-time error
@@ -170,7 +170,7 @@ class A {
   ;
 }
 
-interface G<T> {}
+abstract class G<T> {}
 
 typedef <T>(); /// 48: compile-time error
 

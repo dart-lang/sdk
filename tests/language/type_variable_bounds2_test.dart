@@ -4,11 +4,11 @@
 
 // Test of parameterized types with invalid bounds.
 
-interface J<T> { }
+abstract class J<T> { }
 
-interface K<T> { }
+abstract class K<T> { }
 
-interface I<T 
+abstract class I<T
   extends num /// 00: continued
   extends num /// 01: continued
   extends num /// 02: continued

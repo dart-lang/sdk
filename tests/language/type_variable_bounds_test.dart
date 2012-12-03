@@ -7,14 +7,15 @@
 class Foo<T extends num> {
   Foo();
 
-  factory XFoo.bad() { return null; } /// 00: static type warning
+  factory Foo.bad() = XFoo;  /// 00: static type warning
 
-  factory IFoo.good() { return null; }
+  factory Foo.good() = Foo;
 
-  factory IFoo() { return null; }
+  factory Foo.IFoo() { return null; }
 }
 
-interface IFoo<T extends num> default Foo<T extends num> {
+abstract class IFoo<T extends num> {
+  factory IFoo() = Foo<T>;
 }
 
 // String is not assignable to num.

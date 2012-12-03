@@ -1,21 +1,15 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_checked_mode
 
-interface Link<T> extends Iterable<T> default LinkFactory<T> {
-  Link(T head, [Link<T> tail]);
+abstract class Link<T> extends Iterable<T> {
+  factory Link(T head, [Link<T> tail]) = LinkEntry<T>;
   Link<T> prepend(T element);
 }
 
-interface EmptyLink<T> extends Link<T> default LinkTail<T> {
-  const EmptyLink();
-}
-
-class LinkFactory<T> {
-  factory Link(T head, [Link<T> tail]) {
-    return new LinkEntry<T>(head, tail);
-  }
+abstract class EmptyLink<T> extends Link<T> {
+  const factory EmptyLink() = LinkTail<T>;
 }
 
 class AbstractLink<T> implements Link<T> {
@@ -34,7 +28,7 @@ class LinkTail<T> extends AbstractLink<T> implements EmptyLink<T> {
 }
 
 class LinkEntry<T> extends AbstractLink<T> {
-  LinkEntry(T head, Link<T> realTail);
+  LinkEntry(T head, [Link<T> Tail]);
 }
 
 class Fisk {

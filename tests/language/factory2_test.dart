@@ -2,26 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Dart test program for testing default keyword on interfaces
-// Test case for issues 500 and 512
-
-interface Link<T> extends Iterable<T> default LinkFactory<T> {
-  // does not match constructor for  LinkFactory
-  Link(T head, [Link<T> tail]); /// static type warning
+abstract class Link<T> extends Iterable<T> {
+  // does not match constructor for LinkFactory
+  factory Link(T head, [Link<T> tail]) = LinkFactory<T>; /// static type warning
   Link<T> prepend(T element);
 }
 
-interface EmptyLink<T> extends Link<T> default LinkTail<T> {
-  const EmptyLink();
+abstract class EmptyLink<T> extends Link<T> {
+  const factory EmptyLink() = LinkTail<T>;
 }
 
 class LinkFactory<T> {
-  factory Link(head, [Link tail]) {
-  }
+  factory LinkFactory(head, [Link tail]) { }
 }
 
 // Does not implement all of Iterable
-class AbstractLink<T> implements Link<T> {  
+class AbstractLink<T> implements Link<T> {
   const AbstractLink();
   Link<T> prepend(T element) {
     return new Link<T>(element, this);
@@ -29,7 +25,7 @@ class AbstractLink<T> implements Link<T> {
 }
 
 // Does not implement all of Iterable
-class LinkTail<T> extends AbstractLink<T>   
+class LinkTail<T> extends AbstractLink<T>
     implements EmptyLink<T> {
   const LinkTail();
 }

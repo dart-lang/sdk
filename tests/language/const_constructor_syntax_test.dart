@@ -10,8 +10,8 @@ main() {
   var c3 = const C3();
 }
 
-interface I0 default C0 {
-  I0();
+abstract class I0 {
+  factory I0() = C0;
 }
 
 class C0 implements I0 {

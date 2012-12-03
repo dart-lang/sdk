@@ -17,7 +17,7 @@ class ImplementsClass implements BaseClass {
   ImplementsClass() {}
 }
 
-interface ExtendsClass extends BaseClass {}
+abstract class ExtendsClass implements BaseClass {}
 
 /**
  * This class declaration causes an intentional type warning as it

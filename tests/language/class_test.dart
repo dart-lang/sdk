@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -87,11 +87,11 @@ class ClassTest {
   }
 }
 
-interface Inter default Sup {
-  Inter.named();
-  Inter.fromInt(int x);
-  Inter(int x);
-  Inter.factory();
+abstract class Inter {
+  factory Inter.named() = Sup.named;
+  factory Inter.fromInt(int x) = Sup.fromInt;
+  factory Inter(int x) = Sup;
+  factory Inter.factory() = Sup.factory;
   int methodX();
   int methodK();
   int x_;

@@ -4,13 +4,13 @@
 
 // Checks that an overriding method has compatible parameters.
 
-interface I {
+abstract class I {
   m({a, b});
 }
 
-interface J extends I { }
+abstract class J extends I { }
 
-interface K extends J {
+abstract class K extends J {
   m({c, d});  /// 00: compile-time error
 }
 

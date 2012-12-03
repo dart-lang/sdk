@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test to verify incompatible constructor types
 
-interface Point default PointImplementation {
-  Point(x, y);
+abstract class Point {
+  factory Point(x, y) = PointImplementation;
 }
 
 class PointImplementation implements Point {

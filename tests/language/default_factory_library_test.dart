@@ -1,20 +1,20 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Dart test program for testing default factories defined across libraries
+// Dart test program for testing factories defined across libraries
 
 library test;
 import "default_factory_library.dart" as lib;
 
-class B implements lib.A {
+class B implements lib.A, C {
   int methodA() { return 1; }
   int methodB() { return 2; }
 }
 
 class C {
-  // References an interface in another library
-  factory lib.A () { return new B(); }
+  // Referenced from an abstract class in another library
+  factory C.A () { return new B(); }
 }
 
 main() {
