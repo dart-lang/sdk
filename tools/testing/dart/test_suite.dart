@@ -1518,7 +1518,7 @@ class TestUtils {
       // Ugly hack: if Windows absolute path starts with a drive,
       // rewrite [base] properly.
       if (segment.length == 2 && segment.endsWith(':')) {
-        base = segment + '\\';
+        base = '${segment}\\';
         continue;
       }
       base = base.append(segment);
