@@ -838,7 +838,6 @@ $lazyInitializerLogic
                        bool emitEndingComma,
                        { String superClass: "",
                          bool isNative: false}) {
-    assert(!isNative || superClass != "");
     bool isFirstField = true;
     bool isAnythingOutput = false;
     if (!isNative) {
