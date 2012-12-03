@@ -1571,6 +1571,14 @@ public class SyntaxTest extends AbstractParserTest {
             "}"),
             ParserErrorCode.FOR_IN_WITH_VARIABLE_INITIALIZER, 2, 18);
   }
+  
+  public void test_forIn_withConst() throws Exception {
+    parseUnit("test.dart",
+        Joiner.on("\n").join(
+            "main() {",
+            "  for (const v in a) { }",
+            "}"));
+  }
 
   public void test_varInFunctionType() throws Exception {
     parseUnit("phony_var_in_function_type.dart",
@@ -1590,5 +1598,30 @@ public class SyntaxTest extends AbstractParserTest {
         "export 'Lib.dart';",
         ""),
         ParserErrorCode.EXPORT_WITHOUT_LIBRARY_DIRECTIVE, 2, 1);
+  }
+  
+  public void test_unicodeNormalizedFormC_inString() throws Exception {
+    byte bytes[] = new byte[] {
+        (byte) 0x76,
+        (byte) 0x61,
+        (byte) 0x72,
+        (byte) 0x20,
+        (byte) 0x73,
+        (byte) 0x3D,
+        (byte) 0x27,
+        (byte) 0x41,
+        (byte) 0xCC,
+        (byte) 0x8A,
+        (byte) 0x27,
+        (byte) 0x3B};
+    String source = new String(bytes, "UTF-8");
+//    {
+//      String sourceNormalized = Normalizer.normalize(source, Normalizer.Form.NFC);
+//      assertEquals("var s='Å';", sourceNormalized);
+//    }
+    DartParserRunner parserRunner = parseSource(source);
+    assertErrors(
+        parserRunner.getErrors(),
+        errEx(ParserErrorCode.INVALID_UNICODE_NORMALIZATION, 1, 8, 1));
   }
 }

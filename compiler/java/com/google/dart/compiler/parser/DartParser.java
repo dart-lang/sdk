@@ -112,6 +112,7 @@ import com.google.dart.compiler.util.apache.StringUtils;
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigInteger;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -233,6 +234,17 @@ public class DartParser extends CompletionHooksParserBase {
     this.isDietParse = isDietParse;
     this.prefixes = prefixes;
     this.allowNativeKeyword = source != null && PackageLibraryManager.isDartUri(source.getUri());
+    // check Unicode normalization
+    {
+      int indexOfDifference = StringUtils.indexOfDifference(sourceCode,
+          Normalizer.normalize(sourceCode, Normalizer.Form.NFC));
+      if (indexOfDifference != -1) {
+        DartCompilationError error = new DartCompilationError(source, new Location(
+            indexOfDifference, indexOfDifference + 1),
+            ParserErrorCode.INVALID_UNICODE_NORMALIZATION);
+        ctx.error(error);
+      }
+    }
   }
 
   public static String read(Source source) throws IOException {
@@ -4760,6 +4772,9 @@ public class DartParser extends CompletionHooksParserBase {
       if (optional(Token.VAR)) {
         setup = done(new DartVariableStatement(parseInitializedVariableList(), null, modifiers));
       } else {
+        if (optional(Token.CONST)) {
+          modifiers = modifiers.makeConstant();
+        }
         if (optional(Token.FINAL)) {
           modifiers = modifiers.makeFinal();
         }

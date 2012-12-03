@@ -21,7 +21,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_ACCESS_OUTER_LABEL("Cannot access label %s declared in an outer function"),
   CANNOT_ASSIGN_TO_FINAL(ErrorSeverity.WARNING, "cannot assign value to final variable \"%s\"."),
   CANNOT_ASSIGN_TO_FINAL_ERROR("cannot assign value to final variable \"%s\"."),
-  CANNOT_ASSIGN_TO_METHOD("cannot assign value to method '%s'."),
+  CANNOT_ASSIGN_TO_METHOD(ErrorSeverity.WARNING, "cannot assign value to method '%s'."),
   CANNOT_BE_RESOLVED("cannot resolve %s"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   CANNOT_BE_RESOLVED_LIBRARY("cannot resolve %s in library %s"),
@@ -71,6 +71,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CONST_EXPRESSION_CANT_USE_TYPE_VAR("Const expression cannot be invoked on type variable"),
   CONST_MAP_WITH_TYPE_VARIABLE("Const map literals cannot have a type variable as a type argument"),
   CONST_WITH_TYPE_VARIABLE("Const constructor cannot be invoked with a type variable as a type argument"),
+  CONSTANTS_EVALUATION_EXCEPTION("Exception during constant evaluation"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
   CONTINUE_LABEL_RESOLVES_TO_SWITCH("continue label resolves to switch, must be loop or switch member"),
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
@@ -156,6 +157,8 @@ public enum ResolverErrorCode implements ErrorCode {
   MEMBER_WITH_NAME_OF_CLASS("Class member should not have the same name as the enclosing class"),
   CONSTRUCTOR_WITH_NAME_OF_MEMBER(
       "Constructor cannot have the same name as the name of a member declared in the enclosing class"),
+  CONSTRUCTOR_NAME_NOT_ENCLOSING_CLASS("Name of the immediately enclosing class expected"),
+  CONSTRUCTOR_NAME_NOT_ENCLOSING_CLASS_ID(ErrorSeverity.WARNING, "Not a valid constructor name"),
   METHOD_MUST_HAVE_BODY(ErrorSeverity.WARNING, "Method must have a body in a non-abstract class"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR(ErrorSeverity.WARNING, "New expression cannot be invoked on type variable"),

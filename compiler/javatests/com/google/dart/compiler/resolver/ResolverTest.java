@@ -267,16 +267,6 @@ public class ResolverTest extends ResolverTestCase {
     );
   }
 
-  public void testBadFactory() {
-    // Another interface should be in scope to name 'foo' as a constructor
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class Zebra {",
-        "  factory foo() {}",
-        "}"),
-        ResolverErrorCode.NO_SUCH_TYPE_CONSTRUCTOR);
-  }
-
   public void test_constFactory() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -581,7 +571,7 @@ public class ResolverTest extends ResolverTestCase {
         "    }",
         "  }",
         "}"),
-        ResolverErrorCode.NO_SUCH_TYPE);
+        TypeErrorCode.NO_SUCH_TYPE);
   }
 
   public void test_const_array() throws Exception {

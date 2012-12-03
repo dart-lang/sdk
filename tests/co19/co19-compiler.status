@@ -3,29 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TODO(analyzer-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/01_Constants_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/01_Constants_A14_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/01_Constants_A20_t03: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/08_Throw_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/31_Type_Test_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/31_Type_Test_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/02_Expression_Statements_A01_t12: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/06_For_A01_t11: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/09_Switch_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/10_Try_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/10_Try_A03_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/10_Try_A03_t03: Fail # TODO(analyzer-team): Please triage this failure.
-Language/14_Types/5_Function_Types_A04_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules_A01_t11: Fail # TODO(analyzer-team): Please triage this failure.
 
 
 # co19 issue 336 (allow use same prefix for several imports)
@@ -46,6 +23,43 @@ Language/05_Variables/05_Variables_A07_t10: Fail
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t05: Fail
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t06: Fail
 
+# issue 7095
+Language/12_Statements/02_Expression_Statements_A01_t12: Fail
+
+# co19 issue 344 ('null' is constant, so can be used in 'case')
+Language/12_Statements/09_Switch_A02_t03: Fail
+
+# co19 343 (invalid unicode NFC)
+Language/15_Reference/1_Lexical_Rules_A01_t10: Fail
+
+
+# co19 issue 339 (type variable is not constant)
+Language/11_Expressions/01_Constants_A20_t03: Fail
+
+
+# co19 issue 340 (deprecated catch syntax)
+Language/11_Expressions/08_Throw_A05_t01: Fail
+Language/12_Statements/10_Try_A03_t02: Fail
+Language/12_Statements/10_Try_A03_t03: Fail
+
+
+# co19 issue 341 (class Type has no type parameters)
+Language/11_Expressions/31_Type_Test_A01_t02: Fail
+Language/11_Expressions/31_Type_Test_A01_t04: Fail
+
+
+# co19 issue 342 (class can be used anywhere, including left side of "as")
+Language/11_Expressions/32_Type_Cast_A01_t04: Fail
+
+
+# co19 issue 345 (optional parameters list cannot by empty)
+Language/14_Types/5_Function_Types_A04_t01: Fail
+
+# co19 issue 346 (invalid 'one ugly cascade')
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail
+
+# co19 issue 347 (duplicate class in implements clause)
+Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail
 
 
 # co19 issue 320
