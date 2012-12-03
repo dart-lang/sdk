@@ -28,18 +28,53 @@ class ConstantHandler extends CompilerTask {
   /** Caches the statics where the initial value cannot be eagerly compiled. */
   final Set<VariableElement> lazyStatics;
 
+  /** Caches the createRuntimeType function if registered. */
+  Element createRuntimeTypeFunction = null;
+
   ConstantHandler(Compiler compiler, this.constantSystem)
       : initialVariableValues = new Map<VariableElement, dynamic>(),
         compiledConstants = new Set<Constant>(),
         pendingVariables = new Set<VariableElement>(),
         lazyStatics = new Set<VariableElement>(),
         super(compiler);
+
   String get name => 'ConstantHandler';
 
   void registerCompileTimeConstant(Constant constant) {
-    compiler.enqueuer.codegen.registerInstantiatedClass(
-        constant.computeType(compiler).element);
+    registerInstantiatedClass(constant.computeType(compiler).element);
+    if (constant.isFunction()) {
+      FunctionConstant function = constant;
+      registerGetOfStaticFunction(function.element);
+    }
     compiledConstants.add(constant);
+  }
+
+  void registerInstantiatedClass(ClassElement element) {
+    compiler.enqueuer.codegen.registerInstantiatedClass(element);
+  }
+
+  void registerStaticUse(Element element) {
+    compiler.enqueuer.codegen.registerStaticUse(element);
+  }
+
+  void registerGetOfStaticFunction(FunctionElement element) {
+    compiler.enqueuer.codegen.registerGetOfStaticFunction(element);
+  }
+
+  void registerStringInstance() {
+    registerInstantiatedClass(compiler.stringClass);
+  }
+
+  void registerCreateRuntimeTypeFunction() {
+    if (createRuntimeTypeFunction != null) return;
+    SourceString helperName = const SourceString('createRuntimeType');
+    createRuntimeTypeFunction = compiler.findHelper(helperName);
+    registerStaticUse(createRuntimeTypeFunction);
+    // TODO(kasperl): It looks a bit fishy that we have to register
+    // this in the resolution queue too. Can we do this in the
+    // resolver instead? That would be more consistent with how we
+    // register all the other resolution work items.
+    compiler.enqueuer.resolution.registerStaticUse(createRuntimeTypeFunction);
   }
 
   /**
@@ -247,7 +282,6 @@ class CompileTimeConstantEvaluator extends Visitor {
   final ConstantHandler handler;
   final TreeElements elements;
   final Compiler compiler;
-  bool enabledRuntimeTypeSupport = false;
 
   CompileTimeConstantEvaluator(this.handler,
                                this.elements,
@@ -343,7 +377,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     classElement.ensureResolved(compiler);
     // TODO(floitsch): copy over the generic type.
     DartType type = new InterfaceType(classElement);
-    registerInstantiatedClass(classElement);
+    handler.registerInstantiatedClass(classElement);
     Constant constant = new MapConstant(type, keysList, values, protoValue);
     handler.registerCompileTimeConstant(constant);
     return constant;
@@ -353,16 +387,8 @@ class CompileTimeConstantEvaluator extends Visitor {
     return constantSystem.createNull();
   }
 
-  void registerInstantiatedClass(ClassElement element) {
-    compiler.enqueuer.codegen.registerInstantiatedClass(element);
-  }
-
-  void registerStringInstance() {
-    registerInstantiatedClass(compiler.stringClass);
-  }
-
   Constant visitLiteralString(LiteralString node) {
-    registerStringInstance();
+    handler.registerStringInstance();
     return constantSystem.createString(node.dartString, node);
   }
 
@@ -370,7 +396,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     StringConstant left = evaluate(node.first);
     StringConstant right = evaluate(node.second);
     if (left == null || right == null) return null;
-    registerStringInstance();
+    handler.registerStringInstance();
     return constantSystem.createString(
         new DartString.concat(left.value, right.value), node);
   }
@@ -398,25 +424,18 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (partString == null) return null;
       accumulator = new DartString.concat(accumulator, partString.value);
     };
-    registerStringInstance();
+    handler.registerStringInstance();
     return constantSystem.createString(accumulator, node);
   }
 
   Constant makeTypeConstant(Element element) {
-    // If we use a type literal in a constant, the compile time constant
-    // emitter will generate a call to the runtime type cache helper, so we
-    // resolve it and put it into the codegen work list.
-    if (!enabledRuntimeTypeSupport) {
-      SourceString helperName = const SourceString('createRuntimeType');
-      Element helper = compiler.findHelper(helperName);
-      compiler.enqueuer.resolution.addToWorkList(helper);
-      compiler.enqueuer.codegen.addToWorkList(helper);
-      enabledRuntimeTypeSupport = true;
-    }
-
     DartType elementType = element.computeType(compiler).asRaw();
     DartType constantType = compiler.typeClass.computeType(compiler);
     Constant constant = new TypeConstant(elementType, constantType);
+    // If we use a type literal in a constant, the compile time
+    // constant emitter will generate a call to the createRuntimeType
+    // helper so we register a use of that.
+    handler.registerCreateRuntimeTypeFunction();
     handler.registerCompileTimeConstant(constant);
     return constant;
   }
@@ -426,10 +445,8 @@ class CompileTimeConstantEvaluator extends Visitor {
     Element element = elements[send];
     if (send.isPropertyAccess) {
       if (Elements.isStaticOrTopLevelFunction(element)) {
-        compiler.codegenWorld.staticFunctionsNeedingGetter.add(element);
         Constant constant = new FunctionConstant(element);
         handler.registerCompileTimeConstant(constant);
-        compiler.enqueuer.codegen.registerStaticUse(element);
         return constant;
       } else if (Elements.isStaticOrTopLevelField(element)) {
         Constant result;
@@ -628,7 +645,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
-    compiler.enqueuer.codegen.registerInstantiatedClass(classElement);
+    handler.registerInstantiatedClass(classElement);
     // TODO(floitsch): take generic types into account.
     DartType type = classElement.computeType(compiler);
     Constant constant = new ConstructedConstant(type, jsNewArguments);
