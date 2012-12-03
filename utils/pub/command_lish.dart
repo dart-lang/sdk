@@ -25,7 +25,7 @@ class LishCommand extends PubCommand {
 
   ArgParser get commandParser {
     var parser = new ArgParser();
-    parser.addOption('server', defaultsTo: 'http://pub.dartlang.org',
+    parser.addOption('server', defaultsTo: 'https://pub.dartlang.org',
         help: 'The package server to which to upload this package');
     return parser;
   }
