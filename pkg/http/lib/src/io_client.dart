@@ -29,22 +29,11 @@ class IOClient extends BaseClient {
     connection.maxRedirects = request.maxRedirects;
     connection.onError = (e) {
       async.then((_) {
-        if (completer.future.isComplete) {
-          // TODO(nweiz): issue 7014 means that connection errors may be routed
-          // here even after onResponse has been called. Since these errors are
-          // also routed to the response input stream, we want to silently
-          // ignore them.
-          //
-          // We test if they're HTTP exceptions to distinguish them from errors
-          // caused by issue 4974 (see below).
-          if (e is HttpException) return;
-
-          // TODO(nweiz): issue 4974 means that any errors that appear in the
-          // onRequest or onResponse callbacks get passed to onError. If the
-          // completer has already fired, we want to re-throw those exceptions
-          // to the top level so that they aren't silently ignored.
-          throw e;
-        }
+        // TODO(nweiz): issue 4974 means that any errors that appear in the
+        // onRequest or onResponse callbacks get passed to onError. If the
+        // completer has already fired, we want to re-throw those exceptions
+        // to the top level so that they aren't silently ignored.
+        if (completer.future.isComplete) throw e;
 
         completer.completeException(e);
       });
@@ -69,7 +58,7 @@ class IOClient extends BaseClient {
       response.headers.forEach((key, value) => headers[key] = value);
 
       completer.complete(new StreamedResponse(
-          wrapInputStream(response.inputStream),
+          response.inputStream,
           response.statusCode,
           response.contentLength,
           request: request,
