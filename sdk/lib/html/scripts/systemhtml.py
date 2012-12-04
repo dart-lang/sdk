@@ -438,7 +438,7 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     template_file = ('factoryprovider_%s.darttemplate' %
-                     self._interface_type_info.interface_name())
+                     self._interface.doc_js_name)
     template = self._template_loader.TryLoad(template_file)
     if not template:
       template = self._template_loader.Load('factoryprovider.darttemplate')
@@ -451,7 +451,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         FACTORYPROVIDER=factory_provider,
         CONSTRUCTOR=interface_name,
         PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
-        NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
+        NAMED_CONSTRUCTOR=constructor_info.name or self._interface.doc_js_name,
         ARGUMENTS=arguments,
         PRE_ARGUMENTS_COMMA=comma,
         ARGUMENTS_PATTERN=','.join(['#'] * len(constructor_info.param_infos)))

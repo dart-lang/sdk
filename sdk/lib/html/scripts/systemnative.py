@@ -199,7 +199,8 @@ class DartiumBackend(HtmlDartGenerator):
 
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     interface_name = self._interface_type_info.interface_name()
-    template_file = 'factoryprovider_%s.darttemplate' % interface_name
+    template_file = ('factoryprovider_%s.darttemplate' %
+                     self._interface.doc_js_name)
     template = self._template_loader.TryLoad(template_file)
     if not template:
       template = self._template_loader.Load('factoryprovider.darttemplate')
