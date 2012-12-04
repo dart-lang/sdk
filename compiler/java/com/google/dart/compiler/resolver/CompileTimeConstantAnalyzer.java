@@ -15,6 +15,7 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartConditional;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExpression;
@@ -279,9 +280,8 @@ public class CompileTimeConstantAnalyzer {
           checkMathExpression(x, lhs, rhs, lhsType, rhsType);
           break;
         case TRUNC:
-          reportExceptionIfZeroLiteral(x, rhs);
-          // pass-through
         case MOD:
+          reportExceptionIfZeroLiteral(x, rhs);
           if (checkNumber(lhs, lhsType) && checkNumber(rhs, rhsType)) {
             rememberInferredType(x, intType);
           }
@@ -338,6 +338,12 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitDoubleLiteral(DartDoubleLiteral x) {
       rememberInferredType(x, doubleType);
+      return null;
+    }
+    
+    @Override
+    public Void visitConditional(DartConditional node) {
+      expectedConstant(node);
       return null;
     }
 

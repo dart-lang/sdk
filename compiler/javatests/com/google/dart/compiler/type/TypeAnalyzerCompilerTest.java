@@ -1327,14 +1327,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getErrors());
   }
   
-  public void test_constantEvaluationException() throws Exception {
+  public void test_constantEvaluationException_divZero() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "const C = 1 ~/ 0;",
+        "const C1 = 1 ~/ 0;",
+        "const C2 = 1 % 0;",
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.CONSTANTS_EVALUATION_EXCEPTION, 2, 11, 6));
+        errEx(ResolverErrorCode.CONSTANTS_EVALUATION_EXCEPTION, 2, 12, 6),
+        errEx(ResolverErrorCode.CONSTANTS_EVALUATION_EXCEPTION, 3, 12, 5));
   }
 
   /**
