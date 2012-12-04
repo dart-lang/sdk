@@ -13,9 +13,6 @@ import utils
 
 
 def Main():
-  # TODO:
-  return 0
-  
   args = sys.argv[1:]
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   current_directory = os.path.abspath('');
