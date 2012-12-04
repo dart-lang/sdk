@@ -4,4 +4,4 @@
 
 library html_common;
 
-part 'collections.dart';
+part 'lists.dart';

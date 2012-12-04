@@ -7,6 +7,7 @@
 
 library html;
 
+import 'dart:collection';
 import 'dart:html_common';
 import 'dart:isolate';
 import 'dart:json';
@@ -39,7 +40,6 @@ part '$AUXILIARY_DIR/Serialization.dart';
 part '$AUXILIARY_DIR/dartium_MutationObserverSupported.dart';
 part '$AUXILIARY_DIR/_Testing.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
-part '$AUXILIARY_DIR/_Lists.dart';
 
 part '$AUXILIARY_DIR/native_DOMPublic.dart';
 part '$AUXILIARY_DIR/native_DOMImplementation.dart';

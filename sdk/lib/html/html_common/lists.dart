@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of html;
+part of html_common;
 
-class _Lists {
+class Lists {
 
   /**
    * Returns the index in the array [a] of the given [element], starting

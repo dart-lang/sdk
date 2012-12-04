@@ -34,7 +34,7 @@ class KeyEvent implements KeyboardEvent {
 
   /** Accessor to the underlying keyCode value is the parent event. */
   int get _realKeyCode => _parent.keyCode;
-  
+
   /** Accessor to the underlying charCode value is the parent event. */
   int get _realCharCode => _parent.charCode;
 
@@ -48,14 +48,16 @@ class KeyEvent implements KeyboardEvent {
     _shadowCharCode = _realCharCode;
     _shadowKeyCode = _realKeyCode;
   }
- 
+
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;
   bool get bubbles => _parent.bubbles;
   /** True if this event can be cancelled. */
   bool get cancelable => _parent.cancelable;
   bool get cancelBubble => _parent.cancelBubble;
-  set cancelBubble(bool cancel) => _parent = cancel;
+  void set cancelBubble(bool cancel) {
+    _parent.cancelBubble = cancel;
+  }
   /** Accessor to the clipboardData available for this event. */
   Clipboard get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
@@ -78,7 +80,9 @@ class KeyEvent implements KeyboardEvent {
   int get pageX => _parent.pageX;
   int get pageY => _parent.pageY;
   bool get returnValue => _parent.returnValue;
-  set returnValue(bool value) => _parent = value;
+  void set returnValue(bool value) {
+    _parent.returnValue = value;
+  }
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
   int get timeStamp => _parent.timeStamp;

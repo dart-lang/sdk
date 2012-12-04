@@ -1,6 +1,8 @@
 library svg;
 
+import 'dart:collection';
 import 'dart:html';
+import 'dart:html_common';
 import 'dart:nativewrappers';
 // DO NOT EDIT
 // Auto-generated dart:svg library.
@@ -479,6 +481,10 @@ class AnimatedLengthList extends NativeFieldWrapperClass1 implements List<Animat
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, AnimatedLength)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(AnimatedLength element) => Collections.contains(this, element);
 
   void forEach(void f(AnimatedLength element)) => Collections.forEach(this, f);
@@ -501,16 +507,20 @@ class AnimatedLengthList extends NativeFieldWrapperClass1 implements List<Animat
   }
 
   int indexOf(AnimatedLength element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(AnimatedLength element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   AnimatedLength get first => this[0];
 
   AnimatedLength get last => this[length - 1];
+
+  AnimatedLength removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   AnimatedLength removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -529,7 +539,7 @@ class AnimatedLengthList extends NativeFieldWrapperClass1 implements List<Animat
   }
 
   List<AnimatedLength> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <AnimatedLength>[]);
+      Lists.getRange(this, start, rangeLength, <AnimatedLength>[]);
 
   // -- end List<AnimatedLength> mixins.
 
@@ -608,6 +618,10 @@ class AnimatedNumberList extends NativeFieldWrapperClass1 implements List<Animat
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, AnimatedNumber)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(AnimatedNumber element) => Collections.contains(this, element);
 
   void forEach(void f(AnimatedNumber element)) => Collections.forEach(this, f);
@@ -630,16 +644,20 @@ class AnimatedNumberList extends NativeFieldWrapperClass1 implements List<Animat
   }
 
   int indexOf(AnimatedNumber element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(AnimatedNumber element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   AnimatedNumber get first => this[0];
 
   AnimatedNumber get last => this[length - 1];
+
+  AnimatedNumber removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   AnimatedNumber removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -658,7 +676,7 @@ class AnimatedNumberList extends NativeFieldWrapperClass1 implements List<Animat
   }
 
   List<AnimatedNumber> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <AnimatedNumber>[]);
+      Lists.getRange(this, start, rangeLength, <AnimatedNumber>[]);
 
   // -- end List<AnimatedNumber> mixins.
 
@@ -777,6 +795,10 @@ class AnimatedTransformList extends NativeFieldWrapperClass1 implements List<Ani
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, AnimateTransformElement)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(AnimateTransformElement element) => Collections.contains(this, element);
 
   void forEach(void f(AnimateTransformElement element)) => Collections.forEach(this, f);
@@ -799,16 +821,20 @@ class AnimatedTransformList extends NativeFieldWrapperClass1 implements List<Ani
   }
 
   int indexOf(AnimateTransformElement element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(AnimateTransformElement element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   AnimateTransformElement get first => this[0];
 
   AnimateTransformElement get last => this[length - 1];
+
+  AnimateTransformElement removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   AnimateTransformElement removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -827,7 +853,7 @@ class AnimatedTransformList extends NativeFieldWrapperClass1 implements List<Ani
   }
 
   List<AnimateTransformElement> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <AnimateTransformElement>[]);
+      Lists.getRange(this, start, rangeLength, <AnimateTransformElement>[]);
 
   // -- end List<AnimateTransformElement> mixins.
 
@@ -3722,6 +3748,10 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Length)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(Length element) => Collections.contains(this, element);
 
   void forEach(void f(Length element)) => Collections.forEach(this, f);
@@ -3744,16 +3774,20 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   }
 
   int indexOf(Length element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Length element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Length get first => this[0];
 
   Length get last => this[length - 1];
+
+  Length removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Length removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -3772,7 +3806,7 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   }
 
   List<Length> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Length>[]);
+      Lists.getRange(this, start, rangeLength, <Length>[]);
 
   // -- end List<Length> mixins.
 
@@ -4381,6 +4415,10 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Number)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(Number element) => Collections.contains(this, element);
 
   void forEach(void f(Number element)) => Collections.forEach(this, f);
@@ -4403,16 +4441,20 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
   }
 
   int indexOf(Number element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Number element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Number get first => this[0];
 
   Number get last => this[length - 1];
+
+  Number removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Number removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -4431,7 +4473,7 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
   }
 
   List<Number> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Number>[]);
+      Lists.getRange(this, start, rangeLength, <Number>[]);
 
   // -- end List<Number> mixins.
 
@@ -5452,6 +5494,10 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, PathSeg)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(PathSeg element) => Collections.contains(this, element);
 
   void forEach(void f(PathSeg element)) => Collections.forEach(this, f);
@@ -5474,16 +5520,20 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   }
 
   int indexOf(PathSeg element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(PathSeg element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   PathSeg get first => this[0];
 
   PathSeg get last => this[length - 1];
+
+  PathSeg removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   PathSeg removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -5502,7 +5552,7 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   }
 
   List<PathSeg> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <PathSeg>[]);
+      Lists.getRange(this, start, rangeLength, <PathSeg>[]);
 
   // -- end List<PathSeg> mixins.
 
@@ -6361,6 +6411,10 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(String element) => Collections.contains(this, element);
 
   void forEach(void f(String element)) => Collections.forEach(this, f);
@@ -6383,16 +6437,20 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
   }
 
   int indexOf(String element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(String element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   String get first => this[0];
 
   String get last => this[length - 1];
+
+  String removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   String removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -6411,7 +6469,7 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
   }
 
   List<String> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <String>[]);
+      Lists.getRange(this, start, rangeLength, <String>[]);
 
   // -- end List<String> mixins.
 
@@ -6633,6 +6691,32 @@ class SvgElement extends Element {
     // HTMLElements.
     container.innerHtml = '<svg version="1.1">$svg</svg>';
     this.children = container.children[0].children;
+  }
+
+  // Unsupported methods inherited from Element.
+
+  /** @domName Element.insertAdjacentText */
+  void insertAdjacentText(String where, String text) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentText on SVG.");
+  }
+
+  /** @domName Element.insertAdjacentHTML */
+  void insertAdjacentHtml(String where, String text) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
+  }
+
+  /** @domName Element.insertAdjacentHTML */
+  Element insertAdjacentElement(String where, Element element) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
+  }
+
+  HTMLCollection get $dom_children {
+    throw new UnsupportedError("Cannot get dom_children on SVG.");
+  }
+
+  bool get isContentEditable => false;
+  void click() {
+    throw new UnsupportedError("Cannot invoke click SVG.");
   }
 
   SvgElement.internal(): super.internal();
@@ -7538,6 +7622,10 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Transform)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(Transform element) => Collections.contains(this, element);
 
   void forEach(void f(Transform element)) => Collections.forEach(this, f);
@@ -7560,16 +7648,20 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
   }
 
   int indexOf(Transform element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Transform element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Transform get first => this[0];
 
   Transform get last => this[length - 1];
+
+  Transform removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Transform removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -7588,7 +7680,7 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
   }
 
   List<Transform> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Transform>[]);
+      Lists.getRange(this, start, rangeLength, <Transform>[]);
 
   // -- end List<Transform> mixins.
 
@@ -8029,6 +8121,10 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ElementInstance)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(ElementInstance element) => Collections.contains(this, element);
 
   void forEach(void f(ElementInstance element)) => Collections.forEach(this, f);
@@ -8051,16 +8147,20 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
   }
 
   int indexOf(ElementInstance element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(ElementInstance element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   ElementInstance get first => this[0];
 
   ElementInstance get last => this[length - 1];
+
+  ElementInstance removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   ElementInstance removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -8079,7 +8179,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
   }
 
   List<ElementInstance> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <ElementInstance>[]);
+      Lists.getRange(this, start, rangeLength, <ElementInstance>[]);
 
   // -- end List<ElementInstance> mixins.
 

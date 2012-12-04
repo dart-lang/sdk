@@ -1,6 +1,8 @@
 library svg;
 
+import 'dart:collection';
 import 'dart:html';
+import 'dart:html_common';
 // DO NOT EDIT
 // Auto-generated dart:svg library.
 
@@ -358,6 +360,10 @@ class AnimatedLengthList implements JavaScriptIndexingBehavior, List<AnimatedLen
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, AnimatedLength)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(AnimatedLength element) => Collections.contains(this, element);
 
   void forEach(void f(AnimatedLength element)) => Collections.forEach(this, f);
@@ -380,16 +386,20 @@ class AnimatedLengthList implements JavaScriptIndexingBehavior, List<AnimatedLen
   }
 
   int indexOf(AnimatedLength element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(AnimatedLength element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   AnimatedLength get first => this[0];
 
   AnimatedLength get last => this[length - 1];
+
+  AnimatedLength removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   AnimatedLength removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -408,7 +418,7 @@ class AnimatedLengthList implements JavaScriptIndexingBehavior, List<AnimatedLen
   }
 
   List<AnimatedLength> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <AnimatedLength>[]);
+      Lists.getRange(this, start, rangeLength, <AnimatedLength>[]);
 
   // -- end List<AnimatedLength> mixins.
 }
@@ -471,6 +481,10 @@ class AnimatedNumberList implements JavaScriptIndexingBehavior, List<AnimatedNum
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, AnimatedNumber)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(AnimatedNumber element) => Collections.contains(this, element);
 
   void forEach(void f(AnimatedNumber element)) => Collections.forEach(this, f);
@@ -493,16 +507,20 @@ class AnimatedNumberList implements JavaScriptIndexingBehavior, List<AnimatedNum
   }
 
   int indexOf(AnimatedNumber element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(AnimatedNumber element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   AnimatedNumber get first => this[0];
 
   AnimatedNumber get last => this[length - 1];
+
+  AnimatedNumber removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   AnimatedNumber removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -521,7 +539,7 @@ class AnimatedNumberList implements JavaScriptIndexingBehavior, List<AnimatedNum
   }
 
   List<AnimatedNumber> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <AnimatedNumber>[]);
+      Lists.getRange(this, start, rangeLength, <AnimatedNumber>[]);
 
   // -- end List<AnimatedNumber> mixins.
 }
@@ -612,6 +630,10 @@ class AnimatedTransformList implements JavaScriptIndexingBehavior, List<AnimateT
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, AnimateTransformElement)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(AnimateTransformElement element) => Collections.contains(this, element);
 
   void forEach(void f(AnimateTransformElement element)) => Collections.forEach(this, f);
@@ -634,16 +656,20 @@ class AnimatedTransformList implements JavaScriptIndexingBehavior, List<AnimateT
   }
 
   int indexOf(AnimateTransformElement element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(AnimateTransformElement element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   AnimateTransformElement get first => this[0];
 
   AnimateTransformElement get last => this[length - 1];
+
+  AnimateTransformElement removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   AnimateTransformElement removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -662,7 +688,7 @@ class AnimatedTransformList implements JavaScriptIndexingBehavior, List<AnimateT
   }
 
   List<AnimateTransformElement> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <AnimateTransformElement>[]);
+      Lists.getRange(this, start, rangeLength, <AnimateTransformElement>[]);
 
   // -- end List<AnimateTransformElement> mixins.
 }
@@ -2985,6 +3011,10 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Length)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(Length element) => Collections.contains(this, element);
 
   void forEach(void f(Length element)) => Collections.forEach(this, f);
@@ -3007,16 +3037,20 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
   }
 
   int indexOf(Length element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Length element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Length get first => this[0];
 
   Length get last => this[length - 1];
+
+  Length removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Length removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -3035,7 +3069,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
   }
 
   List<Length> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Length>[]);
+      Lists.getRange(this, start, rangeLength, <Length>[]);
 
   // -- end List<Length> mixins.
 
@@ -3491,6 +3525,10 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Number)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(Number element) => Collections.contains(this, element);
 
   void forEach(void f(Number element)) => Collections.forEach(this, f);
@@ -3513,16 +3551,20 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
   }
 
   int indexOf(Number element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Number element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Number get first => this[0];
 
   Number get last => this[length - 1];
+
+  Number removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Number removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -3541,7 +3583,7 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
   }
 
   List<Number> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Number>[]);
+      Lists.getRange(this, start, rangeLength, <Number>[]);
 
   // -- end List<Number> mixins.
 
@@ -4176,6 +4218,10 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, PathSeg)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(PathSeg element) => Collections.contains(this, element);
 
   void forEach(void f(PathSeg element)) => Collections.forEach(this, f);
@@ -4198,16 +4244,20 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
   }
 
   int indexOf(PathSeg element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(PathSeg element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   PathSeg get first => this[0];
 
   PathSeg get last => this[length - 1];
+
+  PathSeg removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   PathSeg removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -4226,7 +4276,7 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
   }
 
   List<PathSeg> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <PathSeg>[]);
+      Lists.getRange(this, start, rangeLength, <PathSeg>[]);
 
   // -- end List<PathSeg> mixins.
 
@@ -4879,6 +4929,10 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(String element) => Collections.contains(this, element);
 
   void forEach(void f(String element)) => Collections.forEach(this, f);
@@ -4901,16 +4955,20 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
   }
 
   int indexOf(String element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(String element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   String get first => this[0];
 
   String get last => this[length - 1];
+
+  String removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   String removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -4929,7 +4987,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
   }
 
   List<String> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <String>[]);
+      Lists.getRange(this, start, rangeLength, <String>[]);
 
   // -- end List<String> mixins.
 
@@ -5103,6 +5161,32 @@ class SvgElement extends Element native "*SVGElement" {
     // HTMLElements.
     container.innerHtml = '<svg version="1.1">$svg</svg>';
     this.children = container.children[0].children;
+  }
+
+  // Unsupported methods inherited from Element.
+
+  /** @domName Element.insertAdjacentText */
+  void insertAdjacentText(String where, String text) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentText on SVG.");
+  }
+
+  /** @domName Element.insertAdjacentHTML */
+  void insertAdjacentHtml(String where, String text) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
+  }
+
+  /** @domName Element.insertAdjacentHTML */
+  Element insertAdjacentElement(String where, Element element) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
+  }
+
+  HTMLCollection get $dom_children {
+    throw new UnsupportedError("Cannot get dom_children on SVG.");
+  }
+
+  bool get isContentEditable => false;
+  void click() {
+    throw new UnsupportedError("Cannot invoke click SVG.");
   }
 
 
@@ -5823,6 +5907,10 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Transform)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(Transform element) => Collections.contains(this, element);
 
   void forEach(void f(Transform element)) => Collections.forEach(this, f);
@@ -5845,16 +5933,20 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   }
 
   int indexOf(Transform element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Transform element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Transform get first => this[0];
 
   Transform get last => this[length - 1];
+
+  Transform removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Transform removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -5873,7 +5965,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   }
 
   List<Transform> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Transform>[]);
+      Lists.getRange(this, start, rangeLength, <Transform>[]);
 
   // -- end List<Transform> mixins.
 
@@ -6213,6 +6305,10 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ElementInstance)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   bool contains(ElementInstance element) => Collections.contains(this, element);
 
   void forEach(void f(ElementInstance element)) => Collections.forEach(this, f);
@@ -6235,16 +6331,20 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
   }
 
   int indexOf(ElementInstance element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(ElementInstance element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   ElementInstance get first => this[0];
 
   ElementInstance get last => this[length - 1];
+
+  ElementInstance removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   ElementInstance removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -6263,7 +6363,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
   }
 
   List<ElementInstance> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <ElementInstance>[]);
+      Lists.getRange(this, start, rangeLength, <ElementInstance>[]);
 
   // -- end List<ElementInstance> mixins.
 

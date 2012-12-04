@@ -24,6 +24,10 @@
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, $E)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
 $if DEFINE_CONTAINS
   bool contains($E element) => Collections.contains(this, element);
 $else
@@ -50,16 +54,20 @@ $endif
   }
 
   int indexOf($E element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf($E element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   $E get first => this[0];
 
   $E get last => this[length - 1];
+
+  $E removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   $E removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -78,6 +86,6 @@ $endif
   }
 
   List<$E> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <$E>[]);
+      Lists.getRange(this, start, rangeLength, <$E>[]);
 
   // -- end List<$E> mixins.

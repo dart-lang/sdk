@@ -13,12 +13,12 @@ part of html;
  *
  * This class is very much a work in progress, and we'd love to get information
  * on how we can make this class work with as many international keyboards as
- * possible. Bugs welcome! 
+ * possible. Bugs welcome!
  */
 class KeyboardEventController {
   // This code inspired by Closure's KeyHandling library.
   // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
-  
+
   /**
    * The set of keys that have been pressed down without seeing their
    * corresponding keyup event.
@@ -76,7 +76,7 @@ class KeyboardEventController {
   KeyboardEventController.keypress(EventTarget target) {
     _KeyboardEventController(target, 'keypress');
   }
-  
+
   /** Named constructor to add an onKeyUp event listener to our handler. */
   KeyboardEventController.keyup(EventTarget target) {
     _KeyboardEventController(target, 'keyup');
@@ -86,7 +86,7 @@ class KeyboardEventController {
   KeyboardEventController.keydown(EventTarget target) {
     _KeyboardEventController(target, 'keydown');
   }
-  
+
   /**
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
@@ -118,7 +118,7 @@ class KeyboardEventController {
     }
     _callbacks.add(callback);
   }
-  
+
   /**
    * Notify all callback listeners that a KeyEvent of the relevant type has
    * occurred.
@@ -258,16 +258,16 @@ class KeyboardEventController {
     if (!_Device.isIE && !_Device.isWebKit) {
       return true;
     }
-    
+
     if (_Device.userAgent.contains('Mac') && event.altKey) {
       return KeyCode.isCharacterKey(event.keyCode);
     }
- 
+
     // Alt but not AltGr which is represented as Alt+Ctrl.
     if (event.altKey && !event.ctrlKey) {
       return false;
     }
- 
+
     // Saves Ctrl or Alt + key for IE and WebKit, which won't fire keypress.
     if (!event.shiftKey &&
         (_keyDownList.last.keyCode == KeyCode.CTRL ||
@@ -276,21 +276,21 @@ class KeyboardEventController {
          _keyDownList.last.keyCode == KeyCode.META)) {
       return false;
     }
- 
+
     // Some keys with Ctrl/Shift do not issue keypress in WebKit.
     if (_Device.isWebKit && event.ctrlKey && event.shiftKey && (
-        event.keycode == KeyCode.BACKSLASH ||
-        event.keycode == KeyCode.OPEN_SQUARE_BRACKET ||
-        event.keycode == KeyCode.CLOSE_SQUARE_BRACKET ||
-        event.keycode == KeyCode.TILDE ||
-        event.keycode == KeyCode.SEMICOLON || event.keycode == KeyCode.DASH ||
-        event.keycode == KeyCode.EQUALS || event.keycode == KeyCode.COMMA ||
-        event.keycode == KeyCode.PERIOD || event.keycode == KeyCode.SLASH ||
-        event.keycode == KeyCode.APOSTROPHE ||
-        event.keycode == KeyCode.SINGLE_QUOTE)) {
+        event.keyCode == KeyCode.BACKSLASH ||
+        event.keyCode == KeyCode.OPEN_SQUARE_BRACKET ||
+        event.keyCode == KeyCode.CLOSE_SQUARE_BRACKET ||
+        event.keyCode == KeyCode.TILDE ||
+        event.keyCode == KeyCode.SEMICOLON || event.keyCode == KeyCode.DASH ||
+        event.keyCode == KeyCode.EQUALS || event.keyCode == KeyCode.COMMA ||
+        event.keyCode == KeyCode.PERIOD || event.keyCode == KeyCode.SLASH ||
+        event.keyCode == KeyCode.APOSTROPHE ||
+        event.keyCode == KeyCode.SINGLE_QUOTE)) {
       return false;
     }
- 
+
     switch (event.keyCode) {
       case KeyCode.ENTER:
         // IE9 does not fire keypress on ENTER.
@@ -298,7 +298,7 @@ class KeyboardEventController {
       case KeyCode.ESC:
         return !_Device.isWebKit;
     }
- 
+
     return KeyCode.isCharacterKey(event.keyCode);
   }
 
@@ -366,18 +366,18 @@ class KeyboardEventController {
       }
     } else if (_Device.isOpera) {
       // Opera reports the character code in the keyCode field.
-      e._shadowCharCode = KeyCode.isCharacterKey(keyCode) ? e.keyCode : 0;
+      e._shadowCharCode = KeyCode.isCharacterKey(e.keyCode) ? e.keyCode : 0;
     }
     // Now we guestimate about what the keycode is that was actually
     // pressed, given previous keydown information.
     e._shadowKeyCode = _determineKeyCodeForKeypress(e);
 
     // Correct the key value for certain browser-specific quirks.
-    if (e._shadowKeyIdentifier &&
-        _keyIdentifier.contains(e._shadowKeyIdentifier)) {
+    if (e._shadowKeyIdentifier != null &&
+        _keyIdentifier.containsKey(e._shadowKeyIdentifier)) {
       // This is needed for Safari Windows because it currently doesn't give a
       // keyCode/which for non printable keys.
-      e._shadowKeyCode = _keyIdentifier[keyIdentifier];
+      e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
     }
     e._shadowAltKey = _keyDownList.some((var element) => element.altKey);
     _dispatch(e);
@@ -397,8 +397,8 @@ class KeyboardEventController {
     } else if (_keyDownList.length > 0) {
       // This happens when we've reached some international keyboard case we
       // haven't accounted for or we haven't correctly eliminated all browser
-      // inconsistencies. Filing bugs on when this is reached is welcome! 
-      _keyDownList.removeLast(); 
+      // inconsistencies. Filing bugs on when this is reached is welcome!
+      _keyDownList.removeLast();
     }
     _dispatch(e);
   }

@@ -82,10 +82,10 @@ $endif
   }
 
   int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+      Lists.lastIndexOf(this, element, start);
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -101,7 +101,7 @@ $endif
         "Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
+      Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 

@@ -7,4 +7,4 @@ library html_common;
 import 'dart:html';
 
 part 'conversions.dart';
-part 'collections.dart';
+part 'lists.dart';

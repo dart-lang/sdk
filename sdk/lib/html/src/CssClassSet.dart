@@ -53,6 +53,11 @@ abstract class CssClassSet implements Set<String> {
   bool get isEmpty => readClasses().isEmpty;
 
   int get length =>readClasses().length;
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, String element)) {
+    return readClasses().reduce(initialValue, combine);
+  }
   // interface Collection - END
 
   // interface Set - BEGIN

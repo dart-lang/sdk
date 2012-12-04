@@ -21,7 +21,7 @@ class _MessageTraverserVisitedMap {
 }
 
 /** Abstract visitor for dart objects that can be sent as isolate messages. */
-class _MessageTraverser {
+abstract class _MessageTraverser {
 
   _MessageTraverserVisitedMap _visited;
   _MessageTraverser() : _visited = new _MessageTraverserVisitedMap();
@@ -67,43 +67,8 @@ class _MessageTraverser {
 }
 
 
-/** A visitor that recursively copies a message. */
-class _Copier extends _MessageTraverser {
-
-  visitPrimitive(x) => x;
-
-  List visitList(List list) {
-    List copy = _visited[list];
-    if (copy != null) return copy;
-
-    int len = list.length;
-
-    // TODO(floitsch): we loose the generic type of the List.
-    copy = new List(len);
-    _visited[list] = copy;
-    for (int i = 0; i < len; i++) {
-      copy[i] = _dispatch(list[i]);
-    }
-    return copy;
-  }
-
-  Map visitMap(Map map) {
-    Map copy = _visited[map];
-    if (copy != null) return copy;
-
-    // TODO(floitsch): we loose the generic type of the map.
-    copy = new Map();
-    _visited[map] = copy;
-    map.forEach((key, val) {
-      copy[_dispatch(key)] = _dispatch(val);
-    });
-    return copy;
-  }
-
-}
-
 /** Visitor that serializes a message as a JSON array. */
-class _Serializer extends _MessageTraverser {
+abstract class _Serializer extends _MessageTraverser {
   int _nextFreeRefId = 0;
 
   visitPrimitive(x) => x;
@@ -142,7 +107,7 @@ class _Serializer extends _MessageTraverser {
 }
 
 /** Deserializes arrays created with [_Serializer]. */
-class _Deserializer {
+abstract class _Deserializer {
   Map<int, dynamic> _deserialized;
 
   _Deserializer();

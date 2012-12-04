@@ -7,6 +7,7 @@
 
 library html;
 
+import 'dart:collection';
 import 'dart:html_common';
 import 'dart:isolate';
 import 'dart:json';
@@ -43,7 +44,6 @@ part '$AUXILIARY_DIR/dart2js_MutationObserverSupported.dart';
 part '$AUXILIARY_DIR/dart2js_TypedArrayFactoryProvider.dart';
 part '$AUXILIARY_DIR/_Testing.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
-part '$AUXILIARY_DIR/_Lists.dart';
 
 
 LocalWindow get window => JS('LocalWindow', 'window');

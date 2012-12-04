@@ -82,6 +82,16 @@ class FilteredElementList implements List {
     return result;
   }
 
+  Element removeAt(int index) {
+    final result = this[index];
+    result.remove();
+    return result;
+  }
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return Collections.reduce(this, initialValue, element);
+  }
   Collection map(f(Element element)) => _filtered.map(f);
   Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
   bool every(bool f(Element element)) => _filtered.every(f);
