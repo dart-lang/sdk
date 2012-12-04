@@ -3547,15 +3547,23 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
       instr->instantiator()->definition()->constant_value();
   if (IsNonConstant(object)) {
     SetValue(instr, non_constant_);
-  } else if (IsConstant(object)) {
-    if (!object.IsNull() &&
-        object.IsTypeArguments() &&
-        (TypeArguments::Cast(object).Length() ==
-         instr->type_arguments().Length())) {
+    return;
+  }
+  if (IsConstant(object)) {
+    const intptr_t len = instr->type_arguments().Length();
+    if (instr->type_arguments().IsRawInstantiatedRaw(len) &&
+        object.IsNull()) {
       SetValue(instr, object);
-    } else {
-      SetValue(instr, non_constant_);
+      return;
     }
+    if (instr->type_arguments().IsUninstantiatedIdentity() &&
+        !object.IsNull() &&
+        object.IsTypeArguments() &&
+        (TypeArguments::Cast(object).Length() == len)) {
+      SetValue(instr, object);
+      return;
+    }
+    SetValue(instr, non_constant_);
   }
 }
 
@@ -3832,6 +3840,7 @@ void ConstantPropagator::Transform() {
       // types, etc.
       if ((defn != NULL) &&
           (defn->constant_value().IsSmi() ||
+           defn->constant_value().IsNull() ||
            defn->constant_value().IsTypeArguments()) &&
           !defn->IsConstant() &&
           !defn->IsPushArgument() &&
