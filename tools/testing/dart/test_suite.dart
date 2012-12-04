@@ -1516,17 +1516,16 @@ class TestUtils {
                   "Expected ${dir} to already exist");
     var segments = relativePath.segments();
     for (String segment in segments) {
-      // Ugly hack: if Windows absolute path starts with a drive,
-      // rewrite [base] properly.
-      if (segment.length == 2 && segment.endsWith(':')) {
-        base = new Path(segment);
+      base = base.append(segment);
+      if (base.toString() == "/$segment" &&
+          segment.length == 2 &&
+          segment.endsWith(':')) {
+        // Skip the directory creation for a path like "/E:".
         continue;
       }
-      base = base.append(segment);
       dir = new Directory.fromPath(base);
-      print("======= creating $dir $base");
       if (!dir.existsSync()) {
-          dir.createSync();
+        dir.createSync();
       }
       Expect.isTrue(dir.existsSync(), "Failed to create ${dir.path}");
     }
