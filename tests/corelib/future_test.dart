@@ -351,6 +351,19 @@ testCallStackIsCapturedIfChainCallbackThrows() {
   Expect.isNotNull(chained.stackTrace);
 }
 
+testCallStackIsPreservedIfExceptionIsRethrownInTransformException() {
+  final completer = new Completer();
+  var chained = completer.future.chain((_) {
+    throw 'whoops!';
+  });
+  var transformed = chained.transformException((e) {
+    throw e;
+  });
+
+  completer.complete('blah');
+  Expect.equals(transformed.stackTrace, chained.stackTrace);
+}
+
 // Tests for mixed usage of [onComplete], [then], and [handleException]
 
 testCompleteWithCompletionAndSuccessHandlers() {
@@ -677,6 +690,7 @@ main() {
   testCallStackReturnsCallstackPassedToCompleteException();
   testCallStackIsCapturedIfTransformCallbackThrows();
   testCallStackIsCapturedIfChainCallbackThrows();
+  testCallStackIsPreservedIfExceptionIsRethrownInTransformException();
   testCompleteWithCompletionAndSuccessHandlers();
   testExceptionWithCompletionAndSuccessHandlers();
   testExceptionWithCompletionAndSuccessAndExceptionHandlers();

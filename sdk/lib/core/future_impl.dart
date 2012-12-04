@@ -235,7 +235,11 @@ class _FutureImpl<T> implements Future<T> {
           completer.complete(result);
         }
       } catch (innerException, stackTrace) {
-        completer.completeException(innerException, stackTrace);
+        if (identical(ex, innerException)) {
+          completer.completeException(innerException, this.stackTrace);
+        } else {
+          completer.completeException(innerException, stackTrace);
+        }
       }
       return false;
     });
