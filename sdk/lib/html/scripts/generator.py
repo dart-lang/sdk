@@ -594,6 +594,7 @@ def FindConversion(idl_type, direction, interface, member):
 #
 #   INTERFACE.MEMBER: annotations for member.
 #   +TYPE:            add annotations only if there are member annotations.
+#   -TYPE:            add annotations only if there are no member annotations.
 #   TYPE:             add regardless of member annotations.
 
 dart2js_annotations = {
@@ -615,9 +616,25 @@ dart2js_annotations = {
     'DOMWindow.openDatabase': "@Creates('Database') @Creates('DatabaseSync')",
 
     # Cross-frame windows are EventTargets.
-    'EventTarget':
-      #"@Creates('Null') @Returns('EventTarget|=Object')",
+    '-EventTarget':
       "@Creates('EventTarget|=Object') @Returns('EventTarget|=Object')",
+
+    # To be in callback with the browser-created Event, we had to have called
+    # addEventListener on the target, so we avoid
+    'Event.currentTarget':
+        "@Creates('Null') @Returns('EventTarget|=Object')",
+
+    # Only nodes in the DOM bubble and have target !== currentTarget.
+    'Event.target':
+        "@Creates('Node') @Returns('EventTarget|=Object')",
+
+    'MouseEvent.relatedTarget':
+        "@Creates('Node') @Returns('EventTarget|=Object')",
+
+    # Touch targets are Elements in a Document, or the Document.
+    'Touch.target':
+        "@Creates('Element|Document') @Returns('Element|Document')",
+
 
     'FileReader.result': "@Creates('String|ArrayBuffer|Null')",
 
@@ -687,6 +704,9 @@ def FindAnnotations(idl_type, interface_name, member_name):
       return ann2 + ' ' + ann1
     return ann1
 
+  ann2 = dart2js_annotations.get('-' + idl_type)
+  if ann2:
+    return ann2
   ann2 = dart2js_annotations.get(idl_type)
   return ann2
 

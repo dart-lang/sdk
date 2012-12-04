@@ -7836,7 +7836,7 @@ class Event native "*Event" {
   /// @domName Event.currentTarget; @docsEditable true
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
   @JSName('currentTarget')
-  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  @Creates('Null') @Returns('EventTarget|=Object')
   final dynamic _currentTarget;
 
   /// @domName Event.defaultPrevented; @docsEditable true
@@ -7851,7 +7851,7 @@ class Event native "*Event" {
   /// @domName Event.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   @JSName('target')
-  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  @Creates('Node') @Returns('EventTarget|=Object')
   final dynamic _target;
 
   /// @domName Event.timeStamp; @docsEditable true
@@ -13055,7 +13055,7 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   /// @domName MouseEvent.relatedTarget; @docsEditable true
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
   @JSName('relatedTarget')
-  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  @Creates('Node') @Returns('EventTarget|=Object')
   final dynamic _relatedTarget;
 
   /// @domName MouseEvent.screenX; @docsEditable true
@@ -17454,7 +17454,7 @@ class Touch native "*Touch" {
   /// @domName Touch.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   @JSName('target')
-  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  @Creates('Element|Document') @Returns('Element|Document')
   final dynamic _target;
 
   /// @domName Touch.webkitForce; @docsEditable true
