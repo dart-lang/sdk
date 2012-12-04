@@ -1506,7 +1506,6 @@ class TestUtils {
    * [base] directory if that [relativePath] does not already exist.
    */
   static Directory mkdirRecursive(Path base, Path relativePath) {
-    print("======= $base|$relativePath|${relativePath.isAbsolute}|${relativePath.segments()}");
     if (relativePath.isAbsolute) {
       base = new Path('/');
     }
@@ -1523,6 +1522,7 @@ class TestUtils {
       }
       base = base.append(segment);
       dir = new Directory.fromPath(base);
+      print("======= creating $dir $base");
       if (!dir.existsSync()) {
           dir.createSync();
       }
