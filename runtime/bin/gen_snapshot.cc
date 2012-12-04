@@ -149,45 +149,196 @@ static void WriteSnapshotFile(const uint8_t* buffer, const intptr_t size) {
 }
 
 
+class UriResolverIsolateScope {
+ public:
+  UriResolverIsolateScope() {
+    ASSERT(isolate != NULL);
+    snapshotted_isolate_ = Dart_CurrentIsolate();
+    Dart_ExitIsolate();
+    Dart_EnterIsolate(isolate);
+    Dart_EnterScope();
+  }
+
+  ~UriResolverIsolateScope() {
+    ASSERT(snapshotted_isolate_ != NULL);
+    Dart_ExitScope();
+    Dart_ExitIsolate();
+    Dart_EnterIsolate(snapshotted_isolate_);
+  }
+
+  static Dart_Isolate isolate;
+
+ private:
+  Dart_Isolate snapshotted_isolate_;
+
+  DISALLOW_COPY_AND_ASSIGN(UriResolverIsolateScope);
+};
+
+Dart_Isolate UriResolverIsolateScope::isolate = NULL;
+
+
+static Dart_Handle ResolveScriptUri(const char* script_uri) {
+  bool failed = false;
+  char* result_string = NULL;
+
+  {
+    UriResolverIsolateScope scope;
+
+    // Run DartUtils::ResolveScriptUri in context of uri resolver isolate.
+    Dart_Handle builtin_lib =
+        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+    CHECK_RESULT(builtin_lib);
+
+    Dart_Handle result = DartUtils::ResolveScriptUri(
+        DartUtils::NewString(script_uri), builtin_lib);
+    if (Dart_IsError(result)) {
+      failed = true;
+      result_string = strdup(Dart_GetError(result));
+    } else {
+      result_string = strdup(DartUtils::GetStringValue(result));
+    }
+  }
+
+  Dart_Handle result = failed ? Dart_NewApiError(result_string) :
+                                DartUtils::NewString(result_string);
+  free(result_string);
+  return result;
+}
+
+
+static Dart_Handle FilePathFromUri(const char* script_uri) {
+  bool failed = false;
+  char* result_string = NULL;
+
+  {
+    UriResolverIsolateScope scope;
+
+    // Run DartUtils::FilePathFromUri in context of uri resolver isolate.
+    Dart_Handle builtin_lib =
+        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+    CHECK_RESULT(builtin_lib);
+
+    Dart_Handle result = DartUtils::FilePathFromUri(
+        DartUtils::NewString(script_uri), builtin_lib);
+    if (Dart_IsError(result)) {
+      failed = true;
+      result_string = strdup(Dart_GetError(result));
+    } else {
+      result_string = strdup(DartUtils::GetStringValue(result));
+    }
+  }
+
+  Dart_Handle result = failed ? Dart_NewApiError(result_string) :
+                                DartUtils::NewString(result_string);
+  free(result_string);
+  return result;
+}
+
+
+static Dart_Handle ResolveUri(const char* library_uri, const char* uri) {
+  bool failed = false;
+  char* result_string = NULL;
+
+  {
+    UriResolverIsolateScope scope;
+
+    // Run DartUtils::ResolveUri in context of uri resolver isolate.
+    Dart_Handle builtin_lib =
+        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+    CHECK_RESULT(builtin_lib);
+
+    Dart_Handle result = DartUtils::ResolveUri(
+        DartUtils::NewString(library_uri),
+        DartUtils::NewString(uri),
+        builtin_lib);
+    if (Dart_IsError(result)) {
+      failed = true;
+      result_string = strdup(Dart_GetError(result));
+    } else {
+      result_string = strdup(DartUtils::GetStringValue(result));
+    }
+  }
+
+  Dart_Handle result = failed ? Dart_NewApiError(result_string) :
+                                DartUtils::NewString(result_string);
+  free(result_string);
+  return result;
+}
+
+
 static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
                                                    Dart_Handle library,
                                                    Dart_Handle url) {
   if (!Dart_IsLibrary(library)) {
     return Dart_Error("not a library");
   }
+  Dart_Handle library_url = Dart_LibraryUrl(library);
+  if (Dart_IsError(library_url)) {
+    return Dart_Error("accessing library url failed");
+  }
+  const char* library_url_string = DartUtils::GetStringValue(library_url);
+  const char* mapped_library_url_string = DartUtils::MapLibraryUrl(
+      url_mapping, library_url_string);
+  if (mapped_library_url_string != NULL) {
+    library_url = ResolveScriptUri(mapped_library_url_string);
+    library_url_string = DartUtils::GetStringValue(library_url);
+  }
+
   if (!Dart_IsString(url)) {
     return Dart_Error("url is not a string");
   }
-  const char* url_string = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_string);
-  if (Dart_IsError(result)) {
-    return result;
-  }
+  const char* url_string = DartUtils::GetStringValue(url);
+  const char* mapped_url_string = DartUtils::MapLibraryUrl(url_mapping,
+                                                           url_string);
 
-  // If the URL starts with "dart:" then it is handled specially.
-  bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
   if (tag == kCanonicalizeUrl) {
-    if (is_dart_scheme_url) {
+    // Keep original names for libraries that have a mapping (e.g. dart:io).
+    if (mapped_url_string) {
       return url;
     }
-    return DartUtils::CanonicalizeURL(url_mapping, library, url_string);
+    return ResolveUri(library_url_string, url_string);
   }
-  return DartUtils::LoadSource(url_mapping,
+
+  Dart_Handle resolved_url = url;
+  if (mapped_url_string != NULL) {
+    // Mapped urls are relative to working directory.
+    resolved_url = ResolveScriptUri(mapped_url_string);
+    if (Dart_IsError(resolved_url)) {
+      return resolved_url;
+    }
+  }
+
+  // Get the file path out of the url.
+  Dart_Handle file_path = FilePathFromUri(
+      DartUtils::GetStringValue(resolved_url));
+  if (Dart_IsError(file_path)) {
+    return file_path;
+  }
+
+  return DartUtils::LoadSource(NULL,
                                library,
                                url,
                                tag,
-                               url_string);
+                               DartUtils::GetStringValue(file_path));
 }
 
 
 static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
-  Dart_Handle source = DartUtils::ReadStringFromFile(script_name);
-  if (Dart_IsError(source)) {
-    return source;  // source contains the error string.
+  Dart_Handle resolved_script_uri = ResolveScriptUri(script_name);
+  if (Dart_IsError(resolved_script_uri)) {
+    return resolved_script_uri;
   }
-  Dart_Handle url = DartUtils::NewString(script_name);
-
-  return Dart_LoadScript(url, source);
+  Dart_Handle script_path = FilePathFromUri(
+      DartUtils::GetStringValue(resolved_script_uri));
+  if (Dart_IsError(script_path)) {
+    return script_path;
+  }
+  Dart_Handle source = DartUtils::ReadStringFromFile(
+      DartUtils::GetStringValue(script_path));
+  if (Dart_IsError(source)) {
+    return source;
+  }
+  return Dart_LoadScript(resolved_script_uri, source);
 }
 
 
@@ -247,7 +398,7 @@ static void CreateAndWriteSnapshot(bool script_snapshot) {
 }
 
 
-static void SetupForGenericSnapshotCreation() {
+static void SetupForUriResolution() {
   // Set up the library tag handler for this isolate.
   Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
   if (Dart_IsError(result)) {
@@ -260,15 +411,22 @@ static void SetupForGenericSnapshotCreation() {
   Dart_Handle library =
       LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
   VerifyLoaded(library);
-  library = LoadGenericSnapshotCreationScript(Builtin::kJsonLibrary);
-  VerifyLoaded(library);
   library = LoadGenericSnapshotCreationScript(Builtin::kUriLibrary);
+  VerifyLoaded(library);
+  library = LoadGenericSnapshotCreationScript(Builtin::kUtfLibrary);
+  VerifyLoaded(library);
+}
+
+
+static void SetupForGenericSnapshotCreation() {
+  SetupForUriResolution();
+
+  Dart_Handle library =
+      LoadGenericSnapshotCreationScript(Builtin::kJsonLibrary);
   VerifyLoaded(library);
   library = LoadGenericSnapshotCreationScript(Builtin::kCryptoLibrary);
   VerifyLoaded(library);
   library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
-  VerifyLoaded(library);
-  library = LoadGenericSnapshotCreationScript(Builtin::kUtfLibrary);
   VerifyLoaded(library);
 }
 
@@ -323,15 +481,45 @@ int main(int argc, char** argv) {
   if (app_script_name != NULL) {
     if (!script_snapshot) {
       // This is the case of a custom embedder (e.g: dartium) trying to
-      // create a full snapshot. Set up the library tag handler for this case
-      // in such a manner that it will use the URL mapping specified on the
-      // command line to load the libraries.
+      // create a full snapshot. The current isolate is set up so that we can
+      // invoke the dart uri resolution code like _resolveURI. App script is
+      // loaded into a separate isolate.
+
+      SetupForUriResolution();
+
+      // Get handle to builtin library.
+      Dart_Handle builtin_lib =
+          Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+      CHECK_RESULT(builtin_lib);
+
+      // Prepare for script loading by setting up the 'print' and 'timer'
+      // closures and setting up 'package root' for URI resolution.
+      result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
+      CHECK_RESULT(result);
+      Dart_ExitScope();
+
+      UriResolverIsolateScope::isolate = isolate;
+
+      // Now we create an isolate into which we load all the code that needs to
+      // be in the snapshot.
+      if (Dart_CreateIsolate(NULL, NULL, NULL, NULL, &error) == NULL) {
+        fprintf(stderr, "%s", error);
+        free(error);
+        exit(255);
+      }
+      Dart_EnterScope();
+
+      // Set up the library tag handler in such a manner that it will use the
+      // URL mapping specified on the command line to load the libraries.
       result = Dart_SetLibraryTagHandler(CreateSnapshotLibraryTagHandler);
       CHECK_RESULT(result);
       // Load the specified script.
       library = LoadSnapshotCreationScript(app_script_name);
       VerifyLoaded(library);
       CreateAndWriteSnapshot(false);
+
+      Dart_EnterIsolate(UriResolverIsolateScope::isolate);
+      Dart_ShutdownIsolate();
     } else {
       // This is the case where we want to create a script snapshot of
       // the specified script. There will be no URL mapping specified for
@@ -354,12 +542,8 @@ int main(int argc, char** argv) {
       Dart_ShutdownIsolate();
 
       // Now load the specified script and create a script snapshot.
-      Dart_Isolate isolate = Dart_CreateIsolate(NULL,
-                                                NULL,
-                                                snapshot_buffer,
-                                                NULL,
-                                                &error);
-      if (isolate == NULL) {
+      if (Dart_CreateIsolate(
+              NULL, NULL, snapshot_buffer, NULL, &error) == NULL) {
         Log::PrintErr("%s", error);
         free(error);
         free(snapshot_buffer);
