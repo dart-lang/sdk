@@ -57,7 +57,7 @@ void Symbols::InitOnce(Isolate* isolate) {
 
   for (int32_t c = 0; c <= kMaxOneCharCodeSymbol; c++) {
     ASSERT(kMaxPredefinedId + c < kMaxId);
-    predefined_[kMaxPredefinedId + c] = New(&c, 1);
+    predefined_[kMaxPredefinedId + c] = FromUTF32(&c, 1);
   }
 }
 
@@ -97,30 +97,51 @@ void Symbols::Add(const Array& symbol_table, const String& str) {
 }
 
 
-RawString* Symbols::New(const char* str) {
-  ASSERT(str != NULL);
-  Utf8::Type type;
-  intptr_t str_len = strlen(str);
-  const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
-  intptr_t len = Utf8::CodeUnitCount(utf8_array, str_len, &type);
-  Zone* zone = Isolate::Current()->current_zone();
-  if (len == 0) {
-    return Symbols::New(reinterpret_cast<uint8_t*>(NULL), 0);
+RawString* Symbols::New(const char* cstr) {
+  ASSERT(cstr != NULL);
+  intptr_t array_len = strlen(cstr);
+  const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(cstr);
+  return Symbols::FromUTF8(utf8_array, array_len);
+}
+
+
+RawString* Symbols::FromUTF8(const uint8_t* utf8_array, intptr_t array_len) {
+  if (array_len == 0 || utf8_array == NULL) {
+    return NewSymbol(reinterpret_cast<uint8_t*>(NULL), 0);
   }
+  Utf8::Type type;
+  intptr_t len = Utf8::CodeUnitCount(utf8_array, array_len, &type);
+  ASSERT(len != 0);
+  Zone* zone = Isolate::Current()->current_zone();
   if (type == Utf8::kLatin1) {
     uint8_t* characters = zone->Alloc<uint8_t>(len);
-    Utf8::DecodeToLatin1(utf8_array, str_len, characters, len);
-    return New(characters, len);
+    Utf8::DecodeToLatin1(utf8_array, array_len, characters, len);
+    return NewSymbol(characters, len);
   }
   ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   uint16_t* characters = zone->Alloc<uint16_t>(len);
-  Utf8::DecodeToUTF16(utf8_array, str_len, characters, len);
-  return New(characters, len);
+  Utf8::DecodeToUTF16(utf8_array, array_len, characters, len);
+  return NewSymbol(characters, len);
+}
+
+
+RawString* Symbols::FromLatin1(const uint8_t* latin1_array, intptr_t len) {
+  return NewSymbol(latin1_array, len);
+}
+
+
+RawString* Symbols::FromUTF16(const uint16_t* utf16_array, intptr_t len) {
+  return NewSymbol(utf16_array, len);
+}
+
+
+RawString* Symbols::FromUTF32(const int32_t* utf32_array, intptr_t len) {
+  return NewSymbol(utf32_array, len);
 }
 
 
 template<typename T>
-RawString* Symbols::New(const T* characters, intptr_t len) {
+RawString* Symbols::NewSymbol(const T* characters, intptr_t len) {
   Isolate* isolate = Isolate::Current();
   String& symbol = String::Handle(isolate, String::null());
   Array& symbol_table = Array::Handle(isolate, Array::null());
@@ -150,9 +171,13 @@ RawString* Symbols::New(const T* characters, intptr_t len) {
   return symbol.raw();
 }
 
-template RawString* Symbols::New(const uint8_t* characters, intptr_t len);
-template RawString* Symbols::New(const uint16_t* characters, intptr_t len);
-template RawString* Symbols::New(const int32_t* characters, intptr_t len);
+
+template RawString* Symbols::NewSymbol(const uint8_t* characters,
+                                       intptr_t len);
+template RawString* Symbols::NewSymbol(const uint16_t* characters,
+                                       intptr_t len);
+template RawString* Symbols::NewSymbol(const int32_t* characters,
+                                       intptr_t len);
 
 
 RawString* Symbols::New(const String& str) {
@@ -206,7 +231,7 @@ RawString* Symbols::New(const String& str, intptr_t begin_index, intptr_t len) {
 
 RawString* Symbols::FromCharCode(int32_t char_code) {
   if (char_code > kMaxOneCharCodeSymbol) {
-    return New(&char_code, 1);
+    return FromUTF32(&char_code, 1);
   }
   return predefined_[kNullCharId + char_code];
 }

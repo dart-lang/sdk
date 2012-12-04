@@ -1562,7 +1562,7 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF8(const uint8_t* utf8_array,
     return Api::NewError("%s expects argument 'str' to be valid UTF-8.",
                          CURRENT_FUNC);
   }
-  return Api::NewHandle(isolate, String::New(utf8_array, length));
+  return Api::NewHandle(isolate, String::FromUTF8(utf8_array, length));
 }
 
 

@@ -10051,17 +10051,17 @@ RawInstance* String::Canonicalize() const {
 }
 
 
-RawString* String::New(const char* str, Heap::Space space) {
-  ASSERT(str != NULL);
-  intptr_t array_len = strlen(str);
-  const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
-  return String::New(utf8_array, array_len, space);
+RawString* String::New(const char* cstr, Heap::Space space) {
+  ASSERT(cstr != NULL);
+  intptr_t array_len = strlen(cstr);
+  const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(cstr);
+  return String::FromUTF8(utf8_array, array_len, space);
 }
 
 
-RawString* String::New(const uint8_t* utf8_array,
-                       intptr_t array_len,
-                       Heap::Space space) {
+RawString* String::FromUTF8(const uint8_t* utf8_array,
+                            intptr_t array_len,
+                            Heap::Space space) {
   Utf8::Type type;
   intptr_t len = Utf8::CodeUnitCount(utf8_array, array_len, &type);
   if (type == Utf8::kLatin1) {
@@ -10079,6 +10079,13 @@ RawString* String::New(const uint8_t* utf8_array,
   Utf8::DecodeToUTF16(utf8_array, array_len,
                       TwoByteString::CharAddr(strobj, 0), len);
   return strobj.raw();
+}
+
+
+RawString* String::New(const uint8_t* latin1_array,
+                       intptr_t array_len,
+                       Heap::Space space) {
+  return OneByteString::New(latin1_array, array_len, space);
 }
 
 

@@ -268,11 +268,12 @@ TEST_CASE(StringCompareTo) {
   const int kMonkeyLen = 4;
   const uint8_t monkey_utf8[kMonkeyLen] = { 0xf0, 0x9f, 0x90, 0xb5 };
   const String& monkey_face =
-      String::Handle(String::New(monkey_utf8, kMonkeyLen));
+      String::Handle(String::FromUTF8(monkey_utf8, kMonkeyLen));
   const int kDogLen = 4;
   // 0x1f436 DOG FACE.
   const uint8_t dog_utf8[kDogLen] = { 0xf0, 0x9f, 0x90, 0xb6 };
-  const String& dog_face = String::Handle(String::New(dog_utf8, kDogLen));
+  const String& dog_face =
+      String::Handle(String::FromUTF8(dog_utf8, kDogLen));
   EXPECT_EQ(0, monkey_face.CompareTo(monkey_face));
   EXPECT_EQ(0, dog_face.CompareTo(dog_face));
   EXPECT(monkey_face.CompareTo(dog_face) < 0);
@@ -281,7 +282,8 @@ TEST_CASE(StringCompareTo) {
   const int kDominoLen = 4;
   // 0x1f036 DOMINO TILE HORIZONTAL-00-05.
   const uint8_t domino_utf8[kDominoLen] = { 0xf0, 0x9f, 0x80, 0xb6 };
-  const String& domino = String::Handle(String::New(domino_utf8, kDominoLen));
+  const String& domino =
+      String::Handle(String::FromUTF8(domino_utf8, kDominoLen));
   EXPECT_EQ(0, domino.CompareTo(domino));
   EXPECT(domino.CompareTo(dog_face) < 0);
   EXPECT(domino.CompareTo(monkey_face) < 0);
@@ -516,7 +518,7 @@ TEST_CASE(String) {
 
   const uint8_t* motto =
       reinterpret_cast<const uint8_t*>("Dart's bescht wos je hets gits");
-  const String& str2 = String::Handle(String::New(motto+7, 4));
+  const String& str2 = String::Handle(String::FromUTF8(motto+7, 4));
   EXPECT_EQ(4, str2.Length());
   EXPECT_EQ('b', str2.CharAt(0));
   EXPECT_EQ('e', str2.CharAt(1));
@@ -544,7 +546,7 @@ TEST_CASE(String) {
 
   const intptr_t kCharsLen = 8;
   const uint8_t chars[kCharsLen] = { 1, 2, 127, 64, 92, 0, 55, 55 };
-  const String& str8 = String::Handle(String::New(chars, kCharsLen));
+  const String& str8 = String::Handle(String::FromUTF8(chars, kCharsLen));
   EXPECT_EQ(kCharsLen, str8.Length());
   EXPECT_EQ(1, str8.CharAt(0));
   EXPECT_EQ(127, str8.CharAt(2));
@@ -1563,9 +1565,9 @@ TEST_CASE(Symbol) {
   EXPECT(one.raw() != eins.raw());
 
   uint16_t char16[] = { 'E', 'l', 'f' };
-  String& elf1 = String::Handle(Symbols::New(char16, 3));
+  String& elf1 = String::Handle(Symbols::FromUTF16(char16, 3));
   int32_t char32[] = { 'E', 'l', 'f' };
-  String& elf2 = String::Handle(Symbols::New(char32, 3));
+  String& elf2 = String::Handle(Symbols::FromUTF32(char32, 3));
   EXPECT(elf1.IsSymbol());
   EXPECT(elf2.IsSymbol());
   EXPECT_EQ(elf1.raw(), Symbols::New("Elf"));
@@ -1575,7 +1577,7 @@ TEST_CASE(Symbol) {
 
 TEST_CASE(SymbolUnicode) {
   uint16_t monkey_utf16[] = { 0xd83d, 0xdc35 };  // Unicode Monkey Face.
-  String& monkey = String::Handle(Symbols::New(monkey_utf16, 2));
+  String& monkey = String::Handle(Symbols::FromUTF16(monkey_utf16, 2));
   EXPECT(monkey.IsSymbol());
   const char monkey_utf8[] = {0xf0, 0x9f, 0x90, 0xb5, 0};
   EXPECT_EQ(monkey.raw(), Symbols::New(monkey_utf8));
@@ -1589,7 +1591,7 @@ TEST_CASE(SymbolUnicode) {
   String& cat = String::Handle(Symbols::FromCharCode(kCatFaceWithTearsOfJoy));
 
   uint16_t cat_utf16[] = { 0xd83d, 0xde39 };
-  String& cat2 = String::Handle(Symbols::New(cat_utf16, 2));
+  String& cat2 = String::Handle(Symbols::FromUTF16(cat_utf16, 2));
   EXPECT(cat2.IsSymbol());
   EXPECT_EQ(cat2.raw(), cat.raw());
 }

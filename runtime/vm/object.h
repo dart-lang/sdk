@@ -3819,19 +3819,28 @@ class String : public Instance {
 
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
+  // TODO(7123) - Rename this to FromCString(....).
   static RawString* New(const char* cstr, Heap::Space space = Heap::kNew);
 
   // Creates a new String object from an array of UTF-8 encoded characters.
-  static RawString* New(const uint8_t* utf8_array,
+  static RawString* FromUTF8(const uint8_t* utf8_array,
+                             intptr_t array_len,
+                             Heap::Space space = Heap::kNew);
+
+  // Creates a new String object from an array of Latin-1 encoded characters.
+  // TODO(7123) - Rename this to FromLatin1(....).
+  static RawString* New(const uint8_t* latin1_array,
                         intptr_t array_len,
                         Heap::Space space = Heap::kNew);
 
   // Creates a new String object from an array of UTF-16 encoded characters.
+  // TODO(7123) - Rename this to FromUTF16(....).
   static RawString* New(const uint16_t* utf16_array,
                         intptr_t array_len,
                         Heap::Space space = Heap::kNew);
 
   // Creates a new String object from an array of UTF-32 encoded characters.
+  // TODO(7123) - Rename this to FromUTF32(....).
   static RawString* New(const int32_t* utf32_array,
                         intptr_t array_len,
                         Heap::Space space = Heap::kNew);
