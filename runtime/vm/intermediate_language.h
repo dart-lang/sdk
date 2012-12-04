@@ -26,6 +26,7 @@ class FlowGraphVisitor;
 class Instruction;
 class LocalVariable;
 class Range;
+class FlowGraphOptimizer;
 
 
 // TODO(srdjan): Add _ByteArrayBase, get:length.
@@ -469,7 +470,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Returns a replacement for the instruction or NULL if the instruction can
   // be eliminated.  By default returns the this instruction which means no
   // change.
-  virtual Instruction* Canonicalize();
+  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
 
   // Insert this instruction before 'next'.
   void InsertBefore(Instruction* next);
@@ -1136,7 +1137,7 @@ class Definition : public Instruction {
   // Definitions can be canonicalized only into definitions to ensure
   // this check statically we override base Canonicalize with a Canonicalize
   // returning Definition (return type is covariant).
-  virtual Definition* Canonicalize();
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
  protected:
   friend class RangeAnalysis;
@@ -1849,7 +1850,7 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
                         const AbstractType& dst_type,
                         const String& dst_name)
       : token_pos_(token_pos),
-        dst_type_(dst_type),
+        dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
         dst_name_(dst_name),
         is_eliminated_(false) {
     ASSERT(value != NULL);
@@ -1871,6 +1872,9 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 
   intptr_t token_pos() const { return token_pos_; }
   const AbstractType& dst_type() const { return dst_type_; }
+  void set_dst_type(const AbstractType& dst_type) {
+    dst_type_ = dst_type.raw();
+  }
   const String& dst_name() const { return dst_name_; }
 
   bool is_eliminated() const {
@@ -1893,11 +1897,11 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
   virtual intptr_t ResultCid() const { return value()->ResultCid(); }
   virtual intptr_t GetPropagatedCid();
 
-  virtual Definition* Canonicalize();
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
  private:
   const intptr_t token_pos_;
-  const AbstractType& dst_type_;
+  AbstractType& dst_type_;
   const String& dst_name_;
   bool is_eliminated_;
 
@@ -1939,7 +1943,7 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
 
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
-  virtual Definition* Canonicalize();
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
  private:
   const intptr_t token_pos_;
@@ -2248,7 +2252,7 @@ class StrictCompareInstr : public ComparisonInstr {
   virtual bool AttributesEqual(Instruction* other) const;
   virtual bool AffectedBySideEffect() const { return false; }
 
-  virtual Definition* Canonicalize();
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
@@ -3392,7 +3396,7 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
 
   Value* right() const { return inputs_[1]; }
 
-  virtual Instruction* Canonicalize();
+  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
@@ -4004,7 +4008,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   const ICData& unary_checks() const { return unary_checks_; }
 
-  virtual Instruction* Canonicalize();
+  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -4037,7 +4041,7 @@ class CheckSmiInstr : public TemplateInstruction<1> {
 
   virtual bool AffectedBySideEffect() const { return false; }
 
-  virtual Instruction* Canonicalize();
+  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
 
   Value* value() const { return inputs_[0]; }
 

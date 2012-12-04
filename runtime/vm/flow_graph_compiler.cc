@@ -575,6 +575,7 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
                                                 const AbstractType& type,
                                                 Label* is_instance_lbl,
                                                 Label* is_not_instance_lbl) {
+  assembler()->Comment("NumberTypeCheck");
   GrowableArray<intptr_t> args;
   if (type.IsNumberType()) {
     args.Add(kDoubleCid);
@@ -593,6 +594,7 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
 void FlowGraphCompiler::GenerateStringTypeCheck(Register kClassIdReg,
                                                 Label* is_instance_lbl,
                                                 Label* is_not_instance_lbl) {
+  assembler()->Comment("StringTypeCheck");
   GrowableArray<intptr_t> args;
   args.Add(kOneByteStringCid);
   args.Add(kTwoByteStringCid);
@@ -604,6 +606,7 @@ void FlowGraphCompiler::GenerateStringTypeCheck(Register kClassIdReg,
 
 void FlowGraphCompiler::GenerateListTypeCheck(Register kClassIdReg,
                                               Label* is_instance_lbl) {
+  assembler()->Comment("ListTypeCheck");
   Label unknown;
   GrowableArray<intptr_t> args;
   args.Add(kArrayCid);

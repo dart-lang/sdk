@@ -152,7 +152,7 @@ void FlowGraphOptimizer::OptimizeComputations() {
     entry->Accept(this);
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      Instruction* replacement = current->Canonicalize();
+      Instruction* replacement = current->Canonicalize(this);
       if (replacement != current) {
         // For non-definitions Canonicalize should return either NULL or
         // this.

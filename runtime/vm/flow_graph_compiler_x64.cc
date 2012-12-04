@@ -118,6 +118,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  __ Comment("InstantiatedTypeWithArgumentsTest");
   ASSERT(type.IsInstantiated());
   const Class& type_class = Class::ZoneHandle(type.type_class());
   ASSERT(type_class.HasTypeArguments());
@@ -192,6 +193,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  __ Comment("InstantiatedTypeNoArgumentsTest");
   ASSERT(type.IsInstantiated());
   const Class& type_class = Class::Handle(type.type_class());
   ASSERT(!type_class.HasTypeArguments());
@@ -263,6 +265,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     const Class& type_class,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  __ Comment("Subtype1TestCacheLookup");
   const Register kInstanceReg = RAX;
   __ LoadClass(R10, kInstanceReg);
   // R10: instance class.
@@ -291,6 +294,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  __ Comment("UninstantiatedTypeTest");
   ASSERT(!type.IsInstantiated());
   // Skip check if destination is a dynamic type.
   const Immediate raw_null =
@@ -382,6 +386,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  __ Comment("InlineInstanceof");
   if (type.IsVoidType()) {
     // A non-null value is returned from a void function, which will result in a
     // type error. A null value is handled prior to executing this inline code.

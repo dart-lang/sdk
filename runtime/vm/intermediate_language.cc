@@ -1467,23 +1467,23 @@ RawAbstractType* CheckEitherNonSmiInstr::CompileType() const {
 
 
 // Optimizations that eliminate or simplify individual instructions.
-Instruction* Instruction::Canonicalize() {
+Instruction* Instruction::Canonicalize(FlowGraphOptimizer* optimizer) {
   return this;
 }
 
 
-Definition* Definition::Canonicalize() {
+Definition* Definition::Canonicalize(FlowGraphOptimizer* optimizer) {
   return this;
 }
 
 
-Definition* AssertBooleanInstr::Canonicalize() {
+Definition* AssertBooleanInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   const intptr_t value_cid = value()->ResultCid();
   return (value_cid == kBoolCid) ? value()->definition() : this;
 }
 
 
-Definition* AssertAssignableInstr::Canonicalize() {
+Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   // (1) Replace the assert with its input if the input has a known compatible
   // class-id. The class-ids handled here are those that are known to be
   // results of IL instructions.
@@ -1501,15 +1501,38 @@ Definition* AssertAssignableInstr::Canonicalize() {
   // (2) Replace the assert with its input if the input is the result of a
   // compatible assert itself.
   AssertAssignableInstr* check = value()->definition()->AsAssertAssignable();
-  if ((check != NULL) && (check->dst_type().raw() == dst_type().raw())) {
+  if ((check != NULL) && check->dst_type().Equals(dst_type())) {
     // TODO(fschneider): Propagate type-assertions across phi-nodes.
     // TODO(fschneider): Eliminate more asserts with subtype relation.
     return check;
   }
+
+  // (3) For uninstantiated target types: If the instantiator type arguments
+  // are constant, instantiate the target type here.
+  if (dst_type().IsInstantiated()) return this;
+
+  ConstantInstr* constant_type_args =
+      instantiator_type_arguments()->definition()->AsConstant();
+  if (constant_type_args != NULL &&
+      !constant_type_args->value().IsNull() &&
+      constant_type_args->value().IsTypeArguments()) {
+    const TypeArguments& instantiator_type_args =
+        TypeArguments::Cast(constant_type_args->value());
+    const AbstractType& new_dst_type = AbstractType::Handle(
+        dst_type().InstantiateFrom(instantiator_type_args));
+    set_dst_type(AbstractType::ZoneHandle(new_dst_type.Canonicalize()));
+    ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
+    // It is ok to insert instructions before the current during
+    // forward iteration.
+    optimizer->InsertBefore(this, null_constant, NULL, Definition::kValue);
+    instantiator_type_arguments()->RemoveFromInputUseList();
+    instantiator_type_arguments()->set_definition(null_constant);
+    instantiator_type_arguments()->AddToInputUseList();
+  }
   return this;
 }
 
-Definition* StrictCompareInstr::Canonicalize() {
+Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   if (!right()->BindsToConstant()) return this;
   const Object& right_constant = right()->BoundConstant();
   Definition* left_defn = left()->definition();
@@ -1525,7 +1548,7 @@ Definition* StrictCompareInstr::Canonicalize() {
 }
 
 
-Instruction* CheckClassInstr::Canonicalize() {
+Instruction* CheckClassInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   const intptr_t value_cid = value()->ResultCid();
   const intptr_t num_checks = unary_checks().NumberOfChecks();
   if ((num_checks == 1) &&
@@ -1537,12 +1560,13 @@ Instruction* CheckClassInstr::Canonicalize() {
 }
 
 
-Instruction* CheckSmiInstr::Canonicalize() {
+Instruction* CheckSmiInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   return (value()->ResultCid() == kSmiCid) ?  NULL : this;
 }
 
 
-Instruction* CheckEitherNonSmiInstr::Canonicalize() {
+Instruction* CheckEitherNonSmiInstr::Canonicalize(
+    FlowGraphOptimizer* optimizer) {
   if ((left()->ResultCid() == kDoubleCid) ||
       (right()->ResultCid() == kDoubleCid)) {
     return NULL;  // Remove from the graph.
