@@ -50,13 +50,29 @@
     {
       'target_name': 'generate_version_cc_file',
       'type': 'none',
-      'actions': [
+      # The dependencies here are the union of the dependencies of libdart and
+      # libdart_withcore. The produced libraries need to be listed individually
+      # as inputs, otherwise the action will not be run when one of the
+      # libraries is rebuilt.
+      'dependencies': [
+        'libdart_lib_withcore',
+        'libdart_lib',
+        'libdart_vm',
+        'libjscre',
+        'libdouble_conversion',
+      ],
+     'actions': [
         {
           'action_name': 'generate_version_cc',
           'inputs': [
             'tools/make_version.py',
             '../tools/VERSION',
             '<(version_in_cc_file)',
+            '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)dart_lib_withcore<(STATIC_LIB_SUFFIX)',
+            '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)dart_lib<(STATIC_LIB_SUFFIX)',
+            '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)dart_vm<(STATIC_LIB_SUFFIX)',
+            '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)jscre<(STATIC_LIB_SUFFIX)',
+            '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)double_conversion<(STATIC_LIB_SUFFIX)',
           ],
           'outputs': [
             '<(version_cc_file)',
