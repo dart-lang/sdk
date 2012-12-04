@@ -50,29 +50,20 @@
     {
       'target_name': 'generate_version_cc_file',
       'type': 'none',
-      # The dependencies here are the union of the dependencies of libdart and
-      # libdart_withcore. The produced libraries need to be listed individually
-      # as inputs, otherwise the action will not be run when one of the
-      # libraries is rebuilt.
-      #'dependencies': [
-      #  'libdart_lib_withcore',
-      #  'libdart_lib',
-      #  'libdart_vm',
-      #  'libjscre',
-      #  'libdouble_conversion',
-      #],
-     'actions': [
+      'dependencies': [
+        'libdart_dependency_helper',
+      ],
+      'actions': [
         {
           'action_name': 'generate_version_cc',
           'inputs': [
             'tools/make_version.py',
             '../tools/VERSION',
             '<(version_in_cc_file)',
-            #'<(LIB_DIR)/<(STATIC_LIB_PREFIX)dart_lib_withcore<(STATIC_LIB_SUFFIX)',
-            #'<(LIB_DIR)/<(STATIC_LIB_PREFIX)dart_lib<(STATIC_LIB_SUFFIX)',
-            #'<(LIB_DIR)/<(STATIC_LIB_PREFIX)dart_vm<(STATIC_LIB_SUFFIX)',
-            #'<(LIB_DIR)/<(STATIC_LIB_PREFIX)jscre<(STATIC_LIB_SUFFIX)',
-            #'<(LIB_DIR)/<(STATIC_LIB_PREFIX)double_conversion<(STATIC_LIB_SUFFIX)',
+            # We need to list the libdart_dependency_helper executable here
+            # otherwise the action doesn't get executed if any of
+            # libdart/libdart_withcore changes
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)libdart_dependency_helper<(EXECUTABLE_SUFFIX)',
           ],
           'outputs': [
             '<(version_cc_file)',
@@ -86,6 +77,22 @@
             '--version', '../tools/VERSION',
           ],
         },
+      ],
+    },
+    {
+      'target_name': 'libdart_dependency_helper',
+      'type': 'executable',
+      # The dependencies here are the union of the dependencies of libdart and
+      # libdart_withcore. 
+      'dependencies': [
+        'libdart_lib_withcore',
+        'libdart_lib',
+        'libdart_vm',
+        'libjscre',
+        'libdouble_conversion',
+      ],
+      'sources': [
+        'vm/libdart_dependency_helper.cc',
       ],
     },
     {
