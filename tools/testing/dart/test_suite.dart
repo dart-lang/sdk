@@ -527,7 +527,7 @@ class StandardTestSuite extends TestSuite {
     Directory dir = new Directory.fromPath(suiteDir);
     return dir.exists().chain((exists) {
       if (!exists) {
-        print('Directory containing tests not found: $suiteDir');
+        print('Directory containing tests missing: ${suiteDir.toNativePath()}');
         return new Future.immediate(null);
       } else {
         var group = new FutureGroup();
@@ -896,7 +896,9 @@ class StandardTestSuite extends TestSuite {
       do {
         List<String> args = <String>[];
         String fullHtmlPath = htmlPath.startsWith('http:') ? htmlPath :
-            'file://$htmlPath';
+            (htmlPath.startsWith('/') ?
+             'file://$htmlPath' :
+             'file:///$htmlPath');
         if (info.optionsFromFile['isMultiHtmlTest']
             && subtestNames.length > 0) {
           fullHtmlPath = '${fullHtmlPath}#${subtestNames[subtestIndex]}';
