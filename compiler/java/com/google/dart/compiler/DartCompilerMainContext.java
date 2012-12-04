@@ -11,6 +11,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
+import com.google.dart.compiler.resolver.Elements;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -55,6 +56,12 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
 
   @Override
   public void onError(DartCompilationError event) {
+    // problems in dart:core are not interesting
+    // http://code.google.com/p/dart/issues/detail?id=7128
+    if (Elements.isCoreLibrarySource(event.getSource())) {
+      return;
+    }
+
     // Remember error.
     {
       Source source = event.getSource();
