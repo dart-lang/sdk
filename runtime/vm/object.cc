@@ -10736,6 +10736,28 @@ RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
 }
 
 
+RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
+                                                    intptr_t begin_index,
+                                                    intptr_t length,
+                                                    Heap::Space space) {
+  ASSERT(!str.IsNull() && str.IsOneByteString());
+  ASSERT(begin_index >= 0);
+  ASSERT(length >= 0);
+  if (begin_index <= str.Length() && length == 0) {
+    return OneByteString::raw(String::Handle(Symbols::Empty()));
+  }
+  ASSERT(begin_index < str.Length());
+  RawOneByteString* result = OneByteString::New(length, space);
+  NoGCScope no_gc;
+  if (length > 0) {
+    uint8_t* dest = &result->ptr()->data_[0];
+    uint8_t* src =  &raw_ptr(str)->data_[begin_index];
+    memmove(dest, src, length);
+  }
+  return result;
+}
+
+
 RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str,
                                                          bool raw_str) {
   intptr_t len = str.Length();
@@ -11142,8 +11164,15 @@ const char* ImmutableArray::ToCString() const {
 
 
 void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
+  Add(Isolate::Current(), value, space);
+}
+
+
+void GrowableObjectArray::Add(Isolate* isolate,
+                              const Object& value,
+                              Heap::Space space) const {
   ASSERT(!IsNull());
-  Array& contents = Array::Handle(data());
+  Array& contents = Array::Handle(isolate, data());
   if (Length() == Capacity()) {
     // TODO(Issue 2500): Need a better growth strategy.
     intptr_t new_capacity = (Capacity() == 0) ? 4 : Capacity() * 2;
@@ -11151,7 +11180,7 @@ void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
       // Use the preallocated out of memory exception to avoid calling
       // into dart code or allocating any code.
       const Instance& exception =
-          Instance::Handle(Isolate::Current()->object_store()->out_of_memory());
+          Instance::Handle(isolate->object_store()->out_of_memory());
       Exceptions::Throw(exception);
       UNREACHABLE();
     }

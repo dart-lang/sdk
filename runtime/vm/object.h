@@ -4000,6 +4000,13 @@ class OneByteString : public AllStatic {
                                      const String& str,
                                      Heap::Space space);
 
+  // High performance version of substring for one-byte strings.
+  // "str" must be OneByteString.
+  static RawOneByteString* SubStringUnchecked(const String& str,
+                                              intptr_t begin_index,
+                                              intptr_t length,
+                                              Heap::Space space);
+
   static const ClassId kClassId = kOneByteStringCid;
 
   static RawOneByteString* null() {
@@ -4418,6 +4425,10 @@ class GrowableObjectArray : public Instance {
   }
 
   void Add(const Object& value, Heap::Space space = Heap::kNew) const;
+  void Add(Isolate* isolate,
+           const Object& value,
+           Heap::Space space = Heap::kNew) const;
+
   void Grow(intptr_t new_capacity, Heap::Space space = Heap::kNew) const;
   RawObject* RemoveLast() const;
 

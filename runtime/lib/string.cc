@@ -74,26 +74,35 @@ DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
 }
 
 
+// This is high-performance code.
 DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
-  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(isolate,
+                                                 arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
   GET_NATIVE_ARGUMENT(Smi, smi_split_code, arguments->NativeArgAt(1));
   const intptr_t len = receiver.Length();
   const intptr_t split_code = smi_split_code.Value();
   const GrowableObjectArray& result = GrowableObjectArray::Handle(
-      GrowableObjectArray::New(4, Heap::kNew));
-  String& str = String::Handle();
+      isolate,
+      GrowableObjectArray::New(16, Heap::kNew));
+  String& str = String::Handle(isolate);
   intptr_t start = 0;
   intptr_t i = 0;
   for (; i < len; i++) {
-    if (split_code == receiver.CharAt(i)) {
-      str = String::SubString(receiver, start, (i - start));
-      result.Add(str);
+    if (split_code == OneByteString::CharAt(receiver, i)) {
+      str = OneByteString::SubStringUnchecked(receiver,
+                                              start,
+                                              (i - start),
+                                              Heap::kNew);
+      result.Add(isolate, str);
       start = i + 1;
     }
   }
-  str = String::SubString(receiver, start, (i - start));
-  result.Add(str);
+  str = OneByteString::SubStringUnchecked(receiver,
+                                          start,
+                                          (i - start),
+                                          Heap::kNew);
+  result.Add(isolate, str);
   return result.raw();
 }
 
