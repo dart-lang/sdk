@@ -61,10 +61,18 @@ abstract class PartialTypeTree {
   }
 
   // TODO(kasperl): Move this to the Selector class?
+  /**
+   * Returns a [ClassElement] that is an upper bound of the receiver type on
+   * [selector].
+   */
   ClassElement selectorType(Selector selector) {
     // TODO(ngeoffray): Should the tree be specialized with DartType?
     DartType type = selector.receiverType;
     if (type == null) return compiler.objectClass;
+    // TODO(kasperl): Should [dynamic] return Object?
+    if (identical(type.kind, TypeKind.MALFORMED_TYPE))
+        return compiler.objectClass;
+    // TODO(johnniwinther): Change to use [DartType.unalias].
     if (type.element.isTypedef()) return compiler.functionClass;
     return type.element;
   }

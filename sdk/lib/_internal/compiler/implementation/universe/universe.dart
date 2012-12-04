@@ -382,7 +382,10 @@ class TypedSelector extends Selector {
             selector.name,
             selector.library,
             selector.argumentCount,
-            selector.namedArguments);
+            selector.namedArguments) {
+    // Invariant: Typed selector can not be based on a malformed type.
+    assert(!identical(receiverType.kind, TypeKind.MALFORMED_TYPE));
+  }
 
   /**
    * Check if [element] will be the one used at runtime when being

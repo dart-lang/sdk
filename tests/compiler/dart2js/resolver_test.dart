@@ -393,7 +393,7 @@ testTypeAnnotation() {
   // Test that we get a warning when Foo is not defined.
   Map mapping = compiler.resolveStatement(statement).map;
 
-  Expect.equals(1, mapping.length); // bar has an element.
+  Expect.equals(2, mapping.length); // Both Foo and bar have an element.
   Expect.equals(1, compiler.warnings.length);
 
   Node warningNode = compiler.warnings[0].node;

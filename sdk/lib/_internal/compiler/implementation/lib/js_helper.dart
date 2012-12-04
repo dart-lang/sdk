@@ -538,7 +538,7 @@ class Primitives {
   static num numMicroseconds() {
     if (JS('bool', 'typeof window != "undefined" && window !== null')) {
       var performance = JS('var', 'window.performance');
-      if (performance != null && 
+      if (performance != null &&
           JS('bool', 'typeof #.webkitNow == "function"', performance)) {
         return (1000 * JS('num', '#.webkitNow()', performance)).floor();
       }
@@ -959,6 +959,14 @@ makeLiteralListConst(list) {
 
 throwRuntimeError(message) {
   throw new RuntimeError(message);
+}
+
+/**
+ * The SSA builder generates a call to this method when a malformed type is used
+ * in a subtype test.
+ */
+throwMalformedSubtypeError(value, type, reasons) {
+  throw new TypeErrorImplementation.malformedSubtype(value, type, reasons);
 }
 
 throwAbstractClassInstantiationError(className) {
@@ -1519,6 +1527,11 @@ voidTypeCheck(value) {
   throw new TypeErrorImplementation(value, 'void');
 }
 
+malformedTypeCheck(value, type, reasons) {
+  if (value == null) return value;
+  throwMalformedSubtypeError(value, type, reasons);
+}
+
 /**
  * Special interface recognized by the compiler and implemented by DOM
  * objects that support integer indexing. This interface is not
@@ -1533,9 +1546,22 @@ abstract class JavaScriptIndexingBehavior {
 /** Thrown by type assertions that fail. */
 class TypeErrorImplementation implements TypeError {
   final String message;
+
+  /**
+   * Normal type error caused by a failed subtype test.
+   */
   TypeErrorImplementation(Object value, String type)
-    : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
-                "of type '$type'";
+      : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
+                  "of type '$type'";
+
+  /**
+   * Type error caused by a subtype test on a malformed type.
+   */
+  TypeErrorImplementation.malformedSubtype(Object value,
+                                           String type, String reasons)
+      : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
+                  "of type '$type' because '$type' is malformed: $reasons.";
+
   String toString() => message;
 }
 

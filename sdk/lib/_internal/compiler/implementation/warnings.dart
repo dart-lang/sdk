@@ -205,6 +205,11 @@ class MessageKind {
   static const MISSING_TYPE_ARGUMENT = const MessageKind(
       "missing type argument");
 
+  // TODO(johnniwinther): Use ADDITIONAL_TYPE_ARGUMENT or MISSING_TYPE_ARGUMENT
+  // instead.
+  static const TYPE_ARGUMENT_COUNT_MISMATCH = const MessageKind(
+      "incorrect number of type arguments on #{1}");
+
   static const MISSING_ARGUMENTS_TO_ASSERT = const MessageKind(
       "missing arguments to assert");
 

@@ -66,4 +66,5 @@ abstract class LinkBuilder<T> {
   void addLast(T t);
 
   final int length;
+  final bool isEmpty;
 }

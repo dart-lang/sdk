@@ -1038,62 +1038,47 @@ class TypeResolver {
 
   TypeResolver(this.compiler);
 
-  bool anyMalformedTypes(Link<DartType> list) {
-    for (Link<DartType> link = list;
-        !link.isEmpty;
-        link = link.tail) {
-      DartType dtype = link.head;
-      if (dtype is MalformedType) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  Element resolveTypeName(Scope scope, TypeAnnotation node) {
-    Identifier typeName = node.typeName.asIdentifier();
-    Send send = node.typeName.asSend();
-    return resolveTypeNameInternal(scope, typeName, send);
-  }
-
-  Element resolveTypeNameInternal(Scope scope, Identifier typeName, Send send) {
-    if (send != null) {
-      typeName = send.selector;
-    }
-    String stringValue = typeName.source.stringValue;
-    if (identical(stringValue, 'void')) {
-      return compiler.types.voidType.element;
-    } else if (identical(stringValue, 'Dynamic')) {
-      // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
-      compiler.onDeprecatedFeature(typeName, 'Dynamic');
-      return compiler.dynamicClass;
-    } else if (identical(stringValue, 'dynamic')) {
-      return compiler.dynamicClass;
-    } else if (send != null) {
-      Element e = scope.lookup(send.receiver.asIdentifier().source);
-      if (e != null && identical(e.kind, ElementKind.PREFIX)) {
-        // The receiver is a prefix. Lookup in the imported members.
-        PrefixElement prefix = e;
-        return prefix.lookupLocalMember(typeName.source);
-      } else if (e != null && identical(e.kind, ElementKind.CLASS)) {
-        // The receiver is the class part of a named constructor.
-        return e;
+  Element resolveTypeName(Scope scope,
+                          SourceString prefixName,
+                          Identifier typeName) {
+    if (prefixName != null) {
+      Element e = scope.lookup(prefixName);
+      if (e != null) {
+        if (identical(e.kind, ElementKind.PREFIX)) {
+          // The receiver is a prefix. Lookup in the imported members.
+          PrefixElement prefix = e;
+          return prefix.lookupLocalMember(typeName.source);
+        } else if (identical(e.kind, ElementKind.CLASS)) {
+          // TODO(johnniwinther): Remove this case.
+          // The receiver is the class part of a named constructor.
+          return e;
+        }
       } else {
+        // The caller creates the ErroneousElement for the MalformedType.
         return null;
       }
     } else {
-      return scope.lookup(typeName.source);
+      String stringValue = typeName.source.stringValue;
+      if (identical(stringValue, 'void')) {
+        return compiler.types.voidType.element;
+      } else if (identical(stringValue, 'Dynamic')) {
+        // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
+        compiler.onDeprecatedFeature(typeName, 'Dynamic');
+        return compiler.dynamicClass;
+      } else if (identical(stringValue, 'dynamic')) {
+        return compiler.dynamicClass;
+      } else {
+        return scope.lookup(typeName.source);
+      }
     }
   }
 
   // TODO(johnniwinther): Change  [onFailure] and [whenResolved] to use boolean
   // flags instead of closures.
-  // TODO(johnniwinther): Should never return [null] but instead an erroneous
-  // type.
   DartType resolveTypeAnnotation(
       TypeAnnotation node,
       Scope scope,
-      bool inStaticContext,
+      Element enclosingElement,
       {onFailure(Node node, MessageKind kind, [List arguments]),
        whenResolved(Node node, DartType type)}) {
     if (onFailure == null) {
@@ -1105,89 +1090,120 @@ class TypeResolver {
     if (scope == null) {
       compiler.internalError('resolveTypeAnnotation: no scope specified');
     }
-    return resolveTypeAnnotationInContext(scope, node, inStaticContext,
+    return resolveTypeAnnotationInContext(scope, node, enclosingElement,
         onFailure, whenResolved);
   }
 
   DartType resolveTypeAnnotationInContext(Scope scope, TypeAnnotation node,
-                                          bool inStaticContext,
+                                          Element enclosingElement,
                                           onFailure, whenResolved) {
-    Element element = resolveTypeName(scope, node);
+    Identifier typeName;
+    SourceString prefixName;
+    Send send = node.typeName.asSend();
+    if (send != null) {
+      // The type name is of the form [: prefix . identifier :].
+      prefixName = send.receiver.asIdentifier().source;
+      typeName = send.selector.asIdentifier();
+    } else {
+      typeName = node.typeName.asIdentifier();
+    }
+
+    Element element = resolveTypeName(scope, prefixName, typeName);
     DartType type;
+
+    DartType reportFailureAndCreateType(MessageKind messageKind,
+                                        List messageArguments) {
+      onFailure(node, messageKind, messageArguments);
+      var erroneousElement = new ErroneousElement(
+          messageKind, messageArguments, typeName.source, enclosingElement);
+      var arguments = new LinkBuilder<DartType>();
+      resolveTypeArguments(
+          node, null, enclosingElement,
+          scope, onFailure, whenResolved, arguments);
+      return new MalformedType(erroneousElement, null, arguments.toLink());
+    }
+
+    DartType checkNoTypeArguments(DartType type) {
+      var arguments = new LinkBuilder<DartType>();
+      bool hashTypeArgumentMismatch = resolveTypeArguments(
+          node, const Link<DartType>(), enclosingElement,
+          scope, onFailure, whenResolved, arguments);
+      if (hashTypeArgumentMismatch) {
+        type = new MalformedType(
+            new ErroneousElement(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
+                [node], typeName.source, enclosingElement),
+                type, arguments.toLink());
+      }
+      return type;
+    }
+
     if (element == null) {
-      onFailure(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
+      type = reportFailureAndCreateType(
+          MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
     } else if (element.isAmbiguous()) {
       AmbiguousElement ambiguous = element;
-      onFailure(node, ambiguous.messageKind, ambiguous.messageArguments);
+      type = reportFailureAndCreateType(
+          ambiguous.messageKind, ambiguous.messageArguments);
     } else if (!element.impliesType()) {
-      onFailure(node, MessageKind.NOT_A_TYPE, [node.typeName]);
+      type = reportFailureAndCreateType(
+          MessageKind.NOT_A_TYPE, [node.typeName]);
     } else {
       if (identical(element, compiler.types.voidType.element) ||
           identical(element, compiler.types.dynamicType.element)) {
-        type = element.computeType(compiler);
+        type = checkNoTypeArguments(element.computeType(compiler));
       } else if (element.isClass()) {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
-        Link<DartType> arguments =
-            resolveTypeArguments(node, cls.typeVariables,
-                                 inStaticContext, scope,
-                                 onFailure, whenResolved);
-        if (cls.typeVariables.isEmpty && arguments.isEmpty) {
-          // Use the canonical type if it has no type parameters.
-          type = cls.computeType(compiler);
+        var arguments = new LinkBuilder<DartType>();
+        bool hashTypeArgumentMismatch = resolveTypeArguments(
+            node, cls.typeVariables, enclosingElement,
+            scope, onFailure, whenResolved, arguments);
+        if (hashTypeArgumentMismatch) {
+          type = new MalformedType(
+              new ErroneousElement(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
+                  [node], typeName.source, enclosingElement),
+              new InterfaceType(cls.declaration, arguments.toLink()));
         } else {
-          if (anyMalformedTypes(arguments)) {
-            // Build interface type (with malformed arguments in it) and
-            // call [whenResolved] to let [ConstructorResolver] create
-            // constructor selectors, which are used by 
-            // [SsaBuilder.visitNewSend] to figure out what class needs 
-            // to be built.
-            whenResolved(node,
-                         new InterfaceType(cls.declaration, arguments));
-            // Return malformed type element below so that
-            // [ConstructorResolver.visitTypeAnnotation] gets [:MalformedType:]
-            // and can map (via resolver.mapping) NewExpression node to
-            // this malformed type.
-            // [SsaBuilder.visitNewExpression] picks up the fact that
-            // NewExpression is mapped to malformed type and generates
-            // runtime error in checked mode.
-            type = new MalformedType(new MalformedTypeElement(node, element));
-            return type;
+          if (arguments.isEmpty) {
+            type = cls.rawType;
           } else {
-            if (arguments.isEmpty) {
-              // Use the canonical raw type if the class is generic.
-              type = cls.rawType;
-            } else {
-              type = new InterfaceType(cls.declaration, arguments);
-            }
+            type = new InterfaceType(cls.declaration, arguments.toLink());
           }
         }
       } else if (element.isTypedef()) {
         TypedefElement typdef = element;
         // TODO(ahe): Should be [ensureResolved].
         compiler.resolveTypedef(typdef);
-        Link<DartType> arguments = resolveTypeArguments(
-            node, typdef.typeVariables, inStaticContext,
-            scope, onFailure, whenResolved);
-        if (typdef.typeVariables.isEmpty && arguments.isEmpty) {
-          // Return the canonical type if it has no type parameters.
-          type = typdef.computeType(compiler);
+        var arguments = new LinkBuilder<DartType>();
+        bool hashTypeArgumentMismatch = resolveTypeArguments(
+            node, typdef.typeVariables, enclosingElement,
+            scope, onFailure, whenResolved, arguments);
+        if (hashTypeArgumentMismatch) {
+          type = new MalformedType(
+              new ErroneousElement(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
+                  [node], typeName.source, enclosingElement),
+              new TypedefType(typdef, arguments.toLink()));
         } else {
           if (arguments.isEmpty) {
             type = typdef.rawType;
           } else {
-           type = new TypedefType(typdef, arguments);
+           type = new TypedefType(typdef, arguments.toLink());
           }
         }
       } else if (element.isTypeVariable()) {
-        if (inStaticContext) {
+        if (enclosingElement.isInStaticMember()) {
           compiler.reportWarning(node,
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER.message(
-                  [element]));
-          type = new MalformedType(new MalformedTypeElement(node, element));
+                  [node]));
+          type = new MalformedType(
+              new ErroneousElement(
+                  MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+                  [node], typeName.source, enclosingElement),
+                  element.computeType(compiler));
         } else {
           type = element.computeType(compiler);
         }
+        type = checkNoTypeArguments(type);
       } else {
         compiler.cancel("unexpected element kind ${element.kind}",
                         node: node);
@@ -1197,34 +1213,45 @@ class TypeResolver {
     return type;
   }
 
-  Link<DartType> resolveTypeArguments(TypeAnnotation node,
-                                      Link<DartType> typeVariables,
-                                      bool inStaticContext,
-                                      Scope scope, onFailure, whenResolved) {
+  /**
+   * Resolves the type arguments of [node] and adds these to [arguments].
+   *
+   * Returns [: true :] if the number of type arguments did not match the
+   * number of type variables.
+   */
+  bool resolveTypeArguments(
+      TypeAnnotation node,
+      Link<DartType> typeVariables,
+      Element enclosingElement,
+      Scope scope,
+      onFailure, whenResolved,
+      LinkBuilder<DartType> arguments) {
     if (node.typeArguments == null) {
-      return const Link<DartType>();
+      return false;
     }
-    var arguments = new LinkBuilder<DartType>();
+    bool typeArgumentCountMismatch = false;
     for (Link<Node> typeArguments = node.typeArguments.nodes;
          !typeArguments.isEmpty;
          typeArguments = typeArguments.tail) {
-      if (typeVariables.isEmpty) {
+      if (typeVariables != null && typeVariables.isEmpty) {
         onFailure(typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
+        typeArgumentCountMismatch = true;
       }
       DartType argType = resolveTypeAnnotationInContext(scope,
-                                                    typeArguments.head,
-                                                    inStaticContext,
-                                                    onFailure,
-                                                    whenResolved);
+                                                        typeArguments.head,
+                                                        enclosingElement,
+                                                        onFailure,
+                                                        whenResolved);
       arguments.addLast(argType);
-      if (!typeVariables.isEmpty) {
+      if (typeVariables != null && !typeVariables.isEmpty) {
         typeVariables = typeVariables.tail;
       }
     }
-    if (!typeVariables.isEmpty) {
+    if (typeVariables != null && !typeVariables.isEmpty) {
       onFailure(node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
+      typeArgumentCountMismatch = true;
     }
-    return arguments.toLink();
+    return typeArgumentCountMismatch;
   }
 }
 
@@ -2118,7 +2145,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   DartType resolveTypeAnnotation(TypeAnnotation node) {
     Function report = typeRequired ? error : warning;
     DartType type = typeResolver.resolveTypeAnnotation(
-        node, scope, enclosingElement.isInStaticMember(),
+        node, scope, enclosingElement,
         onFailure: report, whenResolved: useType);
     if (type == null) return null;
     if (inCheckContext) {
@@ -2486,7 +2513,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
       TypeVariableElement variableElement = typeVariable.element;
       if (typeNode.bound != null) {
         DartType boundType = typeResolver.resolveTypeAnnotation(
-            typeNode.bound, scope, element.isInStaticMember(),
+            typeNode.bound, scope, element,
             onFailure: warning);
         if (boundType != null && boundType.element == variableElement) {
           // TODO(johnniwinther): Check for more general cycles, like

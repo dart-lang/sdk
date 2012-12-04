@@ -75,8 +75,11 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
     return new Dart2JsVoidMirror(system, type);
   } else if (type is TypedefType) {
     return new Dart2JsTypedefMirror(system, type);
+  } else if (type is MalformedType) {
+    // TODO(johnniwinther): We need a mirror on malformed types.
+    return system.dynamicType;
   }
-  throw new ArgumentError("Unexpected interface type $type");
+  throw new ArgumentError("Unexpected type $type of kind ${type.kind}");
 }
 
 Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(

@@ -85,6 +85,22 @@ abstract class DartType {
    */
   DartType unalias(Compiler compiler);
 
+  /**
+   * A type is malformed if it is itself a malformed type or contains a
+   * malformed type.
+   */
+  bool get isMalformed => false;
+
+  /**
+   * Calls [f] with each [MalformedType] within this type.
+   *
+   * If [f] returns [: false :], the traversal stops prematurely.
+   *
+   * [forEachMalformedType] returns [: false :] if the traversal was stopped
+   * prematurely.
+   */
+  bool forEachMalformedType(bool f(MalformedType type)) => true;
+
   bool operator ==(other);
 
   /**
@@ -250,34 +266,101 @@ Link<DartType> substTypes(Link<DartType> types,
   return types;
 }
 
+/**
+ * Combine error messages in a malformed type to a single message string.
+ */
+String fetchReasonsFromMalformedType(DartType type) {
+  // TODO(johnniwinther): Figure out how to produce good error message in face
+  // of multiple errors, and how to ensure non-localized error messages.
+  var reasons = new List<String>();
+  type.forEachMalformedType((MalformedType malformedType) {
+    ErroneousElement error = malformedType.element;
+    Message message = error.messageKind.message(error.messageArguments);
+    reasons.add(message.toString());
+    return true;
+  });
+  return Strings.join(reasons, ', ');
+}
+
 class MalformedType extends DartType {
-  const MalformedType(this.element);
+  final ErroneousElement element;
+
+  /**
+   * [declaredType] holds the type which the user wrote in code.
+   *
+   * For instance, for a resolved but malformed type like [: Map<String> :] the
+   * [declaredType] is [: Map<String> :] whereas for an unresolved type
+   */
+  final DartType userProvidedBadType;
+
+  /**
+   * Type arguments for the malformed typed, if these cannot fit in the
+   * [declaredType].
+   *
+   * This field is for instance used for [: dynamic<int> :] and [: T<int> :]
+   * where [: T :] is a type variable, in which case [declaredType] holds
+   * [: dynamic :] and [: T :], respectively, or for [: X<int> :] where [: X :]
+   * is not resolved or does not imply a type.
+   */
+  final Link<DartType> typeArguments;
+
+  MalformedType(this.element, this.userProvidedBadType,
+                [this.typeArguments = null]);
 
   TypeKind get kind => TypeKind.MALFORMED_TYPE;
 
   SourceString get name => element.name;
 
-  final MalformedTypeElement element;
+  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+    // Malformed types are not substitutable.
+    return this;
+  }
+
+  bool get isMalformed => true;
+
+  bool forEachMalformedType(bool f(MalformedType type)) => f(this);
 
   DartType unalias(Compiler compiler) => this;
 
-  int get hashCode => 1733 + 19 * element.hashCode;
-
-  bool operator ==(other) {
-    if (other is !MalformedType) return false;
-    if (!identical(element, other.element)) return false;
-    return true;
+  String toString() {
+    var sb = new StringBuffer();
+    if (typeArguments != null) {
+      if (userProvidedBadType != null) {
+        sb.add(userProvidedBadType.name.slowToString());
+      } else {
+        sb.add(element.name.slowToString());
+      }
+      if (!typeArguments.isEmpty) {
+        sb.add('<');
+        typeArguments.printOn(sb, ', ');
+        sb.add('>');
+      }
+    } else {
+      sb.add(userProvidedBadType.toString());
+    }
+    return sb.toString();
   }
-
-  String toString() => name.slowToString();
 }
 
+bool hasMalformed(Link<DartType> types) {
+  for (DartType typeArgument in types) {
+    if (typeArgument.isMalformed) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// TODO(johnniwinther): Add common supertype for InterfaceType and TypedefType.
 class InterfaceType extends DartType {
   final ClassElement element;
   final Link<DartType> typeArguments;
+  final bool isMalformed;
 
   InterfaceType(this.element,
-                [this.typeArguments = const Link<DartType>()]) {
+                [Link<DartType> typeArguments = const Link<DartType>()])
+      : this.typeArguments = typeArguments,
+        this.isMalformed = hasMalformed(typeArguments) {
     assert(invariant(element, element.isDeclaration));
   }
 
@@ -302,6 +385,15 @@ class InterfaceType extends DartType {
       return new InterfaceType(element, newTypeArguments);
     }
     return this;
+  }
+
+  bool forEachMalformedType(bool f(MalformedType type)) {
+    for (DartType typeArgument in typeArguments) {
+      if (!typeArgument.forEachMalformedType(f)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   DartType unalias(Compiler compiler) => this;
@@ -343,9 +435,14 @@ class FunctionType extends DartType {
   final Element element;
   DartType returnType;
   Link<DartType> parameterTypes;
+  final bool isMalformed;
 
-  FunctionType(DartType this.returnType, Link<DartType> this.parameterTypes,
-               Element this.element) {
+  FunctionType(DartType returnType, Link<DartType> parameterTypes,
+               Element this.element)
+      : this.returnType = returnType,
+        this.parameterTypes = parameterTypes,
+        this.isMalformed = returnType != null && returnType.isMalformed ||
+            hasMalformed(parameterTypes) {
     assert(element == null || invariant(element, element.isDeclaration));
   }
 
@@ -368,6 +465,18 @@ class FunctionType extends DartType {
       return new FunctionType(newReturnType, newParameterTypes, element);
     }
     return this;
+  }
+
+  bool forEachMalformedType(bool f(MalformedType type)) {
+    if (!returnType.forEachMalformedType(f)) {
+      return false;
+    }
+    for (DartType parameterType in parameterTypes) {
+      if (!parameterType.forEachMalformedType(f)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   DartType unalias(Compiler compiler) => this;
@@ -416,9 +525,12 @@ class FunctionType extends DartType {
 class TypedefType extends DartType {
   final TypedefElement element;
   final Link<DartType> typeArguments;
+  final bool isMalformed;
 
-  const TypedefType(this.element,
-                    [this.typeArguments = const Link<DartType>()]);
+  TypedefType(this.element,
+              [Link<DartType> typeArguments = const Link<DartType>()])
+      : this.typeArguments = typeArguments,
+        this.isMalformed = hasMalformed(typeArguments);
 
   TypeKind get kind => TypeKind.TYPEDEF;
 
@@ -441,6 +553,15 @@ class TypedefType extends DartType {
       return new TypedefType(element, newTypeArguments);
     }
     return this;
+  }
+
+  bool forEachMalformedType(bool f(MalformedType type)) {
+    for (DartType typeArgument in typeArguments) {
+      if (!typeArgument.forEachMalformedType(f)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   DartType unalias(Compiler compiler) {
@@ -481,9 +602,8 @@ class TypedefType extends DartType {
 class DynamicType extends InterfaceType {
   DynamicType(ClassElement element) : super(element);
 
-  String toString() => 'dynamic';
+  SourceString get name => const SourceString('dynamic');
 }
-
 
 class Types {
   final Compiler compiler;
@@ -508,6 +628,8 @@ class Types {
     if (identical(t, s) ||
         identical(t, dynamicType) ||
         identical(s, dynamicType) ||
+        t.isMalformed ||
+        s.isMalformed ||
         identical(s.element, compiler.objectClass) ||
         identical(t.element, compiler.nullClass)) {
       return true;
@@ -516,10 +638,6 @@ class Types {
     s = s.unalias(compiler);
 
     if (t is VoidType) {
-      return false;
-    } else if (t is MalformedType || s is MalformedType) {
-      // TODO(johnniwinther): Malformed types should be treated as dynamic and
-      // thus return true here.
       return false;
     } else if (t is InterfaceType) {
       if (s is !InterfaceType) return false;

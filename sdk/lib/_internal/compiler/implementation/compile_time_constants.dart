@@ -175,7 +175,8 @@ class ConstantHandler extends CompilerTask {
             && element.isField()) {
           DartType elementType = element.computeType(compiler);
           DartType constantType = value.computeType(compiler);
-          if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
+          if (elementType.isMalformed || constantType.isMalformed ||
+              !constantSystem.isSubtype(compiler, constantType, elementType)) {
             if (isConst) {
               MessageKind kind = MessageKind.NOT_ASSIGNABLE;
               compiler.reportError(node, new CompileTimeConstantError(
@@ -740,7 +741,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       DartType constantType = constant.computeType(compiler);
       // TODO(ngeoffray): Handle type parameters.
       if (elementType.element.isTypeVariable()) return;
-      if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
+      if (elementType.isMalformed || constantType.isMalformed ||
+          !constantSystem.isSubtype(compiler, constantType, elementType)) {
         MessageKind kind = MessageKind.NOT_ASSIGNABLE;
         compiler.reportError(node, new CompileTimeConstantError(
             kind, [elementType, constantType]));

@@ -107,6 +107,11 @@ class Interceptors {
     return compiler.findHelper(const SourceString('throwRuntimeError'));
   }
 
+  Element getThrowMalformedSubtypeError() {
+    return compiler.findHelper(
+        const SourceString('throwMalformedSubtypeError'));
+  }
+
   Element getThrowAbstractClassInstantiationError() {
     return compiler.findHelper(
         const SourceString('throwAbstractClassInstantiationError'));
@@ -2665,6 +2670,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       DartType type = elements.getType(typeAnnotation);
+      if (type.isMalformed) {
+        String reasons = fetchReasonsFromMalformedType(type);
+        if (compiler.enableTypeAssertions) {
+          generateMalformedSubtypeError(node, expression, type, reasons);
+        } else {
+          generateRuntimeError(node, '$type is malformed: $reasons');
+        }
+        return;
+      }
       HInstruction typeInfo = null;
       if (RuntimeTypeInformation.hasTypeArguments(type)) {
         pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(), expression);
@@ -3076,8 +3090,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [argument] must not be malformed in checked mode.
+   */
   HInstruction analyzeTypeArgument(DartType argument, Node currentNode) {
-    if (argument == compiler.types.dynamicType) {
+    assert(invariant(currentNode,
+                     !compiler.enableTypeAssertions || !argument.isMalformed,
+                     message: '$argument is malformed in checked mode'));
+    if (argument == compiler.types.dynamicType || argument.isMalformed) {
       // Represent [dynamic] as [null].
       return graph.addConstantNull(constantSystem);
     }
@@ -3205,7 +3227,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         <HInstruction>[typeInfoSetter, newObject, typeInfo]));
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [type] must not be malformed in checked mode.
+   */
   visitNewSend(Send node, InterfaceType type) {
+    assert(invariant(node,
+                     !compiler.enableTypeAssertions || !type.isMalformed,
+                     message: '$type is malformed in checked mode'));
     bool isListConstructor = false;
     computeType(element) {
       Element originalElement = elements[node];
@@ -3445,9 +3475,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                               existingArguments: existingArguments);
   }
 
+  void generateMalformedSubtypeError(Node node, HInstruction value,
+                                     DartType type, String reasons) {
+    HInstruction typeString = addConstantString(node, type.toString());
+    HInstruction reasonsString = addConstantString(node, reasons);
+    Element helper = interceptors.getThrowMalformedSubtypeError();
+    pushInvokeHelper3(helper, value, typeString, reasonsString);
+  }
+
   visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
-    if (!Elements.isUnresolved(element)) {
+    if (!Elements.isErroneousElement(element)) {
       FunctionElement function = element;
       element = function.redirectionTarget;
     }
@@ -3457,12 +3495,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         generateThrowNoSuchMethod(node.send,
                                   getTargetName(error, 'constructor'),
                                   argumentNodes: node.send.arguments);
-      } else if (error.messageKind == MessageKind.CANNOT_RESOLVE) {
+      } else {
         Message message = error.messageKind.message(error.messageArguments);
         generateRuntimeError(node.send, message.toString());
-      } else {
-        compiler.internalError('unexpected unresolved constructor call',
-                               node: node);
       }
     } else if (node.isConst()) {
       // TODO(karlklose): add type representation
@@ -3470,13 +3505,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
       stack.add(graph.addConstant(constant));
     } else {
-      DartType dartType = elements.getType(node);
-      if (dartType.kind == TypeKind.MALFORMED_TYPE &&
-          compiler.enableTypeAssertions) {
-        Message message = MessageKind.MALFORMED_TYPE_REFERENCE.message([node]);
-        generateRuntimeError(node.send, message.toString());
+      DartType type = elements.getType(node);
+      if (compiler.enableTypeAssertions && type.isMalformed) {
+        String reasons = fetchReasonsFromMalformedType(type);
+        // TODO(johnniwinther): Change to resemble type errors from bounds check
+        // on type arguments.
+        generateRuntimeError(node, '$type is malformed: $reasons');
       } else {
-        visitNewSend(node.send, dartType);
+        visitNewSend(node.send, type);
       }
     }
   }

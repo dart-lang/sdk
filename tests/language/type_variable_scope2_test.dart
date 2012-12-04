@@ -26,6 +26,7 @@ main() {
   try {
     Expect.isTrue(Foo.m() is Foo);
   } on TypeError catch (error) {
+    print(error);
     got_type_error = true;
   }
   // Type error in checked mode only.

@@ -54,7 +54,6 @@ Language/07_Classes/6_Constructors_A01_t04: Fail # TODO(ahe): Please triage this
 Language/07_Classes/6_Constructors_A01_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors_A01_t06: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # TODO(ahe): Please triage this failure.
-Language/09_Generics/09_Generics_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A13_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A20_t03: Fail # TODO(ahe): Please triage this failure.
@@ -207,6 +206,8 @@ LibTest/math/exp_A01_t01: Fail # TODO(ahe): Please triage this failure.
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
 
+Language/09_Generics/09_Generics_A05_t01: Fail # TODO(johnniwinther): Please triage this failure.
+
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/double/round_A01_t01: Fail # TODO(ahe): Triage these tests.
 LibTest/core/double/toStringAsExponential_A01_t07: Fail # TODO(ahe): Triage these tests.
@@ -255,7 +256,6 @@ Language/12_Statements/06_For/1_For_Loop_A01_t08: Fail # TODO(ahe): Please triag
 Language/12_Statements/09_Switch_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t06: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t26: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t31: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t46: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/4_Interface_Types_A08_t03: Fail # TODO(ahe): Please triage this failure.
@@ -325,8 +325,6 @@ LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 287
 
 LibTest/core/int/isOdd_A01_t01: Fail, OK # co19 issue 277
 LibTest/core/int/isEven_A01_t01: Fail, OK # co19 issue 277
-
-Language/09_Generics/09_Generics_A05_t01: Fail # co19 issue 297
 
 [ $compiler == dart2js ]
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.

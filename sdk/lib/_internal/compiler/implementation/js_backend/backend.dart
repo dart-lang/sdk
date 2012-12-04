@@ -1105,6 +1105,8 @@ class JavaScriptBackend extends Backend {
           : const SourceString('stringSuperTypeCheck');
     } else if (identical(element, compiler.listClass)) {
       return const SourceString('listTypeCheck');
+    } else if (type.isMalformed) {
+      return const SourceString('malformedTypeCheck');
     } else {
       if (Elements.isListSupertype(element, compiler)) {
         return nativeCheck
