@@ -8,6 +8,7 @@ import 'dart:uri';
 
 import '../../../http/lib/http.dart' as http;
 
+import 'authorization_exception.dart';
 import 'credentials.dart';
 import 'expiration_exception.dart';
 import 'utils.dart';
@@ -24,9 +25,9 @@ import 'utils.dart';
 /// authorization server provides ill-formatted responses, or an
 /// [ExpirationException] if the credentials are expired and can't be refreshed.
 ///
-/// Currently this client doesn't attempt to identify errors from the resource
-/// server that are caused by authentication failure. However, it may throw
-/// [AuthorizationException]s for such errors in the future.
+/// The client will also throw an [AuthorizationException] if the resource
+/// server returns a 401 response with a WWW-Authenticate header indicating that
+/// the current credentials are invalid.
 ///
 /// If you already have a set of [Credentials], you can construct a [Client]
 /// directly. However, in order to first obtain the credentials, you must
@@ -87,8 +88,28 @@ class Client extends http.BaseClient {
     }).chain((_) {
       request.headers['authorization'] = "Bearer ${credentials.accessToken}";
       return _httpClient.send(request);
+    }).transform((response) {
+      if (response.statusCode != 401 ||
+          !response.headers.containsKey('www-authenticate')) {
+        return response;
+      }
+
+      var authenticate;
+      try {
+        authenticate = parseAuthenticateHeader(
+            response.headers['www-authenticate']);
+      } on FormatException catch (e) {
+        return response;
+      }
+
+      if (authenticate.first != 'bearer') return response;
+
+      var params = authenticate.last;
+      if (!params.containsKey('error')) return response;
+
+      throw new AuthorizationException(
+          params['error'], params['error_description'], params['error_uri']);
     });
-    // TODO(nweiz): parse 401 errors that are caused by OAuth errors here.
   }
 
   /// Explicitly refreshes this client's credentials. Returns this client.
