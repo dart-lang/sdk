@@ -524,3 +524,7 @@ type_error_test: Fail, OK # VM bug: http://dartbug.com/5280
 # This is a VM error when the compiled code is run.
 invocation_mirror_test: Fail # issue 3326, 3622.
 invocation_mirror_indirect_test: Fail # issue 3326, 3622.
+
+[ $compiler == dart2dart && $minified ]
+import_core_prefix_test: Pass
+prefix22_test: Pass
