@@ -60,9 +60,8 @@
             'tools/make_version.py',
             '../tools/VERSION',
             '<(version_in_cc_file)',
-            # We need to list the libdart_dependency_helper executable here
-            # otherwise the action doesn't get executed if any of
-            # libdart/libdart_withcore changes
+            # Depend on libdart_dependency_helper to track the libraries it
+            # depends on.
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)libdart_dependency_helper<(EXECUTABLE_SUFFIX)',
           ],
           'outputs': [
