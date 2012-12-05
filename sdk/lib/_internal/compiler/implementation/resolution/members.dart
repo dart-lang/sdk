@@ -1845,7 +1845,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
 
       if (target != null &&
-          target.kind == ElementKind.FOREIGN &&
+          target.isForeign(compiler) &&
           selector.name == const SourceString('JS')) {
         world.registerJsCall(node, this);
       }

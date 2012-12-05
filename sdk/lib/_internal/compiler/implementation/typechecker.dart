@@ -1014,7 +1014,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
             fail(node, 'unresolved ${node.selector}');
           } else if (identical(element.kind, ElementKind.FUNCTION)) {
             return computeType(element);
-          } else if (identical(element.kind, ElementKind.FOREIGN)) {
+          } else if (element.isForeign(compiler)) {
             return null;
           } else if (identical(element.kind, ElementKind.VARIABLE)
                      || identical(element.kind, ElementKind.FIELD)) {

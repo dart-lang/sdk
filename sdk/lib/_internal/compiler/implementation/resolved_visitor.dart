@@ -40,8 +40,6 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
       } else if (element.isInstanceMember()) {
         // Example: f() with 'f' bound to instance method.
         return visitDynamicSend(node);
-      } else if (identical(element.kind, ElementKind.FOREIGN)) {
-        return visitForeignSend(node);
       } else if (!element.isInstanceMember()) {
         // Example: A.f() or f() with 'f' bound to a static function.
         // Also includes new A() or new A.named() which is treated like a
@@ -58,7 +56,6 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
   R visitGetterSend(Send node);
   R visitClosureSend(Send node);
   R visitDynamicSend(Send node);
-  R visitForeignSend(Send node);
   R visitStaticSend(Send node);
   R visitTypeReferenceSend(Send node);
 

@@ -109,6 +109,12 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),
+
+  "_foreign_helper": const LibraryInfo(
+      "_internal/compiler/implementation/lib/foreign_helper.dart",
+      category: "Internal",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
 };
 
 /**

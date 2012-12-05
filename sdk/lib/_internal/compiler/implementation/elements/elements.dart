@@ -80,8 +80,6 @@ class ElementKind {
     const ElementKind('function', ElementCategory.FUNCTION);
   static const ElementKind CLASS =
     const ElementKind('class', ElementCategory.CLASS);
-  static const ElementKind FOREIGN =
-    const ElementKind('foreign', ElementCategory.FUNCTION);
   static const ElementKind GENERATIVE_CONSTRUCTOR =
       const ElementKind('generative_constructor', ElementCategory.FACTORY);
   static const ElementKind FIELD =
@@ -191,7 +189,6 @@ class Element implements Spannable {
   bool isGetter() => identical(kind, ElementKind.GETTER);
   bool isSetter() => identical(kind, ElementKind.SETTER);
   bool isAccessor() => isGetter() || isSetter();
-  bool isForeign() => identical(kind, ElementKind.FOREIGN);
   bool isLibrary() => identical(kind, ElementKind.LIBRARY);
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
   bool isExtendable() => (kind.category & ElementCategory.IS_EXTENDABLE) != 0;
@@ -364,6 +361,7 @@ class Element implements Spannable {
   static bool isInvalid(Element e) => e == null || e.isErroneous();
 
   bool isAbstract(Compiler compiler) => modifiers.isAbstract();
+  bool isForeign(Compiler compiler) => getLibrary() == compiler.foreignLibrary;
 }
 
 /**
@@ -1019,19 +1017,6 @@ class VariableListElement extends Element {
 
   bool isInstanceMember() {
     return isMember() && !modifiers.isStatic();
-  }
-}
-
-class ForeignElement extends Element {
-  ForeignElement(SourceString name, ContainerElement enclosingElement)
-    : super(name, ElementKind.FOREIGN, enclosingElement);
-
-  DartType computeType(Compiler compiler) {
-    return compiler.types.dynamicType;
-  }
-
-  parseNode(DiagnosticListener listener) {
-    throw "internal error: ForeignElement has no node";
   }
 }
 

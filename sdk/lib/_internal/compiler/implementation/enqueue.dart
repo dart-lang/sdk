@@ -84,7 +84,7 @@ class Enqueuer {
    */
   void addToWorkList(Element element, [TreeElements elements]) {
     assert(invariant(element, element.isDeclaration));
-    if (element.isForeign()) return;
+    if (element.isForeign(compiler)) return;
     if (queueIsClosed) {
       if (isResolutionQueue && getCachedElements(element) != null) return;
       compiler.internalErrorOnElement(element, "Work list is closed.");

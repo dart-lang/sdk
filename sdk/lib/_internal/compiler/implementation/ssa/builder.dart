@@ -3306,6 +3306,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitStaticSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
+    if (element.isForeign(compiler)) {
+      visitForeignSend(node);
+      return;
+    }
     if (element.isErroneous()) {
       generateThrowNoSuchMethod(node,
                                 getTargetName(element),

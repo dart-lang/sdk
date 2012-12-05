@@ -130,6 +130,7 @@ abstract class Compiler implements DiagnosticListener {
   LibraryElement isolateLibrary;
   LibraryElement jsHelperLibrary;
   LibraryElement interceptorsLibrary;
+  LibraryElement foreignLibrary;
   LibraryElement mainApp;
 
   ClassElement objectClass;
@@ -447,6 +448,7 @@ abstract class Compiler implements DiagnosticListener {
   void scanBuiltinLibraries() {
     jsHelperLibrary = scanBuiltinLibrary('_js_helper');
     interceptorsLibrary = scanBuiltinLibrary('_interceptors');
+    foreignLibrary = scanBuiltinLibrary('_foreign_helper');
 
     // The core library was loaded and patched before jsHelperLibrary was
     // initialized, so it wasn't imported into those two libraries during
@@ -454,8 +456,8 @@ abstract class Compiler implements DiagnosticListener {
     importHelperLibrary(coreLibrary);
     importHelperLibrary(interceptorsLibrary);
 
-    addForeignFunctions(jsHelperLibrary);
-    addForeignFunctions(interceptorsLibrary);
+    importForeignLibrary(jsHelperLibrary);
+    importForeignLibrary(interceptorsLibrary);
 
     assertMethod = jsHelperLibrary.find(const SourceString('assertHelper'));
     identicalFunction = coreLibrary.find(const SourceString('identical'));
@@ -483,19 +485,10 @@ abstract class Compiler implements DiagnosticListener {
   Uri resolvePatchUri(String dartLibraryPath);
 
   /** Define the JS helper functions in the given library. */
-  void addForeignFunctions(LibraryElement library) {
-    library.addToScope(new ForeignElement(
-        const SourceString('JS'), library), this);
-    library.addToScope(new ForeignElement(
-        const SourceString('UNINTERCEPTED'), library), this);
-    library.addToScope(new ForeignElement(
-        const SourceString('JS_HAS_EQUALS'), library), this);
-    library.addToScope(new ForeignElement(
-        const SourceString('JS_CURRENT_ISOLATE'), library), this);
-    library.addToScope(new ForeignElement(
-        const SourceString('JS_CALL_IN_ISOLATE'), library), this);
-    library.addToScope(new ForeignElement(
-        const SourceString('DART_CLOSURE_TO_JS'), library), this);
+  void importForeignLibrary(LibraryElement library) {
+    if (jsHelperLibrary != null) {
+      libraryLoader.importLibrary(library, foreignLibrary, null);
+    }
   }
 
   // TODO(karlklose,floitsch): move this to the javascript backend.
@@ -524,7 +517,8 @@ abstract class Compiler implements DiagnosticListener {
         // dart:mirrors needs access to the Primitives class.
         importHelperLibrary(library);
       }
-      library.addToScope(findHelper(const SourceString('JS')), this);
+      library.addToScope(
+          foreignLibrary.findLocal(const SourceString('JS')), this);
       Element jsIndexingBehaviorInterface =
           findHelper(const SourceString('JavaScriptIndexingBehavior'));
       if (jsIndexingBehaviorInterface != null) {
