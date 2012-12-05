@@ -65,8 +65,6 @@ namespace dart {
 NODE_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
 
-// Forward declarations.
-class CodeGenInfo;
 
 // Abstract class to implement an AST node visitor. An example is AstPrinter.
 class AstNodeVisitor : public ValueObject {
@@ -95,21 +93,16 @@ class AstNode : public ZoneAllocated {
  public:
   explicit AstNode(intptr_t token_pos)
       : token_pos_(token_pos),
-        ic_data_(ICData::ZoneHandle()),
-        info_(NULL) {
+        ic_data_(ICData::ZoneHandle()) {
     ASSERT(token_pos_ >= 0);
   }
 
   intptr_t token_pos() const { return token_pos_; }
 
-
   const ICData& ic_data() const { return ic_data_; }
   void set_ic_data(const ICData& value) {
     ic_data_ = value.raw();
   }
-
-  void set_info(CodeGenInfo* info) { info_ = info; }
-  CodeGenInfo* info() const { return info_; }
 
 #define AST_TYPE_CHECK(type, name)                                             \
   virtual bool Is##type() const { return false; }                              \
@@ -157,8 +150,6 @@ NODE_LIST(AST_TYPE_CHECK)
   const intptr_t token_pos_;
   // IC data collected for this node.
   ICData& ic_data_;
-  // Used by optimizing compiler.
-  CodeGenInfo* info_;
   DISALLOW_COPY_AND_ASSIGN(AstNode);
 };
 
