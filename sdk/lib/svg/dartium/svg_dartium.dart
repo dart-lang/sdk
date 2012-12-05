@@ -6487,7 +6487,7 @@ class SvgElement extends Element {
     throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
   }
 
-  HTMLCollection get $dom_children {
+  HtmlCollection get $dom_children {
     throw new UnsupportedError("Cannot get dom_children on SVG.");
   }
 
