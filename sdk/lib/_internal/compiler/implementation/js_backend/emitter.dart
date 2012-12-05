@@ -1304,15 +1304,23 @@ $classesCollector.$mangledName = {'':
                              DefineMemberFunction defineInstanceMember) {
     assert(invariant(member, member.isDeclaration));
     LibraryElement memberLibrary = member.getLibrary();
+    JavaScriptBackend backend = compiler.backend;
+    // If the class is an interceptor class, the stub gets the
+    // receiver explicitely and we need to pass it to the getter call.
+    bool isInterceptorClass =
+        backend.isInterceptorClass(member.getEnclosingClass());
+    String extraArgument = isInterceptorClass ? 'receiver' : '';
     String getter;
     if (member.isGetter()) {
-      getter = "this.${namer.getterName(member.getLibrary(), member.name)}()";
+      String getterName = namer.getterName(member.getLibrary(), member.name);
+      getter = "this.$getterName($extraArgument)";
     } else {
       String name = member.isNative()
           ? member.nativeName()
           : namer.instanceFieldName(memberLibrary, member.name);
       getter = "this.$name";
     }
+
     for (Selector selector in selectors) {
       if (selector.applies(member, compiler)) {
         String invocationName =
@@ -1328,8 +1336,15 @@ $classesCollector.$mangledName = {'':
         }
         String joined = Strings.join(arguments, ", ");
         CodeBuffer getterBuffer = new CodeBuffer();
+        getterBuffer.add("function(");
+        if (isInterceptorClass) {
+          getterBuffer.add(extraArgument);
+          if (!arguments.isEmpty) {
+            getterBuffer.add(', ');
+          }
+        }
         getterBuffer.add(
-            "function($joined) { return $getter.$closureCallName($joined); }");
+            "$joined) { return $getter.$closureCallName($joined); }");
         defineInstanceMember(invocationName, getterBuffer);
       }
     }
