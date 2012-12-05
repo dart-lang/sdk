@@ -1226,72 +1226,95 @@ class CompositionEvent extends UIEvent native "*CompositionEvent" {
 
 
 /// @domName Console
-class Console
-    // Console is sometimes a singleton bag-of-properties without a prototype.
-    native "=(typeof console == 'undefined' ? {} : console)" {
+class Console {
+
+  static Console safeConsole = new Console();
+
+  bool get _isConsoleDefined => JS('bool', "typeof console != 'undefined'");
 
   /// @domName Console.memory; @docsEditable true
-  final MemoryInfo memory;
+  MemoryInfo get memory => _isConsoleDefined ?
+      JS('MemoryInfo', 'console.memory') : null;
 
   /// @domName Console.profiles; @docsEditable true
-  final List<ScriptProfile> profiles;
+  List<ScriptProfile> get profiles => _isConsoleDefined ?
+      JS('List<ScriptProfile>', 'console.profiles') : null;
 
   /// @domName Console.assertCondition; @docsEditable true
-  void assertCondition(bool condition, Object arg) native;
+  void assertCondition(bool condition, Object arg) => _isConsoleDefined ?
+      JS('void', 'console.assertCondition(#, #)', condition, arg) : null;
 
   /// @domName Console.count; @docsEditable true
-  void count(Object arg) native;
+  void count(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.count(#)', arg) : null;
 
   /// @domName Console.debug; @docsEditable true
-  void debug(Object arg) native;
+  void debug(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.debug(#)', arg) : null;
 
   /// @domName Console.dir; @docsEditable true
-  void dir(Object arg) native;
+  void dir(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.debug(#)', arg) : null;
 
   /// @domName Console.dirxml; @docsEditable true
-  void dirxml(Object arg) native;
+  void dirxml(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.dirxml(#)', arg) : null;
 
   /// @domName Console.error; @docsEditable true
-  void error(Object arg) native;
+  void error(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.error(#)', arg) : null;
 
   /// @domName Console.group; @docsEditable true
-  void group(Object arg) native;
+  void group(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.group(#)', arg) : null;
 
   /// @domName Console.groupCollapsed; @docsEditable true
-  void groupCollapsed(Object arg) native;
+  void groupCollapsed(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.groupCollapsed(#)', arg) : null;
 
   /// @domName Console.groupEnd; @docsEditable true
-  void groupEnd() native;
+  void groupEnd() => _isConsoleDefined ?
+      JS('void', 'console.groupEnd()') : null;
 
   /// @domName Console.info; @docsEditable true
-  void info(Object arg) native;
+  void info(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.info(#)', arg) : null;
 
   /// @domName Console.log; @docsEditable true
-  void log(Object arg) native;
+  void log(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.log(#)', arg) : null;
 
   /// @domName Console.markTimeline; @docsEditable true
-  void markTimeline(Object arg) native;
+  void markTimeline(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.markTimeline(#)', arg) : null;
 
   /// @domName Console.profile; @docsEditable true
-  void profile(String title) native;
+  void profile(String title) => _isConsoleDefined ?
+      JS('void', 'console.profile(#)', title) : null;
 
   /// @domName Console.profileEnd; @docsEditable true
-  void profileEnd(String title) native;
+  void profileEnd(String title) => _isConsoleDefined ?
+      JS('void', 'console.profileEnd(#)', title) : null;
 
   /// @domName Console.time; @docsEditable true
-  void time(String title) native;
+  void time(String title) => _isConsoleDefined ?
+      JS('void', 'console.time(#)', title) : null;
 
   /// @domName Console.timeEnd; @docsEditable true
-  void timeEnd(String title, Object arg) native;
+  void timeEnd(String title, Object arg) => _isConsoleDefined ?
+      JS('void', 'console.timeEnd(#, #)', title, arg) : null;
 
   /// @domName Console.timeStamp; @docsEditable true
-  void timeStamp(Object arg) native;
+  void timeStamp(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.timeStamp(#)', arg) : null;
 
   /// @domName Console.trace; @docsEditable true
-  void trace(Object arg) native;
+  void trace(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.trace(#)', arg) : null;
 
   /// @domName Console.warn; @docsEditable true
-  void warn(Object arg) native;
+  void warn(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.warn(#)', arg) : null;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5506,27 +5529,6 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * Represents an HTML <div> element.
- *
- * The [DivElement] is a generic container for content and does not have any
- * special significance. It is functionally similar to [SpanElement].
- *
- * The [DivElement] is a block-level element, as opposed to [SpanElement],
- * which is an inline-level element.
- *
- * Example usage:
- *
- *     DivElement div = new DivElement();
- *     div.text = 'Here's my new DivElem
- *     document.body.elements.add(elem);
- *
- * See also:
- *
- * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
- * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
- * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
- */
 /// @domName HTMLDivElement; @docsEditable true
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
@@ -5565,7 +5567,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.cookie; @docsEditable true
   String cookie;
 
-  /// Returns the [Window] associated with the document.
   /// @domName Document.defaultView; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
   @JSName('defaultView')
@@ -10845,6 +10846,9 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
   }
+  
+  /// @domName Window.console; @docsEditable true
+  Console get console => Console.safeConsole;
 
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -10860,9 +10864,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /// @domName Window.closed; @docsEditable true
   final bool closed;
-
-  /// @domName Window.console; @docsEditable true
-  final Console console;
 
   /// @domName Window.crypto; @docsEditable true
   final Crypto crypto;
@@ -11967,16 +11968,6 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An HTML <menu> element.
- *
- * A <menu> element represents an unordered list of menu commands.
- *
- * See also:
- *
- *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
- *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
- */
 /// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 

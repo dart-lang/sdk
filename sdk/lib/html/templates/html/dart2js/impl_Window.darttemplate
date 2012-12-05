@@ -146,6 +146,9 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
   }
+  
+  /// @domName Window.console; @docsEditable true
+  Console get console => Console.safeConsole;
 
 $!MEMBERS
 }

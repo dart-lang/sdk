@@ -5,8 +5,94 @@
 part of html;
 
 /// @domName $DOMNAME
-class $CLASSNAME
-    // Console is sometimes a singleton bag-of-properties without a prototype.
-    native "=(typeof console == 'undefined' ? {} : console)" {
+class Console {
+
+  static Console safeConsole = new Console();
+
+  bool get _isConsoleDefined => JS('bool', "typeof console != 'undefined'");
+
+  /// @domName Console.memory; @docsEditable true
+  MemoryInfo get memory => _isConsoleDefined ?
+      JS('MemoryInfo', 'console.memory') : null;
+
+  /// @domName Console.profiles; @docsEditable true
+  List<ScriptProfile> get profiles => _isConsoleDefined ?
+      JS('List<ScriptProfile>', 'console.profiles') : null;
+
+  /// @domName Console.assertCondition; @docsEditable true
+  void assertCondition(bool condition, Object arg) => _isConsoleDefined ?
+      JS('void', 'console.assertCondition(#, #)', condition, arg) : null;
+
+  /// @domName Console.count; @docsEditable true
+  void count(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.count(#)', arg) : null;
+
+  /// @domName Console.debug; @docsEditable true
+  void debug(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.debug(#)', arg) : null;
+
+  /// @domName Console.dir; @docsEditable true
+  void dir(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.debug(#)', arg) : null;
+
+  /// @domName Console.dirxml; @docsEditable true
+  void dirxml(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.dirxml(#)', arg) : null;
+
+  /// @domName Console.error; @docsEditable true
+  void error(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.error(#)', arg) : null;
+
+  /// @domName Console.group; @docsEditable true
+  void group(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.group(#)', arg) : null;
+
+  /// @domName Console.groupCollapsed; @docsEditable true
+  void groupCollapsed(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.groupCollapsed(#)', arg) : null;
+
+  /// @domName Console.groupEnd; @docsEditable true
+  void groupEnd() => _isConsoleDefined ?
+      JS('void', 'console.groupEnd()') : null;
+
+  /// @domName Console.info; @docsEditable true
+  void info(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.info(#)', arg) : null;
+
+  /// @domName Console.log; @docsEditable true
+  void log(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.log(#)', arg) : null;
+
+  /// @domName Console.markTimeline; @docsEditable true
+  void markTimeline(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.markTimeline(#)', arg) : null;
+
+  /// @domName Console.profile; @docsEditable true
+  void profile(String title) => _isConsoleDefined ?
+      JS('void', 'console.profile(#)', title) : null;
+
+  /// @domName Console.profileEnd; @docsEditable true
+  void profileEnd(String title) => _isConsoleDefined ?
+      JS('void', 'console.profileEnd(#)', title) : null;
+
+  /// @domName Console.time; @docsEditable true
+  void time(String title) => _isConsoleDefined ?
+      JS('void', 'console.time(#)', title) : null;
+
+  /// @domName Console.timeEnd; @docsEditable true
+  void timeEnd(String title, Object arg) => _isConsoleDefined ?
+      JS('void', 'console.timeEnd(#, #)', title, arg) : null;
+
+  /// @domName Console.timeStamp; @docsEditable true
+  void timeStamp(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.timeStamp(#)', arg) : null;
+
+  /// @domName Console.trace; @docsEditable true
+  void trace(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.trace(#)', arg) : null;
+
+  /// @domName Console.warn; @docsEditable true
+  void warn(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.warn(#)', arg) : null;
 $!MEMBERS
 }
