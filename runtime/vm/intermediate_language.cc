@@ -1907,7 +1907,8 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp_reg = locs()->temp(0).reg();
   int argument_count = ArgumentCount();
   const Array& arguments_descriptor =
-      DartEntry::ArgumentsDescriptor(argument_count, argument_names());
+      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
+                                                 argument_names()));
   __ LoadObject(temp_reg, arguments_descriptor);
   compiler->GenerateDartCall(deopt_id(),
                              token_pos(),

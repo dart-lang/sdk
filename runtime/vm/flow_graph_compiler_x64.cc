@@ -9,6 +9,7 @@
 
 #include "lib/error.h"
 #include "vm/ast_printer.h"
+#include "vm/dart_entry.h"
 #include "vm/il_printer.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -635,8 +636,8 @@ void FlowGraphCompiler::CopyParameters() {
   const int min_num_pos_args = num_fixed_params;
   const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
-  // Number of positional args is the second Smi in descriptor array (R10).
-  __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
+  __ movq(RCX,
+          FieldAddress(R10, ArgumentsDescriptor::positional_count_offset()));
   // Check that min_num_pos_args <= num_pos_args.
   Label wrong_num_arguments;
   __ cmpq(RCX, Immediate(Smi::RawValue(min_num_pos_args)));
@@ -649,8 +650,7 @@ void FlowGraphCompiler::CopyParameters() {
   // Argument i passed at fp[1 + num_args - i] is copied
   // to fp[ParsedFunction::kFirstLocalSlotIndex - i].
 
-  // Total number of args is the first Smi in args descriptor array (R10).
-  __ movq(RBX, FieldAddress(R10, Array::data_offset()));
+  __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   // Since RBX and RCX are Smi, use TIMES_4 instead of TIMES_8.
   // Let RBX point to the last passed positional argument, i.e. to
   // fp[1 + num_args - (num_pos_args - 1)].
@@ -704,27 +704,30 @@ void FlowGraphCompiler::CopyParameters() {
       opt_param_position[i + 1] = pos;
     }
     // Generate code handling each optional parameter in alphabetical order.
-    // Total number of args is the first Smi in args descriptor array (R10).
-    __ movq(RBX, FieldAddress(R10, Array::data_offset()));
-    // Number of positional args is the second Smi in descriptor array (R10).
-    __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
+    __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+    __ movq(RCX,
+            FieldAddress(R10, ArgumentsDescriptor::positional_count_offset()));
     __ SmiUntag(RCX);
     // Let RBX point to the first passed argument, i.e. to fp[1 + argc - 0].
     __ leaq(RBX, Address(RBP, RBX, TIMES_4, kWordSize));  // RBX is Smi.
-    // Let EDI point to the name/pos pair of the first named argument.
-    __ leaq(RDI, FieldAddress(R10, Array::data_offset() + (2 * kWordSize)));
+    // Let RDI point to the entry of the first named argument.
+    __ leaq(RDI,
+            FieldAddress(R10, ArgumentsDescriptor::first_named_entry_offset()));
     for (int i = 0; i < num_opt_named_params; i++) {
       Label load_default_value, assign_optional_parameter, next_parameter;
       const int param_pos = opt_param_position[i];
       // Check if this named parameter was passed in.
-      __ movq(RAX, Address(RDI, 0));  // Load RAX with the name of the argument.
+      // Load RAX with the name of the argument.
+      __ movq(RAX, Address(RDI, ArgumentsDescriptor::name_offset()));
       ASSERT(opt_param[i]->name().IsSymbol());
       __ CompareObject(RAX, opt_param[i]->name());
       __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
       // Load RAX with passed-in argument at provided arg_pos, i.e. at
       // fp[1 + argc - arg_pos].
-      __ movq(RAX, Address(RDI, kWordSize));  // RAX is arg_pos as Smi.
-      __ addq(RDI, Immediate(2 * kWordSize));  // Point to next name/pos pair.
+      __ movq(RAX, Address(RDI, ArgumentsDescriptor::position_offset()));
+      // RAX is arg_pos as Smi.
+      // Point to next named entry.
+      __ addq(RDI, Immediate(ArgumentsDescriptor::named_entry_size()));
       __ negq(RAX);
       Address argument_addr(RBX, RAX, TIMES_4, 0);  // RAX is a negative Smi.
       __ movq(RAX, argument_addr);
@@ -753,8 +756,8 @@ void FlowGraphCompiler::CopyParameters() {
     __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
   } else {
     ASSERT(num_opt_pos_params > 0);
-    // Number of positional args is the second Smi in descriptor array (R10).
-    __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
+    __ movq(RCX,
+            FieldAddress(R10, ArgumentsDescriptor::positional_count_offset()));
     __ SmiUntag(RCX);
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
@@ -778,8 +781,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ movq(param_addr, RAX);
       __ Bind(&next_parameter);
     }
-    // Total number of args is the first Smi in args descriptor array (R10).
-    __ movq(RBX, FieldAddress(R10, Array::data_offset()));
+    __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
     __ SmiUntag(RBX);
     // Check that RCX equals RBX, i.e. no named arguments passed.
     __ cmpq(RCX, RBX);
@@ -830,8 +832,7 @@ void FlowGraphCompiler::CopyParameters() {
   // an issue anymore.
 
   // R10 : arguments descriptor array.
-  // Total number of args is the first Smi in args descriptor array (R10).
-  __ movq(RCX, FieldAddress(R10, Array::data_offset()));
+  __ movq(RCX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(RCX);
   Label null_args_loop, null_args_loop_condition;
   __ jmp(&null_args_loop_condition, Assembler::kNearJump);
@@ -915,8 +916,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ Comment("Check argument count");
       // Check that num_fixed <= argc <= num_params.
       Label argc_in_range;
-      // Total number of args is the first Smi in args descriptor array (R10).
-      __ movq(RAX, FieldAddress(R10, Array::data_offset()));
+      __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
       __ cmpq(RAX, Immediate(Smi::RawValue(num_fixed_params)));
       __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
       if (function.IsClosureFunction()) {

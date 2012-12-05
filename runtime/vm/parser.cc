@@ -165,7 +165,7 @@ void ParsedFunction::AllocateVariables() {
   } else {
     // Parameter i will be at fp[kFirstLocalSlotIndex - i] and local variable
     // j will be at fp[kFirstLocalSlotIndex - num_params - j].
-    // The saved argument descriptor variable must be allocated similarly to
+    // The saved arguments descriptor variable must be allocated similarly to
     // a parameter, so that it gets both a frame slot and a context slot when
     // captured.
     if (GetSavedArgumentsDescriptorVar() != NULL) {
@@ -7100,8 +7100,8 @@ ArgumentListNode* Parser::ParseActualParameters(
       ConsumeToken();
       if (IsIdentifier() && (LookaheadToken(1) == Token::kCOLON)) {
         named_argument_seen = true;
-        // The canonicalization of the argument descriptor array built in the
-        // code generator requires that the names are symbols, i.e.
+        // The canonicalization of the arguments descriptor array built in
+        // the code generator requires that the names are symbols, i.e.
         // canonicalized strings.
         ASSERT(CurrentLiteral()->IsSymbol());
         for (int i = 0; i < names.Length(); i++) {
@@ -9252,7 +9252,7 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
     ASSERT(owner_scope->num_variables() == owner_function.NumParameters());
     bool success = owner_scope->AddVariable(saved_args_desc_var);
     ASSERT(success);
-    // Capture the saved argument descriptor variable if necessary.
+    // Capture the saved arguments descriptor variable if necessary.
     LocalVariable* local = LookupLocalScope(saved_args_desc_name);
     ASSERT(local == saved_args_desc_var);
   }

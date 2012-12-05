@@ -675,17 +675,16 @@ DEFINE_RUNTIME_ENTRY(ArgumentDefinitionTest, 3) {
   const Smi& param_index = Smi::CheckedHandle(arguments.ArgAt(0));
   const String& param_name = String::CheckedHandle(arguments.ArgAt(1));
   ASSERT(param_name.IsSymbol());
-  const Array& arg_desc = Array::CheckedHandle(arguments.ArgAt(2));
-  const intptr_t num_pos_args = Smi::CheckedHandle(arg_desc.At(1)).Value();
+  ArgumentsDescriptor arg_desc(arguments.ArgAt(2));
+  const intptr_t num_pos_args = arg_desc.PositionalCount();
   // Check if the formal parameter is defined by a positional argument.
   bool is_defined = num_pos_args > param_index.Value();
   if (!is_defined) {
     // Check if the formal parameter is defined by a named argument.
-    const intptr_t num_named_args =
-        Smi::CheckedHandle(arg_desc.At(0)).Value() - num_pos_args;
+    const intptr_t num_named_args = arg_desc.NamedCount();
     String& arg_name = String::Handle();
     for (intptr_t i = 0; i < num_named_args; i++) {
-      arg_name ^= arg_desc.At(2*i + 2);
+      arg_name ^= arg_desc.NameAt(i);
       if (arg_name.raw() == param_name.raw()) {
         is_defined = true;
         break;

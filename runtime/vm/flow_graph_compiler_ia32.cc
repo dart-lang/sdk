@@ -9,6 +9,7 @@
 
 #include "lib/error.h"
 #include "vm/ast_printer.h"
+#include "vm/dart_entry.h"
 #include "vm/il_printer.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -635,8 +636,8 @@ void FlowGraphCompiler::CopyParameters() {
   const int min_num_pos_args = num_fixed_params;
   const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
-  // Number of positional args is the second Smi in descriptor array (EDX).
-  __ movl(ECX, FieldAddress(EDX, Array::data_offset() + (1 * kWordSize)));
+  __ movl(ECX,
+          FieldAddress(EDX, ArgumentsDescriptor::positional_count_offset()));
   // Check that min_num_pos_args <= num_pos_args.
   Label wrong_num_arguments;
   __ cmpl(ECX, Immediate(Smi::RawValue(min_num_pos_args)));
@@ -649,8 +650,7 @@ void FlowGraphCompiler::CopyParameters() {
   // Argument i passed at fp[1 + num_args - i] is copied
   // to fp[ParsedFunction::kFirstLocalSlotIndex - i].
 
-  // Total number of args is the first Smi in args descriptor array (EDX).
-  __ movl(EBX, FieldAddress(EDX, Array::data_offset()));
+  __ movl(EBX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   // Since EBX and ECX are Smi, use TIMES_2 instead of TIMES_4.
   // Let EBX point to the last passed positional argument, i.e. to
   // fp[1 + num_args - (num_pos_args - 1)].
@@ -702,27 +702,30 @@ void FlowGraphCompiler::CopyParameters() {
       opt_param_position[i + 1] = pos;
     }
     // Generate code handling each optional parameter in alphabetical order.
-    // Total number of args is the first Smi in args descriptor array (EDX).
-    __ movl(EBX, FieldAddress(EDX, Array::data_offset()));
-    // Number of positional args is the second Smi in descriptor array (EDX).
-    __ movl(ECX, FieldAddress(EDX, Array::data_offset() + (1 * kWordSize)));
+    __ movl(EBX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
+    __ movl(ECX,
+            FieldAddress(EDX, ArgumentsDescriptor::positional_count_offset()));
     __ SmiUntag(ECX);
     // Let EBX point to the first passed argument, i.e. to fp[1 + argc - 0].
     __ leal(EBX, Address(EBP, EBX, TIMES_2, kWordSize));  // EBX is Smi.
-    // Let EDI point to the name/pos pair of the first named argument.
-    __ leal(EDI, FieldAddress(EDX, Array::data_offset() + (2 * kWordSize)));
+    // Let EDI point to the entry of the first named argument.
+    __ leal(EDI,
+            FieldAddress(EDX, ArgumentsDescriptor::first_named_entry_offset()));
     for (int i = 0; i < num_opt_named_params; i++) {
       Label load_default_value, assign_optional_parameter, next_parameter;
       const int param_pos = opt_param_position[i];
       // Check if this named parameter was passed in.
-      __ movl(EAX, Address(EDI, 0));  // Load EAX with the name of the argument.
+      // Load EAX with the name of the argument.
+      __ movl(EAX, Address(EDI, ArgumentsDescriptor::name_offset()));
       ASSERT(opt_param[i]->name().IsSymbol());
       __ CompareObject(EAX, opt_param[i]->name());
       __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
       // Load EAX with passed-in argument at provided arg_pos, i.e. at
       // fp[1 + argc - arg_pos].
-      __ movl(EAX, Address(EDI, kWordSize));  // EAX is arg_pos as Smi.
-      __ addl(EDI, Immediate(2 * kWordSize));  // Point to next name/pos pair.
+      __ movl(EAX, Address(EDI, ArgumentsDescriptor::position_offset()));
+      // EAX is arg_pos as Smi.
+      // Point to next named entry.
+      __ addl(EDI, Immediate(ArgumentsDescriptor::named_entry_size()));
       __ negl(EAX);
       Address argument_addr(EBX, EAX, TIMES_2, 0);  // EAX is a negative Smi.
       __ movl(EAX, argument_addr);
@@ -751,8 +754,8 @@ void FlowGraphCompiler::CopyParameters() {
     __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
   } else {
     ASSERT(num_opt_pos_params > 0);
-    // Number of positional args is the second Smi in descriptor array (EDX).
-    __ movl(ECX, FieldAddress(EDX, Array::data_offset() + (1 * kWordSize)));
+    __ movl(ECX,
+            FieldAddress(EDX, ArgumentsDescriptor::positional_count_offset()));
     __ SmiUntag(ECX);
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
@@ -776,8 +779,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ movl(param_addr, EAX);
       __ Bind(&next_parameter);
     }
-    // Total number of args is the first Smi in args descriptor array (EDX).
-    __ movl(EBX, FieldAddress(EDX, Array::data_offset()));
+    __ movl(EBX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
     __ SmiUntag(EBX);
     // Check that ECX equals EBX, i.e. no named arguments passed.
     __ cmpl(ECX, EBX);
@@ -828,8 +830,7 @@ void FlowGraphCompiler::CopyParameters() {
   // an issue anymore.
 
   // EDX : arguments descriptor array.
-  // Total number of args is the first Smi in args descriptor array (EDX).
-  __ movl(ECX, FieldAddress(EDX, Array::data_offset()));
+  __ movl(ECX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(ECX);
   Label null_args_loop, null_args_loop_condition;
   __ jmp(&null_args_loop_condition, Assembler::kNearJump);
@@ -912,8 +913,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ Comment("Check argument count");
       // Check that num_fixed <= argc <= num_params.
       Label argc_in_range;
-      // Total number of args is the first Smi in args descriptor array (EDX).
-      __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
+      __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
       __ cmpl(EAX, Immediate(Smi::RawValue(num_fixed_params)));
       __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
       if (function.IsClosureFunction()) {

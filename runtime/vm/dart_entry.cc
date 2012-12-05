@@ -44,11 +44,10 @@ RawObject* DartEntry::InvokeDynamic(
   ASSERT(context.isolate() == Isolate::Current());
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
-  return entrypoint(
-      code.EntryPoint(),
-      ArgumentsDescriptor(num_arguments, optional_arguments_names),
-      args.data(),
-      context);
+  const Array& arg_descriptor =
+      Array::Handle(ArgumentsDescriptor::New(num_arguments,
+                                             optional_arguments_names));
+  return entrypoint(code.EntryPoint(), arg_descriptor, args.data(), context);
 }
 
 
@@ -74,11 +73,11 @@ RawObject* DartEntry::InvokeStatic(
   ASSERT(context.isolate() == Isolate::Current());
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
-  return entrypoint(
-      code.EntryPoint(),
-      ArgumentsDescriptor(arguments.length(), optional_arguments_names),
-      arguments.data(),
-      context);
+  const Array& arg_descriptor =
+      Array::Handle(ArgumentsDescriptor::New(arguments.length(),
+                                             optional_arguments_names));
+  return entrypoint(code.EntryPoint(), arg_descriptor, arguments.data(),
+                    context);
 }
 
 
@@ -113,53 +112,91 @@ RawObject* DartEntry::InvokeClosure(
   ASSERT(context.isolate() == Isolate::Current());
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
-  return entrypoint(
-      code.EntryPoint(),
-      ArgumentsDescriptor(num_arguments, optional_arguments_names),
-      args.data(),
-      context);
+  const Array& arg_descriptor =
+      Array::Handle(ArgumentsDescriptor::New(num_arguments,
+                                             optional_arguments_names));
+  return entrypoint(code.EntryPoint(), arg_descriptor, args.data(), context);
 }
 
 
-const Array& DartEntry::ArgumentsDescriptor(
-    int num_arguments,
-    const Array& optional_arguments_names) {
+ArgumentsDescriptor::ArgumentsDescriptor(RawObject* array)
+    : array_(Array::CheckedHandle(array)) {
+}
+
+
+intptr_t ArgumentsDescriptor::Count() const {
+  return Smi::CheckedHandle(array_.At(kCountIndex)).Value();
+}
+
+
+intptr_t ArgumentsDescriptor::PositionalCount() const {
+  return Smi::CheckedHandle(array_.At(kPositionalCountIndex)).Value();
+}
+
+
+RawObject* ArgumentsDescriptor::NameAt(intptr_t index) const {
+  return array_.At(kFirstNamedEntryIndex +
+                   (index * kNamedEntrySize) +
+                   kNameOffset);
+}
+
+
+intptr_t ArgumentsDescriptor::count_offset() {
+  return Array::data_offset() + (kCountIndex * kWordSize);
+}
+
+
+intptr_t ArgumentsDescriptor::positional_count_offset() {
+  return Array::data_offset() + (kPositionalCountIndex * kWordSize);
+}
+
+
+intptr_t ArgumentsDescriptor::first_named_entry_offset() {
+  return Array::data_offset() + (kFirstNamedEntryIndex * kWordSize);
+}
+
+
+RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
+                                   const Array& optional_arguments_names) {
   const intptr_t num_named_args =
       optional_arguments_names.IsNull() ? 0 : optional_arguments_names.Length();
   const intptr_t num_pos_args = num_arguments - num_named_args;
 
-  // Build the argument descriptor array, which consists of the total number of
-  // arguments, the number of positional arguments, alphabetically sorted
-  // pairs of name/position, and a terminating null.
-  const int descriptor_len = 3 + (2 * num_named_args);
-  Array& descriptor = Array::ZoneHandle(Array::New(descriptor_len, Heap::kOld));
+  // Build the arguments descriptor array, which consists of the total
+  // argument count; the positional argument count; a sequence of (name,
+  // position) pairs, sorted by name, for each named optional argument; and
+  // a terminating null to simplify iterating in generated code.
+  const intptr_t descriptor_len = LengthFor(num_named_args);
+  Array& descriptor = Array::Handle(Array::New(descriptor_len, Heap::kOld));
 
   // Set total number of passed arguments.
-  descriptor.SetAt(0, Smi::Handle(Smi::New(num_arguments)));
+  descriptor.SetAt(kCountIndex, Smi::Handle(Smi::New(num_arguments)));
   // Set number of positional arguments.
-  descriptor.SetAt(1, Smi::Handle(Smi::New(num_pos_args)));
-  // Set alphabetically sorted pairs of name/position for named arguments.
+  descriptor.SetAt(kPositionalCountIndex, Smi::Handle(Smi::New(num_pos_args)));
+  // Set alphabetically sorted entries for named arguments.
   String& name = String::Handle();
   Smi& pos = Smi::Handle();
-  for (int i = 0; i < num_named_args; i++) {
+  for (intptr_t i = 0; i < num_named_args; i++) {
     name ^= optional_arguments_names.At(i);
     pos = Smi::New(num_pos_args + i);
-    int j = i;
+    intptr_t insert_index = kFirstNamedEntryIndex + (kNamedEntrySize * i);
     // Shift already inserted pairs with "larger" names.
-    String& name_j = String::Handle();
-    Smi& pos_j = Smi::Handle();
-    while (--j >= 0) {
-      name_j ^= descriptor.At(2 + (2 * j));
-      const intptr_t result = name.CompareTo(name_j);
+    String& previous_name = String::Handle();
+    Smi& previous_pos = Smi::Handle();
+    while (insert_index > kFirstNamedEntryIndex) {
+      intptr_t previous_index = insert_index - kNamedEntrySize;
+      previous_name ^= descriptor.At(previous_index + kNameOffset);
+      intptr_t result = name.CompareTo(previous_name);
       ASSERT(result != 0);  // Duplicate argument names checked in parser.
       if (result > 0) break;
-      pos_j ^= descriptor.At(3 + (2 * j));
-      descriptor.SetAt(2 + (2 * (j + 1)), name_j);
-      descriptor.SetAt(3 + (2 * (j + 1)), pos_j);
+      previous_pos ^= descriptor.At(previous_index + kPositionOffset);
+      descriptor.SetAt(insert_index + kNameOffset, previous_name);
+      descriptor.SetAt(insert_index + kPositionOffset, previous_pos);
+      insert_index = previous_index;
     }
     // Insert pair in descriptor array.
-    descriptor.SetAt(2 + (2 * (j + 1)), name);
-    descriptor.SetAt(3 + (2 * (j + 1)), pos);
+    descriptor.SetAt(insert_index + kNameOffset, name);
+    descriptor.SetAt(insert_index + kPositionOffset, pos);
   }
   // Set terminating null.
   descriptor.SetAt(descriptor_len - 1, Object::Handle());
@@ -167,7 +204,7 @@ const Array& DartEntry::ArgumentsDescriptor(
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
   descriptor ^= descriptor.Canonicalize();
-  return descriptor;
+  return descriptor.raw();
 }
 
 

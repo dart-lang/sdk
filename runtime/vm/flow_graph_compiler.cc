@@ -498,7 +498,8 @@ void FlowGraphCompiler::GenerateInstanceCall(
   ASSERT(!ic_data.IsNull());
   ASSERT(FLAG_propagate_ic_data || (ic_data.NumberOfChecks() == 0));
   const Array& arguments_descriptor =
-      DartEntry::ArgumentsDescriptor(argument_count, argument_names);
+      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
+                                                 argument_names));
   uword label_address = 0;
   if (is_optimizing() && (ic_data.NumberOfChecks() == 0)) {
     if (ic_data.is_closure_call()) {
@@ -565,7 +566,8 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            const Array& argument_names,
                                            LocationSummary* locs) {
   const Array& arguments_descriptor =
-      DartEntry::ArgumentsDescriptor(argument_count, argument_names);
+      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
+                                                 argument_names));
   EmitStaticCall(function, arguments_descriptor, argument_count,
                  deopt_id, token_pos, locs);
 }

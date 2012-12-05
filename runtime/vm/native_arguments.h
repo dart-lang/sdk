@@ -50,8 +50,8 @@ void SetReturnValueHelper(Dart_NativeArguments, Dart_Handle);
 // following signature:
 //   void function_name(NativeArguments arguments);
 // Inside the function, arguments are accessed as follows:
-//   const Instance& arg0 = Instance::CheckedHandle(arguments.At(0));
-//   const Smi& arg1 = Smi::CheckedHandle(arguments.At(1));
+//   const Instance& arg0 = Instance::CheckedHandle(arguments.ArgAt(0));
+//   const Smi& arg1 = Smi::CheckedHandle(arguments.ArgAt(1));
 // The return value is set as follows:
 //   arguments.SetReturn(result);
 // NOTE: Since we pass 'this' as a pass-by-value argument in the stubs we don't

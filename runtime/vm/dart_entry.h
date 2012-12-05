@@ -19,9 +19,62 @@ class Instance;
 class Integer;
 class Library;
 class Object;
+class RawArray;
 class RawInstance;
 class RawObject;
 class String;
+
+// An arguments descriptor array consists of the total argument count; the
+// positional argument count; a sequence of (name, position) pairs, sorted
+// by name, for each named optional argument; and a terminating null to
+// simplify iterating in generated code.
+class ArgumentsDescriptor : public ValueObject {
+ public:
+  explicit ArgumentsDescriptor(RawObject* array);
+
+  // Accessors.
+  intptr_t Count() const;
+  intptr_t PositionalCount() const;
+  intptr_t NamedCount() const { return Count() - PositionalCount(); }
+  RawObject* NameAt(intptr_t index) const;
+
+  // Generated code support.
+  static intptr_t count_offset();
+  static intptr_t positional_count_offset();
+  static intptr_t first_named_entry_offset();
+  static intptr_t name_offset() { return kNameOffset * kWordSize; }
+  static intptr_t position_offset() { return kPositionOffset * kWordSize; }
+  static intptr_t named_entry_size() { return kNamedEntrySize * kWordSize; }
+
+  // Allocate and return an arguments descriptor.  The first
+  // (count - optional_arguments_names.Length()) arguments are
+  // positional and the remaining ones are named optional arguments.
+  static RawArray* New(intptr_t count,
+                       const Array& optional_arguments_names);
+
+ private:
+  // Absolute indexes into the array.
+  enum {
+    kCountIndex,
+    kPositionalCountIndex,
+    kFirstNamedEntryIndex,
+  };
+
+  // Relative indexes into each named argument entry.
+  enum {
+    kNameOffset,
+    kPositionOffset,
+    kNamedEntrySize,
+  };
+
+  static intptr_t LengthFor(intptr_t count) {
+    // Add 1 for the terminating null.
+    return kFirstNamedEntryIndex + (kNamedEntrySize * count) + 1;
+  }
+
+  const Array& array_;
+};
+
 
 // DartEntry abstracts functionality needed to resolve dart functions
 // and invoke them from C++.
@@ -53,14 +106,6 @@ class DartEntry : public AllStatic {
   static RawObject* InvokeClosure(
       const Instance& closure,
       const GrowableArray<const Object*>& arguments,
-      const Array& optional_arguments_names);
-
-  // Allocate and return an arguments descriptor.
-  // Let 'num_names' be the length of 'optional_arguments_names'.
-  // Treat the first 'num_arguments - num_names' arguments as positional and
-  // treat the following 'num_names' arguments as named optional arguments.
-  static const Array& ArgumentsDescriptor(
-      int num_arguments,
       const Array& optional_arguments_names);
 };
 

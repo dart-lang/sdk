@@ -56,11 +56,13 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
                     true, false, false, false, owner_class, 0));
 
   const String& target_name = String::Handle(String::New("targetFunction"));
-  ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(function, target_name, 15, 1));
+  const ICData& ic_data =
+      ICData::ZoneHandle(ICData::New(function, target_name, 15, 1));
+  const Array& arg_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(1, Array::Handle()));
 
   __ LoadObject(ECX, ic_data);
-  __ LoadObject(EDX, DartEntry::ArgumentsDescriptor(1, Array::Handle()));
+  __ LoadObject(EDX, arg_descriptor);
   ExternalLabel target_label(
       "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
   __ call(&target_label);

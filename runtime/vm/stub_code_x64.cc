@@ -8,6 +8,7 @@
 #include "vm/assembler.h"
 #include "vm/assembler_macros.h"
 #include "vm/compiler.h"
+#include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
@@ -182,7 +183,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
 
 // Input parameters:
-//   R10: arguments descriptor array (num_args is first Smi element).
+//   R10: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -203,7 +204,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
 // Called from a static call only when an invalid code has been entered
 // (invalid because its function was optimized or deoptimized).
-// R10: arguments descriptor array (num_args is first Smi element).
+// R10: arguments descriptor array.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -253,7 +254,7 @@ static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
 
 // Input parameters:
 //   RBX: ic-data.
-//   R10: arguments descriptor array (num_args is first Smi element).
+//   R10: arguments descriptor array.
 // Note: The receiver object is the first argument to the function being
 //       called, the stub accesses the receiver from this location directly
 //       when trying to resolve the call.
@@ -272,8 +273,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   // TOS + 2: Dart code return address
   // TOS + 3: Last argument of caller.
   // ....
-  // Total number of args is the first Smi in args descriptor array (R10).
-  __ movq(RAX, FieldAddress(R10, Array::data_offset()));
+  __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ movq(RAX, Address(RBP, RAX, TIMES_4, kWordSize));  // Get receiver.
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RAX);  // Preserve receiver.
@@ -372,7 +372,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   __ pushq(raw_null);  // Setup space on stack for result from invoking Closure.
   __ pushq(RBX);  // Closure object.
   __ pushq(R13);  // Arguments descriptor.
-  __ movq(R13, FieldAddress(R13, Array::data_offset()));
+  __ movq(R13, FieldAddress(R13, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(R13);
   __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
   PushArgumentsArray(assembler, (kWordSize * 6));
@@ -404,21 +404,21 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   //   RAX: receiver.
   //   R10: ic-data.
   //   RBX: raw_null.
-  //   R13: argument descriptor array.
+  //   R13: arguments descriptor array.
 
   __ pushq(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushq(RAX);  // Receiver.
   __ pushq(R10);  // IC-data array.
-  __ pushq(R13);  // Argument descriptor array.
-  __ movq(R13, FieldAddress(R13, Array::data_offset()));
+  __ pushq(R13);  // Arguments descriptor array.
+  __ movq(R13, FieldAddress(R13, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(R13);
   __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
   // See stack layout below explaining "wordSize * 7" offset.
   PushArgumentsArray(assembler, (kWordSize * 7));
 
   // Stack:
-  // TOS + 0: Argument array.
-  // TOS + 1: Argument descriptor array.
+  // TOS + 0: Arguments array.
+  // TOS + 1: Arguments descriptor array.
   // TOS + 2: IC-data array.
   // TOS + 3: Receiver.
   // TOS + 4: Place for result from noSuchMethod.
@@ -690,8 +690,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
 
 // Input parameters:
-//   R10: Arguments descriptor array (num_args is first Smi element, closure
-//        object is included in num_args and is first argument).
+//   R10: Arguments descriptor array.
 // Note: The closure object is the first argument to the function being
 //       called, the stub accesses the closure from this location directly
 //       when trying to resolve the call.
@@ -699,8 +698,8 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
-  // Total number of args is the first Smi in args descriptor array (R10).
-  __ movq(RAX, FieldAddress(R10, Array::data_offset()));  // Load num_args.
+  // Load num_args.
+  __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   // Load closure object in R13.
   __ movq(R13, Address(RSP, RAX, TIMES_4, 0));  // RAX is a Smi.
 
@@ -749,7 +748,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ Bind(&function_compiled);
   // RAX: Code.
   // RBX: Function.
-  // R10: Arguments descriptor array (num_args is first Smi element).
+  // R10: Arguments descriptor array.
 
   __ movq(RBX, FieldAddress(RAX, Code::instructions_offset()));
   __ addq(RBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
@@ -759,8 +758,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // Call runtime to report that a closure call was attempted on a non-closure
   // object, passing the non-closure object and its arguments array.
   // R13: non-closure object.
-  // R10: arguments descriptor array (num_args is first Smi element, closure
-  //      object is included in num_args).
+  // R10: arguments descriptor array.
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
@@ -768,8 +766,8 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   __ pushq(raw_null);  // Setup space on stack for result from error reporting.
   __ pushq(R13);  // Non-closure object.
-    // Total number of args is the first Smi in args descriptor array (R10).
-  __ movq(R13, FieldAddress(R10, Array::data_offset()));  // Load num_args.
+  // Load num_args.
+  __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(R13);
   __ subq(R13, Immediate(1));  // Arguments array length, minus the closure.
   // See stack layout below explaining "wordSize * 5" offset.
@@ -845,7 +843,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(R10, Address(RSI, VMHandles::kOffsetOfRawPtrInHandle));
 
   // Load number of arguments into RBX.
-  __ movq(RBX, FieldAddress(R10, Array::data_offset()));
+  __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(RBX);
 
   // Set up arguments for the Dart call.
@@ -871,10 +869,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
 
   // Read the saved arguments descriptor array to obtain the number of passed
-  // arguments, which is the first element of the array, a Smi.
+  // arguments.
   __ movq(RSI, Address(RBP, kArgumentsDescOffset));
   __ movq(R10, Address(RSI, VMHandles::kOffsetOfRawPtrInHandle));
-  __ movq(RDX, FieldAddress(R10, Array::data_offset()));
+  __ movq(RDX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   // Get rid of arguments pushed on the stack.
   __ leaq(RSP, Address(RSP, RDX, TIMES_4, 0));  // RDX is a Smi.
 
@@ -1431,10 +1429,9 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // noSuchMethod(String name, Array arguments) to something like
   // noSuchMethod(InvocationMirror call).
   // Also, the class NoSuchMethodError has to be modified accordingly.
-  // Total number of args is the first Smi in args descriptor array (R10).
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ movq(R13, FieldAddress(R10, Array::data_offset()));
+  __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(R13);
   __ movq(RAX, Address(RBP, R13, TIMES_8, kWordSize));  // Get receiver.
 
@@ -1569,8 +1566,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // R12: points directly to the first ic data array element.
 
   // Get the receiver's class ID (first read number of arguments from
-  // argument descriptor array and then access the receiver from the stack).
-  __ movq(RAX, FieldAddress(R10, Array::data_offset()));
+  // arguments descriptor array and then access the receiver from the stack).
+  __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
   __ call(&get_class_id_as_smi);
   // RAX: receiver's class ID as smi.
@@ -1581,7 +1578,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   for (int i = 0; i < num_args; i++) {
     if (i > 0) {
       // If not the first, load the next argument's class ID.
-      __ movq(RAX, FieldAddress(R10, Array::data_offset()));
+      __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
       __ movq(RAX, Address(RSP, RAX, TIMES_4, - i * kWordSize));
       __ call(&get_class_id_as_smi);
       // RAX: next argument class ID (smi).
@@ -1599,7 +1596,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ Bind(&update);
   // Reload receiver class ID.  It has not been destroyed when num_args == 1.
   if (num_args > 1) {
-    __ movq(RAX, FieldAddress(R10, Array::data_offset()));
+    __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
     __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));
     __ call(&get_class_id_as_smi);
   }
@@ -1616,11 +1613,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Compute address of arguments (first read number of arguments from
-  // argument descriptor array and then compute address on the stack).
-  __ movq(RAX, FieldAddress(R10, Array::data_offset()));
+  // arguments descriptor array and then compute address on the stack).
+  __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
   AssemblerMacros::EnterStubFrame(assembler);
-  __ pushq(R10);  // Preserve arguments array.
+  __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve IC data array
   __ pushq(raw_null);  // Setup space on stack for result (target code object).
   // Push call arguments.
@@ -1643,7 +1640,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
   __ popq(RAX);  // Pop returned code object into RAX (null if not found).
   __ popq(RBX);  // Restore IC data array.
-  __ popq(R10);  // Restore arguments array.
+  __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveFrame();
   Label call_target_function;
   __ cmpq(RAX, raw_null);
@@ -1689,7 +1686,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 // Use inline cache data array to invoke the target or continue in inline
 // cache miss handler. Stub for 1-argument check (receiver class).
 //  RBX: Inline cache data object.
-//  RDX: Arguments array.
+//  R10: Arguments descriptor array.
 //  TOS(0): Return address.
 // Inline cache data object structure:
 // 0: function-name
@@ -1718,7 +1715,7 @@ void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
 // cache miss handler. Stub for 1-argument check (receiver class).
 //  RDI: function which counter needs to be incremented.
 //  RBX: Inline cache data object.
-//  RDX: Arguments array.
+//  R10: Arguments descriptor array.
 //  TOS(0): Return address.
 // Inline cache data object structure:
 // 0: function-name
@@ -1759,7 +1756,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(assembler, 1);
 }
 
-//  R10: Arguments array.
+//  R10: Arguments descriptor array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   const Immediate raw_null =
@@ -1795,7 +1792,7 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 
 
 //  RBX: Inline cache data array.
-//  R10: Arguments array.
+//  R10: Arguments descriptor array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   AssemblerMacros::EnterStubFrame(assembler);
