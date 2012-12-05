@@ -10,6 +10,11 @@
 
 namespace dart {
 
+class ArgumentsDescriptor;
+template <typename T> class GrowableArray;
+class ICData;
+class Instance;
+
 // Declaration of runtime entries called from stub or generated code.
 DECLARE_RUNTIME_ENTRY(AllocateArray);
 DECLARE_RUNTIME_ENTRY(AllocateClosure);
@@ -80,8 +85,10 @@ DEOPT_REASONS(DEFINE_ENUM_LIST)
 const char* DeoptReasonToText(intptr_t deopt_id);
 
 
-RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
-                                          const Instance& receiver);
+RawCode* ResolveCompileInstanceCallTarget(
+    const Instance& receiver,
+    const ICData& ic_data,
+    const ArgumentsDescriptor& arguments_descriptor);
 
 void DeoptimizeAll();
 void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes);

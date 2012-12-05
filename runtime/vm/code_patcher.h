@@ -15,6 +15,7 @@ class Array;
 class Code;
 class ExternalLabel;
 class Function;
+class ICData;
 class RawArray;
 class RawICData;
 class String;
@@ -45,14 +46,12 @@ class CodePatcher : public AllStatic {
 
   static uword GetStaticCallTargetAt(uword return_address);
 
-  // Get instance call information.
-  static void GetInstanceCallAt(uword return_address,
-                                String* function_name,
-                                int* num_arguments,
-                                int* num_named_arguments,
-                                uword* target);
-
-  static RawICData* GetInstanceCallIcDataAt(uword return_address);
+  // Get instance call information.  Returns the call target and sets each
+  // of the output parameters ic_data and arguments_descriptor if they are
+  // non-NULL.
+  static uword GetInstanceCallAt(uword return_address,
+                                 ICData* ic_data,
+                                 Array* arguments_descriptor);
 
   static intptr_t InstanceCallSizeInBytes();
 

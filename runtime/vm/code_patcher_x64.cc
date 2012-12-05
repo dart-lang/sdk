@@ -55,26 +55,11 @@ class DartCallPattern : public ValueObject {
     return *reinterpret_cast<RawObject**>(start_ + 0 + 2);
   }
 
-  void set_immediate_one(uint64_t value) {
-    uint64_t* target_addr = reinterpret_cast<uint64_t*>(start_ + 0 + 2);
-    *target_addr = value;
-    CPU::FlushICache(start_ + 0, 2 + 8);
-  }
-
   RawObject* immediate_two() const {
     return *reinterpret_cast<RawObject**>(start_ + 10 + 2);
   }
 
-  intptr_t argument_count() const {
-    ArgumentsDescriptor args_desc(immediate_two());
-    return args_desc.Count();
-  }
-
-  intptr_t named_argument_count() const {
-    ArgumentsDescriptor args_desc(immediate_two());
-    return args_desc.NamedCount();
-  }
-
+ private:
   uword start_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(DartCallPattern);
 };
@@ -92,11 +77,8 @@ class InstanceCall : public DartCallPattern {
   explicit InstanceCall(uword return_address)
       : DartCallPattern(return_address) {}
 
-  RawICData* ic_data() const {
-    ICData& ic_data = ICData::Handle();
-    ic_data ^= immediate_one();
-    return ic_data.raw();
-  }
+  RawObject* ic_data() const { return immediate_one(); }
+  RawObject* arguments_descriptor() const { return immediate_two(); }
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
@@ -230,28 +212,17 @@ bool CodePatcher::IsDartCall(uword return_address) {
 }
 
 
-void CodePatcher::GetInstanceCallAt(uword return_address,
-                                    String* function_name,
-                                    int* num_arguments,
-                                    int* num_named_arguments,
-                                    uword* target) {
-  ASSERT(num_arguments != NULL);
-  ASSERT(num_named_arguments != NULL);
-  ASSERT(target != NULL);
+uword CodePatcher::GetInstanceCallAt(uword return_address,
+                                     ICData* ic_data,
+                                     Array* arguments_descriptor) {
   InstanceCall call(return_address);
-  *num_arguments = call.argument_count();
-  *num_named_arguments = call.named_argument_count();
-  *target = call.target();
-  const ICData& ic_data = ICData::Handle(call.ic_data());
-  if (function_name != NULL) {
-    *function_name = ic_data.target_name();
+  if (ic_data != NULL) {
+    *ic_data ^= call.ic_data();
   }
-}
-
-
-RawICData* CodePatcher::GetInstanceCallIcDataAt(uword return_address) {
-  InstanceCall call(return_address);
-  return call.ic_data();
+  if (arguments_descriptor != NULL) {
+    *arguments_descriptor ^= call.arguments_descriptor();
+  }
+  return call.target();
 }
 
 

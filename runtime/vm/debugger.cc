@@ -566,12 +566,10 @@ void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
   switch (breakpoint_kind_) {
     case PcDescriptors::kIcCall: {
-      int num_args, num_named_args;
-      CodePatcher::GetInstanceCallAt(pc_,
-          NULL, &num_args, &num_named_args,
-          &saved_bytes_.target_address_);
-      CodePatcher::PatchInstanceCallAt(
-          pc_, StubCode::BreakpointDynamicEntryPoint());
+      saved_bytes_.target_address_ =
+          CodePatcher::GetInstanceCallAt(pc_, NULL, NULL);
+      CodePatcher::PatchInstanceCallAt(pc_,
+                                       StubCode::BreakpointDynamicEntryPoint());
       break;
     }
     case PcDescriptors::kFuncCall: {
@@ -1385,15 +1383,18 @@ void Debugger::SignalBpReached() {
     // a StepOver, that is we instrument the current function.
     if (bpt->breakpoint_kind_ == PcDescriptors::kIcCall) {
       func_to_instrument = bpt->function();
-      int num_args, num_named_args;
-      uword target;
-      CodePatcher::GetInstanceCallAt(bpt->pc_, NULL,
-          &num_args, &num_named_args, &target);
+      ICData& ic_data = ICData::Handle();
+      Array& descriptor = Array::Handle();
+      CodePatcher::GetInstanceCallAt(bpt->pc_, &ic_data, &descriptor);
+      ArgumentsDescriptor arg_descriptor(descriptor.raw());
       ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
-      Instance& receiver = Instance::Handle(
-          top_frame->GetInstanceCallReceiver(num_args));
-      Code& code = Code::Handle(
-          ResolveCompileInstanceCallTarget(isolate_, receiver));
+      intptr_t num_args = arg_descriptor.Count();
+      Instance& receiver =
+          Instance::Handle(top_frame->GetInstanceCallReceiver(num_args));
+      Code& code =
+          Code::Handle(ResolveCompileInstanceCallTarget(receiver,
+                                                        ic_data,
+                                                        arg_descriptor));
       if (!code.IsNull()) {
         Function& callee = Function::Handle(code.function());
         if (IsDebuggable(callee)) {

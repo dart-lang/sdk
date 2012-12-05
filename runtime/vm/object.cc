@@ -7199,7 +7199,7 @@ intptr_t Code::ExtractIcDataArraysAtCalls(
         max_id = deopt_id;
       }
       node_ids->Add(deopt_id);
-      ic_data_obj = CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i));
+      CodePatcher::GetInstanceCallAt(descriptors.PC(i), &ic_data_obj, NULL);
       ic_data_objs.Add(ic_data_obj);
     }
   }

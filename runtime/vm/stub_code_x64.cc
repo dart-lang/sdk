@@ -281,9 +281,13 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   // First resolve the function to get the function object.
 
   __ pushq(raw_null);  // Setup space on stack for return value.
-  __ pushq(RAX);  // Push receiver.
+  __ pushq(RAX);  // Pass receiver.
+  __ pushq(RBX);  // Pass IC data object.
+  __ pushq(R10);  // Pass arguments descriptor array.
   __ CallRuntime(kResolveCompileInstanceFunctionRuntimeEntry);
-  __ popq(RAX);  // Remove receiver pushed earlier.
+  __ popq(RAX);  // Remove arguments pushed earlier.
+  __ popq(RAX);
+  __ popq(RAX);
   __ popq(RBX);  // Pop returned code object into RBX.
   // Pop preserved values
   __ popq(R10);  // Restore ic-data.
@@ -1618,13 +1622,15 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R10);  // Preserve arguments descriptor array.
-  __ pushq(RBX);  // Preserve IC data array
+  __ pushq(RBX);  // Preserve IC data object.
   __ pushq(raw_null);  // Setup space on stack for result (target code object).
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
-    __ movq(R10, Address(RAX, -kWordSize * i));
-    __ pushq(R10);
+    __ movq(RCX, Address(RAX, -kWordSize * i));
+    __ pushq(RCX);
   }
+  __ pushq(RBX);  // Pass IC data object.
+  __ pushq(R10);  // Pass arguments descriptor array.
   if (num_args == 1) {
     __ CallRuntime(kInlineCacheMissHandlerOneArgRuntimeEntry);
   } else if (num_args == 2) {
@@ -1634,8 +1640,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   } else {
     UNIMPLEMENTED();
   }
-  // Remove call arguments pushed earlier.
-  for (intptr_t i = 0; i < num_args; i++) {
+  // Remove the call arguments pushed earlier, including the IC data object
+  // and the arguments descriptor array.
+  for (intptr_t i = 0; i < num_args + 2; i++) {
     __ popq(RAX);
   }
   __ popq(RAX);  // Pop returned code object into RAX (null if not found).

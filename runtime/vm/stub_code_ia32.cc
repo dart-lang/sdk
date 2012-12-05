@@ -286,11 +286,15 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   // First resolve the function to get the function object.
 
   __ pushl(raw_null);  // Setup space on stack for return value.
-  __ pushl(EAX);  // Push receiver.
+  __ pushl(EAX);  // Pass receiver.
+  __ pushl(ECX);  // Pass IC data object.
+  __ pushl(EDX);  // Pass arguments descriptor array.
   __ CallRuntime(kResolveCompileInstanceFunctionRuntimeEntry);
-  __ popl(EAX);  // Remove receiver pushed earlier.
+  __ popl(EAX);  // Remove arguments pushed earlier.
+  __ popl(EAX);
+  __ popl(EAX);
   __ popl(ECX);  // Pop returned code object into ECX.
-  // Pop preserved values
+  // Pop preserved values.
   __ popl(EDX);  // Restore ic-data.
   __ popl(EAX);  // Restore receiver.
   __ popl(EDI);  // Restore arguments descriptor array.
@@ -1640,13 +1644,15 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // calling into the runtime.
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);  // Preserve IC data array
+  __ pushl(ECX);  // Preserve IC data object.
   __ pushl(raw_null);  // Setup space on stack for result (target code object).
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
-    __ movl(EDX, Address(EAX, -kWordSize * i));
-    __ pushl(EDX);
+    __ movl(EBX, Address(EAX, -kWordSize * i));
+    __ pushl(EBX);
   }
+  __ pushl(ECX);  // Pass IC data object.
+  __ pushl(EDX);  // Pass arguments descriptor array.
   if (num_args == 1) {
     __ CallRuntime(kInlineCacheMissHandlerOneArgRuntimeEntry);
   } else if (num_args == 2) {
@@ -1656,8 +1662,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   } else {
     UNIMPLEMENTED();
   }
-  // Remove call arguments pushed earlier.
-  for (intptr_t i = 0; i < num_args; i++) {
+  // Remove the call arguments pushed earlier, including the IC data object
+  // and the arguments descriptor array.
+  for (intptr_t i = 0; i < num_args + 2; i++) {
     __ popl(EAX);
   }
   __ popl(EAX);  // Pop returned code object into EAX (null if not found).
