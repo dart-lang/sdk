@@ -3828,22 +3828,19 @@ class String : public Instance {
                              Heap::Space space = Heap::kNew);
 
   // Creates a new String object from an array of Latin-1 encoded characters.
-  // TODO(7123) - Rename this to FromLatin1(....).
-  static RawString* New(const uint8_t* latin1_array,
-                        intptr_t array_len,
-                        Heap::Space space = Heap::kNew);
+  static RawString* FromLatin1(const uint8_t* latin1_array,
+                               intptr_t array_len,
+                               Heap::Space space = Heap::kNew);
 
   // Creates a new String object from an array of UTF-16 encoded characters.
-  // TODO(7123) - Rename this to FromUTF16(....).
-  static RawString* New(const uint16_t* utf16_array,
-                        intptr_t array_len,
-                        Heap::Space space = Heap::kNew);
+  static RawString* FromUTF16(const uint16_t* utf16_array,
+                              intptr_t array_len,
+                              Heap::Space space = Heap::kNew);
 
   // Creates a new String object from an array of UTF-32 encoded characters.
-  // TODO(7123) - Rename this to FromUTF32(....).
-  static RawString* New(const int32_t* utf32_array,
-                        intptr_t array_len,
-                        Heap::Space space = Heap::kNew);
+  static RawString* FromUTF32(const int32_t* utf32_array,
+                              intptr_t array_len,
+                              Heap::Space space = Heap::kNew);
 
   // Create a new String object from another Dart String instance.
   static RawString* New(const String& str, Heap::Space space = Heap::kNew);
@@ -3925,11 +3922,12 @@ class String : public Instance {
     raw_ptr()->hash_ = Smi::New(value);
   }
 
-  template<typename HandleType, typename ElementType>
+  template<typename HandleType, typename ElementType, typename CallbackType>
   static void ReadFromImpl(SnapshotReader* reader,
                            String* str_obj,
                            intptr_t len,
                            intptr_t tags,
+                           CallbackType new_symbol,
                            Snapshot::Kind kind);
 
   HEAP_OBJECT_IMPLEMENTATION(String, Instance);

@@ -1574,7 +1574,7 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF16(const uint16_t* utf16_array,
     RETURN_NULL_ERROR(utf16_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
-  return Api::NewHandle(isolate, String::New(utf16_array, length));
+  return Api::NewHandle(isolate, String::FromUTF16(utf16_array, length));
 }
 
 
@@ -1586,7 +1586,7 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const int32_t* utf32_array,
     RETURN_NULL_ERROR(utf32_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
-  return Api::NewHandle(isolate, String::New(utf32_array, length));
+  return Api::NewHandle(isolate, String::FromUTF32(utf32_array, length));
 }
 
 

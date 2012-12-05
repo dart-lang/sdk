@@ -565,8 +565,8 @@ TEST_CASE(String) {
 
   const intptr_t kWideCharsLen = 7;
   uint16_t wide_chars[kWideCharsLen] = { 'H', 'e', 'l', 'l', 'o', 256, '!' };
-  const String& two_str = String::Handle(String::New(wide_chars,
-                                                     kWideCharsLen));
+  const String& two_str = String::Handle(String::FromUTF16(wide_chars,
+                                                           kWideCharsLen));
   EXPECT(two_str.IsInstance());
   EXPECT(two_str.IsString());
   EXPECT(two_str.IsTwoByteString());
@@ -591,7 +591,7 @@ TEST_CASE(String) {
   }
 
   const int32_t four_chars[] = { 'C', 0xFF, 'h', 0xFFFF, 'a', 0x10FFFF, 'r' };
-  const String& four_str = String::Handle(String::New(four_chars, 7));
+  const String& four_str = String::Handle(String::FromUTF32(four_chars, 7));
   EXPECT_EQ(four_str.Hash(), four_str.Hash());
   EXPECT(four_str.IsTwoByteString());
   EXPECT(!four_str.IsOneByteString());
@@ -608,7 +608,7 @@ TEST_CASE(String) {
   // Create a 1-byte string from an array of 2-byte elements.
   {
     const uint16_t char16[] = { 0x00, 0x7F, 0xFF };
-    const String& str8 = String::Handle(String::New(char16, 3));
+    const String& str8 = String::Handle(String::FromUTF16(char16, 3));
     EXPECT(str8.IsOneByteString());
     EXPECT(!str8.IsTwoByteString());
     EXPECT_EQ(0x00, str8.CharAt(0));
@@ -619,7 +619,7 @@ TEST_CASE(String) {
   // Create a 1-byte string from an array of 4-byte elements.
   {
     const int32_t char32[] = { 0x00, 0x1F, 0x7F };
-    const String& str8 = String::Handle(String::New(char32, 3));
+    const String& str8 = String::Handle(String::FromUTF32(char32, 3));
     EXPECT(str8.IsOneByteString());
     EXPECT(!str8.IsTwoByteString());
     EXPECT_EQ(0x00, str8.CharAt(0));
@@ -630,7 +630,7 @@ TEST_CASE(String) {
   // Create a 2-byte string from an array of 4-byte elements.
   {
     const int32_t char32[] = { 0, 0x7FFF, 0xFFFF };
-    const String& str16 = String::Handle(String::New(char32, 3));
+    const String& str16 = String::Handle(String::FromUTF32(char32, 3));
     EXPECT(!str16.IsOneByteString());
     EXPECT(str16.IsTwoByteString());
     EXPECT_EQ(0x0000, str16.CharAt(0));
@@ -836,7 +836,7 @@ TEST_CASE(StringConcat) {
 
     uint16_t two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
-    const String& str2 = String::Handle(String::New(two, two_len));
+    const String& str2 = String::Handle(String::FromUTF16(two, two_len));
     EXPECT(str2.IsTwoByteString());
     EXPECT_EQ(two_len, str2.Length());
 
@@ -891,13 +891,13 @@ TEST_CASE(StringConcat) {
   {
     const uint16_t one[] = { 0x05D0, 0x05D9, 0x05D9, 0x05DF };
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
-    const String& str1 = String::Handle(String::New(one, one_len));
+    const String& str1 = String::Handle(String::FromUTF16(one, one_len));
     EXPECT(str1.IsTwoByteString());
     EXPECT_EQ(one_len, str1.Length());
 
     const uint16_t two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
-    const String& str2 = String::Handle(String::New(two, two_len));
+    const String& str2 = String::Handle(String::FromUTF16(two, two_len));
     EXPECT(str2.IsTwoByteString());
     EXPECT_EQ(two_len, str2.Length());
 
@@ -977,7 +977,7 @@ TEST_CASE(StringConcat) {
     int32_t four[] = { 0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1 };
     intptr_t four_len = sizeof(four) / sizeof(four[0]);
     intptr_t expected_len = (four_len * 2);
-    const String& str2 = String::Handle(String::New(four, four_len));
+    const String& str2 = String::Handle(String::FromUTF32(four, four_len));
     EXPECT(str2.IsTwoByteString());
     EXPECT_EQ(expected_len, str2.Length());
 
@@ -1024,7 +1024,7 @@ TEST_CASE(StringConcat) {
     intptr_t fourfour_len = sizeof(fourfour) / sizeof(fourfour[0]);
     EXPECT_EQ((fourfour_len * 2), str7.Length());
     const String& fourfour_str =
-        String::Handle(String::New(fourfour, fourfour_len));
+        String::Handle(String::FromUTF32(fourfour, fourfour_len));
     EXPECT(str7.Equals(fourfour_str));
   }
 
@@ -1032,13 +1032,13 @@ TEST_CASE(StringConcat) {
   {
     const int32_t one[] = { 0x105D0, 0x105D9, 0x105D9, 0x105DF };
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
-    const String& onestr = String::Handle(String::New(one, one_len));
+    const String& onestr = String::Handle(String::FromUTF32(one, one_len));
     EXPECT(onestr.IsTwoByteString());
     EXPECT_EQ((one_len *2), onestr.Length());
 
     const int32_t two[] = { 0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9 };
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
-    const String& twostr = String::Handle(String::New(two, two_len));
+    const String& twostr = String::Handle(String::FromUTF32(two, two_len));
     EXPECT(twostr.IsTwoByteString());
     EXPECT_EQ((two_len * 2), twostr.Length());
 
@@ -1051,7 +1051,7 @@ TEST_CASE(StringConcat) {
     intptr_t one_two_len = sizeof(one_two) / sizeof(one_two[0]);
     EXPECT_EQ((one_two_len * 2), str1.Length());
     const String& one_two_str =
-        String::Handle(String::New(one_two, one_two_len));
+        String::Handle(String::FromUTF32(one_two, one_two_len));
     EXPECT(str1.Equals(one_two_str));
 
     const String& str2 = String::Handle(String::Concat(twostr, onestr));
@@ -1061,7 +1061,7 @@ TEST_CASE(StringConcat) {
     intptr_t two_one_len = sizeof(two_one) / sizeof(two_one[0]);
     EXPECT_EQ((two_one_len * 2), str2.Length());
     const String& two_one_str =
-        String::Handle(String::New(two_one, two_one_len));
+        String::Handle(String::FromUTF32(two_one, two_one_len));
     EXPECT(str2.Equals(two_one_str));
 
     // ConcatAll
@@ -1098,7 +1098,7 @@ TEST_CASE(StringConcat) {
     intptr_t one_two_one_len = sizeof(one_two_one) / sizeof(one_two_one[0]);
     EXPECT_EQ((one_two_one_len * 2), str5.Length());
     const String& one_two_one_str =
-        String::Handle(String::New(one_two_one, one_two_one_len));
+        String::Handle(String::FromUTF32(one_two_one, one_two_one_len));
     EXPECT(str5.Equals(one_two_one_str));
 
     const Array& array4 = Array::Handle(Array::New(3));
@@ -1116,7 +1116,7 @@ TEST_CASE(StringConcat) {
     intptr_t two_one_two_len = sizeof(two_one_two) / sizeof(two_one_two[0]);
     EXPECT_EQ((two_one_two_len * 2), str6.Length());
     const String& two_one_two_str =
-        String::Handle(String::New(two_one_two, two_one_two_len));
+        String::Handle(String::FromUTF32(two_one_two, two_one_two_len));
     EXPECT(str6.Equals(two_one_two_str));
   }
 
@@ -1124,14 +1124,14 @@ TEST_CASE(StringConcat) {
   {
     const uint8_t one[] = { 'o', 'n', 'e', ' ', 'b', 'y', 't', 'e' };
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
-    const String& onestr = String::Handle(String::New(one, one_len));
+    const String& onestr = String::Handle(String::FromLatin1(one, one_len));
     EXPECT(onestr.IsOneByteString());
     EXPECT_EQ(one_len, onestr.Length());
     EXPECT(onestr.Equals(one, one_len));
 
     uint16_t two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
-    const String& twostr = String::Handle(String::New(two, two_len));
+    const String& twostr = String::Handle(String::FromUTF16(two, two_len));
     EXPECT(twostr.IsTwoByteString());
     EXPECT_EQ(two_len, twostr.Length());
     EXPECT(twostr.Equals(two, two_len));

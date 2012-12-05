@@ -107,7 +107,7 @@ RawString* Symbols::New(const char* cstr) {
 
 RawString* Symbols::FromUTF8(const uint8_t* utf8_array, intptr_t array_len) {
   if (array_len == 0 || utf8_array == NULL) {
-    return NewSymbol(reinterpret_cast<uint8_t*>(NULL), 0);
+    return FromLatin1(reinterpret_cast<uint8_t*>(NULL), 0);
   }
   Utf8::Type type;
   intptr_t len = Utf8::CodeUnitCount(utf8_array, array_len, &type);
@@ -116,32 +116,34 @@ RawString* Symbols::FromUTF8(const uint8_t* utf8_array, intptr_t array_len) {
   if (type == Utf8::kLatin1) {
     uint8_t* characters = zone->Alloc<uint8_t>(len);
     Utf8::DecodeToLatin1(utf8_array, array_len, characters, len);
-    return NewSymbol(characters, len);
+    return FromLatin1(characters, len);
   }
   ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   uint16_t* characters = zone->Alloc<uint16_t>(len);
   Utf8::DecodeToUTF16(utf8_array, array_len, characters, len);
-  return NewSymbol(characters, len);
+  return FromUTF16(characters, len);
 }
 
 
 RawString* Symbols::FromLatin1(const uint8_t* latin1_array, intptr_t len) {
-  return NewSymbol(latin1_array, len);
+  return NewSymbol(latin1_array, len, String::FromLatin1);
 }
 
 
 RawString* Symbols::FromUTF16(const uint16_t* utf16_array, intptr_t len) {
-  return NewSymbol(utf16_array, len);
+  return NewSymbol(utf16_array, len, String::FromUTF16);
 }
 
 
 RawString* Symbols::FromUTF32(const int32_t* utf32_array, intptr_t len) {
-  return NewSymbol(utf32_array, len);
+  return NewSymbol(utf32_array, len, String::FromUTF32);
 }
 
 
-template<typename T>
-RawString* Symbols::NewSymbol(const T* characters, intptr_t len) {
+template<typename CharacterType, typename CallbackType>
+RawString* Symbols::NewSymbol(const CharacterType* characters,
+                              intptr_t len,
+                              CallbackType new_string) {
   Isolate* isolate = Isolate::Current();
   String& symbol = String::Handle(isolate, String::null());
   Array& symbol_table = Array::Handle(isolate, Array::null());
@@ -162,7 +164,7 @@ RawString* Symbols::NewSymbol(const T* characters, intptr_t len) {
     symbol ^= symbol_table.At(index);
     if (symbol.IsNull()) {
       // Allocate new result string.
-      symbol = String::New(characters, len, Heap::kOld);
+      symbol = (*new_string)(characters, len, Heap::kOld);
       symbol.SetHash(hash);  // Remember the calculated hash value.
       InsertIntoSymbolTable(symbol_table, symbol, index);
     }
@@ -173,11 +175,20 @@ RawString* Symbols::NewSymbol(const T* characters, intptr_t len) {
 
 
 template RawString* Symbols::NewSymbol(const uint8_t* characters,
-                                       intptr_t len);
+                                       intptr_t len,
+                                       RawString* (*new_string)(const uint8_t*,
+                                                                intptr_t,
+                                                                Heap::Space));
 template RawString* Symbols::NewSymbol(const uint16_t* characters,
-                                       intptr_t len);
+                                       intptr_t len,
+                                       RawString* (*new_string)(const uint16_t*,
+                                                                intptr_t,
+                                                                Heap::Space));
 template RawString* Symbols::NewSymbol(const int32_t* characters,
-                                       intptr_t len);
+                                       intptr_t len,
+                                       RawString* (*new_string)(const int32_t*,
+                                                                intptr_t,
+                                                                Heap::Space));
 
 
 RawString* Symbols::New(const String& str) {

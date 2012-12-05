@@ -10082,16 +10082,16 @@ RawString* String::FromUTF8(const uint8_t* utf8_array,
 }
 
 
-RawString* String::New(const uint8_t* latin1_array,
-                       intptr_t array_len,
-                       Heap::Space space) {
+RawString* String::FromLatin1(const uint8_t* latin1_array,
+                              intptr_t array_len,
+                              Heap::Space space) {
   return OneByteString::New(latin1_array, array_len, space);
 }
 
 
-RawString* String::New(const uint16_t* utf16_array,
-                       intptr_t array_len,
-                       Heap::Space space) {
+RawString* String::FromUTF16(const uint16_t* utf16_array,
+                             intptr_t array_len,
+                             Heap::Space space) {
   bool is_one_byte_string = true;
   for (intptr_t i = 0; i < array_len; ++i) {
     if (!Utf::IsLatin1(utf16_array[i])) {
@@ -10106,9 +10106,9 @@ RawString* String::New(const uint16_t* utf16_array,
 }
 
 
-RawString* String::New(const int32_t* utf32_array,
-                       intptr_t array_len,
-                       Heap::Space space) {
+RawString* String::FromUTF32(const int32_t* utf32_array,
+                             intptr_t array_len,
+                             Heap::Space space) {
   bool is_one_byte_string = true;
   intptr_t utf16_len = array_len;
   for (intptr_t i = 0; i < array_len; ++i) {

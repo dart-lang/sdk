@@ -1602,11 +1602,12 @@ void RawString::WriteTo(SnapshotWriter* writer,
 }
 
 
-template<typename StringType, typename CharacterType>
+template<typename StringType, typename CharacterType, typename CallbackType>
 void String::ReadFromImpl(SnapshotReader* reader,
                           String* str_obj,
                           intptr_t len,
                           intptr_t tags,
+                          CallbackType new_symbol,
                           Snapshot::Kind kind) {
   ASSERT(reader != NULL);
   if (RawObject::IsCanonical(tags)) {
@@ -1617,7 +1618,7 @@ void String::ReadFromImpl(SnapshotReader* reader,
     for (intptr_t i = 0; i < len; i++) {
       ptr[i] = reader->Read<CharacterType>();
     }
-    *str_obj ^= Symbols::NewSymbol(ptr, len);
+    *str_obj ^= (*new_symbol)(ptr, len);
   } else {
     // Set up the string object.
     *str_obj = StringType::New(len, HEAP_SPACE(kind));
@@ -1653,7 +1654,7 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
     ASSERT((hash == 0) || (String::Hash(str_obj, 0, str_obj.Length()) == hash));
   } else {
     String::ReadFromImpl<OneByteString, uint8_t>(
-        reader, &str_obj, len, tags, kind);
+        reader, &str_obj, len, tags, Symbols::FromLatin1, kind);
   }
   reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
   return raw(str_obj);
@@ -1684,7 +1685,7 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
     ASSERT(String::Hash(str_obj, 0, str_obj.Length()) == hash);
   } else {
     String::ReadFromImpl<TwoByteString, uint16_t>(
-        reader, &str_obj, len, tags, kind);
+        reader, &str_obj, len, tags, Symbols::FromUTF16, kind);
   }
   reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
   return raw(str_obj);

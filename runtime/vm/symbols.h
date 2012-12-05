@@ -215,8 +215,10 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
   };
 
   // Helper functions to create a symbol given a string or set of characters.
-  template<typename T>
-  static RawString* NewSymbol(const T* characters, intptr_t len);
+  template<typename CharacterType, typename CallbackType>
+  static RawString* NewSymbol(const CharacterType* characters,
+                              intptr_t len,
+                              CallbackType new_string);
 
   // Add the string into the VM isolate symbol table.
   static void Add(const Array& symbol_table, const String& str);
