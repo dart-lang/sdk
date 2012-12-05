@@ -22,6 +22,7 @@ class Object;
 class RawArray;
 class RawInstance;
 class RawObject;
+class RawString;
 class String;
 
 // An arguments descriptor array consists of the total argument count; the
@@ -30,13 +31,13 @@ class String;
 // simplify iterating in generated code.
 class ArgumentsDescriptor : public ValueObject {
  public:
-  explicit ArgumentsDescriptor(RawObject* array);
+  explicit ArgumentsDescriptor(const Array& array);
 
   // Accessors.
   intptr_t Count() const;
   intptr_t PositionalCount() const;
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
-  RawObject* NameAt(intptr_t index) const;
+  RawString* NameAt(intptr_t index) const;
 
   // Generated code support.
   static intptr_t count_offset();
@@ -73,6 +74,8 @@ class ArgumentsDescriptor : public ValueObject {
   }
 
   const Array& array_;
+
+  DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
 };
 
 

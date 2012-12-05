@@ -1386,7 +1386,7 @@ void Debugger::SignalBpReached() {
       ICData& ic_data = ICData::Handle();
       Array& descriptor = Array::Handle();
       CodePatcher::GetInstanceCallAt(bpt->pc_, &ic_data, &descriptor);
-      ArgumentsDescriptor arg_descriptor(descriptor.raw());
+      ArgumentsDescriptor arg_descriptor(descriptor);
       ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
       intptr_t num_args = arg_descriptor.Count();
       Instance& receiver =

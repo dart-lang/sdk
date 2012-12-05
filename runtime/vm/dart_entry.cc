@@ -119,8 +119,8 @@ RawObject* DartEntry::InvokeClosure(
 }
 
 
-ArgumentsDescriptor::ArgumentsDescriptor(RawObject* array)
-    : array_(Array::CheckedHandle(array)) {
+ArgumentsDescriptor::ArgumentsDescriptor(const Array& array)
+    : array_(array) {
 }
 
 
@@ -134,10 +134,12 @@ intptr_t ArgumentsDescriptor::PositionalCount() const {
 }
 
 
-RawObject* ArgumentsDescriptor::NameAt(intptr_t index) const {
-  return array_.At(kFirstNamedEntryIndex +
-                   (index * kNamedEntrySize) +
-                   kNameOffset);
+RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
+  String& result = String::Handle();
+  result ^= array_.At(kFirstNamedEntryIndex +
+                      (index * kNamedEntrySize) +
+                      kNameOffset);
+  return result.raw();
 }
 
 
