@@ -648,20 +648,20 @@ dart2js_annotations = {
     # IDBRequest.
     'IDBRequest.source':  "@Creates('Null')",
 
-    'IDBFactory.open': "@Creates('IDBDatabase')",
+    'IDBFactory.open': "@Creates('Database')",
 
     'IDBObjectStore.put': "@_annotation_Creates_IDBKey",
     'IDBObjectStore.add': "@_annotation_Creates_IDBKey",
     'IDBObjectStore.get': "@annotation_Creates_SerializedScriptValue",
-    'IDBObjectStore.openCursor': "@Creates('IDBCursor')",
+    'IDBObjectStore.openCursor': "@Creates('Cursor')",
 
     'IDBIndex.get': "@annotation_Creates_SerializedScriptValue",
     'IDBIndex.getKey':
       "@annotation_Creates_SerializedScriptValue "
       # The source is the object store behind the index.
-      "@Creates('IDBObjectStore')",
-    'IDBIndex.openCursor': "@Creates('IDBCursor')",
-    'IDBIndex.openKeyCursor': "@Creates('IDBCursor')",
+      "@Creates('ObjectStore')",
+    'IDBIndex.openCursor': "@Creates('Cursor')",
+    'IDBIndex.openKeyCursor': "@Creates('Cursor')",
 
     'IDBCursorWithValue.value':
       '@annotation_Creates_SerializedScriptValue '
@@ -669,10 +669,10 @@ dart2js_annotations = {
 
     'IDBCursor.key': "@_annotation_Creates_IDBKey @_annotation_Returns_IDBKey",
 
-    '+IDBRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
+    '+IDBRequest': "@Returns('Request') @Creates('Request')",
 
-    '+IDBOpenDBRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
-    '+IDBVersionChangeRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
+    '+IDBOpenDBRequest': "@Returns('Request') @Creates('Request')",
+    '+IDBVersionChangeRequest': "@Returns('Request') @Creates('Request')",
 
 
     'MessageEvent.ports': "@Creates('=List')",

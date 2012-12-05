@@ -9,6 +9,7 @@ library html;
 
 import 'dart:collection';
 import 'dart:html_common';
+import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json';
 // Not actually used, but imported since dart:html can generate these objects.
@@ -38,7 +39,6 @@ part '$AUXILIARY_DIR/dart2js_Conversions.dart';
 part '$AUXILIARY_DIR/dart2js_DOMImplementation.dart';
 part '$AUXILIARY_DIR/dart2js_KeyEvent.dart';
 part '$AUXILIARY_DIR/dart2js_FactoryProviders.dart';
-part '$AUXILIARY_DIR/dart2js_IDBKeyRangeFactoryProvider.dart';
 part '$AUXILIARY_DIR/dart2js_LocationWrapper.dart';
 part '$AUXILIARY_DIR/dart2js_MutationObserverSupported.dart';
 part '$AUXILIARY_DIR/dart2js_TypedArrayFactoryProvider.dart';

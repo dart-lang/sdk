@@ -11,6 +11,7 @@ html_interface_renames = {
     'DOMWindow': 'LocalWindow',
     'History': 'LocalHistory',
     'HTMLDocument' : 'HtmlDocument',
+    'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
     'Location': 'LocalLocation',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
@@ -308,8 +309,10 @@ _removed_html_members = set([
     "LocalWindow.get:length",
     "LocalWindow.focus",
     "LocalWindow.prompt",
+    "LocalWindow.webkitIndexedDB",
     "LocalWindow.webkitCancelRequestAnimationFrame",
     "WheelEvent.wheelDelta",
+    "WorkerContext.webkitIndexedDB",
     ])
 
 class HtmlRenamer(object):
@@ -366,6 +369,8 @@ class HtmlRenamer(object):
         return 'web_audio'
       if 'SVG' in interface.ext_attrs['Conditional']:
         return 'svg'
+      if 'INDEXED_DATABASE' in interface.ext_attrs['Conditional']:
+        return 'indexed_db'
 
     return self._GetLibraryName(interface.id)
 
@@ -377,6 +382,8 @@ class HtmlRenamer(object):
     """
     if idl_type_name.startswith('SVG'):
       return 'svg'
+    if idl_type_name.startswith('IDB'):
+      return 'indexed_db'
 
     return 'html'
 
@@ -384,12 +391,15 @@ class HtmlRenamer(object):
   def DartifyTypeName(self, type_name):
     """Converts a DOM name to a Dart-friendly class name. """
     library_name = self._GetLibraryName(type_name)
-    # Only renaming SVG for now.
-    if library_name != 'svg':
+    # Rename everything except html.
+    if library_name == 'html':
       return type_name
 
-    # Strip off the SVG prefix.
+    # Strip off any SVG prefix.
     name = re.sub(r'^SVG', '', type_name)
+    # Strip off any IDB prefix.
+    name = re.sub(r'^IDB', '', name)
+
     return self._CamelCaseName(name)
 
   def _DartifyMemberName(self, member_name):

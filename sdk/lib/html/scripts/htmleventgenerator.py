@@ -189,9 +189,10 @@ _html_explicit_event_classes = set(['DocumentFragment'])
 
 class HtmlEventGenerator(object):
 
-  def __init__(self, database, template_loader):
+  def __init__(self, database, renamer, template_loader):
     self._event_classes = set()
     self._database = database
+    self._renamer = renamer
     self._template_loader = template_loader
 
   def ProcessInterface(self, interface, html_interface_name, custom_events,
@@ -264,7 +265,8 @@ class HtmlEventGenerator(object):
     interfaces_with_events = set()
     for parent in self._database.Hierarchy(interface):
       if parent != interface and parent.id in self._event_classes:
-        parent_events_class_name = parent.id + 'Events'
+        parent_name = self._renamer.RenameInterface(parent)
+        parent_events_class_name = parent_name + 'Events'
         interfaces_with_events.add(parent)
     if len(interfaces_with_events) > 1:
       raise Exception('Only one parent event class allowed ' + interface.id)

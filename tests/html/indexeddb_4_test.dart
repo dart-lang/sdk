@@ -2,8 +2,9 @@ library IndexedDB4Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:indexed_db';
 
-// Test for IDBKeyRange and IDBCursor.
+// Test for KeyRange and Cursor.
 
 const String DB_NAME = 'Test';
 const String STORE_NAME = 'TEST';
@@ -21,7 +22,7 @@ class Test {
       // Nuke object store if it already exists.
       db.deleteObjectStore(STORE_NAME);
     }
-    on IDBDatabaseException catch(e) { }  // Chrome
+    on DatabaseException catch(e) { }  // Chrome
     on DOMException catch(e) { }          // Firefox
     db.createObjectStore(STORE_NAME);
   }
@@ -30,7 +31,7 @@ class Test {
 
   _openDb(afterOpen()) {
     var request = window.indexedDB.open(DB_NAME, VERSION);
-    if (request is IDBOpenDBRequest) {
+    if (request is OpenDBRequest) {
       // New upgrade protocol.
       request.on.success.add(expectAsync1((e) {
             db = e.target.result;
@@ -87,9 +88,9 @@ class Test {
   setupDb() { _createAndOpenDb(() => writeItems(0)); }
 
   testRange(range, expectedFirst, expectedLast) {
-    IDBTransaction txn = db.transaction(STORE_NAME, 'readonly');
-    IDBObjectStore objectStore = txn.objectStore(STORE_NAME);
-    IDBRequest cursorRequest = objectStore.openCursor(range);
+    Transaction txn = db.transaction(STORE_NAME, 'readonly');
+    ObjectStore objectStore = txn.objectStore(STORE_NAME);
+    Request cursorRequest = objectStore.openCursor(range);
     int itemCount = 0;
     int firstKey = null;
     int lastKey = null;
@@ -117,39 +118,39 @@ class Test {
     cursorRequest.on.error.add(fail('openCursor'));
   }
 
-  only1() => testRange(new IDBKeyRange.only(55), 55, 55);
-  only2() => testRange(new IDBKeyRange.only(100), null, null);
-  only3() => testRange(new IDBKeyRange.only(-1), null, null);
+  only1() => testRange(new KeyRange.only(55), 55, 55);
+  only2() => testRange(new KeyRange.only(100), null, null);
+  only3() => testRange(new KeyRange.only(-1), null, null);
 
-  lower1() => testRange(new IDBKeyRange.lowerBound(40), 40, 99);
-  // OPTIONALS lower2() => testRange(new IDBKeyRange.lowerBound(40, open: true), 41, 99);
-  lower2() => testRange(new IDBKeyRange.lowerBound(40, true), 41, 99);
-  // OPTIONALS lower3() => testRange(new IDBKeyRange.lowerBound(40, open: false), 40, 99);
-  lower3() => testRange(new IDBKeyRange.lowerBound(40, false), 40, 99);
+  lower1() => testRange(new KeyRange.lowerBound(40), 40, 99);
+  // OPTIONALS lower2() => testRange(new KeyRange.lowerBound(40, open: true), 41, 99);
+  lower2() => testRange(new KeyRange.lowerBound(40, true), 41, 99);
+  // OPTIONALS lower3() => testRange(new KeyRange.lowerBound(40, open: false), 40, 99);
+  lower3() => testRange(new KeyRange.lowerBound(40, false), 40, 99);
 
-  upper1() => testRange(new IDBKeyRange.upperBound(40), 0, 40);
-  // OPTIONALS upper2() => testRange(new IDBKeyRange.upperBound(40, open: true), 0, 39);
-  upper2() => testRange(new IDBKeyRange.upperBound(40, true), 0, 39);
-  // upper3() => testRange(new IDBKeyRange.upperBound(40, open: false), 0, 40);
-  upper3() => testRange(new IDBKeyRange.upperBound(40, false), 0, 40);
+  upper1() => testRange(new KeyRange.upperBound(40), 0, 40);
+  // OPTIONALS upper2() => testRange(new KeyRange.upperBound(40, open: true), 0, 39);
+  upper2() => testRange(new KeyRange.upperBound(40, true), 0, 39);
+  // upper3() => testRange(new KeyRange.upperBound(40, open: false), 0, 40);
+  upper3() => testRange(new KeyRange.upperBound(40, false), 0, 40);
 
-  bound1() => testRange(new IDBKeyRange.bound(20, 30), 20, 30);
+  bound1() => testRange(new KeyRange.bound(20, 30), 20, 30);
 
-  bound2() => testRange(new IDBKeyRange.bound(-100, 200), 0, 99);
+  bound2() => testRange(new KeyRange.bound(-100, 200), 0, 99);
 
   bound3() =>
-      // OPTIONALS testRange(new IDBKeyRange.bound(20, 30, upperOpen: true),
-      testRange(new IDBKeyRange.bound(20, 30, false, true),
+      // OPTIONALS testRange(new KeyRange.bound(20, 30, upperOpen: true),
+      testRange(new KeyRange.bound(20, 30, false, true),
                          20, 29);
 
   bound4() =>
-      // OPTIONALS testRange(new IDBKeyRange.bound(20, 30, lowerOpen: true),
-      testRange(new IDBKeyRange.bound(20, 30, true),
+      // OPTIONALS testRange(new KeyRange.bound(20, 30, lowerOpen: true),
+      testRange(new KeyRange.bound(20, 30, true),
                          21, 30);
 
   bound5() =>
-      // OPTIONALS testRange(new IDBKeyRange.bound(20, 30, lowerOpen: true, upperOpen: true),
-      testRange(new IDBKeyRange.bound(20, 30, true, true),
+      // OPTIONALS testRange(new KeyRange.bound(20, 30, lowerOpen: true, upperOpen: true),
+      testRange(new KeyRange.bound(20, 30, true, true),
                          21, 29);
 
 }

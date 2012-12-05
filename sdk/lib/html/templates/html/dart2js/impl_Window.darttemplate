@@ -123,8 +123,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
        this);
   }
 
-  IDBFactory get indexedDB =>
-      JS('IDBFactory',
+  IdbFactory get indexedDB =>
+      JS('IdbFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 

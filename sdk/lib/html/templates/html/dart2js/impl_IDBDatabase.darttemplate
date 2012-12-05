@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of html;
+part of indexed_db;
 
 /// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
-  IDBTransaction transaction(storeName_OR_storeNames, String mode) {
+  Transaction transaction(storeName_OR_storeNames, String mode) {
     if (mode != 'readonly' && mode != 'readwrite') {
       throw new ArgumentError(mode);
     }
@@ -32,19 +32,19 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return txn;
   }
 
-  static IDBTransaction _transaction_string_mode($CLASSNAME db, stores, mode) {
+  static Transaction _transaction_string_mode($CLASSNAME db, stores, mode) {
     return db._transaction(stores, mode);
   }
 
-  static IDBTransaction _transaction_numeric_mode($CLASSNAME db, stores, mode) {
+  static Transaction _transaction_numeric_mode($CLASSNAME db, stores, mode) {
     int intMode;
-    if (mode == 'readonly') intMode = IDBTransaction.READ_ONLY;
-    if (mode == 'readwrite') intMode = IDBTransaction.READ_WRITE;
+    if (mode == 'readonly') intMode = Transaction.READ_ONLY;
+    if (mode == 'readwrite') intMode = Transaction.READ_WRITE;
     return db._transaction(stores, intMode);
   }
 
   @JSName('transaction')
-  IDBTransaction _transaction(stores, mode) native;
+  Transaction _transaction(stores, mode) native;
 
   static bool _hasNumericMode(txn) =>
       JS('bool', 'typeof(#.mode) === "number"', txn);

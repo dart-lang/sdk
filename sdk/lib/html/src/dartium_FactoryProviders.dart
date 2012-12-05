@@ -4,25 +4,6 @@
 
 part of html;
 
-class _IDBKeyRangeFactoryProvider {
-
-  static IDBKeyRange createIDBKeyRange_only(/*IDBKey*/ value) =>
-      IDBKeyRange.only_(value);
-
-  static IDBKeyRange createIDBKeyRange_lowerBound(
-      /*IDBKey*/ bound, [bool open = false]) =>
-      IDBKeyRange.lowerBound_(bound, open);
-
-  static IDBKeyRange createIDBKeyRange_upperBound(
-      /*IDBKey*/ bound, [bool open = false]) =>
-      IDBKeyRange.upperBound_(bound, open);
-
-  static IDBKeyRange createIDBKeyRange_bound(
-      /*IDBKey*/ lower, /*IDBKey*/ upper,
-      [bool lowerOpen = false, bool upperOpen = false]) =>
-      IDBKeyRange.bound_(lower, upper, lowerOpen, upperOpen);
-}
-
 class _TypedArrayFactoryProvider {
   static Float32Array createFloat32Array(int length) => _F32(length);
   static Float32Array createFloat32Array_fromList(List<num> list) =>

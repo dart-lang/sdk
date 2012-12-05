@@ -45,6 +45,11 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       documented: false,
       implementation: true),
 
+  "indexed_db": const LibraryInfo(
+      "indexed_db/dartium/indexed_db_dartium.dart",
+      category: "Client",
+      dart2jsPath: "indexed_db/dart2js/indexed_db_dart2js.dart"),
+
   "io": const LibraryInfo(
       "io/io.dart",
       category: "Server",

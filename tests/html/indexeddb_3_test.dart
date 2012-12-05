@@ -2,6 +2,7 @@ library IndexedDB3Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:indexed_db';
 
 // Read with cursor.
 
@@ -12,7 +13,7 @@ const int VERSION = 1;
 class Test {
   fail(message) => (e) {
     guardAsync(() {
-      expect(false, isTrue, reason: 'IndexedDB failure: $message'); 
+      expect(false, isTrue, reason: 'IndexedDB failure: $message');
     });
   };
 
@@ -21,7 +22,7 @@ class Test {
       // Nuke object store if it already exists.
       db.deleteObjectStore(STORE_NAME);
     }
-    on IDBDatabaseException catch(e) { }  // Chrome
+    on DatabaseException catch(e) { }  // Chrome
     on DOMException catch(e) { }          // Firefox
     db.createObjectStore(STORE_NAME);
   }
@@ -30,7 +31,7 @@ class Test {
 
   _openDb(afterOpen()) {
     var request = window.indexedDB.open(DB_NAME, VERSION);
-    if (request is IDBOpenDBRequest) {
+    if (request is OpenDBRequest) {
       // New upgrade protocol. FireFox 15, Chrome 24, hopefully IE10.
       request.on.success.add(expectAsync1((e) {
             db = e.target.result;
@@ -87,9 +88,9 @@ class Test {
   setupDb() { _createAndOpenDb(() => writeItems(0)); }
 
   readAllViaCursor() {
-    IDBTransaction txn = db.transaction(STORE_NAME, 'readonly');
-    IDBObjectStore objectStore = txn.objectStore(STORE_NAME);
-    IDBRequest cursorRequest = objectStore.openCursor();
+    Transaction txn = db.transaction(STORE_NAME, 'readonly');
+    ObjectStore objectStore = txn.objectStore(STORE_NAME);
+    Request cursorRequest = objectStore.openCursor();
     int itemCount = 0;
     int sumKeys = 0;
     int lastKey = null;
@@ -113,10 +114,10 @@ class Test {
   }
 
   readAllReversedViaCursor() {
-    IDBTransaction txn = db.transaction(STORE_NAME, 'readonly');
-    IDBObjectStore objectStore = txn.objectStore(STORE_NAME);
-    // TODO: create a IDBKeyRange(0,100)
-    IDBRequest cursorRequest = objectStore.openCursor(null, 'prev');
+    Transaction txn = db.transaction(STORE_NAME, 'readonly');
+    ObjectStore objectStore = txn.objectStore(STORE_NAME);
+    // TODO: create a KeyRange(0,100)
+    Request cursorRequest = objectStore.openCursor(null, 'prev');
     int itemCount = 0;
     int sumKeys = 0;
     int lastKey = null;

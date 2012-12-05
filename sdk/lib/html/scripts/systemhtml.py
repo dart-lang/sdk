@@ -42,6 +42,7 @@ _js_custom_members = set([
     'Window.requestAnimationFrame',
     'Window.webkitCancelAnimationFrame',
     'Window.webkitRequestAnimationFrame',
+    'WorkerContext.indexedDB',
     ])
 
 
@@ -203,12 +204,17 @@ _svg_element_constructors = {
 
 _element_constructors = {
   'html': _html_element_constructors,
+  'indexed_db': {},
   'svg': _svg_element_constructors,
   'web_audio': {},
 }
 
 _factory_ctr_strings = {
   'html': {
+      'provider_name': 'document',
+      'constructor_name': '$dom_createElement'
+  },
+  'indexed_db': {
       'provider_name': 'document',
       'constructor_name': '$dom_createElement'
   },

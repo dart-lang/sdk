@@ -510,11 +510,13 @@ abstract class Compiler implements DiagnosticListener {
         || libraryName == 'dart:math'
         || libraryName == 'dart:html'
         || libraryName == 'dart:html_common'
+        || libraryName == 'dart:indexed_db'
         || libraryName == 'dart:svg'
         || libraryName == 'dart:web_audio') {
       if (nativeTest
           || libraryName == 'dart:html'
           || libraryName == 'dart:html_common'
+          || libraryName == 'dart:indexed_db'
           || libraryName == 'dart:svg'
           || libraryName == 'dart:mirrors') {
         // dart:html and dart:svg need access to convertDartClosureToJS and

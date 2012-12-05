@@ -1,7 +1,8 @@
 library IndexedDB1Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
-import 'dart:html';
+import 'dart:html' as html;
+import 'dart:indexed_db' as idb;
 
 const String DB_NAME = 'Test';
 const String STORE_NAME = 'TEST';
@@ -62,11 +63,11 @@ testReadWrite(key, value, matcher,
   }
 
   openDb(e) {
-    var request = window.indexedDB.open(dbName, version);
+    var request = html.window.indexedDB.open(dbName, version);
     expect(request, isNotNull);
     request.on.success.add(expectAsync1(initDb));
     request.on.error.add(fail);
-    if (request is IDBOpenDBRequest) {
+    if (request is idb.OpenDBRequest) {
       // New upgrade protocol.  Old API has no 'upgradeNeeded' and uses
       // setVersion instead. This path take by FireFox 15, Chrome 24.
       request.on.upgradeNeeded.add((e) {
@@ -78,7 +79,7 @@ testReadWrite(key, value, matcher,
   }
 
   // Delete any existing DB.
-  var deleteRequest = window.indexedDB.deleteDatabase(dbName);
+  var deleteRequest = html.window.indexedDB.deleteDatabase(dbName);
   deleteRequest.on.success.add(expectAsync1(openDb));
   deleteRequest.on.error.add(fail);
 };
@@ -87,7 +88,7 @@ testReadWriteTyped(key, value, matcher,
                    [dbName = DB_NAME,
                     storeName = STORE_NAME,
                     version = VERSION]) => () {
-  IDBDatabase db;
+  idb.Database db;
 
   fail(e) {
     guardAsync(() {
@@ -96,13 +97,13 @@ testReadWriteTyped(key, value, matcher,
   }
 
   createObjectStore(db) {
-    IDBObjectStore store = db.createObjectStore(storeName);
+    idb.ObjectStore store = db.createObjectStore(storeName);
     expect(store, isNotNull);
   }
 
   step2(e) {
-    IDBTransaction transaction = db.transaction(storeName, 'readonly');
-    IDBRequest request = transaction.objectStore(storeName).getObject(key);
+    idb.Transaction transaction = db.transaction(storeName, 'readonly');
+    idb.Request request = transaction.objectStore(storeName).getObject(key);
     request.on.success.add(expectAsync1((e) {
       var object = e.target.result;
       db.close();
@@ -112,8 +113,8 @@ testReadWriteTyped(key, value, matcher,
   }
 
   step1() {
-    IDBTransaction transaction = db.transaction([storeName], 'readwrite');
-    IDBRequest request = transaction.objectStore(storeName).put(value, key);
+    idb.Transaction transaction = db.transaction([storeName], 'readwrite');
+    idb.Request request = transaction.objectStore(storeName).put(value, key);
     request.on.success.add(expectAsync1(step2));
     request.on.error.add(fail);
   }
@@ -122,11 +123,11 @@ testReadWriteTyped(key, value, matcher,
     db = e.target.result;
     if (version != db.version) {
       // Legacy 'setVersion' upgrade protocol.
-      IDBRequest request = db.setVersion('$version');
+      idb.Request request = db.setVersion('$version');
       request.on.success.add(
         expectAsync1((e) {
           createObjectStore(db);
-          IDBTransaction transaction = e.target.result;
+          idb.Transaction transaction = e.target.result;
           transaction.on.complete.add(expectAsync1((e) => step1()));
           transaction.on.error.add(fail);
         })
@@ -138,11 +139,11 @@ testReadWriteTyped(key, value, matcher,
   }
 
   openDb(e) {
-    IDBRequest request = window.indexedDB.open(dbName, version);
+    idb.Request request = html.window.indexedDB.open(dbName, version);
     expect(request, isNotNull);
     request.on.success.add(expectAsync1(initDb));
     request.on.error.add(fail);
-    if (request is IDBOpenDBRequest) {
+    if (request is idb.OpenDBRequest) {
       // New upgrade protocol.  Old API has no 'upgradeNeeded' and uses
       // setVersion instead.
       request.on.upgradeNeeded.add((e) {
@@ -154,7 +155,7 @@ testReadWriteTyped(key, value, matcher,
   }
 
   // Delete any existing DB.
-  IDBRequest deleteRequest = window.indexedDB.deleteDatabase(dbName);
+  idb.Request deleteRequest = html.window.indexedDB.deleteDatabase(dbName);
   deleteRequest.on.success.add(expectAsync1(openDb));
   deleteRequest.on.error.add(fail);
 };

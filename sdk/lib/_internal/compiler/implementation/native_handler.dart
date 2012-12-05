@@ -455,6 +455,7 @@ void maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:isolate'
       || libraryName == 'dart:html'
       || libraryName == 'dart:html_common'
+      || libraryName == 'dart:indexed_db'
       || libraryName == 'dart:svg'
       || libraryName == 'dart:web_audio') {
     library.canUseNative = true;
