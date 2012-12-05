@@ -1738,7 +1738,7 @@ class Import extends LibraryDependency {
 class Export extends LibraryDependency {
   final Token exportKeyword;
 
-  Export(this.exportKeyword, LiteralString uri, NodeList combinators)
+  Export(this.exportKeyword, StringNode uri, NodeList combinators)
       : super(uri, combinators);
 
   bool get isExport => true;

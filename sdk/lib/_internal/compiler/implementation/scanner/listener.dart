@@ -677,7 +677,7 @@ class ElementListener extends Listener {
 
   void endExport(Token exportKeyword, Token semicolon) {
     NodeList combinators = popNode();
-    LiteralString uri = popNode();
+    StringNode uri = popNode();
     addLibraryTag(new Export(exportKeyword, uri, combinators));
   }
 
