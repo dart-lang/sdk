@@ -96,15 +96,15 @@ class Client extends http.BaseClient {
 
       var authenticate;
       try {
-        authenticate = parseAuthenticateHeader(
+        authenticate = new AuthenticateHeader.parse(
             response.headers['www-authenticate']);
       } on FormatException catch (e) {
         return response;
       }
 
-      if (authenticate.first != 'bearer') return response;
+      if (authenticate.scheme != 'bearer') return response;
 
-      var params = authenticate.last;
+      var params = authenticate.parameters;
       if (!params.containsKey('error')) return response;
 
       throw new AuthorizationException(

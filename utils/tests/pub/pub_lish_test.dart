@@ -72,8 +72,29 @@ main() {
   // TODO(nweiz): Once a multipart/form-data parser in Dart exists, we should
   // test that "pub lish" chooses the correct files to publish.
 
-  // TODO(nweiz): Once issue 6813 is fixed, test that OAuth2 authentication
-  // errors cause the client to try re-authenticating.
+  test('credentials are invalid', () {
+    var server = new ScheduledServer();
+    credentialsFile(server, 'access token').scheduleCreate();
+    var pub = startPubLish(server);
+
+    server.handle('GET', '/packages/versions/new.json', (request, response) {
+      response.statusCode = 401;
+      response.headers.set('www-authenticate', 'Bearer error="invalid_token",'
+          ' error_description="your token sucks"');
+      response.outputStream.writeString(JSON.stringify({
+        'error': {'message': 'your token sucks'}
+      }));
+      return closeHttpResponse(request, response);
+    });
+
+    expectLater(pub.nextErrLine(), equals('OAuth2 authorization failed (your '
+        'token sucks).'));
+    expectLater(pub.nextLine(), equals('Pub needs your authorization to upload '
+        'packages on your behalf.'));
+    pub.kill();
+
+    run();
+  });
 
   test('upload form provides an error', () {
     var server = new ScheduledServer();

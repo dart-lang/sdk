@@ -36,17 +36,8 @@ class LishCommand extends PubCommand {
   Future onRun() {
     var cloudStorageUrl;
     return oauth2.withClient(cache, (client) {
-      // TODO(nweiz): Better error-handling. There are a few cases we need to
-      // handle better:
-      //
-      // * The server can tell us we need new credentials (a 401 error). The
-      //   oauth2 package should throw an AuthorizationException in this case
-      //   (contingent on issue 6813 and 6275). We should have the user
-      //   re-authorize the client, then restart the command. We should also do
-      //   this in case of an ExpirationException. See issue 6950.
-      //
-      // * Cloud Storage can provide an XML-formatted error. We should report
-      //   that error and exit.
+      // TODO(nweiz): Cloud Storage can provide an XML-formatted error. We
+      // should report that error and exit.
       return Futures.wait([
         client.get(server.resolve("/packages/versions/new.json")),
         _filesToPublish.transform((files) {
@@ -103,13 +94,18 @@ class LishCommand extends PubCommand {
           }
           throw errorMap['error']['message'];
         }
+      } else if (e is oauth2.ExpirationException) {
+        printError("Pub's authorization to upload packages has expired and "
+            "can't be automatically refreshed.");
+        return onRun();
+      } else if (e is oauth2.AuthorizationException) {
+        var message = "OAuth2 authorization failed";
+        if (e.description != null) message = "$message (${e.description})";
+        printError("$message.");
+        return oauth2.clearCredentials(cache).chain((_) => onRun());
+      } else {
+        throw e;
       }
-
-      if (e is! oauth2.ExpirationException) throw e;
-
-      printError("Pub's authorization to upload packages has expired and can't "
-          "be automatically refreshed.");
-      return onRun();
     });
   }
 

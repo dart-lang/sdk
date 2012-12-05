@@ -47,6 +47,16 @@ final _scopes = ['https://www.googleapis.com/auth/userinfo.email'];
 /// the same as the credentials file stored in the system cache.
 Credentials _credentials;
 
+/// Delete the cached credentials, if they exist.
+Future clearCredentials(SystemCache cache) {
+  _credentials = null;
+  var credentialsFile = _credentialsFile(cache);
+  return fileExists(credentialsFile).chain((exists) {
+    if (exists) return deleteFile(credentialsFile);
+    return new Future.immediate(null);
+  });
+}
+
 /// Asynchronously passes an OAuth2 [Client] to [fn], and closes the client when
 /// the [Future] returned by [fn] completes.
 ///

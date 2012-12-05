@@ -517,7 +517,10 @@ class PubHttpClient extends http.BaseClient {
     // TODO(nweiz): Ideally the timeout would extend to reading from the
     // response input stream, but until issue 3657 is fixed that's not feasible.
     return timeout(_inner.send(request).chain((streamedResponse) {
-      if (streamedResponse.statusCode < 400) {
+      var status = streamedResponse.statusCode;
+      // 401 responses should be handled by the OAuth2 client. It's very
+      // unlikely that they'll be returned by non-OAuth2 requests.
+      if (status < 400 || status == 401) {
         return new Future.immediate(streamedResponse);
       }
 
@@ -951,7 +954,8 @@ class PubHttpException implements Exception {
 
   const PubHttpException(this.response);
 
-  String toString() => 'HTTP error ${response.statusCode}: ${response.reason}';
+  String toString() => 'HTTP error ${response.statusCode}: '
+    '${response.reasonPhrase}';
 }
 
 /**

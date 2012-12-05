@@ -526,7 +526,10 @@ void run() {
       registerException(error, future.stackTrace);
       return true;
     });
-    future.then((_) => registerException(error, future.stackTrace));
+    future.then((_) {
+      print("Registering exception");
+      registerException(error, future.stackTrace);
+    });
     return true;
   });
 
@@ -1459,11 +1462,10 @@ class ScheduledServer {
   /// Raises an error complaining of an unexpected request.
   void _awaitHandle(HttpRequest request, HttpResponse response) {
     var future = timeout(new Future.immediate(null).chain((_) {
-      var handlerFuture = _handlers.removeFirst();
-      if (handlerFuture == null) {
+      if (_handlers.isEmpty) {
         fail('Unexpected ${request.method} request to ${request.path}.');
       }
-      return handlerFuture;
+      return _handlers.removeFirst();
     }).transform((handler) {
       handler(request, response);
     }), 5000, "waiting for a handler for ${request.method} ${request.path}");
