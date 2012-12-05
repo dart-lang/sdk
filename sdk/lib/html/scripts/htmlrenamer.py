@@ -15,6 +15,7 @@ html_interface_renames = {
     'DOMWindow': 'LocalWindow',
     'History': 'LocalHistory',
     'HTMLDocument' : 'HtmlDocument',
+    'IDBAny': '_Any', # Suppressed, but needs to exist for Dartium.
     'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
     'Location': 'LocalLocation',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.

@@ -132,14 +132,6 @@ const _annotation_Returns_IDBKey = const Returns(_idbKey);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBAny; @docsEditable true
-class Any native "*IDBAny" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName IDBCursor; @docsEditable true
 class Cursor native "*IDBCursor" {
 
@@ -1036,4 +1028,12 @@ class VersionChangeRequestEvents extends RequestEvents {
   VersionChangeRequestEvents(EventTarget _ptr) : super(_ptr);
 
   EventListenerList get blocked => this['blocked'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName IDBAny; @docsEditable true
+class _Any native "*IDBAny" {
 }
