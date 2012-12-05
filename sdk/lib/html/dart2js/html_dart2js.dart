@@ -5245,13 +5245,13 @@ class Database native "*Database" {
   final String version;
 
   /// @domName Database.changeVersion; @docsEditable true
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
+  void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
   /// @domName Database.readTransaction; @docsEditable true
-  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
+  void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
   /// @domName Database.transaction; @docsEditable true
-  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
+  void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5276,13 +5276,13 @@ class DatabaseSync native "*DatabaseSync" {
   final String version;
 
   /// @domName DatabaseSync.changeVersion; @docsEditable true
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]) native;
+  void changeVersion(String oldVersion, String newVersion, [SqlTransactionSyncCallback callback]) native;
 
   /// @domName DatabaseSync.readTransaction; @docsEditable true
-  void readTransaction(SQLTransactionSyncCallback callback) native;
+  void readTransaction(SqlTransactionSyncCallback callback) native;
 
   /// @domName DatabaseSync.transaction; @docsEditable true
-  void transaction(SQLTransactionSyncCallback callback) native;
+  void transaction(SqlTransactionSyncCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14030,7 +14030,7 @@ class QuoteElement extends Element implements Element native "*HTMLQuoteElement"
 // WARNING: Do not edit - generated code.
 
 
-typedef void RTCErrorCallback(String errorInformation);
+typedef void RtcErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14038,7 +14038,7 @@ typedef void RTCErrorCallback(String errorInformation);
 // WARNING: Do not edit - generated code.
 
 
-typedef void RTCSessionDescriptionCallback(RtcSessionDescription sdp);
+typedef void RtcSessionDescriptionCallback(RtcSessionDescription sdp);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14046,7 +14046,7 @@ typedef void RTCSessionDescriptionCallback(RtcSessionDescription sdp);
 // WARNING: Do not edit - generated code.
 
 
-typedef void RTCStatsCallback(RtcStatsResponse response);
+typedef void RtcStatsCallback(RtcStatsResponse response);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14408,7 +14408,7 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void close() native;
 
   /// @domName RTCPeerConnection.createAnswer; @docsEditable true
-  void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
+  void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
       _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
@@ -14418,9 +14418,9 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return;
   }
   @JSName('createAnswer')
-  void _createAnswer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native;
+  void _createAnswer_1(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback, mediaConstraints) native;
   @JSName('createAnswer')
-  void _createAnswer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native;
+  void _createAnswer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
   /// @domName RTCPeerConnection.createDataChannel; @docsEditable true
   RtcDataChannel createDataChannel(String label, [Map options]) {
@@ -14436,7 +14436,7 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   RtcDataChannel _createDataChannel_2(label) native;
 
   /// @domName RTCPeerConnection.createOffer; @docsEditable true
-  void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
+  void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
       _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
@@ -14446,16 +14446,16 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return;
   }
   @JSName('createOffer')
-  void _createOffer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native;
+  void _createOffer_1(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback, mediaConstraints) native;
   @JSName('createOffer')
-  void _createOffer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native;
+  void _createOffer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
   /// @domName RTCPeerConnection.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
   /// @domName RTCPeerConnection.getStats; @docsEditable true
-  void getStats(RTCStatsCallback successCallback, MediaStreamTrack selector) native;
+  void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native;
 
   /// @domName RTCPeerConnection.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
@@ -14465,10 +14465,10 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void removeStream(MediaStream stream) native;
 
   /// @domName RTCPeerConnection.setLocalDescription; @docsEditable true
-  void setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
+  void setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
 
   /// @domName RTCPeerConnection.setRemoteDescription; @docsEditable true
-  void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
+  void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
 
   /// @domName RTCPeerConnection.updateIce; @docsEditable true
   void updateIce([Map configuration, Map mediaConstraints]) {
@@ -14573,7 +14573,7 @@ class RtcStatsResponse native "*RTCStatsResponse" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLStatementCallback(SqlTransaction transaction, SqlResultSet resultSet);
+typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14581,7 +14581,7 @@ typedef void SQLStatementCallback(SqlTransaction transaction, SqlResultSet resul
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLStatementErrorCallback(SqlTransaction transaction, SqlError error);
+typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14589,7 +14589,7 @@ typedef void SQLStatementErrorCallback(SqlTransaction transaction, SqlError erro
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLTransactionCallback(SqlTransaction transaction);
+typedef void SqlTransactionCallback(SqlTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14597,7 +14597,7 @@ typedef void SQLTransactionCallback(SqlTransaction transaction);
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLTransactionErrorCallback(SqlError error);
+typedef void SqlTransactionErrorCallback(SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14605,7 +14605,7 @@ typedef void SQLTransactionErrorCallback(SqlError error);
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLTransactionSyncCallback(SqlTransactionSync transaction);
+typedef void SqlTransactionSyncCallback(SqlTransactionSync transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15608,7 +15608,7 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 class SqlTransaction native "*SQLTransaction" {
 
   /// @domName SQLTransaction.executeSql; @docsEditable true
-  void executeSql(String sqlStatement, List arguments, [SQLStatementCallback callback, SQLStatementErrorCallback errorCallback]) native;
+  void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

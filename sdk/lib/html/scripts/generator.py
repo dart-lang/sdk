@@ -1226,7 +1226,8 @@ class TypeRegistry(object):
     if not type_name in _idl_type_registry:
       interface = self._database.GetInterface(type_name)
       if 'Callback' in interface.ext_attrs:
-        return CallbackIDLTypeInfo(type_name, TypeData('Callback'))
+        return CallbackIDLTypeInfo(type_name, TypeData('Callback',
+            self._renamer.DartifyTypeName(type_name)))
       return InterfaceIDLTypeInfo(
           type_name,
           TypeData('Interface'),

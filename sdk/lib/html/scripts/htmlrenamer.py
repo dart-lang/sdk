@@ -377,26 +377,10 @@ class HtmlRenamer(object):
       if 'INDEXED_DATABASE' in interface.ext_attrs['Conditional']:
         return 'indexed_db'
 
-    return self._GetLibraryName(interface.id)
-
-  # TODO(blois): remove this method when all members are renamed.
-  def _GetLibraryName(self, idl_type_name):
-    """
-    Gets the name of the library this type should live in.
-    This is private because this should use interfaces to resolve the library.
-    """
-    if idl_type_name.startswith('SVG'):
-      return 'svg'
-
-    if idl_type_name.startswith('IDB'):
-      return 'indexed_db'
-
     return 'html'
-
 
   def DartifyTypeName(self, type_name):
     """Converts a DOM name to a Dart-friendly class name. """
-    library_name = self._GetLibraryName(type_name)
 
     # Strip off any standard prefixes.
     name = re.sub(r'^SVG', '', type_name)
