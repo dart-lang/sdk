@@ -2033,6 +2033,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         !redirectionTarget.modifiers.isConst()) {
       error(node, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
     }
+    constructor.defaultImplementation = redirectionTarget;
+    if (Elements.isUnresolved(redirectionTarget)) return;
+
     // TODO(ahe): Check that this doesn't lead to a cycle.  For now,
     // just make sure that the redirection target isn't itself a
     // redirecting factory.

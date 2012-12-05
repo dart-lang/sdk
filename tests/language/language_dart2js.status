@@ -97,8 +97,6 @@ double_int_to_string_test: Fail # Issue 1533 (double/integer distinction)
 mint_arithmetic_test: Fail # Issue 1533 (big integer arithmetic).
 arithmetic_test: Fail # http://dartbug.com/6627
 factory_redirection_test/01: Fail
-factory_redirection_test/02: Crash
-factory_redirection_test/03: Crash
 factory_redirection_test/05: Fail
 factory_redirection_test/07: Fail
 final_variable_assignment_test/01: Fail
