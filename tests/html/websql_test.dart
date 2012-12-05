@@ -9,56 +9,56 @@ void fail(message) {
     });
 }
 
-Future<SQLTransaction> createTransaction(Database db) {
-  final completer = new Completer<SQLTransaction>();
+Future<SqlTransaction> createTransaction(Database db) {
+  final completer = new Completer<SqlTransaction>();
 
-  db.transaction((SQLTransaction transaction) {
+  db.transaction((SqlTransaction transaction) {
     completer.complete(transaction);
   });
 
   return completer.future;
 }
 
-createTable(tableName, columnName) => (SQLTransaction transaction) {
-  final completer = new Completer<SQLTransaction>();
+createTable(tableName, columnName) => (SqlTransaction transaction) {
+  final completer = new Completer<SqlTransaction>();
 
   final sql = 'CREATE TABLE $tableName ($columnName)';
   transaction.executeSql(sql, [],
-    (SQLTransaction tx, SQLResultSet rs) {
+    (SqlTransaction tx, SqlResultSet rs) {
       completer.complete(transaction);
     },
-    (SQLTransaction tx, SQLError error) {
+    (SqlTransaction tx, SqlError error) {
       fail(error.message);
     });
 
   return completer.future;
 };
 
-insert(tableName, columnName, value) => (SQLTransaction transaction) {
-  final completer = new Completer<SQLTransaction>();
+insert(tableName, columnName, value) => (SqlTransaction transaction) {
+  final completer = new Completer<SqlTransaction>();
 
   final sql = 'INSERT INTO $tableName ($columnName) VALUES (?)';
   transaction.executeSql(sql, [value],
-    (SQLTransaction tx, SQLResultSet rs) {
+    (SqlTransaction tx, SqlResultSet rs) {
       completer.complete(tx);
     },
-    (SQLTransaction tx, SQLError error) {
+    (SqlTransaction tx, SqlError error) {
       fail(error.message);
     });
 
   return completer.future;
 };
 
-queryTable(tableName, callback) => (SQLTransaction transaction) {
-  final completer = new Completer<SQLTransaction>();
+queryTable(tableName, callback) => (SqlTransaction transaction) {
+  final completer = new Completer<SqlTransaction>();
 
   final sql = 'SELECT * FROM $tableName';
   transaction.executeSql(sql, [],
-    (SQLTransaction tx, SQLResultSet rs) {
+    (SqlTransaction tx, SqlResultSet rs) {
       callback(rs);
       completer.complete(tx);
     },
-    (SQLTransaction tx, SQLError error) {
+    (SqlTransaction tx, SqlError error) {
       fail(error.message);
     });
 
@@ -66,15 +66,15 @@ queryTable(tableName, callback) => (SQLTransaction transaction) {
 };
 
 dropTable(tableName, [bool ignoreFailure = false]) =>
-    (SQLTransaction transaction) {
-  final completer = new Completer<SQLTransaction>();
+    (SqlTransaction transaction) {
+  final completer = new Completer<SqlTransaction>();
 
   final sql = 'DROP TABLE $tableName';
   transaction.executeSql(sql, [],
-    (SQLTransaction tx, SQLResultSet rs) {
+    (SqlTransaction tx, SqlResultSet rs) {
       completer.complete(tx);
     },
-    (SQLTransaction tx, SQLError error) {
+    (SqlTransaction tx, SqlError error) {
       if (ignoreFailure) {
         completer.complete(tx);
       } else {

@@ -4,9 +4,9 @@
 
 part of html;
 
-Future<CSSStyleDeclaration> _emptyStyleFuture() {
+Future<CssStyleDeclaration> _emptyStyleFuture() {
   return _createMeasurementFuture(() => new Element.tag('div').style,
-                                  new Completer<CSSStyleDeclaration>());
+                                  new Completer<CssStyleDeclaration>());
 }
 
 class _FrozenCssClassSet extends CssClassSet {
@@ -152,10 +152,10 @@ $endif
   Map<String, String> get attributes => const {};
   CssClassSet get classes => new _FrozenCssClassSet();
   Map<String, String> get dataAttributes => const {};
-  CSSStyleDeclaration get style => new Element.tag('div').style;
-  Future<CSSStyleDeclaration> get computedStyle =>
+  CssStyleDeclaration get style => new Element.tag('div').style;
+  Future<CssStyleDeclaration> get computedStyle =>
       _emptyStyleFuture();
-  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) =>
+  Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) =>
       _emptyStyleFuture();
   bool matchesSelector(String selectors) => false;
 

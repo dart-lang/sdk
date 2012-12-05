@@ -23,7 +23,7 @@ class Test {
       db.deleteObjectStore(STORE_NAME);
     }
     on DatabaseException catch(e) { }  // Chrome
-    on DOMException catch(e) { }          // Firefox
+    on DomException catch(e) { }          // Firefox
     db.createObjectStore(STORE_NAME);
   }
 

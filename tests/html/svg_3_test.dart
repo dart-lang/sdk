@@ -21,9 +21,9 @@ main() {
   var isSvgAnimatedTransformList =
       predicate((x) => x is svg.AnimatedTransformList,
           'is an svg.AnimatedTransformList');
-  var isCSSStyleDeclaration =
-      predicate((x) => x is CSSStyleDeclaration, 'is a CSSStyleDeclaration');
-  var isCSSValue = predicate((x) => x is CSSValue, 'is a CSSValue');
+  var isCssStyleDeclaration =
+      predicate((x) => x is CssStyleDeclaration, 'is a CssStyleDeclaration');
+  var isCssValue = predicate((x) => x is CssValue, 'is a CssValue');
 
   insertTestDiv() {
     var element = new Element.tag('div');
@@ -88,10 +88,10 @@ main() {
     expect(className, isSvgAnimatedString);
 
     var s = e.style;
-    expect(s, isCSSStyleDeclaration);
+    expect(s, isCssStyleDeclaration);
 
     var attributeA = e.getPresentationAttribute('A');
-    expect(attributeA, anyOf(isNull, isCSSValue));
+    expect(attributeA, anyOf(isNull, isCssValue));
   }
 
   /**

@@ -253,7 +253,7 @@ websql_test: Skip # Timeout.
 [ $runtime == ff ]
 audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
-css_test: Fail               # No analog to WebKitCSSMatrix
+css_test: Fail               # No analog to WebKitCssMatrix
 contentelement_test: Fail    # FF does not support content element.
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 documentfragment_test: Fail

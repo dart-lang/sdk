@@ -5,7 +5,11 @@
 import re
 
 html_interface_renames = {
-    'DOMCoreException': 'DOMException',
+    'CDATASection': 'CDataSection',
+    'DOMApplicationCache': 'ApplicationCache',
+    'DOMCoreException': 'DomException',
+    'DOMFileSystem': 'FileSystem',
+    'DOMFileSystemSync': 'FileSystemSync',
     'DOMFormData': 'FormData',
     'DOMURL': 'Url',
     'DOMWindow': 'LocalWindow',
@@ -17,13 +21,14 @@ html_interface_renames = {
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
+    'WebGLVertexArrayObjectOES': 'WebGLVertexArrayObject',
     'WebKitAnimation': 'Animation',
     'WebKitAnimationEvent': 'AnimationEvent',
     'WebKitBlobBuilder': 'BlobBuilder',
-    'WebKitCSSKeyframeRule': 'CSSKeyframeRule',
-    'WebKitCSSKeyframesRule': 'CSSKeyframesRule',
-    'WebKitCSSMatrix': 'CSSMatrix',
-    'WebKitCSSTransformValue': 'CSSTransformValue',
+    'WebKitCSSKeyframeRule': 'CssKeyframeRule',
+    'WebKitCSSKeyframesRule': 'CssKeyframesRule',
+    'WebKitCSSMatrix': 'CssMatrix',
+    'WebKitCSSTransformValue': 'CssTransformValue',
     'WebKitFlags': 'Flags',
     'WebKitLoseContext': 'LoseContext',
     'WebKitPoint': 'Point',
@@ -382,6 +387,7 @@ class HtmlRenamer(object):
     """
     if idl_type_name.startswith('SVG'):
       return 'svg'
+
     if idl_type_name.startswith('IDB'):
       return 'indexed_db'
 
@@ -391,13 +397,9 @@ class HtmlRenamer(object):
   def DartifyTypeName(self, type_name):
     """Converts a DOM name to a Dart-friendly class name. """
     library_name = self._GetLibraryName(type_name)
-    # Rename everything except html.
-    if library_name == 'html':
-      return type_name
 
-    # Strip off any SVG prefix.
+    # Strip off any standard prefixes.
     name = re.sub(r'^SVG', '', type_name)
-    # Strip off any IDB prefix.
     name = re.sub(r'^IDB', '', name)
 
     return self._CamelCaseName(name)

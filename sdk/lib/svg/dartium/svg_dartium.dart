@@ -118,11 +118,11 @@ class AElement extends SvgElement implements Transformable, Tests, UriReference,
 
 
   /** @domName SVGAElement.style */
-  CSSStyleDeclaration get style native "SVGAElement_style_Getter";
+  CssStyleDeclaration get style native "SVGAElement_style_Getter";
 
 
   /** @domName SVGAElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGAElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGAElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGAElement.requiredExtensions */
@@ -999,11 +999,11 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
 
 
   /** @domName SVGCircleElement.style */
-  CSSStyleDeclaration get style native "SVGCircleElement_style_Getter";
+  CssStyleDeclaration get style native "SVGCircleElement_style_Getter";
 
 
   /** @domName SVGCircleElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGCircleElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGCircleElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGCircleElement.requiredExtensions */
@@ -1093,11 +1093,11 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
 
 
   /** @domName SVGClipPathElement.style */
-  CSSStyleDeclaration get style native "SVGClipPathElement_style_Getter";
+  CssStyleDeclaration get style native "SVGClipPathElement_style_Getter";
 
 
   /** @domName SVGClipPathElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGClipPathElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGClipPathElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGClipPathElement.requiredExtensions */
@@ -1128,7 +1128,7 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
 
 
 /// @domName SVGColor
-class Color extends CSSValue {
+class Color extends CssValue {
   Color.internal(): super.internal();
 
   static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
@@ -1145,7 +1145,7 @@ class Color extends CSSValue {
 
 
   /** @domName SVGColor.rgbColor */
-  RGBColor get rgbColor native "SVGColor_rgbColor_Getter";
+  RgbColor get rgbColor native "SVGColor_rgbColor_Getter";
 
 
   /** @domName SVGColor.setColor */
@@ -1321,11 +1321,11 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 
   /** @domName SVGDefsElement.style */
-  CSSStyleDeclaration get style native "SVGDefsElement_style_Getter";
+  CssStyleDeclaration get style native "SVGDefsElement_style_Getter";
 
 
   /** @domName SVGDefsElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGDefsElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGDefsElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGDefsElement.requiredExtensions */
@@ -1383,11 +1383,11 @@ class DescElement extends SvgElement implements Stylable, LangSpace {
 
 
   /** @domName SVGDescElement.style */
-  CSSStyleDeclaration get style native "SVGDescElement_style_Getter";
+  CssStyleDeclaration get style native "SVGDescElement_style_Getter";
 
 
   /** @domName SVGDescElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGDescElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGDescElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1629,11 +1629,11 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
 
 
   /** @domName SVGEllipseElement.style */
-  CSSStyleDeclaration get style native "SVGEllipseElement_style_Getter";
+  CssStyleDeclaration get style native "SVGEllipseElement_style_Getter";
 
 
   /** @domName SVGEllipseElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGEllipseElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGEllipseElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGEllipseElement.requiredExtensions */
@@ -1733,11 +1733,11 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 
   /** @domName SVGFEBlendElement.style */
-  CSSStyleDeclaration get style native "SVGFEBlendElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEBlendElement_style_Getter";
 
 
   /** @domName SVGFEBlendElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEBlendElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEBlendElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1799,11 +1799,11 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 
 
   /** @domName SVGFEColorMatrixElement.style */
-  CSSStyleDeclaration get style native "SVGFEColorMatrixElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEColorMatrixElement_style_Getter";
 
 
   /** @domName SVGFEColorMatrixElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEColorMatrixElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEColorMatrixElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1847,11 +1847,11 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 
 
   /** @domName SVGFEComponentTransferElement.style */
-  CSSStyleDeclaration get style native "SVGFEComponentTransferElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEComponentTransferElement_style_Getter";
 
 
   /** @domName SVGFEComponentTransferElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEComponentTransferElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEComponentTransferElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1933,11 +1933,11 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 
 
   /** @domName SVGFECompositeElement.style */
-  CSSStyleDeclaration get style native "SVGFECompositeElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFECompositeElement_style_Getter";
 
 
   /** @domName SVGFECompositeElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFECompositeElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFECompositeElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2033,11 +2033,11 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 
 
   /** @domName SVGFEConvolveMatrixElement.style */
-  CSSStyleDeclaration get style native "SVGFEConvolveMatrixElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEConvolveMatrixElement_style_Getter";
 
 
   /** @domName SVGFEConvolveMatrixElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEConvolveMatrixElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEConvolveMatrixElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2097,11 +2097,11 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 
 
   /** @domName SVGFEDiffuseLightingElement.style */
-  CSSStyleDeclaration get style native "SVGFEDiffuseLightingElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEDiffuseLightingElement_style_Getter";
 
 
   /** @domName SVGFEDiffuseLightingElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEDiffuseLightingElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEDiffuseLightingElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2171,11 +2171,11 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 
 
   /** @domName SVGFEDisplacementMapElement.style */
-  CSSStyleDeclaration get style native "SVGFEDisplacementMapElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEDisplacementMapElement_style_Getter";
 
 
   /** @domName SVGFEDisplacementMapElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEDisplacementMapElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEDisplacementMapElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2259,11 +2259,11 @@ class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardA
 
 
   /** @domName SVGFEDropShadowElement.style */
-  CSSStyleDeclaration get style native "SVGFEDropShadowElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEDropShadowElement_style_Getter";
 
 
   /** @domName SVGFEDropShadowElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEDropShadowElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEDropShadowElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2303,11 +2303,11 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 
   /** @domName SVGFEFloodElement.style */
-  CSSStyleDeclaration get style native "SVGFEFloodElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEFloodElement_style_Getter";
 
 
   /** @domName SVGFEFloodElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEFloodElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEFloodElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2411,11 +2411,11 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 
 
   /** @domName SVGFEGaussianBlurElement.style */
-  CSSStyleDeclaration get style native "SVGFEGaussianBlurElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEGaussianBlurElement_style_Getter";
 
 
   /** @domName SVGFEGaussianBlurElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEGaussianBlurElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEGaussianBlurElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2479,11 +2479,11 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 
   /** @domName SVGFEImageElement.style */
-  CSSStyleDeclaration get style native "SVGFEImageElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEImageElement_style_Getter";
 
 
   /** @domName SVGFEImageElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEImageElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEImageElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGFEImageElement.href */
@@ -2527,11 +2527,11 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 
   /** @domName SVGFEMergeElement.style */
-  CSSStyleDeclaration get style native "SVGFEMergeElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEMergeElement_style_Getter";
 
 
   /** @domName SVGFEMergeElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEMergeElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEMergeElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2613,11 +2613,11 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 
 
   /** @domName SVGFEMorphologyElement.style */
-  CSSStyleDeclaration get style native "SVGFEMorphologyElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEMorphologyElement_style_Getter";
 
 
   /** @domName SVGFEMorphologyElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEMorphologyElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEMorphologyElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2669,11 +2669,11 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
 
 
   /** @domName SVGFEOffsetElement.style */
-  CSSStyleDeclaration get style native "SVGFEOffsetElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFEOffsetElement_style_Getter";
 
 
   /** @domName SVGFEOffsetElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFEOffsetElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFEOffsetElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2753,11 +2753,11 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
 
 
   /** @domName SVGFESpecularLightingElement.style */
-  CSSStyleDeclaration get style native "SVGFESpecularLightingElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFESpecularLightingElement_style_Getter";
 
 
   /** @domName SVGFESpecularLightingElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFESpecularLightingElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFESpecularLightingElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2845,11 +2845,11 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 
 
   /** @domName SVGFETileElement.style */
-  CSSStyleDeclaration get style native "SVGFETileElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFETileElement_style_Getter";
 
 
   /** @domName SVGFETileElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFETileElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFETileElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2925,11 +2925,11 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 
 
   /** @domName SVGFETurbulenceElement.style */
-  CSSStyleDeclaration get style native "SVGFETurbulenceElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFETurbulenceElement_style_Getter";
 
 
   /** @domName SVGFETurbulenceElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFETurbulenceElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFETurbulenceElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3007,11 +3007,11 @@ class FilterElement extends SvgElement implements UriReference, ExternalResource
 
 
   /** @domName SVGFilterElement.style */
-  CSSStyleDeclaration get style native "SVGFilterElement_style_Getter";
+  CssStyleDeclaration get style native "SVGFilterElement_style_Getter";
 
 
   /** @domName SVGFilterElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFilterElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFilterElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGFilterElement.href */
@@ -3055,11 +3055,11 @@ class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 impleme
 
 
   /** @domName SVGFilterPrimitiveStandardAttributes.style */
-  CSSStyleDeclaration get style native "SVGFilterPrimitiveStandardAttributes_style_Getter";
+  CssStyleDeclaration get style native "SVGFilterPrimitiveStandardAttributes_style_Getter";
 
 
   /** @domName SVGFilterPrimitiveStandardAttributes.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGFilterPrimitiveStandardAttributes_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGFilterPrimitiveStandardAttributes_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3245,11 +3245,11 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
 
 
   /** @domName SVGForeignObjectElement.style */
-  CSSStyleDeclaration get style native "SVGForeignObjectElement_style_Getter";
+  CssStyleDeclaration get style native "SVGForeignObjectElement_style_Getter";
 
 
   /** @domName SVGForeignObjectElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGForeignObjectElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGForeignObjectElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGForeignObjectElement.requiredExtensions */
@@ -3335,11 +3335,11 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
 
 
   /** @domName SVGGElement.style */
-  CSSStyleDeclaration get style native "SVGGElement_style_Getter";
+  CssStyleDeclaration get style native "SVGGElement_style_Getter";
 
 
   /** @domName SVGGElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGGElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGGElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGGElement.requiredExtensions */
@@ -3441,11 +3441,11 @@ class GlyphRefElement extends SvgElement implements UriReference, Stylable {
 
 
   /** @domName SVGGlyphRefElement.style */
-  CSSStyleDeclaration get style native "SVGGlyphRefElement_style_Getter";
+  CssStyleDeclaration get style native "SVGGlyphRefElement_style_Getter";
 
 
   /** @domName SVGGlyphRefElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGGlyphRefElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGGlyphRefElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGGlyphRefElement.href */
@@ -3493,11 +3493,11 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
 
 
   /** @domName SVGGradientElement.style */
-  CSSStyleDeclaration get style native "SVGGradientElement_style_Getter";
+  CssStyleDeclaration get style native "SVGGradientElement_style_Getter";
 
 
   /** @domName SVGGradientElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGGradientElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGGradientElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGGradientElement.href */
@@ -3601,11 +3601,11 @@ class ImageElement extends SvgElement implements Transformable, Tests, UriRefere
 
 
   /** @domName SVGImageElement.style */
-  CSSStyleDeclaration get style native "SVGImageElement_style_Getter";
+  CssStyleDeclaration get style native "SVGImageElement_style_Getter";
 
 
   /** @domName SVGImageElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGImageElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGImageElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGImageElement.requiredExtensions */
@@ -3946,11 +3946,11 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 
   /** @domName SVGLineElement.style */
-  CSSStyleDeclaration get style native "SVGLineElement_style_Getter";
+  CssStyleDeclaration get style native "SVGLineElement_style_Getter";
 
 
   /** @domName SVGLineElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGLineElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGLineElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGLineElement.requiredExtensions */
@@ -4156,11 +4156,11 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 
 
   /** @domName SVGMarkerElement.style */
-  CSSStyleDeclaration get style native "SVGMarkerElement_style_Getter";
+  CssStyleDeclaration get style native "SVGMarkerElement_style_Getter";
 
 
   /** @domName SVGMarkerElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGMarkerElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGMarkerElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4226,11 +4226,11 @@ class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourc
 
 
   /** @domName SVGMaskElement.style */
-  CSSStyleDeclaration get style native "SVGMaskElement_style_Getter";
+  CssStyleDeclaration get style native "SVGMaskElement_style_Getter";
 
 
   /** @domName SVGMaskElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGMaskElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGMaskElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGMaskElement.requiredExtensions */
@@ -4753,11 +4753,11 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 
   /** @domName SVGPathElement.style */
-  CSSStyleDeclaration get style native "SVGPathElement_style_Getter";
+  CssStyleDeclaration get style native "SVGPathElement_style_Getter";
 
 
   /** @domName SVGPathElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGPathElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGPathElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGPathElement.requiredExtensions */
@@ -5744,11 +5744,11 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
 
 
   /** @domName SVGPatternElement.style */
-  CSSStyleDeclaration get style native "SVGPatternElement_style_Getter";
+  CssStyleDeclaration get style native "SVGPatternElement_style_Getter";
 
 
   /** @domName SVGPatternElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGPatternElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGPatternElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGPatternElement.requiredExtensions */
@@ -5918,11 +5918,11 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
 
 
   /** @domName SVGPolygonElement.style */
-  CSSStyleDeclaration get style native "SVGPolygonElement_style_Getter";
+  CssStyleDeclaration get style native "SVGPolygonElement_style_Getter";
 
 
   /** @domName SVGPolygonElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGPolygonElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGPolygonElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGPolygonElement.requiredExtensions */
@@ -6016,11 +6016,11 @@ class PolylineElement extends SvgElement implements Transformable, Tests, Stylab
 
 
   /** @domName SVGPolylineElement.style */
-  CSSStyleDeclaration get style native "SVGPolylineElement_style_Getter";
+  CssStyleDeclaration get style native "SVGPolylineElement_style_Getter";
 
 
   /** @domName SVGPolylineElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGPolylineElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGPolylineElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGPolylineElement.requiredExtensions */
@@ -6268,11 +6268,11 @@ class RectElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 
   /** @domName SVGRectElement.style */
-  CSSStyleDeclaration get style native "SVGRectElement_style_Getter";
+  CssStyleDeclaration get style native "SVGRectElement_style_Getter";
 
 
   /** @domName SVGRectElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGRectElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGRectElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGRectElement.requiredExtensions */
@@ -6386,11 +6386,11 @@ class StopElement extends SvgElement implements Stylable {
 
 
   /** @domName SVGStopElement.style */
-  CSSStyleDeclaration get style native "SVGStopElement_style_Getter";
+  CssStyleDeclaration get style native "SVGStopElement_style_Getter";
 
 
   /** @domName SVGStopElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGStopElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGStopElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6547,11 +6547,11 @@ class Stylable extends NativeFieldWrapperClass1 {
 
 
   /** @domName SVGStylable.style */
-  CSSStyleDeclaration get style native "SVGStylable_style_Getter";
+  CssStyleDeclaration get style native "SVGStylable_style_Getter";
 
 
   /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGStylable_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGStylable_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7041,11 +7041,11 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
 
 
   /** @domName SVGSVGElement.style */
-  CSSStyleDeclaration get style native "SVGSVGElement_style_Getter";
+  CssStyleDeclaration get style native "SVGSVGElement_style_Getter";
 
 
   /** @domName SVGSVGElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGSVGElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGSVGElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGSVGElement.requiredExtensions */
@@ -7135,11 +7135,11 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
 
 
   /** @domName SVGSwitchElement.style */
-  CSSStyleDeclaration get style native "SVGSwitchElement_style_Getter";
+  CssStyleDeclaration get style native "SVGSwitchElement_style_Getter";
 
 
   /** @domName SVGSwitchElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGSwitchElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGSwitchElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGSwitchElement.requiredExtensions */
@@ -7209,11 +7209,11 @@ class SymbolElement extends SvgElement implements FitToViewBox, ExternalResource
 
 
   /** @domName SVGSymbolElement.style */
-  CSSStyleDeclaration get style native "SVGSymbolElement_style_Getter";
+  CssStyleDeclaration get style native "SVGSymbolElement_style_Getter";
 
 
   /** @domName SVGSymbolElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGSymbolElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGSymbolElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7363,11 +7363,11 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
 
 
   /** @domName SVGTextContentElement.style */
-  CSSStyleDeclaration get style native "SVGTextContentElement_style_Getter";
+  CssStyleDeclaration get style native "SVGTextContentElement_style_Getter";
 
 
   /** @domName SVGTextContentElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGTextContentElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGTextContentElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGTextContentElement.requiredExtensions */
@@ -7535,11 +7535,11 @@ class TitleElement extends SvgElement implements Stylable, LangSpace {
 
 
   /** @domName SVGTitleElement.style */
-  CSSStyleDeclaration get style native "SVGTitleElement_style_Getter";
+  CssStyleDeclaration get style native "SVGTitleElement_style_Getter";
 
 
   /** @domName SVGTitleElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGTitleElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGTitleElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7910,11 +7910,11 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
 
 
   /** @domName SVGUseElement.style */
-  CSSStyleDeclaration get style native "SVGUseElement_style_Getter";
+  CssStyleDeclaration get style native "SVGUseElement_style_Getter";
 
 
   /** @domName SVGUseElement.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native "SVGUseElement_getPresentationAttribute_Callback";
+  CssValue getPresentationAttribute(String name) native "SVGUseElement_getPresentationAttribute_Callback";
 
 
   /** @domName SVGUseElement.requiredExtensions */

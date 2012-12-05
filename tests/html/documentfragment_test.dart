@@ -38,7 +38,7 @@ main() {
     expect(true, isFalse, reason: 'Expected immutability error');
   };
 
-  void expectEmptyStyleDeclaration(CSSStyleDeclaration style) {
+  void expectEmptyStyleDeclaration(CssStyleDeclaration style) {
     expect(style.cssText, equals(''));
     expect(style.getPropertyPriority('color'), equals(''));
     expect(style.item(0), equals(''));
@@ -51,7 +51,7 @@ main() {
 
     // Ideally these would throw errors, but it's not possible to create a class
     // that'll intercept these calls without implementing the entire
-    // CSSStyleDeclaration interface, so we'll settle for them being no-ops.
+    // CssStyleDeclaration interface, so we'll settle for them being no-ops.
     style.cssText = '* {color: blue}';
     style.removeProperty('color');
     style.setProperty('color', 'blue');

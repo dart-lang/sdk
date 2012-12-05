@@ -276,6 +276,8 @@ class HtmlDartInterfaceGenerator(object):
     code = self._library_emitter.FileEmitter(self._interface.id,
         self._library_name)
     code.Emit(self._template_loader.Load('callback.darttemplate'))
+
+    typedef_name = self._renamer.RenameInterface(self._interface)
     code.Emit('typedef void $NAME($PARAMS);\n',
               NAME=self._interface.id,
               PARAMS=info.ParametersDeclaration(self._DartType))

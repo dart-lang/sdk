@@ -5,6 +5,6 @@
 part of html;
 
 class $FACTORYPROVIDER {
-  static CSSMatrix createCSSMatrix([String cssValue = '']) =>
-      JS('CSSMatrix', 'new WebKitCSSMatrix(#)', cssValue);
+  static CssMatrix createCssMatrix([String cssValue = '']) =>
+      JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);
 }

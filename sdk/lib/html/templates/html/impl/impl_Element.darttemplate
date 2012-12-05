@@ -9,7 +9,7 @@ part of html;
 class _ChildrenElementList implements List {
   // Raw Element.
   final Element _element;
-  final HTMLCollection _childElements;
+  final HtmlCollection _childElements;
 
   _ChildrenElementList._wrap(Element element)
     : _childElements = element.$dom_children,
@@ -413,16 +413,16 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   /** @domName Window.getComputedStyle */
-  Future<CSSStyleDeclaration> get computedStyle {
+  Future<CssStyleDeclaration> get computedStyle {
      // TODO(jacobr): last param should be null, see b/5045788
      return getComputedStyle('');
   }
 
   /** @domName Window.getComputedStyle */
-  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
+  Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) {
     return _createMeasurementFuture(
         () => window.$dom_getComputedStyle(this, pseudoElement),
-        new Completer<CSSStyleDeclaration>());
+        new Completer<CssStyleDeclaration>());
   }
 
   /**

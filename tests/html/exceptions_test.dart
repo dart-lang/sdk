@@ -5,11 +5,11 @@ import 'dart:html';
 
 main() {
   useHtmlConfiguration();
-  test('DOMException', () {
+  test('DomException', () {
     try {
       window.webkitNotifications.createNotification('', '', '');
-    } on DOMException catch (e) {
-      expect(e.code, DOMException.SECURITY_ERR);
+    } on DomException catch (e) {
+      expect(e.code, DomException.SECURITY_ERR);
       expect(e.name, 'SECURITY_ERR');
       expect(e.message, 'SECURITY_ERR: DOM Exception 18');
     }

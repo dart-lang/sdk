@@ -59,6 +59,23 @@ class _KeyRangeFactoryProvider {
           cls, lower, upper, lowerOpen, upperOpen);
 }
 
+// Conversions for IDBKey.
+//
+// Per http://www.w3.org/TR/IndexedDB/#key-construct
+//
+// "A value is said to be a valid key if it is one of the following types: Array
+// JavaScript objects [ECMA-262], DOMString [WEBIDL], Date [ECMA-262] or float
+// [WEBIDL]. However Arrays are only valid keys if every item in the array is
+// defined and is a valid key (i.e. sparse arrays can not be valid keys) and if
+// the Array doesn't directly or indirectly contain itself. Any non-numeric
+// properties are ignored, and thus does not affect whether the Array is a valid
+// key. Additionally, if the value is of type float, it is only a valid key if
+// it is not NaN, and if the value is of type Date it is only a valid key if its
+// [[PrimitiveValue]] internal property, as defined by [ECMA-262], is not NaN."
+
+// What is required is to ensure that an Lists in the key are actually
+// JavaScript arrays, and any Dates are JavaScript Dates.
+
 
 /**
  * Converts a native IDBKey into a Dart object.
@@ -247,7 +264,7 @@ class Database extends EventTarget native "*IDBDatabase" {
   final String name;
 
   /// @domName IDBDatabase.objectStoreNames; @docsEditable true
-  @Returns('_DOMStringList') @Creates('_DOMStringList')
+  @Returns('_DomStringList') @Creates('_DomStringList')
   final List<String> objectStoreNames;
 
   /// @domName IDBDatabase.version; @docsEditable true
@@ -664,7 +681,7 @@ class ObjectStore native "*IDBObjectStore" {
   final bool autoIncrement;
 
   /// @domName IDBObjectStore.indexNames; @docsEditable true
-  @Returns('_DOMStringList') @Creates('_DOMStringList')
+  @Returns('_DomStringList') @Creates('_DomStringList')
   final List<String> indexNames;
 
   /// @domName IDBObjectStore.keyPath; @docsEditable true
@@ -878,7 +895,7 @@ class Request extends EventTarget native "*IDBRequest" {
     new RequestEvents(this);
 
   /// @domName IDBRequest.error; @docsEditable true
-  final DOMError error;
+  final DomError error;
 
   /// @domName IDBRequest.errorCode; @docsEditable true
   final int errorCode;
@@ -944,7 +961,7 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   final Database db;
 
   /// @domName IDBTransaction.error; @docsEditable true
-  final DOMError error;
+  final DomError error;
 
   /// @domName IDBTransaction.mode; @docsEditable true
   final String mode;

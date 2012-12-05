@@ -820,7 +820,7 @@ class Request extends EventTarget {
 
 
   /** @domName IDBRequest.error */
-  DOMError get error native "IDBRequest_error_Getter";
+  DomError get error native "IDBRequest_error_Getter";
 
 
   /** @domName IDBRequest.errorCode */
@@ -894,7 +894,7 @@ class Transaction extends EventTarget {
 
 
   /** @domName IDBTransaction.error */
-  DOMError get error native "IDBTransaction_error_Getter";
+  DomError get error native "IDBTransaction_error_Getter";
 
 
   /** @domName IDBTransaction.mode */
