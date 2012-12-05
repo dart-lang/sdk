@@ -13,6 +13,7 @@
 #include <prinit.h>
 #include <prerror.h>
 #include <prnetdb.h>
+#include <ssl.h>
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
@@ -65,6 +66,7 @@ class SSLFilter {
       : string_start_(NULL),
         string_length_(NULL),
         handshake_complete_(NULL),
+        bad_certificate_callback_(NULL),
         in_handshake_(false),
         filter_(NULL) { }
 
@@ -76,11 +78,14 @@ class SSLFilter {
   void Destroy();
   void Handshake();
   void RegisterHandshakeCompleteCallback(Dart_Handle handshake_complete);
+  void RegisterBadCertificateCallback(Dart_Handle callback);
   static void InitializeLibrary(const char* certificate_database,
                                 const char* password,
                                 bool use_builtin_root_certificates);
 
   intptr_t ProcessBuffer(int bufferIndex);
+
+  SECStatus HandleBadCertificate(PRFileDesc* fd);
 
  private:
   static const int kMemioBufferSize = 20 * KB;
@@ -94,6 +99,7 @@ class SSLFilter {
   Dart_Handle string_length_;
   Dart_Handle dart_buffer_objects_[kNumBuffers];
   Dart_Handle handshake_complete_;
+  Dart_Handle bad_certificate_callback_;
   bool in_handshake_;
   bool is_server_;
   PRFileDesc* filter_;

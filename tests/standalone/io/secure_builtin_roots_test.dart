@@ -7,6 +7,7 @@ import "dart:uri";
 import "dart:isolate";
 
 void testGoogleUrl() {
+  ReceivePort keepAlive = new ReceivePort();
   HttpClient client = new HttpClient();
 
   void testUrl(String url) {
@@ -24,6 +25,7 @@ void testGoogleUrl() {
       };
       response.inputStream.onClosed = () {
         client.shutdown();
+        keepAlive.close();
       };
     };
     conn.onError = (error) => Expect.fail("Unexpected IO error $error");

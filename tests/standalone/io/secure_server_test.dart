@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
+import "dart:isolate";
 
 const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
@@ -96,6 +97,7 @@ Function EndTest;
 const CLIENT_NAMES = const ['able', 'baker', 'camera', 'donut', 'echo'];
 
 void main() {
+  ReceivePort keepAlive = new ReceivePort();
   Path scriptDir = new Path.fromNative(new Options().script).directoryPath;
   Path certificateDatabase = scriptDir.append('pkcert');
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
@@ -107,6 +109,7 @@ void main() {
   EndTest = () {
     Expect.equals(CLIENT_NAMES.length, server.numConnections);
     server.stop();
+    keepAlive.close();
   };
 
   for (var x in CLIENT_NAMES) {

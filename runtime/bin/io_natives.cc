@@ -45,6 +45,7 @@
   V(SecureSocket_Handshake, 1)                                                 \
   V(SecureSocket_Init, 1)                                                      \
   V(SecureSocket_ProcessBuffer, 2)                                             \
+  V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_InitializeLibrary, 3)
 

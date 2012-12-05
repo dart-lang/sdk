@@ -52,6 +52,9 @@ class _SecureFilterImpl
 
   int processBuffer(int bufferIndex) native "SecureSocket_ProcessBuffer";
 
+  void registerBadCertificateCallback(Function callback)
+      native "SecureSocket_RegisterBadCertificateCallback";
+
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler)
       native "SecureSocket_RegisterHandshakeCompleteCallback";
 

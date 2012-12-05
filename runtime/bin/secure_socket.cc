@@ -143,6 +143,20 @@ void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
 }
 
 
+void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
+    Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle callback =
+      ThrowIfError(Dart_GetNativeArgument(args, 1));
+  if (!Dart_IsClosure(callback) && !Dart_IsNull(callback)) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "Illegal argument to RegisterBadCertificateCallback"));
+  }
+  GetFilter(args)->RegisterBadCertificateCallback(callback);
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(SecureSocket_ProcessBuffer)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle buffer_id_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
@@ -205,6 +219,44 @@ void FUNCTION_NAME(SecureSocket_InitializeLibrary)
 }
 
 
+static bool CallBadCertificateCallback(Dart_Handle callback,
+                                       const char* subject_name,
+                                       const char* issuer_name,
+                                       int64_t start_validity,
+                                       int64_t end_validity) {
+  if (callback == NULL || Dart_IsNull(callback)) return false;
+  Dart_EnterScope();
+  Dart_Handle subject_name_object = DartUtils::NewString(subject_name);
+  Dart_Handle issuer_name_object = DartUtils::NewString(issuer_name);
+  Dart_Handle start_validity_int = Dart_NewInteger(start_validity);
+  Dart_Handle end_validity_int = Dart_NewInteger(end_validity);
+
+  Dart_Handle date_class =
+      DartUtils::GetDartClass(DartUtils::kCoreLibURL, "Date");
+  Dart_Handle from_milliseconds =
+      DartUtils::NewString("fromMillisecondsSinceEpoch");
+
+  Dart_Handle start_validity_date =
+      Dart_New(date_class, from_milliseconds, 1, &start_validity_int);
+  Dart_Handle end_validity_date =
+      Dart_New(date_class, from_milliseconds, 1, &end_validity_int);
+
+  Dart_Handle x509_class =
+      DartUtils::GetDartClass(DartUtils::kIOLibURL, "X509Certificate");
+  Dart_Handle arguments[] = { subject_name_object,
+                              issuer_name_object,
+                              start_validity_date,
+                              end_validity_date };
+  Dart_Handle certificate = Dart_New(x509_class, Dart_Null(), 4, arguments);
+
+  Dart_Handle result =
+      ThrowIfError(Dart_InvokeClosure(callback, 1, &certificate));
+  bool c_result = Dart_IsBoolean(result) && DartUtils::GetBooleanValue(result);
+  Dart_ExitScope();
+  return c_result;
+}
+
+
 void SSLFilter::Init(Dart_Handle dart_this) {
   string_start_ = ThrowIfError(
       Dart_NewPersistentHandle(DartUtils::NewString("start")));
@@ -249,6 +301,14 @@ void SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
 void SSLFilter::RegisterHandshakeCompleteCallback(Dart_Handle complete) {
   ASSERT(NULL == handshake_complete_);
   handshake_complete_ = ThrowIfError(Dart_NewPersistentHandle(complete));
+}
+
+
+void SSLFilter::RegisterBadCertificateCallback(Dart_Handle complete) {
+  if (NULL != bad_certificate_callback_) {
+    Dart_DeletePersistentHandle(bad_certificate_callback_);
+  }
+  bad_certificate_callback_ = ThrowIfError(Dart_NewPersistentHandle(complete));
 }
 
 
@@ -301,12 +361,40 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
   }
 }
 
+
 char* PasswordCallback(PK11SlotInfo* slot, PRBool retry, void* arg) {
   if (!retry) {
     return PL_strdup(static_cast<char*>(arg));  // Freed by NSS internals.
   }
   return NULL;
 }
+
+
+SECStatus BadCertificateCallback(void* filter, PRFileDesc* fd) {
+  return static_cast<SSLFilter*>(filter)->HandleBadCertificate(fd);
+}
+
+
+SECStatus SSLFilter::HandleBadCertificate(PRFileDesc* fd) {
+  ASSERT(fd == filter_);
+  CERTCertificate* certificate = SSL_PeerCertificate(fd);
+  PRTime start_validity;
+  PRTime end_validity;
+  SECStatus status =
+      CERT_GetCertTimes(certificate, &start_validity, &end_validity);
+  if (status != SECSuccess) {
+    ThrowPRException("Cannot get validity times from certificate");
+  }
+  int64_t start_epoch_ms = start_validity / PR_USEC_PER_MSEC;
+  int64_t end_epoch_ms = end_validity / PR_USEC_PER_MSEC;
+  bool accept = CallBadCertificateCallback(bad_certificate_callback_,
+                                           certificate->subjectName,
+                                           certificate->issuerName,
+                                           start_epoch_ms,
+                                           end_epoch_ms);
+  return accept ? SECSuccess : SECFailure;
+}
+
 
 void SSLFilter::Connect(const char* host_name,
                         int port,
@@ -358,7 +446,12 @@ void SSLFilter::Connect(const char* host_name,
     }
   }
 
-  PRBool as_server = is_server ? PR_TRUE : PR_FALSE;  // Convert bool to PRBool.
+  // Install bad certificate callback, and pass 'this' to it if it is called.
+  status = SSL_BadCertHook(filter_,
+                           BadCertificateCallback,
+                           static_cast<void*>(this));
+
+  PRBool as_server = is_server ? PR_TRUE : PR_FALSE;
   status = SSL_ResetHandshake(filter_, as_server);
   if (status != SECSuccess) {
     ThrowPRException("Unsuccessful SSL_ResetHandshake call");
@@ -414,6 +507,9 @@ void SSLFilter::Destroy() {
   Dart_DeletePersistentHandle(string_start_);
   Dart_DeletePersistentHandle(string_length_);
   Dart_DeletePersistentHandle(handshake_complete_);
+  if (bad_certificate_callback_ != NULL) {
+    Dart_DeletePersistentHandle(bad_certificate_callback_);
+  }
   // TODO(whesse): Free NSS objects here.
 }
 

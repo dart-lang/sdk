@@ -26,6 +26,7 @@ void WriteAndClose(Socket socket, String message) {
 }
 
 void main() {
+  ReceivePort keepAlive = new ReceivePort();
   SecureSocket.initialize();
   // TODO(3593): Use a Dart HTTPS server for this test.
   // When we use a Dart HTTPS server, allow --short_socket_write. The flag
@@ -54,5 +55,6 @@ void main() {
   secure.onClosed = () {
     String fullPage = Strings.concatAll(chunks);
     Expect.isTrue(fullPage.contains('</body></html>'));
+    keepAlive.close();
   };
 }

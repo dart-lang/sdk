@@ -15,6 +15,14 @@ abstract class SecureSocket implements Socket {
    */
   factory SecureSocket(String host, int port) => new _SecureSocket(host, port);
 
+  /**
+   * Install a handler for unverifiable certificates.  The handler can inspect
+   * the certificate, and decide (or let the user decide) whether to accept
+   * the connection or not.  The callback should return true
+   * to continue the SecureSocket connection.
+   */
+  void set onBadCertificate(bool callback(X509Certificate certificate));
+
    /**
    * Initializes the NSS library with the path to a certificate database
    * containing root certificates for verifying certificate paths on
@@ -47,6 +55,22 @@ abstract class SecureSocket implements Socket {
   external static void initialize({String database,
                                    String password,
                                    bool useBuiltinRoots: true});
+}
+
+
+/**
+ * X509Certificate represents an SSL certificate, with accessors to
+ * get the fields of the certificate.
+ */
+class X509Certificate {
+  X509Certificate(this.subject,
+                  this.issuer,
+                  this.startValidity,
+                  this.endValidity);
+  final String subject;
+  final String issuer;
+  final Date startValidity;
+  final Date endValidity;
 }
 
 
@@ -157,6 +181,14 @@ class _SecureSocket implements SecureSocket {
     _socketWriteHandler = callback;
     // Reset the one-shot onWrite handler.
     _socket.onWrite = _secureWriteHandler;
+  }
+
+  void set onBadCertificate(bool callback(X509Certificate certificate)) {
+    if (callback is! Function && callback != null) {
+      throw new SocketIOException(
+          "Callback provided to onBadCertificate is not a function or null");
+    }
+    _secureFilter.registerBadCertificateCallback(callback);
   }
 
   InputStream get inputStream {
@@ -584,6 +616,7 @@ abstract class _SecureFilter {
   void handshake();
   void init();
   int processBuffer(int bufferIndex);
+  void registerBadCertificateCallback(Function callback);
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler);
 
   List<_ExternalBuffer> get buffers;
