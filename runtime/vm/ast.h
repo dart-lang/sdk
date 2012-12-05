@@ -92,17 +92,11 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 class AstNode : public ZoneAllocated {
  public:
   explicit AstNode(intptr_t token_pos)
-      : token_pos_(token_pos),
-        ic_data_(ICData::ZoneHandle()) {
+      : token_pos_(token_pos) {
     ASSERT(token_pos_ >= 0);
   }
 
   intptr_t token_pos() const { return token_pos_; }
-
-  const ICData& ic_data() const { return ic_data_; }
-  void set_ic_data(const ICData& value) {
-    ic_data_ = value.raw();
-  }
 
 #define AST_TYPE_CHECK(type, name)                                             \
   virtual bool Is##type() const { return false; }                              \
@@ -148,8 +142,6 @@ NODE_LIST(AST_TYPE_CHECK)
 
  private:
   const intptr_t token_pos_;
-  // IC data collected for this node.
-  ICData& ic_data_;
   DISALLOW_COPY_AND_ASSIGN(AstNode);
 };
 
