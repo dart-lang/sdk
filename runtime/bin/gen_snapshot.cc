@@ -135,6 +135,11 @@ static int ParseArguments(int argc,
     *script_name = NULL;
   }
 
+  if (snapshot_filename == NULL) {
+    Log::PrintErr("No snapshot output file specified.\n\n");
+    return -1;
+  }
+
   return 0;
 }
 
@@ -358,7 +363,29 @@ static Dart_Handle LoadGenericSnapshotCreationScript(
 
 
 static void PrintUsage() {
-  Log::PrintErr("dart [<vm-flags>] [<dart-script-file>]\n");
+  Log::PrintErr(
+"Usage:\n"
+"\n"
+"  gen_snapshot [<vm-flags>] [<options>] \\\n"
+"               {--script_snapshot=<out-file> | --snapshot=<out-file>} \\\n"
+"               [<dart-script-file>]\n"
+"\n"
+"  Writes a snapshot of <dart-script-file> to <out-file>. If no\n"
+"  <dart-script-file> is passed, a generic snapshot of all the corelibs is\n"
+"  created. One of the following is required:\n"
+"\n"
+"    --script_snapshot=<file>   Generates a script snapshot.\n"
+"    --snapshot=<file>          Generates a complete snapshot. Uses the url\n"
+"                               mapping specified on the command line to load\n"
+"                               the libraries.\n"
+"Supported options:\n"
+"\n"
+"--package_root=<path>\n"
+"  Where to find packages, that is, \"package:...\" imports.\n"
+"\n"
+"--url_mapping=<mapping>\n"
+"  Uses the URL mapping(s) specified on the command line to load the\n"
+"  libraries. For use only with --snapshot=.\n");
 }
 
 
@@ -444,11 +471,6 @@ int main(int argc, char** argv) {
                      &vm_options,
                      &app_script_name) < 0) {
     PrintUsage();
-    return 255;
-  }
-
-  if (snapshot_filename == NULL) {
-    Log::PrintErr("No snapshot output file specified\n");
     return 255;
   }
 
