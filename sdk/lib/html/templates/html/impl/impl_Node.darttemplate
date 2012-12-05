@@ -46,6 +46,14 @@ $endif
     return result;
   }
 
+  Node removeAt(int index) {
+    var result = this[index];
+    if (result != null) {
+      _this.$dom_removeChild(result);
+    }
+    return result;
+  }
+
   void clear() {
     _this.text = '';
   }
@@ -62,6 +70,11 @@ $endif
 
   void forEach(void f(Node element)) => Collections.forEach(this, f);
 
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Node element)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
@@ -77,7 +90,7 @@ $endif
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -108,6 +121,11 @@ $endif
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
   // a local copy of $dom_childNodes is more efficient.
   int get length => _this.$dom_childNodes.length;
+
+  void set length(int value) {
+    throw new UnsupportedError(
+        "Cannot set length on immutable List.");
+  }
 
   Node operator[](int index) => _this.$dom_childNodes[index];
 }

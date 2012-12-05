@@ -7367,7 +7367,7 @@ class DocumentFragment extends Node {
     return _children;
   }
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -7859,8 +7859,15 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
   bool get isEmpty => this.length == 0;
 
   // From List<DomMimeType>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<DomMimeType> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -8030,8 +8037,15 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
   bool get isEmpty => this.length == 0;
 
   // From List<DomPlugin>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<DomPlugin> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -8380,8 +8394,13 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
+  }
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return Collections.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -8412,6 +8431,14 @@ class _ChildrenElementList implements List {
   void clear() {
     // It is unclear if we want to keep non element nodes?
     _element.text = '';
+  }
+
+  Element removeAt(int index) {
+    final result = this[index];
+    if (result != null) {
+      _element.$dom_removeChild(result);
+    }
+    return result;
   }
 
   Element removeLast() {
@@ -8516,8 +8543,13 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError('');
+  }
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return Collections.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -8542,6 +8574,10 @@ class _FrozenElementList implements List {
     _nodeList.lastIndexOf(element, start);
 
   void clear() {
+    throw new UnsupportedError('');
+  }
+
+  Element removeAt(int index) {
     throw new UnsupportedError('');
   }
 
@@ -8648,7 +8684,7 @@ abstract class Element extends Node implements ElementTraversal {
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -10097,8 +10133,15 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
   bool get isEmpty => this.length == 0;
 
   // From List<File>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<File> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -10530,8 +10573,15 @@ class Float32Array extends ArrayBufferView implements List<num> {
   bool get isEmpty => this.length == 0;
 
   // From List<num>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<num> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -10671,8 +10721,15 @@ class Float64Array extends ArrayBufferView implements List<num> {
   bool get isEmpty => this.length == 0;
 
   // From List<num>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<num> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -11318,8 +11375,15 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -11439,8 +11503,15 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -12726,8 +12797,15 @@ class Int16Array extends ArrayBufferView implements List<int> {
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -12867,8 +12945,15 @@ class Int32Array extends ArrayBufferView implements List<int> {
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -13008,8 +13093,15 @@ class Int8Array extends ArrayBufferView implements List<int> {
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -15865,8 +15957,15 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -16104,6 +16203,14 @@ class _ChildNodeListLazy implements List {
     return result;
   }
 
+  Node removeAt(int index) {
+    var result = this[index];
+    if (result != null) {
+      _this.$dom_removeChild(result);
+    }
+    return result;
+  }
+
   void clear() {
     _this.text = '';
   }
@@ -16120,6 +16227,11 @@ class _ChildNodeListLazy implements List {
 
   void forEach(void f(Node element)) => Collections.forEach(this, f);
 
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Node element)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
@@ -16135,7 +16247,7 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -16166,6 +16278,11 @@ class _ChildNodeListLazy implements List {
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
   // a local copy of $dom_childNodes is more efficient.
   int get length => _this.$dom_childNodes.length;
+
+  void set length(int value) {
+    throw new UnsupportedError(
+        "Cannot set length on immutable List.");
+  }
 
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
@@ -16506,8 +16623,15 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19088,8 +19212,15 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   bool get isEmpty => this.length == 0;
 
   // From List<SourceBuffer>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SourceBuffer> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19297,8 +19428,15 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechGrammar>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechGrammar> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19792,8 +19930,15 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
   bool get isEmpty => this.length == 0;
 
   // From List<Map>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Map> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21205,8 +21350,15 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
   bool get isEmpty => this.length == 0;
 
   // From List<TextTrackCue>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<TextTrackCue> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21326,8 +21478,15 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   bool get isEmpty => this.length == 0;
 
   // From List<TextTrack>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<TextTrack> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21607,8 +21766,15 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   bool get isEmpty => this.length == 0;
 
   // From List<Touch>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Touch> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21997,8 +22163,15 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -22138,8 +22311,15 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -22279,8 +22459,15 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -24925,8 +25112,15 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
   bool get isEmpty => this.length == 0;
 
   // From List<ClientRect>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<ClientRect> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25046,8 +25240,15 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   bool get isEmpty => this.length == 0;
 
   // From List<CssRule>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<CssRule> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25159,8 +25360,15 @@ class _CssValueList extends CssValue implements List<CssValue> {
   bool get isEmpty => this.length == 0;
 
   // From List<CssValue>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<CssValue> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25288,8 +25496,15 @@ class _DomStringList extends NativeFieldWrapperClass1 implements List<String> {
   bool get isEmpty => this.length == 0;
 
   // From List<String>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<String> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25541,8 +25756,15 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   bool get isEmpty => this.length == 0;
 
   // From List<Entry>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Entry> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25654,8 +25876,15 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   bool get isEmpty => this.length == 0;
 
   // From List<EntrySync>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<EntrySync> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25799,8 +26028,15 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   bool get isEmpty => this.length == 0;
 
   // From List<Gamepad>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Gamepad> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25961,8 +26197,15 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
   bool get isEmpty => this.length == 0;
 
   // From List<MediaStream>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<MediaStream> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -26178,8 +26421,15 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechInputResult>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechInputResult> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -26299,8 +26549,15 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechRecognitionResult>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechRecognitionResult> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -26412,8 +26669,15 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   bool get isEmpty => this.length == 0;
 
   // From List<StyleSheet>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<StyleSheet> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -26533,8 +26797,15 @@ class _WebKitAnimationList extends NativeFieldWrapperClass1 implements List<Anim
   bool get isEmpty => this.length == 0;
 
   // From List<Animation>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Animation> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -27150,7 +27421,7 @@ class FilteredElementList implements List {
     return element is Element && _childNodes.contains(element);
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
@@ -27188,7 +27459,7 @@ class FilteredElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, element);
+    return Collections.reduce(this, initialValue, combine);
   }
   Collection map(f(Element element)) => _filtered.map(f);
   Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);

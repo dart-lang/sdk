@@ -529,14 +529,7 @@ class Dart2JSBackend(HtmlDartGenerator):
           '  }\n',
           TYPE=self._NarrowInputType(element_type))
 
-    # TODO(sra): Use separate mixins for mutable implementations of List<T>.
-    # TODO(sra): Use separate mixins for typed array implementations of List<T>.
-    template_file = 'immutable_list_mixin.darttemplate'
-    has_contains = any(op.id == 'contains' for op in self._interface.operations)
-    template = self._template_loader.Load(
-        template_file,
-        {'DEFINE_CONTAINS': not has_contains})
-    self._members_emitter.Emit(template, E=self._DartType(element_type))
+    self.EmitListMixin(self._DartType(element_type))
 
   def EmitAttribute(self, attribute, html_name, read_only):
     if self._HasCustomImplementation(attribute.id):
@@ -592,9 +585,14 @@ class Dart2JSBackend(HtmlDartGenerator):
           NAME=html_name,
           TYPE=output_type)
     else:
+      template = '\n  $RENAME$(ANNOTATIONS)final $TYPE $NAME;\n'
+      # Need to use a getter for list.length properties so we can add a
+      # setter which throws an exception, satisfying List API.
+      if self._interface_type_info.list_item_type() and html_name == 'length':
+        template = ('\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => ' +
+            'JS("$TYPE", "#.$NAME", this);\n')
       self._members_emitter.Emit(
-          '\n  $RENAME$(ANNOTATIONS)final $TYPE $NAME;'
-          '\n',
+          template,
           RENAME=rename,
           ANNOTATIONS=annotations,
           NAME=html_name,

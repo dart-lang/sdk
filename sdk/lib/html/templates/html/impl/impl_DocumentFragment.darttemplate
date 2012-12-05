@@ -50,7 +50,7 @@ $endif
     return _children;
   }
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;

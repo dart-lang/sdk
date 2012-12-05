@@ -103,8 +103,13 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
+  }
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return Collections.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -135,6 +140,14 @@ class _ChildrenElementList implements List {
   void clear() {
     // It is unclear if we want to keep non element nodes?
     _element.text = '';
+  }
+
+  Element removeAt(int index) {
+    final result = this[index];
+    if (result != null) {
+      _element.$dom_removeChild(result);
+    }
+    return result;
   }
 
   Element removeLast() {
@@ -239,8 +252,13 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError('');
+  }
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return Collections.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -265,6 +283,10 @@ class _FrozenElementList implements List {
     _nodeList.lastIndexOf(element, start);
 
   void clear() {
+    throw new UnsupportedError('');
+  }
+
+  Element removeAt(int index) {
     throw new UnsupportedError('');
   }
 
@@ -371,7 +393,7 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;

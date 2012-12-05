@@ -439,7 +439,7 @@ class AnimatedLength extends NativeFieldWrapperClass1 {
 
 
 /// @domName SVGAnimatedLengthList
-class AnimatedLengthList extends NativeFieldWrapperClass1 implements List<AnimatedLength> {
+class AnimatedLengthList extends NativeFieldWrapperClass1 {
   AnimatedLengthList.internal();
 
 
@@ -449,99 +449,6 @@ class AnimatedLengthList extends NativeFieldWrapperClass1 implements List<Animat
 
   /** @domName SVGAnimatedLengthList.baseVal */
   LengthList get baseVal native "SVGAnimatedLengthList_baseVal_Getter";
-
-  AnimatedLength operator[](int index) native "SVGAnimatedLengthList_item_Callback";
-
-  void operator[]=(int index, AnimatedLength value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<AnimatedLength> mixins.
-  // AnimatedLength is the element type.
-
-  // From Iterable<AnimatedLength>:
-
-  Iterator<AnimatedLength> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<AnimatedLength>(this);
-  }
-
-  // From Collection<AnimatedLength>:
-
-  void add(AnimatedLength value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(AnimatedLength value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<AnimatedLength> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, AnimatedLength)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(AnimatedLength element) => Collections.contains(this, element);
-
-  void forEach(void f(AnimatedLength element)) => Collections.forEach(this, f);
-
-  Collection map(f(AnimatedLength element)) => Collections.map(this, [], f);
-
-  Collection<AnimatedLength> filter(bool f(AnimatedLength element)) =>
-     Collections.filter(this, <AnimatedLength>[], f);
-
-  bool every(bool f(AnimatedLength element)) => Collections.every(this, f);
-
-  bool some(bool f(AnimatedLength element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<AnimatedLength>:
-
-  void sort([Comparator<AnimatedLength> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(AnimatedLength element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(AnimatedLength element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  AnimatedLength get first => this[0];
-
-  AnimatedLength get last => this[length - 1];
-
-  AnimatedLength removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
-  }
-
-  AnimatedLength removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<AnimatedLength> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [AnimatedLength initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<AnimatedLength> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <AnimatedLength>[]);
-
-  // -- end List<AnimatedLength> mixins.
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -576,7 +483,7 @@ class AnimatedNumber extends NativeFieldWrapperClass1 {
 
 
 /// @domName SVGAnimatedNumberList
-class AnimatedNumberList extends NativeFieldWrapperClass1 implements List<AnimatedNumber> {
+class AnimatedNumberList extends NativeFieldWrapperClass1 {
   AnimatedNumberList.internal();
 
 
@@ -586,99 +493,6 @@ class AnimatedNumberList extends NativeFieldWrapperClass1 implements List<Animat
 
   /** @domName SVGAnimatedNumberList.baseVal */
   NumberList get baseVal native "SVGAnimatedNumberList_baseVal_Getter";
-
-  AnimatedNumber operator[](int index) native "SVGAnimatedNumberList_item_Callback";
-
-  void operator[]=(int index, AnimatedNumber value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<AnimatedNumber> mixins.
-  // AnimatedNumber is the element type.
-
-  // From Iterable<AnimatedNumber>:
-
-  Iterator<AnimatedNumber> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<AnimatedNumber>(this);
-  }
-
-  // From Collection<AnimatedNumber>:
-
-  void add(AnimatedNumber value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(AnimatedNumber value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<AnimatedNumber> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, AnimatedNumber)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(AnimatedNumber element) => Collections.contains(this, element);
-
-  void forEach(void f(AnimatedNumber element)) => Collections.forEach(this, f);
-
-  Collection map(f(AnimatedNumber element)) => Collections.map(this, [], f);
-
-  Collection<AnimatedNumber> filter(bool f(AnimatedNumber element)) =>
-     Collections.filter(this, <AnimatedNumber>[], f);
-
-  bool every(bool f(AnimatedNumber element)) => Collections.every(this, f);
-
-  bool some(bool f(AnimatedNumber element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<AnimatedNumber>:
-
-  void sort([Comparator<AnimatedNumber> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(AnimatedNumber element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(AnimatedNumber element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  AnimatedNumber get first => this[0];
-
-  AnimatedNumber get last => this[length - 1];
-
-  AnimatedNumber removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
-  }
-
-  AnimatedNumber removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<AnimatedNumber> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [AnimatedNumber initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<AnimatedNumber> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <AnimatedNumber>[]);
-
-  // -- end List<AnimatedNumber> mixins.
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -753,7 +567,7 @@ class AnimatedString extends NativeFieldWrapperClass1 {
 
 
 /// @domName SVGAnimatedTransformList
-class AnimatedTransformList extends NativeFieldWrapperClass1 implements List<AnimateTransformElement> {
+class AnimatedTransformList extends NativeFieldWrapperClass1 {
   AnimatedTransformList.internal();
 
 
@@ -763,99 +577,6 @@ class AnimatedTransformList extends NativeFieldWrapperClass1 implements List<Ani
 
   /** @domName SVGAnimatedTransformList.baseVal */
   TransformList get baseVal native "SVGAnimatedTransformList_baseVal_Getter";
-
-  AnimateTransformElement operator[](int index) native "SVGAnimatedTransformList_item_Callback";
-
-  void operator[]=(int index, AnimateTransformElement value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<AnimateTransformElement> mixins.
-  // AnimateTransformElement is the element type.
-
-  // From Iterable<AnimateTransformElement>:
-
-  Iterator<AnimateTransformElement> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<AnimateTransformElement>(this);
-  }
-
-  // From Collection<AnimateTransformElement>:
-
-  void add(AnimateTransformElement value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(AnimateTransformElement value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<AnimateTransformElement> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, AnimateTransformElement)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(AnimateTransformElement element) => Collections.contains(this, element);
-
-  void forEach(void f(AnimateTransformElement element)) => Collections.forEach(this, f);
-
-  Collection map(f(AnimateTransformElement element)) => Collections.map(this, [], f);
-
-  Collection<AnimateTransformElement> filter(bool f(AnimateTransformElement element)) =>
-     Collections.filter(this, <AnimateTransformElement>[], f);
-
-  bool every(bool f(AnimateTransformElement element)) => Collections.every(this, f);
-
-  bool some(bool f(AnimateTransformElement element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<AnimateTransformElement>:
-
-  void sort([Comparator<AnimateTransformElement> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(AnimateTransformElement element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(AnimateTransformElement element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  AnimateTransformElement get first => this[0];
-
-  AnimateTransformElement get last => this[length - 1];
-
-  AnimateTransformElement removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
-  }
-
-  AnimateTransformElement removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<AnimateTransformElement> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [AnimateTransformElement initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<AnimateTransformElement> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <AnimateTransformElement>[]);
-
-  // -- end List<AnimateTransformElement> mixins.
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3763,6 +3484,8 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   }
 
   // From Collection<Length>:
+  // SVG Collections expose numberOfItems rather than length.
+  int get length => numberOfItems;
 
   void add(Length value) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -3796,8 +3519,13 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   bool get isEmpty => this.length == 0;
 
   // From List<Length>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Length> compare = Comparable.compare]) {
+  // contains() defined by IDL.
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -4430,6 +4158,8 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
   }
 
   // From Collection<Number>:
+  // SVG Collections expose numberOfItems rather than length.
+  int get length => numberOfItems;
 
   void add(Number value) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -4463,8 +4193,13 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
   bool get isEmpty => this.length == 0;
 
   // From List<Number>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Number> compare = Comparable.compare]) {
+  // contains() defined by IDL.
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -5509,6 +5244,8 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   }
 
   // From Collection<PathSeg>:
+  // SVG Collections expose numberOfItems rather than length.
+  int get length => numberOfItems;
 
   void add(PathSeg value) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -5542,8 +5279,13 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   bool get isEmpty => this.length == 0;
 
   // From List<PathSeg>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<PathSeg> compare = Comparable.compare]) {
+  // contains() defined by IDL.
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -6426,6 +6168,8 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
   }
 
   // From Collection<String>:
+  // SVG Collections expose numberOfItems rather than length.
+  int get length => numberOfItems;
 
   void add(String value) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -6459,8 +6203,13 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
   bool get isEmpty => this.length == 0;
 
   // From List<String>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<String> compare = Comparable.compare]) {
+  // contains() defined by IDL.
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -6693,7 +6442,7 @@ class SvgElement extends Element {
 
   List<Element> get children => new FilteredElementList(this);
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     final children = this.children;
     children.clear();
     children.addAll(value);
@@ -7637,6 +7386,8 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
   }
 
   // From Collection<Transform>:
+  // SVG Collections expose numberOfItems rather than length.
+  int get length => numberOfItems;
 
   void add(Transform value) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -7670,8 +7421,13 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
   bool get isEmpty => this.length == 0;
 
   // From List<Transform>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Transform> compare = Comparable.compare]) {
+  // contains() defined by IDL.
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -8169,8 +7925,15 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
   bool get isEmpty => this.length == 0;
 
   // From List<ElementInstance>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<ElementInstance> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 

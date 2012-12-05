@@ -52,7 +52,7 @@ class FilteredElementList implements List {
     return element is Element && _childNodes.contains(element);
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
@@ -90,7 +90,7 @@ class FilteredElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, element);
+    return Collections.reduce(this, initialValue, combine);
   }
   Collection map(f(Element element)) => _filtered.map(f);
   Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);

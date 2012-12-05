@@ -11,6 +11,10 @@
   }
 
   // From Collection<$E>:
+$if DEFINE_LENGTH_AS_NUM_ITEMS
+  // SVG Collections expose numberOfItems rather than length.
+  int get length => numberOfItems;
+$endif
 
   void add($E value) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -48,8 +52,21 @@ $endif
   bool get isEmpty => this.length == 0;
 
   // From List<$E>:
+$if DEFINE_LENGTH_SETTER
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+$endif
 
-  void sort([Comparator<$E> compare = Comparable.compare]) {
+$if DEFINE_CLEAR
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+$else
+  // contains() defined by IDL.
+$endif
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 

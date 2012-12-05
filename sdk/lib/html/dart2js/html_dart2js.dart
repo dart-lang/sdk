@@ -5529,6 +5529,27 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * Represents an HTML <div> element.
+ *
+ * The [DivElement] is a generic container for content and does not have any
+ * special significance. It is functionally similar to [SpanElement].
+ *
+ * The [DivElement] is a block-level element, as opposed to [SpanElement],
+ * which is an inline-level element.
+ *
+ * Example usage:
+ *
+ *     DivElement div = new DivElement();
+ *     div.text = 'Here's my new DivElem
+ *     document.body.elements.add(elem);
+ *
+ * See also:
+ *
+ * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
+ * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
+ * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
+ */
 /// @domName HTMLDivElement; @docsEditable true
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
@@ -5567,6 +5588,7 @@ class Document extends Node  native "*Document"
   /// @domName Document.cookie; @docsEditable true
   String cookie;
 
+  /// Returns the [Window] associated with the document.
   /// @domName Document.defaultView; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
   @JSName('defaultView')
@@ -5867,7 +5889,7 @@ class DocumentFragment extends Node native "*DocumentFragment" {
     return _children;
   }
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -6263,7 +6285,7 @@ class DomMimeType native "*MimeType" {
 class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> native "*MimeTypeArray" {
 
   /// @domName MimeTypeArray.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   DomMimeType operator[](int index) => JS("DomMimeType", "#[#]", this, index);
 
@@ -6316,8 +6338,15 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
   bool get isEmpty => this.length == 0;
 
   // From List<DomMimeType>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<DomMimeType> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -6412,7 +6441,7 @@ class DomPlugin native "*Plugin" {
 class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> native "*PluginArray" {
 
   /// @domName PluginArray.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   DomPlugin operator[](int index) => JS("DomPlugin", "#[#]", this, index);
 
@@ -6465,8 +6494,15 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
   bool get isEmpty => this.length == 0;
 
   // From List<DomPlugin>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<DomPlugin> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -6748,8 +6784,13 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
+  }
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return Collections.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -6780,6 +6821,14 @@ class _ChildrenElementList implements List {
   void clear() {
     // It is unclear if we want to keep non element nodes?
     _element.text = '';
+  }
+
+  Element removeAt(int index) {
+    final result = this[index];
+    if (result != null) {
+      _element.$dom_removeChild(result);
+    }
+    return result;
   }
 
   Element removeLast() {
@@ -6884,8 +6933,13 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError('');
+  }
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return Collections.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -6910,6 +6964,10 @@ class _FrozenElementList implements List {
     _nodeList.lastIndexOf(element, start);
 
   void clear() {
+    throw new UnsupportedError('');
+  }
+
+  Element removeAt(int index) {
     throw new UnsupportedError('');
   }
 
@@ -7016,7 +7074,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -8209,7 +8267,7 @@ class FileException native "*FileException" {
 class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
 
   /// @domName FileList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   File operator[](int index) => JS("File", "#[#]", this, index);
 
@@ -8262,8 +8320,15 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
   bool get isEmpty => this.length == 0;
 
   // From List<File>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<File> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -8561,7 +8626,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   static const int BYTES_PER_ELEMENT = 4;
 
   /// @domName Float32Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   num operator[](int index) => JS("num", "#[#]", this, index);
 
@@ -8611,8 +8676,15 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   bool get isEmpty => this.length == 0;
 
   // From List<num>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<num> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -8680,7 +8752,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   static const int BYTES_PER_ELEMENT = 8;
 
   /// @domName Float64Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   num operator[](int index) => JS("num", "#[#]", this, index);
 
@@ -8730,8 +8802,15 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   bool get isEmpty => this.length == 0;
 
   // From List<num>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<num> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -9098,7 +9177,7 @@ class HeadingElement extends Element implements Element native "*HTMLHeadingElem
 class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLAllCollection" {
 
   /// @domName HTMLAllCollection.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
 
@@ -9151,8 +9230,15 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -9212,7 +9298,7 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLCollection" {
 
   /// @domName HTMLCollection.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
 
@@ -9265,8 +9351,15 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -10005,7 +10098,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   static const int BYTES_PER_ELEMENT = 2;
 
   /// @domName Int16Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -10055,8 +10148,15 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -10124,7 +10224,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   static const int BYTES_PER_ELEMENT = 4;
 
   /// @domName Int32Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -10174,8 +10274,15 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -10243,7 +10350,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   static const int BYTES_PER_ELEMENT = 1;
 
   /// @domName Int8Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -10293,8 +10400,15 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -11968,6 +12082,16 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * An HTML <menu> element.
+ *
+ * A <menu> element represents an unordered list of menu commands.
+ *
+ * See also:
+ *
+ *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
+ *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
+ */
 /// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 
@@ -12448,7 +12572,7 @@ class MutationRecord native "*MutationRecord" {
 class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
 
   /// @domName NamedNodeMap.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
 
@@ -12501,8 +12625,15 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -12719,6 +12850,14 @@ class _ChildNodeListLazy implements List {
     return result;
   }
 
+  Node removeAt(int index) {
+    var result = this[index];
+    if (result != null) {
+      _this.$dom_removeChild(result);
+    }
+    return result;
+  }
+
   void clear() {
     _this.text = '';
   }
@@ -12735,6 +12874,11 @@ class _ChildNodeListLazy implements List {
 
   void forEach(void f(Node element)) => Collections.forEach(this, f);
 
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Node element)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
@@ -12750,7 +12894,7 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -12781,6 +12925,11 @@ class _ChildNodeListLazy implements List {
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
   // a local copy of $dom_childNodes is more efficient.
   int get length => _this.$dom_childNodes.length;
+
+  void set length(int value) {
+    throw new UnsupportedError(
+        "Cannot set length on immutable List.");
+  }
 
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
@@ -13038,7 +13187,7 @@ class NodeIterator native "*NodeIterator" {
 class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeList" {
 
   /// @domName NodeList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
 
@@ -13091,8 +13240,15 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -14944,7 +15100,7 @@ class SourceBuffer native "*SourceBuffer" {
 class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior, List<SourceBuffer> native "*SourceBufferList" {
 
   /// @domName SourceBufferList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   SourceBuffer operator[](int index) => JS("SourceBuffer", "#[#]", this, index);
 
@@ -14997,8 +15153,15 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   bool get isEmpty => this.length == 0;
 
   // From List<SourceBuffer>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SourceBuffer> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -15110,7 +15273,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
   factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
 
   /// @domName SpeechGrammarList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   SpeechGrammar operator[](int index) => JS("SpeechGrammar", "#[#]", this, index);
 
@@ -15163,8 +15326,15 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechGrammar>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechGrammar> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -15487,7 +15657,7 @@ class SqlResultSet native "*SQLResultSet" {
 class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "*SQLResultSetRowList" {
 
   /// @domName SQLResultSetRowList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Map operator[](int index) => JS("Map", "#[#]", this, index);
 
@@ -15540,8 +15710,15 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
   bool get isEmpty => this.length == 0;
 
   // From List<Map>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Map> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -16368,7 +16545,7 @@ class TextTrackCueEvents extends Events {
 class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior native "*TextTrackCueList" {
 
   /// @domName TextTrackCueList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   TextTrackCue operator[](int index) => JS("TextTrackCue", "#[#]", this, index);
 
@@ -16421,8 +16598,15 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
   bool get isEmpty => this.length == 0;
 
   // From List<TextTrackCue>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<TextTrackCue> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -16482,7 +16666,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     new TextTrackListEvents(this);
 
   /// @domName TextTrackList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   TextTrack operator[](int index) => JS("TextTrack", "#[#]", this, index);
 
@@ -16535,8 +16719,15 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   bool get isEmpty => this.length == 0;
 
   // From List<TextTrack>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<TextTrack> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -16721,7 +16912,7 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
 class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
 
   /// @domName TouchList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Touch operator[](int index) => JS("Touch", "#[#]", this, index);
 
@@ -16774,8 +16965,15 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
   bool get isEmpty => this.length == 0;
 
   // From List<Touch>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Touch> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -17023,7 +17221,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   static const int BYTES_PER_ELEMENT = 2;
 
   /// @domName Uint16Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -17073,8 +17271,15 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -17142,7 +17347,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   static const int BYTES_PER_ELEMENT = 4;
 
   /// @domName Uint32Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -17192,8 +17397,15 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -17261,7 +17473,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   static const int BYTES_PER_ELEMENT = 1;
 
   /// @domName Uint8Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -17311,8 +17523,15 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19453,7 +19672,7 @@ class _BlobFactoryProvider {
 class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> native "*ClientRectList" {
 
   /// @domName ClientRectList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   ClientRect operator[](int index) => JS("ClientRect", "#[#]", this, index);
 
@@ -19506,8 +19725,15 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
   bool get isEmpty => this.length == 0;
 
   // From List<ClientRect>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<ClientRect> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19569,7 +19795,7 @@ class _CssMatrixFactoryProvider {
 class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "*CSSRuleList" {
 
   /// @domName CSSRuleList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   CssRule operator[](int index) => JS("CssRule", "#[#]", this, index);
 
@@ -19622,8 +19848,15 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
   bool get isEmpty => this.length == 0;
 
   // From List<CssRule>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<CssRule> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19676,7 +19909,7 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexingBehavior native "*CSSValueList" {
 
   /// @domName CSSValueList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   CssValue operator[](int index) => JS("CssValue", "#[#]", this, index);
 
@@ -19729,8 +19962,15 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
   bool get isEmpty => this.length == 0;
 
   // From List<CssValue>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<CssValue> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19809,7 +20049,7 @@ class _DomParserFactoryProvider {
 class _DomStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
 
   /// @domName DOMStringList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   String operator[](int index) => JS("String", "#[#]", this, index);
 
@@ -19862,8 +20102,15 @@ class _DomStringList implements JavaScriptIndexingBehavior, List<String> native 
   bool get isEmpty => this.length == 0;
 
   // From List<String>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<String> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19919,7 +20166,7 @@ class _DomStringList implements JavaScriptIndexingBehavior, List<String> native 
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
 
   /// @domName EntryArray.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Entry operator[](int index) => JS("Entry", "#[#]", this, index);
 
@@ -19972,8 +20219,15 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
   bool get isEmpty => this.length == 0;
 
   // From List<Entry>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Entry> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20026,7 +20280,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> native "*EntryArraySync" {
 
   /// @domName EntryArraySync.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   EntrySync operator[](int index) => JS("EntrySync", "#[#]", this, index);
 
@@ -20079,8 +20333,15 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
   bool get isEmpty => this.length == 0;
 
   // From List<EntrySync>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<EntrySync> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20171,7 +20432,7 @@ class _FormDataFactoryProvider {
 class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
 
   /// @domName GamepadList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Gamepad operator[](int index) => JS("Gamepad", "#[#]", this, index);
 
@@ -20224,8 +20485,15 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
   bool get isEmpty => this.length == 0;
 
   // From List<Gamepad>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Gamepad> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20331,7 +20599,7 @@ class _MediaStreamFactoryProvider {
 class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> native "*MediaStreamList" {
 
   /// @domName MediaStreamList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   MediaStream operator[](int index) => JS("MediaStream", "#[#]", this, index);
 
@@ -20384,8 +20652,15 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
   bool get isEmpty => this.length == 0;
 
   // From List<MediaStream>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<MediaStream> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20591,7 +20866,7 @@ class _SpeechGrammarListFactoryProvider {
 class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "*SpeechInputResultList" {
 
   /// @domName SpeechInputResultList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   SpeechInputResult operator[](int index) => JS("SpeechInputResult", "#[#]", this, index);
 
@@ -20644,8 +20919,15 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechInputResult>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechInputResult> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20707,7 +20989,7 @@ class _SpeechRecognitionFactoryProvider {
 class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "*SpeechRecognitionResultList" {
 
   /// @domName SpeechRecognitionResultList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   SpeechRecognitionResult operator[](int index) => JS("SpeechRecognitionResult", "#[#]", this, index);
 
@@ -20760,8 +21042,15 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechRecognitionResult>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechRecognitionResult> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20814,7 +21103,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> native "*StyleSheetList" {
 
   /// @domName StyleSheetList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   StyleSheet operator[](int index) => JS("StyleSheet", "#[#]", this, index);
 
@@ -20867,8 +21156,15 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
   bool get isEmpty => this.length == 0;
 
   // From List<StyleSheet>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<StyleSheet> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20945,7 +21241,7 @@ class _TextTrackCueFactoryProvider {
 class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation> native "*WebKitAnimationList" {
 
   /// @domName WebKitAnimationList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Animation operator[](int index) => JS("Animation", "#[#]", this, index);
 
@@ -20998,8 +21294,15 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
   bool get isEmpty => this.length == 0;
 
   // From List<Animation>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Animation> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21653,7 +21956,7 @@ class FilteredElementList implements List {
     return element is Element && _childNodes.contains(element);
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([Comparator compare = Comparable.compare]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
@@ -21691,7 +21994,7 @@ class FilteredElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, element);
+    return Collections.reduce(this, initialValue, combine);
   }
   Collection map(f(Element element)) => _filtered.map(f);
   Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
