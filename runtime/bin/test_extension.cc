@@ -16,6 +16,7 @@ DART_EXPORT Dart_Handle test_extension_Init(Dart_Handle parent_library) {
   return parent_library;
 }
 
+
 void IfNull(Dart_NativeArguments arguments) {
   Dart_Handle object = Dart_GetNativeArgument(arguments, 0);
   if (Dart_IsNull(object)) {
@@ -24,6 +25,13 @@ void IfNull(Dart_NativeArguments arguments) {
     Dart_SetReturnValue(arguments, object);
   }
 }
+
+
+void ThrowMeTheBall(Dart_NativeArguments arguments) {
+  Dart_Handle object = Dart_GetNativeArgument(arguments, 0);
+  Dart_ThrowException(object);
+}
+
 
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
   assert(Dart_IsString(name));
@@ -34,8 +42,11 @@ Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
   if (Dart_IsError(check_error)) {
     Dart_PropagateError(check_error);
   }
-  if (!strcmp("TestExtension_IfNull", cname) && argc == 2) {
+  if ((strcmp("TestExtension_IfNull", cname) == 0) && (argc == 2)) {
     return IfNull;
+  }
+  if ((strcmp("TestExtension_ThrowMeTheBall", cname) == 0) && (argc == 1)) {
+    return ThrowMeTheBall;
   }
   return NULL;
 }

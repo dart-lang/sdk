@@ -4,19 +4,17 @@
 
 #library("test_extension_test");
 
+#import("dart:isolate");
 #import('test_extension.dart');
 
 main() {
-  Expect.equals('cat 13', new Cat(13).toString(), 'new Cat(13).toString()');
-
-  Expect.equals(3, Cat.ifNull(null, 3), 'Cat.ifNull(null, 3)');
-  Expect.equals(4, Cat.ifNull(4, null), 'Cat.ifNull(4, null)');
-  Expect.equals(5, Cat.ifNull(5, 9), 'Cat.ifNull(5, 9)');
-  Expect.isNull(Cat.ifNull(null, null), 'Cat.ifNull(null, null)');
-
   try {
     Cat.throwMeTheBall("ball");
   } on String catch (e) {
     Expect.equals("ball", e);
   }
+  // Make sure the exception is thrown out to the event handler from C++ code.
+  // The harness expects the string "ball" to be thrown and the process to
+  // end with an unhandled exception.
+  new Timer(0, (_) => Cat.throwMeTheBall("ball"));
 }
