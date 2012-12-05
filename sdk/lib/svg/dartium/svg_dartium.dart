@@ -1529,34 +1529,6 @@ class ElementInstanceEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ElementTimeControl
-class ElementTimeControl extends NativeFieldWrapperClass1 {
-  ElementTimeControl.internal();
-
-
-  /** @domName ElementTimeControl.beginElement */
-  void beginElement() native "ElementTimeControl_beginElement_Callback";
-
-
-  /** @domName ElementTimeControl.beginElementAt */
-  void beginElementAt(num offset) native "ElementTimeControl_beginElementAt_Callback";
-
-
-  /** @domName ElementTimeControl.endElement */
-  void endElement() native "ElementTimeControl_endElement_Callback";
-
-
-  /** @domName ElementTimeControl.endElementAt */
-  void endElementAt(num offset) native "ElementTimeControl_endElementAt_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName SVGEllipseElement
 class EllipseElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
 

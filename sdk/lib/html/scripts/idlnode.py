@@ -3,7 +3,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import os
 import sys
 
 
@@ -252,10 +251,6 @@ class IDLFile(IDLNode):
     IDLNode.__init__(self, ast)
     self.filename = filename
     self.interfaces = self._convert_all(ast, 'Interface', IDLInterface)
-    # Treat the directory name as a module name.
-    module_name = os.path.split(os.path.dirname(self.filename))[1]
-    for interface in self.interfaces:
-      interface.module_name = module_name
     modules = self._convert_all(ast, 'Module', IDLModule)
     self.implementsStatements = self._convert_all(ast, 'ImplStmt',
       IDLImplementsStatement)
@@ -272,8 +267,6 @@ class IDLModule(IDLNode):
     self._convert_ext_attrs(ast)
     self._convert_annotations(ast)
     self.interfaces = self._convert_all(ast, 'Interface', IDLInterface)
-    for interface in self.interfaces:
-      interface.module_name = self.id
     self.typeDefs = self._convert_all(ast, 'TypeDef', IDLTypeDef)
     self.implementsStatements = self._convert_all(ast, 'ImplStmt',
       IDLImplementsStatement)
@@ -388,13 +381,12 @@ class IDLInterface(IDLNode):
     IDLNode.__init__(self, ast)
     self._convert_ext_attrs(ast)
     self._convert_annotations(ast)
-    self.module_name = None
     self.parents = self._convert_all(ast, 'ParentInterface',
       IDLParentInterface)
     javascript_interface_name = self.ext_attrs.get('InterfaceName', self.id)
     self.javascript_binding_name = javascript_interface_name
     self.doc_js_name = javascript_interface_name
-    self.operations = self._convert_all(ast, 'Operation',
+    self.operations = self._convert_all(ast, 'Operation', 
       lambda ast: IDLOperation(ast, self.doc_js_name))
     self.attributes = self._convert_all(ast, 'Attribute',
       lambda ast: IDLAttribute(ast, self.doc_js_name))

@@ -665,25 +665,6 @@ class Attr extends Node {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLAudioElement
-class AudioElement extends MediaElement {
-
-  factory AudioElement([String src]) {
-    if (!?src) {
-      return _AudioElementFactoryProvider.createAudioElement();
-    }
-    return _AudioElementFactoryProvider.createAudioElement(src);
-  }
-  AudioElement.internal(): super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName HTMLBRElement
 class BRElement extends _Element_Merged {
 
@@ -9241,6 +9222,34 @@ class ElementEvents extends Events {
   EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
 
   EventListenerList get fullscreenError => this['webkitfullscreenerror'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName ElementTimeControl
+class ElementTimeControl extends NativeFieldWrapperClass1 {
+  ElementTimeControl.internal();
+
+
+  /** @domName ElementTimeControl.beginElement */
+  void beginElement() native "ElementTimeControl_beginElement_Callback";
+
+
+  /** @domName ElementTimeControl.beginElementAt */
+  void beginElementAt(num offset) native "ElementTimeControl_beginElementAt_Callback";
+
+
+  /** @domName ElementTimeControl.endElement */
+  void endElement() native "ElementTimeControl_endElement_Callback";
+
+
+  /** @domName ElementTimeControl.endElementAt */
+  void endElementAt(num offset) native "ElementTimeControl_endElementAt_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23547,6 +23556,18 @@ typedef void VoidCallback();
 // WARNING: Do not edit - generated code.
 
 
+/// @domName WaveTable
+class WaveTable extends NativeFieldWrapperClass1 {
+  WaveTable.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName WebGLActiveInfo
 class WebGLActiveInfo extends NativeFieldWrapperClass1 {
   WebGLActiveInfo.internal();
@@ -25806,14 +25827,6 @@ class XSLTProcessor extends NativeFieldWrapperClass1 {
 
 class _ArrayBufferFactoryProvider {
   static ArrayBuffer createArrayBuffer(int length) native "ArrayBuffer_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _AudioElementFactoryProvider {
-  static AudioElement createAudioElement([String src]) native "HTMLAudioElement_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

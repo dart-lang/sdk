@@ -1257,26 +1257,6 @@ class ElementInstanceEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ElementTimeControl
-abstract class ElementTimeControl {
-
-  /// @domName ElementTimeControl.beginElement; @docsEditable true
-  void beginElement();
-
-  /// @domName ElementTimeControl.beginElementAt; @docsEditable true
-  void beginElementAt(num offset);
-
-  /// @domName ElementTimeControl.endElement; @docsEditable true
-  void endElement();
-
-  /// @domName ElementTimeControl.endElementAt; @docsEditable true
-  void endElementAt(num offset);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName SVGEllipseElement; @docsEditable true
 class EllipseElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGEllipseElement" {
 

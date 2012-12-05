@@ -268,6 +268,21 @@ class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName HTMLAudioElement; @docsEditable true
+class AudioElement extends MediaElement native "*HTMLAudioElement" {
+
+  factory AudioElement([String src]) {
+    if (!?src) {
+      return _AudioElementFactoryProvider.createAudioElement();
+    }
+    return _AudioElementFactoryProvider.createAudioElement(src);
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName AudioGain; @docsEditable true
 class AudioGain extends AudioParam native "*AudioGain" {
 }
@@ -676,6 +691,9 @@ class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WaveTable; @docsEditable true
-class WaveTable native "*WaveTable" {
+class _AudioElementFactoryProvider {
+  static AudioElement createAudioElement([String src = null]) {
+    if (src == null) return JS('AudioElement', 'new Audio()');
+    return JS('AudioElement', 'new Audio(#)', src);
+  }
 }
