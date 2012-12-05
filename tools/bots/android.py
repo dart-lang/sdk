@@ -45,9 +45,9 @@ def BuildAndroid(build_info):
       build and test to be run.
   """
   with bot.BuildStep('Build Android'):
-    targets = ['dart']
+    targets = ['android_embedder']
     args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
-        '--os=android ' + ' '.join(targets)]
+            '--os=android'] + targets
     print 'Building Android: %s' % (' '.join(args))
     bot.RunProcess(args)
 
