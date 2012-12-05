@@ -608,6 +608,14 @@ dart2js_annotations = {
     'CanvasRenderingContext2D.webkitGetImageDataHD':
       "@Creates('ImageData|=Object')",
 
+    'CanvasRenderingContext2D.fillStyle':
+      "@Creates('String|CanvasGradient|CanvasPattern') "
+      "@Returns('String|CanvasGradient|CanvasPattern')",
+
+    'CanvasRenderingContext2D.strokeStyle':
+      "@Creates('String|CanvasGradient|CanvasPattern') "
+      "@Returns('String|CanvasGradient|CanvasPattern')",
+
     # Methods returning Window can return a local window, or a cross-frame
     # window (=Object) that needs wrapping.
     'DOMWindow':

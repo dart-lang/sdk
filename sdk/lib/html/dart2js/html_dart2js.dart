@@ -794,6 +794,7 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
   /// @domName CanvasRenderingContext2D.fillStyle; @docsEditable true
+  @Creates('String|CanvasGradient|CanvasPattern') @Returns('String|CanvasGradient|CanvasPattern')
   dynamic fillStyle;
 
   /// @domName CanvasRenderingContext2D.font; @docsEditable true
@@ -833,6 +834,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   num shadowOffsetY;
 
   /// @domName CanvasRenderingContext2D.strokeStyle; @docsEditable true
+  @Creates('String|CanvasGradient|CanvasPattern') @Returns('String|CanvasGradient|CanvasPattern')
   dynamic strokeStyle;
 
   /// @domName CanvasRenderingContext2D.textAlign; @docsEditable true
