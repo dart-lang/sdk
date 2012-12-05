@@ -2012,13 +2012,22 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   void handleRedirectingFactoryBody(Return node) {
+    if (!enclosingElement.isFactoryConstructor()) {
+      compiler.reportMessage(
+          compiler.spanFromNode(node),
+          MessageKind.FACTORY_REDIRECTION_IN_NON_FACTORY.error([]),
+          Diagnostic.ERROR);
+      compiler.reportMessage(
+          compiler.spanFromElement(enclosingElement),
+          MessageKind.MISSING_FACTORY_KEYWORD.error([]),
+          Diagnostic.INFO);
+    }
     Element redirectionTarget = resolveRedirectingFactory(node);
     var type = mapping.getType(node.expression);
     if (type is InterfaceType && !type.isRaw) {
       unimplemented(node.expression, 'type arguments on redirecting factory');
     }
     useElement(node.expression, redirectionTarget);
-    assert(invariant(node, enclosingElement.isFactoryConstructor()));
     FunctionElement constructor = enclosingElement;
     if (constructor.modifiers.isConst() &&
         !redirectionTarget.modifiers.isConst()) {

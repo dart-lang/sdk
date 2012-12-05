@@ -335,6 +335,12 @@ Length: #{3}''');
   static const MALFORMED_TYPE_REFERENCE = const MessageKind(
       "Malformed type reference encountered in #{1}.");
 
+  static const FACTORY_REDIRECTION_IN_NON_FACTORY = const MessageKind(
+      "Error: Factory redirection only allowed in factories.");
+
+  static const MISSING_FACTORY_KEYWORD = const MessageKind(
+      "Did you forget a factory keyword here?");
+
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 
