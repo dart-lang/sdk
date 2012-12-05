@@ -1163,7 +1163,8 @@ class Clipboard native "*Clipboard" {
   String effectAllowed;
 
   /// @domName Clipboard.files; @docsEditable true
-  final FileList files;
+  @Returns('FileList') @Creates('FileList')
+  final List<File> files;
 
   /// @domName Clipboard.items; @docsEditable true
   final DataTransferItemList items;
@@ -6656,6 +6657,123 @@ class DomSettableTokenList extends DomTokenList native "*DOMSettableTokenList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName DOMStringList; @docsEditable true
+class DomStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
+
+  /// @domName DOMStringList.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
+
+  String operator[](int index) => JS("String", "#[#]", this, index);
+
+  void operator[]=(int index, String value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<String> mixins.
+  // String is the element type.
+
+  // From Iterable<String>:
+
+  Iterator<String> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<String>(this);
+  }
+
+  // From Collection<String>:
+
+  void add(String value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(String value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<String> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  // contains() defined by IDL.
+
+  void forEach(void f(String element)) => Collections.forEach(this, f);
+
+  Collection map(f(String element)) => Collections.map(this, [], f);
+
+  Collection<String> filter(bool f(String element)) =>
+     Collections.filter(this, <String>[], f);
+
+  bool every(bool f(String element)) => Collections.every(this, f);
+
+  bool some(bool f(String element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<String>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([Comparator compare = Comparable.compare]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(String element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(String element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  String get first => this[0];
+
+  String get last => this[length - 1];
+
+  String removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  String removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [String initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <String>[]);
+
+  // -- end List<String> mixins.
+
+  /// @domName DOMStringList.contains; @docsEditable true
+  bool contains(String string) native;
+
+  /// @domName DOMStringList.item; @docsEditable true
+  String item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName DOMStringMap
 abstract class DomStringMap {
 }
@@ -9932,7 +10050,8 @@ class InputElement extends Element implements Element native "*HTMLInputElement"
   bool disabled;
 
   /// @domName HTMLInputElement.files; @docsEditable true
-  FileList files;
+  @Returns('FileList') @Creates('FileList')
+  List<File> files;
 
   /// @domName HTMLInputElement.form; @docsEditable true
   final FormElement form;
@@ -10762,7 +10881,7 @@ class LocalHistory implements History native "*History" {
 class LocalLocation implements Location native "*Location" {
 
   /// @domName Location.ancestorOrigins; @docsEditable true
-  @Returns('_DomStringList') @Creates('_DomStringList')
+  @Returns('DomStringList') @Creates('DomStringList')
   final List<String> ancestorOrigins;
 
   /// @domName Location.hash; @docsEditable true
@@ -20041,123 +20160,6 @@ class _DataViewFactoryProvider {
 class _DomParserFactoryProvider {
   static DomParser createDomParser() =>
       JS('DomParser', 'new DOMParser()' );
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DOMStringList; @docsEditable true
-class _DomStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
-
-  /// @domName DOMStringList.length; @docsEditable true
-  int get length => JS("int", "#.length", this);
-
-  String operator[](int index) => JS("String", "#[#]", this, index);
-
-  void operator[]=(int index, String value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<String> mixins.
-  // String is the element type.
-
-  // From Iterable<String>:
-
-  Iterator<String> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<String>(this);
-  }
-
-  // From Collection<String>:
-
-  void add(String value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(String value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<String> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  // contains() defined by IDL.
-
-  void forEach(void f(String element)) => Collections.forEach(this, f);
-
-  Collection map(f(String element)) => Collections.map(this, [], f);
-
-  Collection<String> filter(bool f(String element)) =>
-     Collections.filter(this, <String>[], f);
-
-  bool every(bool f(String element)) => Collections.every(this, f);
-
-  bool some(bool f(String element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<String>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  void sort([Comparator compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(String element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(String element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  String get first => this[0];
-
-  String get last => this[length - 1];
-
-  String removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
-  }
-
-  String removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<String> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <String>[]);
-
-  // -- end List<String> mixins.
-
-  /// @domName DOMStringList.contains; @docsEditable true
-  bool contains(String string) native;
-
-  /// @domName DOMStringList.item; @docsEditable true
-  String item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

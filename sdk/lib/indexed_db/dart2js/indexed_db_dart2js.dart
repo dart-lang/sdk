@@ -256,7 +256,7 @@ class Database extends EventTarget native "*IDBDatabase" {
   final String name;
 
   /// @domName IDBDatabase.objectStoreNames; @docsEditable true
-  @Returns('_DomStringList') @Creates('_DomStringList')
+  @Returns('DomStringList') @Creates('DomStringList')
   final List<String> objectStoreNames;
 
   /// @domName IDBDatabase.version; @docsEditable true
@@ -673,7 +673,7 @@ class ObjectStore native "*IDBObjectStore" {
   final bool autoIncrement;
 
   /// @domName IDBObjectStore.indexNames; @docsEditable true
-  @Returns('_DomStringList') @Creates('_DomStringList')
+  @Returns('DomStringList') @Creates('DomStringList')
   final List<String> indexNames;
 
   /// @domName IDBObjectStore.keyPath; @docsEditable true
