@@ -415,15 +415,14 @@ static bool OptimizeTypeArguments(const Instance& instance) {
   }
   bool replaced = false;
   if (type_arguments.IsInstantiatedTypeArguments()) {
+    AbstractTypeArguments& uninstantiated = AbstractTypeArguments::Handle();
+    AbstractTypeArguments& instantiator = AbstractTypeArguments::Handle();
     do {
       const InstantiatedTypeArguments& instantiated_type_arguments =
           InstantiatedTypeArguments::Cast(type_arguments);
-      const AbstractTypeArguments& uninstantiated =
-          AbstractTypeArguments::Handle(
-              instantiated_type_arguments.uninstantiated_type_arguments());
-      const AbstractTypeArguments& instantiator =
-          AbstractTypeArguments::Handle(
-              instantiated_type_arguments.instantiator_type_arguments());
+      uninstantiated =
+          instantiated_type_arguments.uninstantiated_type_arguments();
+      instantiator = instantiated_type_arguments.instantiator_type_arguments();
       type_arguments = uninstantiated.InstantiateFrom(instantiator);
     } while (type_arguments.IsInstantiatedTypeArguments());
     AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
