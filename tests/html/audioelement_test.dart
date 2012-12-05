@@ -1,7 +1,7 @@
 library AudioElementTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
-import 'dart:web_audio';
+import 'dart:html';
 
 main() {
   useHtmlConfiguration();

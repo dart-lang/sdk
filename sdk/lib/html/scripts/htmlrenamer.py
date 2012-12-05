@@ -361,8 +361,15 @@ class HtmlRenamer(object):
         return member_name
 
   def GetLibraryName(self, interface):
+    if 'Conditional' in interface.ext_attrs:
+      if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:
+        return 'web_audio'
+      if 'SVG' in interface.ext_attrs['Conditional']:
+        return 'svg'
+
     return self._GetLibraryName(interface.id)
 
+  # TODO(blois): remove this method when all members are renamed.
   def _GetLibraryName(self, idl_type_name):
     """
     Gets the name of the library this type should live in.
@@ -370,14 +377,6 @@ class HtmlRenamer(object):
     """
     if idl_type_name.startswith('SVG'):
       return 'svg'
-    if 'Audio' in idl_type_name:
-      return 'web_audio'
-
-    if self._database.HasInterface(idl_type_name):
-      interface = self._database.GetInterface(idl_type_name)
-      for parent in self._database.Hierarchy(interface):
-        if parent.id == 'AudioNode':
-          return 'web_audio'
 
     return 'html'
 

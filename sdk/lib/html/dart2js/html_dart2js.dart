@@ -375,6 +375,21 @@ class Attr extends Node native "*Attr" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName HTMLAudioElement; @docsEditable true
+class AudioElement extends MediaElement native "*HTMLAudioElement" {
+
+  factory AudioElement([String src]) {
+    if (!?src) {
+      return _AudioElementFactoryProvider.createAudioElement();
+    }
+    return _AudioElementFactoryProvider.createAudioElement(src);
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName HTMLBRElement; @docsEditable true
 class BRElement extends Element implements Element native "*HTMLBRElement" {
 
@@ -7580,26 +7595,6 @@ class ElementEvents extends Events {
       return this['DOMMouseScroll'];
     }
   }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName ElementTimeControl
-abstract class ElementTimeControl {
-
-  /// @domName ElementTimeControl.beginElement; @docsEditable true
-  void beginElement();
-
-  /// @domName ElementTimeControl.beginElementAt; @docsEditable true
-  void beginElementAt(num offset);
-
-  /// @domName ElementTimeControl.endElement; @docsEditable true
-  void endElement();
-
-  /// @domName ElementTimeControl.endElementAt; @docsEditable true
-  void endElementAt(num offset);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18436,14 +18431,6 @@ typedef void VoidCallback();
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WaveTable; @docsEditable true
-class WaveTable native "*WaveTable" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName WebGLActiveInfo; @docsEditable true
 class WebGLActiveInfo native "*WebGLActiveInfo" {
 
@@ -20341,6 +20328,17 @@ class XSLTProcessor native "*XSLTProcessor" {
 class _ArrayBufferFactoryProvider {
   static ArrayBuffer createArrayBuffer(int length) =>
       JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class _AudioElementFactoryProvider {
+  static AudioElement createAudioElement([String src = null]) {
+    if (src == null) return JS('AudioElement', 'new Audio()');
+    return JS('AudioElement', 'new Audio(#)', src);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

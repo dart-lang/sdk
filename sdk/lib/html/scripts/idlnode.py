@@ -3,6 +3,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import os
 import sys
 
 
@@ -386,7 +387,7 @@ class IDLInterface(IDLNode):
     javascript_interface_name = self.ext_attrs.get('InterfaceName', self.id)
     self.javascript_binding_name = javascript_interface_name
     self.doc_js_name = javascript_interface_name
-    self.operations = self._convert_all(ast, 'Operation', 
+    self.operations = self._convert_all(ast, 'Operation',
       lambda ast: IDLOperation(ast, self.doc_js_name))
     self.attributes = self._convert_all(ast, 'Attribute',
       lambda ast: IDLAttribute(ast, self.doc_js_name))

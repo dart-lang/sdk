@@ -415,25 +415,6 @@ class AudioDestinationNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLAudioElement
-class AudioElement extends MediaElement {
-
-  factory AudioElement([String src]) {
-    if (!?src) {
-      return _AudioElementFactoryProvider.createAudioElement();
-    }
-    return _AudioElementFactoryProvider.createAudioElement(src);
-  }
-  AudioElement.internal(): super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName AudioGain
 class AudioGain extends AudioParam {
   AudioGain.internal(): super.internal();
@@ -1063,7 +1044,11 @@ class WaveShaperNode extends AudioNode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
 
-class _AudioElementFactoryProvider {
-  static AudioElement createAudioElement([String src]) native "HTMLAudioElement_constructor_Callback";
+
+/// @domName WaveTable
+class WaveTable extends NativeFieldWrapperClass1 {
+  WaveTable.internal();
+
 }
