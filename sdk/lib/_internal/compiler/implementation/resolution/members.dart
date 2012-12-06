@@ -1771,13 +1771,19 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   void resolveArguments(NodeList list) {
     if (list == null) return;
-    bool seenNamedArgument = false;
+    List<SourceString> seenNamedArguments = <SourceString>[];
     for (Link<Node> link = list.nodes; !link.isEmpty; link = link.tail) {
       Expression argument = link.head;
       visit(argument);
-      if (argument.asNamedArgument() != null) {
-        seenNamedArgument = true;
-      } else if (seenNamedArgument) {
+      NamedArgument namedArgument = argument.asNamedArgument();
+      if (namedArgument != null) {
+        SourceString source = namedArgument.name.source;
+        if (seenNamedArguments.contains(source)) {
+          error(argument, MessageKind.DUPLICATE_DEFINITION,
+                [source.slowToString()]);
+        }
+        seenNamedArguments.add(source);
+      } else if (!seenNamedArguments.isEmpty) {
         error(argument, MessageKind.INVALID_ARGUMENT_AFTER_NAMED);
       }
     }
