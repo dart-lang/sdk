@@ -137,8 +137,9 @@ class JSArray<E> implements List<E> {
 
   bool every(bool f(E element)) => Collections.every(this, f);
 
-  void sort([Comparator<E> compare = Comparable.compare]) {
+  void sort([int compare(E a, E b)]) {
     checkMutable(this, 'sort');
+    if (compare == null) compare = Comparable.compare;
     coreSort(this, compare);
   }
 
@@ -173,7 +174,7 @@ class JSArray<E> implements List<E> {
   }
 
   int get length => JS('int', r'#.length', this);
-  
+
   void set length(int newLength) {
     if (newLength is !int) throw new ArgumentError(newLength);
     if (newLength < 0) throw new RangeError.value(newLength);

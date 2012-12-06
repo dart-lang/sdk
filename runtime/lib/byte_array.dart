@@ -223,7 +223,8 @@ abstract class _ByteArrayBase {
         "Cannot add to a non-extendable array");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(var a, var b)]) {
+    if (compare == null) compare = Comparable.compare;
     coreSort(this, compare);
   }
 
@@ -1767,7 +1768,8 @@ class _ByteArrayViewBase {
         "Cannot add to a non-extendable array");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(var a, var b)]) {
+    if (compare == null) compare = Comparable.compare;
     coreSort(this, compare);
   }
 

@@ -72,9 +72,13 @@ abstract class List<E> implements Collection<E>, Sequence<E> {
   void addAll(Collection<E> collection);
 
   /**
-   * Sorts the list according to the order specified by the [Comparator].
+   * Sorts the list according to the order specified by the [compare] function.
+   *
+   * The [compare] function must act as a [Comparator].
+   * The default [List] implementations use [Comparable.compare] if
+   * [compare] is omitted.
    */
-  void sort([Comparator<E> compare = Comparable.compare]);
+  void sort([int compare(E a, E b)]);
 
   /**
    * Returns the first index of [element] in the list.

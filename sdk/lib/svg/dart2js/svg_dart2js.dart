@@ -2780,7 +2780,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 
   // contains() defined by IDL.
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Length a, Length b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -3301,7 +3301,7 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   // contains() defined by IDL.
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Number a, Number b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -4001,7 +4001,7 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
 
   // contains() defined by IDL.
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(PathSeg a, PathSeg b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -4719,7 +4719,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   // contains() defined by IDL.
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(String a, String b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -5704,7 +5704,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
 
   // contains() defined by IDL.
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Transform a, Transform b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -6109,7 +6109,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(ElementInstance a, ElementInstance b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 

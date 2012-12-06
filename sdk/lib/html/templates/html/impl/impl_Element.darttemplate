@@ -103,7 +103,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
@@ -252,7 +252,7 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('');
   }
 

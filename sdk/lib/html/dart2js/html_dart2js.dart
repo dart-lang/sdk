@@ -5532,27 +5532,6 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * Represents an HTML <div> element.
- *
- * The [DivElement] is a generic container for content and does not have any
- * special significance. It is functionally similar to [SpanElement].
- *
- * The [DivElement] is a block-level element, as opposed to [SpanElement],
- * which is an inline-level element.
- *
- * Example usage:
- *
- *     DivElement div = new DivElement();
- *     div.text = 'Here's my new DivElem
- *     document.body.elements.add(elem);
- *
- * See also:
- *
- * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
- * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
- * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
- */
 /// @domName HTMLDivElement; @docsEditable true
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
@@ -5591,7 +5570,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.cookie; @docsEditable true
   String cookie;
 
-  /// Returns the [Window] associated with the document.
   /// @domName Document.defaultView; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
   @JSName('defaultView')
@@ -6349,7 +6327,7 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(DomMimeType a, DomMimeType b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -6505,7 +6483,7 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(DomPlugin a, DomPlugin b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -6722,7 +6700,7 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(String a, String b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -6904,7 +6882,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
@@ -7053,7 +7031,7 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('');
   }
 
@@ -8448,7 +8426,7 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(File a, File b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -8804,7 +8782,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -8930,7 +8908,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -9358,7 +9336,7 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -9479,7 +9457,7 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -10277,7 +10255,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -10403,7 +10381,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -10529,7 +10507,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -12203,16 +12181,6 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An HTML <menu> element.
- *
- * A <menu> element represents an unordered list of menu commands.
- *
- * See also:
- *
- *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
- *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
- */
 /// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 
@@ -12754,7 +12722,7 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -13015,7 +12983,7 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -13369,7 +13337,7 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -15282,7 +15250,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(SourceBuffer a, SourceBuffer b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -15455,7 +15423,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(SpeechGrammar a, SpeechGrammar b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -15839,7 +15807,7 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Map a, Map b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -16727,7 +16695,7 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(TextTrackCue a, TextTrackCue b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -16848,7 +16816,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(TextTrack a, TextTrack b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -17094,7 +17062,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Touch a, Touch b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -17400,7 +17368,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -17526,7 +17494,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -17652,7 +17620,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19854,7 +19822,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(ClientRect a, ClientRect b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19977,7 +19945,7 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(CssRule a, CssRule b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20091,7 +20059,7 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(CssValue a, CssValue b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20231,7 +20199,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Entry a, Entry b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20345,7 +20313,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(EntrySync a, EntrySync b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20497,7 +20465,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Gamepad a, Gamepad b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20664,7 +20632,7 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(MediaStream a, MediaStream b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20931,7 +20899,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(SpeechInputResult a, SpeechInputResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21054,7 +21022,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21168,7 +21136,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(StyleSheet a, StyleSheet b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21306,7 +21274,7 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Animation a, Animation b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21960,7 +21928,7 @@ class FilteredElementList implements List {
     return element is Element && _childNodes.contains(element);
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 

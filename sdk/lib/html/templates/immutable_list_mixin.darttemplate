@@ -66,7 +66,7 @@ $else
   // contains() defined by IDL.
 $endif
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare($E a, $E b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 

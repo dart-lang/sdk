@@ -92,7 +92,8 @@ class _ObjectArray<E> implements List<E> {
     return this.length == 0;
   }
 
-  void sort([Comparator<E> compare = Comparable.compare]) {
+  void sort([int compare(E a, E b)]) {
+    if (compare == null) compare = Comparable.compare;
     _Sort.sort(this, compare);
   }
 
@@ -238,7 +239,7 @@ class _ImmutableArray<E> implements List<E> {
     return this.length == 0;
   }
 
-  void sort([Comparator<E> compare]) {
+  void sort([int compare(E a, E b)]) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
   }

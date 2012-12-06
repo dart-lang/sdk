@@ -7867,7 +7867,7 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(DomMimeType a, DomMimeType b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -8045,7 +8045,7 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(DomPlugin a, DomPlugin b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -8309,7 +8309,7 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(String a, String b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -8518,7 +8518,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
@@ -8667,7 +8667,7 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('');
   }
 
@@ -10265,7 +10265,7 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(File a, File b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -10705,7 +10705,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -10853,7 +10853,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -11507,7 +11507,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -11635,7 +11635,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -12929,7 +12929,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -13077,7 +13077,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -13225,7 +13225,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -16089,7 +16089,7 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -16371,7 +16371,7 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -16755,7 +16755,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19344,7 +19344,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(SourceBuffer a, SourceBuffer b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -19560,7 +19560,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(SpeechGrammar a, SpeechGrammar b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -20062,7 +20062,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Map a, Map b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21482,7 +21482,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(TextTrackCue a, TextTrackCue b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21610,7 +21610,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(TextTrack a, TextTrack b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -21898,7 +21898,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Touch a, Touch b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -22295,7 +22295,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -22443,7 +22443,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -22591,7 +22591,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25244,7 +25244,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(ClientRect a, ClientRect b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25372,7 +25372,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(CssRule a, CssRule b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25492,7 +25492,7 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(CssValue a, CssValue b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25764,7 +25764,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Entry a, Entry b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -25884,7 +25884,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(EntrySync a, EntrySync b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -26036,7 +26036,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Gamepad a, Gamepad b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -26205,7 +26205,7 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(MediaStream a, MediaStream b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -26429,7 +26429,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(SpeechInputResult a, SpeechInputResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -26557,7 +26557,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -26677,7 +26677,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(StyleSheet a, StyleSheet b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -26805,7 +26805,7 @@ class _WebKitAnimationList extends NativeFieldWrapperClass1 implements List<Anim
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Animation a, Animation b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -27421,7 +27421,7 @@ class FilteredElementList implements List {
     return element is Element && _childNodes.contains(element);
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 

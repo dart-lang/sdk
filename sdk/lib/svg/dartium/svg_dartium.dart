@@ -3525,7 +3525,7 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
   // contains() defined by IDL.
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Length a, Length b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -4199,7 +4199,7 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   // contains() defined by IDL.
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Number a, Number b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -5285,7 +5285,7 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 
   // contains() defined by IDL.
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(PathSeg a, PathSeg b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -6209,7 +6209,7 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   // contains() defined by IDL.
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(String a, String b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -7427,7 +7427,7 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 
   // contains() defined by IDL.
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(Transform a, Transform b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -7933,7 +7933,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(ElementInstance a, ElementInstance b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
