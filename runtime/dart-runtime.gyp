@@ -58,7 +58,10 @@
         {
           'action_name': 'generate_version_cc',
           'inputs': [
-            'tools/make_version.py',
+            '../tools/make_version.py',
+            '../tools/utils.py',
+            '../tools/version.dart',
+            '../tools/release/version.dart',
             '../tools/VERSION',
             '<(version_in_cc_file)',
             # Depend on libdart_dependency_helper to track the libraries it
@@ -71,10 +74,9 @@
           'action': [
             'python',
             '-u', # Make standard I/O unbuffered.
-            'tools/make_version.py',
+            '../tools/make_version.py',
             '--output', '<(version_cc_file)',
             '--input', '<(version_in_cc_file)',
-            '--version', '../tools/VERSION',
           ],
         },
       ],
