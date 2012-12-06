@@ -758,36 +758,12 @@ abstract class _HttpConnectionBase {
     _socket.outputStream.onError = (e) => null;
   }
 
-  bool _write(List<int> data, [bool copyBuffer = false]) {
-    return _socket.outputStream.write(data, copyBuffer);
-  }
-
-  bool _writeFrom(List<int> buffer, [int offset, int len]) {
-    return _socket.outputStream.writeFrom(buffer, offset, len);
-  }
-
-  bool _flush() {
-    _socket.outputStream.flush();
-  }
-
-  bool _close() {
-    _socket.outputStream.close();
-  }
-
-  bool _destroy() {
-    _socket.close();
-  }
-
-  DetachedSocket _detachSocket() {
-    _socket.onData = null;
-    _socket.onClosed = null;
-    _socket.onError = null;
-    _socket.outputStream.onNoPendingWrites = null;
-    Socket socket = _socket;
-    _socket = null;
-    if (onDetach != null) onDetach();
-    return new _DetachedSocket(socket, _httpParser.readUnparsedData());
-  }
+  bool _write(List<int> data, [bool copyBuffer = false]);
+  bool _writeFrom(List<int> buffer, [int offset, int len]);
+  bool _flush();
+  bool _close();
+  bool _destroy();
+  DetachedSocket _detachSocket();
 
   HttpConnectionInfo get connectionInfo {
     if (_socket == null) return null;
@@ -835,9 +811,70 @@ class _HttpConnection extends _HttpConnectionBase {
     };
   }
 
+  void _bufferData(List<int> data, [bool copyBuffer = false]) {
+    if (_buffer == null) _buffer = new _BufferList();
+    if (copyBuffer) data = data.getRange(0, data.length);
+    _buffer.add(data);
+  }
+
+  void _writeBufferedResponse() {
+    if (_buffer != null) {
+      while (!_buffer.isEmpty) {
+        var data = _buffer.first;
+        _socket.outputStream.write(data, false);
+        _buffer.removeBytes(data.length);
+      }
+      _buffer = null;
+    }
+  }
+
+  bool _write(List<int> data, [bool copyBuffer = false]) {
+    if (_isRequestDone) {
+      return _socket.outputStream.write(data, copyBuffer);
+    } else {
+      _bufferData(data, copyBuffer);
+      return false;
+    }
+  }
+
+  bool _writeFrom(List<int> data, [int offset, int len]) {
+    if (_isRequestDone) {
+      return _socket.outputStream.writeFrom(data, offset, len);
+    } else {
+      if (offset == null) offset = 0;
+      if (len == null) len = buffer.length - offset;
+      _bufferData(data.getRange(offset, len), false);
+      return false;
+    }
+  }
+
+  bool _flush() {
+    _socket.outputStream.flush();
+  }
+
+  bool _close() {
+    _socket.outputStream.close();
+  }
+
+  bool _destroy() {
+    _socket.close();
+  }
+
   void _onClosed() {
     _state |= _HttpConnectionBase.READ_CLOSED;
     _checkDone();
+  }
+
+  DetachedSocket _detachSocket() {
+    _socket.onData = null;
+    _socket.onClosed = null;
+    _socket.onError = null;
+    _socket.outputStream.onNoPendingWrites = null;
+    _writeBufferedResponse();
+    Socket socket = _socket;
+    _socket = null;
+    if (onDetach != null) onDetach();
+    return new _DetachedSocket(socket, _httpParser.readUnparsedData());
   }
 
   void _onError(e) {
@@ -893,13 +930,23 @@ class _HttpConnection extends _HttpConnectionBase {
       } else {
         _state = _HttpConnectionBase.IDLE;
       }
+    } else if (_isResponseDone) {
+      // If the response is closed before the request is fully read
+      // close this connection. If there is buffered output
+      // (e.g. error response for invalid request where the server did
+      // not care to read the request body) this is send.
+      assert(!_isRequestDone);
+      _writeBufferedResponse();
+      _close();
+      _server._closeQueue.add(this);
     }
   }
 
   void _onDataEnd(bool close) {
-    _request._onDataEnd();
+    // Start sending queued response if any.
+    _writeBufferedResponse();
     _state |= _HttpConnectionBase.REQUEST_DONE;
-    _checkDone();
+    _request._onDataEnd();
   }
 
   void _responseClosed() {
@@ -910,6 +957,9 @@ class _HttpConnection extends _HttpConnectionBase {
   HttpServer _server;
   HttpRequest _request;
   HttpResponse _response;
+
+  // Buffer for data written before full response has been processed.
+  _BufferList _buffer;
 
   // Callbacks.
   Function onRequestReceived;
@@ -1121,11 +1171,13 @@ class _HttpClientRequest
   // Delegate functions for the HttpOutputStream implementation.
   bool _streamWrite(List<int> buffer, bool copyBuffer) {
     if (_done) throw new HttpException("Request closed");
+    _emptyBody = _emptyBody && buffer.length == 0;
     return _write(buffer, copyBuffer);
   }
 
   bool _streamWriteFrom(List<int> buffer, int offset, int len) {
     if (_done) throw new HttpException("Request closed");
+    _emptyBody = _emptyBody && buffer.length == 0;
     return _writeList(buffer, offset, len);
   }
 
@@ -1216,6 +1268,7 @@ class _HttpClientRequest
   _HttpClientConnection _connection;
   _HttpOutputStream _outputStream;
   Function _streamErrorHandler;
+  bool _emptyBody = true;
 }
 
 
@@ -1424,6 +1477,37 @@ class _HttpClientConnection
     _httpParser = new _HttpParser.responseParser();
   }
 
+  bool _write(List<int> data, [bool copyBuffer = false]) {
+    return _socket.outputStream.write(data, copyBuffer);
+  }
+
+  bool _writeFrom(List<int> data, [int offset, int len]) {
+    return _socket.outputStream.writeFrom(data, offset, len);
+  }
+
+  bool _flush() {
+    _socket.outputStream.flush();
+  }
+
+  bool _close() {
+    _socket.outputStream.close();
+  }
+
+  bool _destroy() {
+    _socket.close();
+  }
+
+  DetachedSocket _detachSocket() {
+    _socket.onData = null;
+    _socket.onClosed = null;
+    _socket.onError = null;
+    _socket.outputStream.onNoPendingWrites = null;
+    Socket socket = _socket;
+    _socket = null;
+    if (onDetach != null) onDetach();
+    return new _DetachedSocket(socket, _httpParser.readUnparsedData());
+  }
+
   void _connectionEstablished(_SocketConnection socketConn) {
     super._connectionEstablished(socketConn._socket);
     _socketConn = socketConn;
@@ -1472,7 +1556,17 @@ class _HttpClientConnection
     _method = method;
     // Tell the HTTP parser the method it is expecting a response to.
     _httpParser.responseToMethod = method;
-    _request = new _HttpClientRequest(method, uri, this);
+    // If the connection already have a request this is a retry of a
+    // request. In this case the request object is reused to ensure
+    // that the same headers are send.
+    if (_request != null) {
+      _request._method = method;
+      _request._uri = uri;
+      _request._headers._mutable = true;
+      _request._state = _HttpRequestResponseBase.START;
+    } else {
+      _request = new _HttpClientRequest(method, uri, this);
+    }
     _response = new _HttpClientResponse(this);
     return _request;
   }
@@ -1492,13 +1586,26 @@ class _HttpClientConnection
     if (_socketConn != null) {
       _client._closeSocketConnection(_socketConn);
     }
-    // Report the error.
-    if (_response != null && _response._streamErrorHandler != null) {
-       _response._streamErrorHandler(e);
-    } else if (_onErrorCallback != null) {
-      _onErrorCallback(e);
+
+    // If it looks as if we got a bad connection from the connection
+    // pool and the request can be retried do a retry.
+    if (_socketConn != null && _socketConn._fromPool && _request._emptyBody) {
+      String method = _request._method;
+      Uri uri = _request._uri;
+      _socketConn = null;
+
+      // Retry the URL using the same connection instance.
+      _httpParser.restart();
+      _client._openUrl(method, uri, this);
     } else {
-      throw e;
+      // Report the error.
+      if (_response != null && _response._streamErrorHandler != null) {
+         _response._streamErrorHandler(e);
+      } else if (_onErrorCallback != null) {
+        _onErrorCallback(e);
+      } else {
+        throw e;
+      }
     }
   }
 
@@ -1539,8 +1646,6 @@ class _HttpClientConnection
 
   void _doRetry(_RedirectInfo retry) {
     assert(_socketConn == null);
-    _request = null;
-    _response = null;
 
     // Retry the URL using the same connection instance.
     _state = _HttpConnectionBase.IDLE;
@@ -1615,10 +1720,19 @@ class _SocketConnection {
                     Socket this._socket);
 
   void _markReturned() {
+    // Any activity on the socket while waiting in the pool will
+    // invalidate the connection os that it is not reused.
+    _socket.onData = _invalidate;
+    _socket.onClosed = _invalidate;
+    _socket.onError = (_) => _invalidate();
+    _returnTime = new Date.now();
+    _httpClientConnection = null;
+  }
+
+  void _markRetreived() {
     _socket.onData = null;
     _socket.onClosed = null;
     _socket.onError = null;
-    _returnTime = new Date.now();
     _httpClientConnection = null;
   }
 
@@ -1632,12 +1746,20 @@ class _SocketConnection {
 
   Duration _idleTime(Date now) => now.difference(_returnTime);
 
+  bool get _fromPool => _returnTime != null;
+
+  void _invalidate() {
+    _valid = false;
+    _close();
+  }
+
   int get hashCode => _socket.hashCode;
 
   String _host;
   int _port;
   Socket _socket;
   Date _returnTime;
+  bool _valid = true;
   HttpClientConnection _httpClientConnection;
 }
 
@@ -1847,11 +1969,13 @@ class _HttpClient implements HttpClient {
       // otherwise create a new one.
       String key = _connectionKey(connectHost, connectPort);
       Queue socketConnections = _openSockets[key];
-      // Remove active connections that are of the wrong type (HTTP or HTTPS).
+      // Remove active connections that are not valid any more or of
+      // the wrong type (HTTP or HTTPS).
       while (socketConnections != null &&
              !socketConnections.isEmpty &&
-             secure != (socketConnections.first._socket is SecureSocket)) {
-        socketConnection.removeFirst()._close();
+             (!socketConnections.first._valid ||
+              secure != (socketConnections.first._socket is SecureSocket))) {
+        socketConnections.removeFirst()._close();
       }
       if (socketConnections == null || socketConnections.isEmpty) {
         Socket socket = secure ? new SecureSocket(connectHost, connectPort) :
@@ -1884,6 +2008,7 @@ class _HttpClient implements HttpClient {
         };
       } else {
         _SocketConnection socketConn = socketConnections.removeFirst();
+        socketConn._markRetreived();
         _activeSockets.add(socketConn);
         new Timer(0, (ignored) =>
                   _connectionOpened(socketConn, connection, !proxy.isDirect));

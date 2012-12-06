@@ -154,7 +154,7 @@ class _SecureSocket implements SecureSocket {
   }
 
   void set onData(void callback()) {
-    if (_outputStream != null && callback != null) {
+    if (_inputStream != null && callback != null) {
       throw new StreamException(
           "Cannot set data handler when input stream is used");
     }

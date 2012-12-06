@@ -90,10 +90,10 @@ class _SocketOutputStream
   }
 
   void close() {
-    if (_closing && _closed) return;
+    if (_closing) return;
+    _closing = true;
     if (!_pendingWrites.isEmpty) {
       // Mark the socket for close when all data is written.
-      _closing = true;
       _socket._onWrite = _onWrite;
     } else {
       // Close the socket for writing.

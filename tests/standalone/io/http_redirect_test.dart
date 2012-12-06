@@ -68,6 +68,25 @@ HttpServer setupServer() {
      }
   );
 
+  // Setup redirect checking headers.
+  server.addRequestHandler(
+     (HttpRequest request) => request.path == "/src",
+     (HttpRequest request, HttpResponse response) {
+       Expect.equals("value", request.headers.value("X-Request-Header"));
+       response.headers.set(HttpHeaders.LOCATION,
+                            "http://127.0.0.1:${server.port}/target");
+       response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+       response.outputStream.close();
+     }
+  );
+  server.addRequestHandler(
+     (HttpRequest request) => request.path == "/target",
+     (HttpRequest request, HttpResponse response) {
+       Expect.equals("value", request.headers.value("X-Request-Header"));
+       response.outputStream.close();
+     }
+  );
+
   return server;
 }
 
@@ -107,6 +126,34 @@ void testManualRedirect() {
   };
 }
 
+void testManualRedirectWithHeaders() {
+  HttpServer server = setupServer();
+  HttpClient client = new HttpClient();
+
+  int redirectCount = 0;
+  HttpClientConnection conn =
+     client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/src"));
+  conn.followRedirects = false;
+  conn.onRequest = (HttpClientRequest request) {
+    request.headers.add("X-Request-Header", "value");
+    request.outputStream.close();
+  };
+  conn.onResponse = (HttpClientResponse response) {
+    response.inputStream.onData = response.inputStream.read;
+    response.inputStream.onClosed = () {
+      redirectCount++;
+      if (redirectCount < 2) {
+        Expect.isTrue(response.isRedirect);
+        conn.redirect();
+      } else {
+        Expect.equals(HttpStatus.OK, response.statusCode);
+        server.close();
+        client.shutdown();
+      }
+    };
+  };
+}
+
 void testAutoRedirect() {
   HttpServer server = setupServer();
   HttpClient client = new HttpClient();
@@ -131,6 +178,35 @@ void testAutoRedirect() {
   HttpClientConnection conn =
       client.getUrl(
           new Uri.fromString("http://127.0.0.1:${server.port}/redirect"));
+  conn.onRequest = onRequest;
+  conn.onResponse = onResponse;
+  conn.onError = (e) => Expect.fail("Error not expected ($e)");
+}
+
+void testAutoRedirectWithHeaders() {
+  HttpServer server = setupServer();
+  HttpClient client = new HttpClient();
+
+  var requestCount = 0;
+
+  void onRequest(HttpClientRequest request) {
+    requestCount++;
+    request.headers.add("X-Request-Header", "value");
+    request.outputStream.close();
+  };
+
+  void onResponse(HttpClientResponse response) {
+    response.inputStream.onData =
+        () => Expect.fail("Response data not expected");
+    response.inputStream.onClosed = () {
+      Expect.equals(1, requestCount);
+      server.close();
+      client.shutdown();
+    };
+  };
+
+  HttpClientConnection conn =
+      client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/src"));
   conn.onRequest = onRequest;
   conn.onResponse = onResponse;
   conn.onError = (e) => Expect.fail("Error not expected ($e)");
@@ -175,7 +251,9 @@ void testRedirectLoop() {
 
 main() {
   testManualRedirect();
+  testManualRedirectWithHeaders();
   testAutoRedirect();
+  testAutoRedirectWithHeaders();
   testAutoRedirectLimit();
   testRedirectLoop();
 }

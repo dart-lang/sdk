@@ -630,10 +630,10 @@ class _HttpParser {
   }
 
   void streamError(e) {
-    // Don't report errors when HTTP parser is in idle state. Clients
-    // can close the connection and cause a connection reset by peer
-    // error which is OK.
-    if (_state == _State.START) {
+    // Don't report errors for a request parser when HTTP parser is in
+    // idle state. Clients can close the connection and cause a
+    // connection reset by peer error which is OK.
+    if (_requestParser && _state == _State.START) {
       closed();
       return;
     }
@@ -652,6 +652,10 @@ class _HttpParser {
 
   void cancel() {
     _state = _State.CANCELED;
+  }
+
+  void restart() {
+    _reset();
   }
 
   int get messageType => _messageType;
