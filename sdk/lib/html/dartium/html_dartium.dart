@@ -13371,12 +13371,6 @@ class KeyboardEvent extends UIEvent {
     return e;
   }
 
-  /** @domName KeyboardEvent.initKeyboardEvent */
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
-      bool altKey, bool shiftKey, bool metaKey,
-      bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
- 
   /** @domName KeyboardEvent.keyCode */
   int get keyCode => $dom_keyCode;
   
@@ -13411,6 +13405,10 @@ class KeyboardEvent extends UIEvent {
 
   /** @domName KeyboardEvent.shiftKey */
   bool get shiftKey native "KeyboardEvent_shiftKey_Getter";
+
+
+  /** @domName KeyboardEvent.initKeyboardEvent */
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
