@@ -1145,6 +1145,12 @@ class Function : public Object {
   RawCode* closure_allocation_stub() const;
   void set_closure_allocation_stub(const Code& value) const;
 
+  // Returns true iff an implicit closure function has been created
+  // for this function.
+  bool HasImplicitClosureFunction() const {
+    return implicit_closure_function() != null();
+  }
+
   // Return the closure function implicitly created for this function.
   // If none exists yet, create one and remember it.
   RawFunction* ImplicitClosureFunction() const;
