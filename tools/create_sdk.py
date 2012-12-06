@@ -40,6 +40,7 @@
 # ......intl/
 # ......logging/
 # ......meta/
+# ......serialization
 # ......unittest/
 # ......(more will come here)
 # ....util/
@@ -221,7 +222,8 @@ def Main(argv):
   #
 
   for library in ['args', 'http', 'intl', 'logging',
-                  'meta', 'oauth2', 'unittest']:
+                  'meta', 'oauth2', 'serialization', 'unittest']:
+
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
                                     '*.py', '*.gypi', '*.sh', 'packages'))
