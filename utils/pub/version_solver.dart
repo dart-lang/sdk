@@ -164,7 +164,8 @@ class VersionSolver {
       // TODO(rnystrom): Better exception.
       if (best == null) {
         if (tryUnlockDepender(dependency)) return null;
-        throw new NoVersionException(dependency.name, dependency.constraint);
+        throw new NoVersionException(dependency.name, dependency.constraint,
+            dependency._refs);
       } else if (!dependency.constraint.allows(best)) {
         if (tryUnlockDepender(dependency)) return null;
         throw new CouldNotUpdateException(
@@ -353,7 +354,7 @@ abstract class ChangeConstraint implements WorkItem {
         return null;
       }
 
-      throw new DisjointConstraintException(name);
+      throw new DisjointConstraintException(name, newDependency._refs);
     }
 
     // If this constraint change didn't cause the overall constraint on the
@@ -606,32 +607,36 @@ class Dependency {
    * Places [ref] as a constraint from [package] onto this.
    */
   void placeConstraint(String package, PackageRef ref) {
-    var required = _requiredRef();
-    if (required != null) {
+    var requiredDepender = _requiredDepender();
+    if (requiredDepender != null) {
+      var required = _refs[requiredDepender];
       if (required.source.name != ref.source.name) {
-        throw new SourceMismatchException(name, required.source, ref.source);
+        throw new SourceMismatchException(name,
+            requiredDepender, required.source, package, ref.source);
       } else if (!required.source.descriptionsEqual(
                      required.description, ref.description)) {
-        throw new DescriptionMismatchException(
-            name, required.description, ref.description);
+        throw new DescriptionMismatchException(name,
+            requiredDepender, required.description, package, ref.description);
       }
     }
 
     _refs[package] = ref;
   }
 
-  /// Returns a PackageRef whose source and description any new constraints are
-  /// required to match. Returns null if there are no requirements on new
-  /// constraints.
-  PackageRef _requiredRef() {
+  /// Returns the name of a package whose constraint source and description
+  /// all other constraints must match. Returns null if there are no
+  /// requirements on new constraints.
+  String _requiredDepender() {
     if (_refs.isEmpty) return null;
-    var refs = _refs.values;
-    var first = refs[0];
-    if (refs.length == 1) {
-      if (first.source is RootSource) return null;
-      return first;
+
+    var dependers = _refs.keys;
+    if (dependers.length == 1) {
+      var depender = dependers[0];
+      if (_refs[depender].source is RootSource) return null;
+      return depender;
     }
-    return refs[1];
+
+    return dependers[1];
   }
 
   /**
@@ -640,7 +645,6 @@ class Dependency {
   PackageRef removeConstraint(String package) => _refs.remove(package);
 }
 
-// TODO(rnystrom): Report the last of depending packages and their constraints.
 /**
  * Exception thrown when the [VersionConstraint] used to match a package is
  * valid (i.e. non-empty), but there are no released versions of the package
@@ -649,11 +653,25 @@ class Dependency {
 class NoVersionException implements Exception {
   final String package;
   final VersionConstraint constraint;
+  final Map<String, PackageRef> _dependencies;
 
-  NoVersionException(this.package, this.constraint);
+  NoVersionException(this.package, this.constraint, this._dependencies);
 
-  String toString() =>
-      "Package '$package' has no versions that match $constraint.";
+  String toString() {
+    var buffer = new StringBuffer();
+    buffer.add("Package '$package' has no versions that match $constraint "
+        "derived from:\n");
+
+    var keys = new List.from(_dependencies.keys);
+    keys.sort();
+
+    for (var key in keys) {
+      buffer.add("- '$key' depends on version "
+          "${_dependencies[key].constraint}\n");
+    }
+
+    return buffer.toString();
+  }
 }
 
 // TODO(rnystrom): Report the list of depending packages and their constraints.
@@ -672,7 +690,6 @@ class CouldNotUpdateException implements Exception {
       "The latest version of '$package', $best, does not match $constraint.";
 }
 
-// TODO(rnystrom): Report the last of depending packages and their constraints.
 /**
  * Exception thrown when the [VersionConstraint] used to match a package is
  * the empty set: in other words, multiple packages depend on it and have
@@ -680,11 +697,24 @@ class CouldNotUpdateException implements Exception {
  */
 class DisjointConstraintException implements Exception {
   final String package;
+  final Map<String, PackageRef> _dependencies;
 
-  DisjointConstraintException(this.package);
+  DisjointConstraintException(this.package, this._dependencies);
 
-  String toString() =>
-      "Package '$package' has disjoint constraints.";
+  String toString() {
+    var buffer = new StringBuffer();
+    buffer.add("Incompatible version constraints on '$package':\n");
+
+    var keys = new List.from(_dependencies.keys);
+    keys.sort();
+
+    for (var key in keys) {
+      buffer.add("- '$key' depends on version "
+          "${_dependencies[key].constraint}\n");
+    }
+
+    return buffer.toString();
+  }
 }
 
 /**
@@ -704,14 +734,18 @@ class CouldNotSolveException implements Exception {
  */
 class SourceMismatchException implements Exception {
   final String package;
+  final String depender1;
   final Source source1;
+  final String depender2;
   final Source source2;
 
-  SourceMismatchException(this.package, this.source1, this.source2);
+  SourceMismatchException(this.package, this.depender1, this.source1,
+      this.depender2, this.source2);
 
   String toString() {
-    return "Package '$package' is depended on from both sources "
-    "'${source1.name}' and '${source2.name}'.";
+    return "Incompatible dependencies on '$package':\n"
+        "- '$depender1' depends on it from source '$source1'\n"
+        "- '$depender2' depends on it from source '$source2'";
   }
 }
 
@@ -721,13 +755,20 @@ class SourceMismatchException implements Exception {
  */
 class DescriptionMismatchException implements Exception {
   final String package;
+  final String depender1;
   final description1;
+  final String depender2;
   final description2;
 
-  DescriptionMismatchException(this.package, this.description1,
-      this.description2);
+  DescriptionMismatchException(this.package, this.depender1, this.description1,
+      this.depender2, this.description2);
 
-  // TODO(nweiz): Dump to YAML when that's supported
-  String toString() => "Package '$package' has conflicting descriptions "
-    "'${JSON.stringify(description1)}' and '${JSON.stringify(description2)}'";
+  String toString() {
+    // TODO(nweiz): Dump descriptions to YAML when that's supported.
+    return "Incompatible dependencies on '$package':\n"
+        "- '$depender1' depends on it with description "
+        "${JSON.stringify(description1)}\n"
+        "- '$depender2' depends on it with description "
+        "${JSON.stringify(description2)}";
+  }
 }
