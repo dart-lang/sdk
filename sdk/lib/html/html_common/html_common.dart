@@ -4,4 +4,7 @@
 
 library html_common;
 
+import 'dart:html';
+
+part 'filtered_element_list.dart';
 part 'lists.dart';

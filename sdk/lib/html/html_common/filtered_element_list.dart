@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of html;
+part of html_common;
 
 class FilteredElementList implements List {
   final Node _node;
@@ -33,7 +33,7 @@ class FilteredElementList implements List {
       throw new ArgumentError("Invalid list length");
     }
 
-    removeRange(newLength - 1, len - newLength);
+    removeRange(newLength, len - newLength);
   }
 
   void add(Element value) {

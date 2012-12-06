@@ -23,7 +23,6 @@ part '$AUXILIARY_DIR/AttributeMap.dart';
 part '$AUXILIARY_DIR/CrossFrameTypes.dart';
 part '$AUXILIARY_DIR/CssClassSet.dart';
 part '$AUXILIARY_DIR/EventListener.dart';
-part '$AUXILIARY_DIR/FilteredElementList.dart';
 part '$AUXILIARY_DIR/KeyboardEventController.dart';
 part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';

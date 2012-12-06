@@ -7,4 +7,5 @@ library html_common;
 import 'dart:html';
 
 part 'conversions.dart';
+part 'filtered_element_list.dart';
 part 'lists.dart';

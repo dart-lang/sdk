@@ -5532,6 +5532,27 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * Represents an HTML <div> element.
+ *
+ * The [DivElement] is a generic container for content and does not have any
+ * special significance. It is functionally similar to [SpanElement].
+ *
+ * The [DivElement] is a block-level element, as opposed to [SpanElement],
+ * which is an inline-level element.
+ *
+ * Example usage:
+ *
+ *     DivElement div = new DivElement();
+ *     div.text = 'Here's my new DivElem
+ *     document.body.elements.add(elem);
+ *
+ * See also:
+ *
+ * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
+ * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
+ * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
+ */
 /// @domName HTMLDivElement; @docsEditable true
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
@@ -5570,6 +5591,7 @@ class Document extends Node  native "*Document"
   /// @domName Document.cookie; @docsEditable true
   String cookie;
 
+  /// Returns the [Window] associated with the document.
   /// @domName Document.defaultView; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
   @JSName('defaultView')
@@ -12181,6 +12203,16 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * An HTML <menu> element.
+ *
+ * A <menu> element represents an unordered list of menu commands.
+ *
+ * See also:
+ *
+ *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
+ *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
+ */
 /// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 
@@ -21875,121 +21907,6 @@ class _Device {
 
 
 typedef void EventListener(Event event);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class FilteredElementList implements List {
-  final Node _node;
-  final List<Node> _childNodes;
-
-  FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
-
-  // We can't memoize this, since it's possible that children will be messed
-  // with externally to this class.
-  //
-  // TODO(nweiz): Do we really need to copy the list to make the types work out?
-  List<Element> get _filtered =>
-    new List.from(_childNodes.filter((n) => n is Element));
-
-  void forEach(void f(Element element)) {
-    _filtered.forEach(f);
-  }
-
-  void operator []=(int index, Element value) {
-    this[index].replaceWith(value);
-  }
-
-  void set length(int newLength) {
-    final len = this.length;
-    if (newLength >= len) {
-      return;
-    } else if (newLength < 0) {
-      throw new ArgumentError("Invalid list length");
-    }
-
-    removeRange(newLength - 1, len - newLength);
-  }
-
-  void add(Element value) {
-    _childNodes.add(value);
-  }
-
-  void addAll(Collection<Element> collection) {
-    collection.forEach(add);
-  }
-
-  void addLast(Element value) {
-    add(value);
-  }
-
-  bool contains(Element element) {
-    return element is Element && _childNodes.contains(element);
-  }
-
-  void sort([int compare(Element a, Element b)]) {
-    throw new UnsupportedError('TODO(jacobr): should we impl?');
-  }
-
-  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw new UnimplementedError();
-  }
-
-  void removeRange(int start, int rangeLength) {
-    _filtered.getRange(start, rangeLength).forEach((el) => el.remove());
-  }
-
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw new UnimplementedError();
-  }
-
-  void clear() {
-    // Currently, ElementList#clear clears even non-element nodes, so we follow
-    // that behavior.
-    _childNodes.clear();
-  }
-
-  Element removeLast() {
-    final result = this.last;
-    if (result != null) {
-      result.remove();
-    }
-    return result;
-  }
-
-  Element removeAt(int index) {
-    final result = this[index];
-    result.remove();
-    return result;
-  }
-
-  dynamic reduce(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-  Collection map(f(Element element)) => _filtered.map(f);
-  Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
-  bool every(bool f(Element element)) => _filtered.every(f);
-  bool some(bool f(Element element)) => _filtered.some(f);
-  bool get isEmpty => _filtered.isEmpty;
-  int get length => _filtered.length;
-  Element operator [](int index) => _filtered[index];
-  Iterator<Element> iterator() => _filtered.iterator();
-  List<Element> getRange(int start, int rangeLength) =>
-    _filtered.getRange(start, rangeLength);
-  int indexOf(Element element, [int start = 0]) =>
-    _filtered.indexOf(element, start);
-
-  int lastIndexOf(Element element, [int start = null]) {
-    if (start == null) start = length - 1;
-    return _filtered.lastIndexOf(element, start);
-  }
-
-  Element get first => _filtered.first;
-
-  Element get last => _filtered.last;
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
