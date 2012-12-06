@@ -137,6 +137,8 @@ namespace dart {
   V(Uint8Array_setIndexed, 3)                                                  \
   V(Uint8ClampedArray_new, 1)                                                  \
   V(Uint8ClampedArray_newTransferable, 1)                                      \
+  V(Uint8ClampedArray_getIndexed, 2)                                           \
+  V(Uint8ClampedArray_setIndexed, 3)                                           \
   V(Int16Array_new, 1)                                                         \
   V(Int16Array_newTransferable, 1)                                             \
   V(Int16Array_getIndexed, 2)                                                  \

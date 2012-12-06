@@ -367,6 +367,16 @@ DEFINE_NATIVE_ENTRY(Uint8ClampedArray_newTransferable, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Uint8ClampedArray_getIndexed, 2) {
+  GETTER(Uint8ClampedArray, Smi, uint8_t);
+}
+
+
+DEFINE_NATIVE_ENTRY(Uint8ClampedArray_setIndexed, 3) {
+  SETTER(Uint8ClampedArray, Smi, Value, uint8_t);
+}
+
+
 // Int16Array
 
 DEFINE_NATIVE_ENTRY(Int16Array_new, 1) {

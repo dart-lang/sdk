@@ -609,8 +609,8 @@ class _Uint8ClampedArray extends _ByteArrayBase implements Uint8ClampedList {
   static _Uint8ClampedArray _newTransferable(int length)
       native "Uint8ClampedArray_newTransferable";
 
-  int _getIndexed(int index) native "Uint8Array_getIndexed";
-  int _setIndexed(int index, int value) native "Uint8Array_setIndexed";
+  int _getIndexed(int index) native "Uint8ClampedArray_getIndexed";
+  int _setIndexed(int index, int value) native "Uint8ClampedArray_setIndexed";
 }
 
 

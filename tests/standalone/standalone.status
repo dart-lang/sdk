@@ -5,7 +5,6 @@
 out_of_memory_test: Skip # Issue 2345
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
-byte_array_test: Skip # Srdjan looking at it.
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
