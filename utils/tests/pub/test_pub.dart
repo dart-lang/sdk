@@ -108,7 +108,7 @@ void serve([List<Descriptor> contents]) {
         } catch (e) {
           response.statusCode = 404;
           response.contentLength = 0;
-          closeHttpResponse(request, response);
+          response.outputStream.close();
           return;
         }
 
@@ -117,14 +117,14 @@ void serve([List<Descriptor> contents]) {
           response.statusCode = 200;
           response.contentLength = data.length;
           response.outputStream.write(data);
-          closeHttpResponse(request, response);
+          response.outputStream.close();
         });
 
         future.handleException((e) {
           print("Exception while handling ${request.uri}: $e");
           response.statusCode = 500;
           response.reasonPhrase = e.message;
-          closeHttpResponse(request, response);
+          response.outputStream.close();
         });
       };
       _server.listen("127.0.0.1", 0);
