@@ -1319,16 +1319,22 @@ $classesCollector.$mangledName = {'':
     // receiver explicitely and we need to pass it to the getter call.
     bool isInterceptorClass =
         backend.isInterceptorClass(member.getEnclosingClass());
-    String extraArgument = isInterceptorClass ? 'receiver' : '';
-    String getter;
-    if (member.isGetter()) {
-      String getterName = namer.getterName(member.getLibrary(), member.name);
-      getter = "this.$getterName($extraArgument)";
-    } else {
-      String name = member.isNative()
-          ? member.nativeName()
-          : namer.instanceFieldName(memberLibrary, member.name);
-      getter = "this.$name";
+
+    const String receiverArgumentName = r'$receiver';
+
+    js.Expression buildGetter() {
+      if (member.isGetter()) {
+        String getterName = namer.getterName(member.getLibrary(), member.name);
+        return new js.VariableUse('this').dot(getterName).callWith(
+            isInterceptorClass
+                ? <js.Expression>[new js.VariableUse(receiverArgumentName)]
+                : <js.Expression>[]);
+      } else {
+        String fieldName = member.isNative()
+            ? member.nativeName()
+            : namer.instanceFieldName(memberLibrary, member.name);
+        return new js.VariableUse('this').dot(fieldName);
+      }
     }
 
     for (Selector selector in selectors) {
@@ -1340,21 +1346,29 @@ $classesCollector.$mangledName = {'':
         String closureCallName =
             namer.instanceMethodInvocationName(memberLibrary, callName,
                                                selector);
-        List<String> arguments = <String>[];
-        for (int i = 0; i < selector.argumentCount; i++) {
-          arguments.add("arg$i");
-        }
-        String joined = Strings.join(arguments, ", ");
-        CodeBuffer getterBuffer = new CodeBuffer();
-        getterBuffer.add("function(");
+
+        List<js.Parameter> parameters = <js.Parameter>[];
+        List<js.Expression> arguments = <js.Expression>[];
         if (isInterceptorClass) {
-          getterBuffer.add(extraArgument);
-          if (!arguments.isEmpty) {
-            getterBuffer.add(', ');
-          }
+          parameters.add(new js.Parameter(receiverArgumentName));
         }
-        getterBuffer.add(
-            "$joined) { return $getter.$closureCallName($joined); }");
+
+        for (int i = 0; i < selector.argumentCount; i++) {
+          String name = 'arg$i';
+          parameters.add(new js.Parameter(name));
+          arguments.add(new js.VariableUse(name));
+        }
+
+        js.Fun function =
+            new js.Fun(parameters,
+                new js.Block(
+                    <js.Statement>[
+                        new js.Return(
+                            buildGetter().dot(closureCallName)
+                                .callWith(arguments))]));
+
+        CodeBuffer getterBuffer = new CodeBuffer();
+        getterBuffer.add(js.prettyPrint(function, compiler));
         defineInstanceMember(invocationName, getterBuffer);
       }
     }
