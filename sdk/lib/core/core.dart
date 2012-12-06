@@ -28,6 +28,7 @@
 #source("list.dart");
 #source("map.dart");
 #source("num.dart");
+#source("metadata.dart");
 #source("object.dart");
 #source("options.dart");
 #source("pattern.dart");
