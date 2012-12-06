@@ -14,6 +14,7 @@ import 'pub.dart';
 import 'io.dart';
 import 'git.dart' as git;
 import 'oauth2.dart' as oauth2;
+import 'validator.dart';
 
 // TODO(nweiz): Make "publish" the primary name for this command. See issue
 // 6949.
@@ -42,7 +43,8 @@ class LishCommand extends PubCommand {
         client.get(server.resolve("/packages/versions/new.json")),
         _filesToPublish.transform((files) {
           return createTarGz(files, baseDir: entrypoint.root.dir);
-        }).chain(consumeInputStream)
+        }).chain(consumeInputStream),
+        _validate()
       ]).chain((results) {
         var response = results[0];
         var packageBytes = results[1];
@@ -169,5 +171,24 @@ class LishCommand extends PubCommand {
   /// Throws an error describing an invalid response from the server.
   void _invalidServerResponse(http.Response response) {
     throw 'Invalid server response:\n${response.body}';
+  }
+
+  /// Validates the package. Throws an exception if it's invalid.
+  Future _validate() {
+    return Validator.runAll(entrypoint).chain((pair) {
+      var errors = pair.first;
+      var warnings = pair.last;
+
+      if (errors.isEmpty && warnings.isEmpty) return new Future.immediate(null);
+      if (!errors.isEmpty) throw "Package validation failed.";
+
+      var s = warnings.length == 1 ? '' : 's';
+      stdout.writeString("Package has ${warnings.length} warning$s. Upload "
+          "anyway (y/n)? ");
+      return readLine().transform((line) {
+        if (new RegExp(r"^[yY]").hasMatch(line)) return;
+        throw "Package upload canceled.";
+      });
+    });
   }
 }

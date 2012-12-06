@@ -24,6 +24,8 @@ class Pair<E, F> {
     if (other is! Pair) return false;
     return other.first == first && other.last == last;
   }
+
+  int get hashCode => first.hashCode ^ last.hashCode;
 }
 
 // TODO(rnystrom): Move into String?
@@ -53,9 +55,10 @@ always(Future future, fn()) {
 }
 
 /**
- * Flattens nested lists into a single list containing only non-list elements.
+ * Flattens nested collections into a single list containing only non-list
+ * elements.
  */
-List flatten(List nested) {
+List flatten(Collection nested) {
   var result = [];
   helper(list) {
     for (var element in list) {

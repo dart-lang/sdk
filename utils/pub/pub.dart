@@ -18,11 +18,8 @@ import 'command_update.dart';
 import 'command_version.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
-import 'git_source.dart';
-import 'hosted_source.dart';
 import 'package.dart';
 import 'pubspec.dart';
-import 'sdk_source.dart';
 import 'source.dart';
 import 'source_registry.dart';
 import 'system_cache.dart';
@@ -97,11 +94,7 @@ main() {
     cacheDir = '${Platform.environment['HOME']}/.pub-cache';
   }
 
-  var cache = new SystemCache(cacheDir);
-  cache.register(new SdkSource(sdkDir));
-  cache.register(new GitSource());
-  cache.register(new HostedSource());
-  cache.sources.setDefault('hosted');
+  var cache = new SystemCache.withSources(cacheDir, sdkDir);
 
   // Select the command.
   var command = pubCommands[globalOptions.rest[0]];
@@ -223,8 +216,7 @@ abstract class PubCommand {
       // TODO(rnystrom): Will eventually need better logic to walk up
       // subdirectories until we hit one that looks package-like. For now, just
       // assume the cwd is it.
-      future = Package.load(null, currentWorkingDir, cache.sources)
-          .transform((package) => new Entrypoint(package, cache));
+      future = Entrypoint.load(currentWorkingDir, cache);
     }
 
     future = future.chain((entrypoint) {

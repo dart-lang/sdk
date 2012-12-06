@@ -19,11 +19,14 @@ import 'dart:uri';
 import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../lib/file_system.dart' as fs;
+import '../../pub/entrypoint.dart';
 import '../../pub/git_source.dart';
 import '../../pub/hosted_source.dart';
 import '../../pub/io.dart';
 import '../../pub/sdk_source.dart';
+import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
+import '../../pub/validator.dart';
 import '../../pub/yaml/yaml.dart';
 
 /**
@@ -268,7 +271,12 @@ Descriptor libDir(String name, [String code]) {
  * [version], and [dependencies].
  */
 Map package(String name, String version, [List dependencies]) {
-  var package = {"name": name, "version": version};
+  var package = {
+    "name": name,
+    "version": version,
+    "author": "Nathan Weizenbaum <nweiz@google.com>",
+    "homepage": "http://pub.dartlang.org"
+  };
   if (dependencies != null) {
     package["dependencies"] = _dependencyListToMap(dependencies);
   }
@@ -526,10 +534,7 @@ void run() {
       registerException(error, future.stackTrace);
       return true;
     });
-    future.then((_) {
-      print("Registering exception");
-      registerException(error, future.stackTrace);
-    });
+    future.then((_) => registerException(error, future.stackTrace));
     return true;
   });
 
@@ -1240,6 +1245,53 @@ class NothingDescriptor extends Descriptor {
   }
 }
 
+/// A function that creates a [Validator] subclass.
+typedef Validator ValidatorCreator(Entrypoint entrypoint);
+
+/// Schedules a single [Validator] to run on the [appPath]. Returns a scheduled
+/// Future that contains the erros and warnings produced by that validator.
+Future<Pair<List<String>, List<String>>> schedulePackageValidation(
+    ValidatorCreator fn) {
+  return _scheduleValue((sandboxDir) {
+    var cache = new SystemCache.withSources(
+        join(sandboxDir, cachePath),
+        join(sandboxDir, sdkPath));
+
+    return Entrypoint.load(join(sandboxDir, appPath), cache)
+        .chain((entrypoint) {
+      var validator = fn(entrypoint);
+      return validator.validate().transform((_) {
+        return new Pair(validator.errors, validator.warnings);
+      });
+    });
+  });
+}
+
+/// A matcher that matches a Pair.	
+Matcher pairOf(Matcher firstMatcher, Matcher lastMatcher) =>
+   new _PairMatcher(firstMatcher, lastMatcher);
+
+class _PairMatcher extends BaseMatcher {
+  final Matcher _firstMatcher;
+  final Matcher _lastMatcher;
+
+  _PairMatcher(this._firstMatcher, this._lastMatcher);
+
+  bool matches(item, MatchState matchState) {
+    if (item is! Pair) return false;
+    return _firstMatcher.matches(item.first, matchState) &&
+        _lastMatcher.matches(item.last, matchState);
+  }
+
+  Description describe(Description description) {
+    description.addAll("(", ", ", ")", [_firstMatcher, _lastMatcher]);
+  }
+}
+
+/// The time (in milliseconds) to wait for scheduled events that could run
+/// forever.
+const _SCHEDULE_TIMEOUT = 5000;
+
 /// A class representing a [Process] that is scheduled to run in the course of
 /// the test. This class allows actions on the process to be scheduled
 /// synchronously. All operations on this class are scheduled.
@@ -1339,7 +1391,7 @@ class ScheduledProcess {
   /// Reads the next line of stdout from the process.
   Future<String> nextLine() {
     return _scheduleValue((_) {
-      return timeout(_stdout.chain(readLine), 5000,
+      return timeout(_stdout.chain(readLine), _SCHEDULE_TIMEOUT,
           "waiting for the next stdout line from process $name");
     });
   }
@@ -1347,8 +1399,36 @@ class ScheduledProcess {
   /// Reads the next line of stderr from the process.
   Future<String> nextErrLine() {
     return _scheduleValue((_) {
-      return timeout(_stderr.chain(readLine), 5000,
+      return timeout(_stderr.chain(readLine), _SCHEDULE_TIMEOUT,
           "waiting for the next stderr line from process $name");
+    });
+  }
+
+  /// Reads the remaining stdout from the process. This should only be called
+  /// after kill() or shouldExit().
+  Future<String> remainingStdout() {
+    if (!_endScheduled) {
+      throw new StateError("remainingStdout() should only be called after "
+          "kill() or shouldExit().");
+    }
+
+    return _scheduleValue((_) {
+      return timeout(_stdout.chain(consumeStringInputStream), _SCHEDULE_TIMEOUT,
+          "waiting for the last stdout line from process $name");
+    });
+  }
+
+  /// Reads the remaining stderr from the process. This should only be called
+  /// after kill() or shouldExit().
+  Future<String> remainingStderr() {
+    if (!_endScheduled) {
+      throw new StateError("remainingStderr() should only be called after "
+          "kill() or shouldExit().");
+    }
+
+    return _scheduleValue((_) {
+      return timeout(_stderr.chain(consumeStringInputStream), _SCHEDULE_TIMEOUT,
+          "waiting for the last stderr line from process $name");
     });
   }
 
@@ -1364,7 +1444,8 @@ class ScheduledProcess {
       _endExpected = true;
       return _process.chain((p) {
         p.kill();
-        return timeout(_exitCode, 5000, "waiting for process $name to die");
+        return timeout(_exitCode, _SCHEDULE_TIMEOUT,
+            "waiting for process $name to die");
       });
     });
   }
@@ -1375,8 +1456,8 @@ class ScheduledProcess {
     _endScheduled = true;
     _schedule((_) {
       _endExpected = true;
-      return timeout(_exitCode, 5000, "waiting for process $name to exit")
-          .transform((exitCode) {
+      return timeout(_exitCode, _SCHEDULE_TIMEOUT,
+          "waiting for process $name to exit").transform((exitCode) {
         if (expectedExitCode != null) {
           expect(exitCode, equals(expectedExitCode));
         }
@@ -1413,6 +1494,9 @@ class ScheduledServer {
 
   /// The queue of handlers to run for upcoming requests.
   final _handlers = new Queue<Future>();
+
+  /// The requests to be ignored.
+  final _ignored = new Set<Pair<String, String>>();
 
   ScheduledServer._(this._server);
 
@@ -1454,13 +1538,19 @@ class ScheduledServer {
         chainToCompleter(future, requestCompleteCompleter);
       });
       return timeout(requestCompleteCompleter.future,
-          5000, "waiting for $method $path");
+          _SCHEDULE_TIMEOUT, "waiting for $method $path");
     });
     _handlers.add(handlerCompleter.future);
   }
 
+  /// Ignore all requests with the given [method] and [path]. If one is
+  /// received, don't respond to it.
+  void ignore(String method, String path) =>
+    _ignored.add(new Pair(method, path));
+
   /// Raises an error complaining of an unexpected request.
   void _awaitHandle(HttpRequest request, HttpResponse response) {
+    if (_ignored.contains(new Pair(request.method, request.path))) return;
     var future = timeout(new Future.immediate(null).chain((_) {
       if (_handlers.isEmpty) {
         fail('Unexpected ${request.method} request to ${request.path}.');
@@ -1468,7 +1558,8 @@ class ScheduledServer {
       return _handlers.removeFirst();
     }).transform((handler) {
       handler(request, response);
-    }), 5000, "waiting for a handler for ${request.method} ${request.path}");
+    }), _SCHEDULE_TIMEOUT, "waiting for a handler for ${request.method} "
+        "${request.path}");
     expect(future, completes);
   }
 }

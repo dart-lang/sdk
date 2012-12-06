@@ -51,6 +51,12 @@ class Entrypoint {
   Entrypoint(this.root, this.cache)
   : _installs = new Map<PackageId, Future<PackageId>>();
 
+  /// Loads the entrypoint from a package at [rootDir].
+  static Future<Entrypoint> load(String rootDir, SystemCache cache) {
+    return Package.load(null, rootDir, cache.sources).transform((package) =>
+        new Entrypoint(package, cache));
+  }
+
   /**
    * The path to this "packages" directory.
    */

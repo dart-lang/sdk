@@ -96,6 +96,65 @@ main() {
     run();
   });
 
+  test('package validation has an error', () {
+    var package = package("test_pkg", "1.0.0");
+    package.remove("homepage");
+    dir(appPath, [pubspec(package)]).scheduleCreate();
+
+    var server = new ScheduledServer();
+    credentialsFile(server, 'access token').scheduleCreate();
+    var pub = startPubLish(server);
+    server.ignore('GET', '/packages/versions/new.json');
+
+    pub.shouldExit(1);
+    expectLater(pub.remainingStderr(), contains("Package validation failed."));
+
+    run();
+  });
+
+  test('package validation has a warning and is canceled', () {
+    var package = package("test_pkg", "1.0.0");
+    package["author"] = "Nathan Weizenbaum";
+    dir(appPath, [pubspec(package)]).scheduleCreate();
+
+    var server = new ScheduledServer();
+    credentialsFile(server, 'access token').scheduleCreate();
+    var pub = startPubLish(server);
+    server.ignore('GET', '/packages/versions/new.json');
+
+    pub.writeLine("n");
+    pub.shouldExit(1);
+    expectLater(pub.remainingStderr(), contains("Package upload canceled."));
+
+    run();
+  });
+
+  test('package validation has a warning and continues', () {
+    var package = package("test_pkg", "1.0.0");
+    package["author"] = "Nathan Weizenbaum";
+    dir(appPath, [pubspec(package)]).scheduleCreate();
+
+    var server = new ScheduledServer();
+    credentialsFile(server, 'access token').scheduleCreate();
+    var pub = startPubLish(server);
+    pub.writeLine("y");
+    handleUploadForm(server);
+    handleUpload(server);
+
+    server.handle('GET', '/create', (request, response) {
+      response.outputStream.writeString(JSON.stringify({
+        'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
+      }));
+      return closeHttpResponse(request, response);
+    });
+
+    pub.shouldExit(0);
+    expectLater(pub.remainingStdout(),
+        contains('Package test_pkg 1.0.0 uploaded!'));
+
+    run();
+  });
+
   test('upload form provides an error', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
