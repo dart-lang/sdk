@@ -3037,6 +3037,15 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       parameters = parametersBuilder.toLink();
     }
     DartType returnType = compiler.resolveReturnType(element, returnNode);
+    if (element.isSetter() && (requiredParameterCount != 1 ||
+                               visitor.optionalParameterCount != 0)) {
+      // If there are no formal parameters, we already reported an error above.
+      if (formalParameters != null) {
+        compiler.reportMessage(compiler.spanFromNode(formalParameters),
+                               MessageKind.ILLEGAL_SETTER_FORMALS.error([]),
+                               Diagnostic.ERROR);
+      }
+    }
     return new FunctionSignature(parameters,
                                  visitor.optionalParameters,
                                  requiredParameterCount,

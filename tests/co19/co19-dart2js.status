@@ -535,14 +535,6 @@ Language/07_Classes/2_Getters_A01_t04: Fail # Checks that a compile-time error i
 Language/07_Classes/2_Getters_A01_t05: Fail # Checks that a compile-time error is produced if an static getter has empty formal parameter list.
 Language/07_Classes/2_Getters_A01_t06: Fail # Checks that a compile-time error is produced if an arbitrary static getter specifies a single formal parameter.
 Language/07_Classes/2_Getters_A01_t07: Fail # Checks that a compile-time error is produced if an arbitrary instance getter specifies a single formal parameter.
-Language/07_Classes/3_Setters_A03_t01: Fail # Checks that a compile-time error is produced if a setter's formal parameter list contains two required parameters.
-Language/07_Classes/3_Setters_A03_t02: Fail # Checks that a compile-time error is produced if a setter's formal parameter list consists of a single optional parameter.
-Language/07_Classes/3_Setters_A03_t03: Fail # Checks that a compile-time error is produced if a setter's formal parameter list is empty.
-Language/07_Classes/3_Setters_A03_t04: Fail # Checks that a compile-time error is produced if a setter's formal parameter list contains a single optional parameter with a default value.
-Language/07_Classes/3_Setters_A03_t05: Fail # Checks that a compile-time error is produced if a static setter's formal parameter list contains two required parameters.
-Language/07_Classes/3_Setters_A03_t06: Fail # Checks that a compile-time error is produced if a static setter's formal parameter list consists of a single optional parameter.
-Language/07_Classes/3_Setters_A03_t07: Fail # Checks that a compile-time error is produced if a static setter's formal parameter list is empty.
-Language/07_Classes/3_Setters_A03_t08: Fail # Checks that a compile-time error is produced if a static setter's formal parameter list contains a single optional parameter with a default value.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Checks that a compile-time error is produced when the overriding abstract method has fewer named parameters than the instance method being overridden (2 vs 3) and neither  have any required parameters.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has the same set of named parameters as the abstract method being overriden,  but in a different order.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has almost the same set of named parameters as the abstract method being overriden,  except for one that has a different name.

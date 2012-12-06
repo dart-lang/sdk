@@ -288,8 +288,6 @@ prefix23_negative_test: Fail # Negative language test.
 pseudo_kw_illegal_test/03: Fail # Negative language test.
 pseudo_kw_illegal_test/14: Fail # Negative language test.
 scope_negative_test: Fail # Negative language test.
-setter_declaration2_negative_test: Fail # Negative language test.
-setter_declaration_negative_test: Fail # Negative language test.
 static_field_test/01: Fail # Negative language test.
 static_field_test/03: Fail # Negative language test.
 static_final_field2_negative_test: Fail # Negative language test.too

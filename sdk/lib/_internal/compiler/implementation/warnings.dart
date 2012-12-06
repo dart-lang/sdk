@@ -219,6 +219,9 @@ class MessageKind {
   static const SETTER_MISMATCH = const MessageKind(
       "Error: getter disagrees on: #{1}.");
 
+  static const ILLEGAL_SETTER_FORMALS = const MessageKind(
+      "Error: a setter must have exactly one argument.");
+
   static const NO_STATIC_OVERRIDE = const MessageKind(
       "Error: static member cannot override instance member '#{1}' of '#{2}'.");
 
