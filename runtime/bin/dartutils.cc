@@ -7,6 +7,7 @@
 #include "bin/extensions.h"
 #include "bin/directory.h"
 #include "bin/file.h"
+#include "bin/io_buffer.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -668,6 +669,20 @@ Dart_CObject* CObject::NewExternalUint8Array(int64_t length,
   cobject->value.as_external_byte_array.peer = peer;
   cobject->value.as_external_byte_array.callback = callback;
   return cobject;
+}
+
+
+Dart_CObject* CObject::NewIOBuffer(int64_t length) {
+  uint8_t* data = IOBuffer::Allocate(length);
+  return NewExternalUint8Array(length, data, data, IOBuffer::Free);
+}
+
+
+void CObject::FreeIOBufferData(Dart_CObject* cobject) {
+  ASSERT(cobject->type == Dart_CObject::kExternalUint8Array);
+  cobject->value.as_external_byte_array.callback(
+      cobject->value.as_external_byte_array.peer);
+  cobject->value.as_external_byte_array.data = NULL;
 }
 
 

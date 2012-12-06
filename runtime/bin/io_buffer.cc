@@ -4,23 +4,19 @@
 
 #include "bin/io_buffer.h"
 
-static void BufferFree(void* buffer) {
-  delete[] reinterpret_cast<uint8_t*>(buffer);
-}
-
-
 Dart_Handle IOBuffer::Allocate(intptr_t size, uint8_t **buffer) {
-  uint8_t* data = new uint8_t[size];
-  Dart_Handle result = Dart_NewExternalByteArray(data,
-                                                 size,
-                                                 data,
-                                                 BufferFree);
+  uint8_t* data = Allocate(size);
+  Dart_Handle result = Dart_NewExternalByteArray(data, size, data, Free);
   if (Dart_IsError(result)) {
-    BufferFree(data);
+    Free(data);
     Dart_PropagateError(result);
   }
   if (buffer != NULL) {
     *buffer = data;
   }
   return result;
+}
+
+uint8_t* IOBuffer::Allocate(intptr_t size) {
+  return new uint8_t[size];
 }

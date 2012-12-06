@@ -231,6 +231,8 @@ class CObject {
                                              uint8_t* data,
                                              void* peer,
                                              Dart_PeerFinalizer callback);
+  static Dart_CObject* NewIOBuffer(int64_t length);
+  static void FreeIOBufferData(Dart_CObject* object);
 
   Dart_CObject* AsApiCObject() { return cobject_; }
 
@@ -404,6 +406,9 @@ class CObjectExternalUint8Array : public CObject {
   DECLARE_COBJECT_CONSTRUCTORS(ExternalUint8Array)
 
   int Length() const { return cobject_->value.as_external_byte_array.length; }
+  void SetLength(uint64_t length) {
+    cobject_->value.as_external_byte_array.length = length;
+  }
   uint8_t* Data() const { return cobject_->value.as_external_byte_array.data; }
   void* Peer() const { return cobject_->value.as_external_byte_array.peer; }
   Dart_PeerFinalizer Callback() const {

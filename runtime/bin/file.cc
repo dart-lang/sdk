@@ -779,11 +779,6 @@ static CObject* FileWriteByteRequest(const CObjectArray& request) {
 }
 
 
-static void FinalizeExternalByteArray(void* peer) {
-  delete[] reinterpret_cast<uint8_t*>(peer);
-}
-
-
 static CObject* FileReadRequest(const CObjectArray& request) {
   if (request.Length() == 3 &&
       request[1]->IsIntptr() &&
@@ -792,21 +787,19 @@ static CObject* FileReadRequest(const CObjectArray& request) {
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
-      uint8_t* buffer = new uint8_t[length];
-      int64_t bytes_read = file->Read(buffer, length);
+      Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
+      uint8_t* data = io_buffer->value.as_external_byte_array.data;
+      int64_t bytes_read = file->Read(data, length);
       if (bytes_read >= 0) {
-        void* peer = reinterpret_cast<void*>(buffer);
-        CObject* external_array =
-            new CObjectExternalUint8Array(
-                CObject::NewExternalUint8Array(bytes_read,
-                                               buffer,
-                                               peer,
-                                               FinalizeExternalByteArray));
+        CObjectExternalUint8Array* external_array =
+            new CObjectExternalUint8Array(io_buffer);
+        external_array->SetLength(bytes_read);
         CObjectArray* result = new CObjectArray(CObject::NewArray(2));
         result->SetAt(0, new CObjectIntptr(CObject::NewInt32(0)));
         result->SetAt(1, external_array);
         return result;
       } else {
+        CObject::FreeIOBufferData(io_buffer);
         return CObject::NewOSError();
       }
     } else {
@@ -825,22 +818,20 @@ static CObject* FileReadListRequest(const CObjectArray& request) {
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
-      uint8_t* buffer = new uint8_t[length];
-      int64_t bytes_read = file->Read(buffer, length);
+      Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
+      uint8_t* data = io_buffer->value.as_external_byte_array.data;
+      int64_t bytes_read = file->Read(data, length);
       if (bytes_read >= 0) {
-        void* peer = reinterpret_cast<void*>(buffer);
-        CObject* external_array =
-            new CObjectExternalUint8Array(
-                CObject::NewExternalUint8Array(length,
-                                               buffer,
-                                               peer,
-                                               FinalizeExternalByteArray));
+        CObjectExternalUint8Array* external_array =
+            new CObjectExternalUint8Array(io_buffer);
+        external_array->SetLength(bytes_read);
         CObjectArray* result = new CObjectArray(CObject::NewArray(3));
         result->SetAt(0, new CObjectIntptr(CObject::NewInt32(0)));
         result->SetAt(1, new CObjectInt64(CObject::NewInt64(bytes_read)));
         result->SetAt(2, external_array);
         return result;
       } else {
+        CObject::FreeIOBufferData(io_buffer);
         return CObject::NewOSError();
       }
     } else {
