@@ -4,6 +4,7 @@
 
 #include "vm/os.h"
 
+#include <android/log.h>
 #include <errno.h>
 #include <limits.h>
 #include <malloc.h>
@@ -152,6 +153,8 @@ void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
   VFPrint(stdout, format, args);
+  // Forward to the Android log for remote access.
+  __android_log_vprint(ANDROID_LOG_INFO, "DartVM", format, args);
   va_end(args);
 }
 
@@ -203,6 +206,8 @@ void OS::PrintErr(const char* format, ...) {
   va_list args;
   va_start(args, format);
   VFPrint(stderr, format, args);
+  // Forward to the Android log for remote access.
+  __android_log_vprint(ANDROID_LOG_ERROR, "DartVM", format, args);
   va_end(args);
 }
 
