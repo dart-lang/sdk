@@ -8712,18 +8712,14 @@ bool Type::HasResolvedTypeClass() const {
 
 RawClass* Type::type_class() const {
   ASSERT(HasResolvedTypeClass());
-  Class& type_class = Class::Handle();
-  type_class ^= raw_ptr()->type_class_;
-  return type_class.raw();
+  return reinterpret_cast<RawClass*>(raw_ptr()->type_class_);
 }
 
 
 RawUnresolvedClass* Type::unresolved_class() const {
-  ASSERT(!HasResolvedTypeClass());
-  UnresolvedClass& unresolved_class = UnresolvedClass::Handle();
-  unresolved_class ^= raw_ptr()->type_class_;
-  ASSERT(!unresolved_class.IsNull());
-  return unresolved_class.raw();
+  ASSERT(!Object::Handle(raw_ptr()->type_class_).IsNull());
+  ASSERT(Object::Handle(raw_ptr()->type_class_).IsUnresolvedClass());
+  return reinterpret_cast<RawUnresolvedClass*>(raw_ptr()->type_class_);
 }
 
 
