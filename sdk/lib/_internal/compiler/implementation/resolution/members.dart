@@ -2047,7 +2047,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         unimplemented(node.expression, 'redirecing to redirecting factory');
       }
     }
-    constructor.defaultImplementation = redirectionTarget;
     world.registerStaticUse(redirectionTarget);
     world.registerInstantiatedClass(
         redirectionTarget.enclosingElement.declaration);
