@@ -73,7 +73,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       FunctionElement element = work.element;
       js.Block body;
       ClassElement enclosingClass = element.getEnclosingClass();
-      bool allowVariableMinification = !codegen.visitedForeignCode;
+      bool allowVariableMinification = !codegen.inhibitVariableMinification;
 
       if (element.isInstanceMember()
           && enclosingClass.isNative()
@@ -163,7 +163,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    */
   bool isGeneratingExpression = false;
 
-  bool visitedForeignCode = false;
+  bool inhibitVariableMinification = false;
 
   final JavaScriptBackend backend;
   final WorkItem work;
@@ -1778,7 +1778,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeign(HForeign node) {
-    visitedForeignCode = true;
+    // TODO(sra): We could be a lot more picky about when to inhibit renaming of
+    // locals - most JS strings don't contain free variables, or contain safe
+    // ones like 'Object'.  JS strings like "#.length" and "#[#]" are perfectly
+    // safe for variable renaming.
+    inhibitVariableMinification = true;
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement(types)) {
@@ -1803,7 +1807,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeignNew(HForeignNew node) {
-    visitedForeignCode = true;
     String jsClassReference = backend.namer.isolateAccess(node.element);
     List<HInstruction> inputs = node.inputs;
     // We can't use 'visitArguments', since our arguments start at input[0].
