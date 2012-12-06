@@ -11,15 +11,7 @@
         {
           'action_name': 'make_pkg_packages',
           'inputs': [
-            '../tools/make_links.py',
-            'args/lib',
-            'fixnum/lib',
-            'http/lib',
-            'intl/lib',
-            'logging/lib',
-            'meta/lib',
-            'unittest/lib',
-            'webdriver/lib',
+            '<!@(["python", "../tools/list_pkg_directories.py"])',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/packages',
