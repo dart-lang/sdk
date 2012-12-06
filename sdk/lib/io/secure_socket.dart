@@ -218,12 +218,16 @@ class _SecureSocket implements SecureSocket {
   }
 
   void close([bool halfClose = false]) {
+    if (_status == CLOSED) return;
     if (halfClose) {
       _closedWrite = true;
       _writeEncryptedData();
       if (_filterWriteEmpty) {
         _socket.close(true);
         _socketClosedWrite = true;
+        if (_closedRead) {
+          close(false);
+        }
       }
     } else {
       _closedWrite = true;
@@ -328,8 +332,7 @@ class _SecureSocket implements SecureSocket {
   void _secureWriteHandler() {
     _writeEncryptedData();
     if (_filterWriteEmpty && _closedWrite && !_socketClosedWrite) {
-      _socket.close(true);
-      _sockedClosedWrite = true;
+      close(true);
     }
     if (_status == HANDSHAKE) {
       _secureHandshake();
@@ -363,6 +366,8 @@ class _SecureSocket implements SecureSocket {
         if (_socketDataHandler != null) {
           _socketDataHandler();
         }
+      } else if (_socketClosedRead) {
+        _secureCloseHandler();
       }
     }
   }
@@ -397,14 +402,18 @@ class _SecureSocket implements SecureSocket {
   }
 
   void _secureCloseHandler() {
+    if (_closedRead) return;
     _socketClosedRead = true;
     if (_filterReadEmpty) {
       _closedRead = true;
-      _fireCloseEvent();
+      if (scheduledDataEvent != null) {
+        scheduledDataEvent.cancel();
+      }
+      if (_socketCloseHandler != null) {
+        _socketCloseHandler();
+      }
       if (_socketClosedWrite) {
-        _secureFilter.destroy();
-        _secureFilter = null;
-        _status = CLOSED;
+        close(false);
       }
     }
   }
@@ -431,16 +440,7 @@ class _SecureSocket implements SecureSocket {
 
   // True if the underlying socket is closed, the filter has been emptied of
   // all data, and the close event has been fired.
-  get _closed => _socketClosed && !_fireCloseEventPending;
-
-  void _fireCloseEvent() {
-    if (scheduledDataEvent != null) {
-      scheduledDataEvent.cancel();
-    }
-    if (_socketCloseHandler != null) {
-      _socketCloseHandler();
-    }
-  }
+  get _closed => _socketClosed;
 
   void _readEncryptedData() {
     // Read from the socket, and push it through the filter as far as
@@ -549,7 +549,7 @@ class _SecureSocket implements SecureSocket {
       if (_filterReadEmpty) {
         // This can't be an else clause: the value of _filterReadEmpty changes.
         // This must be asynchronous, because we are in a read or readList call.
-        new Timer(0, (_) => _fireCloseEvent());
+        new Timer(0, (_) => _secureCloseHandler());
       }
     }
   }
