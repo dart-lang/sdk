@@ -980,30 +980,40 @@ $lazyInitializerLogic
     // Emit forwarders for the ObjectInterceptor class. We need to
     // emit all possible sends on intercepted methods.
     for (Selector selector in backend.usedInterceptors) {
+
+      List<js.Parameter> parameters = <js.Parameter>[];
+      List<js.Expression> arguments = <js.Expression>[];
+      parameters.add(new js.Parameter('receiver'));
+
       String name;
-      String comma = '';
-      String parameters = '';
       if (selector.isGetter()) {
         name = backend.namer.getterName(selector.library, selector.name);
       } else if (selector.isSetter()) {
         name = backend.namer.setterName(selector.library, selector.name);
+        parameters.add(new js.Parameter('value'));
+        arguments.add(new js.VariableUse('value'));
       } else {
         assert(selector.isCall() || selector.isOperator());
         name = backend.namer.instanceMethodInvocationName(
             selector.library, selector.name, selector);
-        if (selector.argumentCount > 0) {
-          comma = ', ';
-          int i = 0;
-          for (; i < selector.argumentCount - 1; i++) {
-            parameters = '${parameters}a$i, ';
-          }
-          parameters = '${parameters}a$i';
+        for (int i = 0; i < selector.argumentCount; i++) {
+          String argName = 'a$i';
+          parameters.add(new js.Parameter(argName));
+          arguments.add(new js.VariableUse(argName));
         }
       }
-      StringBuffer body = new StringBuffer(
-          "function(receiver$comma$parameters) {"
-              " return receiver.$name($parameters); }");
-      defineInstanceMember(name, body);
+      js.Fun function = 
+          new js.Fun(parameters,
+              new js.Block(
+                  <js.Statement>[
+                      new js.Return(
+                          new js.VariableUse('receiver')
+                              .dot(name)
+                              .callWith(arguments))]));
+
+      CodeBuffer code = new CodeBuffer();
+      code.add(js.prettyPrint(function, compiler));
+      defineInstanceMember(name, code);
     }
   }
 

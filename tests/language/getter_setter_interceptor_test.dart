@@ -4,12 +4,33 @@
 
 class A {
   int length = 0;
-
-  foo() => length++;
-  bar() => ++length;
 }
 
+class B {
+  int length = 0;
+  foo(receiver) {
+    length++;
+    return receiver.length++;
+  }
+  bar(receiver) {
+    ++length;
+    return ++receiver.length;
+  }
+}
+
+
 main() {
-  Expect.equals(0, new A().foo());
-  Expect.equals(1, new A().bar());
+  var a = new A();
+  var b = new B();
+  var c = [1,2,3];
+
+  Expect.equals(3, b.foo(c));
+  Expect.equals(5, b.bar(c));
+  Expect.equals(5, c.length);
+
+  Expect.equals(0, b.foo(a));
+  Expect.equals(2, b.bar(a));
+  Expect.equals(2, a.length);
+
+  Expect.equals(4, b.length);
 }
