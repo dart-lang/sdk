@@ -361,7 +361,6 @@ compile_time_constant10_test/02: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/01: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/02: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/03: Fail # http://dartbug.com/5519
-compile_time_constant_arguments_test/04: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/05: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/06: Fail # http://dartbug.com/5519
 const_constructor_syntax_test/04: Fail # http://dartbug.com/5519
@@ -391,7 +390,6 @@ isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 method_override2_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/03: Fail # http://dartbug.com/5519
-named_parameters_aggregated_test/04: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 static_field3_test/01: Fail # http://dartbug.com/5519
 static_field3_test/02: Fail # http://dartbug.com/5519

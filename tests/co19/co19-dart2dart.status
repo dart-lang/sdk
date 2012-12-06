@@ -148,14 +148,6 @@ Language/07_Classes/2_Getters_A01_t04: Fail # http://dartbug.com/5519
 Language/07_Classes/2_Getters_A01_t05: Fail # inherited from VM
 Language/07_Classes/2_Getters_A01_t06: Fail # http://dartbug.com/5519
 Language/07_Classes/2_Getters_A01_t07: Fail # http://dartbug.com/5519
-Language/07_Classes/3_Setters_A03_t01: Fail # http://dartbug.com/5519
-Language/07_Classes/3_Setters_A03_t02: Fail # http://dartbug.com/5519
-Language/07_Classes/3_Setters_A03_t03: Fail # http://dartbug.com/5519
-Language/07_Classes/3_Setters_A03_t04: Fail # http://dartbug.com/5519
-Language/07_Classes/3_Setters_A03_t05: Fail # http://dartbug.com/5519
-Language/07_Classes/3_Setters_A03_t06: Fail # http://dartbug.com/5519
-Language/07_Classes/3_Setters_A03_t07: Fail # http://dartbug.com/5519
-Language/07_Classes/3_Setters_A03_t08: Fail # http://dartbug.com/5519
 Language/07_Classes/3_Setters_A04_t01: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t02: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t03: Fail # inherited from VM
@@ -270,7 +262,6 @@ Language/11_Expressions/11_Instance_Creation/2_Const_A01_t02: Fail # http://dart
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # inherited from VM
-Language/11_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A04_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # inherited from VM
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # inherited from VM
