@@ -683,6 +683,9 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
   }
 
   bool writeFrom(List<int> buffer, [int offset = 0, int len]) {
+    if (offset < 0 || offset >= buffer.length) throw new ArgumentError();
+    len = len != null ? len : buffer.length - offset;
+    if (len < 0) throw new ArgumentError();
     return _requestOrResponse._streamWriteFrom(buffer, offset, len);
   }
 
