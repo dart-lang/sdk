@@ -719,7 +719,7 @@ DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
 }
 
 
-DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_HeapProfileWriteCallback callback,
+DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_FileWriteCallback callback,
                                          void* stream) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
@@ -740,8 +740,12 @@ DART_EXPORT bool Dart_Initialize(
     Dart_IsolateCreateCallback create,
     Dart_IsolateInterruptCallback interrupt,
     Dart_IsolateUnhandledExceptionCallback unhandled,
-    Dart_IsolateShutdownCallback shutdown) {
-  const char* err_msg = Dart::InitOnce(create, interrupt, unhandled, shutdown);
+    Dart_IsolateShutdownCallback shutdown,
+    Dart_FileOpenCallback file_open,
+    Dart_FileWriteCallback file_write,
+    Dart_FileCloseCallback file_close) {
+  const char* err_msg = Dart::InitOnce(create, interrupt, unhandled, shutdown,
+                                       file_open, file_write, file_close);
   if (err_msg != NULL) {
     OS::PrintErr("Dart_Initialize: %s\n", err_msg);
     return false;
@@ -4415,8 +4419,8 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
 }
 
 
-DART_EXPORT void Dart_InitPerfEventsSupport(Dart_FileWriterFunction function) {
-  Dart::set_perf_events_writer(function);
+DART_EXPORT void Dart_InitPerfEventsSupport(void* perf_events_file) {
+  Dart::set_perf_events_file(perf_events_file);
 }
 
 

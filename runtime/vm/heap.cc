@@ -267,7 +267,7 @@ void Heap::PrintSizes() const {
 }
 
 
-void Heap::Profile(Dart_HeapProfileWriteCallback callback, void* stream) const {
+void Heap::Profile(Dart_FileWriteCallback callback, void* stream) const {
   HeapProfiler profiler(callback, stream);
 
   // Dump the root set.

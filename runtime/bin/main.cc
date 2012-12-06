@@ -41,6 +41,7 @@ static const char* generate_pprof_symbols_filename = NULL;
 static bool use_script_snapshot = false;
 static File* snapshot_file = NULL;
 
+
 // Global state that indicates whether there is a debug breakpoint.
 // This pointer points into an argv buffer and does not need to be
 // free'd.
@@ -227,10 +228,25 @@ static bool ProcessMainOptions(const char* option) {
 }
 
 
-static void WriteToPerfEventsFile(const char* buffer, int64_t num_bytes) {
-  ASSERT(perf_events_symbols_file != NULL);
-  perf_events_symbols_file->WriteFully(buffer, num_bytes);
+static void* OpenFile(const char* name) {
+  File* file = File::Open(name, File::kWriteTruncate);
+  ASSERT(file != NULL);
+  return reinterpret_cast<void*>(file);
 }
+
+
+static void WriteFile(const void* buffer, intptr_t num_bytes, void* stream) {
+  ASSERT(stream != NULL);
+  File* file_stream = reinterpret_cast<File*>(stream);
+  bool bytes_written = file_stream->WriteFully(buffer, num_bytes);
+  ASSERT(bytes_written);
+}
+
+
+static void CloseFile(void* stream) {
+  delete reinterpret_cast<File*>(stream);
+}
+
 
 // Convert all the arguments to UTF8. On Windows, the arguments are
 // encoded in the current code page and not UTF8.
@@ -291,7 +307,7 @@ static int ParseArguments(int argc,
   }
 
   if (perf_events_symbols_file != NULL) {
-    Dart_InitPerfEventsSupport(&WriteToPerfEventsFile);
+    Dart_InitPerfEventsSupport(perf_events_symbols_file);
   }
 
   if (generate_pprof_symbols_filename != NULL) {
@@ -690,10 +706,8 @@ int main(int argc, char** argv) {
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Initialize the Dart VM.
-  if (!Dart_Initialize(CreateIsolateAndSetup,
-                       NULL,
-                       NULL,
-                       ShutdownIsolate)) {
+  if (!Dart_Initialize(CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
+                       OpenFile, WriteFile, CloseFile)) {
     fprintf(stderr, "%s", "VM initialization failed\n");
     fflush(stderr);
     return kErrorExitCode;

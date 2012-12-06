@@ -531,29 +531,6 @@ DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
 DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
     Dart_GcEpilogueCallback callback);
 
-// --- Heap Profiler ---
-
-/**
- * A callback invoked by the heap profiler during profiling to write
- * data.
- */
-typedef void (*Dart_HeapProfileWriteCallback)(const void* data,
-                                              intptr_t length,
-                                              void* stream);
-
-/**
- * Generates a heap profile.
- *
- * \param callback A function pointer that will be repeatedly invoked
- *   with heap profile data.
- * \param stream A pointer that will be passed to the callback.  This
- *   is a convenient way to provide an open stream to the callback.
- *
- * \return Success if the heap profile is successful.
- */
-DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_HeapProfileWriteCallback callback,
-                                         void* stream);
-
 // --- Initialization and Globals ---
 
 /**
@@ -650,6 +627,15 @@ typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
  */
 typedef void (*Dart_IsolateShutdownCallback)(void* callback_data);
 
+typedef void* (*Dart_FileOpenCallback)(const char* name);
+
+typedef void (*Dart_FileWriteCallback)(const void* data,
+                                       intptr_t length,
+                                       void* stream);
+
+typedef void (*Dart_FileCloseCallback)(void* stream);
+
+
 /**
  * Initializes the VM.
  *
@@ -668,7 +654,10 @@ DART_EXPORT bool Dart_Initialize(
     Dart_IsolateCreateCallback create,
     Dart_IsolateInterruptCallback interrupt,
     Dart_IsolateUnhandledExceptionCallback unhandled_exception,
-    Dart_IsolateShutdownCallback shutdown);
+    Dart_IsolateShutdownCallback shutdown,
+    Dart_FileOpenCallback file_open,
+    Dart_FileWriteCallback file_write,
+    Dart_FileCloseCallback file_close);
 
 /**
  * Sets command line flags. Should be called before Dart_Initialize.
@@ -2735,10 +2724,23 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 DART_EXPORT void Dart_InitPprofSupport();
 DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size);
 
-typedef void (*Dart_FileWriterFunction)(const char* buffer, int64_t num_bytes);
-
 // Support for generating symbol maps for use by the Linux perf tool.
-DART_EXPORT void Dart_InitPerfEventsSupport(Dart_FileWriterFunction function);
+DART_EXPORT void Dart_InitPerfEventsSupport(void* perf_events_file);
+
+// --- Heap Profiler ---
+
+/**
+ * Generates a heap profile.
+ *
+ * \param callback A function pointer that will be repeatedly invoked
+ *   with heap profile data.
+ * \param stream A pointer that will be passed to the callback.  This
+ *   is a convenient way to provide an open stream to the callback.
+ *
+ * \return Success if the heap profile is successful.
+ */
+DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_FileWriteCallback callback,
+                                         void* stream);
 
 // --- Peers ---
 

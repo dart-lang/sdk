@@ -113,7 +113,7 @@ void HeapProfiler::SubRecord::WritePointer(const void* value) {
 }
 
 
-HeapProfiler::HeapProfiler(Dart_HeapProfileWriteCallback callback, void* stream)
+HeapProfiler::HeapProfiler(Dart_FileWriteCallback callback, void* stream)
     : write_callback_(callback),
       output_stream_(stream),
       heap_dump_record_(NULL) {

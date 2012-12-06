@@ -157,7 +157,7 @@ class Heap {
   ObjectSet* CreateAllocatedObjectSet() const;
 
   // Generates a profile of the current and VM isolate heaps.
-  void Profile(Dart_HeapProfileWriteCallback callback, void* stream) const;
+  void Profile(Dart_FileWriteCallback callback, void* stream) const;
 
   static const char* GCReasonToString(GCReason gc_reason);
 

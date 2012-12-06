@@ -57,7 +57,7 @@ bool CodeObservers::AreActive() {
 class PerfCodeObserver : public CodeObserver {
  public:
   virtual bool IsActive() const {
-    return Dart::perf_events_writer() != NULL;
+    return Dart::perf_events_file() != NULL;
   }
 
   virtual void Notify(const char* name,
@@ -65,15 +65,16 @@ class PerfCodeObserver : public CodeObserver {
                       uword prologue_offset,
                       uword size,
                       bool optimized) {
-    Dart_FileWriterFunction perf_events_writer = Dart::perf_events_writer();
-    ASSERT(perf_events_writer != NULL);
-
     const char* format = "%"Px" %"Px" %s%s\n";
     const char* marker = optimized ? "*" : "";
     intptr_t len = OS::SNPrint(NULL, 0, format, base, size, marker, name);
     char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(buffer, len + 1, format, base, size, marker, name);
-    (*perf_events_writer)(buffer, len);
+    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+    ASSERT(file_write != NULL);
+    void* file = Dart::perf_events_file();
+    ASSERT(file != NULL);
+    (*file_write)(buffer, len, file);
   }
 };
 
