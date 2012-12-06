@@ -1271,14 +1271,16 @@ class RawInt8Array : public RawByteArray {
 class RawUint8Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Uint8Array);
 
- protected:
   // Variable length data follows here.
   uint8_t data_[0];
 };
 
 
-class RawUint8ClampedArray : public RawUint8Array {
+class RawUint8ClampedArray : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Uint8ClampedArray);
+
+  // Variable length data follows here.
+  uint8_t data_[0];
 };
 
 

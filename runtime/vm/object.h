@@ -4669,8 +4669,41 @@ class Uint8Array : public ByteArray {
 };
 
 
-class Uint8ClampedArray : public Uint8Array {
+class Uint8ClampedArray : public ByteArray {
  public:
+  intptr_t ByteLength() const {
+    return Length();
+  }
+
+  uint8_t At(intptr_t index) const {
+    ASSERT((index >= 0) && (index < Length()));
+    return raw_ptr()->data_[index];
+  }
+
+  void SetAt(intptr_t index, uint8_t value) const {
+    ASSERT((index >= 0) && (index < Length()));
+    raw_ptr()->data_[index] = value;
+  }
+
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawUint8ClampedArray, data_);
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawUint8ClampedArray) ==
+           OFFSET_OF(RawUint8ClampedArray, data_));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawUint8ClampedArray) + (len * kBytesPerElement));
+  }
+
   static RawUint8ClampedArray* New(intptr_t len,
                                    Heap::Space space = Heap::kNew);
   static RawUint8ClampedArray* New(const uint8_t* data,
@@ -4678,7 +4711,13 @@ class Uint8ClampedArray : public Uint8Array {
                                    Heap::Space space = Heap::kNew);
 
  private:
-  HEAP_OBJECT_IMPLEMENTATION(Uint8ClampedArray, Uint8Array);
+  uint8_t* ByteAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
+    return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
+  }
+
+  HEAP_OBJECT_IMPLEMENTATION(Uint8ClampedArray, ByteArray);
+  friend class ByteArray;
   friend class Class;
 };
 
