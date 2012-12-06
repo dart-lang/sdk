@@ -21692,7 +21692,7 @@ abstract class Window {
    * * [Window close discussion](http://www.w3.org/TR/html5/browsers.html#dom-window-close) from the W3C
    */
   void close();
-  void postMessage(var message, String targetOrigin, [List messagePorts = null]);
+  void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
 
 abstract class Location {
@@ -22023,7 +22023,7 @@ class KeyboardEventController {
   String _type;
 
   /** The element we are watching for events to happen on. */
-  EventTarget _target;
+  Element _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
   final int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
@@ -22082,7 +22082,7 @@ class KeyboardEventController {
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventController(EventTarget target, String type) {
+  _KeyboardEventController(Element target, String type) {
     _callbacks = [];
     _type = type;
     _target = target;
@@ -23271,9 +23271,12 @@ class _JsSerializer extends _Serializer {
              ReceivePortSync._isolateId, x._receivePort._portId ];
   }
 
+  visitSendPort(SendPort x) {
+    throw new UnimplementedError('Asynchronous send port not yet implemented.');
+  }
+
   visitRemoteSendPortSync(_RemoteSendPortSync x) {
-    return [ 'sendport', 'dart',
-             x._receivePort._isolateId, x._receivePort._portId ];
+    return [ 'sendport', 'dart', x._isolateId, x._portId ];
   }
 }
 
@@ -23331,7 +23334,7 @@ class _RemoteSendPortSync implements SendPortSync {
   }
 
   static _call(int isolateId, int portId, var message) {
-    var target = 'dart-port-$isolateId-$portId'; 
+    var target = 'dart-port-$isolateId-$portId';
     // TODO(vsm): Make this re-entrant.
     // TODO(vsm): Set this up set once, on the first call.
     var source = '$target-result';
@@ -23396,13 +23399,13 @@ class ReceivePortSync {
   static int get _isolateId {
     // TODO(vsm): Make this coherent with existing isolate code.
     if (_cachedIsolateId == null) {
-      _cachedIsolateId = _getNewIsolateId();      
+      _cachedIsolateId = _getNewIsolateId();
     }
     return _cachedIsolateId;
   }
 
   static String _getListenerName(isolateId, portId) =>
-      'dart-port-$isolateId-$portId'; 
+      'dart-port-$isolateId-$portId';
   String get _listenerName => _getListenerName(_isolateId, _portId);
 
   void receive(callback(var message)) {
@@ -24189,6 +24192,20 @@ class KeyEvent implements KeyboardEvent {
     throw new UnsupportedError("Cannot initialize an Event from a KeyEvent.");
   }
   String get _shadowKeyIdentifier => JS('String', '#.keyIdentifier', _parent);
+
+  int get $dom_charCode => charCode;
+  int get $dom_keyCode => keyCode;
+  EventTarget get target => _parent.target;
+  String get $dom_keyIdentifier {
+    throw new UnsupportedError("keyIdentifier is unsupported.");
+  }
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
+      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      bool altKey, bool shiftKey, bool metaKey,
+      bool altGraphKey) {
+    throw new UnsupportedError(
+        "Cannot initialize a KeyboardEvent from a KeyEvent.");
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

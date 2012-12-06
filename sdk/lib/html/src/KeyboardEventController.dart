@@ -32,7 +32,7 @@ class KeyboardEventController {
   String _type;
 
   /** The element we are watching for events to happen on. */
-  EventTarget _target;
+  Element _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
   final int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
@@ -91,7 +91,7 @@ class KeyboardEventController {
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventController(EventTarget target, String type) {
+  _KeyboardEventController(Element target, String type) {
     _callbacks = [];
     _type = type;
     _target = target;

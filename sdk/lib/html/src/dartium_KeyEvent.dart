@@ -104,4 +104,18 @@ class KeyEvent implements KeyboardEvent {
     throw new UnsupportedError("Cannot initialize an Event from a KeyEvent.");
   }
   String get _shadowKeyIdentifier => _parent.$dom_keyIdentifier;
+
+  int get $dom_charCode => charCode;
+  int get $dom_keyCode => keyCode;
+  EventTarget get target => _parent.target;
+  String get $dom_keyIdentifier {
+    throw new UnsupportedError("keyIdentifier is unsupported.");
+  }
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
+      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      bool altKey, bool shiftKey, bool metaKey,
+      bool altGraphKey) {
+    throw new UnsupportedError(
+        "Cannot initialize a KeyboardEvent from a KeyEvent.");
+  }
 }
