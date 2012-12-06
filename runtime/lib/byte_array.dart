@@ -34,6 +34,22 @@ patch class Uint8List {
 }
 
 
+patch class Uint8ClampedList {
+  /* patch */ factory Uint8ClampedList(int length) {
+    return new _Uint8ClampedArray(length);
+  }
+
+  /* patch */ factory Uint8ClampedList.transferable(int length) {
+    return new _Uint8ClampedArray.transferable(length);
+  }
+
+  /* patch */ factory Uint8ClampedList.view(ByteArray array,
+                                            [int start = 0, int length]) {
+    return new _Uint8ClampedArrayView(array, start, length);
+  }
+}
+
+
 patch class Int16List {
   /* patch */ factory Int16List(int length) {
     return new _Int16Array(length);
@@ -325,6 +341,11 @@ int _toInt8(int value) {
 int _toUint8(int value) {
   return value & 0xFF;
 }
+int _toClampedUint8(int value) {
+  if (value < 0) return 0;
+  if (value > 0xFF) return 0xFF;
+  return value;
+}
 
 
 int _toInt16(int value) {
@@ -446,7 +467,6 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
   static _Int8Array _new(int length) native "Int8Array_new";
   static _Int8Array _newTransferable(int length)
       native "Int8Array_newTransferable";
-      
 
   int _getIndexed(int index) native "Int8Array_getIndexed";
   int _setIndexed(int index, int value) native "Int8Array_setIndexed";
@@ -489,7 +509,8 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    if (from is _Uint8Array || from is _ExternalUint8Array) {
+    if (from is _Uint8Array || from is _ExternalUint8Array ||
+        from is _Uint8ClampedArray || from is _ExternalUint8ClampedArray) {
       _setRange(start * _BYTES_PER_ELEMENT,
                 length * _BYTES_PER_ELEMENT,
                 from,
@@ -514,9 +535,80 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
   static const int _BYTES_PER_ELEMENT = 1;
 
   static _Uint8Array _new(int length) native "Uint8Array_new";
-  static _Uint8Array _newTransferable(int length) 
+  static _Uint8Array _newTransferable(int length)
       native "Uint8Array_newTransferable";
-      
+
+  int _getIndexed(int index) native "Uint8Array_getIndexed";
+  int _setIndexed(int index, int value) native "Uint8Array_setIndexed";
+}
+
+
+class _Uint8ClampedArray extends _ByteArrayBase implements Uint8ClampedList {
+  factory _Uint8ClampedArray(int length) {
+    return _new(length);
+  }
+
+  factory _Uint8ClampedArray.transferable(int length) {
+    return _newTransferable(length);
+  }
+
+  factory _Uint8ClampedArray.view(ByteArray array,
+                                 [int start = 0, int length]) {
+    if (length == null) {
+      length = array.lengthInBytes();
+    }
+    return new _Uint8ClampedArrayView(array, start, length);
+  }
+
+  int operator[](int index) {
+    return _getIndexed(index);
+  }
+
+  int operator[]=(int index, int value) {
+    _setIndexed(index, _toClampedUint8(value));
+  }
+
+  Iterator<int> iterator() {
+    return new _ByteArrayIterator<int>(this);
+  }
+
+  List<int> getRange(int start, int length) {
+    _rangeCheck(this.length, start, length);
+    List<int> result = _new(length);
+    result.setRange(0, length, this, start);
+    return result;
+  }
+
+  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
+    if (from is _Uint8Array || from is _ExternalUint8Array ||
+        from is _Uint8ClampedArray || from is _ExternalUint8ClampedArray) {
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
+    } else {
+      Arrays.copy(from, startFrom, this, start, length);
+    }
+  }
+
+  String toString() {
+    return Collections.collectionToString(this);
+  }
+
+  int bytesPerElement() {
+    return _BYTES_PER_ELEMENT;
+  }
+
+  int lengthInBytes() {
+    return _length() * _BYTES_PER_ELEMENT;
+  }
+
+  static const int _BYTES_PER_ELEMENT = 1;
+
+  static _Uint8ClampedArray _new(int length) native "Uint8ClampedArray_new";
+  static _Uint8ClampedArray _newTransferable(int length)
+      native "Uint8ClampedArray_newTransferable";
+
   int _getIndexed(int index) native "Uint8Array_getIndexed";
   int _setIndexed(int index, int value) native "Uint8Array_setIndexed";
 }
@@ -723,7 +815,7 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
   static _Int32Array _new(int length) native "Int32Array_new";
   static _Int32Array _newTransferable(int length)
       native "Int32Array_newTransferable";
-      
+
 
   int _getIndexed(int index) native "Int32Array_getIndexed";
   int _setIndexed(int index, int value) native "Int32Array_setIndexed";

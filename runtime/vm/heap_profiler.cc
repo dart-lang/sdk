@@ -225,7 +225,8 @@ void HeapProfiler::WriteObject(const RawObject* raw_obj) {
       break;
     }
     case kInt8ArrayCid:
-    case kUint8ArrayCid: {
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid: {
       const RawInt8Array* raw_int8_array =
           reinterpret_cast<const RawInt8Array*>(raw_obj);
       WritePrimitiveArrayDump(raw_int8_array,

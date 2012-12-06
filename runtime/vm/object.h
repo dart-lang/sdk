@@ -4669,6 +4669,20 @@ class Uint8Array : public ByteArray {
 };
 
 
+class Uint8ClampedArray : public Uint8Array {
+ public:
+  static RawUint8ClampedArray* New(intptr_t len,
+                                   Heap::Space space = Heap::kNew);
+  static RawUint8ClampedArray* New(const uint8_t* data,
+                                   intptr_t len,
+                                   Heap::Space space = Heap::kNew);
+
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(Uint8ClampedArray, Uint8Array);
+  friend class Class;
+};
+
+
 class Int16Array : public ByteArray {
  public:
   intptr_t ByteLength() const {
@@ -5203,6 +5217,20 @@ class ExternalUint8Array : public ByteArray {
   friend class ByteArray;
   friend class Class;
   friend class TokenStream;
+};
+
+
+class ExternalUint8ClampedArray : public ExternalUint8Array {
+ public:
+  static RawExternalUint8ClampedArray* New(uint8_t* data,
+                                           intptr_t len,
+                                           void* peer,
+                                           Dart_PeerFinalizer callback,
+                                           Heap::Space space = Heap::kNew);
+
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(ExternalUint8ClampedArray, ExternalUint8Array);
+  friend class Class;
 };
 
 

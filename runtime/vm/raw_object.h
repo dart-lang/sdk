@@ -63,6 +63,7 @@ namespace dart {
     V(ByteArray)                                                               \
       V(Int8Array)                                                             \
       V(Uint8Array)                                                            \
+      V(Uint8ClampedArray)                                                     \
       V(Int16Array)                                                            \
       V(Uint16Array)                                                           \
       V(Int32Array)                                                            \
@@ -73,6 +74,7 @@ namespace dart {
       V(Float64Array)                                                          \
       V(ExternalInt8Array)                                                     \
       V(ExternalUint8Array)                                                    \
+      V(ExternalUint8ClampedArray)                                             \
       V(ExternalInt16Array)                                                    \
       V(ExternalUint16Array)                                                   \
       V(ExternalInt32Array)                                                    \
@@ -1269,8 +1271,14 @@ class RawInt8Array : public RawByteArray {
 class RawUint8Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Uint8Array);
 
+ protected:
   // Variable length data follows here.
   uint8_t data_[0];
+};
+
+
+class RawUint8ClampedArray : public RawUint8Array {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Uint8ClampedArray);
 };
 
 
@@ -1384,10 +1392,16 @@ class RawExternalInt8Array : public RawByteArray {
 class RawExternalUint8Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint8Array);
 
+ protected:
   ExternalByteArrayData<uint8_t>* external_data_;
 
   friend class TokenStream;
   friend class RawTokenStream;
+};
+
+
+class RawExternalUint8ClampedArray : public RawExternalUint8Array {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint8ClampedArray);
 };
 
 
@@ -1604,40 +1618,43 @@ inline bool RawObject::IsByteArrayClassId(intptr_t index) {
   // Make sure this function is updated when new ByteArray types are added.
   ASSERT(kInt8ArrayCid == kByteArrayCid + 1 &&
          kUint8ArrayCid == kByteArrayCid + 2 &&
-         kInt16ArrayCid == kByteArrayCid + 3 &&
-         kUint16ArrayCid == kByteArrayCid + 4 &&
-         kInt32ArrayCid == kByteArrayCid + 5 &&
-         kUint32ArrayCid == kByteArrayCid + 6 &&
-         kInt64ArrayCid == kByteArrayCid + 7 &&
-         kUint64ArrayCid == kByteArrayCid + 8 &&
-         kFloat32ArrayCid == kByteArrayCid + 9 &&
-         kFloat64ArrayCid == kByteArrayCid + 10 &&
-         kExternalInt8ArrayCid == kByteArrayCid + 11 &&
-         kExternalUint8ArrayCid == kByteArrayCid + 12 &&
-         kExternalInt16ArrayCid == kByteArrayCid + 13 &&
-         kExternalUint16ArrayCid == kByteArrayCid + 14 &&
-         kExternalInt32ArrayCid == kByteArrayCid + 15 &&
-         kExternalUint32ArrayCid == kByteArrayCid + 16 &&
-         kExternalInt64ArrayCid == kByteArrayCid + 17 &&
-         kExternalUint64ArrayCid == kByteArrayCid + 18 &&
-         kExternalFloat32ArrayCid == kByteArrayCid + 19 &&
-         kExternalFloat64ArrayCid == kByteArrayCid + 20 &&
-         kStacktraceCid == kByteArrayCid + 21);
+         kUint8ClampedArrayCid == kByteArrayCid + 3 &&
+         kInt16ArrayCid == kByteArrayCid + 4 &&
+         kUint16ArrayCid == kByteArrayCid + 5 &&
+         kInt32ArrayCid == kByteArrayCid + 6 &&
+         kUint32ArrayCid == kByteArrayCid + 7 &&
+         kInt64ArrayCid == kByteArrayCid + 8 &&
+         kUint64ArrayCid == kByteArrayCid + 9 &&
+         kFloat32ArrayCid == kByteArrayCid + 10 &&
+         kFloat64ArrayCid == kByteArrayCid + 11 &&
+         kExternalInt8ArrayCid == kByteArrayCid + 12 &&
+         kExternalUint8ArrayCid == kByteArrayCid + 13 &&
+         kExternalUint8ClampedArrayCid == kByteArrayCid + 14 &&
+         kExternalInt16ArrayCid == kByteArrayCid + 15 &&
+         kExternalUint16ArrayCid == kByteArrayCid + 16 &&
+         kExternalInt32ArrayCid == kByteArrayCid + 17 &&
+         kExternalUint32ArrayCid == kByteArrayCid + 18 &&
+         kExternalInt64ArrayCid == kByteArrayCid + 19 &&
+         kExternalUint64ArrayCid == kByteArrayCid + 20 &&
+         kExternalFloat32ArrayCid == kByteArrayCid + 21 &&
+         kExternalFloat64ArrayCid == kByteArrayCid + 22 &&
+         kStacktraceCid == kByteArrayCid + 23);
   return (index >= kByteArrayCid && index <= kExternalFloat64ArrayCid);
 }
 
 inline bool RawObject::IsExternalByteArrayClassId(intptr_t index) {
   // Make sure this function is updated when new ByteArray types are added.
   ASSERT(kExternalUint8ArrayCid == kExternalInt8ArrayCid + 1 &&
-         kExternalInt16ArrayCid == kExternalInt8ArrayCid + 2 &&
-         kExternalUint16ArrayCid == kExternalInt8ArrayCid + 3 &&
-         kExternalInt32ArrayCid == kExternalInt8ArrayCid + 4 &&
-         kExternalUint32ArrayCid == kExternalInt8ArrayCid + 5 &&
-         kExternalInt64ArrayCid == kExternalInt8ArrayCid + 6 &&
-         kExternalUint64ArrayCid == kExternalInt8ArrayCid + 7 &&
-         kExternalFloat32ArrayCid == kExternalInt8ArrayCid + 8 &&
-         kExternalFloat64ArrayCid == kExternalInt8ArrayCid + 9 &&
-         kStacktraceCid == kExternalInt8ArrayCid + 10);
+         kExternalUint8ClampedArrayCid == kExternalInt8ArrayCid + 2 &&
+         kExternalInt16ArrayCid == kExternalInt8ArrayCid + 3 &&
+         kExternalUint16ArrayCid == kExternalInt8ArrayCid + 4 &&
+         kExternalInt32ArrayCid == kExternalInt8ArrayCid + 5 &&
+         kExternalUint32ArrayCid == kExternalInt8ArrayCid + 6 &&
+         kExternalInt64ArrayCid == kExternalInt8ArrayCid + 7 &&
+         kExternalUint64ArrayCid == kExternalInt8ArrayCid + 8 &&
+         kExternalFloat32ArrayCid == kExternalInt8ArrayCid + 9 &&
+         kExternalFloat64ArrayCid == kExternalInt8ArrayCid + 10 &&
+         kStacktraceCid == kExternalInt8ArrayCid + 11);
   return (index >= kExternalInt8ArrayCid && index <= kExternalFloat64ArrayCid);
 }
 

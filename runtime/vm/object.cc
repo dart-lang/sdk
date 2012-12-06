@@ -746,6 +746,11 @@ RawError* Object::Init(Isolate* isolate) {
   name = Symbols::_Uint8Array();
   RegisterPrivateClass(cls, name, scalarlist_lib);
 
+  cls = Class::New<Uint8ClampedArray>();
+  object_store->set_uint8_clamped_array_class(cls);
+  name = Symbols::_Uint8ClampedArray();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
   cls = Class::New<Int16Array>();
   object_store->set_int16_array_class(cls);
   name = Symbols::_Int16Array();
@@ -794,6 +799,11 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<ExternalUint8Array>();
   object_store->set_external_uint8_array_class(cls);
   name = Symbols::_ExternalUint8Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalUint8ClampedArray>();
+  object_store->set_external_uint8_clamped_array_class(cls);
+  name = Symbols::_ExternalUint8ClampedArray();
   RegisterPrivateClass(cls, name, scalarlist_lib);
 
   cls = Class::New<ExternalInt16Array>();
@@ -1046,6 +1056,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<Uint8Array>();
   object_store->set_uint8_array_class(cls);
 
+  cls = Class::New<Uint8ClampedArray>();
+  object_store->set_uint8_clamped_array_class(cls);
+
   cls = Class::New<Int16Array>();
   object_store->set_int16_array_class(cls);
 
@@ -1075,6 +1088,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<ExternalUint8Array>();
   object_store->set_external_uint8_array_class(cls);
+
+  cls = Class::New<ExternalUint8ClampedArray>();
+  object_store->set_external_uint8_clamped_array_class(cls);
 
   cls = Class::New<ExternalInt16Array>();
   object_store->set_external_int16_array_class(cls);
@@ -1272,6 +1288,9 @@ RawString* Class::UserVisibleName() const {
     case kUint8ArrayCid:
     case kExternalUint8ArrayCid:
       return Symbols::New("Uint8List");
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ClampedArrayCid:
+      return Symbols::New("Uint8ClampedList");
     case kInt16ArrayCid:
     case kExternalInt16ArrayCid:
       return Symbols::New("Int16List");
@@ -11476,6 +11495,28 @@ const char* Uint8Array::ToCString() const {
 }
 
 
+RawUint8ClampedArray* Uint8ClampedArray::New(intptr_t len, Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->uint8_clamped_array_class() !=
+         Class::null());
+  return NewImpl<Uint8ClampedArray, RawUint8ClampedArray>(kClassId, len, space);
+}
+
+
+RawUint8ClampedArray* Uint8ClampedArray::New(const uint8_t* data,
+                                             intptr_t len,
+                                             Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->uint8_clamped_array_class() !=
+         Class::null());
+  return NewImpl<Uint8ClampedArray,
+      RawUint8ClampedArray>(kClassId, data, len, space);
+}
+
+
+const char* Uint8ClampedArray::ToCString() const {
+  return "_Uint8ClampedArray";
+}
+
+
 RawInt16Array* Int16Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->int16_array_class() !=
          Class::null());
@@ -11675,6 +11716,25 @@ RawExternalUint8Array* ExternalUint8Array::New(uint8_t* data,
 
 const char* ExternalUint8Array::ToCString() const {
   return "_ExternalUint8Array";
+}
+
+
+RawExternalUint8ClampedArray* ExternalUint8ClampedArray::New(
+    uint8_t* data,
+    intptr_t len,
+    void* peer,
+    Dart_PeerFinalizer callback,
+    Heap::Space space) {
+  ASSERT(Isolate::Current()->
+             object_store()->external_uint8_clamped_array_class() !=
+         Class::null());
+  return NewExternalImpl<ExternalUint8ClampedArray,
+      RawExternalUint8ClampedArray>(kClassId, data, len, peer, callback, space);
+}
+
+
+const char* ExternalUint8ClampedArray::ToCString() const {
+  return "_ExternalUint8ClampedArray";
 }
 
 

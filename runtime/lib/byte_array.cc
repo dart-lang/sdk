@@ -343,6 +343,30 @@ DEFINE_NATIVE_ENTRY(Uint8Array_setIndexed, 3) {
 }
 
 
+// Uint8ClampedArray
+
+DEFINE_NATIVE_ENTRY(Uint8ClampedArray_new, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Uint8ClampedArray::kMaxElements);
+  return Uint8ClampedArray::New(len);
+}
+
+
+DEFINE_NATIVE_ENTRY(Uint8ClampedArray_newTransferable, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Uint8ClampedArray::kMaxElements);
+  uint8_t* bytes = OS::AllocateAlignedArray<uint8_t>(
+      len,
+      ExternalByteArrayData<uint8_t>::kAlignment);
+  return ExternalUint8ClampedArray::New(bytes,
+                                        len,
+                                        bytes,
+                                        OS::AlignedFree);
+}
+
+
 // Int16Array
 
 DEFINE_NATIVE_ENTRY(Int16Array_new, 1) {

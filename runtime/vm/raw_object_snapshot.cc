@@ -1971,6 +1971,7 @@ RawT* ByteArray::ReadFromImpl(SnapshotReader* reader,
 #define BYTEARRAY_TYPE_LIST(V)                                                 \
   V(Int8, int8, int8_t)                                                        \
   V(Uint8, uint8, uint8_t)                                                     \
+  V(Uint8Clamped, uint8, uint8_t)                                              \
   V(Int16, int16, int16_t)                                                     \
   V(Uint16, uint16, uint16_t)                                                  \
   V(Int32, int32, int32_t)                                                     \

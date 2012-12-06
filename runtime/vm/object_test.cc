@@ -1899,23 +1899,35 @@ TEST_CASE(ExternalByteArray) {
   EXPECT(!uint8_array.IsNull());
   EXPECT_EQ(data_length, uint8_array.Length());
 
+  const ExternalUint8ClampedArray& uint8_clamped_array =
+      ExternalUint8ClampedArray::Handle(
+          ExternalUint8ClampedArray::New(data, data_length, NULL, NULL));
+  EXPECT(!uint8_clamped_array.IsNull());
+  EXPECT_EQ(data_length, uint8_clamped_array.Length());
+
   EXPECT_EQ(-3, int8_array.At(0));
   EXPECT_EQ(253, uint8_array.At(0));
+  EXPECT_EQ(253, uint8_clamped_array.At(0));
 
   EXPECT_EQ(-2, int8_array.At(1));
   EXPECT_EQ(254, uint8_array.At(1));
+  EXPECT_EQ(254, uint8_clamped_array.At(1));
 
   EXPECT_EQ(-1, int8_array.At(2));
   EXPECT_EQ(255, uint8_array.At(2));
+  EXPECT_EQ(255, uint8_clamped_array.At(2));
 
   EXPECT_EQ(0, int8_array.At(3));
   EXPECT_EQ(0, uint8_array.At(3));
+  EXPECT_EQ(0, uint8_clamped_array.At(3));
 
   EXPECT_EQ(1, int8_array.At(4));
   EXPECT_EQ(1, uint8_array.At(4));
+  EXPECT_EQ(1, uint8_clamped_array.At(4));
 
   EXPECT_EQ(2, int8_array.At(5));
   EXPECT_EQ(2, uint8_array.At(5));
+  EXPECT_EQ(2, uint8_clamped_array.At(5));
 
   for (intptr_t i = 0 ; i < int8_array.Length(); ++i) {
     uint8_t value = 0;
@@ -1930,10 +1942,17 @@ TEST_CASE(ExternalByteArray) {
     ByteArray::Copy(&value, uint8_array, i, sizeof(value));
     EXPECT_EQ(int8_array.At(i), value);
   }
+
+  uint8_clamped_array.SetAt(0, 123);
+  for (intptr_t i = 0 ; i < int8_array.Length(); ++i) {
+    int8_t value = 0;
+    ByteArray::Copy(&value, uint8_clamped_array, i, sizeof(value));
+    EXPECT_EQ(int8_array.At(i), value);
+  }
 }
 
 
-TEST_CASE(ByteArrayCopyInternal) {
+TEST_CASE(UInt8ByteArrayCopyInternal) {
   const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
   const uint8_t b_4_5_6_7[] = { 4, 5, 6, 7 };
 
@@ -1989,12 +2008,70 @@ TEST_CASE(ByteArrayCopyInternal) {
   EXPECT_EQ(3, internal.At(3));
 }
 
+TEST_CASE(ClampedUInt8ByteArrayCopyInternal) {
+  const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
+  const uint8_t b_4_5_6_7[] = { 4, 5, 6, 7 };
 
-TEST_CASE(ByteArrayCopyExternal) {
+  const Uint8ClampedArray& internal =
+      Uint8ClampedArray::Handle(
+          Uint8ClampedArray::New(b_0_1_2_3, ARRAY_SIZE(b_0_1_2_3)));
+  EXPECT(!internal.IsNull());
+  EXPECT_EQ(4, internal.Length());
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A zero length copy.
+  ByteArray::Copy(internal, 0, b_4_5_6_7, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // Another zero length copy.
+  ByteArray::Copy(internal, 4, b_4_5_6_7, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A one element copy.
+  ByteArray::Copy(internal, 0, b_4_5_6_7, 1);
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A two element copy.
+  ByteArray::Copy(internal, 2, b_4_5_6_7, 2);
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(4, internal.At(2));
+  EXPECT_EQ(5, internal.At(3));
+
+  // A three element copy.
+  ByteArray::Copy(internal, 1, b_4_5_6_7, 3);
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(4, internal.At(1));
+  EXPECT_EQ(5, internal.At(2));
+  EXPECT_EQ(6, internal.At(3));
+
+  // A four element copy.
+  ByteArray::Copy(internal, 0, b_0_1_2_3, 4);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+}
+
+
+TEST_CASE(Uint8ByteArrayCopyExternal) {
   const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
   const uint8_t b_4_5_6_7[] = { 4, 5, 6, 7 };
 
   uint8_t data[] = { 0, 1, 2, 3 };
+
   const ExternalUint8Array& external =
       ExternalUint8Array::Handle(
           ExternalUint8Array::New(data, ARRAY_SIZE(data), NULL, NULL));
@@ -2049,8 +2126,69 @@ TEST_CASE(ByteArrayCopyExternal) {
 }
 
 
-TEST_CASE(ByteArrayCopyInternalExternal) {
+TEST_CASE(ClampedUint8ByteArrayCopyExternal) {
   const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
+  const uint8_t b_4_5_6_7[] = { 4, 5, 6, 7 };
+
+  uint8_t data[] = { 0, 1, 2, 3 };
+
+  const ExternalUint8ClampedArray& external =
+      ExternalUint8ClampedArray::Handle(
+          ExternalUint8ClampedArray::New(data, ARRAY_SIZE(data), NULL, NULL));
+  EXPECT(!external.IsNull());
+  EXPECT_EQ(4, external.Length());
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // A zero length copy.
+  ByteArray::Copy(external, 0, b_4_5_6_7, 0);
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // Another zero length copy.
+  ByteArray::Copy(external, 4, b_4_5_6_7, 0);
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // A one element copy.
+  ByteArray::Copy(external, 0, b_4_5_6_7, 1);
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // A two element copy.
+  ByteArray::Copy(external, 2, b_4_5_6_7, 2);
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(4, external.At(2));
+  EXPECT_EQ(5, external.At(3));
+
+  // A three element copy.
+  ByteArray::Copy(external, 1, b_4_5_6_7, 3);
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(4, external.At(1));
+  EXPECT_EQ(5, external.At(2));
+  EXPECT_EQ(6, external.At(3));
+
+  // A four element copy.
+  ByteArray::Copy(external, 0, b_0_1_2_3, 4);
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+}
+
+
+TEST_CASE(Uint8ByteArrayCopyInternalExternal) {
+  const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
+  uint8_t data[] = { 4, 5, 6, 7 };
 
   const Uint8Array& internal =
       Uint8Array::Handle(Uint8Array::New(b_0_1_2_3, ARRAY_SIZE(b_0_1_2_3)));
@@ -2061,10 +2199,90 @@ TEST_CASE(ByteArrayCopyInternalExternal) {
   EXPECT_EQ(2, internal.At(2));
   EXPECT_EQ(3, internal.At(3));
 
-  uint8_t data[] = { 4, 5, 6, 7 };
   const ExternalUint8Array& external =
       ExternalUint8Array::Handle(
           ExternalUint8Array::New(data, ARRAY_SIZE(data), NULL, NULL));
+  EXPECT(!external.IsNull());
+  EXPECT_EQ(4, external.Length());
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(5, external.At(1));
+  EXPECT_EQ(6, external.At(2));
+  EXPECT_EQ(7, external.At(3));
+
+  // A zero length copy.
+  ByteArray::Copy(internal, 0, external, 0, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A zero length copy, take 2.
+  ByteArray::Copy(internal, 4, external, 0, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A zero length copy, take 3.
+  ByteArray::Copy(internal, 0, external, 4, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A zero length copy, take 4.
+  ByteArray::Copy(internal, 4, external, 4, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A four element copy.
+  ByteArray::Copy(internal, 0, external, 0, 4);
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(5, internal.At(1));
+  EXPECT_EQ(6, internal.At(2));
+  EXPECT_EQ(7, internal.At(3));
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(5, external.At(1));
+  EXPECT_EQ(6, external.At(2));
+  EXPECT_EQ(7, external.At(3));
+
+  // A four element copy, take 2.
+  ByteArray::Copy(external, 0, b_0_1_2_3, 4);
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+  ByteArray::Copy(external, 0, internal, 0, 4);
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(5, internal.At(1));
+  EXPECT_EQ(6, internal.At(2));
+  EXPECT_EQ(7, internal.At(3));
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(5, external.At(1));
+  EXPECT_EQ(6, external.At(2));
+  EXPECT_EQ(7, external.At(3));
+}
+
+
+TEST_CASE(ClampedUint8ByteArrayCopyInternalExternal) {
+  const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
+  uint8_t data[] = { 4, 5, 6, 7 };
+
+  const Uint8ClampedArray& internal =
+      Uint8ClampedArray::Handle(
+          Uint8ClampedArray::New(b_0_1_2_3, ARRAY_SIZE(b_0_1_2_3)));
+  EXPECT(!internal.IsNull());
+  EXPECT_EQ(4, internal.Length());
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  const ExternalUint8ClampedArray& external =
+      ExternalUint8ClampedArray::Handle(
+          ExternalUint8ClampedArray::New(data, ARRAY_SIZE(data), NULL, NULL));
   EXPECT(!external.IsNull());
   EXPECT_EQ(4, external.Length());
   EXPECT_EQ(4, external.At(0));

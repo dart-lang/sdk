@@ -220,6 +220,8 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT(ImmutableArray::InstanceSize() == cls.instance_size());
   cls = object_store->uint8_array_class();
   ASSERT(Uint8Array::InstanceSize() == cls.instance_size());
+  cls = object_store->uint8_clamped_array_class();
+  ASSERT(Uint8ClampedArray::InstanceSize() == cls.instance_size());
   cls = object_store->int16_array_class();
   ASSERT(Int16Array::InstanceSize() == cls.instance_size());
   cls = object_store->uint16_array_class();
@@ -238,8 +240,8 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT(Float64Array::InstanceSize() == cls.instance_size());
   cls = object_store->external_int8_array_class();
   ASSERT(ExternalInt8Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_uint8_array_class();
-  ASSERT(ExternalUint8Array::InstanceSize() == cls.instance_size());
+  cls = object_store->external_uint8_clamped_array_class();
+  ASSERT(ExternalUint8ClampedArray::InstanceSize() == cls.instance_size());
   cls = object_store->external_int16_array_class();
   ASSERT(ExternalInt16Array::InstanceSize() == cls.instance_size());
   cls = object_store->external_uint16_array_class();
@@ -342,7 +344,9 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
       case kInt8ArrayCid:
       case kExternalInt8ArrayCid:
       case kUint8ArrayCid:
+      case kUint8ClampedArrayCid:
       case kExternalUint8ArrayCid:
+      case kExternalUint8ClampedArrayCid:
       case kInt16ArrayCid:
       case kExternalInt16ArrayCid:
       case kUint16ArrayCid:
