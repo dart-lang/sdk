@@ -132,7 +132,7 @@ $endif
 
 /// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  _ChildNodeListLazy get nodes {
+  List<Node> get nodes {
     return new _ChildNodeListLazy(this);
   }
 

@@ -16413,7 +16413,7 @@ class _ChildNodeListLazy implements List {
 
 /// @domName Node
 class Node extends EventTarget {
-  _ChildNodeListLazy get nodes {
+  List<Node> get nodes {
     return new _ChildNodeListLazy(this);
   }
 
