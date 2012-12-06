@@ -274,8 +274,6 @@ LibTest/core/TypeError/line_A01_t01: Fail # TODO(ahe): Please triage this failur
 LibTest/core/TypeError/srcType_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
-Language/03_Overview/1_Scoping_A02_t30: Fail # http://dartbug.com/5348
-
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Checked mode failure for noSuchMethod type.
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Checked mode failure for noSuchMethod type.
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # Checked mode failure for noSuchMethod type.

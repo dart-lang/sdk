@@ -2066,10 +2066,18 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
-    visit(node.type);
     VariableDefinitionsVisitor visitor =
         new VariableDefinitionsVisitor(compiler, node, this,
                                        ElementKind.VARIABLE);
+    // Ensure that we set the type of the [VariableListElement] since it depends
+    // the current scope. If the current scope is a [MethodScope] or
+    // [BlockScope] it will not be available for the
+    // [VariableListElement.computeType] method.
+    if (node.type != null) {
+      visitor.variables.type = resolveTypeAnnotation(node.type);
+    } else {
+      visitor.variables.type = compiler.types.dynamicType;
+    }
     visitor.visit(node.definitions);
   }
 
