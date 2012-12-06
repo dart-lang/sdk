@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <key.h>
+#include <keyt.h>
 #include <nss.h>
 #include <pk11pub.h>
 #include <prerror.h>
@@ -304,11 +306,11 @@ void SSLFilter::RegisterHandshakeCompleteCallback(Dart_Handle complete) {
 }
 
 
-void SSLFilter::RegisterBadCertificateCallback(Dart_Handle complete) {
+void SSLFilter::RegisterBadCertificateCallback(Dart_Handle callback) {
   if (NULL != bad_certificate_callback_) {
     Dart_DeletePersistentHandle(bad_certificate_callback_);
   }
-  bad_certificate_callback_ = ThrowIfError(Dart_NewPersistentHandle(complete));
+  bad_certificate_callback_ = ThrowIfError(Dart_NewPersistentHandle(callback));
 }
 
 
@@ -392,6 +394,7 @@ SECStatus SSLFilter::HandleBadCertificate(PRFileDesc* fd) {
                                            certificate->issuerName,
                                            start_epoch_ms,
                                            end_epoch_ms);
+  CERT_DestroyCertificate(certificate);
   return accept ? SECSuccess : SECFailure;
 }
 
@@ -427,6 +430,7 @@ void SSLFilter::Connect(const char* host_name,
         certificate,
         static_cast<void*>(const_cast<char*>(password_)));
     if (key == NULL) {
+      CERT_DestroyCertificate(certificate);
       if (PR_GetError() == -8177) {
         ThrowPRException("Certificate database password incorrect");
       } else {
@@ -437,6 +441,8 @@ void SSLFilter::Connect(const char* host_name,
     // kt_rsa (key type RSA) is an enum constant from the NSS libraries.
     // TODO(whesse): Allow different key types.
     status = SSL_ConfigSecureServer(filter_, certificate, key, kt_rsa);
+    CERT_DestroyCertificate(certificate);
+    SECKEY_DestroyPrivateKey(key);
     if (status != SECSuccess) {
       ThrowPRException("Unsuccessful SSL_ConfigSecureServer call");
     }
@@ -510,7 +516,8 @@ void SSLFilter::Destroy() {
   if (bad_certificate_callback_ != NULL) {
     Dart_DeletePersistentHandle(bad_certificate_callback_);
   }
-  // TODO(whesse): Free NSS objects here.
+
+  PR_Close(filter_);
 }
 
 
