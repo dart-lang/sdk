@@ -186,7 +186,6 @@ LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failu
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/parse_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/math/Random/nextDouble_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A11_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
@@ -361,6 +360,7 @@ LibTest/core/Match/str_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 issue 212
 
+LibTest/math/Random/nextDouble_A01_t01: Fail # co19 issue 334
 
 [ $compiler == dart2js && $checked ]
 LibTest/core/Queue/addLast_A01_t01: Slow, Pass

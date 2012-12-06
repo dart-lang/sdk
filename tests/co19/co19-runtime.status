@@ -151,7 +151,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: F
 LibTest/core/double/parse_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # TODO(vm-team): Please triage this failure.
-LibTest/math/Random/nextDouble_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/math/pow_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/math/pow_A11_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/math/pow_A13_t01: Fail # TODO(vm-team): Please triage this failure.
@@ -283,6 +282,8 @@ Language/11_Expressions/07_Maps_A07_t03: Fail, OK # co19 issue 287
 Language/11_Expressions/07_Maps_A04_t02: Fail, OK # co19 issue 287
 
 LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 287
+
+LibTest/math/Random/nextDouble_A01_t01: Fail # co19 issue 334
 
 [ $compiler == none && $runtime == vm ]
 LibTest/core/String/contains_A01_t03: Skip # Times out.
