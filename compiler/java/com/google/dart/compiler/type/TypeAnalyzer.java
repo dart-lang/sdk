@@ -2626,11 +2626,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
             operatorMethodName = "operator -binary";
           }
           Member member = itype.lookupMember(operatorMethodName);
-          // TODO(scheglov) remove after library migration from "operator negate()" to "operator -()"
-          if (member == null && operator == Token.SUB) {
-            operatorMethodName = "operator negate";
-            member = itype.lookupMember(operatorMethodName);
-          }
           if (member == null) {
             HasSourceInfo errorTarget = getOperatorHasSourceInfo(node);
             return typeError(errorTarget, TypeErrorCode.CANNOT_BE_RESOLVED,
@@ -3418,10 +3413,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
                     superMethod.getEnclosingElement().getName());
             return false;
           }
-        }
-        // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6306
-        if (Elements.isLibrarySource(errorTarget.getSourceInfo().getSource(), "/io/io_runtime.dart")) {
-          return true;
         }
         // "method" should have at least same number of optional positional parameters as "superMethod"
         {
