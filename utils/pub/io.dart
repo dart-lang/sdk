@@ -13,8 +13,9 @@ import 'dart:uri';
 
 // TODO(nweiz): Make this import better.
 import '../../pkg/http/lib/http.dart' as http;
-import 'utils.dart';
 import 'curl_client.dart';
+import 'log.dart' as log;
+import 'utils.dart';
 
 bool _isGitInstalledCache;
 
@@ -25,15 +26,6 @@ String _gitCommandCache;
 String get currentWorkingDir => new File('.').fullPathSync();
 
 final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
-
-/**
- * Prints the given string to `stderr` on its own line.
- */
-void printError(value) {
-  stderr.writeString(value.toString());
-  stderr.writeString('\n');
-}
-
 
 /**
  * Joins a number of path string parts into a single path. Handles
@@ -122,7 +114,10 @@ Future<bool> exists(path) {
  * the result.
  */
 Future<bool> fileExists(file) {
-  return new File(_getPath(file)).exists();
+  var path = _getPath(file);
+  return log.ioAsync("Seeing if file $path exists.",
+      new File(path).exists(),
+      (exists) => "File $path ${exists ? 'exists' : 'does not exist'}.");
 }
 
 /**
@@ -130,7 +125,17 @@ Future<bool> fileExists(file) {
  * a [File].
  */
 Future<String> readTextFile(file) {
-  return new File(_getPath(file)).readAsString(Encoding.UTF_8);
+  var path = _getPath(file);
+  return log.ioAsync("Reading text file $path.",
+      new File(path).readAsString(Encoding.UTF_8),
+      (contents) {
+        // Sanity check: don't spew a huge file.
+        if (contents.length < 1024 * 1024) {
+          return "Read $path. Contents:\n$contents";
+        } else {
+          return "Read ${contents.length} characters from $path.";
+        }
+      });
 }
 
 /**
@@ -138,10 +143,21 @@ Future<String> readTextFile(file) {
  * [contents] to it. Completes when the file is written and closed.
  */
 Future<File> writeTextFile(file, String contents) {
-  file = new File(_getPath(file));
+  var path = _getPath(file);
+  file = new File(path);
+
+  // Sanity check: don't spew a huge file.
+  log.io("Writing ${contents.length} characters to text file $path.");
+  if (contents.length < 1024 * 1024) {
+    log.fine("Contents:\n$contents");
+  }
+
   return file.open(FileMode.WRITE).chain((opened) {
     return opened.writeString(contents).chain((ignore) {
-        return opened.close().transform((ignore) => file);
+        return opened.close().transform((_) {
+          log.fine("Wrote text file $path.");
+          return file;
+        });
     });
   });
 }
@@ -151,7 +167,9 @@ Future<File> writeTextFile(file, String contents) {
  * [Future] that completes when the deletion is done.
  */
 Future<File> deleteFile(file) {
-  return new File(_getPath(file)).delete();
+  var path = _getPath(file);
+  return log.ioAsync("delete file $path",
+      new File(path).delete());
 }
 
 /// Writes [stream] to a new file at [path], which may be a [String] or a
@@ -160,12 +178,15 @@ Future<File> deleteFile(file) {
 Future<File> createFileFromStream(InputStream stream, path) {
   path = _getPath(path);
 
+  log.io("Creating $path from stream.");
+
   var completer = new Completer<File>();
   var file = new File(path);
   var outputStream = file.openOutputStream();
   stream.pipe(outputStream);
 
   outputStream.onClosed = () {
+    log.fine("Created $path from stream.");
     completer.complete(file);
   };
 
@@ -178,7 +199,11 @@ Future<File> createFileFromStream(InputStream stream, path) {
   }
 
   completeError(error) {
-    if (!completer.isComplete) completer.completeException(error, stackTrace);
+    if (!completer.isComplete) {
+      completer.completeException(error, stackTrace);
+    } else {
+      log.fine("Got error after stream was closed: $error");
+    }
   }
 
   stream.onError = completeError;
@@ -193,7 +218,8 @@ Future<File> createFileFromStream(InputStream stream, path) {
  */
 Future<Directory> createDir(dir) {
   dir = _getDirectory(dir);
-  return dir.create();
+  return log.ioAsync("create directory ${dir.path}",
+      dir.create());
 }
 
 /**
@@ -203,10 +229,15 @@ Future<Directory> createDir(dir) {
  */
 Future<Directory> ensureDir(path) {
   path = _getPath(path);
+  log.fine("Ensuring directory $path exists.");
   if (path == '.') return new Future.immediate(new Directory('.'));
 
   return dirExists(path).chain((exists) {
-    if (exists) return new Future.immediate(new Directory(path));
+    if (exists) {
+      log.fine("Directory $path already exists.");
+      return new Future.immediate(new Directory(path));
+    }
+
     return ensureDir(dirname(path)).chain((_) {
       var completer = new Completer<Directory>();
       var future = createDir(path);
@@ -214,7 +245,10 @@ Future<Directory> ensureDir(path) {
         if (error is! DirectoryIOException) return false;
         // Error 17 means the directory already exists (or 183 on Windows).
         if (error.osError.errorCode != 17 &&
-            error.osError.errorCode != 183) return false;
+            error.osError.errorCode != 183) {
+          log.fine("Got 'already exists' error when creating directory.");
+          return false;
+        }
 
         completer.complete(_getDirectory(path));
         return true;
@@ -233,7 +267,8 @@ Future<Directory> ensureDir(path) {
  */
 Future<Directory> createTempDir([dir = '']) {
   dir = _getDirectory(dir);
-  return dir.createTemp();
+  return log.ioAsync("create temp directory ${dir.path}",
+      dir.createTemp());
 }
 
 /**
@@ -242,7 +277,8 @@ Future<Directory> createTempDir([dir = '']) {
  */
 Future<Directory> deleteDir(dir) {
   dir = _getDirectory(dir);
-  return dir.delete(recursive: true);
+  return log.ioAsync("delete directory ${dir.path}",
+      dir.delete(recursive: true));
 }
 
 /**
@@ -257,12 +293,17 @@ Future<List<String>> listDir(dir,
   final contents = <String>[];
 
   dir = _getDirectory(dir);
+  log.io("Listing directory ${dir.path}.");
   var lister = dir.list(recursive: recursive);
 
   lister.onDone = (done) {
     // TODO(rnystrom): May need to sort here if it turns out onDir and onFile
     // aren't guaranteed to be called in a certain order. So far, they seem to.
-    if (done) completer.complete(contents);
+    if (done) {
+      log.fine("Listed directory ${dir.path}:\n"
+                "${Strings.join(contents, '\n')}");
+      completer.complete(contents);
+    }
   };
 
   // TODO(nweiz): remove this when issue 4061 is fixed.
@@ -293,7 +334,10 @@ Future<List<String>> listDir(dir,
  */
 Future<bool> dirExists(dir) {
   dir = _getDirectory(dir);
-  return dir.exists();
+  return log.ioAsync("Seeing if directory ${dir.path} exists.",
+      dir.exists(),
+      (exists) => "Directory ${dir.path} "
+                  "${exists ? 'exists' : 'does not exist'}.");
 }
 
 /**
@@ -317,8 +361,14 @@ Future<Directory> cleanDir(dir) {
 /// the destination directory.
 Future<Directory> renameDir(from, String to) {
   from = _getDirectory(from);
+  log.io("Renaming directory ${from.path} to $to.");
 
-  if (Platform.operatingSystem != 'windows') return from.rename(to);
+  if (Platform.operatingSystem != 'windows') {
+    return from.rename(to).transform((dir) {
+      log.fine("Renamed directory ${from.path} to $to.");
+      return dir;
+    });
+  }
 
   // On Windows, we sometimes get failures where the directory is still in use
   // when we try to move it. To be a bit more resilient, we wait and retry a
@@ -326,13 +376,17 @@ Future<Directory> renameDir(from, String to) {
   var attempts = 0;
   attemptRename(_) {
     attempts++;
-    return from.rename(to).transformException((e) {
+    return from.rename(to).transform((dir) {
+      log.fine("Renamed directory ${from.path} to $to.");
+      return dir;
+    }).transformException((e) {
       if (attempts >= 10) {
         throw 'Could not move directory "${from.path}" to "$to". Gave up '
               'after $attempts attempts.';
       }
 
       // Wait a bit and try again.
+      log.fine("Rename ${from.path} failed, retrying (attempt $attempts).");
       return sleep(500).chain(attemptRename);
     });
 
@@ -350,6 +404,8 @@ Future<Directory> renameDir(from, String to) {
 Future<File> createSymlink(from, to) {
   from = _getPath(from);
   to = _getPath(to);
+
+  log.fine("Create symlink $from -> $to.");
 
   var command = 'ln';
   var args = ['-s', from, to];
@@ -382,15 +438,15 @@ Future<File> createPackageSymlink(String name, from, to,
   // See if the package has a "lib" directory.
   from = join(from, 'lib');
   return dirExists(from).chain((exists) {
+    log.fine("Creating ${isSelfLink ? "self" : ""}link for package '$name'.");
     if (exists) return createSymlink(from, to);
 
     // It's OK for the self link (i.e. the root package) to not have a lib
     // directory since it may just be a leaf application that only has
     // code in bin or web.
     if (!isSelfLink) {
-      printError(
-          'Warning: Package "$name" does not have a "lib" directory so you '
-          'will not be able to import any libraries from it.');
+      log.warning('Warning: Package "$name" does not have a "lib" directory so '
+                  'you will not be able to import any libraries from it.');
     }
 
     return new Future.immediate(to);
@@ -506,6 +562,8 @@ class PubHttpClient extends http.BaseClient {
     : _inner = inner == null ? new http.Client() : inner;
 
   Future<http.StreamedResponse> send(http.BaseRequest request) {
+    log.io("Sending HTTP request $request.");
+
     // TODO(nweiz): remove this when issue 4061 is fixed.
     var stackTrace;
     try {
@@ -517,6 +575,9 @@ class PubHttpClient extends http.BaseClient {
     // TODO(nweiz): Ideally the timeout would extend to reading from the
     // response input stream, but until issue 3657 is fixed that's not feasible.
     return timeout(_inner.send(request).chain((streamedResponse) {
+      log.fine("Got response ${streamedResponse.statusCode} "
+               "${streamedResponse.reasonPhrase}.");
+
       var status = streamedResponse.statusCode;
       // 401 responses should be handled by the OAuth2 client. It's very
       // unlikely that they'll be returned by non-OAuth2 requests.
@@ -622,9 +683,13 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
       if (!lines.isEmpty && lines.last == "") lines.removeLast();
       return lines;
     }
-    return new PubProcessResult(toLines(result.stdout),
+
+    var pubResult = new PubProcessResult(toLines(result.stdout),
                                 toLines(result.stderr),
                                 result.exitCode);
+
+    log.processResult(executable, pubResult);
+    return pubResult;
   });
 }
 
@@ -662,6 +727,8 @@ Future _doProcess(Function fn, String executable, List<String> args, workingDir,
     options.environment = new Map.from(Platform.environment);
     environment.forEach((key, value) => options.environment[key] = value);
   }
+
+  log.process(executable, args);
 
   return fn(executable, args, options);
 }
@@ -731,7 +798,10 @@ Future withTempDir(Future fn(String path)) {
     tempDir = dir;
     return fn(tempDir.path);
   });
-  future.onComplete((_) => tempDir.delete(recursive: true));
+  future.onComplete((_) {
+    log.fine('Cleaning up temp directory ${tempDir.path}.');
+    deleteDir(tempDir);
+  });
   return future;
 }
 
@@ -804,6 +874,8 @@ Future<bool> _tryGitCommand(String command) {
 Future<bool> extractTarGz(InputStream stream, destination) {
   destination = _getPath(destination);
 
+  log.fine("Extracting .tar.gz stream to $destination.");
+
   if (Platform.operatingSystem == "windows") {
     return _extractTarGzWindows(stream, destination);
   }
@@ -822,7 +894,12 @@ Future<bool> extractTarGz(InputStream stream, destination) {
     return true;
   });
 
-  return completer.future.transform((exitCode) => exitCode == 0);
+  return completer.future.transform((exitCode) {
+    log.fine("Extracted .tar.gz stream to $destination. Exit code $exitCode.");
+    // TODO(rnystrom): Does anything check this result value? If not, it should
+    // throw on a bad exit code.
+    return exitCode == 0;
+  });
 }
 
 Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
@@ -879,7 +956,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
           '${Strings.join(result.stderr, "\n")}';
     }
 
-    // Clean up the temp directory.
+    log.fine('Clean up 7zip temp directory ${tempDir.path}.');
     // TODO(rnystrom): Should also delete this if anything fails.
     return deleteDir(tempDir);
   }).transform((_) => true);
@@ -890,6 +967,9 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
 /// considered to be [baseDir], which defaults to the current working directory.
 /// Returns an [InputStream] that will emit the contents of the archive.
 InputStream createTarGz(List contents, {baseDir}) {
+  log.fine('Creating .tag.gz stream containing:');
+  contents.forEach(log.fine);
+
   // TODO(nweiz): Propagate errors to the returned stream (including non-zero
   // exit codes). See issue 3657.
   var stream = new ListInputStream();
@@ -955,7 +1035,7 @@ class PubHttpException implements Exception {
   const PubHttpException(this.response);
 
   String toString() => 'HTTP error ${response.statusCode}: '
-    '${response.reasonPhrase}';
+      '${response.reasonPhrase}';
 }
 
 /**

@@ -10,6 +10,7 @@ import 'dart:uri';
 // TODO(nweiz): Make this a "package:" URL, or something nicer than this.
 import '../../pkg/oauth2/lib/oauth2.dart';
 import 'io.dart';
+import 'log.dart' as log;
 import 'system_cache.dart';
 import 'utils.dart';
 
@@ -100,14 +101,24 @@ Future<Client> _getClient(SystemCache cache) {
 /// filesystem if possible. If the credentials can't be loaded for any reason,
 /// the returned [Future] will complete to null.
 Future<Credentials> _loadCredentials(SystemCache cache) {
-  if (_credentials != null) return new Future.immediate(_credentials);
-  return fileExists(_credentialsFile(cache)).chain((credentialsExist) {
-    if (!credentialsExist) return new Future.immediate(null);
+  log.fine('Loading OAuth2 credentials.');
+
+  if (_credentials != null) {
+    log.fine('Using already-loaded credentials.');
+    return new Future.immediate(_credentials);
+  }
+
+  var path = _credentialsFile(cache);
+  return fileExists(path).chain((credentialsExist) {
+    if (!credentialsExist) {
+      log.fine('No credentials found at $path.');
+      return new Future.immediate(null);
+    }
 
     return readTextFile(_credentialsFile(cache)).transform((credentialsJson) {
       var credentials = new Credentials.fromJson(credentialsJson);
       if (credentials.isExpired && !credentials.canRefresh) {
-        printError("Pub's authorization to upload packages has expired and "
+        log.error("Pub's authorization to upload packages has expired and "
             "can't be automatically refreshed.");
         return null; // null means re-authorize
       }
@@ -115,8 +126,7 @@ Future<Credentials> _loadCredentials(SystemCache cache) {
       return credentials;
     });
   }).transformException((e) {
-    printError('Warning: could not load the saved OAuth2 credentials:'
-        '  $e\n'
+    log.error('Warning: could not load the saved OAuth2 credentials: $e\n'
         'Obtaining new credentials...');
     return null; // null means re-authorize
   });
@@ -125,10 +135,11 @@ Future<Credentials> _loadCredentials(SystemCache cache) {
 /// Save the user's OAuth2 credentials to the in-memory cache and the
 /// filesystem.
 Future _saveCredentials(SystemCache cache, Credentials credentials) {
+  log.fine('Saving OAuth2 credentials.');
   _credentials = credentials;
-  var credentialsFile = _credentialsFile(cache);
-  return ensureDir(dirname(credentialsFile)).chain((_) =>
-      writeTextFile(credentialsFile, credentials.toJson()));
+  var path = _credentialsFile(cache);
+  return ensureDir(dirname(path)).chain((_) =>
+      writeTextFile(path, credentials.toJson()));
 }
 
 /// The path to the file in which the user's OAuth2 credentials are stored.
@@ -161,7 +172,7 @@ Future<Client> _authorize() {
   server.addRequestHandler((request) => request.path == "/",
       (request, response) {
     chainToCompleter(new Future.immediate(null).chain((_) {
-      print('Authorization received, processing...');
+      log.message('Authorization received, processing...');
       var queryString = request.queryString;
       if (queryString == null) queryString = '';
       response.statusCode = 302;
@@ -180,13 +191,14 @@ Future<Client> _authorize() {
   var authUrl = grant.getAuthorizationUrl(
       new Uri.fromString('http://localhost:${server.port}'), scopes: _scopes);
 
-  print('Pub needs your authorization to upload packages on your behalf.\n'
-        'In a web browser, go to $authUrl\n'
-        'Then click "Allow access".\n\n'
-        'Waiting for your authorization...');
+  log.message(
+      'Pub needs your authorization to upload packages on your behalf.\n'
+      'In a web browser, go to $authUrl\n'
+      'Then click "Allow access".\n\n'
+      'Waiting for your authorization...');
 
   return completer.future.transform((client) {
-    print('Successfully authorized.\n');
+    log.message('Successfully authorized.\n');
     return client;
   });
 }

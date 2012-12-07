@@ -638,14 +638,14 @@ Future _doPub(Function fn, sandboxDir, List<String> args, Uri tokenEndpoint) {
     // Find the main pub entrypoint.
     var pubPath = fs.joinPaths(testDirectory, '../../pub/pub.dart');
 
-    var dartArgs =
-        ['--enable-type-checks', '--enable-asserts', pubPath, '--trace'];
+    var dartArgs = ['--checked', pubPath, '--trace'];
     dartArgs.addAll(args);
 
     var environment = {
       'PUB_CACHE': pathInSandbox(cachePath),
       'DART_SDK': pathInSandbox(sdkPath)
     };
+
     if (tokenEndpoint != null) {
       environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
     }
