@@ -299,8 +299,11 @@ String prettyPrintJson(Object json, [String indentation = '']) {
       '$recursiveOutput'
       '\n$indentation]';
   } else if (json is Map) {
+    var keys = json.keys
+      ..sort();
+
     // TODO(amouravski): No newline after :
-    var mapList = json.keys.map((key) =>
+    var mapList = keys.map((key) =>
         '$indentation${JSON.stringify(key)}:\n'
         '${prettyPrintJson(json[key], '$indentation  ')}');
     var recursiveOutput = Strings.join(mapList, ',\n');
