@@ -18,6 +18,7 @@ import 'command_update.dart';
 import 'command_version.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
+import 'log.dart' as log;
 import 'package.dart';
 import 'pubspec.dart';
 import 'source.dart';
@@ -54,10 +55,21 @@ Map<String, PubCommand> get pubCommands {
 ArgParser get pubArgParser {
   var parser = new ArgParser();
   parser.addFlag('help', abbr: 'h', negatable: false,
-    help: 'Prints this usage information');
+      help: 'print this usage information');
   parser.addFlag('version', negatable: false,
-    help: 'Prints the version of Pub');
-  parser.addFlag('trace', help: 'Prints a stack trace when an error occurs');
+      help: 'print the version of pub');
+  parser.addFlag('trace',
+       help: 'print debugging information when an error occurs');
+  parser.addOption('verbosity',
+      help: 'control output verbosity',
+      allowed: ['normal', 'io', 'all'],
+      allowedHelp: {
+        'normal': 'errors, warnings, and user messages are shown',
+        'io':     'IO operations are also shown',
+        'all':    'all output including internal tracing messages are shown'
+      });
+  parser.addFlag('verbose', abbr: 'v', negatable: false,
+      help: 'shortcut for "--verbosity=all"');
   return parser;
 }
 
@@ -66,8 +78,8 @@ main() {
   try {
     globalOptions = pubArgParser.parse(new Options().arguments);
   } on FormatException catch (e) {
-    printError(e.message);
-    printError('Run "pub help" to see available options.');
+    log.error(e.message);
+    log.error('Run "pub help" to see available options.');
     exit(exit_codes.USAGE);
   }
 
@@ -79,6 +91,24 @@ main() {
   if (globalOptions['help'] || globalOptions.rest.isEmpty) {
     printUsage();
     return;
+  }
+
+  if (globalOptions['trace']) {
+    log.recordTranscript();
+  }
+
+  switch (globalOptions['verbosity']) {
+    case 'normal': log.showNormal(); break;
+    case 'io': log.showIO(); break;
+    case 'all': log.showAll(); break;
+    default:
+      // No specific verbosity given, so check for the shortcut.
+      if (globalOptions['verbose']) {
+        log.showAll();
+      } else {
+        log.showNormal();
+      }
+      break;
   }
 
   // TODO(nweiz): Have a fallback for this this out automatically once 1145 is
@@ -99,8 +129,8 @@ main() {
   // Select the command.
   var command = pubCommands[globalOptions.rest[0]];
   if (command == null) {
-    printError('Could not find a command named "${globalOptions.rest[0]}".');
-    printError('Run "pub help" to see available commands.');
+    log.error('Could not find a command named "${globalOptions.rest[0]}".');
+    log.error('Run "pub help" to see available commands.');
     exit(exit_codes.USAGE);
     return;
   }
@@ -112,16 +142,16 @@ main() {
 
 /** Displays usage information for the app. */
 void printUsage([String description = 'Pub is a package manager for Dart.']) {
-  print(description);
-  print('');
-  print('Usage: pub command [arguments]');
-  print('');
-  print('Global options:');
-  print(pubArgParser.getUsage());
-  print('');
+  // Build up a buffer so it shows up as a single log entry.
+  var buffer = new StringBuffer();
+  buffer.add(description);
+  buffer.add('\n\n');
+  buffer.add('Usage: pub command [arguments]\n\n');
+  buffer.add('Global options:\n');
+  buffer.add('${pubArgParser.getUsage()}\n\n');
 
   // Show the commands sorted.
-  print('Available commands:');
+  buffer.add('Available commands:\n');
 
   // TODO(rnystrom): A sorted map would be nice.
   int length = 0;
@@ -136,15 +166,17 @@ void printUsage([String description = 'Pub is a package manager for Dart.']) {
   names.sort((a, b) => a.compareTo(b));
 
   for (var name in names) {
-    print('  ${padRight(name, length)}   ${pubCommands[name].description}');
+    buffer.add('  ${padRight(name, length)}   '
+        '${pubCommands[name].description}\n');
   }
 
-  print('');
-  print('Use "pub help [command]" for more information about a command.');
+  buffer.add('\n');
+  buffer.add('Use "pub help [command]" for more information about a command.');
+  log.message(buffer.toString());
 }
 
 void printVersion() {
-  print('Pub $pubVersion');
+  log.message('Pub $pubVersion');
 }
 
 abstract class PubCommand {
@@ -187,8 +219,8 @@ abstract class PubCommand {
     try {
      commandOptions = commandParser.parse(commandArgs);
     } on FormatException catch (e) {
-      printError(e.message);
-      printError('Use "pub help" for more information.');
+      log.error(e.message);
+      log.error('Use "pub help" for more information.');
       exit(exit_codes.USAGE);
     }
 
@@ -203,9 +235,10 @@ abstract class PubCommand {
         message = message.substring("Exception: ".length);
       }
 
-      printError(message);
+      log.error(message);
       if (globalOptions['trace'] && trace != null) {
-        printError(trace);
+        log.error(trace);
+        log.dumpTranscript();
       }
 
       exit(_chooseExitCode(error));
@@ -261,15 +294,19 @@ abstract class PubCommand {
   /** Displays usage information for this command. */
   void printUsage([String description]) {
     if (description == null) description = this.description;
-    print(description);
-    print('');
-    print('Usage: $usage');
+
+    var buffer = new StringBuffer();
+    buffer.add(description);
+    buffer.add('');
+    buffer.add('Usage: $usage');
 
     var commandUsage = commandParser.getUsage();
     if (!commandUsage.isEmpty) {
-      print('');
-      print(commandUsage);
+      buffer.add('');
+      buffer.add(commandUsage);
     }
+
+    log.message(buffer.toString());
   }
 
   /// Returns the appropriate exit code for [exception], falling back on 1 if no

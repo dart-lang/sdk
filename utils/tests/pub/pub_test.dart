@@ -15,9 +15,16 @@ final USAGE_STRING = """
     Usage: pub command [arguments]
 
     Global options:
-    -h, --help          Prints this usage information
-        --version       Prints the version of Pub
-        --[no-]trace    Prints a stack trace when an error occurs
+    -h, --help            print this usage information
+        --version         print the version of pub
+        --[no-]trace      print debugging information when an error occurs
+        --verbosity       control output verbosity
+
+              [all]       all output including internal tracing messages are shown
+              [io]        IO operations are also shown
+              [normal]    errors, warnings, and user messages are shown
+
+    -v, --verbose         shortcut for "--verbosity=all"
 
     Available commands:
       help      display help information for Pub
