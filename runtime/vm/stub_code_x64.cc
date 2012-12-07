@@ -275,108 +275,74 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   // ....
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ movq(RAX, Address(RBP, RAX, TIMES_4, kWordSize));  // Get receiver.
-  __ pushq(R10);  // Preserve arguments descriptor array.
-  __ pushq(RAX);  // Preserve receiver.
-  __ pushq(RBX);  // Preserve ic-data.
-  // First resolve the function to get the function object.
-
-  __ pushq(raw_null);  // Setup space on stack for return value.
-  __ pushq(RAX);  // Pass receiver.
-  __ pushq(RBX);  // Pass IC data object.
-  __ pushq(R10);  // Pass arguments descriptor array.
-  __ CallRuntime(kResolveCompileInstanceFunctionRuntimeEntry);
-  __ popq(RAX);  // Remove arguments pushed earlier.
-  __ popq(RAX);
-  __ popq(RAX);
-  __ popq(RBX);  // Pop returned code object into RBX.
-  // Pop preserved values
-  __ popq(R10);  // Restore ic-data.
-  __ popq(RAX);  // Restore receiver.
-  __ popq(R13);  // Restore arguments descriptor array.
-
-  __ cmpq(RBX, raw_null);
-  Label check_implicit_closure;
-  __ j(EQUAL, &check_implicit_closure, Assembler::kNearJump);
-
-  // Remove the stub frame as we are about to jump to the dart function.
-  __ LeaveFrame();
-
-  __ movq(R10, R13);
-  __ movq(RBX, FieldAddress(RBX, Code::instructions_offset()));
-  __ addq(RBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(RBX);
-
-  __ Bind(&check_implicit_closure);
   // RAX: receiver.
-  // R10: ic-data.
-  // RBX: raw_null.
-  // R13: arguments descriptor array.
+  // RBX: ic-data.
+  // R10: arguments descriptor array.
   // The target function was not found.
   // First check to see if this is a getter function and we are
   // trying to create a closure of an instance function.
   // Push values that need to be preserved across runtime call.
   __ pushq(RAX);  // Preserve receiver.
-  __ pushq(R10);  // Preserve ic-data.
-  __ pushq(R13);  // Preserve arguments descriptor array.
+  __ pushq(RBX);  // Preserve ic-data.
+  __ pushq(R10);  // Preserve arguments descriptor array.
 
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RAX);  // Push receiver.
-  __ pushq(R10);  // Ic-data array.
+  __ pushq(RBX);  // Ic-data array.
   __ CallRuntime(kResolveImplicitClosureFunctionRuntimeEntry);
   __ popq(RAX);
   __ popq(RAX);
-  __ popq(RBX);  // Get return value into RBX, might be Closure object.
+  __ popq(RCX);  // Get return value into RCX, might be Closure object.
 
   // Pop preserved values.
-  __ popq(R13);  // Restore arguments descriptor array.
-  __ popq(R10);  // Restore ic-data.
+  __ popq(R10);  // Restore arguments descriptor array.
+  __ popq(RBX);  // Restore ic-data.
   __ popq(RAX);  // Restore receiver.
 
-  __ cmpq(RBX, raw_null);
+  __ cmpq(RCX, raw_null);
   Label check_implicit_closure_through_getter;
   __ j(EQUAL, &check_implicit_closure_through_getter, Assembler::kNearJump);
 
-  __ movq(RAX, RBX);  // Return value is the closure object.
+  __ movq(RAX, RCX);  // Return value is the closure object.
   // Remove the stub frame as we are about return.
   __ LeaveFrame();
   __ ret();
 
   __ Bind(&check_implicit_closure_through_getter);
   // RAX: receiver.
-  // R10: ic-data.
-  // RBX: raw_null.
-  // R13: arguments descriptor array.
+  // RBX: ic-data.
+  // R10: arguments descriptor array.
   // This is not the case of an instance so invoke the getter of the
   // same name and see if we get a closure back which we are then
   // supposed to invoke.
   // Push values that need to be preserved across runtime call.
   __ pushq(RAX);  // Preserve receiver.
-  __ pushq(R10);  // Preserve ic-data.
-  __ pushq(R13);  // Preserve arguments descriptor array.
+  __ pushq(RBX);  // Preserve ic-data.
+  __ pushq(R10);  // Preserve arguments descriptor array.
 
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RAX);  // Push receiver.
-  __ pushq(R10);  // Ic-data array.
+  __ pushq(RBX);  // Ic-data array.
   __ CallRuntime(kResolveImplicitClosureThroughGetterRuntimeEntry);
-  __ popq(R10);  // Pop argument.
   __ popq(RAX);  // Pop argument.
-  __ popq(RBX);  // get return value into RBX, might be Closure object.
+  __ popq(RAX);  // Pop argument.
+  __ popq(RCX);  // get return value into RCX, might be Closure object.
 
   // Pop preserved values.
-  __ popq(R13);  // Restore arguments descriptor array.
-  __ popq(R10);  // Restore ic-data.
+  __ popq(R10);  // Restore arguments descriptor array.
+  __ popq(RBX);  // Restore ic-data.
   __ popq(RAX);  // Restore receiver.
 
-  __ cmpq(RBX, raw_null);
+  __ cmpq(RCX, raw_null);
   Label function_not_found;
-  __ j(EQUAL, &function_not_found);
+  __ j(EQUAL, &function_not_found, Assembler::kNearJump);
 
-  // RBX: Closure object.
-  // R13: Arguments descriptor array.
+  // RCX: Closure object.
+  // R10: Arguments descriptor array.
   __ pushq(raw_null);  // Setup space on stack for result from invoking Closure.
-  __ pushq(RBX);  // Closure object.
-  __ pushq(R13);  // Arguments descriptor.
-  __ movq(R13, FieldAddress(R13, ArgumentsDescriptor::count_offset()));
+  __ pushq(RCX);  // Closure object.
+  __ pushq(R10);  // Arguments descriptor.
+  __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(R13);
   __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
   PushArgumentsArray(assembler, (kWordSize * 6));
@@ -406,15 +372,14 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   // The target function was not found, so invoke method
   // "void noSuchMethod(function_name, args_array)".
   //   RAX: receiver.
-  //   R10: ic-data.
-  //   RBX: raw_null.
-  //   R13: arguments descriptor array.
+  //   RBX: ic-data.
+  //   R10: arguments descriptor array.
 
   __ pushq(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushq(RAX);  // Receiver.
-  __ pushq(R10);  // IC-data array.
-  __ pushq(R13);  // Arguments descriptor array.
-  __ movq(R13, FieldAddress(R13, ArgumentsDescriptor::count_offset()));
+  __ pushq(RBX);  // IC-data array.
+  __ pushq(R10);  // Arguments descriptor array.
+  __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(R13);
   __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
   // See stack layout below explaining "wordSize * 7" offset.

@@ -41,7 +41,6 @@ DECLARE_RUNTIME_ENTRY(OptimizeInvokedFunction);
 DECLARE_RUNTIME_ENTRY(TraceICCall);
 DECLARE_RUNTIME_ENTRY(PatchStaticCall);
 DECLARE_RUNTIME_ENTRY(ReportObjectNotClosure);
-DECLARE_RUNTIME_ENTRY(ResolveCompileInstanceFunction);
 DECLARE_RUNTIME_ENTRY(ResolveImplicitClosureFunction);
 DECLARE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter);
 DECLARE_RUNTIME_ENTRY(ReThrow);

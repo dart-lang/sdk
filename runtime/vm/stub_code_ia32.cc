@@ -280,108 +280,74 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   // ....
   __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ movl(EAX, Address(EBP, EAX, TIMES_2, kWordSize));  // Get receiver.
-  __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(EAX);  // Preserve receiver.
-  __ pushl(ECX);  // Preserve ic-data.
-  // First resolve the function to get the function object.
-
-  __ pushl(raw_null);  // Setup space on stack for return value.
-  __ pushl(EAX);  // Pass receiver.
-  __ pushl(ECX);  // Pass IC data object.
-  __ pushl(EDX);  // Pass arguments descriptor array.
-  __ CallRuntime(kResolveCompileInstanceFunctionRuntimeEntry);
-  __ popl(EAX);  // Remove arguments pushed earlier.
-  __ popl(EAX);
-  __ popl(EAX);
-  __ popl(ECX);  // Pop returned code object into ECX.
-  // Pop preserved values.
-  __ popl(EDX);  // Restore ic-data.
-  __ popl(EAX);  // Restore receiver.
-  __ popl(EDI);  // Restore arguments descriptor array.
-
-  __ cmpl(ECX, raw_null);
-  Label check_implicit_closure;
-  __ j(EQUAL, &check_implicit_closure, Assembler::kNearJump);
-
-  // Remove the stub frame as we are about to jump to the dart function.
-  __ LeaveFrame();
-
-  __ movl(EDX, EDI);
-  __ movl(ECX, FieldAddress(ECX, Code::instructions_offset()));
-  __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(ECX);
-
-  __ Bind(&check_implicit_closure);
   // EAX: receiver.
-  // EDX: ic-data.
-  // ECX: raw_null.
-  // EDI: arguments descriptor array.
+  // ECX: ic-data.
+  // EDX: arguments descriptor array.
   // The target function was not found.
   // First check to see if this is a getter function and we are
   // trying to create a closure of an instance function.
   // Push values that need to be preserved across runtime call.
   __ pushl(EAX);  // Preserve receiver.
-  __ pushl(EDX);  // Preserve ic-data.
-  __ pushl(EDI);  // Preserve arguments descriptor array.
+  __ pushl(ECX);  // Preserve ic-data.
+  __ pushl(EDX);  // Preserve arguments descriptor array.
 
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EAX);  // Push receiver.
-  __ pushl(EDX);  // Ic-data.
+  __ pushl(ECX);  // Ic-data.
   __ CallRuntime(kResolveImplicitClosureFunctionRuntimeEntry);
   __ popl(EAX);
   __ popl(EAX);
-  __ popl(ECX);  // Get return value into ECX, might be Closure object.
+  __ popl(EBX);  // Get return value into EBX, might be Closure object.
 
   // Pop preserved values.
-  __ popl(EDI);  // Restore arguments descriptor array.
-  __ popl(EDX);  // Restore ic-data.
+  __ popl(EDX);  // Restore arguments descriptor array.
+  __ popl(ECX);  // Restore ic-data.
   __ popl(EAX);  // Restore receiver.
 
-  __ cmpl(ECX, raw_null);
+  __ cmpl(EBX, raw_null);
   Label check_implicit_closure_through_getter;
   __ j(EQUAL, &check_implicit_closure_through_getter, Assembler::kNearJump);
 
-  __ movl(EAX, ECX);  // Return value is the closure object.
+  __ movl(EAX, EBX);  // Return value is the closure object.
   // Remove the stub frame as we are about return.
   __ LeaveFrame();
   __ ret();
 
   __ Bind(&check_implicit_closure_through_getter);
   // EAX: receiver.
-  // EDX: ic-data.
-  // ECX: raw_null.
-  // EDI: arguments descriptor array.
+  // ECX: ic-data.
+  // EDX: arguments descriptor array.
   // This is not the case of an instance so invoke the getter of the
   // same name and see if we get a closure back which we are then
   // supposed to invoke.
   // Push values that need to be preserved across runtime call.
   __ pushl(EAX);  // Preserve receiver.
-  __ pushl(EDX);  // Preserve ic-data.
-  __ pushl(EDI);  // Preserve arguments descriptor array.
+  __ pushl(ECX);  // Preserve ic-data.
+  __ pushl(EDX);  // Preserve arguments descriptor array.
 
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EAX);  // Push receiver.
-  __ pushl(EDX);  // Ic-data.
+  __ pushl(ECX);  // Ic-data.
   __ CallRuntime(kResolveImplicitClosureThroughGetterRuntimeEntry);
-  __ popl(EDX);  // Pop argument.
   __ popl(EAX);  // Pop argument.
-  __ popl(ECX);  // get return value into ECX, might be Closure object.
+  __ popl(EAX);  // Pop argument.
+  __ popl(EBX);  // get return value into EBX, might be Closure object.
 
   // Pop preserved values.
-  __ popl(EDI);  // Restore arguments descriptor array.
-  __ popl(EDX);  // Restore ic-data.
+  __ popl(EDX);  // Restore arguments descriptor array.
+  __ popl(ECX);  // Restore ic-data.
   __ popl(EAX);  // Restore receiver.
 
-  __ cmpl(ECX, raw_null);
+  __ cmpl(EBX, raw_null);
   Label function_not_found;
   __ j(EQUAL, &function_not_found, Assembler::kNearJump);
 
-  // ECX: Closure object.
-  // EDI: Arguments descriptor array.
+  // EBX: Closure object.
+  // EDX: Arguments descriptor array.
   __ pushl(raw_null);  // Setup space on stack for result from invoking Closure.
-  __ pushl(ECX);  // Closure object.
-  __ pushl(EDI);  // Arguments descriptor.
-  __ movl(EDI, FieldAddress(EDI, ArgumentsDescriptor::count_offset()));
+  __ pushl(EBX);  // Closure object.
+  __ pushl(EDX);  // Arguments descriptor.
+  __ movl(EDI, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(EDI);
   __ subl(EDI, Immediate(1));  // Arguments array length, minus the receiver.
   PushArgumentsArray(assembler, (kWordSize * 6));
@@ -411,15 +377,14 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   // The target function was not found, so invoke method
   // "void noSuchMethod(function_name, args_array)".
   //   EAX: receiver.
-  //   EDX: ic-data.
-  //   ECX: raw_null.
-  //   EDI: arguments descriptor array.
+  //   ECX: ic-data.
+  //   EDX: arguments descriptor array.
 
   __ pushl(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushl(EAX);  // Receiver.
-  __ pushl(EDX);  // IC-data.
-  __ pushl(EDI);  // Arguments descriptor array.
-  __ movl(EDI, FieldAddress(EDI, ArgumentsDescriptor::count_offset()));
+  __ pushl(ECX);  // IC-data.
+  __ pushl(EDX);  // Arguments descriptor array.
+  __ movl(EDI, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(EDI);
   __ subl(EDI, Immediate(1));  // Arguments array length, minus the receiver.
   // See stack layout below explaining "wordSize * 7" offset.

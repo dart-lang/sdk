@@ -826,29 +826,6 @@ static void CheckResultError(const Object& result) {
 }
 
 
-// Resolves an instance function and compiles it if necessary.
-//   Arg0: receiver object.
-//   Arg1: IC data object.
-//   Arg2: Arguments descriptor array.
-//   Returns: RawCode object or NULL (method not found or not compileable).
-// This is called by the megamorphic stub when instance call does not need to be
-// patched.
-// Used by megamorphic lookup/no-such-method-handling.
-DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 3) {
-  ASSERT(arguments.ArgCount() ==
-         kResolveCompileInstanceFunctionRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
-  const Array& arg_desc_array = Array::CheckedHandle(arguments.ArgAt(2));
-  ArgumentsDescriptor arg_descriptor(arg_desc_array);
-  const Code& code =
-      Code::Handle(ResolveCompileInstanceCallTarget(receiver,
-                                                    ic_data,
-                                                    arg_descriptor));
-  arguments.SetReturn(code);
-}
-
-
 // Gets called from debug stub when code reaches a breakpoint.
 DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
   ASSERT(arguments.ArgCount() ==
