@@ -31,7 +31,9 @@ class NameValidator extends Validator {
       return listDir(libDir, recursive: true);
     }).transform((files) {
       for (var file in files) {
-        if (file.contains("/src/")) continue;
+        // TODO(nweiz): Since `file` is absolute, this will break if the package
+        // itself is in a directory named "src" (issue 7215).
+        if (splitPath(file).contains("src")) continue;
         if (new Path(file).extension != 'dart') continue;
         var libName = new Path(basename(file)).filenameWithoutExtension;
         _checkName(libName, 'The name of "$file", "$libName",');

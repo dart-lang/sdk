@@ -142,6 +142,8 @@ class LishCommand extends PubCommand {
       if (file == null || _BLACKLISTED_FILES.contains(basename(file))) {
         return false;
       }
+      // TODO(nweiz): Since `file` is absolute, this will break if the package
+      // itself is in a directory named "packages" (issue 7215).
       return !splitPath(file).some(_BLACKLISTED_DIRECTORIES.contains);
     }));
   }
