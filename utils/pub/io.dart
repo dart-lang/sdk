@@ -41,7 +41,7 @@ void printError(value) {
  * [File] objects.
  */
 String join(part1, [part2, part3, part4]) {
-  final parts = _sanitizePath(part1).split('/');
+  final parts = sanitizePath(part1).split('/');
 
   for (final part in [part2, part3, part4]) {
     if (part == null) continue;
@@ -63,7 +63,7 @@ String join(part1, [part2, part3, part4]) {
 }
 
 /// Splits [path] into its individual components.
-List<String> splitPath(path) => _sanitizePath(path).split('/');
+List<String> splitPath(path) => sanitizePath(path).split('/');
 
 /**
  * Gets the basename, the file name without any leading directory path, for
@@ -72,7 +72,7 @@ List<String> splitPath(path) => _sanitizePath(path).split('/');
 // TODO(rnystrom): Copied from file_system (so that we don't have to add
 // file_system to the SDK). Should unify.
 String basename(file) {
-  file = _sanitizePath(file);
+  file = sanitizePath(file);
 
   int lastSlash = file.lastIndexOf('/', file.length);
   if (lastSlash == -1) {
@@ -89,7 +89,7 @@ String basename(file) {
 // TODO(nweiz): Copied from file_system (so that we don't have to add
 // file_system to the SDK). Should unify.
 String dirname(file) {
-  file = _sanitizePath(file);
+  file = sanitizePath(file);
 
   int lastSlash = file.lastIndexOf('/', file.length);
   if (lastSlash == -1) {
@@ -102,7 +102,7 @@ String dirname(file) {
 /// Returns whether or not [entry] is nested somewhere within [dir]. This just
 /// performs a path comparison; it doesn't look at the actual filesystem.
 bool isBeneath(entry, dir) =>
-  _sanitizePath(entry).startsWith('${_sanitizePath(dir)}/');
+  sanitizePath(entry).startsWith('${sanitizePath(dir)}/');
 
 /**
  * Asynchronously determines if [path], which can be a [String] file path, a
@@ -994,9 +994,9 @@ String _getPath(entry) {
   throw 'Entry $entry is not a supported type.';
 }
 
-/// Gets the path string for [entry] as in [_getPath], but normalizes
-/// backslashes to forward slashes on Windows.
-String _sanitizePath(entry) {
+/// Gets the path string for [entry], normalizing backslashes to forward slashes
+/// on Windows.
+String sanitizePath(entry) {
   entry = _getPath(entry);
   if (Platform.operatingSystem != 'windows') return entry;
 

@@ -12,6 +12,7 @@ import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/entrypoint.dart';
 import '../../pub/io.dart';
 import '../../pub/validator.dart';
+import '../../pub/validator/name.dart';
 import '../../pub/validator/pubspec_field.dart';
 
 void expectNoValidationError(ValidatorCreator fn) {
@@ -29,6 +30,8 @@ void expectValidationWarning(ValidatorCreator fn) {
 Validator pubspecField(Entrypoint entrypoint) =>
   new PubspecFieldValidator(entrypoint);
 
+Validator name(Entrypoint entrypoint) => new NameValidator(entrypoint);
+
 main() {
   group('should consider a package valid if it', () {
     test('looks normal', () {
@@ -42,6 +45,18 @@ main() {
       package["authors"] = [package.remove("author")];
       dir(appPath, [pubspec(package)]).scheduleCreate();
       expectNoValidationError(pubspecField);
+      run();
+    });
+
+    test('has a badly-named library in lib/src', () {
+      dir(appPath, [
+        libPubspec("test_pkg", "1.0.0"),
+        dir("lib", [
+          file("test_pkg.dart", "int i = 1;"),
+          dir("src", [file("8ball.dart", "int j = 2;")])
+        ])
+      ]).scheduleCreate();
+      expectNoValidationError(name);
       run();
     });
   });
@@ -117,6 +132,72 @@ main() {
       dir(appPath, [pubspec(package)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
+      run();
+    });
+
+    test('has an empty package name', () {
+      dir(appPath, [libPubspec("", "1.0.0")]).scheduleCreate();
+      expectValidationError(name);
+      run();
+    });
+
+    test('has a package name with an invalid character', () {
+      dir(appPath, [libPubspec("test-pkg", "1.0.0")]).scheduleCreate();
+      expectValidationError(name);
+      run();
+    });
+
+    test('has a package name that begins with a number', () {
+      dir(appPath, [libPubspec("8ball", "1.0.0")]).scheduleCreate();
+      expectValidationError(name);
+      run();
+    });
+
+    test('has a package name that contains upper-case letters', () {
+      dir(appPath, [libPubspec("TestPkg", "1.0.0")]).scheduleCreate();
+      expectValidationWarning(name);
+      run();
+    });
+
+    test('has a package name that is a Dart identifier', () {
+      dir(appPath, [libPubspec("operator", "1.0.0")]).scheduleCreate();
+      expectValidationError(name);
+      run();
+    });
+
+    test('has a library name with an invalid character', () {
+      dir(appPath, [
+        libPubspec("test_pkg", "1.0.0"),
+        dir("lib", [file("test-pkg.dart", "int i = 0;")])
+      ]).scheduleCreate();
+      expectValidationError(name);
+      run();
+    });
+
+    test('has a library name that begins with a number', () {
+      dir(appPath, [
+        libPubspec("test_pkg", "1.0.0"),
+        dir("lib", [file("8ball.dart", "int i = 0;")])
+      ]).scheduleCreate();
+      expectValidationError(name);
+      run();
+    });
+
+    test('has a library name that contains upper-case letters', () {
+      dir(appPath, [
+        libPubspec("test_pkg", "1.0.0"),
+        dir("lib", [file("TestPkg.dart", "int i = 0;")])
+      ]).scheduleCreate();
+      expectValidationWarning(name);
+      run();
+    });
+
+    test('has a library name that is a Dart identifier', () {
+      dir(appPath, [
+        libPubspec("test_pkg", "1.0.0"),
+        dir("lib", [file("operator.dart", "int i = 0;")])
+      ]).scheduleCreate();
+      expectValidationError(name);
       run();
     });
   });

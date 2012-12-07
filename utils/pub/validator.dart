@@ -8,6 +8,7 @@ import 'entrypoint.dart';
 import 'io.dart';
 import 'system_cache.dart';
 import 'utils.dart';
+import 'validator/name.dart';
 import 'validator/pubspec_field.dart';
 
 /// The base class for validators that check whether a package is fit for
@@ -37,6 +38,7 @@ abstract class Validator {
   static Future<Pair<List<String>, List<String>>> runAll(
       Entrypoint entrypoint) {
     var validators = [
+      new NameValidator(entrypoint),
       new PubspecFieldValidator(entrypoint)
     ];
 
