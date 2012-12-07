@@ -4,6 +4,7 @@
 
 library html_common;
 
+import 'dart:collection';
 import 'dart:html';
 
 part 'conversions.dart';

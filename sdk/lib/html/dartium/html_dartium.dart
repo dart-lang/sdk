@@ -8788,11 +8788,14 @@ abstract class Element extends Node implements ElementTraversal {
   /**
    * Deprecated, use innerHtml instead.
    */
+  @deprecated
   String get innerHTML => this.innerHtml;
+  @deprecated
   void set innerHTML(String value) {
     this.innerHtml = value;
   }
 
+  @deprecated
   void set elements(Collection<Element> value) {
     this.children = value;
   }
@@ -8800,6 +8803,7 @@ abstract class Element extends Node implements ElementTraversal {
   /**
    * Deprecated, use [children] instead.
    */
+  @deprecated
   List<Element> get elements => this.children;
 
   /**
