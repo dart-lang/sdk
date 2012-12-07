@@ -33,7 +33,7 @@ class NameValidator extends Validator {
       for (var file in files) {
         if (file.contains("/src/")) continue;
         if (new Path(file).extension != 'dart') continue;
-        var libName = new Path(file).filenameWithoutExtension;
+        var libName = new Path(basename(file)).filenameWithoutExtension;
         _checkName(libName, 'The name of "$file", "$libName",');
       }
     });
