@@ -24,7 +24,6 @@
     'iterable.dart',
     'iterator.dart',
     'map.dart',
-    'metadata.dart',
     'list.dart',
     'num.dart',
     'object.dart',
