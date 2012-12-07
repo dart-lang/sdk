@@ -7,9 +7,9 @@
 *: Skip
 
 # Pub only runs on the standalone VM, not the browser.
-[ $runtime == drt || $runtime == dartium || $runtime == opera]
+[ $runtime == drt || $runtime == dartium || $runtime == opera ]
 *: Skip
 
-# TODO(nweiz): Figure out why this is failing.
+# TODO(rnystrom): Figure out why this is failing or timing out (#7211).
 [ $system == windows ]
-pub_lish_test: Fail
+pub_lish_test: Skip

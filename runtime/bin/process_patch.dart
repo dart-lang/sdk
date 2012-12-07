@@ -2,18 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _WindowsCodePageDecoder {
-  /* patch */ static String _decodeBytes(List<int> bytes)
-      native "SystemEncodingToString";
-}
-
-
-patch class _WindowsCodePageEncoder {
-  /* patch */ static List<int> _encodeString(String string)
-      native "StringToSystemEncoding";
-}
-
-
 patch class Process {
   /* patch */ static Future<Process> start(String executable,
                                            List<String> arguments,
@@ -290,8 +278,8 @@ class _NonInteractiveProcess {
                          ProcessOptions options) {
     _completer = new Completer<ProcessResult>();
     // Extract output encoding options and verify arguments.
-    var stdoutEncoding = Encoding.SYSTEM;
-    var stderrEncoding = Encoding.SYSTEM;
+    var stdoutEncoding = Encoding.UTF_8;
+    var stderrEncoding = Encoding.UTF_8;
     if (options != null) {
       if (options.stdoutEncoding != null) {
         stdoutEncoding = options.stdoutEncoding;

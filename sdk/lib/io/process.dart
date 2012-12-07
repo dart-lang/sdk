@@ -148,7 +148,7 @@ class ProcessOptions {
    * This option is ignored for interactive processes started with
    * [:Process.start:].
    *
-   * The default stdoutEncoding is SYSTEM.
+   * The default stdoutEncoding is UTF_8.
    */
   Encoding stdoutEncoding;
 
@@ -159,7 +159,7 @@ class ProcessOptions {
    * This option is ignored for interactive processes started with
    * [:Process.start:].
    *
-   * The default stderrEncoding is SYSTEM.
+   * The default stderrEncoding is UTF_8.
    */
   Encoding stderrEncoding;
 

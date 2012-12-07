@@ -192,15 +192,3 @@ patch class _StdIOUtils {
     throw new UnsupportedError("StdIOUtils._getStdioHandleType");
   }
 }
-
-patch class _WindowsCodePageDecoder {
-  patch static String _decodeBytes(List<int> bytes) {
-    throw new UnsupportedError("_WindowsCodePageDecoder._decodeBytes");
-  }
-}
-
-patch class _WindowsCodePageEncoder {
-  patch static List<int> _encodeString(String string) {
-    throw new UnsupportedError("_WindowsCodePageEncoder._encodeString");
-  }
-}
