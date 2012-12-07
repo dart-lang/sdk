@@ -44,8 +44,7 @@
             '<!@(["python", "tools/list_files.py", "", "sdk/bin"])',
             'tools/create_sdk.py',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '<(PRODUCT_DIR)/dart2js',
-            '<(PRODUCT_DIR)/dart2js.bat',
+            '<(PRODUCT_DIR)/dart2js.snapshot',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/dart-sdk/README',
