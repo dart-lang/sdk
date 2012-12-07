@@ -44,6 +44,11 @@ class _StringDecoders {
       return new _Latin1Decoder();
     } else if (encoding == Encoding.ASCII) {
       return new _AsciiDecoder();
+    } else if (encoding == Encoding.SYSTEM) {
+      if (Platform.operatingSystem == 'windows') {
+        return new _WindowsCodePageDecoder();
+      }
+      return new _UTF8Decoder();
     } else {
       if (encoding is Encoding) {
         throw new StreamException("Unsupported encoding ${encoding.name}");
@@ -250,6 +255,22 @@ class _Latin1Decoder extends _StringDecoderBase {
 }
 
 
+// Utility class for decoding Windows current code page data delivered
+// as a stream of bytes.
+class _WindowsCodePageDecoder extends _StringDecoderBase {
+  // Process the next chunk of data.
+  bool _processNext() {
+    List<int> bytes = _bufferList.readBytes(_bufferList.length);
+    for (var charCode in _decodeBytes(bytes).charCodes) {
+      addChar(charCode);
+    }
+    return true;
+  }
+
+  external static String _decodeBytes(List<int> bytes);
+}
+
+
 // Interface for encoders encoding string data into binary data.
 abstract class _StringEncoder {
   List<int> encodeString(String string);
@@ -313,6 +334,17 @@ class _AsciiEncoder implements _StringEncoder {
 }
 
 
+// Utility class for encoding a string into a current windows
+// code page byte list.
+class _WindowsCodePageEncoder implements _StringEncoder {
+  List<int> encodeString(String string) {
+    return _encodeString(string);
+  }
+
+  external static List<int> _encodeString(String string);
+}
+
+
 class _StringEncoders {
   static _StringEncoder encoder(Encoding encoding) {
     if (encoding == Encoding.UTF_8) {
@@ -321,6 +353,11 @@ class _StringEncoders {
       return new _Latin1Encoder();
     } else if (encoding == Encoding.ASCII) {
       return new _AsciiEncoder();
+    } else if (encoding == Encoding.SYSTEM) {
+      if (Platform.operatingSystem == 'windows') {
+        return new _WindowsCodePageEncoder();
+      }
+      return new _UTF8Encoder();
     } else {
       throw new StreamException("Unsupported encoding ${encoding.name}");
     }

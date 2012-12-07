@@ -47,7 +47,10 @@
   V(SecureSocket_ProcessBuffer, 2)                                             \
   V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
-  V(SecureSocket_InitializeLibrary, 3)
+  V(SecureSocket_InitializeLibrary, 3)                                         \
+  V(SystemEncodingToString, 1)                                                 \
+  V(StringToSystemEncoding, 1)
+
 
 IO_NATIVE_LIST(DECLARE_FUNCTION);
 

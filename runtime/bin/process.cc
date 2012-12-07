@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/dartutils.h"
+#include "bin/io_buffer.h"
 #include "bin/process.h"
 #include "bin/socket.h"
 
@@ -176,4 +177,37 @@ Dart_Handle Process::GetProcessIdNativeField(Dart_Handle process,
 Dart_Handle Process::SetProcessIdNativeField(Dart_Handle process,
                                              intptr_t pid) {
   return Dart_SetNativeInstanceField(process, kProcessIdNativeField, pid);
+}
+
+
+void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle bytes = Dart_GetNativeArgument(args, 0);
+  intptr_t bytes_length = 0;
+  Dart_Handle result = Dart_ListLength(bytes, &bytes_length);
+  if (Dart_IsError(result)) Dart_PropagateError(result);
+  uint8_t* buffer = new uint8_t[bytes_length];
+  result = Dart_ListGetAsBytes(bytes, 0, buffer, bytes_length);
+  if (Dart_IsError(result)) {
+    delete[] buffer;
+    Dart_PropagateError(result);
+  }
+  char* str =
+      StringUtils::SystemStringToUtf8(reinterpret_cast<char*>(buffer));
+  Dart_SetReturnValue(args, DartUtils::NewString(str));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle str = Dart_GetNativeArgument(args, 0);
+  const char* utf8 = DartUtils::GetStringValue(str);
+  const char* system_string = StringUtils::Utf8ToSystemString(utf8);
+  int external_length = strlen(system_string);
+  uint8_t* buffer = NULL;
+  Dart_Handle external_array = IOBuffer::Allocate(external_length, &buffer);
+  memmove(buffer, system_string, external_length);
+  Dart_SetReturnValue(args, external_array);
+  Dart_ExitScope();
 }
