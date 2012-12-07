@@ -10994,7 +10994,7 @@ class FormData extends NativeFieldWrapperClass1 {
 
 
   /** @domName DOMFormData.append */
-  void append(String name, String value, String filename) native "DOMFormData_append_Callback";
+  void append(String name, value, [String filename]) native "DOMFormData_append_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -29,10 +29,18 @@ void main() {
 
   test('appendTest', () {
     var form = new FormData();
-    form.append('test', '1', 'foo');
-    form.append('username', 'Elmo', 'foo');
-    form.append('address', '1 Sesame Street', 'foo');
+    form.append('test', '1');
+    form.append('username', 'Elmo');
+    form.append('address', '1 Sesame Street');
     form.append('password', '123456', 'foo');
     expect(form, isNotNull);
+  });
+
+  test('appendBlob', () {
+    var form = new FormData();
+    var blob = new Blob(
+        ['Indescribable... Indestructible! Nothing can stop it!'],
+        'text/plain');
+    form.append('theBlob', blob, 'theBlob.txt');
   });
 }
