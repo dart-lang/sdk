@@ -5548,27 +5548,6 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * Represents an HTML <div> element.
- *
- * The [DivElement] is a generic container for content and does not have any
- * special significance. It is functionally similar to [SpanElement].
- *
- * The [DivElement] is a block-level element, as opposed to [SpanElement],
- * which is an inline-level element.
- *
- * Example usage:
- *
- *     DivElement div = new DivElement();
- *     div.text = 'Here's my new DivElem
- *     document.body.elements.add(elem);
- *
- * See also:
- *
- * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
- * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
- * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
- */
 /// @domName HTMLDivElement; @docsEditable true
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
@@ -5608,7 +5587,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.cookie; @docsEditable true
   String cookie;
 
-  /// Returns the [Window] associated with the document.
   /// @domName Document.defaultView; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
   @JSName('defaultView')
@@ -9753,27 +9731,9 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
       onComplete);
 
 
-  /**
-   * General constructor for any type of request (GET, POST, etc).
-   *
-   * This call is used in conjunction with [open]:
-   * 
-   *     var request = new HttpRequest();
-   *     request.open('GET', 'http://dartlang.org')
-   *     request.on.load.add((event) => print('Request complete'));
-   * 
-   * is the (more verbose) equivalent of
-   * 
-   *     var request = new HttpRequest.get('http://dartlang.org', (event) => print('Request complete'));
-   */
   ///@docsEditable true
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
 
-  /**
-   * Get the set of [HttpRequestEvents] that this request can respond to.
-   * Usually used when adding an EventListener, such as in
-   * `document.window.on.keyDown.add((e) => print('keydown happened'))`.
-   */
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
@@ -9788,37 +9748,16 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   static const int UNSENT = 0;
 
-  /** @domName XMLHttpRequest.readyState */
   /// @domName XMLHttpRequest.readyState; @docsEditable true
   final int readyState;
 
-  /**
-   * The data received as a reponse from the request.
-   *
-   * The data could be in the
-   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a 
-   * [String]). `null` indicates request failure.
-   */
   /// @domName XMLHttpRequest.response; @docsEditable true
   @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
   final Object response;
 
-  /**
-   * The response in string form or `null` on failure.
-   */
   /// @domName XMLHttpRequest.responseText; @docsEditable true
   final String responseText;
 
-  /**
-   * [String] telling the server the desired response format. 
-   *
-   * Default is `String`.
-   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
-   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
-   * `responseType` is set while performing a synchronous request.
-   *
-   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
-   */
   /// @domName XMLHttpRequest.responseType; @docsEditable true
   String responseType;
 
@@ -9826,43 +9765,18 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @JSName('responseXML')
   final Document responseXml;
 
-  /**
-   * The http result code from the request (200, 404, etc).
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
-   */
   /// @domName XMLHttpRequest.status; @docsEditable true
   final int status;
 
-  /**
-   * The request response string (such as "200 OK").
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
-   */
   /// @domName XMLHttpRequest.statusText; @docsEditable true
   final String statusText;
 
-  /**
-   * [EventTarget] that can hold listeners to track the progress of the request.
-   * The events fired will be members of [HttpRequestUploadEvents].
-   */
   /// @domName XMLHttpRequest.upload; @docsEditable true
   final HttpRequestUpload upload;
 
-  /**
-   * True if cross-site requests should use credentials such as cookies
-   * or authorization headers; false otherwise. 
-   *
-   * This value is ignored for same-site requests.
-   */
   /// @domName XMLHttpRequest.withCredentials; @docsEditable true
   bool withCredentials;
 
-  /**
-   * Stop the current request.
-   *
-   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or 
-   * `LOADING`. If this method is not in the process of being sent, the method
-   * has no effect.
-   */
   /// @domName XMLHttpRequest.abort; @docsEditable true
   void abort() native;
 
@@ -9874,48 +9788,15 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @JSName('dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /**
-   * Retrieve all the response headers from a request.
-   * 
-   * `null` if no headers have been received. For multipart requests,
-   * `getAllResponseHeaders` will return the response headers for the current
-   * part of the request.
-   * 
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
-   * for a list of common response headers.
-   */
   /// @domName XMLHttpRequest.getAllResponseHeaders; @docsEditable true
   String getAllResponseHeaders() native;
 
-  /**
-   * Return the response header named `header`, or `null` if not found.
-   * 
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
-   * for a list of common response headers.
-   */
   /// @domName XMLHttpRequest.getResponseHeader; @docsEditable true
   String getResponseHeader(String header) native;
 
-  /**
-   * Specify the desired `url`, and `method` to use in making the request.
-   * 
-   * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
-   * synchronously.
-   * 
-   * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
-   */
   /// @domName XMLHttpRequest.open; @docsEditable true
   void open(String method, String url, [bool async, String user, String password]) native;
 
-  /**
-   * Specify a particular MIME type (such as `text/xml`) desired for the
-   * response.
-   * 
-   * This value must be set before the request has been sent. See also the list
-   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
-   */
   /// @domName XMLHttpRequest.overrideMimeType; @docsEditable true
   void overrideMimeType(String override) native;
 
@@ -9923,17 +9804,9 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /**
-   * Send the request with any given `data`.
-   *
-   * See also: 
-   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())
-   * from MDN.
-   */
   /// @domName XMLHttpRequest.send; @docsEditable true
   void send([data]) native;
 
-  /** Sets HTTP `header` to `value`. */
   /// @domName XMLHttpRequest.setRequestHeader; @docsEditable true
   void setRequestHeader(String header, String value) native;
 
@@ -10841,7 +10714,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
   factory KeyboardEvent(String type, Window view,
       [bool canBubble = true, bool cancelable = true, 
-      String keyIdentifier = null, int keyLocation = 1, bool ctrlKey = false,
+      String keyIdentifier = "", int keyLocation = 1, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       bool altGraphKey = false]) {
     final e = document.$dom_createEvent("KeyboardEvent");
@@ -12415,16 +12288,6 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An HTML <menu> element.
- *
- * A <menu> element represents an unordered list of menu commands.
- *
- * See also:
- *
- *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
- *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
- */
 /// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 

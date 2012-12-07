@@ -13457,7 +13457,7 @@ class KeyboardEvent extends UIEvent {
 
   factory KeyboardEvent(String type, Window view,
       [bool canBubble = true, bool cancelable = true, 
-      String keyIdentifier = null, int keyLocation = 1, bool ctrlKey = false,
+      String keyIdentifier = "", int keyLocation = 1, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       bool altGraphKey = false]) {
     final e = document.$dom_createEvent("KeyboardEvent");
