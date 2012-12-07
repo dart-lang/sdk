@@ -7102,7 +7102,7 @@ class Document extends Node
 
 
   /** @domName Document.preferredStylesheetSet */
-  String get preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
+  String get $dom_preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
 
 
   /** @domName Document.readyState */
@@ -7114,11 +7114,11 @@ class Document extends Node
 
 
   /** @domName Document.selectedStylesheetSet */
-  String get selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
+  String get $dom_selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
 
 
   /** @domName Document.selectedStylesheetSet */
-  void set selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
+  void set $dom_selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
 
 
   /** @domName Document.styleSheets */
@@ -7182,7 +7182,7 @@ class Document extends Node
 
 
   /** @domName Document.createRange */
-  Range createRange() native "Document_createRange_Callback";
+  Range $dom_createRange() native "Document_createRange_Callback";
 
 
   /** @domName Document.createTextNode */
@@ -7190,7 +7190,7 @@ class Document extends Node
 
 
   /** @domName Document.createTouch */
-  Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
+  Touch $dom_createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
 
   /** @domName Document.createTouchList */
@@ -7206,7 +7206,7 @@ class Document extends Node
 
 
   /** @domName Document.getCSSCanvasContext */
-  CanvasRenderingContext getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
+  CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
 
   /** @domName Document.getElementById */
@@ -11751,14 +11751,29 @@ class HtmlDocument extends Document {
     return document.$dom_elementFromPoint(x, y);
   }
 
+  /** @domName Document.getCSSCanvasContext */
+  CanvasRenderingContext getCssCanvasContext(String contextId, String name,
+      int width, int height) {
+    return document.$dom_getCssCanvasContext(contextId, name, width, height);
+  }
+
   /** @domName Document.head */
   HeadElement get head => document.$dom_head;
 
   /** @domName Document.lastModified */
   String get lastModified => document.$dom_lastModified;
 
+  /** @domName Document.preferredStylesheetSet */
+  String get preferredStylesheetSet => document.$dom_preferredStylesheetSet;
+
   /** @domName Document.referrer */
   String get referrer => document.$dom_referrer;
+
+  /** @domName Document.selectedStylesheetSet */
+  String get selectedStylesheetSet => document.$dom_selectedStylesheetSet;
+  void set selectedStylesheetSet(String value) {
+    document.$dom_selectedStylesheetSet = value;
+  }
 
   /** @domName Document.styleSheets */
   List<StyleSheet> get styleSheets => document.$dom_styleSheets;
@@ -18214,6 +18229,8 @@ class RadioNodeList extends NodeList {
 
 /// @domName Range
 class Range extends NativeFieldWrapperClass1 {
+  factory Range() => document.$dom_createRange();
+
   Range.internal();
 
   static const int END_TO_END = 2;

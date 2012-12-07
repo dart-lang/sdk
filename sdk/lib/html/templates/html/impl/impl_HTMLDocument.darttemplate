@@ -27,14 +27,29 @@ $!MEMBERS
     return document.$dom_elementFromPoint(x, y);
   }
 
+  /** @domName Document.getCSSCanvasContext */
+  CanvasRenderingContext getCssCanvasContext(String contextId, String name,
+      int width, int height) {
+    return document.$dom_getCssCanvasContext(contextId, name, width, height);
+  }
+
   /** @domName Document.head */
   HeadElement get head => document.$dom_head;
 
   /** @domName Document.lastModified */
   String get lastModified => document.$dom_lastModified;
 
+  /** @domName Document.preferredStylesheetSet */
+  String get preferredStylesheetSet => document.$dom_preferredStylesheetSet;
+
   /** @domName Document.referrer */
   String get referrer => document.$dom_referrer;
+
+  /** @domName Document.selectedStylesheetSet */
+  String get selectedStylesheetSet => document.$dom_selectedStylesheetSet;
+  void set selectedStylesheetSet(String value) {
+    document.$dom_selectedStylesheetSet = value;
+  }
 
   /** @domName Document.styleSheets */
   List<StyleSheet> get styleSheets => document.$dom_styleSheets;

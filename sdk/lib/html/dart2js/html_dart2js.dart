@@ -5633,7 +5633,8 @@ class Document extends Node  native "*Document"
   final String $dom_lastModified;
 
   /// @domName Document.preferredStylesheetSet; @docsEditable true
-  final String preferredStylesheetSet;
+  @JSName('preferredStylesheetSet')
+  final String $dom_preferredStylesheetSet;
 
   /// @domName Document.readyState; @docsEditable true
   final String readyState;
@@ -5643,7 +5644,8 @@ class Document extends Node  native "*Document"
   final String $dom_referrer;
 
   /// @domName Document.selectedStylesheetSet; @docsEditable true
-  String selectedStylesheetSet;
+  @JSName('selectedStylesheetSet')
+  String $dom_selectedStylesheetSet;
 
   /// @domName Document.styleSheets; @docsEditable true
   @JSName('styleSheets')
@@ -5702,19 +5704,20 @@ class Document extends Node  native "*Document"
   Event $dom_createEvent(String eventType) native;
 
   /// @domName Document.createRange; @docsEditable true
-  Range createRange() native;
+  @JSName('createRange')
+  Range $dom_createRange() native;
 
   /// @domName Document.createTextNode; @docsEditable true
   @JSName('createTextNode')
   Text $dom_createTextNode(String data) native;
 
   /// @domName Document.createTouch; @docsEditable true
-  Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
+  Touch $dom_createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
     var target_1 = _convertDartToNative_EventTarget(target);
-    return _createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
+    return _$dom_createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
   }
   @JSName('createTouch')
-  Touch _createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
+  Touch _$dom_createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
   /// @domName Document.createTouchList; @docsEditable true
   @JSName('createTouchList')
@@ -5729,7 +5732,7 @@ class Document extends Node  native "*Document"
 
   /// @domName Document.getCSSCanvasContext; @docsEditable true
   @JSName('getCSSCanvasContext')
-  CanvasRenderingContext getCssCanvasContext(String contextId, String name, int width, int height) native;
+  CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native;
 
   /// @domName Document.getElementById; @docsEditable true
   @JSName('getElementById')
@@ -9590,14 +9593,29 @@ class HtmlDocument extends Document native "*HTMLDocument" {
     return document.$dom_elementFromPoint(x, y);
   }
 
+  /** @domName Document.getCSSCanvasContext */
+  CanvasRenderingContext getCssCanvasContext(String contextId, String name,
+      int width, int height) {
+    return document.$dom_getCssCanvasContext(contextId, name, width, height);
+  }
+
   /** @domName Document.head */
   HeadElement get head => document.$dom_head;
 
   /** @domName Document.lastModified */
   String get lastModified => document.$dom_lastModified;
 
+  /** @domName Document.preferredStylesheetSet */
+  String get preferredStylesheetSet => document.$dom_preferredStylesheetSet;
+
   /** @domName Document.referrer */
   String get referrer => document.$dom_referrer;
+
+  /** @domName Document.selectedStylesheetSet */
+  String get selectedStylesheetSet => document.$dom_selectedStylesheetSet;
+  void set selectedStylesheetSet(String value) {
+    document.$dom_selectedStylesheetSet = value;
+  }
 
   /** @domName Document.styleSheets */
   List<StyleSheet> get styleSheets => document.$dom_styleSheets;
@@ -14539,9 +14557,13 @@ class RadioNodeList extends NodeList native "*RadioNodeList" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
 
-/// @domName Range; @docsEditable true
+
+/// @domName Range
 class Range native "*Range" {
+  factory Range() => document.$dom_createRange();
+
 
   static const int END_TO_END = 2;
 
@@ -14652,6 +14674,7 @@ class Range native "*Range" {
 
   /// @domName Range.toString; @docsEditable true
   String toString() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

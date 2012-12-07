@@ -23,7 +23,7 @@ main() {
 
    test("ClientRectList test", () {
     insertTestDiv();
-    var range = document.createRange();
+    var range = new Range();
     var rects = range.getClientRects();
     expect(rects, isClientRectList);
   });

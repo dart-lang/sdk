@@ -63,6 +63,7 @@ audiocontext_test: Fail
 canvasrenderingcontext2d_test: Fail, Pass
 contentelement_test: Fail
 css_test: Fail
+document_test/getCssCanvasContext: Fail # IE does not support this.
 element_test/additionalConstructors: Fail
 element_test/attributes: Fail
 element_test/eventListening: Fail
@@ -98,6 +99,7 @@ xsltprocessor_test: Fail
 
 [ $runtime == ie9 ]
 contentelement_test: Fail   # ie9 does not support content element.
+document_test/getCssCanvasContext: Fail # IE does not support this.
 form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
 inner_frame_test: Skip # Issue 5727 (timeout)
@@ -256,6 +258,7 @@ audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCssMatrix
 contentelement_test: Fail    # FF does not support content element.
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
+document_test/getCssCanvasContext: Fail # FF does not support this.
 documentfragment_test: Fail
 element_webkit_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
