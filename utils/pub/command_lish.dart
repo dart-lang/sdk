@@ -10,11 +10,10 @@ import 'dart:uri';
 
 import '../../pkg/args/lib/args.dart';
 import '../../pkg/http/lib/http.dart' as http;
-import 'git.dart' as git;
-import 'io.dart';
-import 'log.dart' as log;
-import 'oauth2.dart' as oauth2;
 import 'pub.dart';
+import 'io.dart';
+import 'git.dart' as git;
+import 'oauth2.dart' as oauth2;
 import 'validator.dart';
 
 // TODO(nweiz): Make "publish" the primary name for this command. See issue
@@ -43,7 +42,6 @@ class LishCommand extends PubCommand {
       return Futures.wait([
         client.get(server.resolve("/packages/versions/new.json")),
         _filesToPublish.transform((files) {
-          log.fine('Archiving and publishing ${entrypoint.root}.');
           return createTarGz(files, baseDir: entrypoint.root.dir);
         }).chain(consumeInputStream),
         _validate()
@@ -79,7 +77,7 @@ class LishCommand extends PubCommand {
             parsed['success']['message'] is! String) {
           _invalidServerResponse(response);
         }
-        log.message(parsed['success']['message']);
+        print(parsed['success']['message']);
       });
     }).transformException((e) {
       if (e is PubHttpException) {
@@ -99,23 +97,17 @@ class LishCommand extends PubCommand {
           throw errorMap['error']['message'];
         }
       } else if (e is oauth2.ExpirationException) {
-        log.error("Pub's authorization to upload packages has expired and "
+        printError("Pub's authorization to upload packages has expired and "
             "can't be automatically refreshed.");
         return onRun();
       } else if (e is oauth2.AuthorizationException) {
         var message = "OAuth2 authorization failed";
         if (e.description != null) message = "$message (${e.description})";
-        log.error("$message.");
+        printError("$message.");
         return oauth2.clearCredentials(cache).chain((_) => onRun());
       } else {
         throw e;
       }
-
-      if (e is! oauth2.ExpirationException) throw e;
-
-      log.error("Pub's authorization to upload packages has expired and can't "
-          "be automatically refreshed.");
-      return onRun();
     });
   }
 

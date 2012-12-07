@@ -387,12 +387,5 @@ void main() {
       expect(request.finalize, throwsStateError);
     });
   });
-
-  group('#toString()', () {
-    test('includes the method and URL', () {
-      var request = new http.Request('POST', dummyUrl);
-      expect(request.toString(), 'POST $dummyUrl');
-    });
-  });
 }
 

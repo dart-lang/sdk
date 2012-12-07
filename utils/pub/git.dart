@@ -8,7 +8,6 @@
 library git;
 
 import 'io.dart';
-import 'log.dart' as log;
 import 'utils.dart';
 
 /// Tests whether or not the git command-line app is available for use.
@@ -58,7 +57,6 @@ Future<String> get _gitCommand {
       return null;
     });
   }).transform((command) {
-    log.fine('Determined git command $command.');
     _gitCommandCache = command;
     return command;
   });

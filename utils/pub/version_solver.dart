@@ -40,7 +40,6 @@ library version_solver;
 import 'dart:json';
 import 'dart:math';
 import 'lock_file.dart';
-import 'log.dart' as log;
 import 'package.dart';
 import 'pubspec.dart';
 import 'root_source.dart';
@@ -60,7 +59,7 @@ import 'version.dart';
  */
 Future<List<PackageId>> resolveVersions(SourceRegistry sources, Package root,
     LockFile lockFile) {
-  log.message('Resolving dependencies...');
+  print('Resolving dependencies...');
   return new VersionSolver(sources, root, lockFile).solve();
 }
 
@@ -268,8 +267,6 @@ class ChangeVersion implements WorkItem {
   }
 
   Future process(VersionSolver solver) {
-    log.fine("Changing $package to version $version.");
-
     var dependency = solver.getDependency(package);
     var oldVersion = dependency.version;
     solver.setVersion(package, version);
@@ -421,8 +418,6 @@ class AddConstraint extends ChangeConstraint {
   AddConstraint(this.depender, this.ref);
 
   Future process(VersionSolver solver) {
-    log.fine("Adding $depender's constraint $ref.");
-
     var dependency = solver.getDependency(ref.name);
     var oldDependency = dependency.clone();
     dependency.placeConstraint(depender, ref);
@@ -454,8 +449,6 @@ class RemoveConstraint extends ChangeConstraint {
   RemoveConstraint(this.depender, this.dependent);
 
   Future process(VersionSolver solver) {
-    log.fine("Removing $depender's constraint ($_removed) on $dependent.");
-
     var dependency = solver.getDependency(dependent);
     var oldDependency = dependency.clone();
     _removed = dependency.removeConstraint(depender);
@@ -475,8 +468,6 @@ class UnlockPackage implements WorkItem {
   UnlockPackage(this.package);
 
   Future process(VersionSolver solver) {
-    log.fine("Unlocking ${package.name}.");
-
     solver.lockFile.packages.remove(package.name);
     return solver.getBestVersion(package).transform((best) {
       if (best == null) return null;

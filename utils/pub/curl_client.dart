@@ -8,7 +8,6 @@ import 'dart:io';
 
 import '../../pkg/http/lib/http.dart' as http;
 import 'io.dart';
-import 'log.dart' as log;
 import 'utils.dart';
 
 /// A drop-in replacement for [http.Client] that uses the `curl` command-line
@@ -31,13 +30,10 @@ class CurlClient extends http.BaseClient {
 
   /// Sends a request via `curl` and returns the response.
   Future<http.StreamedResponse> send(http.BaseRequest request) {
-    log.fine("Sending Curl request $request");
-
     var requestStream = request.finalize();
     return withTempDir((tempDir) {
       var headerFile = new Path(tempDir).append("curl-headers").toNativePath();
       var arguments = _argumentsForRequest(request, headerFile);
-      log.process(executable, arguments);
       var process;
       return Process.start(executable, arguments).chain((process_) {
         process = process_;
@@ -118,8 +114,6 @@ class CurlClient extends http.BaseClient {
   Future _waitForHeaders(Process process, {bool expectBody}) {
     var completer = new Completer();
     process.onExit = (exitCode) {
-      log.io("Curl process exited with code $exitCode.");
-
       if (exitCode == 0) {
         completer.complete(null);
         return;
@@ -128,7 +122,6 @@ class CurlClient extends http.BaseClient {
       chainToCompleter(consumeInputStream(process.stderr)
             .transform((stderrBytes) {
         var message = new String.fromCharCodes(stderrBytes);
-        log.fine('Got error reading headers from curl: $message');
         if (exitCode == 47) {
           throw new RedirectLimitExceededException([]);
         } else {

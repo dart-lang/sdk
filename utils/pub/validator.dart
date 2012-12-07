@@ -5,7 +5,6 @@
 library validator;
 
 import 'entrypoint.dart';
-import 'log.dart' as log;
 import 'io.dart';
 import 'system_cache.dart';
 import 'utils.dart';
@@ -51,19 +50,19 @@ abstract class Validator {
       var warnings = flatten(validators.map((validator) => validator.warnings));
 
       if (!errors.isEmpty) {
-        log.error("== Errors:");
+        printError("== Errors:");
         for (var error in errors) {
-          log.error("* $error");
+          printError("* $error");
         }
-        log.error("");
+        printError("");
       }
 
       if (!warnings.isEmpty) {
-        log.warning("== Warnings:");
+        printError("== Warnings:");
         for (var warning in warnings) {
-          log.warning("* $warning");
+          printError("* $warning");
         }
-        log.warning("");
+        printError("");
       }
 
       return new Pair<List<String>, List<String>>(errors, warnings);
