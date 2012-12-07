@@ -11,7 +11,9 @@
         {
           'action_name': 'make_pkg_packages',
           'inputs': [
-            '<!@(["python", "../tools/list_pkg_directories.py"])',
+            '../tools/make_links.py',
+            '../tools/list_pkg_directories.py',
+            '<!@(["python", "../tools/list_pkg_directories.py", "."])',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/packages',
