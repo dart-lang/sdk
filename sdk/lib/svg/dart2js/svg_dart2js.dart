@@ -58,6 +58,7 @@ class _SvgSvgElementFactoryProvider {
 /// @domName SVGAElement; @docsEditable true
 class AElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGAElement" {
 
+  ///@docsEditable true
   factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
 
   /// @domName SVGAElement.target; @docsEditable true
@@ -213,6 +214,7 @@ class Angle native "*SVGAngle" {
 /// @domName SVGAnimateColorElement; @docsEditable true
 class AnimateColorElement extends AnimationElement native "*SVGAnimateColorElement" {
 
+  ///@docsEditable true
   factory AnimateColorElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateColor");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -223,6 +225,7 @@ class AnimateColorElement extends AnimationElement native "*SVGAnimateColorEleme
 /// @domName SVGAnimateElement; @docsEditable true
 class AnimateElement extends AnimationElement native "*SVGAnimateElement" {
 
+  ///@docsEditable true
   factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -233,6 +236,7 @@ class AnimateElement extends AnimationElement native "*SVGAnimateElement" {
 /// @domName SVGAnimateMotionElement; @docsEditable true
 class AnimateMotionElement extends AnimationElement native "*SVGAnimateMotionElement" {
 
+  ///@docsEditable true
   factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -243,6 +247,7 @@ class AnimateMotionElement extends AnimationElement native "*SVGAnimateMotionEle
 /// @domName SVGAnimateTransformElement; @docsEditable true
 class AnimateTransformElement extends AnimationElement native "*SVGAnimateTransformElement" {
 
+  ///@docsEditable true
   factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -421,6 +426,7 @@ class AnimatedTransformList native "*SVGAnimatedTransformList" {
 /// @domName SVGAnimationElement; @docsEditable true
 class AnimationElement extends SvgElement implements Tests, ElementTimeControl, ExternalResourcesRequired native "*SVGAnimationElement" {
 
+  ///@docsEditable true
   factory AnimationElement() => _SvgElementFactoryProvider.createSvgElement_tag("animation");
 
   /// @domName SVGAnimationElement.targetElement; @docsEditable true
@@ -476,6 +482,7 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 /// @domName SVGCircleElement; @docsEditable true
 class CircleElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGCircleElement" {
 
+  ///@docsEditable true
   factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
 
   /// @domName SVGCircleElement.cx; @docsEditable true
@@ -561,6 +568,7 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
 /// @domName SVGClipPathElement; @docsEditable true
 class ClipPathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGClipPathElement" {
 
+  ///@docsEditable true
   factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
 
   /// @domName SVGClipPathElement.clipPathUnits; @docsEditable true
@@ -714,6 +722,7 @@ class ComponentTransferFunctionElement extends SvgElement native "*SVGComponentT
 /// @domName SVGCursorElement; @docsEditable true
 class CursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired native "*SVGCursorElement" {
 
+  ///@docsEditable true
   factory CursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
 
   /// @domName SVGCursorElement.x; @docsEditable true
@@ -754,6 +763,7 @@ class CursorElement extends SvgElement implements UriReference, Tests, ExternalR
 /// @domName SVGDefsElement; @docsEditable true
 class DefsElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGDefsElement" {
 
+  ///@docsEditable true
   factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
 
   // From SVGExternalResourcesRequired
@@ -830,6 +840,7 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
 /// @domName SVGDescElement; @docsEditable true
 class DescElement extends SvgElement implements Stylable, LangSpace native "*SVGDescElement" {
 
+  ///@docsEditable true
   factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
 
   // From SVGLangSpace
@@ -1001,6 +1012,7 @@ abstract class ElementTimeControl {
 /// @domName SVGEllipseElement; @docsEditable true
 class EllipseElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGEllipseElement" {
 
+  ///@docsEditable true
   factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
 
   /// @domName SVGEllipseElement.cx; @docsEditable true
@@ -2122,6 +2134,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 /// @domName SVGFilterElement; @docsEditable true
 class FilterElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable, LangSpace native "*SVGFilterElement" {
 
+  ///@docsEditable true
   factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
 
   /// @domName SVGFilterElement.filterResX; @docsEditable true
@@ -2228,6 +2241,7 @@ abstract class FitToViewBox {
 /// @domName SVGFontElement; @docsEditable true
 class FontElement extends SvgElement native "*SVGFontElement" {
 
+  ///@docsEditable true
   factory FontElement() => _SvgElementFactoryProvider.createSvgElement_tag("font");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2238,6 +2252,7 @@ class FontElement extends SvgElement native "*SVGFontElement" {
 /// @domName SVGFontFaceElement; @docsEditable true
 class FontFaceElement extends SvgElement native "*SVGFontFaceElement" {
 
+  ///@docsEditable true
   factory FontFaceElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2248,6 +2263,7 @@ class FontFaceElement extends SvgElement native "*SVGFontFaceElement" {
 /// @domName SVGFontFaceFormatElement; @docsEditable true
 class FontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement" {
 
+  ///@docsEditable true
   factory FontFaceFormatElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-format");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2258,6 +2274,7 @@ class FontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement
 /// @domName SVGFontFaceNameElement; @docsEditable true
 class FontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
 
+  ///@docsEditable true
   factory FontFaceNameElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-name");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2268,6 +2285,7 @@ class FontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
 /// @domName SVGFontFaceSrcElement; @docsEditable true
 class FontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
 
+  ///@docsEditable true
   factory FontFaceSrcElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-src");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2278,6 +2296,7 @@ class FontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
 /// @domName SVGFontFaceUriElement; @docsEditable true
 class FontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
 
+  ///@docsEditable true
   factory FontFaceUriElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-uri");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2288,6 +2307,7 @@ class FontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
 /// @domName SVGForeignObjectElement; @docsEditable true
 class ForeignObjectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGForeignObjectElement" {
 
+  ///@docsEditable true
   factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
 
   /// @domName SVGForeignObjectElement.height; @docsEditable true
@@ -2376,6 +2396,7 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
 /// @domName SVGGElement; @docsEditable true
 class GElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGGElement" {
 
+  ///@docsEditable true
   factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
 
   // From SVGExternalResourcesRequired
@@ -2452,6 +2473,7 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
 /// @domName SVGGlyphElement; @docsEditable true
 class GlyphElement extends SvgElement native "*SVGGlyphElement" {
 
+  ///@docsEditable true
   factory GlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2552,6 +2574,7 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
 /// @domName SVGHKernElement; @docsEditable true
 class HKernElement extends SvgElement native "*SVGHKernElement" {
 
+  ///@docsEditable true
   factory HKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2562,6 +2585,7 @@ class HKernElement extends SvgElement native "*SVGHKernElement" {
 /// @domName SVGImageElement; @docsEditable true
 class ImageElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGImageElement" {
 
+  ///@docsEditable true
   factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
 
   /// @domName SVGImageElement.height; @docsEditable true
@@ -2850,6 +2874,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 /// @domName SVGLineElement; @docsEditable true
 class LineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGLineElement" {
 
+  ///@docsEditable true
   factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
 
   /// @domName SVGLineElement.x1; @docsEditable true
@@ -2938,6 +2963,7 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
 /// @domName SVGLinearGradientElement; @docsEditable true
 class LinearGradientElement extends GradientElement native "*SVGLinearGradientElement" {
 
+  ///@docsEditable true
   factory LinearGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
 
   /// @domName SVGLinearGradientElement.x1; @docsEditable true
@@ -2984,6 +3010,7 @@ abstract class Locatable {
 /// @domName SVGMPathElement; @docsEditable true
 class MPathElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGMPathElement" {
 
+  ///@docsEditable true
   factory MPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
 
   // From SVGExternalResourcesRequired
@@ -3004,6 +3031,7 @@ class MPathElement extends SvgElement implements UriReference, ExternalResources
 /// @domName SVGMarkerElement; @docsEditable true
 class MarkerElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace native "*SVGMarkerElement" {
 
+  ///@docsEditable true
   factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
 
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
@@ -3086,6 +3114,7 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 /// @domName SVGMaskElement; @docsEditable true
 class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGMaskElement" {
 
+  ///@docsEditable true
   factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
 
   /// @domName SVGMaskElement.height; @docsEditable true
@@ -3411,6 +3440,7 @@ class Paint extends Color native "*SVGPaint" {
 /// @domName SVGPathElement; @docsEditable true
 class PathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPathElement" {
 
+  ///@docsEditable true
   factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
 
   /// @domName SVGPathElement.animatedNormalizedPathSegList; @docsEditable true
@@ -4099,6 +4129,7 @@ class PathSegMovetoRel extends PathSeg native "*SVGPathSegMovetoRel" {
 /// @domName SVGPatternElement; @docsEditable true
 class PatternElement extends SvgElement implements FitToViewBox, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPatternElement" {
 
+  ///@docsEditable true
   factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
 
   /// @domName SVGPatternElement.height; @docsEditable true
@@ -4231,6 +4262,7 @@ class PointList native "*SVGPointList" {
 /// @domName SVGPolygonElement; @docsEditable true
 class PolygonElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPolygonElement" {
 
+  ///@docsEditable true
   factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
 
   /// @domName SVGPolygonElement.animatedPoints; @docsEditable true
@@ -4313,6 +4345,7 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
 /// @domName SVGPolylineElement; @docsEditable true
 class PolylineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPolylineElement" {
 
+  ///@docsEditable true
   factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
 
   /// @domName SVGPolylineElement.animatedPoints; @docsEditable true
@@ -4437,6 +4470,7 @@ class PreserveAspectRatio native "*SVGPreserveAspectRatio" {
 /// @domName SVGRadialGradientElement; @docsEditable true
 class RadialGradientElement extends GradientElement native "*SVGRadialGradientElement" {
 
+  ///@docsEditable true
   factory RadialGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
 
   /// @domName SVGRadialGradientElement.cx; @docsEditable true
@@ -4485,6 +4519,7 @@ class Rect native "*SVGRect" {
 /// @domName SVGRectElement; @docsEditable true
 class RectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGRectElement" {
 
+  ///@docsEditable true
   factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
 
   /// @domName SVGRectElement.height; @docsEditable true
@@ -4599,6 +4634,7 @@ class RenderingIntent native "*SVGRenderingIntent" {
 /// @domName SVGScriptElement; @docsEditable true
 class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGScriptElement" {
 
+  ///@docsEditable true
   factory ScriptElement() => _SvgElementFactoryProvider.createSvgElement_tag("script");
 
   /// @domName SVGScriptElement.type; @docsEditable true
@@ -4622,6 +4658,7 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
 /// @domName SVGSetElement; @docsEditable true
 class SetElement extends AnimationElement native "*SVGSetElement" {
 
+  ///@docsEditable true
   factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4632,6 +4669,7 @@ class SetElement extends AnimationElement native "*SVGSetElement" {
 /// @domName SVGStopElement; @docsEditable true
 class StopElement extends SvgElement implements Stylable native "*SVGStopElement" {
 
+  ///@docsEditable true
   factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
 
   /// @domName SVGStopElement.offset; @docsEditable true
@@ -4804,6 +4842,7 @@ abstract class Stylable {
 /// @domName SVGStyleElement; @docsEditable true
 class StyleElement extends SvgElement implements LangSpace native "*SVGStyleElement" {
 
+  ///@docsEditable true
   factory StyleElement() => _SvgElementFactoryProvider.createSvgElement_tag("style");
 
   /// @domName SVGStyleElement.disabled; @docsEditable true
@@ -5222,6 +5261,7 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
 /// @domName SVGSwitchElement; @docsEditable true
 class SwitchElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGSwitchElement" {
 
+  ///@docsEditable true
   factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
 
   // From SVGExternalResourcesRequired
@@ -5298,6 +5338,7 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
 /// @domName SVGSymbolElement; @docsEditable true
 class SymbolElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace native "*SVGSymbolElement" {
 
+  ///@docsEditable true
   factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
 
   // From SVGExternalResourcesRequired
@@ -5341,6 +5382,7 @@ class SymbolElement extends SvgElement implements FitToViewBox, ExternalResource
 /// @domName SVGTRefElement; @docsEditable true
 class TRefElement extends TextPositioningElement implements UriReference native "*SVGTRefElement" {
 
+  ///@docsEditable true
   factory TRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
 
   // From SVGURIReference
@@ -5356,6 +5398,7 @@ class TRefElement extends TextPositioningElement implements UriReference native 
 /// @domName SVGTSpanElement; @docsEditable true
 class TSpanElement extends TextPositioningElement native "*SVGTSpanElement" {
 
+  ///@docsEditable true
   factory TSpanElement() => _SvgElementFactoryProvider.createSvgElement_tag("tspan");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5469,6 +5512,7 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
 /// @domName SVGTextElement; @docsEditable true
 class TextElement extends TextPositioningElement implements Transformable native "*SVGTextElement" {
 
+  ///@docsEditable true
   factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
 
   // From SVGLocatable
@@ -5563,6 +5607,7 @@ class TextPositioningElement extends TextContentElement native "*SVGTextPosition
 /// @domName SVGTitleElement; @docsEditable true
 class TitleElement extends SvgElement implements Stylable, LangSpace native "*SVGTitleElement" {
 
+  ///@docsEditable true
   factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
 
   // From SVGLangSpace
@@ -5833,6 +5878,7 @@ abstract class UriReference {
 /// @domName SVGUseElement; @docsEditable true
 class UseElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGUseElement" {
 
+  ///@docsEditable true
   factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
 
   /// @domName SVGUseElement.animatedInstanceRoot; @docsEditable true
@@ -5932,6 +5978,7 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
 /// @domName SVGVKernElement; @docsEditable true
 class VKernElement extends SvgElement native "*SVGVKernElement" {
 
+  ///@docsEditable true
   factory VKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5942,6 +5989,7 @@ class VKernElement extends SvgElement native "*SVGVKernElement" {
 /// @domName SVGViewElement; @docsEditable true
 class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan native "*SVGViewElement" {
 
+  ///@docsEditable true
   factory ViewElement() => _SvgElementFactoryProvider.createSvgElement_tag("view");
 
   /// @domName SVGViewElement.viewTarget; @docsEditable true

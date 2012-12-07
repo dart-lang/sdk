@@ -223,6 +223,7 @@ class HtmlDartGenerator(object):
 
   def _AddConstructor(self, constructor_info, factory_name,
       factory_constructor_name, factory_constructor_params):
+    self._members_emitter.Emit('\n  ///@docsEditable true');
     constructor_info.GenerateFactoryInvocation(
         self._DartType, self._members_emitter, factory_name,
         factory_constructor_name=factory_constructor_name,

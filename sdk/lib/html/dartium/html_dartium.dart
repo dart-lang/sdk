@@ -108,6 +108,7 @@ class AbstractWorkerEvents extends Events {
 /// @domName HTMLAnchorElement
 class AnchorElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory AnchorElement({String href}) {
     var e = document.$dom_createElement("a");
     if (href != null) e.href = href;
@@ -554,6 +555,7 @@ class ApplicationCacheEvents extends Events {
 /// @domName HTMLAreaElement
 class AreaElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory AreaElement() => document.$dom_createElement("area");
   AreaElement.internal(): super.internal();
 
@@ -652,6 +654,7 @@ class AreaElement extends _Element_Merged {
 /// @domName ArrayBuffer
 class ArrayBuffer extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
   ArrayBuffer.internal();
 
@@ -745,6 +748,7 @@ class Attr extends Node {
 /// @domName HTMLAudioElement
 class AudioElement extends MediaElement {
 
+  ///@docsEditable true
   factory AudioElement([String src]) {
     if (!?src) {
       return _AudioElementFactoryProvider.createAudioElement();
@@ -764,6 +768,7 @@ class AudioElement extends MediaElement {
 /// @domName HTMLBRElement
 class BRElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory BRElement() => document.$dom_createElement("br");
   BRElement.internal(): super.internal();
 
@@ -802,6 +807,7 @@ class BarInfo extends NativeFieldWrapperClass1 {
 /// @domName HTMLBaseElement
 class BaseElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory BaseElement() => document.$dom_createElement("base");
   BaseElement.internal(): super.internal();
 
@@ -940,6 +946,7 @@ class BeforeLoadEvent extends Event {
 /// @domName Blob
 class Blob extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory Blob(List blobParts, [String type, String endings]) {
     if (!?type) {
       return _BlobFactoryProvider.createBlob(blobParts);
@@ -999,6 +1006,7 @@ class Blob extends NativeFieldWrapperClass1 {
 /// @domName HTMLBodyElement
 class BodyElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory BodyElement() => document.$dom_createElement("body");
   BodyElement.internal(): super.internal();
 
@@ -1087,6 +1095,7 @@ class BodyElementEvents extends ElementEvents {
 /// @domName HTMLButtonElement
 class ButtonElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ButtonElement() => document.$dom_createElement("button");
   ButtonElement.internal(): super.internal();
 
@@ -1219,6 +1228,7 @@ class CDataSection extends Text {
 /// @domName HTMLCanvasElement
 class CanvasElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory CanvasElement({int width, int height}) {
     var e = document.$dom_createElement("canvas");
     if (width != null) e.width = width;
@@ -2286,6 +2296,7 @@ class Console extends NativeFieldWrapperClass1 {
 /// @domName HTMLContentElement
 class ContentElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ContentElement() => document.$dom_createElement("content");
   ContentElement.internal(): super.internal();
 
@@ -2520,6 +2531,7 @@ class CssKeyframesRule extends CssRule {
 /// @domName WebKitCSSMatrix
 class CssMatrix extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory CssMatrix([String cssValue]) {
     if (!?cssValue) {
       return _CssMatrixFactoryProvider.createCssMatrix();
@@ -6395,6 +6407,7 @@ class CustomEvent extends Event {
 /// @domName HTMLDListElement
 class DListElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory DListElement() => document.$dom_createElement("dl");
   DListElement.internal(): super.internal();
 
@@ -6417,6 +6430,7 @@ class DListElement extends _Element_Merged {
 /// @domName HTMLDataListElement
 class DataListElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
   DataListElement.internal(): super.internal();
 
@@ -6511,6 +6525,7 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 /// @domName DataView
 class DataView extends ArrayBufferView {
 
+  ///@docsEditable true
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
     if (!?byteOffset) {
       return _DataViewFactoryProvider.createDataView(buffer);
@@ -6829,6 +6844,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 /// @domName HTMLDetailsElement
 class DetailsElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
   DetailsElement.internal(): super.internal();
 
@@ -7007,6 +7023,7 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 /// @domName HTMLDivElement
 class DivElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory DivElement() => document.$dom_createElement("div");
   DivElement.internal(): super.internal();
 
@@ -7927,6 +7944,7 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 /// @domName DOMParser
 class DomParser extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory DomParser() => _DomParserFactoryProvider.createDomParser();
   DomParser.internal();
 
@@ -9389,6 +9407,7 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 /// @domName HTMLEmbedElement
 class EmbedElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
   EmbedElement.internal(): super.internal();
 
@@ -9807,6 +9826,7 @@ class EventException extends NativeFieldWrapperClass1 {
 /// @domName EventSource
 class EventSource extends EventTarget {
 
+  ///@docsEditable true
   factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
   EventSource.internal(): super.internal();
 
@@ -9975,6 +9995,7 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 /// @domName HTMLFieldSetElement
 class FieldSetElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory FieldSetElement() => document.$dom_createElement("fieldset");
   FieldSetElement.internal(): super.internal();
 
@@ -10321,6 +10342,7 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 /// @domName FileReader
 class FileReader extends EventTarget {
 
+  ///@docsEditable true
   factory FileReader() => _FileReaderFactoryProvider.createFileReader();
   FileReader.internal(): super.internal();
 
@@ -10417,6 +10439,7 @@ class FileReaderEvents extends Events {
 /// @domName FileReaderSync
 class FileReaderSync extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory FileReaderSync() => _FileReaderSyncFactoryProvider.createFileReaderSync();
   FileReaderSync.internal();
 
@@ -10960,6 +10983,7 @@ class FontElement extends _Element_Merged {
 /// @domName FormData
 class FormData extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory FormData([FormElement form]) {
     if (!?form) {
       return _FormDataFactoryProvider.createFormData();
@@ -10983,6 +11007,7 @@ class FormData extends NativeFieldWrapperClass1 {
 /// @domName HTMLFormElement
 class FormElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory FormElement() => document.$dom_createElement("form");
   FormElement.internal(): super.internal();
 
@@ -11319,6 +11344,7 @@ class Geoposition extends NativeFieldWrapperClass1 {
 /// @domName HTMLHRElement
 class HRElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory HRElement() => document.$dom_createElement("hr");
   HRElement.internal(): super.internal();
 
@@ -11389,6 +11415,7 @@ class HashChangeEvent extends Event {
 /// @domName HTMLHeadElement
 class HeadElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory HeadElement() => document.$dom_createElement("head");
   HeadElement.internal(): super.internal();
 
@@ -11411,16 +11438,22 @@ class HeadElement extends _Element_Merged {
 /// @domName HTMLHeadingElement
 class HeadingElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory HeadingElement.h1() => document.$dom_createElement("h1");
 
+  ///@docsEditable true
   factory HeadingElement.h2() => document.$dom_createElement("h2");
 
+  ///@docsEditable true
   factory HeadingElement.h3() => document.$dom_createElement("h3");
 
+  ///@docsEditable true
   factory HeadingElement.h4() => document.$dom_createElement("h4");
 
+  ///@docsEditable true
   factory HeadingElement.h5() => document.$dom_createElement("h5");
 
+  ///@docsEditable true
   factory HeadingElement.h6() => document.$dom_createElement("h6");
   HeadingElement.internal(): super.internal();
 
@@ -11782,6 +11815,7 @@ class HtmlDocument extends Document {
 /// @domName HTMLHtmlElement
 class HtmlElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory HtmlElement() => document.$dom_createElement("html");
   HtmlElement.internal(): super.internal();
 
@@ -11827,17 +11861,59 @@ class HtmlOptionsCollection extends HtmlCollection {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * A utility for retrieving data from a URL.
+ * 
+ * HttpRequest can be used to obtain data from http, ftp, and file
+ * protocols. 
+ * 
+ * For example, suppose we're developing these API docs, and we
+ * wish to retrieve the HTML of the top-level page and print it out.
+ * The easiest way to do that would be:
+ * 
+ *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
+ *         (request) => print(request.responseText));
+ * 
+ * **Important**: With the default behavior of this class, your
+ * code making the request should be served from the same origin (domain name,
+ * port, and application layer protocol) as the URL you are trying to access
+ * with HttpRequest. However, there are ways to 
+ * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
+ * 
+ * See also:
+ *
+ * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
+ * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
+ * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
+ */
 /// @domName XMLHttpRequest
 class HttpRequest extends EventTarget {
+  /**
+   * Creates a URL get request for the specified `url`.
+   * 
+   * After completing the request, the object will call the user-provided
+   * [onComplete] callback.
+   */
   factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
 
+  /**
+   * Creates a URL GET request for the specified `url` with
+   * credentials such a cookie (already) set in the header or
+   * (authorization headers)[http://tools.ietf.org/html/rfc1945#section-10.2].
+   * 
+   * After completing the request, the object will call the user-provided 
+   * [onComplete] callback.
+   * 
+   * See also: (authorization headers)[http://en.wikipedia.org/wiki/Basic_access_authentication].
+   */
   factory HttpRequest.getWithCredentials(String url,
       onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url,
       onComplete);
 
 
+  ///@docsEditable true
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
   HttpRequest.internal(): super.internal();
 
@@ -12064,6 +12140,7 @@ class HttpRequestUploadEvents extends Events {
 /// @domName HTMLIFrameElement
 class IFrameElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory IFrameElement() => document.$dom_createElement("iframe");
   IFrameElement.internal(): super.internal();
 
@@ -12186,6 +12263,7 @@ typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnecti
 /// @domName IceCandidate
 class IceCandidate extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
   IceCandidate.internal();
 
@@ -12232,6 +12310,7 @@ class ImageData extends NativeFieldWrapperClass1 {
 /// @domName HTMLImageElement
 class ImageElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ImageElement({String src, int width, int height}) {
     var e = document.$dom_createElement("img");
     if (src != null) e.src = src;
@@ -12384,6 +12463,7 @@ class ImageElement extends _Element_Merged {
 /// @domName HTMLInputElement
 class InputElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
     if (type != null) e.type = type;
@@ -13423,6 +13503,7 @@ class KeyboardEvent extends UIEvent {
 /// @domName HTMLKeygenElement
 class KeygenElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
   KeygenElement.internal(): super.internal();
 
@@ -13509,6 +13590,7 @@ class KeygenElement extends _Element_Merged {
 /// @domName HTMLLIElement
 class LIElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory LIElement() => document.$dom_createElement("li");
   LIElement.internal(): super.internal();
 
@@ -13539,6 +13621,7 @@ class LIElement extends _Element_Merged {
 /// @domName HTMLLabelElement
 class LabelElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory LabelElement() => document.$dom_createElement("label");
   LabelElement.internal(): super.internal();
 
@@ -13569,6 +13652,7 @@ class LabelElement extends _Element_Merged {
 /// @domName HTMLLegendElement
 class LegendElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory LegendElement() => document.$dom_createElement("legend");
   LegendElement.internal(): super.internal();
 
@@ -13595,6 +13679,7 @@ class LegendElement extends _Element_Merged {
 /// @domName HTMLLinkElement
 class LinkElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory LinkElement() => document.$dom_createElement("link");
   LinkElement.internal(): super.internal();
 
@@ -14414,6 +14499,7 @@ class LocalWindowEvents extends Events {
 /// @domName HTMLMapElement
 class MapElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory MapElement() => document.$dom_createElement("map");
   MapElement.internal(): super.internal();
 
@@ -14548,6 +14634,7 @@ class MarqueeElement extends _Element_Merged {
 /// @domName MediaController
 class MediaController extends EventTarget {
 
+  ///@docsEditable true
   factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
   MediaController.internal(): super.internal();
 
@@ -15166,6 +15253,7 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 /// @domName MediaSource
 class MediaSource extends EventTarget {
 
+  ///@docsEditable true
   factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
   MediaSource.internal(): super.internal();
 
@@ -15224,6 +15312,7 @@ class MediaSource extends EventTarget {
 /// @domName MediaStream
 class MediaStream extends EventTarget {
 
+  ///@docsEditable true
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
   MediaStream.internal(): super.internal();
 
@@ -15452,6 +15541,7 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 /// @domName HTMLMenuElement
 class MenuElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory MenuElement() => document.$dom_createElement("menu");
   MenuElement.internal(): super.internal();
 
@@ -15466,6 +15556,7 @@ class MenuElement extends _Element_Merged {
 /// @domName MessageChannel
 class MessageChannel extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
   MessageChannel.internal();
 
@@ -15646,6 +15737,7 @@ typedef void MetadataCallback(Metadata metadata);
 /// @domName HTMLMeterElement
 class MeterElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
   MeterElement.internal(): super.internal();
 
@@ -15890,6 +15982,7 @@ class MutationEvent extends Event {
 /// @domName MutationObserver
 class MutationObserver extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
   MutationObserver.internal();
 
@@ -16831,6 +16924,7 @@ class Notation extends Node {
 /// @domName Notification
 class Notification extends EventTarget {
 
+  ///@docsEditable true
   factory Notification(String title, [Map options]) {
     if (!?options) {
       return _NotificationFactoryProvider.createNotification(title);
@@ -16960,6 +17054,7 @@ typedef void NotificationPermissionCallback(String permission);
 /// @domName HTMLOListElement
 class OListElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory OListElement() => document.$dom_createElement("ol");
   OListElement.internal(): super.internal();
 
@@ -17006,6 +17101,7 @@ class OListElement extends _Element_Merged {
 /// @domName HTMLObjectElement
 class ObjectElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
   ObjectElement.internal(): super.internal();
 
@@ -17240,6 +17336,7 @@ class OesVertexArrayObject extends NativeFieldWrapperClass1 {
 /// @domName HTMLOptGroupElement
 class OptGroupElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory OptGroupElement() => document.$dom_createElement("optgroup");
   OptGroupElement.internal(): super.internal();
 
@@ -17270,6 +17367,7 @@ class OptGroupElement extends _Element_Merged {
 /// @domName HTMLOptionElement
 class OptionElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (!?data) {
       return _OptionElementFactoryProvider.createOptionElement();
@@ -17346,6 +17444,7 @@ class OptionElement extends _Element_Merged {
 /// @domName HTMLOutputElement
 class OutputElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
   OutputElement.internal(): super.internal();
 
@@ -17490,6 +17589,7 @@ class PageTransitionEvent extends Event {
 /// @domName HTMLParagraphElement
 class ParagraphElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ParagraphElement() => document.$dom_createElement("p");
   ParagraphElement.internal(): super.internal();
 
@@ -17512,6 +17612,7 @@ class ParagraphElement extends _Element_Merged {
 /// @domName HTMLParamElement
 class ParamElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ParamElement() => document.$dom_createElement("param");
   ParamElement.internal(): super.internal();
 
@@ -17558,6 +17659,7 @@ class ParamElement extends _Element_Merged {
 /// @domName PeerConnection00
 class PeerConnection00 extends EventTarget {
 
+  ///@docsEditable true
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
   PeerConnection00.internal(): super.internal();
 
@@ -17929,6 +18031,7 @@ typedef void PositionErrorCallback(PositionError error);
 /// @domName HTMLPreElement
 class PreElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory PreElement() => document.$dom_createElement("pre");
   PreElement.internal(): super.internal();
 
@@ -17987,6 +18090,7 @@ class ProcessingInstruction extends Node {
 /// @domName HTMLProgressElement
 class ProgressElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
   ProgressElement.internal(): super.internal();
 
@@ -18477,6 +18581,7 @@ class RtcDataChannelEvent extends Event {
 /// @domName RTCIceCandidate
 class RtcIceCandidate extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory RtcIceCandidate(Map dictionary) => _RtcIceCandidateFactoryProvider.createRtcIceCandidate(dictionary);
   RtcIceCandidate.internal();
 
@@ -18519,6 +18624,7 @@ class RtcIceCandidateEvent extends Event {
 /// @domName RTCPeerConnection
 class RtcPeerConnection extends EventTarget {
 
+  ///@docsEditable true
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     if (!?mediaConstraints) {
       return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers);
@@ -18640,6 +18746,7 @@ class RtcPeerConnectionEvents extends Events {
 /// @domName RTCSessionDescription
 class RtcSessionDescription extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory RtcSessionDescription(Map dictionary) => _RtcSessionDescriptionFactoryProvider.createRtcSessionDescription(dictionary);
   RtcSessionDescription.internal();
 
@@ -18810,6 +18917,7 @@ class Screen extends NativeFieldWrapperClass1 {
 /// @domName HTMLScriptElement
 class ScriptElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ScriptElement() => document.$dom_createElement("script");
   ScriptElement.internal(): super.internal();
 
@@ -18960,6 +19068,7 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 /// @domName HTMLSelectElement
 class SelectElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory SelectElement() => document.$dom_createElement("select");
   SelectElement.internal(): super.internal();
 
@@ -19094,6 +19203,7 @@ class SelectElement extends _Element_Merged {
 /// @domName SessionDescription
 class SessionDescription extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory SessionDescription(String sdp) => _SessionDescriptionFactoryProvider.createSessionDescription(sdp);
   SessionDescription.internal();
 
@@ -19136,6 +19246,7 @@ class ShadowElement extends _Element_Merged {
 /// @domName ShadowRoot
 class ShadowRoot extends DocumentFragment {
 
+  ///@docsEditable true
   factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
   ShadowRoot.internal(): super.internal();
 
@@ -19199,6 +19310,7 @@ class ShadowRoot extends DocumentFragment {
 /// @domName SharedWorker
 class SharedWorker extends AbstractWorker {
 
+  ///@docsEditable true
   factory SharedWorker(String scriptURL, [String name]) {
     if (!?name) {
       return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL);
@@ -19412,6 +19524,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 /// @domName HTMLSourceElement
 class SourceElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory SourceElement() => document.$dom_createElement("source");
   SourceElement.internal(): super.internal();
 
@@ -19450,6 +19563,7 @@ class SourceElement extends _Element_Merged {
 /// @domName HTMLSpanElement
 class SpanElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory SpanElement() => document.$dom_createElement("span");
   SpanElement.internal(): super.internal();
 
@@ -19464,6 +19578,7 @@ class SpanElement extends _Element_Merged {
 /// @domName SpeechGrammar
 class SpeechGrammar extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory SpeechGrammar() => _SpeechGrammarFactoryProvider.createSpeechGrammar();
   SpeechGrammar.internal();
 
@@ -19494,6 +19609,7 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 /// @domName SpeechGrammarList
 class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechGrammar> {
 
+  ///@docsEditable true
   factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
   SpeechGrammarList.internal();
 
@@ -19684,6 +19800,7 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 /// @domName SpeechRecognition
 class SpeechRecognition extends EventTarget {
 
+  ///@docsEditable true
   factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
   SpeechRecognition.internal(): super.internal();
 
@@ -20323,6 +20440,7 @@ typedef void StringCallback(String data);
 /// @domName HTMLStyleElement
 class StyleElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory StyleElement() => document.$dom_createElement("style");
   StyleElement.internal(): super.internal();
 
@@ -20437,6 +20555,7 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 /// @domName HTMLTableCaptionElement
 class TableCaptionElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TableCaptionElement() => document.$dom_createElement("caption");
   TableCaptionElement.internal(): super.internal();
 
@@ -20459,6 +20578,7 @@ class TableCaptionElement extends _Element_Merged {
 /// @domName HTMLTableCellElement
 class TableCellElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TableCellElement() => document.$dom_createElement("td");
   TableCellElement.internal(): super.internal();
 
@@ -20589,6 +20709,7 @@ class TableCellElement extends _Element_Merged {
 /// @domName HTMLTableColElement
 class TableColElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TableColElement() => document.$dom_createElement("col");
   TableColElement.internal(): super.internal();
 
@@ -20651,6 +20772,7 @@ class TableColElement extends _Element_Merged {
 /// @domName HTMLTableElement
 class TableElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TableElement() => document.$dom_createElement("table");
   TableElement.internal(): super.internal();
 
@@ -20805,6 +20927,7 @@ class TableElement extends _Element_Merged {
 /// @domName HTMLTableRowElement
 class TableRowElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TableRowElement() => document.$dom_createElement("tr");
   TableRowElement.internal(): super.internal();
 
@@ -20960,6 +21083,7 @@ class Text extends CharacterData {
 /// @domName HTMLTextAreaElement
 class TextAreaElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TextAreaElement() => document.$dom_createElement("textarea");
   TextAreaElement.internal(): super.internal();
 
@@ -21284,6 +21408,7 @@ class TextTrackEvents extends Events {
 /// @domName TextTrackCue
 class TextTrackCue extends EventTarget {
 
+  ///@docsEditable true
   factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
   TextTrackCue.internal(): super.internal();
 
@@ -21716,6 +21841,7 @@ typedef void TimeoutHandler();
 /// @domName HTMLTitleElement
 class TitleElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TitleElement() => document.$dom_createElement("title");
   TitleElement.internal(): super.internal();
 
@@ -21954,6 +22080,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 /// @domName HTMLTrackElement
 class TrackElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
   TrackElement.internal(): super.internal();
 
@@ -22188,6 +22315,7 @@ class UIEvent extends Event {
 /// @domName HTMLUListElement
 class UListElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory UListElement() => document.$dom_createElement("ul");
   UListElement.internal(): super.internal();
 
@@ -22815,6 +22943,7 @@ class ValidityState extends NativeFieldWrapperClass1 {
 /// @domName HTMLVideoElement
 class VideoElement extends MediaElement {
 
+  ///@docsEditable true
   factory VideoElement() => document.$dom_createElement("video");
   VideoElement.internal(): super.internal();
 
@@ -24716,6 +24845,7 @@ class WheelEvent extends MouseEvent {
 /// @domName Worker
 class Worker extends AbstractWorker {
 
+  ///@docsEditable true
   factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
   Worker.internal(): super.internal();
 
@@ -24934,6 +25064,7 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
 /// @domName XPathEvaluator
 class XPathEvaluator extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory XPathEvaluator() => _XPathEvaluatorFactoryProvider.createXPathEvaluator();
   XPathEvaluator.internal();
 
@@ -25092,6 +25223,7 @@ class XPathResult extends NativeFieldWrapperClass1 {
 /// @domName XMLSerializer
 class XmlSerializer extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory XmlSerializer() => _XmlSerializerFactoryProvider.createXmlSerializer();
   XmlSerializer.internal();
 
@@ -25110,6 +25242,7 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
 /// @domName XSLTProcessor
 class XsltProcessor extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory XsltProcessor() => _XsltProcessorFactoryProvider.createXsltProcessor();
   XsltProcessor.internal();
 

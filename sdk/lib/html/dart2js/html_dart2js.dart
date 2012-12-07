@@ -86,6 +86,7 @@ class AbstractWorkerEvents extends Events {
 /// @domName HTMLAnchorElement; @docsEditable true
 class AnchorElement extends Element implements Element native "*HTMLAnchorElement" {
 
+  ///@docsEditable true
   factory AnchorElement({String href}) {
     var e = document.$dom_createElement("a");
     if (href != null) e.href = href;
@@ -339,6 +340,7 @@ class ApplicationCacheEvents extends Events {
 /// @domName HTMLAreaElement; @docsEditable true
 class AreaElement extends Element implements Element native "*HTMLAreaElement" {
 
+  ///@docsEditable true
   factory AreaElement() => document.$dom_createElement("area");
 
   /// @domName HTMLAreaElement.alt; @docsEditable true
@@ -391,6 +393,7 @@ class AreaElement extends Element implements Element native "*HTMLAreaElement" {
 /// @domName ArrayBuffer; @docsEditable true
 class ArrayBuffer native "*ArrayBuffer" {
 
+  ///@docsEditable true
   factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
 
   /// @domName ArrayBuffer.byteLength; @docsEditable true
@@ -447,6 +450,7 @@ class Attr extends Node native "*Attr" {
 /// @domName HTMLAudioElement; @docsEditable true
 class AudioElement extends MediaElement native "*HTMLAudioElement" {
 
+  ///@docsEditable true
   factory AudioElement([String src]) {
     if (!?src) {
       return _AudioElementFactoryProvider.createAudioElement();
@@ -462,6 +466,7 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
 /// @domName HTMLBRElement; @docsEditable true
 class BRElement extends Element implements Element native "*HTMLBRElement" {
 
+  ///@docsEditable true
   factory BRElement() => document.$dom_createElement("br");
 
   /// @domName HTMLBRElement.clear; @docsEditable true
@@ -486,6 +491,7 @@ class BarInfo native "*BarInfo" {
 /// @domName HTMLBaseElement; @docsEditable true
 class BaseElement extends Element implements Element native "*HTMLBaseElement" {
 
+  ///@docsEditable true
   factory BaseElement() => document.$dom_createElement("base");
 
   /// @domName HTMLBaseElement.href; @docsEditable true
@@ -578,6 +584,7 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 /// @domName Blob; @docsEditable true
 class Blob native "*Blob" {
 
+  ///@docsEditable true
   factory Blob(List blobParts, [String type, String endings]) {
     if (!?type) {
       return _BlobFactoryProvider.createBlob(blobParts);
@@ -605,6 +612,7 @@ class Blob native "*Blob" {
 /// @domName HTMLBodyElement; @docsEditable true
 class BodyElement extends Element implements Element native "*HTMLBodyElement" {
 
+  ///@docsEditable true
   factory BodyElement() => document.$dom_createElement("body");
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -664,6 +672,7 @@ class BodyElementEvents extends ElementEvents {
 /// @domName HTMLButtonElement; @docsEditable true
 class ButtonElement extends Element implements Element native "*HTMLButtonElement" {
 
+  ///@docsEditable true
   factory ButtonElement() => document.$dom_createElement("button");
 
   /// @domName HTMLButtonElement.autofocus; @docsEditable true
@@ -734,6 +743,7 @@ class CDataSection extends Text native "*CDATASection" {
 /// @domName HTMLCanvasElement
 class CanvasElement extends Element implements Element native "*HTMLCanvasElement" {
 
+  ///@docsEditable true
   factory CanvasElement({int width, int height}) {
     var e = document.$dom_createElement("canvas");
     if (width != null) e.width = width;
@@ -1328,6 +1338,7 @@ class Console {
 /// @domName HTMLContentElement; @docsEditable true
 class ContentElement extends Element implements Element native "*HTMLContentElement" {
 
+  ///@docsEditable true
   factory ContentElement() => document.$dom_createElement("content");
 
   /// @domName HTMLContentElement.resetStyleInheritance; @docsEditable true
@@ -1482,6 +1493,7 @@ class CssKeyframesRule extends CssRule native "*WebKitCSSKeyframesRule" {
 /// @domName WebKitCSSMatrix; @docsEditable true
 class CssMatrix native "*WebKitCSSMatrix" {
 
+  ///@docsEditable true
   factory CssMatrix([String cssValue]) {
     if (!?cssValue) {
       return _CssMatrixFactoryProvider.createCssMatrix();
@@ -5132,6 +5144,7 @@ class CustomEvent extends Event native "*CustomEvent" {
 /// @domName HTMLDListElement; @docsEditable true
 class DListElement extends Element implements Element native "*HTMLDListElement" {
 
+  ///@docsEditable true
   factory DListElement() => document.$dom_createElement("dl");
 
   /// @domName HTMLDListElement.compact; @docsEditable true
@@ -5145,6 +5158,7 @@ class DListElement extends Element implements Element native "*HTMLDListElement"
 /// @domName HTMLDataListElement; @docsEditable true
 class DataListElement extends Element implements Element native "*HTMLDataListElement" {
 
+  ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
 
   /// @domName HTMLDataListElement.options; @docsEditable true
@@ -5201,6 +5215,7 @@ class DataTransferItemList native "*DataTransferItemList" {
 /// @domName DataView; @docsEditable true
 class DataView extends ArrayBufferView native "*DataView" {
 
+  ///@docsEditable true
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
     if (!?byteOffset) {
       return _DataViewFactoryProvider.createDataView(buffer);
@@ -5352,6 +5367,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 /// @domName HTMLDetailsElement; @docsEditable true
 class DetailsElement extends Element implements Element native "*HTMLDetailsElement" {
 
+  ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
 
   /// @domName HTMLDetailsElement.open; @docsEditable true
@@ -5556,6 +5572,7 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 /// @domName HTMLDivElement; @docsEditable true
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
+  ///@docsEditable true
   factory DivElement() => document.$dom_createElement("div");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6404,6 +6421,7 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 /// @domName DOMParser; @docsEditable true
 class DomParser native "*DOMParser" {
 
+  ///@docsEditable true
   factory DomParser() => _DomParserFactoryProvider.createDomParser();
 
   /// @domName DOMParser.parseFromString; @docsEditable true
@@ -7762,6 +7780,7 @@ abstract class ElementTraversal {
 /// @domName HTMLEmbedElement; @docsEditable true
 class EmbedElement extends Element implements Element native "*HTMLEmbedElement" {
 
+  ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
 
   /// @domName HTMLEmbedElement.align; @docsEditable true
@@ -8058,6 +8077,7 @@ class EventException native "*EventException" {
 /// @domName EventSource; @docsEditable true
 class EventSource extends EventTarget native "*EventSource" {
 
+  ///@docsEditable true
   factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -8214,6 +8234,7 @@ class ExtTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 /// @domName HTMLFieldSetElement; @docsEditable true
 class FieldSetElement extends Element implements Element native "*HTMLFieldSetElement" {
 
+  ///@docsEditable true
   factory FieldSetElement() => document.$dom_createElement("fieldset");
 
   /// @domName HTMLFieldSetElement.disabled; @docsEditable true
@@ -8500,6 +8521,7 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 /// @domName FileReader; @docsEditable true
 class FileReader extends EventTarget native "*FileReader" {
 
+  ///@docsEditable true
   factory FileReader() => _FileReaderFactoryProvider.createFileReader();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -8574,6 +8596,7 @@ class FileReaderEvents extends Events {
 /// @domName FileReaderSync; @docsEditable true
 class FileReaderSync native "*FileReaderSync" {
 
+  ///@docsEditable true
   factory FileReaderSync() => _FileReaderSyncFactoryProvider.createFileReaderSync();
 
   /// @domName FileReaderSync.readAsArrayBuffer; @docsEditable true
@@ -9003,6 +9026,7 @@ class FontElement extends Element implements Element native "*HTMLFontElement" {
 /// @domName FormData; @docsEditable true
 class FormData native "*FormData" {
 
+  ///@docsEditable true
   factory FormData([FormElement form]) {
     if (!?form) {
       return _FormDataFactoryProvider.createFormData();
@@ -9021,6 +9045,7 @@ class FormData native "*FormData" {
 /// @domName HTMLFormElement; @docsEditable true
 class FormElement extends Element implements Element native "*HTMLFormElement" {
 
+  ///@docsEditable true
   factory FormElement() => document.$dom_createElement("form");
 
   /// @domName HTMLFormElement.acceptCharset; @docsEditable true
@@ -9219,6 +9244,7 @@ class Geoposition native "*Geoposition" {
 /// @domName HTMLHRElement; @docsEditable true
 class HRElement extends Element implements Element native "*HTMLHRElement" {
 
+  ///@docsEditable true
   factory HRElement() => document.$dom_createElement("hr");
 
   /// @domName HTMLHRElement.align; @docsEditable true
@@ -9260,6 +9286,7 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
 /// @domName HTMLHeadElement; @docsEditable true
 class HeadElement extends Element implements Element native "*HTMLHeadElement" {
 
+  ///@docsEditable true
   factory HeadElement() => document.$dom_createElement("head");
 
   /// @domName HTMLHeadElement.profile; @docsEditable true
@@ -9273,16 +9300,22 @@ class HeadElement extends Element implements Element native "*HTMLHeadElement" {
 /// @domName HTMLHeadingElement; @docsEditable true
 class HeadingElement extends Element implements Element native "*HTMLHeadingElement" {
 
+  ///@docsEditable true
   factory HeadingElement.h1() => document.$dom_createElement("h1");
 
+  ///@docsEditable true
   factory HeadingElement.h2() => document.$dom_createElement("h2");
 
+  ///@docsEditable true
   factory HeadingElement.h3() => document.$dom_createElement("h3");
 
+  ///@docsEditable true
   factory HeadingElement.h4() => document.$dom_createElement("h4");
 
+  ///@docsEditable true
   factory HeadingElement.h5() => document.$dom_createElement("h5");
 
+  ///@docsEditable true
   factory HeadingElement.h6() => document.$dom_createElement("h6");
 
   /// @domName HTMLHeadingElement.align; @docsEditable true
@@ -9619,6 +9652,7 @@ class HtmlDocument extends Document native "*HTMLDocument" {
 /// @domName HTMLHtmlElement; @docsEditable true
 class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 
+  ///@docsEditable true
   factory HtmlElement() => document.$dom_createElement("html");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9649,19 +9683,79 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * A utility for retrieving data from a URL.
+ * 
+ * HttpRequest can be used to obtain data from http, ftp, and file
+ * protocols. 
+ * 
+ * For example, suppose we're developing these API docs, and we
+ * wish to retrieve the HTML of the top-level page and print it out.
+ * The easiest way to do that would be:
+ * 
+ *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
+ *         (request) => print(request.responseText));
+ * 
+ * **Important**: With the default behavior of this class, your
+ * code making the request should be served from the same origin (domain name,
+ * port, and application layer protocol) as the URL you are trying to access
+ * with HttpRequest. However, there are ways to 
+ * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
+ * 
+ * See also:
+ *
+ * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
+ * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
+ * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
+ */
 /// @domName XMLHttpRequest
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
+  /**
+   * Creates a URL get request for the specified `url`.
+   * 
+   * After completing the request, the object will call the user-provided
+   * [onComplete] callback.
+   */
   factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
 
+  /**
+   * Creates a URL GET request for the specified `url` with
+   * credentials such a cookie (already) set in the header or
+   * (authorization headers)[http://tools.ietf.org/html/rfc1945#section-10.2].
+   * 
+   * After completing the request, the object will call the user-provided 
+   * [onComplete] callback.
+   * 
+   * See also: (authorization headers)[http://en.wikipedia.org/wiki/Basic_access_authentication].
+   */
   factory HttpRequest.getWithCredentials(String url,
       onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url,
       onComplete);
 
 
+  /**
+   * General constructor for any type of request (GET, POST, etc).
+   *
+   * This call is used in conjunction with [open]:
+   * 
+   *     var request = new HttpRequest();
+   *     request.open('GET', 'http://dartlang.org')
+   *     request.on.load.add((event) => print('Request complete'));
+   * 
+   * is the (more verbose) equivalent of
+   * 
+   *     var request = new HttpRequest.get('http://dartlang.org', (event) => print('Request complete'));
+   */
+  ///@docsEditable true
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
 
+  /**
+   * Get the set of [HttpRequestEvents] that this request can respond to.
+   * Usually used when adding an EventListener, such as in
+   * `document.window.on.keyDown.add((e) => print('keydown happened'))`.
+   */
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
@@ -9676,16 +9770,37 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   static const int UNSENT = 0;
 
+  /** @domName XMLHttpRequest.readyState */
   /// @domName XMLHttpRequest.readyState; @docsEditable true
   final int readyState;
 
+  /**
+   * The data received as a reponse from the request.
+   *
+   * The data could be in the
+   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a 
+   * [String]). `null` indicates request failure.
+   */
   /// @domName XMLHttpRequest.response; @docsEditable true
   @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
   final Object response;
 
+  /**
+   * The response in string form or `null` on failure.
+   */
   /// @domName XMLHttpRequest.responseText; @docsEditable true
   final String responseText;
 
+  /**
+   * [String] telling the server the desired response format. 
+   *
+   * Default is `String`.
+   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
+   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
+   * `responseType` is set while performing a synchronous request.
+   *
+   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
+   */
   /// @domName XMLHttpRequest.responseType; @docsEditable true
   String responseType;
 
@@ -9693,18 +9808,43 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @JSName('responseXML')
   final Document responseXml;
 
+  /**
+   * The http result code from the request (200, 404, etc).
+   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   */
   /// @domName XMLHttpRequest.status; @docsEditable true
   final int status;
 
+  /**
+   * The request response string (such as "200 OK").
+   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   */
   /// @domName XMLHttpRequest.statusText; @docsEditable true
   final String statusText;
 
+  /**
+   * [EventTarget] that can hold listeners to track the progress of the request.
+   * The events fired will be members of [HttpRequestUploadEvents].
+   */
   /// @domName XMLHttpRequest.upload; @docsEditable true
   final HttpRequestUpload upload;
 
+  /**
+   * True if cross-site requests should use credentials such as cookies
+   * or authorization headers; false otherwise. 
+   *
+   * This value is ignored for same-site requests.
+   */
   /// @domName XMLHttpRequest.withCredentials; @docsEditable true
   bool withCredentials;
 
+  /**
+   * Stop the current request.
+   *
+   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or 
+   * `LOADING`. If this method is not in the process of being sent, the method
+   * has no effect.
+   */
   /// @domName XMLHttpRequest.abort; @docsEditable true
   void abort() native;
 
@@ -9716,15 +9856,48 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @JSName('dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
+  /**
+   * Retrieve all the response headers from a request.
+   * 
+   * `null` if no headers have been received. For multipart requests,
+   * `getAllResponseHeaders` will return the response headers for the current
+   * part of the request.
+   * 
+   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * for a list of common response headers.
+   */
   /// @domName XMLHttpRequest.getAllResponseHeaders; @docsEditable true
   String getAllResponseHeaders() native;
 
+  /**
+   * Return the response header named `header`, or `null` if not found.
+   * 
+   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * for a list of common response headers.
+   */
   /// @domName XMLHttpRequest.getResponseHeader; @docsEditable true
   String getResponseHeader(String header) native;
 
+  /**
+   * Specify the desired `url`, and `method` to use in making the request.
+   * 
+   * By default the request is done asyncronously, with no user or password
+   * authentication information. If `async` is false, the request will be send
+   * synchronously.
+   * 
+   * Calling `open` again on a currently active request is equivalent to
+   * calling `abort`.
+   */
   /// @domName XMLHttpRequest.open; @docsEditable true
   void open(String method, String url, [bool async, String user, String password]) native;
 
+  /**
+   * Specify a particular MIME type (such as `text/xml`) desired for the
+   * response.
+   * 
+   * This value must be set before the request has been sent. See also the list
+   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
+   */
   /// @domName XMLHttpRequest.overrideMimeType; @docsEditable true
   void overrideMimeType(String override) native;
 
@@ -9732,9 +9905,17 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
+  /**
+   * Send the request with any given `data`.
+   *
+   * See also: 
+   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())
+   * from MDN.
+   */
   /// @domName XMLHttpRequest.send; @docsEditable true
   void send([data]) native;
 
+  /** Sets HTTP `header` to `value`. */
   /// @domName XMLHttpRequest.setRequestHeader; @docsEditable true
   void setRequestHeader(String header, String value) native;
 
@@ -9843,6 +10024,7 @@ class HttpRequestUploadEvents extends Events {
 /// @domName HTMLIFrameElement; @docsEditable true
 class IFrameElement extends Element implements Element native "*HTMLIFrameElement" {
 
+  ///@docsEditable true
   factory IFrameElement() => document.$dom_createElement("iframe");
 
   /// @domName HTMLIFrameElement.align; @docsEditable true
@@ -9903,6 +10085,7 @@ typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnecti
 /// @domName IceCandidate; @docsEditable true
 class IceCandidate native "*IceCandidate" {
 
+  ///@docsEditable true
   factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
 
   /// @domName IceCandidate.label; @docsEditable true
@@ -9936,6 +10119,7 @@ class ImageData native "*ImageData" {
 /// @domName HTMLImageElement; @docsEditable true
 class ImageElement extends Element implements Element native "*HTMLImageElement" {
 
+  ///@docsEditable true
   factory ImageElement({String src, int width, int height}) {
     var e = document.$dom_createElement("img");
     if (src != null) e.src = src;
@@ -10009,6 +10193,7 @@ class ImageElement extends Element implements Element native "*HTMLImageElement"
 /// @domName HTMLInputElement; @docsEditable true
 class InputElement extends Element implements Element native "*HTMLInputElement" {
 
+  ///@docsEditable true
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
     if (type != null) e.type = type;
@@ -10704,6 +10889,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 /// @domName HTMLKeygenElement; @docsEditable true
 class KeygenElement extends Element implements Element native "*HTMLKeygenElement" {
 
+  ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
 
   /// @domName HTMLKeygenElement.autofocus; @docsEditable true
@@ -10754,6 +10940,7 @@ class KeygenElement extends Element implements Element native "*HTMLKeygenElemen
 /// @domName HTMLLIElement; @docsEditable true
 class LIElement extends Element implements Element native "*HTMLLIElement" {
 
+  ///@docsEditable true
   factory LIElement() => document.$dom_createElement("li");
 
   /// @domName HTMLLIElement.type; @docsEditable true
@@ -10770,6 +10957,7 @@ class LIElement extends Element implements Element native "*HTMLLIElement" {
 /// @domName HTMLLabelElement; @docsEditable true
 class LabelElement extends Element implements Element native "*HTMLLabelElement" {
 
+  ///@docsEditable true
   factory LabelElement() => document.$dom_createElement("label");
 
   /// @domName HTMLLabelElement.control; @docsEditable true
@@ -10789,6 +10977,7 @@ class LabelElement extends Element implements Element native "*HTMLLabelElement"
 /// @domName HTMLLegendElement; @docsEditable true
 class LegendElement extends Element implements Element native "*HTMLLegendElement" {
 
+  ///@docsEditable true
   factory LegendElement() => document.$dom_createElement("legend");
 
   /// @domName HTMLLegendElement.align; @docsEditable true
@@ -10805,6 +10994,7 @@ class LegendElement extends Element implements Element native "*HTMLLegendElemen
 /// @domName HTMLLinkElement; @docsEditable true
 class LinkElement extends Element implements Element native "*HTMLLinkElement" {
 
+  ///@docsEditable true
   factory LinkElement() => document.$dom_createElement("link");
 
   /// @domName HTMLLinkElement.charset; @docsEditable true
@@ -11527,6 +11717,7 @@ class LocalWindowEvents extends Events {
 /// @domName HTMLMapElement; @docsEditable true
 class MapElement extends Element implements Element native "*HTMLMapElement" {
 
+  ///@docsEditable true
   factory MapElement() => document.$dom_createElement("map");
 
   /// @domName HTMLMapElement.areas; @docsEditable true
@@ -11590,6 +11781,7 @@ class MarqueeElement extends Element implements Element native "*HTMLMarqueeElem
 /// @domName MediaController; @docsEditable true
 class MediaController extends EventTarget native "*MediaController" {
 
+  ///@docsEditable true
   factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
 
   /// @domName MediaController.buffered; @docsEditable true
@@ -11980,6 +12172,7 @@ abstract class MediaQueryListListener {
 /// @domName MediaSource; @docsEditable true
 class MediaSource extends EventTarget native "*MediaSource" {
 
+  ///@docsEditable true
   factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
 
   /// @domName MediaSource.activeSourceBuffers; @docsEditable true
@@ -12023,6 +12216,7 @@ class MediaSource extends EventTarget native "*MediaSource" {
 /// @domName MediaStream; @docsEditable true
 class MediaStream extends EventTarget native "*MediaStream" {
 
+  ///@docsEditable true
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -12216,6 +12410,7 @@ class MemoryInfo native "*MemoryInfo" {
 /// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 
+  ///@docsEditable true
   factory MenuElement() => document.$dom_createElement("menu");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12226,6 +12421,7 @@ class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 /// @domName MessageChannel; @docsEditable true
 class MessageChannel native "*MessageChannel" {
 
+  ///@docsEditable true
   factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
 
   /// @domName MessageChannel.port1; @docsEditable true
@@ -12372,6 +12568,7 @@ typedef void MetadataCallback(Metadata metadata);
 /// @domName HTMLMeterElement; @docsEditable true
 class MeterElement extends Element implements Element native "*HTMLMeterElement" {
 
+  ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
 
   /// @domName HTMLMeterElement.high; @docsEditable true
@@ -12568,6 +12765,7 @@ class MutationEvent extends Event native "*MutationEvent" {
 /// @domName MutationObserver
 class MutationObserver native "*MutationObserver" {
 
+  ///@docsEditable true
   factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
 
   /// @domName MutationObserver.disconnect; @docsEditable true
@@ -13436,6 +13634,7 @@ class Notation extends Node native "*Notation" {
 /// @domName Notification; @docsEditable true
 class Notification extends EventTarget native "*Notification" {
 
+  ///@docsEditable true
   factory Notification(String title, [Map options]) {
     if (!?options) {
       return _NotificationFactoryProvider.createNotification(title);
@@ -13534,6 +13733,7 @@ typedef void NotificationPermissionCallback(String permission);
 /// @domName HTMLOListElement; @docsEditable true
 class OListElement extends Element implements Element native "*HTMLOListElement" {
 
+  ///@docsEditable true
   factory OListElement() => document.$dom_createElement("ol");
 
   /// @domName HTMLOListElement.compact; @docsEditable true
@@ -13556,6 +13756,7 @@ class OListElement extends Element implements Element native "*HTMLOListElement"
 /// @domName HTMLObjectElement; @docsEditable true
 class ObjectElement extends Element implements Element native "*HTMLObjectElement" {
 
+  ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
 
   /// @domName HTMLObjectElement.align; @docsEditable true
@@ -13684,6 +13885,7 @@ class OesVertexArrayObject native "*OESVertexArrayObject" {
 /// @domName HTMLOptGroupElement; @docsEditable true
 class OptGroupElement extends Element implements Element native "*HTMLOptGroupElement" {
 
+  ///@docsEditable true
   factory OptGroupElement() => document.$dom_createElement("optgroup");
 
   /// @domName HTMLOptGroupElement.disabled; @docsEditable true
@@ -13700,6 +13902,7 @@ class OptGroupElement extends Element implements Element native "*HTMLOptGroupEl
 /// @domName HTMLOptionElement; @docsEditable true
 class OptionElement extends Element implements Element native "*HTMLOptionElement" {
 
+  ///@docsEditable true
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (!?data) {
       return _OptionElementFactoryProvider.createOptionElement();
@@ -13745,6 +13948,7 @@ class OptionElement extends Element implements Element native "*HTMLOptionElemen
 /// @domName HTMLOutputElement; @docsEditable true
 class OutputElement extends Element implements Element native "*HTMLOutputElement" {
 
+  ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
 
   /// @domName HTMLOutputElement.defaultValue; @docsEditable true
@@ -13840,6 +14044,7 @@ class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 /// @domName HTMLParagraphElement; @docsEditable true
 class ParagraphElement extends Element implements Element native "*HTMLParagraphElement" {
 
+  ///@docsEditable true
   factory ParagraphElement() => document.$dom_createElement("p");
 
   /// @domName HTMLParagraphElement.align; @docsEditable true
@@ -13853,6 +14058,7 @@ class ParagraphElement extends Element implements Element native "*HTMLParagraph
 /// @domName HTMLParamElement; @docsEditable true
 class ParamElement extends Element implements Element native "*HTMLParamElement" {
 
+  ///@docsEditable true
   factory ParamElement() => document.$dom_createElement("param");
 
   /// @domName HTMLParamElement.name; @docsEditable true
@@ -13875,6 +14081,7 @@ class ParamElement extends Element implements Element native "*HTMLParamElement"
 /// @domName PeerConnection00; @docsEditable true
 class PeerConnection00 extends EventTarget native "*PeerConnection00" {
 
+  ///@docsEditable true
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -14215,6 +14422,7 @@ typedef void PositionErrorCallback(PositionError error);
 /// @domName HTMLPreElement; @docsEditable true
 class PreElement extends Element implements Element native "*HTMLPreElement" {
 
+  ///@docsEditable true
   factory PreElement() => document.$dom_createElement("pre");
 
   /// @domName HTMLPreElement.width; @docsEditable true
@@ -14248,6 +14456,7 @@ class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 /// @domName HTMLProgressElement; @docsEditable true
 class ProgressElement extends Element implements Element native "*HTMLProgressElement" {
 
+  ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
 
   /// @domName HTMLProgressElement.labels; @docsEditable true
@@ -14589,6 +14798,7 @@ class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 /// @domName RTCIceCandidate; @docsEditable true
 class RtcIceCandidate native "*RTCIceCandidate" {
 
+  ///@docsEditable true
   factory RtcIceCandidate(Map dictionary) => _RtcIceCandidateFactoryProvider.createRtcIceCandidate(dictionary);
 
   /// @domName RTCIceCandidate.candidate; @docsEditable true
@@ -14619,6 +14829,7 @@ class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 /// @domName RTCPeerConnection; @docsEditable true
 class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
 
+  ///@docsEditable true
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     if (!?mediaConstraints) {
       return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers);
@@ -14787,6 +14998,7 @@ class RtcPeerConnectionEvents extends Events {
 /// @domName RTCSessionDescription; @docsEditable true
 class RtcSessionDescription native "*RTCSessionDescription" {
 
+  ///@docsEditable true
   factory RtcSessionDescription(Map dictionary) => _RtcSessionDescriptionFactoryProvider.createRtcSessionDescription(dictionary);
 
   /// @domName RTCSessionDescription.sdp; @docsEditable true
@@ -14914,6 +15126,7 @@ class Screen native "*Screen" {
 /// @domName HTMLScriptElement; @docsEditable true
 class ScriptElement extends Element implements Element native "*HTMLScriptElement" {
 
+  ///@docsEditable true
   factory ScriptElement() => document.$dom_createElement("script");
 
   /// @domName HTMLScriptElement.async; @docsEditable true
@@ -15001,6 +15214,7 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 /// @domName HTMLSelectElement
 class SelectElement extends Element implements Element native "*HTMLSelectElement" {
 
+  ///@docsEditable true
   factory SelectElement() => document.$dom_createElement("select");
 
   /// @domName HTMLSelectElement.autofocus; @docsEditable true
@@ -15085,6 +15299,7 @@ class SelectElement extends Element implements Element native "*HTMLSelectElemen
 /// @domName SessionDescription; @docsEditable true
 class SessionDescription native "*SessionDescription" {
 
+  ///@docsEditable true
   factory SessionDescription(String sdp) => _SessionDescriptionFactoryProvider.createSessionDescription(sdp);
 
   /// @domName SessionDescription.addCandidate; @docsEditable true
@@ -15114,6 +15329,7 @@ class ShadowElement extends Element implements Element native "*HTMLShadowElemen
 /// @domName ShadowRoot
 class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
+  ///@docsEditable true
   factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
 
   /// @domName ShadowRoot.activeElement; @docsEditable true
@@ -15161,6 +15377,7 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 /// @domName SharedWorker; @docsEditable true
 class SharedWorker extends AbstractWorker native "*SharedWorker" {
 
+  ///@docsEditable true
   factory SharedWorker(String scriptURL, [String name]) {
     if (!?name) {
       return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL);
@@ -15346,6 +15563,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 /// @domName HTMLSourceElement; @docsEditable true
 class SourceElement extends Element implements Element native "*HTMLSourceElement" {
 
+  ///@docsEditable true
   factory SourceElement() => document.$dom_createElement("source");
 
   /// @domName HTMLSourceElement.media; @docsEditable true
@@ -15365,6 +15583,7 @@ class SourceElement extends Element implements Element native "*HTMLSourceElemen
 /// @domName HTMLSpanElement; @docsEditable true
 class SpanElement extends Element implements Element native "*HTMLSpanElement" {
 
+  ///@docsEditable true
   factory SpanElement() => document.$dom_createElement("span");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15375,6 +15594,7 @@ class SpanElement extends Element implements Element native "*HTMLSpanElement" {
 /// @domName SpeechGrammar; @docsEditable true
 class SpeechGrammar native "*SpeechGrammar" {
 
+  ///@docsEditable true
   factory SpeechGrammar() => _SpeechGrammarFactoryProvider.createSpeechGrammar();
 
   /// @domName SpeechGrammar.src; @docsEditable true
@@ -15391,6 +15611,7 @@ class SpeechGrammar native "*SpeechGrammar" {
 /// @domName SpeechGrammarList; @docsEditable true
 class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "*SpeechGrammarList" {
 
+  ///@docsEditable true
   factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
 
   /// @domName SpeechGrammarList.length; @docsEditable true
@@ -15539,6 +15760,7 @@ class SpeechInputResult native "*SpeechInputResult" {
 /// @domName SpeechRecognition; @docsEditable true
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
+  ///@docsEditable true
   factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -16074,6 +16296,7 @@ typedef void StringCallback(String data);
 /// @domName HTMLStyleElement; @docsEditable true
 class StyleElement extends Element implements Element native "*HTMLStyleElement" {
 
+  ///@docsEditable true
   factory StyleElement() => document.$dom_createElement("style");
 
   /// @domName HTMLStyleElement.disabled; @docsEditable true
@@ -16142,6 +16365,7 @@ class StyleSheet native "*StyleSheet" {
 /// @domName HTMLTableCaptionElement; @docsEditable true
 class TableCaptionElement extends Element implements Element native "*HTMLTableCaptionElement" {
 
+  ///@docsEditable true
   factory TableCaptionElement() => document.$dom_createElement("caption");
 
   /// @domName HTMLTableCaptionElement.align; @docsEditable true
@@ -16155,6 +16379,7 @@ class TableCaptionElement extends Element implements Element native "*HTMLTableC
 /// @domName HTMLTableCellElement; @docsEditable true
 class TableCellElement extends Element implements Element native "*HTMLTableCellElement" {
 
+  ///@docsEditable true
   factory TableCellElement() => document.$dom_createElement("td");
 
   /// @domName HTMLTableCellElement.abbr; @docsEditable true
@@ -16210,6 +16435,7 @@ class TableCellElement extends Element implements Element native "*HTMLTableCell
 /// @domName HTMLTableColElement; @docsEditable true
 class TableColElement extends Element implements Element native "*HTMLTableColElement" {
 
+  ///@docsEditable true
   factory TableColElement() => document.$dom_createElement("col");
 
   /// @domName HTMLTableColElement.align; @docsEditable true
@@ -16238,6 +16464,7 @@ class TableColElement extends Element implements Element native "*HTMLTableColEl
 /// @domName HTMLTableElement
 class TableElement extends Element implements Element native "*HTMLTableElement" {
 
+  ///@docsEditable true
   factory TableElement() => document.$dom_createElement("table");
 
   /// @domName HTMLTableElement.align; @docsEditable true
@@ -16327,6 +16554,7 @@ class TableElement extends Element implements Element native "*HTMLTableElement"
 /// @domName HTMLTableRowElement; @docsEditable true
 class TableRowElement extends Element implements Element native "*HTMLTableRowElement" {
 
+  ///@docsEditable true
   factory TableRowElement() => document.$dom_createElement("tr");
 
   /// @domName HTMLTableRowElement.align; @docsEditable true
@@ -16417,6 +16645,7 @@ class Text extends CharacterData native "*Text" {
 /// @domName HTMLTextAreaElement; @docsEditable true
 class TextAreaElement extends Element implements Element native "*HTMLTextAreaElement" {
 
+  ///@docsEditable true
   factory TextAreaElement() => document.$dom_createElement("textarea");
 
   /// @domName HTMLTextAreaElement.autofocus; @docsEditable true
@@ -16591,6 +16820,7 @@ class TextTrackEvents extends Events {
 /// @domName TextTrackCue; @docsEditable true
 class TextTrackCue extends EventTarget native "*TextTrackCue" {
 
+  ///@docsEditable true
   factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -16943,6 +17173,7 @@ typedef void TimeoutHandler();
 /// @domName HTMLTitleElement; @docsEditable true
 class TitleElement extends Element implements Element native "*HTMLTitleElement" {
 
+  ///@docsEditable true
   factory TitleElement() => document.$dom_createElement("title");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17146,6 +17377,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 /// @domName HTMLTrackElement; @docsEditable true
 class TrackElement extends Element implements Element native "*HTMLTrackElement" {
 
+  ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
 
   static const int ERROR = 3;
@@ -17314,6 +17546,7 @@ class UIEvent extends Event native "*UIEvent" {
 /// @domName HTMLUListElement; @docsEditable true
 class UListElement extends Element implements Element native "*HTMLUListElement" {
 
+  ///@docsEditable true
   factory UListElement() => document.$dom_createElement("ul");
 
   /// @domName HTMLUListElement.compact; @docsEditable true
@@ -17796,6 +18029,7 @@ class ValidityState native "*ValidityState" {
 /// @domName HTMLVideoElement; @docsEditable true
 class VideoElement extends MediaElement native "*HTMLVideoElement" {
 
+  ///@docsEditable true
   factory VideoElement() => document.$dom_createElement("video");
 
   /// @domName HTMLVideoElement.height; @docsEditable true
@@ -19392,6 +19626,7 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
 /// @domName Worker; @docsEditable true
 class Worker extends AbstractWorker native "*Worker" {
 
+  ///@docsEditable true
   factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -19579,6 +19814,7 @@ class WorkerNavigator native "*WorkerNavigator" {
 /// @domName XPathEvaluator; @docsEditable true
 class XPathEvaluator native "*XPathEvaluator" {
 
+  ///@docsEditable true
   factory XPathEvaluator() => _XPathEvaluatorFactoryProvider.createXPathEvaluator();
 
   /// @domName XPathEvaluator.createExpression; @docsEditable true
@@ -19700,6 +19936,7 @@ class XPathResult native "*XPathResult" {
 /// @domName XMLSerializer; @docsEditable true
 class XmlSerializer native "*XMLSerializer" {
 
+  ///@docsEditable true
   factory XmlSerializer() => _XmlSerializerFactoryProvider.createXmlSerializer();
 
   /// @domName XMLSerializer.serializeToString; @docsEditable true
@@ -19713,6 +19950,7 @@ class XmlSerializer native "*XMLSerializer" {
 /// @domName XSLTProcessor; @docsEditable true
 class XsltProcessor native "*XSLTProcessor" {
 
+  ///@docsEditable true
   factory XsltProcessor() => _XsltProcessorFactoryProvider.createXsltProcessor();
 
   /// @domName XSLTProcessor.clearParameters; @docsEditable true
