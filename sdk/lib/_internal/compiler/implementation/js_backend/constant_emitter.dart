@@ -300,19 +300,13 @@ class ConstantInitializerEmitter implements ConstantVisitor<js.Expression> {
     String helperName = backend.namer.getName(helper);
     DartType type = constant.representedType;
     Element element = type.element;
-    String typeName;
-    if (type.kind == TypeKind.INTERFACE) {
-      typeName =
-          backend.rti.getStringRepresentation(type, expandRawType: true);
-    } else {
-      assert(type.kind == TypeKind.TYPEDEF);
-      typeName = element.name.slowToString();
-    }
+    String name = backend.rti.getRawTypeRepresentation(type);
+    js.Expression typeName = new js.LiteralString("'$name'");
     return new js.Call(
         new js.PropertyAccess.field(
             new js.VariableUse(namer.CURRENT_ISOLATE),
             helperName),
-        [new js.LiteralString("'$typeName'")]);
+        [typeName]);
   }
 
   js.Expression visitConstructed(ConstructedConstant constant) {

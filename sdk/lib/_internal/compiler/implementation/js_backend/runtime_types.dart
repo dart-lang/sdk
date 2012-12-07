@@ -9,38 +9,77 @@ class RuntimeTypeInformation {
 
   RuntimeTypeInformation(this.compiler);
 
-  // TODO(karlklose): remove when using type representations.
-  String getStringRepresentation(DartType type, {bool expandRawType: false}) {
-    StringBuffer builder = new StringBuffer();
-    void build(DartType t) {
-      if (t is TypeVariableType) {
-        builder.add(t.name.slowToString());
-        return;
-      }
-      JavaScriptBackend backend = compiler.backend;
-      builder.add(backend.namer.getName(t.element));
-      if (t is InterfaceType) {
-        InterfaceType interface = t;
-        ClassElement element = t.element;
-        if (element.typeVariables.isEmpty) return;
-        bool isRaw = interface.isRaw;
-        if (isRaw && !expandRawType) return;
-        builder.add('<');
-        Iterable items = interface.typeArguments;
-        var stringify = isRaw ? (_) => 'dynamic' : (type) => type.toString();
-        bool first = true;
-        for (var item in items) {
-          if (first) {
-            first = false;
-          } else {
-            builder.add(', ');
-          }
-          builder.add(stringify(item));
-        }
-        builder.add('>');
+  bool isJsNative(Element element) {
+    return (element == compiler.intClass ||
+            element == compiler.boolClass ||
+            element == compiler.numClass ||
+            element == compiler.doubleClass ||
+            element == compiler.stringClass ||
+            element == compiler.listClass ||
+            element == compiler.objectClass ||
+            element == compiler.dynamicClass);
+  }
+
+  /// Return the unique name for the element as an unquoted string.
+  String getNameAsString(Element element) {
+    JavaScriptBackend backend = compiler.backend;
+    return backend.namer.getName(element);
+  }
+
+  /// Return the unique JS name for the element, which is a quoted string for
+  /// native classes and the isolate acccess to the constructor for classes.
+  String getJsName(Element element) {
+    JavaScriptBackend backend = compiler.backend;
+    Namer namer = backend.namer;
+    if (element.isClass()) {
+      ClassElement cls = element;
+      // If the class is not instantiated, we will not generate code for it and
+      // thus cannot refer to its constructor. For now, use a string instead of
+      // a reference to the constructor.
+      // TODO(karlklose): remove this and record classes that we need only
+      // for runtime types and emit structures for them.
+      Universe universe = compiler.enqueuer.resolution.universe;
+      if (!universe.instantiatedClasses.contains(cls)) {
+        return "'${namer.isolateAccess(element)}'";
       }
     }
+   return isJsNative(element) ? "'${element.name.slowToString()}'"
+                               : namer.isolateAccess(element);
+  }
 
+  String getRawTypeRepresentation(DartType type) {
+    String name = getNameAsString(type.element);
+    if (!type.element.isClass()) return name;
+    InterfaceType interface = type;
+    Link<DartType> variables = interface.element.typeVariables;
+    if (variables.isEmpty) return name;
+    List<String> arguments = [];
+    variables.forEach((_) => arguments.add('dynamic'));
+    return '$name<${Strings.join(arguments, ', ')}>';
+  }
+
+  String getTypeRepresentation(DartType type, void onVariable(variable)) {
+    StringBuffer builder = new StringBuffer();
+    void build(DartType part) {
+      if (part is TypeVariableType) {
+        builder.add('#');
+        onVariable(part);
+      } else {
+        bool hasArguments = part is InterfaceType && !part.isRaw;
+        Element element = part.element;
+        if (hasArguments) {
+          builder.add('[');
+        }
+        builder.add(getJsName(element));
+        if (!hasArguments) return;
+        InterfaceType interface = part;
+        for (DartType argument in interface.typeArguments) {
+          builder.add(', ');
+          build(argument);
+        }
+        builder.add(']');
+      }
+    }
     build(type);
     return builder.toString();
   }

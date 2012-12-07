@@ -1631,22 +1631,62 @@ String getClassName(var object) {
   return JS('String', r'#.constructor.builtin$cls', object);
 }
 
+String getTypeArgumentAsString(List runtimeType) {
+  String className = runtimeTypeToString(runtimeType[0]);
+  if (runtimeType.length == 1) return className;
+  return '$className<${joinArguments(runtimeType, 1)}>';
+}
+
+String runtimeTypeToString(type) {
+  if (type == null) {
+    return 'dynamic';
+  } else if (type is String) {
+    // A native class.  The string is the unique name.
+    return type;
+  } else if (isJsArray(type)) {
+    // A list representing a type with arguments.
+    return getTypeArgumentAsString(type);
+  } else {
+    // A reference to the constructor.
+    return JS('String', r'#.builtin$cls', type);
+  }
+}
+
+String joinArguments(var types, int startIndex) {
+  bool firstArgument = true;
+  StringBuffer buffer = new StringBuffer();
+  for (int index = startIndex; index < types.length; index++) {
+    if (firstArgument) {
+      firstArgument = false;
+    } else {
+      buffer. add(', ');
+    }
+    var argument = types[index];
+    buffer.add(runtimeTypeToString(argument));
+  }
+  return buffer.toString();
+}
+
 String getRuntimeTypeString(var object) {
   String className = isJsArray(object) ? 'List' : getClassName(object);
   var typeInfo = JS('var', r'#.builtin$typeInfo', object);
   if (typeInfo == null) return className;
-  StringBuffer arguments = new StringBuffer();
-  for (var i = 0; i < typeInfo.length; i++) {
-    if (i > 0) {
-      arguments.add(', ');
+  return "$className<${joinArguments(typeInfo, 0)}>";
+}
+
+bool isSubtype(var s, var t) {
+  if (s == null || t == null) return true;
+  if (!isJsArray(s)) return s == t;
+  // TODO(karlklose): support subtyping: if s[0] != t[0], check if there is
+  // a function is$s[0] on t[0] and call it with substitutes type arguments.
+  if (s[0] != t[0]) return false;
+  int len = s.length;
+  for (int i = 1; i < len; i++) {
+    if (!isSubtype(s[i], t[i])) {
+      return false;
     }
-    var argument = typeInfo[i];
-    if (argument == null) {
-      argument = 'dynamic';
-    }
-    arguments.add(argument);
   }
-  return '$className<$arguments>';
+  return true;
 }
 
 createRuntimeType(String name) => new TypeImpl(name);

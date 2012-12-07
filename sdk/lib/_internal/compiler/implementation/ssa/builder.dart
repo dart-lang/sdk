@@ -2633,6 +2633,60 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(result);
   }
 
+  HForeign createForeign(String code, String type, List<HInstruction> inputs) {
+    return new HForeign(new LiteralDartString(code),
+                        new LiteralDartString(type),
+                        inputs);
+  }
+
+  HInstruction getRuntimeTypeInfo(HInstruction target) {
+    pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(), target);
+    return pop();
+  }
+
+  // TODO(karlklose): change construction of the representations to be GVN'able
+  // (dartbug.com/7182).
+  List<HInstruction> buildTypeArgumentRepresentations(DartType type) {
+    HInstruction createForeignArray(String code, inputs) {
+      return createForeign(code, '=List', inputs);
+    }
+    HInstruction typeInfo;
+
+    /// Helper to create an instruction that contains the runtime value of
+    /// the type variable [variable].
+    HInstruction getTypeArgument(TypeVariableType variable) {
+      if (typeInfo == null) {
+        typeInfo = getRuntimeTypeInfo(localsHandler.readThis());
+      }
+      int intIndex = RuntimeTypeInformation.getTypeVariableIndex(variable);
+      HInstruction index = graph.addConstantInt(intIndex, constantSystem);
+      return createForeignArray('#[#]', <HInstruction>[typeInfo, index]);
+    }
+
+    // Compute the representation of the type arguments, including access
+    // to the runtime type information for type variables as instructions.
+    HInstruction representations;
+    if (type.element.isTypeVariable()) {
+      return <HInstruction>[getTypeArgument(type)];
+    } else {
+      assert(type.element.isClass());
+      List<HInstruction> arguments = <HInstruction>[];
+      InterfaceType interface = type;
+      for (DartType argument in interface.typeArguments) {
+        List<HInstruction> inputs = <HInstruction>[];
+        String template = rti.getTypeRepresentation(argument, (variable) {
+          HInstruction runtimeType = getTypeArgument(variable);
+          add(runtimeType);
+          inputs.add(runtimeType);
+        });
+        HInstruction representation = createForeignArray(template, inputs);
+        add(representation);
+        arguments.add(representation);
+      }
+      return arguments;
+    }
+  }
+
   visitOperatorSend(node) {
     assert(node.selector is Operator);
     if (!methodInterceptionEnabled) {
@@ -2668,7 +2722,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         typeAnnotation = argument.asSend().receiver;
         isNot = true;
       }
-
       DartType type = elements.getType(typeAnnotation);
       if (type.isMalformed) {
         String reasons = fetchReasonsFromMalformedType(type);
@@ -2679,29 +2732,53 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
         return;
       }
-      HInstruction typeInfo = null;
-      if (RuntimeTypeInformation.hasTypeArguments(type)) {
-        pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(), expression);
-        typeInfo = pop();
-      }
       if (type.element.isTypeVariable()) {
-        // TODO(karlklose): We currently answer true to any is check
-        // involving a type variable -- both is T and is !T -- until
-        // we have a proper implementation of reified generics.
+        // TODO(karlklose): remove this check when the backend can deal with
+        // checks of the form [:o is T:] where [:T:] is a type variable.
         stack.add(graph.addConstantBool(true, constantSystem));
-      } else {
-        HInstruction instruction;
-        if (typeInfo != null) {
-          instruction = new HIs.withTypeInfoCall(type, expression, typeInfo);
-        } else {
-          instruction = new HIs(type, expression);
-        }
-        if (isNot) {
-          add(instruction);
-          instruction = new HNot(instruction);
-        }
-        push(instruction);
+        return;
       }
+
+      HInstruction instruction;
+      if (RuntimeTypeInformation.hasTypeArguments(type) ||
+          type.element.isTypeVariable()) {
+        HInstruction typeInfo = getRuntimeTypeInfo(expression);
+        // TODO(karlklose): make isSubtype a HInstruction to enable
+        // optimizations?
+        Element helper = compiler.findHelper(const SourceString('isSubtype'));
+        HInstruction isSubtype = new HStatic(helper);
+        add(isSubtype);
+        // Build a list of representations for the type arguments.
+        List<HInstruction> representations =
+            buildTypeArgumentRepresentations(type);
+        // For each type argument, build a call to isSubtype, with the type
+        // argument as first and the representation of the tested type as
+        // second argument.
+        List<HInstruction> checks = <HInstruction>[];
+        int index = 0;
+        representations.forEach((HInstruction representation) {
+          HInstruction position = graph.addConstantInt(index, constantSystem);
+          // Get the index'th type argument from the runtime type information.
+          HInstruction typeArgument =
+              createForeign('#[#]', 'Object', [typeInfo, position]);
+          add(typeArgument);
+          // Create the call to isSubtype.
+          List<HInstruction> inputs =
+              <HInstruction>[isSubtype, typeArgument, representation];
+          HInstruction call = new HInvokeStatic(inputs);
+          add(call);
+          checks.add(call);
+          index++;
+        });
+        instruction = new HIs.withArgumentChecks(type, expression, checks);
+      } else {
+        instruction = new HIs(type, expression);
+      }
+      if (isNot) {
+        add(instruction);
+        instruction = new HNot(instruction);
+      }
+      push(instruction);
     } else if (const SourceString("as") == op.source) {
       visit(node.receiver);
       HInstruction expression = pop();
@@ -3104,9 +3181,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return graph.addConstantNull(constantSystem);
     }
 
-    // These variables are shared between invocations of the helper methods.
+    // These variables are shared between invocations of the helper.
     HInstruction typeInfo;
-    StringBuffer template = new StringBuffer();
     List<HInstruction> inputs = <HInstruction>[];
 
     /**
@@ -3131,10 +3207,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           typeInfo = pop();
         }
         int index = RuntimeTypeInformation.getTypeVariableIndex(type);
-        HInstruction foreign = new HForeign(
-            new LiteralDartString('#[$index]'),
-            new LiteralDartString('String'),
-            <HInstruction>[typeInfo]);
+        HInstruction foreign = createForeign('#[$index]', 'String',
+                                             <HInstruction>[typeInfo]);
         add(foreign);
         inputs.add(foreign);
       } else {
@@ -3145,53 +3219,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
 
-    /**
-     * Helper to build an instruction that builds the string representation for
-     * this type, where type variables are substituted by their runtime value.
-     *
-     * Examples:
-     *   Type            Template                Inputs
-     *   int             'int'                   []
-     *   C<int, int>     'C<int, int>'           []
-     *   Var             #                       [getRuntimeType(this).Var]
-     *   C<int, D<Var>>  'C<int, D<' + # + '>>'  [getRuntimeType(this).Var]
-     */
-    void buildTypeString(DartType type, {isInQuotes: false}) {
-      if (type is TypeVariableType) {
-        addTypeVariableReference(type);
-        template.add(isInQuotes ? "' + # +'" : "#");
-      } else if (type is InterfaceType) {
-        bool isFirstVariable = true;
-        InterfaceType interfaceType = type;
-        bool hasTypeArguments = !interfaceType.isRaw;
-        if (!isInQuotes) template.add("'");
-        template.add(backend.namer.getName(type.element));
-        if (hasTypeArguments) {
-          template.add("<");
-          for (DartType argument in interfaceType.typeArguments) {
-            if (!isFirstVariable) {
-              template.add(", ");
-            } else {
-              isFirstVariable = false;
-            }
-            buildTypeString(argument, isInQuotes: true);
-          }
-          template.add(">");
-        }
-        if (!isInQuotes) template.add("'");
-      } else {
-        assert(type is TypedefType);
-        if (!isInQuotes) template.add("'");
-        template.add(backend.namer.getName(argument.element));
-        if (!isInQuotes) template.add("'");
-      }
-    }
-
-    buildTypeString(argument, isInQuotes: false);
-    HInstruction result =
-        new HForeign(new LiteralDartString("$template"),
-            new LiteralDartString('String'),
-            inputs);
+    String template = rti.getTypeRepresentation(argument,
+                                                addTypeVariableReference);
+    HInstruction result = createForeign(template, 'String', inputs);
     add(result);
     return result;
   }

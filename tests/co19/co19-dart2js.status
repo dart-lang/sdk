@@ -608,7 +608,6 @@ Language/14_Types/4_Interface_Types_A08_t06: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A10_t01: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A10_t02: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A10_t03: Fail # http://dartbug.com/5020
-Language/14_Types/4_Interface_Types_A10_t04: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A10_t07: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A11_t02: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A12_t09: Fail # http://dartbug.com/5020

@@ -2528,18 +2528,20 @@ class HIs extends HInstruction {
   final DartType typeExpression;
   final bool nullOk;
 
-  HIs.withTypeInfoCall(this.typeExpression, HInstruction expression,
-                       HInstruction typeInfo, [this.nullOk = false])
-    : super(<HInstruction>[expression, typeInfo]);
+  HIs.withArgumentChecks(this.typeExpression,
+                         HInstruction expression,
+                         List<HInstruction> checks,
+                         [this.nullOk = false])
+    : super(<HInstruction>[expression]..addAll(checks));
 
   HIs(this.typeExpression, HInstruction expression, {this.nullOk: false})
      : super(<HInstruction>[expression]);
 
   HInstruction get expression => inputs[0];
+  HInstruction getCheck(int index) => inputs[index + 1];
+  int get checkCount => inputs.length - 1;
 
-  HInstruction get typeInfoCall => inputs[1];
-
-  bool hasTypeInfo() => inputs.length == 2;
+  bool hasArgumentChecks() => inputs.length >= 1;
 
   HType get guaranteedType => HType.BOOLEAN;
 
