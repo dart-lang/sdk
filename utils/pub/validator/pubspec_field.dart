@@ -43,6 +43,11 @@ class PubspecFieldValidator extends Validator {
       errors.add('pubspec.yaml is missing a "homepage" field.');
     }
 
+    var description = pubspec.fields['description'];
+    if (description == null) {
+      errors.add('pubspec.yaml is missing a "description" field.');
+    }
+
     return new Future.immediate(null);
   }
 }

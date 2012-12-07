@@ -56,6 +56,15 @@ main() {
       run();
     });
 
+    test('is missing the "description" field', () {
+      var package = package("test_pkg", "1.0.0");
+      package.remove("description");
+      dir(appPath, [pubspec(package)]).scheduleCreate();
+
+      expectValidationError(pubspecField);
+      run();
+    });
+
     test('is missing the "author" field', () {
       var package = package("test_pkg", "1.0.0");
       package.remove("author");

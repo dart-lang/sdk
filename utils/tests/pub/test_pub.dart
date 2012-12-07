@@ -275,7 +275,8 @@ Map package(String name, String version, [List dependencies]) {
     "name": name,
     "version": version,
     "author": "Nathan Weizenbaum <nweiz@google.com>",
-    "homepage": "http://pub.dartlang.org"
+    "homepage": "http://pub.dartlang.org",
+    "description": "A package, I guess."
   };
   if (dependencies != null) {
     package["dependencies"] = _dependencyListToMap(dependencies);
