@@ -48,6 +48,7 @@ _js_custom_members = set([
     'HTMLSelectElement.selectedOptions',
     'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
+    'KeyboardEvent.initKeyboardEvent',    
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
     'Navigator.language',
