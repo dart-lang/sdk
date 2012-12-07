@@ -62,6 +62,7 @@ class RawTwoByteString;
 class RawUnresolvedClass;
 class String;
 class TokenStream;
+class UnhandledException;
 
 // Serialized object header encoding is as follows:
 // - Smi: the Smi value is written as is (last bit is not tagged).
@@ -220,6 +221,7 @@ class SnapshotReader : public BaseReader {
   Array* TokensHandle() { return &tokens_; }
   TokenStream* StreamHandle() { return &stream_; }
   ExternalUint8Array* DataHandle() { return &data_; }
+  UnhandledException* ErrorHandle() { return &error_; }
 
   // Reads an object.
   RawObject* ReadObject();
@@ -315,6 +317,7 @@ class SnapshotReader : public BaseReader {
   Array& tokens_;  // Temporary tokens handle.
   TokenStream& stream_;  // Temporary token stream handle.
   ExternalUint8Array& data_;  // Temporary stream data handle.
+  UnhandledException& error_;  // Error handle.
   GrowableArray<BackRefNode*> backward_references_;
 
   friend class ApiError;

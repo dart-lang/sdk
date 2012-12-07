@@ -50,6 +50,8 @@ class IsolateMessageHandler : public MessageHandler {
   virtual Isolate* GetIsolate() const { return isolate_; }
 
  private:
+  bool ProcessUnhandledException(const Object& result);
+
   Isolate* isolate_;
 };
 
@@ -89,6 +91,10 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   SnapshotReader reader(message->data(), message->len(),
                         Snapshot::kMessage, Isolate::Current());
   const Object& msg_obj = Object::Handle(reader.ReadObject());
+  if (msg_obj.IsError()) {
+    // An error occurred while reading the message.
+    return ProcessUnhandledException(msg_obj);
+  }
   if (!msg_obj.IsNull() && !msg_obj.IsInstance()) {
     // TODO(turnidge): We need to decide what an isolate does with
     // malformed messages.  If they (eventually) come from a remote
@@ -110,17 +116,8 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
         DartLibraryCalls::HandleMessage(
             message->dest_port(), message->reply_port(), msg));
     delete message;
-    if (result.IsError() || result.IsUnhandledException()) {
-      if (result.IsError()) {
-        isolate_->object_store()->set_sticky_error(Error::Cast(result));
-      }
-      if (Isolate::UnhandledExceptionCallback() != NULL) {
-        Dart_EnterScope();
-        Dart_Handle error = Api::NewHandle(isolate_, result.raw());
-        (Isolate::UnhandledExceptionCallback())(error);
-        Dart_ExitScope();
-      }
-      return false;
+    if (result.IsError()) {
+      return ProcessUnhandledException(result);
     }
     ASSERT(result.IsNull());
   }
@@ -137,6 +134,19 @@ void IsolateMessageHandler::CheckAccess() {
 
 bool IsolateMessageHandler::IsCurrentIsolate() const {
   return (isolate_ == Isolate::Current());
+}
+
+
+bool IsolateMessageHandler::ProcessUnhandledException(const Object& result) {
+  isolate_->object_store()->set_sticky_error(Error::Cast(result));
+  // Invoke the dart unhandled exception callback if there is one.
+  if (Isolate::UnhandledExceptionCallback() != NULL) {
+    Dart_EnterScope();
+    Dart_Handle error = Api::NewHandle(isolate_, result.raw());
+    (Isolate::UnhandledExceptionCallback())(error);
+    Dart_ExitScope();
+  }
+  return false;
 }
 
 
