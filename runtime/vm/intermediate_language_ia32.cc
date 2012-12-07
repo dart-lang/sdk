@@ -1748,6 +1748,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
     compiler->SaveLiveRegisters(instruction_->locs());
     compiler->GenerateCallRuntime(instruction_->token_pos(),
@@ -2084,6 +2085,7 @@ class BoxDoubleSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("BoxDoubleSlowPath");
     __ Bind(entry_label());
     const Class& double_class = compiler->double_class();
     const Code& stub =
@@ -2560,6 +2562,7 @@ class BoxIntegerSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("BoxIntegerSlowPath");
     __ Bind(entry_label());
     const Class& mint_class =
         Class::ZoneHandle(Isolate::Current()->object_store()->mint_class());
