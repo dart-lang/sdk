@@ -1448,6 +1448,23 @@ TEST_CASE(StringEqualsUtf8) {
 }
 
 
+TEST_CASE(StringEqualsUTF32) {
+  const String& empty = String::Handle(String::New(""));
+  const String& t_str = String::Handle(String::New("t"));
+  const String& th_str = String::Handle(String::New("th"));
+  const int32_t chars[] = {'t', 'h', 'i', 's'};
+  EXPECT(!empty.Equals(chars, -1));
+  EXPECT(empty.Equals(chars, 0));
+  EXPECT(!empty.Equals(chars, 1));
+  EXPECT(!t_str.Equals(chars, 0));
+  EXPECT(t_str.Equals(chars, 1));
+  EXPECT(!t_str.Equals(chars, 2));
+  EXPECT(!th_str.Equals(chars, 1));
+  EXPECT(th_str.Equals(chars, 2));
+  EXPECT(!th_str.Equals(chars, 3));
+}
+
+
 TEST_CASE(ExternalOneByteString) {
   uint8_t characters[] = { 0xF6, 0xF1, 0xE9 };
   intptr_t len = ARRAY_SIZE(characters);

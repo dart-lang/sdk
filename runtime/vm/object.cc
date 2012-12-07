@@ -10011,16 +10011,17 @@ bool String::Equals(const uint16_t* utf16_array, intptr_t len) const {
 bool String::Equals(const int32_t* utf32_array, intptr_t len) const {
   CodePointIterator it(*this);
   intptr_t i = 0;
-  while (it.Next()) {
-    if (it.Current() != static_cast<int32_t>(utf32_array[i])) {
+  bool has_more = it.Next();
+  while (has_more && (i < len)) {
+    if ((it.Current() != static_cast<int32_t>(utf32_array[i]))) {
       return false;
     }
+    // Advance both streams forward.
     ++i;
+    has_more = it.Next();
   }
-  if (i != len) {
-    return false;
-  }
-  return true;
+  // Strings are only true iff we reached the end in both streams.
+  return (i == len) && !has_more;
 }
 
 
