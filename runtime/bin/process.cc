@@ -195,6 +195,7 @@ void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
   char* str =
       StringUtils::SystemStringToUtf8(reinterpret_cast<char*>(buffer));
   Dart_SetReturnValue(args, DartUtils::NewString(str));
+  if (str != reinterpret_cast<char*>(buffer)) free(str);
   Dart_ExitScope();
 }
 
@@ -208,6 +209,7 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   uint8_t* buffer = NULL;
   Dart_Handle external_array = IOBuffer::Allocate(external_length, &buffer);
   memmove(buffer, system_string, external_length);
+  if (utf8 != system_string) free(const_cast<char*>(system_string));
   Dart_SetReturnValue(args, external_array);
   Dart_ExitScope();
 }
