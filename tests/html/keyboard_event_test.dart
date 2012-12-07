@@ -14,9 +14,6 @@ main() {
     expect(e.charCode, 0);
   }
 
-  test('keyboardEvent constructor', () {
-    var event = new KeyboardEvent('keyup', document.body);
-  });
   test('keys', () {
     // This test currently is pretty much a no-op because we
     // can't (right now) construct KeyboardEvents with specific keycode/charcode
