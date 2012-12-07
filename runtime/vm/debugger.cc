@@ -1409,7 +1409,7 @@ void Debugger::SignalBpReached() {
       Code& code =
           Code::Handle(ResolveCompileInstanceCallTarget(receiver,
                                                         ic_data,
-                                                        arg_descriptor));
+                                                        descriptor));
       if (!code.IsNull()) {
         Function& callee = Function::Handle(code.function());
         if (IsDebuggable(callee)) {

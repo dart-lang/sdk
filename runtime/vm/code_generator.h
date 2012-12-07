@@ -10,7 +10,7 @@
 
 namespace dart {
 
-class ArgumentsDescriptor;
+class Array;
 template <typename T> class GrowableArray;
 class ICData;
 class Instance;
@@ -87,7 +87,7 @@ const char* DeoptReasonToText(intptr_t deopt_id);
 RawCode* ResolveCompileInstanceCallTarget(
     const Instance& receiver,
     const ICData& ic_data,
-    const ArgumentsDescriptor& arguments_descriptor);
+    const Array& arguments_descriptor);
 
 void DeoptimizeAll();
 void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes);

@@ -134,12 +134,12 @@ intptr_t ArgumentsDescriptor::PositionalCount() const {
 }
 
 
-RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
-  String& result = String::Handle();
-  result ^= array_.At(kFirstNamedEntryIndex +
-                      (index * kNamedEntrySize) +
-                      kNameOffset);
-  return result.raw();
+bool ArgumentsDescriptor::MatchesNameAt(intptr_t index,
+                                        const String& other) const {
+  const intptr_t offset = kFirstNamedEntryIndex +
+                          (index * kNamedEntrySize) +
+                          kNameOffset;
+  return array_.At(offset) == other.raw();
 }
 
 

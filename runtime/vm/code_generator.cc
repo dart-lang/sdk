@@ -683,7 +683,7 @@ DEFINE_RUNTIME_ENTRY(ArgumentDefinitionTest, 3) {
     // Check if the formal parameter is defined by a named argument.
     const intptr_t num_named_args = arg_desc.NamedCount();
     for (intptr_t i = 0; i < num_named_args; i++) {
-      if (arg_desc.NameAt(i) == param_name.raw()) {
+      if (arg_desc.MatchesNameAt(i, param_name)) {
         is_defined = true;
         break;
       }
@@ -792,7 +792,8 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
 RawCode* ResolveCompileInstanceCallTarget(
     const Instance& receiver,
     const ICData& ic_data,
-    const ArgumentsDescriptor& arguments_descriptor) {
+    const Array& arguments_descriptor_array) {
+  ArgumentsDescriptor arguments_descriptor(arguments_descriptor_array);
   intptr_t num_arguments = arguments_descriptor.Count();
   int num_named_arguments = arguments_descriptor.NamedCount();
   String& function_name = String::Handle(ic_data.target_name());
@@ -874,12 +875,12 @@ DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
 static RawFunction* InlineCacheMissHandler(
     const GrowableArray<const Instance*>& args,
     const ICData& ic_data,
-    const ArgumentsDescriptor& arg_descriptor) {
+    const Array& arg_descriptor_array) {
   const Instance& receiver = *args[0];
   const Code& target_code =
       Code::Handle(ResolveCompileInstanceCallTarget(receiver,
                                                     ic_data,
-                                                    arg_descriptor));
+                                                    arg_descriptor_array));
   if (target_code.IsNull()) {
     // Let the megamorphic stub handle special cases: NoSuchMethod,
     // closure calls.
@@ -940,11 +941,10 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 3) {
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   const Array& arg_desc_array = Array::CheckedHandle(arguments.ArgAt(2));
-  ArgumentsDescriptor arg_descriptor(arg_desc_array);
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
   const Function& result =
-      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_descriptor));
+      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_desc_array));
   arguments.SetReturn(result);
 }
 
@@ -964,12 +964,11 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 4) {
   const Instance& other = Instance::CheckedHandle(arguments.ArgAt(1));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(2));
   const Array& arg_desc_array = Array::CheckedHandle(arguments.ArgAt(3));
-  ArgumentsDescriptor arg_descriptor(arg_desc_array);
   GrowableArray<const Instance*> args(2);
   args.Add(&receiver);
   args.Add(&other);
   const Function& result =
-      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_descriptor));
+      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_desc_array));
   arguments.SetReturn(result);
 }
 
@@ -991,13 +990,12 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 5) {
   const Instance& arg2 = Instance::CheckedHandle(arguments.ArgAt(2));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(3));
   const Array& arg_desc_array = Array::CheckedHandle(arguments.ArgAt(4));
-  ArgumentsDescriptor arg_descriptor(arg_desc_array);
   GrowableArray<const Instance*> args(3);
   args.Add(&receiver);
   args.Add(&arg1);
   args.Add(&arg2);
   const Function& result =
-      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_descriptor));
+      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_desc_array));
   arguments.SetReturn(result);
 }
 
