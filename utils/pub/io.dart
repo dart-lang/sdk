@@ -619,7 +619,12 @@ Future pipeInputToInput(InputStream source, ListInputStream sink) {
     sink.markEndOfStream();
     completer.complete(null);
   };
-  source.onData = () => sink.write(source.read());
+  source.onData = () {
+    // Even if the sink is closed and we aren't going to do anything with more
+    // data, we still need to drain it from source to work around issue 7218.
+    var data = source.read();
+    if (!sink.closed) sink.write(data);
+  };
   // TODO(nweiz): propagate this error to the sink. See issue 3657.
   source.onError = (e) { throw e; };
   return completer.future;
