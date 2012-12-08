@@ -226,9 +226,14 @@ main() {
       if (io.Platform.operatingSystem == 'windows') {
         test('given absolute path', () {
           var b = new path.Builder(style: path.Style.windows);
-          expect(r.relative(r'C:\'), b.join(b.relative(r'C:\'), r'..\..'));
-          expect(r.relative(r'C:\a\b'),
-              b.join(b.relative(r'C:\'), r'..\..\a\b'));
+          // TODO(rnystrom): Use a path method here to get the root prefix
+          // when one exists.
+          var drive = path.current.substring(0, 3);
+          expect(r.relative(drive), b.join(b.relative(drive), r'..\..'));
+          expect(r.relative(b.join(drive, r'a\b')),
+              b.join(b.relative(drive), r'..\..\a\b'));
+
+          // TODO(rnystrom): Test behavior when drive letters differ.
         });
       }
 
