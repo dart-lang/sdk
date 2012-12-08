@@ -582,7 +582,13 @@ Future pipeInputToInput(InputStream source, ListInputStream sink) {
     // Even if the sink is closed and we aren't going to do anything with more
     // data, we still need to drain it from source to work around issue 7218.
     var data = source.read();
-    if (!sink.closed) sink.write(data);
+    try {
+      if (!sink.closed) sink.write(data);
+    } on StreamException catch (e, stackTrace) {
+      // Ignore an exception to work around issue 4222.
+      log.io("Writing to an unclosed ListInputStream caused exception $e\n"
+          "$stackTrace");
+    }
   };
   // TODO(nweiz): propagate this error to the sink. See issue 3657.
   source.onError = (e) { throw e; };
