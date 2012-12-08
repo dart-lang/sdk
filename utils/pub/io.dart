@@ -605,6 +605,16 @@ Future<String> consumeStringInputStream(StringInputStream stream) {
   return completer.future;
 }
 
+/// Wrap an InputStream in a ListInputStream. This eagerly drains the [source]
+/// input stream. This is useful for spawned processes which will not exit until
+/// their output streams have been drained.
+/// TODO(rnystrom): Get rid of this once #7218 is fixed.
+InputStream wrapInputStream(InputStream source) {
+  var sink = new ListInputStream();
+  pipeInputToInput(source, sink);
+  return sink;
+}
+
 /// Spawns and runs the process located at [executable], passing in [args].
 /// Returns a [Future] that will complete with the results of the process after
 /// it has ended.

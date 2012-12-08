@@ -8,7 +8,7 @@ library log;
 import 'dart:io';
 import 'io.dart';
 
-typedef LogFn(Level level, message);
+typedef LogFn(Entry entry);
 final Map<Level, LogFn> _loggers = new Map<Level, LogFn>();
 
 /// The list of recorded log messages. Will only be recorded if
@@ -49,9 +49,9 @@ class Level {
 /// A single log entry.
 class Entry {
   final Level level;
-  final String message;
+  final List<String> lines;
 
-  Entry(this.level, this.message);
+  Entry(this.level, this.lines);
 }
 
 /// Logs [message] at [Level.ERROR].
@@ -73,12 +73,13 @@ void fine(message) => write(Level.FINE, message);
 void write(Level level, message) {
   if (_loggers.isEmpty) showNormal();
 
-  var logFn = _loggers[level];
-  if (logFn != null) logFn(level, message);
+  var lines = message.toString().split(NEWLINE_PATTERN);
+  var entry = new Entry(level, lines);
 
-  if (_transcript != null) {
-    _transcript.add(new Entry(level, '$message'));
-  }
+  var logFn = _loggers[level];
+  if (logFn != null) logFn(entry);
+
+  if (_transcript != null) _transcript.add(entry);
 }
 
 /// Logs an asynchronous IO operation. Logs [startMessage] before the operation
@@ -154,7 +155,7 @@ void dumpTranscript() {
 
   stderr.writeString('---- Log transcript ----\n');
   for (var entry in _transcript) {
-    _logToStderrWithLabel(entry.level, entry.message);
+    _logToStderrWithLabel(entry);
   }
   stderr.writeString('---- End log transcript ----\n');
 }
@@ -188,31 +189,40 @@ void showAll() {
 }
 
 /// Log function that prints the message to stdout.
-void _logToStdout(Level level, message) {
-  print('$message');
+void _logToStdout(Entry entry) {
+  _logToStream(stdout, entry, showLabel: false);
 }
 
 /// Log function that prints the message to stdout with the level name.
-void _logToStdoutWithLabel(Level level, message) {
-  print(_splitAndPrefix(level, message));
+void _logToStdoutWithLabel(Entry entry) {
+  _logToStream(stdout, entry, showLabel: true);
 }
 
 /// Log function that prints the message to stderr.
-void _logToStderr(Level level, message) {
-  stderr.writeString('$message\n');
+void _logToStderr(Entry entry) {
+  _logToStream(stderr, entry, showLabel: false);
 }
 
 /// Log function that prints the message to stderr with the level name.
-void _logToStderrWithLabel(Level level, message) {
-  stderr.writeString(_splitAndPrefix(level, message));
-  stderr.writeString('\n');
+void _logToStderrWithLabel(Entry entry) {
+  _logToStream(stderr, entry, showLabel: true);
 }
 
-/// Add the level prefix to the first line of [message] and prefix subsequent
-/// lines with "|".
-String _splitAndPrefix(Level level, message) {
-  // TODO(rnystrom): We're doing lots of splitting and joining in here. If that
-  // becomes a performance problem, we can optimize this to write directly to
-  // stdout/stderr a line at a time.
-  return "$level: ${Strings.join(message.toString().split('\n'), '\n    | ')}";
+void _logToStream(OutputStream stream, Entry entry, {bool showLabel}) {
+  bool firstLine = true;
+  for (var line in entry.lines) {
+    if (showLabel) {
+      if (firstLine) {
+        stream.writeString(entry.level.name);
+        stream.writeString(': ');
+      } else {
+        stream.writeString('    | ');
+      }
+    }
+
+    stream.writeString(line);
+    stream.writeString('\n');
+
+    firstLine = false;
+  }
 }
