@@ -9,6 +9,7 @@ import 'log.dart' as log;
 import 'io.dart';
 import 'system_cache.dart';
 import 'utils.dart';
+import 'validator/license.dart';
 import 'validator/name.dart';
 import 'validator/pubspec_field.dart';
 
@@ -39,6 +40,7 @@ abstract class Validator {
   static Future<Pair<List<String>, List<String>>> runAll(
       Entrypoint entrypoint) {
     var validators = [
+      new LicenseValidator(entrypoint),
       new NameValidator(entrypoint),
       new PubspecFieldValidator(entrypoint)
     ];
