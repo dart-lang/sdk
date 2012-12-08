@@ -1468,7 +1468,7 @@ class ScheduledProcess {
 
   /// Wraps [source] and ensures it gets eagerly drained. We do this to make
   /// sure a process will exit even if we don't care about its output.
-  static Future<StringInputStream> _wrapStream(InputStream source) {
+  static StringInputStream _wrapStream(InputStream source) {
     return new StringInputStream(wrapInputStream(source));
   }
 
