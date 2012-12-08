@@ -23,6 +23,7 @@ import '../../pub/entrypoint.dart';
 import '../../pub/git_source.dart';
 import '../../pub/hosted_source.dart';
 import '../../pub/io.dart';
+import '../../pub/path.dart' as path;
 import '../../pub/sdk_source.dart';
 import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
@@ -527,15 +528,15 @@ void run() {
     // If an error occurs during testing, delete the sandbox, throw the error so
     // that the test framework sees it, then finally call asyncDone so that the
     // test framework knows we're done doing asynchronous stuff.
-    var future = _runScheduled(createdSandboxDir, _scheduledOnException)
+    var subFuture = _runScheduled(createdSandboxDir, _scheduledOnException)
         .chain((_) => cleanup());
-    future.handleException((e) {
+    subFuture.handleException((e) {
       print("Exception while cleaning up: $e");
-      print(future.stackTrace);
-      registerException(error, future.stackTrace);
+      print(subFuture.stackTrace);
+      registerException(error, subFuture.stackTrace);
       return true;
     });
-    future.then((_) => registerException(error, future.stackTrace));
+    subFuture.then((_) => registerException(error, future.stackTrace));
     return true;
   });
 
@@ -546,10 +547,10 @@ void run() {
 
 /// Get the path to the root "util/test/pub" directory containing the pub tests.
 String get testDirectory {
-  var dir = new Path.fromNative(new Options().script);
-  while (dir.filename != 'pub') dir = dir.directoryPath;
+  var dir = new Options().script;
+  while (basename(dir) != 'pub') dir = dirname(dir);
 
-  return new File(dir.toNativePath()).fullPathSync();
+  return getFullPath(dir);
 }
 
 /**

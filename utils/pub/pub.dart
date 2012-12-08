@@ -20,6 +20,7 @@ import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
 import 'package.dart';
+import 'path.dart' as path;
 import 'pubspec.dart';
 import 'source.dart';
 import 'source_registry.dart';
@@ -249,7 +250,7 @@ abstract class PubCommand {
       // TODO(rnystrom): Will eventually need better logic to walk up
       // subdirectories until we hit one that looks package-like. For now, just
       // assume the cwd is it.
-      future = Entrypoint.load(currentWorkingDir, cache);
+      future = Entrypoint.load(path.current, cache);
     }
 
     future = future.chain((entrypoint) {
@@ -270,10 +271,10 @@ abstract class PubCommand {
     future.handleException((e) {
       if (e is PubspecNotFoundException && e.name == null) {
         e = 'Could not find a file named "pubspec.yaml" in the directory '
-          '$currentWorkingDir.';
+          '${path.current}.';
       } else if (e is PubspecHasNoNameException && e.name == null) {
         e = 'pubspec.yaml is missing the required "name" field (e.g. "name: '
-          '${basename(currentWorkingDir)}").';
+          '${basename(path.current)}").';
       }
 
       handleError(e, future.stackTrace);

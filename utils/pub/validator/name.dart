@@ -8,6 +8,7 @@ import 'dart:io';
 
 import '../entrypoint.dart';
 import '../io.dart';
+import '../path.dart' as path;
 import '../validator.dart';
 
 /// Dart reserved words, from the Dart spec.
@@ -31,11 +32,10 @@ class NameValidator extends Validator {
       return listDir(libDir, recursive: true);
     }).transform((files) {
       for (var file in files) {
-        // TODO(nweiz): Since `file` is absolute, this will break if the package
-        // itself is in a directory named "src" (issue 7215).
+        file = relativeTo(file, libDir);
         if (splitPath(file).contains("src")) continue;
-        if (new Path(file).extension != 'dart') continue;
-        var libName = new Path(basename(file)).filenameWithoutExtension;
+        if (path.extension(file) != '.dart') continue;
+        var libName = path.filenameWithoutExtension(file);
         _checkName(libName, 'The name of "$file", "$libName",');
       }
     });

@@ -15,15 +15,13 @@ import 'dart:uri';
 import '../../pkg/http/lib/http.dart' as http;
 import 'curl_client.dart';
 import 'log.dart' as log;
+import 'path.dart' as path;
 import 'utils.dart';
 
 bool _isGitInstalledCache;
 
 /// The cached Git command.
 String _gitCommandCache;
-
-/** Gets the current working directory. */
-String get currentWorkingDir => new File('.').fullPathSync();
 
 final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
 
@@ -33,55 +31,32 @@ final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
  * [File] objects.
  */
 String join(part1, [part2, part3, part4]) {
-  final parts = sanitizePath(part1).split('/');
+  part1 = _getPath(part1);
+  if (part2 != null) part2 = _getPath(part2);
+  if (part3 != null) part3 = _getPath(part3);
+  if (part4 != null) part4 = _getPath(part4);
 
-  for (final part in [part2, part3, part4]) {
-    if (part == null) continue;
-
-    for (final piece in _getPath(part).split('/')) {
-      if (piece == '..' && parts.length > 0 &&
-          parts.last != '.' && parts.last != '..') {
-        parts.removeLast();
-      } else if (piece != '') {
-        if (parts.length > 0 && parts.last == '.') {
-          parts.removeLast();
-        }
-        parts.add(piece);
-      }
-    }
-  }
-
-  return Strings.join(parts, Platform.pathSeparator);
-}
-
-/// Splits [path] into its individual components.
-List<String> splitPath(path) => sanitizePath(path).split('/');
-
-/**
- * Gets the basename, the file name without any leading directory path, for
- * [file], which can either be a [String], [File], or [Directory].
- */
-// TODO(rnystrom): Copied from file_system (so that we don't have to add
-// file_system to the SDK). Should unify.
-String basename(file) {
-  file = sanitizePath(file);
-
-  int lastSlash = file.lastIndexOf('/', file.length);
-  if (lastSlash == -1) {
-    return file;
+  // TODO(nweiz): Don't use "?part" in path.dart.
+  if (part4 != null) {
+    return path.join(part1, part2, part3, part4);
+  } else if (part3 != null) {
+    return path.join(part1, part2, part3);
+  } else if (part2 != null) {
+    return path.join(part1, part2);
   } else {
-    return file.substring(lastSlash + 1);
+    return path.join(part1);
   }
 }
 
-/**
- * Gets the the leading directory path for [file], which can either be a
- * [String], [File], or [Directory].
- */
-// TODO(nweiz): Copied from file_system (so that we don't have to add
-// file_system to the SDK). Should unify.
+/// Gets the basename, the file name without any leading directory path, for
+/// [file], which can either be a [String], [File], or [Directory].
+String basename(file) => path.filename(_getPath(file));
+
+// TODO(nweiz): move this into path.dart.
+/// Gets the the leading directory path for [file], which can either be a
+/// [String], [File], or [Directory].
 String dirname(file) {
-  file = sanitizePath(file);
+  file = _sanitizePath(file);
 
   int lastSlash = file.lastIndexOf('/', file.length);
   if (lastSlash == -1) {
@@ -91,10 +66,21 @@ String dirname(file) {
   }
 }
 
+// TODO(nweiz): move this into path.dart.
+/// Splits [path] into its individual components.
+List<String> splitPath(path) => _sanitizePath(path).split('/');
+
 /// Returns whether or not [entry] is nested somewhere within [dir]. This just
 /// performs a path comparison; it doesn't look at the actual filesystem.
-bool isBeneath(entry, dir) =>
-  sanitizePath(entry).startsWith('${sanitizePath(dir)}/');
+bool isBeneath(entry, dir) {
+  var relative = relativeTo(entry, dir);
+  return !path.isAbsolute(relative) && !relative.startsWith('..');
+}
+
+// TODO(nweiz): move this into path.dart.
+/// Returns the path to [target] from [base].
+String relativeTo(target, base) =>
+  new path.Builder(root: base).relative(target);
 
 /**
  * Asynchronously determines if [path], which can be a [String] file path, a
@@ -455,52 +441,25 @@ Future<File> createPackageSymlink(String name, from, to,
 
 /// Given [entry] which may be a [String], [File], or [Directory] relative to
 /// the current working directory, returns its full canonicalized path.
-String getFullPath(entry) {
-  var path = _getPath(entry);
-
-  // Don't do anything if it's already absolute.
-  if (isAbsolute(path)) return path;
-
-  // Using Path.join here instead of File().fullPathSync() because the former
-  // does not require an actual file to exist at that path.
-  return new Path.fromNative(currentWorkingDir).join(new Path(path))
-      .toNativePath();
-}
+String getFullPath(entry) => path.absolute(_getPath(entry));
 
 /// Returns whether or not [entry] is an absolute path.
-bool isAbsolute(entry) => _splitAbsolute(entry).first != null;
+bool isAbsolute(entry) => path.isAbsolute(_getPath(entry));
 
-/// Splits [entry] into two components: the absolute path prefix and the
-/// remaining path. Takes into account Windows' quirky absolute paths syntaxes.
-Pair<String, String> _splitAbsolute(entry) {
-  var path = _getPath(entry);
-
-  if (Platform.operatingSystem != 'windows') {
-    return !path.startsWith('/') ? new Pair(null, path)
-        : new Pair('/', path.substring(1));
-  }
-
-  // An absolute path on Windows is either UNC (two leading backslashes),
-  // or a drive letter followed by a colon and a slash.
-  var match = new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])').firstMatch(path);
-  return match == null ? new Pair(null, path)
-      : new Pair(match.group(0), path.substring(match.end));
-}
-
-/// Resolves [path] relative to the location of pub.dart.
-String relativeToPub(String path) {
+/// Resolves [target] relative to the location of pub.dart.
+String relativeToPub(String target) {
   var scriptPath = new File(new Options().script).fullPathSync();
 
   // Walk up until we hit the "util(s)" directory. This lets us figure out where
   // we are if this function is called from pub.dart, or one of the tests,
   // which also live under "utils", or from the SDK where pub is in "util".
-  var utilDir = new Path.fromNative(scriptPath).directoryPath;
-  while (utilDir.filename != 'utils' && utilDir.filename != 'util') {
-    if (utilDir.filename == '') throw 'Could not find path to pub.';
-    utilDir = utilDir.directoryPath;
+  var utilDir = dirname(scriptPath);
+  while (basename(utilDir) != 'utils' && basename(utilDir) != 'util') {
+    if (basename(utilDir) == '') throw 'Could not find path to pub.';
+    utilDir = dirname(utilDir);
   }
 
-  return utilDir.append('pub').append(path).canonicalize().toNativePath();
+  return path.normalize(join(utilDir, 'pub', target));
 }
 
 /// A StringInputStream reading from stdin.
@@ -978,7 +937,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
   }).chain((files) {
     var tarFile;
     for (var file in files) {
-      if (new Path(file).extension == 'tar') {
+      if (path.extension(file) == '.tar') {
         tarFile = file;
         break;
       }
@@ -1015,15 +974,14 @@ InputStream createTarGz(List contents, {baseDir}) {
   // exit codes). See issue 3657.
   var stream = new ListInputStream();
 
-  if (baseDir == null) baseDir = currentWorkingDir;
+  if (baseDir == null) baseDir = path.current;
   baseDir = getFullPath(baseDir);
   contents = contents.map((entry) {
     entry = getFullPath(entry);
     if (!isBeneath(entry, baseDir)) {
       throw 'Entry $entry is not inside $baseDir.';
     }
-    return new Path.fromNative(entry).relativeTo(new Path.fromNative(baseDir))
-        .toNativePath();
+    return relativeTo(entry, baseDir);
   });
 
   if (Platform.operatingSystem != "windows") {
@@ -1117,7 +1075,7 @@ String _getPath(entry) {
 
 /// Gets the path string for [entry], normalizing backslashes to forward slashes
 /// on Windows.
-String sanitizePath(entry) {
+String _sanitizePath(entry) {
   entry = _getPath(entry);
   if (Platform.operatingSystem != 'windows') return entry;
 
@@ -1129,6 +1087,24 @@ String sanitizePath(entry) {
   // contains backslashes.
   return '${split.first.replaceAll('/', '\\')}'
          '${split.last.replaceAll('\\', '/')}';
+}
+
+// TODO(nweiz): Add something like this to path.dart.
+/// Splits [entry] into two components: the absolute path prefix and the
+/// remaining path. Takes into account Windows' quirky absolute paths syntaxes.
+Pair<String, String> _splitAbsolute(entry) {
+  var path = _getPath(entry);
+
+  if (Platform.operatingSystem != 'windows') {
+    return !path.startsWith('/') ? new Pair(null, path)
+        : new Pair('/', path.substring(1));
+  }
+
+  // An absolute path on Windows is either UNC (two leading backslashes),
+  // or a drive letter followed by a colon and a slash.
+  var match = new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])').firstMatch(path);
+  return match == null ? new Pair(null, path)
+      : new Pair(match.group(0), path.substring(match.end));
 }
 
 /**

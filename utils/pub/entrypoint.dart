@@ -10,9 +10,9 @@ import 'log.dart' as log;
 import 'package.dart';
 import 'root_source.dart';
 import 'system_cache.dart';
+import 'utils.dart';
 import 'version.dart';
 import 'version_solver.dart';
-import 'utils.dart';
 
 /**
  * Pub operates over a directed graph of dependencies that starts at a root
