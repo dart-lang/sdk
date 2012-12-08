@@ -39,7 +39,7 @@ class CurlClient extends http.BaseClient {
       var arguments = _argumentsForRequest(request, headerFile);
       log.process(executable, arguments);
       var process;
-      return Process.start(executable, arguments).chain((process_) {
+      return startProcess(executable, arguments).chain((process_) {
         process = process_;
         if (requestStream.closed) {
           process.stdin.close();

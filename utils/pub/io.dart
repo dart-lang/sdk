@@ -712,7 +712,30 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 /// the inherited variables.
 Future<Process> startProcess(String executable, List<String> args,
     {workingDir, Map<String, String> environment}) =>
-  _doProcess(Process.start, executable, args, workingDir, environment);
+  _doProcess(Process.start, executable, args, workingDir, environment)
+    .transform((process) => new _WrappedProcess(process));
+
+/// A wrapper around [Process] that buffers the stdout and stderr to avoid
+/// running into issue 7218.
+class _WrappedProcess implements Process {
+  final Process _process;
+  final InputStream stderr;
+  final InputStream stdout;
+
+  OutputStream get stdin => _process.stdin;
+
+  void set onExit(void callback(int exitCode)) {
+    _process.onExit = callback;
+  }
+
+  _WrappedProcess(Process process)
+    : _process = process,
+      stderr = wrapInputStream(process.stderr),
+      stdout = wrapInputStream(process.stdout);
+
+  bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) =>
+    _process.kill(signal);
+}
 
 /// Calls [fn] with appropriately modified arguments. [fn] should have the same
 /// signature as [Process.start], except that the returned [Future] may have a
@@ -892,7 +915,7 @@ Future<bool> extractTarGz(InputStream stream, destination) {
   }
 
   var completer = new Completer<int>();
-  var processFuture = Process.start("tar",
+  var processFuture = startProcess("tar",
       ["--extract", "--gunzip", "--directory", destination]);
   processFuture.then((process) {
     process.onExit = completer.complete;

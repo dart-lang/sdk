@@ -1334,8 +1334,8 @@ class ScheduledProcess {
   /// Wraps a [Process] [Future] in a scheduled process.
   ScheduledProcess(this.name, Future<Process> process)
     : _process = process,
-      _stdout = process.transform((p) => _wrapStream(p.stdout)),
-      _stderr = process.transform((p) => _wrapStream(p.stderr)) {
+      _stdout = process.transform((p) => new StringInputStream(p.stdout)),
+      _stderr = process.transform((p) => new StringInputStream(p.stderr)) {
 
     _schedule((_) {
       if (!_endScheduled) {
@@ -1464,12 +1464,6 @@ class ScheduledProcess {
         }
       });
     });
-  }
-
-  /// Wraps [source] and ensures it gets eagerly drained. We do this to make
-  /// sure a process will exit even if we don't care about its output.
-  static StringInputStream _wrapStream(InputStream source) {
-    return new StringInputStream(wrapInputStream(source));
   }
 
   /// Prints the remaining data in the process's stdout and stderr streams.
