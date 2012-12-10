@@ -11310,33 +11310,25 @@ const char* ImmutableArray::ToCString() const {
 
 
 void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
-  Add(Isolate::Current(), value, space);
-}
-
-
-void GrowableObjectArray::Add(Isolate* isolate,
-                              const Object& value,
-                              Heap::Space space) const {
   ASSERT(!IsNull());
-  Array& contents = Array::Handle(isolate, data());
   if (Length() == Capacity()) {
     // TODO(Issue 2500): Need a better growth strategy.
     intptr_t new_capacity = (Capacity() == 0) ? 4 : Capacity() * 2;
     if (new_capacity <= Capacity()) {
       // Use the preallocated out of memory exception to avoid calling
       // into dart code or allocating any code.
+      Isolate* isolate = Isolate::Current();
       const Instance& exception =
           Instance::Handle(isolate->object_store()->out_of_memory());
       Exceptions::Throw(exception);
       UNREACHABLE();
     }
     Grow(new_capacity, space);
-    contents = data();
   }
   ASSERT(Length() < Capacity());
   intptr_t index = Length();
   SetLength(index + 1);
-  contents.SetAt(index, value);
+  SetAt(index, value);
 }
 
 

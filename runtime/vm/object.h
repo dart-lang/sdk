@@ -4490,14 +4490,12 @@ class GrowableObjectArray : public Instance {
   void SetAt(intptr_t index, const Object& value) const {
     ASSERT(!IsNull());
     ASSERT(index < Length());
-    const Array& arr = Array::Handle(data());
-    arr.SetAt(index, value);
+
+    // TODO(iposva): Add storing NoGCScope.
+    DataStorePointer(ObjectAddr(index), value.raw());
   }
 
   void Add(const Object& value, Heap::Space space = Heap::kNew) const;
-  void Add(Isolate* isolate,
-           const Object& value,
-           Heap::Space space = Heap::kNew) const;
 
   void Grow(intptr_t new_capacity, Heap::Space space = Heap::kNew) const;
   RawObject* RemoveLast() const;
@@ -4545,6 +4543,22 @@ class GrowableObjectArray : public Instance {
   RawObject** ObjectAddr(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
     return &(DataArray()->data()[index]);
+  }
+  bool DataContains(uword addr) const {
+    intptr_t data_size = data()->Size();
+    uword data_addr = RawObject::ToAddr(data());
+    return (addr >= data_addr) && (addr < (data_addr + data_size));
+  }
+  void DataStorePointer(RawObject** addr, RawObject* value) const {
+    // Ensure that the backing array object contains the addr.
+    ASSERT(DataContains(reinterpret_cast<uword>(addr)));
+    *addr = value;
+    // Filter stores based on source and target.
+    if (!value->IsHeapObject()) return;
+    if (value->IsNewObject() && data()->IsOldObject()) {
+      uword ptr = reinterpret_cast<uword>(addr);
+      Isolate::Current()->store_buffer()->AddPointer(ptr);
+    }
   }
 
   static const int kDefaultInitialCapacity = 4;

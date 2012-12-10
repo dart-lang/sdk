@@ -94,7 +94,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
                                               start,
                                               (i - start),
                                               Heap::kNew);
-      result.Add(isolate, str);
+      result.Add(str);
       start = i + 1;
     }
   }
@@ -102,7 +102,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
                                           start,
                                           (i - start),
                                           Heap::kNew);
-  result.Add(isolate, str);
+  result.Add(str);
   return result.raw();
 }
 
