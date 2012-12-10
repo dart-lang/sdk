@@ -189,7 +189,7 @@ def Execute(args):
   process = subprocess.Popen(args)
   process.wait()
   if process.returncode != 0:
-    raise Error(args[0] + " failed")
+    raise Exception(args[0] + " failed")
 
 
 def GClientRunHooks():

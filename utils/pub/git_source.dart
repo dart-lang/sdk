@@ -148,15 +148,6 @@ class GitSource extends Source {
    * remote repository. See the manpage for `git clone` for more information.
    */
   Future _clone(String from, String to, {bool mirror: false}) {
-    // TODO(rnystrom): For some mysterious reason, the Windows buildbots do not
-    // have the right working directory when pub spawns git, so the relative
-    // path fails. To work around it, if [from] looks like a relative path then
-    // manually make it absolute here. Should figure out what's really going on.
-    var URL_LIKE = new RegExp(r'^[a-z]+\:');
-    if (!URL_LIKE.hasMatch(from)) {
-      from = getFullPath(from);
-    }
-
     // Git on Windows does not seem to automatically create the destination
     // directory.
     return ensureDir(to).chain((_) {

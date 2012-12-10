@@ -153,7 +153,7 @@ class SequenceList<E> extends SequenceCollection<E> implements List<E> {
         "Cannot add to an unmodifiable list");
   }
 
-  void sort([Comparator<E> compare]) {
+  void sort([int compare(E a, E b)]) {
     throw new UnsupportedError(
         "Cannot modify an unmodifiable list");
   }

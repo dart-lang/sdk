@@ -74,7 +74,7 @@ class HeapProfiler {
     kLong = 11
   };
 
-  HeapProfiler(Dart_HeapProfileWriteCallback callback, void* stream);
+  HeapProfiler(Dart_FileWriteCallback callback, void* stream);
   ~HeapProfiler();
 
   // Writes a root to the heap dump.
@@ -249,7 +249,7 @@ class HeapProfiler {
   static const RawClass* GetClass(const RawObject* raw_obj);
   static const RawClass* GetSuperClass(const RawClass* raw_class);
 
-  Dart_HeapProfileWriteCallback write_callback_;
+  Dart_FileWriteCallback write_callback_;
 
   void* output_stream_;
 

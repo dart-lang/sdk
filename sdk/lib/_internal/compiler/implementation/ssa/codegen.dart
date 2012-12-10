@@ -73,7 +73,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       FunctionElement element = work.element;
       js.Block body;
       ClassElement enclosingClass = element.getEnclosingClass();
-      bool allowVariableMinification = !codegen.visitedForeignCode;
+      bool allowVariableMinification = !codegen.inhibitVariableMinification;
 
       if (element.isInstanceMember()
           && enclosingClass.isNative()
@@ -163,7 +163,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    */
   bool isGeneratingExpression = false;
 
-  bool visitedForeignCode = false;
+  bool inhibitVariableMinification = false;
 
   final JavaScriptBackend backend;
   final WorkItem work;
@@ -1612,7 +1612,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     HType receiverHType = types[node.inputs[0]];
     DartType receiverType = receiverHType.computeType(compiler);
-    if (receiverType != null) {
+    if (receiverType != null &&
+        !identical(receiverType.kind, TypeKind.MALFORMED_TYPE)) {
       return new TypedSelector(receiverType, defaultSelector);
     } else {
       return defaultSelector;
@@ -1736,7 +1737,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       push(new js.PropertyAccess.field(pop(), name), node);
       HType receiverHType = types[node.receiver];
       DartType type = receiverHType.computeType(compiler);
-      if (type != null) {
+      if (type != null && !identical(type.kind, TypeKind.MALFORMED_TYPE)) {
         world.registerFieldGetter(
             node.element.name, node.element.getLibrary(), type);
       }
@@ -1746,7 +1747,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldSet(HFieldSet node) {
     String name = _fieldPropertyName(node.element);
     DartType type = types[node.receiver].computeType(compiler);
-    if (type != null) {
+    if (type != null && !identical(type.kind, TypeKind.MALFORMED_TYPE)) {
       // Field setters in the generative constructor body are handled in a
       // step "SsaConstructionFieldTypes" in the ssa optimizer.
       if (!work.element.isGenerativeConstructorBody()) {
@@ -1777,7 +1778,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeign(HForeign node) {
-    visitedForeignCode = true;
+    // TODO(sra): We could be a lot more picky about when to inhibit renaming of
+    // locals - most JS strings don't contain free variables, or contain safe
+    // ones like 'Object'.  JS strings like "#.length" and "#[#]" are perfectly
+    // safe for variable renaming.
+    inhibitVariableMinification = true;
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement(types)) {
@@ -1802,7 +1807,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeignNew(HForeignNew node) {
-    visitedForeignCode = true;
     String jsClassReference = backend.namer.isolateAccess(node.element);
     List<HInstruction> inputs = node.inputs;
     // We can't use 'visitArguments', since our arguments start at input[0].
@@ -2080,7 +2084,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     });
     Element element = node.element;
     world.registerStaticUse(element);
-    ClassElement cls = element.getEnclosingClass();    
+    ClassElement cls = element.getEnclosingClass();
     if (element.isGenerativeConstructor()
         || (element.isFactoryConstructor() && cls == compiler.listClass)) {
       world.registerInstantiatedClass(cls);
@@ -2274,6 +2278,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void checkType(HInstruction input, DartType type, {bool negative: false}) {
+    assert(invariant(input, !type.isMalformed,
+                     message: 'Attempt to check malformed type $type'));
     world.registerIsCheck(type);
     Element element = type.element;
     use(input);
@@ -2395,29 +2401,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkType(input, type);
       attachLocationToLast(node);
     }
-    if (node.hasTypeInfo()) {
+    if (node.hasArgumentChecks()) {
       InterfaceType interfaceType = type;
       ClassElement cls = type.element;
       Link<DartType> arguments = interfaceType.typeArguments;
       js.Expression result = pop();
-      for (TypeVariableType typeVariable in cls.typeVariables) {
-        use(node.typeInfoCall);
-        int index = RuntimeTypeInformation.getTypeVariableIndex(typeVariable);
-        js.PropertyAccess field = new js.PropertyAccess.indexed(pop(), index);
-        // Also test for 'undefined' in case the object does not have
-        // any type variable.
-        js.Prefix undefinedTest = new js.Prefix('!', field);
-        if (arguments.head == compiler.types.dynamicType) {
-          result = new js.Binary('&&', result, undefinedTest);
-        } else {
-          RuntimeTypeInformation rti = backend.rti;
-          String typeName = rti.getStringRepresentation(arguments.head);
-          js.Expression genericName = new js.LiteralString("'$typeName'");
-          js.Binary eqTest = new js.Binary('===', field, genericName);
-          result = new js.Binary(
-              '&&', result, new js.Binary('||', undefinedTest, eqTest));
-        }
-        arguments = arguments.tail;
+      for (int i = 0; i < node.checkCount; i++) {
+        use(node.getCheck(i));
+        result = new js.Binary('&&', result, pop());
       }
       push(result, node);
     }
@@ -2427,6 +2418,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  // TODO(johnniwinther): Refactor this method.
   void visitTypeConversion(HTypeConversion node) {
     Map<String, SourceString> castNames = const <String, SourceString> {
       "stringTypeCheck":
@@ -2458,7 +2450,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       "callTypeCheck":
           const SourceString("callTypeCast"),
       "propertyTypeCheck":
-          const SourceString("propertyTypeCast")
+          const SourceString("propertyTypeCast"),
+      // TODO(johnniwinther): Add a malformedTypeCast which produces a TypeError
+      // with another message.
+      "malformedTypeCheck":
+          const SourceString("malformedTypeCheck")
     };
 
     if (node.isChecked) {
@@ -2499,9 +2495,23 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       List<js.Expression> arguments = <js.Expression>[];
       use(node.checkedInput);
       arguments.add(pop());
-      if (helperElement.computeSignature(compiler).parameterCount != 1) {
+      int parameterCount =
+          helperElement.computeSignature(compiler).parameterCount;
+      if (parameterCount == 2) {
+        // 2 arguments implies that the method is either [propertyTypeCheck]
+        // or [propertyTypeCast].
+        assert(!type.isMalformed);
         String additionalArgument = backend.namer.operatorIs(element);
         arguments.add(new js.LiteralString("'$additionalArgument'"));
+      } else if (parameterCount == 3) {
+        // 3 arguments implies that the method is [malformedTypeCheck].
+        assert(type.isMalformed);
+        String reasons = fetchReasonsFromMalformedType(type);
+        arguments.add(new js.LiteralString("'$type'"));
+        // TODO(johnniwinther): Handle escaping correctly.
+        arguments.add(new js.LiteralString("'$reasons'"));
+      } else {
+        assert(!type.isMalformed);
       }
       String helperName = backend.namer.isolateAccess(helperElement);
       push(new js.Call(new js.VariableUse(helperName), arguments));

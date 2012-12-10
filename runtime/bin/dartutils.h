@@ -76,6 +76,10 @@ class DartUtils {
   // Assumes that the value object is known to be an integer object
   // that fits in a signed 64-bit integer.
   static int64_t GetIntegerValue(Dart_Handle value_obj);
+  // Assumes that the value object is known to be an intptr_t. This should
+  // only be known when the value has been put into Dart as a pointer encoded
+  // in a 64-bit integer. This is the case for file and directory operations.
+  static intptr_t GetIntptrValue(Dart_Handle value_obj);
   // Checks that the value object is an integer object that fits in a
   // signed 64-bit integer. If it is, the value is returned in the
   // value out parameter and true is returned. Otherwise, false is
@@ -139,6 +143,19 @@ class DartUtils {
   }
 
   static void SetOriginalWorkingDirectory();
+
+  static const char* MapLibraryUrl(CommandLineOptions* url_mapping,
+                                   const char* url_string);
+
+  static Dart_Handle ResolveScriptUri(Dart_Handle script_uri,
+                                      Dart_Handle builtin_lib);
+
+  static Dart_Handle FilePathFromUri(Dart_Handle script_uri,
+                                     Dart_Handle builtin_lib);
+
+  static Dart_Handle ResolveUri(Dart_Handle library_url,
+                                Dart_Handle url,
+                                Dart_Handle builtin_lib);
 
   // Global state that stores the original working directory..
   static const char* original_working_directory;
@@ -210,10 +227,12 @@ class CObject {
   static Dart_CObject* NewString(const char* str);
   static Dart_CObject* NewArray(int length);
   static Dart_CObject* NewUint8Array(int length);
-  static Dart_CObject* NewExternalUint8Array(int length,
+  static Dart_CObject* NewExternalUint8Array(int64_t length,
                                              uint8_t* data,
                                              void* peer,
                                              Dart_PeerFinalizer callback);
+  static Dart_CObject* NewIOBuffer(int64_t length);
+  static void FreeIOBufferData(Dart_CObject* object);
 
   Dart_CObject* AsApiCObject() { return cobject_; }
 
@@ -308,7 +327,8 @@ class CObjectIntptr : public CObject {
     if (type() == Dart_CObject::kInt32) {
       result = cobject_->value.as_int32;
     } else {
-      result = cobject_->value.as_int64;
+      ASSERT(sizeof(result) == 8);
+      result = static_cast<intptr_t>(cobject_->value.as_int64);
     }
     return result;
   }
@@ -386,6 +406,9 @@ class CObjectExternalUint8Array : public CObject {
   DECLARE_COBJECT_CONSTRUCTORS(ExternalUint8Array)
 
   int Length() const { return cobject_->value.as_external_byte_array.length; }
+  void SetLength(uint64_t length) {
+    cobject_->value.as_external_byte_array.length = length;
+  }
   uint8_t* Data() const { return cobject_->value.as_external_byte_array.data; }
   void* Peer() const { return cobject_->value.as_external_byte_array.peer; }
   Dart_PeerFinalizer Callback() const {

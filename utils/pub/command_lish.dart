@@ -14,6 +14,7 @@ import 'pub.dart';
 import 'io.dart';
 import 'git.dart' as git;
 import 'oauth2.dart' as oauth2;
+import 'validator.dart';
 
 // TODO(nweiz): Make "publish" the primary name for this command. See issue
 // 6949.
@@ -25,7 +26,7 @@ class LishCommand extends PubCommand {
 
   ArgParser get commandParser {
     var parser = new ArgParser();
-    parser.addOption('server', defaultsTo: 'http://pub.dartlang.org',
+    parser.addOption('server', defaultsTo: 'https://pub.dartlang.org',
         help: 'The package server to which to upload this package');
     return parser;
   }
@@ -36,22 +37,14 @@ class LishCommand extends PubCommand {
   Future onRun() {
     var cloudStorageUrl;
     return oauth2.withClient(cache, (client) {
-      // TODO(nweiz): Better error-handling. There are a few cases we need to
-      // handle better:
-      //
-      // * The server can tell us we need new credentials (a 401 error). The
-      //   oauth2 package should throw an AuthorizationException in this case
-      //   (contingent on issue 6813 and 6275). We should have the user
-      //   re-authorize the client, then restart the command. We should also do
-      //   this in case of an ExpirationException. See issue 6950.
-      //
-      // * Cloud Storage can provide an XML-formatted error. We should report
-      //   that error and exit.
+      // TODO(nweiz): Cloud Storage can provide an XML-formatted error. We
+      // should report that error and exit.
       return Futures.wait([
         client.get(server.resolve("/packages/versions/new.json")),
         _filesToPublish.transform((files) {
           return createTarGz(files, baseDir: entrypoint.root.dir);
-        }).chain(consumeInputStream)
+        }).chain(consumeInputStream),
+        _validate()
       ]).chain((results) {
         var response = results[0];
         var packageBytes = results[1];
@@ -103,15 +96,27 @@ class LishCommand extends PubCommand {
           }
           throw errorMap['error']['message'];
         }
+      } else if (e is oauth2.ExpirationException) {
+        printError("Pub's authorization to upload packages has expired and "
+            "can't be automatically refreshed.");
+        return onRun();
+      } else if (e is oauth2.AuthorizationException) {
+        var message = "OAuth2 authorization failed";
+        if (e.description != null) message = "$message (${e.description})";
+        printError("$message.");
+        return oauth2.clearCredentials(cache).chain((_) => onRun());
+      } else {
+        throw e;
       }
-
-      if (e is! oauth2.ExpirationException) throw e;
-
-      printError("Pub's authorization to upload packages has expired and can't "
-          "be automatically refreshed.");
-      return onRun();
     });
   }
+
+  /// The basenames of files that are automatically excluded from archives.
+  final _BLACKLISTED_FILES = const ['pubspec.lock'];
+
+  /// The basenames of directories that are automatically excluded from
+  /// archives.
+  final _BLACKLISTED_DIRECTORIES = const ['packages'];
 
   /// Returns a list of files that should be included in the published package.
   /// If this is a Git repository, this will respect .gitignore; otherwise, it
@@ -134,7 +139,12 @@ class LishCommand extends PubCommand {
         }));
       });
     }).transform((files) => files.filter((file) {
-      return file != null && basename(file) != 'packages';
+      if (file == null || _BLACKLISTED_FILES.contains(basename(file))) {
+        return false;
+      }
+      // TODO(nweiz): Since `file` is absolute, this will break if the package
+      // itself is in a directory named "packages" (issue 7215).
+      return !splitPath(file).some(_BLACKLISTED_DIRECTORIES.contains);
     }));
   }
 
@@ -163,5 +173,24 @@ class LishCommand extends PubCommand {
   /// Throws an error describing an invalid response from the server.
   void _invalidServerResponse(http.Response response) {
     throw 'Invalid server response:\n${response.body}';
+  }
+
+  /// Validates the package. Throws an exception if it's invalid.
+  Future _validate() {
+    return Validator.runAll(entrypoint).chain((pair) {
+      var errors = pair.first;
+      var warnings = pair.last;
+
+      if (errors.isEmpty && warnings.isEmpty) return new Future.immediate(null);
+      if (!errors.isEmpty) throw "Package validation failed.";
+
+      var s = warnings.length == 1 ? '' : 's';
+      stdout.writeString("Package has ${warnings.length} warning$s. Upload "
+          "anyway (y/n)? ");
+      return readLine().transform((line) {
+        if (new RegExp(r"^[yY]").hasMatch(line)) return;
+        throw "Package upload canceled.";
+      });
+    });
   }
 }

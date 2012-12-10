@@ -164,8 +164,7 @@ abstract class Source {
    * [description2] for this source. This method should be light-weight. It
    * doesn't need to validate that either package exists.
    *
-   * By default, this assumes both descriptions are strings and compares them
-   * for equality.
+   * By default, just uses regular equality.
    */
   bool descriptionsEqual(description1, description2) =>
     description1 == description2;

@@ -186,6 +186,20 @@ main() {
 </svg>""");
       expect(_nodeStrings(el.children), ["circle", "path"]);
     });
+
+    test('resize', () {
+      var el = new svg.SvgSvgElement();
+      var items = [new svg.CircleElement(), new svg.RectElement()];
+      el.children = items;
+      expect(el.children.length, 2);
+      el.children.length = 1;
+      expect(el.children.length, 1);
+      expect(el.children.contains(items[0]), true);
+      expect(el.children.contains(items[1]), false);
+
+      el.children.length = 0;
+      expect(el.children.contains(items[0]), false);
+    });
   });
 
   group('elementset', () {

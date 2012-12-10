@@ -25,7 +25,7 @@ from templateloader import TemplateLoader
 
 _logger = logging.getLogger('dartdomgenerator')
 
-_libraries = ['html', 'svg', 'web_audio']
+_libraries = ['html', 'indexed_db', 'svg', 'web_audio']
 
 class GeneratorOptions(object):
   def __init__(self, templates, database, type_registry, renamer):
@@ -78,7 +78,8 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
         template_loader, webkit_database, type_registry, renamer)
     dart_library_emitter = DartLibraryEmitter(
         emitters, dart_output_dir, dart_libraries)
-    event_generator = HtmlEventGenerator(webkit_database, template_loader)
+    event_generator = HtmlEventGenerator(webkit_database, renamer,
+        template_loader)
 
     def generate_interface(interface):
       backend = backend_factory(interface)

@@ -115,7 +115,7 @@ abstract class Window {
    * * [Window close discussion](http://www.w3.org/TR/html5/browsers.html#dom-window-close) from the W3C
    */
   void close();
-  void postMessage(var message, String targetOrigin, [List messagePorts = null]);
+  void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
 
 abstract class Location {

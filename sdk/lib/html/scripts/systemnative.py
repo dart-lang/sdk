@@ -98,7 +98,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def ImplementationTemplate(self):
     template = None
-    interface_name = self._interface_type_info.interface_name()
+    interface_name = self._interface.doc_js_name
     if interface_name == self._interface.id or not self._database.HasInterface(interface_name):
       template_file = 'impl_%s.darttemplate' % interface_name
       template = self._template_loader.TryLoad(template_file)
@@ -199,7 +199,8 @@ class DartiumBackend(HtmlDartGenerator):
 
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     interface_name = self._interface_type_info.interface_name()
-    template_file = 'factoryprovider_%s.darttemplate' % interface_name
+    template_file = ('factoryprovider_%s.darttemplate' %
+                     self._interface.doc_js_name)
     template = self._template_loader.TryLoad(template_file)
     if not template:
       template = self._template_loader.Load('factoryprovider.darttemplate')
@@ -404,14 +405,7 @@ class DartiumBackend(HtmlDartGenerator):
           '  }\n',
           TYPE=dart_element_type)
 
-    # TODO(sra): Use separate mixins for mutable implementations of List<T>.
-    # TODO(sra): Use separate mixins for typed array implementations of List<T>.
-    template_file = 'immutable_list_mixin.darttemplate'
-    has_contains = any(op.id == 'contains' for op in self._interface.operations)
-    template = self._template_loader.Load(
-        template_file,
-        {'DEFINE_CONTAINS': not has_contains})
-    self._members_emitter.Emit(template, E=dart_element_type)
+    self.EmitListMixin(dart_element_type)
 
   def AmendIndexer(self, element_type):
     # If interface is marked as having native indexed

@@ -8,7 +8,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   factory $CLASSNAME(String type, Window view,
       [bool canBubble = true, bool cancelable = true, 
-      String keyIdentifier = null, int keyLocation = 1, bool ctrlKey = false,
+      String keyIdentifier = "", int keyLocation = 1, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       bool altGraphKey = false]) {
     final e = document.$dom_createEvent("KeyboardEvent");
@@ -17,12 +17,6 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return e;
   }
 
-  /** @domName KeyboardEvent.initKeyboardEvent */
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
-      bool altKey, bool shiftKey, bool metaKey,
-      bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
- 
   /** @domName KeyboardEvent.keyCode */
   int get keyCode => $dom_keyCode;
   

@@ -63,8 +63,8 @@ void testListenOn() {
 void InitializeSSL() {
   var testPkcertDatabase =
       new Path.fromNative(new Options().script).directoryPath.append('pkcert/');
-  SecureSocket.setCertificateDatabase(testPkcertDatabase.toNativePath(),
-                                      'dartdart');
+  SecureSocket.initialize(database: testPkcertDatabase.toNativePath(),
+                          password: 'dartdart');
 }
 
 void main() {

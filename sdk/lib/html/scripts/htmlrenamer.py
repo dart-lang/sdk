@@ -5,24 +5,31 @@
 import re
 
 html_interface_renames = {
-    'DOMCoreException': 'DOMException',
+    'CDATASection': 'CDataSection',
+    'DOMApplicationCache': 'ApplicationCache',
+    'DOMCoreException': 'DomException',
+    'DOMFileSystem': 'FileSystem',
+    'DOMFileSystemSync': 'FileSystemSync',
     'DOMFormData': 'FormData',
     'DOMURL': 'Url',
     'DOMWindow': 'LocalWindow',
     'History': 'LocalHistory',
     'HTMLDocument' : 'HtmlDocument',
+    'IDBAny': '_Any', # Suppressed, but needs to exist for Dartium.
+    'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
     'Location': 'LocalLocation',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
+    'WebGLVertexArrayObjectOES': 'WebGLVertexArrayObject',
     'WebKitAnimation': 'Animation',
     'WebKitAnimationEvent': 'AnimationEvent',
     'WebKitBlobBuilder': 'BlobBuilder',
-    'WebKitCSSKeyframeRule': 'CSSKeyframeRule',
-    'WebKitCSSKeyframesRule': 'CSSKeyframesRule',
-    'WebKitCSSMatrix': 'CSSMatrix',
-    'WebKitCSSTransformValue': 'CSSTransformValue',
+    'WebKitCSSKeyframeRule': 'CssKeyframeRule',
+    'WebKitCSSKeyframesRule': 'CssKeyframesRule',
+    'WebKitCSSMatrix': 'CssMatrix',
+    'WebKitCSSTransformValue': 'CssTransformValue',
     'WebKitFlags': 'Flags',
     'WebKitLoseContext': 'LoseContext',
     'WebKitPoint': 'Point',
@@ -41,7 +48,9 @@ _private_html_members = set([
   'Document.createElement',
   'Document.createElementNS',
   'Document.createEvent',
+  'Document.createRange',
   'Document.createTextNode',
+  'Document.createTouch',
   'Document.createTouchList',
   'Document.getElementById',
   'Document.getElementsByClassName',
@@ -54,9 +63,12 @@ _private_html_members = set([
   'Document.body',
   'Document.caretRangeFromPoint',
   'Document.elementFromPoint',
+  'Document.getCSSCanvasContext',
   'Document.head',
   'Document.lastModified',
+  'Document.preferredStylesheetSet',
   'Document.referrer',
+  'Document.selectedStylesheetSet',
   'Document.styleSheets',
   'Document.title',
   'Document.webkitCancelFullScreen',
@@ -88,12 +100,16 @@ _private_html_members = set([
   'Element.removeAttributeNS',
   'Element.setAttribute',
   'Element.setAttributeNS',
+  'ElementTraversal.childElementCount',
+  'ElementTraversal.firstElementChild',
+  'ElementTraversal.lastElementChild',
   'Event.initEvent',
   'UIEvent.initUIEvent',
   'EventTarget.addEventListener',
   'EventTarget.dispatchEvent',
   'EventTarget.removeEventListener',
   'KeyboardEvent.keyIdentifier',
+  'KeyboardEvent.initKeyboardEvent',
   'LocalWindow.getComputedStyle',
   'MouseEvent.initMouseEvent',
   'Node.appendChild',
@@ -261,7 +277,6 @@ _removed_html_members = set([
     "MenuElement.compact",
     "HTMLOptionsCollection.*",
     "HTMLPropertiesCollection.*",
-    "KeyboardEvent.initKeyboardEvent",
     "SelectElement.remove",
     "NamedNodeMap.*",
     "Node.isEqualNode",
@@ -305,8 +320,10 @@ _removed_html_members = set([
     "LocalWindow.get:length",
     "LocalWindow.focus",
     "LocalWindow.prompt",
+    "LocalWindow.webkitIndexedDB",
     "LocalWindow.webkitCancelRequestAnimationFrame",
     "WheelEvent.wheelDelta",
+    "WorkerContext.webkitIndexedDB",
     ])
 
 class HtmlRenamer(object):
@@ -358,36 +375,23 @@ class HtmlRenamer(object):
         return member_name
 
   def GetLibraryName(self, interface):
-    return self._GetLibraryName(interface.id)
-
-  def _GetLibraryName(self, idl_type_name):
-    """
-    Gets the name of the library this type should live in.
-    This is private because this should use interfaces to resolve the library.
-    """
-    if idl_type_name.startswith('SVG'):
-      return 'svg'
-    if 'Audio' in idl_type_name:
-      return 'web_audio'
-
-    if self._database.HasInterface(idl_type_name):
-      interface = self._database.GetInterface(idl_type_name)
-      for parent in self._database.Hierarchy(interface):
-        if parent.id == 'AudioNode':
-          return 'web_audio'
+    if 'Conditional' in interface.ext_attrs:
+      if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:
+        return 'web_audio'
+      if 'SVG' in interface.ext_attrs['Conditional']:
+        return 'svg'
+      if 'INDEXED_DATABASE' in interface.ext_attrs['Conditional']:
+        return 'indexed_db'
 
     return 'html'
 
-
   def DartifyTypeName(self, type_name):
     """Converts a DOM name to a Dart-friendly class name. """
-    library_name = self._GetLibraryName(type_name)
-    # Only renaming SVG for now.
-    if library_name != 'svg':
-      return type_name
 
-    # Strip off the SVG prefix.
+    # Strip off any standard prefixes.
     name = re.sub(r'^SVG', '', type_name)
+    name = re.sub(r'^IDB', '', name)
+
     return self._CamelCaseName(name)
 
   def _DartifyMemberName(self, member_name):

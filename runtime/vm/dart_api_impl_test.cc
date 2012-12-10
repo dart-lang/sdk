@@ -513,6 +513,17 @@ TEST_CASE(ArrayValues) {
 
 
 TEST_CASE(IsString) {
+  uint8_t latin1[] = { 'o', 'n', 'e', 0xC2, 0xA2 };
+
+  Dart_Handle latin1str = Dart_NewStringFromUTF8(latin1, ARRAY_SIZE(latin1));
+  EXPECT_VALID(latin1str);
+  EXPECT(Dart_IsString(latin1str));
+  EXPECT(Dart_IsStringLatin1(latin1str));
+  EXPECT(!Dart_IsExternalString(latin1str));
+  intptr_t len = -1;
+  EXPECT_VALID(Dart_StringLength(latin1str, &len));
+  EXPECT_EQ(4, len);
+
   uint8_t data8[] = { 'o', 'n', 'e', 0x7F };
 
   Dart_Handle str8 = Dart_NewStringFromUTF8(data8, ARRAY_SIZE(data8));

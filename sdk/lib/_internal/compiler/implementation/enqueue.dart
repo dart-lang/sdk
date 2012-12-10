@@ -84,7 +84,7 @@ class Enqueuer {
    */
   void addToWorkList(Element element, [TreeElements elements]) {
     assert(invariant(element, element.isDeclaration));
-    if (element.isForeign()) return;
+    if (element.isForeign(compiler)) return;
     if (queueIsClosed) {
       if (isResolutionQueue && getCachedElements(element) != null) return;
       compiler.internalErrorOnElement(element, "Work list is closed.");
@@ -211,13 +211,23 @@ class Enqueuer {
       }
     } else if (member.kind == ElementKind.FIELD &&
                member.enclosingElement.isNative()) {
-      nativeEnqueuer.registerField(member);
+      nativeEnqueuer.handleFieldAnnotations(member);
       if (universe.hasInvokedGetter(member, compiler) ||
           universe.hasInvocation(member, compiler)) {
         nativeEnqueuer.registerFieldLoad(member);
+        // In handleUnseenSelector we can't tell if the field is loaded or
+        // stored.  We need the basic algorithm to be Church-Rosser, since the
+        // resolution 'reduction' order is different to the codegen order. So
+        // register that the field is also stored.  In other words: if we don't
+        // register the store here during resolution, the store could be
+        // registered during codegen on the handleUnseenSelector path, and cause
+        // the set of codegen elements to include unresolved elements.
+        nativeEnqueuer.registerFieldStore(member);
       }
       if (universe.hasInvokedSetter(member, compiler)) {
         nativeEnqueuer.registerFieldStore(member);
+        // See comment after registerFieldLoad above.
+        nativeEnqueuer.registerFieldLoad(member);
       }
     }
   }
@@ -393,6 +403,11 @@ class Enqueuer {
   void registerIsCheck(DartType type) {
     universe.isChecks.add(type);
   }
+
+  void registerJsCall(Send node, ResolverVisitor resolver) {
+    nativeEnqueuer.registerJsCall(node, resolver);
+  }
+  
 
   void forEach(f(WorkItem work)) {
     while (!queue.isEmpty) {

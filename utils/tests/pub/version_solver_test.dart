@@ -19,11 +19,52 @@ import '../../pub/version.dart';
 import '../../pub/version_solver.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
 
-final noVersion = 'no version';
-final disjointConstraint = 'disjoint';
-final sourceMismatch = 'source mismatch';
-final descriptionMismatch = 'description mismatch';
-final couldNotSolve = 'unsolved';
+Matcher noVersion(List<String> packages) {
+  return predicate((x) {
+    if (x is! NoVersionException) return false;
+
+    // Make sure the error string mentions the conflicting dependers.
+    var message = x.toString();
+    return packages.every((package) => message.contains(package));
+  }, "is a NoVersionException");
+}
+
+Matcher disjointConstraint(List<String> packages) {
+  return predicate((x) {
+    if (x is! DisjointConstraintException) return false;
+
+    // Make sure the error string mentions the conflicting dependers.
+    var message = x.toString();
+    return packages.every((package) => message.contains(package));
+  }, "is a DisjointConstraintException");
+}
+
+Matcher descriptionMismatch(String package1, String package2) {
+  return predicate((x) {
+    if (x is! DescriptionMismatchException) return false;
+
+    // Make sure the error string mentions the conflicting dependers.
+    if (!x.toString().contains(package1)) return false;
+    if (!x.toString().contains(package2)) return false;
+
+    return true;
+  }, "is a DescriptionMismatchException");
+}
+
+final couldNotSolve = predicate((x) => x is CouldNotSolveException,
+    "is a CouldNotSolveException");
+
+Matcher sourceMismatch(String package1, String package2) {
+  return predicate((x) {
+    if (x is! SourceMismatchException) return false;
+
+    // Make sure the error string mentions the conflicting dependers.
+    if (!x.toString().contains(package1)) return false;
+    if (!x.toString().contains(package2)) return false;
+
+    return true;
+  }, "is a SourceMismatchException");
+}
 
 MockSource source1;
 MockSource source2;
@@ -238,7 +279,7 @@ main() {
     'bar 1.0.0': {
       'myapp from mock2': '>=1.0.0'
     }
-  }, error: sourceMismatch);
+  }, error: sourceMismatch('foo', 'bar'));
 
   testResolve('dependency back onto root package with wrong version', {
     'myapp 1.0.0': {
@@ -247,7 +288,7 @@ main() {
     'foo 1.0.0': {
       'myapp': '<1.0.0'
     }
-  }, error: disjointConstraint);
+  }, error: disjointConstraint(['foo']));
 
   testResolve('no version that matches requirement', {
     'myapp 0.0.0': {
@@ -255,7 +296,7 @@ main() {
     },
     'foo 2.0.0': {},
     'foo 2.1.3': {}
-  }, error: noVersion);
+  }, error: noVersion(['myapp']));
 
   testResolve('no version that matches combined constraint', {
     'myapp 0.0.0': {
@@ -270,7 +311,7 @@ main() {
     },
     'shared 2.5.0': {},
     'shared 3.5.0': {}
-  }, error: noVersion);
+  }, error: noVersion(['foo', 'bar']));
 
   testResolve('disjoint constraints', {
     'myapp 0.0.0': {
@@ -285,7 +326,7 @@ main() {
     },
     'shared 2.0.0': {},
     'shared 4.0.0': {}
-  }, error: disjointConstraint);
+  }, error: disjointConstraint(['foo', 'bar']));
 
   testResolve('mismatched descriptions', {
     'myapp 0.0.0': {
@@ -300,7 +341,7 @@ main() {
     },
     'shared-x 1.0.0': {},
     'shared-y 1.0.0': {}
-  }, error: descriptionMismatch);
+  }, error: descriptionMismatch('foo', 'bar'));
 
   testResolve('mismatched sources', {
     'myapp 0.0.0': {
@@ -315,7 +356,7 @@ main() {
     },
     'shared 1.0.0': {},
     'shared 1.0.0 from mock2': {}
-  }, error: sourceMismatch);
+  }, error: sourceMismatch('foo', 'bar'));
 
   testResolve('unstable dependency graph', {
     'myapp 0.0.0': {
@@ -331,29 +372,13 @@ main() {
   }, error: couldNotSolve);
 
 // TODO(rnystrom): More stuff to test:
-// - Two packages depend on the same package, but from different sources. Should
-//   fail.
 // - Depending on a non-existent package.
 // - Test that only a certain number requests are sent to the mock source so we
 //   can keep track of server traffic.
 }
 
-testResolve(description, packages, {lockfile, result, error}) {
+testResolve(description, packages, {lockfile, result, Matcher error}) {
   test(description, () {
-    var isNoVersionException = predicate((x)=> x is NoVersionException,
-        "is a NoVersionException");
-    var isDisjointConstraintException =
-        predicate((x)=> x is DisjointConstraintException,
-       "    is a DisjointConstraintException");
-    var isSourceMismatchException =
-        predicate((x)=> x is SourceMismatchException,
-            "is a SourceMismatchException");
-    var isDescriptionMismatchException =
-        predicate((x)=> x is DescriptionMismatchException,
-            "is a DescriptionMismatchException");
-    var isCouldNotSolveException = predicate((x)=> x is CouldNotSolveException,
-            "is a CouldNotSolveException");
-
     var cache = new SystemCache('.');
     source1 = new MockSource('mock1');
     source2 = new MockSource('mock2');
@@ -421,17 +446,7 @@ testResolve(description, packages, {lockfile, result, error}) {
         }
         return result.isEmpty;
       }, 'packages to match $result')));
-    } else if (error == noVersion) {
-      expect(future, throwsA(isNoVersionException));
-    } else if (error == disjointConstraint) {
-      expect(future, throwsA(isDisjointConstraintException));
-    } else if (error == sourceMismatch) {
-      expect(future, throwsA(isSourceMismatchException));
-    } else if (error == descriptionMismatch) {
-      expect(future, throwsA(isDescriptionMismatchException));
-    } else if (error == couldNotSolve) {
-      expect(future, throwsA(isCouldNotSolveException));
-    } else {
+    } else if (error != null) {
       expect(future, throwsA(error));
     }
 

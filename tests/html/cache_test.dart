@@ -6,24 +6,24 @@ import 'dart:html';
 main() {
   useHtmlConfiguration();
   test('ApplicationCache', () {
-    DOMApplicationCache appCache = window.applicationCache;
+    ApplicationCache appCache = window.applicationCache;
     expect(cacheStatusToString(appCache.status), equals("UNCACHED"));
   });
 }
 
 String cacheStatusToString(int status) {
   switch (status) {
-    case DOMApplicationCache.UNCACHED: // UNCACHED == 0
+    case ApplicationCache.UNCACHED: // UNCACHED == 0
       return 'UNCACHED';
-    case DOMApplicationCache.IDLE: // IDLE == 1
+    case ApplicationCache.IDLE: // IDLE == 1
       return 'IDLE';
-    case DOMApplicationCache.CHECKING: // CHECKING == 2
+    case ApplicationCache.CHECKING: // CHECKING == 2
       return 'CHECKING';
-    case DOMApplicationCache.DOWNLOADING: // DOWNLOADING == 3
+    case ApplicationCache.DOWNLOADING: // DOWNLOADING == 3
       return 'DOWNLOADING';
-    case DOMApplicationCache.UPDATEREADY:  // UPDATEREADY == 4
+    case ApplicationCache.UPDATEREADY:  // UPDATEREADY == 4
       return 'UPDATEREADY';
-    case DOMApplicationCache.OBSOLETE: // OBSOLETE == 5
+    case ApplicationCache.OBSOLETE: // OBSOLETE == 5
       return 'OBSOLETE';
     default:
       return 'UNKNOWN CACHE STATUS';

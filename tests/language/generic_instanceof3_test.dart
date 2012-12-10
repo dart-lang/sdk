@@ -5,7 +5,7 @@
 
 // Tests involving generics.
 
-interface I<T> {
+abstract class I<T> {
 }
 
 
@@ -17,11 +17,11 @@ class B<T> implements I<bool> {
 }
 
 
-interface K<T> {
+abstract class K<T> {
 
 }
 
-interface L<T> extends K<bool> {
+abstract class L<T> extends K<bool> {
 
 }
 

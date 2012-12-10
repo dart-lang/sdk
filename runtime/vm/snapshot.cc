@@ -157,6 +157,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       tokens_(Array::Handle()),
       stream_(TokenStream::Handle()),
       data_(ExternalUint8Array::Handle()),
+      error_(UnhandledException::Handle()),
       backward_references_((kind == Snapshot::kFull) ?
                            kNumInitialReferencesInFullSnapshot :
                            kNumInitialReferences) {
@@ -164,14 +165,29 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
 
 
 RawObject* SnapshotReader::ReadObject() {
-  Object& obj = Object::Handle(ReadObjectImpl());
-  for (intptr_t i = 0; i < backward_references_.length(); i++) {
-    if (!backward_references_[i]->is_deserialized()) {
-      ReadObjectImpl();
-      backward_references_[i]->set_state(kIsDeserialized);
+  // Setup for long jump in case there is an exception while reading.
+  LongJump* base = isolate()->long_jump_base();
+  LongJump jump;
+  isolate()->set_long_jump_base(&jump);
+  const Instance& null_object = Instance::Handle();
+  *ErrorHandle() = UnhandledException::New(null_object, null_object);
+  if (setjmp(*jump.Set()) == 0) {
+    Object& obj = Object::Handle(ReadObjectImpl());
+    for (intptr_t i = 0; i < backward_references_.length(); i++) {
+      if (!backward_references_[i]->is_deserialized()) {
+        ReadObjectImpl();
+        backward_references_[i]->set_state(kIsDeserialized);
+      }
     }
+    isolate()->set_long_jump_base(base);
+    return obj.raw();
+  } else {
+    // An error occurred while reading, return the error object.
+    const Error& err = Error::Handle(isolate()->object_store()->sticky_error());
+    isolate()->object_store()->clear_sticky_error();
+    isolate()->set_long_jump_base(base);
+    return err.raw();
   }
-  return obj.raw();
 }
 
 
@@ -615,10 +631,12 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
   if (address == 0) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.
+    // We do a longjmp at this point to unwind out of the entire
+    // read part and return the error object back.
     const Instance& exception =
         Instance::Handle(object_store()->out_of_memory());
-    Exceptions::Throw(exception);
-    UNREACHABLE();
+    ErrorHandle()->set_exception(exception);
+    Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
   }
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   uword tags = 0;

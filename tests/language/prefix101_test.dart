@@ -5,10 +5,10 @@
 // Test to check if we are able to import multiple libraries using the
 // same prefix.
 
-#library("Prefix101Test.dart");
+library Prefix101Test.dart;
 
-#import("library10.dart", prefix : "lib101");
-#import("library11.dart", prefix : "lib101");
+import "library10.dart" as lib101;
+import "library11.dart" as lib101;
 
 class Prefix101Test {
   static Test1() {

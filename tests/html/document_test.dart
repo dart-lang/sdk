@@ -1,10 +1,10 @@
 library DocumentTest;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
 
   var isElement = predicate((x) => x is Element, 'is an Element');
   var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
@@ -19,5 +19,14 @@ main() {
     expect(new Element.tag('div'), isDivElement);
     expect(new Element.tag('a'), isAnchorElement);
     expect(new Element.tag('bad_name'), isUnknownElement);
+  });
+
+  group('getCssCanvasContext', () {
+    test('getCssCanvasContext 2d', () {
+      var context = document.getCssCanvasContext('2d', 'testContext', 10, 20);
+      expect(context is CanvasRenderingContext2D, true);
+      expect(context.canvas.width, 10);
+      expect(context.canvas.height, 20);
+    });
   });
 }

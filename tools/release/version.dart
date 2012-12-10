@@ -178,9 +178,20 @@ class Version {
     return username;
   }
 
+  bool isGitRepository() {
+    var currentPath = new Path.fromNative(new Directory.current().path);
+    while (!new Directory.fromPath(currentPath.append(".git")).existsSync()) {
+      currentPath = currentPath.directoryPath;
+      if (currentPath.toString() == "/") {
+        break;
+      }
+    }
+    return new Directory.fromPath(currentPath.append(".git")).existsSync();
+  }
+
   RepositoryType get repositoryType {
     if (new Directory(".svn").existsSync()) return RepositoryType.SVN;
-    if (new Directory(".git").existsSync()) return RepositoryType.GIT;
+    if (isGitRepository()) return RepositoryType.GIT;
     return RepositoryType.UNKNOWN;
   }
 }

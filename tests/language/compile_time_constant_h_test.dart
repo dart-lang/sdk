@@ -7,8 +7,8 @@ class A implements B {
   const A(this.x);
 }
 
-interface B default A {
-  const B(x);
+abstract class B {
+  const factory B(x) = A;
 }
 
 const b1 = const B(499);

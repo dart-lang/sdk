@@ -7,6 +7,7 @@
     'tools/gyp/runtime-configurations.gypi',
     'vm/vm.gypi',
     'bin/bin.gypi',
+    'embedders/android/android_embedder.gypi',
     'third_party/double-conversion/src/double-conversion.gypi',
     'third_party/jscre/jscre.gypi',
     '../tools/gyp/source_filter.gypi',
@@ -18,35 +19,6 @@
   'targets': [
     {
       'target_name': 'libdart',
-      'type': 'static_library',
-      'dependencies': [
-        'libdart_lib',
-        'libdart_vm',
-        'libjscre',
-        'libdouble_conversion',
-        'generate_version_cc_file',
-      ],
-      'include_dirs': [
-        '.',
-      ],
-      'sources': [
-        'include/dart_api.h',
-        'include/dart_debugger_api.h',
-        'vm/dart_api_impl.cc',
-        'vm/debugger_api_impl.cc',
-        'vm/version.h',
-        '<(version_cc_file)',
-      ],
-      'direct_dependent_settings': {
-        'include_dirs': [
-          'include',
-        ],
-      },
-    },
-    {
-      # The Dart API is exported from this library to dynamically loaded shared
-      # libraries.
-      'target_name': 'libdart_export',
       'type': 'static_library',
       'dependencies': [
         'libdart_lib',
@@ -79,13 +51,22 @@
     {
       'target_name': 'generate_version_cc_file',
       'type': 'none',
+      'dependencies': [
+        'libdart_dependency_helper',
+      ],
       'actions': [
         {
           'action_name': 'generate_version_cc',
           'inputs': [
-            'tools/make_version.py',
+            '../tools/make_version.py',
+            '../tools/utils.py',
+            '../tools/version.dart',
+            '../tools/release/version.dart',
             '../tools/VERSION',
             '<(version_in_cc_file)',
+            # Depend on libdart_dependency_helper to track the libraries it
+            # depends on.
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)libdart_dependency_helper<(EXECUTABLE_SUFFIX)',
           ],
           'outputs': [
             '<(version_cc_file)',
@@ -93,12 +74,27 @@
           'action': [
             'python',
             '-u', # Make standard I/O unbuffered.
-            'tools/make_version.py',
+            '../tools/make_version.py',
             '--output', '<(version_cc_file)',
             '--input', '<(version_in_cc_file)',
-            '--version', '../tools/VERSION',
           ],
         },
+      ],
+    },
+    {
+      'target_name': 'libdart_dependency_helper',
+      'type': 'executable',
+      # The dependencies here are the union of the dependencies of libdart and
+      # libdart_withcore. 
+      'dependencies': [
+        'libdart_lib_withcore',
+        'libdart_lib',
+        'libdart_vm',
+        'libjscre',
+        'libdouble_conversion',
+      ],
+      'sources': [
+        'vm/libdart_dependency_helper.cc',
       ],
     },
     {

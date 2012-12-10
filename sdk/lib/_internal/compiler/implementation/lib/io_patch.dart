@@ -171,8 +171,9 @@ patch class Socket {
 }
 
 patch class SecureSocket {
-  patch static void setCertificateDatabase(String certificateDatabase,
-                                           [String password]) {
+  patch static void initialize({String database,
+                                String password,
+                                bool useBuiltinRoots: true}) {
     throw new UnsupportedError("SecureSocket.setCertificateDatabase");
   }
 }
@@ -189,5 +190,17 @@ patch class _StdIOUtils {
   }
   patch static _getStdioHandleType(int num) {
     throw new UnsupportedError("StdIOUtils._getStdioHandleType");
+  }
+}
+
+patch class _WindowsCodePageDecoder {
+  patch static String _decodeBytes(List<int> bytes) {
+    throw new UnsupportedError("_WindowsCodePageDecoder._decodeBytes");
+  }
+}
+
+patch class _WindowsCodePageEncoder {
+  patch static List<int> _encodeString(String string) {
+    throw new UnsupportedError("_WindowsCodePageEncoder._encodeString");
   }
 }

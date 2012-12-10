@@ -3,25 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing Interfaces.
 
-interface Ai {
+abstract class Ai {
   int foo();
 }
 
-interface Bi extends Ai default InterfaceTest {
-  Bi();
+abstract class Bi implements Ai {
+  factory Bi() = InterfaceTest;
 }
 
-interface Simple extends Ai { }
+abstract class Simple implements Ai { }
 
-interface Aai { }
+abstract class Aai { }
 
-interface Abi { }
+abstract class Abi { }
 
-interface Bar { }
+abstract class Bar { }
 
-interface Foo extends Bar { }
+abstract class Foo implements Bar { }
 
-interface Baz extends Bar, Foo { }
+abstract class Baz implements Bar, Foo { }
 
 class InterfaceTest implements Ai, Aai, Abi, Baz, Bi {
   var f;

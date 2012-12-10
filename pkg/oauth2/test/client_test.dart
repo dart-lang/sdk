@@ -117,4 +117,109 @@ void main() {
       expect(client.refreshCredentials(), throwsStateError);
     });
   });
+
+  group('with invalid credentials', () {
+    setUp(createHttpClient);
+
+    test('throws an AuthorizationException for a 401 response', () {
+      var credentials = new oauth2.Credentials('access token');
+      var client = new oauth2.Client('identifier', 'secret', credentials,
+          httpClient: httpClient);
+
+      httpClient.expectRequest((request) {
+        expect(request.method, equals('GET'));
+        expect(request.url.toString(), equals(requestUri.toString()));
+        expect(request.headers['authorization'],
+            equals('Bearer access token'));
+
+        var authenticate = 'Bearer error="invalid_token", error_description='
+            '"Something is terribly wrong."';
+        return new Future.immediate(new http.Response('bad job', 401,
+                headers: {'www-authenticate': authenticate}));
+      });
+
+      expect(client.read(requestUri), throwsAuthorizationException);
+    });
+
+    test('passes through a 401 response without www-authenticate', () {
+      var credentials = new oauth2.Credentials('access token');
+      var client = new oauth2.Client('identifier', 'secret', credentials,
+          httpClient: httpClient);
+
+      httpClient.expectRequest((request) {
+        expect(request.method, equals('GET'));
+        expect(request.url.toString(), equals(requestUri.toString()));
+        expect(request.headers['authorization'],
+            equals('Bearer access token'));
+
+        return new Future.immediate(new http.Response('bad job', 401));
+      });
+
+      expect(
+          client.get(requestUri).transform((response) => response.statusCode),
+          completion(equals(401)));
+    });
+
+    test('passes through a 401 response with invalid www-authenticate', () {
+      var credentials = new oauth2.Credentials('access token');
+      var client = new oauth2.Client('identifier', 'secret', credentials,
+          httpClient: httpClient);
+
+      httpClient.expectRequest((request) {
+        expect(request.method, equals('GET'));
+        expect(request.url.toString(), equals(requestUri.toString()));
+        expect(request.headers['authorization'],
+            equals('Bearer access token'));
+
+        var authenticate = 'Bearer error="invalid_token", error_description='
+          '"Something is terribly wrong.", ';
+        return new Future.immediate(new http.Response('bad job', 401,
+                headers: {'www-authenticate': authenticate}));
+      });
+
+      expect(
+          client.get(requestUri).transform((response) => response.statusCode),
+          completion(equals(401)));
+    });
+
+    test('passes through a 401 response with non-bearer www-authenticate', () {
+      var credentials = new oauth2.Credentials('access token');
+      var client = new oauth2.Client('identifier', 'secret', credentials,
+          httpClient: httpClient);
+
+      httpClient.expectRequest((request) {
+        expect(request.method, equals('GET'));
+        expect(request.url.toString(), equals(requestUri.toString()));
+        expect(request.headers['authorization'],
+            equals('Bearer access token'));
+
+        return new Future.immediate(new http.Response('bad job', 401,
+                headers: {'www-authenticate': 'Digest'}));
+      });
+
+      expect(
+          client.get(requestUri).transform((response) => response.statusCode),
+          completion(equals(401)));
+    });
+
+    test('passes through a 401 response with non-OAuth2 www-authenticate', () {
+      var credentials = new oauth2.Credentials('access token');
+      var client = new oauth2.Client('identifier', 'secret', credentials,
+          httpClient: httpClient);
+
+      httpClient.expectRequest((request) {
+        expect(request.method, equals('GET'));
+        expect(request.url.toString(), equals(requestUri.toString()));
+        expect(request.headers['authorization'],
+            equals('Bearer access token'));
+
+        return new Future.immediate(new http.Response('bad job', 401,
+                headers: {'www-authenticate': 'Bearer'}));
+      });
+
+      expect(
+          client.get(requestUri).transform((response) => response.statusCode),
+          completion(equals(401)));
+    });
+  });
 }

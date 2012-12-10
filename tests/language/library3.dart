@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#library("library3.dart");
+library library3.dart;
 
-#import("library2.dart");  // defines "foo" and "foo1".
+import "library2.dart";  // defines "foo" and "foo1".

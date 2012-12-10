@@ -4,6 +4,19 @@
 
 part of html;
 
+/**
+ * Base class that supports listening for and dispatching browser events.
+ *
+ * Events can either be accessed by string name (using the indexed getter) or by
+ * getters exposed by subclasses. Use the getters exposed by subclasses when
+ * possible for better compile-time type checks.
+ * 
+ * Using an indexed getter:
+ *     events['mouseover'].add((e) => print("Mouse over!"));
+ *
+ * Using a getter provided by a subclass:
+ *     elementEvents.mouseOver.add((e) => print("Mouse over!"));
+ */
 class Events {
   /* Raw event target. */
   final EventTarget _ptr;
@@ -15,6 +28,9 @@ class Events {
   }
 }
 
+/**
+ * Supports adding, removing, and dispatching events for a specific event type.
+ */
 class EventListenerList {
 
   final EventTarget _ptr;
@@ -50,6 +66,14 @@ class EventListenerList {
 }
 
 /// @domName $DOMNAME
+/**
+ * Base class for all browser objects that support events.
+ *
+ * Use the [on] property to add, remove, and dispatch events (rather than
+ * [$dom_addEventListener], [$dom_dispatchEvent], and
+ * [$dom_removeEventListener]) for compile-time type checks and a more concise
+ * API.
+ */ 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */

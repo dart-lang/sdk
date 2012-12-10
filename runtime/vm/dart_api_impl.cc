@@ -719,7 +719,7 @@ DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
 }
 
 
-DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_HeapProfileWriteCallback callback,
+DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_FileWriteCallback callback,
                                          void* stream) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
@@ -740,8 +740,12 @@ DART_EXPORT bool Dart_Initialize(
     Dart_IsolateCreateCallback create,
     Dart_IsolateInterruptCallback interrupt,
     Dart_IsolateUnhandledExceptionCallback unhandled,
-    Dart_IsolateShutdownCallback shutdown) {
-  const char* err_msg = Dart::InitOnce(create, interrupt, unhandled, shutdown);
+    Dart_IsolateShutdownCallback shutdown,
+    Dart_FileOpenCallback file_open,
+    Dart_FileWriteCallback file_write,
+    Dart_FileCloseCallback file_close) {
+  const char* err_msg = Dart::InitOnce(create, interrupt, unhandled, shutdown,
+                                       file_open, file_write, file_close);
   if (err_msg != NULL) {
     OS::PrintErr("Dart_Initialize: %s\n", err_msg);
     return false;
@@ -1562,7 +1566,7 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF8(const uint8_t* utf8_array,
     return Api::NewError("%s expects argument 'str' to be valid UTF-8.",
                          CURRENT_FUNC);
   }
-  return Api::NewHandle(isolate, String::New(utf8_array, length));
+  return Api::NewHandle(isolate, String::FromUTF8(utf8_array, length));
 }
 
 
@@ -1574,7 +1578,7 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF16(const uint16_t* utf16_array,
     RETURN_NULL_ERROR(utf16_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
-  return Api::NewHandle(isolate, String::New(utf16_array, length));
+  return Api::NewHandle(isolate, String::FromUTF16(utf16_array, length));
 }
 
 
@@ -1586,7 +1590,7 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const int32_t* utf32_array,
     RETURN_NULL_ERROR(utf32_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
-  return Api::NewHandle(isolate, String::New(utf32_array, length));
+  return Api::NewHandle(isolate, String::FromUTF32(utf32_array, length));
 }
 
 
@@ -1838,7 +1842,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   if (instance.IsNull()) {
     return Api::NewError("Object does not implement the List interface");
   }
-  String& name = String::Handle(isolate, String::New("length"));
+  String& name = String::Handle(isolate, Symbols::Length());
   name = Field::GetterName(name);
   const Function& function =
       Function::Handle(isolate, Resolver::ResolveDynamic(instance, name, 1, 0));
@@ -1904,7 +1908,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, String::New("[]"));
+      String& name = String::Handle(isolate, Symbols::IndexToken());
       const Function& function =
           Function::Handle(isolate,
                            Resolver::ResolveDynamic(instance, name, 2, 0));
@@ -1956,7 +1960,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, String::New("[]="));
+      String& name = String::Handle(isolate, Symbols::AssignIndexToken());
       const Function& function =
           Function::Handle(isolate,
                            Resolver::ResolveDynamic(instance, name, 3, 0));
@@ -2010,6 +2014,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
   if (obj.IsUint8Array() || obj.IsExternalUint8Array() ||
+      obj.IsUint8ClampedArray() || obj.IsExternalUint8ClampedArray() ||
       obj.IsInt8Array() || obj.IsExternalInt8Array()) {
     const ByteArray& byte_array = ByteArray::Cast(obj);
     if (Utils::RangeCheck(offset, length, byte_array.Length())) {
@@ -2038,7 +2043,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, String::New("[]"));
+      String& name = String::Handle(isolate, Symbols::IndexToken());
       const Function& function =
           Function::Handle(isolate,
                            Resolver::ResolveDynamic(instance, name, 2, 0));
@@ -2095,7 +2100,8 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
-  if (obj.IsUint8Array() || obj.IsExternalUint8Array()) {
+  if (obj.IsUint8Array() || obj.IsExternalUint8Array() ||
+      obj.IsUint8ClampedArray() || obj.IsExternalUint8ClampedArray()) {
     const ByteArray& byte_array = ByteArray::Cast(obj);
     if (Utils::RangeCheck(offset, length, byte_array.Length())) {
       ByteArray::Copy(byte_array, offset, native_array, length);
@@ -2126,7 +2132,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, String::New("[]="));
+      String& name = String::Handle(isolate, Symbols::AssignIndexToken());
       const Function& function =
           Function::Handle(isolate,
                            Resolver::ResolveDynamic(instance, name, 3, 0));
@@ -4413,8 +4419,8 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
 }
 
 
-DART_EXPORT void Dart_InitPerfEventsSupport(Dart_FileWriterFunction function) {
-  Dart::set_perf_events_writer(function);
+DART_EXPORT void Dart_InitPerfEventsSupport(void* perf_events_file) {
+  Dart::set_perf_events_file(perf_events_file);
 }
 
 

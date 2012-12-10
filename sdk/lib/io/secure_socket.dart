@@ -15,13 +15,36 @@ abstract class SecureSocket implements Socket {
    */
   factory SecureSocket(String host, int port) => new _SecureSocket(host, port);
 
+  /**
+   * Install a handler for unverifiable certificates.  The handler can inspect
+   * the certificate, and decide (or let the user decide) whether to accept
+   * the connection or not.  The callback should return true
+   * to continue the SecureSocket connection.
+   */
+  void set onBadCertificate(bool callback(X509Certificate certificate));
+
    /**
    * Initializes the NSS library with the path to a certificate database
    * containing root certificates for verifying certificate paths on
    * client connections, and server certificates to provide on server
    * connections.  The password argument should be used when creating
    * secure server sockets, to allow the private key of the server
-   * certificate to be fetched.
+   * certificate to be fetched.  If useBuiltinRoots is true (the default),
+   * then a built-in set of root certificates for trusted certificate
+   * authorities is merged with the certificates in the database.
+   *
+   * Examples:
+   *   1) Use only the builtin root certificates:
+   *     SecureSocket.initialize(); or
+   *
+   *   2) Use a specified database and the builtin roots:
+   *     SecureSocket.initialize(database: 'path/to/my/database',
+   *                             password: 'my_password');
+   *
+   *   3) Use a specified database, without builtin roots:
+   *     SecureSocket.initialize(database: 'path/to/my/database',
+   *                             password: 'my_password'.
+   *                             useBuiltinRoots: false);
    *
    * The database should be an NSS certificate database directory
    * containing a cert9.db file, not a cert8.db file.  This version of
@@ -29,8 +52,25 @@ abstract class SecureSocket implements Socket {
    * front of the absolute path of the database directory, or setting the
    * environment variable NSS_DEFAULT_DB_TYPE to "sql".
    */
-  external static void setCertificateDatabase(String certificateDatabase,
-                                              [String password]);
+  external static void initialize({String database,
+                                   String password,
+                                   bool useBuiltinRoots: true});
+}
+
+
+/**
+ * X509Certificate represents an SSL certificate, with accessors to
+ * get the fields of the certificate.
+ */
+class X509Certificate {
+  X509Certificate(this.subject,
+                  this.issuer,
+                  this.startValidity,
+                  this.endValidity);
+  final String subject;
+  final String issuer;
+  final Date startValidity;
+  final Date endValidity;
 }
 
 
@@ -114,7 +154,7 @@ class _SecureSocket implements SecureSocket {
   }
 
   void set onData(void callback()) {
-    if (_outputStream != null && callback != null) {
+    if (_inputStream != null && callback != null) {
       throw new StreamException(
           "Cannot set data handler when input stream is used");
     }
@@ -141,6 +181,14 @@ class _SecureSocket implements SecureSocket {
     _socketWriteHandler = callback;
     // Reset the one-shot onWrite handler.
     _socket.onWrite = _secureWriteHandler;
+  }
+
+  void set onBadCertificate(bool callback(X509Certificate certificate)) {
+    if (callback is! Function && callback != null) {
+      throw new SocketIOException(
+          "Callback provided to onBadCertificate is not a function or null");
+    }
+    _secureFilter.registerBadCertificateCallback(callback);
   }
 
   InputStream get inputStream {
@@ -170,12 +218,16 @@ class _SecureSocket implements SecureSocket {
   }
 
   void close([bool halfClose = false]) {
+    if (_status == CLOSED) return;
     if (halfClose) {
       _closedWrite = true;
       _writeEncryptedData();
       if (_filterWriteEmpty) {
         _socket.close(true);
         _socketClosedWrite = true;
+        if (_closedRead) {
+          close(false);
+        }
       }
     } else {
       _closedWrite = true;
@@ -196,7 +248,7 @@ class _SecureSocket implements SecureSocket {
 
   List<int> read([int len]) {
     if (_closedRead) {
-      throw new SocketException("Reading from a closed socket");
+      throw new SocketIOException("Reading from a closed socket");
     }
     if (_status != CONNECTED) {
       return new List<int>(0);
@@ -221,7 +273,7 @@ class _SecureSocket implements SecureSocket {
 
   int readList(List<int> data, int offset, int bytes) {
     if (_closedRead) {
-      throw new SocketException("Reading from a closed socket");
+      throw new SocketIOException("Reading from a closed socket");
     }
     if (offset < 0 || bytes < 0 || offset + bytes > data.length) {
       throw new ArgumentError(
@@ -255,7 +307,7 @@ class _SecureSocket implements SecureSocket {
   // up handlers to flush the pipeline when possible.
   int writeList(List<int> data, int offset, int bytes) {
     if (_closedWrite) {
-      throw new SocketException("Writing to a closed socket");
+      throw new SocketIOException("Writing to a closed socket");
     }
     if (_status != CONNECTED) return 0;
     var buffer = _secureFilter.buffers[WRITE_PLAINTEXT];
@@ -280,8 +332,7 @@ class _SecureSocket implements SecureSocket {
   void _secureWriteHandler() {
     _writeEncryptedData();
     if (_filterWriteEmpty && _closedWrite && !_socketClosedWrite) {
-      _socket.close(true);
-      _sockedClosedWrite = true;
+      close(true);
     }
     if (_status == HANDSHAKE) {
       _secureHandshake();
@@ -298,10 +349,14 @@ class _SecureSocket implements SecureSocket {
 
   void _secureDataHandler() {
     if (_status == HANDSHAKE) {
-      _secureHandshake();
+      try {
+        _secureHandshake();
+      } catch (e) { _reportError(e, "SecureSocket error"); }
     } else {
-      _writeEncryptedData();  // TODO(whesse): Removing this causes a failure.
-      _readEncryptedData();
+      try {
+        _writeEncryptedData();  // TODO(whesse): Removing this causes a failure.
+        _readEncryptedData();
+      } catch (e) { _reportError(e, "SecureSocket error"); }
       if (!_filterReadEmpty) {
         // Call the onData event.
         if (scheduledDataEvent != null) {
@@ -311,6 +366,8 @@ class _SecureSocket implements SecureSocket {
         if (_socketDataHandler != null) {
           _socketDataHandler();
         }
+      } else if (_socketClosedRead) {
+        _secureCloseHandler();
       }
     }
   }
@@ -329,6 +386,7 @@ class _SecureSocket implements SecureSocket {
     } else {
       e = new SocketIOException('$message (${error.toString()})', null);
     }
+    close(false);
     bool reported = false;
     if (_socketErrorHandler != null) {
       reported = true;
@@ -340,19 +398,22 @@ class _SecureSocket implements SecureSocket {
     if (_outputStream != null) {
       reported = reported || _outputStream._onSocketError(e);
     }
-
     if (!reported) throw e;
   }
 
   void _secureCloseHandler() {
+    if (_closedRead) return;
     _socketClosedRead = true;
     if (_filterReadEmpty) {
       _closedRead = true;
-      _fireCloseEvent();
+      if (scheduledDataEvent != null) {
+        scheduledDataEvent.cancel();
+      }
+      if (_socketCloseHandler != null) {
+        _socketCloseHandler();
+      }
       if (_socketClosedWrite) {
-        _secureFilter.destroy();
-        _secureFilter = null;
-        _status = CLOSED;
+        close(false);
       }
     }
   }
@@ -379,16 +440,7 @@ class _SecureSocket implements SecureSocket {
 
   // True if the underlying socket is closed, the filter has been emptied of
   // all data, and the close event has been fired.
-  get _closed => _socketClosed && !_fireCloseEventPending;
-
-  void _fireCloseEvent() {
-    if (scheduledDataEvent != null) {
-      scheduledDataEvent.cancel();
-    }
-    if (_socketCloseHandler != null) {
-      _socketCloseHandler();
-    }
-  }
+  get _closed => _socketClosed;
 
   void _readEncryptedData() {
     // Read from the socket, and push it through the filter as far as
@@ -497,7 +549,7 @@ class _SecureSocket implements SecureSocket {
       if (_filterReadEmpty) {
         // This can't be an else clause: the value of _filterReadEmpty changes.
         // This must be asynchronous, because we are in a read or readList call.
-        new Timer(0, (_) => _fireCloseEvent());
+        new Timer(0, (_) => _secureCloseHandler());
       }
     }
   }
@@ -564,6 +616,7 @@ abstract class _SecureFilter {
   void handshake();
   void init();
   int processBuffer(int bufferIndex);
+  void registerBadCertificateCallback(Function callback);
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler);
 
   List<_ExternalBuffer> get buffers;

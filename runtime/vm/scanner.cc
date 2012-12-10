@@ -583,7 +583,7 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
       ASSERT(string_chars.data() != NULL);
       // Strings are canonicalized: Allocate a symbol.
       current_token_.literal = &String::ZoneHandle(
-          Symbols::New(string_chars.data(), string_chars.length()));
+          Symbols::FromUTF32(string_chars.data(), string_chars.length()));
       // Preserve error tokens.
       if (current_token_.kind != Token::kERROR) {
         current_token_.kind = Token::kSTRING;
@@ -606,7 +606,7 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
           ASSERT(string_chars.data() != NULL);
           // Strings are canonicalized: Allocate a symbol.
           current_token_.literal = &String::ZoneHandle(
-              Symbols::New(string_chars.data(), string_chars.length()));
+              Symbols::FromUTF32(string_chars.data(), string_chars.length()));
         }
         EndStringLiteral();
         return;

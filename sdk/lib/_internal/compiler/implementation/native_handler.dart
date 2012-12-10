@@ -41,7 +41,7 @@ class NativeEnqueuer {
   void registerElement(Element element) {}
 
   /// Notification of native field.  Adds information from metadata attributes.
-  void registerField(Element field) {}
+  void handleFieldAnnotations(Element field) {}
 
   /// Computes types instantiated due to getting a native field.
   void registerFieldLoad(Element field) {}
@@ -223,23 +223,34 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   registerElement(Element element) {
     if (element.isFunction() || element.isGetter() || element.isSetter()) {
-      return registerMethod(element);
+      handleMethodAnnotations(element);
+      if (element.isNative()) {
+        registerMethodUsed(element);
+      }
+    } else if (element.isField()) {
+      handleFieldAnnotations(element);
+      if (element.isNative()) {
+        registerFieldLoad(element);
+        registerFieldStore(element);
+      }
     }
   }
 
-  registerField(Element element) {
+  handleFieldAnnotations(Element element) {
     if (element.enclosingElement.isNative()) {
-      setNativeName(element);
+      // Exclude non-instance (static) fields - they not really native and are
+      // compiled as isolate globals.  Access of a property of a constructor
+      // function or a non-method property in the prototype chain, must be coded
+      // using a JS-call.
+      if (element.isInstanceMember()) {
+        setNativeName(element);
+      }
     }
   }
 
-  registerMethod(Element method) {
+  handleMethodAnnotations(Element method) {
     if (isNativeMethod(method)) {
       setNativeName(method);
-      processNativeBehavior(
-          NativeBehavior.ofMethod(method, compiler),
-          method);
-      flushQueue();
     }
   }
 
@@ -262,6 +273,13 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       if (identical(token.stringValue, 'native')) return true;
       return false;
     });
+  }
+
+  void registerMethodUsed(Element method) {
+    processNativeBehavior(
+        NativeBehavior.ofMethod(method, compiler),
+        method);
+      flushQueue();
   }
 
   void registerFieldLoad(Element field) {
@@ -291,8 +309,27 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       if (matchedTypeConstraints.contains(type)) continue;
       matchedTypeConstraints.add(type);
       if (type is SpecialType) {
-        // The two special types (=Object, =List) are always instantiated.
+        if (type == SpecialType.JsArray) {
+          world.registerInstantiatedClass(compiler.listClass);
+        } else if (type == SpecialType.JsObject) {
+          world.registerInstantiatedClass(compiler.objectClass);
+        }
         continue;
+      }
+      if (type is InterfaceType) {
+        if (type.element == compiler.intClass) {
+          world.registerInstantiatedClass(compiler.intClass);
+        } else if (type.element == compiler.doubleClass) {
+          world.registerInstantiatedClass(compiler.doubleClass);
+        } else if (type.element == compiler.numClass) {
+          world.registerInstantiatedClass(compiler.numClass);
+        } else if (type.element == compiler.stringClass) {
+          world.registerInstantiatedClass(compiler.stringClass);
+        } else if (type.element == compiler.nullClass) {
+          world.registerInstantiatedClass(compiler.nullClass);
+        } else if (type.element == compiler.boolClass) {
+          world.registerInstantiatedClass(compiler.boolClass);
+        }
       }
       assert(type is DartType);
       enqueueUnusedClassesMatching(
@@ -417,6 +454,8 @@ void maybeEnableNative(Compiler compiler,
           'dart/tests/compiler/dart2js_native')
       || libraryName == 'dart:isolate'
       || libraryName == 'dart:html'
+      || libraryName == 'dart:html_common'
+      || libraryName == 'dart:indexed_db'
       || libraryName == 'dart:svg'
       || libraryName == 'dart:web_audio') {
     library.canUseNative = true;

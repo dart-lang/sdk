@@ -113,7 +113,7 @@ void HeapProfiler::SubRecord::WritePointer(const void* value) {
 }
 
 
-HeapProfiler::HeapProfiler(Dart_HeapProfileWriteCallback callback, void* stream)
+HeapProfiler::HeapProfiler(Dart_FileWriteCallback callback, void* stream)
     : write_callback_(callback),
       output_stream_(stream),
       heap_dump_record_(NULL) {
@@ -225,7 +225,8 @@ void HeapProfiler::WriteObject(const RawObject* raw_obj) {
       break;
     }
     case kInt8ArrayCid:
-    case kUint8ArrayCid: {
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid: {
       const RawInt8Array* raw_int8_array =
           reinterpret_cast<const RawInt8Array*>(raw_obj);
       WritePrimitiveArrayDump(raw_int8_array,

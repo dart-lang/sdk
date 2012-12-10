@@ -9,9 +9,7 @@ main() {
   int width = 100;
   int height = 100;
 
-  canvas = new Element.tag('canvas');
-  canvas.attributes['width'] = width;
-  canvas.attributes['height'] = height;
+  canvas = new CanvasElement(width:width, height:height);
   document.body.nodes.add(canvas);
 
   context = canvas.context2d;

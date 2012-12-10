@@ -26,9 +26,12 @@ class _JsSerializer extends _Serializer {
              ReceivePortSync._isolateId, x._receivePort._portId ];
   }
 
+  visitSendPort(SendPort x) {
+    throw new UnimplementedError('Asynchronous send port not yet implemented.');
+  }
+
   visitRemoteSendPortSync(_RemoteSendPortSync x) {
-    return [ 'sendport', 'dart',
-             x._receivePort._isolateId, x._receivePort._portId ];
+    return [ 'sendport', 'dart', x._isolateId, x._portId ];
   }
 }
 
@@ -86,7 +89,7 @@ class _RemoteSendPortSync implements SendPortSync {
   }
 
   static _call(int isolateId, int portId, var message) {
-    var target = 'dart-port-$isolateId-$portId'; 
+    var target = 'dart-port-$isolateId-$portId';
     // TODO(vsm): Make this re-entrant.
     // TODO(vsm): Set this up set once, on the first call.
     var source = '$target-result';
@@ -151,13 +154,13 @@ class ReceivePortSync {
   static int get _isolateId {
     // TODO(vsm): Make this coherent with existing isolate code.
     if (_cachedIsolateId == null) {
-      _cachedIsolateId = _getNewIsolateId();      
+      _cachedIsolateId = _getNewIsolateId();
     }
     return _cachedIsolateId;
   }
 
   static String _getListenerName(isolateId, portId) =>
-      'dart-port-$isolateId-$portId'; 
+      'dart-port-$isolateId-$portId';
   String get _listenerName => _getListenerName(_isolateId, _portId);
 
   void receive(callback(var message)) {

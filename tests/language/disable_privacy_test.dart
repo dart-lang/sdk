@@ -5,8 +5,8 @@
 //
 // Dart test program checking that library privacy can be disabled.
 
-#library('DisablePrivacyTest');
-#import("disable_privacy_lib.dart");
+library DisablePrivacyTest;
+import "disable_privacy_lib.dart";
 
 main() {
   Expect.equals(1, _fooForTesting);

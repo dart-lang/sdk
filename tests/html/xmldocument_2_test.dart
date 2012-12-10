@@ -6,7 +6,7 @@ import 'dart:html';
 main() {
   useHtmlConfiguration();
   test('Document.query', () {
-    Document doc = new DOMParser().parseFromString(
+    Document doc = new DomParser().parseFromString(
     '''<ResultSet>
          <Row>A</Row>
          <Row>B</Row>

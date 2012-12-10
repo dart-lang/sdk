@@ -1145,6 +1145,12 @@ class Function : public Object {
   RawCode* closure_allocation_stub() const;
   void set_closure_allocation_stub(const Code& value) const;
 
+  // Returns true iff an implicit closure function has been created
+  // for this function.
+  bool HasImplicitClosureFunction() const {
+    return implicit_closure_function() != null();
+  }
+
   // Return the closure function implicitly created for this function.
   // If none exists yet, create one and remember it.
   RawFunction* ImplicitClosureFunction() const;
@@ -3819,22 +3825,28 @@ class String : public Instance {
 
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
+  // TODO(7123) - Rename this to FromCString(....).
   static RawString* New(const char* cstr, Heap::Space space = Heap::kNew);
 
   // Creates a new String object from an array of UTF-8 encoded characters.
-  static RawString* New(const uint8_t* utf8_array,
-                        intptr_t array_len,
-                        Heap::Space space = Heap::kNew);
+  static RawString* FromUTF8(const uint8_t* utf8_array,
+                             intptr_t array_len,
+                             Heap::Space space = Heap::kNew);
+
+  // Creates a new String object from an array of Latin-1 encoded characters.
+  static RawString* FromLatin1(const uint8_t* latin1_array,
+                               intptr_t array_len,
+                               Heap::Space space = Heap::kNew);
 
   // Creates a new String object from an array of UTF-16 encoded characters.
-  static RawString* New(const uint16_t* utf16_array,
-                        intptr_t array_len,
-                        Heap::Space space = Heap::kNew);
+  static RawString* FromUTF16(const uint16_t* utf16_array,
+                              intptr_t array_len,
+                              Heap::Space space = Heap::kNew);
 
   // Creates a new String object from an array of UTF-32 encoded characters.
-  static RawString* New(const int32_t* utf32_array,
-                        intptr_t array_len,
-                        Heap::Space space = Heap::kNew);
+  static RawString* FromUTF32(const int32_t* utf32_array,
+                              intptr_t array_len,
+                              Heap::Space space = Heap::kNew);
 
   // Create a new String object from another Dart String instance.
   static RawString* New(const String& str, Heap::Space space = Heap::kNew);
@@ -3916,11 +3928,12 @@ class String : public Instance {
     raw_ptr()->hash_ = Smi::New(value);
   }
 
-  template<typename HandleType, typename ElementType>
+  template<typename HandleType, typename ElementType, typename CallbackType>
   static void ReadFromImpl(SnapshotReader* reader,
                            String* str_obj,
                            intptr_t len,
                            intptr_t tags,
+                           CallbackType new_symbol,
                            Snapshot::Kind kind);
 
   HEAP_OBJECT_IMPLEMENTATION(String, Instance);
@@ -3999,6 +4012,13 @@ class OneByteString : public AllStatic {
   static RawOneByteString* Transform(int32_t (*mapping)(int32_t ch),
                                      const String& str,
                                      Heap::Space space);
+
+  // High performance version of substring for one-byte strings.
+  // "str" must be OneByteString.
+  static RawOneByteString* SubStringUnchecked(const String& str,
+                                              intptr_t begin_index,
+                                              intptr_t length,
+                                              Heap::Space space);
 
   static const ClassId kClassId = kOneByteStringCid;
 
@@ -4418,6 +4438,10 @@ class GrowableObjectArray : public Instance {
   }
 
   void Add(const Object& value, Heap::Space space = Heap::kNew) const;
+  void Add(Isolate* isolate,
+           const Object& value,
+           Heap::Space space = Heap::kNew) const;
+
   void Grow(intptr_t new_capacity, Heap::Space space = Heap::kNew) const;
   RawObject* RemoveLast() const;
 
@@ -4640,6 +4664,59 @@ class Uint8Array : public ByteArray {
   }
 
   HEAP_OBJECT_IMPLEMENTATION(Uint8Array, ByteArray);
+  friend class ByteArray;
+  friend class Class;
+};
+
+
+class Uint8ClampedArray : public ByteArray {
+ public:
+  intptr_t ByteLength() const {
+    return Length();
+  }
+
+  uint8_t At(intptr_t index) const {
+    ASSERT((index >= 0) && (index < Length()));
+    return raw_ptr()->data_[index];
+  }
+
+  void SetAt(intptr_t index, uint8_t value) const {
+    ASSERT((index >= 0) && (index < Length()));
+    raw_ptr()->data_[index] = value;
+  }
+
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawUint8ClampedArray, data_);
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawUint8ClampedArray) ==
+           OFFSET_OF(RawUint8ClampedArray, data_));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawUint8ClampedArray) + (len * kBytesPerElement));
+  }
+
+  static RawUint8ClampedArray* New(intptr_t len,
+                                   Heap::Space space = Heap::kNew);
+  static RawUint8ClampedArray* New(const uint8_t* data,
+                                   intptr_t len,
+                                   Heap::Space space = Heap::kNew);
+
+ private:
+  uint8_t* ByteAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
+    return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
+  }
+
+  HEAP_OBJECT_IMPLEMENTATION(Uint8ClampedArray, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5179,6 +5256,20 @@ class ExternalUint8Array : public ByteArray {
   friend class ByteArray;
   friend class Class;
   friend class TokenStream;
+};
+
+
+class ExternalUint8ClampedArray : public ExternalUint8Array {
+ public:
+  static RawExternalUint8ClampedArray* New(uint8_t* data,
+                                           intptr_t len,
+                                           void* peer,
+                                           Dart_PeerFinalizer callback,
+                                           Heap::Space space = Heap::kNew);
+
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(ExternalUint8ClampedArray, ExternalUint8Array);
+  friend class Class;
 };
 
 

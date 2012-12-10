@@ -56,11 +56,13 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
                     true, false, false, false, owner_class, 0));
 
   const String& target_name = String::Handle(String::New("targetFunction"));
-  ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(function, target_name, 15, 1));
+  const ICData& ic_data =
+      ICData::ZoneHandle(ICData::New(function, target_name, 15, 1));
+  const Array& arg_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(1, Array::Handle()));
 
   __ LoadObject(RBX, ic_data);
-  __ LoadObject(R10, DartEntry::ArgumentsDescriptor(1, Array::Handle()));
+  __ LoadObject(R10, arg_descriptor);
   ExternalLabel target_label(
       "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
   __ call(&target_label);
@@ -70,8 +72,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
 
 ASSEMBLER_TEST_RUN(IcDataAccess, entry) {
   uword return_address = entry + CodePatcher::InstanceCallSizeInBytes();
-  const ICData& ic_data = ICData::Handle(
-      CodePatcher::GetInstanceCallIcDataAt(return_address));
+  ICData& ic_data = ICData::Handle();
+  CodePatcher::GetInstanceCallAt(return_address, &ic_data, NULL);
   EXPECT_STREQ("targetFunction",
       String::Handle(ic_data.target_name()).ToCString());
   EXPECT_EQ(1, ic_data.num_args_tested());

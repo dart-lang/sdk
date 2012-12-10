@@ -22,7 +22,7 @@ void testGoogle() {
       client.shutdown();
     };
   };
-  conn.onError = (error) => Expect.fail("Unexpected IO error");
+  conn.onError = (error) => Expect.fail("Unexpected IO error $error");
 }
 
 int testGoogleUrlCount = 0;

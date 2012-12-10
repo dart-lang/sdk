@@ -19,8 +19,9 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
   CANNOT_ACCESS_METHOD(ErrorSeverity.WARNING, "Cannot access private method '%s'"),
   CANNOT_ACCESS_OUTER_LABEL("Cannot access label %s declared in an outer function"),
-  CANNOT_ASSIGN_TO_FINAL("cannot assign value to final variable \"%s\"."),
-  CANNOT_ASSIGN_TO_METHOD("cannot assign value to method '%s'."),
+  CANNOT_ASSIGN_TO_FINAL(ErrorSeverity.WARNING, "cannot assign value to final variable \"%s\"."),
+  CANNOT_ASSIGN_TO_FINAL_ERROR("cannot assign value to final variable \"%s\"."),
+  CANNOT_ASSIGN_TO_METHOD(ErrorSeverity.WARNING, "cannot assign value to method '%s'."),
   CANNOT_BE_RESOLVED("cannot resolve %s"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   CANNOT_BE_RESOLVED_LIBRARY("cannot resolve %s in library %s"),
@@ -70,6 +71,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CONST_EXPRESSION_CANT_USE_TYPE_VAR("Const expression cannot be invoked on type variable"),
   CONST_MAP_WITH_TYPE_VARIABLE("Const map literals cannot have a type variable as a type argument"),
   CONST_WITH_TYPE_VARIABLE("Const constructor cannot be invoked with a type variable as a type argument"),
+  CONSTANTS_EVALUATION_EXCEPTION("Exception during constant evaluation"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
   CONTINUE_LABEL_RESOLVES_TO_SWITCH("continue label resolves to switch, must be loop or switch member"),
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
@@ -155,6 +157,8 @@ public enum ResolverErrorCode implements ErrorCode {
   MEMBER_WITH_NAME_OF_CLASS("Class member should not have the same name as the enclosing class"),
   CONSTRUCTOR_WITH_NAME_OF_MEMBER(
       "Constructor cannot have the same name as the name of a member declared in the enclosing class"),
+  CONSTRUCTOR_NAME_NOT_ENCLOSING_CLASS("Name of the immediately enclosing class expected"),
+  CONSTRUCTOR_NAME_NOT_ENCLOSING_CLASS_ID(ErrorSeverity.WARNING, "Not a valid constructor name"),
   METHOD_MUST_HAVE_BODY(ErrorSeverity.WARNING, "Method must have a body in a non-abstract class"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR(ErrorSeverity.WARNING, "New expression cannot be invoked on type variable"),
@@ -168,7 +172,7 @@ public enum ResolverErrorCode implements ErrorCode {
   NOT_A_CLASS_OR_INTERFACE("\"%s\" is not a class or interface"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   NOT_A_LABEL("\"%s\" is not a label"),
-  NOT_A_STATIC_FIELD("\"%s\" is not a static field"),
+  NOT_A_STATIC_FIELD(ErrorSeverity.WARNING, "\"%s\" is not a static field"),
   NOT_A_STATIC_METHOD("\"%s\" is not a static method"),
   NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
@@ -215,7 +219,7 @@ public enum ResolverErrorCode implements ErrorCode {
   TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER(
       "type variables are not allowed in identifier expressions"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field '%s'"),
-  USING_LOCAL_VARIABLE_BEFORE_DECLARATION("Using local variable '%s' before its declaration in lexical scope"),
+  USING_LOCAL_VARIABLE_BEFORE_DECLARATION(ErrorSeverity.WARNING, "Using local variable '%s' before its declaration in lexical scope"),
   VARIABLE_REFERENCES_SAME_NAME_IN_INITIALIZER("Initializer of variable \"%s\" cannot refer to the name \"%s\""),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d).  Expected %d");
 

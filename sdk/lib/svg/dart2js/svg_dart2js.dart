@@ -1,6 +1,8 @@
 library svg;
 
+import 'dart:collection';
 import 'dart:html';
+import 'dart:html_common';
 // DO NOT EDIT
 // Auto-generated dart:svg library.
 
@@ -32,11 +34,11 @@ class _SvgElementFactoryProvider {
     }
 
     parentTag.innerHtml = svg;
-    if (parentTag.elements.length == 1) return parentTag.elements.removeLast();
+    if (parentTag.children.length == 1) return parentTag.children.removeLast();
 
     throw new ArgumentError(
-        'SVG had ${parentTag.elements.length} '
-        'top-level elements but 1 expected');
+        'SVG had ${parentTag.children.length} '
+        'top-level children but 1 expected');
   }
 }
 
@@ -56,6 +58,7 @@ class _SvgSvgElementFactoryProvider {
 /// @domName SVGAElement; @docsEditable true
 class AElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGAElement" {
 
+  ///@docsEditable true
   factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
 
   /// @domName SVGAElement.target; @docsEditable true
@@ -103,10 +106,10 @@ class AElement extends SvgElement implements Transformable, Tests, UriReference,
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -211,6 +214,7 @@ class Angle native "*SVGAngle" {
 /// @domName SVGAnimateColorElement; @docsEditable true
 class AnimateColorElement extends AnimationElement native "*SVGAnimateColorElement" {
 
+  ///@docsEditable true
   factory AnimateColorElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateColor");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -221,6 +225,7 @@ class AnimateColorElement extends AnimationElement native "*SVGAnimateColorEleme
 /// @domName SVGAnimateElement; @docsEditable true
 class AnimateElement extends AnimationElement native "*SVGAnimateElement" {
 
+  ///@docsEditable true
   factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -231,6 +236,7 @@ class AnimateElement extends AnimationElement native "*SVGAnimateElement" {
 /// @domName SVGAnimateMotionElement; @docsEditable true
 class AnimateMotionElement extends AnimationElement native "*SVGAnimateMotionElement" {
 
+  ///@docsEditable true
   factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -241,6 +247,7 @@ class AnimateMotionElement extends AnimationElement native "*SVGAnimateMotionEle
 /// @domName SVGAnimateTransformElement; @docsEditable true
 class AnimateTransformElement extends AnimationElement native "*SVGAnimateTransformElement" {
 
+  ///@docsEditable true
   factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -319,98 +326,13 @@ class AnimatedLength native "*SVGAnimatedLength" {
 
 
 /// @domName SVGAnimatedLengthList; @docsEditable true
-class AnimatedLengthList implements JavaScriptIndexingBehavior, List<AnimatedLength> native "*SVGAnimatedLengthList" {
+class AnimatedLengthList native "*SVGAnimatedLengthList" {
 
   /// @domName SVGAnimatedLengthList.animVal; @docsEditable true
   final LengthList animVal;
 
   /// @domName SVGAnimatedLengthList.baseVal; @docsEditable true
   final LengthList baseVal;
-
-  AnimatedLength operator[](int index) => JS("AnimatedLength", "#[#]", this, index);
-
-  void operator[]=(int index, AnimatedLength value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<AnimatedLength> mixins.
-  // AnimatedLength is the element type.
-
-  // From Iterable<AnimatedLength>:
-
-  Iterator<AnimatedLength> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<AnimatedLength>(this);
-  }
-
-  // From Collection<AnimatedLength>:
-
-  void add(AnimatedLength value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(AnimatedLength value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<AnimatedLength> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(AnimatedLength element) => _Collections.contains(this, element);
-
-  void forEach(void f(AnimatedLength element)) => _Collections.forEach(this, f);
-
-  Collection map(f(AnimatedLength element)) => _Collections.map(this, [], f);
-
-  Collection<AnimatedLength> filter(bool f(AnimatedLength element)) =>
-     _Collections.filter(this, <AnimatedLength>[], f);
-
-  bool every(bool f(AnimatedLength element)) => _Collections.every(this, f);
-
-  bool some(bool f(AnimatedLength element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<AnimatedLength>:
-
-  void sort([Comparator<AnimatedLength> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(AnimatedLength element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(AnimatedLength element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  AnimatedLength get first => this[0];
-
-  AnimatedLength get last => this[length - 1];
-
-  AnimatedLength removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<AnimatedLength> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [AnimatedLength initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<AnimatedLength> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <AnimatedLength>[]);
-
-  // -- end List<AnimatedLength> mixins.
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -432,98 +354,13 @@ class AnimatedNumber native "*SVGAnimatedNumber" {
 
 
 /// @domName SVGAnimatedNumberList; @docsEditable true
-class AnimatedNumberList implements JavaScriptIndexingBehavior, List<AnimatedNumber> native "*SVGAnimatedNumberList" {
+class AnimatedNumberList native "*SVGAnimatedNumberList" {
 
   /// @domName SVGAnimatedNumberList.animVal; @docsEditable true
   final NumberList animVal;
 
   /// @domName SVGAnimatedNumberList.baseVal; @docsEditable true
   final NumberList baseVal;
-
-  AnimatedNumber operator[](int index) => JS("AnimatedNumber", "#[#]", this, index);
-
-  void operator[]=(int index, AnimatedNumber value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<AnimatedNumber> mixins.
-  // AnimatedNumber is the element type.
-
-  // From Iterable<AnimatedNumber>:
-
-  Iterator<AnimatedNumber> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<AnimatedNumber>(this);
-  }
-
-  // From Collection<AnimatedNumber>:
-
-  void add(AnimatedNumber value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(AnimatedNumber value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<AnimatedNumber> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(AnimatedNumber element) => _Collections.contains(this, element);
-
-  void forEach(void f(AnimatedNumber element)) => _Collections.forEach(this, f);
-
-  Collection map(f(AnimatedNumber element)) => _Collections.map(this, [], f);
-
-  Collection<AnimatedNumber> filter(bool f(AnimatedNumber element)) =>
-     _Collections.filter(this, <AnimatedNumber>[], f);
-
-  bool every(bool f(AnimatedNumber element)) => _Collections.every(this, f);
-
-  bool some(bool f(AnimatedNumber element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<AnimatedNumber>:
-
-  void sort([Comparator<AnimatedNumber> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(AnimatedNumber element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(AnimatedNumber element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  AnimatedNumber get first => this[0];
-
-  AnimatedNumber get last => this[length - 1];
-
-  AnimatedNumber removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<AnimatedNumber> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [AnimatedNumber initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<AnimatedNumber> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <AnimatedNumber>[]);
-
-  // -- end List<AnimatedNumber> mixins.
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -573,98 +410,13 @@ class AnimatedString native "*SVGAnimatedString" {
 
 
 /// @domName SVGAnimatedTransformList; @docsEditable true
-class AnimatedTransformList implements JavaScriptIndexingBehavior, List<AnimateTransformElement> native "*SVGAnimatedTransformList" {
+class AnimatedTransformList native "*SVGAnimatedTransformList" {
 
   /// @domName SVGAnimatedTransformList.animVal; @docsEditable true
   final TransformList animVal;
 
   /// @domName SVGAnimatedTransformList.baseVal; @docsEditable true
   final TransformList baseVal;
-
-  AnimateTransformElement operator[](int index) => JS("AnimateTransformElement", "#[#]", this, index);
-
-  void operator[]=(int index, AnimateTransformElement value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<AnimateTransformElement> mixins.
-  // AnimateTransformElement is the element type.
-
-  // From Iterable<AnimateTransformElement>:
-
-  Iterator<AnimateTransformElement> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<AnimateTransformElement>(this);
-  }
-
-  // From Collection<AnimateTransformElement>:
-
-  void add(AnimateTransformElement value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(AnimateTransformElement value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<AnimateTransformElement> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(AnimateTransformElement element) => _Collections.contains(this, element);
-
-  void forEach(void f(AnimateTransformElement element)) => _Collections.forEach(this, f);
-
-  Collection map(f(AnimateTransformElement element)) => _Collections.map(this, [], f);
-
-  Collection<AnimateTransformElement> filter(bool f(AnimateTransformElement element)) =>
-     _Collections.filter(this, <AnimateTransformElement>[], f);
-
-  bool every(bool f(AnimateTransformElement element)) => _Collections.every(this, f);
-
-  bool some(bool f(AnimateTransformElement element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<AnimateTransformElement>:
-
-  void sort([Comparator<AnimateTransformElement> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(AnimateTransformElement element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(AnimateTransformElement element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  AnimateTransformElement get first => this[0];
-
-  AnimateTransformElement get last => this[length - 1];
-
-  AnimateTransformElement removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<AnimateTransformElement> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [AnimateTransformElement initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<AnimateTransformElement> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <AnimateTransformElement>[]);
-
-  // -- end List<AnimateTransformElement> mixins.
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -674,6 +426,7 @@ class AnimatedTransformList implements JavaScriptIndexingBehavior, List<AnimateT
 /// @domName SVGAnimationElement; @docsEditable true
 class AnimationElement extends SvgElement implements Tests, ElementTimeControl, ExternalResourcesRequired native "*SVGAnimationElement" {
 
+  ///@docsEditable true
   factory AnimationElement() => _SvgElementFactoryProvider.createSvgElement_tag("animation");
 
   /// @domName SVGAnimationElement.targetElement; @docsEditable true
@@ -729,6 +482,7 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 /// @domName SVGCircleElement; @docsEditable true
 class CircleElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGCircleElement" {
 
+  ///@docsEditable true
   factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
 
   /// @domName SVGCircleElement.cx; @docsEditable true
@@ -782,10 +536,10 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -814,6 +568,7 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
 /// @domName SVGClipPathElement; @docsEditable true
 class ClipPathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGClipPathElement" {
 
+  ///@docsEditable true
   factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
 
   /// @domName SVGClipPathElement.clipPathUnits; @docsEditable true
@@ -861,10 +616,10 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -891,7 +646,7 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
 
 
 /// @domName SVGColor; @docsEditable true
-class Color extends CSSValue native "*SVGColor" {
+class Color extends CssValue native "*SVGColor" {
 
   static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
 
@@ -905,7 +660,7 @@ class Color extends CSSValue native "*SVGColor" {
   final int colorType;
 
   /// @domName SVGColor.rgbColor; @docsEditable true
-  final RGBColor rgbColor;
+  final RgbColor rgbColor;
 
   /// @domName SVGColor.setColor; @docsEditable true
   void setColor(int colorType, String rgbColor, String iccColor) native;
@@ -967,6 +722,7 @@ class ComponentTransferFunctionElement extends SvgElement native "*SVGComponentT
 /// @domName SVGCursorElement; @docsEditable true
 class CursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired native "*SVGCursorElement" {
 
+  ///@docsEditable true
   factory CursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
 
   /// @domName SVGCursorElement.x; @docsEditable true
@@ -1007,6 +763,7 @@ class CursorElement extends SvgElement implements UriReference, Tests, ExternalR
 /// @domName SVGDefsElement; @docsEditable true
 class DefsElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGDefsElement" {
 
+  ///@docsEditable true
   factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
 
   // From SVGExternalResourcesRequired
@@ -1051,10 +808,10 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -1083,6 +840,7 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
 /// @domName SVGDescElement; @docsEditable true
 class DescElement extends SvgElement implements Stylable, LangSpace native "*SVGDescElement" {
 
+  ///@docsEditable true
   factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
 
   // From SVGLangSpace
@@ -1100,10 +858,10 @@ class DescElement extends SvgElement implements Stylable, LangSpace native "*SVG
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1231,9 +989,30 @@ class ElementInstanceEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName ElementTimeControl
+abstract class ElementTimeControl {
+
+  /// @domName ElementTimeControl.beginElement; @docsEditable true
+  void beginElement();
+
+  /// @domName ElementTimeControl.beginElementAt; @docsEditable true
+  void beginElementAt(num offset);
+
+  /// @domName ElementTimeControl.endElement; @docsEditable true
+  void endElement();
+
+  /// @domName ElementTimeControl.endElementAt; @docsEditable true
+  void endElementAt(num offset);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName SVGEllipseElement; @docsEditable true
 class EllipseElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGEllipseElement" {
 
+  ///@docsEditable true
   factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
 
   /// @domName SVGEllipseElement.cx; @docsEditable true
@@ -1290,10 +1069,10 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -1377,10 +1156,10 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1433,10 +1212,10 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1473,10 +1252,10 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1545,10 +1324,10 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1626,10 +1405,10 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1678,10 +1457,10 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1740,10 +1519,10 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1809,10 +1588,10 @@ class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardA
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1846,10 +1625,10 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1927,10 +1706,10 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1980,10 +1759,10 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGURIReference
 
@@ -2022,10 +1801,10 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2091,10 +1870,10 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2137,10 +1916,10 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2203,10 +1982,10 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2275,10 +2054,10 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2342,10 +2121,10 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2355,6 +2134,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 /// @domName SVGFilterElement; @docsEditable true
 class FilterElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable, LangSpace native "*SVGFilterElement" {
 
+  ///@docsEditable true
   factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
 
   /// @domName SVGFilterElement.filterResX; @docsEditable true
@@ -2404,10 +2184,10 @@ class FilterElement extends SvgElement implements UriReference, ExternalResource
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGURIReference
 
@@ -2436,10 +2216,10 @@ abstract class FilterPrimitiveStandardAttributes implements Stylable {
 
   AnimatedString $dom_svgClassName;
 
-  CSSStyleDeclaration style;
+  CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name);
+  CssValue getPresentationAttribute(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2461,6 +2241,7 @@ abstract class FitToViewBox {
 /// @domName SVGFontElement; @docsEditable true
 class FontElement extends SvgElement native "*SVGFontElement" {
 
+  ///@docsEditable true
   factory FontElement() => _SvgElementFactoryProvider.createSvgElement_tag("font");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2471,6 +2252,7 @@ class FontElement extends SvgElement native "*SVGFontElement" {
 /// @domName SVGFontFaceElement; @docsEditable true
 class FontFaceElement extends SvgElement native "*SVGFontFaceElement" {
 
+  ///@docsEditable true
   factory FontFaceElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2481,6 +2263,7 @@ class FontFaceElement extends SvgElement native "*SVGFontFaceElement" {
 /// @domName SVGFontFaceFormatElement; @docsEditable true
 class FontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement" {
 
+  ///@docsEditable true
   factory FontFaceFormatElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-format");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2491,6 +2274,7 @@ class FontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement
 /// @domName SVGFontFaceNameElement; @docsEditable true
 class FontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
 
+  ///@docsEditable true
   factory FontFaceNameElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-name");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2501,6 +2285,7 @@ class FontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
 /// @domName SVGFontFaceSrcElement; @docsEditable true
 class FontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
 
+  ///@docsEditable true
   factory FontFaceSrcElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-src");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2511,6 +2296,7 @@ class FontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
 /// @domName SVGFontFaceUriElement; @docsEditable true
 class FontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
 
+  ///@docsEditable true
   factory FontFaceUriElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-uri");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2521,6 +2307,7 @@ class FontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
 /// @domName SVGForeignObjectElement; @docsEditable true
 class ForeignObjectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGForeignObjectElement" {
 
+  ///@docsEditable true
   factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
 
   /// @domName SVGForeignObjectElement.height; @docsEditable true
@@ -2577,10 +2364,10 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -2609,6 +2396,7 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
 /// @domName SVGGElement; @docsEditable true
 class GElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGGElement" {
 
+  ///@docsEditable true
   factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
 
   // From SVGExternalResourcesRequired
@@ -2653,10 +2441,10 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -2685,6 +2473,7 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
 /// @domName SVGGlyphElement; @docsEditable true
 class GlyphElement extends SvgElement native "*SVGGlyphElement" {
 
+  ///@docsEditable true
   factory GlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2720,10 +2509,10 @@ class GlyphRefElement extends SvgElement implements UriReference, Stylable nativ
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGURIReference
 
@@ -2767,10 +2556,10 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGURIReference
 
@@ -2785,6 +2574,7 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
 /// @domName SVGHKernElement; @docsEditable true
 class HKernElement extends SvgElement native "*SVGHKernElement" {
 
+  ///@docsEditable true
   factory HKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2795,6 +2585,7 @@ class HKernElement extends SvgElement native "*SVGHKernElement" {
 /// @domName SVGImageElement; @docsEditable true
 class ImageElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGImageElement" {
 
+  ///@docsEditable true
   factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
 
   /// @domName SVGImageElement.height; @docsEditable true
@@ -2854,10 +2645,10 @@ class ImageElement extends SvgElement implements Transformable, Tests, UriRefere
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -2972,6 +2763,8 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
   }
 
   // From Collection<Length>:
+  // SVG Collections expose numberOfItems rather than length.
+  int get length => numberOfItems;
 
   void add(Length value) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -2985,38 +2778,51 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Length element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Length)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Length element)) => _Collections.forEach(this, f);
+  bool contains(Length element) => Collections.contains(this, element);
 
-  Collection map(f(Length element)) => _Collections.map(this, [], f);
+  void forEach(void f(Length element)) => Collections.forEach(this, f);
+
+  Collection map(f(Length element)) => Collections.map(this, [], f);
 
   Collection<Length> filter(bool f(Length element)) =>
-     _Collections.filter(this, <Length>[], f);
+     Collections.filter(this, <Length>[], f);
 
-  bool every(bool f(Length element)) => _Collections.every(this, f);
+  bool every(bool f(Length element)) => Collections.every(this, f);
 
-  bool some(bool f(Length element)) => _Collections.some(this, f);
+  bool some(bool f(Length element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Length>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Length> compare = Comparable.compare]) {
+  // contains() defined by IDL.
+
+  void sort([int compare(Length a, Length b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Length element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Length element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Length get first => this[0];
 
   Length get last => this[length - 1];
+
+  Length removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Length removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -3035,7 +2841,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
   }
 
   List<Length> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Length>[]);
+      Lists.getRange(this, start, rangeLength, <Length>[]);
 
   // -- end List<Length> mixins.
 
@@ -3068,6 +2874,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 /// @domName SVGLineElement; @docsEditable true
 class LineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGLineElement" {
 
+  ///@docsEditable true
   factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
 
   /// @domName SVGLineElement.x1; @docsEditable true
@@ -3124,10 +2931,10 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -3156,6 +2963,7 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
 /// @domName SVGLinearGradientElement; @docsEditable true
 class LinearGradientElement extends GradientElement native "*SVGLinearGradientElement" {
 
+  ///@docsEditable true
   factory LinearGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
 
   /// @domName SVGLinearGradientElement.x1; @docsEditable true
@@ -3202,6 +3010,7 @@ abstract class Locatable {
 /// @domName SVGMPathElement; @docsEditable true
 class MPathElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGMPathElement" {
 
+  ///@docsEditable true
   factory MPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
 
   // From SVGExternalResourcesRequired
@@ -3222,6 +3031,7 @@ class MPathElement extends SvgElement implements UriReference, ExternalResources
 /// @domName SVGMarkerElement; @docsEditable true
 class MarkerElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace native "*SVGMarkerElement" {
 
+  ///@docsEditable true
   factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
 
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
@@ -3291,10 +3101,10 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3304,6 +3114,7 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 /// @domName SVGMaskElement; @docsEditable true
 class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGMaskElement" {
 
+  ///@docsEditable true
   factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
 
   /// @domName SVGMaskElement.height; @docsEditable true
@@ -3344,10 +3155,10 @@ class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourc
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -3478,6 +3289,8 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
   }
 
   // From Collection<Number>:
+  // SVG Collections expose numberOfItems rather than length.
+  int get length => numberOfItems;
 
   void add(Number value) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -3491,38 +3304,51 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Number element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Number)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Number element)) => _Collections.forEach(this, f);
+  bool contains(Number element) => Collections.contains(this, element);
 
-  Collection map(f(Number element)) => _Collections.map(this, [], f);
+  void forEach(void f(Number element)) => Collections.forEach(this, f);
+
+  Collection map(f(Number element)) => Collections.map(this, [], f);
 
   Collection<Number> filter(bool f(Number element)) =>
-     _Collections.filter(this, <Number>[], f);
+     Collections.filter(this, <Number>[], f);
 
-  bool every(bool f(Number element)) => _Collections.every(this, f);
+  bool every(bool f(Number element)) => Collections.every(this, f);
 
-  bool some(bool f(Number element)) => _Collections.some(this, f);
+  bool some(bool f(Number element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Number>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Number> compare = Comparable.compare]) {
+  // contains() defined by IDL.
+
+  void sort([int compare(Number a, Number b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Number element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Number element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Number get first => this[0];
 
   Number get last => this[length - 1];
+
+  Number removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Number removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -3541,7 +3367,7 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
   }
 
   List<Number> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Number>[]);
+      Lists.getRange(this, start, rangeLength, <Number>[]);
 
   // -- end List<Number> mixins.
 
@@ -3614,6 +3440,7 @@ class Paint extends Color native "*SVGPaint" {
 /// @domName SVGPathElement; @docsEditable true
 class PathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPathElement" {
 
+  ///@docsEditable true
   factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
 
   /// @domName SVGPathElement.animatedNormalizedPathSegList; @docsEditable true
@@ -3758,10 +3585,10 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -4163,6 +3990,8 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
   }
 
   // From Collection<PathSeg>:
+  // SVG Collections expose numberOfItems rather than length.
+  int get length => numberOfItems;
 
   void add(PathSeg value) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -4176,38 +4005,51 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(PathSeg element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, PathSeg)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(PathSeg element)) => _Collections.forEach(this, f);
+  bool contains(PathSeg element) => Collections.contains(this, element);
 
-  Collection map(f(PathSeg element)) => _Collections.map(this, [], f);
+  void forEach(void f(PathSeg element)) => Collections.forEach(this, f);
+
+  Collection map(f(PathSeg element)) => Collections.map(this, [], f);
 
   Collection<PathSeg> filter(bool f(PathSeg element)) =>
-     _Collections.filter(this, <PathSeg>[], f);
+     Collections.filter(this, <PathSeg>[], f);
 
-  bool every(bool f(PathSeg element)) => _Collections.every(this, f);
+  bool every(bool f(PathSeg element)) => Collections.every(this, f);
 
-  bool some(bool f(PathSeg element)) => _Collections.some(this, f);
+  bool some(bool f(PathSeg element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<PathSeg>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<PathSeg> compare = Comparable.compare]) {
+  // contains() defined by IDL.
+
+  void sort([int compare(PathSeg a, PathSeg b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(PathSeg element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(PathSeg element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   PathSeg get first => this[0];
 
   PathSeg get last => this[length - 1];
+
+  PathSeg removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   PathSeg removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -4226,7 +4068,7 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
   }
 
   List<PathSeg> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <PathSeg>[]);
+      Lists.getRange(this, start, rangeLength, <PathSeg>[]);
 
   // -- end List<PathSeg> mixins.
 
@@ -4287,6 +4129,7 @@ class PathSegMovetoRel extends PathSeg native "*SVGPathSegMovetoRel" {
 /// @domName SVGPatternElement; @docsEditable true
 class PatternElement extends SvgElement implements FitToViewBox, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPatternElement" {
 
+  ///@docsEditable true
   factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
 
   /// @domName SVGPatternElement.height; @docsEditable true
@@ -4338,10 +4181,10 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -4366,12 +4209,9 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-/// @domName SVGPoint
+/// @domName SVGPoint; @docsEditable true
 class Point native "*SVGPoint" {
-  factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
 
   /// @domName SVGPoint.x; @docsEditable true
   num x;
@@ -4381,7 +4221,6 @@ class Point native "*SVGPoint" {
 
   /// @domName SVGPoint.matrixTransform; @docsEditable true
   Point matrixTransform(Matrix matrix) native;
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4423,6 +4262,7 @@ class PointList native "*SVGPointList" {
 /// @domName SVGPolygonElement; @docsEditable true
 class PolygonElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPolygonElement" {
 
+  ///@docsEditable true
   factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
 
   /// @domName SVGPolygonElement.animatedPoints; @docsEditable true
@@ -4473,10 +4313,10 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -4505,6 +4345,7 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
 /// @domName SVGPolylineElement; @docsEditable true
 class PolylineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPolylineElement" {
 
+  ///@docsEditable true
   factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
 
   /// @domName SVGPolylineElement.animatedPoints; @docsEditable true
@@ -4555,10 +4396,10 @@ class PolylineElement extends SvgElement implements Transformable, Tests, Stylab
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -4629,6 +4470,7 @@ class PreserveAspectRatio native "*SVGPreserveAspectRatio" {
 /// @domName SVGRadialGradientElement; @docsEditable true
 class RadialGradientElement extends GradientElement native "*SVGRadialGradientElement" {
 
+  ///@docsEditable true
   factory RadialGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
 
   /// @domName SVGRadialGradientElement.cx; @docsEditable true
@@ -4677,6 +4519,7 @@ class Rect native "*SVGRect" {
 /// @domName SVGRectElement; @docsEditable true
 class RectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGRectElement" {
 
+  ///@docsEditable true
   factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
 
   /// @domName SVGRectElement.height; @docsEditable true
@@ -4739,10 +4582,10 @@ class RectElement extends SvgElement implements Transformable, Tests, Stylable, 
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -4791,6 +4634,7 @@ class RenderingIntent native "*SVGRenderingIntent" {
 /// @domName SVGScriptElement; @docsEditable true
 class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGScriptElement" {
 
+  ///@docsEditable true
   factory ScriptElement() => _SvgElementFactoryProvider.createSvgElement_tag("script");
 
   /// @domName SVGScriptElement.type; @docsEditable true
@@ -4814,6 +4658,7 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
 /// @domName SVGSetElement; @docsEditable true
 class SetElement extends AnimationElement native "*SVGSetElement" {
 
+  ///@docsEditable true
   factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4824,6 +4669,7 @@ class SetElement extends AnimationElement native "*SVGSetElement" {
 /// @domName SVGStopElement; @docsEditable true
 class StopElement extends SvgElement implements Stylable native "*SVGStopElement" {
 
+  ///@docsEditable true
   factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
 
   /// @domName SVGStopElement.offset; @docsEditable true
@@ -4836,10 +4682,10 @@ class StopElement extends SvgElement implements Stylable native "*SVGStopElement
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4870,6 +4716,8 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
   }
 
   // From Collection<String>:
+  // SVG Collections expose numberOfItems rather than length.
+  int get length => numberOfItems;
 
   void add(String value) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -4883,38 +4731,51 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(String element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(String element)) => _Collections.forEach(this, f);
+  bool contains(String element) => Collections.contains(this, element);
 
-  Collection map(f(String element)) => _Collections.map(this, [], f);
+  void forEach(void f(String element)) => Collections.forEach(this, f);
+
+  Collection map(f(String element)) => Collections.map(this, [], f);
 
   Collection<String> filter(bool f(String element)) =>
-     _Collections.filter(this, <String>[], f);
+     Collections.filter(this, <String>[], f);
 
-  bool every(bool f(String element)) => _Collections.every(this, f);
+  bool every(bool f(String element)) => Collections.every(this, f);
 
-  bool some(bool f(String element)) => _Collections.some(this, f);
+  bool some(bool f(String element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<String>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<String> compare = Comparable.compare]) {
+  // contains() defined by IDL.
+
+  void sort([int compare(String a, String b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(String element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(String element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   String get first => this[0];
 
   String get last => this[length - 1];
+
+  String removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   String removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -4933,7 +4794,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
   }
 
   List<String> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <String>[]);
+      Lists.getRange(this, start, rangeLength, <String>[]);
 
   // -- end List<String> mixins.
 
@@ -4968,10 +4829,10 @@ abstract class Stylable {
 
   AnimatedString $dom_svgClassName;
 
-  CSSStyleDeclaration style;
+  CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name);
+  CssValue getPresentationAttribute(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4981,6 +4842,7 @@ abstract class Stylable {
 /// @domName SVGStyleElement; @docsEditable true
 class StyleElement extends SvgElement implements LangSpace native "*SVGStyleElement" {
 
+  ///@docsEditable true
   factory StyleElement() => _SvgElementFactoryProvider.createSvgElement_tag("style");
 
   /// @domName SVGStyleElement.disabled; @docsEditable true
@@ -5081,7 +4943,7 @@ class SvgElement extends Element native "*SVGElement" {
 
   List<Element> get children => new FilteredElementList(this);
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     final children = this.children;
     children.clear();
     children.addAll(value);
@@ -5107,6 +4969,32 @@ class SvgElement extends Element native "*SVGElement" {
     // HTMLElements.
     container.innerHtml = '<svg version="1.1">$svg</svg>';
     this.children = container.children[0].children;
+  }
+
+  // Unsupported methods inherited from Element.
+
+  /** @domName Element.insertAdjacentText */
+  void insertAdjacentText(String where, String text) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentText on SVG.");
+  }
+
+  /** @domName Element.insertAdjacentHTML */
+  void insertAdjacentHtml(String where, String text) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
+  }
+
+  /** @domName Element.insertAdjacentHTML */
+  Element insertAdjacentElement(String where, Element element) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
+  }
+
+  HtmlCollection get $dom_children {
+    throw new UnsupportedError("Cannot get dom_children on SVG.");
+  }
+
+  bool get isContentEditable => false;
+  void click() {
+    throw new UnsupportedError("Cannot invoke click SVG.");
   }
 
 
@@ -5340,10 +5228,10 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -5373,6 +5261,7 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
 /// @domName SVGSwitchElement; @docsEditable true
 class SwitchElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGSwitchElement" {
 
+  ///@docsEditable true
   factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
 
   // From SVGExternalResourcesRequired
@@ -5417,10 +5306,10 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -5449,6 +5338,7 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
 /// @domName SVGSymbolElement; @docsEditable true
 class SymbolElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace native "*SVGSymbolElement" {
 
+  ///@docsEditable true
   factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
 
   // From SVGExternalResourcesRequired
@@ -5479,10 +5369,10 @@ class SymbolElement extends SvgElement implements FitToViewBox, ExternalResource
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5492,6 +5382,7 @@ class SymbolElement extends SvgElement implements FitToViewBox, ExternalResource
 /// @domName SVGTRefElement; @docsEditable true
 class TRefElement extends TextPositioningElement implements UriReference native "*SVGTRefElement" {
 
+  ///@docsEditable true
   factory TRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
 
   // From SVGURIReference
@@ -5507,6 +5398,7 @@ class TRefElement extends TextPositioningElement implements UriReference native 
 /// @domName SVGTSpanElement; @docsEditable true
 class TSpanElement extends TextPositioningElement native "*SVGTSpanElement" {
 
+  ///@docsEditable true
   factory TSpanElement() => _SvgElementFactoryProvider.createSvgElement_tag("tspan");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5593,10 +5485,10 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -5620,6 +5512,7 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
 /// @domName SVGTextElement; @docsEditable true
 class TextElement extends TextPositioningElement implements Transformable native "*SVGTextElement" {
 
+  ///@docsEditable true
   factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
 
   // From SVGLocatable
@@ -5714,6 +5607,7 @@ class TextPositioningElement extends TextContentElement native "*SVGTextPosition
 /// @domName SVGTitleElement; @docsEditable true
 class TitleElement extends SvgElement implements Stylable, LangSpace native "*SVGTitleElement" {
 
+  ///@docsEditable true
   factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
 
   // From SVGLangSpace
@@ -5731,10 +5625,10 @@ class TitleElement extends SvgElement implements Stylable, LangSpace native "*SV
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5814,6 +5708,8 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   }
 
   // From Collection<Transform>:
+  // SVG Collections expose numberOfItems rather than length.
+  int get length => numberOfItems;
 
   void add(Transform value) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -5827,38 +5723,51 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Transform element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Transform)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Transform element)) => _Collections.forEach(this, f);
+  bool contains(Transform element) => Collections.contains(this, element);
 
-  Collection map(f(Transform element)) => _Collections.map(this, [], f);
+  void forEach(void f(Transform element)) => Collections.forEach(this, f);
+
+  Collection map(f(Transform element)) => Collections.map(this, [], f);
 
   Collection<Transform> filter(bool f(Transform element)) =>
-     _Collections.filter(this, <Transform>[], f);
+     Collections.filter(this, <Transform>[], f);
 
-  bool every(bool f(Transform element)) => _Collections.every(this, f);
+  bool every(bool f(Transform element)) => Collections.every(this, f);
 
-  bool some(bool f(Transform element)) => _Collections.some(this, f);
+  bool some(bool f(Transform element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Transform>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Transform> compare = Comparable.compare]) {
+  // contains() defined by IDL.
+
+  void sort([int compare(Transform a, Transform b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Transform element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Transform element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Transform get first => this[0];
 
   Transform get last => this[length - 1];
+
+  Transform removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Transform removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -5877,7 +5786,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   }
 
   List<Transform> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Transform>[]);
+      Lists.getRange(this, start, rangeLength, <Transform>[]);
 
   // -- end List<Transform> mixins.
 
@@ -5969,6 +5878,7 @@ abstract class UriReference {
 /// @domName SVGUseElement; @docsEditable true
 class UseElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGUseElement" {
 
+  ///@docsEditable true
   factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
 
   /// @domName SVGUseElement.animatedInstanceRoot; @docsEditable true
@@ -6031,10 +5941,10 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
-  // final CSSStyleDeclaration style;
+  // final CssStyleDeclaration style;
 
   /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
-  CSSValue getPresentationAttribute(String name) native;
+  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -6068,6 +5978,7 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
 /// @domName SVGVKernElement; @docsEditable true
 class VKernElement extends SvgElement native "*SVGVKernElement" {
 
+  ///@docsEditable true
   factory VKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6078,6 +5989,7 @@ class VKernElement extends SvgElement native "*SVGVKernElement" {
 /// @domName SVGViewElement; @docsEditable true
 class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan native "*SVGViewElement" {
 
+  ///@docsEditable true
   factory ViewElement() => _SvgElementFactoryProvider.createSvgElement_tag("view");
 
   /// @domName SVGViewElement.viewTarget; @docsEditable true
@@ -6184,7 +6096,7 @@ class ZoomEvent extends UIEvent native "*SVGZoomEvent" {
 class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementInstance> native "*SVGElementInstanceList" {
 
   /// @domName SVGElementInstanceList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   ElementInstance operator[](int index) => JS("ElementInstance", "#[#]", this, index);
 
@@ -6217,38 +6129,53 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(ElementInstance element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ElementInstance)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(ElementInstance element)) => _Collections.forEach(this, f);
+  bool contains(ElementInstance element) => Collections.contains(this, element);
 
-  Collection map(f(ElementInstance element)) => _Collections.map(this, [], f);
+  void forEach(void f(ElementInstance element)) => Collections.forEach(this, f);
+
+  Collection map(f(ElementInstance element)) => Collections.map(this, [], f);
 
   Collection<ElementInstance> filter(bool f(ElementInstance element)) =>
-     _Collections.filter(this, <ElementInstance>[], f);
+     Collections.filter(this, <ElementInstance>[], f);
 
-  bool every(bool f(ElementInstance element)) => _Collections.every(this, f);
+  bool every(bool f(ElementInstance element)) => Collections.every(this, f);
 
-  bool some(bool f(ElementInstance element)) => _Collections.some(this, f);
+  bool some(bool f(ElementInstance element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<ElementInstance>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<ElementInstance> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(ElementInstance a, ElementInstance b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(ElementInstance element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(ElementInstance element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   ElementInstance get first => this[0];
 
   ElementInstance get last => this[length - 1];
+
+  ElementInstance removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   ElementInstance removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -6267,7 +6194,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
   }
 
   List<ElementInstance> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <ElementInstance>[]);
+      Lists.getRange(this, start, rangeLength, <ElementInstance>[]);
 
   // -- end List<ElementInstance> mixins.
 

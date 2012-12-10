@@ -7,6 +7,10 @@ patch class Int8List {
     return new _Int8Array(length);
   }
 
+  /* patch */ factory Int8List.transferable(int length) {
+    return new _Int8Array.transferable(length);
+  }
+
   /* patch */ factory Int8List.view(ByteArray array,
                                     [int start = 0, int length]) {
     return new _Int8ArrayView(array, start, length);
@@ -19,6 +23,10 @@ patch class Uint8List {
     return new _Uint8Array(length);
   }
 
+  /* patch */ factory Uint8List.transferable(int length) {
+    return new _Uint8Array.transferable(length);
+  }
+
   /* patch */ factory Uint8List.view(ByteArray array,
                                      [int start = 0, int length]) {
     return new _Uint8ArrayView(array, start, length);
@@ -26,9 +34,29 @@ patch class Uint8List {
 }
 
 
+patch class Uint8ClampedList {
+  /* patch */ factory Uint8ClampedList(int length) {
+    return new _Uint8ClampedArray(length);
+  }
+
+  /* patch */ factory Uint8ClampedList.transferable(int length) {
+    return new _Uint8ClampedArray.transferable(length);
+  }
+
+  /* patch */ factory Uint8ClampedList.view(ByteArray array,
+                                            [int start = 0, int length]) {
+    return new _Uint8ClampedArrayView(array, start, length);
+  }
+}
+
+
 patch class Int16List {
   /* patch */ factory Int16List(int length) {
     return new _Int16Array(length);
+  }
+
+  /* patch */ factory Int16List.transferable(int length) {
+    return new _Int16Array.transferable(length);
   }
 
   /* patch */ factory Int16List.view(ByteArray array, [int start = 0, int length]) {
@@ -42,6 +70,10 @@ patch class Uint16List {
     return new _Uint16Array(length);
   }
 
+  /* patch */ factory Uint16List.transferable(int length) {
+    return new _Uint16Array.transferable(length);
+  }
+
   /* patch */ factory Uint16List.view(ByteArray array, [int start = 0, int length]) {
     return new _Uint16ArrayView(array, start, length);
   }
@@ -51,6 +83,10 @@ patch class Uint16List {
 patch class Int32List {
   /* patch */ factory Int32List(int length) {
     return new _Int32Array(length);
+  }
+
+  /* patch */ factory Int32List.transferable(int length) {
+    return new _Int32Array.transferable(length);
   }
 
   /* patch */ factory Int32List.view(ByteArray array, [int start = 0, int length]) {
@@ -64,6 +100,10 @@ patch class Uint32List {
     return new _Uint32Array(length);
   }
 
+  /* patch */ factory Uint32List.transferable(int length) {
+    return new _Uint32Array.transferable(length);
+  }
+
   /* patch */ factory Uint32List.view(ByteArray array, [int start = 0, int length]) {
     return new _Uint32ArrayView(array, start, length);
   }
@@ -73,6 +113,10 @@ patch class Uint32List {
 patch class Int64List {
   /* patch */ factory Int64List(int length) {
     return new _Int64Array(length);
+  }
+
+  /* patch */ factory Int64List.transferable(int length) {
+    return new _Int64Array.transferable(length);
   }
 
   /* patch */ factory Int64List.view(ByteArray array, [int start = 0, int length]) {
@@ -86,6 +130,10 @@ patch class Uint64List {
     return new _Uint64Array(length);
   }
 
+  /* patch */ factory Uint64List.transferable(int length) {
+    return new _Uint64Array.transferable(length);
+  }
+
   /* patch */ factory Uint64List.view(ByteArray array, [int start = 0, int length]) {
     return new _Uint64ArrayView(array, start, length);
   }
@@ -97,6 +145,10 @@ patch class Float32List {
     return new _Float32Array(length);
   }
 
+  /* patch */ factory Float32List.transferable(int length) {
+    return new _Float32Array.transferable(length);
+  }
+
   /* patch */ factory Float32List.view(ByteArray array, [int start = 0, int length]) {
     return new _Float32ArrayView(array, start, length);
   }
@@ -106,6 +158,10 @@ patch class Float32List {
 patch class Float64List {
   /* patch */ factory Float64List(int length) {
     return new _Float64Array(length);
+  }
+
+  /* patch */ factory Float64List.transferable(int length) {
+    return new _Float64Array.transferable(length);
   }
 
   /* patch */ factory Float64List.view(ByteArray array, [int start = 0, int length]) {
@@ -183,7 +239,8 @@ abstract class _ByteArrayBase {
         "Cannot add to a non-extendable array");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(var a, var b)]) {
+    if (compare == null) compare = Comparable.compare;
     coreSort(this, compare);
   }
 
@@ -284,6 +341,11 @@ int _toInt8(int value) {
 int _toUint8(int value) {
   return value & 0xFF;
 }
+int _toClampedUint8(int value) {
+  if (value < 0) return 0;
+  if (value > 0xFF) return 0xFF;
+  return value;
+}
 
 
 int _toInt16(int value) {
@@ -347,6 +409,10 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
     return _new(length);
   }
 
+  factory _Int8Array.transferable(int length) {
+    return _newTransferable(length);
+  }
+
   factory _Int8Array.view(ByteArray array, [int start = 0, int length]) {
     if (length == null) {
       length = array.lengthInBytes();
@@ -399,6 +465,8 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
   static const int _BYTES_PER_ELEMENT = 1;
 
   static _Int8Array _new(int length) native "Int8Array_new";
+  static _Int8Array _newTransferable(int length)
+      native "Int8Array_newTransferable";
 
   int _getIndexed(int index) native "Int8Array_getIndexed";
   int _setIndexed(int index, int value) native "Int8Array_setIndexed";
@@ -408,6 +476,10 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
 class _Uint8Array extends _ByteArrayBase implements Uint8List {
   factory _Uint8Array(int length) {
     return _new(length);
+  }
+
+  factory _Uint8Array.transferable(int length) {
+    return _newTransferable(length);
   }
 
   factory _Uint8Array.view(ByteArray array, [int start = 0, int length]) {
@@ -437,7 +509,8 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    if (from is _Uint8Array || from is _ExternalUint8Array) {
+    if (from is _Uint8Array || from is _ExternalUint8Array ||
+        from is _Uint8ClampedArray || from is _ExternalUint8ClampedArray) {
       _setRange(start * _BYTES_PER_ELEMENT,
                 length * _BYTES_PER_ELEMENT,
                 from,
@@ -462,15 +535,92 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
   static const int _BYTES_PER_ELEMENT = 1;
 
   static _Uint8Array _new(int length) native "Uint8Array_new";
+  static _Uint8Array _newTransferable(int length)
+      native "Uint8Array_newTransferable";
 
   int _getIndexed(int index) native "Uint8Array_getIndexed";
   int _setIndexed(int index, int value) native "Uint8Array_setIndexed";
 }
 
 
+class _Uint8ClampedArray extends _ByteArrayBase implements Uint8ClampedList {
+  factory _Uint8ClampedArray(int length) {
+    return _new(length);
+  }
+
+  factory _Uint8ClampedArray.transferable(int length) {
+    return _newTransferable(length);
+  }
+
+  factory _Uint8ClampedArray.view(ByteArray array,
+                                 [int start = 0, int length]) {
+    if (length == null) {
+      length = array.lengthInBytes();
+    }
+    return new _Uint8ClampedArrayView(array, start, length);
+  }
+
+  int operator[](int index) {
+    return _getIndexed(index);
+  }
+
+  int operator[]=(int index, int value) {
+    _setIndexed(index, _toClampedUint8(value));
+  }
+
+  Iterator<int> iterator() {
+    return new _ByteArrayIterator<int>(this);
+  }
+
+  List<int> getRange(int start, int length) {
+    _rangeCheck(this.length, start, length);
+    List<int> result = _new(length);
+    result.setRange(0, length, this, start);
+    return result;
+  }
+
+  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
+    if (from is _Uint8Array || from is _ExternalUint8Array ||
+        from is _Uint8ClampedArray || from is _ExternalUint8ClampedArray) {
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
+    } else {
+      Arrays.copy(from, startFrom, this, start, length);
+    }
+  }
+
+  String toString() {
+    return Collections.collectionToString(this);
+  }
+
+  int bytesPerElement() {
+    return _BYTES_PER_ELEMENT;
+  }
+
+  int lengthInBytes() {
+    return _length() * _BYTES_PER_ELEMENT;
+  }
+
+  static const int _BYTES_PER_ELEMENT = 1;
+
+  static _Uint8ClampedArray _new(int length) native "Uint8ClampedArray_new";
+  static _Uint8ClampedArray _newTransferable(int length)
+      native "Uint8ClampedArray_newTransferable";
+
+  int _getIndexed(int index) native "Uint8ClampedArray_getIndexed";
+  int _setIndexed(int index, int value) native "Uint8ClampedArray_setIndexed";
+}
+
+
 class _Int16Array extends _ByteArrayBase implements Int16List {
   factory _Int16Array(int length) {
     return _new(length);
+  }
+
+  factory _Int16Array.transferable(int length) {
+    return _newTransferable(length);
   }
 
   factory _Int16Array.view(ByteArray array, [int start = 0, int length]) {
@@ -525,6 +675,8 @@ class _Int16Array extends _ByteArrayBase implements Int16List {
   static const int _BYTES_PER_ELEMENT = 2;
 
   static _Int16Array _new(int length) native "Int16Array_new";
+  static _Int16Array _newTransferable(int length)
+      native "Int16Array_newTransferable";
 
   int _getIndexed(int index) native "Int16Array_getIndexed";
   int _setIndexed(int index, int value) native "Int16Array_setIndexed";
@@ -534,6 +686,10 @@ class _Int16Array extends _ByteArrayBase implements Int16List {
 class _Uint16Array extends _ByteArrayBase implements Uint16List {
   factory _Uint16Array(int length) {
     return _new(length);
+  }
+
+  factory _Uint16Array.transferable(int length) {
+    return _newTransferable(length);
   }
 
   factory _Uint16Array.view(ByteArray array, [int start = 0, int length]) {
@@ -588,6 +744,8 @@ class _Uint16Array extends _ByteArrayBase implements Uint16List {
   static const int _BYTES_PER_ELEMENT = 2;
 
   static _Uint16Array _new(int length) native "Uint16Array_new";
+  static _Uint16Array _newTransferable(int length)
+      native "Uint16Array_newTransferable";
 
   int _getIndexed(int index) native "Uint16Array_getIndexed";
   int _setIndexed(int index, int value) native "Uint16Array_setIndexed";
@@ -597,6 +755,10 @@ class _Uint16Array extends _ByteArrayBase implements Uint16List {
 class _Int32Array extends _ByteArrayBase implements Int32List {
   factory _Int32Array(int length) {
     return _new(length);
+  }
+
+  factory _Int32Array.transferable(int length) {
+    return _newTransferable(length);
   }
 
   factory _Int32Array.view(ByteArray array, [int start = 0, int length]) {
@@ -651,6 +813,9 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
   static const int _BYTES_PER_ELEMENT = 4;
 
   static _Int32Array _new(int length) native "Int32Array_new";
+  static _Int32Array _newTransferable(int length)
+      native "Int32Array_newTransferable";
+
 
   int _getIndexed(int index) native "Int32Array_getIndexed";
   int _setIndexed(int index, int value) native "Int32Array_setIndexed";
@@ -660,6 +825,10 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
 class _Uint32Array extends _ByteArrayBase implements Uint32List {
   factory _Uint32Array(int length) {
     return _new(length);
+  }
+
+  factory _Uint32Array.transferable(int length) {
+    return _newTransferable(length);
   }
 
   factory _Uint32Array.view(ByteArray array, [int start = 0, int length]) {
@@ -714,6 +883,8 @@ class _Uint32Array extends _ByteArrayBase implements Uint32List {
   static const int _BYTES_PER_ELEMENT = 4;
 
   static _Uint32Array _new(int length) native "Uint32Array_new";
+  static _Uint32Array _newTransferable(int length)
+      native "Uint32Array_newTransferable";
 
   int _getIndexed(int index) native "Uint32Array_getIndexed";
   int _setIndexed(int index, int value) native "Uint32Array_setIndexed";
@@ -723,6 +894,10 @@ class _Uint32Array extends _ByteArrayBase implements Uint32List {
 class _Int64Array extends _ByteArrayBase implements Int64List {
   factory _Int64Array(int length) {
     return _new(length);
+  }
+
+  factory _Int64Array.transferable(int length) {
+    return _newTransferable(length);
   }
 
   factory _Int64Array.view(ByteArray array, [int start = 0, int length]) {
@@ -777,6 +952,8 @@ class _Int64Array extends _ByteArrayBase implements Int64List {
   static const int _BYTES_PER_ELEMENT = 8;
 
   static _Int64Array _new(int length) native "Int64Array_new";
+  static _Int64Array _newTransferable(int length)
+      native "Int64Array_newTransferable";
 
   int _getIndexed(int index) native "Int64Array_getIndexed";
   int _setIndexed(int index, int value) native "Int64Array_setIndexed";
@@ -786,6 +963,10 @@ class _Int64Array extends _ByteArrayBase implements Int64List {
 class _Uint64Array extends _ByteArrayBase implements Uint64List {
   factory _Uint64Array(int length) {
     return _new(length);
+  }
+
+  factory _Uint64Array.transferable(int length) {
+    return _newTransferable(length);
   }
 
   factory _Uint64Array.view(ByteArray array, [int start = 0, int length]) {
@@ -840,6 +1021,8 @@ class _Uint64Array extends _ByteArrayBase implements Uint64List {
   static const int _BYTES_PER_ELEMENT = 8;
 
   static _Uint64Array _new(int length) native "Uint64Array_new";
+  static _Uint64Array _newTransferable(int length)
+      native "Uint64Array_newTransferable";
 
   int _getIndexed(int index) native "Uint64Array_getIndexed";
   int _setIndexed(int index, int value) native "Uint64Array_setIndexed";
@@ -849,6 +1032,10 @@ class _Uint64Array extends _ByteArrayBase implements Uint64List {
 class _Float32Array extends _ByteArrayBase implements Float32List {
   factory _Float32Array(int length) {
     return _new(length);
+  }
+
+  factory _Float32Array.transferable(int length) {
+    return _newTransferable(length);
   }
 
   factory _Float32Array.view(ByteArray array, [int start = 0, int length]) {
@@ -903,6 +1090,8 @@ class _Float32Array extends _ByteArrayBase implements Float32List {
   static const int _BYTES_PER_ELEMENT = 4;
 
   static _Float32Array _new(int length) native "Float32Array_new";
+  static _Float32Array _newTransferable(int length)
+      native "Float32Array_newTransferable";
 
   double _getIndexed(int index) native "Float32Array_getIndexed";
   int _setIndexed(int index, double value) native "Float32Array_setIndexed";
@@ -912,6 +1101,10 @@ class _Float32Array extends _ByteArrayBase implements Float32List {
 class _Float64Array extends _ByteArrayBase implements Float64List {
   factory _Float64Array(int length) {
     return _new(length);
+  }
+
+  factory _Float64Array.transferable(int length) {
+    return _newTransferable(length);
   }
 
   factory _Float64Array.view(ByteArray array, [int start = 0, int length]) {
@@ -966,6 +1159,8 @@ class _Float64Array extends _ByteArrayBase implements Float64List {
   static const int _BYTES_PER_ELEMENT = 8;
 
   static _Float64Array _new(int length) native "Float64Array_new";
+  static _Float64Array _newTransferable(int length)
+      native "Float64Array_newTransferable";
 
   double _getIndexed(int index) native "Float64Array_getIndexed";
   int _setIndexed(int index, double value) native "Float64Array_setIndexed";
@@ -1665,7 +1860,8 @@ class _ByteArrayViewBase {
         "Cannot add to a non-extendable array");
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(var a, var b)]) {
+    if (compare == null) compare = Comparable.compare;
     coreSort(this, compare);
   }
 

@@ -1,4 +1,6 @@
 name: logging
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
 description: >
  Provides APIs for debugging and error logging. This library introduces
  abstractions similar to those used in other languages, such as the Closure JS

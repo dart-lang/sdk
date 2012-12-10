@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <key.h>
+#include <keyt.h>
 #include <nss.h>
 #include <pk11pub.h>
 #include <prerror.h>
@@ -143,6 +145,20 @@ void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
 }
 
 
+void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
+    Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle callback =
+      ThrowIfError(Dart_GetNativeArgument(args, 1));
+  if (!Dart_IsClosure(callback) && !Dart_IsNull(callback)) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "Illegal argument to RegisterBadCertificateCallback"));
+  }
+  GetFilter(args)->RegisterBadCertificateCallback(callback);
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(SecureSocket_ProcessBuffer)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle buffer_id_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
@@ -159,7 +175,7 @@ void FUNCTION_NAME(SecureSocket_ProcessBuffer)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(SecureSocket_SetCertificateDatabase)
+void FUNCTION_NAME(SecureSocket_InitializeLibrary)
     (Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle certificate_database_object =
@@ -169,10 +185,11 @@ void FUNCTION_NAME(SecureSocket_SetCertificateDatabase)
   if (Dart_IsString(certificate_database_object)) {
     ThrowIfError(Dart_StringToCString(certificate_database_object,
                                       &certificate_database));
-  } else {
+  } else if (!Dart_IsNull(certificate_database_object)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "Non-String certificate directory argument to SetCertificateDatabase"));
   }
+  // Leave certificate_database as NULL if no value was provided.
 
   Dart_Handle password_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
   // Check that the type is string or null,
@@ -188,8 +205,57 @@ void FUNCTION_NAME(SecureSocket_SetCertificateDatabase)
         "Password argument to SetCertificateDatabase is not a String or null"));
   }
 
-  SSLFilter::InitializeLibrary(certificate_database, password);
+  Dart_Handle builtin_roots_object =
+      ThrowIfError(Dart_GetNativeArgument(args, 2));
+  // Check that the type is boolean, and get the boolean value from it.
+  bool builtin_roots = true;
+  if (Dart_IsBoolean(builtin_roots_object)) {
+    ThrowIfError(Dart_BooleanValue(builtin_roots_object, &builtin_roots));
+  } else {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "UseBuiltinRoots argument to SetCertificateDatabase is not a bool"));
+  }
+
+  SSLFilter::InitializeLibrary(certificate_database, password, builtin_roots);
   Dart_ExitScope();
+}
+
+
+static bool CallBadCertificateCallback(Dart_Handle callback,
+                                       const char* subject_name,
+                                       const char* issuer_name,
+                                       int64_t start_validity,
+                                       int64_t end_validity) {
+  if (callback == NULL || Dart_IsNull(callback)) return false;
+  Dart_EnterScope();
+  Dart_Handle subject_name_object = DartUtils::NewString(subject_name);
+  Dart_Handle issuer_name_object = DartUtils::NewString(issuer_name);
+  Dart_Handle start_validity_int = Dart_NewInteger(start_validity);
+  Dart_Handle end_validity_int = Dart_NewInteger(end_validity);
+
+  Dart_Handle date_class =
+      DartUtils::GetDartClass(DartUtils::kCoreLibURL, "Date");
+  Dart_Handle from_milliseconds =
+      DartUtils::NewString("fromMillisecondsSinceEpoch");
+
+  Dart_Handle start_validity_date =
+      Dart_New(date_class, from_milliseconds, 1, &start_validity_int);
+  Dart_Handle end_validity_date =
+      Dart_New(date_class, from_milliseconds, 1, &end_validity_int);
+
+  Dart_Handle x509_class =
+      DartUtils::GetDartClass(DartUtils::kIOLibURL, "X509Certificate");
+  Dart_Handle arguments[] = { subject_name_object,
+                              issuer_name_object,
+                              start_validity_date,
+                              end_validity_date };
+  Dart_Handle certificate = Dart_New(x509_class, Dart_Null(), 4, arguments);
+
+  Dart_Handle result =
+      ThrowIfError(Dart_InvokeClosure(callback, 1, &certificate));
+  bool c_result = Dart_IsBoolean(result) && DartUtils::GetBooleanValue(result);
+  Dart_ExitScope();
+  return c_result;
 }
 
 
@@ -240,15 +306,40 @@ void SSLFilter::RegisterHandshakeCompleteCallback(Dart_Handle complete) {
 }
 
 
+void SSLFilter::RegisterBadCertificateCallback(Dart_Handle callback) {
+  if (NULL != bad_certificate_callback_) {
+    Dart_DeletePersistentHandle(bad_certificate_callback_);
+  }
+  bad_certificate_callback_ = ThrowIfError(Dart_NewPersistentHandle(callback));
+}
+
+
 void SSLFilter::InitializeLibrary(const char* certificate_database,
-                                  const char* password) {
+                                  const char* password,
+                                  bool use_builtin_root_certificates) {
   MutexLocker locker(&mutex_);
   if (!library_initialized_) {
     library_initialized_ = true;
     password_ = strdup(password);  // This one copy persists until Dart exits.
     PR_Init(PR_USER_THREAD, PR_PRIORITY_NORMAL, 0);
     // TODO(whesse): Verify there are no UTF-8 issues here.
-    SECStatus status = NSS_Init(certificate_database);
+    PRUint32 init_flags = NSS_INIT_READONLY;
+    if (certificate_database == NULL) {
+      // Passing the empty string as the database path does not try to open
+      // a database in the current directory.
+      certificate_database = "";
+      // The flag NSS_INIT_NOCERTDB is documented to do what we want here,
+      // however it causes the builtins not to be available on Windows.
+      init_flags |= NSS_INIT_FORCEOPEN;
+    }
+    if (!use_builtin_root_certificates) {
+      init_flags |= NSS_INIT_NOMODDB;
+    }
+    SECStatus status = NSS_Initialize(certificate_database,
+                                      "",
+                                      "",
+                                      SECMOD_DB,
+                                      init_flags);
     if (status != SECSuccess) {
       ThrowPRException("Unsuccessful NSS_Init call.");
     }
@@ -272,12 +363,41 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
   }
 }
 
+
 char* PasswordCallback(PK11SlotInfo* slot, PRBool retry, void* arg) {
   if (!retry) {
     return PL_strdup(static_cast<char*>(arg));  // Freed by NSS internals.
   }
   return NULL;
 }
+
+
+SECStatus BadCertificateCallback(void* filter, PRFileDesc* fd) {
+  return static_cast<SSLFilter*>(filter)->HandleBadCertificate(fd);
+}
+
+
+SECStatus SSLFilter::HandleBadCertificate(PRFileDesc* fd) {
+  ASSERT(fd == filter_);
+  CERTCertificate* certificate = SSL_PeerCertificate(fd);
+  PRTime start_validity;
+  PRTime end_validity;
+  SECStatus status =
+      CERT_GetCertTimes(certificate, &start_validity, &end_validity);
+  if (status != SECSuccess) {
+    ThrowPRException("Cannot get validity times from certificate");
+  }
+  int64_t start_epoch_ms = start_validity / PR_USEC_PER_MSEC;
+  int64_t end_epoch_ms = end_validity / PR_USEC_PER_MSEC;
+  bool accept = CallBadCertificateCallback(bad_certificate_callback_,
+                                           certificate->subjectName,
+                                           certificate->issuerName,
+                                           start_epoch_ms,
+                                           end_epoch_ms);
+  CERT_DestroyCertificate(certificate);
+  return accept ? SECSuccess : SECFailure;
+}
+
 
 void SSLFilter::Connect(const char* host_name,
                         int port,
@@ -310,6 +430,7 @@ void SSLFilter::Connect(const char* host_name,
         certificate,
         static_cast<void*>(const_cast<char*>(password_)));
     if (key == NULL) {
+      CERT_DestroyCertificate(certificate);
       if (PR_GetError() == -8177) {
         ThrowPRException("Certificate database password incorrect");
       } else {
@@ -320,6 +441,8 @@ void SSLFilter::Connect(const char* host_name,
     // kt_rsa (key type RSA) is an enum constant from the NSS libraries.
     // TODO(whesse): Allow different key types.
     status = SSL_ConfigSecureServer(filter_, certificate, key, kt_rsa);
+    CERT_DestroyCertificate(certificate);
+    SECKEY_DestroyPrivateKey(key);
     if (status != SECSuccess) {
       ThrowPRException("Unsuccessful SSL_ConfigSecureServer call");
     }
@@ -329,7 +452,12 @@ void SSLFilter::Connect(const char* host_name,
     }
   }
 
-  PRBool as_server = is_server ? PR_TRUE : PR_FALSE;  // Convert bool to PRBool.
+  // Install bad certificate callback, and pass 'this' to it if it is called.
+  status = SSL_BadCertHook(filter_,
+                           BadCertificateCallback,
+                           static_cast<void*>(this));
+
+  PRBool as_server = is_server ? PR_TRUE : PR_FALSE;
   status = SSL_ResetHandshake(filter_, as_server);
   if (status != SECSuccess) {
     ThrowPRException("Unsuccessful SSL_ResetHandshake call");
@@ -385,7 +513,11 @@ void SSLFilter::Destroy() {
   Dart_DeletePersistentHandle(string_start_);
   Dart_DeletePersistentHandle(string_length_);
   Dart_DeletePersistentHandle(handshake_complete_);
-  // TODO(whesse): Free NSS objects here.
+  if (bad_certificate_callback_ != NULL) {
+    Dart_DeletePersistentHandle(bad_certificate_callback_);
+  }
+
+  PR_Close(filter_);
 }
 
 

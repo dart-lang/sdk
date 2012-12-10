@@ -72,8 +72,88 @@ main() {
   // TODO(nweiz): Once a multipart/form-data parser in Dart exists, we should
   // test that "pub lish" chooses the correct files to publish.
 
-  // TODO(nweiz): Once issue 6813 is fixed, test that OAuth2 authentication
-  // errors cause the client to try re-authenticating.
+  test('credentials are invalid', () {
+    var server = new ScheduledServer();
+    credentialsFile(server, 'access token').scheduleCreate();
+    var pub = startPubLish(server);
+
+    server.handle('GET', '/packages/versions/new.json', (request, response) {
+      response.statusCode = 401;
+      response.headers.set('www-authenticate', 'Bearer error="invalid_token",'
+          ' error_description="your token sucks"');
+      response.outputStream.writeString(JSON.stringify({
+        'error': {'message': 'your token sucks'}
+      }));
+      return closeHttpResponse(request, response);
+    });
+
+    expectLater(pub.nextErrLine(), equals('OAuth2 authorization failed (your '
+        'token sucks).'));
+    expectLater(pub.nextLine(), equals('Pub needs your authorization to upload '
+        'packages on your behalf.'));
+    pub.kill();
+
+    run();
+  });
+
+  test('package validation has an error', () {
+    var package = package("test_pkg", "1.0.0");
+    package.remove("homepage");
+    dir(appPath, [pubspec(package)]).scheduleCreate();
+
+    var server = new ScheduledServer();
+    credentialsFile(server, 'access token').scheduleCreate();
+    var pub = startPubLish(server);
+    server.ignore('GET', '/packages/versions/new.json');
+
+    pub.shouldExit(1);
+    expectLater(pub.remainingStderr(), contains("Package validation failed."));
+
+    run();
+  });
+
+  test('package validation has a warning and is canceled', () {
+    var package = package("test_pkg", "1.0.0");
+    package["author"] = "Nathan Weizenbaum";
+    dir(appPath, [pubspec(package)]).scheduleCreate();
+
+    var server = new ScheduledServer();
+    credentialsFile(server, 'access token').scheduleCreate();
+    var pub = startPubLish(server);
+    server.ignore('GET', '/packages/versions/new.json');
+
+    pub.writeLine("n");
+    pub.shouldExit(1);
+    expectLater(pub.remainingStderr(), contains("Package upload canceled."));
+
+    run();
+  });
+
+  test('package validation has a warning and continues', () {
+    var package = package("test_pkg", "1.0.0");
+    package["author"] = "Nathan Weizenbaum";
+    dir(appPath, [pubspec(package)]).scheduleCreate();
+
+    var server = new ScheduledServer();
+    credentialsFile(server, 'access token').scheduleCreate();
+    var pub = startPubLish(server);
+    pub.writeLine("y");
+    handleUploadForm(server);
+    handleUpload(server);
+
+    server.handle('GET', '/create', (request, response) {
+      response.outputStream.writeString(JSON.stringify({
+        'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
+      }));
+      return closeHttpResponse(request, response);
+    });
+
+    pub.shouldExit(0);
+    expectLater(pub.remainingStdout(),
+        contains('Package test_pkg 1.0.0 uploaded!'));
+
+    run();
+  });
 
   test('upload form provides an error', () {
     var server = new ScheduledServer();
@@ -204,18 +284,11 @@ main() {
     handleUploadForm(server);
 
     server.handle('POST', '/upload', (request, response) {
-      // TODO(rnystrom): HTTP requires that you don't start sending a response
-      // until the request has been completely sent, but dart:io doesn't
-      // ensure that (#7044). Workaround it by manually consuming the entire
-      // input stream before we start responding. If we don't do this, curl
-      // will choke on this on Mac and Windows.
-      return consumeInputStream(request.inputStream).transform((_) {
-        response.statusCode = 400;
-        response.headers.contentType = new ContentType('application', 'xml');
-        response.outputStream.writeString('<Error><Message>Your request sucked.'
-        '</Message></Error>');
-        response.outputStream.close();
-      });
+      response.statusCode = 400;
+      response.headers.contentType = new ContentType('application', 'xml');
+      response.outputStream.writeString('<Error><Message>Your request sucked.'
+          '</Message></Error>');
+      response.outputStream.close();
     });
 
     // TODO(nweiz): This should use the server's error message once the client

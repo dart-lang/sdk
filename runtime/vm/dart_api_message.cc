@@ -804,7 +804,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       }
 
       Utf8::Type type;
-      intptr_t len = Utf8::CodePointCount(utf8_str, utf8_len, &type);
+      intptr_t len = Utf8::CodeUnitCount(utf8_str, utf8_len, &type);
 
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);

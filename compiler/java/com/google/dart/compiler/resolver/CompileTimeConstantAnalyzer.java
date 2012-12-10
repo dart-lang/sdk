@@ -15,6 +15,7 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartConditional;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExpression;
@@ -52,6 +53,7 @@ import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -177,6 +179,9 @@ public class CompileTimeConstantAnalyzer {
           return type;
         }
         Element element = node.getElement();
+        if (Elements.isFunctionIdentical(element)) {
+          return boolType;
+        }
         if (element != null) {
           type = element.getType();
           if (type != null && TypeKind.of(type) != TypeKind.DYNAMIC) {
@@ -274,8 +279,9 @@ public class CompileTimeConstantAnalyzer {
         case DIV:
           checkMathExpression(x, lhs, rhs, lhsType, rhsType);
           break;
-        case MOD:
         case TRUNC:
+        case MOD:
+          reportExceptionIfZeroLiteral(x, rhs);
           if (checkNumber(lhs, lhsType) && checkNumber(rhs, rhsType)) {
             rememberInferredType(x, intType);
           }
@@ -294,6 +300,16 @@ public class CompileTimeConstantAnalyzer {
           expectedConstant(x);
       }
       return null;
+    }
+    
+    private void reportExceptionIfZeroLiteral(HasSourceInfo target, DartExpression e) {
+      if (e instanceof DartIntegerLiteral) {
+        DartIntegerLiteral literal = (DartIntegerLiteral) e;
+        if (literal.getValue().equals(BigInteger.ZERO)) {
+          context.onError(new DartCompilationError(target,
+              ResolverErrorCode.CONSTANTS_EVALUATION_EXCEPTION));
+        }
+      }
     }
 
     private void checkMathExpression(DartBinaryExpression x,
@@ -322,6 +338,12 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitDoubleLiteral(DartDoubleLiteral x) {
       rememberInferredType(x, doubleType);
+      return null;
+    }
+    
+    @Override
+    public Void visitConditional(DartConditional node) {
+      expectedConstant(node);
       return null;
     }
 

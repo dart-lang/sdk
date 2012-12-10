@@ -743,10 +743,12 @@ class HBoundedType extends HType {
         }
       // If one type is a subtype of the other, we return the former,
       // which is the narrower type.
-      } else if (compiler.types.isSubtype(type, other.type)) {
-        return this;
-      } else if (compiler.types.isSubtype(other.type, type)) {
-        return other;
+      } else if (!type.isMalformed && !other.type.isMalformed) {
+        if (compiler.types.isSubtype(type, other.type)) {
+          return this;
+        } else if (compiler.types.isSubtype(other.type, type)) {
+          return other;
+        }
       }
     }
     if (other.isUnknown()) return this;

@@ -112,6 +112,7 @@ import com.google.dart.compiler.util.apache.StringUtils;
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigInteger;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -233,6 +234,17 @@ public class DartParser extends CompletionHooksParserBase {
     this.isDietParse = isDietParse;
     this.prefixes = prefixes;
     this.allowNativeKeyword = source != null && PackageLibraryManager.isDartUri(source.getUri());
+    // check Unicode normalization
+    {
+      int indexOfDifference = StringUtils.indexOfDifference(sourceCode,
+          Normalizer.normalize(sourceCode, Normalizer.Form.NFC));
+      if (indexOfDifference != -1) {
+        DartCompilationError error = new DartCompilationError(source, new Location(
+            indexOfDifference, indexOfDifference + 1),
+            ParserErrorCode.INVALID_UNICODE_NORMALIZATION);
+        ctx.error(error);
+      }
+    }
   }
 
   public static String read(Source source) throws IOException {
@@ -334,12 +346,7 @@ public class DartParser extends CompletionHooksParserBase {
         } else if (peekPseudoKeyword(0, INTERFACE_KEYWORD) && peek(1).equals(Token.IDENTIFIER)) {
           consume(Token.IDENTIFIER);
           isParsingInterface = true;
-          // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6318 
-          if (!Elements.isCoreLibrarySource(source)
-              && !Elements.isLibrarySource(source, "/isolate/isolate.dart")
-              && !Elements.isLibrarySource(source, "crypto/crypto.dart")) {
-            reportError(position(), ParserErrorCode.DEPRECATED_INTERFACE);
-          }
+          reportError(position(), ParserErrorCode.DEPRECATED_INTERFACE);
           node = done(parseClass());
         } else if (peekPseudoKeyword(0, TYPEDEF_KEYWORD)
             && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID) || peek(1).equals(Token.AS))) {
@@ -1321,16 +1328,7 @@ public class DartParser extends CompletionHooksParserBase {
     // report "abstract" warning after all other checks to don't hide error with warning
     // we ignore problems if there was already reported problem after given position
     if (modifiers.isAbstract()) {
-      // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6322
-      // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6323
-      if (!Elements.isCoreLibrarySource(source)
-          && !Elements.isLibrarySource(source, "html/dartium/html_dartium.dart")
-          && !Elements.isLibrarySource(source, "/math/math.dart")
-          && !Elements.isLibrarySource(source, "/io/io_runtime.dart")
-          && !Elements.isLibrarySource(source, "/crypto/crypto.dart")
-          && !Elements.isLibrarySource(source, "/utf/utf.dart")) {
-        reportError(position(), ParserErrorCode.DEPRECATED_ABSTRACT_METHOD);
-      }
+      reportError(position(), ParserErrorCode.DEPRECATED_ABSTRACT_METHOD);
     }
 
     if (modifiers.isFactory()) {
@@ -1737,10 +1735,7 @@ public class DartParser extends CompletionHooksParserBase {
     if (modifiers.isGetter()) {
       parametersInfo = new FormalParameters(new ArrayList<DartParameter>(), -1, -1);
       if (peek(0) == Token.LPAREN) {
-        // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6297
-        if (!Elements.isHtmlLibrarySource(source)) {
-          reportError(position(), ParserErrorCode.DEPRECATED_GETTER);
-        }
+        reportError(position(), ParserErrorCode.DEPRECATED_GETTER);
         parametersInfo = parseFormalParameterList();
       }
     } else {
@@ -4760,6 +4755,9 @@ public class DartParser extends CompletionHooksParserBase {
       if (optional(Token.VAR)) {
         setup = done(new DartVariableStatement(parseInitializedVariableList(), null, modifiers));
       } else {
+        if (optional(Token.CONST)) {
+          modifiers = modifiers.makeConstant();
+        }
         if (optional(Token.FINAL)) {
           modifiers = modifiers.makeFinal();
         }
@@ -5433,11 +5431,12 @@ public class DartParser extends CompletionHooksParserBase {
   
   private void reportDeprecatedError(int position, ErrorCode errorCode) {
     // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6508
-    if (!Elements.isCoreLibrarySource(source) &&
-        !Elements.isLibrarySource(source, "/isolate/isolate.dart")
+    if (
+        true
+        &&!Elements.isCoreLibrarySource(source)
+        && !Elements.isLibrarySource(source, "/isolate/isolate.dart")
       &&  !Elements.isLibrarySource(source, "/json/json.dart")
       &&  !Elements.isLibrarySource(source, "/math/math.dart")
-      &&  !Elements.isLibrarySource(source, "/html/dartium/nativewrappers.dart")
       &&  !Elements.isLibrarySource(source, "/io/io.dart")
       &&  !Elements.isLibrarySource(source, "/crypto/crypto.dart")
       &&  !Elements.isLibrarySource(source, "/uri/uri.dart")

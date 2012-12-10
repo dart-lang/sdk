@@ -165,7 +165,7 @@ void ParsedFunction::AllocateVariables() {
   } else {
     // Parameter i will be at fp[kFirstLocalSlotIndex - i] and local variable
     // j will be at fp[kFirstLocalSlotIndex - num_params - j].
-    // The saved argument descriptor variable must be allocated similarly to
+    // The saved arguments descriptor variable must be allocated similarly to
     // a parameter, so that it gets both a frame slot and a context slot when
     // captured.
     if (GetSavedArgumentsDescriptorVar() != NULL) {
@@ -4073,10 +4073,17 @@ void Parser::ParseLibraryIncludeObsoleteSyntax() {
 void Parser::ParseLibraryName() {
   ASSERT(CurrentToken() == Token::kLIBRARY);
   ConsumeToken();
-  // TODO(hausner): Exact syntax of library name still unclear: identifier,
-  // qualified identifier or even multiple dots allowed? For now we just
-  // accept simple identifiers.
-  const String& lib_name = *ExpectIdentifier("library name expected");
+  String& lib_name = *ExpectIdentifier("library name expected");
+  if (CurrentToken() == Token::kPERIOD) {
+    const String& dot = String::Handle(Symbols::Dot());
+    while (CurrentToken() == Token::kPERIOD) {
+      ConsumeToken();
+      lib_name = String::Concat(lib_name, dot);
+      lib_name = String::Concat(lib_name,
+          *ExpectIdentifier("malformed library name"));
+    }
+    lib_name = Symbols::New(lib_name);
+  }
   library_.SetName(lib_name);
   ExpectSemicolon();
 }
@@ -4114,7 +4121,7 @@ void Parser::ParseLibraryImportExport() {
   String& prefix = String::Handle();
   if (is_import && IsLiteral("as")) {
     ConsumeToken();
-    prefix = ExpectIdentifier("prefix expected")->raw();
+    prefix = ExpectIdentifier("prefix identifier expected")->raw();
   }
 
   Array& show_names = Array::Handle();
@@ -4283,12 +4290,13 @@ void Parser::ParsePartHeader() {
       ErrorMsg("'part of' expected");
     }
     ConsumeToken();
-    // TODO(hausner): Exact syntax of library name still unclear: identifier,
-    // qualified identifier or even multiple dots allowed? For now we just
-    // accept simple identifiers.
     // The VM is not required to check that the library name matches the
     // name of the current library, so we ignore it.
     ExpectIdentifier("library name expected");
+    while (CurrentToken() == Token::kPERIOD) {
+      ConsumeToken();
+      ExpectIdentifier("malformed library name");
+    }
     ExpectSemicolon();
   } else {
     SetPosition(metadata_pos);
@@ -7092,8 +7100,8 @@ ArgumentListNode* Parser::ParseActualParameters(
       ConsumeToken();
       if (IsIdentifier() && (LookaheadToken(1) == Token::kCOLON)) {
         named_argument_seen = true;
-        // The canonicalization of the argument descriptor array built in the
-        // code generator requires that the names are symbols, i.e.
+        // The canonicalization of the arguments descriptor array built in
+        // the code generator requires that the names are symbols, i.e.
         // canonicalized strings.
         ASSERT(CurrentLiteral()->IsSymbol());
         for (int i = 0; i < names.Length(); i++) {
@@ -9244,7 +9252,7 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
     ASSERT(owner_scope->num_variables() == owner_function.NumParameters());
     bool success = owner_scope->AddVariable(saved_args_desc_var);
     ASSERT(success);
-    // Capture the saved argument descriptor variable if necessary.
+    // Capture the saved arguments descriptor variable if necessary.
     LocalVariable* local = LookupLocalScope(saved_args_desc_name);
     ASSERT(local == saved_args_desc_var);
   }

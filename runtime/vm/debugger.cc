@@ -566,12 +566,10 @@ void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
   switch (breakpoint_kind_) {
     case PcDescriptors::kIcCall: {
-      int num_args, num_named_args;
-      CodePatcher::GetInstanceCallAt(pc_,
-          NULL, &num_args, &num_named_args,
-          &saved_bytes_.target_address_);
-      CodePatcher::PatchInstanceCallAt(
-          pc_, StubCode::BreakpointDynamicEntryPoint());
+      saved_bytes_.target_address_ =
+          CodePatcher::GetInstanceCallAt(pc_, NULL, NULL);
+      CodePatcher::PatchInstanceCallAt(pc_,
+                                       StubCode::BreakpointDynamicEntryPoint());
       break;
     }
     case PcDescriptors::kFuncCall: {
@@ -958,7 +956,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
   EnsureFunctionIsDeoptimized(target_function);
 
   CodeBreakpoint* cbpt = NULL;
-  SourceBreakpoint* bpt = NULL;
+  SourceBreakpoint* source_bpt = NULL;
   if (target_function.HasCode()) {
     cbpt = MakeCodeBreakpoint(target_function, first_token_pos, last_token_pos);
     if (cbpt != NULL) {
@@ -975,35 +973,50 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
       first_token_pos = cbpt->token_pos();
     }
   } else {
-    bpt = GetSourceBreakpoint(target_function, first_token_pos);
-    if (bpt != NULL) {
+    source_bpt = GetSourceBreakpoint(target_function, first_token_pos);
+    if (source_bpt != NULL) {
       // A source breakpoint for this uncompiled location already
       // exists.
-      return bpt;
+      return source_bpt;
     }
   }
-  bpt = new SourceBreakpoint(nextId(), target_function, first_token_pos);
-  RegisterSourceBreakpoint(bpt);
+  source_bpt = new SourceBreakpoint(nextId(), target_function, first_token_pos);
+  RegisterSourceBreakpoint(source_bpt);
   if (FLAG_verbose_debug && !target_function.HasCode()) {
     OS::Print("Registering breakpoint for "
               "uncompiled function '%s' at line %"Pd"\n",
               target_function.ToFullyQualifiedCString(),
-              bpt->LineNumber());
+              source_bpt->LineNumber());
   }
 
   if (cbpt != NULL) {
     ASSERT(cbpt->src_bpt() == NULL);
-    cbpt->set_src_bpt(bpt);
-    SignalBpResolved(bpt);
+    cbpt->set_src_bpt(source_bpt);
+    SignalBpResolved(source_bpt);
   } else {
     if (FLAG_verbose_debug) {
       OS::Print("Failed to set breakpoint at '%s' line %"Pd"\n",
-                String::Handle(bpt->SourceUrl()).ToCString(),
-                bpt->LineNumber());
+                String::Handle(source_bpt->SourceUrl()).ToCString(),
+                source_bpt->LineNumber());
     }
   }
-  bpt->Enable();
-  return bpt;
+
+  if (target_function.HasImplicitClosureFunction()) {
+    // There is a closurized version of this function. If the closure
+    // is already compiled, we need to set a code breakpoint in its
+    // code.
+    const Function& closure =
+        Function::Handle(target_function.ImplicitClosureFunction());
+    if (closure.HasCode()) {
+      CodeBreakpoint* closure_bpt =
+          MakeCodeBreakpoint(closure, first_token_pos, last_token_pos);
+      if ((closure_bpt != NULL) && (closure_bpt->src_bpt() == NULL)) {
+        closure_bpt->set_src_bpt(source_bpt);
+      }
+    }
+  }
+  source_bpt->Enable();
+  return source_bpt;
 }
 
 
@@ -1385,15 +1398,18 @@ void Debugger::SignalBpReached() {
     // a StepOver, that is we instrument the current function.
     if (bpt->breakpoint_kind_ == PcDescriptors::kIcCall) {
       func_to_instrument = bpt->function();
-      int num_args, num_named_args;
-      uword target;
-      CodePatcher::GetInstanceCallAt(bpt->pc_, NULL,
-          &num_args, &num_named_args, &target);
+      ICData& ic_data = ICData::Handle();
+      Array& descriptor = Array::Handle();
+      CodePatcher::GetInstanceCallAt(bpt->pc_, &ic_data, &descriptor);
+      ArgumentsDescriptor arg_descriptor(descriptor);
       ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
-      Instance& receiver = Instance::Handle(
-          top_frame->GetInstanceCallReceiver(num_args));
-      Code& code = Code::Handle(
-          ResolveCompileInstanceCallTarget(isolate_, receiver));
+      intptr_t num_args = arg_descriptor.Count();
+      Instance& receiver =
+          Instance::Handle(top_frame->GetInstanceCallReceiver(num_args));
+      Code& code =
+          Code::Handle(ResolveCompileInstanceCallTarget(receiver,
+                                                        ic_data,
+                                                        descriptor));
       if (!code.IsNull()) {
         Function& callee = Function::Handle(code.function());
         if (IsDebuggable(callee)) {

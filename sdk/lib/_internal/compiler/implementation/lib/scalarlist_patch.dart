@@ -29,6 +29,18 @@ patch class Uint8List {
 }
 
 
+patch class Uint8ClampedList {
+  patch factory Uint8ClampedList(int length) {
+    throw new UnsupportedError('Uint8ClampedList');
+  }
+
+  patch factory Uint8ClampedList.view(ByteArray array,
+                                      [int start = 0, int length]) {
+    throw new UnsupportedError('Uint8ClampedList.view');
+  }
+}
+
+
 patch class Int16List {
   patch factory Int16List(int length) {
     throw new UnsupportedError('Int16List');

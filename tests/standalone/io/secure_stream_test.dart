@@ -12,9 +12,8 @@
 #import("dart:io");
 
 void main() {
-  var testPkcertDatabase =
-      new Path.fromNative(new Options().script).directoryPath.append('pkcert/');
-  SecureSocket.setCertificateDatabase(testPkcertDatabase.toNativePath());
+  ReceivePort keepAlive = new ReceivePort();
+  SecureSocket.initialize();
   // TODO(3593): Use a Dart HTTPS server for this test.
   // When we use a Dart HTTPS server, allow --short_socket_write. The flag
   // causes fragmentation of the client hello message, which doesn't seem to
@@ -32,5 +31,6 @@ void main() {
   input.onClosed = () {
     String fullPage = Strings.concatAll(chunks);
     Expect.isTrue(fullPage.contains('</body></html>'));
+    keepAlive.close();
   };
 }

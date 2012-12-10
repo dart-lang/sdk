@@ -15,6 +15,16 @@ import static com.google.dart.compiler.common.ErrorExpectation.errEx;
  */
 public class CompileTimeConstantTest extends ResolverTestCase {
 
+  public void test_conditionalExpression() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "const v = true ? 1 : 2;",
+            ""),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 11, 12));
+  }
+
   public void test_nonConstArg() {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(
@@ -23,7 +33,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             "main() {",
             "  var a = const A(new A(null));",
             "}"),
-        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 11));
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 11));
   }
 
   /**

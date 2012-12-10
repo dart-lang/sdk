@@ -415,15 +415,14 @@ static bool OptimizeTypeArguments(const Instance& instance) {
   }
   bool replaced = false;
   if (type_arguments.IsInstantiatedTypeArguments()) {
+    AbstractTypeArguments& uninstantiated = AbstractTypeArguments::Handle();
+    AbstractTypeArguments& instantiator = AbstractTypeArguments::Handle();
     do {
       const InstantiatedTypeArguments& instantiated_type_arguments =
           InstantiatedTypeArguments::Cast(type_arguments);
-      const AbstractTypeArguments& uninstantiated =
-          AbstractTypeArguments::Handle(
-              instantiated_type_arguments.uninstantiated_type_arguments());
-      const AbstractTypeArguments& instantiator =
-          AbstractTypeArguments::Handle(
-              instantiated_type_arguments.instantiator_type_arguments());
+      uninstantiated =
+          instantiated_type_arguments.uninstantiated_type_arguments();
+      instantiator = instantiated_type_arguments.instantiator_type_arguments();
       type_arguments = uninstantiated.InstantiateFrom(instantiator);
     } while (type_arguments.IsInstantiatedTypeArguments());
     AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
@@ -675,18 +674,16 @@ DEFINE_RUNTIME_ENTRY(ArgumentDefinitionTest, 3) {
   const Smi& param_index = Smi::CheckedHandle(arguments.ArgAt(0));
   const String& param_name = String::CheckedHandle(arguments.ArgAt(1));
   ASSERT(param_name.IsSymbol());
-  const Array& arg_desc = Array::CheckedHandle(arguments.ArgAt(2));
-  const intptr_t num_pos_args = Smi::CheckedHandle(arg_desc.At(1)).Value();
+  const Array& arg_desc_array = Array::CheckedHandle(arguments.ArgAt(2));
+  ArgumentsDescriptor arg_desc(arg_desc_array);
+  const intptr_t num_pos_args = arg_desc.PositionalCount();
   // Check if the formal parameter is defined by a positional argument.
   bool is_defined = num_pos_args > param_index.Value();
   if (!is_defined) {
     // Check if the formal parameter is defined by a named argument.
-    const intptr_t num_named_args =
-        Smi::CheckedHandle(arg_desc.At(0)).Value() - num_pos_args;
-    String& arg_name = String::Handle();
+    const intptr_t num_named_args = arg_desc.NamedCount();
     for (intptr_t i = 0; i < num_named_args; i++) {
-      arg_name ^= arg_desc.At(2*i + 2);
-      if (arg_name.raw() == param_name.raw()) {
+      if (arg_desc.MatchesNameAt(i, param_name)) {
         is_defined = true;
         break;
       }
@@ -792,20 +789,14 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
 // Resolves and compiles the target function of an instance call, updates
 // function cache of the receiver's class and returns the compiled code or null.
 // Only the number of named arguments is checked, but not the actual names.
-RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
-                                          const Instance& receiver) {
-  int num_arguments = -1;
-  int num_named_arguments = -1;
-  uword target = 0;
-  String& function_name = String::Handle();
-  DartFrameIterator iterator;
-  StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
-  CodePatcher::GetInstanceCallAt(caller_frame->pc(),
-                                 &function_name,
-                                 &num_arguments,
-                                 &num_named_arguments,
-                                 &target);
+RawCode* ResolveCompileInstanceCallTarget(
+    const Instance& receiver,
+    const ICData& ic_data,
+    const Array& arguments_descriptor_array) {
+  ArgumentsDescriptor arguments_descriptor(arguments_descriptor_array);
+  intptr_t num_arguments = arguments_descriptor.Count();
+  int num_named_arguments = arguments_descriptor.NamedCount();
+  String& function_name = String::Handle(ic_data.target_name());
   ASSERT(function_name.IsSymbol());
 
   Function& function = Function::Handle();
@@ -833,22 +824,6 @@ static void CheckResultError(const Object& result) {
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
   }
-}
-
-
-// Resolves an instance function and compiles it if necessary.
-//   Arg0: receiver object.
-//   Returns: RawCode object or NULL (method not found or not compileable).
-// This is called by the megamorphic stub when instance call does not need to be
-// patched.
-// Used by megamorphic lookup/no-such-method-handling.
-DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
-  ASSERT(arguments.ArgCount() ==
-         kResolveCompileInstanceFunctionRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Code& code = Code::Handle(
-      ResolveCompileInstanceCallTarget(isolate, receiver));
-  arguments.SetReturn(code);
 }
 
 
@@ -898,10 +873,14 @@ DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
 
 
 static RawFunction* InlineCacheMissHandler(
-    Isolate* isolate, const GrowableArray<const Instance*>& args) {
+    const GrowableArray<const Instance*>& args,
+    const ICData& ic_data,
+    const Array& arg_descriptor_array) {
   const Instance& receiver = *args[0];
   const Code& target_code =
-      Code::Handle(ResolveCompileInstanceCallTarget(isolate, receiver));
+      Code::Handle(ResolveCompileInstanceCallTarget(receiver,
+                                                    ic_data,
+                                                    arg_descriptor_array));
   if (target_code.IsNull()) {
     // Let the megamorphic stub handle special cases: NoSuchMethod,
     // closure calls.
@@ -917,8 +896,6 @@ static RawFunction* InlineCacheMissHandler(
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  ICData& ic_data = ICData::Handle(
-      CodePatcher::GetInstanceCallIcDataAt(caller_frame->pc()));
   if (args.length() == 1) {
     ic_data.AddReceiverCheck(Class::Handle(args[0]->clazz()).id(),
                              target_function);
@@ -954,16 +931,20 @@ static RawFunction* InlineCacheMissHandler(
 // Handles inline cache misses by updating the IC data array of the call
 // site.
 //   Arg0: Receiver object.
+//   Arg1: IC data object.
+//   Arg2: Arguments descriptor array.
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
-DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 1) {
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 3) {
   ASSERT(arguments.ArgCount() ==
       kInlineCacheMissHandlerOneArgRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
+  const Array& arg_desc_array = Array::CheckedHandle(arguments.ArgAt(2));
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
   const Function& result =
-      Function::Handle(InlineCacheMissHandler(isolate, args));
+      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_desc_array));
   arguments.SetReturn(result);
 }
 
@@ -972,18 +953,22 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 1) {
 // site.
 //   Arg0: Receiver object.
 //   Arg1: Argument after receiver.
+//   Arg2: IC data object.
+//   Arg3: Arguments descriptor array.
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
-DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 2) {
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 4) {
   ASSERT(arguments.ArgCount() ==
       kInlineCacheMissHandlerTwoArgsRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const Instance& other = Instance::CheckedHandle(arguments.ArgAt(1));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(2));
+  const Array& arg_desc_array = Array::CheckedHandle(arguments.ArgAt(3));
   GrowableArray<const Instance*> args(2);
   args.Add(&receiver);
   args.Add(&other);
   const Function& result =
-      Function::Handle(InlineCacheMissHandler(isolate, args));
+      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_desc_array));
   arguments.SetReturn(result);
 }
 
@@ -993,20 +978,24 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 2) {
 //   Arg0: Receiver object.
 //   Arg1: Argument after receiver.
 //   Arg2: Second argument after receiver.
+//   Arg3: IC data object.
+//   Arg4: Arguments descriptor array.
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
-DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 3) {
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 5) {
   ASSERT(arguments.ArgCount() ==
       kInlineCacheMissHandlerThreeArgsRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
   const Instance& arg2 = Instance::CheckedHandle(arguments.ArgAt(2));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(3));
+  const Array& arg_desc_array = Array::CheckedHandle(arguments.ArgAt(4));
   GrowableArray<const Instance*> args(3);
   args.Add(&receiver);
   args.Add(&arg1);
   args.Add(&arg2);
   const Function& result =
-      Function::Handle(InlineCacheMissHandler(isolate, args));
+      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_desc_array));
   arguments.SetReturn(result);
 }
 

@@ -11,7 +11,18 @@
 
 class IOBuffer {
  public:
+  // Allocate an IO buffer dart object (of type Uint8List) backed by
+  // an external byte array.
   static Dart_Handle Allocate(intptr_t size, uint8_t **buffer);
+
+  // Allocate IO buffer storage.
+  static uint8_t* Allocate(intptr_t size);
+
+  // Function for disposing of IO buffer storage. All backing storage
+  // for IO buffers must be freed using this function.
+  static void Free(void* buffer) {
+    delete[] reinterpret_cast<uint8_t*>(buffer);
+  }
 
  private:
   DISALLOW_ALLOCATION();

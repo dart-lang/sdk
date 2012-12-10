@@ -205,6 +205,11 @@ class MessageKind {
   static const MISSING_TYPE_ARGUMENT = const MessageKind(
       "missing type argument");
 
+  // TODO(johnniwinther): Use ADDITIONAL_TYPE_ARGUMENT or MISSING_TYPE_ARGUMENT
+  // instead.
+  static const TYPE_ARGUMENT_COUNT_MISMATCH = const MessageKind(
+      "incorrect number of type arguments on #{1}");
+
   static const MISSING_ARGUMENTS_TO_ASSERT = const MessageKind(
       "missing arguments to assert");
 
@@ -213,6 +218,9 @@ class MessageKind {
 
   static const SETTER_MISMATCH = const MessageKind(
       "Error: getter disagrees on: #{1}.");
+
+  static const ILLEGAL_SETTER_FORMALS = const MessageKind(
+      "Error: a setter must have exactly one argument.");
 
   static const NO_STATIC_OVERRIDE = const MessageKind(
       "Error: static member cannot override instance member '#{1}' of '#{2}'.");
@@ -329,6 +337,12 @@ Length: #{3}''');
 
   static const MALFORMED_TYPE_REFERENCE = const MessageKind(
       "Malformed type reference encountered in #{1}.");
+
+  static const FACTORY_REDIRECTION_IN_NON_FACTORY = const MessageKind(
+      "Error: Factory redirection only allowed in factories.");
+
+  static const MISSING_FACTORY_KEYWORD = const MessageKind(
+      "Did you forget a factory keyword here?");
 
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");

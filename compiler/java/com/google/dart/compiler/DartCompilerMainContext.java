@@ -11,6 +11,9 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
+import com.google.dart.compiler.resolver.Elements;
+import com.google.dart.compiler.resolver.ResolverErrorCode;
+import com.google.dart.compiler.resolver.TypeErrorCode;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -55,6 +58,22 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
 
   @Override
   public void onError(DartCompilationError event) {
+    // problems in dart:core are not interesting
+    // http://code.google.com/p/dart/issues/detail?id=7128
+    if (Elements.isCoreLibrarySource(event.getSource())) {
+      ErrorCode ec = event.getErrorCode();
+      if (ec == ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER
+          || ec == TypeErrorCode.ASSERT_BOOL
+          || ec == TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE
+          || ec == TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE
+          || ec == TypeErrorCode.OPERATOR_EQUALS_BOOL_RETURN_TYPE
+          || ec == TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER
+          || ec == TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
+          || ec == TypeErrorCode.OPERATOR_WRONG_OPERAND_TYPE) {
+        return;
+      }
+    }
+
     // Remember error.
     {
       Source source = event.getSource();

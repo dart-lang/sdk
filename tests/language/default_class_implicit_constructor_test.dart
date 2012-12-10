@@ -1,12 +1,12 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// An interface with a default class with no declared constructor should 
-// use the implicit default constructor
+// An abstract class with a redirecting factory to a class with no declared
+// constructor should use the implicit default constructor.
 
-interface A default B {
-  A();
+abstract class A {
+  factory A() = B;
 }
 
 class B implements A {

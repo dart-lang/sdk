@@ -308,7 +308,7 @@ class OperationInfo(object):
     factory_parameters: A list of parameters used for custom designed Factory
         calls.
   """
-  
+
   def __init__(self):
     self.factory_parameters = None
 
@@ -420,15 +420,15 @@ class OperationInfo(object):
     for index, param_info in enumerate(self.param_infos):
       if param_info.is_optional:
         EmitOptionalParameterInvocation(index)
-  
+
   def _GenerateFactoryOptParamsWithoutFactoryProvider(self, rename_type,
-      emitter, factory_name, factory_constructor_name, factory_parameters): 
+      emitter, factory_name, factory_constructor_name, factory_parameters):
     """Helper method for creating a factory constructor with optional
     parameters that does not call a factory provider, it simply creates the
     object itself. This is currently used for SVGElements and HTMLElements."""
     inits = emitter.Emit(
         '\n'
-        '  factory $CONSTRUCTOR($PARAMS) {\n'	
+        '  factory $CONSTRUCTOR($PARAMS) {\n'
         '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
         '$!INITS'
         '    return e;\n'
@@ -500,7 +500,7 @@ class Conversion(object):
 # setters and operation arguments.  INTERFACE and MEMBER are the idl names.
 #
 
-_serialize_SSV = Conversion('_convertDartToNative_SerializedScriptValue',
+_serialize_SSV = Conversion('convertDartToNative_SerializedScriptValue',
                            'dynamic', 'dynamic')
 
 dart2js_conversions = {
@@ -527,12 +527,12 @@ dart2js_conversions = {
       Conversion('_convertDartToNative_ImageData', 'ImageData', 'dynamic'),
 
     'Dictionary get':
-      Conversion('_convertNativeToDart_Dictionary', 'dynamic', 'Map'),
+      Conversion('convertNativeToDart_Dictionary', 'dynamic', 'Map'),
     'Dictionary set':
-      Conversion('_convertDartToNative_Dictionary', 'Map', 'dynamic'),
+      Conversion('convertDartToNative_Dictionary', 'Map', 'dynamic'),
 
     'DOMString[] set':
-      Conversion('_convertDartToNative_StringArray', 'List<String>', 'List'),
+      Conversion('convertDartToNative_StringArray', 'List<String>', 'List'),
 
     'any set IDBObjectStore.add': _serialize_SSV,
     'any set IDBObjectStore.put': _serialize_SSV,
@@ -546,7 +546,7 @@ dart2js_conversions = {
 
     # receiving message via MessageEvent
     '* get MessageEvent.data':
-      Conversion('_convertNativeToDart_SerializedScriptValue',
+      Conversion('convertNativeToDart_SerializedScriptValue',
                  'dynamic', 'dynamic'),
 
     '* get History.state':
@@ -554,7 +554,7 @@ dart2js_conversions = {
                  'dynamic', 'dynamic'),
 
     '* get PopStateEvent.state':
-      Conversion('_convertNativeToDart_SerializedScriptValue',
+      Conversion('convertNativeToDart_SerializedScriptValue',
                  'dynamic', 'dynamic'),
 
     # IDBAny is problematic.  Some uses are just a union of other IDB types,
@@ -594,6 +594,7 @@ def FindConversion(idl_type, direction, interface, member):
 #
 #   INTERFACE.MEMBER: annotations for member.
 #   +TYPE:            add annotations only if there are member annotations.
+#   -TYPE:            add annotations only if there are no member annotations.
 #   TYPE:             add regardless of member annotations.
 
 dart2js_annotations = {
@@ -607,6 +608,14 @@ dart2js_annotations = {
     'CanvasRenderingContext2D.webkitGetImageDataHD':
       "@Creates('ImageData|=Object')",
 
+    'CanvasRenderingContext2D.fillStyle':
+      "@Creates('String|CanvasGradient|CanvasPattern') "
+      "@Returns('String|CanvasGradient|CanvasPattern')",
+
+    'CanvasRenderingContext2D.strokeStyle':
+      "@Creates('String|CanvasGradient|CanvasPattern') "
+      "@Returns('String|CanvasGradient|CanvasPattern')",
+
     # Methods returning Window can return a local window, or a cross-frame
     # window (=Object) that needs wrapping.
     'DOMWindow':
@@ -615,9 +624,25 @@ dart2js_annotations = {
     'DOMWindow.openDatabase': "@Creates('Database') @Creates('DatabaseSync')",
 
     # Cross-frame windows are EventTargets.
-    'EventTarget':
-      #"@Creates('Null') @Returns('EventTarget|=Object')",
+    '-EventTarget':
       "@Creates('EventTarget|=Object') @Returns('EventTarget|=Object')",
+
+    # To be in callback with the browser-created Event, we had to have called
+    # addEventListener on the target, so we avoid
+    'Event.currentTarget':
+        "@Creates('Null') @Returns('EventTarget|=Object')",
+
+    # Only nodes in the DOM bubble and have target !== currentTarget.
+    'Event.target':
+        "@Creates('Node') @Returns('EventTarget|=Object')",
+
+    'MouseEvent.relatedTarget':
+        "@Creates('Node') @Returns('EventTarget|=Object')",
+
+    # Touch targets are Elements in a Document, or the Document.
+    'Touch.target':
+        "@Creates('Element|Document') @Returns('Element|Document')",
+
 
     'FileReader.result': "@Creates('String|ArrayBuffer|Null')",
 
@@ -631,44 +656,44 @@ dart2js_annotations = {
     # IDBRequest.
     'IDBRequest.source':  "@Creates('Null')",
 
-    'IDBFactory.open': "@Creates('IDBDatabase')",
+    'IDBFactory.open': "@Creates('Database')",
 
     'IDBObjectStore.put': "@_annotation_Creates_IDBKey",
     'IDBObjectStore.add': "@_annotation_Creates_IDBKey",
-    'IDBObjectStore.get': "@_annotation_Creates_SerializedScriptValue",
-    'IDBObjectStore.openCursor': "@Creates('IDBCursor')",
+    'IDBObjectStore.get': "@annotation_Creates_SerializedScriptValue",
+    'IDBObjectStore.openCursor': "@Creates('Cursor')",
 
-    'IDBIndex.get': "@_annotation_Creates_SerializedScriptValue",
+    'IDBIndex.get': "@annotation_Creates_SerializedScriptValue",
     'IDBIndex.getKey':
-      "@_annotation_Creates_SerializedScriptValue "
+      "@annotation_Creates_SerializedScriptValue "
       # The source is the object store behind the index.
-      "@Creates('IDBObjectStore')",
-    'IDBIndex.openCursor': "@Creates('IDBCursor')",
-    'IDBIndex.openKeyCursor': "@Creates('IDBCursor')",
+      "@Creates('ObjectStore')",
+    'IDBIndex.openCursor': "@Creates('Cursor')",
+    'IDBIndex.openKeyCursor': "@Creates('Cursor')",
 
     'IDBCursorWithValue.value':
-      '@_annotation_Creates_SerializedScriptValue '
-      '@_annotation_Returns_SerializedScriptValue',
+      '@annotation_Creates_SerializedScriptValue '
+      '@annotation_Returns_SerializedScriptValue',
 
     'IDBCursor.key': "@_annotation_Creates_IDBKey @_annotation_Returns_IDBKey",
 
-    '+IDBRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
+    '+IDBRequest': "@Returns('Request') @Creates('Request')",
 
-    '+IDBOpenDBRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
-    '+IDBVersionChangeRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
+    '+IDBOpenDBRequest': "@Returns('Request') @Creates('Request')",
+    '+IDBVersionChangeRequest': "@Returns('Request') @Creates('Request')",
 
 
     'MessageEvent.ports': "@Creates('=List')",
 
     'MessageEvent.data':
-      "@_annotation_Creates_SerializedScriptValue "
-      "@_annotation_Returns_SerializedScriptValue",
+      "@annotation_Creates_SerializedScriptValue "
+      "@annotation_Returns_SerializedScriptValue",
     'PopStateEvent.state':
-      "@_annotation_Creates_SerializedScriptValue "
-      "@_annotation_Returns_SerializedScriptValue",
+      "@annotation_Creates_SerializedScriptValue "
+      "@annotation_Returns_SerializedScriptValue",
     'SerializedScriptValue':
-      "@_annotation_Creates_SerializedScriptValue "
-      "@_annotation_Returns_SerializedScriptValue",
+      "@annotation_Creates_SerializedScriptValue "
+      "@annotation_Returns_SerializedScriptValue",
 
     'SQLResultSetRowList.item': "@Creates('=Object')",
 
@@ -687,6 +712,9 @@ def FindAnnotations(idl_type, interface_name, member_name):
       return ann2 + ' ' + ann1
     return ann1
 
+  ann2 = dart2js_annotations.get('-' + idl_type)
+  if ann2:
+    return ann2
   ann2 = dart2js_annotations.get(idl_type)
   return ann2
 
@@ -1106,13 +1134,13 @@ _idl_type_registry = {
     'DOMMimeTypeArray': TypeData(clazz='Interface', item_type='DOMMimeType'),
     'DOMPluginArray': TypeData(clazz='Interface', item_type='DOMPlugin'),
     'DOMStringList': TypeData(clazz='Interface', item_type='DOMString',
-        suppress_interface=True, custom_to_native=True),
+        dart_type='List<String>', custom_to_native=True),
     'EntryArray': TypeData(clazz='Interface', item_type='Entry',
         suppress_interface=True),
     'EntryArraySync': TypeData(clazz='Interface', item_type='EntrySync',
         suppress_interface=True),
     'FileList': TypeData(clazz='Interface', item_type='File',
-        suppress_interface=True),
+        dart_type='List<File>'),
     'GamepadList': TypeData(clazz='Interface', item_type='Gamepad',
         suppress_interface=True),
     'HTMLAllCollection': TypeData(clazz='Interface', item_type='Node'),
@@ -1122,12 +1150,6 @@ _idl_type_registry = {
     'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),
     'NodeList': TypeData(clazz='Interface', item_type='Node',
                          suppress_interface=False, dart_type='List<Node>'),
-    'SVGAnimatedLengthList': TypeData(clazz='Interface',
-        item_type='SVGAnimatedLength'),
-    'SVGAnimatedNumberList': TypeData(clazz='Interface',
-        item_type='SVGAnimatedNumber'),
-    'SVGAnimatedTransformList': TypeData(clazz='Interface',
-        item_type='SVGAnimateTransformElement'),
     'SVGElementInstanceList': TypeData(clazz='Interface',
         item_type='SVGElementInstance', suppress_interface=True),
     'SourceBufferList': TypeData(clazz='Interface', item_type='SourceBuffer'),
@@ -1207,7 +1229,8 @@ class TypeRegistry(object):
     if not type_name in _idl_type_registry:
       interface = self._database.GetInterface(type_name)
       if 'Callback' in interface.ext_attrs:
-        return CallbackIDLTypeInfo(type_name, TypeData('Callback'))
+        return CallbackIDLTypeInfo(type_name, TypeData('Callback',
+            self._renamer.DartifyTypeName(type_name)))
       return InterfaceIDLTypeInfo(
           type_name,
           TypeData('Interface'),

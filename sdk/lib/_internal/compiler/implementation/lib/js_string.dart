@@ -50,17 +50,17 @@ class JSString implements String {
   List<String> split(Pattern pattern) {
     checkNull(pattern);
     if (pattern is String) {
-      return JS('JSArray', r'#.split(#)', this, pattern);
+      return JS('=List', r'#.split(#)', this, pattern);
     } else if (pattern is JSSyntaxRegExp) {
       var re = regExpGetNative(pattern);
-      return JS('JSArray', r'#.split(#)', this, re);
+      return JS('=List', r'#.split(#)', this, re);
     } else {
       throw "String.split(Pattern) UNIMPLEMENTED";
     }
   }
 
   List<String> splitChars() {
-    return JS('JSArray', r'#.split("")', this);
+    return JS('=List', r'#.split("")', this);
   }
 
   bool startsWith(String other) {

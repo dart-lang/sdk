@@ -1,481 +1,9 @@
 {
-"MenuElement.dart":
+"AbstractWorker.dart":
   {
-  "class MenuElement extends Element implements Element native \"*HTMLMenuElement\" {":
-    [
-      "/**",
-      " * An HTML <menu> element.",
-      " *",
-      " * A <menu> element represents an unordered list of menu commands.",
-      " *",
-      " * See also:",
-      " *",
-      " *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.",
-      " *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.",
-      " */"
-    ]
-  },
-"RTCIceCandidateEvent.dart":
-  {
-
-  },
-"BRElement.dart":
-  {
-
-  },
-"NavigatorUserMediaError.dart":
-  {
-
-  },
-"WorkerContext.dart":
-  {
-
-  },
-"TextTrackCue.dart":
-  {
-
-  },
-"DOMParser.dart":
-  {
-
-  },
-"EntryCallback.dart":
-  {
-
-  },
-"SQLTransactionSync.dart":
-  {
-
-  },
-"ProgressElement.dart":
-  {
-
-  },
-"HtmlElement.dart":
-  {
-
-  },
-"Worker.dart":
-  {
-
-  },
-"XMLSerializer.dart":
-  {
-
-  },
-"PositionErrorCallback.dart":
-  {
-
-  },
-"MapElement.dart":
-  {
-
-  },
-"Rect.dart":
-  {
-
-  },
-"SourceElement.dart":
-  {
-
-  },
-"FileWriter.dart":
-  {
-
-  },
-"CSSMatrix.dart":
-  {
-
-  },
-"Metadata.dart":
-  {
-
-  },
-"StorageInfoUsageCallback.dart":
-  {
-
-  },
-"WebGLDebugShaders.dart":
-  {
-
-  },
-"WebGLShaderPrecisionFormat.dart":
-  {
-
-  },
-"NodeFilter.dart":
-  {
-
-  },
-"Float64Array.dart":
-  {
-
-  },
-"BodyElement.dart":
-  {
-
-  },
-"OESElementIndexUint.dart":
-  {
-
-  },
-"WebGLLoseContext.dart":
-  {
-
-  },
-"TableElement.dart":
-  {
-
-  },
-"ScriptElement.dart":
-  {
-
-  },
-"WebGLCompressedTextureS3TC.dart":
-  {
-
-  },
-"CharacterData.dart":
-  {
-
-  },
-"OESStandardDerivatives.dart":
-  {
-
-  },
-"IDBUpgradeNeededEvent.dart":
-  {
-
-  },
-"RTCIceCandidate.dart":
-  {
-
-  },
-"IDBKeyRange.dart":
-  {
-
-  },
-"XPathException.dart":
-  {
-
-  },
-"MediaError.dart":
-  {
-
-  },
-"SQLException.dart":
-  {
-
-  },
-"WorkerLocation.dart":
-  {
-
-  },
-"ClientRect.dart":
-  {
-
-  },
-"MediaController.dart":
-  {
-
-  },
-"CustomEvent.dart":
-  {
-
-  },
-"IDBVersionChangeEvent.dart":
-  {
-
-  },
-"StorageEvent.dart":
-  {
-
-  },
-"EntityReference.dart":
-  {
-
-  },
-"FileException.dart":
-  {
-
-  },
-"Notation.dart":
-  {
-
-  },
-"HTMLCollection.dart":
-  {
-
-  },
-"Int8Array.dart":
-  {
-
-  },
-"BaseFontElement.dart":
-  {
-
-  },
-"CSSPageRule.dart":
-  {
-
-  },
-"FileEntry.dart":
-  {
-
-  },
-"UListElement.dart":
-  {
-
-  },
-"HRElement.dart":
-  {
-
-  },
-"LocalHistory.dart":
-  {
-
-  },
-"WebGLRenderbuffer.dart":
-  {
-
-  },
-"StorageInfoErrorCallback.dart":
-  {
-
-  },
-"TimeRanges.dart":
-  {
-
-  },
-"CanvasRenderingContext.dart":
-  {
-
-  },
-"IDBOpenDBRequest.dart":
-  {
-
-  },
-"TableSectionElement.dart":
-  {
-
-  },
-"Point.dart":
-  {
-
-  },
-"OESTextureFloat.dart":
-  {
-
-  },
-"Uint8ClampedArray.dart":
-  {
-
-  },
-"TransitionEvent.dart":
-  {
-
-  },
-"WebGLActiveInfo.dart":
-  {
-
-  },
-"SharedWorkerContext.dart":
-  {
-
-  },
-"HttpRequestProgressEvent.dart":
-  {
-
-  },
-"Comment.dart":
-  {
-
-  },
-"BaseElement.dart":
-  {
-
-  },
-"CloseEvent.dart":
-  {
-
-  },
-"DOMPluginArray.dart":
-  {
-
-  },
-"PopStateEvent.dart":
-  {
-
-  },
-"RGBColor.dart":
-  {
-
-  },
-"DOMSettableTokenList.dart":
-  {
-
-  },
-"Geolocation.dart":
-  {
-
-  },
-"DataTransferItem.dart":
-  {
-
-  },
-"DOMError.dart":
-  {
-
-  },
-"FormData.dart":
-  {
-
-  },
-"SQLTransactionErrorCallback.dart":
-  {
-
-  },
-"OverflowEvent.dart":
-  {
-
-  },
-"AnimationEvent.dart":
-  {
-
-  },
-"FontElement.dart":
-  {
-
-  },
-"ScriptProfileNode.dart":
-  {
-
-  },
-"SpeechRecognition.dart":
-  {
-
-  },
-"WebGLContextEvent.dart":
-  {
-
-  },
-"SpeechRecognitionEvent.dart":
-  {
-
-  },
-"RadioNodeList.dart":
-  {
-
-  },
-"BatteryManager.dart":
-  {
-
-  },
-"SelectElement.dart":
-  {
-
-  },
-"EventException.dart":
-  {
-
-  },
-"DOMImplementation.dart":
-  {
-
-  },
-"WebGLFramebuffer.dart":
-  {
-
-  },
-"Navigator.dart":
-  {
-
-  },
-"WebGLShader.dart":
-  {
-
-  },
-"IceCandidate.dart":
-  {
-
-  },
-"WebSocket.dart":
-  {
-
-  },
-"RequestAnimationFrameCallback.dart":
-  {
-
-  },
-"RTCStatsElement.dart":
-  {
-
-  },
-"HeadElement.dart":
-  {
-
-  },
-"CanvasRenderingContext2D.dart":
-  {
-
-  },
-"IDBKey.dart":
-  {
-
-  },
-"ElementTraversal.dart":
-  {
-
-  },
-"Float32Array.dart":
-  {
-
-  },
-"RTCSessionDescription.dart":
-  {
-
-  },
-"DOMTokenList.dart":
-  {
-
-  },
-"RTCStatsCallback.dart":
-  {
-
-  },
-"FrameSetElement.dart":
-  {
-
-  },
-"IDBIndex.dart":
-  {
-
-  },
-"EventSource.dart":
-  {
-
-  },
-"MediaStreamAudioSourceNode.dart":
-  {
-
-  },
-"DeviceOrientationEvent.dart":
-  {
-
-  },
-"DOMFileSystem.dart":
-  {
-
-  },
-"SpeechInputResult.dart":
-  {
-
-  },
-"DataView.dart":
-  {
 
   },
-"LocalLocation.dart":
+"AnalyserNode.dart":
   {
 
   },
@@ -483,103 +11,11 @@
   {
 
   },
-"HtmlDocument.dart":
+"Animation.dart":
   {
 
   },
-"ImageData.dart":
-  {
-
-  },
-"PageTransitionEvent.dart":
-  {
-
-  },
-"AudioGain.dart":
-  {
-
-  },
-"PannerNode.dart":
-  {
-
-  },
-"UIEvent.dart":
-  {
-
-  },
-"SourceBuffer.dart":
-  {
-
-  },
-"CSSPrimitiveValue.dart":
-  {
-
-  },
-"MediaQueryList.dart":
-  {
-
-  },
-"TableCellElement.dart":
-  {
-
-  },
-"ScriptProcessorNode.dart":
-  {
-
-  },
-"ShadowRoot.dart":
-  {
-
-  },
-"MeterElement.dart":
-  {
-
-  },
-"WebKitNamedFlow.dart":
-  {
-
-  },
-"HashChangeEvent.dart":
-  {
-
-  },
-"WebGLBuffer.dart":
-  {
-
-  },
-"TouchEvent.dart":
-  {
-
-  },
-"LegendElement.dart":
-  {
-
-  },
-"CDATASection.dart":
-  {
-
-  },
-"HttpRequestUpload.dart":
-  {
-
-  },
-"Uint8Array.dart":
-  {
-
-  },
-"StyleSheet.dart":
-  {
-
-  },
-"DataTransferItemList.dart":
-  {
-
-  },
-"RTCErrorCallback.dart":
-  {
-
-  },
-"IDBDatabase.dart":
+"AnimationEvent.dart":
   {
 
   },
@@ -587,383 +23,7 @@
   {
 
   },
-"TextTrackList.dart":
-  {
-
-  },
-"NodeIterator.dart":
-  {
-
-  },
-"DynamicsCompressorNode.dart":
-  {
-
-  },
-"TextMetrics.dart":
-  {
-
-  },
-"Database.dart":
-  {
-
-  },
-"OfflineAudioCompletionEvent.dart":
-  {
-
-  },
-"SQLTransaction.dart":
-  {
-
-  },
-"TableRowElement.dart":
-  {
-
-  },
-"MediaStream.dart":
-  {
-
-  },
-"MetadataCallback.dart":
-  {
-
-  },
-"TreeWalker.dart":
-  {
-
-  },
-"IDBTransaction.dart":
-  {
-
-  },
-"WebGLContextAttributes.dart":
-  {
-
-  },
-"FileEntrySync.dart":
-  {
-
-  },
-"ProgressEvent.dart":
-  {
-
-  },
-"OscillatorNode.dart":
-  {
-
-  },
-"CSSKeyframesRule.dart":
-  {
-
-  },
-"ConvolverNode.dart":
-  {
-
-  },
-"MouseEvent.dart":
-  {
-
-  },
-"Notification.dart":
-  {
-
-  },
-"ChannelSplitterNode.dart":
-  {
-
-  },
-"DirectoryReaderSync.dart":
-  {
-
-  },
-"MemoryInfo.dart":
-  {
-
-  },
-"CSSCharsetRule.dart":
-  {
-
-  },
-"RTCStatsResponse.dart":
-  {
-
-  },
-"SQLError.dart":
-  {
-
-  },
-"EntriesCallback.dart":
-  {
-
-  },
-"CanvasPattern.dart":
-  {
-
-  },
-"WebGLUniformLocation.dart":
-  {
-
-  },
-"NotificationCenter.dart":
-  {
-
-  },
-"WorkerNavigator.dart":
-  {
-
-  },
-"MarqueeElement.dart":
-  {
-
-  },
-"EXTTextureFilterAnisotropic.dart":
-  {
-
-  },
-"WebGLVertexArrayObjectOES.dart":
-  {
-
-  },
-"InputElement.dart":
-  {
-
-  },
-"ImageElement.dart":
-  {
-
-  },
-"WebGLDebugRendererInfo.dart":
-  {
-
-  },
-"SpeechRecognitionError.dart":
-  {
-
-  },
-"XPathResult.dart":
-  {
-
-  },
-"ErrorEvent.dart":
-  {
-
-  },
-"FileWriterCallback.dart":
-  {
-
-  },
-"ArrayBuffer.dart":
-  {
-
-  },
-"MessagePort.dart":
-  {
-
-  },
-"CSSKeyframeRule.dart":
-  {
-
-  },
-"NavigatorUserMediaErrorCallback.dart":
-  {
-
-  },
-"TextTrackCueList.dart":
-  {
-
-  },
-"PositionError.dart":
-  {
-
-  },
-"File.dart":
-  {
-
-  },
-"LinkElement.dart":
-  {
-
-  },
-"DeviceMotionEvent.dart":
-  {
-
-  },
-"KeygenElement.dart":
-  {
-
-  },
-"VoidCallback.dart":
-  {
-
-  },
-"ShadowElement.dart":
-  {
-
-  },
-"NotificationPermissionCallback.dart":
-  {
-
-  },
-"WebKitCSSFilterValue.dart":
-  {
-
-  },
-"CompositionEvent.dart":
-  {
-
-  },
-"LocalMediaStream.dart":
-  {
-
-  },
-"RTCSessionDescriptionCallback.dart":
-  {
-
-  },
-"HeadingElement.dart":
-  {
-
-  },
-"ScriptProfile.dart":
-  {
-
-  },
-"DOMMimeType.dart":
-  {
-
-  },
-"MutationObserver.dart":
-  {
-
-  },
-"MetaElement.dart":
-  {
-
-  },
-"SpeechRecognitionResult.dart":
-  {
-
-  },
-"FrameElement.dart":
-  {
-
-  },
-"TitleElement.dart":
-  {
-
-  },
-"Uint16Array.dart":
-  {
-
-  },
-"AudioBufferCallback.dart":
-  {
-
-  },
-"IDBCursorWithValue.dart":
-  {
-
-  },
-"HttpRequest.dart":
-  {
-
-  },
-"MediaStreamTrackList.dart":
-  {
-
-  },
-"MediaStreamEvent.dart":
-  {
-
-  },
-"IFrameElement.dart":
-  {
-
-  },
-"ParagraphElement.dart":
-  {
-
-  },
-"CSSRule.dart":
-  {
-
-  },
-"QuoteElement.dart":
-  {
-
-  },
-"AudioDestinationNode.dart":
-  {
-
-  },
-"DListElement.dart":
-  {
-
-  },
-"RTCDataChannelEvent.dart":
-  {
-
-  },
-"TableCaptionElement.dart":
-  {
-
-  },
-"SpanElement.dart":
-  {
-
-  },
-"DirectoryEntry.dart":
-  {
-
-  },
-"MediaStreamTrackEvent.dart":
-  {
-
-  },
-"OutputElement.dart":
-  {
-
-  },
-"WheelEvent.dart":
-  {
-
-  },
-"SpeechGrammarList.dart":
-  {
-
-  },
-"PositionCallback.dart":
-  {
-
-  },
-"BarInfo.dart":
-  {
-
-  },
-"FileWriterSync.dart":
-  {
-
-  },
-"AudioListener.dart":
-  {
-
-  },
-"SQLStatementErrorCallback.dart":
-  {
-
-  },
-"BeforeLoadEvent.dart":
-  {
-
-  },
-"CSSMediaRule.dart":
-  {
-
-  },
-"MediaStreamTrack.dart":
-  {
-
-  },
-"XPathEvaluator.dart":
+"ApplicationCache.dart":
   {
 
   },
@@ -971,103 +31,7 @@
   {
 
   },
-"Node.dart":
-  {
-
-  },
-"IDBAny.dart":
-  {
-
-  },
-"BiquadFilterNode.dart":
-  {
-
-  },
-"DOMPlugin.dart":
-  {
-
-  },
-"DatabaseSync.dart":
-  {
-
-  },
-"CSSStyleSheet.dart":
-  {
-
-  },
-"DocumentType.dart":
-  {
-
-  },
-"Uint32Array.dart":
-  {
-
-  },
-"EmbedElement.dart":
-  {
-
-  },
-"Int32Array.dart":
-  {
-
-  },
-"PerformanceNavigation.dart":
-  {
-
-  },
-"MutationCallback.dart":
-  {
-
-  },
-"WebGLRenderingContext.dart":
-  {
-
-  },
-"SpeechInputEvent.dart":
-  {
-
-  },
-"IceCallback.dart":
-  {
-
-  },
-"RangeException.dart":
-  {
-
-  },
-"DirectoryReader.dart":
-  {
-
-  },
-"UnknownElement.dart":
-  {
-
-  },
-"ErrorCallback.dart":
-  {
-
-  },
-"CanvasGradient.dart":
-  {
-
-  },
-"SQLTransactionCallback.dart":
-  {
-
-  },
-"Coordinates.dart":
-  {
-
-  },
-"JavaScriptCallFrame.dart":
-  {
-
-  },
-"StyleMedia.dart":
-  {
-
-  },
-"IDBDatabaseException.dart":
+"ArrayBuffer.dart":
   {
 
   },
@@ -1075,131 +39,43 @@
   {
 
   },
-"Console.dart":
+"Attr.dart":
   {
 
   },
-"CanvasElement.dart":
+"AudioBuffer.dart":
   {
 
   },
-"RTCDataChannel.dart":
+"AudioBufferCallback.dart":
   {
 
   },
-"Int16Array.dart":
+"AudioBufferSourceNode.dart":
   {
 
   },
-"KeyboardEvent.dart":
+"AudioContext.dart":
   {
 
   },
-"FileSystemCallback.dart":
+"AudioDestinationNode.dart":
   {
 
   },
-"StorageInfoQuotaCallback.dart":
+"AudioElement.dart":
   {
 
   },
-"Screen.dart":
+"AudioGain.dart":
   {
 
   },
-"SessionDescription.dart":
+"AudioListener.dart":
   {
 
   },
-"Range.dart":
-  {
-
-  },
-"VideoElement.dart":
-  {
-
-  },
-"DirectoryElement.dart":
-  {
-
-  },
-"ModElement.dart":
-  {
-
-  },
-"Animation.dart":
-  {
-
-  },
-"WebGLProgram.dart":
-  {
-
-  },
-"Gamepad.dart":
-  {
-
-  },
-"Clipboard.dart":
-  {
-
-  },
-"Storage.dart":
-  {
-
-  },
-"LocalWindow.dart":
-  {
-
-  },
-"MediaQueryListListener.dart":
-  {
-
-  },
-"TextAreaElement.dart":
-  {
-
-  },
-"DOMApplicationCache.dart":
-  {
-
-  },
-"ParamElement.dart":
-  {
-
-  },
-"HTMLOptionsCollection.dart":
-  {
-
-  },
-"MessageEvent.dart":
-  {
-
-  },
-"AbstractWorker.dart":
-  {
-
-  },
-"OListElement.dart":
-  {
-
-  },
-"FileReader.dart":
-  {
-
-  },
-"Blob.dart":
-  {
-
-  },
-"NamedNodeMap.dart":
-  {
-
-  },
-"DataListElement.dart":
-  {
-
-  },
-"CSSImportRule.dart":
+"AudioNode.dart":
   {
 
   },
@@ -1207,11 +83,103 @@
   {
 
   },
-"DOMException.dart":
+"AudioProcessingEvent.dart":
   {
 
   },
-"ObjectElement.dart":
+"AudioSourceNode.dart":
+  {
+
+  },
+"BRElement.dart":
+  {
+
+  },
+"BarInfo.dart":
+  {
+
+  },
+"BaseElement.dart":
+  {
+
+  },
+"BaseFontElement.dart":
+  {
+
+  },
+"BatteryManager.dart":
+  {
+
+  },
+"BeforeLoadEvent.dart":
+  {
+
+  },
+"BiquadFilterNode.dart":
+  {
+
+  },
+"Blob.dart":
+  {
+
+  },
+"BodyElement.dart":
+  {
+
+  },
+"ButtonElement.dart":
+  {
+
+  },
+"CDATASection.dart":
+  {
+
+  },
+"CDataSection.dart":
+  {
+
+  },
+"CSSCharsetRule.dart":
+  {
+
+  },
+"CSSFontFaceRule.dart":
+  {
+
+  },
+"CSSImportRule.dart":
+  {
+
+  },
+"CSSKeyframeRule.dart":
+  {
+
+  },
+"CSSKeyframesRule.dart":
+  {
+
+  },
+"CSSMatrix.dart":
+  {
+
+  },
+"CSSMediaRule.dart":
+  {
+
+  },
+"CSSPageRule.dart":
+  {
+
+  },
+"CSSPrimitiveValue.dart":
+  {
+
+  },
+"CSSRule.dart":
+  {
+
+  },
+"CSSStyleDeclaration.dart":
   {
 
   },
@@ -1219,27 +187,7 @@
   {
 
   },
-"TouchList.dart":
-  {
-
-  },
-"MediaElementAudioSourceNode.dart":
-  {
-
-  },
-"CSSValue.dart":
-  {
-
-  },
-"Geoposition.dart":
-  {
-
-  },
-"MediaKeyEvent.dart":
-  {
-
-  },
-"MutationRecord.dart":
+"CSSStyleSheet.dart":
   {
 
   },
@@ -1247,11 +195,287 @@
   {
 
   },
-"FileError.dart":
+"CSSUnknownRule.dart":
   {
 
   },
-"Performance.dart":
+"CSSValue.dart":
+  {
+
+  },
+"CanvasElement.dart":
+  {
+
+  },
+"CanvasGradient.dart":
+  {
+
+  },
+"CanvasPattern.dart":
+  {
+
+  },
+"CanvasRenderingContext.dart":
+  {
+
+  },
+"CanvasRenderingContext2D.dart":
+  {
+
+  },
+"ChannelMergerNode.dart":
+  {
+
+  },
+"ChannelSplitterNode.dart":
+  {
+
+  },
+"CharacterData.dart":
+  {
+
+  },
+"ClientRect.dart":
+  {
+
+  },
+"Clipboard.dart":
+  {
+
+  },
+"CloseEvent.dart":
+  {
+
+  },
+"Comment.dart":
+  {
+
+  },
+"CompositionEvent.dart":
+  {
+
+  },
+"Console.dart":
+  {
+
+  },
+"ContentElement.dart":
+  {
+
+  },
+"ConvolverNode.dart":
+  {
+
+  },
+"Coordinates.dart":
+  {
+
+  },
+"Counter.dart":
+  {
+
+  },
+"Crypto.dart":
+  {
+
+  },
+"CssCharsetRule.dart":
+  {
+
+  },
+"CssFontFaceRule.dart":
+  {
+
+  },
+"CssImportRule.dart":
+  {
+
+  },
+"CssKeyframeRule.dart":
+  {
+
+  },
+"CssKeyframesRule.dart":
+  {
+
+  },
+"CssMatrix.dart":
+  {
+
+  },
+"CssMediaRule.dart":
+  {
+
+  },
+"CssPageRule.dart":
+  {
+
+  },
+"CssPrimitiveValue.dart":
+  {
+
+  },
+"CssRule.dart":
+  {
+
+  },
+"CssStyleDeclaration.dart":
+  {
+
+  },
+"CssStyleRule.dart":
+  {
+
+  },
+"CssStyleSheet.dart":
+  {
+
+  },
+"CssTransformValue.dart":
+  {
+
+  },
+"CssUnknownRule.dart":
+  {
+
+  },
+"CssValue.dart":
+  {
+
+  },
+"CustomEvent.dart":
+  {
+
+  },
+"DListElement.dart":
+  {
+
+  },
+"DOMApplicationCache.dart":
+  {
+
+  },
+"DOMError.dart":
+  {
+
+  },
+"DOMException.dart":
+  {
+
+  },
+"DOMFileSystem.dart":
+  {
+
+  },
+"DOMFileSystemSync.dart":
+  {
+
+  },
+"DOMImplementation.dart":
+  {
+
+  },
+"DOMMimeType.dart":
+  {
+
+  },
+"DOMMimeTypeArray.dart":
+  {
+
+  },
+"DOMParser.dart":
+  {
+
+  },
+"DOMPlugin.dart":
+  {
+
+  },
+"DOMPluginArray.dart":
+  {
+
+  },
+"DOMSelection.dart":
+  {
+
+  },
+"DOMSettableTokenList.dart":
+  {
+
+  },
+"DOMStringMap.dart":
+  {
+
+  },
+"DOMTokenList.dart":
+  {
+
+  },
+"DataListElement.dart":
+  {
+
+  },
+"DataTransferItem.dart":
+  {
+
+  },
+"DataTransferItemList.dart":
+  {
+
+  },
+"DataView.dart":
+  {
+
+  },
+"Database.dart":
+  {
+
+  },
+"DatabaseCallback.dart":
+  {
+
+  },
+"DatabaseSync.dart":
+  {
+
+  },
+"DedicatedWorkerContext.dart":
+  {
+
+  },
+"DelayNode.dart":
+  {
+
+  },
+"DetailsElement.dart":
+  {
+
+  },
+"DeviceMotionEvent.dart":
+  {
+
+  },
+"DeviceOrientationEvent.dart":
+  {
+
+  },
+"DirectoryElement.dart":
+  {
+
+  },
+"DirectoryEntry.dart":
+  {
+
+  },
+"DirectoryEntrySync.dart":
+  {
+
+  },
+"DirectoryReader.dart":
+  {
+
+  },
+"DirectoryReaderSync.dart":
   {
 
   },
@@ -1282,219 +506,170 @@
       " */"
     ]
   },
-"AnalyserNode.dart":
-  {
-
-  },
-"AudioBuffer.dart":
-  {
-
-  },
-"SQLTransactionSyncCallback.dart":
-  {
-
-  },
-"StorageInfo.dart":
-  {
-
-  },
-"GainNode.dart":
-  {
-
-  },
-"TimeoutHandler.dart":
-  {
-
-  },
-"MutationEvent.dart":
-  {
-
-  },
-"SpeechRecognitionAlternative.dart":
-  {
-
-  },
-"AudioNode.dart":
-  {
-
-  },
-"SQLResultSetRowList.dart":
-  {
-
-  },
-"ContentElement.dart":
-  {
-
-  },
-"OESVertexArrayObject.dart":
-  {
-
-  },
-"TableColElement.dart":
-  {
-
-  },
-"RTCPeerConnection.dart":
-  {
-
-  },
-"Crypto.dart":
-  {
-
-  },
-"StyleElement.dart":
-  {
-
-  },
-"TrackElement.dart":
-  {
-
-  },
-"IDBVersionChangeRequest.dart":
-  {
-
-  },
-"TextEvent.dart":
-  {
-
-  },
-"ElementTimeControl.dart":
-  {
-
-  },
-"Touch.dart":
-  {
-
-  },
-"FieldSetElement.dart":
-  {
-
-  },
-"XSLTProcessor.dart":
-  {
-
-  },
-"EventTarget.dart":
-  {
-
-  },
 "Document.dart":
   {
-
-  },
-"CSSStyleDeclaration.dart":
-  {
-
+  "  @Returns('_NodeList') @Creates('_NodeList')":
+    [
+      "  /// Deprecated: use query(\"#$elementId\") instead."
+    ],
+  "  Element $dom_createElement(String tagName) native \"createElement\";":
+    [
+      "  /// Deprecated: use new Element.tag(tagName) instead."
+    ],
+  "  Element $dom_elementFromPoint(int x, int y) native \"elementFromPoint\";":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  Element $dom_getElementById(String elementId) native \"getElementById\";":
+    [
+      "  /// Deprecated: use query(\"#$elementId\") instead."
+    ],
+  "  Element $dom_querySelector(String selectors) native \"querySelector\";":
+    [
+      "  /// Deprecated: renamed to the shorter name [query]."
+    ],
+  "  Element get $dom_webkitFullscreenElement => JS(\"Element\", \"#.webkitFullscreenElement\", this);":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  Element get $dom_webkitPointerLockElement => JS(\"Element\", \"#.webkitPointerLockElement\", this);":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  HeadElement get $dom_head => JS(\"HeadElement\", \"#.head\", this);":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  List<StyleSheet> get $dom_styleSheets => JS(\"_StyleSheetList\", \"#.styleSheets\", this);":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  Range $dom_caretRangeFromPoint(int x, int y) native \"caretRangeFromPoint\";":
+    [
+      "  /// Use the [Range] constructor instead."
+    ],
+  "  String get $dom_lastModified => JS(\"String\", \"#.lastModified\", this);":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  String get $dom_referrer => JS(\"String\", \"#.referrer\", this);":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  String get $dom_title => JS(\"String\", \"#.title\", this);":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  String get $dom_webkitVisibilityState => JS(\"String\", \"#.webkitVisibilityState\", this);":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  TouchList $dom_createTouchList() native \"createTouchList\";":
+    [
+      "  /// Use the [TouchList] constructor isntead."
+    ],
+  "  Window get window => _convertNativeToDart_Window(this._window);":
+    [
+      "  /// Returns the [Window] associated with the document."
+    ],
+  "  bool get $dom_webkitFullscreenEnabled => JS(\"bool\", \"#.webkitFullscreenEnabled\", this);":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  bool get $dom_webkitHidden => JS(\"bool\", \"#.webkitHidden\", this);":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  bool get $dom_webkitIsFullScreen => JS(\"bool\", \"#.webkitIsFullScreen\", this);":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  void $dom_webkitCancelFullScreen() native \"webkitCancelFullScreen\";":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  void $dom_webkitExitFullscreen() native \"webkitExitFullscreen\";":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  void $dom_webkitExitPointerLock() native \"webkitExitPointerLock\";":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  void set $dom_body(Element value) {":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  void set $dom_title(String value) {":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ]
   },
 "DocumentFragment.dart":
   {
 
   },
-"XPathNSResolver.dart":
+"DocumentType.dart":
   {
 
   },
-"DedicatedWorkerContext.dart":
+"DomError.dart":
   {
 
   },
-"IDBRequest.dart":
+"DomException.dart":
   {
 
   },
-"XPathExpression.dart":
+"DomImplementation.dart":
   {
 
   },
-"IDBObjectStore.dart":
+"DomMimeType.dart":
   {
 
   },
-"DelayNode.dart":
+"DomMimeTypeArray.dart":
   {
 
   },
-"SQLResultSet.dart":
+"DomParser.dart":
   {
 
   },
-"ButtonElement.dart":
+"DomPlugin.dart":
   {
 
   },
-"ValidityState.dart":
+"DomPluginArray.dart":
   {
 
   },
-"Text.dart":
+"DomSelection.dart":
   {
 
   },
-"DirectoryEntrySync.dart":
+"DomSettableTokenList.dart":
   {
 
   },
-"Url.dart":
+"DomStringList.dart":
   {
 
   },
-"CSSFontFaceRule.dart":
+"DomStringMap.dart":
   {
 
   },
-"NavigatorUserMediaSuccessCallback.dart":
+"DomTokenList.dart":
   {
 
   },
-"OptGroupElement.dart":
+"DynamicsCompressorNode.dart":
   {
 
   },
-"Entry.dart":
-  {
-
-  },
-"IDBFactory.dart":
-  {
-
-  },
-"OptionElement.dart":
-  {
-
-  },
-"AudioContext.dart":
-  {
-
-  },
-"DetailsElement.dart":
-  {
-
-  },
-"DOMSelection.dart":
-  {
-
-  },
-"LabelElement.dart":
-  {
-
-  },
-"CSSUnknownRule.dart":
-  {
-
-  },
-"ProcessingInstruction.dart":
-  {
-
-  },
-"HTMLAllCollection.dart":
-  {
-
-  },
-"TrackEvent.dart":
-  {
-
-  },
-"SharedWorker.dart":
+"EXTTextureFilterAnisotropic.dart":
   {
 
   },
@@ -1502,139 +677,31 @@
   {
 
   },
-"MediaSource.dart":
+"ElementTimeControl.dart":
   {
 
   },
-"MediaList.dart":
+"ElementTraversal.dart":
   {
 
   },
-"StringCallback.dart":
+"EmbedElement.dart":
   {
 
   },
-"DOMFileSystemSync.dart":
+"EntityReference.dart":
   {
 
   },
-"DOMStringMap.dart":
+"EntriesCallback.dart":
   {
 
   },
-"AudioProcessingEvent.dart":
+"Entry.dart":
   {
 
   },
-"Attr.dart":
-  {
-
-  },
-"ChannelMergerNode.dart":
-  {
-
-  },
-"IDBCursor.dart":
-  {
-
-  },
-"MessageChannel.dart":
-  {
-
-  },
-"FileCallback.dart":
-  {
-
-  },
-"PerformanceTiming.dart":
-  {
-
-  },
-"SourceBufferList.dart":
-  {
-
-  },
-"AudioElement.dart":
-  {
-
-  },
-"Event.dart":
-  {
-
-  },
-"FileReaderSync.dart":
-  {
-
-  },
-"TextTrack.dart":
-  {
-
-  },
-"Counter.dart":
-  {
-
-  },
-"MediaElement.dart":
-  {
-
-  },
-"DOMMimeTypeArray.dart":
-  {
-
-  },
-"PreElement.dart":
-  {
-
-  },
-"WebGLDepthTexture.dart":
-  {
-
-  },
-"FormElement.dart":
-  {
-
-  },
-"HttpRequestException.dart":
-  {
-
-  },
-"PeerConnection00.dart":
-  {
-
-  },
-"PagePopupController.dart":
-  {
-
-  },
-"LIElement.dart":
-  {
-
-  },
-"AudioBufferSourceNode.dart":
-  {
-
-  },
-"AudioSourceNode.dart":
-  {
-
-  },
-"RTCStatsReport.dart":
-  {
-
-  },
-"SQLStatementCallback.dart":
-  {
-
-  },
-"WaveTable.dart":
-  {
-
-  },
-"DatabaseCallback.dart":
-  {
-
-  },
-"WebGLTexture.dart":
+"EntryCallback.dart":
   {
 
   },
@@ -1642,7 +709,1294 @@
   {
 
   },
+"ErrorCallback.dart":
+  {
+
+  },
+"ErrorEvent.dart":
+  {
+
+  },
+"Event.dart":
+  {
+
+  },
+"EventException.dart":
+  {
+
+  },
+"EventSource.dart":
+  {
+
+  },
+"EventTarget.dart":
+  {
+
+  },
+"ExtTextureFilterAnisotropic.dart":
+  {
+
+  },
+"FieldSetElement.dart":
+  {
+
+  },
+"File.dart":
+  {
+
+  },
+"FileCallback.dart":
+  {
+
+  },
+"FileEntry.dart":
+  {
+
+  },
+"FileEntrySync.dart":
+  {
+
+  },
+"FileError.dart":
+  {
+
+  },
+"FileException.dart":
+  {
+
+  },
+"FileList.dart":
+  {
+
+  },
+"FileReader.dart":
+  {
+
+  },
+"FileReaderSync.dart":
+  {
+
+  },
+"FileSystem.dart":
+  {
+
+  },
+"FileSystemCallback.dart":
+  {
+
+  },
+"FileSystemSync.dart":
+  {
+
+  },
+"FileWriter.dart":
+  {
+
+  },
+"FileWriterCallback.dart":
+  {
+
+  },
+"FileWriterSync.dart":
+  {
+
+  },
+"Float32Array.dart":
+  {
+
+  },
+"Float64Array.dart":
+  {
+
+  },
+"FontElement.dart":
+  {
+
+  },
+"FormData.dart":
+  {
+
+  },
+"FormElement.dart":
+  {
+
+  },
+"FrameElement.dart":
+  {
+
+  },
+"FrameSetElement.dart":
+  {
+
+  },
+"GainNode.dart":
+  {
+
+  },
+"Gamepad.dart":
+  {
+
+  },
+"Geolocation.dart":
+  {
+
+  },
+"Geoposition.dart":
+  {
+
+  },
+"HRElement.dart":
+  {
+
+  },
+"HTMLAllCollection.dart":
+  {
+
+  },
+"HTMLCollection.dart":
+  {
+
+  },
+"HTMLOptionsCollection.dart":
+  {
+
+  },
+"HashChangeEvent.dart":
+  {
+
+  },
+"HeadElement.dart":
+  {
+
+  },
+"HeadingElement.dart":
+  {
+
+  },
+"HtmlAllCollection.dart":
+  {
+
+  },
+"HtmlCollection.dart":
+  {
+
+  },
+"HtmlDocument.dart":
+  {
+
+  },
+"HtmlElement.dart":
+  {
+
+  },
+"HtmlOptionsCollection.dart":
+  {
+
+  },
+"HttpRequest.dart":
+  {
+  "  @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')":
+    [
+      "  /**",
+      "   * The data received as a reponse from the request.",
+      "   *",
+      "   * The data could be in the",
+      "   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a ",
+      "   * [String]). `null` indicates request failure.",
+      "   */"
+    ],
+  "  HttpRequestEvents get on =>":
+    [
+      "  /**",
+      "   * Get the set of [HttpRequestEvents] that this request can respond to.",
+      "   * Usually used when adding an EventListener, such as in",
+      "   * `document.window.on.keyDown.add((e) => print('keydown happened'))`.",
+      "   */"
+    ],
+  "  String getAllResponseHeaders() native;":
+    [
+      "  /**",
+      "   * Retrieve all the response headers from a request.",
+      "   * ",
+      "   * `null` if no headers have been received. For multipart requests,",
+      "   * `getAllResponseHeaders` will return the response headers for the current",
+      "   * part of the request.",
+      "   * ",
+      "   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)",
+      "   * for a list of common response headers.",
+      "   */"
+    ],
+  "  String getResponseHeader(String header) native;":
+    [
+      "  /**",
+      "   * Return the response header named `header`, or `null` if not found.",
+      "   * ",
+      "   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)",
+      "   * for a list of common response headers.",
+      "   */"
+    ],
+  "  String responseType;":
+    [
+      "  /**",
+      "   * [String] telling the server the desired response format. ",
+      "   *",
+      "   * Default is `String`.",
+      "   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',",
+      "   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if",
+      "   * `responseType` is set while performing a synchronous request.",
+      "   *",
+      "   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)",
+      "   */"
+    ],
+  "  bool withCredentials;":
+    [
+      "  /**",
+      "   * True if cross-site requests should use credentials such as cookies",
+      "   * or authorization headers; false otherwise. ",
+      "   *",
+      "   * This value is ignored for same-site requests.",
+      "   */"
+    ],
+  "  factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();":
+    [
+      "  /**",
+      "   * General constructor for any type of request (GET, POST, etc).",
+      "   *",
+      "   * This call is used in conjunction with [open]:",
+      "   * ",
+      "   *     var request = new HttpRequest();",
+      "   *     request.open('GET', 'http://dartlang.org')",
+      "   *     request.on.load.add((event) => print('Request complete'));",
+      "   * ",
+      "   * is the (more verbose) equivalent of",
+      "   * ",
+      "   *     var request = new HttpRequest.get('http://dartlang.org', (event) => print('Request complete'));",
+      "   */"
+    ],
+  "  final HttpRequestUpload upload;":
+    [
+      "  /**",
+      "   * [EventTarget] that can hold listeners to track the progress of the request.",
+      "   * The events fired will be members of [HttpRequestUploadEvents].",
+      "   */"
+    ],
+  "  final String responseText;":
+    [
+      "  /**",
+      "   * The response in string form or `null` on failure.",
+      "   */"
+    ],
+  "  final String statusText;":
+    [
+      "  /**",
+      "   * The request response string (such as \"200 OK\").",
+      "   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)",
+      "   */"
+    ],
+  "  final int readyState;":
+    [
+      "  /** @domName XMLHttpRequest.readyState */"
+    ],
+  "  final int status;":
+    [
+      "  /**",
+      "   * The http result code from the request (200, 404, etc).",
+      "   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)",
+      "   */"
+    ],
+  "  void abort() native;":
+    [
+      "  /**",
+      "   * Stop the current request.",
+      "   *",
+      "   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or ",
+      "   * `LOADING`. If this method is not in the process of being sent, the method",
+      "   * has no effect.",
+      "   */"
+    ],
+  "  void open(String method, String url, [bool async, String user, String password]) native;":
+    [
+      "  /**",
+      "   * Specify the desired `url`, and `method` to use in making the request.",
+      "   * ",
+      "   * By default the request is done asyncronously, with no user or password",
+      "   * authentication information. If `async` is false, the request will be send",
+      "   * synchronously.",
+      "   * ",
+      "   * Calling `open` again on a currently active request is equivalent to",
+      "   * calling `abort`.",
+      "   */"
+    ],
+  "  void overrideMimeType(String override) native;":
+    [
+      "  /**",
+      "   * Specify a particular MIME type (such as `text/xml`) desired for the",
+      "   * response.",
+      "   * ",
+      "   * This value must be set before the request has been sent. See also the list",
+      "   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)",
+      "   */"
+    ],
+  "  void send([data]) native;":
+    [
+      "  /**",
+      "   * Send the request with any given `data`.",
+      "   *",
+      "   * See also: ",
+      "   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())",
+      "   * from MDN.",
+      "   */"
+    ],
+  "  void setRequestHeader(String header, String value) native;":
+    [
+      "  /** Sets HTTP `header` to `value`. */"
+    ]
+  },
+"HttpRequestException.dart":
+  {
+
+  },
+"HttpRequestProgressEvent.dart":
+  {
+
+  },
+"HttpRequestUpload.dart":
+  {
+
+  },
+"IDBAny.dart":
+  {
+
+  },
+"IDBCursor.dart":
+  {
+
+  },
+"IDBCursorWithValue.dart":
+  {
+
+  },
+"IDBDatabase.dart":
+  {
+
+  },
+"IDBDatabaseException.dart":
+  {
+
+  },
+"IDBFactory.dart":
+  {
+
+  },
+"IDBIndex.dart":
+  {
+
+  },
+"IDBKey.dart":
+  {
+
+  },
+"IDBKeyRange.dart":
+  {
+
+  },
+"IDBObjectStore.dart":
+  {
+
+  },
+"IDBOpenDBRequest.dart":
+  {
+
+  },
+"IDBRequest.dart":
+  {
+
+  },
+"IDBTransaction.dart":
+  {
+
+  },
+"IDBUpgradeNeededEvent.dart":
+  {
+
+  },
+"IDBVersionChangeEvent.dart":
+  {
+
+  },
+"IDBVersionChangeRequest.dart":
+  {
+
+  },
+"IFrameElement.dart":
+  {
+
+  },
+"IceCallback.dart":
+  {
+
+  },
+"IceCandidate.dart":
+  {
+
+  },
+"ImageData.dart":
+  {
+
+  },
+"ImageElement.dart":
+  {
+
+  },
+"InputElement.dart":
+  {
+
+  },
+"Int16Array.dart":
+  {
+
+  },
+"Int32Array.dart":
+  {
+
+  },
+"Int8Array.dart":
+  {
+
+  },
+"JavaScriptCallFrame.dart":
+  {
+
+  },
+"KeyboardEvent.dart":
+  {
+
+  },
+"KeygenElement.dart":
+  {
+
+  },
+"LIElement.dart":
+  {
+
+  },
+"LabelElement.dart":
+  {
+
+  },
+"LegendElement.dart":
+  {
+
+  },
+"LinkElement.dart":
+  {
+
+  },
+"LocalHistory.dart":
+  {
+
+  },
+"LocalLocation.dart":
+  {
+
+  },
+"LocalMediaStream.dart":
+  {
+
+  },
+"LocalWindow.dart":
+  {
+
+  },
+"MapElement.dart":
+  {
+
+  },
+"MarqueeElement.dart":
+  {
+
+  },
+"MediaController.dart":
+  {
+
+  },
+"MediaElement.dart":
+  {
+
+  },
+"MediaElementAudioSourceNode.dart":
+  {
+
+  },
+"MediaError.dart":
+  {
+
+  },
+"MediaKeyError.dart":
+  {
+
+  },
+"MediaKeyEvent.dart":
+  {
+
+  },
+"MediaList.dart":
+  {
+
+  },
+"MediaQueryList.dart":
+  {
+
+  },
+"MediaQueryListListener.dart":
+  {
+
+  },
+"MediaSource.dart":
+  {
+
+  },
+"MediaStream.dart":
+  {
+
+  },
+"MediaStreamAudioSourceNode.dart":
+  {
+
+  },
+"MediaStreamEvent.dart":
+  {
+
+  },
+"MediaStreamTrack.dart":
+  {
+
+  },
+"MediaStreamTrackEvent.dart":
+  {
+
+  },
+"MediaStreamTrackList.dart":
+  {
+
+  },
+"MemoryInfo.dart":
+  {
+
+  },
+"MenuElement.dart":
+  {
+  "class MenuElement extends Element implements Element native \"*HTMLMenuElement\" {":
+    [
+      "/**",
+      " * An HTML <menu> element.",
+      " *",
+      " * A <menu> element represents an unordered list of menu commands.",
+      " *",
+      " * See also:",
+      " *",
+      " *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.",
+      " *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.",
+      " */"
+    ]
+  },
+"MessageChannel.dart":
+  {
+
+  },
+"MessageEvent.dart":
+  {
+
+  },
+"MessagePort.dart":
+  {
+
+  },
+"MetaElement.dart":
+  {
+
+  },
+"Metadata.dart":
+  {
+
+  },
+"MetadataCallback.dart":
+  {
+
+  },
+"MeterElement.dart":
+  {
+
+  },
+"ModElement.dart":
+  {
+
+  },
+"MouseEvent.dart":
+  {
+
+  },
+"MutationCallback.dart":
+  {
+
+  },
+"MutationEvent.dart":
+  {
+
+  },
+"MutationObserver.dart":
+  {
+
+  },
+"MutationRecord.dart":
+  {
+
+  },
+"NamedNodeMap.dart":
+  {
+
+  },
+"Navigator.dart":
+  {
+
+  },
+"NavigatorUserMediaError.dart":
+  {
+
+  },
+"NavigatorUserMediaErrorCallback.dart":
+  {
+
+  },
+"NavigatorUserMediaSuccessCallback.dart":
+  {
+
+  },
+"Node.dart":
+  {
+
+  },
+"NodeFilter.dart":
+  {
+
+  },
+"NodeIterator.dart":
+  {
+
+  },
+"NodeList.dart":
+  {
+
+  },
+"Notation.dart":
+  {
+
+  },
+"Notification.dart":
+  {
+
+  },
+"NotificationCenter.dart":
+  {
+
+  },
+"NotificationPermissionCallback.dart":
+  {
+
+  },
+"OESElementIndexUint.dart":
+  {
+
+  },
+"OESStandardDerivatives.dart":
+  {
+
+  },
+"OESTextureFloat.dart":
+  {
+
+  },
+"OESVertexArrayObject.dart":
+  {
+
+  },
+"OListElement.dart":
+  {
+
+  },
+"ObjectElement.dart":
+  {
+
+  },
+"OesElementIndexUint.dart":
+  {
+
+  },
+"OesStandardDerivatives.dart":
+  {
+
+  },
+"OesTextureFloat.dart":
+  {
+
+  },
+"OesVertexArrayObject.dart":
+  {
+
+  },
+"OfflineAudioCompletionEvent.dart":
+  {
+
+  },
+"OptGroupElement.dart":
+  {
+
+  },
+"OptionElement.dart":
+  {
+
+  },
+"OscillatorNode.dart":
+  {
+
+  },
+"OutputElement.dart":
+  {
+
+  },
+"OverflowEvent.dart":
+  {
+
+  },
+"PagePopupController.dart":
+  {
+
+  },
+"PageTransitionEvent.dart":
+  {
+
+  },
+"PannerNode.dart":
+  {
+
+  },
+"ParagraphElement.dart":
+  {
+
+  },
+"ParamElement.dart":
+  {
+
+  },
+"PeerConnection00.dart":
+  {
+
+  },
+"Performance.dart":
+  {
+
+  },
+"PerformanceNavigation.dart":
+  {
+
+  },
+"PerformanceTiming.dart":
+  {
+
+  },
+"Point.dart":
+  {
+
+  },
+"PopStateEvent.dart":
+  {
+
+  },
+"PositionCallback.dart":
+  {
+
+  },
+"PositionError.dart":
+  {
+
+  },
+"PositionErrorCallback.dart":
+  {
+
+  },
+"PreElement.dart":
+  {
+
+  },
+"ProcessingInstruction.dart":
+  {
+
+  },
+"ProgressElement.dart":
+  {
+
+  },
+"ProgressEvent.dart":
+  {
+
+  },
+"QuoteElement.dart":
+  {
+
+  },
+"RGBColor.dart":
+  {
+
+  },
+"RTCDataChannel.dart":
+  {
+
+  },
+"RTCDataChannelEvent.dart":
+  {
+
+  },
+"RTCErrorCallback.dart":
+  {
+
+  },
+"RTCIceCandidate.dart":
+  {
+
+  },
+"RTCIceCandidateEvent.dart":
+  {
+
+  },
+"RTCPeerConnection.dart":
+  {
+
+  },
+"RTCSessionDescription.dart":
+  {
+
+  },
+"RTCSessionDescriptionCallback.dart":
+  {
+
+  },
+"RTCStatsCallback.dart":
+  {
+
+  },
+"RTCStatsElement.dart":
+  {
+
+  },
+"RTCStatsReport.dart":
+  {
+
+  },
+"RTCStatsResponse.dart":
+  {
+
+  },
+"RadioNodeList.dart":
+  {
+
+  },
+"Range.dart":
+  {
+
+  },
+"RangeException.dart":
+  {
+
+  },
+"Rect.dart":
+  {
+
+  },
+"RequestAnimationFrameCallback.dart":
+  {
+
+  },
+"RgbColor.dart":
+  {
+
+  },
+"RtcDataChannel.dart":
+  {
+
+  },
+"RtcDataChannelEvent.dart":
+  {
+
+  },
+"RtcIceCandidate.dart":
+  {
+
+  },
+"RtcIceCandidateEvent.dart":
+  {
+
+  },
+"RtcPeerConnection.dart":
+  {
+
+  },
+"RtcSessionDescription.dart":
+  {
+
+  },
+"RtcStatsElement.dart":
+  {
+
+  },
+"RtcStatsReport.dart":
+  {
+
+  },
+"RtcStatsResponse.dart":
+  {
+
+  },
+"SQLError.dart":
+  {
+
+  },
+"SQLException.dart":
+  {
+
+  },
+"SQLResultSet.dart":
+  {
+
+  },
+"SQLResultSetRowList.dart":
+  {
+
+  },
+"SQLStatementCallback.dart":
+  {
+
+  },
+"SQLStatementErrorCallback.dart":
+  {
+
+  },
+"SQLTransaction.dart":
+  {
+
+  },
+"SQLTransactionCallback.dart":
+  {
+
+  },
+"SQLTransactionErrorCallback.dart":
+  {
+
+  },
+"SQLTransactionSync.dart":
+  {
+
+  },
+"SQLTransactionSyncCallback.dart":
+  {
+
+  },
+"Screen.dart":
+  {
+
+  },
+"ScriptElement.dart":
+  {
+
+  },
+"ScriptProcessorNode.dart":
+  {
+
+  },
+"ScriptProfile.dart":
+  {
+
+  },
+"ScriptProfileNode.dart":
+  {
+
+  },
+"SelectElement.dart":
+  {
+
+  },
+"SessionDescription.dart":
+  {
+
+  },
+"ShadowElement.dart":
+  {
+
+  },
+"ShadowRoot.dart":
+  {
+
+  },
+"SharedWorker.dart":
+  {
+
+  },
+"SharedWorkerContext.dart":
+  {
+
+  },
+"SourceBuffer.dart":
+  {
+
+  },
+"SourceBufferList.dart":
+  {
+
+  },
+"SourceElement.dart":
+  {
+
+  },
+"SpanElement.dart":
+  {
+
+  },
 "SpeechGrammar.dart":
+  {
+
+  },
+"SpeechGrammarList.dart":
+  {
+
+  },
+"SpeechInputEvent.dart":
+  {
+
+  },
+"SpeechInputResult.dart":
+  {
+
+  },
+"SpeechRecognition.dart":
+  {
+
+  },
+"SpeechRecognitionAlternative.dart":
+  {
+
+  },
+"SpeechRecognitionError.dart":
+  {
+
+  },
+"SpeechRecognitionEvent.dart":
+  {
+
+  },
+"SpeechRecognitionResult.dart":
+  {
+
+  },
+"SqlError.dart":
+  {
+
+  },
+"SqlException.dart":
+  {
+
+  },
+"SqlResultSet.dart":
+  {
+
+  },
+"SqlResultSetRowList.dart":
+  {
+
+  },
+"SqlTransaction.dart":
+  {
+
+  },
+"SqlTransactionSync.dart":
+  {
+
+  },
+"Storage.dart":
+  {
+
+  },
+"StorageEvent.dart":
+  {
+
+  },
+"StorageInfo.dart":
+  {
+
+  },
+"StorageInfoErrorCallback.dart":
+  {
+
+  },
+"StorageInfoQuotaCallback.dart":
+  {
+
+  },
+"StorageInfoUsageCallback.dart":
+  {
+
+  },
+"StringCallback.dart":
+  {
+
+  },
+"StyleElement.dart":
+  {
+
+  },
+"StyleMedia.dart":
+  {
+
+  },
+"StyleSheet.dart":
+  {
+
+  },
+"TableCaptionElement.dart":
+  {
+
+  },
+"TableCellElement.dart":
+  {
+
+  },
+"TableColElement.dart":
+  {
+
+  },
+"TableElement.dart":
+  {
+
+  },
+"TableRowElement.dart":
+  {
+
+  },
+"TableSectionElement.dart":
+  {
+
+  },
+"Text.dart":
+  {
+
+  },
+"TextAreaElement.dart":
+  {
+
+  },
+"TextEvent.dart":
+  {
+
+  },
+"TextMetrics.dart":
+  {
+
+  },
+"TextTrack.dart":
+  {
+
+  },
+"TextTrackCue.dart":
+  {
+
+  },
+"TextTrackCueList.dart":
+  {
+
+  },
+"TextTrackList.dart":
+  {
+
+  },
+"TimeRanges.dart":
+  {
+
+  },
+"TimeoutHandler.dart":
+  {
+
+  },
+"TitleElement.dart":
+  {
+
+  },
+"Touch.dart":
+  {
+
+  },
+"TouchEvent.dart":
+  {
+
+  },
+"TouchList.dart":
+  {
+
+  },
+"TrackElement.dart":
+  {
+
+  },
+"TrackEvent.dart":
+  {
+
+  },
+"TransitionEvent.dart":
+  {
+
+  },
+"TreeWalker.dart":
+  {
+
+  },
+"UIEvent.dart":
+  {
+
+  },
+"UListElement.dart":
+  {
+
+  },
+"Uint16Array.dart":
+  {
+
+  },
+"Uint32Array.dart":
+  {
+
+  },
+"Uint8Array.dart":
+  {
+
+  },
+"Uint8ClampedArray.dart":
+  {
+
+  },
+"UnknownElement.dart":
+  {
+
+  },
+"Url.dart":
+  {
+
+  },
+"ValidityState.dart":
+  {
+
+  },
+"VideoElement.dart":
+  {
+
+  },
+"VoidCallback.dart":
   {
 
   },
@@ -1650,7 +2004,155 @@
   {
 
   },
-"MediaKeyError.dart":
+"WaveTable.dart":
+  {
+
+  },
+"WebGLActiveInfo.dart":
+  {
+
+  },
+"WebGLBuffer.dart":
+  {
+
+  },
+"WebGLCompressedTextureS3TC.dart":
+  {
+
+  },
+"WebGLContextAttributes.dart":
+  {
+
+  },
+"WebGLContextEvent.dart":
+  {
+
+  },
+"WebGLDebugRendererInfo.dart":
+  {
+
+  },
+"WebGLDebugShaders.dart":
+  {
+
+  },
+"WebGLDepthTexture.dart":
+  {
+
+  },
+"WebGLFramebuffer.dart":
+  {
+
+  },
+"WebGLLoseContext.dart":
+  {
+
+  },
+"WebGLProgram.dart":
+  {
+
+  },
+"WebGLRenderbuffer.dart":
+  {
+
+  },
+"WebGLRenderingContext.dart":
+  {
+
+  },
+"WebGLShader.dart":
+  {
+
+  },
+"WebGLShaderPrecisionFormat.dart":
+  {
+
+  },
+"WebGLTexture.dart":
+  {
+
+  },
+"WebGLUniformLocation.dart":
+  {
+
+  },
+"WebGLVertexArrayObject.dart":
+  {
+
+  },
+"WebGLVertexArrayObjectOES.dart":
+  {
+
+  },
+"WebKitCSSFilterValue.dart":
+  {
+
+  },
+"WebKitCssFilterValue.dart":
+  {
+
+  },
+"WebKitNamedFlow.dart":
+  {
+
+  },
+"WebSocket.dart":
+  {
+
+  },
+"WheelEvent.dart":
+  {
+
+  },
+"Worker.dart":
+  {
+
+  },
+"WorkerContext.dart":
+  {
+
+  },
+"WorkerLocation.dart":
+  {
+
+  },
+"WorkerNavigator.dart":
+  {
+
+  },
+"XMLSerializer.dart":
+  {
+
+  },
+"XPathEvaluator.dart":
+  {
+
+  },
+"XPathException.dart":
+  {
+
+  },
+"XPathExpression.dart":
+  {
+
+  },
+"XPathNSResolver.dart":
+  {
+
+  },
+"XPathResult.dart":
+  {
+
+  },
+"XSLTProcessor.dart":
+  {
+
+  },
+"XmlSerializer.dart":
+  {
+
+  },
+"XsltProcessor.dart":
   {
 
   }

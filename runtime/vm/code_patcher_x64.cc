@@ -8,6 +8,7 @@
 #include "vm/assembler.h"
 #include "vm/code_patcher.h"
 #include "vm/cpu.h"
+#include "vm/dart_entry.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -50,38 +51,15 @@ class DartCallPattern : public ValueObject {
     CPU::FlushICache(start_ + 20, 2 + 8);
   }
 
-  uint64_t immediate_one() const {
-    return *reinterpret_cast<uint64_t*>(start_ + 0 + 2);
+  RawObject* immediate_one() const {
+    return *reinterpret_cast<RawObject**>(start_ + 0 + 2);
   }
 
-  void set_immediate_one(uint64_t value) {
-    uint64_t* target_addr = reinterpret_cast<uint64_t*>(start_ + 0 + 2);
-    *target_addr = value;
-    CPU::FlushICache(start_ + 0, 2 + 8);
+  RawObject* immediate_two() const {
+    return *reinterpret_cast<RawObject**>(start_ + 10 + 2);
   }
 
-  uint64_t immediate_two() const {
-    return *reinterpret_cast<uint64_t*>(start_ + 10 + 2);
-  }
-
-  int argument_count() const {
-    Array& args_desc = Array::Handle();
-    args_desc ^= reinterpret_cast<RawObject*>(immediate_two());
-    Smi& num_args = Smi::Handle();
-    num_args ^= args_desc.At(0);
-    return num_args.Value();
-  }
-
-  int named_argument_count() const {
-    Array& args_desc = Array::Handle();
-    args_desc ^= reinterpret_cast<RawObject*>(immediate_two());
-    Smi& num_args = Smi::Handle();
-    num_args ^= args_desc.At(0);
-    Smi& num_pos_args = Smi::Handle();
-    num_pos_args ^= args_desc.At(1);
-    return num_args.Value() - num_pos_args.Value();
-  }
-
+ private:
   uword start_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(DartCallPattern);
 };
@@ -90,7 +68,7 @@ class DartCallPattern : public ValueObject {
 // A Dart instance call passes the ic-data in RBX.
 // The expected pattern of a dart instance call:
 //  mov RBX, ic-data
-//  mov R10, argument_descriptor_array
+//  mov R10, arguments_descriptor_array
 //  mov R11, target_address
 //  call R11
 //  <- return address
@@ -99,11 +77,8 @@ class InstanceCall : public DartCallPattern {
   explicit InstanceCall(uword return_address)
       : DartCallPattern(return_address) {}
 
-  RawICData* ic_data() const {
-    ICData& ic_data = ICData::Handle();
-    ic_data ^= reinterpret_cast<RawObject*>(immediate_one());
-    return ic_data.raw();
-  }
+  RawObject* ic_data() const { return immediate_one(); }
+  RawObject* arguments_descriptor() const { return immediate_two(); }
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
@@ -111,7 +86,7 @@ class InstanceCall : public DartCallPattern {
 
 
 // The expected pattern of a dart static call:
-//  mov R10, argument_descriptor_array (10 bytes)
+//  mov R10, arguments_descriptor_array (10 bytes)
 //  mov R11, target_address (10 bytes)
 //  call R11  (3 bytes)
 //  <- return address
@@ -237,28 +212,17 @@ bool CodePatcher::IsDartCall(uword return_address) {
 }
 
 
-void CodePatcher::GetInstanceCallAt(uword return_address,
-                                    String* function_name,
-                                    int* num_arguments,
-                                    int* num_named_arguments,
-                                    uword* target) {
-  ASSERT(num_arguments != NULL);
-  ASSERT(num_named_arguments != NULL);
-  ASSERT(target != NULL);
+uword CodePatcher::GetInstanceCallAt(uword return_address,
+                                     ICData* ic_data,
+                                     Array* arguments_descriptor) {
   InstanceCall call(return_address);
-  *num_arguments = call.argument_count();
-  *num_named_arguments = call.named_argument_count();
-  *target = call.target();
-  const ICData& ic_data = ICData::Handle(call.ic_data());
-  if (function_name != NULL) {
-    *function_name = ic_data.target_name();
+  if (ic_data != NULL) {
+    *ic_data ^= call.ic_data();
   }
-}
-
-
-RawICData* CodePatcher::GetInstanceCallIcDataAt(uword return_address) {
-  InstanceCall call(return_address);
-  return call.ic_data();
+  if (arguments_descriptor != NULL) {
+    *arguments_descriptor ^= call.arguments_descriptor();
+  }
+  return call.target();
 }
 
 

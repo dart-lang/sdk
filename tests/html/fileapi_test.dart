@@ -9,13 +9,13 @@ void fail(message) {
   });
 }
 
-DOMFileSystem fs;
+FileSystem fs;
 
 main() {
   useHtmlConfiguration();
   test('getFileSystem', () {
     window.webkitRequestFileSystem(LocalWindow.TEMPORARY, 100, expectAsync1(
-      (DOMFileSystem fileSystem) {
+      (FileSystem fileSystem) {
         fs = fileSystem;
       }),
       (e) {

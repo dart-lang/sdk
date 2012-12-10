@@ -57,6 +57,16 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   class JSNumber {
   }
+  class JSInt {
+  }
+  class JSDouble {
+  }
+  class JSNull {
+  }
+  class JSBool {
+  }
+  class JSFunction {
+  }
   class ObjectInterceptor {
   }
   getInterceptor(x) {}''';
@@ -71,8 +81,8 @@ const String DEFAULT_CORELIB = r'''
   class Object {}
   class Type {}
   class Function {}
-  class List {}
-  abstract class Map {}
+  class List<T> {}
+  abstract class Map<K,V> {}
   class Closure {}
   class Null {}
   class Dynamic_ {}

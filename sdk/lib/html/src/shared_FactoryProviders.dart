@@ -36,15 +36,15 @@ class _MouseEventFactoryProvider {
   }
 }
 
-class _CSSStyleDeclarationFactoryProvider {
-  static CSSStyleDeclaration createCSSStyleDeclaration_css(String css) {
+class _CssStyleDeclarationFactoryProvider {
+  static CssStyleDeclaration createCssStyleDeclaration_css(String css) {
     final style = new Element.tag('div').style;
     style.cssText = css;
     return style;
   }
 
-  static CSSStyleDeclaration createCSSStyleDeclaration() {
-    return new CSSStyleDeclaration.css('');
+  static CssStyleDeclaration createCssStyleDeclaration() {
+    return new CssStyleDeclaration.css('');
   }
 }
 
@@ -73,7 +73,7 @@ class _DocumentFragmentFactoryProvider {
 
   static DocumentFragment createDocumentFragment_svg(String svgContent) {
     final fragment = new DocumentFragment();
-    final e = new svg.SVGSVGElement();
+    final e = new svg.SvgSvgElement();
     e.innerHtml = svgContent;
 
     // Copy list first since we don't want liveness during iteration.

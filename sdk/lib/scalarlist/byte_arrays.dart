@@ -398,6 +398,32 @@ abstract class Uint8List implements List<int>, ByteArrayViewable {
 
 
 /**
+ * A fixed-length list of 8-bit unsigned integers that is viewable as a
+ * [ByteArray]. For long lists, this implementation will be considerably
+ * more space- and time-efficient than the default [List] implementation.
+ * Indexed store clamps the value to range 0..0xFF.
+ */
+abstract class Uint8ClampedList implements List<int>, ByteArrayViewable {
+  /**
+   * Creates a [Uint8ClampedList] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
+  external factory Uint8ClampedList(int length);
+
+  /**
+   * Creates a [Uint8ClampedList] _view_ of the specified region in the
+   * specified byte [array]. Changes in the [Uint8List] will be visible in the
+   * byte array and vice versa. If the [start] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte array). If the
+   * length is not specified, it defaults to null, which indicates that the view
+   * extends to the end of the byte array.
+   */
+  external factory Uint8ClampedList.view(ByteArray array,
+                                         [int start, int length]);
+}
+
+
+/**
  * A fixed-length list of 16-bit signed integers that is viewable as a
  * [ByteArray]. For long lists, this implementation will be considerably
  * more space- and time-efficient than the default [List] implementation.

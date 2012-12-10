@@ -91,8 +91,7 @@ RawString* DoubleToStringAsFixed(double d, int fraction_digits) {
   double_conversion::StringBuilder builder(buffer, kBufferSize);
   bool status = converter.ToFixed(d, fraction_digits, &builder);
   ASSERT(status);
-  int length = builder.position();
-  return String::New(reinterpret_cast<uint8_t*>(builder.Finalize()), length);
+  return String::New(builder.Finalize());
 }
 
 
@@ -125,8 +124,7 @@ RawString* DoubleToStringAsExponential(double d, int fraction_digits) {
   double_conversion::StringBuilder builder(buffer, kBufferSize);
   bool status = converter.ToExponential(d, fraction_digits, &builder);
   ASSERT(status);
-  int length = builder.position();
-  return String::New(reinterpret_cast<uint8_t*>(builder.Finalize()), length);
+  return String::New(builder.Finalize());
 }
 
 
@@ -165,8 +163,7 @@ RawString* DoubleToStringAsPrecision(double d, int precision) {
   double_conversion::StringBuilder builder(buffer, kBufferSize);
   bool status = converter.ToPrecision(d, precision, &builder);
   ASSERT(status);
-  int length = builder.position();
-  return String::New(reinterpret_cast<uint8_t*>(builder.Finalize()), length);
+  return String::New(builder.Finalize());
 }
 
 }  // namespace dart

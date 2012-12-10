@@ -112,8 +112,8 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     if (source != null) {
       DartType sourceType = source.computeType(compiler);
       DartType speculatedType = speculativeType.computeType(compiler);
-      if (speculatedType != null
-          && !compiler.types.isAssignable(speculatedType, sourceType)) {
+      if (speculatedType != null &&
+          !compiler.types.isAssignable(speculatedType, sourceType)) {
         return false;
       }
     }

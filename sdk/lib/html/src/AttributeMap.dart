@@ -5,6 +5,9 @@
 part of html;
 
 abstract class _AttributeMap implements Map<String, String> {
+  final Element _element;
+
+  _AttributeMap(this._element);
 
   bool containsValue(String value) {
     for (var v in this.values) {
@@ -77,9 +80,7 @@ abstract class _AttributeMap implements Map<String, String> {
  */
 class _ElementAttributeMap extends _AttributeMap {
 
-  final Element _element;
-
-  _ElementAttributeMap(this._element);
+  _ElementAttributeMap(Element element): super(element);
 
   bool containsKey(String key) {
     return _element.$dom_hasAttribute(key);
@@ -114,10 +115,9 @@ class _ElementAttributeMap extends _AttributeMap {
  */
 class _NamespacedAttributeMap extends _AttributeMap {
 
-  final Element _element;
   final String _namespace;
 
-  _NamespacedAttributeMap(this._element, this._namespace);
+  _NamespacedAttributeMap(Element element, this._namespace): super(element);
 
   bool containsKey(String key) {
     return _element.$dom_hasAttributeNS(_namespace, key);

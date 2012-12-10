@@ -1270,15 +1270,73 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 11, 3, 1),
         errEx(TypeErrorCode.FIELD_IS_FINAL, 13, 5, 1));
   }
+
+  public void test_assignConst_topLevelVariable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const f = 1;",
+        "main() {",
+        "  f = 2;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 4, 3, 1));
+  }
   
+  public void test_assignFinal_topLevelVariable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "final f = 1;",
+        "main() {",
+        "  f = 2;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 4, 3, 1));
+  }
+  
+  public void test_assignFinal_instanceVariable_inConstructor() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  final f = 1;",
+        "  A() {",
+        "    f = 2;",
+        "    f += 3;",
+        "    print(f);",
+        "  }",
+        "",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL_ERROR, 5, 5, 1),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL_ERROR, 6, 5, 1));
+  }
+
   public void test_identicalFunction() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "const A = 1;",
         "const B = 2;",
         "const C = identical(A, B);",
+        "const D = !identical(A, B);",
         "");
     assertErrors(libraryResult.getErrors());
+  }
+  
+  public void test_constantEvaluationException_divZero() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const C1 = 1 ~/ 0;",
+        "const C2 = 1 % 0;",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CONSTANTS_EVALUATION_EXCEPTION, 2, 12, 6),
+        errEx(ResolverErrorCode.CONSTANTS_EVALUATION_EXCEPTION, 3, 12, 5));
   }
 
   /**
@@ -4886,6 +4944,27 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.CONSTRUCTOR_WITH_NAME_OF_MEMBER, 3, 3, 5));
+  }
+  
+  /**
+   * It is a compile-time error if M is not the name of the immediately enclosing class.
+   * It is a static warning if M.id is not a constructor name.
+   */
+  public void test_constructorName_factory_notEnclosingClassName() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B {",
+        "  factory A() {}",
+        "  factory A.name() {}",
+        "  factory B() {}",
+        "  factory B.name() {}",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CONSTRUCTOR_NAME_NOT_ENCLOSING_CLASS, 4, 11, 1),
+        errEx(ResolverErrorCode.CONSTRUCTOR_NAME_NOT_ENCLOSING_CLASS, 5, 11, 1),
+        errEx(ResolverErrorCode.CONSTRUCTOR_NAME_NOT_ENCLOSING_CLASS_ID, 5, 11, 6));
   }
 
   /**

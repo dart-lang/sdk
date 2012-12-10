@@ -20,6 +20,7 @@ class ObjectPointerVisitor;
   V(Equals, "=")                                                               \
   V(EqualOperator, "==")                                                       \
   V(Identical, "identical")                                                    \
+  V(Length, "length")                                                          \
   V(IndexToken, "[]")                                                          \
   V(AssignIndexToken, "[]=")                                                   \
   V(TopLevel, "::")                                                            \
@@ -119,6 +120,7 @@ class ObjectPointerVisitor;
   V(Object, "Object")                                                          \
   V(_Int8Array, "_Int8Array")                                                  \
   V(_Uint8Array, "_Uint8Array")                                                \
+  V(_Uint8ClampedArray, "_Uint8ClampedArray")                                  \
   V(_Int16Array, "_Int16Array")                                                \
   V(_Uint16Array, "_Uint16Array")                                              \
   V(_Int32Array, "_Int32Array")                                                \
@@ -129,6 +131,7 @@ class ObjectPointerVisitor;
   V(_Float64Array, "_Float64Array")                                            \
   V(_ExternalInt8Array, "_ExternalInt8Array")                                  \
   V(_ExternalUint8Array, "_ExternalUint8Array")                                \
+  V(_ExternalUint8ClampedArray, "_ExternalUint8ClampedArray")                  \
   V(_ExternalInt16Array, "_ExternalInt16Array")                                \
   V(_ExternalUint16Array, "_ExternalUint16Array")                              \
   V(_ExternalInt32Array, "_ExternalInt32Array")                                \
@@ -176,10 +179,23 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
   // Get number of symbols in an isolate's symbol table.
   static intptr_t Size(Isolate* isolate);
 
-  // Helper functions to create a symbol given a string or set of characters.
-  static RawString* New(const char* str);
-  template<typename T>
-  static RawString* New(const T* characters, intptr_t len);
+  // Creates a Symbol given a C string that is assumed to contain
+  // UTF-8 encoded characters and '\0' is considered a termination character.
+  // TODO(7123) - Rename this to FromCString(....).
+  static RawString* New(const char* cstr);
+
+  // Creates a new Symbol from an array of UTF-8 encoded characters.
+  static RawString* FromUTF8(const uint8_t* utf8_array, intptr_t len);
+
+  // Creates a new Symbol from an array of Latin-1 encoded characters.
+  static RawString* FromLatin1(const uint8_t* latin1_array, intptr_t len);
+
+  // Creates a new Symbol from an array of UTF-16 encoded characters.
+  static RawString* FromUTF16(const uint16_t* utf16_array, intptr_t len);
+
+  // Creates a new Symbol from an array of UTF-32 encoded characters.
+  static RawString* FromUTF32(const int32_t* utf32_array, intptr_t len);
+
   static RawString* New(const String& str);
   static RawString* New(const String& str,
                         intptr_t begin_index,
@@ -199,6 +215,12 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
     kInitialVMIsolateSymtabSize = ((kMaxId + 15) & -16),
     kInitialSymtabSize = 256
   };
+
+  // Helper functions to create a symbol given a string or set of characters.
+  template<typename CharacterType, typename CallbackType>
+  static RawString* NewSymbol(const CharacterType* characters,
+                              intptr_t len,
+                              CallbackType new_string);
 
   // Add the string into the VM isolate symbol table.
   static void Add(const Array& symbol_table, const String& str);
@@ -233,6 +255,7 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
   // List of symbols that are stored in the vm isolate for easy access.
   static RawString* predefined_[kMaxId];
 
+  friend class String;
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class ApiMessageReader;

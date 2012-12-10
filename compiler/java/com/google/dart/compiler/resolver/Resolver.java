@@ -2060,15 +2060,20 @@ public class Resolver {
       resolve(node.getArg2());
       if (node.getOperator().isAssignmentOperator()) {
         switch (ElementKind.of(lhs)) {
-         case FIELD:
-         case PARAMETER:
-         case VARIABLE:
-           if (lhs.getModifiers().isFinal()) {
-             topLevelContext.onError(node.getArg1(), ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL,
-                                     lhs.getName());
-           }
-           break;
-         case METHOD:
+          case FIELD:
+          case PARAMETER:
+          case VARIABLE:
+            if (lhs.getModifiers().isFinal()) {
+              if (Elements.isFieldOfSameClassAsEnclosingConstructor(lhs, enclosingElement)) {
+                topLevelContext.onError(node.getArg1(),
+                    ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL_ERROR, lhs.getName());
+              } else {
+                topLevelContext.onError(node.getArg1(), ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL,
+                    lhs.getName());
+              }
+            }
+            break;
+          case METHOD:
             if (!lhs.getModifiers().isSetter() && !lhs.getModifiers().isGetter()) {
               topLevelContext.onError(node.getArg1(), ResolverErrorCode.CANNOT_ASSIGN_TO_METHOD,
                   lhs.getName());
@@ -2076,7 +2081,7 @@ public class Resolver {
             if (lhs.getModifiers().isSetter()) {
               node.setElement(lhs);
             }
-           break;
+            break;
         }
       }
 

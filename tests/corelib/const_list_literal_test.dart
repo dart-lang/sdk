@@ -40,7 +40,7 @@ class ConstListLiteralTest {
 
     exception = null;
     try {
-      list.sort((a, b) => a < b);
+      list.sort((a, b) => a - b);
     } on UnsupportedError catch (e) {
       exception = e;
     }

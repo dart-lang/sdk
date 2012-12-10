@@ -1,0 +1,7 @@
+name: serialization
+description: >
+  Provide a serialization facility for Dart objects.
+author: "Dart Team <misc@dartlang.org>"
+dependencies:
+  unittest:
+    sdk: unittest

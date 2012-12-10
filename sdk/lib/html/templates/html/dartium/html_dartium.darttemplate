@@ -7,6 +7,9 @@
 
 library html;
 
+import 'dart:collection';
+import 'dart:html_common';
+import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json';
 import 'dart:nativewrappers';
@@ -20,14 +23,12 @@ part '$AUXILIARY_DIR/AttributeMap.dart';
 part '$AUXILIARY_DIR/CrossFrameTypes.dart';
 part '$AUXILIARY_DIR/CssClassSet.dart';
 part '$AUXILIARY_DIR/EventListener.dart';
-part '$AUXILIARY_DIR/FilteredElementList.dart';
 part '$AUXILIARY_DIR/KeyboardEventController.dart';
 part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';
 part '$AUXILIARY_DIR/KeyName.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/Timer.dart';
-part '$AUXILIARY_DIR/_Collections.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/shared_FactoryProviders.dart';
 part '$AUXILIARY_DIR/dartium_KeyEvent.dart';
@@ -39,7 +40,6 @@ part '$AUXILIARY_DIR/Serialization.dart';
 part '$AUXILIARY_DIR/dartium_MutationObserverSupported.dart';
 part '$AUXILIARY_DIR/_Testing.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
-part '$AUXILIARY_DIR/_Lists.dart';
 
 part '$AUXILIARY_DIR/native_DOMPublic.dart';
 part '$AUXILIARY_DIR/native_DOMImplementation.dart';

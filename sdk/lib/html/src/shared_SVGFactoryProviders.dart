@@ -23,11 +23,11 @@ class _SvgElementFactoryProvider {
     }
 
     parentTag.innerHtml = svg;
-    if (parentTag.elements.length == 1) return parentTag.elements.removeLast();
+    if (parentTag.children.length == 1) return parentTag.children.removeLast();
 
     throw new ArgumentError(
-        'SVG had ${parentTag.elements.length} '
-        'top-level elements but 1 expected');
+        'SVG had ${parentTag.children.length} '
+        'top-level children but 1 expected');
   }
 }
 

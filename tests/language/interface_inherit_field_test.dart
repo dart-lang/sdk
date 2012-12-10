@@ -4,11 +4,11 @@
 
 // Test that it is legal to override a field with a field in an interface.
 
-interface IA {
+abstract class IA {
   final int foo;
 }
 
-interface IB extends IA {
+abstract class IB implements IA {
   final int foo;
 }
 

@@ -1,11 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#library("library12.dart");
+library library12.dart;
 
-#import("library11.dart");
+import "library11.dart";
 class Library12 {
   Library12(this.fld);
   Library12.other(fld, multiplier) {
@@ -33,7 +33,7 @@ class Library12 {
   static var static_fld = 4;
 }
 
-interface Library12Interface {
+abstract class Library12Interface {
   Library12 addObjects(Library12 value1, Library12 value2);
 }
 

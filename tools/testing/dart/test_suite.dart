@@ -527,7 +527,7 @@ class StandardTestSuite extends TestSuite {
     Directory dir = new Directory.fromPath(suiteDir);
     return dir.exists().chain((exists) {
       if (!exists) {
-        print('Directory containing tests not found: $suiteDir');
+        print('Directory containing tests missing: ${suiteDir.toNativePath()}');
         return new Future.immediate(null);
       } else {
         var group = new FutureGroup();
@@ -896,7 +896,9 @@ class StandardTestSuite extends TestSuite {
       do {
         List<String> args = <String>[];
         String fullHtmlPath = htmlPath.startsWith('http:') ? htmlPath :
-            'file://$htmlPath';
+            (htmlPath.startsWith('/') ?
+             'file://$htmlPath' :
+             'file:///$htmlPath');
         if (info.optionsFromFile['isMultiHtmlTest']
             && subtestNames.length > 0) {
           fullHtmlPath = '${fullHtmlPath}#${subtestNames[subtestIndex]}';
@@ -1028,15 +1030,14 @@ class StandardTestSuite extends TestSuite {
     var minified = configuration['minified'] ? '-minified' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
                   "$checked$minified";
-    var generatedTestPath = Strings.join([
-        buildDir,
-        'generated_tests',
-        dirName,
-        testUniqueName
-    ], '/');
+    Path generatedTestPath = new Path.fromNative(buildDir)
+        .append('generated_tests')
+        .append(dirName)
+        .append(testUniqueName);
 
-    TestUtils.mkdirRecursive(new Path('.'), new Path(generatedTestPath));
-    return new File(generatedTestPath).fullPathSync().replaceAll('\\', '/');
+    TestUtils.mkdirRecursive(new Path('.'), generatedTestPath);
+    return new File.fromPath(generatedTestPath).fullPathSync()
+        .replaceAll('\\', '/');
   }
 
   String get scriptType {
@@ -1516,9 +1517,15 @@ class TestUtils {
     var segments = relativePath.segments();
     for (String segment in segments) {
       base = base.append(segment);
+      if (base.toString() == "/$segment" &&
+          segment.length == 2 &&
+          segment.endsWith(':')) {
+        // Skip the directory creation for a path like "/E:".
+        continue;
+      }
       dir = new Directory.fromPath(base);
       if (!dir.existsSync()) {
-          dir.createSync();
+        dir.createSync();
       }
       Expect.isTrue(dir.existsSync(), "Failed to create ${dir.path}");
     }

@@ -80,8 +80,6 @@ class ElementKind {
     const ElementKind('function', ElementCategory.FUNCTION);
   static const ElementKind CLASS =
     const ElementKind('class', ElementCategory.CLASS);
-  static const ElementKind FOREIGN =
-    const ElementKind('foreign', ElementCategory.FUNCTION);
   static const ElementKind GENERATIVE_CONSTRUCTOR =
       const ElementKind('generative_constructor', ElementCategory.FACTORY);
   static const ElementKind FIELD =
@@ -191,7 +189,6 @@ class Element implements Spannable {
   bool isGetter() => identical(kind, ElementKind.GETTER);
   bool isSetter() => identical(kind, ElementKind.SETTER);
   bool isAccessor() => isGetter() || isSetter();
-  bool isForeign() => identical(kind, ElementKind.FOREIGN);
   bool isLibrary() => identical(kind, ElementKind.LIBRARY);
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
   bool isExtendable() => (kind.category & ElementCategory.IS_EXTENDABLE) != 0;
@@ -201,8 +198,6 @@ class Element implements Spannable {
 
   /** See [AmbiguousElement] for documentation. */
   bool isAmbiguous() => false;
-
-  bool isMalformed() => false;
 
   /**
    * Is [:true:] if this element has a corresponding patch.
@@ -366,6 +361,7 @@ class Element implements Spannable {
   static bool isInvalid(Element e) => e == null || e.isErroneous();
 
   bool isAbstract(Compiler compiler) => modifiers.isAbstract();
+  bool isForeign(Compiler compiler) => getLibrary() == compiler.foreignLibrary;
 }
 
 /**
@@ -1024,19 +1020,6 @@ class VariableListElement extends Element {
   }
 }
 
-class ForeignElement extends Element {
-  ForeignElement(SourceString name, ContainerElement enclosingElement)
-    : super(name, ElementKind.FOREIGN, enclosingElement);
-
-  DartType computeType(Compiler compiler) {
-    return compiler.types.dynamicType;
-  }
-
-  parseNode(DiagnosticListener listener) {
-    throw "internal error: ForeignElement has no node";
-  }
-}
-
 class AbstractFieldElement extends Element {
   FunctionElement getter;
   FunctionElement setter;
@@ -1346,23 +1329,6 @@ class VoidElement extends Element {
     throw 'internal error: parseNode on void';
   }
   bool impliesType() => true;
-}
-
-class MalformedTypeElement extends Element {
-  final TypeAnnotation typeNode;
-
-  MalformedTypeElement(this.typeNode, Element enclosing)
-      : super(const SourceString('malformed'),
-              ElementKind.MALFORMED_TYPE,
-              enclosing);
-
-  DartType computeType(compiler) => compiler.types.malformedType;
-
-  Node parseNode(_) => typeNode;
-
-  bool impliesType() => true;
-
-  bool isMalformed() => true;
 }
 
 /**
@@ -1807,10 +1773,9 @@ abstract class ClassElement extends ScopeContainerElement
 
 class Elements {
   static bool isUnresolved(Element e) {
-    return e == null || e.isErroneous() || e.isMalformed();
+    return e == null || e.isErroneous();
   }
   static bool isErroneousElement(Element e) => e != null && e.isErroneous();
-  static bool isMalformedElement(Element e) => e != null && e.isMalformed();
 
   static bool isClass(Element e) => e != null && e.kind == ElementKind.CLASS;
   static bool isTypedef(Element e) {

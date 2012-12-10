@@ -3,7 +3,9 @@
 
 library svg;
 
+import 'dart:collection';
 import 'dart:html';
+import 'dart:html_common';
 import 'dart:nativewrappers';
 
 part '$AUXILIARY_DIR/shared_SVGFactoryProviders.dart';

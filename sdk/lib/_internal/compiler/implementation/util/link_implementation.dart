@@ -117,4 +117,6 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     }
     lastLink = entry;
   }
+
+  bool get isEmpty => length == 0;
 }

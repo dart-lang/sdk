@@ -1,5 +1,8 @@
 library html;
 
+import 'dart:collection';
+import 'dart:html_common';
+import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json';
 import 'dart:nativewrappers';
@@ -105,6 +108,7 @@ class AbstractWorkerEvents extends Events {
 /// @domName HTMLAnchorElement
 class AnchorElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory AnchorElement({String href}) {
     var e = document.$dom_createElement("a");
     if (href != null) e.href = href;
@@ -472,9 +476,86 @@ class AppletElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName DOMApplicationCache
+class ApplicationCache extends EventTarget {
+  ApplicationCache.internal(): super.internal();
+
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  ApplicationCacheEvents get on =>
+    new ApplicationCacheEvents(this);
+
+  static const int CHECKING = 2;
+
+  static const int DOWNLOADING = 3;
+
+  static const int IDLE = 1;
+
+  static const int OBSOLETE = 5;
+
+  static const int UNCACHED = 0;
+
+  static const int UPDATEREADY = 4;
+
+
+  /** @domName DOMApplicationCache.status */
+  int get status native "DOMApplicationCache_status_Getter";
+
+
+  /** @domName DOMApplicationCache.abort */
+  void abort() native "DOMApplicationCache_abort_Callback";
+
+
+  /** @domName DOMApplicationCache.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_addEventListener_Callback";
+
+
+  /** @domName DOMApplicationCache.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt) native "DOMApplicationCache_dispatchEvent_Callback";
+
+
+  /** @domName DOMApplicationCache.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_removeEventListener_Callback";
+
+
+  /** @domName DOMApplicationCache.swapCache */
+  void swapCache() native "DOMApplicationCache_swapCache_Callback";
+
+
+  /** @domName DOMApplicationCache.update */
+  void update() native "DOMApplicationCache_update_Callback";
+
+}
+
+class ApplicationCacheEvents extends Events {
+  ApplicationCacheEvents(EventTarget _ptr) : super(_ptr);
+
+  EventListenerList get cached => this['cached'];
+
+  EventListenerList get checking => this['checking'];
+
+  EventListenerList get downloading => this['downloading'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get noUpdate => this['noupdate'];
+
+  EventListenerList get obsolete => this['obsolete'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get updateReady => this['updateready'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName HTMLAreaElement
 class AreaElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory AreaElement() => document.$dom_createElement("area");
   AreaElement.internal(): super.internal();
 
@@ -573,6 +654,7 @@ class AreaElement extends _Element_Merged {
 /// @domName ArrayBuffer
 class ArrayBuffer extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
   ArrayBuffer.internal();
 
@@ -663,9 +745,30 @@ class Attr extends Node {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName HTMLAudioElement
+class AudioElement extends MediaElement {
+
+  ///@docsEditable true
+  factory AudioElement([String src]) {
+    if (!?src) {
+      return _AudioElementFactoryProvider.createAudioElement();
+    }
+    return _AudioElementFactoryProvider.createAudioElement(src);
+  }
+  AudioElement.internal(): super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName HTMLBRElement
 class BRElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory BRElement() => document.$dom_createElement("br");
   BRElement.internal(): super.internal();
 
@@ -704,6 +807,7 @@ class BarInfo extends NativeFieldWrapperClass1 {
 /// @domName HTMLBaseElement
 class BaseElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory BaseElement() => document.$dom_createElement("base");
   BaseElement.internal(): super.internal();
 
@@ -842,6 +946,7 @@ class BeforeLoadEvent extends Event {
 /// @domName Blob
 class Blob extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory Blob(List blobParts, [String type, String endings]) {
     if (!?type) {
       return _BlobFactoryProvider.createBlob(blobParts);
@@ -901,6 +1006,7 @@ class Blob extends NativeFieldWrapperClass1 {
 /// @domName HTMLBodyElement
 class BodyElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory BodyElement() => document.$dom_createElement("body");
   BodyElement.internal(): super.internal();
 
@@ -989,6 +1095,7 @@ class BodyElementEvents extends ElementEvents {
 /// @domName HTMLButtonElement
 class ButtonElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ButtonElement() => document.$dom_createElement("button");
   ButtonElement.internal(): super.internal();
 
@@ -1109,8 +1216,1189 @@ class ButtonElement extends _Element_Merged {
 
 
 /// @domName CDATASection
-class CDATASection extends Text {
-  CDATASection.internal(): super.internal();
+class CDataSection extends Text {
+  CDataSection.internal(): super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName HTMLCanvasElement
+class CanvasElement extends _Element_Merged {
+
+  ///@docsEditable true
+  factory CanvasElement({int width, int height}) {
+    var e = document.$dom_createElement("canvas");
+    if (width != null) e.width = width;
+    if (height != null) e.height = height;
+    return e;
+  }
+  CanvasElement.internal(): super.internal();
+
+
+  /** @domName HTMLCanvasElement.height */
+  int get height native "HTMLCanvasElement_height_Getter";
+
+
+  /** @domName HTMLCanvasElement.height */
+  void set height(int value) native "HTMLCanvasElement_height_Setter";
+
+
+  /** @domName HTMLCanvasElement.width */
+  int get width native "HTMLCanvasElement_width_Getter";
+
+
+  /** @domName HTMLCanvasElement.width */
+  void set width(int value) native "HTMLCanvasElement_width_Setter";
+
+
+  /** @domName HTMLCanvasElement.getContext */
+  Object getContext(String contextId) native "HTMLCanvasElement_getContext_Callback";
+
+
+  /** @domName HTMLCanvasElement.toDataURL */
+  String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
+
+
+  CanvasRenderingContext2D get context2d => getContext('2d');
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName CanvasGradient
+class CanvasGradient extends NativeFieldWrapperClass1 {
+  CanvasGradient.internal();
+
+
+  /** @domName CanvasGradient.addColorStop */
+  void addColorStop(num offset, String color) native "CanvasGradient_addColorStop_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName CanvasPattern
+class CanvasPattern extends NativeFieldWrapperClass1 {
+  CanvasPattern.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName CanvasRenderingContext
+class CanvasRenderingContext extends NativeFieldWrapperClass1 {
+  CanvasRenderingContext.internal();
+
+
+  /** @domName CanvasRenderingContext.canvas */
+  CanvasElement get canvas native "CanvasRenderingContext_canvas_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName CanvasRenderingContext2D
+class CanvasRenderingContext2D extends CanvasRenderingContext {
+  CanvasRenderingContext2D.internal(): super.internal();
+
+
+  /** @domName CanvasRenderingContext2D.fillStyle */
+  dynamic get fillStyle native "CanvasRenderingContext2D_fillStyle_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.fillStyle */
+  void set fillStyle(dynamic value) native "CanvasRenderingContext2D_fillStyle_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.font */
+  String get font native "CanvasRenderingContext2D_font_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.font */
+  void set font(String value) native "CanvasRenderingContext2D_font_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.globalAlpha */
+  num get globalAlpha native "CanvasRenderingContext2D_globalAlpha_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.globalAlpha */
+  void set globalAlpha(num value) native "CanvasRenderingContext2D_globalAlpha_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.globalCompositeOperation */
+  String get globalCompositeOperation native "CanvasRenderingContext2D_globalCompositeOperation_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.globalCompositeOperation */
+  void set globalCompositeOperation(String value) native "CanvasRenderingContext2D_globalCompositeOperation_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.lineCap */
+  String get lineCap native "CanvasRenderingContext2D_lineCap_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.lineCap */
+  void set lineCap(String value) native "CanvasRenderingContext2D_lineCap_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.lineDashOffset */
+  num get lineDashOffset native "CanvasRenderingContext2D_lineDashOffset_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.lineDashOffset */
+  void set lineDashOffset(num value) native "CanvasRenderingContext2D_lineDashOffset_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.lineJoin */
+  String get lineJoin native "CanvasRenderingContext2D_lineJoin_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.lineJoin */
+  void set lineJoin(String value) native "CanvasRenderingContext2D_lineJoin_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.lineWidth */
+  num get lineWidth native "CanvasRenderingContext2D_lineWidth_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.lineWidth */
+  void set lineWidth(num value) native "CanvasRenderingContext2D_lineWidth_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.miterLimit */
+  num get miterLimit native "CanvasRenderingContext2D_miterLimit_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.miterLimit */
+  void set miterLimit(num value) native "CanvasRenderingContext2D_miterLimit_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.shadowBlur */
+  num get shadowBlur native "CanvasRenderingContext2D_shadowBlur_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.shadowBlur */
+  void set shadowBlur(num value) native "CanvasRenderingContext2D_shadowBlur_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.shadowColor */
+  String get shadowColor native "CanvasRenderingContext2D_shadowColor_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.shadowColor */
+  void set shadowColor(String value) native "CanvasRenderingContext2D_shadowColor_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.shadowOffsetX */
+  num get shadowOffsetX native "CanvasRenderingContext2D_shadowOffsetX_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.shadowOffsetX */
+  void set shadowOffsetX(num value) native "CanvasRenderingContext2D_shadowOffsetX_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.shadowOffsetY */
+  num get shadowOffsetY native "CanvasRenderingContext2D_shadowOffsetY_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.shadowOffsetY */
+  void set shadowOffsetY(num value) native "CanvasRenderingContext2D_shadowOffsetY_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.strokeStyle */
+  dynamic get strokeStyle native "CanvasRenderingContext2D_strokeStyle_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.strokeStyle */
+  void set strokeStyle(dynamic value) native "CanvasRenderingContext2D_strokeStyle_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.textAlign */
+  String get textAlign native "CanvasRenderingContext2D_textAlign_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.textAlign */
+  void set textAlign(String value) native "CanvasRenderingContext2D_textAlign_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.textBaseline */
+  String get textBaseline native "CanvasRenderingContext2D_textBaseline_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.textBaseline */
+  void set textBaseline(String value) native "CanvasRenderingContext2D_textBaseline_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
+  num get webkitBackingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
+  bool get webkitImageSmoothingEnabled native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
+  void set webkitImageSmoothingEnabled(bool value) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.webkitLineDash */
+  List get webkitLineDash native "CanvasRenderingContext2D_webkitLineDash_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.webkitLineDash */
+  void set webkitLineDash(List value) native "CanvasRenderingContext2D_webkitLineDash_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.webkitLineDashOffset */
+  num get webkitLineDashOffset native "CanvasRenderingContext2D_webkitLineDashOffset_Getter";
+
+
+  /** @domName CanvasRenderingContext2D.webkitLineDashOffset */
+  void set webkitLineDashOffset(num value) native "CanvasRenderingContext2D_webkitLineDashOffset_Setter";
+
+
+  /** @domName CanvasRenderingContext2D.arc */
+  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.arcTo */
+  void arcTo(num x1, num y1, num x2, num y2, num radius) native "CanvasRenderingContext2D_arcTo_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.beginPath */
+  void beginPath() native "CanvasRenderingContext2D_beginPath_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.bezierCurveTo */
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native "CanvasRenderingContext2D_bezierCurveTo_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.clearRect */
+  void clearRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_clearRect_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.clearShadow */
+  void clearShadow() native "CanvasRenderingContext2D_clearShadow_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.clip */
+  void clip() native "CanvasRenderingContext2D_clip_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.closePath */
+  void closePath() native "CanvasRenderingContext2D_closePath_Callback";
+
+  ImageData createImageData(imagedata_OR_sw, [/*float*/ sh]) {
+    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) && !?sh) {
+      return _createImageData_1(imagedata_OR_sw);
+    }
+    if ((imagedata_OR_sw is num || imagedata_OR_sw == null) && (sh is num || sh == null)) {
+      return _createImageData_2(imagedata_OR_sw, sh);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+
+  /** @domName CanvasRenderingContext2D.createImageData_1 */
+  ImageData _createImageData_1(imagedata_OR_sw) native "CanvasRenderingContext2D_createImageData_1_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.createImageData_2 */
+  ImageData _createImageData_2(imagedata_OR_sw, sh) native "CanvasRenderingContext2D_createImageData_2_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.createLinearGradient */
+  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
+
+  CanvasPattern createPattern(canvas_OR_image, /*DOMString*/ repetitionType) {
+    if ((canvas_OR_image is CanvasElement || canvas_OR_image == null) && (repetitionType is String || repetitionType == null)) {
+      return _createPattern_1(canvas_OR_image, repetitionType);
+    }
+    if ((canvas_OR_image is ImageElement || canvas_OR_image == null) && (repetitionType is String || repetitionType == null)) {
+      return _createPattern_2(canvas_OR_image, repetitionType);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+
+  /** @domName CanvasRenderingContext2D.createPattern_1 */
+  CanvasPattern _createPattern_1(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_1_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.createPattern_2 */
+  CanvasPattern _createPattern_2(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_2_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.createRadialGradient */
+  CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
+
+  void drawImage(canvas_OR_image_OR_video, /*float*/ sx_OR_x, /*float*/ sy_OR_y, [/*float*/ sw_OR_width, /*float*/ height_OR_sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh]) {
+    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
+      _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
+      _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
+      _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
+      _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
+      _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
+      _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
+      _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
+      _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
+      _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+
+  /** @domName CanvasRenderingContext2D.drawImage_1 */
+  void _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_1_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImage_2 */
+  void _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_2_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImage_3 */
+  void _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_3_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImage_4 */
+  void _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_4_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImage_5 */
+  void _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_5_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImage_6 */
+  void _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_6_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImage_7 */
+  void _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_7_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImage_8 */
+  void _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_8_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImage_9 */
+  void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
+
+  void drawImageFromRect(/*HTMLImageElement*/ image, [/*float*/ sx, /*float*/ sy, /*float*/ sw, /*float*/ sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh, /*DOMString*/ compositeOperation]) {
+    if (?compositeOperation) {
+      _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
+      return;
+    }
+    if (?dh) {
+      _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw, dh);
+      return;
+    }
+    if (?dw) {
+      _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy, dw);
+      return;
+    }
+    if (?dy) {
+      _drawImageFromRect_4(image, sx, sy, sw, sh, dx, dy);
+      return;
+    }
+    if (?dx) {
+      _drawImageFromRect_5(image, sx, sy, sw, sh, dx);
+      return;
+    }
+    if (?sh) {
+      _drawImageFromRect_6(image, sx, sy, sw, sh);
+      return;
+    }
+    if (?sw) {
+      _drawImageFromRect_7(image, sx, sy, sw);
+      return;
+    }
+    if (?sy) {
+      _drawImageFromRect_8(image, sx, sy);
+      return;
+    }
+    if (?sx) {
+      _drawImageFromRect_9(image, sx);
+      return;
+    }
+    _drawImageFromRect_10(image);
+  }
+
+
+  /** @domName CanvasRenderingContext2D.drawImageFromRect_1 */
+  void _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation) native "CanvasRenderingContext2D_drawImageFromRect_1_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImageFromRect_2 */
+  void _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImageFromRect_2_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImageFromRect_3 */
+  void _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy, dw) native "CanvasRenderingContext2D_drawImageFromRect_3_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImageFromRect_4 */
+  void _drawImageFromRect_4(image, sx, sy, sw, sh, dx, dy) native "CanvasRenderingContext2D_drawImageFromRect_4_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImageFromRect_5 */
+  void _drawImageFromRect_5(image, sx, sy, sw, sh, dx) native "CanvasRenderingContext2D_drawImageFromRect_5_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImageFromRect_6 */
+  void _drawImageFromRect_6(image, sx, sy, sw, sh) native "CanvasRenderingContext2D_drawImageFromRect_6_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImageFromRect_7 */
+  void _drawImageFromRect_7(image, sx, sy, sw) native "CanvasRenderingContext2D_drawImageFromRect_7_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImageFromRect_8 */
+  void _drawImageFromRect_8(image, sx, sy) native "CanvasRenderingContext2D_drawImageFromRect_8_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImageFromRect_9 */
+  void _drawImageFromRect_9(image, sx) native "CanvasRenderingContext2D_drawImageFromRect_9_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.drawImageFromRect_10 */
+  void _drawImageFromRect_10(image) native "CanvasRenderingContext2D_drawImageFromRect_10_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.fill */
+  void fill() native "CanvasRenderingContext2D_fill_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.fillRect */
+  void fillRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_fillRect_Callback";
+
+  void fillText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
+    if (?maxWidth) {
+      _fillText_1(text, x, y, maxWidth);
+      return;
+    }
+    _fillText_2(text, x, y);
+  }
+
+
+  /** @domName CanvasRenderingContext2D.fillText_1 */
+  void _fillText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_fillText_1_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.fillText_2 */
+  void _fillText_2(text, x, y) native "CanvasRenderingContext2D_fillText_2_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.getImageData */
+  ImageData getImageData(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_getImageData_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.getLineDash */
+  List<num> getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.isPointInPath */
+  bool isPointInPath(num x, num y) native "CanvasRenderingContext2D_isPointInPath_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.lineTo */
+  void lineTo(num x, num y) native "CanvasRenderingContext2D_lineTo_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.measureText */
+  TextMetrics measureText(String text) native "CanvasRenderingContext2D_measureText_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.moveTo */
+  void moveTo(num x, num y) native "CanvasRenderingContext2D_moveTo_Callback";
+
+  void putImageData(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
+    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
+      _putImageData_1(imagedata, dx, dy);
+      return;
+    }
+    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dirtyX is num || dirtyX == null) && (dirtyY is num || dirtyY == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyHeight is num || dirtyHeight == null)) {
+      _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+
+  /** @domName CanvasRenderingContext2D.putImageData_1 */
+  void _putImageData_1(imagedata, dx, dy) native "CanvasRenderingContext2D_putImageData_1_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.putImageData_2 */
+  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_putImageData_2_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.quadraticCurveTo */
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) native "CanvasRenderingContext2D_quadraticCurveTo_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.rect */
+  void rect(num x, num y, num width, num height) native "CanvasRenderingContext2D_rect_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.restore */
+  void restore() native "CanvasRenderingContext2D_restore_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.rotate */
+  void rotate(num angle) native "CanvasRenderingContext2D_rotate_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.save */
+  void save() native "CanvasRenderingContext2D_save_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.scale */
+  void scale(num sx, num sy) native "CanvasRenderingContext2D_scale_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setAlpha */
+  void setAlpha(num alpha) native "CanvasRenderingContext2D_setAlpha_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setCompositeOperation */
+  void setCompositeOperation(String compositeOperation) native "CanvasRenderingContext2D_setCompositeOperation_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setLineCap */
+  void setLineCap(String cap) native "CanvasRenderingContext2D_setLineCap_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setLineDash */
+  void setLineDash(List<num> dash) native "CanvasRenderingContext2D_setLineDash_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setLineJoin */
+  void setLineJoin(String join) native "CanvasRenderingContext2D_setLineJoin_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setLineWidth */
+  void setLineWidth(num width) native "CanvasRenderingContext2D_setLineWidth_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setMiterLimit */
+  void setMiterLimit(num limit) native "CanvasRenderingContext2D_setMiterLimit_Callback";
+
+  void setShadow(/*float*/ width, /*float*/ height, /*float*/ blur, [c_OR_color_OR_grayLevel_OR_r, /*float*/ alpha_OR_g_OR_m, /*float*/ b_OR_y, /*float*/ a_OR_k, /*float*/ a]) {
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && !?c_OR_color_OR_grayLevel_OR_r && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
+      _setShadow_1(width, height, blur);
+      return;
+    }
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r == null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
+      _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
+      return;
+    }
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && !?b_OR_y && !?a_OR_k && !?a) {
+      _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
+      return;
+    }
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
+      _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
+      return;
+    }
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && !?b_OR_y && !?a_OR_k && !?a) {
+      _setShadow_5(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
+      return;
+    }
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && (b_OR_y is num || b_OR_y == null) && (a_OR_k is num || a_OR_k == null) && !?a) {
+      _setShadow_6(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+      return;
+    }
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && (b_OR_y is num || b_OR_y == null) && (a_OR_k is num || a_OR_k == null) && (a is num || a == null)) {
+      _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+
+  /** @domName CanvasRenderingContext2D.setShadow_1 */
+  void _setShadow_1(width, height, blur) native "CanvasRenderingContext2D_setShadow_1_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setShadow_2 */
+  void _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setShadow_2_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setShadow_3 */
+  void _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setShadow_3_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setShadow_4 */
+  void _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setShadow_4_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setShadow_5 */
+  void _setShadow_5(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setShadow_5_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setShadow_6 */
+  void _setShadow_6(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native "CanvasRenderingContext2D_setShadow_6_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setShadow_7 */
+  void _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setShadow_7_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.setTransform */
+  void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native "CanvasRenderingContext2D_setTransform_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.stroke */
+  void stroke() native "CanvasRenderingContext2D_stroke_Callback";
+
+  void strokeRect(/*float*/ x, /*float*/ y, /*float*/ width, /*float*/ height, [/*float*/ lineWidth]) {
+    if (?lineWidth) {
+      _strokeRect_1(x, y, width, height, lineWidth);
+      return;
+    }
+    _strokeRect_2(x, y, width, height);
+  }
+
+
+  /** @domName CanvasRenderingContext2D.strokeRect_1 */
+  void _strokeRect_1(x, y, width, height, lineWidth) native "CanvasRenderingContext2D_strokeRect_1_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.strokeRect_2 */
+  void _strokeRect_2(x, y, width, height) native "CanvasRenderingContext2D_strokeRect_2_Callback";
+
+  void strokeText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
+    if (?maxWidth) {
+      _strokeText_1(text, x, y, maxWidth);
+      return;
+    }
+    _strokeText_2(text, x, y);
+  }
+
+
+  /** @domName CanvasRenderingContext2D.strokeText_1 */
+  void _strokeText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_strokeText_1_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.strokeText_2 */
+  void _strokeText_2(text, x, y) native "CanvasRenderingContext2D_strokeText_2_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.transform */
+  void transform(num m11, num m12, num m21, num m22, num dx, num dy) native "CanvasRenderingContext2D_transform_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.translate */
+  void translate(num tx, num ty) native "CanvasRenderingContext2D_translate_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.webkitGetImageDataHD */
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
+
+  void webkitPutImageDataHD(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
+    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
+      _webkitPutImageDataHD_1(imagedata, dx, dy);
+      return;
+    }
+    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dirtyX is num || dirtyX == null) && (dirtyY is num || dirtyY == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyHeight is num || dirtyHeight == null)) {
+      _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+
+  /** @domName CanvasRenderingContext2D.webkitPutImageDataHD_1 */
+  void _webkitPutImageDataHD_1(imagedata, dx, dy) native "CanvasRenderingContext2D_webkitPutImageDataHD_1_Callback";
+
+
+  /** @domName CanvasRenderingContext2D.webkitPutImageDataHD_2 */
+  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_webkitPutImageDataHD_2_Callback";
+
+
+  /**
+   * Sets the color used inside shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
+  void setFillColorRgb(int r, int g, int b, [num a = 1]) {
+    this.fillStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  /**
+   * Sets the color used inside shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
+  void setFillColorHsl(int h, num s, num l, [num a = 1]) {
+    this.fillStyle = 'hsla($h, $s%, $l%, $a)';
+  }
+
+  /**
+   * Sets the color used for stroking shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
+  void setStrokeColorRgb(int r, int g, int b, [num a = 1]) {
+    this.strokeStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  /**
+   * Sets the color used for stroking shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
+  void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
+    this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName CharacterData
+class CharacterData extends Node {
+  CharacterData.internal(): super.internal();
+
+
+  /** @domName CharacterData.data */
+  String get data native "CharacterData_data_Getter";
+
+
+  /** @domName CharacterData.data */
+  void set data(String value) native "CharacterData_data_Setter";
+
+
+  /** @domName CharacterData.length */
+  int get length native "CharacterData_length_Getter";
+
+
+  /** @domName CharacterData.appendData */
+  void appendData(String data) native "CharacterData_appendData_Callback";
+
+
+  /** @domName CharacterData.deleteData */
+  void deleteData(int offset, int length) native "CharacterData_deleteData_Callback";
+
+
+  /** @domName CharacterData.insertData */
+  void insertData(int offset, String data) native "CharacterData_insertData_Callback";
+
+
+  /** @domName CharacterData.remove */
+  void remove() native "CharacterData_remove_Callback";
+
+
+  /** @domName CharacterData.replaceData */
+  void replaceData(int offset, int length, String data) native "CharacterData_replaceData_Callback";
+
+
+  /** @domName CharacterData.substringData */
+  String substringData(int offset, int length) native "CharacterData_substringData_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName ClientRect
+class ClientRect extends NativeFieldWrapperClass1 {
+  ClientRect.internal();
+
+
+  /** @domName ClientRect.bottom */
+  num get bottom native "ClientRect_bottom_Getter";
+
+
+  /** @domName ClientRect.height */
+  num get height native "ClientRect_height_Getter";
+
+
+  /** @domName ClientRect.left */
+  num get left native "ClientRect_left_Getter";
+
+
+  /** @domName ClientRect.right */
+  num get right native "ClientRect_right_Getter";
+
+
+  /** @domName ClientRect.top */
+  num get top native "ClientRect_top_Getter";
+
+
+  /** @domName ClientRect.width */
+  num get width native "ClientRect_width_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName Clipboard
+class Clipboard extends NativeFieldWrapperClass1 {
+  Clipboard.internal();
+
+
+  /** @domName Clipboard.dropEffect */
+  String get dropEffect native "Clipboard_dropEffect_Getter";
+
+
+  /** @domName Clipboard.dropEffect */
+  void set dropEffect(String value) native "Clipboard_dropEffect_Setter";
+
+
+  /** @domName Clipboard.effectAllowed */
+  String get effectAllowed native "Clipboard_effectAllowed_Getter";
+
+
+  /** @domName Clipboard.effectAllowed */
+  void set effectAllowed(String value) native "Clipboard_effectAllowed_Setter";
+
+
+  /** @domName Clipboard.files */
+  List<File> get files native "Clipboard_files_Getter";
+
+
+  /** @domName Clipboard.items */
+  DataTransferItemList get items native "Clipboard_items_Getter";
+
+
+  /** @domName Clipboard.types */
+  List get types native "Clipboard_types_Getter";
+
+
+  /** @domName Clipboard.clearData */
+  void clearData([String type]) native "Clipboard_clearData_Callback";
+
+
+  /** @domName Clipboard.getData */
+  String getData(String type) native "Clipboard_getData_Callback";
+
+
+  /** @domName Clipboard.setData */
+  bool setData(String type, String data) native "Clipboard_setData_Callback";
+
+
+  /** @domName Clipboard.setDragImage */
+  void setDragImage(ImageElement image, int x, int y) native "Clipboard_setDragImage_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName CloseEvent
+class CloseEvent extends Event {
+  CloseEvent.internal(): super.internal();
+
+
+  /** @domName CloseEvent.code */
+  int get code native "CloseEvent_code_Getter";
+
+
+  /** @domName CloseEvent.reason */
+  String get reason native "CloseEvent_reason_Getter";
+
+
+  /** @domName CloseEvent.wasClean */
+  bool get wasClean native "CloseEvent_wasClean_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName Comment
+class Comment extends CharacterData {
+  Comment.internal(): super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName CompositionEvent
+class CompositionEvent extends UIEvent {
+  CompositionEvent.internal(): super.internal();
+
+
+  /** @domName CompositionEvent.data */
+  String get data native "CompositionEvent_data_Getter";
+
+
+  /** @domName CompositionEvent.initCompositionEvent */
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName Console
+class Console extends NativeFieldWrapperClass1 {
+  Console.internal();
+
+
+  /** @domName Console.memory */
+  MemoryInfo get memory native "Console_memory_Getter";
+
+
+  /** @domName Console.profiles */
+  List<ScriptProfile> get profiles native "Console_profiles_Getter";
+
+
+  /** @domName Console.assertCondition */
+  void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
+
+
+  /** @domName Console.count */
+  void count(Object arg) native "Console_count_Callback";
+
+
+  /** @domName Console.debug */
+  void debug(Object arg) native "Console_debug_Callback";
+
+
+  /** @domName Console.dir */
+  void dir(Object arg) native "Console_dir_Callback";
+
+
+  /** @domName Console.dirxml */
+  void dirxml(Object arg) native "Console_dirxml_Callback";
+
+
+  /** @domName Console.error */
+  void error(Object arg) native "Console_error_Callback";
+
+
+  /** @domName Console.group */
+  void group(Object arg) native "Console_group_Callback";
+
+
+  /** @domName Console.groupCollapsed */
+  void groupCollapsed(Object arg) native "Console_groupCollapsed_Callback";
+
+
+  /** @domName Console.groupEnd */
+  void groupEnd() native "Console_groupEnd_Callback";
+
+
+  /** @domName Console.info */
+  void info(Object arg) native "Console_info_Callback";
+
+
+  /** @domName Console.log */
+  void log(Object arg) native "Console_log_Callback";
+
+
+  /** @domName Console.markTimeline */
+  void markTimeline(Object arg) native "Console_markTimeline_Callback";
+
+
+  /** @domName Console.profile */
+  void profile(String title) native "Console_profile_Callback";
+
+
+  /** @domName Console.profileEnd */
+  void profileEnd(String title) native "Console_profileEnd_Callback";
+
+
+  /** @domName Console.time */
+  void time(String title) native "Console_time_Callback";
+
+
+  /** @domName Console.timeEnd */
+  void timeEnd(String title, Object arg) native "Console_timeEnd_Callback";
+
+
+  /** @domName Console.timeStamp */
+  void timeStamp(Object arg) native "Console_timeStamp_Callback";
+
+
+  /** @domName Console.trace */
+  void trace(Object arg) native "Console_trace_Callback";
+
+
+  /** @domName Console.warn */
+  void warn(Object arg) native "Console_warn_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName HTMLContentElement
+class ContentElement extends _Element_Merged {
+
+  ///@docsEditable true
+  factory ContentElement() => document.$dom_createElement("content");
+  ContentElement.internal(): super.internal();
+
+
+  /** @domName HTMLContentElement.resetStyleInheritance */
+  bool get resetStyleInheritance native "HTMLContentElement_resetStyleInheritance_Getter";
+
+
+  /** @domName HTMLContentElement.resetStyleInheritance */
+  void set resetStyleInheritance(bool value) native "HTMLContentElement_resetStyleInheritance_Setter";
+
+
+  /** @domName HTMLContentElement.select */
+  String get select native "HTMLContentElement_select_Getter";
+
+
+  /** @domName HTMLContentElement.select */
+  void set select(String value) native "HTMLContentElement_select_Setter";
+
+
+  /** @domName HTMLContentElement.getDistributedNodes */
+  List<Node> getDistributedNodes() native "HTMLContentElement_getDistributedNodes_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName Coordinates
+class Coordinates extends NativeFieldWrapperClass1 {
+  Coordinates.internal();
+
+
+  /** @domName Coordinates.accuracy */
+  num get accuracy native "Coordinates_accuracy_Getter";
+
+
+  /** @domName Coordinates.altitude */
+  num get altitude native "Coordinates_altitude_Getter";
+
+
+  /** @domName Coordinates.altitudeAccuracy */
+  num get altitudeAccuracy native "Coordinates_altitudeAccuracy_Getter";
+
+
+  /** @domName Coordinates.heading */
+  num get heading native "Coordinates_heading_Getter";
+
+
+  /** @domName Coordinates.latitude */
+  num get latitude native "Coordinates_latitude_Getter";
+
+
+  /** @domName Coordinates.longitude */
+  num get longitude native "Coordinates_longitude_Getter";
+
+
+  /** @domName Coordinates.speed */
+  num get speed native "Coordinates_speed_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName Counter
+class Counter extends NativeFieldWrapperClass1 {
+  Counter.internal();
+
+
+  /** @domName Counter.identifier */
+  String get identifier native "Counter_identifier_Getter";
+
+
+  /** @domName Counter.listStyle */
+  String get listStyle native "Counter_listStyle_Getter";
+
+
+  /** @domName Counter.separator */
+  String get separator native "Counter_separator_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName Crypto
+class Crypto extends NativeFieldWrapperClass1 {
+  Crypto.internal();
+
+
+  /** @domName Crypto.getRandomValues */
+  void getRandomValues(ArrayBufferView array) native "Crypto_getRandomValues_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1121,8 +2409,8 @@ class CDATASection extends Text {
 
 
 /// @domName CSSCharsetRule
-class CSSCharsetRule extends CSSRule {
-  CSSCharsetRule.internal(): super.internal();
+class CssCharsetRule extends CssRule {
+  CssCharsetRule.internal(): super.internal();
 
 
   /** @domName CSSCharsetRule.encoding */
@@ -1141,12 +2429,12 @@ class CSSCharsetRule extends CSSRule {
 
 
 /// @domName CSSFontFaceRule
-class CSSFontFaceRule extends CSSRule {
-  CSSFontFaceRule.internal(): super.internal();
+class CssFontFaceRule extends CssRule {
+  CssFontFaceRule.internal(): super.internal();
 
 
   /** @domName CSSFontFaceRule.style */
-  CSSStyleDeclaration get style native "CSSFontFaceRule_style_Getter";
+  CssStyleDeclaration get style native "CSSFontFaceRule_style_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1157,8 +2445,8 @@ class CSSFontFaceRule extends CSSRule {
 
 
 /// @domName CSSImportRule
-class CSSImportRule extends CSSRule {
-  CSSImportRule.internal(): super.internal();
+class CssImportRule extends CssRule {
+  CssImportRule.internal(): super.internal();
 
 
   /** @domName CSSImportRule.href */
@@ -1170,7 +2458,7 @@ class CSSImportRule extends CSSRule {
 
 
   /** @domName CSSImportRule.styleSheet */
-  CSSStyleSheet get styleSheet native "CSSImportRule_styleSheet_Getter";
+  CssStyleSheet get styleSheet native "CSSImportRule_styleSheet_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1181,8 +2469,8 @@ class CSSImportRule extends CSSRule {
 
 
 /// @domName WebKitCSSKeyframeRule
-class CSSKeyframeRule extends CSSRule {
-  CSSKeyframeRule.internal(): super.internal();
+class CssKeyframeRule extends CssRule {
+  CssKeyframeRule.internal(): super.internal();
 
 
   /** @domName WebKitCSSKeyframeRule.keyText */
@@ -1194,7 +2482,7 @@ class CSSKeyframeRule extends CSSRule {
 
 
   /** @domName WebKitCSSKeyframeRule.style */
-  CSSStyleDeclaration get style native "WebKitCSSKeyframeRule_style_Getter";
+  CssStyleDeclaration get style native "WebKitCSSKeyframeRule_style_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1205,12 +2493,12 @@ class CSSKeyframeRule extends CSSRule {
 
 
 /// @domName WebKitCSSKeyframesRule
-class CSSKeyframesRule extends CSSRule {
-  CSSKeyframesRule.internal(): super.internal();
+class CssKeyframesRule extends CssRule {
+  CssKeyframesRule.internal(): super.internal();
 
 
   /** @domName WebKitCSSKeyframesRule.cssRules */
-  List<CSSRule> get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
+  List<CssRule> get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
 
 
   /** @domName WebKitCSSKeyframesRule.name */
@@ -1226,7 +2514,7 @@ class CSSKeyframesRule extends CSSRule {
 
 
   /** @domName WebKitCSSKeyframesRule.findRule */
-  CSSKeyframeRule findRule(String key) native "WebKitCSSKeyframesRule_findRule_Callback";
+  CssKeyframeRule findRule(String key) native "WebKitCSSKeyframesRule_findRule_Callback";
 
 
   /** @domName WebKitCSSKeyframesRule.insertRule */
@@ -1241,15 +2529,16 @@ class CSSKeyframesRule extends CSSRule {
 
 
 /// @domName WebKitCSSMatrix
-class CSSMatrix extends NativeFieldWrapperClass1 {
+class CssMatrix extends NativeFieldWrapperClass1 {
 
-  factory CSSMatrix([String cssValue]) {
+  ///@docsEditable true
+  factory CssMatrix([String cssValue]) {
     if (!?cssValue) {
-      return _CSSMatrixFactoryProvider.createCSSMatrix();
+      return _CssMatrixFactoryProvider.createCssMatrix();
     }
-    return _CSSMatrixFactoryProvider.createCSSMatrix(cssValue);
+    return _CssMatrixFactoryProvider.createCssMatrix(cssValue);
   }
-  CSSMatrix.internal();
+  CssMatrix.internal();
 
 
   /** @domName WebKitCSSMatrix.a */
@@ -1429,23 +2718,23 @@ class CSSMatrix extends NativeFieldWrapperClass1 {
 
 
   /** @domName WebKitCSSMatrix.inverse */
-  CSSMatrix inverse() native "WebKitCSSMatrix_inverse_Callback";
+  CssMatrix inverse() native "WebKitCSSMatrix_inverse_Callback";
 
 
   /** @domName WebKitCSSMatrix.multiply */
-  CSSMatrix multiply(CSSMatrix secondMatrix) native "WebKitCSSMatrix_multiply_Callback";
+  CssMatrix multiply(CssMatrix secondMatrix) native "WebKitCSSMatrix_multiply_Callback";
 
 
   /** @domName WebKitCSSMatrix.rotate */
-  CSSMatrix rotate(num rotX, num rotY, num rotZ) native "WebKitCSSMatrix_rotate_Callback";
+  CssMatrix rotate(num rotX, num rotY, num rotZ) native "WebKitCSSMatrix_rotate_Callback";
 
 
   /** @domName WebKitCSSMatrix.rotateAxisAngle */
-  CSSMatrix rotateAxisAngle(num x, num y, num z, num angle) native "WebKitCSSMatrix_rotateAxisAngle_Callback";
+  CssMatrix rotateAxisAngle(num x, num y, num z, num angle) native "WebKitCSSMatrix_rotateAxisAngle_Callback";
 
 
   /** @domName WebKitCSSMatrix.scale */
-  CSSMatrix scale(num scaleX, num scaleY, num scaleZ) native "WebKitCSSMatrix_scale_Callback";
+  CssMatrix scale(num scaleX, num scaleY, num scaleZ) native "WebKitCSSMatrix_scale_Callback";
 
 
   /** @domName WebKitCSSMatrix.setMatrixValue */
@@ -1453,11 +2742,11 @@ class CSSMatrix extends NativeFieldWrapperClass1 {
 
 
   /** @domName WebKitCSSMatrix.skewX */
-  CSSMatrix skewX(num angle) native "WebKitCSSMatrix_skewX_Callback";
+  CssMatrix skewX(num angle) native "WebKitCSSMatrix_skewX_Callback";
 
 
   /** @domName WebKitCSSMatrix.skewY */
-  CSSMatrix skewY(num angle) native "WebKitCSSMatrix_skewY_Callback";
+  CssMatrix skewY(num angle) native "WebKitCSSMatrix_skewY_Callback";
 
 
   /** @domName WebKitCSSMatrix.toString */
@@ -1465,7 +2754,7 @@ class CSSMatrix extends NativeFieldWrapperClass1 {
 
 
   /** @domName WebKitCSSMatrix.translate */
-  CSSMatrix translate(num x, num y, num z) native "WebKitCSSMatrix_translate_Callback";
+  CssMatrix translate(num x, num y, num z) native "WebKitCSSMatrix_translate_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1476,12 +2765,12 @@ class CSSMatrix extends NativeFieldWrapperClass1 {
 
 
 /// @domName CSSMediaRule
-class CSSMediaRule extends CSSRule {
-  CSSMediaRule.internal(): super.internal();
+class CssMediaRule extends CssRule {
+  CssMediaRule.internal(): super.internal();
 
 
   /** @domName CSSMediaRule.cssRules */
-  List<CSSRule> get cssRules native "CSSMediaRule_cssRules_Getter";
+  List<CssRule> get cssRules native "CSSMediaRule_cssRules_Getter";
 
 
   /** @domName CSSMediaRule.media */
@@ -1504,8 +2793,8 @@ class CSSMediaRule extends CSSRule {
 
 
 /// @domName CSSPageRule
-class CSSPageRule extends CSSRule {
-  CSSPageRule.internal(): super.internal();
+class CssPageRule extends CssRule {
+  CssPageRule.internal(): super.internal();
 
 
   /** @domName CSSPageRule.selectorText */
@@ -1517,7 +2806,7 @@ class CSSPageRule extends CSSRule {
 
 
   /** @domName CSSPageRule.style */
-  CSSStyleDeclaration get style native "CSSPageRule_style_Getter";
+  CssStyleDeclaration get style native "CSSPageRule_style_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1528,8 +2817,8 @@ class CSSPageRule extends CSSRule {
 
 
 /// @domName CSSPrimitiveValue
-class CSSPrimitiveValue extends CSSValue {
-  CSSPrimitiveValue.internal(): super.internal();
+class CssPrimitiveValue extends CssValue {
+  CssPrimitiveValue.internal(): super.internal();
 
   static const int CSS_ATTR = 22;
 
@@ -1603,7 +2892,7 @@ class CSSPrimitiveValue extends CSSValue {
 
 
   /** @domName CSSPrimitiveValue.getRGBColorValue */
-  RGBColor getRgbColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
+  RgbColor getRgbColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
 
 
   /** @domName CSSPrimitiveValue.getRectValue */
@@ -1630,8 +2919,8 @@ class CSSPrimitiveValue extends CSSValue {
 
 
 /// @domName CSSRule
-class CSSRule extends NativeFieldWrapperClass1 {
-  CSSRule.internal();
+class CssRule extends NativeFieldWrapperClass1 {
+  CssRule.internal();
 
   static const int CHARSET_RULE = 2;
 
@@ -1661,11 +2950,11 @@ class CSSRule extends NativeFieldWrapperClass1 {
 
 
   /** @domName CSSRule.parentRule */
-  CSSRule get parentRule native "CSSRule_parentRule_Getter";
+  CssRule get parentRule native "CSSRule_parentRule_Getter";
 
 
   /** @domName CSSRule.parentStyleSheet */
-  CSSStyleSheet get parentStyleSheet native "CSSRule_parentStyleSheet_Getter";
+  CssStyleSheet get parentStyleSheet native "CSSRule_parentStyleSheet_Getter";
 
 
   /** @domName CSSRule.type */
@@ -1695,12 +2984,12 @@ String get _browserPrefix {
 }
 
 /// @domName CSSStyleDeclaration
-class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
-  factory CSSStyleDeclaration() => _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration();
-  factory CSSStyleDeclaration.css(String css) =>
-      _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration_css(css);
+class CssStyleDeclaration extends NativeFieldWrapperClass1 {
+  factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
+  factory CssStyleDeclaration.css(String css) =>
+      _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration_css(css);
 
-  CSSStyleDeclaration.internal();
+  CssStyleDeclaration.internal();
 
 
   /** @domName CSSStyleDeclaration.cssText */
@@ -1716,11 +3005,11 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
 
 
   /** @domName CSSStyleDeclaration.parentRule */
-  CSSRule get parentRule native "CSSStyleDeclaration_parentRule_Getter";
+  CssRule get parentRule native "CSSStyleDeclaration_parentRule_Getter";
 
 
   /** @domName CSSStyleDeclaration.getPropertyCSSValue */
-  CSSValue getPropertyCssValue(String propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
+  CssValue getPropertyCssValue(String propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
 
 
   /** @domName CSSStyleDeclaration.getPropertyPriority */
@@ -4916,8 +6205,8 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
 
 
 /// @domName CSSStyleRule
-class CSSStyleRule extends CSSRule {
-  CSSStyleRule.internal(): super.internal();
+class CssStyleRule extends CssRule {
+  CssStyleRule.internal(): super.internal();
 
 
   /** @domName CSSStyleRule.selectorText */
@@ -4929,7 +6218,7 @@ class CSSStyleRule extends CSSRule {
 
 
   /** @domName CSSStyleRule.style */
-  CSSStyleDeclaration get style native "CSSStyleRule_style_Getter";
+  CssStyleDeclaration get style native "CSSStyleRule_style_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4940,20 +6229,20 @@ class CSSStyleRule extends CSSRule {
 
 
 /// @domName CSSStyleSheet
-class CSSStyleSheet extends StyleSheet {
-  CSSStyleSheet.internal(): super.internal();
+class CssStyleSheet extends StyleSheet {
+  CssStyleSheet.internal(): super.internal();
 
 
   /** @domName CSSStyleSheet.cssRules */
-  List<CSSRule> get cssRules native "CSSStyleSheet_cssRules_Getter";
+  List<CssRule> get cssRules native "CSSStyleSheet_cssRules_Getter";
 
 
   /** @domName CSSStyleSheet.ownerRule */
-  CSSRule get ownerRule native "CSSStyleSheet_ownerRule_Getter";
+  CssRule get ownerRule native "CSSStyleSheet_ownerRule_Getter";
 
 
   /** @domName CSSStyleSheet.rules */
-  List<CSSRule> get rules native "CSSStyleSheet_rules_Getter";
+  List<CssRule> get rules native "CSSStyleSheet_rules_Getter";
 
   int addRule(/*DOMString*/ selector, /*DOMString*/ style, [/*unsigned long*/ index]) {
     if (?index) {
@@ -4991,8 +6280,8 @@ class CSSStyleSheet extends StyleSheet {
 
 
 /// @domName WebKitCSSTransformValue
-class CSSTransformValue extends _CSSValueList {
-  CSSTransformValue.internal(): super.internal();
+class CssTransformValue extends _CssValueList {
+  CssTransformValue.internal(): super.internal();
 
   static const int CSS_MATRIX = 11;
 
@@ -5049,8 +6338,8 @@ class CSSTransformValue extends _CSSValueList {
 
 
 /// @domName CSSUnknownRule
-class CSSUnknownRule extends CSSRule {
-  CSSUnknownRule.internal(): super.internal();
+class CssUnknownRule extends CssRule {
+  CssUnknownRule.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5061,8 +6350,8 @@ class CSSUnknownRule extends CSSRule {
 
 
 /// @domName CSSValue
-class CSSValue extends NativeFieldWrapperClass1 {
-  CSSValue.internal();
+class CssValue extends NativeFieldWrapperClass1 {
+  CssValue.internal();
 
   static const int CSS_CUSTOM = 3;
 
@@ -5083,1185 +6372,6 @@ class CSSValue extends NativeFieldWrapperClass1 {
 
   /** @domName CSSValue.cssValueType */
   int get cssValueType native "CSSValue_cssValueType_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName HTMLCanvasElement
-class CanvasElement extends _Element_Merged {
-
-  factory CanvasElement({int width, int height}) {
-    var e = document.$dom_createElement("canvas");
-    if (width != null) e.width = width;
-    if (height != null) e.height = height;
-    return e;
-  }
-  CanvasElement.internal(): super.internal();
-
-
-  /** @domName HTMLCanvasElement.height */
-  int get height native "HTMLCanvasElement_height_Getter";
-
-
-  /** @domName HTMLCanvasElement.height */
-  void set height(int value) native "HTMLCanvasElement_height_Setter";
-
-
-  /** @domName HTMLCanvasElement.width */
-  int get width native "HTMLCanvasElement_width_Getter";
-
-
-  /** @domName HTMLCanvasElement.width */
-  void set width(int value) native "HTMLCanvasElement_width_Setter";
-
-
-  /** @domName HTMLCanvasElement.getContext */
-  Object getContext(String contextId) native "HTMLCanvasElement_getContext_Callback";
-
-
-  /** @domName HTMLCanvasElement.toDataURL */
-  String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
-
-
-  CanvasRenderingContext2D get context2d => getContext('2d');
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName CanvasGradient
-class CanvasGradient extends NativeFieldWrapperClass1 {
-  CanvasGradient.internal();
-
-
-  /** @domName CanvasGradient.addColorStop */
-  void addColorStop(num offset, String color) native "CanvasGradient_addColorStop_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName CanvasPattern
-class CanvasPattern extends NativeFieldWrapperClass1 {
-  CanvasPattern.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName CanvasRenderingContext
-class CanvasRenderingContext extends NativeFieldWrapperClass1 {
-  CanvasRenderingContext.internal();
-
-
-  /** @domName CanvasRenderingContext.canvas */
-  CanvasElement get canvas native "CanvasRenderingContext_canvas_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName CanvasRenderingContext2D
-class CanvasRenderingContext2D extends CanvasRenderingContext {
-  CanvasRenderingContext2D.internal(): super.internal();
-
-
-  /** @domName CanvasRenderingContext2D.fillStyle */
-  dynamic get fillStyle native "CanvasRenderingContext2D_fillStyle_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.fillStyle */
-  void set fillStyle(dynamic value) native "CanvasRenderingContext2D_fillStyle_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.font */
-  String get font native "CanvasRenderingContext2D_font_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.font */
-  void set font(String value) native "CanvasRenderingContext2D_font_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.globalAlpha */
-  num get globalAlpha native "CanvasRenderingContext2D_globalAlpha_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.globalAlpha */
-  void set globalAlpha(num value) native "CanvasRenderingContext2D_globalAlpha_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.globalCompositeOperation */
-  String get globalCompositeOperation native "CanvasRenderingContext2D_globalCompositeOperation_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.globalCompositeOperation */
-  void set globalCompositeOperation(String value) native "CanvasRenderingContext2D_globalCompositeOperation_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.lineCap */
-  String get lineCap native "CanvasRenderingContext2D_lineCap_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.lineCap */
-  void set lineCap(String value) native "CanvasRenderingContext2D_lineCap_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.lineDashOffset */
-  num get lineDashOffset native "CanvasRenderingContext2D_lineDashOffset_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.lineDashOffset */
-  void set lineDashOffset(num value) native "CanvasRenderingContext2D_lineDashOffset_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.lineJoin */
-  String get lineJoin native "CanvasRenderingContext2D_lineJoin_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.lineJoin */
-  void set lineJoin(String value) native "CanvasRenderingContext2D_lineJoin_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.lineWidth */
-  num get lineWidth native "CanvasRenderingContext2D_lineWidth_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.lineWidth */
-  void set lineWidth(num value) native "CanvasRenderingContext2D_lineWidth_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.miterLimit */
-  num get miterLimit native "CanvasRenderingContext2D_miterLimit_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.miterLimit */
-  void set miterLimit(num value) native "CanvasRenderingContext2D_miterLimit_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.shadowBlur */
-  num get shadowBlur native "CanvasRenderingContext2D_shadowBlur_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.shadowBlur */
-  void set shadowBlur(num value) native "CanvasRenderingContext2D_shadowBlur_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.shadowColor */
-  String get shadowColor native "CanvasRenderingContext2D_shadowColor_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.shadowColor */
-  void set shadowColor(String value) native "CanvasRenderingContext2D_shadowColor_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.shadowOffsetX */
-  num get shadowOffsetX native "CanvasRenderingContext2D_shadowOffsetX_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.shadowOffsetX */
-  void set shadowOffsetX(num value) native "CanvasRenderingContext2D_shadowOffsetX_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.shadowOffsetY */
-  num get shadowOffsetY native "CanvasRenderingContext2D_shadowOffsetY_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.shadowOffsetY */
-  void set shadowOffsetY(num value) native "CanvasRenderingContext2D_shadowOffsetY_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.strokeStyle */
-  dynamic get strokeStyle native "CanvasRenderingContext2D_strokeStyle_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.strokeStyle */
-  void set strokeStyle(dynamic value) native "CanvasRenderingContext2D_strokeStyle_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.textAlign */
-  String get textAlign native "CanvasRenderingContext2D_textAlign_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.textAlign */
-  void set textAlign(String value) native "CanvasRenderingContext2D_textAlign_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.textBaseline */
-  String get textBaseline native "CanvasRenderingContext2D_textBaseline_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.textBaseline */
-  void set textBaseline(String value) native "CanvasRenderingContext2D_textBaseline_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
-  num get webkitBackingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
-  bool get webkitImageSmoothingEnabled native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
-  void set webkitImageSmoothingEnabled(bool value) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.webkitLineDash */
-  List get webkitLineDash native "CanvasRenderingContext2D_webkitLineDash_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.webkitLineDash */
-  void set webkitLineDash(List value) native "CanvasRenderingContext2D_webkitLineDash_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.webkitLineDashOffset */
-  num get webkitLineDashOffset native "CanvasRenderingContext2D_webkitLineDashOffset_Getter";
-
-
-  /** @domName CanvasRenderingContext2D.webkitLineDashOffset */
-  void set webkitLineDashOffset(num value) native "CanvasRenderingContext2D_webkitLineDashOffset_Setter";
-
-
-  /** @domName CanvasRenderingContext2D.arc */
-  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.arcTo */
-  void arcTo(num x1, num y1, num x2, num y2, num radius) native "CanvasRenderingContext2D_arcTo_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.beginPath */
-  void beginPath() native "CanvasRenderingContext2D_beginPath_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.bezierCurveTo */
-  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native "CanvasRenderingContext2D_bezierCurveTo_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.clearRect */
-  void clearRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_clearRect_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.clearShadow */
-  void clearShadow() native "CanvasRenderingContext2D_clearShadow_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.clip */
-  void clip() native "CanvasRenderingContext2D_clip_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.closePath */
-  void closePath() native "CanvasRenderingContext2D_closePath_Callback";
-
-  ImageData createImageData(imagedata_OR_sw, [/*float*/ sh]) {
-    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) && !?sh) {
-      return _createImageData_1(imagedata_OR_sw);
-    }
-    if ((imagedata_OR_sw is num || imagedata_OR_sw == null) && (sh is num || sh == null)) {
-      return _createImageData_2(imagedata_OR_sw, sh);
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName CanvasRenderingContext2D.createImageData_1 */
-  ImageData _createImageData_1(imagedata_OR_sw) native "CanvasRenderingContext2D_createImageData_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.createImageData_2 */
-  ImageData _createImageData_2(imagedata_OR_sw, sh) native "CanvasRenderingContext2D_createImageData_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.createLinearGradient */
-  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
-
-  CanvasPattern createPattern(canvas_OR_image, /*DOMString*/ repetitionType) {
-    if ((canvas_OR_image is CanvasElement || canvas_OR_image == null) && (repetitionType is String || repetitionType == null)) {
-      return _createPattern_1(canvas_OR_image, repetitionType);
-    }
-    if ((canvas_OR_image is ImageElement || canvas_OR_image == null) && (repetitionType is String || repetitionType == null)) {
-      return _createPattern_2(canvas_OR_image, repetitionType);
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName CanvasRenderingContext2D.createPattern_1 */
-  CanvasPattern _createPattern_1(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.createPattern_2 */
-  CanvasPattern _createPattern_2(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.createRadialGradient */
-  CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
-
-  void drawImage(canvas_OR_image_OR_video, /*float*/ sx_OR_x, /*float*/ sy_OR_y, [/*float*/ sw_OR_width, /*float*/ height_OR_sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh]) {
-    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
-      _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
-      return;
-    }
-    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
-      _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-      return;
-    }
-    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
-      _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
-    }
-    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
-      _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
-      return;
-    }
-    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
-      _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-      return;
-    }
-    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
-      _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
-    }
-    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
-      _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
-      return;
-    }
-    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
-      _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-      return;
-    }
-    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
-      _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName CanvasRenderingContext2D.drawImage_1 */
-  void _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImage_2 */
-  void _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImage_3 */
-  void _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_3_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImage_4 */
-  void _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_4_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImage_5 */
-  void _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_5_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImage_6 */
-  void _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_6_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImage_7 */
-  void _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_7_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImage_8 */
-  void _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_8_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImage_9 */
-  void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
-
-  void drawImageFromRect(/*HTMLImageElement*/ image, [/*float*/ sx, /*float*/ sy, /*float*/ sw, /*float*/ sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh, /*DOMString*/ compositeOperation]) {
-    if (?compositeOperation) {
-      _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
-      return;
-    }
-    if (?dh) {
-      _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw, dh);
-      return;
-    }
-    if (?dw) {
-      _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy, dw);
-      return;
-    }
-    if (?dy) {
-      _drawImageFromRect_4(image, sx, sy, sw, sh, dx, dy);
-      return;
-    }
-    if (?dx) {
-      _drawImageFromRect_5(image, sx, sy, sw, sh, dx);
-      return;
-    }
-    if (?sh) {
-      _drawImageFromRect_6(image, sx, sy, sw, sh);
-      return;
-    }
-    if (?sw) {
-      _drawImageFromRect_7(image, sx, sy, sw);
-      return;
-    }
-    if (?sy) {
-      _drawImageFromRect_8(image, sx, sy);
-      return;
-    }
-    if (?sx) {
-      _drawImageFromRect_9(image, sx);
-      return;
-    }
-    _drawImageFromRect_10(image);
-  }
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_1 */
-  void _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation) native "CanvasRenderingContext2D_drawImageFromRect_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_2 */
-  void _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImageFromRect_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_3 */
-  void _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy, dw) native "CanvasRenderingContext2D_drawImageFromRect_3_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_4 */
-  void _drawImageFromRect_4(image, sx, sy, sw, sh, dx, dy) native "CanvasRenderingContext2D_drawImageFromRect_4_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_5 */
-  void _drawImageFromRect_5(image, sx, sy, sw, sh, dx) native "CanvasRenderingContext2D_drawImageFromRect_5_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_6 */
-  void _drawImageFromRect_6(image, sx, sy, sw, sh) native "CanvasRenderingContext2D_drawImageFromRect_6_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_7 */
-  void _drawImageFromRect_7(image, sx, sy, sw) native "CanvasRenderingContext2D_drawImageFromRect_7_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_8 */
-  void _drawImageFromRect_8(image, sx, sy) native "CanvasRenderingContext2D_drawImageFromRect_8_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_9 */
-  void _drawImageFromRect_9(image, sx) native "CanvasRenderingContext2D_drawImageFromRect_9_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_10 */
-  void _drawImageFromRect_10(image) native "CanvasRenderingContext2D_drawImageFromRect_10_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.fill */
-  void fill() native "CanvasRenderingContext2D_fill_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.fillRect */
-  void fillRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_fillRect_Callback";
-
-  void fillText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
-    if (?maxWidth) {
-      _fillText_1(text, x, y, maxWidth);
-      return;
-    }
-    _fillText_2(text, x, y);
-  }
-
-
-  /** @domName CanvasRenderingContext2D.fillText_1 */
-  void _fillText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_fillText_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.fillText_2 */
-  void _fillText_2(text, x, y) native "CanvasRenderingContext2D_fillText_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.getImageData */
-  ImageData getImageData(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_getImageData_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.getLineDash */
-  List<num> getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.isPointInPath */
-  bool isPointInPath(num x, num y) native "CanvasRenderingContext2D_isPointInPath_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.lineTo */
-  void lineTo(num x, num y) native "CanvasRenderingContext2D_lineTo_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.measureText */
-  TextMetrics measureText(String text) native "CanvasRenderingContext2D_measureText_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.moveTo */
-  void moveTo(num x, num y) native "CanvasRenderingContext2D_moveTo_Callback";
-
-  void putImageData(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
-    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
-      _putImageData_1(imagedata, dx, dy);
-      return;
-    }
-    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dirtyX is num || dirtyX == null) && (dirtyY is num || dirtyY == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyHeight is num || dirtyHeight == null)) {
-      _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName CanvasRenderingContext2D.putImageData_1 */
-  void _putImageData_1(imagedata, dx, dy) native "CanvasRenderingContext2D_putImageData_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.putImageData_2 */
-  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_putImageData_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.quadraticCurveTo */
-  void quadraticCurveTo(num cpx, num cpy, num x, num y) native "CanvasRenderingContext2D_quadraticCurveTo_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.rect */
-  void rect(num x, num y, num width, num height) native "CanvasRenderingContext2D_rect_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.restore */
-  void restore() native "CanvasRenderingContext2D_restore_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.rotate */
-  void rotate(num angle) native "CanvasRenderingContext2D_rotate_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.save */
-  void save() native "CanvasRenderingContext2D_save_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.scale */
-  void scale(num sx, num sy) native "CanvasRenderingContext2D_scale_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setAlpha */
-  void setAlpha(num alpha) native "CanvasRenderingContext2D_setAlpha_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setCompositeOperation */
-  void setCompositeOperation(String compositeOperation) native "CanvasRenderingContext2D_setCompositeOperation_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setLineCap */
-  void setLineCap(String cap) native "CanvasRenderingContext2D_setLineCap_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setLineDash */
-  void setLineDash(List<num> dash) native "CanvasRenderingContext2D_setLineDash_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setLineJoin */
-  void setLineJoin(String join) native "CanvasRenderingContext2D_setLineJoin_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setLineWidth */
-  void setLineWidth(num width) native "CanvasRenderingContext2D_setLineWidth_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setMiterLimit */
-  void setMiterLimit(num limit) native "CanvasRenderingContext2D_setMiterLimit_Callback";
-
-  void setShadow(/*float*/ width, /*float*/ height, /*float*/ blur, [c_OR_color_OR_grayLevel_OR_r, /*float*/ alpha_OR_g_OR_m, /*float*/ b_OR_y, /*float*/ a_OR_k, /*float*/ a]) {
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && !?c_OR_color_OR_grayLevel_OR_r && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_1(width, height, blur);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r == null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_5(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && (b_OR_y is num || b_OR_y == null) && (a_OR_k is num || a_OR_k == null) && !?a) {
-      _setShadow_6(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && (b_OR_y is num || b_OR_y == null) && (a_OR_k is num || a_OR_k == null) && (a is num || a == null)) {
-      _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_1 */
-  void _setShadow_1(width, height, blur) native "CanvasRenderingContext2D_setShadow_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_2 */
-  void _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setShadow_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_3 */
-  void _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setShadow_3_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_4 */
-  void _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setShadow_4_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_5 */
-  void _setShadow_5(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setShadow_5_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_6 */
-  void _setShadow_6(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native "CanvasRenderingContext2D_setShadow_6_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_7 */
-  void _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setShadow_7_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setTransform */
-  void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native "CanvasRenderingContext2D_setTransform_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.stroke */
-  void stroke() native "CanvasRenderingContext2D_stroke_Callback";
-
-  void strokeRect(/*float*/ x, /*float*/ y, /*float*/ width, /*float*/ height, [/*float*/ lineWidth]) {
-    if (?lineWidth) {
-      _strokeRect_1(x, y, width, height, lineWidth);
-      return;
-    }
-    _strokeRect_2(x, y, width, height);
-  }
-
-
-  /** @domName CanvasRenderingContext2D.strokeRect_1 */
-  void _strokeRect_1(x, y, width, height, lineWidth) native "CanvasRenderingContext2D_strokeRect_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.strokeRect_2 */
-  void _strokeRect_2(x, y, width, height) native "CanvasRenderingContext2D_strokeRect_2_Callback";
-
-  void strokeText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
-    if (?maxWidth) {
-      _strokeText_1(text, x, y, maxWidth);
-      return;
-    }
-    _strokeText_2(text, x, y);
-  }
-
-
-  /** @domName CanvasRenderingContext2D.strokeText_1 */
-  void _strokeText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_strokeText_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.strokeText_2 */
-  void _strokeText_2(text, x, y) native "CanvasRenderingContext2D_strokeText_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.transform */
-  void transform(num m11, num m12, num m21, num m22, num dx, num dy) native "CanvasRenderingContext2D_transform_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.translate */
-  void translate(num tx, num ty) native "CanvasRenderingContext2D_translate_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.webkitGetImageDataHD */
-  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
-
-  void webkitPutImageDataHD(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
-    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
-      _webkitPutImageDataHD_1(imagedata, dx, dy);
-      return;
-    }
-    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dirtyX is num || dirtyX == null) && (dirtyY is num || dirtyY == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyHeight is num || dirtyHeight == null)) {
-      _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName CanvasRenderingContext2D.webkitPutImageDataHD_1 */
-  void _webkitPutImageDataHD_1(imagedata, dx, dy) native "CanvasRenderingContext2D_webkitPutImageDataHD_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.webkitPutImageDataHD_2 */
-  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_webkitPutImageDataHD_2_Callback";
-
-
-  /**
-   * Sets the color used inside shapes.
-   * [r], [g], [b] are 0-255, [a] is 0-1.
-   */
-  void setFillColorRgb(int r, int g, int b, [num a = 1]) {
-    this.fillStyle = 'rgba($r, $g, $b, $a)';
-  }
-
-  /**
-   * Sets the color used inside shapes.
-   * [h] is in degrees, 0-360.
-   * [s], [l] are in percent, 0-100.
-   * [a] is 0-1.
-   */
-  void setFillColorHsl(int h, num s, num l, [num a = 1]) {
-    this.fillStyle = 'hsla($h, $s%, $l%, $a)';
-  }
-
-  /**
-   * Sets the color used for stroking shapes.
-   * [r], [g], [b] are 0-255, [a] is 0-1.
-   */
-  void setStrokeColorRgb(int r, int g, int b, [num a = 1]) {
-    this.strokeStyle = 'rgba($r, $g, $b, $a)';
-  }
-
-  /**
-   * Sets the color used for stroking shapes.
-   * [h] is in degrees, 0-360.
-   * [s], [l] are in percent, 0-100.
-   * [a] is 0-1.
-   */
-  void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
-    this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
-  }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName CharacterData
-class CharacterData extends Node {
-  CharacterData.internal(): super.internal();
-
-
-  /** @domName CharacterData.data */
-  String get data native "CharacterData_data_Getter";
-
-
-  /** @domName CharacterData.data */
-  void set data(String value) native "CharacterData_data_Setter";
-
-
-  /** @domName CharacterData.length */
-  int get length native "CharacterData_length_Getter";
-
-
-  /** @domName CharacterData.appendData */
-  void appendData(String data) native "CharacterData_appendData_Callback";
-
-
-  /** @domName CharacterData.deleteData */
-  void deleteData(int offset, int length) native "CharacterData_deleteData_Callback";
-
-
-  /** @domName CharacterData.insertData */
-  void insertData(int offset, String data) native "CharacterData_insertData_Callback";
-
-
-  /** @domName CharacterData.remove */
-  void remove() native "CharacterData_remove_Callback";
-
-
-  /** @domName CharacterData.replaceData */
-  void replaceData(int offset, int length, String data) native "CharacterData_replaceData_Callback";
-
-
-  /** @domName CharacterData.substringData */
-  String substringData(int offset, int length) native "CharacterData_substringData_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName ClientRect
-class ClientRect extends NativeFieldWrapperClass1 {
-  ClientRect.internal();
-
-
-  /** @domName ClientRect.bottom */
-  num get bottom native "ClientRect_bottom_Getter";
-
-
-  /** @domName ClientRect.height */
-  num get height native "ClientRect_height_Getter";
-
-
-  /** @domName ClientRect.left */
-  num get left native "ClientRect_left_Getter";
-
-
-  /** @domName ClientRect.right */
-  num get right native "ClientRect_right_Getter";
-
-
-  /** @domName ClientRect.top */
-  num get top native "ClientRect_top_Getter";
-
-
-  /** @domName ClientRect.width */
-  num get width native "ClientRect_width_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName Clipboard
-class Clipboard extends NativeFieldWrapperClass1 {
-  Clipboard.internal();
-
-
-  /** @domName Clipboard.dropEffect */
-  String get dropEffect native "Clipboard_dropEffect_Getter";
-
-
-  /** @domName Clipboard.dropEffect */
-  void set dropEffect(String value) native "Clipboard_dropEffect_Setter";
-
-
-  /** @domName Clipboard.effectAllowed */
-  String get effectAllowed native "Clipboard_effectAllowed_Getter";
-
-
-  /** @domName Clipboard.effectAllowed */
-  void set effectAllowed(String value) native "Clipboard_effectAllowed_Setter";
-
-
-  /** @domName Clipboard.files */
-  List<File> get files native "Clipboard_files_Getter";
-
-
-  /** @domName Clipboard.items */
-  DataTransferItemList get items native "Clipboard_items_Getter";
-
-
-  /** @domName Clipboard.types */
-  List get types native "Clipboard_types_Getter";
-
-
-  /** @domName Clipboard.clearData */
-  void clearData([String type]) native "Clipboard_clearData_Callback";
-
-
-  /** @domName Clipboard.getData */
-  String getData(String type) native "Clipboard_getData_Callback";
-
-
-  /** @domName Clipboard.setData */
-  bool setData(String type, String data) native "Clipboard_setData_Callback";
-
-
-  /** @domName Clipboard.setDragImage */
-  void setDragImage(ImageElement image, int x, int y) native "Clipboard_setDragImage_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName CloseEvent
-class CloseEvent extends Event {
-  CloseEvent.internal(): super.internal();
-
-
-  /** @domName CloseEvent.code */
-  int get code native "CloseEvent_code_Getter";
-
-
-  /** @domName CloseEvent.reason */
-  String get reason native "CloseEvent_reason_Getter";
-
-
-  /** @domName CloseEvent.wasClean */
-  bool get wasClean native "CloseEvent_wasClean_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName Comment
-class Comment extends CharacterData {
-  Comment.internal(): super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName CompositionEvent
-class CompositionEvent extends UIEvent {
-  CompositionEvent.internal(): super.internal();
-
-
-  /** @domName CompositionEvent.data */
-  String get data native "CompositionEvent_data_Getter";
-
-
-  /** @domName CompositionEvent.initCompositionEvent */
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName Console
-class Console extends NativeFieldWrapperClass1 {
-  Console.internal();
-
-
-  /** @domName Console.memory */
-  MemoryInfo get memory native "Console_memory_Getter";
-
-
-  /** @domName Console.profiles */
-  List<ScriptProfile> get profiles native "Console_profiles_Getter";
-
-
-  /** @domName Console.assertCondition */
-  void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
-
-
-  /** @domName Console.count */
-  void count(Object arg) native "Console_count_Callback";
-
-
-  /** @domName Console.debug */
-  void debug(Object arg) native "Console_debug_Callback";
-
-
-  /** @domName Console.dir */
-  void dir(Object arg) native "Console_dir_Callback";
-
-
-  /** @domName Console.dirxml */
-  void dirxml(Object arg) native "Console_dirxml_Callback";
-
-
-  /** @domName Console.error */
-  void error(Object arg) native "Console_error_Callback";
-
-
-  /** @domName Console.group */
-  void group(Object arg) native "Console_group_Callback";
-
-
-  /** @domName Console.groupCollapsed */
-  void groupCollapsed(Object arg) native "Console_groupCollapsed_Callback";
-
-
-  /** @domName Console.groupEnd */
-  void groupEnd() native "Console_groupEnd_Callback";
-
-
-  /** @domName Console.info */
-  void info(Object arg) native "Console_info_Callback";
-
-
-  /** @domName Console.log */
-  void log(Object arg) native "Console_log_Callback";
-
-
-  /** @domName Console.markTimeline */
-  void markTimeline(Object arg) native "Console_markTimeline_Callback";
-
-
-  /** @domName Console.profile */
-  void profile(String title) native "Console_profile_Callback";
-
-
-  /** @domName Console.profileEnd */
-  void profileEnd(String title) native "Console_profileEnd_Callback";
-
-
-  /** @domName Console.time */
-  void time(String title) native "Console_time_Callback";
-
-
-  /** @domName Console.timeEnd */
-  void timeEnd(String title, Object arg) native "Console_timeEnd_Callback";
-
-
-  /** @domName Console.timeStamp */
-  void timeStamp(Object arg) native "Console_timeStamp_Callback";
-
-
-  /** @domName Console.trace */
-  void trace(Object arg) native "Console_trace_Callback";
-
-
-  /** @domName Console.warn */
-  void warn(Object arg) native "Console_warn_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName HTMLContentElement
-class ContentElement extends _Element_Merged {
-
-  factory ContentElement() => document.$dom_createElement("content");
-  ContentElement.internal(): super.internal();
-
-
-  /** @domName HTMLContentElement.resetStyleInheritance */
-  bool get resetStyleInheritance native "HTMLContentElement_resetStyleInheritance_Getter";
-
-
-  /** @domName HTMLContentElement.resetStyleInheritance */
-  void set resetStyleInheritance(bool value) native "HTMLContentElement_resetStyleInheritance_Setter";
-
-
-  /** @domName HTMLContentElement.select */
-  String get select native "HTMLContentElement_select_Getter";
-
-
-  /** @domName HTMLContentElement.select */
-  void set select(String value) native "HTMLContentElement_select_Setter";
-
-
-  /** @domName HTMLContentElement.getDistributedNodes */
-  List<Node> getDistributedNodes() native "HTMLContentElement_getDistributedNodes_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName Coordinates
-class Coordinates extends NativeFieldWrapperClass1 {
-  Coordinates.internal();
-
-
-  /** @domName Coordinates.accuracy */
-  num get accuracy native "Coordinates_accuracy_Getter";
-
-
-  /** @domName Coordinates.altitude */
-  num get altitude native "Coordinates_altitude_Getter";
-
-
-  /** @domName Coordinates.altitudeAccuracy */
-  num get altitudeAccuracy native "Coordinates_altitudeAccuracy_Getter";
-
-
-  /** @domName Coordinates.heading */
-  num get heading native "Coordinates_heading_Getter";
-
-
-  /** @domName Coordinates.latitude */
-  num get latitude native "Coordinates_latitude_Getter";
-
-
-  /** @domName Coordinates.longitude */
-  num get longitude native "Coordinates_longitude_Getter";
-
-
-  /** @domName Coordinates.speed */
-  num get speed native "Coordinates_speed_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName Counter
-class Counter extends NativeFieldWrapperClass1 {
-  Counter.internal();
-
-
-  /** @domName Counter.identifier */
-  String get identifier native "Counter_identifier_Getter";
-
-
-  /** @domName Counter.listStyle */
-  String get listStyle native "Counter_listStyle_Getter";
-
-
-  /** @domName Counter.separator */
-  String get separator native "Counter_separator_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName Crypto
-class Crypto extends NativeFieldWrapperClass1 {
-  Crypto.internal();
-
-
-  /** @domName Crypto.getRandomValues */
-  void getRandomValues(ArrayBufferView array) native "Crypto_getRandomValues_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6297,6 +6407,7 @@ class CustomEvent extends Event {
 /// @domName HTMLDListElement
 class DListElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory DListElement() => document.$dom_createElement("dl");
   DListElement.internal(): super.internal();
 
@@ -6316,752 +6427,16 @@ class DListElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DOMApplicationCache
-class DOMApplicationCache extends EventTarget {
-  DOMApplicationCache.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  DOMApplicationCacheEvents get on =>
-    new DOMApplicationCacheEvents(this);
-
-  static const int CHECKING = 2;
-
-  static const int DOWNLOADING = 3;
-
-  static const int IDLE = 1;
-
-  static const int OBSOLETE = 5;
-
-  static const int UNCACHED = 0;
-
-  static const int UPDATEREADY = 4;
-
-
-  /** @domName DOMApplicationCache.status */
-  int get status native "DOMApplicationCache_status_Getter";
-
-
-  /** @domName DOMApplicationCache.abort */
-  void abort() native "DOMApplicationCache_abort_Callback";
-
-
-  /** @domName DOMApplicationCache.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_addEventListener_Callback";
-
-
-  /** @domName DOMApplicationCache.dispatchEvent */
-  bool $dom_dispatchEvent(Event evt) native "DOMApplicationCache_dispatchEvent_Callback";
-
-
-  /** @domName DOMApplicationCache.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_removeEventListener_Callback";
-
-
-  /** @domName DOMApplicationCache.swapCache */
-  void swapCache() native "DOMApplicationCache_swapCache_Callback";
-
-
-  /** @domName DOMApplicationCache.update */
-  void update() native "DOMApplicationCache_update_Callback";
-
-}
-
-class DOMApplicationCacheEvents extends Events {
-  DOMApplicationCacheEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get cached => this['cached'];
-
-  EventListenerList get checking => this['checking'];
-
-  EventListenerList get downloading => this['downloading'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get noUpdate => this['noupdate'];
-
-  EventListenerList get obsolete => this['obsolete'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get updateReady => this['updateready'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DOMError
-class DOMError extends NativeFieldWrapperClass1 {
-  DOMError.internal();
-
-
-  /** @domName DOMError.name */
-  String get name native "DOMError_name_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DOMException
-class DOMException extends NativeFieldWrapperClass1 {
-  DOMException.internal();
-
-  static const int ABORT_ERR = 20;
-
-  static const int DATA_CLONE_ERR = 25;
-
-  static const int DOMSTRING_SIZE_ERR = 2;
-
-  static const int HIERARCHY_REQUEST_ERR = 3;
-
-  static const int INDEX_SIZE_ERR = 1;
-
-  static const int INUSE_ATTRIBUTE_ERR = 10;
-
-  static const int INVALID_ACCESS_ERR = 15;
-
-  static const int INVALID_CHARACTER_ERR = 5;
-
-  static const int INVALID_MODIFICATION_ERR = 13;
-
-  static const int INVALID_NODE_TYPE_ERR = 24;
-
-  static const int INVALID_STATE_ERR = 11;
-
-  static const int NAMESPACE_ERR = 14;
-
-  static const int NETWORK_ERR = 19;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NOT_SUPPORTED_ERR = 9;
-
-  static const int NO_DATA_ALLOWED_ERR = 6;
-
-  static const int NO_MODIFICATION_ALLOWED_ERR = 7;
-
-  static const int QUOTA_EXCEEDED_ERR = 22;
-
-  static const int SECURITY_ERR = 18;
-
-  static const int SYNTAX_ERR = 12;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TYPE_MISMATCH_ERR = 17;
-
-  static const int URL_MISMATCH_ERR = 21;
-
-  static const int VALIDATION_ERR = 16;
-
-  static const int WRONG_DOCUMENT_ERR = 4;
-
-
-  /** @domName DOMCoreException.code */
-  int get code native "DOMCoreException_code_Getter";
-
-
-  /** @domName DOMCoreException.message */
-  String get message native "DOMCoreException_message_Getter";
-
-
-  /** @domName DOMCoreException.name */
-  String get name native "DOMCoreException_name_Getter";
-
-
-  /** @domName DOMCoreException.toString */
-  String toString() native "DOMCoreException_toString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DOMFileSystem
-class DOMFileSystem extends NativeFieldWrapperClass1 {
-  DOMFileSystem.internal();
-
-
-  /** @domName DOMFileSystem.name */
-  String get name native "DOMFileSystem_name_Getter";
-
-
-  /** @domName DOMFileSystem.root */
-  DirectoryEntry get root native "DOMFileSystem_root_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DOMFileSystemSync
-class DOMFileSystemSync extends NativeFieldWrapperClass1 {
-  DOMFileSystemSync.internal();
-
-
-  /** @domName DOMFileSystemSync.name */
-  String get name native "DOMFileSystemSync_name_Getter";
-
-
-  /** @domName DOMFileSystemSync.root */
-  DirectoryEntrySync get root native "DOMFileSystemSync_root_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DOMImplementation
-class DOMImplementation extends NativeFieldWrapperClass1 {
-  DOMImplementation.internal();
-
-
-  /** @domName DOMImplementation.createCSSStyleSheet */
-  CSSStyleSheet createCssStyleSheet(String title, String media) native "DOMImplementation_createCSSStyleSheet_Callback";
-
-
-  /** @domName DOMImplementation.createDocument */
-  Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native "DOMImplementation_createDocument_Callback";
-
-
-  /** @domName DOMImplementation.createDocumentType */
-  DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native "DOMImplementation_createDocumentType_Callback";
-
-
-  /** @domName DOMImplementation.createHTMLDocument */
-  HtmlDocument createHtmlDocument(String title) native "DOMImplementation_createHTMLDocument_Callback";
-
-
-  /** @domName DOMImplementation.hasFeature */
-  bool hasFeature(String feature, String version) native "DOMImplementation_hasFeature_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName MimeType
-class DOMMimeType extends NativeFieldWrapperClass1 {
-  DOMMimeType.internal();
-
-
-  /** @domName DOMMimeType.description */
-  String get description native "DOMMimeType_description_Getter";
-
-
-  /** @domName DOMMimeType.enabledPlugin */
-  DOMPlugin get enabledPlugin native "DOMMimeType_enabledPlugin_Getter";
-
-
-  /** @domName DOMMimeType.suffixes */
-  String get suffixes native "DOMMimeType_suffixes_Getter";
-
-
-  /** @domName DOMMimeType.type */
-  String get type native "DOMMimeType_type_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName MimeTypeArray
-class DOMMimeTypeArray extends NativeFieldWrapperClass1 implements List<DOMMimeType> {
-  DOMMimeTypeArray.internal();
-
-
-  /** @domName DOMMimeTypeArray.length */
-  int get length native "DOMMimeTypeArray_length_Getter";
-
-  DOMMimeType operator[](int index) native "DOMMimeTypeArray_item_Callback";
-
-  void operator[]=(int index, DOMMimeType value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<DOMMimeType> mixins.
-  // DOMMimeType is the element type.
-
-  // From Iterable<DOMMimeType>:
-
-  Iterator<DOMMimeType> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<DOMMimeType>(this);
-  }
-
-  // From Collection<DOMMimeType>:
-
-  void add(DOMMimeType value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(DOMMimeType value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<DOMMimeType> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(DOMMimeType element) => _Collections.contains(this, element);
-
-  void forEach(void f(DOMMimeType element)) => _Collections.forEach(this, f);
-
-  Collection map(f(DOMMimeType element)) => _Collections.map(this, [], f);
-
-  Collection<DOMMimeType> filter(bool f(DOMMimeType element)) =>
-     _Collections.filter(this, <DOMMimeType>[], f);
-
-  bool every(bool f(DOMMimeType element)) => _Collections.every(this, f);
-
-  bool some(bool f(DOMMimeType element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<DOMMimeType>:
-
-  void sort([Comparator<DOMMimeType> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(DOMMimeType element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(DOMMimeType element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  DOMMimeType get first => this[0];
-
-  DOMMimeType get last => this[length - 1];
-
-  DOMMimeType removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<DOMMimeType> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [DOMMimeType initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<DOMMimeType> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <DOMMimeType>[]);
-
-  // -- end List<DOMMimeType> mixins.
-
-
-  /** @domName DOMMimeTypeArray.item */
-  DOMMimeType item(int index) native "DOMMimeTypeArray_item_Callback";
-
-
-  /** @domName DOMMimeTypeArray.namedItem */
-  DOMMimeType namedItem(String name) native "DOMMimeTypeArray_namedItem_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DOMParser
-class DOMParser extends NativeFieldWrapperClass1 {
-
-  factory DOMParser() => _DOMParserFactoryProvider.createDOMParser();
-  DOMParser.internal();
-
-
-  /** @domName DOMParser.parseFromString */
-  Document parseFromString(String str, String contentType) native "DOMParser_parseFromString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName Plugin
-class DOMPlugin extends NativeFieldWrapperClass1 {
-  DOMPlugin.internal();
-
-
-  /** @domName DOMPlugin.description */
-  String get description native "DOMPlugin_description_Getter";
-
-
-  /** @domName DOMPlugin.filename */
-  String get filename native "DOMPlugin_filename_Getter";
-
-
-  /** @domName DOMPlugin.length */
-  int get length native "DOMPlugin_length_Getter";
-
-
-  /** @domName DOMPlugin.name */
-  String get name native "DOMPlugin_name_Getter";
-
-
-  /** @domName DOMPlugin.item */
-  DOMMimeType item(int index) native "DOMPlugin_item_Callback";
-
-
-  /** @domName DOMPlugin.namedItem */
-  DOMMimeType namedItem(String name) native "DOMPlugin_namedItem_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName PluginArray
-class DOMPluginArray extends NativeFieldWrapperClass1 implements List<DOMPlugin> {
-  DOMPluginArray.internal();
-
-
-  /** @domName DOMPluginArray.length */
-  int get length native "DOMPluginArray_length_Getter";
-
-  DOMPlugin operator[](int index) native "DOMPluginArray_item_Callback";
-
-  void operator[]=(int index, DOMPlugin value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<DOMPlugin> mixins.
-  // DOMPlugin is the element type.
-
-  // From Iterable<DOMPlugin>:
-
-  Iterator<DOMPlugin> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<DOMPlugin>(this);
-  }
-
-  // From Collection<DOMPlugin>:
-
-  void add(DOMPlugin value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(DOMPlugin value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<DOMPlugin> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(DOMPlugin element) => _Collections.contains(this, element);
-
-  void forEach(void f(DOMPlugin element)) => _Collections.forEach(this, f);
-
-  Collection map(f(DOMPlugin element)) => _Collections.map(this, [], f);
-
-  Collection<DOMPlugin> filter(bool f(DOMPlugin element)) =>
-     _Collections.filter(this, <DOMPlugin>[], f);
-
-  bool every(bool f(DOMPlugin element)) => _Collections.every(this, f);
-
-  bool some(bool f(DOMPlugin element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<DOMPlugin>:
-
-  void sort([Comparator<DOMPlugin> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(DOMPlugin element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(DOMPlugin element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  DOMPlugin get first => this[0];
-
-  DOMPlugin get last => this[length - 1];
-
-  DOMPlugin removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<DOMPlugin> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [DOMPlugin initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<DOMPlugin> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <DOMPlugin>[]);
-
-  // -- end List<DOMPlugin> mixins.
-
-
-  /** @domName DOMPluginArray.item */
-  DOMPlugin item(int index) native "DOMPluginArray_item_Callback";
-
-
-  /** @domName DOMPluginArray.namedItem */
-  DOMPlugin namedItem(String name) native "DOMPluginArray_namedItem_Callback";
-
-
-  /** @domName DOMPluginArray.refresh */
-  void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName Selection
-class DOMSelection extends NativeFieldWrapperClass1 {
-  DOMSelection.internal();
-
-
-  /** @domName DOMSelection.anchorNode */
-  Node get anchorNode native "DOMSelection_anchorNode_Getter";
-
-
-  /** @domName DOMSelection.anchorOffset */
-  int get anchorOffset native "DOMSelection_anchorOffset_Getter";
-
-
-  /** @domName DOMSelection.baseNode */
-  Node get baseNode native "DOMSelection_baseNode_Getter";
-
-
-  /** @domName DOMSelection.baseOffset */
-  int get baseOffset native "DOMSelection_baseOffset_Getter";
-
-
-  /** @domName DOMSelection.extentNode */
-  Node get extentNode native "DOMSelection_extentNode_Getter";
-
-
-  /** @domName DOMSelection.extentOffset */
-  int get extentOffset native "DOMSelection_extentOffset_Getter";
-
-
-  /** @domName DOMSelection.focusNode */
-  Node get focusNode native "DOMSelection_focusNode_Getter";
-
-
-  /** @domName DOMSelection.focusOffset */
-  int get focusOffset native "DOMSelection_focusOffset_Getter";
-
-
-  /** @domName DOMSelection.isCollapsed */
-  bool get isCollapsed native "DOMSelection_isCollapsed_Getter";
-
-
-  /** @domName DOMSelection.rangeCount */
-  int get rangeCount native "DOMSelection_rangeCount_Getter";
-
-
-  /** @domName DOMSelection.type */
-  String get type native "DOMSelection_type_Getter";
-
-
-  /** @domName DOMSelection.addRange */
-  void addRange(Range range) native "DOMSelection_addRange_Callback";
-
-
-  /** @domName DOMSelection.collapse */
-  void collapse(Node node, int index) native "DOMSelection_collapse_Callback";
-
-
-  /** @domName DOMSelection.collapseToEnd */
-  void collapseToEnd() native "DOMSelection_collapseToEnd_Callback";
-
-
-  /** @domName DOMSelection.collapseToStart */
-  void collapseToStart() native "DOMSelection_collapseToStart_Callback";
-
-
-  /** @domName DOMSelection.containsNode */
-  bool containsNode(Node node, bool allowPartial) native "DOMSelection_containsNode_Callback";
-
-
-  /** @domName DOMSelection.deleteFromDocument */
-  void deleteFromDocument() native "DOMSelection_deleteFromDocument_Callback";
-
-
-  /** @domName DOMSelection.empty */
-  void empty() native "DOMSelection_empty_Callback";
-
-
-  /** @domName DOMSelection.extend */
-  void extend(Node node, int offset) native "DOMSelection_extend_Callback";
-
-
-  /** @domName DOMSelection.getRangeAt */
-  Range getRangeAt(int index) native "DOMSelection_getRangeAt_Callback";
-
-
-  /** @domName DOMSelection.modify */
-  void modify(String alter, String direction, String granularity) native "DOMSelection_modify_Callback";
-
-
-  /** @domName DOMSelection.removeAllRanges */
-  void removeAllRanges() native "DOMSelection_removeAllRanges_Callback";
-
-
-  /** @domName DOMSelection.selectAllChildren */
-  void selectAllChildren(Node node) native "DOMSelection_selectAllChildren_Callback";
-
-
-  /** @domName DOMSelection.setBaseAndExtent */
-  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native "DOMSelection_setBaseAndExtent_Callback";
-
-
-  /** @domName DOMSelection.setPosition */
-  void setPosition(Node node, int offset) native "DOMSelection_setPosition_Callback";
-
-
-  /** @domName DOMSelection.toString */
-  String toString() native "DOMSelection_toString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DOMSettableTokenList
-class DOMSettableTokenList extends DOMTokenList {
-  DOMSettableTokenList.internal(): super.internal();
-
-
-  /** @domName DOMSettableTokenList.value */
-  String get value native "DOMSettableTokenList_value_Getter";
-
-
-  /** @domName DOMSettableTokenList.value */
-  void set value(String value) native "DOMSettableTokenList_value_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DOMStringMap
-class DOMStringMap extends NativeFieldWrapperClass1 {
-  DOMStringMap.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DOMTokenList
-class DOMTokenList extends NativeFieldWrapperClass1 {
-  DOMTokenList.internal();
-
-
-  /** @domName DOMTokenList.length */
-  int get length native "DOMTokenList_length_Getter";
-
-
-  /** @domName DOMTokenList.contains */
-  bool contains(String token) native "DOMTokenList_contains_Callback";
-
-
-  /** @domName DOMTokenList.item */
-  String item(int index) native "DOMTokenList_item_Callback";
-
-
-  /** @domName DOMTokenList.toString */
-  String toString() native "DOMTokenList_toString_Callback";
-
-  bool toggle(/*DOMString*/ token, [/*boolean*/ force]) {
-    if (?force) {
-      return _toggle_1(token, force);
-    }
-    return _toggle_2(token);
-  }
-
-
-  /** @domName DOMTokenList.toggle_1 */
-  bool _toggle_1(token, force) native "DOMTokenList_toggle_1_Callback";
-
-
-  /** @domName DOMTokenList.toggle_2 */
-  bool _toggle_2(token) native "DOMTokenList_toggle_2_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName HTMLDataListElement
 class DataListElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
   DataListElement.internal(): super.internal();
 
 
   /** @domName HTMLDataListElement.options */
-  HTMLCollection get options native "HTMLDataListElement_options_Getter";
+  HtmlCollection get options native "HTMLDataListElement_options_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7150,6 +6525,7 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 /// @domName DataView
 class DataView extends ArrayBufferView {
 
+  ///@docsEditable true
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
     if (!?byteOffset) {
       return _DataViewFactoryProvider.createDataView(buffer);
@@ -7381,15 +6757,15 @@ class Database extends NativeFieldWrapperClass1 {
 
 
   /** @domName Database.changeVersion */
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_changeVersion_Callback";
+  void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_changeVersion_Callback";
 
 
   /** @domName Database.readTransaction */
-  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_readTransaction_Callback";
+  void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_readTransaction_Callback";
 
 
   /** @domName Database.transaction */
-  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_transaction_Callback";
+  void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_transaction_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7421,15 +6797,15 @@ class DatabaseSync extends NativeFieldWrapperClass1 {
 
 
   /** @domName DatabaseSync.changeVersion */
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]) native "DatabaseSync_changeVersion_Callback";
+  void changeVersion(String oldVersion, String newVersion, [SqlTransactionSyncCallback callback]) native "DatabaseSync_changeVersion_Callback";
 
 
   /** @domName DatabaseSync.readTransaction */
-  void readTransaction(SQLTransactionSyncCallback callback) native "DatabaseSync_readTransaction_Callback";
+  void readTransaction(SqlTransactionSyncCallback callback) native "DatabaseSync_readTransaction_Callback";
 
 
   /** @domName DatabaseSync.transaction */
-  void transaction(SQLTransactionSyncCallback callback) native "DatabaseSync_transaction_Callback";
+  void transaction(SqlTransactionSyncCallback callback) native "DatabaseSync_transaction_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7468,6 +6844,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 /// @domName HTMLDetailsElement
 class DetailsElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
   DetailsElement.internal(): super.internal();
 
@@ -7646,6 +7023,7 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 /// @domName HTMLDivElement
 class DivElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory DivElement() => document.$dom_createElement("div");
   DivElement.internal(): super.internal();
 
@@ -7656,6 +7034,15 @@ class DivElement extends _Element_Merged {
 
 
 /// @domName Document
+/**
+ * The base class for all documents.
+ *
+ * Each web page loaded in the browser has its own [Document] object, which is
+ * typically an [HtmlDocument].
+ *
+ * If you aren't comfortable with DOM concepts, see the Dart tutorial
+ * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
+ */
 class Document extends Node 
 {
 
@@ -7707,7 +7094,7 @@ class Document extends Node
 
 
   /** @domName Document.implementation */
-  DOMImplementation get implementation native "Document_implementation_Getter";
+  DomImplementation get implementation native "Document_implementation_Getter";
 
 
   /** @domName Document.lastModified */
@@ -7715,7 +7102,7 @@ class Document extends Node
 
 
   /** @domName Document.preferredStylesheetSet */
-  String get preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
+  String get $dom_preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
 
 
   /** @domName Document.readyState */
@@ -7727,11 +7114,11 @@ class Document extends Node
 
 
   /** @domName Document.selectedStylesheetSet */
-  String get selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
+  String get $dom_selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
 
 
   /** @domName Document.selectedStylesheetSet */
-  void set selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
+  void set $dom_selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
 
 
   /** @domName Document.styleSheets */
@@ -7775,7 +7162,7 @@ class Document extends Node
 
 
   /** @domName Document.createCDATASection */
-  CDATASection createCDataSection(String data) native "Document_createCDATASection_Callback";
+  CDataSection createCDataSection(String data) native "Document_createCDATASection_Callback";
 
 
   /** @domName Document.createDocumentFragment */
@@ -7795,7 +7182,7 @@ class Document extends Node
 
 
   /** @domName Document.createRange */
-  Range createRange() native "Document_createRange_Callback";
+  Range $dom_createRange() native "Document_createRange_Callback";
 
 
   /** @domName Document.createTextNode */
@@ -7803,7 +7190,7 @@ class Document extends Node
 
 
   /** @domName Document.createTouch */
-  Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
+  Touch $dom_createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
 
   /** @domName Document.createTouchList */
@@ -7819,7 +7206,7 @@ class Document extends Node
 
 
   /** @domName Document.getCSSCanvasContext */
-  CanvasRenderingContext getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
+  CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
 
   /** @domName Document.getElementById */
@@ -7877,8 +7264,22 @@ class Document extends Node
   /** @domName Document.webkitExitPointerLock */
   void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
-  // TODO(jacobr): implement all Element methods not on Document.
 
+  /**
+   * Finds the first descendant element of this document that matches the
+   * specified group of selectors.
+   *
+   * Unless your webpage contains multiple documents, the top-level query
+   * method behaves the same as this method, so you should use it instead to
+   * save typing a few characters.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *     var element1 = document.query('.className');
+   *     var element2 = document.query('#id');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   Element query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have
     // false negatives but not false positives.
@@ -7888,6 +7289,20 @@ class Document extends Node
     return $dom_querySelector(selectors);
   }
 
+  /**
+   * Finds all descendant elements of this document that match the specified
+   * group of selectors.
+   *
+   * Unless your webpage contains multiple documents, the top-level queryAll
+   * method behaves the same as this method, so you should use it instead to
+   * save typing a few characters.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *     var items = document.queryAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   List<Element> queryAll(String selectors) {
     if (new RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByName(
@@ -7928,9 +7343,9 @@ class DocumentEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-Future<CSSStyleDeclaration> _emptyStyleFuture() {
+Future<CssStyleDeclaration> _emptyStyleFuture() {
   return _createMeasurementFuture(() => new Element.tag('div').style,
-                                  new Completer<CSSStyleDeclaration>());
+                                  new Completer<CssStyleDeclaration>());
 }
 
 class _FrozenCssClassSet extends CssClassSet {
@@ -7969,7 +7384,7 @@ class DocumentFragment extends Node {
     return _children;
   }
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -8071,10 +7486,10 @@ class DocumentFragment extends Node {
   Map<String, String> get attributes => const {};
   CssClassSet get classes => new _FrozenCssClassSet();
   Map<String, String> get dataAttributes => const {};
-  CSSStyleDeclaration get style => new Element.tag('div').style;
-  Future<CSSStyleDeclaration> get computedStyle =>
+  CssStyleDeclaration get style => new Element.tag('div').style;
+  Future<CssStyleDeclaration> get computedStyle =>
       _emptyStyleFuture();
-  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) =>
+  Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) =>
       _emptyStyleFuture();
   bool matchesSelector(String selectors) => false;
 
@@ -8248,13 +7663,773 @@ class DocumentType extends Node {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName EXTTextureFilterAnisotropic
-class EXTTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
-  EXTTextureFilterAnisotropic.internal();
+/// @domName DOMError
+class DomError extends NativeFieldWrapperClass1 {
+  DomError.internal();
 
-  static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
 
-  static const int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+  /** @domName DOMError.name */
+  String get name native "DOMError_name_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName DOMException
+class DomException extends NativeFieldWrapperClass1 {
+  DomException.internal();
+
+  static const int ABORT_ERR = 20;
+
+  static const int DATA_CLONE_ERR = 25;
+
+  static const int DOMSTRING_SIZE_ERR = 2;
+
+  static const int HIERARCHY_REQUEST_ERR = 3;
+
+  static const int INDEX_SIZE_ERR = 1;
+
+  static const int INUSE_ATTRIBUTE_ERR = 10;
+
+  static const int INVALID_ACCESS_ERR = 15;
+
+  static const int INVALID_CHARACTER_ERR = 5;
+
+  static const int INVALID_MODIFICATION_ERR = 13;
+
+  static const int INVALID_NODE_TYPE_ERR = 24;
+
+  static const int INVALID_STATE_ERR = 11;
+
+  static const int NAMESPACE_ERR = 14;
+
+  static const int NETWORK_ERR = 19;
+
+  static const int NOT_FOUND_ERR = 8;
+
+  static const int NOT_SUPPORTED_ERR = 9;
+
+  static const int NO_DATA_ALLOWED_ERR = 6;
+
+  static const int NO_MODIFICATION_ALLOWED_ERR = 7;
+
+  static const int QUOTA_EXCEEDED_ERR = 22;
+
+  static const int SECURITY_ERR = 18;
+
+  static const int SYNTAX_ERR = 12;
+
+  static const int TIMEOUT_ERR = 23;
+
+  static const int TYPE_MISMATCH_ERR = 17;
+
+  static const int URL_MISMATCH_ERR = 21;
+
+  static const int VALIDATION_ERR = 16;
+
+  static const int WRONG_DOCUMENT_ERR = 4;
+
+
+  /** @domName DOMCoreException.code */
+  int get code native "DOMCoreException_code_Getter";
+
+
+  /** @domName DOMCoreException.message */
+  String get message native "DOMCoreException_message_Getter";
+
+
+  /** @domName DOMCoreException.name */
+  String get name native "DOMCoreException_name_Getter";
+
+
+  /** @domName DOMCoreException.toString */
+  String toString() native "DOMCoreException_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName DOMImplementation
+class DomImplementation extends NativeFieldWrapperClass1 {
+  DomImplementation.internal();
+
+
+  /** @domName DOMImplementation.createCSSStyleSheet */
+  CssStyleSheet createCssStyleSheet(String title, String media) native "DOMImplementation_createCSSStyleSheet_Callback";
+
+
+  /** @domName DOMImplementation.createDocument */
+  Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native "DOMImplementation_createDocument_Callback";
+
+
+  /** @domName DOMImplementation.createDocumentType */
+  DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native "DOMImplementation_createDocumentType_Callback";
+
+
+  /** @domName DOMImplementation.createHTMLDocument */
+  HtmlDocument createHtmlDocument(String title) native "DOMImplementation_createHTMLDocument_Callback";
+
+
+  /** @domName DOMImplementation.hasFeature */
+  bool hasFeature(String feature, String version) native "DOMImplementation_hasFeature_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName MimeType
+class DomMimeType extends NativeFieldWrapperClass1 {
+  DomMimeType.internal();
+
+
+  /** @domName DOMMimeType.description */
+  String get description native "DOMMimeType_description_Getter";
+
+
+  /** @domName DOMMimeType.enabledPlugin */
+  DomPlugin get enabledPlugin native "DOMMimeType_enabledPlugin_Getter";
+
+
+  /** @domName DOMMimeType.suffixes */
+  String get suffixes native "DOMMimeType_suffixes_Getter";
+
+
+  /** @domName DOMMimeType.type */
+  String get type native "DOMMimeType_type_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName MimeTypeArray
+class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeType> {
+  DomMimeTypeArray.internal();
+
+
+  /** @domName DOMMimeTypeArray.length */
+  int get length native "DOMMimeTypeArray_length_Getter";
+
+  DomMimeType operator[](int index) native "DOMMimeTypeArray_item_Callback";
+
+  void operator[]=(int index, DomMimeType value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<DomMimeType> mixins.
+  // DomMimeType is the element type.
+
+  // From Iterable<DomMimeType>:
+
+  Iterator<DomMimeType> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<DomMimeType>(this);
+  }
+
+  // From Collection<DomMimeType>:
+
+  void add(DomMimeType value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(DomMimeType value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<DomMimeType> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(DomMimeType element) => Collections.contains(this, element);
+
+  void forEach(void f(DomMimeType element)) => Collections.forEach(this, f);
+
+  Collection map(f(DomMimeType element)) => Collections.map(this, [], f);
+
+  Collection<DomMimeType> filter(bool f(DomMimeType element)) =>
+     Collections.filter(this, <DomMimeType>[], f);
+
+  bool every(bool f(DomMimeType element)) => Collections.every(this, f);
+
+  bool some(bool f(DomMimeType element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<DomMimeType>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(DomMimeType a, DomMimeType b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(DomMimeType element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(DomMimeType element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  DomMimeType get first => this[0];
+
+  DomMimeType get last => this[length - 1];
+
+  DomMimeType removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  DomMimeType removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<DomMimeType> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [DomMimeType initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<DomMimeType> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <DomMimeType>[]);
+
+  // -- end List<DomMimeType> mixins.
+
+
+  /** @domName DOMMimeTypeArray.item */
+  DomMimeType item(int index) native "DOMMimeTypeArray_item_Callback";
+
+
+  /** @domName DOMMimeTypeArray.namedItem */
+  DomMimeType namedItem(String name) native "DOMMimeTypeArray_namedItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName DOMParser
+class DomParser extends NativeFieldWrapperClass1 {
+
+  ///@docsEditable true
+  factory DomParser() => _DomParserFactoryProvider.createDomParser();
+  DomParser.internal();
+
+
+  /** @domName DOMParser.parseFromString */
+  Document parseFromString(String str, String contentType) native "DOMParser_parseFromString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName Plugin
+class DomPlugin extends NativeFieldWrapperClass1 {
+  DomPlugin.internal();
+
+
+  /** @domName DOMPlugin.description */
+  String get description native "DOMPlugin_description_Getter";
+
+
+  /** @domName DOMPlugin.filename */
+  String get filename native "DOMPlugin_filename_Getter";
+
+
+  /** @domName DOMPlugin.length */
+  int get length native "DOMPlugin_length_Getter";
+
+
+  /** @domName DOMPlugin.name */
+  String get name native "DOMPlugin_name_Getter";
+
+
+  /** @domName DOMPlugin.item */
+  DomMimeType item(int index) native "DOMPlugin_item_Callback";
+
+
+  /** @domName DOMPlugin.namedItem */
+  DomMimeType namedItem(String name) native "DOMPlugin_namedItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName PluginArray
+class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin> {
+  DomPluginArray.internal();
+
+
+  /** @domName DOMPluginArray.length */
+  int get length native "DOMPluginArray_length_Getter";
+
+  DomPlugin operator[](int index) native "DOMPluginArray_item_Callback";
+
+  void operator[]=(int index, DomPlugin value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<DomPlugin> mixins.
+  // DomPlugin is the element type.
+
+  // From Iterable<DomPlugin>:
+
+  Iterator<DomPlugin> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<DomPlugin>(this);
+  }
+
+  // From Collection<DomPlugin>:
+
+  void add(DomPlugin value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(DomPlugin value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<DomPlugin> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(DomPlugin element) => Collections.contains(this, element);
+
+  void forEach(void f(DomPlugin element)) => Collections.forEach(this, f);
+
+  Collection map(f(DomPlugin element)) => Collections.map(this, [], f);
+
+  Collection<DomPlugin> filter(bool f(DomPlugin element)) =>
+     Collections.filter(this, <DomPlugin>[], f);
+
+  bool every(bool f(DomPlugin element)) => Collections.every(this, f);
+
+  bool some(bool f(DomPlugin element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<DomPlugin>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(DomPlugin a, DomPlugin b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(DomPlugin element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(DomPlugin element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  DomPlugin get first => this[0];
+
+  DomPlugin get last => this[length - 1];
+
+  DomPlugin removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  DomPlugin removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<DomPlugin> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [DomPlugin initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<DomPlugin> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <DomPlugin>[]);
+
+  // -- end List<DomPlugin> mixins.
+
+
+  /** @domName DOMPluginArray.item */
+  DomPlugin item(int index) native "DOMPluginArray_item_Callback";
+
+
+  /** @domName DOMPluginArray.namedItem */
+  DomPlugin namedItem(String name) native "DOMPluginArray_namedItem_Callback";
+
+
+  /** @domName DOMPluginArray.refresh */
+  void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName Selection
+class DomSelection extends NativeFieldWrapperClass1 {
+  DomSelection.internal();
+
+
+  /** @domName DOMSelection.anchorNode */
+  Node get anchorNode native "DOMSelection_anchorNode_Getter";
+
+
+  /** @domName DOMSelection.anchorOffset */
+  int get anchorOffset native "DOMSelection_anchorOffset_Getter";
+
+
+  /** @domName DOMSelection.baseNode */
+  Node get baseNode native "DOMSelection_baseNode_Getter";
+
+
+  /** @domName DOMSelection.baseOffset */
+  int get baseOffset native "DOMSelection_baseOffset_Getter";
+
+
+  /** @domName DOMSelection.extentNode */
+  Node get extentNode native "DOMSelection_extentNode_Getter";
+
+
+  /** @domName DOMSelection.extentOffset */
+  int get extentOffset native "DOMSelection_extentOffset_Getter";
+
+
+  /** @domName DOMSelection.focusNode */
+  Node get focusNode native "DOMSelection_focusNode_Getter";
+
+
+  /** @domName DOMSelection.focusOffset */
+  int get focusOffset native "DOMSelection_focusOffset_Getter";
+
+
+  /** @domName DOMSelection.isCollapsed */
+  bool get isCollapsed native "DOMSelection_isCollapsed_Getter";
+
+
+  /** @domName DOMSelection.rangeCount */
+  int get rangeCount native "DOMSelection_rangeCount_Getter";
+
+
+  /** @domName DOMSelection.type */
+  String get type native "DOMSelection_type_Getter";
+
+
+  /** @domName DOMSelection.addRange */
+  void addRange(Range range) native "DOMSelection_addRange_Callback";
+
+
+  /** @domName DOMSelection.collapse */
+  void collapse(Node node, int index) native "DOMSelection_collapse_Callback";
+
+
+  /** @domName DOMSelection.collapseToEnd */
+  void collapseToEnd() native "DOMSelection_collapseToEnd_Callback";
+
+
+  /** @domName DOMSelection.collapseToStart */
+  void collapseToStart() native "DOMSelection_collapseToStart_Callback";
+
+
+  /** @domName DOMSelection.containsNode */
+  bool containsNode(Node node, bool allowPartial) native "DOMSelection_containsNode_Callback";
+
+
+  /** @domName DOMSelection.deleteFromDocument */
+  void deleteFromDocument() native "DOMSelection_deleteFromDocument_Callback";
+
+
+  /** @domName DOMSelection.empty */
+  void empty() native "DOMSelection_empty_Callback";
+
+
+  /** @domName DOMSelection.extend */
+  void extend(Node node, int offset) native "DOMSelection_extend_Callback";
+
+
+  /** @domName DOMSelection.getRangeAt */
+  Range getRangeAt(int index) native "DOMSelection_getRangeAt_Callback";
+
+
+  /** @domName DOMSelection.modify */
+  void modify(String alter, String direction, String granularity) native "DOMSelection_modify_Callback";
+
+
+  /** @domName DOMSelection.removeAllRanges */
+  void removeAllRanges() native "DOMSelection_removeAllRanges_Callback";
+
+
+  /** @domName DOMSelection.selectAllChildren */
+  void selectAllChildren(Node node) native "DOMSelection_selectAllChildren_Callback";
+
+
+  /** @domName DOMSelection.setBaseAndExtent */
+  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native "DOMSelection_setBaseAndExtent_Callback";
+
+
+  /** @domName DOMSelection.setPosition */
+  void setPosition(Node node, int offset) native "DOMSelection_setPosition_Callback";
+
+
+  /** @domName DOMSelection.toString */
+  String toString() native "DOMSelection_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName DOMSettableTokenList
+class DomSettableTokenList extends DomTokenList {
+  DomSettableTokenList.internal(): super.internal();
+
+
+  /** @domName DOMSettableTokenList.value */
+  String get value native "DOMSettableTokenList_value_Getter";
+
+
+  /** @domName DOMSettableTokenList.value */
+  void set value(String value) native "DOMSettableTokenList_value_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName DOMStringList
+class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
+  DomStringList.internal();
+
+
+  /** @domName DOMStringList.length */
+  int get length native "DOMStringList_length_Getter";
+
+  String operator[](int index) native "DOMStringList_item_Callback";
+
+  void operator[]=(int index, String value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<String> mixins.
+  // String is the element type.
+
+  // From Iterable<String>:
+
+  Iterator<String> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<String>(this);
+  }
+
+  // From Collection<String>:
+
+  void add(String value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(String value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<String> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  // contains() defined by IDL.
+
+  void forEach(void f(String element)) => Collections.forEach(this, f);
+
+  Collection map(f(String element)) => Collections.map(this, [], f);
+
+  Collection<String> filter(bool f(String element)) =>
+     Collections.filter(this, <String>[], f);
+
+  bool every(bool f(String element)) => Collections.every(this, f);
+
+  bool some(bool f(String element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<String>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(String a, String b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(String element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(String element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  String get first => this[0];
+
+  String get last => this[length - 1];
+
+  String removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  String removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [String initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <String>[]);
+
+  // -- end List<String> mixins.
+
+
+  /** @domName DOMStringList.contains */
+  bool contains(String string) native "DOMStringList_contains_Callback";
+
+
+  /** @domName DOMStringList.item */
+  String item(int index) native "DOMStringList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName DOMStringMap
+class DomStringMap extends NativeFieldWrapperClass1 {
+  DomStringMap.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName DOMTokenList
+class DomTokenList extends NativeFieldWrapperClass1 {
+  DomTokenList.internal();
+
+
+  /** @domName DOMTokenList.length */
+  int get length native "DOMTokenList_length_Getter";
+
+
+  /** @domName DOMTokenList.contains */
+  bool contains(String token) native "DOMTokenList_contains_Callback";
+
+
+  /** @domName DOMTokenList.item */
+  String item(int index) native "DOMTokenList_item_Callback";
+
+
+  /** @domName DOMTokenList.toString */
+  String toString() native "DOMTokenList_toString_Callback";
+
+  bool toggle(/*DOMString*/ token, [/*boolean*/ force]) {
+    if (?force) {
+      return _toggle_1(token, force);
+    }
+    return _toggle_2(token);
+  }
+
+
+  /** @domName DOMTokenList.toggle_1 */
+  bool _toggle_1(token, force) native "DOMTokenList_toggle_1_Callback";
+
+
+  /** @domName DOMTokenList.toggle_2 */
+  bool _toggle_2(token) native "DOMTokenList_toggle_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8267,7 +8442,7 @@ class EXTTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 class _ChildrenElementList implements List {
   // Raw Element.
   final Element _element;
-  final HTMLCollection _childElements;
+  final HtmlCollection _childElements;
 
   _ChildrenElementList._wrap(Element element)
     : _childElements = element.$dom_children,
@@ -8361,8 +8536,13 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
+  }
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return Collections.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -8378,21 +8558,29 @@ class _ChildrenElementList implements List {
   }
 
   List getRange(int start, int rangeLength) =>
-    new _FrozenElementList._wrap(_Lists.getRange(this, start, rangeLength,
+    new _FrozenElementList._wrap(Lists.getRange(this, start, rangeLength,
         []));
 
   int indexOf(Element element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(Element element, [int start = null]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {
     // It is unclear if we want to keep non element nodes?
     _element.text = '';
+  }
+
+  Element removeAt(int index) {
+    final result = this[index];
+    if (result != null) {
+      _element.$dom_removeChild(result);
+    }
+    return result;
   }
 
   Element removeLast() {
@@ -8497,8 +8685,13 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('');
+  }
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return Collections.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -8523,6 +8716,10 @@ class _FrozenElementList implements List {
     _nodeList.lastIndexOf(element, start);
 
   void clear() {
+    throw new UnsupportedError('');
+  }
+
+  Element removeAt(int index) {
     throw new UnsupportedError('');
   }
 
@@ -8629,7 +8826,7 @@ abstract class Element extends Node implements ElementTraversal {
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -8671,16 +8868,16 @@ abstract class Element extends Node implements ElementTraversal {
   }
 
   /** @domName Window.getComputedStyle */
-  Future<CSSStyleDeclaration> get computedStyle {
+  Future<CssStyleDeclaration> get computedStyle {
      // TODO(jacobr): last param should be null, see b/5045788
      return getComputedStyle('');
   }
 
   /** @domName Window.getComputedStyle */
-  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
+  Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) {
     return _createMeasurementFuture(
         () => window.$dom_getComputedStyle(this, pseudoElement),
-        new Completer<CSSStyleDeclaration>());
+        new Completer<CssStyleDeclaration>());
   }
 
   /**
@@ -8741,7 +8938,7 @@ abstract class Element extends Node implements ElementTraversal {
     new ElementEvents(this);
 
   /// @domName HTMLElement.children; @docsEditable true
-  HTMLCollection get $dom_children;
+  HtmlCollection get $dom_children;
 
   /// @domName HTMLElement.contentEditable; @docsEditable true
   String contentEditable;
@@ -8893,7 +9090,7 @@ abstract class Element extends Node implements ElementTraversal {
 
 
   /** @domName Element.style */
-  CSSStyleDeclaration get style native "Element_style_Getter";
+  CssStyleDeclaration get style native "Element_style_Getter";
 
 
   /** @domName Element.tagName */
@@ -9175,49 +9372,21 @@ class ElementEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ElementTimeControl
-class ElementTimeControl extends NativeFieldWrapperClass1 {
-  ElementTimeControl.internal();
-
-
-  /** @domName ElementTimeControl.beginElement */
-  void beginElement() native "ElementTimeControl_beginElement_Callback";
-
-
-  /** @domName ElementTimeControl.beginElementAt */
-  void beginElementAt(num offset) native "ElementTimeControl_beginElementAt_Callback";
-
-
-  /** @domName ElementTimeControl.endElement */
-  void endElement() native "ElementTimeControl_endElement_Callback";
-
-
-  /** @domName ElementTimeControl.endElementAt */
-  void endElementAt(num offset) native "ElementTimeControl_endElementAt_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName ElementTraversal
 class ElementTraversal extends NativeFieldWrapperClass1 {
   ElementTraversal.internal();
 
 
   /** @domName ElementTraversal.childElementCount */
-  int get childElementCount native "ElementTraversal_childElementCount_Getter";
+  int get $dom_childElementCount native "ElementTraversal_childElementCount_Getter";
 
 
   /** @domName ElementTraversal.firstElementChild */
-  Element get firstElementChild native "ElementTraversal_firstElementChild_Getter";
+  Element get $dom_firstElementChild native "ElementTraversal_firstElementChild_Getter";
 
 
   /** @domName ElementTraversal.lastElementChild */
-  Element get lastElementChild native "ElementTraversal_lastElementChild_Getter";
+  Element get $dom_lastElementChild native "ElementTraversal_lastElementChild_Getter";
 
 
   /** @domName ElementTraversal.nextElementSibling */
@@ -9238,6 +9407,7 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 /// @domName HTMLEmbedElement
 class EmbedElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
   EmbedElement.internal(): super.internal();
 
@@ -9323,7 +9493,7 @@ class Entry extends NativeFieldWrapperClass1 {
 
 
   /** @domName Entry.filesystem */
-  DOMFileSystem get filesystem native "Entry_filesystem_Getter";
+  FileSystem get filesystem native "Entry_filesystem_Getter";
 
 
   /** @domName Entry.fullPath */
@@ -9411,7 +9581,7 @@ class EntrySync extends NativeFieldWrapperClass1 {
 
 
   /** @domName EntrySync.filesystem */
-  DOMFileSystemSync get filesystem native "EntrySync_filesystem_Getter";
+  FileSystemSync get filesystem native "EntrySync_filesystem_Getter";
 
 
   /** @domName EntrySync.fullPath */
@@ -9656,6 +9826,7 @@ class EventException extends NativeFieldWrapperClass1 {
 /// @domName EventSource
 class EventSource extends EventTarget {
 
+  ///@docsEditable true
   factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
   EventSource.internal(): super.internal();
 
@@ -9709,6 +9880,19 @@ class EventSourceEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * Base class that supports listening for and dispatching browser events.
+ *
+ * Events can either be accessed by string name (using the indexed getter) or by
+ * getters exposed by subclasses. Use the getters exposed by subclasses when
+ * possible for better compile-time type checks.
+ * 
+ * Using an indexed getter:
+ *     events['mouseover'].add((e) => print("Mouse over!"));
+ *
+ * Using a getter provided by a subclass:
+ *     elementEvents.mouseOver.add((e) => print("Mouse over!"));
+ */
 class Events {
   /* Raw event target. */
   final EventTarget _ptr;
@@ -9720,6 +9904,9 @@ class Events {
   }
 }
 
+/**
+ * Supports adding, removing, and dispatching events for a specific event type.
+ */
 class EventListenerList {
 
   final EventTarget _ptr;
@@ -9755,6 +9942,14 @@ class EventListenerList {
 }
 
 /// @domName EventTarget
+/**
+ * Base class for all browser objects that support events.
+ *
+ * Use the [on] property to add, remove, and dispatch events (rather than
+ * [$dom_addEventListener], [$dom_dispatchEvent], and
+ * [$dom_removeEventListener]) for compile-time type checks and a more concise
+ * API.
+ */ 
 class EventTarget extends NativeFieldWrapperClass1 {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
@@ -9781,9 +9976,26 @@ class EventTarget extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName EXTTextureFilterAnisotropic
+class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
+  ExtTextureFilterAnisotropic.internal();
+
+  static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+  static const int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName HTMLFieldSetElement
 class FieldSetElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory FieldSetElement() => document.$dom_createElement("fieldset");
   FieldSetElement.internal(): super.internal();
 
@@ -9797,7 +10009,7 @@ class FieldSetElement extends _Element_Merged {
 
 
   /** @domName HTMLFieldSetElement.elements */
-  HTMLCollection get elements native "HTMLFieldSetElement_elements_Getter";
+  HtmlCollection get elements native "HTMLFieldSetElement_elements_Getter";
 
 
   /** @domName HTMLFieldSetElement.form */
@@ -10007,9 +10219,130 @@ class FileException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName FileList
+class FileList extends NativeFieldWrapperClass1 implements List<File> {
+  FileList.internal();
+
+
+  /** @domName FileList.length */
+  int get length native "FileList_length_Getter";
+
+  File operator[](int index) native "FileList_item_Callback";
+
+  void operator[]=(int index, File value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<File> mixins.
+  // File is the element type.
+
+  // From Iterable<File>:
+
+  Iterator<File> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<File>(this);
+  }
+
+  // From Collection<File>:
+
+  void add(File value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(File value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<File> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, File)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(File element) => Collections.contains(this, element);
+
+  void forEach(void f(File element)) => Collections.forEach(this, f);
+
+  Collection map(f(File element)) => Collections.map(this, [], f);
+
+  Collection<File> filter(bool f(File element)) =>
+     Collections.filter(this, <File>[], f);
+
+  bool every(bool f(File element)) => Collections.every(this, f);
+
+  bool some(bool f(File element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<File>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(File a, File b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(File element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(File element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  File get first => this[0];
+
+  File get last => this[length - 1];
+
+  File removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  File removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [File initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<File> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <File>[]);
+
+  // -- end List<File> mixins.
+
+
+  /** @domName FileList.item */
+  File item(int index) native "FileList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName FileReader
 class FileReader extends EventTarget {
 
+  ///@docsEditable true
   factory FileReader() => _FileReaderFactoryProvider.createFileReader();
   FileReader.internal(): super.internal();
 
@@ -10106,6 +10439,7 @@ class FileReaderEvents extends Events {
 /// @domName FileReaderSync
 class FileReaderSync extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory FileReaderSync() => _FileReaderSyncFactoryProvider.createFileReaderSync();
   FileReaderSync.internal();
 
@@ -10144,7 +10478,47 @@ class FileReaderSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void FileSystemCallback(DOMFileSystem fileSystem);
+/// @domName DOMFileSystem
+class FileSystem extends NativeFieldWrapperClass1 {
+  FileSystem.internal();
+
+
+  /** @domName DOMFileSystem.name */
+  String get name native "DOMFileSystem_name_Getter";
+
+
+  /** @domName DOMFileSystem.root */
+  DirectoryEntry get root native "DOMFileSystem_root_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+typedef void FileSystemCallback(FileSystem fileSystem);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName DOMFileSystemSync
+class FileSystemSync extends NativeFieldWrapperClass1 {
+  FileSystemSync.internal();
+
+
+  /** @domName DOMFileSystemSync.name */
+  String get name native "DOMFileSystemSync_name_Getter";
+
+
+  /** @domName DOMFileSystemSync.root */
+  DirectoryEntrySync get root native "DOMFileSystemSync_root_Getter";
+
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10326,38 +10700,53 @@ class Float32Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(num element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(num element)) => _Collections.forEach(this, f);
+  bool contains(num element) => Collections.contains(this, element);
 
-  Collection map(f(num element)) => _Collections.map(this, [], f);
+  void forEach(void f(num element)) => Collections.forEach(this, f);
+
+  Collection map(f(num element)) => Collections.map(this, [], f);
 
   Collection<num> filter(bool f(num element)) =>
-     _Collections.filter(this, <num>[], f);
+     Collections.filter(this, <num>[], f);
 
-  bool every(bool f(num element)) => _Collections.every(this, f);
+  bool every(bool f(num element)) => Collections.every(this, f);
 
-  bool some(bool f(num element)) => _Collections.some(this, f);
+  bool some(bool f(num element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<num>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<num> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   num get first => this[0];
 
   num get last => this[length - 1];
+
+  num removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   num removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -10376,7 +10765,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
   }
 
   List<num> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <num>[]);
+      Lists.getRange(this, start, rangeLength, <num>[]);
 
   // -- end List<num> mixins.
 
@@ -10459,38 +10848,53 @@ class Float64Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(num element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(num element)) => _Collections.forEach(this, f);
+  bool contains(num element) => Collections.contains(this, element);
 
-  Collection map(f(num element)) => _Collections.map(this, [], f);
+  void forEach(void f(num element)) => Collections.forEach(this, f);
+
+  Collection map(f(num element)) => Collections.map(this, [], f);
 
   Collection<num> filter(bool f(num element)) =>
-     _Collections.filter(this, <num>[], f);
+     Collections.filter(this, <num>[], f);
 
-  bool every(bool f(num element)) => _Collections.every(this, f);
+  bool every(bool f(num element)) => Collections.every(this, f);
 
-  bool some(bool f(num element)) => _Collections.some(this, f);
+  bool some(bool f(num element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<num>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<num> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   num get first => this[0];
 
   num get last => this[length - 1];
+
+  num removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   num removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -10509,7 +10913,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
   }
 
   List<num> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <num>[]);
+      Lists.getRange(this, start, rangeLength, <num>[]);
 
   // -- end List<num> mixins.
 
@@ -10579,6 +10983,7 @@ class FontElement extends _Element_Merged {
 /// @domName FormData
 class FormData extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory FormData([FormElement form]) {
     if (!?form) {
       return _FormDataFactoryProvider.createFormData();
@@ -10602,6 +11007,7 @@ class FormData extends NativeFieldWrapperClass1 {
 /// @domName HTMLFormElement
 class FormElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory FormElement() => document.$dom_createElement("form");
   FormElement.internal(): super.internal();
 
@@ -10938,6 +11344,7 @@ class Geoposition extends NativeFieldWrapperClass1 {
 /// @domName HTMLHRElement
 class HRElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory HRElement() => document.$dom_createElement("hr");
   HRElement.internal(): super.internal();
 
@@ -10981,9 +11388,94 @@ class HRElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName HashChangeEvent
+class HashChangeEvent extends Event {
+  HashChangeEvent.internal(): super.internal();
+
+
+  /** @domName HashChangeEvent.newURL */
+  String get newUrl native "HashChangeEvent_newURL_Getter";
+
+
+  /** @domName HashChangeEvent.oldURL */
+  String get oldUrl native "HashChangeEvent_oldURL_Getter";
+
+
+  /** @domName HashChangeEvent.initHashChangeEvent */
+  void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName HTMLHeadElement
+class HeadElement extends _Element_Merged {
+
+  ///@docsEditable true
+  factory HeadElement() => document.$dom_createElement("head");
+  HeadElement.internal(): super.internal();
+
+
+  /** @domName HTMLHeadElement.profile */
+  String get profile native "HTMLHeadElement_profile_Getter";
+
+
+  /** @domName HTMLHeadElement.profile */
+  void set profile(String value) native "HTMLHeadElement_profile_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName HTMLHeadingElement
+class HeadingElement extends _Element_Merged {
+
+  ///@docsEditable true
+  factory HeadingElement.h1() => document.$dom_createElement("h1");
+
+  ///@docsEditable true
+  factory HeadingElement.h2() => document.$dom_createElement("h2");
+
+  ///@docsEditable true
+  factory HeadingElement.h3() => document.$dom_createElement("h3");
+
+  ///@docsEditable true
+  factory HeadingElement.h4() => document.$dom_createElement("h4");
+
+  ///@docsEditable true
+  factory HeadingElement.h5() => document.$dom_createElement("h5");
+
+  ///@docsEditable true
+  factory HeadingElement.h6() => document.$dom_createElement("h6");
+  HeadingElement.internal(): super.internal();
+
+
+  /** @domName HTMLHeadingElement.align */
+  String get align native "HTMLHeadingElement_align_Getter";
+
+
+  /** @domName HTMLHeadingElement.align */
+  void set align(String value) native "HTMLHeadingElement_align_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName HTMLAllCollection
-class HTMLAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
-  HTMLAllCollection.internal();
+class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
+  HtmlAllCollection.internal();
 
 
   /** @domName HTMLAllCollection.length */
@@ -11020,38 +11512,53 @@ class HTMLAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Node get first => this[0];
 
   Node get last => this[length - 1];
+
+  Node removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Node removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -11070,7 +11577,7 @@ class HTMLAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   }
 
   List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
+      Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -11095,8 +11602,8 @@ class HTMLAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
 
 /// @domName HTMLCollection
-class HTMLCollection extends NativeFieldWrapperClass1 implements List<Node> {
-  HTMLCollection.internal();
+class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
+  HtmlCollection.internal();
 
 
   /** @domName HTMLCollection.length */
@@ -11133,38 +11640,53 @@ class HTMLCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Node get first => this[0];
 
   Node get last => this[length - 1];
+
+  Node removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Node removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -11183,7 +11705,7 @@ class HTMLCollection extends NativeFieldWrapperClass1 implements List<Node> {
   }
 
   List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
+      Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -11194,120 +11716,6 @@ class HTMLCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   /** @domName HTMLCollection.namedItem */
   Node namedItem(String name) native "HTMLCollection_namedItem_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName HTMLOptionsCollection
-class HTMLOptionsCollection extends HTMLCollection {
-  HTMLOptionsCollection.internal(): super.internal();
-
-
-  /** @domName HTMLOptionsCollection.length */
-  int get length native "HTMLOptionsCollection_length_Getter";
-
-
-  /** @domName HTMLOptionsCollection.length */
-  void set length(int value) native "HTMLOptionsCollection_length_Setter";
-
-
-  /** @domName HTMLOptionsCollection.selectedIndex */
-  int get selectedIndex native "HTMLOptionsCollection_selectedIndex_Getter";
-
-
-  /** @domName HTMLOptionsCollection.selectedIndex */
-  void set selectedIndex(int value) native "HTMLOptionsCollection_selectedIndex_Setter";
-
-
-  /** @domName HTMLOptionsCollection.numericIndexSetter */
-  void operator[]=(int index, Node value) native "HTMLOptionsCollection_numericIndexSetter_Callback";
-
-
-  /** @domName HTMLOptionsCollection.remove */
-  void remove(int index) native "HTMLOptionsCollection_remove_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName HashChangeEvent
-class HashChangeEvent extends Event {
-  HashChangeEvent.internal(): super.internal();
-
-
-  /** @domName HashChangeEvent.newURL */
-  String get newUrl native "HashChangeEvent_newURL_Getter";
-
-
-  /** @domName HashChangeEvent.oldURL */
-  String get oldUrl native "HashChangeEvent_oldURL_Getter";
-
-
-  /** @domName HashChangeEvent.initHashChangeEvent */
-  void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName HTMLHeadElement
-class HeadElement extends _Element_Merged {
-
-  factory HeadElement() => document.$dom_createElement("head");
-  HeadElement.internal(): super.internal();
-
-
-  /** @domName HTMLHeadElement.profile */
-  String get profile native "HTMLHeadElement_profile_Getter";
-
-
-  /** @domName HTMLHeadElement.profile */
-  void set profile(String value) native "HTMLHeadElement_profile_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName HTMLHeadingElement
-class HeadingElement extends _Element_Merged {
-
-  factory HeadingElement.h1() => document.$dom_createElement("h1");
-
-  factory HeadingElement.h2() => document.$dom_createElement("h2");
-
-  factory HeadingElement.h3() => document.$dom_createElement("h3");
-
-  factory HeadingElement.h4() => document.$dom_createElement("h4");
-
-  factory HeadingElement.h5() => document.$dom_createElement("h5");
-
-  factory HeadingElement.h6() => document.$dom_createElement("h6");
-  HeadingElement.internal(): super.internal();
-
-
-  /** @domName HTMLHeadingElement.align */
-  String get align native "HTMLHeadingElement_align_Getter";
-
-
-  /** @domName HTMLHeadingElement.align */
-  void set align(String value) native "HTMLHeadingElement_align_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11343,14 +11751,29 @@ class HtmlDocument extends Document {
     return document.$dom_elementFromPoint(x, y);
   }
 
+  /** @domName Document.getCSSCanvasContext */
+  CanvasRenderingContext getCssCanvasContext(String contextId, String name,
+      int width, int height) {
+    return document.$dom_getCssCanvasContext(contextId, name, width, height);
+  }
+
   /** @domName Document.head */
   HeadElement get head => document.$dom_head;
 
   /** @domName Document.lastModified */
   String get lastModified => document.$dom_lastModified;
 
+  /** @domName Document.preferredStylesheetSet */
+  String get preferredStylesheetSet => document.$dom_preferredStylesheetSet;
+
   /** @domName Document.referrer */
   String get referrer => document.$dom_referrer;
+
+  /** @domName Document.selectedStylesheetSet */
+  String get selectedStylesheetSet => document.$dom_selectedStylesheetSet;
+  void set selectedStylesheetSet(String value) {
+    document.$dom_selectedStylesheetSet = value;
+  }
 
   /** @domName Document.styleSheets */
   List<StyleSheet> get styleSheets => document.$dom_styleSheets;
@@ -11407,6 +11830,7 @@ class HtmlDocument extends Document {
 /// @domName HTMLHtmlElement
 class HtmlElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory HtmlElement() => document.$dom_createElement("html");
   HtmlElement.internal(): super.internal();
 
@@ -11415,18 +11839,96 @@ class HtmlElement extends _Element_Merged {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
 
+
+/// @domName HTMLOptionsCollection
+class HtmlOptionsCollection extends HtmlCollection {
+  HtmlOptionsCollection.internal(): super.internal();
+
+
+  /** @domName HTMLOptionsCollection.length */
+  int get length native "HTMLOptionsCollection_length_Getter";
+
+
+  /** @domName HTMLOptionsCollection.length */
+  void set length(int value) native "HTMLOptionsCollection_length_Setter";
+
+
+  /** @domName HTMLOptionsCollection.selectedIndex */
+  int get selectedIndex native "HTMLOptionsCollection_selectedIndex_Getter";
+
+
+  /** @domName HTMLOptionsCollection.selectedIndex */
+  void set selectedIndex(int value) native "HTMLOptionsCollection_selectedIndex_Setter";
+
+
+  /** @domName HTMLOptionsCollection.numericIndexSetter */
+  void operator[]=(int index, Node value) native "HTMLOptionsCollection_numericIndexSetter_Callback";
+
+
+  /** @domName HTMLOptionsCollection.remove */
+  void remove(int index) native "HTMLOptionsCollection_remove_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A utility for retrieving data from a URL.
+ * 
+ * HttpRequest can be used to obtain data from http, ftp, and file
+ * protocols. 
+ * 
+ * For example, suppose we're developing these API docs, and we
+ * wish to retrieve the HTML of the top-level page and print it out.
+ * The easiest way to do that would be:
+ * 
+ *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
+ *         (request) => print(request.responseText));
+ * 
+ * **Important**: With the default behavior of this class, your
+ * code making the request should be served from the same origin (domain name,
+ * port, and application layer protocol) as the URL you are trying to access
+ * with HttpRequest. However, there are ways to 
+ * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
+ * 
+ * See also:
+ *
+ * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
+ * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
+ * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
+ */
 /// @domName XMLHttpRequest
 class HttpRequest extends EventTarget {
+  /**
+   * Creates a URL get request for the specified `url`.
+   * 
+   * After completing the request, the object will call the user-provided
+   * [onComplete] callback.
+   */
   factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
 
+  /**
+   * Creates a URL GET request for the specified `url` with
+   * credentials such a cookie (already) set in the header or
+   * (authorization headers)[http://tools.ietf.org/html/rfc1945#section-10.2].
+   * 
+   * After completing the request, the object will call the user-provided 
+   * [onComplete] callback.
+   * 
+   * See also: (authorization headers)[http://en.wikipedia.org/wiki/Basic_access_authentication].
+   */
   factory HttpRequest.getWithCredentials(String url,
       onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url,
       onComplete);
 
 
+  ///@docsEditable true
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
   HttpRequest.internal(): super.internal();
 
@@ -11650,966 +12152,10 @@ class HttpRequestUploadEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName IDBAny
-class IDBAny extends NativeFieldWrapperClass1 {
-  IDBAny.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBCursor
-class IDBCursor extends NativeFieldWrapperClass1 {
-  IDBCursor.internal();
-
-  static const int NEXT = 0;
-
-  static const int NEXT_NO_DUPLICATE = 1;
-
-  static const int PREV = 2;
-
-  static const int PREV_NO_DUPLICATE = 3;
-
-
-  /** @domName IDBCursor.direction */
-  String get direction native "IDBCursor_direction_Getter";
-
-
-  /** @domName IDBCursor.key */
-  Object get key native "IDBCursor_key_Getter";
-
-
-  /** @domName IDBCursor.primaryKey */
-  Object get primaryKey native "IDBCursor_primaryKey_Getter";
-
-
-  /** @domName IDBCursor.source */
-  dynamic get source native "IDBCursor_source_Getter";
-
-
-  /** @domName IDBCursor.advance */
-  void advance(int count) native "IDBCursor_advance_Callback";
-
-  void continueFunction([/*IDBKey*/ key]) {
-    if (?key) {
-      _continue_1(key);
-      return;
-    }
-    _continue_2();
-  }
-
-
-  /** @domName IDBCursor.continue_1 */
-  void _continue_1(key) native "IDBCursor_continue_1_Callback";
-
-
-  /** @domName IDBCursor.continue_2 */
-  void _continue_2() native "IDBCursor_continue_2_Callback";
-
-
-  /** @domName IDBCursor.delete */
-  IDBRequest delete() native "IDBCursor_delete_Callback";
-
-
-  /** @domName IDBCursor.update */
-  IDBRequest update(Object value) native "IDBCursor_update_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBCursorWithValue
-class IDBCursorWithValue extends IDBCursor {
-  IDBCursorWithValue.internal(): super.internal();
-
-
-  /** @domName IDBCursorWithValue.value */
-  Object get value native "IDBCursorWithValue_value_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBDatabase
-class IDBDatabase extends EventTarget {
-  IDBDatabase.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  IDBDatabaseEvents get on =>
-    new IDBDatabaseEvents(this);
-
-
-  /** @domName IDBDatabase.name */
-  String get name native "IDBDatabase_name_Getter";
-
-
-  /** @domName IDBDatabase.objectStoreNames */
-  List<String> get objectStoreNames native "IDBDatabase_objectStoreNames_Getter";
-
-
-  /** @domName IDBDatabase.version */
-  dynamic get version native "IDBDatabase_version_Getter";
-
-
-  /** @domName IDBDatabase.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_addEventListener_Callback";
-
-
-  /** @domName IDBDatabase.close */
-  void close() native "IDBDatabase_close_Callback";
-
-
-  /** @domName IDBDatabase.createObjectStore */
-  IDBObjectStore createObjectStore(String name, [Map options]) native "IDBDatabase_createObjectStore_Callback";
-
-
-  /** @domName IDBDatabase.deleteObjectStore */
-  void deleteObjectStore(String name) native "IDBDatabase_deleteObjectStore_Callback";
-
-
-  /** @domName IDBDatabase.dispatchEvent */
-  bool $dom_dispatchEvent(Event evt) native "IDBDatabase_dispatchEvent_Callback";
-
-
-  /** @domName IDBDatabase.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_removeEventListener_Callback";
-
-
-  /** @domName IDBDatabase.setVersion */
-  IDBVersionChangeRequest setVersion(String version) native "IDBDatabase_setVersion_Callback";
-
-  IDBTransaction transaction(storeName_OR_storeNames, /*DOMString*/ mode) {
-    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
-      return _transaction_1(storeName_OR_storeNames, mode);
-    }
-    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
-      return _transaction_2(storeName_OR_storeNames, mode);
-    }
-    if ((storeName_OR_storeNames is String || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
-      return _transaction_3(storeName_OR_storeNames, mode);
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName IDBDatabase.transaction_1 */
-  IDBTransaction _transaction_1(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_1_Callback";
-
-
-  /** @domName IDBDatabase.transaction_2 */
-  IDBTransaction _transaction_2(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_2_Callback";
-
-
-  /** @domName IDBDatabase.transaction_3 */
-  IDBTransaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_3_Callback";
-
-}
-
-class IDBDatabaseEvents extends Events {
-  IDBDatabaseEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get versionChange => this['versionchange'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBDatabaseException
-class IDBDatabaseException extends NativeFieldWrapperClass1 {
-  IDBDatabaseException.internal();
-
-  static const int ABORT_ERR = 20;
-
-  static const int CONSTRAINT_ERR = 4;
-
-  static const int DATA_ERR = 5;
-
-  static const int NON_TRANSIENT_ERR = 2;
-
-  static const int NOT_ALLOWED_ERR = 6;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NO_ERR = 0;
-
-  static const int QUOTA_ERR = 22;
-
-  static const int READ_ONLY_ERR = 9;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TRANSACTION_INACTIVE_ERR = 7;
-
-  static const int UNKNOWN_ERR = 1;
-
-  static const int VER_ERR = 12;
-
-
-  /** @domName IDBDatabaseException.code */
-  int get code native "IDBDatabaseException_code_Getter";
-
-
-  /** @domName IDBDatabaseException.message */
-  String get message native "IDBDatabaseException_message_Getter";
-
-
-  /** @domName IDBDatabaseException.name */
-  String get name native "IDBDatabaseException_name_Getter";
-
-
-  /** @domName IDBDatabaseException.toString */
-  String toString() native "IDBDatabaseException_toString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBFactory
-class IDBFactory extends NativeFieldWrapperClass1 {
-  IDBFactory.internal();
-
-
-  /** @domName IDBFactory.cmp */
-  int cmp(/*IDBKey*/ first, /*IDBKey*/ second) native "IDBFactory_cmp_Callback";
-
-
-  /** @domName IDBFactory.deleteDatabase */
-  IDBVersionChangeRequest deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
-
-  IDBOpenDBRequest open(/*DOMString*/ name, [/*long long*/ version]) {
-    if (?version) {
-      return _open_1(name, version);
-    }
-    return _open_2(name);
-  }
-
-
-  /** @domName IDBFactory.open_1 */
-  IDBOpenDBRequest _open_1(name, version) native "IDBFactory_open_1_Callback";
-
-
-  /** @domName IDBFactory.open_2 */
-  IDBOpenDBRequest _open_2(name) native "IDBFactory_open_2_Callback";
-
-
-  /** @domName IDBFactory.webkitGetDatabaseNames */
-  IDBRequest webkitGetDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBIndex
-class IDBIndex extends NativeFieldWrapperClass1 {
-  IDBIndex.internal();
-
-
-  /** @domName IDBIndex.keyPath */
-  dynamic get keyPath native "IDBIndex_keyPath_Getter";
-
-
-  /** @domName IDBIndex.multiEntry */
-  bool get multiEntry native "IDBIndex_multiEntry_Getter";
-
-
-  /** @domName IDBIndex.name */
-  String get name native "IDBIndex_name_Getter";
-
-
-  /** @domName IDBIndex.objectStore */
-  IDBObjectStore get objectStore native "IDBIndex_objectStore_Getter";
-
-
-  /** @domName IDBIndex.unique */
-  bool get unique native "IDBIndex_unique_Getter";
-
-  IDBRequest count([key_OR_range]) {
-    if (!?key_OR_range) {
-      return _count_1();
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
-      return _count_2(key_OR_range);
-    }
-    return _count_3(key_OR_range);
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName IDBIndex.count_1 */
-  IDBRequest _count_1() native "IDBIndex_count_1_Callback";
-
-
-  /** @domName IDBIndex.count_2 */
-  IDBRequest _count_2(key_OR_range) native "IDBIndex_count_2_Callback";
-
-
-  /** @domName IDBIndex.count_3 */
-  IDBRequest _count_3(key_OR_range) native "IDBIndex_count_3_Callback";
-
-  IDBRequest get(key) {
-    if ((key is IDBKeyRange || key == null)) {
-      return _get_1(key);
-    }
-    return _get_2(key);
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName IDBIndex.get_1 */
-  IDBRequest _get_1(key) native "IDBIndex_get_1_Callback";
-
-
-  /** @domName IDBIndex.get_2 */
-  IDBRequest _get_2(key) native "IDBIndex_get_2_Callback";
-
-  IDBRequest getKey(key) {
-    if ((key is IDBKeyRange || key == null)) {
-      return _getKey_1(key);
-    }
-    return _getKey_2(key);
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName IDBIndex.getKey_1 */
-  IDBRequest _getKey_1(key) native "IDBIndex_getKey_1_Callback";
-
-
-  /** @domName IDBIndex.getKey_2 */
-  IDBRequest _getKey_2(key) native "IDBIndex_getKey_2_Callback";
-
-  IDBRequest openCursor([key_OR_range, /*DOMString*/ direction]) {
-    if (!?key_OR_range && !?direction) {
-      return _openCursor_1();
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && !?direction) {
-      return _openCursor_2(key_OR_range);
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
-      return _openCursor_3(key_OR_range, direction);
-    }
-    if (!?direction) {
-      return _openCursor_4(key_OR_range);
-    }
-    if ((direction is String || direction == null)) {
-      return _openCursor_5(key_OR_range, direction);
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName IDBIndex.openCursor_1 */
-  IDBRequest _openCursor_1() native "IDBIndex_openCursor_1_Callback";
-
-
-  /** @domName IDBIndex.openCursor_2 */
-  IDBRequest _openCursor_2(key_OR_range) native "IDBIndex_openCursor_2_Callback";
-
-
-  /** @domName IDBIndex.openCursor_3 */
-  IDBRequest _openCursor_3(key_OR_range, direction) native "IDBIndex_openCursor_3_Callback";
-
-
-  /** @domName IDBIndex.openCursor_4 */
-  IDBRequest _openCursor_4(key_OR_range) native "IDBIndex_openCursor_4_Callback";
-
-
-  /** @domName IDBIndex.openCursor_5 */
-  IDBRequest _openCursor_5(key_OR_range, direction) native "IDBIndex_openCursor_5_Callback";
-
-  IDBRequest openKeyCursor([key_OR_range, /*DOMString*/ direction]) {
-    if (!?key_OR_range && !?direction) {
-      return _openKeyCursor_1();
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && !?direction) {
-      return _openKeyCursor_2(key_OR_range);
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
-      return _openKeyCursor_3(key_OR_range, direction);
-    }
-    if (!?direction) {
-      return _openKeyCursor_4(key_OR_range);
-    }
-    if ((direction is String || direction == null)) {
-      return _openKeyCursor_5(key_OR_range, direction);
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName IDBIndex.openKeyCursor_1 */
-  IDBRequest _openKeyCursor_1() native "IDBIndex_openKeyCursor_1_Callback";
-
-
-  /** @domName IDBIndex.openKeyCursor_2 */
-  IDBRequest _openKeyCursor_2(key_OR_range) native "IDBIndex_openKeyCursor_2_Callback";
-
-
-  /** @domName IDBIndex.openKeyCursor_3 */
-  IDBRequest _openKeyCursor_3(key_OR_range, direction) native "IDBIndex_openKeyCursor_3_Callback";
-
-
-  /** @domName IDBIndex.openKeyCursor_4 */
-  IDBRequest _openKeyCursor_4(key_OR_range) native "IDBIndex_openKeyCursor_4_Callback";
-
-
-  /** @domName IDBIndex.openKeyCursor_5 */
-  IDBRequest _openKeyCursor_5(key_OR_range, direction) native "IDBIndex_openKeyCursor_5_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBKey
-class IDBKey extends NativeFieldWrapperClass1 {
-  IDBKey.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBKeyRange
-class IDBKeyRange extends NativeFieldWrapperClass1 {
-  /**
-   * @domName IDBKeyRange.only
-   */
-  factory IDBKeyRange.only(/*IDBKey*/ value) =>
-      _IDBKeyRangeFactoryProvider.createIDBKeyRange_only(value);
-
-  /**
-   * @domName IDBKeyRange.lowerBound
-   */
-  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeFactoryProvider.createIDBKeyRange_lowerBound(bound, open);
-
-  /**
-   * @domName IDBKeyRange.upperBound
-   */
-  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeFactoryProvider.createIDBKeyRange_upperBound(bound, open);
-
-  /**
-   * @domName IDBKeyRange.bound
-   */
-  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                            [bool lowerOpen = false, bool upperOpen = false]) =>
-      _IDBKeyRangeFactoryProvider.createIDBKeyRange_bound(
-          lower, upper, lowerOpen, upperOpen);
-
-  IDBKeyRange.internal();
-
-
-  /** @domName IDBKeyRange.lower */
-  dynamic get lower native "IDBKeyRange_lower_Getter";
-
-
-  /** @domName IDBKeyRange.lowerOpen */
-  bool get lowerOpen native "IDBKeyRange_lowerOpen_Getter";
-
-
-  /** @domName IDBKeyRange.upper */
-  dynamic get upper native "IDBKeyRange_upper_Getter";
-
-
-  /** @domName IDBKeyRange.upperOpen */
-  bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
-
-  static IDBKeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [/*boolean*/ lowerOpen, /*boolean*/ upperOpen]) {
-    if (?upperOpen) {
-      return _bound_1(lower, upper, lowerOpen, upperOpen);
-    }
-    if (?lowerOpen) {
-      return _bound_2(lower, upper, lowerOpen);
-    }
-    return _bound_3(lower, upper);
-  }
-
-
-  /** @domName IDBKeyRange.bound_1 */
-  static IDBKeyRange _bound_1(lower, upper, lowerOpen, upperOpen) native "IDBKeyRange_bound_1_Callback";
-
-
-  /** @domName IDBKeyRange.bound_2 */
-  static IDBKeyRange _bound_2(lower, upper, lowerOpen) native "IDBKeyRange_bound_2_Callback";
-
-
-  /** @domName IDBKeyRange.bound_3 */
-  static IDBKeyRange _bound_3(lower, upper) native "IDBKeyRange_bound_3_Callback";
-
-  static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [/*boolean*/ open]) {
-    if (?open) {
-      return _lowerBound_1(bound, open);
-    }
-    return _lowerBound_2(bound);
-  }
-
-
-  /** @domName IDBKeyRange.lowerBound_1 */
-  static IDBKeyRange _lowerBound_1(bound, open) native "IDBKeyRange_lowerBound_1_Callback";
-
-
-  /** @domName IDBKeyRange.lowerBound_2 */
-  static IDBKeyRange _lowerBound_2(bound) native "IDBKeyRange_lowerBound_2_Callback";
-
-
-  /** @domName IDBKeyRange.only_ */
-  static IDBKeyRange only_(/*IDBKey*/ value) native "IDBKeyRange_only__Callback";
-
-  static IDBKeyRange upperBound_(/*IDBKey*/ bound, [/*boolean*/ open]) {
-    if (?open) {
-      return _upperBound_1(bound, open);
-    }
-    return _upperBound_2(bound);
-  }
-
-
-  /** @domName IDBKeyRange.upperBound_1 */
-  static IDBKeyRange _upperBound_1(bound, open) native "IDBKeyRange_upperBound_1_Callback";
-
-
-  /** @domName IDBKeyRange.upperBound_2 */
-  static IDBKeyRange _upperBound_2(bound) native "IDBKeyRange_upperBound_2_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBObjectStore
-class IDBObjectStore extends NativeFieldWrapperClass1 {
-  IDBObjectStore.internal();
-
-
-  /** @domName IDBObjectStore.autoIncrement */
-  bool get autoIncrement native "IDBObjectStore_autoIncrement_Getter";
-
-
-  /** @domName IDBObjectStore.indexNames */
-  List<String> get indexNames native "IDBObjectStore_indexNames_Getter";
-
-
-  /** @domName IDBObjectStore.keyPath */
-  dynamic get keyPath native "IDBObjectStore_keyPath_Getter";
-
-
-  /** @domName IDBObjectStore.name */
-  String get name native "IDBObjectStore_name_Getter";
-
-
-  /** @domName IDBObjectStore.transaction */
-  IDBTransaction get transaction native "IDBObjectStore_transaction_Getter";
-
-  IDBRequest add(/*any*/ value, [/*IDBKey*/ key]) {
-    if (?key) {
-      return _add_1(value, key);
-    }
-    return _add_2(value);
-  }
-
-
-  /** @domName IDBObjectStore.add_1 */
-  IDBRequest _add_1(value, key) native "IDBObjectStore_add_1_Callback";
-
-
-  /** @domName IDBObjectStore.add_2 */
-  IDBRequest _add_2(value) native "IDBObjectStore_add_2_Callback";
-
-
-  /** @domName IDBObjectStore.clear */
-  IDBRequest clear() native "IDBObjectStore_clear_Callback";
-
-  IDBRequest count([key_OR_range]) {
-    if (!?key_OR_range) {
-      return _count_1();
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
-      return _count_2(key_OR_range);
-    }
-    return _count_3(key_OR_range);
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName IDBObjectStore.count_1 */
-  IDBRequest _count_1() native "IDBObjectStore_count_1_Callback";
-
-
-  /** @domName IDBObjectStore.count_2 */
-  IDBRequest _count_2(key_OR_range) native "IDBObjectStore_count_2_Callback";
-
-
-  /** @domName IDBObjectStore.count_3 */
-  IDBRequest _count_3(key_OR_range) native "IDBObjectStore_count_3_Callback";
-
-  IDBIndex createIndex(/*DOMString*/ name, keyPath, [/*Dictionary*/ options]) {
-    if ((name is String || name == null) && (keyPath is List<String> || keyPath == null) && (options is Map || options == null)) {
-      return _createIndex_1(name, keyPath, options);
-    }
-    if ((name is String || name == null) && (keyPath is String || keyPath == null) && (options is Map || options == null)) {
-      return _createIndex_2(name, keyPath, options);
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName IDBObjectStore.createIndex_1 */
-  IDBIndex _createIndex_1(name, keyPath, options) native "IDBObjectStore_createIndex_1_Callback";
-
-
-  /** @domName IDBObjectStore.createIndex_2 */
-  IDBIndex _createIndex_2(name, keyPath, options) native "IDBObjectStore_createIndex_2_Callback";
-
-  IDBRequest delete(key_OR_keyRange) {
-    if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null)) {
-      return _delete_1(key_OR_keyRange);
-    }
-    return _delete_2(key_OR_keyRange);
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName IDBObjectStore.delete_1 */
-  IDBRequest _delete_1(key_OR_keyRange) native "IDBObjectStore_delete_1_Callback";
-
-
-  /** @domName IDBObjectStore.delete_2 */
-  IDBRequest _delete_2(key_OR_keyRange) native "IDBObjectStore_delete_2_Callback";
-
-
-  /** @domName IDBObjectStore.deleteIndex */
-  void deleteIndex(String name) native "IDBObjectStore_deleteIndex_Callback";
-
-  IDBRequest getObject(key) {
-    if ((key is IDBKeyRange || key == null)) {
-      return _get_1(key);
-    }
-    return _get_2(key);
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName IDBObjectStore.get_1 */
-  IDBRequest _get_1(key) native "IDBObjectStore_get_1_Callback";
-
-
-  /** @domName IDBObjectStore.get_2 */
-  IDBRequest _get_2(key) native "IDBObjectStore_get_2_Callback";
-
-
-  /** @domName IDBObjectStore.index */
-  IDBIndex index(String name) native "IDBObjectStore_index_Callback";
-
-  IDBRequest openCursor([key_OR_range, /*DOMString*/ direction]) {
-    if (!?key_OR_range && !?direction) {
-      return _openCursor_1();
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && !?direction) {
-      return _openCursor_2(key_OR_range);
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
-      return _openCursor_3(key_OR_range, direction);
-    }
-    if (!?direction) {
-      return _openCursor_4(key_OR_range);
-    }
-    if ((direction is String || direction == null)) {
-      return _openCursor_5(key_OR_range, direction);
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName IDBObjectStore.openCursor_1 */
-  IDBRequest _openCursor_1() native "IDBObjectStore_openCursor_1_Callback";
-
-
-  /** @domName IDBObjectStore.openCursor_2 */
-  IDBRequest _openCursor_2(key_OR_range) native "IDBObjectStore_openCursor_2_Callback";
-
-
-  /** @domName IDBObjectStore.openCursor_3 */
-  IDBRequest _openCursor_3(key_OR_range, direction) native "IDBObjectStore_openCursor_3_Callback";
-
-
-  /** @domName IDBObjectStore.openCursor_4 */
-  IDBRequest _openCursor_4(key_OR_range) native "IDBObjectStore_openCursor_4_Callback";
-
-
-  /** @domName IDBObjectStore.openCursor_5 */
-  IDBRequest _openCursor_5(key_OR_range, direction) native "IDBObjectStore_openCursor_5_Callback";
-
-  IDBRequest put(/*any*/ value, [/*IDBKey*/ key]) {
-    if (?key) {
-      return _put_1(value, key);
-    }
-    return _put_2(value);
-  }
-
-
-  /** @domName IDBObjectStore.put_1 */
-  IDBRequest _put_1(value, key) native "IDBObjectStore_put_1_Callback";
-
-
-  /** @domName IDBObjectStore.put_2 */
-  IDBRequest _put_2(value) native "IDBObjectStore_put_2_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBOpenDBRequest
-class IDBOpenDBRequest extends IDBRequest implements EventTarget {
-  IDBOpenDBRequest.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  IDBOpenDBRequestEvents get on =>
-    new IDBOpenDBRequestEvents(this);
-
-}
-
-class IDBOpenDBRequestEvents extends IDBRequestEvents {
-  IDBOpenDBRequestEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get blocked => this['blocked'];
-
-  EventListenerList get upgradeNeeded => this['upgradeneeded'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBRequest
-class IDBRequest extends EventTarget {
-  IDBRequest.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  IDBRequestEvents get on =>
-    new IDBRequestEvents(this);
-
-
-  /** @domName IDBRequest.error */
-  DOMError get error native "IDBRequest_error_Getter";
-
-
-  /** @domName IDBRequest.errorCode */
-  int get errorCode native "IDBRequest_errorCode_Getter";
-
-
-  /** @domName IDBRequest.readyState */
-  String get readyState native "IDBRequest_readyState_Getter";
-
-
-  /** @domName IDBRequest.result */
-  dynamic get result native "IDBRequest_result_Getter";
-
-
-  /** @domName IDBRequest.source */
-  dynamic get source native "IDBRequest_source_Getter";
-
-
-  /** @domName IDBRequest.transaction */
-  IDBTransaction get transaction native "IDBRequest_transaction_Getter";
-
-
-  /** @domName IDBRequest.webkitErrorMessage */
-  String get webkitErrorMessage native "IDBRequest_webkitErrorMessage_Getter";
-
-
-  /** @domName IDBRequest.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_addEventListener_Callback";
-
-
-  /** @domName IDBRequest.dispatchEvent */
-  bool $dom_dispatchEvent(Event evt) native "IDBRequest_dispatchEvent_Callback";
-
-
-  /** @domName IDBRequest.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_removeEventListener_Callback";
-
-}
-
-class IDBRequestEvents extends Events {
-  IDBRequestEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get success => this['success'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBTransaction
-class IDBTransaction extends EventTarget {
-  IDBTransaction.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  IDBTransactionEvents get on =>
-    new IDBTransactionEvents(this);
-
-  static const int READ_ONLY = 0;
-
-  static const int READ_WRITE = 1;
-
-  static const int VERSION_CHANGE = 2;
-
-
-  /** @domName IDBTransaction.db */
-  IDBDatabase get db native "IDBTransaction_db_Getter";
-
-
-  /** @domName IDBTransaction.error */
-  DOMError get error native "IDBTransaction_error_Getter";
-
-
-  /** @domName IDBTransaction.mode */
-  String get mode native "IDBTransaction_mode_Getter";
-
-
-  /** @domName IDBTransaction.abort */
-  void abort() native "IDBTransaction_abort_Callback";
-
-
-  /** @domName IDBTransaction.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_addEventListener_Callback";
-
-
-  /** @domName IDBTransaction.dispatchEvent */
-  bool $dom_dispatchEvent(Event evt) native "IDBTransaction_dispatchEvent_Callback";
-
-
-  /** @domName IDBTransaction.objectStore */
-  IDBObjectStore objectStore(String name) native "IDBTransaction_objectStore_Callback";
-
-
-  /** @domName IDBTransaction.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_removeEventListener_Callback";
-
-}
-
-class IDBTransactionEvents extends Events {
-  IDBTransactionEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get complete => this['complete'];
-
-  EventListenerList get error => this['error'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBVersionChangeEvent
-class IDBUpgradeNeededEvent extends Event {
-  IDBUpgradeNeededEvent.internal(): super.internal();
-
-
-  /** @domName IDBUpgradeNeededEvent.newVersion */
-  int get newVersion native "IDBUpgradeNeededEvent_newVersion_Getter";
-
-
-  /** @domName IDBUpgradeNeededEvent.oldVersion */
-  int get oldVersion native "IDBUpgradeNeededEvent_oldVersion_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBVersionChangeEvent
-class IDBVersionChangeEvent extends Event {
-  IDBVersionChangeEvent.internal(): super.internal();
-
-
-  /** @domName IDBVersionChangeEvent.version */
-  String get version native "IDBVersionChangeEvent_version_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBVersionChangeRequest
-class IDBVersionChangeRequest extends IDBRequest implements EventTarget {
-  IDBVersionChangeRequest.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  IDBVersionChangeRequestEvents get on =>
-    new IDBVersionChangeRequestEvents(this);
-
-}
-
-class IDBVersionChangeRequestEvents extends IDBRequestEvents {
-  IDBVersionChangeRequestEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get blocked => this['blocked'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName HTMLIFrameElement
 class IFrameElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory IFrameElement() => document.$dom_createElement("iframe");
   IFrameElement.internal(): super.internal();
 
@@ -12732,6 +12278,7 @@ typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnecti
 /// @domName IceCandidate
 class IceCandidate extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
   IceCandidate.internal();
 
@@ -12778,6 +12325,7 @@ class ImageData extends NativeFieldWrapperClass1 {
 /// @domName HTMLImageElement
 class ImageElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ImageElement({String src, int width, int height}) {
     var e = document.$dom_createElement("img");
     if (src != null) e.src = src;
@@ -12930,6 +12478,7 @@ class ImageElement extends _Element_Merged {
 /// @domName HTMLInputElement
 class InputElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
     if (type != null) e.type = type;
@@ -13447,38 +12996,53 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -13497,7 +13061,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -13580,38 +13144,53 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -13630,7 +13209,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -13713,38 +13292,53 @@ class Int8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -13763,7 +13357,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -13863,7 +13457,7 @@ class KeyboardEvent extends UIEvent {
 
   factory KeyboardEvent(String type, Window view,
       [bool canBubble = true, bool cancelable = true, 
-      String keyIdentifier = null, int keyLocation = 1, bool ctrlKey = false,
+      String keyIdentifier = "", int keyLocation = 1, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       bool altGraphKey = false]) {
     final e = document.$dom_createEvent("KeyboardEvent");
@@ -13872,12 +13466,6 @@ class KeyboardEvent extends UIEvent {
     return e;
   }
 
-  /** @domName KeyboardEvent.initKeyboardEvent */
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
-      bool altKey, bool shiftKey, bool metaKey,
-      bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
- 
   /** @domName KeyboardEvent.keyCode */
   int get keyCode => $dom_keyCode;
   
@@ -13913,6 +13501,10 @@ class KeyboardEvent extends UIEvent {
   /** @domName KeyboardEvent.shiftKey */
   bool get shiftKey native "KeyboardEvent_shiftKey_Getter";
 
+
+  /** @domName KeyboardEvent.initKeyboardEvent */
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13924,6 +13516,7 @@ class KeyboardEvent extends UIEvent {
 /// @domName HTMLKeygenElement
 class KeygenElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
   KeygenElement.internal(): super.internal();
 
@@ -14010,6 +13603,7 @@ class KeygenElement extends _Element_Merged {
 /// @domName HTMLLIElement
 class LIElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory LIElement() => document.$dom_createElement("li");
   LIElement.internal(): super.internal();
 
@@ -14040,6 +13634,7 @@ class LIElement extends _Element_Merged {
 /// @domName HTMLLabelElement
 class LabelElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory LabelElement() => document.$dom_createElement("label");
   LabelElement.internal(): super.internal();
 
@@ -14070,6 +13665,7 @@ class LabelElement extends _Element_Merged {
 /// @domName HTMLLegendElement
 class LegendElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory LegendElement() => document.$dom_createElement("legend");
   LegendElement.internal(): super.internal();
 
@@ -14096,6 +13692,7 @@ class LegendElement extends _Element_Merged {
 /// @domName HTMLLinkElement
 class LinkElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory LinkElement() => document.$dom_createElement("link");
   LinkElement.internal(): super.internal();
 
@@ -14161,11 +13758,11 @@ class LinkElement extends _Element_Merged {
 
 
   /** @domName HTMLLinkElement.sizes */
-  DOMSettableTokenList get sizes native "HTMLLinkElement_sizes_Getter";
+  DomSettableTokenList get sizes native "HTMLLinkElement_sizes_Getter";
 
 
   /** @domName HTMLLinkElement.sizes */
-  void set sizes(DOMSettableTokenList value) native "HTMLLinkElement_sizes_Setter";
+  void set sizes(DomSettableTokenList value) native "HTMLLinkElement_sizes_Setter";
 
 
   /** @domName HTMLLinkElement.target */
@@ -14388,7 +13985,7 @@ class LocalWindow extends EventTarget implements Window {
 
 
   /** @domName DOMWindow.applicationCache */
-  DOMApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
+  ApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
 
 
   /** @domName DOMWindow.closed */
@@ -14436,7 +14033,7 @@ class LocalWindow extends EventTarget implements Window {
 
 
   /** @domName DOMWindow.indexedDB */
-  IDBFactory get indexedDB native "DOMWindow_indexedDB_Getter";
+  IdbFactory get indexedDB native "DOMWindow_indexedDB_Getter";
 
 
   /** @domName DOMWindow.innerHeight */
@@ -14583,10 +14180,6 @@ class LocalWindow extends EventTarget implements Window {
   Window get top native "DOMWindow_top_Getter";
 
 
-  /** @domName DOMWindow.webkitIndexedDB */
-  IDBFactory get webkitIndexedDB native "DOMWindow_webkitIndexedDB_Getter";
-
-
   /** @domName DOMWindow.webkitNotifications */
   NotificationCenter get webkitNotifications native "DOMWindow_webkitNotifications_Getter";
 
@@ -14648,15 +14241,15 @@ class LocalWindow extends EventTarget implements Window {
 
 
   /** @domName DOMWindow.getComputedStyle */
-  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
+  CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
 
 
   /** @domName DOMWindow.getMatchedCSSRules */
-  List<CSSRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
+  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
 
 
   /** @domName DOMWindow.getSelection */
-  DOMSelection getSelection() native "DOMWindow_getSelection_Callback";
+  DomSelection getSelection() native "DOMWindow_getSelection_Callback";
 
 
   /** @domName DOMWindow.matchMedia */
@@ -14919,12 +14512,13 @@ class LocalWindowEvents extends Events {
 /// @domName HTMLMapElement
 class MapElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory MapElement() => document.$dom_createElement("map");
   MapElement.internal(): super.internal();
 
 
   /** @domName HTMLMapElement.areas */
-  HTMLCollection get areas native "HTMLMapElement_areas_Getter";
+  HtmlCollection get areas native "HTMLMapElement_areas_Getter";
 
 
   /** @domName HTMLMapElement.name */
@@ -15053,6 +14647,7 @@ class MarqueeElement extends _Element_Merged {
 /// @domName MediaController
 class MediaController extends EventTarget {
 
+  ///@docsEditable true
   factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
   MediaController.internal(): super.internal();
 
@@ -15671,6 +15266,7 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 /// @domName MediaSource
 class MediaSource extends EventTarget {
 
+  ///@docsEditable true
   factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
   MediaSource.internal(): super.internal();
 
@@ -15729,6 +15325,7 @@ class MediaSource extends EventTarget {
 /// @domName MediaStream
 class MediaStream extends EventTarget {
 
+  ///@docsEditable true
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
   MediaStream.internal(): super.internal();
 
@@ -15957,6 +15554,7 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 /// @domName HTMLMenuElement
 class MenuElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory MenuElement() => document.$dom_createElement("menu");
   MenuElement.internal(): super.internal();
 
@@ -15971,6 +15569,7 @@ class MenuElement extends _Element_Merged {
 /// @domName MessageChannel
 class MessageChannel extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
   MessageChannel.internal();
 
@@ -16151,6 +15750,7 @@ typedef void MetadataCallback(Metadata metadata);
 /// @domName HTMLMeterElement
 class MeterElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
   MeterElement.internal(): super.internal();
 
@@ -16395,6 +15995,7 @@ class MutationEvent extends Event {
 /// @domName MutationObserver
 class MutationObserver extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
   MutationObserver.internal();
 
@@ -16566,38 +16167,53 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Node get first => this[0];
 
   Node get last => this[length - 1];
+
+  Node removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Node removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -16616,7 +16232,7 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   }
 
   List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
+      Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -16686,7 +16302,7 @@ class Navigator extends NativeFieldWrapperClass1 {
 
 
   /** @domName Navigator.mimeTypes */
-  DOMMimeTypeArray get mimeTypes native "Navigator_mimeTypes_Getter";
+  DomMimeTypeArray get mimeTypes native "Navigator_mimeTypes_Getter";
 
 
   /** @domName Navigator.onLine */
@@ -16698,7 +16314,7 @@ class Navigator extends NativeFieldWrapperClass1 {
 
 
   /** @domName Navigator.plugins */
-  DOMPluginArray get plugins native "Navigator_plugins_Getter";
+  DomPluginArray get plugins native "Navigator_plugins_Getter";
 
 
   /** @domName Navigator.product */
@@ -16817,6 +16433,14 @@ class _ChildNodeListLazy implements List {
     return result;
   }
 
+  Node removeAt(int index) {
+    var result = this[index];
+    if (result != null) {
+      _this.$dom_removeChild(result);
+    }
+    return result;
+  }
+
   void clear() {
     _this.text = '';
   }
@@ -16829,18 +16453,23 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Node element)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -16848,15 +16477,15 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+      Lists.lastIndexOf(this, element, start);
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -16872,7 +16501,7 @@ class _ChildNodeListLazy implements List {
         "Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
+      Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -16880,12 +16509,17 @@ class _ChildNodeListLazy implements List {
   // a local copy of $dom_childNodes is more efficient.
   int get length => _this.$dom_childNodes.length;
 
+  void set length(int value) {
+    throw new UnsupportedError(
+        "Cannot set length on immutable List.");
+  }
+
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
 /// @domName Node
 class Node extends EventTarget {
-  _ChildNodeListLazy get nodes {
+  List<Node> get nodes {
     return new _ChildNodeListLazy(this);
   }
 
@@ -17199,38 +16833,53 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Node get first => this[0];
 
   Node get last => this[length - 1];
+
+  Node removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Node removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -17249,7 +16898,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
   }
 
   List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
+      Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -17288,6 +16937,7 @@ class Notation extends Node {
 /// @domName Notification
 class Notification extends EventTarget {
 
+  ///@docsEditable true
   factory Notification(String title, [Map options]) {
     if (!?options) {
       return _NotificationFactoryProvider.createNotification(title);
@@ -17414,77 +17064,10 @@ typedef void NotificationPermissionCallback(String permission);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName OESElementIndexUint
-class OESElementIndexUint extends NativeFieldWrapperClass1 {
-  OESElementIndexUint.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName OESStandardDerivatives
-class OESStandardDerivatives extends NativeFieldWrapperClass1 {
-  OESStandardDerivatives.internal();
-
-  static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName OESTextureFloat
-class OESTextureFloat extends NativeFieldWrapperClass1 {
-  OESTextureFloat.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName OESVertexArrayObject
-class OESVertexArrayObject extends NativeFieldWrapperClass1 {
-  OESVertexArrayObject.internal();
-
-  static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
-
-
-  /** @domName OESVertexArrayObject.bindVertexArrayOES */
-  void bindVertexArray(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
-
-
-  /** @domName OESVertexArrayObject.createVertexArrayOES */
-  WebGLVertexArrayObjectOES createVertexArray() native "OESVertexArrayObject_createVertexArrayOES_Callback";
-
-
-  /** @domName OESVertexArrayObject.deleteVertexArrayOES */
-  void deleteVertexArray(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_deleteVertexArrayOES_Callback";
-
-
-  /** @domName OESVertexArrayObject.isVertexArrayOES */
-  bool isVertexArray(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_isVertexArrayOES_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName HTMLOListElement
 class OListElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory OListElement() => document.$dom_createElement("ol");
   OListElement.internal(): super.internal();
 
@@ -17531,6 +17114,7 @@ class OListElement extends _Element_Merged {
 /// @domName HTMLObjectElement
 class ObjectElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
   ObjectElement.internal(): super.internal();
 
@@ -17694,9 +17278,78 @@ class ObjectElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName OESElementIndexUint
+class OesElementIndexUint extends NativeFieldWrapperClass1 {
+  OesElementIndexUint.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName OESStandardDerivatives
+class OesStandardDerivatives extends NativeFieldWrapperClass1 {
+  OesStandardDerivatives.internal();
+
+  static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName OESTextureFloat
+class OesTextureFloat extends NativeFieldWrapperClass1 {
+  OesTextureFloat.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName OESVertexArrayObject
+class OesVertexArrayObject extends NativeFieldWrapperClass1 {
+  OesVertexArrayObject.internal();
+
+  static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
+
+
+  /** @domName OESVertexArrayObject.bindVertexArrayOES */
+  void bindVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
+
+
+  /** @domName OESVertexArrayObject.createVertexArrayOES */
+  WebGLVertexArrayObject createVertexArray() native "OESVertexArrayObject_createVertexArrayOES_Callback";
+
+
+  /** @domName OESVertexArrayObject.deleteVertexArrayOES */
+  void deleteVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_deleteVertexArrayOES_Callback";
+
+
+  /** @domName OESVertexArrayObject.isVertexArrayOES */
+  bool isVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_isVertexArrayOES_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName HTMLOptGroupElement
 class OptGroupElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory OptGroupElement() => document.$dom_createElement("optgroup");
   OptGroupElement.internal(): super.internal();
 
@@ -17727,6 +17380,7 @@ class OptGroupElement extends _Element_Merged {
 /// @domName HTMLOptionElement
 class OptionElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (!?data) {
       return _OptionElementFactoryProvider.createOptionElement();
@@ -17803,6 +17457,7 @@ class OptionElement extends _Element_Merged {
 /// @domName HTMLOutputElement
 class OutputElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
   OutputElement.internal(): super.internal();
 
@@ -17820,11 +17475,11 @@ class OutputElement extends _Element_Merged {
 
 
   /** @domName HTMLOutputElement.htmlFor */
-  DOMSettableTokenList get htmlFor native "HTMLOutputElement_htmlFor_Getter";
+  DomSettableTokenList get htmlFor native "HTMLOutputElement_htmlFor_Getter";
 
 
   /** @domName HTMLOutputElement.htmlFor */
-  void set htmlFor(DOMSettableTokenList value) native "HTMLOutputElement_htmlFor_Setter";
+  void set htmlFor(DomSettableTokenList value) native "HTMLOutputElement_htmlFor_Setter";
 
 
   /** @domName HTMLOutputElement.labels */
@@ -17947,6 +17602,7 @@ class PageTransitionEvent extends Event {
 /// @domName HTMLParagraphElement
 class ParagraphElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ParagraphElement() => document.$dom_createElement("p");
   ParagraphElement.internal(): super.internal();
 
@@ -17969,6 +17625,7 @@ class ParagraphElement extends _Element_Merged {
 /// @domName HTMLParamElement
 class ParamElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ParamElement() => document.$dom_createElement("param");
   ParamElement.internal(): super.internal();
 
@@ -18015,6 +17672,7 @@ class ParamElement extends _Element_Merged {
 /// @domName PeerConnection00
 class PeerConnection00 extends EventTarget {
 
+  ///@docsEditable true
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
   PeerConnection00.internal(): super.internal();
 
@@ -18386,6 +18044,7 @@ typedef void PositionErrorCallback(PositionError error);
 /// @domName HTMLPreElement
 class PreElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory PreElement() => document.$dom_createElement("pre");
   PreElement.internal(): super.internal();
 
@@ -18444,6 +18103,7 @@ class ProcessingInstruction extends Node {
 /// @domName HTMLProgressElement
 class ProgressElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
   ProgressElement.internal(): super.internal();
 
@@ -18523,23 +18183,7 @@ class QuoteElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RGBColor
-class RGBColor extends NativeFieldWrapperClass1 {
-  RGBColor.internal();
-
-
-  /** @domName RGBColor.blue */
-  CSSPrimitiveValue get blue native "RGBColor_blue_Getter";
-
-
-  /** @domName RGBColor.green */
-  CSSPrimitiveValue get green native "RGBColor_green_Getter";
-
-
-  /** @domName RGBColor.red */
-  CSSPrimitiveValue get red native "RGBColor_red_Getter";
-
-}
+typedef void RtcErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18547,103 +18191,7 @@ class RGBColor extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RTCDataChannel
-class RTCDataChannel extends EventTarget {
-  RTCDataChannel.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  RTCDataChannelEvents get on =>
-    new RTCDataChannelEvents(this);
-
-
-  /** @domName RTCDataChannel.binaryType */
-  String get binaryType native "RTCDataChannel_binaryType_Getter";
-
-
-  /** @domName RTCDataChannel.binaryType */
-  void set binaryType(String value) native "RTCDataChannel_binaryType_Setter";
-
-
-  /** @domName RTCDataChannel.bufferedAmount */
-  int get bufferedAmount native "RTCDataChannel_bufferedAmount_Getter";
-
-
-  /** @domName RTCDataChannel.label */
-  String get label native "RTCDataChannel_label_Getter";
-
-
-  /** @domName RTCDataChannel.readyState */
-  String get readyState native "RTCDataChannel_readyState_Getter";
-
-
-  /** @domName RTCDataChannel.reliable */
-  bool get reliable native "RTCDataChannel_reliable_Getter";
-
-
-  /** @domName RTCDataChannel.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_addEventListener_Callback";
-
-
-  /** @domName RTCDataChannel.close */
-  void close() native "RTCDataChannel_close_Callback";
-
-
-  /** @domName RTCDataChannel.dispatchEvent */
-  bool $dom_dispatchEvent(Event event) native "RTCDataChannel_dispatchEvent_Callback";
-
-
-  /** @domName RTCDataChannel.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
-
-  void send(data) {
-    if ((data is ArrayBuffer || data == null)) {
-      _send_1(data);
-      return;
-    }
-    if ((data is ArrayBufferView || data == null)) {
-      _send_2(data);
-      return;
-    }
-    if ((data is Blob || data == null)) {
-      _send_3(data);
-      return;
-    }
-    if ((data is String || data == null)) {
-      _send_4(data);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName RTCDataChannel.send_1 */
-  void _send_1(data) native "RTCDataChannel_send_1_Callback";
-
-
-  /** @domName RTCDataChannel.send_2 */
-  void _send_2(data) native "RTCDataChannel_send_2_Callback";
-
-
-  /** @domName RTCDataChannel.send_3 */
-  void _send_3(data) native "RTCDataChannel_send_3_Callback";
-
-
-  /** @domName RTCDataChannel.send_4 */
-  void _send_4(data) native "RTCDataChannel_send_4_Callback";
-
-}
-
-class RTCDataChannelEvents extends Events {
-  RTCDataChannelEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get close => this['close'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get message => this['message'];
-
-  EventListenerList get open => this['open'];
-}
+typedef void RtcSessionDescriptionCallback(RtcSessionDescription sdp);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18651,288 +18199,7 @@ class RTCDataChannelEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RTCDataChannelEvent
-class RTCDataChannelEvent extends Event {
-  RTCDataChannelEvent.internal(): super.internal();
-
-
-  /** @domName RTCDataChannelEvent.channel */
-  RTCDataChannel get channel native "RTCDataChannelEvent_channel_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void RTCErrorCallback(String errorInformation);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName RTCIceCandidate
-class RTCIceCandidate extends NativeFieldWrapperClass1 {
-
-  factory RTCIceCandidate(Map dictionary) => _RTCIceCandidateFactoryProvider.createRTCIceCandidate(dictionary);
-  RTCIceCandidate.internal();
-
-
-  /** @domName RTCIceCandidate.candidate */
-  String get candidate native "RTCIceCandidate_candidate_Getter";
-
-
-  /** @domName RTCIceCandidate.sdpMLineIndex */
-  int get sdpMLineIndex native "RTCIceCandidate_sdpMLineIndex_Getter";
-
-
-  /** @domName RTCIceCandidate.sdpMid */
-  String get sdpMid native "RTCIceCandidate_sdpMid_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName RTCIceCandidateEvent
-class RTCIceCandidateEvent extends Event {
-  RTCIceCandidateEvent.internal(): super.internal();
-
-
-  /** @domName RTCIceCandidateEvent.candidate */
-  RTCIceCandidate get candidate native "RTCIceCandidateEvent_candidate_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName RTCPeerConnection
-class RTCPeerConnection extends EventTarget {
-
-  factory RTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
-    if (!?mediaConstraints) {
-      return _RTCPeerConnectionFactoryProvider.createRTCPeerConnection(rtcIceServers);
-    }
-    return _RTCPeerConnectionFactoryProvider.createRTCPeerConnection(rtcIceServers, mediaConstraints);
-  }
-  RTCPeerConnection.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  RTCPeerConnectionEvents get on =>
-    new RTCPeerConnectionEvents(this);
-
-
-  /** @domName RTCPeerConnection.iceState */
-  String get iceState native "RTCPeerConnection_iceState_Getter";
-
-
-  /** @domName RTCPeerConnection.localDescription */
-  RTCSessionDescription get localDescription native "RTCPeerConnection_localDescription_Getter";
-
-
-  /** @domName RTCPeerConnection.localStreams */
-  List<MediaStream> get localStreams native "RTCPeerConnection_localStreams_Getter";
-
-
-  /** @domName RTCPeerConnection.readyState */
-  String get readyState native "RTCPeerConnection_readyState_Getter";
-
-
-  /** @domName RTCPeerConnection.remoteDescription */
-  RTCSessionDescription get remoteDescription native "RTCPeerConnection_remoteDescription_Getter";
-
-
-  /** @domName RTCPeerConnection.remoteStreams */
-  List<MediaStream> get remoteStreams native "RTCPeerConnection_remoteStreams_Getter";
-
-
-  /** @domName RTCPeerConnection.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
-
-
-  /** @domName RTCPeerConnection.addIceCandidate */
-  void addIceCandidate(RTCIceCandidate candidate) native "RTCPeerConnection_addIceCandidate_Callback";
-
-
-  /** @domName RTCPeerConnection.addStream */
-  void addStream(MediaStream stream, [Map mediaConstraints]) native "RTCPeerConnection_addStream_Callback";
-
-
-  /** @domName RTCPeerConnection.close */
-  void close() native "RTCPeerConnection_close_Callback";
-
-
-  /** @domName RTCPeerConnection.createAnswer */
-  void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createAnswer_Callback";
-
-
-  /** @domName RTCPeerConnection.createDataChannel */
-  RTCDataChannel createDataChannel(String label, [Map options]) native "RTCPeerConnection_createDataChannel_Callback";
-
-
-  /** @domName RTCPeerConnection.createOffer */
-  void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createOffer_Callback";
-
-
-  /** @domName RTCPeerConnection.dispatchEvent */
-  bool $dom_dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
-
-
-  /** @domName RTCPeerConnection.getStats */
-  void getStats(RTCStatsCallback successCallback, MediaStreamTrack selector) native "RTCPeerConnection_getStats_Callback";
-
-
-  /** @domName RTCPeerConnection.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
-
-
-  /** @domName RTCPeerConnection.removeStream */
-  void removeStream(MediaStream stream) native "RTCPeerConnection_removeStream_Callback";
-
-
-  /** @domName RTCPeerConnection.setLocalDescription */
-  void setLocalDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native "RTCPeerConnection_setLocalDescription_Callback";
-
-
-  /** @domName RTCPeerConnection.setRemoteDescription */
-  void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native "RTCPeerConnection_setRemoteDescription_Callback";
-
-
-  /** @domName RTCPeerConnection.updateIce */
-  void updateIce([Map configuration, Map mediaConstraints]) native "RTCPeerConnection_updateIce_Callback";
-
-}
-
-class RTCPeerConnectionEvents extends Events {
-  RTCPeerConnectionEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get addStream => this['addstream'];
-
-  EventListenerList get iceCandidate => this['icecandidate'];
-
-  EventListenerList get iceChange => this['icechange'];
-
-  EventListenerList get negotiationNeeded => this['negotiationneeded'];
-
-  EventListenerList get open => this['open'];
-
-  EventListenerList get removeStream => this['removestream'];
-
-  EventListenerList get stateChange => this['statechange'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName RTCSessionDescription
-class RTCSessionDescription extends NativeFieldWrapperClass1 {
-
-  factory RTCSessionDescription(Map dictionary) => _RTCSessionDescriptionFactoryProvider.createRTCSessionDescription(dictionary);
-  RTCSessionDescription.internal();
-
-
-  /** @domName RTCSessionDescription.sdp */
-  String get sdp native "RTCSessionDescription_sdp_Getter";
-
-
-  /** @domName RTCSessionDescription.sdp */
-  void set sdp(String value) native "RTCSessionDescription_sdp_Setter";
-
-
-  /** @domName RTCSessionDescription.type */
-  String get type native "RTCSessionDescription_type_Getter";
-
-
-  /** @domName RTCSessionDescription.type */
-  void set type(String value) native "RTCSessionDescription_type_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void RTCSessionDescriptionCallback(RTCSessionDescription sdp);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void RTCStatsCallback(RTCStatsResponse response);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName RTCStatsElement
-class RTCStatsElement extends NativeFieldWrapperClass1 {
-  RTCStatsElement.internal();
-
-
-  /** @domName RTCStatsElement.timestamp */
-  Date get timestamp native "RTCStatsElement_timestamp_Getter";
-
-
-  /** @domName RTCStatsElement.stat */
-  String stat(String name) native "RTCStatsElement_stat_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName RTCStatsReport
-class RTCStatsReport extends NativeFieldWrapperClass1 {
-  RTCStatsReport.internal();
-
-
-  /** @domName RTCStatsReport.local */
-  RTCStatsElement get local native "RTCStatsReport_local_Getter";
-
-
-  /** @domName RTCStatsReport.remote */
-  RTCStatsElement get remote native "RTCStatsReport_remote_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName RTCStatsResponse
-class RTCStatsResponse extends NativeFieldWrapperClass1 {
-  RTCStatsResponse.internal();
-
-
-  /** @domName RTCStatsResponse.result */
-  List<RTCStatsReport> result() native "RTCStatsResponse_result_Callback";
-
-}
+typedef void RtcStatsCallback(RtcStatsResponse response);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18962,6 +18229,8 @@ class RadioNodeList extends NodeList {
 
 /// @domName Range
 class Range extends NativeFieldWrapperClass1 {
+  factory Range() => document.$dom_createRange();
+
   Range.internal();
 
   static const int END_TO_END = 2;
@@ -19150,19 +18419,19 @@ class Rect extends NativeFieldWrapperClass1 {
 
 
   /** @domName Rect.bottom */
-  CSSPrimitiveValue get bottom native "Rect_bottom_Getter";
+  CssPrimitiveValue get bottom native "Rect_bottom_Getter";
 
 
   /** @domName Rect.left */
-  CSSPrimitiveValue get left native "Rect_left_Getter";
+  CssPrimitiveValue get left native "Rect_left_Getter";
 
 
   /** @domName Rect.right */
-  CSSPrimitiveValue get right native "Rect_right_Getter";
+  CssPrimitiveValue get right native "Rect_right_Getter";
 
 
   /** @domName Rect.top */
-  CSSPrimitiveValue get top native "Rect_top_Getter";
+  CssPrimitiveValue get top native "Rect_top_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19180,33 +18449,21 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SQLError
-class SQLError extends NativeFieldWrapperClass1 {
-  SQLError.internal();
-
-  static const int CONSTRAINT_ERR = 6;
-
-  static const int DATABASE_ERR = 1;
-
-  static const int QUOTA_ERR = 4;
-
-  static const int SYNTAX_ERR = 5;
-
-  static const int TIMEOUT_ERR = 7;
-
-  static const int TOO_LARGE_ERR = 3;
-
-  static const int UNKNOWN_ERR = 0;
-
-  static const int VERSION_ERR = 2;
+/// @domName RGBColor
+class RgbColor extends NativeFieldWrapperClass1 {
+  RgbColor.internal();
 
 
-  /** @domName SQLError.code */
-  int get code native "SQLError_code_Getter";
+  /** @domName RGBColor.blue */
+  CssPrimitiveValue get blue native "RGBColor_blue_Getter";
 
 
-  /** @domName SQLError.message */
-  String get message native "SQLError_message_Getter";
+  /** @domName RGBColor.green */
+  CssPrimitiveValue get green native "RGBColor_green_Getter";
+
+
+  /** @domName RGBColor.red */
+  CssPrimitiveValue get red native "RGBColor_red_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19216,33 +18473,117 @@ class SQLError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SQLException
-class SQLException extends NativeFieldWrapperClass1 {
-  SQLException.internal();
+/// @domName RTCDataChannel
+class RtcDataChannel extends EventTarget {
+  RtcDataChannel.internal(): super.internal();
 
-  static const int CONSTRAINT_ERR = 6;
-
-  static const int DATABASE_ERR = 1;
-
-  static const int QUOTA_ERR = 4;
-
-  static const int SYNTAX_ERR = 5;
-
-  static const int TIMEOUT_ERR = 7;
-
-  static const int TOO_LARGE_ERR = 3;
-
-  static const int UNKNOWN_ERR = 0;
-
-  static const int VERSION_ERR = 2;
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  RtcDataChannelEvents get on =>
+    new RtcDataChannelEvents(this);
 
 
-  /** @domName SQLException.code */
-  int get code native "SQLException_code_Getter";
+  /** @domName RTCDataChannel.binaryType */
+  String get binaryType native "RTCDataChannel_binaryType_Getter";
 
 
-  /** @domName SQLException.message */
-  String get message native "SQLException_message_Getter";
+  /** @domName RTCDataChannel.binaryType */
+  void set binaryType(String value) native "RTCDataChannel_binaryType_Setter";
+
+
+  /** @domName RTCDataChannel.bufferedAmount */
+  int get bufferedAmount native "RTCDataChannel_bufferedAmount_Getter";
+
+
+  /** @domName RTCDataChannel.label */
+  String get label native "RTCDataChannel_label_Getter";
+
+
+  /** @domName RTCDataChannel.readyState */
+  String get readyState native "RTCDataChannel_readyState_Getter";
+
+
+  /** @domName RTCDataChannel.reliable */
+  bool get reliable native "RTCDataChannel_reliable_Getter";
+
+
+  /** @domName RTCDataChannel.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_addEventListener_Callback";
+
+
+  /** @domName RTCDataChannel.close */
+  void close() native "RTCDataChannel_close_Callback";
+
+
+  /** @domName RTCDataChannel.dispatchEvent */
+  bool $dom_dispatchEvent(Event event) native "RTCDataChannel_dispatchEvent_Callback";
+
+
+  /** @domName RTCDataChannel.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
+
+  void send(data) {
+    if ((data is ArrayBuffer || data == null)) {
+      _send_1(data);
+      return;
+    }
+    if ((data is ArrayBufferView || data == null)) {
+      _send_2(data);
+      return;
+    }
+    if ((data is Blob || data == null)) {
+      _send_3(data);
+      return;
+    }
+    if ((data is String || data == null)) {
+      _send_4(data);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+
+  /** @domName RTCDataChannel.send_1 */
+  void _send_1(data) native "RTCDataChannel_send_1_Callback";
+
+
+  /** @domName RTCDataChannel.send_2 */
+  void _send_2(data) native "RTCDataChannel_send_2_Callback";
+
+
+  /** @domName RTCDataChannel.send_3 */
+  void _send_3(data) native "RTCDataChannel_send_3_Callback";
+
+
+  /** @domName RTCDataChannel.send_4 */
+  void _send_4(data) native "RTCDataChannel_send_4_Callback";
+
+}
+
+class RtcDataChannelEvents extends Events {
+  RtcDataChannelEvents(EventTarget _ptr) : super(_ptr);
+
+  EventListenerList get close => this['close'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get open => this['open'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName RTCDataChannelEvent
+class RtcDataChannelEvent extends Event {
+  RtcDataChannelEvent.internal(): super.internal();
+
+
+  /** @domName RTCDataChannelEvent.channel */
+  RtcDataChannel get channel native "RTCDataChannelEvent_channel_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19252,126 +18593,24 @@ class SQLException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SQLResultSet
-class SQLResultSet extends NativeFieldWrapperClass1 {
-  SQLResultSet.internal();
+/// @domName RTCIceCandidate
+class RtcIceCandidate extends NativeFieldWrapperClass1 {
+
+  ///@docsEditable true
+  factory RtcIceCandidate(Map dictionary) => _RtcIceCandidateFactoryProvider.createRtcIceCandidate(dictionary);
+  RtcIceCandidate.internal();
 
 
-  /** @domName SQLResultSet.insertId */
-  int get insertId native "SQLResultSet_insertId_Getter";
+  /** @domName RTCIceCandidate.candidate */
+  String get candidate native "RTCIceCandidate_candidate_Getter";
 
 
-  /** @domName SQLResultSet.rows */
-  SQLResultSetRowList get rows native "SQLResultSet_rows_Getter";
+  /** @domName RTCIceCandidate.sdpMLineIndex */
+  int get sdpMLineIndex native "RTCIceCandidate_sdpMLineIndex_Getter";
 
 
-  /** @domName SQLResultSet.rowsAffected */
-  int get rowsAffected native "SQLResultSet_rowsAffected_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName SQLResultSetRowList
-class SQLResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> {
-  SQLResultSetRowList.internal();
-
-
-  /** @domName SQLResultSetRowList.length */
-  int get length native "SQLResultSetRowList_length_Getter";
-
-  Map operator[](int index) native "SQLResultSetRowList_item_Callback";
-
-  void operator[]=(int index, Map value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Map> mixins.
-  // Map is the element type.
-
-  // From Iterable<Map>:
-
-  Iterator<Map> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Map>(this);
-  }
-
-  // From Collection<Map>:
-
-  void add(Map value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Map value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<Map> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(Map element) => _Collections.contains(this, element);
-
-  void forEach(void f(Map element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Map element)) => _Collections.map(this, [], f);
-
-  Collection<Map> filter(bool f(Map element)) =>
-     _Collections.filter(this, <Map>[], f);
-
-  bool every(bool f(Map element)) => _Collections.every(this, f);
-
-  bool some(bool f(Map element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<Map>:
-
-  void sort([Comparator<Map> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Map element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Map element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  Map get first => this[0];
-
-  Map get last => this[length - 1];
-
-  Map removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Map initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<Map> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Map>[]);
-
-  // -- end List<Map> mixins.
-
-
-  /** @domName SQLResultSetRowList.item */
-  Map item(int index) native "SQLResultSetRowList_item_Callback";
+  /** @domName RTCIceCandidate.sdpMid */
+  String get sdpMid native "RTCIceCandidate_sdpMid_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19381,29 +18620,13 @@ class SQLResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
+/// @domName RTCIceCandidateEvent
+class RtcIceCandidateEvent extends Event {
+  RtcIceCandidateEvent.internal(): super.internal();
 
 
-typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName SQLTransaction
-class SQLTransaction extends NativeFieldWrapperClass1 {
-  SQLTransaction.internal();
-
-
-  /** @domName SQLTransaction.executeSql */
-  void executeSql(String sqlStatement, List arguments, [SQLStatementCallback callback, SQLStatementErrorCallback errorCallback]) native "SQLTransaction_executeSql_Callback";
+  /** @domName RTCIceCandidateEvent.candidate */
+  RtcIceCandidate get candidate native "RTCIceCandidateEvent_candidate_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19413,7 +18636,121 @@ class SQLTransaction extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLTransactionCallback(SQLTransaction transaction);
+/// @domName RTCPeerConnection
+class RtcPeerConnection extends EventTarget {
+
+  ///@docsEditable true
+  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
+    if (!?mediaConstraints) {
+      return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers);
+    }
+    return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers, mediaConstraints);
+  }
+  RtcPeerConnection.internal(): super.internal();
+
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  RtcPeerConnectionEvents get on =>
+    new RtcPeerConnectionEvents(this);
+
+
+  /** @domName RTCPeerConnection.iceState */
+  String get iceState native "RTCPeerConnection_iceState_Getter";
+
+
+  /** @domName RTCPeerConnection.localDescription */
+  RtcSessionDescription get localDescription native "RTCPeerConnection_localDescription_Getter";
+
+
+  /** @domName RTCPeerConnection.localStreams */
+  List<MediaStream> get localStreams native "RTCPeerConnection_localStreams_Getter";
+
+
+  /** @domName RTCPeerConnection.readyState */
+  String get readyState native "RTCPeerConnection_readyState_Getter";
+
+
+  /** @domName RTCPeerConnection.remoteDescription */
+  RtcSessionDescription get remoteDescription native "RTCPeerConnection_remoteDescription_Getter";
+
+
+  /** @domName RTCPeerConnection.remoteStreams */
+  List<MediaStream> get remoteStreams native "RTCPeerConnection_remoteStreams_Getter";
+
+
+  /** @domName RTCPeerConnection.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
+
+
+  /** @domName RTCPeerConnection.addIceCandidate */
+  void addIceCandidate(RtcIceCandidate candidate) native "RTCPeerConnection_addIceCandidate_Callback";
+
+
+  /** @domName RTCPeerConnection.addStream */
+  void addStream(MediaStream stream, [Map mediaConstraints]) native "RTCPeerConnection_addStream_Callback";
+
+
+  /** @domName RTCPeerConnection.close */
+  void close() native "RTCPeerConnection_close_Callback";
+
+
+  /** @domName RTCPeerConnection.createAnswer */
+  void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createAnswer_Callback";
+
+
+  /** @domName RTCPeerConnection.createDataChannel */
+  RtcDataChannel createDataChannel(String label, [Map options]) native "RTCPeerConnection_createDataChannel_Callback";
+
+
+  /** @domName RTCPeerConnection.createOffer */
+  void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createOffer_Callback";
+
+
+  /** @domName RTCPeerConnection.dispatchEvent */
+  bool $dom_dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
+
+
+  /** @domName RTCPeerConnection.getStats */
+  void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native "RTCPeerConnection_getStats_Callback";
+
+
+  /** @domName RTCPeerConnection.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
+
+
+  /** @domName RTCPeerConnection.removeStream */
+  void removeStream(MediaStream stream) native "RTCPeerConnection_removeStream_Callback";
+
+
+  /** @domName RTCPeerConnection.setLocalDescription */
+  void setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native "RTCPeerConnection_setLocalDescription_Callback";
+
+
+  /** @domName RTCPeerConnection.setRemoteDescription */
+  void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native "RTCPeerConnection_setRemoteDescription_Callback";
+
+
+  /** @domName RTCPeerConnection.updateIce */
+  void updateIce([Map configuration, Map mediaConstraints]) native "RTCPeerConnection_updateIce_Callback";
+
+}
+
+class RtcPeerConnectionEvents extends Events {
+  RtcPeerConnectionEvents(EventTarget _ptr) : super(_ptr);
+
+  EventListenerList get addStream => this['addstream'];
+
+  EventListenerList get iceCandidate => this['icecandidate'];
+
+  EventListenerList get iceChange => this['icechange'];
+
+  EventListenerList get negotiationNeeded => this['negotiationneeded'];
+
+  EventListenerList get open => this['open'];
+
+  EventListenerList get removeStream => this['removestream'];
+
+  EventListenerList get stateChange => this['statechange'];
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19421,21 +18758,28 @@ typedef void SQLTransactionCallback(SQLTransaction transaction);
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLTransactionErrorCallback(SQLError error);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+/// @domName RTCSessionDescription
+class RtcSessionDescription extends NativeFieldWrapperClass1 {
 
-// WARNING: Do not edit - generated code.
-
-
-/// @domName SQLTransactionSync
-class SQLTransactionSync extends NativeFieldWrapperClass1 {
-  SQLTransactionSync.internal();
+  ///@docsEditable true
+  factory RtcSessionDescription(Map dictionary) => _RtcSessionDescriptionFactoryProvider.createRtcSessionDescription(dictionary);
+  RtcSessionDescription.internal();
 
 
-  /** @domName SQLTransactionSync.executeSql */
-  SQLResultSet executeSql(String sqlStatement, List arguments) native "SQLTransactionSync_executeSql_Callback";
+  /** @domName RTCSessionDescription.sdp */
+  String get sdp native "RTCSessionDescription_sdp_Getter";
+
+
+  /** @domName RTCSessionDescription.sdp */
+  void set sdp(String value) native "RTCSessionDescription_sdp_Setter";
+
+
+  /** @domName RTCSessionDescription.type */
+  String get type native "RTCSessionDescription_type_Getter";
+
+
+  /** @domName RTCSessionDescription.type */
+  void set type(String value) native "RTCSessionDescription_type_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19445,7 +18789,95 @@ class SQLTransactionSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
+/// @domName RTCStatsElement
+class RtcStatsElement extends NativeFieldWrapperClass1 {
+  RtcStatsElement.internal();
+
+
+  /** @domName RTCStatsElement.timestamp */
+  Date get timestamp native "RTCStatsElement_timestamp_Getter";
+
+
+  /** @domName RTCStatsElement.stat */
+  String stat(String name) native "RTCStatsElement_stat_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName RTCStatsReport
+class RtcStatsReport extends NativeFieldWrapperClass1 {
+  RtcStatsReport.internal();
+
+
+  /** @domName RTCStatsReport.local */
+  RtcStatsElement get local native "RTCStatsReport_local_Getter";
+
+
+  /** @domName RTCStatsReport.remote */
+  RtcStatsElement get remote native "RTCStatsReport_remote_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName RTCStatsResponse
+class RtcStatsResponse extends NativeFieldWrapperClass1 {
+  RtcStatsResponse.internal();
+
+
+  /** @domName RTCStatsResponse.result */
+  List<RtcStatsReport> result() native "RTCStatsResponse_result_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resultSet);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+typedef void SqlTransactionCallback(SqlTransaction transaction);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+typedef void SqlTransactionErrorCallback(SqlError error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+typedef void SqlTransactionSyncCallback(SqlTransactionSync transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19500,6 +18932,7 @@ class Screen extends NativeFieldWrapperClass1 {
 /// @domName HTMLScriptElement
 class ScriptElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory ScriptElement() => document.$dom_createElement("script");
   ScriptElement.internal(): super.internal();
 
@@ -19650,6 +19083,7 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 /// @domName HTMLSelectElement
 class SelectElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory SelectElement() => document.$dom_createElement("select");
   SelectElement.internal(): super.internal();
 
@@ -19703,7 +19137,7 @@ class SelectElement extends _Element_Merged {
 
 
   /** @domName HTMLSelectElement.options */
-  HTMLOptionsCollection get options native "HTMLSelectElement_options_Getter";
+  HtmlOptionsCollection get options native "HTMLSelectElement_options_Getter";
 
 
   /** @domName HTMLSelectElement.required */
@@ -19723,7 +19157,7 @@ class SelectElement extends _Element_Merged {
 
 
   /** @domName HTMLSelectElement.selectedOptions */
-  HTMLCollection get selectedOptions native "HTMLSelectElement_selectedOptions_Getter";
+  HtmlCollection get selectedOptions native "HTMLSelectElement_selectedOptions_Getter";
 
 
   /** @domName HTMLSelectElement.size */
@@ -19784,6 +19218,7 @@ class SelectElement extends _Element_Merged {
 /// @domName SessionDescription
 class SessionDescription extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory SessionDescription(String sdp) => _SessionDescriptionFactoryProvider.createSessionDescription(sdp);
   SessionDescription.internal();
 
@@ -19826,6 +19261,7 @@ class ShadowElement extends _Element_Merged {
 /// @domName ShadowRoot
 class ShadowRoot extends DocumentFragment {
 
+  ///@docsEditable true
   factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
   ShadowRoot.internal(): super.internal();
 
@@ -19875,7 +19311,7 @@ class ShadowRoot extends DocumentFragment {
 
 
   /** @domName ShadowRoot.getSelection */
-  DOMSelection getSelection() native "ShadowRoot_getSelection_Callback";
+  DomSelection getSelection() native "ShadowRoot_getSelection_Callback";
 
   static bool get supported => _Utils.shadowRootSupported(window.document);
 }
@@ -19889,6 +19325,7 @@ class ShadowRoot extends DocumentFragment {
 /// @domName SharedWorker
 class SharedWorker extends AbstractWorker {
 
+  ///@docsEditable true
   factory SharedWorker(String scriptURL, [String name]) {
     if (!?name) {
       return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL);
@@ -20006,38 +19443,53 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SourceBuffer element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(SourceBuffer element)) => _Collections.forEach(this, f);
+  bool contains(SourceBuffer element) => Collections.contains(this, element);
 
-  Collection map(f(SourceBuffer element)) => _Collections.map(this, [], f);
+  void forEach(void f(SourceBuffer element)) => Collections.forEach(this, f);
+
+  Collection map(f(SourceBuffer element)) => Collections.map(this, [], f);
 
   Collection<SourceBuffer> filter(bool f(SourceBuffer element)) =>
-     _Collections.filter(this, <SourceBuffer>[], f);
+     Collections.filter(this, <SourceBuffer>[], f);
 
-  bool every(bool f(SourceBuffer element)) => _Collections.every(this, f);
+  bool every(bool f(SourceBuffer element)) => Collections.every(this, f);
 
-  bool some(bool f(SourceBuffer element)) => _Collections.some(this, f);
+  bool some(bool f(SourceBuffer element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<SourceBuffer>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SourceBuffer> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(SourceBuffer a, SourceBuffer b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SourceBuffer element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SourceBuffer element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   SourceBuffer get first => this[0];
 
   SourceBuffer get last => this[length - 1];
+
+  SourceBuffer removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   SourceBuffer removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -20056,7 +19508,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   }
 
   List<SourceBuffer> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SourceBuffer>[]);
+      Lists.getRange(this, start, rangeLength, <SourceBuffer>[]);
 
   // -- end List<SourceBuffer> mixins.
 
@@ -20087,6 +19539,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 /// @domName HTMLSourceElement
 class SourceElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory SourceElement() => document.$dom_createElement("source");
   SourceElement.internal(): super.internal();
 
@@ -20125,6 +19578,7 @@ class SourceElement extends _Element_Merged {
 /// @domName HTMLSpanElement
 class SpanElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory SpanElement() => document.$dom_createElement("span");
   SpanElement.internal(): super.internal();
 
@@ -20139,6 +19593,7 @@ class SpanElement extends _Element_Merged {
 /// @domName SpeechGrammar
 class SpeechGrammar extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory SpeechGrammar() => _SpeechGrammarFactoryProvider.createSpeechGrammar();
   SpeechGrammar.internal();
 
@@ -20169,6 +19624,7 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 /// @domName SpeechGrammarList
 class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechGrammar> {
 
+  ///@docsEditable true
   factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
   SpeechGrammarList.internal();
 
@@ -20207,38 +19663,53 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechGrammar element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(SpeechGrammar element)) => _Collections.forEach(this, f);
+  bool contains(SpeechGrammar element) => Collections.contains(this, element);
 
-  Collection map(f(SpeechGrammar element)) => _Collections.map(this, [], f);
+  void forEach(void f(SpeechGrammar element)) => Collections.forEach(this, f);
+
+  Collection map(f(SpeechGrammar element)) => Collections.map(this, [], f);
 
   Collection<SpeechGrammar> filter(bool f(SpeechGrammar element)) =>
-     _Collections.filter(this, <SpeechGrammar>[], f);
+     Collections.filter(this, <SpeechGrammar>[], f);
 
-  bool every(bool f(SpeechGrammar element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechGrammar element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechGrammar element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechGrammar element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechGrammar>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechGrammar> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(SpeechGrammar a, SpeechGrammar b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechGrammar element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechGrammar element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   SpeechGrammar get first => this[0];
 
   SpeechGrammar get last => this[length - 1];
+
+  SpeechGrammar removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   SpeechGrammar removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -20257,7 +19728,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   }
 
   List<SpeechGrammar> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SpeechGrammar>[]);
+      Lists.getRange(this, start, rangeLength, <SpeechGrammar>[]);
 
   // -- end List<SpeechGrammar> mixins.
 
@@ -20344,6 +19815,7 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 /// @domName SpeechRecognition
 class SpeechRecognition extends EventTarget {
 
+  ///@docsEditable true
   factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
   SpeechRecognition.internal(): super.internal();
 
@@ -20556,6 +20028,254 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+
+/// @domName SQLError
+class SqlError extends NativeFieldWrapperClass1 {
+  SqlError.internal();
+
+  static const int CONSTRAINT_ERR = 6;
+
+  static const int DATABASE_ERR = 1;
+
+  static const int QUOTA_ERR = 4;
+
+  static const int SYNTAX_ERR = 5;
+
+  static const int TIMEOUT_ERR = 7;
+
+  static const int TOO_LARGE_ERR = 3;
+
+  static const int UNKNOWN_ERR = 0;
+
+  static const int VERSION_ERR = 2;
+
+
+  /** @domName SQLError.code */
+  int get code native "SQLError_code_Getter";
+
+
+  /** @domName SQLError.message */
+  String get message native "SQLError_message_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName SQLException
+class SqlException extends NativeFieldWrapperClass1 {
+  SqlException.internal();
+
+  static const int CONSTRAINT_ERR = 6;
+
+  static const int DATABASE_ERR = 1;
+
+  static const int QUOTA_ERR = 4;
+
+  static const int SYNTAX_ERR = 5;
+
+  static const int TIMEOUT_ERR = 7;
+
+  static const int TOO_LARGE_ERR = 3;
+
+  static const int UNKNOWN_ERR = 0;
+
+  static const int VERSION_ERR = 2;
+
+
+  /** @domName SQLException.code */
+  int get code native "SQLException_code_Getter";
+
+
+  /** @domName SQLException.message */
+  String get message native "SQLException_message_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName SQLResultSet
+class SqlResultSet extends NativeFieldWrapperClass1 {
+  SqlResultSet.internal();
+
+
+  /** @domName SQLResultSet.insertId */
+  int get insertId native "SQLResultSet_insertId_Getter";
+
+
+  /** @domName SQLResultSet.rows */
+  SqlResultSetRowList get rows native "SQLResultSet_rows_Getter";
+
+
+  /** @domName SQLResultSet.rowsAffected */
+  int get rowsAffected native "SQLResultSet_rowsAffected_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName SQLResultSetRowList
+class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> {
+  SqlResultSetRowList.internal();
+
+
+  /** @domName SQLResultSetRowList.length */
+  int get length native "SQLResultSetRowList_length_Getter";
+
+  Map operator[](int index) native "SQLResultSetRowList_item_Callback";
+
+  void operator[]=(int index, Map value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Map> mixins.
+  // Map is the element type.
+
+  // From Iterable<Map>:
+
+  Iterator<Map> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Map>(this);
+  }
+
+  // From Collection<Map>:
+
+  void add(Map value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(Map value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Map> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Map element) => Collections.contains(this, element);
+
+  void forEach(void f(Map element)) => Collections.forEach(this, f);
+
+  Collection map(f(Map element)) => Collections.map(this, [], f);
+
+  Collection<Map> filter(bool f(Map element)) =>
+     Collections.filter(this, <Map>[], f);
+
+  bool every(bool f(Map element)) => Collections.every(this, f);
+
+  bool some(bool f(Map element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<Map>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Map a, Map b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Map element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Map element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  Map get first => this[0];
+
+  Map get last => this[length - 1];
+
+  Map removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  Map removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Map initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<Map> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <Map>[]);
+
+  // -- end List<Map> mixins.
+
+
+  /** @domName SQLResultSetRowList.item */
+  Map item(int index) native "SQLResultSetRowList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName SQLTransaction
+class SqlTransaction extends NativeFieldWrapperClass1 {
+  SqlTransaction.internal();
+
+
+  /** @domName SQLTransaction.executeSql */
+  void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native "SQLTransaction_executeSql_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName SQLTransactionSync
+class SqlTransactionSync extends NativeFieldWrapperClass1 {
+  SqlTransactionSync.internal();
+
+
+  /** @domName SQLTransactionSync.executeSql */
+  SqlResultSet executeSql(String sqlStatement, List arguments) native "SQLTransactionSync_executeSql_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Storage
 class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
@@ -20700,7 +20420,7 @@ class StorageInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void StorageInfoErrorCallback(DOMException error);
+typedef void StorageInfoErrorCallback(DomException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20735,6 +20455,7 @@ typedef void StringCallback(String data);
 /// @domName HTMLStyleElement
 class StyleElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory StyleElement() => document.$dom_createElement("style");
   StyleElement.internal(): super.internal();
 
@@ -20849,6 +20570,7 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 /// @domName HTMLTableCaptionElement
 class TableCaptionElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TableCaptionElement() => document.$dom_createElement("caption");
   TableCaptionElement.internal(): super.internal();
 
@@ -20871,6 +20593,7 @@ class TableCaptionElement extends _Element_Merged {
 /// @domName HTMLTableCellElement
 class TableCellElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TableCellElement() => document.$dom_createElement("td");
   TableCellElement.internal(): super.internal();
 
@@ -21001,6 +20724,7 @@ class TableCellElement extends _Element_Merged {
 /// @domName HTMLTableColElement
 class TableColElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TableColElement() => document.$dom_createElement("col");
   TableColElement.internal(): super.internal();
 
@@ -21063,6 +20787,7 @@ class TableColElement extends _Element_Merged {
 /// @domName HTMLTableElement
 class TableElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TableElement() => document.$dom_createElement("table");
   TableElement.internal(): super.internal();
 
@@ -21124,7 +20849,7 @@ class TableElement extends _Element_Merged {
 
 
   /** @domName HTMLTableElement.rows */
-  HTMLCollection get rows native "HTMLTableElement_rows_Getter";
+  HtmlCollection get rows native "HTMLTableElement_rows_Getter";
 
 
   /** @domName HTMLTableElement.rules */
@@ -21144,7 +20869,7 @@ class TableElement extends _Element_Merged {
 
 
   /** @domName HTMLTableElement.tBodies */
-  HTMLCollection get tBodies native "HTMLTableElement_tBodies_Getter";
+  HtmlCollection get tBodies native "HTMLTableElement_tBodies_Getter";
 
 
   /** @domName HTMLTableElement.tFoot */
@@ -21217,6 +20942,7 @@ class TableElement extends _Element_Merged {
 /// @domName HTMLTableRowElement
 class TableRowElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TableRowElement() => document.$dom_createElement("tr");
   TableRowElement.internal(): super.internal();
 
@@ -21238,7 +20964,7 @@ class TableRowElement extends _Element_Merged {
 
 
   /** @domName HTMLTableRowElement.cells */
-  HTMLCollection get cells native "HTMLTableRowElement_cells_Getter";
+  HtmlCollection get cells native "HTMLTableRowElement_cells_Getter";
 
 
   /** @domName HTMLTableRowElement.ch */
@@ -21318,7 +21044,7 @@ class TableSectionElement extends _Element_Merged {
 
 
   /** @domName HTMLTableSectionElement.rows */
-  HTMLCollection get rows native "HTMLTableSectionElement_rows_Getter";
+  HtmlCollection get rows native "HTMLTableSectionElement_rows_Getter";
 
 
   /** @domName HTMLTableSectionElement.vAlign */
@@ -21372,6 +21098,7 @@ class Text extends CharacterData {
 /// @domName HTMLTextAreaElement
 class TextAreaElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TextAreaElement() => document.$dom_createElement("textarea");
   TextAreaElement.internal(): super.internal();
 
@@ -21696,6 +21423,7 @@ class TextTrackEvents extends Events {
 /// @domName TextTrackCue
 class TextTrackCue extends EventTarget {
 
+  ///@docsEditable true
   factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
   TextTrackCue.internal(): super.internal();
 
@@ -21866,38 +21594,53 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(TextTrackCue element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(TextTrackCue element)) => _Collections.forEach(this, f);
+  bool contains(TextTrackCue element) => Collections.contains(this, element);
 
-  Collection map(f(TextTrackCue element)) => _Collections.map(this, [], f);
+  void forEach(void f(TextTrackCue element)) => Collections.forEach(this, f);
+
+  Collection map(f(TextTrackCue element)) => Collections.map(this, [], f);
 
   Collection<TextTrackCue> filter(bool f(TextTrackCue element)) =>
-     _Collections.filter(this, <TextTrackCue>[], f);
+     Collections.filter(this, <TextTrackCue>[], f);
 
-  bool every(bool f(TextTrackCue element)) => _Collections.every(this, f);
+  bool every(bool f(TextTrackCue element)) => Collections.every(this, f);
 
-  bool some(bool f(TextTrackCue element)) => _Collections.some(this, f);
+  bool some(bool f(TextTrackCue element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<TextTrackCue>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<TextTrackCue> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(TextTrackCue a, TextTrackCue b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(TextTrackCue element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(TextTrackCue element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   TextTrackCue get first => this[0];
 
   TextTrackCue get last => this[length - 1];
+
+  TextTrackCue removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   TextTrackCue removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -21916,7 +21659,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
   }
 
   List<TextTrackCue> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <TextTrackCue>[]);
+      Lists.getRange(this, start, rangeLength, <TextTrackCue>[]);
 
   // -- end List<TextTrackCue> mixins.
 
@@ -21979,38 +21722,53 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(TextTrack element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(TextTrack element)) => _Collections.forEach(this, f);
+  bool contains(TextTrack element) => Collections.contains(this, element);
 
-  Collection map(f(TextTrack element)) => _Collections.map(this, [], f);
+  void forEach(void f(TextTrack element)) => Collections.forEach(this, f);
+
+  Collection map(f(TextTrack element)) => Collections.map(this, [], f);
 
   Collection<TextTrack> filter(bool f(TextTrack element)) =>
-     _Collections.filter(this, <TextTrack>[], f);
+     Collections.filter(this, <TextTrack>[], f);
 
-  bool every(bool f(TextTrack element)) => _Collections.every(this, f);
+  bool every(bool f(TextTrack element)) => Collections.every(this, f);
 
-  bool some(bool f(TextTrack element)) => _Collections.some(this, f);
+  bool some(bool f(TextTrack element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<TextTrack>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<TextTrack> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(TextTrack a, TextTrack b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(TextTrack element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(TextTrack element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   TextTrack get first => this[0];
 
   TextTrack get last => this[length - 1];
+
+  TextTrack removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   TextTrack removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -22029,7 +21787,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   }
 
   List<TextTrack> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <TextTrack>[]);
+      Lists.getRange(this, start, rangeLength, <TextTrack>[]);
 
   // -- end List<TextTrack> mixins.
 
@@ -22098,6 +21856,7 @@ typedef void TimeoutHandler();
 /// @domName HTMLTitleElement
 class TitleElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TitleElement() => document.$dom_createElement("title");
   TitleElement.internal(): super.internal();
 
@@ -22252,38 +22011,53 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Touch element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Touch)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Touch element)) => _Collections.forEach(this, f);
+  bool contains(Touch element) => Collections.contains(this, element);
 
-  Collection map(f(Touch element)) => _Collections.map(this, [], f);
+  void forEach(void f(Touch element)) => Collections.forEach(this, f);
+
+  Collection map(f(Touch element)) => Collections.map(this, [], f);
 
   Collection<Touch> filter(bool f(Touch element)) =>
-     _Collections.filter(this, <Touch>[], f);
+     Collections.filter(this, <Touch>[], f);
 
-  bool every(bool f(Touch element)) => _Collections.every(this, f);
+  bool every(bool f(Touch element)) => Collections.every(this, f);
 
-  bool some(bool f(Touch element)) => _Collections.some(this, f);
+  bool some(bool f(Touch element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Touch>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Touch> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Touch a, Touch b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Touch element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Touch element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Touch get first => this[0];
 
   Touch get last => this[length - 1];
+
+  Touch removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Touch removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -22302,7 +22076,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   }
 
   List<Touch> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Touch>[]);
+      Lists.getRange(this, start, rangeLength, <Touch>[]);
 
   // -- end List<Touch> mixins.
 
@@ -22321,6 +22095,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 /// @domName HTMLTrackElement
 class TrackElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
   TrackElement.internal(): super.internal();
 
@@ -22555,6 +22330,7 @@ class UIEvent extends Event {
 /// @domName HTMLUListElement
 class UListElement extends _Element_Merged {
 
+  ///@docsEditable true
   factory UListElement() => document.$dom_createElement("ul");
   UListElement.internal(): super.internal();
 
@@ -22634,38 +22410,53 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -22684,7 +22475,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -22767,38 +22558,53 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -22817,7 +22623,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -22900,38 +22706,53 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -22950,7 +22771,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -23137,6 +22958,7 @@ class ValidityState extends NativeFieldWrapperClass1 {
 /// @domName HTMLVideoElement
 class VideoElement extends MediaElement {
 
+  ///@docsEditable true
   factory VideoElement() => document.$dom_createElement("video");
   VideoElement.internal(): super.internal();
 
@@ -23213,18 +23035,6 @@ class VideoElement extends MediaElement {
 
 
 typedef void VoidCallback();
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName WaveTable
-class WaveTable extends NativeFieldWrapperClass1 {
-  WaveTable.internal();
-
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24805,8 +24615,8 @@ class WebGLUniformLocation extends NativeFieldWrapperClass1 {
 
 
 /// @domName WebGLVertexArrayObjectOES
-class WebGLVertexArrayObjectOES extends NativeFieldWrapperClass1 {
-  WebGLVertexArrayObjectOES.internal();
+class WebGLVertexArrayObject extends NativeFieldWrapperClass1 {
+  WebGLVertexArrayObject.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24817,8 +24627,8 @@ class WebGLVertexArrayObjectOES extends NativeFieldWrapperClass1 {
 
 
 /// @domName WebKitCSSFilterValue
-class WebKitCSSFilterValue extends _CSSValueList {
-  WebKitCSSFilterValue.internal(): super.internal();
+class WebKitCssFilterValue extends _CssValueList {
+  WebKitCssFilterValue.internal(): super.internal();
 
   static const int CSS_FILTER_BLUR = 10;
 
@@ -25050,6 +24860,7 @@ class WheelEvent extends MouseEvent {
 /// @domName Worker
 class Worker extends AbstractWorker {
 
+  ///@docsEditable true
   factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
   Worker.internal(): super.internal();
 
@@ -25093,7 +24904,7 @@ class WorkerContext extends EventTarget {
 
 
   /** @domName WorkerContext.indexedDB */
-  IDBFactory get indexedDB native "WorkerContext_indexedDB_Getter";
+  IdbFactory get indexedDB native "WorkerContext_indexedDB_Getter";
 
 
   /** @domName WorkerContext.location */
@@ -25106,10 +24917,6 @@ class WorkerContext extends EventTarget {
 
   /** @domName WorkerContext.self */
   WorkerContext get self native "WorkerContext_self_Getter";
-
-
-  /** @domName WorkerContext.webkitIndexedDB */
-  IDBFactory get webkitIndexedDB native "WorkerContext_webkitIndexedDB_Getter";
 
 
   /** @domName WorkerContext.webkitNotifications */
@@ -25165,7 +24972,7 @@ class WorkerContext extends EventTarget {
 
 
   /** @domName WorkerContext.webkitRequestFileSystemSync */
-  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
+  FileSystemSync webkitRequestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
 
 
   /** @domName WorkerContext.webkitResolveLocalFileSystemSyncURL */
@@ -25269,27 +25076,10 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XMLSerializer
-class XMLSerializer extends NativeFieldWrapperClass1 {
-
-  factory XMLSerializer() => _XMLSerializerFactoryProvider.createXMLSerializer();
-  XMLSerializer.internal();
-
-
-  /** @domName XMLSerializer.serializeToString */
-  String serializeToString(Node node) native "XMLSerializer_serializeToString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName XPathEvaluator
 class XPathEvaluator extends NativeFieldWrapperClass1 {
 
+  ///@docsEditable true
   factory XPathEvaluator() => _XPathEvaluatorFactoryProvider.createXPathEvaluator();
   XPathEvaluator.internal();
 
@@ -25445,11 +25235,31 @@ class XPathResult extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XSLTProcessor
-class XSLTProcessor extends NativeFieldWrapperClass1 {
+/// @domName XMLSerializer
+class XmlSerializer extends NativeFieldWrapperClass1 {
 
-  factory XSLTProcessor() => _XSLTProcessorFactoryProvider.createXSLTProcessor();
-  XSLTProcessor.internal();
+  ///@docsEditable true
+  factory XmlSerializer() => _XmlSerializerFactoryProvider.createXmlSerializer();
+  XmlSerializer.internal();
+
+
+  /** @domName XMLSerializer.serializeToString */
+  String serializeToString(Node node) native "XMLSerializer_serializeToString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName XSLTProcessor
+class XsltProcessor extends NativeFieldWrapperClass1 {
+
+  ///@docsEditable true
+  factory XsltProcessor() => _XsltProcessorFactoryProvider.createXsltProcessor();
+  XsltProcessor.internal();
 
 
   /** @domName XSLTProcessor.clearParameters */
@@ -25497,226 +25307,16 @@ class _ArrayBufferFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
+class _AudioElementFactoryProvider {
+  static AudioElement createAudioElement([String src]) native "HTMLAudioElement_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 class _BlobFactoryProvider {
   static Blob createBlob(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _CSSMatrixFactoryProvider {
-  static CSSMatrix createCSSMatrix([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName CSSRuleList
-class _CSSRuleList extends NativeFieldWrapperClass1 implements List<CSSRule> {
-  _CSSRuleList.internal();
-
-
-  /** @domName CSSRuleList.length */
-  int get length native "CSSRuleList_length_Getter";
-
-  CSSRule operator[](int index) native "CSSRuleList_item_Callback";
-
-  void operator[]=(int index, CSSRule value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<CSSRule> mixins.
-  // CSSRule is the element type.
-
-  // From Iterable<CSSRule>:
-
-  Iterator<CSSRule> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<CSSRule>(this);
-  }
-
-  // From Collection<CSSRule>:
-
-  void add(CSSRule value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(CSSRule value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<CSSRule> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(CSSRule element) => _Collections.contains(this, element);
-
-  void forEach(void f(CSSRule element)) => _Collections.forEach(this, f);
-
-  Collection map(f(CSSRule element)) => _Collections.map(this, [], f);
-
-  Collection<CSSRule> filter(bool f(CSSRule element)) =>
-     _Collections.filter(this, <CSSRule>[], f);
-
-  bool every(bool f(CSSRule element)) => _Collections.every(this, f);
-
-  bool some(bool f(CSSRule element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<CSSRule>:
-
-  void sort([Comparator<CSSRule> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(CSSRule element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(CSSRule element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  CSSRule get first => this[0];
-
-  CSSRule get last => this[length - 1];
-
-  CSSRule removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<CSSRule> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [CSSRule initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<CSSRule> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <CSSRule>[]);
-
-  // -- end List<CSSRule> mixins.
-
-
-  /** @domName CSSRuleList.item */
-  CSSRule item(int index) native "CSSRuleList_item_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName CSSValueList
-class _CSSValueList extends CSSValue implements List<CSSValue> {
-  _CSSValueList.internal(): super.internal();
-
-
-  /** @domName CSSValueList.length */
-  int get length native "CSSValueList_length_Getter";
-
-  CSSValue operator[](int index) native "CSSValueList_item_Callback";
-
-  void operator[]=(int index, CSSValue value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<CSSValue> mixins.
-  // CSSValue is the element type.
-
-  // From Iterable<CSSValue>:
-
-  Iterator<CSSValue> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<CSSValue>(this);
-  }
-
-  // From Collection<CSSValue>:
-
-  void add(CSSValue value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(CSSValue value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<CSSValue> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(CSSValue element) => _Collections.contains(this, element);
-
-  void forEach(void f(CSSValue element)) => _Collections.forEach(this, f);
-
-  Collection map(f(CSSValue element)) => _Collections.map(this, [], f);
-
-  Collection<CSSValue> filter(bool f(CSSValue element)) =>
-     _Collections.filter(this, <CSSValue>[], f);
-
-  bool every(bool f(CSSValue element)) => _Collections.every(this, f);
-
-  bool some(bool f(CSSValue element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<CSSValue>:
-
-  void sort([Comparator<CSSValue> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(CSSValue element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(CSSValue element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  CSSValue get first => this[0];
-
-  CSSValue get last => this[length - 1];
-
-  CSSValue removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<CSSValue> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [CSSValue initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<CSSValue> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <CSSValue>[]);
-
-  // -- end List<CSSValue> mixins.
-
-
-  /** @domName CSSValueList.item */
-  CSSValue item(int index) native "CSSValueList_item_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25764,38 +25364,53 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(ClientRect element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ClientRect)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(ClientRect element)) => _Collections.forEach(this, f);
+  bool contains(ClientRect element) => Collections.contains(this, element);
 
-  Collection map(f(ClientRect element)) => _Collections.map(this, [], f);
+  void forEach(void f(ClientRect element)) => Collections.forEach(this, f);
+
+  Collection map(f(ClientRect element)) => Collections.map(this, [], f);
 
   Collection<ClientRect> filter(bool f(ClientRect element)) =>
-     _Collections.filter(this, <ClientRect>[], f);
+     Collections.filter(this, <ClientRect>[], f);
 
-  bool every(bool f(ClientRect element)) => _Collections.every(this, f);
+  bool every(bool f(ClientRect element)) => Collections.every(this, f);
 
-  bool some(bool f(ClientRect element)) => _Collections.some(this, f);
+  bool some(bool f(ClientRect element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<ClientRect>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<ClientRect> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(ClientRect a, ClientRect b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(ClientRect element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(ClientRect element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   ClientRect get first => this[0];
 
   ClientRect get last => this[length - 1];
+
+  ClientRect removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   ClientRect removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -25814,7 +25429,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
   }
 
   List<ClientRect> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <ClientRect>[]);
+      Lists.getRange(this, start, rangeLength, <ClientRect>[]);
 
   // -- end List<ClientRect> mixins.
 
@@ -25828,8 +25443,8 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _DOMParserFactoryProvider {
-  static DOMParser createDOMParser() native "DOMParser_constructor_Callback";
+class _CssMatrixFactoryProvider {
+  static CssMatrix createCssMatrix([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25838,83 +25453,98 @@ class _DOMParserFactoryProvider {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DOMStringList
-class _DOMStringList extends NativeFieldWrapperClass1 implements List<String> {
-  _DOMStringList.internal();
+/// @domName CSSRuleList
+class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
+  _CssRuleList.internal();
 
 
-  /** @domName DOMStringList.length */
-  int get length native "DOMStringList_length_Getter";
+  /** @domName CSSRuleList.length */
+  int get length native "CSSRuleList_length_Getter";
 
-  String operator[](int index) native "DOMStringList_item_Callback";
+  CssRule operator[](int index) native "CSSRuleList_item_Callback";
 
-  void operator[]=(int index, String value) {
+  void operator[]=(int index, CssRule value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<String> mixins.
-  // String is the element type.
+  // -- start List<CssRule> mixins.
+  // CssRule is the element type.
 
-  // From Iterable<String>:
+  // From Iterable<CssRule>:
 
-  Iterator<String> iterator() {
+  Iterator<CssRule> iterator() {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<String>(this);
+    return new FixedSizeListIterator<CssRule>(this);
   }
 
-  // From Collection<String>:
+  // From Collection<CssRule>:
 
-  void add(String value) {
+  void add(CssRule value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(String value) {
+  void addLast(CssRule value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<String> collection) {
+  void addAll(Collection<CssRule> collection) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  // contains() defined by IDL.
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(String element)) => _Collections.forEach(this, f);
+  bool contains(CssRule element) => Collections.contains(this, element);
 
-  Collection map(f(String element)) => _Collections.map(this, [], f);
+  void forEach(void f(CssRule element)) => Collections.forEach(this, f);
 
-  Collection<String> filter(bool f(String element)) =>
-     _Collections.filter(this, <String>[], f);
+  Collection map(f(CssRule element)) => Collections.map(this, [], f);
 
-  bool every(bool f(String element)) => _Collections.every(this, f);
+  Collection<CssRule> filter(bool f(CssRule element)) =>
+     Collections.filter(this, <CssRule>[], f);
 
-  bool some(bool f(String element)) => _Collections.some(this, f);
+  bool every(bool f(CssRule element)) => Collections.every(this, f);
+
+  bool some(bool f(CssRule element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
-  // From List<String>:
+  // From List<CssRule>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<String> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(CssRule a, CssRule b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(String element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+  int indexOf(CssRule element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(String element, [int start]) {
+  int lastIndexOf(CssRule element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
-  String get first => this[0];
+  CssRule get first => this[0];
 
-  String get last => this[length - 1];
+  CssRule get last => this[length - 1];
 
-  String removeLast() {
+  CssRule removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  CssRule removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<CssRule> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -25922,22 +25552,138 @@ class _DOMStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [String initialValue]) {
+  void insertRange(int start, int rangeLength, [CssRule initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<String> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <String>[]);
+  List<CssRule> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <CssRule>[]);
 
-  // -- end List<String> mixins.
-
-
-  /** @domName DOMStringList.contains */
-  bool contains(String string) native "DOMStringList_contains_Callback";
+  // -- end List<CssRule> mixins.
 
 
-  /** @domName DOMStringList.item */
-  String item(int index) native "DOMStringList_item_Callback";
+  /** @domName CSSRuleList.item */
+  CssRule item(int index) native "CSSRuleList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName CSSValueList
+class _CssValueList extends CssValue implements List<CssValue> {
+  _CssValueList.internal(): super.internal();
+
+
+  /** @domName CSSValueList.length */
+  int get length native "CSSValueList_length_Getter";
+
+  CssValue operator[](int index) native "CSSValueList_item_Callback";
+
+  void operator[]=(int index, CssValue value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<CssValue> mixins.
+  // CssValue is the element type.
+
+  // From Iterable<CssValue>:
+
+  Iterator<CssValue> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<CssValue>(this);
+  }
+
+  // From Collection<CssValue>:
+
+  void add(CssValue value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(CssValue value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<CssValue> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(CssValue element) => Collections.contains(this, element);
+
+  void forEach(void f(CssValue element)) => Collections.forEach(this, f);
+
+  Collection map(f(CssValue element)) => Collections.map(this, [], f);
+
+  Collection<CssValue> filter(bool f(CssValue element)) =>
+     Collections.filter(this, <CssValue>[], f);
+
+  bool every(bool f(CssValue element)) => Collections.every(this, f);
+
+  bool some(bool f(CssValue element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<CssValue>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(CssValue a, CssValue b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(CssValue element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(CssValue element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  CssValue get first => this[0];
+
+  CssValue get last => this[length - 1];
+
+  CssValue removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  CssValue removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<CssValue> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [CssValue initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<CssValue> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <CssValue>[]);
+
+  // -- end List<CssValue> mixins.
+
+
+  /** @domName CSSValueList.item */
+  CssValue item(int index) native "CSSValueList_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25952,6 +25698,14 @@ class _DataViewFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+class _DomParserFactoryProvider {
+  static DomParser createDomParser() native "DOMParser_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 
@@ -25961,7 +25715,7 @@ class _Element_Merged extends Element {
 
 
   /** @domName HTMLElement.children */
-  HTMLCollection get $dom_children native "HTMLElement_children_Getter";
+  HtmlCollection get $dom_children native "HTMLElement_children_Getter";
 
 
   /** @domName HTMLElement.contentEditable */
@@ -26130,38 +25884,53 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Entry element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Entry)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Entry element)) => _Collections.forEach(this, f);
+  bool contains(Entry element) => Collections.contains(this, element);
 
-  Collection map(f(Entry element)) => _Collections.map(this, [], f);
+  void forEach(void f(Entry element)) => Collections.forEach(this, f);
+
+  Collection map(f(Entry element)) => Collections.map(this, [], f);
 
   Collection<Entry> filter(bool f(Entry element)) =>
-     _Collections.filter(this, <Entry>[], f);
+     Collections.filter(this, <Entry>[], f);
 
-  bool every(bool f(Entry element)) => _Collections.every(this, f);
+  bool every(bool f(Entry element)) => Collections.every(this, f);
 
-  bool some(bool f(Entry element)) => _Collections.some(this, f);
+  bool some(bool f(Entry element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Entry>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Entry> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Entry a, Entry b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Entry element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Entry element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Entry get first => this[0];
 
   Entry get last => this[length - 1];
+
+  Entry removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Entry removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -26180,7 +25949,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   }
 
   List<Entry> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Entry>[]);
+      Lists.getRange(this, start, rangeLength, <Entry>[]);
 
   // -- end List<Entry> mixins.
 
@@ -26235,38 +26004,53 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(EntrySync element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(EntrySync element)) => _Collections.forEach(this, f);
+  bool contains(EntrySync element) => Collections.contains(this, element);
 
-  Collection map(f(EntrySync element)) => _Collections.map(this, [], f);
+  void forEach(void f(EntrySync element)) => Collections.forEach(this, f);
+
+  Collection map(f(EntrySync element)) => Collections.map(this, [], f);
 
   Collection<EntrySync> filter(bool f(EntrySync element)) =>
-     _Collections.filter(this, <EntrySync>[], f);
+     Collections.filter(this, <EntrySync>[], f);
 
-  bool every(bool f(EntrySync element)) => _Collections.every(this, f);
+  bool every(bool f(EntrySync element)) => Collections.every(this, f);
 
-  bool some(bool f(EntrySync element)) => _Collections.some(this, f);
+  bool some(bool f(EntrySync element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<EntrySync>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<EntrySync> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(EntrySync a, EntrySync b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(EntrySync element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(EntrySync element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   EntrySync get first => this[0];
 
   EntrySync get last => this[length - 1];
+
+  EntrySync removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   EntrySync removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -26285,7 +26069,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   }
 
   List<EntrySync> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <EntrySync>[]);
+      Lists.getRange(this, start, rangeLength, <EntrySync>[]);
 
   // -- end List<EntrySync> mixins.
 
@@ -26301,111 +26085,6 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 
 class _EventSourceFactoryProvider {
   static EventSource createEventSource(String scriptUrl) native "EventSource_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName FileList
-class _FileList extends NativeFieldWrapperClass1 implements List<File> {
-  _FileList.internal();
-
-
-  /** @domName FileList.length */
-  int get length native "FileList_length_Getter";
-
-  File operator[](int index) native "FileList_item_Callback";
-
-  void operator[]=(int index, File value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<File> mixins.
-  // File is the element type.
-
-  // From Iterable<File>:
-
-  Iterator<File> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<File>(this);
-  }
-
-  // From Collection<File>:
-
-  void add(File value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(File value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<File> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(File element) => _Collections.contains(this, element);
-
-  void forEach(void f(File element)) => _Collections.forEach(this, f);
-
-  Collection map(f(File element)) => _Collections.map(this, [], f);
-
-  Collection<File> filter(bool f(File element)) =>
-     _Collections.filter(this, <File>[], f);
-
-  bool every(bool f(File element)) => _Collections.every(this, f);
-
-  bool some(bool f(File element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<File>:
-
-  void sort([Comparator<File> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(File element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(File element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  File get first => this[0];
-
-  File get last => this[length - 1];
-
-  File removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [File initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<File> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <File>[]);
-
-  // -- end List<File> mixins.
-
-
-  /** @domName FileList.item */
-  File item(int index) native "FileList_item_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26477,38 +26156,53 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Gamepad element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Gamepad element)) => _Collections.forEach(this, f);
+  bool contains(Gamepad element) => Collections.contains(this, element);
 
-  Collection map(f(Gamepad element)) => _Collections.map(this, [], f);
+  void forEach(void f(Gamepad element)) => Collections.forEach(this, f);
+
+  Collection map(f(Gamepad element)) => Collections.map(this, [], f);
 
   Collection<Gamepad> filter(bool f(Gamepad element)) =>
-     _Collections.filter(this, <Gamepad>[], f);
+     Collections.filter(this, <Gamepad>[], f);
 
-  bool every(bool f(Gamepad element)) => _Collections.every(this, f);
+  bool every(bool f(Gamepad element)) => Collections.every(this, f);
 
-  bool some(bool f(Gamepad element)) => _Collections.some(this, f);
+  bool some(bool f(Gamepad element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Gamepad>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Gamepad> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Gamepad a, Gamepad b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Gamepad element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Gamepad element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Gamepad get first => this[0];
 
   Gamepad get last => this[length - 1];
+
+  Gamepad removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Gamepad removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -26527,7 +26221,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   }
 
   List<Gamepad> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Gamepad>[]);
+      Lists.getRange(this, start, rangeLength, <Gamepad>[]);
 
   // -- end List<Gamepad> mixins.
 
@@ -26631,38 +26325,53 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(MediaStream element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, MediaStream)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(MediaStream element)) => _Collections.forEach(this, f);
+  bool contains(MediaStream element) => Collections.contains(this, element);
 
-  Collection map(f(MediaStream element)) => _Collections.map(this, [], f);
+  void forEach(void f(MediaStream element)) => Collections.forEach(this, f);
+
+  Collection map(f(MediaStream element)) => Collections.map(this, [], f);
 
   Collection<MediaStream> filter(bool f(MediaStream element)) =>
-     _Collections.filter(this, <MediaStream>[], f);
+     Collections.filter(this, <MediaStream>[], f);
 
-  bool every(bool f(MediaStream element)) => _Collections.every(this, f);
+  bool every(bool f(MediaStream element)) => Collections.every(this, f);
 
-  bool some(bool f(MediaStream element)) => _Collections.some(this, f);
+  bool some(bool f(MediaStream element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<MediaStream>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<MediaStream> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(MediaStream a, MediaStream b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(MediaStream element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(MediaStream element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   MediaStream get first => this[0];
 
   MediaStream get last => this[length - 1];
+
+  MediaStream removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   MediaStream removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -26681,7 +26390,7 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
   }
 
   List<MediaStream> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <MediaStream>[]);
+      Lists.getRange(this, start, rangeLength, <MediaStream>[]);
 
   // -- end List<MediaStream> mixins.
 
@@ -26735,24 +26444,24 @@ class _PeerConnection00FactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _RTCIceCandidateFactoryProvider {
-  static RTCIceCandidate createRTCIceCandidate(Map dictionary) native "RTCIceCandidate_constructor_Callback";
+class _RtcIceCandidateFactoryProvider {
+  static RtcIceCandidate createRtcIceCandidate(Map dictionary) native "RTCIceCandidate_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _RTCPeerConnectionFactoryProvider {
-  static RTCPeerConnection createRTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
+class _RtcPeerConnectionFactoryProvider {
+  static RtcPeerConnection createRtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _RTCSessionDescriptionFactoryProvider {
-  static RTCSessionDescription createRTCSessionDescription(Map dictionary) native "RTCSessionDescription_constructor_Callback";
+class _RtcSessionDescriptionFactoryProvider {
+  static RtcSessionDescription createRtcSessionDescription(Map dictionary) native "RTCSessionDescription_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26840,38 +26549,53 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechInputResult element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(SpeechInputResult element)) => _Collections.forEach(this, f);
+  bool contains(SpeechInputResult element) => Collections.contains(this, element);
 
-  Collection map(f(SpeechInputResult element)) => _Collections.map(this, [], f);
+  void forEach(void f(SpeechInputResult element)) => Collections.forEach(this, f);
+
+  Collection map(f(SpeechInputResult element)) => Collections.map(this, [], f);
 
   Collection<SpeechInputResult> filter(bool f(SpeechInputResult element)) =>
-     _Collections.filter(this, <SpeechInputResult>[], f);
+     Collections.filter(this, <SpeechInputResult>[], f);
 
-  bool every(bool f(SpeechInputResult element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechInputResult element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechInputResult element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechInputResult>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechInputResult> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(SpeechInputResult a, SpeechInputResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechInputResult element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechInputResult element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   SpeechInputResult get first => this[0];
 
   SpeechInputResult get last => this[length - 1];
+
+  SpeechInputResult removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   SpeechInputResult removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -26890,7 +26614,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   }
 
   List<SpeechInputResult> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SpeechInputResult>[]);
+      Lists.getRange(this, start, rangeLength, <SpeechInputResult>[]);
 
   // -- end List<SpeechInputResult> mixins.
 
@@ -26953,38 +26677,53 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechRecognitionResult element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(SpeechRecognitionResult element)) => _Collections.forEach(this, f);
+  bool contains(SpeechRecognitionResult element) => Collections.contains(this, element);
 
-  Collection map(f(SpeechRecognitionResult element)) => _Collections.map(this, [], f);
+  void forEach(void f(SpeechRecognitionResult element)) => Collections.forEach(this, f);
+
+  Collection map(f(SpeechRecognitionResult element)) => Collections.map(this, [], f);
 
   Collection<SpeechRecognitionResult> filter(bool f(SpeechRecognitionResult element)) =>
-     _Collections.filter(this, <SpeechRecognitionResult>[], f);
+     Collections.filter(this, <SpeechRecognitionResult>[], f);
 
-  bool every(bool f(SpeechRecognitionResult element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechRecognitionResult element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechRecognitionResult element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechRecognitionResult>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechRecognitionResult> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechRecognitionResult element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechRecognitionResult element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   SpeechRecognitionResult get first => this[0];
 
   SpeechRecognitionResult get last => this[length - 1];
+
+  SpeechRecognitionResult removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   SpeechRecognitionResult removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -27003,7 +26742,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
   }
 
   List<SpeechRecognitionResult> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SpeechRecognitionResult>[]);
+      Lists.getRange(this, start, rangeLength, <SpeechRecognitionResult>[]);
 
   // -- end List<SpeechRecognitionResult> mixins.
 
@@ -27058,38 +26797,53 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(StyleSheet element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(StyleSheet element)) => _Collections.forEach(this, f);
+  bool contains(StyleSheet element) => Collections.contains(this, element);
 
-  Collection map(f(StyleSheet element)) => _Collections.map(this, [], f);
+  void forEach(void f(StyleSheet element)) => Collections.forEach(this, f);
+
+  Collection map(f(StyleSheet element)) => Collections.map(this, [], f);
 
   Collection<StyleSheet> filter(bool f(StyleSheet element)) =>
-     _Collections.filter(this, <StyleSheet>[], f);
+     Collections.filter(this, <StyleSheet>[], f);
 
-  bool every(bool f(StyleSheet element)) => _Collections.every(this, f);
+  bool every(bool f(StyleSheet element)) => Collections.every(this, f);
 
-  bool some(bool f(StyleSheet element)) => _Collections.some(this, f);
+  bool some(bool f(StyleSheet element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<StyleSheet>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<StyleSheet> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(StyleSheet a, StyleSheet b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(StyleSheet element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(StyleSheet element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   StyleSheet get first => this[0];
 
   StyleSheet get last => this[length - 1];
+
+  StyleSheet removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   StyleSheet removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -27108,7 +26862,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   }
 
   List<StyleSheet> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <StyleSheet>[]);
+      Lists.getRange(this, start, rangeLength, <StyleSheet>[]);
 
   // -- end List<StyleSheet> mixins.
 
@@ -27171,38 +26925,53 @@ class _WebKitAnimationList extends NativeFieldWrapperClass1 implements List<Anim
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Animation element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Animation)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Animation element)) => _Collections.forEach(this, f);
+  bool contains(Animation element) => Collections.contains(this, element);
 
-  Collection map(f(Animation element)) => _Collections.map(this, [], f);
+  void forEach(void f(Animation element)) => Collections.forEach(this, f);
+
+  Collection map(f(Animation element)) => Collections.map(this, [], f);
 
   Collection<Animation> filter(bool f(Animation element)) =>
-     _Collections.filter(this, <Animation>[], f);
+     Collections.filter(this, <Animation>[], f);
 
-  bool every(bool f(Animation element)) => _Collections.every(this, f);
+  bool every(bool f(Animation element)) => Collections.every(this, f);
 
-  bool some(bool f(Animation element)) => _Collections.some(this, f);
+  bool some(bool f(Animation element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Animation>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Animation> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Animation a, Animation b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Animation element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Animation element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Animation get first => this[0];
 
   Animation get last => this[length - 1];
+
+  Animation removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Animation removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -27221,7 +26990,7 @@ class _WebKitAnimationList extends NativeFieldWrapperClass1 implements List<Anim
   }
 
   List<Animation> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Animation>[]);
+      Lists.getRange(this, start, rangeLength, <Animation>[]);
 
   // -- end List<Animation> mixins.
 
@@ -27243,14 +27012,6 @@ class _WorkerFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _XMLSerializerFactoryProvider {
-  static XMLSerializer createXMLSerializer() native "XMLSerializer_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 class _XPathEvaluatorFactoryProvider {
   static XPathEvaluator createXPathEvaluator() native "XPathEvaluator_constructor_Callback";
 }
@@ -27259,8 +27020,16 @@ class _XPathEvaluatorFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _XSLTProcessorFactoryProvider {
-  static XSLTProcessor createXSLTProcessor() native "XSLTProcessor_constructor_Callback";
+class _XmlSerializerFactoryProvider {
+  static XmlSerializer createXmlSerializer() native "XMLSerializer_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class _XsltProcessorFactoryProvider {
+  static XsltProcessor createXsltProcessor() native "XSLTProcessor_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27268,6 +27037,9 @@ class _XSLTProcessorFactoryProvider {
 
 
 abstract class _AttributeMap implements Map<String, String> {
+  final Element _element;
+
+  _AttributeMap(this._element);
 
   bool containsValue(String value) {
     for (var v in this.values) {
@@ -27340,9 +27112,7 @@ abstract class _AttributeMap implements Map<String, String> {
  */
 class _ElementAttributeMap extends _AttributeMap {
 
-  final Element _element;
-
-  _ElementAttributeMap(this._element);
+  _ElementAttributeMap(Element element): super(element);
 
   bool containsKey(String key) {
     return _element.$dom_hasAttribute(key);
@@ -27377,10 +27147,9 @@ class _ElementAttributeMap extends _AttributeMap {
  */
 class _NamespacedAttributeMap extends _AttributeMap {
 
-  final Element _element;
   final String _namespace;
 
-  _NamespacedAttributeMap(this._element, this._namespace);
+  _NamespacedAttributeMap(Element element, this._namespace): super(element);
 
   bool containsKey(String key) {
     return _element.$dom_hasAttributeNS(_namespace, key);
@@ -27600,7 +27369,7 @@ abstract class Window {
    * * [Window close discussion](http://www.w3.org/TR/html5/browsers.html#dom-window-close) from the W3C
    */
   void close();
-  void postMessage(var message, String targetOrigin, [List messagePorts = null]);
+  void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
 
 abstract class Location {
@@ -27666,6 +27435,11 @@ abstract class CssClassSet implements Set<String> {
   bool get isEmpty => readClasses().isEmpty;
 
   int get length =>readClasses().length;
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, String element)) {
+    return readClasses().reduce(initialValue, combine);
+  }
   // interface Collection - END
 
   // interface Set - BEGIN
@@ -27742,111 +27516,6 @@ abstract class CssClassSet implements Set<String> {
 
 
 typedef void EventListener(Event event);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class FilteredElementList implements List {
-  final Node _node;
-  final List<Node> _childNodes;
-
-  FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
-
-  // We can't memoize this, since it's possible that children will be messed
-  // with externally to this class.
-  //
-  // TODO(nweiz): Do we really need to copy the list to make the types work out?
-  List<Element> get _filtered =>
-    new List.from(_childNodes.filter((n) => n is Element));
-
-  void forEach(void f(Element element)) {
-    _filtered.forEach(f);
-  }
-
-  void operator []=(int index, Element value) {
-    this[index].replaceWith(value);
-  }
-
-  void set length(int newLength) {
-    final len = this.length;
-    if (newLength >= len) {
-      return;
-    } else if (newLength < 0) {
-      throw new ArgumentError("Invalid list length");
-    }
-
-    removeRange(newLength - 1, len - newLength);
-  }
-
-  void add(Element value) {
-    _childNodes.add(value);
-  }
-
-  void addAll(Collection<Element> collection) {
-    collection.forEach(add);
-  }
-
-  void addLast(Element value) {
-    add(value);
-  }
-
-  bool contains(Element element) {
-    return element is Element && _childNodes.contains(element);
-  }
-
-  void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw new UnsupportedError('TODO(jacobr): should we impl?');
-  }
-
-  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw new UnimplementedError();
-  }
-
-  void removeRange(int start, int rangeLength) {
-    _filtered.getRange(start, rangeLength).forEach((el) => el.remove());
-  }
-
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw new UnimplementedError();
-  }
-
-  void clear() {
-    // Currently, ElementList#clear clears even non-element nodes, so we follow
-    // that behavior.
-    _childNodes.clear();
-  }
-
-  Element removeLast() {
-    final result = this.last;
-    if (result != null) {
-      result.remove();
-    }
-    return result;
-  }
-
-  Collection map(f(Element element)) => _filtered.map(f);
-  Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
-  bool every(bool f(Element element)) => _filtered.every(f);
-  bool some(bool f(Element element)) => _filtered.some(f);
-  bool get isEmpty => _filtered.isEmpty;
-  int get length => _filtered.length;
-  Element operator [](int index) => _filtered[index];
-  Iterator<Element> iterator() => _filtered.iterator();
-  List<Element> getRange(int start, int rangeLength) =>
-    _filtered.getRange(start, rangeLength);
-  int indexOf(Element element, [int start = 0]) =>
-    _filtered.indexOf(element, start);
-
-  int lastIndexOf(Element element, [int start = null]) {
-    if (start == null) start = length - 1;
-    return _filtered.lastIndexOf(element, start);
-  }
-
-  Element get first => _filtered.first;
-
-  Element get last => _filtered.last;
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -27861,12 +27530,12 @@ class FilteredElementList implements List {
  *
  * This class is very much a work in progress, and we'd love to get information
  * on how we can make this class work with as many international keyboards as
- * possible. Bugs welcome! 
+ * possible. Bugs welcome!
  */
 class KeyboardEventController {
   // This code inspired by Closure's KeyHandling library.
   // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
-  
+
   /**
    * The set of keys that have been pressed down without seeing their
    * corresponding keyup event.
@@ -27880,10 +27549,10 @@ class KeyboardEventController {
   String _type;
 
   /** The element we are watching for events to happen on. */
-  EventTarget _target;
+  Element _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
-  int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
+  final int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
 
   // Instance members referring to the internal event handlers because closures
   // are not hashable.
@@ -27924,7 +27593,7 @@ class KeyboardEventController {
   KeyboardEventController.keypress(EventTarget target) {
     _KeyboardEventController(target, 'keypress');
   }
-  
+
   /** Named constructor to add an onKeyUp event listener to our handler. */
   KeyboardEventController.keyup(EventTarget target) {
     _KeyboardEventController(target, 'keyup');
@@ -27934,12 +27603,12 @@ class KeyboardEventController {
   KeyboardEventController.keydown(EventTarget target) {
     _KeyboardEventController(target, 'keydown');
   }
-  
+
   /**
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventController(EventTarget target, String type) {
+  _KeyboardEventController(Element target, String type) {
     _callbacks = [];
     _type = type;
     _target = target;
@@ -27966,7 +27635,7 @@ class KeyboardEventController {
     }
     _callbacks.add(callback);
   }
-  
+
   /**
    * Notify all callback listeners that a KeyEvent of the relevant type has
    * occurred.
@@ -28106,16 +27775,16 @@ class KeyboardEventController {
     if (!_Device.isIE && !_Device.isWebKit) {
       return true;
     }
-    
+
     if (_Device.userAgent.contains('Mac') && event.altKey) {
       return KeyCode.isCharacterKey(event.keyCode);
     }
- 
+
     // Alt but not AltGr which is represented as Alt+Ctrl.
     if (event.altKey && !event.ctrlKey) {
       return false;
     }
- 
+
     // Saves Ctrl or Alt + key for IE and WebKit, which won't fire keypress.
     if (!event.shiftKey &&
         (_keyDownList.last.keyCode == KeyCode.CTRL ||
@@ -28124,21 +27793,21 @@ class KeyboardEventController {
          _keyDownList.last.keyCode == KeyCode.META)) {
       return false;
     }
- 
+
     // Some keys with Ctrl/Shift do not issue keypress in WebKit.
     if (_Device.isWebKit && event.ctrlKey && event.shiftKey && (
-        event.keycode == KeyCode.BACKSLASH ||
-        event.keycode == KeyCode.OPEN_SQUARE_BRACKET ||
-        event.keycode == KeyCode.CLOSE_SQUARE_BRACKET ||
-        event.keycode == KeyCode.TILDE ||
-        event.keycode == KeyCode.SEMICOLON || event.keycode == KeyCode.DASH ||
-        event.keycode == KeyCode.EQUALS || event.keycode == KeyCode.COMMA ||
-        event.keycode == KeyCode.PERIOD || event.keycode == KeyCode.SLASH ||
-        event.keycode == KeyCode.APOSTROPHE ||
-        event.keycode == KeyCode.SINGLE_QUOTE)) {
+        event.keyCode == KeyCode.BACKSLASH ||
+        event.keyCode == KeyCode.OPEN_SQUARE_BRACKET ||
+        event.keyCode == KeyCode.CLOSE_SQUARE_BRACKET ||
+        event.keyCode == KeyCode.TILDE ||
+        event.keyCode == KeyCode.SEMICOLON || event.keyCode == KeyCode.DASH ||
+        event.keyCode == KeyCode.EQUALS || event.keyCode == KeyCode.COMMA ||
+        event.keyCode == KeyCode.PERIOD || event.keyCode == KeyCode.SLASH ||
+        event.keyCode == KeyCode.APOSTROPHE ||
+        event.keyCode == KeyCode.SINGLE_QUOTE)) {
       return false;
     }
- 
+
     switch (event.keyCode) {
       case KeyCode.ENTER:
         // IE9 does not fire keypress on ENTER.
@@ -28146,7 +27815,7 @@ class KeyboardEventController {
       case KeyCode.ESC:
         return !_Device.isWebKit;
     }
- 
+
     return KeyCode.isCharacterKey(event.keyCode);
   }
 
@@ -28214,18 +27883,18 @@ class KeyboardEventController {
       }
     } else if (_Device.isOpera) {
       // Opera reports the character code in the keyCode field.
-      e._shadowCharCode = KeyCode.isCharacterKey(keyCode) ? e.keyCode : 0;
+      e._shadowCharCode = KeyCode.isCharacterKey(e.keyCode) ? e.keyCode : 0;
     }
     // Now we guestimate about what the keycode is that was actually
     // pressed, given previous keydown information.
     e._shadowKeyCode = _determineKeyCodeForKeypress(e);
 
     // Correct the key value for certain browser-specific quirks.
-    if (e._shadowKeyIdentifier &&
-        _keyIdentifier.contains(e._shadowKeyIdentifier)) {
+    if (e._shadowKeyIdentifier != null &&
+        _keyIdentifier.containsKey(e._shadowKeyIdentifier)) {
       // This is needed for Safari Windows because it currently doesn't give a
       // keyCode/which for non printable keys.
-      e._shadowKeyCode = _keyIdentifier[keyIdentifier];
+      e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
     }
     e._shadowAltKey = _keyDownList.some((var element) => element.altKey);
     _dispatch(e);
@@ -28245,8 +27914,8 @@ class KeyboardEventController {
     } else if (_keyDownList.length > 0) {
       // This happens when we've reached some international keyboard case we
       // haven't accounted for or we haven't correctly eliminated all browser
-      // inconsistencies. Filing bugs on when this is reached is welcome! 
-      _keyDownList.removeLast(); 
+      // inconsistencies. Filing bugs on when this is reached is welcome!
+      _keyDownList.removeLast();
     }
     _dispatch(e);
   }
@@ -29072,66 +28741,6 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   timer = new _Timer(() { canceller(id); });
   return timer;
 };
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * The [Collections] class implements static methods useful when
- * writing a class that implements [Collection] and the [iterator]
- * method.
- */
-class _Collections {
-  static bool contains(Iterable<Object> iterable, Object element) {
-    for (final e in iterable) {
-      if (e == element) return true;
-    }
-    return false;
-  }
-
-  static void forEach(Iterable<Object> iterable, void f(Object o)) {
-    for (final e in iterable) {
-      f(e);
-    }
-  }
-
-  static List map(Iterable<Object> source,
-                  List<Object> destination,
-                  f(o)) {
-    for (final e in source) {
-      destination.add(f(e));
-    }
-    return destination;
-  }
-
-  static bool some(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (f(e)) return true;
-    }
-    return false;
-  }
-
-  static bool every(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (!f(e)) return false;
-    }
-    return true;
-  }
-
-  static List filter(Iterable<Object> source,
-                     List<Object> destination,
-                     bool f(o)) {
-    for (final e in source) {
-      if (f(e)) destination.add(e);
-    }
-    return destination;
-  }
-
-  static bool isEmpty(Iterable<Object> iterable) {
-    return !iterable.iterator().hasNext;
-  }
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29198,15 +28807,15 @@ class _MouseEventFactoryProvider {
   }
 }
 
-class _CSSStyleDeclarationFactoryProvider {
-  static CSSStyleDeclaration createCSSStyleDeclaration_css(String css) {
+class _CssStyleDeclarationFactoryProvider {
+  static CssStyleDeclaration createCssStyleDeclaration_css(String css) {
     final style = new Element.tag('div').style;
     style.cssText = css;
     return style;
   }
 
-  static CSSStyleDeclaration createCSSStyleDeclaration() {
-    return new CSSStyleDeclaration.css('');
+  static CssStyleDeclaration createCssStyleDeclaration() {
+    return new CssStyleDeclaration.css('');
   }
 }
 
@@ -29235,7 +28844,7 @@ class _DocumentFragmentFactoryProvider {
 
   static DocumentFragment createDocumentFragment_svg(String svgContent) {
     final fragment = new DocumentFragment();
-    final e = new svg.SVGSVGElement();
+    final e = new svg.SvgSvgElement();
     e.innerHtml = svgContent;
 
     // Copy list first since we don't want liveness during iteration.
@@ -29280,7 +28889,7 @@ class KeyEvent implements KeyboardEvent {
 
   /** Accessor to the underlying keyCode value is the parent event. */
   int get _realKeyCode => _parent.keyCode;
-  
+
   /** Accessor to the underlying charCode value is the parent event. */
   int get _realCharCode => _parent.charCode;
 
@@ -29294,14 +28903,16 @@ class KeyEvent implements KeyboardEvent {
     _shadowCharCode = _realCharCode;
     _shadowKeyCode = _realKeyCode;
   }
- 
+
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;
   bool get bubbles => _parent.bubbles;
   /** True if this event can be cancelled. */
   bool get cancelable => _parent.cancelable;
   bool get cancelBubble => _parent.cancelBubble;
-  set cancelBubble(bool cancel) => _parent = cancel;
+  void set cancelBubble(bool cancel) {
+    _parent.cancelBubble = cancel;
+  }
   /** Accessor to the clipboardData available for this event. */
   Clipboard get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
@@ -29324,7 +28935,9 @@ class KeyEvent implements KeyboardEvent {
   int get pageX => _parent.pageX;
   int get pageY => _parent.pageY;
   bool get returnValue => _parent.returnValue;
-  set returnValue(bool value) => _parent = value;
+  void set returnValue(bool value) {
+    _parent.returnValue = value;
+  }
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
   int get timeStamp => _parent.timeStamp;
@@ -29346,30 +28959,25 @@ class KeyEvent implements KeyboardEvent {
     throw new UnsupportedError("Cannot initialize an Event from a KeyEvent.");
   }
   String get _shadowKeyIdentifier => _parent.$dom_keyIdentifier;
+
+  int get $dom_charCode => charCode;
+  int get $dom_keyCode => keyCode;
+  EventTarget get target => _parent.target;
+  String get $dom_keyIdentifier {
+    throw new UnsupportedError("keyIdentifier is unsupported.");
+  }
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
+      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      bool altKey, bool shiftKey, bool metaKey,
+      bool altGraphKey) {
+    throw new UnsupportedError(
+        "Cannot initialize a KeyboardEvent from a KeyEvent.");
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-class _IDBKeyRangeFactoryProvider {
-
-  static IDBKeyRange createIDBKeyRange_only(/*IDBKey*/ value) =>
-      IDBKeyRange.only_(value);
-
-  static IDBKeyRange createIDBKeyRange_lowerBound(
-      /*IDBKey*/ bound, [bool open = false]) =>
-      IDBKeyRange.lowerBound_(bound, open);
-
-  static IDBKeyRange createIDBKeyRange_upperBound(
-      /*IDBKey*/ bound, [bool open = false]) =>
-      IDBKeyRange.upperBound_(bound, open);
-
-  static IDBKeyRange createIDBKeyRange_bound(
-      /*IDBKey*/ lower, /*IDBKey*/ upper,
-      [bool lowerOpen = false, bool upperOpen = false]) =>
-      IDBKeyRange.bound_(lower, upper, lowerOpen, upperOpen);
-}
 
 class _TypedArrayFactoryProvider {
   static Float32Array createFloat32Array(int length) => _F32(length);
@@ -29515,9 +29123,12 @@ class _JsSerializer extends _Serializer {
              ReceivePortSync._isolateId, x._receivePort._portId ];
   }
 
+  visitSendPort(SendPort x) {
+    throw new UnimplementedError('Asynchronous send port not yet implemented.');
+  }
+
   visitRemoteSendPortSync(_RemoteSendPortSync x) {
-    return [ 'sendport', 'dart',
-             x._receivePort._isolateId, x._receivePort._portId ];
+    return [ 'sendport', 'dart', x._isolateId, x._portId ];
   }
 }
 
@@ -29575,7 +29186,7 @@ class _RemoteSendPortSync implements SendPortSync {
   }
 
   static _call(int isolateId, int portId, var message) {
-    var target = 'dart-port-$isolateId-$portId'; 
+    var target = 'dart-port-$isolateId-$portId';
     // TODO(vsm): Make this re-entrant.
     // TODO(vsm): Set this up set once, on the first call.
     var source = '$target-result';
@@ -29640,13 +29251,13 @@ class ReceivePortSync {
   static int get _isolateId {
     // TODO(vsm): Make this coherent with existing isolate code.
     if (_cachedIsolateId == null) {
-      _cachedIsolateId = _getNewIsolateId();      
+      _cachedIsolateId = _getNewIsolateId();
     }
     return _cachedIsolateId;
   }
 
   static String _getListenerName(isolateId, portId) =>
-      'dart-port-$isolateId-$portId'; 
+      'dart-port-$isolateId-$portId';
   String get _listenerName => _getListenerName(_isolateId, _portId);
 
   void receive(callback(var message)) {
@@ -29911,7 +29522,7 @@ class _MessageTraverserVisitedMap {
 }
 
 /** Abstract visitor for dart objects that can be sent as isolate messages. */
-class _MessageTraverser {
+abstract class _MessageTraverser {
 
   _MessageTraverserVisitedMap _visited;
   _MessageTraverser() : _visited = new _MessageTraverserVisitedMap();
@@ -29957,43 +29568,8 @@ class _MessageTraverser {
 }
 
 
-/** A visitor that recursively copies a message. */
-class _Copier extends _MessageTraverser {
-
-  visitPrimitive(x) => x;
-
-  List visitList(List list) {
-    List copy = _visited[list];
-    if (copy != null) return copy;
-
-    int len = list.length;
-
-    // TODO(floitsch): we loose the generic type of the List.
-    copy = new List(len);
-    _visited[list] = copy;
-    for (int i = 0; i < len; i++) {
-      copy[i] = _dispatch(list[i]);
-    }
-    return copy;
-  }
-
-  Map visitMap(Map map) {
-    Map copy = _visited[map];
-    if (copy != null) return copy;
-
-    // TODO(floitsch): we loose the generic type of the map.
-    copy = new Map();
-    _visited[map] = copy;
-    map.forEach((key, val) {
-      copy[_dispatch(key)] = _dispatch(val);
-    });
-    return copy;
-  }
-
-}
-
 /** Visitor that serializes a message as a JSON array. */
-class _Serializer extends _MessageTraverser {
+abstract class _Serializer extends _MessageTraverser {
   int _nextFreeRefId = 0;
 
   visitPrimitive(x) => x;
@@ -30032,7 +29608,7 @@ class _Serializer extends _MessageTraverser {
 }
 
 /** Deserializes arrays created with [_Serializer]. */
-class _Deserializer {
+abstract class _Deserializer {
   Map<int, dynamic> _deserialized;
 
   _Deserializer();
@@ -30168,74 +29744,6 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 
   final List<T> _array;
   int _pos;
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _Lists {
-
-  /**
-   * Returns the index in the array [a] of the given [element], starting
-   * the search at index [startIndex] to [endIndex] (exclusive).
-   * Returns -1 if [element] is not found.
-   */
-  static int indexOf(List a,
-                     Object element,
-                     int startIndex,
-                     int endIndex) {
-    if (startIndex >= a.length) {
-      return -1;
-    }
-    if (startIndex < 0) {
-      startIndex = 0;
-    }
-    for (int i = startIndex; i < endIndex; i++) {
-      if (a[i] == element) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /**
-   * Returns the last index in the array [a] of the given [element], starting
-   * the search at index [startIndex] to 0.
-   * Returns -1 if [element] is not found.
-   */
-  static int lastIndexOf(List a, Object element, int startIndex) {
-    if (startIndex < 0) {
-      return -1;
-    }
-    if (startIndex >= a.length) {
-      startIndex = a.length - 1;
-    }
-    for (int i = startIndex; i >= 0; i--) {
-      if (a[i] == element) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /**
-   * Returns a sub list copy of this list, from [start] to
-   * [:start + length:].
-   * Returns an empty list if [length] is 0.
-   * Throws an [ArgumentError] if [length] is negative.
-   * Throws a [RangeError] if [start] or [:start + length:] are out of range.
-   */
-  static List getRange(List a, int start, int length, List accumulator) {
-    if (length < 0) throw new ArgumentError('length');
-    if (start < 0) throw new RangeError.value(start);
-    int end = start + length;
-    if (end > a.length) throw new RangeError.value(end);
-    for (int i = start; i < end; i++) {
-      accumulator.add(a[i]);
-    }
-    return accumulator;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

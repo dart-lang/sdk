@@ -4,8 +4,10 @@
 
 #include "vm/os.h"
 
+#include <android/log.h>
 #include <errno.h>
 #include <limits.h>
+#include <malloc.h>
 #include <time.h>
 #include <sys/resource.h>
 #include <sys/time.h>
@@ -64,6 +66,23 @@ int64_t OS::GetCurrentTimeMicros() {
     return 0;
   }
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
+}
+
+
+void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
+  const int kMinimumAlignment = 16;
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  ASSERT(alignment >= kMinimumAlignment);
+  void* p = memalign(alignment, size);
+  if (p == NULL) {
+    UNREACHABLE();
+  }
+  return p;
+}
+
+
+void OS::AlignedFree(void* ptr) {
+  free(ptr);
 }
 
 
@@ -134,6 +153,8 @@ void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
   VFPrint(stdout, format, args);
+  // Forward to the Android log for remote access.
+  __android_log_vprint(ANDROID_LOG_INFO, "DartVM", format, args);
   va_end(args);
 }
 
@@ -185,6 +206,8 @@ void OS::PrintErr(const char* format, ...) {
   va_list args;
   va_start(args, format);
   VFPrint(stderr, format, args);
+  // Forward to the Android log for remote access.
+  __android_log_vprint(ANDROID_LOG_ERROR, "DartVM", format, args);
   va_end(args);
 }
 

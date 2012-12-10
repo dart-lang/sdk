@@ -7,6 +7,9 @@
 
 library html;
 
+import 'dart:collection';
+import 'dart:html_common';
+import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json';
 // Not actually used, but imported since dart:html can generate these objects.
@@ -20,14 +23,12 @@ part '$AUXILIARY_DIR/CrossFrameTypes.dart';
 part '$AUXILIARY_DIR/CssClassSet.dart';
 part '$AUXILIARY_DIR/Device.dart';
 part '$AUXILIARY_DIR/EventListener.dart';
-part '$AUXILIARY_DIR/FilteredElementList.dart';
 part '$AUXILIARY_DIR/KeyboardEventController.dart';
 part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';
 part '$AUXILIARY_DIR/KeyName.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/Timer.dart';
-part '$AUXILIARY_DIR/_Collections.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/Isolates.dart';
 part '$AUXILIARY_DIR/Measurement.dart';
@@ -37,13 +38,11 @@ part '$AUXILIARY_DIR/dart2js_Conversions.dart';
 part '$AUXILIARY_DIR/dart2js_DOMImplementation.dart';
 part '$AUXILIARY_DIR/dart2js_KeyEvent.dart';
 part '$AUXILIARY_DIR/dart2js_FactoryProviders.dart';
-part '$AUXILIARY_DIR/dart2js_IDBKeyRangeFactoryProvider.dart';
 part '$AUXILIARY_DIR/dart2js_LocationWrapper.dart';
 part '$AUXILIARY_DIR/dart2js_MutationObserverSupported.dart';
 part '$AUXILIARY_DIR/dart2js_TypedArrayFactoryProvider.dart';
 part '$AUXILIARY_DIR/_Testing.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
-part '$AUXILIARY_DIR/_Lists.dart';
 
 
 LocalWindow get window => JS('LocalWindow', 'window');

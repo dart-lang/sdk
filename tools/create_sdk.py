@@ -37,10 +37,10 @@
 # ......scalarlist/
 # ....pkg/
 # ......args/
-#.......htmlescape/
 # ......intl/
 # ......logging/
 # ......meta/
+# ......serialization
 # ......unittest/
 # ......(more will come here)
 # ....util/
@@ -203,10 +203,12 @@ def Main(argv):
 
   os.makedirs(join(LIB, 'html'))
   for library in ['_internal', 'collection', 'core', 'crypto', 'io', 'isolate',
-                  join('html', 'dart2js'), join('html', 'dartium'), 'json',
-                  'math', 'mirrors', 'scalarlist', join('svg', 'dart2js'),
-                  join('svg', 'dartium'), 'uri', 'utf',
-                  join('web_audio', 'dart2js'), join('web_audio', 'dartium')]:
+                  join('html', 'dart2js'), join('html', 'dartium'),
+                  join('html', 'html_common'), join('indexed_db', 'dart2js'),
+                  join('indexed_db', 'dartium'), 'json', 'math', 'mirrors',
+                  'scalarlist', join('svg', 'dart2js'), join('svg', 'dartium'),
+                  'uri', 'utf', join('web_audio', 'dart2js'),
+                  join('web_audio', 'dartium')]:
     copytree(join(HOME, 'sdk', 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
@@ -219,11 +221,12 @@ def Main(argv):
   # Create and populate pkg/{args, intl, logging, meta, unittest, ...}
   #
 
-  for library in ['args', 'htmlescape', 'http', 'intl', 'logging',
-                  'meta', 'oauth2', 'unittest']:
+  for library in ['args', 'http', 'intl', 'logging',
+                  'meta', 'oauth2', 'serialization', 'unittest']:
+
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
-                                    '*.py', '*.gypi', '*.sh'))
+                                    '*.py', '*.gypi', '*.sh', 'packages'))
 
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')

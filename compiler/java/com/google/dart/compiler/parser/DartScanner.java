@@ -772,7 +772,7 @@ public class DartScanner {
       multiLine = true;
       advance();
       advance();
-      // according to the dart guide, when multi-line strings start immediatelly
+      // according to the dart guide, when multi-line strings start immediately
       // with a \n, the \n is not part of the string:
       if (is('\n')) {
         advance();

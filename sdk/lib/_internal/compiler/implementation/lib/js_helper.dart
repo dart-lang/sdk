@@ -463,7 +463,7 @@ class Primitives {
 
   static int parseInt(String string) {
     checkString(string);
-    var match = JS('=List',
+    var match = JS('=List|Null',
                    r'/^\s*[+-]?(?:0(x)[a-f0-9]+|\d+)\s*$/i.exec(#)',
                    string);
     if (match == null) {
@@ -538,7 +538,7 @@ class Primitives {
   static num numMicroseconds() {
     if (JS('bool', 'typeof window != "undefined" && window !== null')) {
       var performance = JS('var', 'window.performance');
-      if (performance != null && 
+      if (performance != null &&
           JS('bool', 'typeof #.webkitNow == "function"', performance)) {
         return (1000 * JS('num', '#.webkitNow()', performance)).floor();
       }
@@ -959,6 +959,14 @@ makeLiteralListConst(list) {
 
 throwRuntimeError(message) {
   throw new RuntimeError(message);
+}
+
+/**
+ * The SSA builder generates a call to this method when a malformed type is used
+ * in a subtype test.
+ */
+throwMalformedSubtypeError(value, type, reasons) {
+  throw new TypeErrorImplementation.malformedSubtype(value, type, reasons);
 }
 
 throwAbstractClassInstantiationError(className) {
@@ -1519,6 +1527,11 @@ voidTypeCheck(value) {
   throw new TypeErrorImplementation(value, 'void');
 }
 
+malformedTypeCheck(value, type, reasons) {
+  if (value == null) return value;
+  throwMalformedSubtypeError(value, type, reasons);
+}
+
 /**
  * Special interface recognized by the compiler and implemented by DOM
  * objects that support integer indexing. This interface is not
@@ -1533,9 +1546,22 @@ abstract class JavaScriptIndexingBehavior {
 /** Thrown by type assertions that fail. */
 class TypeErrorImplementation implements TypeError {
   final String message;
+
+  /**
+   * Normal type error caused by a failed subtype test.
+   */
   TypeErrorImplementation(Object value, String type)
-    : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
-                "of type '$type'";
+      : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
+                  "of type '$type'";
+
+  /**
+   * Type error caused by a subtype test on a malformed type.
+   */
+  TypeErrorImplementation.malformedSubtype(Object value,
+                                           String type, String reasons)
+      : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
+                  "of type '$type' because '$type' is malformed: $reasons.";
+
   String toString() => message;
 }
 
@@ -1605,22 +1631,62 @@ String getClassName(var object) {
   return JS('String', r'#.constructor.builtin$cls', object);
 }
 
+String getTypeArgumentAsString(List runtimeType) {
+  String className = runtimeTypeToString(runtimeType[0]);
+  if (runtimeType.length == 1) return className;
+  return '$className<${joinArguments(runtimeType, 1)}>';
+}
+
+String runtimeTypeToString(type) {
+  if (type == null) {
+    return 'dynamic';
+  } else if (type is String) {
+    // A native class.  The string is the unique name.
+    return type;
+  } else if (isJsArray(type)) {
+    // A list representing a type with arguments.
+    return getTypeArgumentAsString(type);
+  } else {
+    // A reference to the constructor.
+    return JS('String', r'#.builtin$cls', type);
+  }
+}
+
+String joinArguments(var types, int startIndex) {
+  bool firstArgument = true;
+  StringBuffer buffer = new StringBuffer();
+  for (int index = startIndex; index < types.length; index++) {
+    if (firstArgument) {
+      firstArgument = false;
+    } else {
+      buffer. add(', ');
+    }
+    var argument = types[index];
+    buffer.add(runtimeTypeToString(argument));
+  }
+  return buffer.toString();
+}
+
 String getRuntimeTypeString(var object) {
   String className = isJsArray(object) ? 'List' : getClassName(object);
   var typeInfo = JS('var', r'#.builtin$typeInfo', object);
   if (typeInfo == null) return className;
-  StringBuffer arguments = new StringBuffer();
-  for (var i = 0; i < typeInfo.length; i++) {
-    if (i > 0) {
-      arguments.add(', ');
+  return "$className<${joinArguments(typeInfo, 0)}>";
+}
+
+bool isSubtype(var s, var t) {
+  if (s == null || t == null) return true;
+  if (!isJsArray(s)) return s == t;
+  // TODO(karlklose): support subtyping: if s[0] != t[0], check if there is
+  // a function is$s[0] on t[0] and call it with substitutes type arguments.
+  if (s[0] != t[0]) return false;
+  int len = s.length;
+  for (int i = 1; i < len; i++) {
+    if (!isSubtype(s[i], t[i])) {
+      return false;
     }
-    var argument = typeInfo[i];
-    if (argument == null) {
-      argument = 'dynamic';
-    }
-    arguments.add(argument);
   }
-  return '$className<$arguments>';
+  return true;
 }
 
 createRuntimeType(String name) => new TypeImpl(name);

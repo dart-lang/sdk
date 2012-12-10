@@ -90,11 +90,10 @@ class NativeEmitter {
   String get defineNativeClassFunction {
     return """
 function(cls, desc) {
-  var generateGetterSetter = ${emitter.generateGetterSetterFunction};
   var fields = desc[''];
   var fields_array = fields ? fields.split(',') : [];
   for (var i = 0; i < fields_array.length; i++) {
-    generateGetterSetter(fields_array[i], desc);
+    ${emitter.currentGenerateAccessorName}(fields_array[i], desc);
   }
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   for (var method in desc) {

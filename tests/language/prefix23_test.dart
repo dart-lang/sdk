@@ -5,8 +5,8 @@
 // Unresolved symbols should be reported as an static type warnings.
 // This should not prevent execution.
 
-#library("Prefix23Test.dart");
-#import("library12.dart", prefix:"lib12");
+library Prefix23Test.dart;
+import "library12.dart" as lib12;
 
 class myClass {
   lib12.Library13 fld;  /// static type warning

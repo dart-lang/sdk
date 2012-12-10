@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.end2end.inc;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -640,6 +641,130 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertErrors(errors);
   }
 
+  /**
+   * Checks that it is a compile-time error when a library directly imports two other libraries that
+   * have the same library name.
+   */
+  public void test_importTwoLibraries_withSameName() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library duplicate_name;",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library duplicate_name;",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'A.dart';",
+            "import 'B.dart';",
+            "main() {",
+            "}",
+            ""));
+    compile();
+    assertErrors(
+        errors,
+        errEx(APP, DartCompilerErrorCode.DUPLICATE_IMPORTED_LIBRARY_NAME, 4, 1, 16));
+  }
+
+  /**
+   * Checks valid library definitions with metadata.
+   */
+  public void test_importLibrary_withMetaBeforeLibraryDirective() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "@meta library A;",
+            "const int meta = 1;",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'A.dart';",
+            ""));
+    compile();
+    assertErrors(errors);
+  }
+  
+  /**
+   * Checks that it is not an error to use a multi-line string literal as a URI in a part directive.
+   * Even with leading whitespace since it's getting trimmed. Even with Windows \r\n style.
+   */
+  public void test_importLibrary_multiLineStringUri() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library A;",
+            "var foo;",
+            ""));
+    appSource.setContent(
+        APP,
+        Joiner.on("\r\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library app;",
+            "import '''",
+            "A.dart''';",
+            "main() {",
+            " foo;",
+            "}",
+            ""));
+    compile();
+    assertErrors(errors);
+  }
+  
+  /**
+   * Checks that it is a compile-time error when the library being exported does not have a library
+   * definition.
+   */
+  public void test_exportLibrary_withoutLibraryDirective() throws Exception {
+    appSource.setContent("A.dart", "");
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "export 'A.dart';",
+            ""));
+    compile();
+    assertErrors(
+        errors,
+        errEx(APP, DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE_EXPORT, 3, 1, 16));
+  }
+  
+  /**
+   * Enabled in 0.13
+   */
+  public void test_exportLibrary_fromScript() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library A;",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library myScript;",
+            "export 'A.dart';",
+            "main() {",
+            "}",
+            ""));
+    compile();
+    assertErrors(errors);
+  }
+  
   /**
    * It is neither an error nor a warning if N is introduced by two or more imports but never
    * referred to.

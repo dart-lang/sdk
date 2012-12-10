@@ -6,9 +6,12 @@ library system_cache;
 
 import 'dart:io';
 
+import 'git_source.dart';
+import 'hosted_source.dart';
 import 'io.dart';
 import 'io.dart' as io show createTempDir;
 import 'package.dart';
+import 'sdk_source.dart';
 import 'source.dart';
 import 'source_registry.dart';
 import 'utils.dart';
@@ -45,6 +48,16 @@ class SystemCache {
   SystemCache(this.rootDir)
   : _pendingInstalls = new Map<PackageId, Future<Package>>(),
     sources = new SourceRegistry();
+
+  /// Creates a system cache and registers the standard set of sources.
+  factory SystemCache.withSources(String rootDir, String sdkDir) {
+    var cache = new SystemCache(rootDir);
+    cache.register(new SdkSource(sdkDir));
+    cache.register(new GitSource());
+    cache.register(new HostedSource());
+    cache.sources.setDefault('hosted');
+    return cache;
+  }
 
   /**
    * Registers a new source. This source must not have the same name as a source

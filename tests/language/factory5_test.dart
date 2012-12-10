@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Link<T> default LinkFactory {
-  Link.create();
+abstract class Link<T> {
+  factory Link.create() = LinkFactory<T>.create;
 }
 
 class LinkFactory<T> {
-  factory Link.create() { return null; }
-  factory Foo.create() { return null; }  /// 00: static type warning
+  factory LinkFactory.create() { return null; }
+  factory LinkFactory.Foo() = Foo<T>;  /// 00: static type warning
 }
 
 main() {

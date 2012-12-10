@@ -29,9 +29,8 @@ DECLARE_FLAG(bool, trace_isolates);
 
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
-Dart_FileWriterFunction Dart::perf_events_writer_ = NULL;
+void* Dart::perf_events_file_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
-Dart_FileWriterFunction Dart::flow_graph_writer_ = NULL;
 
 // An object visitor which will mark all visited objects. This is used to
 // premark all objects in the vm_isolate_ heap.
@@ -52,11 +51,15 @@ class PremarkingVisitor : public ObjectVisitor {
 const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
                            Dart_IsolateInterruptCallback interrupt,
                            Dart_IsolateUnhandledExceptionCallback unhandled,
-                           Dart_IsolateShutdownCallback shutdown) {
+                           Dart_IsolateShutdownCallback shutdown,
+                           Dart_FileOpenCallback file_open,
+                           Dart_FileWriteCallback file_write,
+                           Dart_FileCloseCallback file_close) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized.";
   }
+  Isolate::SetFileCallbacks(file_open, file_write, file_close);
   OS::InitOnce();
   VirtualMemory::InitOnce();
   Isolate::InitOnce();

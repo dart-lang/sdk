@@ -54,9 +54,7 @@ void testBadHostName() {
 }
 
 void InitializeSSL() {
-  var testPkcertDatabase =
-      new Path.fromNative(new Options().script).directoryPath.append('pkcert/');
-  SecureSocket.setCertificateDatabase(testPkcertDatabase.toNativePath());
+  SecureSocket.initialize();
 }
 
 void main() {

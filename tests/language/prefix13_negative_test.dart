@@ -4,8 +4,8 @@
 //
 // Unresolved symbols should be reported as an error.
 
-#library("Prefix13NegativeTest.dart");
-#import("library12.dart", prefix:"lib12");
+library Prefix13NegativeTest.dart;
+import "library12.dart" as lib12;
 
 class myClass extends lib12.Library13 {
   myClass(int this.fld) : super(0);

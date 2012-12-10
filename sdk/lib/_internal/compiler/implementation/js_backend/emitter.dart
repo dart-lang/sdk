@@ -93,6 +93,10 @@ class CodeEmitterTask extends CompilerTask {
 
   String get defineClassName
       => '${namer.ISOLATE}.\$defineClass';
+  String get currentGenerateAccessorName
+      => '${namer.CURRENT_ISOLATE}.\$generateAccessor';
+  String get generateAccessorHolder
+      => '$isolatePropertiesName.\$generateAccessor';
   String get finishClassesName
       => '${namer.ISOLATE}.\$finishClasses';
   String get finishIsolateConstructorName
@@ -110,17 +114,17 @@ class CodeEmitterTask extends CompilerTask {
   final String SETTER_SUFFIX = "!";
   final String GETTER_SETTER_SUFFIX = "=";
 
-  String get generateGetterSetterFunction {
+  String get generateAccessorFunction {
     return """
-  function(field, prototype) {
-    var len = field.length;
-    var lastChar = field[len - 1];
-    var needsGetter = lastChar == '$GETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
-    var needsSetter = lastChar == '$SETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
-    if (needsGetter || needsSetter) field = field.substring(0, len - 1);
-    if (needsGetter) {
-      var getterString = "return this." + field + ";";
-  """
+function generateAccessor(field, prototype) {
+  var len = field.length;
+  var lastChar = field[len - 1];
+  var needsGetter = lastChar == '$GETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
+  var needsSetter = lastChar == '$SETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
+  if (needsGetter || needsSetter) field = field.substring(0, len - 1);
+  if (needsGetter) {
+    var getterString = "return this." + field + ";";
+"""
   /* The supportsProtoCheck below depends on the getter/setter convention.
          When changing here, update the protoCheck too. */
   """
@@ -150,7 +154,6 @@ class CodeEmitterTask extends CompilerTask {
     // });
     return """
 function(cls, fields, prototype) {
-  var generateGetterSetter = $generateGetterSetterFunction;
   var constructor;
   if (typeof fields == 'function') {
     constructor = fields;
@@ -160,7 +163,7 @@ function(cls, fields, prototype) {
     for (var i = 0; i < fields.length; i++) {
       if (i != 0) str += ", ";
       var field = fields[i];
-      field = generateGetterSetter(field, prototype);
+      field = generateAccessor(field, prototype);
       str += field;
       body += "this." + field + " = " + field + ";\\n";
     }
@@ -344,6 +347,10 @@ $lazyInitializerLogic
 
   void addDefineClassAndFinishClassFunctionsIfNecessary(CodeBuffer buffer) {
     if (needsDefineClass) {
+      // Declare function called generateAccessor.  This is used in
+      // defineClassFunction (it's a local declaration in init()).
+      buffer.add("$generateAccessorFunction;\n");
+      buffer.add("$generateAccessorHolder = generateAccessor\n");
       buffer.add("$defineClassName = $defineClassFunction;\n");
       buffer.add(protoSupportCheck);
       buffer.add("$pendingClassesName = {};\n");
@@ -831,7 +838,6 @@ $lazyInitializerLogic
                        bool emitEndingComma,
                        { String superClass: "",
                          bool isNative: false}) {
-    assert(!isNative || superClass != "");
     bool isFirstField = true;
     bool isAnythingOutput = false;
     if (!isNative) {
@@ -974,30 +980,40 @@ $lazyInitializerLogic
     // Emit forwarders for the ObjectInterceptor class. We need to
     // emit all possible sends on intercepted methods.
     for (Selector selector in backend.usedInterceptors) {
+
+      List<js.Parameter> parameters = <js.Parameter>[];
+      List<js.Expression> arguments = <js.Expression>[];
+      parameters.add(new js.Parameter('receiver'));
+
       String name;
-      String comma = '';
-      String parameters = '';
       if (selector.isGetter()) {
         name = backend.namer.getterName(selector.library, selector.name);
       } else if (selector.isSetter()) {
         name = backend.namer.setterName(selector.library, selector.name);
+        parameters.add(new js.Parameter('value'));
+        arguments.add(new js.VariableUse('value'));
       } else {
         assert(selector.isCall() || selector.isOperator());
         name = backend.namer.instanceMethodInvocationName(
             selector.library, selector.name, selector);
-        if (selector.argumentCount > 0) {
-          comma = ', ';
-          int i = 0;
-          for (; i < selector.argumentCount - 1; i++) {
-            parameters = '${parameters}a$i, ';
-          }
-          parameters = '${parameters}a$i';
+        for (int i = 0; i < selector.argumentCount; i++) {
+          String argName = 'a$i';
+          parameters.add(new js.Parameter(argName));
+          arguments.add(new js.VariableUse(argName));
         }
       }
-      StringBuffer body = new StringBuffer(
-          "function(receiver$comma$parameters) {"
-              " return receiver.$name($parameters); }");
-      defineInstanceMember(name, body);
+      js.Fun function = 
+          new js.Fun(parameters,
+              new js.Block(
+                  <js.Statement>[
+                      new js.Return(
+                          new js.VariableUse('receiver')
+                              .dot(name)
+                              .callWith(arguments))]));
+
+      CodeBuffer code = new CodeBuffer();
+      code.add(js.prettyPrint(function, compiler));
+      defineInstanceMember(name, code);
     }
   }
 
@@ -1298,15 +1314,29 @@ $classesCollector.$mangledName = {'':
                              DefineMemberFunction defineInstanceMember) {
     assert(invariant(member, member.isDeclaration));
     LibraryElement memberLibrary = member.getLibrary();
-    String getter;
-    if (member.isGetter()) {
-      getter = "this.${namer.getterName(member.getLibrary(), member.name)}()";
-    } else {
-      String name = member.isNative()
-          ? member.nativeName()
-          : namer.instanceFieldName(memberLibrary, member.name);
-      getter = "this.$name";
+    JavaScriptBackend backend = compiler.backend;
+    // If the class is an interceptor class, the stub gets the
+    // receiver explicitely and we need to pass it to the getter call.
+    bool isInterceptorClass =
+        backend.isInterceptorClass(member.getEnclosingClass());
+
+    const String receiverArgumentName = r'$receiver';
+
+    js.Expression buildGetter() {
+      if (member.isGetter()) {
+        String getterName = namer.getterName(member.getLibrary(), member.name);
+        return new js.VariableUse('this').dot(getterName).callWith(
+            isInterceptorClass
+                ? <js.Expression>[new js.VariableUse(receiverArgumentName)]
+                : <js.Expression>[]);
+      } else {
+        String fieldName = member.isNative()
+            ? member.nativeName()
+            : namer.instanceFieldName(memberLibrary, member.name);
+        return new js.VariableUse('this').dot(fieldName);
+      }
     }
+
     for (Selector selector in selectors) {
       if (selector.applies(member, compiler)) {
         String invocationName =
@@ -1316,14 +1346,29 @@ $classesCollector.$mangledName = {'':
         String closureCallName =
             namer.instanceMethodInvocationName(memberLibrary, callName,
                                                selector);
-        List<String> arguments = <String>[];
-        for (int i = 0; i < selector.argumentCount; i++) {
-          arguments.add("arg$i");
+
+        List<js.Parameter> parameters = <js.Parameter>[];
+        List<js.Expression> arguments = <js.Expression>[];
+        if (isInterceptorClass) {
+          parameters.add(new js.Parameter(receiverArgumentName));
         }
-        String joined = Strings.join(arguments, ", ");
+
+        for (int i = 0; i < selector.argumentCount; i++) {
+          String name = 'arg$i';
+          parameters.add(new js.Parameter(name));
+          arguments.add(new js.VariableUse(name));
+        }
+
+        js.Fun function =
+            new js.Fun(parameters,
+                new js.Block(
+                    <js.Statement>[
+                        new js.Return(
+                            buildGetter().dot(closureCallName)
+                                .callWith(arguments))]));
+
         CodeBuffer getterBuffer = new CodeBuffer();
-        getterBuffer.add(
-            "function($joined) { return $getter.$closureCallName($joined); }");
+        getterBuffer.add(js.prettyPrint(function, compiler));
         defineInstanceMember(invocationName, getterBuffer);
       }
     }

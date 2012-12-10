@@ -57,6 +57,10 @@ library js_helper;
 class JSInvocationMirror {}
 ''';
 
+const foreignLib = r'''
+var JS;
+''';
+
 testDart2Dart(String src, {void continuation(String s), bool minify: false,
     bool stripTypes: false}) {
   // If continuation is not provided, check that source string remains the same.
@@ -89,6 +93,7 @@ testDart2DartWithLibrary(
     if (uri.path.endsWith('/js_helper.dart')) return new Future.immediate(helperLib);
     // TODO(smok): The file should change to html_dartium at some point.
     if (uri.path.endsWith('/html_dart2js.dart')) return new Future.immediate(htmlLib);
+    if (uri.path.endsWith('/foreign_helper.dart')) return new Future.immediate(foreignLib);
     return new Future.immediate('');
   }
 

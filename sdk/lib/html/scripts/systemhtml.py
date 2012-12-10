@@ -16,31 +16,56 @@ _js_custom_members = set([
     'AudioBufferSourceNode.stop',
     'AudioContext.createGain',
     'AudioContext.createScriptProcessor',
+    'Console.memory',
+    'Console.profiles',
+    'Console.assertCondition',
+    'Console.count',
+    'Console.debug',
+    'Console.dir',
+    'Console.dirxml',
+    'Console.error',
+    'Console.group',
+    'Console.groupCollapsed',
+    'Console.groupEnd',
+    'Console.info',
+    'Console.log',
+    'Console.markTimeline',
+    'Console.profile',
+    'Console.profileEnd',
+    'Console.time',
+    'Console.timeEnd',
+    'Console.timeStamp',
+    'Console.trace',
+    'Console.warn',
     'CSSStyleDeclaration.setProperty',
-    'CanvasElement.getContext',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
     'Element.insertAdjacentText',
     'Element.remove',
     'ElementEvents.mouseWheel',
+    'HTMLCanvasElement.getContext',
+    'HTMLSelectElement.options',
+    'HTMLSelectElement.selectedOptions',
+    'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
+    'KeyboardEvent.initKeyboardEvent',    
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
-    'SelectElement.options',
-    'SelectElement.selectedOptions',
-    'TableElement.createTBody',
-    'LocalWindow.cancelAnimationFrame',
-    'LocalWindow.document',
-    'LocalWindow.indexedDB',
-    'LocalWindow.location',
-    'LocalWindow.open',
-    'LocalWindow.requestAnimationFrame',
-    'LocalWindow.webkitCancelAnimationFrame',
-    'LocalWindow.webkitRequestAnimationFrame',
-    'Url.createObjectURL',
-    'Url.revokeObjectURL',
+    'Navigator.language',
+    'URL.createObjectURL',
+    'URL.revokeObjectURL',
     'WheelEvent.wheelDeltaX',
     'WheelEvent.wheelDeltaY',
+    'Window.cancelAnimationFrame',
+    'Window.console',
+    'Window.document',
+    'Window.indexedDB',
+    'Window.location',
+    'Window.open',
+    'Window.requestAnimationFrame',
+    'Window.webkitCancelAnimationFrame',
+    'Window.webkitRequestAnimationFrame',
+    'WorkerContext.indexedDB',
     ])
 
 
@@ -202,12 +227,17 @@ _svg_element_constructors = {
 
 _element_constructors = {
   'html': _html_element_constructors,
+  'indexed_db': {},
   'svg': _svg_element_constructors,
   'web_audio': {},
 }
 
 _factory_ctr_strings = {
   'html': {
+      'provider_name': 'document',
+      'constructor_name': '$dom_createElement'
+  },
+  'indexed_db': {
       'provider_name': 'document',
       'constructor_name': '$dom_createElement'
   },
@@ -269,8 +299,10 @@ class HtmlDartInterfaceGenerator(object):
     code = self._library_emitter.FileEmitter(self._interface.id,
         self._library_name)
     code.Emit(self._template_loader.Load('callback.darttemplate'))
+
+    typedef_name = self._renamer.RenameInterface(self._interface)
     code.Emit('typedef void $NAME($PARAMS);\n',
-              NAME=self._interface.id,
+              NAME=typedef_name,
               PARAMS=info.ParametersDeclaration(self._DartType))
     self._backend.GenerateCallback(info)
 
@@ -425,7 +457,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       return self._template_loader.Load('pure_interface.darttemplate')
 
     template_file = ('impl_%s.darttemplate' %
-                     self._interface_type_info.interface_name())
+                     self._interface.doc_js_name)
     return (self._template_loader.TryLoad(template_file) or
             self._template_loader.Load('dart2js_impl.darttemplate'))
 
@@ -437,7 +469,7 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     template_file = ('factoryprovider_%s.darttemplate' %
-                     self._interface_type_info.interface_name())
+                     self._interface.doc_js_name)
     template = self._template_loader.TryLoad(template_file)
     if not template:
       template = self._template_loader.Load('factoryprovider.darttemplate')
@@ -450,7 +482,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         FACTORYPROVIDER=factory_provider,
         CONSTRUCTOR=interface_name,
         PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
-        NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
+        NAMED_CONSTRUCTOR=constructor_info.name or self._interface.doc_js_name,
         ARGUMENTS=arguments,
         PRE_ARGUMENTS_COMMA=comma,
         ARGUMENTS_PATTERN=','.join(['#'] * len(constructor_info.param_infos)))
@@ -498,14 +530,7 @@ class Dart2JSBackend(HtmlDartGenerator):
           '  }\n',
           TYPE=self._NarrowInputType(element_type))
 
-    # TODO(sra): Use separate mixins for mutable implementations of List<T>.
-    # TODO(sra): Use separate mixins for typed array implementations of List<T>.
-    template_file = 'immutable_list_mixin.darttemplate'
-    has_contains = any(op.id == 'contains' for op in self._interface.operations)
-    template = self._template_loader.Load(
-        template_file,
-        {'DEFINE_CONTAINS': not has_contains})
-    self._members_emitter.Emit(template, E=self._DartType(element_type))
+    self.EmitListMixin(self._DartType(element_type))
 
   def EmitAttribute(self, attribute, html_name, read_only):
     if self._HasCustomImplementation(attribute.id):
@@ -561,9 +586,14 @@ class Dart2JSBackend(HtmlDartGenerator):
           NAME=html_name,
           TYPE=output_type)
     else:
+      template = '\n  $RENAME$(ANNOTATIONS)final $TYPE $NAME;\n'
+      # Need to use a getter for list.length properties so we can add a
+      # setter which throws an exception, satisfying List API.
+      if self._interface_type_info.list_item_type() and html_name == 'length':
+        template = ('\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => ' +
+            'JS("$TYPE", "#.$NAME", this);\n')
       self._members_emitter.Emit(
-          '\n  $RENAME$(ANNOTATIONS)final $TYPE $NAME;'
-          '\n',
+          template,
           RENAME=rename,
           ANNOTATIONS=annotations,
           NAME=html_name,
@@ -854,8 +884,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     return FindConversion(idl_type, 'set', self._interface.id, member)
 
   def _HasCustomImplementation(self, member_name):
-    member_name = '%s.%s' % (self._interface_type_info.interface_name(),
-                             member_name)
+    member_name = '%s.%s' % (self._interface.doc_js_name, member_name)
     return member_name in _js_custom_members
 
   def _RenamingAnnotation(self, idl_name, member_name):

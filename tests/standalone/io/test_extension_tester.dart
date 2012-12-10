@@ -13,4 +13,10 @@ main() {
   Expect.equals(4, Cat.ifNull(4, null), 'Cat.ifNull(4, null)');
   Expect.equals(5, Cat.ifNull(5, 9), 'Cat.ifNull(5, 9)');
   Expect.isNull(Cat.ifNull(null, null), 'Cat.ifNull(null, null)');
+
+  try {
+    Cat.throwMeTheBall("ball");
+  } on String catch (e) {
+    Expect.equals("ball", e);
+  }
 }

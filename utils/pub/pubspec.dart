@@ -28,14 +28,21 @@ class Pubspec {
   /**
    * The packages this package depends on.
    */
-  List<PackageRef> dependencies;
+  final List<PackageRef> dependencies;
 
-  Pubspec(this.name, this.version, this.dependencies);
+  /// All pubspec fields. This includes the fields from which other properties
+  /// are derived.
+  final Map<String, Object> fields;
+
+  Pubspec(this.name, this.version, this.dependencies,
+      [Map<String, Object> fields])
+    : this.fields = fields == null ? {} : fields;
 
   Pubspec.empty()
     : name = null,
       version = Version.none,
-      dependencies = <PackageRef>[];
+      dependencies = <PackageRef>[],
+      fields = {};
 
   /** Whether or not the pubspec has no contents. */
   bool get isEmpty =>
@@ -126,7 +133,7 @@ class Pubspec {
       }
     }
 
-    return new Pubspec(name, version, dependencies);
+    return new Pubspec(name, version, dependencies, parsedPubspec);
   }
 }
 

@@ -1,9 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // All things regarding compile time constant expressions.
 
-interface Roman {
+abstract class Roman {
   static const I = 1;
   static const II = 2;
   static const III = 3;

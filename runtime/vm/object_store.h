@@ -178,6 +178,13 @@ class ObjectStore {
     uint8_array_class_ = value.raw();
   }
 
+  RawClass* uint8_clamped_array_class() const {
+    return uint8_clamped_array_class_;
+  }
+  void set_uint8_clamped_array_class(const Class& value) {
+    uint8_clamped_array_class_ = value.raw();
+  }
+
   RawClass* int16_array_class() const {
     return int16_array_class_;
   }
@@ -246,6 +253,13 @@ class ObjectStore {
   }
   void set_external_uint8_array_class(const Class& value) {
     external_uint8_array_class_ = value.raw();
+  }
+
+  RawClass* external_uint8_clamped_array_class() const {
+    return external_uint8_clamped_array_class_;
+  }
+  void set_external_uint8_clamped_array_class(const Class& value) {
+    external_uint8_clamped_array_class_ = value.raw();
   }
 
   RawClass* external_int16_array_class() const {
@@ -494,6 +508,7 @@ class ObjectStore {
   RawClass* growable_object_array_class_;
   RawClass* int8_array_class_;
   RawClass* uint8_array_class_;
+  RawClass* uint8_clamped_array_class_;
   RawClass* int16_array_class_;
   RawClass* uint16_array_class_;
   RawClass* int32_array_class_;
@@ -504,6 +519,7 @@ class ObjectStore {
   RawClass* float64_array_class_;
   RawClass* external_int8_array_class_;
   RawClass* external_uint8_array_class_;
+  RawClass* external_uint8_clamped_array_class_;
   RawClass* external_int16_array_class_;
   RawClass* external_uint16_array_class_;
   RawClass* external_int32_array_class_;

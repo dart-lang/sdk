@@ -746,6 +746,11 @@ RawError* Object::Init(Isolate* isolate) {
   name = Symbols::_Uint8Array();
   RegisterPrivateClass(cls, name, scalarlist_lib);
 
+  cls = Class::New<Uint8ClampedArray>();
+  object_store->set_uint8_clamped_array_class(cls);
+  name = Symbols::_Uint8ClampedArray();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
   cls = Class::New<Int16Array>();
   object_store->set_int16_array_class(cls);
   name = Symbols::_Int16Array();
@@ -794,6 +799,11 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<ExternalUint8Array>();
   object_store->set_external_uint8_array_class(cls);
   name = Symbols::_ExternalUint8Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalUint8ClampedArray>();
+  object_store->set_external_uint8_clamped_array_class(cls);
+  name = Symbols::_ExternalUint8ClampedArray();
   RegisterPrivateClass(cls, name, scalarlist_lib);
 
   cls = Class::New<ExternalInt16Array>();
@@ -1046,6 +1056,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<Uint8Array>();
   object_store->set_uint8_array_class(cls);
 
+  cls = Class::New<Uint8ClampedArray>();
+  object_store->set_uint8_clamped_array_class(cls);
+
   cls = Class::New<Int16Array>();
   object_store->set_int16_array_class(cls);
 
@@ -1075,6 +1088,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<ExternalUint8Array>();
   object_store->set_external_uint8_array_class(cls);
+
+  cls = Class::New<ExternalUint8ClampedArray>();
+  object_store->set_external_uint8_clamped_array_class(cls);
 
   cls = Class::New<ExternalInt16Array>();
   object_store->set_external_int16_array_class(cls);
@@ -1272,6 +1288,9 @@ RawString* Class::UserVisibleName() const {
     case kUint8ArrayCid:
     case kExternalUint8ArrayCid:
       return Symbols::New("Uint8List");
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ClampedArrayCid:
+      return Symbols::New("Uint8ClampedList");
     case kInt16ArrayCid:
     case kExternalInt16ArrayCid:
       return Symbols::New("Int16List");
@@ -7199,7 +7218,7 @@ intptr_t Code::ExtractIcDataArraysAtCalls(
         max_id = deopt_id;
       }
       node_ids->Add(deopt_id);
-      ic_data_obj = CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i));
+      CodePatcher::GetInstanceCallAt(descriptors.PC(i), &ic_data_obj, NULL);
       ic_data_objs.Add(ic_data_obj);
     }
   }
@@ -8712,18 +8731,14 @@ bool Type::HasResolvedTypeClass() const {
 
 RawClass* Type::type_class() const {
   ASSERT(HasResolvedTypeClass());
-  Class& type_class = Class::Handle();
-  type_class ^= raw_ptr()->type_class_;
-  return type_class.raw();
+  return reinterpret_cast<RawClass*>(raw_ptr()->type_class_);
 }
 
 
 RawUnresolvedClass* Type::unresolved_class() const {
-  ASSERT(!HasResolvedTypeClass());
-  UnresolvedClass& unresolved_class = UnresolvedClass::Handle();
-  unresolved_class ^= raw_ptr()->type_class_;
-  ASSERT(!unresolved_class.IsNull());
-  return unresolved_class.raw();
+  ASSERT(!Object::Handle(raw_ptr()->type_class_).IsNull());
+  ASSERT(Object::Handle(raw_ptr()->type_class_).IsUnresolvedClass());
+  return reinterpret_cast<RawUnresolvedClass*>(raw_ptr()->type_class_);
 }
 
 
@@ -9996,16 +10011,17 @@ bool String::Equals(const uint16_t* utf16_array, intptr_t len) const {
 bool String::Equals(const int32_t* utf32_array, intptr_t len) const {
   CodePointIterator it(*this);
   intptr_t i = 0;
-  while (it.Next()) {
-    if (it.Current() != static_cast<int32_t>(utf32_array[i])) {
+  bool has_more = it.Next();
+  while (has_more && (i < len)) {
+    if ((it.Current() != static_cast<int32_t>(utf32_array[i]))) {
       return false;
     }
+    // Advance both streams forward.
     ++i;
+    has_more = it.Next();
   }
-  if (i != len) {
-    return false;
-  }
-  return true;
+  // Strings are only true iff we reached the end in both streams.
+  return (i == len) && !has_more;
 }
 
 
@@ -10051,19 +10067,19 @@ RawInstance* String::Canonicalize() const {
 }
 
 
-RawString* String::New(const char* str, Heap::Space space) {
-  ASSERT(str != NULL);
-  intptr_t array_len = strlen(str);
-  const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
-  return String::New(utf8_array, array_len, space);
+RawString* String::New(const char* cstr, Heap::Space space) {
+  ASSERT(cstr != NULL);
+  intptr_t array_len = strlen(cstr);
+  const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(cstr);
+  return String::FromUTF8(utf8_array, array_len, space);
 }
 
 
-RawString* String::New(const uint8_t* utf8_array,
-                       intptr_t array_len,
-                       Heap::Space space) {
+RawString* String::FromUTF8(const uint8_t* utf8_array,
+                            intptr_t array_len,
+                            Heap::Space space) {
   Utf8::Type type;
-  intptr_t len = Utf8::CodePointCount(utf8_array, array_len, &type);
+  intptr_t len = Utf8::CodeUnitCount(utf8_array, array_len, &type);
   if (type == Utf8::kLatin1) {
     const String& strobj = String::Handle(OneByteString::New(len, space));
     if (len > 0) {
@@ -10082,9 +10098,16 @@ RawString* String::New(const uint8_t* utf8_array,
 }
 
 
-RawString* String::New(const uint16_t* utf16_array,
-                       intptr_t array_len,
-                       Heap::Space space) {
+RawString* String::FromLatin1(const uint8_t* latin1_array,
+                              intptr_t array_len,
+                              Heap::Space space) {
+  return OneByteString::New(latin1_array, array_len, space);
+}
+
+
+RawString* String::FromUTF16(const uint16_t* utf16_array,
+                             intptr_t array_len,
+                             Heap::Space space) {
   bool is_one_byte_string = true;
   for (intptr_t i = 0; i < array_len; ++i) {
     if (!Utf::IsLatin1(utf16_array[i])) {
@@ -10099,9 +10122,9 @@ RawString* String::New(const uint16_t* utf16_array,
 }
 
 
-RawString* String::New(const int32_t* utf32_array,
-                       intptr_t array_len,
-                       Heap::Space space) {
+RawString* String::FromUTF32(const int32_t* utf32_array,
+                             intptr_t array_len,
+                             Heap::Space space) {
   bool is_one_byte_string = true;
   intptr_t utf16_len = array_len;
   for (intptr_t i = 0; i < array_len; ++i) {
@@ -10736,6 +10759,28 @@ RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
 }
 
 
+RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
+                                                    intptr_t begin_index,
+                                                    intptr_t length,
+                                                    Heap::Space space) {
+  ASSERT(!str.IsNull() && str.IsOneByteString());
+  ASSERT(begin_index >= 0);
+  ASSERT(length >= 0);
+  if (begin_index <= str.Length() && length == 0) {
+    return OneByteString::raw(String::Handle(Symbols::Empty()));
+  }
+  ASSERT(begin_index < str.Length());
+  RawOneByteString* result = OneByteString::New(length, space);
+  NoGCScope no_gc;
+  if (length > 0) {
+    uint8_t* dest = &result->ptr()->data_[0];
+    uint8_t* src =  &raw_ptr(str)->data_[begin_index];
+    memmove(dest, src, length);
+  }
+  return result;
+}
+
+
 RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str,
                                                          bool raw_str) {
   intptr_t len = str.Length();
@@ -11142,8 +11187,15 @@ const char* ImmutableArray::ToCString() const {
 
 
 void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
+  Add(Isolate::Current(), value, space);
+}
+
+
+void GrowableObjectArray::Add(Isolate* isolate,
+                              const Object& value,
+                              Heap::Space space) const {
   ASSERT(!IsNull());
-  Array& contents = Array::Handle(data());
+  Array& contents = Array::Handle(isolate, data());
   if (Length() == Capacity()) {
     // TODO(Issue 2500): Need a better growth strategy.
     intptr_t new_capacity = (Capacity() == 0) ? 4 : Capacity() * 2;
@@ -11151,7 +11203,7 @@ void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
       // Use the preallocated out of memory exception to avoid calling
       // into dart code or allocating any code.
       const Instance& exception =
-          Instance::Handle(Isolate::Current()->object_store()->out_of_memory());
+          Instance::Handle(isolate->object_store()->out_of_memory());
       Exceptions::Throw(exception);
       UNREACHABLE();
     }
@@ -11444,6 +11496,28 @@ const char* Uint8Array::ToCString() const {
 }
 
 
+RawUint8ClampedArray* Uint8ClampedArray::New(intptr_t len, Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->uint8_clamped_array_class() !=
+         Class::null());
+  return NewImpl<Uint8ClampedArray, RawUint8ClampedArray>(kClassId, len, space);
+}
+
+
+RawUint8ClampedArray* Uint8ClampedArray::New(const uint8_t* data,
+                                             intptr_t len,
+                                             Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->uint8_clamped_array_class() !=
+         Class::null());
+  return NewImpl<Uint8ClampedArray,
+      RawUint8ClampedArray>(kClassId, data, len, space);
+}
+
+
+const char* Uint8ClampedArray::ToCString() const {
+  return "_Uint8ClampedArray";
+}
+
+
 RawInt16Array* Int16Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->int16_array_class() !=
          Class::null());
@@ -11643,6 +11717,25 @@ RawExternalUint8Array* ExternalUint8Array::New(uint8_t* data,
 
 const char* ExternalUint8Array::ToCString() const {
   return "_ExternalUint8Array";
+}
+
+
+RawExternalUint8ClampedArray* ExternalUint8ClampedArray::New(
+    uint8_t* data,
+    intptr_t len,
+    void* peer,
+    Dart_PeerFinalizer callback,
+    Heap::Space space) {
+  ASSERT(Isolate::Current()->
+             object_store()->external_uint8_clamped_array_class() !=
+         Class::null());
+  return NewExternalImpl<ExternalUint8ClampedArray,
+      RawExternalUint8ClampedArray>(kClassId, data, len, peer, callback, space);
+}
+
+
+const char* ExternalUint8ClampedArray::ToCString() const {
+  return "_ExternalUint8ClampedArray";
 }
 
 

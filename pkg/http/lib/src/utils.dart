@@ -144,19 +144,6 @@ Future<List<int>> consumeInputStream(InputStream stream) {
   return completer.future;
 }
 
-// TODO(nweiz): this wouldn't be necessary were it not for issue 7013.
-/// Wrap an InputStream in a ListInputStream. This ensures that if the input
-/// stream has invalid onClosed/onError behavior (see issue 7013), that behavior
-/// is papered over.
-InputStream wrapInputStream(InputStream source) {
-  var sink = new ListInputStream();
-  // TODO(nweiz): Due to issuee 3657, pipeInputToInput naturally avoids calling
-  // both onClosed and onError. If 3657 gets fixed before 7013, we'll need to do
-  // that explicitly.
-  pipeInputToInput(source, sink);
-  return sink;
-}
-
 /// Takes all input from [source] and writes it to [sink], then closes [sink].
 /// Returns a [Future] that completes when [source] is exhausted.
 void pipeInputToInput(InputStream source, ListInputStream sink) {

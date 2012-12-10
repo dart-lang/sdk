@@ -1,4 +1,6 @@
 name: meta
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
 description: >
  This library contains the definitions of annotations that provide additional
  semantic information about the program being annotated. These annotations are

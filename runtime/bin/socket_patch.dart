@@ -108,7 +108,7 @@ class _SocketBase extends NativeFieldWrapperClass1 {
   }
 
   OSError _getError() native "Socket_GetError";
- 
+
   int _getPort() native "Socket_GetPort";
 
   void set onError(void callback(e)) {

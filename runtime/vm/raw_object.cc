@@ -123,6 +123,13 @@ intptr_t RawObject::SizeFromClass() const {
         instance_size = Uint8Array::InstanceSize(byte_array_length);
         break;
       }
+      case kUint8ClampedArrayCid: {
+        const RawUint8ClampedArray* raw_byte_array =
+            reinterpret_cast<const RawUint8ClampedArray*>(this);
+        intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
+        instance_size = Uint8ClampedArray::InstanceSize(byte_array_length);
+        break;
+      }
       case kInt16ArrayCid: {
         const RawInt16Array* raw_byte_array =
             reinterpret_cast<const RawInt16Array*>(this);
@@ -763,6 +770,16 @@ intptr_t RawUint8Array::VisitUint8ArrayPointers(
 }
 
 
+intptr_t RawUint8ClampedArray::VisitUint8ClampedArrayPointers(
+    RawUint8ClampedArray *raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  intptr_t length = Smi::Value(raw_obj->ptr()->length_);
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return Uint8ClampedArray::InstanceSize(length);
+}
+
+
 intptr_t RawInt16Array::VisitInt16ArrayPointers(
     RawInt16Array *raw_obj, ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
@@ -858,6 +875,15 @@ intptr_t RawExternalUint8Array::VisitExternalUint8ArrayPointers(
   ASSERT(raw_obj->IsHeapObject());
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return ExternalUint8Array::InstanceSize();
+}
+
+
+intptr_t RawExternalUint8ClampedArray::VisitExternalUint8ClampedArrayPointers(
+    RawExternalUint8ClampedArray* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return ExternalUint8ClampedArray::InstanceSize();
 }
 
 

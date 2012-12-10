@@ -542,7 +542,7 @@
       'target_name': 'dart',
       'type': 'executable',
       'dependencies': [
-        'libdart_export',
+        'libdart',
         'libdart_builtin',
         'libdart_io',
         'generate_snapshot_file',

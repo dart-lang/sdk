@@ -68,6 +68,24 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
+void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
+  const int kMinimumAlignment = 16;
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  ASSERT(alignment >= kMinimumAlignment);
+  // Temporary workaround until xcode is upgraded.
+  // Mac guarantees malloc returns a 16 byte aligned memory chunk.
+  // Currently we only allocate with 16-bye alignment.
+  ASSERT(alignment == 16);
+  // TODO(johnmccutchan): Remove hack and switch to posix_memalign.
+  return malloc(size);
+}
+
+
+void OS::AlignedFree(void* ptr) {
+  free(ptr);
+}
+
+
 word OS::ActivationFrameAlignment() {
   // OS X activation frames must be 16 byte-aligned; see "Mac OS X ABI
   // Function Call Guide".

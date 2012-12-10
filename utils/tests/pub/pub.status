@@ -7,14 +7,9 @@
 *: Skip
 
 # Pub only runs on the standalone VM, not the browser.
-[ $runtime == drt || $runtime == dartium || $runtime == opera]
+[ $runtime == drt || $runtime == dartium || $runtime == opera ]
 *: Skip
 
-# TODO(nweiz): Figure out why this is failing.
+# TODO(rnystrom): Figure out why this is failing or timing out (#7211).
 [ $system == windows ]
-pub_lish_test: Fail
-
-# TODO(nweiz): The "pub lish" and oauth2 tests often fail mysteriously on
-# Windows. See issues 7015 and 7016.
-oauth2_test: Skip
-curl_client_test: Skip
+pub_lish_test: Skip

@@ -152,7 +152,7 @@ void FlowGraphOptimizer::OptimizeComputations() {
     entry->Accept(this);
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      Instruction* replacement = current->Canonicalize();
+      Instruction* replacement = current->Canonicalize(this);
       if (replacement != current) {
         // For non-definitions Canonicalize should return either NULL or
         // this.
@@ -1184,7 +1184,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         BuildStringCharCodeAt(call, class_ids[0]);
     InsertBefore(call, load_char_code, NULL, Definition::kValue);
     StringFromCharCodeInstr* char_at =
-        new StringFromCharCodeInstr(new Value(load_char_code));
+        new StringFromCharCodeInstr(new Value(load_char_code),
+                                    kOneByteStringCid);
     call->ReplaceWith(char_at, current_iterator());
     RemovePushArguments(call);
     return true;
@@ -3546,15 +3547,23 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
       instr->instantiator()->definition()->constant_value();
   if (IsNonConstant(object)) {
     SetValue(instr, non_constant_);
-  } else if (IsConstant(object)) {
-    if (!object.IsNull() &&
-        object.IsTypeArguments() &&
-        (TypeArguments::Cast(object).Length() ==
-         instr->type_arguments().Length())) {
+    return;
+  }
+  if (IsConstant(object)) {
+    const intptr_t len = instr->type_arguments().Length();
+    if (instr->type_arguments().IsRawInstantiatedRaw(len) &&
+        object.IsNull()) {
       SetValue(instr, object);
-    } else {
-      SetValue(instr, non_constant_);
+      return;
     }
+    if (instr->type_arguments().IsUninstantiatedIdentity() &&
+        !object.IsNull() &&
+        object.IsTypeArguments() &&
+        (TypeArguments::Cast(object).Length() == len)) {
+      SetValue(instr, object);
+      return;
+    }
+    SetValue(instr, non_constant_);
   }
 }
 
@@ -3831,6 +3840,7 @@ void ConstantPropagator::Transform() {
       // types, etc.
       if ((defn != NULL) &&
           (defn->constant_value().IsSmi() ||
+           defn->constant_value().IsNull() ||
            defn->constant_value().IsTypeArguments()) &&
           !defn->IsConstant() &&
           !defn->IsPushArgument() &&

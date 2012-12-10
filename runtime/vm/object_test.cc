@@ -268,11 +268,12 @@ TEST_CASE(StringCompareTo) {
   const int kMonkeyLen = 4;
   const uint8_t monkey_utf8[kMonkeyLen] = { 0xf0, 0x9f, 0x90, 0xb5 };
   const String& monkey_face =
-      String::Handle(String::New(monkey_utf8, kMonkeyLen));
+      String::Handle(String::FromUTF8(monkey_utf8, kMonkeyLen));
   const int kDogLen = 4;
   // 0x1f436 DOG FACE.
   const uint8_t dog_utf8[kDogLen] = { 0xf0, 0x9f, 0x90, 0xb6 };
-  const String& dog_face = String::Handle(String::New(dog_utf8, kDogLen));
+  const String& dog_face =
+      String::Handle(String::FromUTF8(dog_utf8, kDogLen));
   EXPECT_EQ(0, monkey_face.CompareTo(monkey_face));
   EXPECT_EQ(0, dog_face.CompareTo(dog_face));
   EXPECT(monkey_face.CompareTo(dog_face) < 0);
@@ -281,7 +282,8 @@ TEST_CASE(StringCompareTo) {
   const int kDominoLen = 4;
   // 0x1f036 DOMINO TILE HORIZONTAL-00-05.
   const uint8_t domino_utf8[kDominoLen] = { 0xf0, 0x9f, 0x80, 0xb6 };
-  const String& domino = String::Handle(String::New(domino_utf8, kDominoLen));
+  const String& domino =
+      String::Handle(String::FromUTF8(domino_utf8, kDominoLen));
   EXPECT_EQ(0, domino.CompareTo(domino));
   EXPECT(domino.CompareTo(dog_face) < 0);
   EXPECT(domino.CompareTo(monkey_face) < 0);
@@ -516,7 +518,7 @@ TEST_CASE(String) {
 
   const uint8_t* motto =
       reinterpret_cast<const uint8_t*>("Dart's bescht wos je hets gits");
-  const String& str2 = String::Handle(String::New(motto+7, 4));
+  const String& str2 = String::Handle(String::FromUTF8(motto+7, 4));
   EXPECT_EQ(4, str2.Length());
   EXPECT_EQ('b', str2.CharAt(0));
   EXPECT_EQ('e', str2.CharAt(1));
@@ -544,7 +546,7 @@ TEST_CASE(String) {
 
   const intptr_t kCharsLen = 8;
   const uint8_t chars[kCharsLen] = { 1, 2, 127, 64, 92, 0, 55, 55 };
-  const String& str8 = String::Handle(String::New(chars, kCharsLen));
+  const String& str8 = String::Handle(String::FromUTF8(chars, kCharsLen));
   EXPECT_EQ(kCharsLen, str8.Length());
   EXPECT_EQ(1, str8.CharAt(0));
   EXPECT_EQ(127, str8.CharAt(2));
@@ -563,8 +565,8 @@ TEST_CASE(String) {
 
   const intptr_t kWideCharsLen = 7;
   uint16_t wide_chars[kWideCharsLen] = { 'H', 'e', 'l', 'l', 'o', 256, '!' };
-  const String& two_str = String::Handle(String::New(wide_chars,
-                                                     kWideCharsLen));
+  const String& two_str = String::Handle(String::FromUTF16(wide_chars,
+                                                           kWideCharsLen));
   EXPECT(two_str.IsInstance());
   EXPECT(two_str.IsString());
   EXPECT(two_str.IsTwoByteString());
@@ -589,7 +591,7 @@ TEST_CASE(String) {
   }
 
   const int32_t four_chars[] = { 'C', 0xFF, 'h', 0xFFFF, 'a', 0x10FFFF, 'r' };
-  const String& four_str = String::Handle(String::New(four_chars, 7));
+  const String& four_str = String::Handle(String::FromUTF32(four_chars, 7));
   EXPECT_EQ(four_str.Hash(), four_str.Hash());
   EXPECT(four_str.IsTwoByteString());
   EXPECT(!four_str.IsOneByteString());
@@ -606,7 +608,7 @@ TEST_CASE(String) {
   // Create a 1-byte string from an array of 2-byte elements.
   {
     const uint16_t char16[] = { 0x00, 0x7F, 0xFF };
-    const String& str8 = String::Handle(String::New(char16, 3));
+    const String& str8 = String::Handle(String::FromUTF16(char16, 3));
     EXPECT(str8.IsOneByteString());
     EXPECT(!str8.IsTwoByteString());
     EXPECT_EQ(0x00, str8.CharAt(0));
@@ -617,7 +619,7 @@ TEST_CASE(String) {
   // Create a 1-byte string from an array of 4-byte elements.
   {
     const int32_t char32[] = { 0x00, 0x1F, 0x7F };
-    const String& str8 = String::Handle(String::New(char32, 3));
+    const String& str8 = String::Handle(String::FromUTF32(char32, 3));
     EXPECT(str8.IsOneByteString());
     EXPECT(!str8.IsTwoByteString());
     EXPECT_EQ(0x00, str8.CharAt(0));
@@ -628,7 +630,7 @@ TEST_CASE(String) {
   // Create a 2-byte string from an array of 4-byte elements.
   {
     const int32_t char32[] = { 0, 0x7FFF, 0xFFFF };
-    const String& str16 = String::Handle(String::New(char32, 3));
+    const String& str16 = String::Handle(String::FromUTF32(char32, 3));
     EXPECT(!str16.IsOneByteString());
     EXPECT(str16.IsTwoByteString());
     EXPECT_EQ(0x0000, str16.CharAt(0));
@@ -834,7 +836,7 @@ TEST_CASE(StringConcat) {
 
     uint16_t two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
-    const String& str2 = String::Handle(String::New(two, two_len));
+    const String& str2 = String::Handle(String::FromUTF16(two, two_len));
     EXPECT(str2.IsTwoByteString());
     EXPECT_EQ(two_len, str2.Length());
 
@@ -889,13 +891,13 @@ TEST_CASE(StringConcat) {
   {
     const uint16_t one[] = { 0x05D0, 0x05D9, 0x05D9, 0x05DF };
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
-    const String& str1 = String::Handle(String::New(one, one_len));
+    const String& str1 = String::Handle(String::FromUTF16(one, one_len));
     EXPECT(str1.IsTwoByteString());
     EXPECT_EQ(one_len, str1.Length());
 
     const uint16_t two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
-    const String& str2 = String::Handle(String::New(two, two_len));
+    const String& str2 = String::Handle(String::FromUTF16(two, two_len));
     EXPECT(str2.IsTwoByteString());
     EXPECT_EQ(two_len, str2.Length());
 
@@ -975,7 +977,7 @@ TEST_CASE(StringConcat) {
     int32_t four[] = { 0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1 };
     intptr_t four_len = sizeof(four) / sizeof(four[0]);
     intptr_t expected_len = (four_len * 2);
-    const String& str2 = String::Handle(String::New(four, four_len));
+    const String& str2 = String::Handle(String::FromUTF32(four, four_len));
     EXPECT(str2.IsTwoByteString());
     EXPECT_EQ(expected_len, str2.Length());
 
@@ -1022,7 +1024,7 @@ TEST_CASE(StringConcat) {
     intptr_t fourfour_len = sizeof(fourfour) / sizeof(fourfour[0]);
     EXPECT_EQ((fourfour_len * 2), str7.Length());
     const String& fourfour_str =
-        String::Handle(String::New(fourfour, fourfour_len));
+        String::Handle(String::FromUTF32(fourfour, fourfour_len));
     EXPECT(str7.Equals(fourfour_str));
   }
 
@@ -1030,13 +1032,13 @@ TEST_CASE(StringConcat) {
   {
     const int32_t one[] = { 0x105D0, 0x105D9, 0x105D9, 0x105DF };
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
-    const String& onestr = String::Handle(String::New(one, one_len));
+    const String& onestr = String::Handle(String::FromUTF32(one, one_len));
     EXPECT(onestr.IsTwoByteString());
     EXPECT_EQ((one_len *2), onestr.Length());
 
     const int32_t two[] = { 0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9 };
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
-    const String& twostr = String::Handle(String::New(two, two_len));
+    const String& twostr = String::Handle(String::FromUTF32(two, two_len));
     EXPECT(twostr.IsTwoByteString());
     EXPECT_EQ((two_len * 2), twostr.Length());
 
@@ -1049,7 +1051,7 @@ TEST_CASE(StringConcat) {
     intptr_t one_two_len = sizeof(one_two) / sizeof(one_two[0]);
     EXPECT_EQ((one_two_len * 2), str1.Length());
     const String& one_two_str =
-        String::Handle(String::New(one_two, one_two_len));
+        String::Handle(String::FromUTF32(one_two, one_two_len));
     EXPECT(str1.Equals(one_two_str));
 
     const String& str2 = String::Handle(String::Concat(twostr, onestr));
@@ -1059,7 +1061,7 @@ TEST_CASE(StringConcat) {
     intptr_t two_one_len = sizeof(two_one) / sizeof(two_one[0]);
     EXPECT_EQ((two_one_len * 2), str2.Length());
     const String& two_one_str =
-        String::Handle(String::New(two_one, two_one_len));
+        String::Handle(String::FromUTF32(two_one, two_one_len));
     EXPECT(str2.Equals(two_one_str));
 
     // ConcatAll
@@ -1096,7 +1098,7 @@ TEST_CASE(StringConcat) {
     intptr_t one_two_one_len = sizeof(one_two_one) / sizeof(one_two_one[0]);
     EXPECT_EQ((one_two_one_len * 2), str5.Length());
     const String& one_two_one_str =
-        String::Handle(String::New(one_two_one, one_two_one_len));
+        String::Handle(String::FromUTF32(one_two_one, one_two_one_len));
     EXPECT(str5.Equals(one_two_one_str));
 
     const Array& array4 = Array::Handle(Array::New(3));
@@ -1114,7 +1116,7 @@ TEST_CASE(StringConcat) {
     intptr_t two_one_two_len = sizeof(two_one_two) / sizeof(two_one_two[0]);
     EXPECT_EQ((two_one_two_len * 2), str6.Length());
     const String& two_one_two_str =
-        String::Handle(String::New(two_one_two, two_one_two_len));
+        String::Handle(String::FromUTF32(two_one_two, two_one_two_len));
     EXPECT(str6.Equals(two_one_two_str));
   }
 
@@ -1122,14 +1124,14 @@ TEST_CASE(StringConcat) {
   {
     const uint8_t one[] = { 'o', 'n', 'e', ' ', 'b', 'y', 't', 'e' };
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
-    const String& onestr = String::Handle(String::New(one, one_len));
+    const String& onestr = String::Handle(String::FromLatin1(one, one_len));
     EXPECT(onestr.IsOneByteString());
     EXPECT_EQ(one_len, onestr.Length());
     EXPECT(onestr.Equals(one, one_len));
 
     uint16_t two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
-    const String& twostr = String::Handle(String::New(two, two_len));
+    const String& twostr = String::Handle(String::FromUTF16(two, two_len));
     EXPECT(twostr.IsTwoByteString());
     EXPECT_EQ(two_len, twostr.Length());
     EXPECT(twostr.Equals(two, two_len));
@@ -1192,13 +1194,13 @@ TEST_CASE(StringSubStringDifferentWidth) {
 
   const String& onestr = String::Handle(String::New(onechars));
   EXPECT(!onestr.IsNull());
-  EXPECT(!onestr.IsOneByteString());
-  EXPECT(onestr.IsTwoByteString());
+  EXPECT(onestr.IsOneByteString());
+  EXPECT(!onestr.IsTwoByteString());
 
   const String& onesub = String::Handle(String::SubString(onestr, 0));
   EXPECT(!onesub.IsNull());
-  EXPECT(!onestr.IsOneByteString());
-  EXPECT(onestr.IsTwoByteString());
+  EXPECT(onestr.IsOneByteString());
+  EXPECT(!onestr.IsTwoByteString());
   EXPECT_EQ(onesub.Length(), 3);
 
   // Create 1- and 2-byte substrings from a 2-byte source string.
@@ -1290,7 +1292,7 @@ TEST_CASE(StringFromUtf8Literal) {
       0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF,
     };
     const String& str = String::Handle(String::New(src));
-    EXPECT(str.IsTwoByteString());
+    EXPECT(str.IsOneByteString());
     intptr_t expected_length = sizeof(expected);
     EXPECT_EQ(expected_length, str.Length());
     for (int i = 0; i < str.Length(); ++i) {
@@ -1446,6 +1448,23 @@ TEST_CASE(StringEqualsUtf8) {
 }
 
 
+TEST_CASE(StringEqualsUTF32) {
+  const String& empty = String::Handle(String::New(""));
+  const String& t_str = String::Handle(String::New("t"));
+  const String& th_str = String::Handle(String::New("th"));
+  const int32_t chars[] = {'t', 'h', 'i', 's'};
+  EXPECT(!empty.Equals(chars, -1));
+  EXPECT(empty.Equals(chars, 0));
+  EXPECT(!empty.Equals(chars, 1));
+  EXPECT(!t_str.Equals(chars, 0));
+  EXPECT(t_str.Equals(chars, 1));
+  EXPECT(!t_str.Equals(chars, 2));
+  EXPECT(!th_str.Equals(chars, 1));
+  EXPECT(th_str.Equals(chars, 2));
+  EXPECT(!th_str.Equals(chars, 3));
+}
+
+
 TEST_CASE(ExternalOneByteString) {
   uint8_t characters[] = { 0xF6, 0xF1, 0xE9 };
   intptr_t len = ARRAY_SIZE(characters);
@@ -1563,9 +1582,9 @@ TEST_CASE(Symbol) {
   EXPECT(one.raw() != eins.raw());
 
   uint16_t char16[] = { 'E', 'l', 'f' };
-  String& elf1 = String::Handle(Symbols::New(char16, 3));
+  String& elf1 = String::Handle(Symbols::FromUTF16(char16, 3));
   int32_t char32[] = { 'E', 'l', 'f' };
-  String& elf2 = String::Handle(Symbols::New(char32, 3));
+  String& elf2 = String::Handle(Symbols::FromUTF32(char32, 3));
   EXPECT(elf1.IsSymbol());
   EXPECT(elf2.IsSymbol());
   EXPECT_EQ(elf1.raw(), Symbols::New("Elf"));
@@ -1575,7 +1594,7 @@ TEST_CASE(Symbol) {
 
 TEST_CASE(SymbolUnicode) {
   uint16_t monkey_utf16[] = { 0xd83d, 0xdc35 };  // Unicode Monkey Face.
-  String& monkey = String::Handle(Symbols::New(monkey_utf16, 2));
+  String& monkey = String::Handle(Symbols::FromUTF16(monkey_utf16, 2));
   EXPECT(monkey.IsSymbol());
   const char monkey_utf8[] = {0xf0, 0x9f, 0x90, 0xb5, 0};
   EXPECT_EQ(monkey.raw(), Symbols::New(monkey_utf8));
@@ -1589,7 +1608,7 @@ TEST_CASE(SymbolUnicode) {
   String& cat = String::Handle(Symbols::FromCharCode(kCatFaceWithTearsOfJoy));
 
   uint16_t cat_utf16[] = { 0xd83d, 0xde39 };
-  String& cat2 = String::Handle(Symbols::New(cat_utf16, 2));
+  String& cat2 = String::Handle(Symbols::FromUTF16(cat_utf16, 2));
   EXPECT(cat2.IsSymbol());
   EXPECT_EQ(cat2.raw(), cat.raw());
 }
@@ -1897,23 +1916,35 @@ TEST_CASE(ExternalByteArray) {
   EXPECT(!uint8_array.IsNull());
   EXPECT_EQ(data_length, uint8_array.Length());
 
+  const ExternalUint8ClampedArray& uint8_clamped_array =
+      ExternalUint8ClampedArray::Handle(
+          ExternalUint8ClampedArray::New(data, data_length, NULL, NULL));
+  EXPECT(!uint8_clamped_array.IsNull());
+  EXPECT_EQ(data_length, uint8_clamped_array.Length());
+
   EXPECT_EQ(-3, int8_array.At(0));
   EXPECT_EQ(253, uint8_array.At(0));
+  EXPECT_EQ(253, uint8_clamped_array.At(0));
 
   EXPECT_EQ(-2, int8_array.At(1));
   EXPECT_EQ(254, uint8_array.At(1));
+  EXPECT_EQ(254, uint8_clamped_array.At(1));
 
   EXPECT_EQ(-1, int8_array.At(2));
   EXPECT_EQ(255, uint8_array.At(2));
+  EXPECT_EQ(255, uint8_clamped_array.At(2));
 
   EXPECT_EQ(0, int8_array.At(3));
   EXPECT_EQ(0, uint8_array.At(3));
+  EXPECT_EQ(0, uint8_clamped_array.At(3));
 
   EXPECT_EQ(1, int8_array.At(4));
   EXPECT_EQ(1, uint8_array.At(4));
+  EXPECT_EQ(1, uint8_clamped_array.At(4));
 
   EXPECT_EQ(2, int8_array.At(5));
   EXPECT_EQ(2, uint8_array.At(5));
+  EXPECT_EQ(2, uint8_clamped_array.At(5));
 
   for (intptr_t i = 0 ; i < int8_array.Length(); ++i) {
     uint8_t value = 0;
@@ -1928,10 +1959,17 @@ TEST_CASE(ExternalByteArray) {
     ByteArray::Copy(&value, uint8_array, i, sizeof(value));
     EXPECT_EQ(int8_array.At(i), value);
   }
+
+  uint8_clamped_array.SetAt(0, 123);
+  for (intptr_t i = 0 ; i < int8_array.Length(); ++i) {
+    int8_t value = 0;
+    ByteArray::Copy(&value, uint8_clamped_array, i, sizeof(value));
+    EXPECT_EQ(int8_array.At(i), value);
+  }
 }
 
 
-TEST_CASE(ByteArrayCopyInternal) {
+TEST_CASE(UInt8ByteArrayCopyInternal) {
   const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
   const uint8_t b_4_5_6_7[] = { 4, 5, 6, 7 };
 
@@ -1987,12 +2025,70 @@ TEST_CASE(ByteArrayCopyInternal) {
   EXPECT_EQ(3, internal.At(3));
 }
 
+TEST_CASE(ClampedUInt8ByteArrayCopyInternal) {
+  const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
+  const uint8_t b_4_5_6_7[] = { 4, 5, 6, 7 };
 
-TEST_CASE(ByteArrayCopyExternal) {
+  const Uint8ClampedArray& internal =
+      Uint8ClampedArray::Handle(
+          Uint8ClampedArray::New(b_0_1_2_3, ARRAY_SIZE(b_0_1_2_3)));
+  EXPECT(!internal.IsNull());
+  EXPECT_EQ(4, internal.Length());
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A zero length copy.
+  ByteArray::Copy(internal, 0, b_4_5_6_7, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // Another zero length copy.
+  ByteArray::Copy(internal, 4, b_4_5_6_7, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A one element copy.
+  ByteArray::Copy(internal, 0, b_4_5_6_7, 1);
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A two element copy.
+  ByteArray::Copy(internal, 2, b_4_5_6_7, 2);
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(4, internal.At(2));
+  EXPECT_EQ(5, internal.At(3));
+
+  // A three element copy.
+  ByteArray::Copy(internal, 1, b_4_5_6_7, 3);
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(4, internal.At(1));
+  EXPECT_EQ(5, internal.At(2));
+  EXPECT_EQ(6, internal.At(3));
+
+  // A four element copy.
+  ByteArray::Copy(internal, 0, b_0_1_2_3, 4);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+}
+
+
+TEST_CASE(Uint8ByteArrayCopyExternal) {
   const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
   const uint8_t b_4_5_6_7[] = { 4, 5, 6, 7 };
 
   uint8_t data[] = { 0, 1, 2, 3 };
+
   const ExternalUint8Array& external =
       ExternalUint8Array::Handle(
           ExternalUint8Array::New(data, ARRAY_SIZE(data), NULL, NULL));
@@ -2047,8 +2143,69 @@ TEST_CASE(ByteArrayCopyExternal) {
 }
 
 
-TEST_CASE(ByteArrayCopyInternalExternal) {
+TEST_CASE(ClampedUint8ByteArrayCopyExternal) {
   const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
+  const uint8_t b_4_5_6_7[] = { 4, 5, 6, 7 };
+
+  uint8_t data[] = { 0, 1, 2, 3 };
+
+  const ExternalUint8ClampedArray& external =
+      ExternalUint8ClampedArray::Handle(
+          ExternalUint8ClampedArray::New(data, ARRAY_SIZE(data), NULL, NULL));
+  EXPECT(!external.IsNull());
+  EXPECT_EQ(4, external.Length());
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // A zero length copy.
+  ByteArray::Copy(external, 0, b_4_5_6_7, 0);
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // Another zero length copy.
+  ByteArray::Copy(external, 4, b_4_5_6_7, 0);
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // A one element copy.
+  ByteArray::Copy(external, 0, b_4_5_6_7, 1);
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+
+  // A two element copy.
+  ByteArray::Copy(external, 2, b_4_5_6_7, 2);
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(4, external.At(2));
+  EXPECT_EQ(5, external.At(3));
+
+  // A three element copy.
+  ByteArray::Copy(external, 1, b_4_5_6_7, 3);
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(4, external.At(1));
+  EXPECT_EQ(5, external.At(2));
+  EXPECT_EQ(6, external.At(3));
+
+  // A four element copy.
+  ByteArray::Copy(external, 0, b_0_1_2_3, 4);
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+}
+
+
+TEST_CASE(Uint8ByteArrayCopyInternalExternal) {
+  const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
+  uint8_t data[] = { 4, 5, 6, 7 };
 
   const Uint8Array& internal =
       Uint8Array::Handle(Uint8Array::New(b_0_1_2_3, ARRAY_SIZE(b_0_1_2_3)));
@@ -2059,10 +2216,90 @@ TEST_CASE(ByteArrayCopyInternalExternal) {
   EXPECT_EQ(2, internal.At(2));
   EXPECT_EQ(3, internal.At(3));
 
-  uint8_t data[] = { 4, 5, 6, 7 };
   const ExternalUint8Array& external =
       ExternalUint8Array::Handle(
           ExternalUint8Array::New(data, ARRAY_SIZE(data), NULL, NULL));
+  EXPECT(!external.IsNull());
+  EXPECT_EQ(4, external.Length());
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(5, external.At(1));
+  EXPECT_EQ(6, external.At(2));
+  EXPECT_EQ(7, external.At(3));
+
+  // A zero length copy.
+  ByteArray::Copy(internal, 0, external, 0, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A zero length copy, take 2.
+  ByteArray::Copy(internal, 4, external, 0, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A zero length copy, take 3.
+  ByteArray::Copy(internal, 0, external, 4, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A zero length copy, take 4.
+  ByteArray::Copy(internal, 4, external, 4, 0);
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  // A four element copy.
+  ByteArray::Copy(internal, 0, external, 0, 4);
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(5, internal.At(1));
+  EXPECT_EQ(6, internal.At(2));
+  EXPECT_EQ(7, internal.At(3));
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(5, external.At(1));
+  EXPECT_EQ(6, external.At(2));
+  EXPECT_EQ(7, external.At(3));
+
+  // A four element copy, take 2.
+  ByteArray::Copy(external, 0, b_0_1_2_3, 4);
+  EXPECT_EQ(0, external.At(0));
+  EXPECT_EQ(1, external.At(1));
+  EXPECT_EQ(2, external.At(2));
+  EXPECT_EQ(3, external.At(3));
+  ByteArray::Copy(external, 0, internal, 0, 4);
+  EXPECT_EQ(4, internal.At(0));
+  EXPECT_EQ(5, internal.At(1));
+  EXPECT_EQ(6, internal.At(2));
+  EXPECT_EQ(7, internal.At(3));
+  EXPECT_EQ(4, external.At(0));
+  EXPECT_EQ(5, external.At(1));
+  EXPECT_EQ(6, external.At(2));
+  EXPECT_EQ(7, external.At(3));
+}
+
+
+TEST_CASE(ClampedUint8ByteArrayCopyInternalExternal) {
+  const uint8_t b_0_1_2_3[] = { 0, 1, 2, 3 };
+  uint8_t data[] = { 4, 5, 6, 7 };
+
+  const Uint8ClampedArray& internal =
+      Uint8ClampedArray::Handle(
+          Uint8ClampedArray::New(b_0_1_2_3, ARRAY_SIZE(b_0_1_2_3)));
+  EXPECT(!internal.IsNull());
+  EXPECT_EQ(4, internal.Length());
+  EXPECT_EQ(0, internal.At(0));
+  EXPECT_EQ(1, internal.At(1));
+  EXPECT_EQ(2, internal.At(2));
+  EXPECT_EQ(3, internal.At(3));
+
+  const ExternalUint8ClampedArray& external =
+      ExternalUint8ClampedArray::Handle(
+          ExternalUint8ClampedArray::New(data, ARRAY_SIZE(data), NULL, NULL));
   EXPECT(!external.IsNull());
   EXPECT_EQ(4, external.Length());
   EXPECT_EQ(4, external.At(0));

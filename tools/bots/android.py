@@ -8,6 +8,8 @@
 Android buildbot steps.
 """
 
+import os
+import os.path
 import re
 import sys
 
@@ -45,9 +47,13 @@ def BuildAndroid(build_info):
       build and test to be run.
   """
   with bot.BuildStep('Build Android'):
-    targets = ['dart']
+    # TODO(vsm): A temporary hack until we figure out why incremental builds are
+    # broken on Android.
+    if os.path.exists('./out/lastHooksTargetOS.txt'):
+      os.remove('./out/lastHooksTargetOS.txt')
+    targets = ['samples']
     args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
-        '--os=android ' + ' '.join(targets)]
+            '--os=android'] + targets
     print 'Building Android: %s' % (' '.join(args))
     bot.RunProcess(args)
 

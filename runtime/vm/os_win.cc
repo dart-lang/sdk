@@ -4,8 +4,10 @@
 
 #include "vm/os.h"
 
+#include <malloc.h>
 #include <time.h>
 
+#include "platform/utils.h"
 #include "platform/assert.h"
 
 namespace dart {
@@ -99,6 +101,23 @@ int64_t OS::GetCurrentTimeMicros() {
   TimeStamp time;
   GetSystemTimeAsFileTime(&time.ft_);
   return (time.t_ - kTimeEpoc) / kTimeScaler;
+}
+
+
+void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
+  const int kMinimumAlignment = 16;
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  ASSERT(alignment >= kMinimumAlignment);
+  void* p = _aligned_malloc(size, alignment);
+  if (p == NULL) {
+    UNREACHABLE();
+  }
+  return p;
+}
+
+
+void OS::AlignedFree(void* ptr) {
+  _aligned_free(ptr);
 }
 
 

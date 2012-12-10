@@ -105,13 +105,35 @@ public class MemberBuilder {
           member.accept(this);
         }
       }
-      // check that constructor names don't conflict with member names
+      // check constructor names
       for (ConstructorElement constructor : classElement.getConstructors()) {
         String name = constructor.getName();
-        Element member = classElement.lookupLocalElement(name);
-        if (member != null) {
-          resolutionError(constructor.getNameLocation(),
-              ResolverErrorCode.CONSTRUCTOR_WITH_NAME_OF_MEMBER);
+        SourceInfo nameLocation = constructor.getNameLocation();
+        // should be name of immediately enclosing class
+        if (constructor.getModifiers().isFactory()) {
+          String rawName = constructor.getRawName();
+          String consClassName = StringUtils.substringBefore(rawName, ".");
+          String consUserName = StringUtils.substringAfter(rawName, ".");
+          if (!StringUtils.equals(consClassName, classElement.getName())) {
+            // report error for for M part of M.id or pure M
+            SourceInfo consClassLocation = new SourceInfo(nameLocation.getSource(),
+                nameLocation.getOffset(), consClassName.length());
+            resolutionError(consClassLocation,
+                ResolverErrorCode.CONSTRUCTOR_NAME_NOT_ENCLOSING_CLASS);
+            // in addition also report warning for whole constructor name
+            if (!StringUtils.isEmpty(consUserName)) {
+              resolutionError(nameLocation,
+                  ResolverErrorCode.CONSTRUCTOR_NAME_NOT_ENCLOSING_CLASS_ID);
+            }
+          }
+        }
+        // should not conflict with member names
+        {
+          Element member = classElement.lookupLocalElement(name);
+          if (member != null) {
+            resolutionError(nameLocation,
+                ResolverErrorCode.CONSTRUCTOR_WITH_NAME_OF_MEMBER);
+          }
         }
       }
       // done with this class

@@ -33,11 +33,7 @@ static bool FindExceptionHandler(uword* handler_pc,
                                  const GrowableObjectArray& pc_offset_list) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
-  if (frame == NULL) {
-    // We have no dart invocation frames and hence cannot find a handler
-    // to return to.
-    return false;
-  }
+  ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Function& func = Function::Handle();
   Code& code = Code::Handle();
   Smi& offset = Smi::Handle();
@@ -162,23 +158,12 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
                                              func_list,
                                              code_list,
                                              pc_offset_list);
-  if (handler_pc == 0) {
-    // There are no dart invocation frames on the stack so we do not
-    // have a caller to return to.
-    ASSERT(!handler_exists);
-    if (Isolate::UnhandledExceptionCallback() != NULL) {
-      // Notify embedder that an unhandled exception occurred.
-      Dart_EnterScope();
-      Dart_Handle error_handle = Api::NewHandle(Isolate::Current(),
-                                                incoming_exception.raw());
-      (Isolate::UnhandledExceptionCallback())(error_handle);
-      Dart_ExitScope();
-    } else {
-      OS::PrintErr("Exception '%s' thrown:\n", exception.ToCString());
-      OS::PrintErr("Shutting down the isolate\n");
-    }
-    Dart_ShutdownIsolate();
-  }
+  // We expect to find a handler_pc, if the exception is unhandled
+  // then we expect to at least have the dart entry frame on the
+  // stack as Exceptions::Throw should happen only after a dart
+  // invocation has been done.
+  ASSERT(handler_pc != 0);
+
   // TODO(5411263): At some point we can optimize by figuring out if a
   // stack trace is needed based on whether the catch code specifies a
   // stack trace object or there is a rethrow in the catch clause.

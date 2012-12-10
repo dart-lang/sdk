@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class SecureSocket {
-  /* patch */ static void setCertificateDatabase(String certificateDatabase,
-                                                 [String password])
-      native "SecureSocket_SetCertificateDatabase";
+  /* patch */ static void initialize({String database,
+                                      String password,
+                                      bool useBuiltinRoots: true})
+  native "SecureSocket_InitializeLibrary";
 }
 
 
@@ -50,6 +51,9 @@ class _SecureFilterImpl
   void init() native "SecureSocket_Init";
 
   int processBuffer(int bufferIndex) native "SecureSocket_ProcessBuffer";
+
+  void registerBadCertificateCallback(Function callback)
+      native "SecureSocket_RegisterBadCertificateCallback";
 
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler)
       native "SecureSocket_RegisterHandshakeCompleteCallback";

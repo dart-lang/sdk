@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library CSSStyleDeclarationTest;
+library CssStyleDeclarationTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
@@ -11,14 +11,14 @@ main() {
   useHtmlConfiguration();
 
   createTestStyle() {
-    return new CSSStyleDeclaration.css("""
+    return new CssStyleDeclaration.css("""
       color: blue;
       width: 2px !important;
     """);
   };
 
   test('default constructor is empty', () {
-    var style = new CSSStyleDeclaration();
+    var style = new CssStyleDeclaration();
     expect(style.cssText, isEmpty);
     expect(style.getPropertyPriority('color'), isEmpty);
     expect(style.item(0), isEmpty);
@@ -73,7 +73,7 @@ main() {
     document.body.children.add(element);
 
     element.getComputedStyle('').then(expectAsync1(
-      (CSSStyleDeclaration style) {
+      (CssStyleDeclaration style) {
         // Some browsers will normalize this, so it'll be a matrix rather than
         // the original string. Just check that it's something other than null.
         expect(style.transform.length, greaterThan(3));
@@ -90,7 +90,7 @@ main() {
     window.setTimeout(expectAsync0(() {
       element.style.textDecoration = 'underline';
       element.getComputedStyle('').then(expectAsync1(
-        (CSSStyleDeclaration style) {
+        (CssStyleDeclaration style) {
           expect(style.textDecoration, equals('underline'));
         }
       ));

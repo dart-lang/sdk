@@ -1,7 +1,8 @@
 library IndexedDB1Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
-import 'dart:html';
+import 'dart:html' as html;
+import 'dart:indexed_db' as idb;
 import 'dart:collection';
 import 'utils.dart';
 
@@ -66,11 +67,11 @@ testReadWrite(key, value, check,
   }
 
   openDb(e) {
-    var request = window.indexedDB.open(dbName, version);
+    var request = html.window.indexedDB.open(dbName, version);
     expect(request, isNotNull);
     request.on.success.add(expectAsync1(initDb));
     request.on.error.add(fail);
-    if (request is IDBOpenDBRequest) {
+    if (request is idb.OpenDBRequest) {
       // New upgrade protocol.  Old API has no 'upgradeNeeded' and uses
       // setVersion instead.
       request.on.upgradeNeeded.add((e) {
@@ -82,7 +83,7 @@ testReadWrite(key, value, check,
   }
 
   // Delete any existing DB.
-  var deleteRequest = window.indexedDB.deleteDatabase(dbName);
+  var deleteRequest = html.window.indexedDB.deleteDatabase(dbName);
   deleteRequest.on.success.add(expectAsync1(openDb));
   deleteRequest.on.error.add(fail);
 };

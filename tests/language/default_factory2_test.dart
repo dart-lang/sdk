@@ -1,12 +1,14 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Check type bounds when invoking a factory method
+// Check type bounds when invoking a redirecting factory method
 
-interface Foo {}
+abstract class Foo {}
 
-interface IA<T> default A<T extends Foo> { IA(); }
+abstract class IA<T> {
+  factory IA() = A<T>;
+}
 
 class A<T extends Foo> implements IA<T> {
    factory A(){}

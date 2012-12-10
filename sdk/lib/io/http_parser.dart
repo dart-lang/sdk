@@ -76,6 +76,7 @@ class _State {
   static const int FAILURE = 28;
 
   static const int FIRST_BODY_STATE = CHUNK_SIZE_STARTING_CR;
+  static const int FIRST_PARSE_STOP_STATE = CLOSED;
 }
 
 // HTTP version of the request or response being parsed.
@@ -158,9 +159,7 @@ class _HttpParser {
       }
       while (_buffer != null &&
              _index < _lastIndex &&
-             _state != _State.CANCELED &&
-             _state != _State.FAILURE &&
-             _state != _State.UPGRADED) {
+             _state <= _State.FIRST_PARSE_STOP_STATE) {
         int byte = _buffer[_index++];
         switch (_state) {
           case _State.START:
@@ -631,10 +630,10 @@ class _HttpParser {
   }
 
   void streamError(e) {
-    // Don't report errors when HTTP parser is in idle state. Clients
-    // can close the connection and cause a connection reset by peer
-    // error which is OK.
-    if (_state == _State.START) {
+    // Don't report errors for a request parser when HTTP parser is in
+    // idle state. Clients can close the connection and cause a
+    // connection reset by peer error which is OK.
+    if (_requestParser && _state == _State.START) {
       closed();
       return;
     }
@@ -653,6 +652,10 @@ class _HttpParser {
 
   void cancel() {
     _state = _State.CANCELED;
+  }
+
+  void restart() {
+    _reset();
   }
 
   int get messageType => _messageType;

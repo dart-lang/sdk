@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,7 +17,7 @@ class Foo<T> {
   }
 
   // T is in scope for a factory method.
-  factory I(Foo<T> f) {
+  factory Foo.I(Foo<T> f) {
     Foo<T> x = f;
   }
 
@@ -33,8 +33,8 @@ class Foo<T> {
                     value) {}
 }
 
-interface I<T> default Foo<T> {
-  I(Foo<T> f);
+abstract class I<T> {
+  factory I(Foo<T> f) = Foo<T>.I;
 }
 
 main() {

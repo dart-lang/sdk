@@ -84,6 +84,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXTERNAL_METHOD_BODY("External methods cannot have body"),
   INVALID_SEPARATOR_FOR_NAMED("Use ':' between a named parameter and its value"),
   INVALID_SEPARATOR_FOR_OPTIONAL("Use '=' between an optional parameter and its value"),
+  INVALID_UNICODE_NORMALIZATION("Source code should be normalized to Unicode Normalization Form C"),
   // TODO(zundel): this error message is out of date
   NATIVE_ONLY_CLASS("Native keyword can be specified only for classes"),
   NATIVE_ONLY_CORE_LIB("Native keyword can be used only in corelib"),

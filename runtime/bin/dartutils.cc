@@ -7,6 +7,7 @@
 #include "bin/extensions.h"
 #include "bin/directory.h"
 #include "bin/file.h"
+#include "bin/io_buffer.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -37,8 +38,8 @@ static bool IsWindowsHost() {
 }
 
 
-static const char* MapLibraryUrl(CommandLineOptions* url_mapping,
-                                 const char* url_string) {
+const char* DartUtils::MapLibraryUrl(CommandLineOptions* url_mapping,
+                                     const char* url_string) {
   ASSERT(url_mapping != NULL);
   // We need to check if the passed in url is found in the url_mapping array,
   // in that case use the mapped entry.
@@ -62,6 +63,15 @@ int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
   Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
   ASSERT(!Dart_IsError(result));
   return value;
+}
+
+
+intptr_t DartUtils::GetIntptrValue(Dart_Handle value_obj) {
+  ASSERT(Dart_IsInteger(value_obj));
+  int64_t value = 0;
+  Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
+  ASSERT(!Dart_IsError(result));
+  return static_cast<intptr_t>(value);
 }
 
 
@@ -224,32 +234,42 @@ Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
 }
 
 
-static Dart_Handle ResolveScriptUri(Dart_Handle script_uri,
-                                    Dart_Handle builtin_lib) {
+Dart_Handle DartUtils::ResolveScriptUri(Dart_Handle script_uri,
+                                        Dart_Handle builtin_lib) {
   const int kNumArgs = 3;
   Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = DartUtils::NewString(DartUtils::original_working_directory);
+  dart_args[0] = NewString(original_working_directory);
   dart_args[1] = script_uri;
   dart_args[2] = (IsWindowsHost() ? Dart_True() : Dart_False());
   return Dart_Invoke(builtin_lib,
-                     DartUtils::NewString("_resolveScriptUri"),
+                     NewString("_resolveScriptUri"),
                      kNumArgs,
                      dart_args);
 }
 
 
-static Dart_Handle FilePathFromUri(Dart_Handle script_uri,
-                                   Dart_Handle builtin_lib) {
+Dart_Handle DartUtils::FilePathFromUri(Dart_Handle script_uri,
+                                       Dart_Handle builtin_lib) {
   const int kNumArgs = 2;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = script_uri;
   dart_args[1] = (IsWindowsHost() ? Dart_True() : Dart_False());
-  Dart_Handle script_path = Dart_Invoke(
-      builtin_lib,
-      DartUtils::NewString("_filePathFromUri"),
-      kNumArgs,
-      dart_args);
-  return script_path;
+  return Dart_Invoke(builtin_lib,
+                     NewString("_filePathFromUri"),
+                     kNumArgs,
+                     dart_args);
+}
+
+
+Dart_Handle DartUtils::ResolveUri(Dart_Handle library_url,
+                                  Dart_Handle url,
+                                  Dart_Handle builtin_lib) {
+  const int kNumArgs = 2;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = library_url;
+  dart_args[1] = url;
+  return Dart_Invoke(
+      builtin_lib, NewString("_resolveUri"), kNumArgs, dart_args);
 }
 
 
@@ -282,12 +302,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     if (Dart_IsError(library_url)) {
       return library_url;
     }
-    const int kNumArgs = 2;
-    Dart_Handle dart_args[kNumArgs];
-    dart_args[0] = library_url;
-    dart_args[1] = url;
-    return Dart_Invoke(
-        builtin_lib, NewString("_resolveUri"), kNumArgs, dart_args);
+    return ResolveUri(library_url, url, builtin_lib);
   }
   if (is_dart_scheme_url) {
     ASSERT(tag == kImportTag);
@@ -334,7 +349,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
 
 static Dart_Handle ReadSource(Dart_Handle script_uri,
                               Dart_Handle builtin_lib) {
-  Dart_Handle script_path = FilePathFromUri(script_uri, builtin_lib);
+  Dart_Handle script_path = DartUtils::FilePathFromUri(script_uri, builtin_lib);
   if (Dart_IsError(script_path)) {
     return script_path;
   }
@@ -644,7 +659,7 @@ Dart_CObject* CObject::NewUint8Array(int length) {
 }
 
 
-Dart_CObject* CObject::NewExternalUint8Array(int length,
+Dart_CObject* CObject::NewExternalUint8Array(int64_t length,
                                              uint8_t* data,
                                              void* peer,
                                              Dart_PeerFinalizer callback) {
@@ -654,6 +669,20 @@ Dart_CObject* CObject::NewExternalUint8Array(int length,
   cobject->value.as_external_byte_array.peer = peer;
   cobject->value.as_external_byte_array.callback = callback;
   return cobject;
+}
+
+
+Dart_CObject* CObject::NewIOBuffer(int64_t length) {
+  uint8_t* data = IOBuffer::Allocate(length);
+  return NewExternalUint8Array(length, data, data, IOBuffer::Free);
+}
+
+
+void CObject::FreeIOBufferData(Dart_CObject* cobject) {
+  ASSERT(cobject->type == Dart_CObject::kExternalUint8Array);
+  cobject->value.as_external_byte_array.callback(
+      cobject->value.as_external_byte_array.peer);
+  cobject->value.as_external_byte_array.data = NULL;
 }
 
 

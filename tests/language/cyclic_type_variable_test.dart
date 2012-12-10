@@ -8,24 +8,24 @@ class Base<T> {}
 
 class Derived extends Base<Derived> {}  // legal
 
-typedef void funcType<T 
+typedef void funcType<T
 extends T /// 01: static type warning
 >(T arg);
 
 class DerivedFunc extends Base<funcType<DerivedFunc>> { }
 
 
-interface A<S 
+abstract class A<S
 extends S /// 02: static type warning
 > {
   S field;
 }
 
-interface B<U extends Base<U>> { // legal
+abstract class B<U extends Base<U>> { // legal
   U field;
 }
 
-class C1<V 
+class C1<V
 extends V  /// 03: static type warning
 > {
   V field;

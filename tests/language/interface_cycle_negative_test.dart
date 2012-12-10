@@ -1,17 +1,17 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Check fail because of cycles in super interface relationship.
 
-interface C extends B {
+abstract class C implements B {
 
 }
 
-interface A extends B {
+abstract class A implements B {
 
 }
 
-interface B extends A {
+abstract class B implements A {
 
 }
 

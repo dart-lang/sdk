@@ -1,5 +1,8 @@
 library html;
 
+import 'dart:collection';
+import 'dart:html_common';
+import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json';
 import 'dart:svg' as svg;
@@ -83,6 +86,7 @@ class AbstractWorkerEvents extends Events {
 /// @domName HTMLAnchorElement; @docsEditable true
 class AnchorElement extends Element implements Element native "*HTMLAnchorElement" {
 
+  ///@docsEditable true
   factory AnchorElement({String href}) {
     var e = document.$dom_createElement("a");
     if (href != null) e.href = href;
@@ -265,9 +269,78 @@ class AppletElement extends Element implements Element native "*HTMLAppletElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName DOMApplicationCache; @docsEditable true
+class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
+
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  ApplicationCacheEvents get on =>
+    new ApplicationCacheEvents(this);
+
+  static const int CHECKING = 2;
+
+  static const int DOWNLOADING = 3;
+
+  static const int IDLE = 1;
+
+  static const int OBSOLETE = 5;
+
+  static const int UNCACHED = 0;
+
+  static const int UPDATEREADY = 4;
+
+  /// @domName DOMApplicationCache.status; @docsEditable true
+  final int status;
+
+  /// @domName DOMApplicationCache.abort; @docsEditable true
+  void abort() native;
+
+  /// @domName DOMApplicationCache.addEventListener; @docsEditable true
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  /// @domName DOMApplicationCache.dispatchEvent; @docsEditable true
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
+
+  /// @domName DOMApplicationCache.removeEventListener; @docsEditable true
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  /// @domName DOMApplicationCache.swapCache; @docsEditable true
+  void swapCache() native;
+
+  /// @domName DOMApplicationCache.update; @docsEditable true
+  void update() native;
+}
+
+class ApplicationCacheEvents extends Events {
+  ApplicationCacheEvents(EventTarget _ptr) : super(_ptr);
+
+  EventListenerList get cached => this['cached'];
+
+  EventListenerList get checking => this['checking'];
+
+  EventListenerList get downloading => this['downloading'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get noUpdate => this['noupdate'];
+
+  EventListenerList get obsolete => this['obsolete'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get updateReady => this['updateready'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName HTMLAreaElement; @docsEditable true
 class AreaElement extends Element implements Element native "*HTMLAreaElement" {
 
+  ///@docsEditable true
   factory AreaElement() => document.$dom_createElement("area");
 
   /// @domName HTMLAreaElement.alt; @docsEditable true
@@ -320,6 +393,7 @@ class AreaElement extends Element implements Element native "*HTMLAreaElement" {
 /// @domName ArrayBuffer; @docsEditable true
 class ArrayBuffer native "*ArrayBuffer" {
 
+  ///@docsEditable true
   factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
 
   /// @domName ArrayBuffer.byteLength; @docsEditable true
@@ -373,9 +447,26 @@ class Attr extends Node native "*Attr" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName HTMLAudioElement; @docsEditable true
+class AudioElement extends MediaElement native "*HTMLAudioElement" {
+
+  ///@docsEditable true
+  factory AudioElement([String src]) {
+    if (!?src) {
+      return _AudioElementFactoryProvider.createAudioElement();
+    }
+    return _AudioElementFactoryProvider.createAudioElement(src);
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName HTMLBRElement; @docsEditable true
 class BRElement extends Element implements Element native "*HTMLBRElement" {
 
+  ///@docsEditable true
   factory BRElement() => document.$dom_createElement("br");
 
   /// @domName HTMLBRElement.clear; @docsEditable true
@@ -400,6 +491,7 @@ class BarInfo native "*BarInfo" {
 /// @domName HTMLBaseElement; @docsEditable true
 class BaseElement extends Element implements Element native "*HTMLBaseElement" {
 
+  ///@docsEditable true
   factory BaseElement() => document.$dom_createElement("base");
 
   /// @domName HTMLBaseElement.href; @docsEditable true
@@ -492,6 +584,7 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 /// @domName Blob; @docsEditable true
 class Blob native "*Blob" {
 
+  ///@docsEditable true
   factory Blob(List blobParts, [String type, String endings]) {
     if (!?type) {
       return _BlobFactoryProvider.createBlob(blobParts);
@@ -519,6 +612,7 @@ class Blob native "*Blob" {
 /// @domName HTMLBodyElement; @docsEditable true
 class BodyElement extends Element implements Element native "*HTMLBodyElement" {
 
+  ///@docsEditable true
   factory BodyElement() => document.$dom_createElement("body");
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -578,6 +672,7 @@ class BodyElementEvents extends ElementEvents {
 /// @domName HTMLButtonElement; @docsEditable true
 class ButtonElement extends Element implements Element native "*HTMLButtonElement" {
 
+  ///@docsEditable true
   factory ButtonElement() => document.$dom_createElement("button");
 
   /// @domName HTMLButtonElement.autofocus; @docsEditable true
@@ -638,7 +733,680 @@ class ButtonElement extends Element implements Element native "*HTMLButtonElemen
 
 
 /// @domName CDATASection; @docsEditable true
-class CDATASection extends Text native "*CDATASection" {
+class CDataSection extends Text native "*CDATASection" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName HTMLCanvasElement
+class CanvasElement extends Element implements Element native "*HTMLCanvasElement" {
+
+  ///@docsEditable true
+  factory CanvasElement({int width, int height}) {
+    var e = document.$dom_createElement("canvas");
+    if (width != null) e.width = width;
+    if (height != null) e.height = height;
+    return e;
+  }
+
+  /// @domName HTMLCanvasElement.height; @docsEditable true
+  int height;
+
+  /// @domName HTMLCanvasElement.width; @docsEditable true
+  int width;
+
+  /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
+  @JSName('toDataURL')
+  String toDataUrl(String type, [num quality]) native;
+
+
+  CanvasRenderingContext getContext(String contextId) native;
+  CanvasRenderingContext2D get context2d => getContext('2d');
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName CanvasGradient; @docsEditable true
+class CanvasGradient native "*CanvasGradient" {
+
+  /// @domName CanvasGradient.addColorStop; @docsEditable true
+  void addColorStop(num offset, String color) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName CanvasPattern; @docsEditable true
+class CanvasPattern native "*CanvasPattern" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName CanvasRenderingContext; @docsEditable true
+class CanvasRenderingContext native "*CanvasRenderingContext" {
+
+  /// @domName CanvasRenderingContext.canvas; @docsEditable true
+  final CanvasElement canvas;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName CanvasRenderingContext2D
+class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
+
+  /// @domName CanvasRenderingContext2D.fillStyle; @docsEditable true
+  @Creates('String|CanvasGradient|CanvasPattern') @Returns('String|CanvasGradient|CanvasPattern')
+  dynamic fillStyle;
+
+  /// @domName CanvasRenderingContext2D.font; @docsEditable true
+  String font;
+
+  /// @domName CanvasRenderingContext2D.globalAlpha; @docsEditable true
+  num globalAlpha;
+
+  /// @domName CanvasRenderingContext2D.globalCompositeOperation; @docsEditable true
+  String globalCompositeOperation;
+
+  /// @domName CanvasRenderingContext2D.lineCap; @docsEditable true
+  String lineCap;
+
+  /// @domName CanvasRenderingContext2D.lineDashOffset; @docsEditable true
+  num lineDashOffset;
+
+  /// @domName CanvasRenderingContext2D.lineJoin; @docsEditable true
+  String lineJoin;
+
+  /// @domName CanvasRenderingContext2D.lineWidth; @docsEditable true
+  num lineWidth;
+
+  /// @domName CanvasRenderingContext2D.miterLimit; @docsEditable true
+  num miterLimit;
+
+  /// @domName CanvasRenderingContext2D.shadowBlur; @docsEditable true
+  num shadowBlur;
+
+  /// @domName CanvasRenderingContext2D.shadowColor; @docsEditable true
+  String shadowColor;
+
+  /// @domName CanvasRenderingContext2D.shadowOffsetX; @docsEditable true
+  num shadowOffsetX;
+
+  /// @domName CanvasRenderingContext2D.shadowOffsetY; @docsEditable true
+  num shadowOffsetY;
+
+  /// @domName CanvasRenderingContext2D.strokeStyle; @docsEditable true
+  @Creates('String|CanvasGradient|CanvasPattern') @Returns('String|CanvasGradient|CanvasPattern')
+  dynamic strokeStyle;
+
+  /// @domName CanvasRenderingContext2D.textAlign; @docsEditable true
+  String textAlign;
+
+  /// @domName CanvasRenderingContext2D.textBaseline; @docsEditable true
+  String textBaseline;
+
+  /// @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio; @docsEditable true
+  final num webkitBackingStorePixelRatio;
+
+  /// @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled; @docsEditable true
+  bool webkitImageSmoothingEnabled;
+
+  /// @domName CanvasRenderingContext2D.webkitLineDash; @docsEditable true
+  List webkitLineDash;
+
+  /// @domName CanvasRenderingContext2D.webkitLineDashOffset; @docsEditable true
+  num webkitLineDashOffset;
+
+  /// @domName CanvasRenderingContext2D.arc; @docsEditable true
+  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
+
+  /// @domName CanvasRenderingContext2D.arcTo; @docsEditable true
+  void arcTo(num x1, num y1, num x2, num y2, num radius) native;
+
+  /// @domName CanvasRenderingContext2D.beginPath; @docsEditable true
+  void beginPath() native;
+
+  /// @domName CanvasRenderingContext2D.bezierCurveTo; @docsEditable true
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
+
+  /// @domName CanvasRenderingContext2D.clearRect; @docsEditable true
+  void clearRect(num x, num y, num width, num height) native;
+
+  /// @domName CanvasRenderingContext2D.clearShadow; @docsEditable true
+  void clearShadow() native;
+
+  /// @domName CanvasRenderingContext2D.clip; @docsEditable true
+  void clip() native;
+
+  /// @domName CanvasRenderingContext2D.closePath; @docsEditable true
+  void closePath() native;
+
+  /// @domName CanvasRenderingContext2D.createImageData; @docsEditable true
+  ImageData createImageData(imagedata_OR_sw, [num sh]) {
+    if ((?imagedata_OR_sw && (imagedata_OR_sw is ImageData || imagedata_OR_sw == null)) &&
+        !?sh) {
+      var imagedata_1 = _convertDartToNative_ImageData(imagedata_OR_sw);
+      return _convertNativeToDart_ImageData(_createImageData_1(imagedata_1));
+    }
+    if ((?imagedata_OR_sw && (imagedata_OR_sw is num || imagedata_OR_sw == null))) {
+      return _convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  @JSName('createImageData')
+  @Creates('ImageData|=Object')
+  _createImageData_1(imagedata) native;
+  @JSName('createImageData')
+  @Creates('ImageData|=Object')
+  _createImageData_2(num sw, sh) native;
+
+  /// @domName CanvasRenderingContext2D.createLinearGradient; @docsEditable true
+  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
+
+  /// @domName CanvasRenderingContext2D.createPattern; @docsEditable true
+  CanvasPattern createPattern(canvas_OR_image, String repetitionType) native;
+
+  /// @domName CanvasRenderingContext2D.createRadialGradient; @docsEditable true
+  CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
+
+  /// @domName CanvasRenderingContext2D.drawImage; @docsEditable true
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
+
+  /// @domName CanvasRenderingContext2D.drawImageFromRect; @docsEditable true
+  void drawImageFromRect(ImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]) native;
+
+  /// @domName CanvasRenderingContext2D.fill; @docsEditable true
+  void fill() native;
+
+  /// @domName CanvasRenderingContext2D.fillRect; @docsEditable true
+  void fillRect(num x, num y, num width, num height) native;
+
+  /// @domName CanvasRenderingContext2D.fillText; @docsEditable true
+  void fillText(String text, num x, num y, [num maxWidth]) native;
+
+  /// @domName CanvasRenderingContext2D.getImageData; @docsEditable true
+  ImageData getImageData(num sx, num sy, num sw, num sh) {
+    return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
+  }
+  @JSName('getImageData')
+  @Creates('ImageData|=Object')
+  _getImageData_1(sx, sy, sw, sh) native;
+
+  /// @domName CanvasRenderingContext2D.getLineDash; @docsEditable true
+  List<num> getLineDash() native;
+
+  /// @domName CanvasRenderingContext2D.isPointInPath; @docsEditable true
+  bool isPointInPath(num x, num y) native;
+
+  /// @domName CanvasRenderingContext2D.lineTo; @docsEditable true
+  void lineTo(num x, num y) native;
+
+  /// @domName CanvasRenderingContext2D.measureText; @docsEditable true
+  TextMetrics measureText(String text) native;
+
+  /// @domName CanvasRenderingContext2D.moveTo; @docsEditable true
+  void moveTo(num x, num y) native;
+
+  /// @domName CanvasRenderingContext2D.putImageData; @docsEditable true
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
+    if (!?dirtyX &&
+        !?dirtyY &&
+        !?dirtyWidth &&
+        !?dirtyHeight) {
+      var imagedata_1 = _convertDartToNative_ImageData(imagedata);
+      _putImageData_1(imagedata_1, dx, dy);
+      return;
+    }
+    var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+    _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    return;
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  @JSName('putImageData')
+  void _putImageData_1(imagedata, dx, dy) native;
+  @JSName('putImageData')
+  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
+
+  /// @domName CanvasRenderingContext2D.quadraticCurveTo; @docsEditable true
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
+
+  /// @domName CanvasRenderingContext2D.rect; @docsEditable true
+  void rect(num x, num y, num width, num height) native;
+
+  /// @domName CanvasRenderingContext2D.restore; @docsEditable true
+  void restore() native;
+
+  /// @domName CanvasRenderingContext2D.rotate; @docsEditable true
+  void rotate(num angle) native;
+
+  /// @domName CanvasRenderingContext2D.save; @docsEditable true
+  void save() native;
+
+  /// @domName CanvasRenderingContext2D.scale; @docsEditable true
+  void scale(num sx, num sy) native;
+
+  /// @domName CanvasRenderingContext2D.setAlpha; @docsEditable true
+  void setAlpha(num alpha) native;
+
+  /// @domName CanvasRenderingContext2D.setCompositeOperation; @docsEditable true
+  void setCompositeOperation(String compositeOperation) native;
+
+  /// @domName CanvasRenderingContext2D.setLineCap; @docsEditable true
+  void setLineCap(String cap) native;
+
+  /// @domName CanvasRenderingContext2D.setLineDash; @docsEditable true
+  void setLineDash(List<num> dash) native;
+
+  /// @domName CanvasRenderingContext2D.setLineJoin; @docsEditable true
+  void setLineJoin(String join) native;
+
+  /// @domName CanvasRenderingContext2D.setLineWidth; @docsEditable true
+  void setLineWidth(num width) native;
+
+  /// @domName CanvasRenderingContext2D.setMiterLimit; @docsEditable true
+  void setMiterLimit(num limit) native;
+
+  /// @domName CanvasRenderingContext2D.setShadow; @docsEditable true
+  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
+
+  /// @domName CanvasRenderingContext2D.setTransform; @docsEditable true
+  void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
+
+  /// @domName CanvasRenderingContext2D.stroke; @docsEditable true
+  void stroke() native;
+
+  /// @domName CanvasRenderingContext2D.strokeRect; @docsEditable true
+  void strokeRect(num x, num y, num width, num height, [num lineWidth]) native;
+
+  /// @domName CanvasRenderingContext2D.strokeText; @docsEditable true
+  void strokeText(String text, num x, num y, [num maxWidth]) native;
+
+  /// @domName CanvasRenderingContext2D.transform; @docsEditable true
+  void transform(num m11, num m12, num m21, num m22, num dx, num dy) native;
+
+  /// @domName CanvasRenderingContext2D.translate; @docsEditable true
+  void translate(num tx, num ty) native;
+
+  /// @domName CanvasRenderingContext2D.webkitGetImageDataHD; @docsEditable true
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
+    return _convertNativeToDart_ImageData(_webkitGetImageDataHD_1(sx, sy, sw, sh));
+  }
+  @JSName('webkitGetImageDataHD')
+  @Creates('ImageData|=Object')
+  _webkitGetImageDataHD_1(sx, sy, sw, sh) native;
+
+  /// @domName CanvasRenderingContext2D.webkitPutImageDataHD; @docsEditable true
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
+    if (!?dirtyX &&
+        !?dirtyY &&
+        !?dirtyWidth &&
+        !?dirtyHeight) {
+      var imagedata_1 = _convertDartToNative_ImageData(imagedata);
+      _webkitPutImageDataHD_1(imagedata_1, dx, dy);
+      return;
+    }
+    var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+    _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    return;
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  @JSName('webkitPutImageDataHD')
+  void _webkitPutImageDataHD_1(imagedata, dx, dy) native;
+  @JSName('webkitPutImageDataHD')
+  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
+
+
+  /**
+   * Sets the color used inside shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
+  void setFillColorRgb(int r, int g, int b, [num a = 1]) {
+    this.fillStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  /**
+   * Sets the color used inside shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
+  void setFillColorHsl(int h, num s, num l, [num a = 1]) {
+    this.fillStyle = 'hsla($h, $s%, $l%, $a)';
+  }
+
+  /**
+   * Sets the color used for stroking shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
+  void setStrokeColorRgb(int r, int g, int b, [num a = 1]) {
+    this.strokeStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  /**
+   * Sets the color used for stroking shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
+  void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
+    this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName CharacterData; @docsEditable true
+class CharacterData extends Node native "*CharacterData" {
+
+  /// @domName CharacterData.data; @docsEditable true
+  String data;
+
+  /// @domName CharacterData.length; @docsEditable true
+  final int length;
+
+  /// @domName CharacterData.appendData; @docsEditable true
+  void appendData(String data) native;
+
+  /// @domName CharacterData.deleteData; @docsEditable true
+  void deleteData(int offset, int length) native;
+
+  /// @domName CharacterData.insertData; @docsEditable true
+  void insertData(int offset, String data) native;
+
+  /// @domName CharacterData.remove; @docsEditable true
+  void remove() native;
+
+  /// @domName CharacterData.replaceData; @docsEditable true
+  void replaceData(int offset, int length, String data) native;
+
+  /// @domName CharacterData.substringData; @docsEditable true
+  String substringData(int offset, int length) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName ClientRect; @docsEditable true
+class ClientRect native "*ClientRect" {
+
+  /// @domName ClientRect.bottom; @docsEditable true
+  final num bottom;
+
+  /// @domName ClientRect.height; @docsEditable true
+  final num height;
+
+  /// @domName ClientRect.left; @docsEditable true
+  final num left;
+
+  /// @domName ClientRect.right; @docsEditable true
+  final num right;
+
+  /// @domName ClientRect.top; @docsEditable true
+  final num top;
+
+  /// @domName ClientRect.width; @docsEditable true
+  final num width;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName Clipboard; @docsEditable true
+class Clipboard native "*Clipboard" {
+
+  /// @domName Clipboard.dropEffect; @docsEditable true
+  String dropEffect;
+
+  /// @domName Clipboard.effectAllowed; @docsEditable true
+  String effectAllowed;
+
+  /// @domName Clipboard.files; @docsEditable true
+  @Returns('FileList') @Creates('FileList')
+  final List<File> files;
+
+  /// @domName Clipboard.items; @docsEditable true
+  final DataTransferItemList items;
+
+  /// @domName Clipboard.types; @docsEditable true
+  final List types;
+
+  /// @domName Clipboard.clearData; @docsEditable true
+  void clearData([String type]) native;
+
+  /// @domName Clipboard.getData; @docsEditable true
+  String getData(String type) native;
+
+  /// @domName Clipboard.setData; @docsEditable true
+  bool setData(String type, String data) native;
+
+  /// @domName Clipboard.setDragImage; @docsEditable true
+  void setDragImage(ImageElement image, int x, int y) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName CloseEvent; @docsEditable true
+class CloseEvent extends Event native "*CloseEvent" {
+
+  /// @domName CloseEvent.code; @docsEditable true
+  final int code;
+
+  /// @domName CloseEvent.reason; @docsEditable true
+  final String reason;
+
+  /// @domName CloseEvent.wasClean; @docsEditable true
+  final bool wasClean;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName Comment; @docsEditable true
+class Comment extends CharacterData native "*Comment" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName CompositionEvent; @docsEditable true
+class CompositionEvent extends UIEvent native "*CompositionEvent" {
+
+  /// @domName CompositionEvent.data; @docsEditable true
+  final String data;
+
+  /// @domName CompositionEvent.initCompositionEvent; @docsEditable true
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName Console
+class Console {
+
+  static Console safeConsole = new Console();
+
+  bool get _isConsoleDefined => JS('bool', "typeof console != 'undefined'");
+
+  /// @domName Console.memory; @docsEditable true
+  MemoryInfo get memory => _isConsoleDefined ?
+      JS('MemoryInfo', 'console.memory') : null;
+
+  /// @domName Console.profiles; @docsEditable true
+  List<ScriptProfile> get profiles => _isConsoleDefined ?
+      JS('List<ScriptProfile>', 'console.profiles') : null;
+
+  /// @domName Console.assertCondition; @docsEditable true
+  void assertCondition(bool condition, Object arg) => _isConsoleDefined ?
+      JS('void', 'console.assertCondition(#, #)', condition, arg) : null;
+
+  /// @domName Console.count; @docsEditable true
+  void count(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.count(#)', arg) : null;
+
+  /// @domName Console.debug; @docsEditable true
+  void debug(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.debug(#)', arg) : null;
+
+  /// @domName Console.dir; @docsEditable true
+  void dir(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.debug(#)', arg) : null;
+
+  /// @domName Console.dirxml; @docsEditable true
+  void dirxml(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.dirxml(#)', arg) : null;
+
+  /// @domName Console.error; @docsEditable true
+  void error(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.error(#)', arg) : null;
+
+  /// @domName Console.group; @docsEditable true
+  void group(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.group(#)', arg) : null;
+
+  /// @domName Console.groupCollapsed; @docsEditable true
+  void groupCollapsed(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.groupCollapsed(#)', arg) : null;
+
+  /// @domName Console.groupEnd; @docsEditable true
+  void groupEnd() => _isConsoleDefined ?
+      JS('void', 'console.groupEnd()') : null;
+
+  /// @domName Console.info; @docsEditable true
+  void info(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.info(#)', arg) : null;
+
+  /// @domName Console.log; @docsEditable true
+  void log(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.log(#)', arg) : null;
+
+  /// @domName Console.markTimeline; @docsEditable true
+  void markTimeline(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.markTimeline(#)', arg) : null;
+
+  /// @domName Console.profile; @docsEditable true
+  void profile(String title) => _isConsoleDefined ?
+      JS('void', 'console.profile(#)', title) : null;
+
+  /// @domName Console.profileEnd; @docsEditable true
+  void profileEnd(String title) => _isConsoleDefined ?
+      JS('void', 'console.profileEnd(#)', title) : null;
+
+  /// @domName Console.time; @docsEditable true
+  void time(String title) => _isConsoleDefined ?
+      JS('void', 'console.time(#)', title) : null;
+
+  /// @domName Console.timeEnd; @docsEditable true
+  void timeEnd(String title, Object arg) => _isConsoleDefined ?
+      JS('void', 'console.timeEnd(#, #)', title, arg) : null;
+
+  /// @domName Console.timeStamp; @docsEditable true
+  void timeStamp(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.timeStamp(#)', arg) : null;
+
+  /// @domName Console.trace; @docsEditable true
+  void trace(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.trace(#)', arg) : null;
+
+  /// @domName Console.warn; @docsEditable true
+  void warn(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.warn(#)', arg) : null;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName HTMLContentElement; @docsEditable true
+class ContentElement extends Element implements Element native "*HTMLContentElement" {
+
+  ///@docsEditable true
+  factory ContentElement() => document.$dom_createElement("content");
+
+  /// @domName HTMLContentElement.resetStyleInheritance; @docsEditable true
+  bool resetStyleInheritance;
+
+  /// @domName HTMLContentElement.select; @docsEditable true
+  String select;
+
+  /// @domName HTMLContentElement.getDistributedNodes; @docsEditable true
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> getDistributedNodes() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName Coordinates; @docsEditable true
+class Coordinates native "*Coordinates" {
+
+  /// @domName Coordinates.accuracy; @docsEditable true
+  final num accuracy;
+
+  /// @domName Coordinates.altitude; @docsEditable true
+  final num altitude;
+
+  /// @domName Coordinates.altitudeAccuracy; @docsEditable true
+  final num altitudeAccuracy;
+
+  /// @domName Coordinates.heading; @docsEditable true
+  final num heading;
+
+  /// @domName Coordinates.latitude; @docsEditable true
+  final num latitude;
+
+  /// @domName Coordinates.longitude; @docsEditable true
+  final num longitude;
+
+  /// @domName Coordinates.speed; @docsEditable true
+  final num speed;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName Counter; @docsEditable true
+class Counter native "*Counter" {
+
+  /// @domName Counter.identifier; @docsEditable true
+  final String identifier;
+
+  /// @domName Counter.listStyle; @docsEditable true
+  final String listStyle;
+
+  /// @domName Counter.separator; @docsEditable true
+  final String separator;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName Crypto; @docsEditable true
+class Crypto native "*Crypto" {
+
+  /// @domName Crypto.getRandomValues; @docsEditable true
+  void getRandomValues(ArrayBufferView array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -646,7 +1414,7 @@ class CDATASection extends Text native "*CDATASection" {
 
 
 /// @domName CSSCharsetRule; @docsEditable true
-class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
+class CssCharsetRule extends CssRule native "*CSSCharsetRule" {
 
   /// @domName CSSCharsetRule.encoding; @docsEditable true
   String encoding;
@@ -657,10 +1425,10 @@ class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
 
 
 /// @domName CSSFontFaceRule; @docsEditable true
-class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
+class CssFontFaceRule extends CssRule native "*CSSFontFaceRule" {
 
   /// @domName CSSFontFaceRule.style; @docsEditable true
-  final CSSStyleDeclaration style;
+  final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -668,7 +1436,7 @@ class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
 
 
 /// @domName CSSImportRule; @docsEditable true
-class CSSImportRule extends CSSRule native "*CSSImportRule" {
+class CssImportRule extends CssRule native "*CSSImportRule" {
 
   /// @domName CSSImportRule.href; @docsEditable true
   final String href;
@@ -677,7 +1445,7 @@ class CSSImportRule extends CSSRule native "*CSSImportRule" {
   final MediaList media;
 
   /// @domName CSSImportRule.styleSheet; @docsEditable true
-  final CSSStyleSheet styleSheet;
+  final CssStyleSheet styleSheet;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -685,13 +1453,13 @@ class CSSImportRule extends CSSRule native "*CSSImportRule" {
 
 
 /// @domName WebKitCSSKeyframeRule; @docsEditable true
-class CSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
+class CssKeyframeRule extends CssRule native "*WebKitCSSKeyframeRule" {
 
   /// @domName WebKitCSSKeyframeRule.keyText; @docsEditable true
   String keyText;
 
   /// @domName WebKitCSSKeyframeRule.style; @docsEditable true
-  final CSSStyleDeclaration style;
+  final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -699,11 +1467,11 @@ class CSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
 
 
 /// @domName WebKitCSSKeyframesRule; @docsEditable true
-class CSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
+class CssKeyframesRule extends CssRule native "*WebKitCSSKeyframesRule" {
 
   /// @domName WebKitCSSKeyframesRule.cssRules; @docsEditable true
-  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
-  final List<CSSRule> cssRules;
+  @Returns('_CssRuleList') @Creates('_CssRuleList')
+  final List<CssRule> cssRules;
 
   /// @domName WebKitCSSKeyframesRule.name; @docsEditable true
   String name;
@@ -712,7 +1480,7 @@ class CSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
   void deleteRule(String key) native;
 
   /// @domName WebKitCSSKeyframesRule.findRule; @docsEditable true
-  CSSKeyframeRule findRule(String key) native;
+  CssKeyframeRule findRule(String key) native;
 
   /// @domName WebKitCSSKeyframesRule.insertRule; @docsEditable true
   void insertRule(String rule) native;
@@ -723,13 +1491,14 @@ class CSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
 
 
 /// @domName WebKitCSSMatrix; @docsEditable true
-class CSSMatrix native "*WebKitCSSMatrix" {
+class CssMatrix native "*WebKitCSSMatrix" {
 
-  factory CSSMatrix([String cssValue]) {
+  ///@docsEditable true
+  factory CssMatrix([String cssValue]) {
     if (!?cssValue) {
-      return _CSSMatrixFactoryProvider.createCSSMatrix();
+      return _CssMatrixFactoryProvider.createCssMatrix();
     }
-    return _CSSMatrixFactoryProvider.createCSSMatrix(cssValue);
+    return _CssMatrixFactoryProvider.createCssMatrix(cssValue);
   }
 
   /// @domName WebKitCSSMatrix.a; @docsEditable true
@@ -799,34 +1568,34 @@ class CSSMatrix native "*WebKitCSSMatrix" {
   num m44;
 
   /// @domName WebKitCSSMatrix.inverse; @docsEditable true
-  CSSMatrix inverse() native;
+  CssMatrix inverse() native;
 
   /// @domName WebKitCSSMatrix.multiply; @docsEditable true
-  CSSMatrix multiply(CSSMatrix secondMatrix) native;
+  CssMatrix multiply(CssMatrix secondMatrix) native;
 
   /// @domName WebKitCSSMatrix.rotate; @docsEditable true
-  CSSMatrix rotate(num rotX, num rotY, num rotZ) native;
+  CssMatrix rotate(num rotX, num rotY, num rotZ) native;
 
   /// @domName WebKitCSSMatrix.rotateAxisAngle; @docsEditable true
-  CSSMatrix rotateAxisAngle(num x, num y, num z, num angle) native;
+  CssMatrix rotateAxisAngle(num x, num y, num z, num angle) native;
 
   /// @domName WebKitCSSMatrix.scale; @docsEditable true
-  CSSMatrix scale(num scaleX, num scaleY, num scaleZ) native;
+  CssMatrix scale(num scaleX, num scaleY, num scaleZ) native;
 
   /// @domName WebKitCSSMatrix.setMatrixValue; @docsEditable true
   void setMatrixValue(String string) native;
 
   /// @domName WebKitCSSMatrix.skewX; @docsEditable true
-  CSSMatrix skewX(num angle) native;
+  CssMatrix skewX(num angle) native;
 
   /// @domName WebKitCSSMatrix.skewY; @docsEditable true
-  CSSMatrix skewY(num angle) native;
+  CssMatrix skewY(num angle) native;
 
   /// @domName WebKitCSSMatrix.toString; @docsEditable true
   String toString() native;
 
   /// @domName WebKitCSSMatrix.translate; @docsEditable true
-  CSSMatrix translate(num x, num y, num z) native;
+  CssMatrix translate(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -834,11 +1603,11 @@ class CSSMatrix native "*WebKitCSSMatrix" {
 
 
 /// @domName CSSMediaRule; @docsEditable true
-class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
+class CssMediaRule extends CssRule native "*CSSMediaRule" {
 
   /// @domName CSSMediaRule.cssRules; @docsEditable true
-  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
-  final List<CSSRule> cssRules;
+  @Returns('_CssRuleList') @Creates('_CssRuleList')
+  final List<CssRule> cssRules;
 
   /// @domName CSSMediaRule.media; @docsEditable true
   final MediaList media;
@@ -855,13 +1624,13 @@ class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
 
 
 /// @domName CSSPageRule; @docsEditable true
-class CSSPageRule extends CSSRule native "*CSSPageRule" {
+class CssPageRule extends CssRule native "*CSSPageRule" {
 
   /// @domName CSSPageRule.selectorText; @docsEditable true
   String selectorText;
 
   /// @domName CSSPageRule.style; @docsEditable true
-  final CSSStyleDeclaration style;
+  final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -869,7 +1638,7 @@ class CSSPageRule extends CSSRule native "*CSSPageRule" {
 
 
 /// @domName CSSPrimitiveValue; @docsEditable true
-class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
+class CssPrimitiveValue extends CssValue native "*CSSPrimitiveValue" {
 
   static const int CSS_ATTR = 22;
 
@@ -940,7 +1709,7 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 
   /// @domName CSSPrimitiveValue.getRGBColorValue; @docsEditable true
   @JSName('getRGBColorValue')
-  RGBColor getRgbColorValue() native;
+  RgbColor getRgbColorValue() native;
 
   /// @domName CSSPrimitiveValue.getRectValue; @docsEditable true
   Rect getRectValue() native;
@@ -960,7 +1729,7 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 
 
 /// @domName CSSRule; @docsEditable true
-class CSSRule native "*CSSRule" {
+class CssRule native "*CSSRule" {
 
   static const int CHARSET_RULE = 2;
 
@@ -984,10 +1753,10 @@ class CSSRule native "*CSSRule" {
   String cssText;
 
   /// @domName CSSRule.parentRule; @docsEditable true
-  final CSSRule parentRule;
+  final CssRule parentRule;
 
   /// @domName CSSRule.parentStyleSheet; @docsEditable true
-  final CSSStyleSheet parentStyleSheet;
+  final CssStyleSheet parentStyleSheet;
 
   /// @domName CSSRule.type; @docsEditable true
   final int type;
@@ -1015,10 +1784,10 @@ String get _browserPrefix {
 }
 
 /// @domName CSSStyleDeclaration
-class CSSStyleDeclaration native "*CSSStyleDeclaration" {
-  factory CSSStyleDeclaration() => _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration();
-  factory CSSStyleDeclaration.css(String css) =>
-      _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration_css(css);
+class CssStyleDeclaration native "*CSSStyleDeclaration" {
+  factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
+  factory CssStyleDeclaration.css(String css) =>
+      _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration_css(css);
 
 
   /// @domName CSSStyleDeclaration.cssText; @docsEditable true
@@ -1028,11 +1797,11 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
   final int length;
 
   /// @domName CSSStyleDeclaration.parentRule; @docsEditable true
-  final CSSRule parentRule;
+  final CssRule parentRule;
 
   /// @domName CSSStyleDeclaration.getPropertyCSSValue; @docsEditable true
   @JSName('getPropertyCSSValue')
-  CSSValue getPropertyCssValue(String propertyName) native;
+  CssValue getPropertyCssValue(String propertyName) native;
 
   /// @domName CSSStyleDeclaration.getPropertyPriority; @docsEditable true
   String getPropertyPriority(String propertyName) native;
@@ -4224,13 +4993,13 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
 
 /// @domName CSSStyleRule; @docsEditable true
-class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
+class CssStyleRule extends CssRule native "*CSSStyleRule" {
 
   /// @domName CSSStyleRule.selectorText; @docsEditable true
   String selectorText;
 
   /// @domName CSSStyleRule.style; @docsEditable true
-  final CSSStyleDeclaration style;
+  final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4238,18 +5007,18 @@ class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
 
 
 /// @domName CSSStyleSheet; @docsEditable true
-class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
+class CssStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 
   /// @domName CSSStyleSheet.cssRules; @docsEditable true
-  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
-  final List<CSSRule> cssRules;
+  @Returns('_CssRuleList') @Creates('_CssRuleList')
+  final List<CssRule> cssRules;
 
   /// @domName CSSStyleSheet.ownerRule; @docsEditable true
-  final CSSRule ownerRule;
+  final CssRule ownerRule;
 
   /// @domName CSSStyleSheet.rules; @docsEditable true
-  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
-  final List<CSSRule> rules;
+  @Returns('_CssRuleList') @Creates('_CssRuleList')
+  final List<CssRule> rules;
 
   /// @domName CSSStyleSheet.addRule; @docsEditable true
   int addRule(String selector, String style, [int index]) native;
@@ -4269,7 +5038,7 @@ class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 
 
 /// @domName WebKitCSSTransformValue; @docsEditable true
-class CSSTransformValue extends _CSSValueList native "*WebKitCSSTransformValue" {
+class CssTransformValue extends _CssValueList native "*WebKitCSSTransformValue" {
 
   static const int CSS_MATRIX = 11;
 
@@ -4322,7 +5091,7 @@ class CSSTransformValue extends _CSSValueList native "*WebKitCSSTransformValue" 
 
 
 /// @domName CSSUnknownRule; @docsEditable true
-class CSSUnknownRule extends CSSRule native "*CSSUnknownRule" {
+class CssUnknownRule extends CssRule native "*CSSUnknownRule" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4330,7 +5099,7 @@ class CSSUnknownRule extends CSSRule native "*CSSUnknownRule" {
 
 
 /// @domName CSSValue; @docsEditable true
-class CSSValue native "*CSSValue" {
+class CssValue native "*CSSValue" {
 
   static const int CSS_CUSTOM = 3;
 
@@ -4345,652 +5114,6 @@ class CSSValue native "*CSSValue" {
 
   /// @domName CSSValue.cssValueType; @docsEditable true
   final int cssValueType;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName HTMLCanvasElement
-class CanvasElement extends Element implements Element native "*HTMLCanvasElement" {
-
-  factory CanvasElement({int width, int height}) {
-    var e = document.$dom_createElement("canvas");
-    if (width != null) e.width = width;
-    if (height != null) e.height = height;
-    return e;
-  }
-
-  /// @domName HTMLCanvasElement.height; @docsEditable true
-  int height;
-
-  /// @domName HTMLCanvasElement.width; @docsEditable true
-  int width;
-
-  /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
-  @JSName('toDataURL')
-  String toDataUrl(String type, [num quality]) native;
-
-
-  CanvasRenderingContext getContext(String contextId) native;
-  CanvasRenderingContext2D get context2d => getContext('2d');
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName CanvasGradient; @docsEditable true
-class CanvasGradient native "*CanvasGradient" {
-
-  /// @domName CanvasGradient.addColorStop; @docsEditable true
-  void addColorStop(num offset, String color) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName CanvasPattern; @docsEditable true
-class CanvasPattern native "*CanvasPattern" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName CanvasRenderingContext; @docsEditable true
-class CanvasRenderingContext native "*CanvasRenderingContext" {
-
-  /// @domName CanvasRenderingContext.canvas; @docsEditable true
-  final CanvasElement canvas;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName CanvasRenderingContext2D
-class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
-
-  /// @domName CanvasRenderingContext2D.fillStyle; @docsEditable true
-  dynamic fillStyle;
-
-  /// @domName CanvasRenderingContext2D.font; @docsEditable true
-  String font;
-
-  /// @domName CanvasRenderingContext2D.globalAlpha; @docsEditable true
-  num globalAlpha;
-
-  /// @domName CanvasRenderingContext2D.globalCompositeOperation; @docsEditable true
-  String globalCompositeOperation;
-
-  /// @domName CanvasRenderingContext2D.lineCap; @docsEditable true
-  String lineCap;
-
-  /// @domName CanvasRenderingContext2D.lineDashOffset; @docsEditable true
-  num lineDashOffset;
-
-  /// @domName CanvasRenderingContext2D.lineJoin; @docsEditable true
-  String lineJoin;
-
-  /// @domName CanvasRenderingContext2D.lineWidth; @docsEditable true
-  num lineWidth;
-
-  /// @domName CanvasRenderingContext2D.miterLimit; @docsEditable true
-  num miterLimit;
-
-  /// @domName CanvasRenderingContext2D.shadowBlur; @docsEditable true
-  num shadowBlur;
-
-  /// @domName CanvasRenderingContext2D.shadowColor; @docsEditable true
-  String shadowColor;
-
-  /// @domName CanvasRenderingContext2D.shadowOffsetX; @docsEditable true
-  num shadowOffsetX;
-
-  /// @domName CanvasRenderingContext2D.shadowOffsetY; @docsEditable true
-  num shadowOffsetY;
-
-  /// @domName CanvasRenderingContext2D.strokeStyle; @docsEditable true
-  dynamic strokeStyle;
-
-  /// @domName CanvasRenderingContext2D.textAlign; @docsEditable true
-  String textAlign;
-
-  /// @domName CanvasRenderingContext2D.textBaseline; @docsEditable true
-  String textBaseline;
-
-  /// @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio; @docsEditable true
-  final num webkitBackingStorePixelRatio;
-
-  /// @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled; @docsEditable true
-  bool webkitImageSmoothingEnabled;
-
-  /// @domName CanvasRenderingContext2D.webkitLineDash; @docsEditable true
-  List webkitLineDash;
-
-  /// @domName CanvasRenderingContext2D.webkitLineDashOffset; @docsEditable true
-  num webkitLineDashOffset;
-
-  /// @domName CanvasRenderingContext2D.arc; @docsEditable true
-  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
-
-  /// @domName CanvasRenderingContext2D.arcTo; @docsEditable true
-  void arcTo(num x1, num y1, num x2, num y2, num radius) native;
-
-  /// @domName CanvasRenderingContext2D.beginPath; @docsEditable true
-  void beginPath() native;
-
-  /// @domName CanvasRenderingContext2D.bezierCurveTo; @docsEditable true
-  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
-
-  /// @domName CanvasRenderingContext2D.clearRect; @docsEditable true
-  void clearRect(num x, num y, num width, num height) native;
-
-  /// @domName CanvasRenderingContext2D.clearShadow; @docsEditable true
-  void clearShadow() native;
-
-  /// @domName CanvasRenderingContext2D.clip; @docsEditable true
-  void clip() native;
-
-  /// @domName CanvasRenderingContext2D.closePath; @docsEditable true
-  void closePath() native;
-
-  /// @domName CanvasRenderingContext2D.createImageData; @docsEditable true
-  ImageData createImageData(imagedata_OR_sw, [num sh]) {
-    if ((?imagedata_OR_sw && (imagedata_OR_sw is ImageData || imagedata_OR_sw == null)) &&
-        !?sh) {
-      var imagedata_1 = _convertDartToNative_ImageData(imagedata_OR_sw);
-      return _convertNativeToDart_ImageData(_createImageData_1(imagedata_1));
-    }
-    if ((?imagedata_OR_sw && (imagedata_OR_sw is num || imagedata_OR_sw == null))) {
-      return _convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('createImageData')
-  @Creates('ImageData|=Object')
-  _createImageData_1(imagedata) native;
-  @JSName('createImageData')
-  @Creates('ImageData|=Object')
-  _createImageData_2(num sw, sh) native;
-
-  /// @domName CanvasRenderingContext2D.createLinearGradient; @docsEditable true
-  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
-
-  /// @domName CanvasRenderingContext2D.createPattern; @docsEditable true
-  CanvasPattern createPattern(canvas_OR_image, String repetitionType) native;
-
-  /// @domName CanvasRenderingContext2D.createRadialGradient; @docsEditable true
-  CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
-
-  /// @domName CanvasRenderingContext2D.drawImage; @docsEditable true
-  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
-
-  /// @domName CanvasRenderingContext2D.drawImageFromRect; @docsEditable true
-  void drawImageFromRect(ImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]) native;
-
-  /// @domName CanvasRenderingContext2D.fill; @docsEditable true
-  void fill() native;
-
-  /// @domName CanvasRenderingContext2D.fillRect; @docsEditable true
-  void fillRect(num x, num y, num width, num height) native;
-
-  /// @domName CanvasRenderingContext2D.fillText; @docsEditable true
-  void fillText(String text, num x, num y, [num maxWidth]) native;
-
-  /// @domName CanvasRenderingContext2D.getImageData; @docsEditable true
-  ImageData getImageData(num sx, num sy, num sw, num sh) {
-    return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
-  }
-  @JSName('getImageData')
-  @Creates('ImageData|=Object')
-  _getImageData_1(sx, sy, sw, sh) native;
-
-  /// @domName CanvasRenderingContext2D.getLineDash; @docsEditable true
-  List<num> getLineDash() native;
-
-  /// @domName CanvasRenderingContext2D.isPointInPath; @docsEditable true
-  bool isPointInPath(num x, num y) native;
-
-  /// @domName CanvasRenderingContext2D.lineTo; @docsEditable true
-  void lineTo(num x, num y) native;
-
-  /// @domName CanvasRenderingContext2D.measureText; @docsEditable true
-  TextMetrics measureText(String text) native;
-
-  /// @domName CanvasRenderingContext2D.moveTo; @docsEditable true
-  void moveTo(num x, num y) native;
-
-  /// @domName CanvasRenderingContext2D.putImageData; @docsEditable true
-  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
-    if (!?dirtyX &&
-        !?dirtyY &&
-        !?dirtyWidth &&
-        !?dirtyHeight) {
-      var imagedata_1 = _convertDartToNative_ImageData(imagedata);
-      _putImageData_1(imagedata_1, dx, dy);
-      return;
-    }
-    var imagedata_2 = _convertDartToNative_ImageData(imagedata);
-    _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-    return;
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('putImageData')
-  void _putImageData_1(imagedata, dx, dy) native;
-  @JSName('putImageData')
-  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
-
-  /// @domName CanvasRenderingContext2D.quadraticCurveTo; @docsEditable true
-  void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
-
-  /// @domName CanvasRenderingContext2D.rect; @docsEditable true
-  void rect(num x, num y, num width, num height) native;
-
-  /// @domName CanvasRenderingContext2D.restore; @docsEditable true
-  void restore() native;
-
-  /// @domName CanvasRenderingContext2D.rotate; @docsEditable true
-  void rotate(num angle) native;
-
-  /// @domName CanvasRenderingContext2D.save; @docsEditable true
-  void save() native;
-
-  /// @domName CanvasRenderingContext2D.scale; @docsEditable true
-  void scale(num sx, num sy) native;
-
-  /// @domName CanvasRenderingContext2D.setAlpha; @docsEditable true
-  void setAlpha(num alpha) native;
-
-  /// @domName CanvasRenderingContext2D.setCompositeOperation; @docsEditable true
-  void setCompositeOperation(String compositeOperation) native;
-
-  /// @domName CanvasRenderingContext2D.setLineCap; @docsEditable true
-  void setLineCap(String cap) native;
-
-  /// @domName CanvasRenderingContext2D.setLineDash; @docsEditable true
-  void setLineDash(List<num> dash) native;
-
-  /// @domName CanvasRenderingContext2D.setLineJoin; @docsEditable true
-  void setLineJoin(String join) native;
-
-  /// @domName CanvasRenderingContext2D.setLineWidth; @docsEditable true
-  void setLineWidth(num width) native;
-
-  /// @domName CanvasRenderingContext2D.setMiterLimit; @docsEditable true
-  void setMiterLimit(num limit) native;
-
-  /// @domName CanvasRenderingContext2D.setShadow; @docsEditable true
-  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
-
-  /// @domName CanvasRenderingContext2D.setTransform; @docsEditable true
-  void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
-
-  /// @domName CanvasRenderingContext2D.stroke; @docsEditable true
-  void stroke() native;
-
-  /// @domName CanvasRenderingContext2D.strokeRect; @docsEditable true
-  void strokeRect(num x, num y, num width, num height, [num lineWidth]) native;
-
-  /// @domName CanvasRenderingContext2D.strokeText; @docsEditable true
-  void strokeText(String text, num x, num y, [num maxWidth]) native;
-
-  /// @domName CanvasRenderingContext2D.transform; @docsEditable true
-  void transform(num m11, num m12, num m21, num m22, num dx, num dy) native;
-
-  /// @domName CanvasRenderingContext2D.translate; @docsEditable true
-  void translate(num tx, num ty) native;
-
-  /// @domName CanvasRenderingContext2D.webkitGetImageDataHD; @docsEditable true
-  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
-    return _convertNativeToDart_ImageData(_webkitGetImageDataHD_1(sx, sy, sw, sh));
-  }
-  @JSName('webkitGetImageDataHD')
-  @Creates('ImageData|=Object')
-  _webkitGetImageDataHD_1(sx, sy, sw, sh) native;
-
-  /// @domName CanvasRenderingContext2D.webkitPutImageDataHD; @docsEditable true
-  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
-    if (!?dirtyX &&
-        !?dirtyY &&
-        !?dirtyWidth &&
-        !?dirtyHeight) {
-      var imagedata_1 = _convertDartToNative_ImageData(imagedata);
-      _webkitPutImageDataHD_1(imagedata_1, dx, dy);
-      return;
-    }
-    var imagedata_2 = _convertDartToNative_ImageData(imagedata);
-    _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-    return;
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('webkitPutImageDataHD')
-  void _webkitPutImageDataHD_1(imagedata, dx, dy) native;
-  @JSName('webkitPutImageDataHD')
-  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
-
-
-  /**
-   * Sets the color used inside shapes.
-   * [r], [g], [b] are 0-255, [a] is 0-1.
-   */
-  void setFillColorRgb(int r, int g, int b, [num a = 1]) {
-    this.fillStyle = 'rgba($r, $g, $b, $a)';
-  }
-
-  /**
-   * Sets the color used inside shapes.
-   * [h] is in degrees, 0-360.
-   * [s], [l] are in percent, 0-100.
-   * [a] is 0-1.
-   */
-  void setFillColorHsl(int h, num s, num l, [num a = 1]) {
-    this.fillStyle = 'hsla($h, $s%, $l%, $a)';
-  }
-
-  /**
-   * Sets the color used for stroking shapes.
-   * [r], [g], [b] are 0-255, [a] is 0-1.
-   */
-  void setStrokeColorRgb(int r, int g, int b, [num a = 1]) {
-    this.strokeStyle = 'rgba($r, $g, $b, $a)';
-  }
-
-  /**
-   * Sets the color used for stroking shapes.
-   * [h] is in degrees, 0-360.
-   * [s], [l] are in percent, 0-100.
-   * [a] is 0-1.
-   */
-  void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
-    this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
-  }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName CharacterData; @docsEditable true
-class CharacterData extends Node native "*CharacterData" {
-
-  /// @domName CharacterData.data; @docsEditable true
-  String data;
-
-  /// @domName CharacterData.length; @docsEditable true
-  final int length;
-
-  /// @domName CharacterData.appendData; @docsEditable true
-  void appendData(String data) native;
-
-  /// @domName CharacterData.deleteData; @docsEditable true
-  void deleteData(int offset, int length) native;
-
-  /// @domName CharacterData.insertData; @docsEditable true
-  void insertData(int offset, String data) native;
-
-  /// @domName CharacterData.remove; @docsEditable true
-  void remove() native;
-
-  /// @domName CharacterData.replaceData; @docsEditable true
-  void replaceData(int offset, int length, String data) native;
-
-  /// @domName CharacterData.substringData; @docsEditable true
-  String substringData(int offset, int length) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName ClientRect; @docsEditable true
-class ClientRect native "*ClientRect" {
-
-  /// @domName ClientRect.bottom; @docsEditable true
-  final num bottom;
-
-  /// @domName ClientRect.height; @docsEditable true
-  final num height;
-
-  /// @domName ClientRect.left; @docsEditable true
-  final num left;
-
-  /// @domName ClientRect.right; @docsEditable true
-  final num right;
-
-  /// @domName ClientRect.top; @docsEditable true
-  final num top;
-
-  /// @domName ClientRect.width; @docsEditable true
-  final num width;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Clipboard; @docsEditable true
-class Clipboard native "*Clipboard" {
-
-  /// @domName Clipboard.dropEffect; @docsEditable true
-  String dropEffect;
-
-  /// @domName Clipboard.effectAllowed; @docsEditable true
-  String effectAllowed;
-
-  /// @domName Clipboard.files; @docsEditable true
-  @Returns('_FileList') @Creates('_FileList')
-  final List<File> files;
-
-  /// @domName Clipboard.items; @docsEditable true
-  final DataTransferItemList items;
-
-  /// @domName Clipboard.types; @docsEditable true
-  final List types;
-
-  /// @domName Clipboard.clearData; @docsEditable true
-  void clearData([String type]) native;
-
-  /// @domName Clipboard.getData; @docsEditable true
-  String getData(String type) native;
-
-  /// @domName Clipboard.setData; @docsEditable true
-  bool setData(String type, String data) native;
-
-  /// @domName Clipboard.setDragImage; @docsEditable true
-  void setDragImage(ImageElement image, int x, int y) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName CloseEvent; @docsEditable true
-class CloseEvent extends Event native "*CloseEvent" {
-
-  /// @domName CloseEvent.code; @docsEditable true
-  final int code;
-
-  /// @domName CloseEvent.reason; @docsEditable true
-  final String reason;
-
-  /// @domName CloseEvent.wasClean; @docsEditable true
-  final bool wasClean;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Comment; @docsEditable true
-class Comment extends CharacterData native "*Comment" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName CompositionEvent; @docsEditable true
-class CompositionEvent extends UIEvent native "*CompositionEvent" {
-
-  /// @domName CompositionEvent.data; @docsEditable true
-  final String data;
-
-  /// @domName CompositionEvent.initCompositionEvent; @docsEditable true
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Console
-class Console
-    // Console is sometimes a singleton bag-of-properties without a prototype.
-    native "=(typeof console == 'undefined' ? {} : console)" {
-
-  /// @domName Console.memory; @docsEditable true
-  final MemoryInfo memory;
-
-  /// @domName Console.profiles; @docsEditable true
-  final List<ScriptProfile> profiles;
-
-  /// @domName Console.assertCondition; @docsEditable true
-  void assertCondition(bool condition, Object arg) native;
-
-  /// @domName Console.count; @docsEditable true
-  void count(Object arg) native;
-
-  /// @domName Console.debug; @docsEditable true
-  void debug(Object arg) native;
-
-  /// @domName Console.dir; @docsEditable true
-  void dir(Object arg) native;
-
-  /// @domName Console.dirxml; @docsEditable true
-  void dirxml(Object arg) native;
-
-  /// @domName Console.error; @docsEditable true
-  void error(Object arg) native;
-
-  /// @domName Console.group; @docsEditable true
-  void group(Object arg) native;
-
-  /// @domName Console.groupCollapsed; @docsEditable true
-  void groupCollapsed(Object arg) native;
-
-  /// @domName Console.groupEnd; @docsEditable true
-  void groupEnd() native;
-
-  /// @domName Console.info; @docsEditable true
-  void info(Object arg) native;
-
-  /// @domName Console.log; @docsEditable true
-  void log(Object arg) native;
-
-  /// @domName Console.markTimeline; @docsEditable true
-  void markTimeline(Object arg) native;
-
-  /// @domName Console.profile; @docsEditable true
-  void profile(String title) native;
-
-  /// @domName Console.profileEnd; @docsEditable true
-  void profileEnd(String title) native;
-
-  /// @domName Console.time; @docsEditable true
-  void time(String title) native;
-
-  /// @domName Console.timeEnd; @docsEditable true
-  void timeEnd(String title, Object arg) native;
-
-  /// @domName Console.timeStamp; @docsEditable true
-  void timeStamp(Object arg) native;
-
-  /// @domName Console.trace; @docsEditable true
-  void trace(Object arg) native;
-
-  /// @domName Console.warn; @docsEditable true
-  void warn(Object arg) native;
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName HTMLContentElement; @docsEditable true
-class ContentElement extends Element implements Element native "*HTMLContentElement" {
-
-  factory ContentElement() => document.$dom_createElement("content");
-
-  /// @domName HTMLContentElement.resetStyleInheritance; @docsEditable true
-  bool resetStyleInheritance;
-
-  /// @domName HTMLContentElement.select; @docsEditable true
-  String select;
-
-  /// @domName HTMLContentElement.getDistributedNodes; @docsEditable true
-  @Returns('NodeList') @Creates('NodeList')
-  List<Node> getDistributedNodes() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Coordinates; @docsEditable true
-class Coordinates native "*Coordinates" {
-
-  /// @domName Coordinates.accuracy; @docsEditable true
-  final num accuracy;
-
-  /// @domName Coordinates.altitude; @docsEditable true
-  final num altitude;
-
-  /// @domName Coordinates.altitudeAccuracy; @docsEditable true
-  final num altitudeAccuracy;
-
-  /// @domName Coordinates.heading; @docsEditable true
-  final num heading;
-
-  /// @domName Coordinates.latitude; @docsEditable true
-  final num latitude;
-
-  /// @domName Coordinates.longitude; @docsEditable true
-  final num longitude;
-
-  /// @domName Coordinates.speed; @docsEditable true
-  final num speed;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Counter; @docsEditable true
-class Counter native "*Counter" {
-
-  /// @domName Counter.identifier; @docsEditable true
-  final String identifier;
-
-  /// @domName Counter.listStyle; @docsEditable true
-  final String listStyle;
-
-  /// @domName Counter.separator; @docsEditable true
-  final String separator;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Crypto; @docsEditable true
-class Crypto native "*Crypto" {
-
-  /// @domName Crypto.getRandomValues; @docsEditable true
-  void getRandomValues(ArrayBufferView array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5021,6 +5144,7 @@ class CustomEvent extends Event native "*CustomEvent" {
 /// @domName HTMLDListElement; @docsEditable true
 class DListElement extends Element implements Element native "*HTMLDListElement" {
 
+  ///@docsEditable true
   factory DListElement() => document.$dom_createElement("dl");
 
   /// @domName HTMLDListElement.compact; @docsEditable true
@@ -5031,609 +5155,14 @@ class DListElement extends Element implements Element native "*HTMLDListElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMApplicationCache; @docsEditable true
-class DOMApplicationCache extends EventTarget native "*DOMApplicationCache" {
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  DOMApplicationCacheEvents get on =>
-    new DOMApplicationCacheEvents(this);
-
-  static const int CHECKING = 2;
-
-  static const int DOWNLOADING = 3;
-
-  static const int IDLE = 1;
-
-  static const int OBSOLETE = 5;
-
-  static const int UNCACHED = 0;
-
-  static const int UPDATEREADY = 4;
-
-  /// @domName DOMApplicationCache.status; @docsEditable true
-  final int status;
-
-  /// @domName DOMApplicationCache.abort; @docsEditable true
-  void abort() native;
-
-  /// @domName DOMApplicationCache.addEventListener; @docsEditable true
-  @JSName('addEventListener')
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName DOMApplicationCache.dispatchEvent; @docsEditable true
-  @JSName('dispatchEvent')
-  bool $dom_dispatchEvent(Event evt) native;
-
-  /// @domName DOMApplicationCache.removeEventListener; @docsEditable true
-  @JSName('removeEventListener')
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName DOMApplicationCache.swapCache; @docsEditable true
-  void swapCache() native;
-
-  /// @domName DOMApplicationCache.update; @docsEditable true
-  void update() native;
-}
-
-class DOMApplicationCacheEvents extends Events {
-  DOMApplicationCacheEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get cached => this['cached'];
-
-  EventListenerList get checking => this['checking'];
-
-  EventListenerList get downloading => this['downloading'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get noUpdate => this['noupdate'];
-
-  EventListenerList get obsolete => this['obsolete'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get updateReady => this['updateready'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DOMError; @docsEditable true
-class DOMError native "*DOMError" {
-
-  /// @domName DOMError.name; @docsEditable true
-  final String name;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DOMException; @docsEditable true
-class DOMException native "*DOMException" {
-
-  static const int ABORT_ERR = 20;
-
-  static const int DATA_CLONE_ERR = 25;
-
-  static const int DOMSTRING_SIZE_ERR = 2;
-
-  static const int HIERARCHY_REQUEST_ERR = 3;
-
-  static const int INDEX_SIZE_ERR = 1;
-
-  static const int INUSE_ATTRIBUTE_ERR = 10;
-
-  static const int INVALID_ACCESS_ERR = 15;
-
-  static const int INVALID_CHARACTER_ERR = 5;
-
-  static const int INVALID_MODIFICATION_ERR = 13;
-
-  static const int INVALID_NODE_TYPE_ERR = 24;
-
-  static const int INVALID_STATE_ERR = 11;
-
-  static const int NAMESPACE_ERR = 14;
-
-  static const int NETWORK_ERR = 19;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NOT_SUPPORTED_ERR = 9;
-
-  static const int NO_DATA_ALLOWED_ERR = 6;
-
-  static const int NO_MODIFICATION_ALLOWED_ERR = 7;
-
-  static const int QUOTA_EXCEEDED_ERR = 22;
-
-  static const int SECURITY_ERR = 18;
-
-  static const int SYNTAX_ERR = 12;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TYPE_MISMATCH_ERR = 17;
-
-  static const int URL_MISMATCH_ERR = 21;
-
-  static const int VALIDATION_ERR = 16;
-
-  static const int WRONG_DOCUMENT_ERR = 4;
-
-  /// @domName DOMException.code; @docsEditable true
-  final int code;
-
-  /// @domName DOMException.message; @docsEditable true
-  final String message;
-
-  /// @domName DOMException.name; @docsEditable true
-  final String name;
-
-  /// @domName DOMException.toString; @docsEditable true
-  String toString() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DOMFileSystem; @docsEditable true
-class DOMFileSystem native "*DOMFileSystem" {
-
-  /// @domName DOMFileSystem.name; @docsEditable true
-  final String name;
-
-  /// @domName DOMFileSystem.root; @docsEditable true
-  final DirectoryEntry root;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DOMFileSystemSync; @docsEditable true
-class DOMFileSystemSync native "*DOMFileSystemSync" {
-
-  /// @domName DOMFileSystemSync.name; @docsEditable true
-  final String name;
-
-  /// @domName DOMFileSystemSync.root; @docsEditable true
-  final DirectoryEntrySync root;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DOMImplementation; @docsEditable true
-class DOMImplementation native "*DOMImplementation" {
-
-  /// @domName DOMImplementation.createCSSStyleSheet; @docsEditable true
-  @JSName('createCSSStyleSheet')
-  CSSStyleSheet createCssStyleSheet(String title, String media) native;
-
-  /// @domName DOMImplementation.createDocument; @docsEditable true
-  Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native;
-
-  /// @domName DOMImplementation.createDocumentType; @docsEditable true
-  DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native;
-
-  /// @domName DOMImplementation.createHTMLDocument; @docsEditable true
-  @JSName('createHTMLDocument')
-  HtmlDocument createHtmlDocument(String title) native;
-
-  /// @domName DOMImplementation.hasFeature; @docsEditable true
-  bool hasFeature(String feature, String version) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName MimeType; @docsEditable true
-class DOMMimeType native "*MimeType" {
-
-  /// @domName MimeType.description; @docsEditable true
-  final String description;
-
-  /// @domName MimeType.enabledPlugin; @docsEditable true
-  final DOMPlugin enabledPlugin;
-
-  /// @domName MimeType.suffixes; @docsEditable true
-  final String suffixes;
-
-  /// @domName MimeType.type; @docsEditable true
-  final String type;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName MimeTypeArray; @docsEditable true
-class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> native "*MimeTypeArray" {
-
-  /// @domName MimeTypeArray.length; @docsEditable true
-  final int length;
-
-  DOMMimeType operator[](int index) => JS("DOMMimeType", "#[#]", this, index);
-
-  void operator[]=(int index, DOMMimeType value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<DOMMimeType> mixins.
-  // DOMMimeType is the element type.
-
-  // From Iterable<DOMMimeType>:
-
-  Iterator<DOMMimeType> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<DOMMimeType>(this);
-  }
-
-  // From Collection<DOMMimeType>:
-
-  void add(DOMMimeType value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(DOMMimeType value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<DOMMimeType> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(DOMMimeType element) => _Collections.contains(this, element);
-
-  void forEach(void f(DOMMimeType element)) => _Collections.forEach(this, f);
-
-  Collection map(f(DOMMimeType element)) => _Collections.map(this, [], f);
-
-  Collection<DOMMimeType> filter(bool f(DOMMimeType element)) =>
-     _Collections.filter(this, <DOMMimeType>[], f);
-
-  bool every(bool f(DOMMimeType element)) => _Collections.every(this, f);
-
-  bool some(bool f(DOMMimeType element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<DOMMimeType>:
-
-  void sort([Comparator<DOMMimeType> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(DOMMimeType element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(DOMMimeType element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  DOMMimeType get first => this[0];
-
-  DOMMimeType get last => this[length - 1];
-
-  DOMMimeType removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<DOMMimeType> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [DOMMimeType initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<DOMMimeType> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <DOMMimeType>[]);
-
-  // -- end List<DOMMimeType> mixins.
-
-  /// @domName MimeTypeArray.item; @docsEditable true
-  DOMMimeType item(int index) native;
-
-  /// @domName MimeTypeArray.namedItem; @docsEditable true
-  DOMMimeType namedItem(String name) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DOMParser; @docsEditable true
-class DOMParser native "*DOMParser" {
-
-  factory DOMParser() => _DOMParserFactoryProvider.createDOMParser();
-
-  /// @domName DOMParser.parseFromString; @docsEditable true
-  Document parseFromString(String str, String contentType) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Plugin; @docsEditable true
-class DOMPlugin native "*Plugin" {
-
-  /// @domName Plugin.description; @docsEditable true
-  final String description;
-
-  /// @domName Plugin.filename; @docsEditable true
-  final String filename;
-
-  /// @domName Plugin.length; @docsEditable true
-  final int length;
-
-  /// @domName Plugin.name; @docsEditable true
-  final String name;
-
-  /// @domName Plugin.item; @docsEditable true
-  DOMMimeType item(int index) native;
-
-  /// @domName Plugin.namedItem; @docsEditable true
-  DOMMimeType namedItem(String name) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName PluginArray; @docsEditable true
-class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> native "*PluginArray" {
-
-  /// @domName PluginArray.length; @docsEditable true
-  final int length;
-
-  DOMPlugin operator[](int index) => JS("DOMPlugin", "#[#]", this, index);
-
-  void operator[]=(int index, DOMPlugin value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<DOMPlugin> mixins.
-  // DOMPlugin is the element type.
-
-  // From Iterable<DOMPlugin>:
-
-  Iterator<DOMPlugin> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<DOMPlugin>(this);
-  }
-
-  // From Collection<DOMPlugin>:
-
-  void add(DOMPlugin value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(DOMPlugin value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<DOMPlugin> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(DOMPlugin element) => _Collections.contains(this, element);
-
-  void forEach(void f(DOMPlugin element)) => _Collections.forEach(this, f);
-
-  Collection map(f(DOMPlugin element)) => _Collections.map(this, [], f);
-
-  Collection<DOMPlugin> filter(bool f(DOMPlugin element)) =>
-     _Collections.filter(this, <DOMPlugin>[], f);
-
-  bool every(bool f(DOMPlugin element)) => _Collections.every(this, f);
-
-  bool some(bool f(DOMPlugin element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<DOMPlugin>:
-
-  void sort([Comparator<DOMPlugin> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(DOMPlugin element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(DOMPlugin element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  DOMPlugin get first => this[0];
-
-  DOMPlugin get last => this[length - 1];
-
-  DOMPlugin removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<DOMPlugin> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [DOMPlugin initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<DOMPlugin> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <DOMPlugin>[]);
-
-  // -- end List<DOMPlugin> mixins.
-
-  /// @domName PluginArray.item; @docsEditable true
-  DOMPlugin item(int index) native;
-
-  /// @domName PluginArray.namedItem; @docsEditable true
-  DOMPlugin namedItem(String name) native;
-
-  /// @domName PluginArray.refresh; @docsEditable true
-  void refresh(bool reload) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Selection; @docsEditable true
-class DOMSelection native "*Selection" {
-
-  /// @domName Selection.anchorNode; @docsEditable true
-  final Node anchorNode;
-
-  /// @domName Selection.anchorOffset; @docsEditable true
-  final int anchorOffset;
-
-  /// @domName Selection.baseNode; @docsEditable true
-  final Node baseNode;
-
-  /// @domName Selection.baseOffset; @docsEditable true
-  final int baseOffset;
-
-  /// @domName Selection.extentNode; @docsEditable true
-  final Node extentNode;
-
-  /// @domName Selection.extentOffset; @docsEditable true
-  final int extentOffset;
-
-  /// @domName Selection.focusNode; @docsEditable true
-  final Node focusNode;
-
-  /// @domName Selection.focusOffset; @docsEditable true
-  final int focusOffset;
-
-  /// @domName Selection.isCollapsed; @docsEditable true
-  final bool isCollapsed;
-
-  /// @domName Selection.rangeCount; @docsEditable true
-  final int rangeCount;
-
-  /// @domName Selection.type; @docsEditable true
-  final String type;
-
-  /// @domName Selection.addRange; @docsEditable true
-  void addRange(Range range) native;
-
-  /// @domName Selection.collapse; @docsEditable true
-  void collapse(Node node, int index) native;
-
-  /// @domName Selection.collapseToEnd; @docsEditable true
-  void collapseToEnd() native;
-
-  /// @domName Selection.collapseToStart; @docsEditable true
-  void collapseToStart() native;
-
-  /// @domName Selection.containsNode; @docsEditable true
-  bool containsNode(Node node, bool allowPartial) native;
-
-  /// @domName Selection.deleteFromDocument; @docsEditable true
-  void deleteFromDocument() native;
-
-  /// @domName Selection.empty; @docsEditable true
-  void empty() native;
-
-  /// @domName Selection.extend; @docsEditable true
-  void extend(Node node, int offset) native;
-
-  /// @domName Selection.getRangeAt; @docsEditable true
-  Range getRangeAt(int index) native;
-
-  /// @domName Selection.modify; @docsEditable true
-  void modify(String alter, String direction, String granularity) native;
-
-  /// @domName Selection.removeAllRanges; @docsEditable true
-  void removeAllRanges() native;
-
-  /// @domName Selection.selectAllChildren; @docsEditable true
-  void selectAllChildren(Node node) native;
-
-  /// @domName Selection.setBaseAndExtent; @docsEditable true
-  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
-
-  /// @domName Selection.setPosition; @docsEditable true
-  void setPosition(Node node, int offset) native;
-
-  /// @domName Selection.toString; @docsEditable true
-  String toString() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DOMSettableTokenList; @docsEditable true
-class DOMSettableTokenList extends DOMTokenList native "*DOMSettableTokenList" {
-
-  /// @domName DOMSettableTokenList.value; @docsEditable true
-  String value;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DOMStringMap
-abstract class DOMStringMap {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DOMTokenList; @docsEditable true
-class DOMTokenList native "*DOMTokenList" {
-
-  /// @domName DOMTokenList.length; @docsEditable true
-  final int length;
-
-  /// @domName DOMTokenList.contains; @docsEditable true
-  bool contains(String token) native;
-
-  /// @domName DOMTokenList.item; @docsEditable true
-  String item(int index) native;
-
-  /// @domName DOMTokenList.toString; @docsEditable true
-  String toString() native;
-
-  /// @domName DOMTokenList.toggle; @docsEditable true
-  bool toggle(String token, [bool force]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName HTMLDataListElement; @docsEditable true
 class DataListElement extends Element implements Element native "*HTMLDataListElement" {
 
+  ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
 
   /// @domName HTMLDataListElement.options; @docsEditable true
-  final HTMLCollection options;
+  final HtmlCollection options;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5686,6 +5215,7 @@ class DataTransferItemList native "*DataTransferItemList" {
 /// @domName DataView; @docsEditable true
 class DataView extends ArrayBufferView native "*DataView" {
 
+  ///@docsEditable true
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
     if (!?byteOffset) {
       return _DataViewFactoryProvider.createDataView(buffer);
@@ -5756,13 +5286,13 @@ class Database native "*Database" {
   final String version;
 
   /// @domName Database.changeVersion; @docsEditable true
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
+  void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
   /// @domName Database.readTransaction; @docsEditable true
-  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
+  void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
   /// @domName Database.transaction; @docsEditable true
-  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
+  void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5787,13 +5317,13 @@ class DatabaseSync native "*DatabaseSync" {
   final String version;
 
   /// @domName DatabaseSync.changeVersion; @docsEditable true
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]) native;
+  void changeVersion(String oldVersion, String newVersion, [SqlTransactionSyncCallback callback]) native;
 
   /// @domName DatabaseSync.readTransaction; @docsEditable true
-  void readTransaction(SQLTransactionSyncCallback callback) native;
+  void readTransaction(SqlTransactionSyncCallback callback) native;
 
   /// @domName DatabaseSync.transaction; @docsEditable true
-  void transaction(SQLTransactionSyncCallback callback) native;
+  void transaction(SqlTransactionSyncCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5810,11 +5340,11 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
   /// @domName DedicatedWorkerContext.postMessage; @docsEditable true
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
-      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
       return;
     }
-    var message_2 = _convertDartToNative_SerializedScriptValue(message);
+    var message_2 = convertDartToNative_SerializedScriptValue(message);
     _postMessage_2(message_2);
     return;
   }
@@ -5837,6 +5367,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 /// @domName HTMLDetailsElement; @docsEditable true
 class DetailsElement extends Element implements Element native "*HTMLDetailsElement" {
 
+  ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
 
   /// @domName HTMLDetailsElement.open; @docsEditable true
@@ -5901,17 +5432,17 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   /// @domName DirectoryEntry.getDirectory; @docsEditable true
   void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
-      var options_1 = _convertDartToNative_Dictionary(options);
+      var options_1 = convertDartToNative_Dictionary(options);
       _getDirectory_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (?successCallback) {
-      var options_2 = _convertDartToNative_Dictionary(options);
+      var options_2 = convertDartToNative_Dictionary(options);
       _getDirectory_2(path, options_2, successCallback);
       return;
     }
     if (?options) {
-      var options_3 = _convertDartToNative_Dictionary(options);
+      var options_3 = convertDartToNative_Dictionary(options);
       _getDirectory_3(path, options_3);
       return;
     }
@@ -5930,17 +5461,17 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   /// @domName DirectoryEntry.getFile; @docsEditable true
   void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
-      var options_1 = _convertDartToNative_Dictionary(options);
+      var options_1 = convertDartToNative_Dictionary(options);
       _getFile_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (?successCallback) {
-      var options_2 = _convertDartToNative_Dictionary(options);
+      var options_2 = convertDartToNative_Dictionary(options);
       _getFile_2(path, options_2, successCallback);
       return;
     }
     if (?options) {
-      var options_3 = _convertDartToNative_Dictionary(options);
+      var options_3 = convertDartToNative_Dictionary(options);
       _getFile_3(path, options_3);
       return;
     }
@@ -5972,7 +5503,7 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
   /// @domName DirectoryEntrySync.getDirectory; @docsEditable true
   DirectoryEntrySync getDirectory(String path, Map flags) {
-    var flags_1 = _convertDartToNative_Dictionary(flags);
+    var flags_1 = convertDartToNative_Dictionary(flags);
     return _getDirectory_1(path, flags_1);
   }
   @JSName('getDirectory')
@@ -5980,7 +5511,7 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
   /// @domName DirectoryEntrySync.getFile; @docsEditable true
   FileEntrySync getFile(String path, Map flags) {
-    var flags_1 = _convertDartToNative_Dictionary(flags);
+    var flags_1 = convertDartToNative_Dictionary(flags);
     return _getFile_1(path, flags_1);
   }
   @JSName('getFile')
@@ -6017,30 +5548,10 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * Represents an HTML <div> element.
- *
- * The [DivElement] is a generic container for content and does not have any
- * special significance. It is functionally similar to [SpanElement].
- *
- * The [DivElement] is a block-level element, as opposed to [SpanElement],
- * which is an inline-level element.
- *
- * Example usage:
- *
- *     DivElement div = new DivElement();
- *     div.text = 'Here's my new DivElem
- *     document.body.elements.add(elem);
- *
- * See also:
- *
- * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
- * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
- * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
- */
 /// @domName HTMLDivElement; @docsEditable true
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
+  ///@docsEditable true
   factory DivElement() => document.$dom_createElement("div");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6049,6 +5560,15 @@ class DivElement extends Element implements Element native "*HTMLDivElement" {
 
 
 /// @domName Document
+/**
+ * The base class for all documents.
+ *
+ * Each web page loaded in the browser has its own [Document] object, which is
+ * typically an [HtmlDocument].
+ *
+ * If you aren't comfortable with DOM concepts, see the Dart tutorial
+ * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
+ */
 class Document extends Node  native "*Document"
 {
 
@@ -6084,14 +5604,15 @@ class Document extends Node  native "*Document"
   final HeadElement $dom_head;
 
   /// @domName Document.implementation; @docsEditable true
-  final DOMImplementation implementation;
+  final DomImplementation implementation;
 
   /// @domName Document.lastModified; @docsEditable true
   @JSName('lastModified')
   final String $dom_lastModified;
 
   /// @domName Document.preferredStylesheetSet; @docsEditable true
-  final String preferredStylesheetSet;
+  @JSName('preferredStylesheetSet')
+  final String $dom_preferredStylesheetSet;
 
   /// @domName Document.readyState; @docsEditable true
   final String readyState;
@@ -6101,7 +5622,8 @@ class Document extends Node  native "*Document"
   final String $dom_referrer;
 
   /// @domName Document.selectedStylesheetSet; @docsEditable true
-  String selectedStylesheetSet;
+  @JSName('selectedStylesheetSet')
+  String $dom_selectedStylesheetSet;
 
   /// @domName Document.styleSheets; @docsEditable true
   @JSName('styleSheets')
@@ -6142,7 +5664,7 @@ class Document extends Node  native "*Document"
 
   /// @domName Document.createCDATASection; @docsEditable true
   @JSName('createCDATASection')
-  CDATASection createCDataSection(String data) native;
+  CDataSection createCDataSection(String data) native;
 
   /// @domName Document.createDocumentFragment; @docsEditable true
   DocumentFragment createDocumentFragment() native;
@@ -6160,19 +5682,20 @@ class Document extends Node  native "*Document"
   Event $dom_createEvent(String eventType) native;
 
   /// @domName Document.createRange; @docsEditable true
-  Range createRange() native;
+  @JSName('createRange')
+  Range $dom_createRange() native;
 
   /// @domName Document.createTextNode; @docsEditable true
   @JSName('createTextNode')
   Text $dom_createTextNode(String data) native;
 
   /// @domName Document.createTouch; @docsEditable true
-  Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
+  Touch $dom_createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
     var target_1 = _convertDartToNative_EventTarget(target);
-    return _createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
+    return _$dom_createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
   }
   @JSName('createTouch')
-  Touch _createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
+  Touch _$dom_createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
   /// @domName Document.createTouchList; @docsEditable true
   @JSName('createTouchList')
@@ -6187,7 +5710,7 @@ class Document extends Node  native "*Document"
 
   /// @domName Document.getCSSCanvasContext; @docsEditable true
   @JSName('getCSSCanvasContext')
-  CanvasRenderingContext getCssCanvasContext(String contextId, String name, int width, int height) native;
+  CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native;
 
   /// @domName Document.getElementById; @docsEditable true
   @JSName('getElementById')
@@ -6244,8 +5767,22 @@ class Document extends Node  native "*Document"
   @JSName('webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native;
 
-  // TODO(jacobr): implement all Element methods not on Document.
 
+  /**
+   * Finds the first descendant element of this document that matches the
+   * specified group of selectors.
+   *
+   * Unless your webpage contains multiple documents, the top-level query
+   * method behaves the same as this method, so you should use it instead to
+   * save typing a few characters.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *     var element1 = document.query('.className');
+   *     var element2 = document.query('#id');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   Element query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have
     // false negatives but not false positives.
@@ -6255,6 +5792,20 @@ class Document extends Node  native "*Document"
     return $dom_querySelector(selectors);
   }
 
+  /**
+   * Finds all descendant elements of this document that match the specified
+   * group of selectors.
+   *
+   * Unless your webpage contains multiple documents, the top-level queryAll
+   * method behaves the same as this method, so you should use it instead to
+   * save typing a few characters.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *     var items = document.queryAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   List<Element> queryAll(String selectors) {
     if (new RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByName(
@@ -6295,9 +5846,9 @@ class DocumentEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-Future<CSSStyleDeclaration> _emptyStyleFuture() {
+Future<CssStyleDeclaration> _emptyStyleFuture() {
   return _createMeasurementFuture(() => new Element.tag('div').style,
-                                  new Completer<CSSStyleDeclaration>());
+                                  new Completer<CssStyleDeclaration>());
 }
 
 class _FrozenCssClassSet extends CssClassSet {
@@ -6339,7 +5890,7 @@ class DocumentFragment extends Node native "*DocumentFragment" {
     return _children;
   }
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -6441,10 +5992,10 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   Map<String, String> get attributes => const {};
   CssClassSet get classes => new _FrozenCssClassSet();
   Map<String, String> get dataAttributes => const {};
-  CSSStyleDeclaration get style => new Element.tag('div').style;
-  Future<CSSStyleDeclaration> get computedStyle =>
+  CssStyleDeclaration get style => new Element.tag('div').style;
+  Future<CssStyleDeclaration> get computedStyle =>
       _emptyStyleFuture();
-  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) =>
+  Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) =>
       _emptyStyleFuture();
   bool matchesSelector(String selectors) => false;
 
@@ -6605,12 +6156,648 @@ class DocumentType extends Node native "*DocumentType" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EXTTextureFilterAnisotropic; @docsEditable true
-class EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
+/// @domName DOMError; @docsEditable true
+class DomError native "*DOMError" {
 
-  static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+  /// @domName DOMError.name; @docsEditable true
+  final String name;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  static const int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+
+/// @domName DOMException; @docsEditable true
+class DomException native "*DOMException" {
+
+  static const int ABORT_ERR = 20;
+
+  static const int DATA_CLONE_ERR = 25;
+
+  static const int DOMSTRING_SIZE_ERR = 2;
+
+  static const int HIERARCHY_REQUEST_ERR = 3;
+
+  static const int INDEX_SIZE_ERR = 1;
+
+  static const int INUSE_ATTRIBUTE_ERR = 10;
+
+  static const int INVALID_ACCESS_ERR = 15;
+
+  static const int INVALID_CHARACTER_ERR = 5;
+
+  static const int INVALID_MODIFICATION_ERR = 13;
+
+  static const int INVALID_NODE_TYPE_ERR = 24;
+
+  static const int INVALID_STATE_ERR = 11;
+
+  static const int NAMESPACE_ERR = 14;
+
+  static const int NETWORK_ERR = 19;
+
+  static const int NOT_FOUND_ERR = 8;
+
+  static const int NOT_SUPPORTED_ERR = 9;
+
+  static const int NO_DATA_ALLOWED_ERR = 6;
+
+  static const int NO_MODIFICATION_ALLOWED_ERR = 7;
+
+  static const int QUOTA_EXCEEDED_ERR = 22;
+
+  static const int SECURITY_ERR = 18;
+
+  static const int SYNTAX_ERR = 12;
+
+  static const int TIMEOUT_ERR = 23;
+
+  static const int TYPE_MISMATCH_ERR = 17;
+
+  static const int URL_MISMATCH_ERR = 21;
+
+  static const int VALIDATION_ERR = 16;
+
+  static const int WRONG_DOCUMENT_ERR = 4;
+
+  /// @domName DOMException.code; @docsEditable true
+  final int code;
+
+  /// @domName DOMException.message; @docsEditable true
+  final String message;
+
+  /// @domName DOMException.name; @docsEditable true
+  final String name;
+
+  /// @domName DOMException.toString; @docsEditable true
+  String toString() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName DOMImplementation; @docsEditable true
+class DomImplementation native "*DOMImplementation" {
+
+  /// @domName DOMImplementation.createCSSStyleSheet; @docsEditable true
+  @JSName('createCSSStyleSheet')
+  CssStyleSheet createCssStyleSheet(String title, String media) native;
+
+  /// @domName DOMImplementation.createDocument; @docsEditable true
+  Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native;
+
+  /// @domName DOMImplementation.createDocumentType; @docsEditable true
+  DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native;
+
+  /// @domName DOMImplementation.createHTMLDocument; @docsEditable true
+  @JSName('createHTMLDocument')
+  HtmlDocument createHtmlDocument(String title) native;
+
+  /// @domName DOMImplementation.hasFeature; @docsEditable true
+  bool hasFeature(String feature, String version) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName MimeType; @docsEditable true
+class DomMimeType native "*MimeType" {
+
+  /// @domName MimeType.description; @docsEditable true
+  final String description;
+
+  /// @domName MimeType.enabledPlugin; @docsEditable true
+  final DomPlugin enabledPlugin;
+
+  /// @domName MimeType.suffixes; @docsEditable true
+  final String suffixes;
+
+  /// @domName MimeType.type; @docsEditable true
+  final String type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName MimeTypeArray; @docsEditable true
+class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> native "*MimeTypeArray" {
+
+  /// @domName MimeTypeArray.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
+
+  DomMimeType operator[](int index) => JS("DomMimeType", "#[#]", this, index);
+
+  void operator[]=(int index, DomMimeType value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<DomMimeType> mixins.
+  // DomMimeType is the element type.
+
+  // From Iterable<DomMimeType>:
+
+  Iterator<DomMimeType> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<DomMimeType>(this);
+  }
+
+  // From Collection<DomMimeType>:
+
+  void add(DomMimeType value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(DomMimeType value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<DomMimeType> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(DomMimeType element) => Collections.contains(this, element);
+
+  void forEach(void f(DomMimeType element)) => Collections.forEach(this, f);
+
+  Collection map(f(DomMimeType element)) => Collections.map(this, [], f);
+
+  Collection<DomMimeType> filter(bool f(DomMimeType element)) =>
+     Collections.filter(this, <DomMimeType>[], f);
+
+  bool every(bool f(DomMimeType element)) => Collections.every(this, f);
+
+  bool some(bool f(DomMimeType element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<DomMimeType>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(DomMimeType a, DomMimeType b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(DomMimeType element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(DomMimeType element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  DomMimeType get first => this[0];
+
+  DomMimeType get last => this[length - 1];
+
+  DomMimeType removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  DomMimeType removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<DomMimeType> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [DomMimeType initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<DomMimeType> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <DomMimeType>[]);
+
+  // -- end List<DomMimeType> mixins.
+
+  /// @domName MimeTypeArray.item; @docsEditable true
+  DomMimeType item(int index) native;
+
+  /// @domName MimeTypeArray.namedItem; @docsEditable true
+  DomMimeType namedItem(String name) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName DOMParser; @docsEditable true
+class DomParser native "*DOMParser" {
+
+  ///@docsEditable true
+  factory DomParser() => _DomParserFactoryProvider.createDomParser();
+
+  /// @domName DOMParser.parseFromString; @docsEditable true
+  Document parseFromString(String str, String contentType) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName Plugin; @docsEditable true
+class DomPlugin native "*Plugin" {
+
+  /// @domName Plugin.description; @docsEditable true
+  final String description;
+
+  /// @domName Plugin.filename; @docsEditable true
+  final String filename;
+
+  /// @domName Plugin.length; @docsEditable true
+  final int length;
+
+  /// @domName Plugin.name; @docsEditable true
+  final String name;
+
+  /// @domName Plugin.item; @docsEditable true
+  DomMimeType item(int index) native;
+
+  /// @domName Plugin.namedItem; @docsEditable true
+  DomMimeType namedItem(String name) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName PluginArray; @docsEditable true
+class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> native "*PluginArray" {
+
+  /// @domName PluginArray.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
+
+  DomPlugin operator[](int index) => JS("DomPlugin", "#[#]", this, index);
+
+  void operator[]=(int index, DomPlugin value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<DomPlugin> mixins.
+  // DomPlugin is the element type.
+
+  // From Iterable<DomPlugin>:
+
+  Iterator<DomPlugin> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<DomPlugin>(this);
+  }
+
+  // From Collection<DomPlugin>:
+
+  void add(DomPlugin value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(DomPlugin value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<DomPlugin> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(DomPlugin element) => Collections.contains(this, element);
+
+  void forEach(void f(DomPlugin element)) => Collections.forEach(this, f);
+
+  Collection map(f(DomPlugin element)) => Collections.map(this, [], f);
+
+  Collection<DomPlugin> filter(bool f(DomPlugin element)) =>
+     Collections.filter(this, <DomPlugin>[], f);
+
+  bool every(bool f(DomPlugin element)) => Collections.every(this, f);
+
+  bool some(bool f(DomPlugin element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<DomPlugin>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(DomPlugin a, DomPlugin b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(DomPlugin element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(DomPlugin element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  DomPlugin get first => this[0];
+
+  DomPlugin get last => this[length - 1];
+
+  DomPlugin removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  DomPlugin removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<DomPlugin> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [DomPlugin initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<DomPlugin> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <DomPlugin>[]);
+
+  // -- end List<DomPlugin> mixins.
+
+  /// @domName PluginArray.item; @docsEditable true
+  DomPlugin item(int index) native;
+
+  /// @domName PluginArray.namedItem; @docsEditable true
+  DomPlugin namedItem(String name) native;
+
+  /// @domName PluginArray.refresh; @docsEditable true
+  void refresh(bool reload) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName Selection; @docsEditable true
+class DomSelection native "*Selection" {
+
+  /// @domName Selection.anchorNode; @docsEditable true
+  final Node anchorNode;
+
+  /// @domName Selection.anchorOffset; @docsEditable true
+  final int anchorOffset;
+
+  /// @domName Selection.baseNode; @docsEditable true
+  final Node baseNode;
+
+  /// @domName Selection.baseOffset; @docsEditable true
+  final int baseOffset;
+
+  /// @domName Selection.extentNode; @docsEditable true
+  final Node extentNode;
+
+  /// @domName Selection.extentOffset; @docsEditable true
+  final int extentOffset;
+
+  /// @domName Selection.focusNode; @docsEditable true
+  final Node focusNode;
+
+  /// @domName Selection.focusOffset; @docsEditable true
+  final int focusOffset;
+
+  /// @domName Selection.isCollapsed; @docsEditable true
+  final bool isCollapsed;
+
+  /// @domName Selection.rangeCount; @docsEditable true
+  final int rangeCount;
+
+  /// @domName Selection.type; @docsEditable true
+  final String type;
+
+  /// @domName Selection.addRange; @docsEditable true
+  void addRange(Range range) native;
+
+  /// @domName Selection.collapse; @docsEditable true
+  void collapse(Node node, int index) native;
+
+  /// @domName Selection.collapseToEnd; @docsEditable true
+  void collapseToEnd() native;
+
+  /// @domName Selection.collapseToStart; @docsEditable true
+  void collapseToStart() native;
+
+  /// @domName Selection.containsNode; @docsEditable true
+  bool containsNode(Node node, bool allowPartial) native;
+
+  /// @domName Selection.deleteFromDocument; @docsEditable true
+  void deleteFromDocument() native;
+
+  /// @domName Selection.empty; @docsEditable true
+  void empty() native;
+
+  /// @domName Selection.extend; @docsEditable true
+  void extend(Node node, int offset) native;
+
+  /// @domName Selection.getRangeAt; @docsEditable true
+  Range getRangeAt(int index) native;
+
+  /// @domName Selection.modify; @docsEditable true
+  void modify(String alter, String direction, String granularity) native;
+
+  /// @domName Selection.removeAllRanges; @docsEditable true
+  void removeAllRanges() native;
+
+  /// @domName Selection.selectAllChildren; @docsEditable true
+  void selectAllChildren(Node node) native;
+
+  /// @domName Selection.setBaseAndExtent; @docsEditable true
+  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
+
+  /// @domName Selection.setPosition; @docsEditable true
+  void setPosition(Node node, int offset) native;
+
+  /// @domName Selection.toString; @docsEditable true
+  String toString() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName DOMSettableTokenList; @docsEditable true
+class DomSettableTokenList extends DomTokenList native "*DOMSettableTokenList" {
+
+  /// @domName DOMSettableTokenList.value; @docsEditable true
+  String value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName DOMStringList; @docsEditable true
+class DomStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
+
+  /// @domName DOMStringList.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
+
+  String operator[](int index) => JS("String", "#[#]", this, index);
+
+  void operator[]=(int index, String value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<String> mixins.
+  // String is the element type.
+
+  // From Iterable<String>:
+
+  Iterator<String> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<String>(this);
+  }
+
+  // From Collection<String>:
+
+  void add(String value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(String value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<String> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  // contains() defined by IDL.
+
+  void forEach(void f(String element)) => Collections.forEach(this, f);
+
+  Collection map(f(String element)) => Collections.map(this, [], f);
+
+  Collection<String> filter(bool f(String element)) =>
+     Collections.filter(this, <String>[], f);
+
+  bool every(bool f(String element)) => Collections.every(this, f);
+
+  bool some(bool f(String element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<String>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(String a, String b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(String element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(String element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  String get first => this[0];
+
+  String get last => this[length - 1];
+
+  String removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  String removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [String initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <String>[]);
+
+  // -- end List<String> mixins.
+
+  /// @domName DOMStringList.contains; @docsEditable true
+  bool contains(String string) native;
+
+  /// @domName DOMStringList.item; @docsEditable true
+  String item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName DOMStringMap
+abstract class DomStringMap {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName DOMTokenList; @docsEditable true
+class DomTokenList native "*DOMTokenList" {
+
+  /// @domName DOMTokenList.length; @docsEditable true
+  final int length;
+
+  /// @domName DOMTokenList.contains; @docsEditable true
+  bool contains(String token) native;
+
+  /// @domName DOMTokenList.item; @docsEditable true
+  String item(int index) native;
+
+  /// @domName DOMTokenList.toString; @docsEditable true
+  String toString() native;
+
+  /// @domName DOMTokenList.toggle; @docsEditable true
+  bool toggle(String token, [bool force]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6622,7 +6809,7 @@ class EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 class _ChildrenElementList implements List {
   // Raw Element.
   final Element _element;
-  final HTMLCollection _childElements;
+  final HtmlCollection _childElements;
 
   _ChildrenElementList._wrap(Element element)
     : _childElements = element.$dom_children,
@@ -6716,8 +6903,13 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
+  }
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return Collections.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -6733,21 +6925,29 @@ class _ChildrenElementList implements List {
   }
 
   List getRange(int start, int rangeLength) =>
-    new _FrozenElementList._wrap(_Lists.getRange(this, start, rangeLength,
+    new _FrozenElementList._wrap(Lists.getRange(this, start, rangeLength,
         []));
 
   int indexOf(Element element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(Element element, [int start = null]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {
     // It is unclear if we want to keep non element nodes?
     _element.text = '';
+  }
+
+  Element removeAt(int index) {
+    final result = this[index];
+    if (result != null) {
+      _element.$dom_removeChild(result);
+    }
+    return result;
   }
 
   Element removeLast() {
@@ -6852,8 +7052,13 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void sort([Comparator<Element> compare = Comparable.compare]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('');
+  }
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return Collections.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -6878,6 +7083,10 @@ class _FrozenElementList implements List {
     _nodeList.lastIndexOf(element, start);
 
   void clear() {
+    throw new UnsupportedError('');
+  }
+
+  Element removeAt(int index) {
     throw new UnsupportedError('');
   }
 
@@ -6984,7 +7193,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
-  void set children(Collection<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -7026,16 +7235,16 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   }
 
   /** @domName Window.getComputedStyle */
-  Future<CSSStyleDeclaration> get computedStyle {
+  Future<CssStyleDeclaration> get computedStyle {
      // TODO(jacobr): last param should be null, see b/5045788
      return getComputedStyle('');
   }
 
   /** @domName Window.getComputedStyle */
-  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
+  Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) {
     return _createMeasurementFuture(
         () => window.$dom_getComputedStyle(this, pseudoElement),
-        new Completer<CSSStyleDeclaration>());
+        new Completer<CssStyleDeclaration>());
   }
 
   /**
@@ -7140,7 +7349,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   /// @domName HTMLElement.children; @docsEditable true
   @JSName('children')
-  final HTMLCollection $dom_children;
+  final HtmlCollection $dom_children;
 
   /// @domName HTMLElement.contentEditable; @docsEditable true
   String contentEditable;
@@ -7256,7 +7465,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   final int scrollWidth;
 
   /// @domName Element.style; @docsEditable true
-  final CSSStyleDeclaration style;
+  final CssStyleDeclaration style;
 
   /// @domName Element.tagName; @docsEditable true
   final String tagName;
@@ -7531,34 +7740,14 @@ class ElementEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ElementTimeControl
-abstract class ElementTimeControl {
-
-  /// @domName ElementTimeControl.beginElement; @docsEditable true
-  void beginElement();
-
-  /// @domName ElementTimeControl.beginElementAt; @docsEditable true
-  void beginElementAt(num offset);
-
-  /// @domName ElementTimeControl.endElement; @docsEditable true
-  void endElement();
-
-  /// @domName ElementTimeControl.endElementAt; @docsEditable true
-  void endElementAt(num offset);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName ElementTraversal
 abstract class ElementTraversal {
 
-  int childElementCount;
+  int $dom_childElementCount;
 
-  Element firstElementChild;
+  Element $dom_firstElementChild;
 
-  Element lastElementChild;
+  Element $dom_lastElementChild;
 
   Element nextElementSibling;
 
@@ -7572,6 +7761,7 @@ abstract class ElementTraversal {
 /// @domName HTMLEmbedElement; @docsEditable true
 class EmbedElement extends Element implements Element native "*HTMLEmbedElement" {
 
+  ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
 
   /// @domName HTMLEmbedElement.align; @docsEditable true
@@ -7617,7 +7807,7 @@ typedef void EntriesCallback(List<Entry> entries);
 class Entry native "*Entry" {
 
   /// @domName Entry.filesystem; @docsEditable true
-  final DOMFileSystem filesystem;
+  final FileSystem filesystem;
 
   /// @domName Entry.fullPath; @docsEditable true
   final String fullPath;
@@ -7667,7 +7857,7 @@ typedef void EntryCallback(Entry entry);
 class EntrySync native "*EntrySync" {
 
   /// @domName EntrySync.filesystem; @docsEditable true
-  final DOMFileSystemSync filesystem;
+  final FileSystemSync filesystem;
 
   /// @domName EntrySync.fullPath; @docsEditable true
   final String fullPath;
@@ -7798,7 +7988,7 @@ class Event native "*Event" {
   /// @domName Event.currentTarget; @docsEditable true
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
   @JSName('currentTarget')
-  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  @Creates('Null') @Returns('EventTarget|=Object')
   final dynamic _currentTarget;
 
   /// @domName Event.defaultPrevented; @docsEditable true
@@ -7813,7 +8003,7 @@ class Event native "*Event" {
   /// @domName Event.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   @JSName('target')
-  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  @Creates('Node') @Returns('EventTarget|=Object')
   final dynamic _target;
 
   /// @domName Event.timeStamp; @docsEditable true
@@ -7868,6 +8058,7 @@ class EventException native "*EventException" {
 /// @domName EventSource; @docsEditable true
 class EventSource extends EventTarget native "*EventSource" {
 
+  ///@docsEditable true
   factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -7916,6 +8107,19 @@ class EventSourceEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * Base class that supports listening for and dispatching browser events.
+ *
+ * Events can either be accessed by string name (using the indexed getter) or by
+ * getters exposed by subclasses. Use the getters exposed by subclasses when
+ * possible for better compile-time type checks.
+ * 
+ * Using an indexed getter:
+ *     events['mouseover'].add((e) => print("Mouse over!"));
+ *
+ * Using a getter provided by a subclass:
+ *     elementEvents.mouseOver.add((e) => print("Mouse over!"));
+ */
 class Events {
   /* Raw event target. */
   final EventTarget _ptr;
@@ -7927,6 +8131,9 @@ class Events {
   }
 }
 
+/**
+ * Supports adding, removing, and dispatching events for a specific event type.
+ */
 class EventListenerList {
 
   final EventTarget _ptr;
@@ -7962,6 +8169,14 @@ class EventListenerList {
 }
 
 /// @domName EventTarget
+/**
+ * Base class for all browser objects that support events.
+ *
+ * Use the [on] property to add, remove, and dispatch events (rather than
+ * [$dom_addEventListener], [$dom_dispatchEvent], and
+ * [$dom_removeEventListener]) for compile-time type checks and a more concise
+ * API.
+ */ 
 class EventTarget native "*EventTarget" {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
@@ -7985,16 +8200,29 @@ class EventTarget native "*EventTarget" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName EXTTextureFilterAnisotropic; @docsEditable true
+class ExtTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
+
+  static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+  static const int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName HTMLFieldSetElement; @docsEditable true
 class FieldSetElement extends Element implements Element native "*HTMLFieldSetElement" {
 
+  ///@docsEditable true
   factory FieldSetElement() => document.$dom_createElement("fieldset");
 
   /// @domName HTMLFieldSetElement.disabled; @docsEditable true
   bool disabled;
 
   /// @domName HTMLFieldSetElement.elements; @docsEditable true
-  final HTMLCollection elements;
+  final HtmlCollection elements;
 
   /// @domName HTMLFieldSetElement.form; @docsEditable true
   final FormElement form;
@@ -8157,9 +8385,124 @@ class FileException native "*FileException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName FileList; @docsEditable true
+class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
+
+  /// @domName FileList.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
+
+  File operator[](int index) => JS("File", "#[#]", this, index);
+
+  void operator[]=(int index, File value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<File> mixins.
+  // File is the element type.
+
+  // From Iterable<File>:
+
+  Iterator<File> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<File>(this);
+  }
+
+  // From Collection<File>:
+
+  void add(File value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(File value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<File> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, File)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(File element) => Collections.contains(this, element);
+
+  void forEach(void f(File element)) => Collections.forEach(this, f);
+
+  Collection map(f(File element)) => Collections.map(this, [], f);
+
+  Collection<File> filter(bool f(File element)) =>
+     Collections.filter(this, <File>[], f);
+
+  bool every(bool f(File element)) => Collections.every(this, f);
+
+  bool some(bool f(File element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<File>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(File a, File b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(File element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(File element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  File get first => this[0];
+
+  File get last => this[length - 1];
+
+  File removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  File removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [File initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<File> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <File>[]);
+
+  // -- end List<File> mixins.
+
+  /// @domName FileList.item; @docsEditable true
+  File item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName FileReader; @docsEditable true
 class FileReader extends EventTarget native "*FileReader" {
 
+  ///@docsEditable true
   factory FileReader() => _FileReaderFactoryProvider.createFileReader();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -8234,6 +8577,7 @@ class FileReaderEvents extends Events {
 /// @domName FileReaderSync; @docsEditable true
 class FileReaderSync native "*FileReaderSync" {
 
+  ///@docsEditable true
   factory FileReaderSync() => _FileReaderSyncFactoryProvider.createFileReaderSync();
 
   /// @domName FileReaderSync.readAsArrayBuffer; @docsEditable true
@@ -8253,10 +8597,38 @@ class FileReaderSync native "*FileReaderSync" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+/// @domName DOMFileSystem; @docsEditable true
+class FileSystem native "*DOMFileSystem" {
+
+  /// @domName DOMFileSystem.name; @docsEditable true
+  final String name;
+
+  /// @domName DOMFileSystem.root; @docsEditable true
+  final DirectoryEntry root;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 
-typedef void FileSystemCallback(DOMFileSystem fileSystem);
+typedef void FileSystemCallback(FileSystem fileSystem);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName DOMFileSystemSync; @docsEditable true
+class FileSystemSync native "*DOMFileSystemSync" {
+
+  /// @domName DOMFileSystemSync.name; @docsEditable true
+  final String name;
+
+  /// @domName DOMFileSystemSync.root; @docsEditable true
+  final DirectoryEntrySync root;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -8378,7 +8750,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   static const int BYTES_PER_ELEMENT = 4;
 
   /// @domName Float32Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   num operator[](int index) => JS("num", "#[#]", this, index);
 
@@ -8408,38 +8780,53 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(num element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(num element)) => _Collections.forEach(this, f);
+  bool contains(num element) => Collections.contains(this, element);
 
-  Collection map(f(num element)) => _Collections.map(this, [], f);
+  void forEach(void f(num element)) => Collections.forEach(this, f);
+
+  Collection map(f(num element)) => Collections.map(this, [], f);
 
   Collection<num> filter(bool f(num element)) =>
-     _Collections.filter(this, <num>[], f);
+     Collections.filter(this, <num>[], f);
 
-  bool every(bool f(num element)) => _Collections.every(this, f);
+  bool every(bool f(num element)) => Collections.every(this, f);
 
-  bool some(bool f(num element)) => _Collections.some(this, f);
+  bool some(bool f(num element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<num>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<num> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   num get first => this[0];
 
   num get last => this[length - 1];
+
+  num removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   num removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -8458,7 +8845,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   }
 
   List<num> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <num>[]);
+      Lists.getRange(this, start, rangeLength, <num>[]);
 
   // -- end List<num> mixins.
 
@@ -8489,7 +8876,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   static const int BYTES_PER_ELEMENT = 8;
 
   /// @domName Float64Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   num operator[](int index) => JS("num", "#[#]", this, index);
 
@@ -8519,38 +8906,53 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(num element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(num element)) => _Collections.forEach(this, f);
+  bool contains(num element) => Collections.contains(this, element);
 
-  Collection map(f(num element)) => _Collections.map(this, [], f);
+  void forEach(void f(num element)) => Collections.forEach(this, f);
+
+  Collection map(f(num element)) => Collections.map(this, [], f);
 
   Collection<num> filter(bool f(num element)) =>
-     _Collections.filter(this, <num>[], f);
+     Collections.filter(this, <num>[], f);
 
-  bool every(bool f(num element)) => _Collections.every(this, f);
+  bool every(bool f(num element)) => Collections.every(this, f);
 
-  bool some(bool f(num element)) => _Collections.some(this, f);
+  bool some(bool f(num element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<num>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<num> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   num get first => this[0];
 
   num get last => this[length - 1];
+
+  num removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   num removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -8569,7 +8971,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   }
 
   List<num> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <num>[]);
+      Lists.getRange(this, start, rangeLength, <num>[]);
 
   // -- end List<num> mixins.
 
@@ -8605,6 +9007,7 @@ class FontElement extends Element implements Element native "*HTMLFontElement" {
 /// @domName FormData; @docsEditable true
 class FormData native "*FormData" {
 
+  ///@docsEditable true
   factory FormData([FormElement form]) {
     if (!?form) {
       return _FormDataFactoryProvider.createFormData();
@@ -8623,6 +9026,7 @@ class FormData native "*FormData" {
 /// @domName HTMLFormElement; @docsEditable true
 class FormElement extends Element implements Element native "*HTMLFormElement" {
 
+  ///@docsEditable true
   factory FormElement() => document.$dom_createElement("form");
 
   /// @domName HTMLFormElement.acceptCharset; @docsEditable true
@@ -8821,6 +9225,7 @@ class Geoposition native "*Geoposition" {
 /// @domName HTMLHRElement; @docsEditable true
 class HRElement extends Element implements Element native "*HTMLHRElement" {
 
+  ///@docsEditable true
   factory HRElement() => document.$dom_createElement("hr");
 
   /// @domName HTMLHRElement.align; @docsEditable true
@@ -8834,237 +9239,6 @@ class HRElement extends Element implements Element native "*HTMLHRElement" {
 
   /// @domName HTMLHRElement.width; @docsEditable true
   String width;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName HTMLAllCollection; @docsEditable true
-class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLAllCollection" {
-
-  /// @domName HTMLAllCollection.length; @docsEditable true
-  final int length;
-
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<Node> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(Node element) => _Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => _Collections.every(this, f);
-
-  bool some(bool f(Node element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<Node>:
-
-  void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  Node get first => this[0];
-
-  Node get last => this[length - 1];
-
-  Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
-
-  // -- end List<Node> mixins.
-
-  /// @domName HTMLAllCollection.item; @docsEditable true
-  Node item(int index) native;
-
-  /// @domName HTMLAllCollection.namedItem; @docsEditable true
-  Node namedItem(String name) native;
-
-  /// @domName HTMLAllCollection.tags; @docsEditable true
-  @Returns('NodeList') @Creates('NodeList')
-  List<Node> tags(String name) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName HTMLCollection; @docsEditable true
-class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLCollection" {
-
-  /// @domName HTMLCollection.length; @docsEditable true
-  final int length;
-
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<Node> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(Node element) => _Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => _Collections.every(this, f);
-
-  bool some(bool f(Node element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<Node>:
-
-  void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  Node get first => this[0];
-
-  Node get last => this[length - 1];
-
-  Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
-
-  // -- end List<Node> mixins.
-
-  /// @domName HTMLCollection.item; @docsEditable true
-  Node item(int index) native;
-
-  /// @domName HTMLCollection.namedItem; @docsEditable true
-  Node namedItem(String name) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName HTMLOptionsCollection; @docsEditable true
-class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollection" {
-
-  // Shadowing definition.
-  /// @domName HTMLOptionsCollection.length; @docsEditable true
-  int get length => JS("int", "#.length", this);
-
-  /// @domName HTMLOptionsCollection.length; @docsEditable true
-  void set length(int value) {
-    JS("void", "#.length = #", this, value);
-  }
-
-  /// @domName HTMLOptionsCollection.selectedIndex; @docsEditable true
-  int selectedIndex;
-
-  /// @domName HTMLOptionsCollection.remove; @docsEditable true
-  void remove(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9093,6 +9267,7 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
 /// @domName HTMLHeadElement; @docsEditable true
 class HeadElement extends Element implements Element native "*HTMLHeadElement" {
 
+  ///@docsEditable true
   factory HeadElement() => document.$dom_createElement("head");
 
   /// @domName HTMLHeadElement.profile; @docsEditable true
@@ -9106,20 +9281,264 @@ class HeadElement extends Element implements Element native "*HTMLHeadElement" {
 /// @domName HTMLHeadingElement; @docsEditable true
 class HeadingElement extends Element implements Element native "*HTMLHeadingElement" {
 
+  ///@docsEditable true
   factory HeadingElement.h1() => document.$dom_createElement("h1");
 
+  ///@docsEditable true
   factory HeadingElement.h2() => document.$dom_createElement("h2");
 
+  ///@docsEditable true
   factory HeadingElement.h3() => document.$dom_createElement("h3");
 
+  ///@docsEditable true
   factory HeadingElement.h4() => document.$dom_createElement("h4");
 
+  ///@docsEditable true
   factory HeadingElement.h5() => document.$dom_createElement("h5");
 
+  ///@docsEditable true
   factory HeadingElement.h6() => document.$dom_createElement("h6");
 
   /// @domName HTMLHeadingElement.align; @docsEditable true
   String align;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName HTMLAllCollection; @docsEditable true
+class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLAllCollection" {
+
+  /// @domName HTMLAllCollection.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
+
+  Node operator[](int index) => JS("Node", "#[#]", this, index);
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => Collections.every(this, f);
+
+  bool some(bool f(Node element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Node a, Node b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  Node get first => this[0];
+
+  Node get last => this[length - 1];
+
+  Node removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  Node removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  // -- end List<Node> mixins.
+
+  /// @domName HTMLAllCollection.item; @docsEditable true
+  Node item(int index) native;
+
+  /// @domName HTMLAllCollection.namedItem; @docsEditable true
+  Node namedItem(String name) native;
+
+  /// @domName HTMLAllCollection.tags; @docsEditable true
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> tags(String name) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName HTMLCollection; @docsEditable true
+class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLCollection" {
+
+  /// @domName HTMLCollection.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
+
+  Node operator[](int index) => JS("Node", "#[#]", this, index);
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => Collections.every(this, f);
+
+  bool some(bool f(Node element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Node a, Node b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  Node get first => this[0];
+
+  Node get last => this[length - 1];
+
+  Node removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  Node removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  // -- end List<Node> mixins.
+
+  /// @domName HTMLCollection.item; @docsEditable true
+  Node item(int index) native;
+
+  /// @domName HTMLCollection.namedItem; @docsEditable true
+  Node namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9152,14 +9571,29 @@ class HtmlDocument extends Document native "*HTMLDocument" {
     return document.$dom_elementFromPoint(x, y);
   }
 
+  /** @domName Document.getCSSCanvasContext */
+  CanvasRenderingContext getCssCanvasContext(String contextId, String name,
+      int width, int height) {
+    return document.$dom_getCssCanvasContext(contextId, name, width, height);
+  }
+
   /** @domName Document.head */
   HeadElement get head => document.$dom_head;
 
   /** @domName Document.lastModified */
   String get lastModified => document.$dom_lastModified;
 
+  /** @domName Document.preferredStylesheetSet */
+  String get preferredStylesheetSet => document.$dom_preferredStylesheetSet;
+
   /** @domName Document.referrer */
   String get referrer => document.$dom_referrer;
+
+  /** @domName Document.selectedStylesheetSet */
+  String get selectedStylesheetSet => document.$dom_selectedStylesheetSet;
+  void set selectedStylesheetSet(String value) {
+    document.$dom_selectedStylesheetSet = value;
+  }
 
   /** @domName Document.styleSheets */
   List<StyleSheet> get styleSheets => document.$dom_styleSheets;
@@ -9214,6 +9648,7 @@ class HtmlDocument extends Document native "*HTMLDocument" {
 /// @domName HTMLHtmlElement; @docsEditable true
 class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 
+  ///@docsEditable true
   factory HtmlElement() => document.$dom_createElement("html");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9221,17 +9656,82 @@ class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName HTMLOptionsCollection; @docsEditable true
+class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollection" {
+
+  // Shadowing definition.
+  /// @domName HTMLOptionsCollection.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
+
+  /// @domName HTMLOptionsCollection.length; @docsEditable true
+  void set length(int value) {
+    JS("void", "#.length = #", this, value);
+  }
+
+  /// @domName HTMLOptionsCollection.selectedIndex; @docsEditable true
+  int selectedIndex;
+
+  /// @domName HTMLOptionsCollection.remove; @docsEditable true
+  void remove(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A utility for retrieving data from a URL.
+ * 
+ * HttpRequest can be used to obtain data from http, ftp, and file
+ * protocols. 
+ * 
+ * For example, suppose we're developing these API docs, and we
+ * wish to retrieve the HTML of the top-level page and print it out.
+ * The easiest way to do that would be:
+ * 
+ *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
+ *         (request) => print(request.responseText));
+ * 
+ * **Important**: With the default behavior of this class, your
+ * code making the request should be served from the same origin (domain name,
+ * port, and application layer protocol) as the URL you are trying to access
+ * with HttpRequest. However, there are ways to 
+ * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
+ * 
+ * See also:
+ *
+ * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
+ * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
+ * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
+ */
 /// @domName XMLHttpRequest
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
+  /**
+   * Creates a URL get request for the specified `url`.
+   * 
+   * After completing the request, the object will call the user-provided
+   * [onComplete] callback.
+   */
   factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
 
+  /**
+   * Creates a URL GET request for the specified `url` with
+   * credentials such a cookie (already) set in the header or
+   * (authorization headers)[http://tools.ietf.org/html/rfc1945#section-10.2].
+   * 
+   * After completing the request, the object will call the user-provided 
+   * [onComplete] callback.
+   * 
+   * See also: (authorization headers)[http://en.wikipedia.org/wiki/Basic_access_authentication].
+   */
   factory HttpRequest.getWithCredentials(String url,
       onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url,
       onComplete);
 
 
+  ///@docsEditable true
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -9412,919 +9912,10 @@ class HttpRequestUploadEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBAny; @docsEditable true
-class IDBAny native "*IDBAny" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBCursor; @docsEditable true
-class IDBCursor native "*IDBCursor" {
-
-  static const int NEXT = 0;
-
-  static const int NEXT_NO_DUPLICATE = 1;
-
-  static const int PREV = 2;
-
-  static const int PREV_NO_DUPLICATE = 3;
-
-  /// @domName IDBCursor.direction; @docsEditable true
-  final String direction;
-
-  /// @domName IDBCursor.key; @docsEditable true
-  @_annotation_Creates_IDBKey @_annotation_Returns_IDBKey
-  final Object key;
-
-  /// @domName IDBCursor.primaryKey; @docsEditable true
-  final Object primaryKey;
-
-  /// @domName IDBCursor.source; @docsEditable true
-  final dynamic source;
-
-  /// @domName IDBCursor.advance; @docsEditable true
-  void advance(int count) native;
-
-  /// @domName IDBCursor.continueFunction; @docsEditable true
-  void continueFunction([/*IDBKey*/ key]) {
-    if (?key) {
-      var key_1 = _convertDartToNative_IDBKey(key);
-      _continueFunction_1(key_1);
-      return;
-    }
-    _continueFunction_2();
-    return;
-  }
-  @JSName('continue')
-  void _continueFunction_1(key) native;
-  @JSName('continue')
-  void _continueFunction_2() native;
-
-  /// @domName IDBCursor.delete; @docsEditable true
-  IDBRequest delete() native;
-
-  /// @domName IDBCursor.update; @docsEditable true
-  IDBRequest update(/*any*/ value) {
-    var value_1 = _convertDartToNative_SerializedScriptValue(value);
-    return _update_1(value_1);
-  }
-  @JSName('update')
-  IDBRequest _update_1(value) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBCursorWithValue; @docsEditable true
-class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
-
-  /// @domName IDBCursorWithValue.value; @docsEditable true
-  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
-  final Object value;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBDatabase
-class IDBDatabase extends EventTarget native "*IDBDatabase" {
-
-  IDBTransaction transaction(storeName_OR_storeNames, String mode) {
-    if (mode != 'readonly' && mode != 'readwrite') {
-      throw new ArgumentError(mode);
-    }
-
-    // TODO(sra): Ensure storeName_OR_storeNames is a string or List<String>,
-    // and copy to JavaScript array if necessary.
-
-    if (_transaction_fn != null) {
-      return _transaction_fn(this, storeName_OR_storeNames, mode);
-    }
-
-    // Try and create a transaction with a string mode.  Browsers that expect a
-    // numeric mode tend to convert the string into a number.  This fails
-    // silently, resulting in zero ('readonly').
-    var txn = _transaction(storeName_OR_storeNames, mode);
-    if (_hasNumericMode(txn)) {
-      _transaction_fn = _transaction_numeric_mode;
-      txn = _transaction_fn(this, storeName_OR_storeNames, mode);
-    } else {
-      _transaction_fn = _transaction_string_mode;
-    }
-    return txn;
-  }
-
-  static IDBTransaction _transaction_string_mode(IDBDatabase db, stores, mode) {
-    return db._transaction(stores, mode);
-  }
-
-  static IDBTransaction _transaction_numeric_mode(IDBDatabase db, stores, mode) {
-    int intMode;
-    if (mode == 'readonly') intMode = IDBTransaction.READ_ONLY;
-    if (mode == 'readwrite') intMode = IDBTransaction.READ_WRITE;
-    return db._transaction(stores, intMode);
-  }
-
-  @JSName('transaction')
-  IDBTransaction _transaction(stores, mode) native;
-
-  static bool _hasNumericMode(txn) =>
-      JS('bool', 'typeof(#.mode) === "number"', txn);
-
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  IDBDatabaseEvents get on =>
-    new IDBDatabaseEvents(this);
-
-  /// @domName IDBDatabase.name; @docsEditable true
-  final String name;
-
-  /// @domName IDBDatabase.objectStoreNames; @docsEditable true
-  @Returns('_DOMStringList') @Creates('_DOMStringList')
-  final List<String> objectStoreNames;
-
-  /// @domName IDBDatabase.version; @docsEditable true
-  final dynamic version;
-
-  /// @domName IDBDatabase.addEventListener; @docsEditable true
-  @JSName('addEventListener')
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName IDBDatabase.close; @docsEditable true
-  void close() native;
-
-  /// @domName IDBDatabase.createObjectStore; @docsEditable true
-  IDBObjectStore createObjectStore(String name, [Map options]) {
-    if (?options) {
-      var options_1 = _convertDartToNative_Dictionary(options);
-      return _createObjectStore_1(name, options_1);
-    }
-    return _createObjectStore_2(name);
-  }
-  @JSName('createObjectStore')
-  IDBObjectStore _createObjectStore_1(name, options) native;
-  @JSName('createObjectStore')
-  IDBObjectStore _createObjectStore_2(name) native;
-
-  /// @domName IDBDatabase.deleteObjectStore; @docsEditable true
-  void deleteObjectStore(String name) native;
-
-  /// @domName IDBDatabase.dispatchEvent; @docsEditable true
-  @JSName('dispatchEvent')
-  bool $dom_dispatchEvent(Event evt) native;
-
-  /// @domName IDBDatabase.removeEventListener; @docsEditable true
-  @JSName('removeEventListener')
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName IDBDatabase.setVersion; @docsEditable true
-  IDBVersionChangeRequest setVersion(String version) native;
-}
-
-// TODO(sra): This should be a static member of IDBTransaction but dart2js
-// can't handle that.  Move it back after dart2js is completely done.
-var _transaction_fn;  // Assigned one of the static methods.
-
-class IDBDatabaseEvents extends Events {
-  IDBDatabaseEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get versionChange => this['versionchange'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBDatabaseException; @docsEditable true
-class IDBDatabaseException native "*IDBDatabaseException" {
-
-  static const int ABORT_ERR = 20;
-
-  static const int CONSTRAINT_ERR = 4;
-
-  static const int DATA_ERR = 5;
-
-  static const int NON_TRANSIENT_ERR = 2;
-
-  static const int NOT_ALLOWED_ERR = 6;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NO_ERR = 0;
-
-  static const int QUOTA_ERR = 22;
-
-  static const int READ_ONLY_ERR = 9;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TRANSACTION_INACTIVE_ERR = 7;
-
-  static const int UNKNOWN_ERR = 1;
-
-  static const int VER_ERR = 12;
-
-  /// @domName IDBDatabaseException.code; @docsEditable true
-  final int code;
-
-  /// @domName IDBDatabaseException.message; @docsEditable true
-  final String message;
-
-  /// @domName IDBDatabaseException.name; @docsEditable true
-  final String name;
-
-  /// @domName IDBDatabaseException.toString; @docsEditable true
-  String toString() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBFactory; @docsEditable true
-class IDBFactory native "*IDBFactory" {
-
-  /// @domName IDBFactory.cmp; @docsEditable true
-  int cmp(/*IDBKey*/ first, /*IDBKey*/ second) {
-    var first_1 = _convertDartToNative_IDBKey(first);
-    var second_2 = _convertDartToNative_IDBKey(second);
-    return _cmp_1(first_1, second_2);
-  }
-  @JSName('cmp')
-  int _cmp_1(first, second) native;
-
-  /// @domName IDBFactory.deleteDatabase; @docsEditable true
-  IDBVersionChangeRequest deleteDatabase(String name) native;
-
-  /// @domName IDBFactory.open; @docsEditable true
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBDatabase')
-  IDBOpenDBRequest open(String name, [int version]) native;
-
-  /// @domName IDBFactory.webkitGetDatabaseNames; @docsEditable true
-  IDBRequest webkitGetDatabaseNames() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBIndex; @docsEditable true
-class IDBIndex native "*IDBIndex" {
-
-  /// @domName IDBIndex.keyPath; @docsEditable true
-  final dynamic keyPath;
-
-  /// @domName IDBIndex.multiEntry; @docsEditable true
-  final bool multiEntry;
-
-  /// @domName IDBIndex.name; @docsEditable true
-  final String name;
-
-  /// @domName IDBIndex.objectStore; @docsEditable true
-  final IDBObjectStore objectStore;
-
-  /// @domName IDBIndex.unique; @docsEditable true
-  final bool unique;
-
-  /// @domName IDBIndex.count; @docsEditable true
-  IDBRequest count([key_OR_range]) {
-    if (!?key_OR_range) {
-      return _count_1();
-    }
-    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
-      return _count_2(key_OR_range);
-    }
-    if (?key_OR_range) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
-      return _count_3(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('count')
-  IDBRequest _count_1() native;
-  @JSName('count')
-  IDBRequest _count_2(IDBKeyRange range) native;
-  @JSName('count')
-  IDBRequest _count_3(key) native;
-
-  /// @domName IDBIndex.get; @docsEditable true
-  IDBRequest get(key) {
-    if ((?key && (key is IDBKeyRange || key == null))) {
-      return _get_1(key);
-    }
-    if (?key) {
-      var key_1 = _convertDartToNative_IDBKey(key);
-      return _get_2(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('get')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
-  IDBRequest _get_1(IDBKeyRange key) native;
-  @JSName('get')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
-  IDBRequest _get_2(key) native;
-
-  /// @domName IDBIndex.getKey; @docsEditable true
-  IDBRequest getKey(key) {
-    if ((?key && (key is IDBKeyRange || key == null))) {
-      return _getKey_1(key);
-    }
-    if (?key) {
-      var key_1 = _convertDartToNative_IDBKey(key);
-      return _getKey_2(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('getKey')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
-  IDBRequest _getKey_1(IDBKeyRange key) native;
-  @JSName('getKey')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
-  IDBRequest _getKey_2(key) native;
-
-  /// @domName IDBIndex.openCursor; @docsEditable true
-  IDBRequest openCursor([key_OR_range, String direction]) {
-    if (!?key_OR_range &&
-        !?direction) {
-      return _openCursor_1();
-    }
-    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null)) &&
-        !?direction) {
-      return _openCursor_2(key_OR_range);
-    }
-    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
-      return _openCursor_3(key_OR_range, direction);
-    }
-    if (?key_OR_range &&
-        !?direction) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_4(key_1);
-    }
-    if (?key_OR_range) {
-      var key_2 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_5(key_2, direction);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('openCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_1() native;
-  @JSName('openCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_2(IDBKeyRange range) native;
-  @JSName('openCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_3(IDBKeyRange range, direction) native;
-  @JSName('openCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_4(key) native;
-  @JSName('openCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_5(key, direction) native;
-
-  /// @domName IDBIndex.openKeyCursor; @docsEditable true
-  IDBRequest openKeyCursor([key_OR_range, String direction]) {
-    if (!?key_OR_range &&
-        !?direction) {
-      return _openKeyCursor_1();
-    }
-    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null)) &&
-        !?direction) {
-      return _openKeyCursor_2(key_OR_range);
-    }
-    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
-      return _openKeyCursor_3(key_OR_range, direction);
-    }
-    if (?key_OR_range &&
-        !?direction) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openKeyCursor_4(key_1);
-    }
-    if (?key_OR_range) {
-      var key_2 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openKeyCursor_5(key_2, direction);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('openKeyCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openKeyCursor_1() native;
-  @JSName('openKeyCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openKeyCursor_2(IDBKeyRange range) native;
-  @JSName('openKeyCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openKeyCursor_3(IDBKeyRange range, direction) native;
-  @JSName('openKeyCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openKeyCursor_4(key) native;
-  @JSName('openKeyCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openKeyCursor_5(key, direction) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBKey; @docsEditable true
-class IDBKey native "*IDBKey" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBKeyRange
-class IDBKeyRange native "*IDBKeyRange" {
-  /**
-   * @domName IDBKeyRange.only
-   */
-  factory IDBKeyRange.only(/*IDBKey*/ value) =>
-      _IDBKeyRangeFactoryProvider.createIDBKeyRange_only(value);
-
-  /**
-   * @domName IDBKeyRange.lowerBound
-   */
-  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeFactoryProvider.createIDBKeyRange_lowerBound(bound, open);
-
-  /**
-   * @domName IDBKeyRange.upperBound
-   */
-  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeFactoryProvider.createIDBKeyRange_upperBound(bound, open);
-
-  /**
-   * @domName IDBKeyRange.bound
-   */
-  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                            [bool lowerOpen = false, bool upperOpen = false]) =>
-      _IDBKeyRangeFactoryProvider.createIDBKeyRange_bound(
-          lower, upper, lowerOpen, upperOpen);
-
-
-  /// @domName IDBKeyRange.lower; @docsEditable true
-  dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
-  @JSName('lower')
-  final dynamic _lower;
-
-  /// @domName IDBKeyRange.lowerOpen; @docsEditable true
-  final bool lowerOpen;
-
-  /// @domName IDBKeyRange.upper; @docsEditable true
-  dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
-  @JSName('upper')
-  final dynamic _upper;
-
-  /// @domName IDBKeyRange.upperOpen; @docsEditable true
-  final bool upperOpen;
-
-  /// @domName IDBKeyRange.bound_; @docsEditable true
-  static IDBKeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]) {
-    if (?upperOpen) {
-      var lower_1 = _convertDartToNative_IDBKey(lower);
-      var upper_2 = _convertDartToNative_IDBKey(upper);
-      return _bound__1(lower_1, upper_2, lowerOpen, upperOpen);
-    }
-    if (?lowerOpen) {
-      var lower_3 = _convertDartToNative_IDBKey(lower);
-      var upper_4 = _convertDartToNative_IDBKey(upper);
-      return _bound__2(lower_3, upper_4, lowerOpen);
-    }
-    var lower_5 = _convertDartToNative_IDBKey(lower);
-    var upper_6 = _convertDartToNative_IDBKey(upper);
-    return _bound__3(lower_5, upper_6);
-  }
-  @JSName('bound')
-  static IDBKeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native;
-  @JSName('bound')
-  static IDBKeyRange _bound__2(lower, upper, lowerOpen) native;
-  @JSName('bound')
-  static IDBKeyRange _bound__3(lower, upper) native;
-
-  /// @domName IDBKeyRange.lowerBound_; @docsEditable true
-  static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
-    if (?open) {
-      var bound_1 = _convertDartToNative_IDBKey(bound);
-      return _lowerBound__1(bound_1, open);
-    }
-    var bound_2 = _convertDartToNative_IDBKey(bound);
-    return _lowerBound__2(bound_2);
-  }
-  @JSName('lowerBound')
-  static IDBKeyRange _lowerBound__1(bound, open) native;
-  @JSName('lowerBound')
-  static IDBKeyRange _lowerBound__2(bound) native;
-
-  /// @domName IDBKeyRange.only_; @docsEditable true
-  static IDBKeyRange only_(/*IDBKey*/ value) {
-    var value_1 = _convertDartToNative_IDBKey(value);
-    return _only__1(value_1);
-  }
-  @JSName('only')
-  static IDBKeyRange _only__1(value) native;
-
-  /// @domName IDBKeyRange.upperBound_; @docsEditable true
-  static IDBKeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
-    if (?open) {
-      var bound_1 = _convertDartToNative_IDBKey(bound);
-      return _upperBound__1(bound_1, open);
-    }
-    var bound_2 = _convertDartToNative_IDBKey(bound);
-    return _upperBound__2(bound_2);
-  }
-  @JSName('upperBound')
-  static IDBKeyRange _upperBound__1(bound, open) native;
-  @JSName('upperBound')
-  static IDBKeyRange _upperBound__2(bound) native;
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBObjectStore; @docsEditable true
-class IDBObjectStore native "*IDBObjectStore" {
-
-  /// @domName IDBObjectStore.autoIncrement; @docsEditable true
-  final bool autoIncrement;
-
-  /// @domName IDBObjectStore.indexNames; @docsEditable true
-  @Returns('_DOMStringList') @Creates('_DOMStringList')
-  final List<String> indexNames;
-
-  /// @domName IDBObjectStore.keyPath; @docsEditable true
-  final dynamic keyPath;
-
-  /// @domName IDBObjectStore.name; @docsEditable true
-  final String name;
-
-  /// @domName IDBObjectStore.transaction; @docsEditable true
-  final IDBTransaction transaction;
-
-  /// @domName IDBObjectStore.add; @docsEditable true
-  IDBRequest add(/*any*/ value, [/*IDBKey*/ key]) {
-    if (?key) {
-      var value_1 = _convertDartToNative_SerializedScriptValue(value);
-      var key_2 = _convertDartToNative_IDBKey(key);
-      return _add_1(value_1, key_2);
-    }
-    var value_3 = _convertDartToNative_SerializedScriptValue(value);
-    return _add_2(value_3);
-  }
-  @JSName('add')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
-  IDBRequest _add_1(value, key) native;
-  @JSName('add')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
-  IDBRequest _add_2(value) native;
-
-  /// @domName IDBObjectStore.clear; @docsEditable true
-  IDBRequest clear() native;
-
-  /// @domName IDBObjectStore.count; @docsEditable true
-  IDBRequest count([key_OR_range]) {
-    if (!?key_OR_range) {
-      return _count_1();
-    }
-    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
-      return _count_2(key_OR_range);
-    }
-    if (?key_OR_range) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
-      return _count_3(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('count')
-  IDBRequest _count_1() native;
-  @JSName('count')
-  IDBRequest _count_2(IDBKeyRange range) native;
-  @JSName('count')
-  IDBRequest _count_3(key) native;
-
-  /// @domName IDBObjectStore.createIndex; @docsEditable true
-  IDBIndex createIndex(String name, keyPath, [Map options]) {
-    if ((?keyPath && (keyPath is List<String> || keyPath == null)) &&
-        !?options) {
-      List keyPath_1 = _convertDartToNative_StringArray(keyPath);
-      return _createIndex_1(name, keyPath_1);
-    }
-    if ((?keyPath && (keyPath is List<String> || keyPath == null))) {
-      List keyPath_2 = _convertDartToNative_StringArray(keyPath);
-      var options_3 = _convertDartToNative_Dictionary(options);
-      return _createIndex_2(name, keyPath_2, options_3);
-    }
-    if ((?keyPath && (keyPath is String || keyPath == null)) &&
-        !?options) {
-      return _createIndex_3(name, keyPath);
-    }
-    if ((?keyPath && (keyPath is String || keyPath == null))) {
-      var options_4 = _convertDartToNative_Dictionary(options);
-      return _createIndex_4(name, keyPath, options_4);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('createIndex')
-  IDBIndex _createIndex_1(name, List keyPath) native;
-  @JSName('createIndex')
-  IDBIndex _createIndex_2(name, List keyPath, options) native;
-  @JSName('createIndex')
-  IDBIndex _createIndex_3(name, String keyPath) native;
-  @JSName('createIndex')
-  IDBIndex _createIndex_4(name, String keyPath, options) native;
-
-  /// @domName IDBObjectStore.delete; @docsEditable true
-  IDBRequest delete(key_OR_keyRange) {
-    if ((?key_OR_keyRange && (key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null))) {
-      return _delete_1(key_OR_keyRange);
-    }
-    if (?key_OR_keyRange) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_keyRange);
-      return _delete_2(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('delete')
-  IDBRequest _delete_1(IDBKeyRange keyRange) native;
-  @JSName('delete')
-  IDBRequest _delete_2(key) native;
-
-  /// @domName IDBObjectStore.deleteIndex; @docsEditable true
-  void deleteIndex(String name) native;
-
-  /// @domName IDBObjectStore.getObject; @docsEditable true
-  IDBRequest getObject(key) {
-    if ((?key && (key is IDBKeyRange || key == null))) {
-      return _getObject_1(key);
-    }
-    if (?key) {
-      var key_1 = _convertDartToNative_IDBKey(key);
-      return _getObject_2(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('get')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
-  IDBRequest _getObject_1(IDBKeyRange key) native;
-  @JSName('get')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
-  IDBRequest _getObject_2(key) native;
-
-  /// @domName IDBObjectStore.index; @docsEditable true
-  IDBIndex index(String name) native;
-
-  /// @domName IDBObjectStore.openCursor; @docsEditable true
-  IDBRequest openCursor([key_OR_range, String direction]) {
-    if (!?key_OR_range &&
-        !?direction) {
-      return _openCursor_1();
-    }
-    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null)) &&
-        !?direction) {
-      return _openCursor_2(key_OR_range);
-    }
-    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
-      return _openCursor_3(key_OR_range, direction);
-    }
-    if (?key_OR_range &&
-        !?direction) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_4(key_1);
-    }
-    if (?key_OR_range) {
-      var key_2 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_5(key_2, direction);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('openCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_1() native;
-  @JSName('openCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_2(IDBKeyRange range) native;
-  @JSName('openCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_3(IDBKeyRange range, direction) native;
-  @JSName('openCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_4(key) native;
-  @JSName('openCursor')
-  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_5(key, direction) native;
-
-  /// @domName IDBObjectStore.put; @docsEditable true
-  IDBRequest put(/*any*/ value, [/*IDBKey*/ key]) {
-    if (?key) {
-      var value_1 = _convertDartToNative_SerializedScriptValue(value);
-      var key_2 = _convertDartToNative_IDBKey(key);
-      return _put_1(value_1, key_2);
-    }
-    var value_3 = _convertDartToNative_SerializedScriptValue(value);
-    return _put_2(value_3);
-  }
-  @JSName('put')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
-  IDBRequest _put_1(value, key) native;
-  @JSName('put')
-  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
-  IDBRequest _put_2(value) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBOpenDBRequest; @docsEditable true
-class IDBOpenDBRequest extends IDBRequest implements EventTarget native "*IDBOpenDBRequest" {
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  IDBOpenDBRequestEvents get on =>
-    new IDBOpenDBRequestEvents(this);
-}
-
-class IDBOpenDBRequestEvents extends IDBRequestEvents {
-  IDBOpenDBRequestEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get blocked => this['blocked'];
-
-  EventListenerList get upgradeNeeded => this['upgradeneeded'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBRequest; @docsEditable true
-class IDBRequest extends EventTarget native "*IDBRequest" {
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  IDBRequestEvents get on =>
-    new IDBRequestEvents(this);
-
-  /// @domName IDBRequest.error; @docsEditable true
-  final DOMError error;
-
-  /// @domName IDBRequest.errorCode; @docsEditable true
-  final int errorCode;
-
-  /// @domName IDBRequest.readyState; @docsEditable true
-  final String readyState;
-
-  /// @domName IDBRequest.result; @docsEditable true
-  dynamic get result => _convertNativeToDart_IDBAny(this._result);
-  @JSName('result')
-  @Creates('Null')
-  final dynamic _result;
-
-  /// @domName IDBRequest.source; @docsEditable true
-  @Creates('Null')
-  final dynamic source;
-
-  /// @domName IDBRequest.transaction; @docsEditable true
-  final IDBTransaction transaction;
-
-  /// @domName IDBRequest.webkitErrorMessage; @docsEditable true
-  final String webkitErrorMessage;
-
-  /// @domName IDBRequest.addEventListener; @docsEditable true
-  @JSName('addEventListener')
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName IDBRequest.dispatchEvent; @docsEditable true
-  @JSName('dispatchEvent')
-  bool $dom_dispatchEvent(Event evt) native;
-
-  /// @domName IDBRequest.removeEventListener; @docsEditable true
-  @JSName('removeEventListener')
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-}
-
-class IDBRequestEvents extends Events {
-  IDBRequestEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get success => this['success'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBTransaction; @docsEditable true
-class IDBTransaction extends EventTarget native "*IDBTransaction" {
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  IDBTransactionEvents get on =>
-    new IDBTransactionEvents(this);
-
-  static const int READ_ONLY = 0;
-
-  static const int READ_WRITE = 1;
-
-  static const int VERSION_CHANGE = 2;
-
-  /// @domName IDBTransaction.db; @docsEditable true
-  final IDBDatabase db;
-
-  /// @domName IDBTransaction.error; @docsEditable true
-  final DOMError error;
-
-  /// @domName IDBTransaction.mode; @docsEditable true
-  final String mode;
-
-  /// @domName IDBTransaction.abort; @docsEditable true
-  void abort() native;
-
-  /// @domName IDBTransaction.addEventListener; @docsEditable true
-  @JSName('addEventListener')
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName IDBTransaction.dispatchEvent; @docsEditable true
-  @JSName('dispatchEvent')
-  bool $dom_dispatchEvent(Event evt) native;
-
-  /// @domName IDBTransaction.objectStore; @docsEditable true
-  IDBObjectStore objectStore(String name) native;
-
-  /// @domName IDBTransaction.removeEventListener; @docsEditable true
-  @JSName('removeEventListener')
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-}
-
-class IDBTransactionEvents extends Events {
-  IDBTransactionEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get complete => this['complete'];
-
-  EventListenerList get error => this['error'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBVersionChangeEvent; @docsEditable true
-class IDBUpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
-
-  /// @domName IDBVersionChangeEvent.newVersion; @docsEditable true
-  final int newVersion;
-
-  /// @domName IDBVersionChangeEvent.oldVersion; @docsEditable true
-  final int oldVersion;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBVersionChangeEvent; @docsEditable true
-class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
-
-  /// @domName IDBVersionChangeEvent.version; @docsEditable true
-  final String version;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBVersionChangeRequest; @docsEditable true
-class IDBVersionChangeRequest extends IDBRequest implements EventTarget native "*IDBVersionChangeRequest" {
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  IDBVersionChangeRequestEvents get on =>
-    new IDBVersionChangeRequestEvents(this);
-}
-
-class IDBVersionChangeRequestEvents extends IDBRequestEvents {
-  IDBVersionChangeRequestEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get blocked => this['blocked'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName HTMLIFrameElement; @docsEditable true
 class IFrameElement extends Element implements Element native "*HTMLIFrameElement" {
 
+  ///@docsEditable true
   factory IFrameElement() => document.$dom_createElement("iframe");
 
   /// @domName HTMLIFrameElement.align; @docsEditable true
@@ -10385,6 +9976,7 @@ typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnecti
 /// @domName IceCandidate; @docsEditable true
 class IceCandidate native "*IceCandidate" {
 
+  ///@docsEditable true
   factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
 
   /// @domName IceCandidate.label; @docsEditable true
@@ -10418,6 +10010,7 @@ class ImageData native "*ImageData" {
 /// @domName HTMLImageElement; @docsEditable true
 class ImageElement extends Element implements Element native "*HTMLImageElement" {
 
+  ///@docsEditable true
   factory ImageElement({String src, int width, int height}) {
     var e = document.$dom_createElement("img");
     if (src != null) e.src = src;
@@ -10491,6 +10084,7 @@ class ImageElement extends Element implements Element native "*HTMLImageElement"
 /// @domName HTMLInputElement; @docsEditable true
 class InputElement extends Element implements Element native "*HTMLInputElement" {
 
+  ///@docsEditable true
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
     if (type != null) e.type = type;
@@ -10532,7 +10126,7 @@ class InputElement extends Element implements Element native "*HTMLInputElement"
   bool disabled;
 
   /// @domName HTMLInputElement.files; @docsEditable true
-  @Returns('_FileList') @Creates('_FileList')
+  @Returns('FileList') @Creates('FileList')
   List<File> files;
 
   /// @domName HTMLInputElement.form; @docsEditable true
@@ -10701,7 +10295,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   static const int BYTES_PER_ELEMENT = 2;
 
   /// @domName Int16Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -10731,38 +10325,53 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -10781,7 +10390,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -10812,7 +10421,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   static const int BYTES_PER_ELEMENT = 4;
 
   /// @domName Int32Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -10842,38 +10451,53 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -10892,7 +10516,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -10923,7 +10547,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   static const int BYTES_PER_ELEMENT = 1;
 
   /// @domName Int8Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -10953,38 +10577,53 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -11003,7 +10642,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -11075,7 +10714,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
   factory KeyboardEvent(String type, Window view,
       [bool canBubble = true, bool cancelable = true, 
-      String keyIdentifier = null, int keyLocation = 1, bool ctrlKey = false,
+      String keyIdentifier = "", int keyLocation = 1, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       bool altGraphKey = false]) {
     final e = document.$dom_createEvent("KeyboardEvent");
@@ -11088,13 +10727,20 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
       LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
-    // initKeyEvent is the call in Firefox, initKeyboardEvent for all other
-    // browsers.
-    var function = JS('dynamic', '#.initKeyboardEvent || #.initKeyEvent', this,
-        this);
-    JS('void', '#(#, #, #, #, #, #, #, #, #, #, #)', function, type,
-        canBubble, cancelable, view, keyIdentifier, keyLocation, ctrlKey,
-        altKey, shiftKey, metaKey, altGraphKey);
+    if (JS('bool', 'typeof(#.initKeyEvent) == "function"', this)) {
+      // initKeyEvent is only in Firefox (instead of initKeyboardEvent). It has
+      // a slightly different signature, and allows you to specify keyCode and
+      // charCode as the last two arguments, but we just set them as the default
+      // since they can't be specified in other browsers.
+      JS('void', '#.initKeyEvent(#, #, #, #, #, #, #, #, 0, 0)', this,
+          type, canBubble, cancelable, view, 
+          ctrlKey, altKey, shiftKey, metaKey);
+    } else {
+      // initKeyboardEvent is for all other browsers.
+      JS('void', '#.initKeyboardEvent(#, #, #, #, #, #, #, #, #, #, #)', this,
+          type, canBubble, cancelable, view, keyIdentifier, keyLocation,
+          ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
+    }
   }
 
   /** @domName KeyboardEvent.keyCode */
@@ -11134,6 +10780,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 /// @domName HTMLKeygenElement; @docsEditable true
 class KeygenElement extends Element implements Element native "*HTMLKeygenElement" {
 
+  ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
 
   /// @domName HTMLKeygenElement.autofocus; @docsEditable true
@@ -11184,6 +10831,7 @@ class KeygenElement extends Element implements Element native "*HTMLKeygenElemen
 /// @domName HTMLLIElement; @docsEditable true
 class LIElement extends Element implements Element native "*HTMLLIElement" {
 
+  ///@docsEditable true
   factory LIElement() => document.$dom_createElement("li");
 
   /// @domName HTMLLIElement.type; @docsEditable true
@@ -11200,6 +10848,7 @@ class LIElement extends Element implements Element native "*HTMLLIElement" {
 /// @domName HTMLLabelElement; @docsEditable true
 class LabelElement extends Element implements Element native "*HTMLLabelElement" {
 
+  ///@docsEditable true
   factory LabelElement() => document.$dom_createElement("label");
 
   /// @domName HTMLLabelElement.control; @docsEditable true
@@ -11219,6 +10868,7 @@ class LabelElement extends Element implements Element native "*HTMLLabelElement"
 /// @domName HTMLLegendElement; @docsEditable true
 class LegendElement extends Element implements Element native "*HTMLLegendElement" {
 
+  ///@docsEditable true
   factory LegendElement() => document.$dom_createElement("legend");
 
   /// @domName HTMLLegendElement.align; @docsEditable true
@@ -11235,6 +10885,7 @@ class LegendElement extends Element implements Element native "*HTMLLegendElemen
 /// @domName HTMLLinkElement; @docsEditable true
 class LinkElement extends Element implements Element native "*HTMLLinkElement" {
 
+  ///@docsEditable true
   factory LinkElement() => document.$dom_createElement("link");
 
   /// @domName HTMLLinkElement.charset; @docsEditable true
@@ -11262,7 +10913,7 @@ class LinkElement extends Element implements Element native "*HTMLLinkElement" {
   final StyleSheet sheet;
 
   /// @domName HTMLLinkElement.sizes; @docsEditable true
-  DOMSettableTokenList sizes;
+  DomSettableTokenList sizes;
 
   /// @domName HTMLLinkElement.target; @docsEditable true
   String target;
@@ -11284,7 +10935,7 @@ class LocalHistory implements History native "*History" {
   /// @domName History.state; @docsEditable true
   dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
   @JSName('state')
-  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
+  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
   final dynamic _state;
 
   /// @domName History.back; @docsEditable true
@@ -11311,7 +10962,7 @@ class LocalHistory implements History native "*History" {
 class LocalLocation implements Location native "*Location" {
 
   /// @domName Location.ancestorOrigins; @docsEditable true
-  @Returns('_DOMStringList') @Creates('_DOMStringList')
+  @Returns('DomStringList') @Creates('DomStringList')
   final List<String> ancestorOrigins;
 
   /// @domName Location.hash; @docsEditable true
@@ -11488,8 +11139,8 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
        this);
   }
 
-  IDBFactory get indexedDB =>
-      JS('IDBFactory',
+  IdbFactory get indexedDB =>
+      JS('IdbFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 
@@ -11511,6 +11162,9 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
   }
+  
+  /// @domName Window.console; @docsEditable true
+  Console get console => Console.safeConsole;
 
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -11522,13 +11176,10 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   static const int TEMPORARY = 0;
 
   /// @domName Window.applicationCache; @docsEditable true
-  final DOMApplicationCache applicationCache;
+  final ApplicationCache applicationCache;
 
   /// @domName Window.closed; @docsEditable true
   final bool closed;
-
-  /// @domName Window.console; @docsEditable true
-  final Console console;
 
   /// @domName Window.crypto; @docsEditable true
   final Crypto crypto;
@@ -11656,9 +11307,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
   final dynamic _top;
 
-  /// @domName DOMWindow.webkitIndexedDB; @docsEditable true
-  final IDBFactory webkitIndexedDB;
-
   /// @domName DOMWindow.webkitNotifications; @docsEditable true
   final NotificationCenter webkitNotifications;
 
@@ -11708,15 +11356,15 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /// @domName Window.getComputedStyle; @docsEditable true
   @JSName('getComputedStyle')
-  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native;
+  CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native;
 
   /// @domName Window.getMatchedCSSRules; @docsEditable true
   @JSName('getMatchedCSSRules')
-  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
-  List<CSSRule> getMatchedCssRules(Element element, String pseudoElement) native;
+  @Returns('_CssRuleList') @Creates('_CssRuleList')
+  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native;
 
   /// @domName Window.getSelection; @docsEditable true
-  DOMSelection getSelection() native;
+  DomSelection getSelection() native;
 
   /// @domName Window.matchMedia; @docsEditable true
   MediaQueryList matchMedia(String query) native;
@@ -11735,12 +11383,12 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
     if (?message &&
         !?messagePorts) {
-      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, targetOrigin);
       return;
     }
     if (?message) {
-      var message_2 = _convertDartToNative_SerializedScriptValue(message);
+      var message_2 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_2(message_2, targetOrigin, messagePorts);
       return;
     }
@@ -11960,10 +11608,11 @@ class LocalWindowEvents extends Events {
 /// @domName HTMLMapElement; @docsEditable true
 class MapElement extends Element implements Element native "*HTMLMapElement" {
 
+  ///@docsEditable true
   factory MapElement() => document.$dom_createElement("map");
 
   /// @domName HTMLMapElement.areas; @docsEditable true
-  final HTMLCollection areas;
+  final HtmlCollection areas;
 
   /// @domName HTMLMapElement.name; @docsEditable true
   String name;
@@ -12023,6 +11672,7 @@ class MarqueeElement extends Element implements Element native "*HTMLMarqueeElem
 /// @domName MediaController; @docsEditable true
 class MediaController extends EventTarget native "*MediaController" {
 
+  ///@docsEditable true
   factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
 
   /// @domName MediaController.buffered; @docsEditable true
@@ -12413,6 +12063,7 @@ abstract class MediaQueryListListener {
 /// @domName MediaSource; @docsEditable true
 class MediaSource extends EventTarget native "*MediaSource" {
 
+  ///@docsEditable true
   factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
 
   /// @domName MediaSource.activeSourceBuffers; @docsEditable true
@@ -12456,6 +12107,7 @@ class MediaSource extends EventTarget native "*MediaSource" {
 /// @domName MediaStream; @docsEditable true
 class MediaStream extends EventTarget native "*MediaStream" {
 
+  ///@docsEditable true
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -12636,19 +12288,10 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An HTML <menu> element.
- *
- * A <menu> element represents an unordered list of menu commands.
- *
- * See also:
- *
- *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
- *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
- */
 /// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 
+  ///@docsEditable true
   factory MenuElement() => document.$dom_createElement("menu");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12659,6 +12302,7 @@ class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 /// @domName MessageChannel; @docsEditable true
 class MessageChannel native "*MessageChannel" {
 
+  ///@docsEditable true
   factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
 
   /// @domName MessageChannel.port1; @docsEditable true
@@ -12676,9 +12320,9 @@ class MessageChannel native "*MessageChannel" {
 class MessageEvent extends Event native "*MessageEvent" {
 
   /// @domName MessageEvent.data; @docsEditable true
-  dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
+  dynamic get data => convertNativeToDart_SerializedScriptValue(this._data);
   @JSName('data')
-  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
+  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
   final dynamic _data;
 
   /// @domName MessageEvent.lastEventId; @docsEditable true
@@ -12729,11 +12373,11 @@ class MessagePort extends EventTarget native "*MessagePort" {
   /// @domName MessagePort.postMessage; @docsEditable true
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
-      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
       return;
     }
-    var message_2 = _convertDartToNative_SerializedScriptValue(message);
+    var message_2 = convertDartToNative_SerializedScriptValue(message);
     _postMessage_2(message_2);
     return;
   }
@@ -12805,6 +12449,7 @@ typedef void MetadataCallback(Metadata metadata);
 /// @domName HTMLMeterElement; @docsEditable true
 class MeterElement extends Element implements Element native "*HTMLMeterElement" {
 
+  ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
 
   /// @domName HTMLMeterElement.high; @docsEditable true
@@ -12888,7 +12533,7 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   /// @domName MouseEvent.relatedTarget; @docsEditable true
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
   @JSName('relatedTarget')
-  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  @Creates('Node') @Returns('EventTarget|=Object')
   final dynamic _relatedTarget;
 
   /// @domName MouseEvent.screenX; @docsEditable true
@@ -13001,6 +12646,7 @@ class MutationEvent extends Event native "*MutationEvent" {
 /// @domName MutationObserver
 class MutationObserver native "*MutationObserver" {
 
+  ///@docsEditable true
   factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
 
   /// @domName MutationObserver.disconnect; @docsEditable true
@@ -13008,7 +12654,7 @@ class MutationObserver native "*MutationObserver" {
 
   /// @domName MutationObserver._observe; @docsEditable true
   void _observe(Node target, Map options) {
-    var options_1 = _convertDartToNative_Dictionary(options);
+    var options_1 = convertDartToNative_Dictionary(options);
     __observe_1(target, options_1);
     return;
   }
@@ -13126,7 +12772,7 @@ class MutationRecord native "*MutationRecord" {
 class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
 
   /// @domName NamedNodeMap.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
 
@@ -13159,38 +12805,53 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Node get first => this[0];
 
   Node get last => this[length - 1];
+
+  Node removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Node removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -13209,7 +12870,7 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
   }
 
   List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
+      Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -13242,6 +12903,10 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 /// @domName Navigator; @docsEditable true
 class Navigator native "*Navigator" {
 
+  /// @domName Navigator.language; @docsEditable true
+  String get language => JS('String', '#.language || #.userLanguage', this,
+      this);
+  
   /// @domName Navigator.appCodeName; @docsEditable true
   final String appCodeName;
 
@@ -13257,11 +12922,8 @@ class Navigator native "*Navigator" {
   /// @domName Navigator.geolocation; @docsEditable true
   final Geolocation geolocation;
 
-  /// @domName Navigator.language; @docsEditable true
-  final String language;
-
   /// @domName Navigator.mimeTypes; @docsEditable true
-  final DOMMimeTypeArray mimeTypes;
+  final DomMimeTypeArray mimeTypes;
 
   /// @domName Navigator.onLine; @docsEditable true
   final bool onLine;
@@ -13270,7 +12932,7 @@ class Navigator native "*Navigator" {
   final String platform;
 
   /// @domName Navigator.plugins; @docsEditable true
-  final DOMPluginArray plugins;
+  final DomPluginArray plugins;
 
   /// @domName Navigator.product; @docsEditable true
   final String product;
@@ -13303,11 +12965,11 @@ class Navigator native "*Navigator" {
   /// @domName Navigator.webkitGetUserMedia; @docsEditable true
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) {
     if (?errorCallback) {
-      var options_1 = _convertDartToNative_Dictionary(options);
+      var options_1 = convertDartToNative_Dictionary(options);
       _webkitGetUserMedia_1(options_1, successCallback, errorCallback);
       return;
     }
-    var options_2 = _convertDartToNative_Dictionary(options);
+    var options_2 = convertDartToNative_Dictionary(options);
     _webkitGetUserMedia_2(options_2, successCallback);
     return;
   }
@@ -13315,6 +12977,7 @@ class Navigator native "*Navigator" {
   void _webkitGetUserMedia_1(options, NavigatorUserMediaSuccessCallback successCallback, NavigatorUserMediaErrorCallback errorCallback) native;
   @JSName('webkitGetUserMedia')
   void _webkitGetUserMedia_2(options, NavigatorUserMediaSuccessCallback successCallback) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13387,6 +13050,14 @@ class _ChildNodeListLazy implements List {
     return result;
   }
 
+  Node removeAt(int index) {
+    var result = this[index];
+    if (result != null) {
+      _this.$dom_removeChild(result);
+    }
+    return result;
+  }
+
   void clear() {
     _this.text = '';
   }
@@ -13399,18 +13070,23 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Node element)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -13418,15 +13094,15 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+      Lists.lastIndexOf(this, element, start);
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -13442,7 +13118,7 @@ class _ChildNodeListLazy implements List {
         "Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
+      Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -13450,12 +13126,17 @@ class _ChildNodeListLazy implements List {
   // a local copy of $dom_childNodes is more efficient.
   int get length => _this.$dom_childNodes.length;
 
+  void set length(int value) {
+    throw new UnsupportedError(
+        "Cannot set length on immutable List.");
+  }
+
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
 /// @domName Node
 class Node extends EventTarget native "*Node" {
-  _ChildNodeListLazy get nodes {
+  List<Node> get nodes {
     return new _ChildNodeListLazy(this);
   }
 
@@ -13706,7 +13387,7 @@ class NodeIterator native "*NodeIterator" {
 class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeList" {
 
   /// @domName NodeList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
 
@@ -13739,38 +13420,53 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Node element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Node> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Node get first => this[0];
 
   Node get last => this[length - 1];
+
+  Node removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Node removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -13789,7 +13485,7 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
   }
 
   List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
+      Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -13819,6 +13515,7 @@ class Notation extends Node native "*Notation" {
 /// @domName Notification; @docsEditable true
 class Notification extends EventTarget native "*Notification" {
 
+  ///@docsEditable true
   factory Notification(String title, [Map options]) {
     if (!?options) {
       return _NotificationFactoryProvider.createNotification(title);
@@ -13914,61 +13611,10 @@ typedef void NotificationPermissionCallback(String permission);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OESElementIndexUint; @docsEditable true
-class OESElementIndexUint native "*OESElementIndexUint" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName OESStandardDerivatives; @docsEditable true
-class OESStandardDerivatives native "*OESStandardDerivatives" {
-
-  static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName OESTextureFloat; @docsEditable true
-class OESTextureFloat native "*OESTextureFloat" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName OESVertexArrayObject; @docsEditable true
-class OESVertexArrayObject native "*OESVertexArrayObject" {
-
-  static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
-
-  /// @domName OESVertexArrayObject.bindVertexArrayOES; @docsEditable true
-  @JSName('bindVertexArrayOES')
-  void bindVertexArray(WebGLVertexArrayObjectOES arrayObject) native;
-
-  /// @domName OESVertexArrayObject.createVertexArrayOES; @docsEditable true
-  @JSName('createVertexArrayOES')
-  WebGLVertexArrayObjectOES createVertexArray() native;
-
-  /// @domName OESVertexArrayObject.deleteVertexArrayOES; @docsEditable true
-  @JSName('deleteVertexArrayOES')
-  void deleteVertexArray(WebGLVertexArrayObjectOES arrayObject) native;
-
-  /// @domName OESVertexArrayObject.isVertexArrayOES; @docsEditable true
-  @JSName('isVertexArrayOES')
-  bool isVertexArray(WebGLVertexArrayObjectOES arrayObject) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName HTMLOListElement; @docsEditable true
 class OListElement extends Element implements Element native "*HTMLOListElement" {
 
+  ///@docsEditable true
   factory OListElement() => document.$dom_createElement("ol");
 
   /// @domName HTMLOListElement.compact; @docsEditable true
@@ -13991,6 +13637,7 @@ class OListElement extends Element implements Element native "*HTMLOListElement"
 /// @domName HTMLObjectElement; @docsEditable true
 class ObjectElement extends Element implements Element native "*HTMLObjectElement" {
 
+  ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
 
   /// @domName HTMLObjectElement.align; @docsEditable true
@@ -14064,9 +13711,62 @@ class ObjectElement extends Element implements Element native "*HTMLObjectElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName OESElementIndexUint; @docsEditable true
+class OesElementIndexUint native "*OESElementIndexUint" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName OESStandardDerivatives; @docsEditable true
+class OesStandardDerivatives native "*OESStandardDerivatives" {
+
+  static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName OESTextureFloat; @docsEditable true
+class OesTextureFloat native "*OESTextureFloat" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName OESVertexArrayObject; @docsEditable true
+class OesVertexArrayObject native "*OESVertexArrayObject" {
+
+  static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
+
+  /// @domName OESVertexArrayObject.bindVertexArrayOES; @docsEditable true
+  @JSName('bindVertexArrayOES')
+  void bindVertexArray(WebGLVertexArrayObject arrayObject) native;
+
+  /// @domName OESVertexArrayObject.createVertexArrayOES; @docsEditable true
+  @JSName('createVertexArrayOES')
+  WebGLVertexArrayObject createVertexArray() native;
+
+  /// @domName OESVertexArrayObject.deleteVertexArrayOES; @docsEditable true
+  @JSName('deleteVertexArrayOES')
+  void deleteVertexArray(WebGLVertexArrayObject arrayObject) native;
+
+  /// @domName OESVertexArrayObject.isVertexArrayOES; @docsEditable true
+  @JSName('isVertexArrayOES')
+  bool isVertexArray(WebGLVertexArrayObject arrayObject) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName HTMLOptGroupElement; @docsEditable true
 class OptGroupElement extends Element implements Element native "*HTMLOptGroupElement" {
 
+  ///@docsEditable true
   factory OptGroupElement() => document.$dom_createElement("optgroup");
 
   /// @domName HTMLOptGroupElement.disabled; @docsEditable true
@@ -14083,6 +13783,7 @@ class OptGroupElement extends Element implements Element native "*HTMLOptGroupEl
 /// @domName HTMLOptionElement; @docsEditable true
 class OptionElement extends Element implements Element native "*HTMLOptionElement" {
 
+  ///@docsEditable true
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (!?data) {
       return _OptionElementFactoryProvider.createOptionElement();
@@ -14128,6 +13829,7 @@ class OptionElement extends Element implements Element native "*HTMLOptionElemen
 /// @domName HTMLOutputElement; @docsEditable true
 class OutputElement extends Element implements Element native "*HTMLOutputElement" {
 
+  ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
 
   /// @domName HTMLOutputElement.defaultValue; @docsEditable true
@@ -14137,7 +13839,7 @@ class OutputElement extends Element implements Element native "*HTMLOutputElemen
   final FormElement form;
 
   /// @domName HTMLOutputElement.htmlFor; @docsEditable true
-  DOMSettableTokenList htmlFor;
+  DomSettableTokenList htmlFor;
 
   /// @domName HTMLOutputElement.labels; @docsEditable true
   @Returns('NodeList') @Creates('NodeList')
@@ -14223,6 +13925,7 @@ class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 /// @domName HTMLParagraphElement; @docsEditable true
 class ParagraphElement extends Element implements Element native "*HTMLParagraphElement" {
 
+  ///@docsEditable true
   factory ParagraphElement() => document.$dom_createElement("p");
 
   /// @domName HTMLParagraphElement.align; @docsEditable true
@@ -14236,6 +13939,7 @@ class ParagraphElement extends Element implements Element native "*HTMLParagraph
 /// @domName HTMLParamElement; @docsEditable true
 class ParamElement extends Element implements Element native "*HTMLParamElement" {
 
+  ///@docsEditable true
   factory ParamElement() => document.$dom_createElement("param");
 
   /// @domName HTMLParamElement.name; @docsEditable true
@@ -14258,6 +13962,7 @@ class ParamElement extends Element implements Element native "*HTMLParamElement"
 /// @domName PeerConnection00; @docsEditable true
 class PeerConnection00 extends EventTarget native "*PeerConnection00" {
 
+  ///@docsEditable true
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -14319,7 +14024,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   /// @domName PeerConnection00.addStream; @docsEditable true
   void addStream(MediaStream stream, [Map mediaStreamHints]) {
     if (?mediaStreamHints) {
-      var mediaStreamHints_1 = _convertDartToNative_Dictionary(mediaStreamHints);
+      var mediaStreamHints_1 = convertDartToNative_Dictionary(mediaStreamHints);
       _addStream_1(stream, mediaStreamHints_1);
       return;
     }
@@ -14337,7 +14042,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   /// @domName PeerConnection00.createAnswer; @docsEditable true
   SessionDescription createAnswer(String offer, [Map mediaHints]) {
     if (?mediaHints) {
-      var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
+      var mediaHints_1 = convertDartToNative_Dictionary(mediaHints);
       return _createAnswer_1(offer, mediaHints_1);
     }
     return _createAnswer_2(offer);
@@ -14350,7 +14055,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   /// @domName PeerConnection00.createOffer; @docsEditable true
   SessionDescription createOffer([Map mediaHints]) {
     if (?mediaHints) {
-      var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
+      var mediaHints_1 = convertDartToNative_Dictionary(mediaHints);
       return _createOffer_1(mediaHints_1);
     }
     return _createOffer_2();
@@ -14383,7 +14088,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   /// @domName PeerConnection00.startIce; @docsEditable true
   void startIce([Map iceOptions]) {
     if (?iceOptions) {
-      var iceOptions_1 = _convertDartToNative_Dictionary(iceOptions);
+      var iceOptions_1 = convertDartToNative_Dictionary(iceOptions);
       _startIce_1(iceOptions_1);
       return;
     }
@@ -14549,9 +14254,9 @@ class Point native "*WebKitPoint" {
 class PopStateEvent extends Event native "*PopStateEvent" {
 
   /// @domName PopStateEvent.state; @docsEditable true
-  dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
+  dynamic get state => convertNativeToDart_SerializedScriptValue(this._state);
   @JSName('state')
-  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
+  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
   final dynamic _state;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14598,6 +14303,7 @@ typedef void PositionErrorCallback(PositionError error);
 /// @domName HTMLPreElement; @docsEditable true
 class PreElement extends Element implements Element native "*HTMLPreElement" {
 
+  ///@docsEditable true
   factory PreElement() => document.$dom_createElement("pre");
 
   /// @domName HTMLPreElement.width; @docsEditable true
@@ -14631,6 +14337,7 @@ class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 /// @domName HTMLProgressElement; @docsEditable true
 class ProgressElement extends Element implements Element native "*HTMLProgressElement" {
 
+  ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
 
   /// @domName HTMLProgressElement.labels; @docsEditable true
@@ -14678,87 +14385,10 @@ class QuoteElement extends Element implements Element native "*HTMLQuoteElement"
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-/// @domName RGBColor; @docsEditable true
-class RGBColor native "*RGBColor" {
-
-  /// @domName RGBColor.blue; @docsEditable true
-  final CSSPrimitiveValue blue;
-
-  /// @domName RGBColor.green; @docsEditable true
-  final CSSPrimitiveValue green;
-
-  /// @domName RGBColor.red; @docsEditable true
-  final CSSPrimitiveValue red;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// WARNING: Do not edit - generated code.
 
 
-/// @domName RTCDataChannel; @docsEditable true
-class RTCDataChannel extends EventTarget native "*RTCDataChannel" {
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  RTCDataChannelEvents get on =>
-    new RTCDataChannelEvents(this);
-
-  /// @domName RTCDataChannel.binaryType; @docsEditable true
-  String binaryType;
-
-  /// @domName RTCDataChannel.bufferedAmount; @docsEditable true
-  final int bufferedAmount;
-
-  /// @domName RTCDataChannel.label; @docsEditable true
-  final String label;
-
-  /// @domName RTCDataChannel.readyState; @docsEditable true
-  final String readyState;
-
-  /// @domName RTCDataChannel.reliable; @docsEditable true
-  final bool reliable;
-
-  /// @domName RTCDataChannel.addEventListener; @docsEditable true
-  @JSName('addEventListener')
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName RTCDataChannel.close; @docsEditable true
-  void close() native;
-
-  /// @domName RTCDataChannel.dispatchEvent; @docsEditable true
-  @JSName('dispatchEvent')
-  bool $dom_dispatchEvent(Event event) native;
-
-  /// @domName RTCDataChannel.removeEventListener; @docsEditable true
-  @JSName('removeEventListener')
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName RTCDataChannel.send; @docsEditable true
-  void send(data) native;
-}
-
-class RTCDataChannelEvents extends Events {
-  RTCDataChannelEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get close => this['close'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get message => this['message'];
-
-  EventListenerList get open => this['open'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName RTCDataChannelEvent; @docsEditable true
-class RTCDataChannelEvent extends Event native "*RTCDataChannelEvent" {
-
-  /// @domName RTCDataChannelEvent.channel; @docsEditable true
-  final RTCDataChannel channel;
-}
+typedef void RtcErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14766,221 +14396,7 @@ class RTCDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void RTCErrorCallback(String errorInformation);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName RTCIceCandidate; @docsEditable true
-class RTCIceCandidate native "*RTCIceCandidate" {
-
-  factory RTCIceCandidate(Map dictionary) => _RTCIceCandidateFactoryProvider.createRTCIceCandidate(dictionary);
-
-  /// @domName RTCIceCandidate.candidate; @docsEditable true
-  final String candidate;
-
-  /// @domName RTCIceCandidate.sdpMLineIndex; @docsEditable true
-  final int sdpMLineIndex;
-
-  /// @domName RTCIceCandidate.sdpMid; @docsEditable true
-  final String sdpMid;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName RTCIceCandidateEvent; @docsEditable true
-class RTCIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
-
-  /// @domName RTCIceCandidateEvent.candidate; @docsEditable true
-  final RTCIceCandidate candidate;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName RTCPeerConnection; @docsEditable true
-class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
-
-  factory RTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
-    if (!?mediaConstraints) {
-      return _RTCPeerConnectionFactoryProvider.createRTCPeerConnection(rtcIceServers);
-    }
-    return _RTCPeerConnectionFactoryProvider.createRTCPeerConnection(rtcIceServers, mediaConstraints);
-  }
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  RTCPeerConnectionEvents get on =>
-    new RTCPeerConnectionEvents(this);
-
-  /// @domName RTCPeerConnection.iceState; @docsEditable true
-  final String iceState;
-
-  /// @domName RTCPeerConnection.localDescription; @docsEditable true
-  final RTCSessionDescription localDescription;
-
-  /// @domName RTCPeerConnection.localStreams; @docsEditable true
-  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
-  final List<MediaStream> localStreams;
-
-  /// @domName RTCPeerConnection.readyState; @docsEditable true
-  final String readyState;
-
-  /// @domName RTCPeerConnection.remoteDescription; @docsEditable true
-  final RTCSessionDescription remoteDescription;
-
-  /// @domName RTCPeerConnection.remoteStreams; @docsEditable true
-  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
-  final List<MediaStream> remoteStreams;
-
-  /// @domName RTCPeerConnection.addEventListener; @docsEditable true
-  @JSName('addEventListener')
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName RTCPeerConnection.addIceCandidate; @docsEditable true
-  void addIceCandidate(RTCIceCandidate candidate) native;
-
-  /// @domName RTCPeerConnection.addStream; @docsEditable true
-  void addStream(MediaStream stream, [Map mediaConstraints]) {
-    if (?mediaConstraints) {
-      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
-      _addStream_1(stream, mediaConstraints_1);
-      return;
-    }
-    _addStream_2(stream);
-    return;
-  }
-  @JSName('addStream')
-  void _addStream_1(MediaStream stream, mediaConstraints) native;
-  @JSName('addStream')
-  void _addStream_2(MediaStream stream) native;
-
-  /// @domName RTCPeerConnection.close; @docsEditable true
-  void close() native;
-
-  /// @domName RTCPeerConnection.createAnswer; @docsEditable true
-  void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
-    if (?mediaConstraints) {
-      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
-      _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
-      return;
-    }
-    _createAnswer_2(successCallback, failureCallback);
-    return;
-  }
-  @JSName('createAnswer')
-  void _createAnswer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native;
-  @JSName('createAnswer')
-  void _createAnswer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native;
-
-  /// @domName RTCPeerConnection.createDataChannel; @docsEditable true
-  RTCDataChannel createDataChannel(String label, [Map options]) {
-    if (?options) {
-      var options_1 = _convertDartToNative_Dictionary(options);
-      return _createDataChannel_1(label, options_1);
-    }
-    return _createDataChannel_2(label);
-  }
-  @JSName('createDataChannel')
-  RTCDataChannel _createDataChannel_1(label, options) native;
-  @JSName('createDataChannel')
-  RTCDataChannel _createDataChannel_2(label) native;
-
-  /// @domName RTCPeerConnection.createOffer; @docsEditable true
-  void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
-    if (?mediaConstraints) {
-      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
-      _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
-      return;
-    }
-    _createOffer_2(successCallback, failureCallback);
-    return;
-  }
-  @JSName('createOffer')
-  void _createOffer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native;
-  @JSName('createOffer')
-  void _createOffer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native;
-
-  /// @domName RTCPeerConnection.dispatchEvent; @docsEditable true
-  @JSName('dispatchEvent')
-  bool $dom_dispatchEvent(Event event) native;
-
-  /// @domName RTCPeerConnection.getStats; @docsEditable true
-  void getStats(RTCStatsCallback successCallback, MediaStreamTrack selector) native;
-
-  /// @domName RTCPeerConnection.removeEventListener; @docsEditable true
-  @JSName('removeEventListener')
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName RTCPeerConnection.removeStream; @docsEditable true
-  void removeStream(MediaStream stream) native;
-
-  /// @domName RTCPeerConnection.setLocalDescription; @docsEditable true
-  void setLocalDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
-
-  /// @domName RTCPeerConnection.setRemoteDescription; @docsEditable true
-  void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
-
-  /// @domName RTCPeerConnection.updateIce; @docsEditable true
-  void updateIce([Map configuration, Map mediaConstraints]) {
-    if (?mediaConstraints) {
-      var configuration_1 = _convertDartToNative_Dictionary(configuration);
-      var mediaConstraints_2 = _convertDartToNative_Dictionary(mediaConstraints);
-      _updateIce_1(configuration_1, mediaConstraints_2);
-      return;
-    }
-    if (?configuration) {
-      var configuration_3 = _convertDartToNative_Dictionary(configuration);
-      _updateIce_2(configuration_3);
-      return;
-    }
-    _updateIce_3();
-    return;
-  }
-  @JSName('updateIce')
-  void _updateIce_1(configuration, mediaConstraints) native;
-  @JSName('updateIce')
-  void _updateIce_2(configuration) native;
-  @JSName('updateIce')
-  void _updateIce_3() native;
-}
-
-class RTCPeerConnectionEvents extends Events {
-  RTCPeerConnectionEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get addStream => this['addstream'];
-
-  EventListenerList get iceCandidate => this['icecandidate'];
-
-  EventListenerList get iceChange => this['icechange'];
-
-  EventListenerList get negotiationNeeded => this['negotiationneeded'];
-
-  EventListenerList get open => this['open'];
-
-  EventListenerList get removeStream => this['removestream'];
-
-  EventListenerList get stateChange => this['statechange'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName RTCSessionDescription; @docsEditable true
-class RTCSessionDescription native "*RTCSessionDescription" {
-
-  factory RTCSessionDescription(Map dictionary) => _RTCSessionDescriptionFactoryProvider.createRTCSessionDescription(dictionary);
-
-  /// @domName RTCSessionDescription.sdp; @docsEditable true
-  String sdp;
-
-  /// @domName RTCSessionDescription.type; @docsEditable true
-  String type;
-}
+typedef void RtcSessionDescriptionCallback(RtcSessionDescription sdp);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14988,54 +14404,7 @@ class RTCSessionDescription native "*RTCSessionDescription" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void RTCSessionDescriptionCallback(RTCSessionDescription sdp);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void RTCStatsCallback(RTCStatsResponse response);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName RTCStatsElement; @docsEditable true
-class RTCStatsElement native "*RTCStatsElement" {
-
-  /// @domName RTCStatsElement.timestamp; @docsEditable true
-  final Date timestamp;
-
-  /// @domName RTCStatsElement.stat; @docsEditable true
-  String stat(String name) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName RTCStatsReport; @docsEditable true
-class RTCStatsReport native "*RTCStatsReport" {
-
-  /// @domName RTCStatsReport.local; @docsEditable true
-  final RTCStatsElement local;
-
-  /// @domName RTCStatsReport.remote; @docsEditable true
-  final RTCStatsElement remote;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName RTCStatsResponse; @docsEditable true
-class RTCStatsResponse native "*RTCStatsResponse" {
-
-  /// @domName RTCStatsResponse.result; @docsEditable true
-  List<RTCStatsReport> result() native;
-}
+typedef void RtcStatsCallback(RtcStatsResponse response);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15051,9 +14420,13 @@ class RadioNodeList extends NodeList native "*RadioNodeList" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
 
-/// @domName Range; @docsEditable true
+
+/// @domName Range
 class Range native "*Range" {
+  factory Range() => document.$dom_createRange();
+
 
   static const int END_TO_END = 2;
 
@@ -15164,6 +14537,7 @@ class Range native "*Range" {
 
   /// @domName Range.toString; @docsEditable true
   String toString() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15198,16 +14572,16 @@ class RangeException native "*RangeException" {
 class Rect native "*Rect" {
 
   /// @domName Rect.bottom; @docsEditable true
-  final CSSPrimitiveValue bottom;
+  final CssPrimitiveValue bottom;
 
   /// @domName Rect.left; @docsEditable true
-  final CSSPrimitiveValue left;
+  final CssPrimitiveValue left;
 
   /// @domName Rect.right; @docsEditable true
-  final CSSPrimitiveValue right;
+  final CssPrimitiveValue right;
 
   /// @domName Rect.top; @docsEditable true
-  final CSSPrimitiveValue top;
+  final CssPrimitiveValue top;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15222,181 +14596,341 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLError; @docsEditable true
-class SQLError native "*SQLError" {
+/// @domName RGBColor; @docsEditable true
+class RgbColor native "*RGBColor" {
 
-  static const int CONSTRAINT_ERR = 6;
+  /// @domName RGBColor.blue; @docsEditable true
+  final CssPrimitiveValue blue;
 
-  static const int DATABASE_ERR = 1;
+  /// @domName RGBColor.green; @docsEditable true
+  final CssPrimitiveValue green;
 
-  static const int QUOTA_ERR = 4;
-
-  static const int SYNTAX_ERR = 5;
-
-  static const int TIMEOUT_ERR = 7;
-
-  static const int TOO_LARGE_ERR = 3;
-
-  static const int UNKNOWN_ERR = 0;
-
-  static const int VERSION_ERR = 2;
-
-  /// @domName SQLError.code; @docsEditable true
-  final int code;
-
-  /// @domName SQLError.message; @docsEditable true
-  final String message;
+  /// @domName RGBColor.red; @docsEditable true
+  final CssPrimitiveValue red;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLException; @docsEditable true
-class SQLException native "*SQLException" {
+/// @domName RTCDataChannel; @docsEditable true
+class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
 
-  static const int CONSTRAINT_ERR = 6;
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  RtcDataChannelEvents get on =>
+    new RtcDataChannelEvents(this);
 
-  static const int DATABASE_ERR = 1;
+  /// @domName RTCDataChannel.binaryType; @docsEditable true
+  String binaryType;
 
-  static const int QUOTA_ERR = 4;
+  /// @domName RTCDataChannel.bufferedAmount; @docsEditable true
+  final int bufferedAmount;
 
-  static const int SYNTAX_ERR = 5;
+  /// @domName RTCDataChannel.label; @docsEditable true
+  final String label;
 
-  static const int TIMEOUT_ERR = 7;
+  /// @domName RTCDataChannel.readyState; @docsEditable true
+  final String readyState;
 
-  static const int TOO_LARGE_ERR = 3;
+  /// @domName RTCDataChannel.reliable; @docsEditable true
+  final bool reliable;
 
-  static const int UNKNOWN_ERR = 0;
+  /// @domName RTCDataChannel.addEventListener; @docsEditable true
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  static const int VERSION_ERR = 2;
+  /// @domName RTCDataChannel.close; @docsEditable true
+  void close() native;
 
-  /// @domName SQLException.code; @docsEditable true
-  final int code;
+  /// @domName RTCDataChannel.dispatchEvent; @docsEditable true
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
-  /// @domName SQLException.message; @docsEditable true
-  final String message;
+  /// @domName RTCDataChannel.removeEventListener; @docsEditable true
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  /// @domName RTCDataChannel.send; @docsEditable true
+  void send(data) native;
+}
+
+class RtcDataChannelEvents extends Events {
+  RtcDataChannelEvents(EventTarget _ptr) : super(_ptr);
+
+  EventListenerList get close => this['close'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLResultSet; @docsEditable true
-class SQLResultSet native "*SQLResultSet" {
+/// @domName RTCDataChannelEvent; @docsEditable true
+class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 
-  /// @domName SQLResultSet.insertId; @docsEditable true
-  final int insertId;
-
-  /// @domName SQLResultSet.rows; @docsEditable true
-  final SQLResultSetRowList rows;
-
-  /// @domName SQLResultSet.rowsAffected; @docsEditable true
-  final int rowsAffected;
+  /// @domName RTCDataChannelEvent.channel; @docsEditable true
+  final RtcDataChannel channel;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLResultSetRowList; @docsEditable true
-class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "*SQLResultSetRowList" {
+/// @domName RTCIceCandidate; @docsEditable true
+class RtcIceCandidate native "*RTCIceCandidate" {
 
-  /// @domName SQLResultSetRowList.length; @docsEditable true
-  final int length;
+  ///@docsEditable true
+  factory RtcIceCandidate(Map dictionary) => _RtcIceCandidateFactoryProvider.createRtcIceCandidate(dictionary);
 
-  Map operator[](int index) => JS("Map", "#[#]", this, index);
+  /// @domName RTCIceCandidate.candidate; @docsEditable true
+  final String candidate;
 
-  void operator[]=(int index, Map value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Map> mixins.
-  // Map is the element type.
+  /// @domName RTCIceCandidate.sdpMLineIndex; @docsEditable true
+  final int sdpMLineIndex;
 
-  // From Iterable<Map>:
+  /// @domName RTCIceCandidate.sdpMid; @docsEditable true
+  final String sdpMid;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  Iterator<Map> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Map>(this);
-  }
 
-  // From Collection<Map>:
+/// @domName RTCIceCandidateEvent; @docsEditable true
+class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 
-  void add(Map value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
+  /// @domName RTCIceCandidateEvent.candidate; @docsEditable true
+  final RtcIceCandidate candidate;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  void addLast(Map value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
 
-  void addAll(Collection<Map> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
+/// @domName RTCPeerConnection; @docsEditable true
+class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
 
-  bool contains(Map element) => _Collections.contains(this, element);
-
-  void forEach(void f(Map element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Map element)) => _Collections.map(this, [], f);
-
-  Collection<Map> filter(bool f(Map element)) =>
-     _Collections.filter(this, <Map>[], f);
-
-  bool every(bool f(Map element)) => _Collections.every(this, f);
-
-  bool some(bool f(Map element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<Map>:
-
-  void sort([Comparator<Map> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
+  ///@docsEditable true
+  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
+    if (!?mediaConstraints) {
+      return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers);
+    }
+    return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers, mediaConstraints);
   }
 
-  int indexOf(Map element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  RtcPeerConnectionEvents get on =>
+    new RtcPeerConnectionEvents(this);
 
-  int lastIndexOf(Map element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+  /// @domName RTCPeerConnection.iceState; @docsEditable true
+  final String iceState;
+
+  /// @domName RTCPeerConnection.localDescription; @docsEditable true
+  final RtcSessionDescription localDescription;
+
+  /// @domName RTCPeerConnection.localStreams; @docsEditable true
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
+  final List<MediaStream> localStreams;
+
+  /// @domName RTCPeerConnection.readyState; @docsEditable true
+  final String readyState;
+
+  /// @domName RTCPeerConnection.remoteDescription; @docsEditable true
+  final RtcSessionDescription remoteDescription;
+
+  /// @domName RTCPeerConnection.remoteStreams; @docsEditable true
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
+  final List<MediaStream> remoteStreams;
+
+  /// @domName RTCPeerConnection.addEventListener; @docsEditable true
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  /// @domName RTCPeerConnection.addIceCandidate; @docsEditable true
+  void addIceCandidate(RtcIceCandidate candidate) native;
+
+  /// @domName RTCPeerConnection.addStream; @docsEditable true
+  void addStream(MediaStream stream, [Map mediaConstraints]) {
+    if (?mediaConstraints) {
+      var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
+      _addStream_1(stream, mediaConstraints_1);
+      return;
+    }
+    _addStream_2(stream);
+    return;
   }
+  @JSName('addStream')
+  void _addStream_1(MediaStream stream, mediaConstraints) native;
+  @JSName('addStream')
+  void _addStream_2(MediaStream stream) native;
 
-  Map get first => this[0];
+  /// @domName RTCPeerConnection.close; @docsEditable true
+  void close() native;
 
-  Map get last => this[length - 1];
-
-  Map removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  /// @domName RTCPeerConnection.createAnswer; @docsEditable true
+  void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
+    if (?mediaConstraints) {
+      var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
+      _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
+      return;
+    }
+    _createAnswer_2(successCallback, failureCallback);
+    return;
   }
+  @JSName('createAnswer')
+  void _createAnswer_1(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback, mediaConstraints) native;
+  @JSName('createAnswer')
+  void _createAnswer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
-  void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
+  /// @domName RTCPeerConnection.createDataChannel; @docsEditable true
+  RtcDataChannel createDataChannel(String label, [Map options]) {
+    if (?options) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _createDataChannel_1(label, options_1);
+    }
+    return _createDataChannel_2(label);
   }
+  @JSName('createDataChannel')
+  RtcDataChannel _createDataChannel_1(label, options) native;
+  @JSName('createDataChannel')
+  RtcDataChannel _createDataChannel_2(label) native;
 
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  /// @domName RTCPeerConnection.createOffer; @docsEditable true
+  void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
+    if (?mediaConstraints) {
+      var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
+      _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
+      return;
+    }
+    _createOffer_2(successCallback, failureCallback);
+    return;
   }
+  @JSName('createOffer')
+  void _createOffer_1(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback, mediaConstraints) native;
+  @JSName('createOffer')
+  void _createOffer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
-  void insertRange(int start, int rangeLength, [Map initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  /// @domName RTCPeerConnection.dispatchEvent; @docsEditable true
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
+
+  /// @domName RTCPeerConnection.getStats; @docsEditable true
+  void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native;
+
+  /// @domName RTCPeerConnection.removeEventListener; @docsEditable true
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  /// @domName RTCPeerConnection.removeStream; @docsEditable true
+  void removeStream(MediaStream stream) native;
+
+  /// @domName RTCPeerConnection.setLocalDescription; @docsEditable true
+  void setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
+
+  /// @domName RTCPeerConnection.setRemoteDescription; @docsEditable true
+  void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
+
+  /// @domName RTCPeerConnection.updateIce; @docsEditable true
+  void updateIce([Map configuration, Map mediaConstraints]) {
+    if (?mediaConstraints) {
+      var configuration_1 = convertDartToNative_Dictionary(configuration);
+      var mediaConstraints_2 = convertDartToNative_Dictionary(mediaConstraints);
+      _updateIce_1(configuration_1, mediaConstraints_2);
+      return;
+    }
+    if (?configuration) {
+      var configuration_3 = convertDartToNative_Dictionary(configuration);
+      _updateIce_2(configuration_3);
+      return;
+    }
+    _updateIce_3();
+    return;
   }
+  @JSName('updateIce')
+  void _updateIce_1(configuration, mediaConstraints) native;
+  @JSName('updateIce')
+  void _updateIce_2(configuration) native;
+  @JSName('updateIce')
+  void _updateIce_3() native;
+}
 
-  List<Map> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Map>[]);
+class RtcPeerConnectionEvents extends Events {
+  RtcPeerConnectionEvents(EventTarget _ptr) : super(_ptr);
 
-  // -- end List<Map> mixins.
+  EventListenerList get addStream => this['addstream'];
 
-  /// @domName SQLResultSetRowList.item; @docsEditable true
-  Map item(int index) {
-    return _convertNativeToDart_Dictionary(_item_1(index));
-  }
-  @JSName('item')
-  @Creates('=Object')
-  _item_1(index) native;
+  EventListenerList get iceCandidate => this['icecandidate'];
+
+  EventListenerList get iceChange => this['icechange'];
+
+  EventListenerList get negotiationNeeded => this['negotiationneeded'];
+
+  EventListenerList get open => this['open'];
+
+  EventListenerList get removeStream => this['removestream'];
+
+  EventListenerList get stateChange => this['statechange'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName RTCSessionDescription; @docsEditable true
+class RtcSessionDescription native "*RTCSessionDescription" {
+
+  ///@docsEditable true
+  factory RtcSessionDescription(Map dictionary) => _RtcSessionDescriptionFactoryProvider.createRtcSessionDescription(dictionary);
+
+  /// @domName RTCSessionDescription.sdp; @docsEditable true
+  String sdp;
+
+  /// @domName RTCSessionDescription.type; @docsEditable true
+  String type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName RTCStatsElement; @docsEditable true
+class RtcStatsElement native "*RTCStatsElement" {
+
+  /// @domName RTCStatsElement.timestamp; @docsEditable true
+  final Date timestamp;
+
+  /// @domName RTCStatsElement.stat; @docsEditable true
+  String stat(String name) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName RTCStatsReport; @docsEditable true
+class RtcStatsReport native "*RTCStatsReport" {
+
+  /// @domName RTCStatsReport.local; @docsEditable true
+  final RtcStatsElement local;
+
+  /// @domName RTCStatsReport.remote; @docsEditable true
+  final RtcStatsElement remote;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName RTCStatsResponse; @docsEditable true
+class RtcStatsResponse native "*RTCStatsResponse" {
+
+  /// @domName RTCStatsResponse.result; @docsEditable true
+  List<RtcStatsReport> result() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15405,7 +14939,7 @@ class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
+typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15413,18 +14947,7 @@ typedef void SQLStatementCallback(SQLTransaction transaction, SQLResultSet resul
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName SQLTransaction; @docsEditable true
-class SQLTransaction native "*SQLTransaction" {
-
-  /// @domName SQLTransaction.executeSql; @docsEditable true
-  void executeSql(String sqlStatement, List arguments, [SQLStatementCallback callback, SQLStatementErrorCallback errorCallback]) native;
-}
+typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15432,7 +14955,7 @@ class SQLTransaction native "*SQLTransaction" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLTransactionCallback(SQLTransaction transaction);
+typedef void SqlTransactionCallback(SqlTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15440,18 +14963,7 @@ typedef void SQLTransactionCallback(SQLTransaction transaction);
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLTransactionErrorCallback(SQLError error);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName SQLTransactionSync; @docsEditable true
-class SQLTransactionSync native "*SQLTransactionSync" {
-
-  /// @domName SQLTransactionSync.executeSql; @docsEditable true
-  SQLResultSet executeSql(String sqlStatement, List arguments) native;
-}
+typedef void SqlTransactionErrorCallback(SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15459,7 +14971,7 @@ class SQLTransactionSync native "*SQLTransactionSync" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
+typedef void SqlTransactionSyncCallback(SqlTransactionSync transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15500,6 +15012,7 @@ class Screen native "*Screen" {
 /// @domName HTMLScriptElement; @docsEditable true
 class ScriptElement extends Element implements Element native "*HTMLScriptElement" {
 
+  ///@docsEditable true
   factory ScriptElement() => document.$dom_createElement("script");
 
   /// @domName HTMLScriptElement.async; @docsEditable true
@@ -15587,6 +15100,7 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 /// @domName HTMLSelectElement
 class SelectElement extends Element implements Element native "*HTMLSelectElement" {
 
+  ///@docsEditable true
   factory SelectElement() => document.$dom_createElement("select");
 
   /// @domName HTMLSelectElement.autofocus; @docsEditable true
@@ -15671,6 +15185,7 @@ class SelectElement extends Element implements Element native "*HTMLSelectElemen
 /// @domName SessionDescription; @docsEditable true
 class SessionDescription native "*SessionDescription" {
 
+  ///@docsEditable true
   factory SessionDescription(String sdp) => _SessionDescriptionFactoryProvider.createSessionDescription(sdp);
 
   /// @domName SessionDescription.addCandidate; @docsEditable true
@@ -15700,6 +15215,7 @@ class ShadowElement extends Element implements Element native "*HTMLShadowElemen
 /// @domName ShadowRoot
 class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
+  ///@docsEditable true
   factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
 
   /// @domName ShadowRoot.activeElement; @docsEditable true
@@ -15734,7 +15250,7 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
   List<Node> $dom_getElementsByTagName(String tagName) native;
 
   /// @domName ShadowRoot.getSelection; @docsEditable true
-  DOMSelection getSelection() native;
+  DomSelection getSelection() native;
 
   static bool get supported =>
       JS('bool', '!!(window.ShadowRoot || window.WebKitShadowRoot)');
@@ -15747,6 +15263,7 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 /// @domName SharedWorker; @docsEditable true
 class SharedWorker extends AbstractWorker native "*SharedWorker" {
 
+  ///@docsEditable true
   factory SharedWorker(String scriptURL, [String name]) {
     if (!?name) {
       return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL);
@@ -15807,7 +15324,7 @@ class SourceBuffer native "*SourceBuffer" {
 class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior, List<SourceBuffer> native "*SourceBufferList" {
 
   /// @domName SourceBufferList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   SourceBuffer operator[](int index) => JS("SourceBuffer", "#[#]", this, index);
 
@@ -15840,38 +15357,53 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SourceBuffer element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(SourceBuffer element)) => _Collections.forEach(this, f);
+  bool contains(SourceBuffer element) => Collections.contains(this, element);
 
-  Collection map(f(SourceBuffer element)) => _Collections.map(this, [], f);
+  void forEach(void f(SourceBuffer element)) => Collections.forEach(this, f);
+
+  Collection map(f(SourceBuffer element)) => Collections.map(this, [], f);
 
   Collection<SourceBuffer> filter(bool f(SourceBuffer element)) =>
-     _Collections.filter(this, <SourceBuffer>[], f);
+     Collections.filter(this, <SourceBuffer>[], f);
 
-  bool every(bool f(SourceBuffer element)) => _Collections.every(this, f);
+  bool every(bool f(SourceBuffer element)) => Collections.every(this, f);
 
-  bool some(bool f(SourceBuffer element)) => _Collections.some(this, f);
+  bool some(bool f(SourceBuffer element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<SourceBuffer>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SourceBuffer> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(SourceBuffer a, SourceBuffer b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SourceBuffer element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SourceBuffer element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   SourceBuffer get first => this[0];
 
   SourceBuffer get last => this[length - 1];
+
+  SourceBuffer removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   SourceBuffer removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -15890,7 +15422,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   }
 
   List<SourceBuffer> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SourceBuffer>[]);
+      Lists.getRange(this, start, rangeLength, <SourceBuffer>[]);
 
   // -- end List<SourceBuffer> mixins.
 
@@ -15917,6 +15449,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 /// @domName HTMLSourceElement; @docsEditable true
 class SourceElement extends Element implements Element native "*HTMLSourceElement" {
 
+  ///@docsEditable true
   factory SourceElement() => document.$dom_createElement("source");
 
   /// @domName HTMLSourceElement.media; @docsEditable true
@@ -15936,6 +15469,7 @@ class SourceElement extends Element implements Element native "*HTMLSourceElemen
 /// @domName HTMLSpanElement; @docsEditable true
 class SpanElement extends Element implements Element native "*HTMLSpanElement" {
 
+  ///@docsEditable true
   factory SpanElement() => document.$dom_createElement("span");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15946,6 +15480,7 @@ class SpanElement extends Element implements Element native "*HTMLSpanElement" {
 /// @domName SpeechGrammar; @docsEditable true
 class SpeechGrammar native "*SpeechGrammar" {
 
+  ///@docsEditable true
   factory SpeechGrammar() => _SpeechGrammarFactoryProvider.createSpeechGrammar();
 
   /// @domName SpeechGrammar.src; @docsEditable true
@@ -15962,10 +15497,11 @@ class SpeechGrammar native "*SpeechGrammar" {
 /// @domName SpeechGrammarList; @docsEditable true
 class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "*SpeechGrammarList" {
 
+  ///@docsEditable true
   factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
 
   /// @domName SpeechGrammarList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   SpeechGrammar operator[](int index) => JS("SpeechGrammar", "#[#]", this, index);
 
@@ -15998,38 +15534,53 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechGrammar element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(SpeechGrammar element)) => _Collections.forEach(this, f);
+  bool contains(SpeechGrammar element) => Collections.contains(this, element);
 
-  Collection map(f(SpeechGrammar element)) => _Collections.map(this, [], f);
+  void forEach(void f(SpeechGrammar element)) => Collections.forEach(this, f);
+
+  Collection map(f(SpeechGrammar element)) => Collections.map(this, [], f);
 
   Collection<SpeechGrammar> filter(bool f(SpeechGrammar element)) =>
-     _Collections.filter(this, <SpeechGrammar>[], f);
+     Collections.filter(this, <SpeechGrammar>[], f);
 
-  bool every(bool f(SpeechGrammar element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechGrammar element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechGrammar element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechGrammar element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechGrammar>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechGrammar> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(SpeechGrammar a, SpeechGrammar b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechGrammar element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechGrammar element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   SpeechGrammar get first => this[0];
 
   SpeechGrammar get last => this[length - 1];
+
+  SpeechGrammar removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   SpeechGrammar removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -16048,7 +15599,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
   }
 
   List<SpeechGrammar> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SpeechGrammar>[]);
+      Lists.getRange(this, start, rangeLength, <SpeechGrammar>[]);
 
   // -- end List<SpeechGrammar> mixins.
 
@@ -16095,6 +15646,7 @@ class SpeechInputResult native "*SpeechInputResult" {
 /// @domName SpeechRecognition; @docsEditable true
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
+  ///@docsEditable true
   factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -16253,6 +15805,224 @@ class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName SQLError; @docsEditable true
+class SqlError native "*SQLError" {
+
+  static const int CONSTRAINT_ERR = 6;
+
+  static const int DATABASE_ERR = 1;
+
+  static const int QUOTA_ERR = 4;
+
+  static const int SYNTAX_ERR = 5;
+
+  static const int TIMEOUT_ERR = 7;
+
+  static const int TOO_LARGE_ERR = 3;
+
+  static const int UNKNOWN_ERR = 0;
+
+  static const int VERSION_ERR = 2;
+
+  /// @domName SQLError.code; @docsEditable true
+  final int code;
+
+  /// @domName SQLError.message; @docsEditable true
+  final String message;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName SQLException; @docsEditable true
+class SqlException native "*SQLException" {
+
+  static const int CONSTRAINT_ERR = 6;
+
+  static const int DATABASE_ERR = 1;
+
+  static const int QUOTA_ERR = 4;
+
+  static const int SYNTAX_ERR = 5;
+
+  static const int TIMEOUT_ERR = 7;
+
+  static const int TOO_LARGE_ERR = 3;
+
+  static const int UNKNOWN_ERR = 0;
+
+  static const int VERSION_ERR = 2;
+
+  /// @domName SQLException.code; @docsEditable true
+  final int code;
+
+  /// @domName SQLException.message; @docsEditable true
+  final String message;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName SQLResultSet; @docsEditable true
+class SqlResultSet native "*SQLResultSet" {
+
+  /// @domName SQLResultSet.insertId; @docsEditable true
+  final int insertId;
+
+  /// @domName SQLResultSet.rows; @docsEditable true
+  final SqlResultSetRowList rows;
+
+  /// @domName SQLResultSet.rowsAffected; @docsEditable true
+  final int rowsAffected;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName SQLResultSetRowList; @docsEditable true
+class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "*SQLResultSetRowList" {
+
+  /// @domName SQLResultSetRowList.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
+
+  Map operator[](int index) => JS("Map", "#[#]", this, index);
+
+  void operator[]=(int index, Map value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Map> mixins.
+  // Map is the element type.
+
+  // From Iterable<Map>:
+
+  Iterator<Map> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Map>(this);
+  }
+
+  // From Collection<Map>:
+
+  void add(Map value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(Map value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Map> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Map element) => Collections.contains(this, element);
+
+  void forEach(void f(Map element)) => Collections.forEach(this, f);
+
+  Collection map(f(Map element)) => Collections.map(this, [], f);
+
+  Collection<Map> filter(bool f(Map element)) =>
+     Collections.filter(this, <Map>[], f);
+
+  bool every(bool f(Map element)) => Collections.every(this, f);
+
+  bool some(bool f(Map element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<Map>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Map a, Map b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Map element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Map element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  Map get first => this[0];
+
+  Map get last => this[length - 1];
+
+  Map removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  Map removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Map initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<Map> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <Map>[]);
+
+  // -- end List<Map> mixins.
+
+  /// @domName SQLResultSetRowList.item; @docsEditable true
+  Map item(int index) {
+    return convertNativeToDart_Dictionary(_item_1(index));
+  }
+  @JSName('item')
+  @Creates('=Object')
+  _item_1(index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName SQLTransaction; @docsEditable true
+class SqlTransaction native "*SQLTransaction" {
+
+  /// @domName SQLTransaction.executeSql; @docsEditable true
+  void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName SQLTransactionSync; @docsEditable true
+class SqlTransactionSync native "*SQLTransactionSync" {
+
+  /// @domName SQLTransactionSync.executeSql; @docsEditable true
+  SqlResultSet executeSql(String sqlStatement, List arguments) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName Storage
 class Storage implements Map<String, String>  native "*Storage" {
 
@@ -16379,7 +16149,7 @@ class StorageInfo native "*StorageInfo" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void StorageInfoErrorCallback(DOMException error);
+typedef void StorageInfoErrorCallback(DomException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16412,6 +16182,7 @@ typedef void StringCallback(String data);
 /// @domName HTMLStyleElement; @docsEditable true
 class StyleElement extends Element implements Element native "*HTMLStyleElement" {
 
+  ///@docsEditable true
   factory StyleElement() => document.$dom_createElement("style");
 
   /// @domName HTMLStyleElement.disabled; @docsEditable true
@@ -16480,6 +16251,7 @@ class StyleSheet native "*StyleSheet" {
 /// @domName HTMLTableCaptionElement; @docsEditable true
 class TableCaptionElement extends Element implements Element native "*HTMLTableCaptionElement" {
 
+  ///@docsEditable true
   factory TableCaptionElement() => document.$dom_createElement("caption");
 
   /// @domName HTMLTableCaptionElement.align; @docsEditable true
@@ -16493,6 +16265,7 @@ class TableCaptionElement extends Element implements Element native "*HTMLTableC
 /// @domName HTMLTableCellElement; @docsEditable true
 class TableCellElement extends Element implements Element native "*HTMLTableCellElement" {
 
+  ///@docsEditable true
   factory TableCellElement() => document.$dom_createElement("td");
 
   /// @domName HTMLTableCellElement.abbr; @docsEditable true
@@ -16548,6 +16321,7 @@ class TableCellElement extends Element implements Element native "*HTMLTableCell
 /// @domName HTMLTableColElement; @docsEditable true
 class TableColElement extends Element implements Element native "*HTMLTableColElement" {
 
+  ///@docsEditable true
   factory TableColElement() => document.$dom_createElement("col");
 
   /// @domName HTMLTableColElement.align; @docsEditable true
@@ -16576,6 +16350,7 @@ class TableColElement extends Element implements Element native "*HTMLTableColEl
 /// @domName HTMLTableElement
 class TableElement extends Element implements Element native "*HTMLTableElement" {
 
+  ///@docsEditable true
   factory TableElement() => document.$dom_createElement("table");
 
   /// @domName HTMLTableElement.align; @docsEditable true
@@ -16600,7 +16375,7 @@ class TableElement extends Element implements Element native "*HTMLTableElement"
   String frame;
 
   /// @domName HTMLTableElement.rows; @docsEditable true
-  final HTMLCollection rows;
+  final HtmlCollection rows;
 
   /// @domName HTMLTableElement.rules; @docsEditable true
   String rules;
@@ -16609,7 +16384,7 @@ class TableElement extends Element implements Element native "*HTMLTableElement"
   String summary;
 
   /// @domName HTMLTableElement.tBodies; @docsEditable true
-  final HTMLCollection tBodies;
+  final HtmlCollection tBodies;
 
   /// @domName HTMLTableElement.tFoot; @docsEditable true
   TableSectionElement tFoot;
@@ -16665,6 +16440,7 @@ class TableElement extends Element implements Element native "*HTMLTableElement"
 /// @domName HTMLTableRowElement; @docsEditable true
 class TableRowElement extends Element implements Element native "*HTMLTableRowElement" {
 
+  ///@docsEditable true
   factory TableRowElement() => document.$dom_createElement("tr");
 
   /// @domName HTMLTableRowElement.align; @docsEditable true
@@ -16674,7 +16450,7 @@ class TableRowElement extends Element implements Element native "*HTMLTableRowEl
   String bgColor;
 
   /// @domName HTMLTableRowElement.cells; @docsEditable true
-  final HTMLCollection cells;
+  final HtmlCollection cells;
 
   /// @domName HTMLTableRowElement.ch; @docsEditable true
   String ch;
@@ -16715,7 +16491,7 @@ class TableSectionElement extends Element implements Element native "*HTMLTableS
   String chOff;
 
   /// @domName HTMLTableSectionElement.rows; @docsEditable true
-  final HTMLCollection rows;
+  final HtmlCollection rows;
 
   /// @domName HTMLTableSectionElement.vAlign; @docsEditable true
   String vAlign;
@@ -16755,6 +16531,7 @@ class Text extends CharacterData native "*Text" {
 /// @domName HTMLTextAreaElement; @docsEditable true
 class TextAreaElement extends Element implements Element native "*HTMLTextAreaElement" {
 
+  ///@docsEditable true
   factory TextAreaElement() => document.$dom_createElement("textarea");
 
   /// @domName HTMLTextAreaElement.autofocus; @docsEditable true
@@ -16929,6 +16706,7 @@ class TextTrackEvents extends Events {
 /// @domName TextTrackCue; @docsEditable true
 class TextTrackCue extends EventTarget native "*TextTrackCue" {
 
+  ///@docsEditable true
   factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -17004,7 +16782,7 @@ class TextTrackCueEvents extends Events {
 class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior native "*TextTrackCueList" {
 
   /// @domName TextTrackCueList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   TextTrackCue operator[](int index) => JS("TextTrackCue", "#[#]", this, index);
 
@@ -17037,38 +16815,53 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(TextTrackCue element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(TextTrackCue element)) => _Collections.forEach(this, f);
+  bool contains(TextTrackCue element) => Collections.contains(this, element);
 
-  Collection map(f(TextTrackCue element)) => _Collections.map(this, [], f);
+  void forEach(void f(TextTrackCue element)) => Collections.forEach(this, f);
+
+  Collection map(f(TextTrackCue element)) => Collections.map(this, [], f);
 
   Collection<TextTrackCue> filter(bool f(TextTrackCue element)) =>
-     _Collections.filter(this, <TextTrackCue>[], f);
+     Collections.filter(this, <TextTrackCue>[], f);
 
-  bool every(bool f(TextTrackCue element)) => _Collections.every(this, f);
+  bool every(bool f(TextTrackCue element)) => Collections.every(this, f);
 
-  bool some(bool f(TextTrackCue element)) => _Collections.some(this, f);
+  bool some(bool f(TextTrackCue element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<TextTrackCue>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<TextTrackCue> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(TextTrackCue a, TextTrackCue b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(TextTrackCue element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(TextTrackCue element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   TextTrackCue get first => this[0];
 
   TextTrackCue get last => this[length - 1];
+
+  TextTrackCue removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   TextTrackCue removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -17087,7 +16880,7 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
   }
 
   List<TextTrackCue> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <TextTrackCue>[]);
+      Lists.getRange(this, start, rangeLength, <TextTrackCue>[]);
 
   // -- end List<TextTrackCue> mixins.
 
@@ -17110,7 +16903,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     new TextTrackListEvents(this);
 
   /// @domName TextTrackList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   TextTrack operator[](int index) => JS("TextTrack", "#[#]", this, index);
 
@@ -17143,38 +16936,53 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(TextTrack element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(TextTrack element)) => _Collections.forEach(this, f);
+  bool contains(TextTrack element) => Collections.contains(this, element);
 
-  Collection map(f(TextTrack element)) => _Collections.map(this, [], f);
+  void forEach(void f(TextTrack element)) => Collections.forEach(this, f);
+
+  Collection map(f(TextTrack element)) => Collections.map(this, [], f);
 
   Collection<TextTrack> filter(bool f(TextTrack element)) =>
-     _Collections.filter(this, <TextTrack>[], f);
+     Collections.filter(this, <TextTrack>[], f);
 
-  bool every(bool f(TextTrack element)) => _Collections.every(this, f);
+  bool every(bool f(TextTrack element)) => Collections.every(this, f);
 
-  bool some(bool f(TextTrack element)) => _Collections.some(this, f);
+  bool some(bool f(TextTrack element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<TextTrack>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<TextTrack> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(TextTrack a, TextTrack b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(TextTrack element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(TextTrack element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   TextTrack get first => this[0];
 
   TextTrack get last => this[length - 1];
+
+  TextTrack removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   TextTrack removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -17193,7 +17001,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   }
 
   List<TextTrack> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <TextTrack>[]);
+      Lists.getRange(this, start, rangeLength, <TextTrack>[]);
 
   // -- end List<TextTrack> mixins.
 
@@ -17251,6 +17059,7 @@ typedef void TimeoutHandler();
 /// @domName HTMLTitleElement; @docsEditable true
 class TitleElement extends Element implements Element native "*HTMLTitleElement" {
 
+  ///@docsEditable true
   factory TitleElement() => document.$dom_createElement("title");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17285,7 +17094,7 @@ class Touch native "*Touch" {
   /// @domName Touch.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   @JSName('target')
-  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  @Creates('Element|Document') @Returns('Element|Document')
   final dynamic _target;
 
   /// @domName Touch.webkitForce; @docsEditable true
@@ -17341,7 +17150,7 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
 class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
 
   /// @domName TouchList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Touch operator[](int index) => JS("Touch", "#[#]", this, index);
 
@@ -17374,38 +17183,53 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Touch element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Touch)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Touch element)) => _Collections.forEach(this, f);
+  bool contains(Touch element) => Collections.contains(this, element);
 
-  Collection map(f(Touch element)) => _Collections.map(this, [], f);
+  void forEach(void f(Touch element)) => Collections.forEach(this, f);
+
+  Collection map(f(Touch element)) => Collections.map(this, [], f);
 
   Collection<Touch> filter(bool f(Touch element)) =>
-     _Collections.filter(this, <Touch>[], f);
+     Collections.filter(this, <Touch>[], f);
 
-  bool every(bool f(Touch element)) => _Collections.every(this, f);
+  bool every(bool f(Touch element)) => Collections.every(this, f);
 
-  bool some(bool f(Touch element)) => _Collections.some(this, f);
+  bool some(bool f(Touch element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Touch>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Touch> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Touch a, Touch b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Touch element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Touch element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Touch get first => this[0];
 
   Touch get last => this[length - 1];
+
+  Touch removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Touch removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -17424,7 +17248,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
   }
 
   List<Touch> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Touch>[]);
+      Lists.getRange(this, start, rangeLength, <Touch>[]);
 
   // -- end List<Touch> mixins.
 
@@ -17439,6 +17263,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 /// @domName HTMLTrackElement; @docsEditable true
 class TrackElement extends Element implements Element native "*HTMLTrackElement" {
 
+  ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
 
   static const int ERROR = 3;
@@ -17607,6 +17432,7 @@ class UIEvent extends Event native "*UIEvent" {
 /// @domName HTMLUListElement; @docsEditable true
 class UListElement extends Element implements Element native "*HTMLUListElement" {
 
+  ///@docsEditable true
   factory UListElement() => document.$dom_createElement("ul");
 
   /// @domName HTMLUListElement.compact; @docsEditable true
@@ -17635,7 +17461,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   static const int BYTES_PER_ELEMENT = 2;
 
   /// @domName Uint16Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -17665,38 +17491,53 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -17715,7 +17556,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -17746,7 +17587,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   static const int BYTES_PER_ELEMENT = 4;
 
   /// @domName Uint32Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -17776,38 +17617,53 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -17826,7 +17682,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -17857,7 +17713,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   static const int BYTES_PER_ELEMENT = 1;
 
   /// @domName Uint8Array.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
@@ -17887,38 +17743,53 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(int element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(int element)) => _Collections.forEach(this, f);
+  bool contains(int element) => Collections.contains(this, element);
 
-  Collection map(f(int element)) => _Collections.map(this, [], f);
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  Collection map(f(int element)) => Collections.map(this, [], f);
 
   Collection<int> filter(bool f(int element)) =>
-     _Collections.filter(this, <int>[], f);
+     Collections.filter(this, <int>[], f);
 
-  bool every(bool f(int element)) => _Collections.every(this, f);
+  bool every(bool f(int element)) => Collections.every(this, f);
 
-  bool some(bool f(int element)) => _Collections.some(this, f);
+  bool some(bool f(int element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<int> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int get first => this[0];
 
   int get last => this[length - 1];
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -17937,7 +17808,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   }
 
   List<int> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <int>[]);
+      Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -18044,6 +17915,7 @@ class ValidityState native "*ValidityState" {
 /// @domName HTMLVideoElement; @docsEditable true
 class VideoElement extends MediaElement native "*HTMLVideoElement" {
 
+  ///@docsEditable true
   factory VideoElement() => document.$dom_createElement("video");
 
   /// @domName HTMLVideoElement.height; @docsEditable true
@@ -18093,14 +17965,6 @@ class VideoElement extends MediaElement native "*HTMLVideoElement" {
 
 
 typedef void VoidCallback();
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName WaveTable; @docsEditable true
-class WaveTable native "*WaveTable" {
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19398,7 +19262,7 @@ class WebGLUniformLocation native "*WebGLUniformLocation" {
 
 
 /// @domName WebGLVertexArrayObjectOES; @docsEditable true
-class WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
+class WebGLVertexArrayObject native "*WebGLVertexArrayObjectOES" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19406,7 +19270,7 @@ class WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
 
 
 /// @domName WebKitCSSFilterValue; @docsEditable true
-class WebKitCSSFilterValue extends _CSSValueList native "*WebKitCSSFilterValue" {
+class WebKitCssFilterValue extends _CssValueList native "*WebKitCSSFilterValue" {
 
   static const int CSS_FILTER_BLUR = 10;
 
@@ -19648,6 +19512,7 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
 /// @domName Worker; @docsEditable true
 class Worker extends AbstractWorker native "*Worker" {
 
+  ///@docsEditable true
   factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -19657,11 +19522,11 @@ class Worker extends AbstractWorker native "*Worker" {
   /// @domName Worker.postMessage; @docsEditable true
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) {
     if (?messagePorts) {
-      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
       return;
     }
-    var message_2 = _convertDartToNative_SerializedScriptValue(message);
+    var message_2 = convertDartToNative_SerializedScriptValue(message);
     _postMessage_2(message_2);
     return;
   }
@@ -19684,7 +19549,7 @@ class WorkerEvents extends AbstractWorkerEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WorkerContext; @docsEditable true
+/// @domName WorkerContext
 class WorkerContext extends EventTarget native "*WorkerContext" {
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -19695,9 +19560,6 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
 
   static const int TEMPORARY = 0;
 
-  /// @domName WorkerContext.indexedDB; @docsEditable true
-  final IDBFactory indexedDB;
-
   /// @domName WorkerContext.location; @docsEditable true
   final WorkerLocation location;
 
@@ -19706,9 +19568,6 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
 
   /// @domName WorkerContext.self; @docsEditable true
   final WorkerContext self;
-
-  /// @domName WorkerContext.webkitIndexedDB; @docsEditable true
-  final IDBFactory webkitIndexedDB;
 
   /// @domName WorkerContext.webkitNotifications; @docsEditable true
   final NotificationCenter webkitNotifications;
@@ -19753,7 +19612,7 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
 
   /// @domName WorkerContext.webkitRequestFileSystemSync; @docsEditable true
-  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native;
+  FileSystemSync webkitRequestFileSystemSync(int type, int size) native;
 
   /// @domName WorkerContext.webkitResolveLocalFileSystemSyncURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemSyncURL')
@@ -19762,6 +19621,12 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   /// @domName WorkerContext.webkitResolveLocalFileSystemURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemURL')
   void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+
+
+  IdbFactory get indexedDB =>
+      JS('IdbFactory',
+         '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
+         this, this, this);
 }
 
 class WorkerContextEvents extends Events {
@@ -19832,22 +19697,10 @@ class WorkerNavigator native "*WorkerNavigator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XMLSerializer; @docsEditable true
-class XMLSerializer native "*XMLSerializer" {
-
-  factory XMLSerializer() => _XMLSerializerFactoryProvider.createXMLSerializer();
-
-  /// @domName XMLSerializer.serializeToString; @docsEditable true
-  String serializeToString(Node node) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName XPathEvaluator; @docsEditable true
 class XPathEvaluator native "*XPathEvaluator" {
 
+  ///@docsEditable true
   factory XPathEvaluator() => _XPathEvaluatorFactoryProvider.createXPathEvaluator();
 
   /// @domName XPathEvaluator.createExpression; @docsEditable true
@@ -19966,10 +19819,25 @@ class XPathResult native "*XPathResult" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XSLTProcessor; @docsEditable true
-class XSLTProcessor native "*XSLTProcessor" {
+/// @domName XMLSerializer; @docsEditable true
+class XmlSerializer native "*XMLSerializer" {
 
-  factory XSLTProcessor() => _XSLTProcessorFactoryProvider.createXSLTProcessor();
+  ///@docsEditable true
+  factory XmlSerializer() => _XmlSerializerFactoryProvider.createXmlSerializer();
+
+  /// @domName XMLSerializer.serializeToString; @docsEditable true
+  String serializeToString(Node node) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName XSLTProcessor; @docsEditable true
+class XsltProcessor native "*XSLTProcessor" {
+
+  ///@docsEditable true
+  factory XsltProcessor() => _XsltProcessorFactoryProvider.createXsltProcessor();
 
   /// @domName XSLTProcessor.clearParameters; @docsEditable true
   void clearParameters() native;
@@ -20009,6 +19877,17 @@ class _ArrayBufferFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
+class _AudioElementFactoryProvider {
+  static AudioElement createAudioElement([String src = null]) {
+    if (src == null) return JS('AudioElement', 'new Audio()');
+    return JS('AudioElement', 'new Audio(#)', src);
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 class _BlobFactoryProvider {
   static Blob createBlob([List blobParts = null, String type, String endings]) {
     // TODO: validate that blobParts is a JS Array and convert if not.
@@ -20034,218 +19913,11 @@ class _BlobFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _CSSMatrixFactoryProvider {
-  static CSSMatrix createCSSMatrix([String cssValue = '']) =>
-      JS('CSSMatrix', 'new WebKitCSSMatrix(#)', cssValue);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName CSSRuleList; @docsEditable true
-class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "*CSSRuleList" {
-
-  /// @domName CSSRuleList.length; @docsEditable true
-  final int length;
-
-  CSSRule operator[](int index) => JS("CSSRule", "#[#]", this, index);
-
-  void operator[]=(int index, CSSRule value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<CSSRule> mixins.
-  // CSSRule is the element type.
-
-  // From Iterable<CSSRule>:
-
-  Iterator<CSSRule> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<CSSRule>(this);
-  }
-
-  // From Collection<CSSRule>:
-
-  void add(CSSRule value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(CSSRule value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<CSSRule> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(CSSRule element) => _Collections.contains(this, element);
-
-  void forEach(void f(CSSRule element)) => _Collections.forEach(this, f);
-
-  Collection map(f(CSSRule element)) => _Collections.map(this, [], f);
-
-  Collection<CSSRule> filter(bool f(CSSRule element)) =>
-     _Collections.filter(this, <CSSRule>[], f);
-
-  bool every(bool f(CSSRule element)) => _Collections.every(this, f);
-
-  bool some(bool f(CSSRule element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<CSSRule>:
-
-  void sort([Comparator<CSSRule> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(CSSRule element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(CSSRule element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  CSSRule get first => this[0];
-
-  CSSRule get last => this[length - 1];
-
-  CSSRule removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<CSSRule> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [CSSRule initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<CSSRule> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <CSSRule>[]);
-
-  // -- end List<CSSRule> mixins.
-
-  /// @domName CSSRuleList.item; @docsEditable true
-  CSSRule item(int index) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName CSSValueList; @docsEditable true
-class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexingBehavior native "*CSSValueList" {
-
-  /// @domName CSSValueList.length; @docsEditable true
-  final int length;
-
-  CSSValue operator[](int index) => JS("CSSValue", "#[#]", this, index);
-
-  void operator[]=(int index, CSSValue value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<CSSValue> mixins.
-  // CSSValue is the element type.
-
-  // From Iterable<CSSValue>:
-
-  Iterator<CSSValue> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<CSSValue>(this);
-  }
-
-  // From Collection<CSSValue>:
-
-  void add(CSSValue value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(CSSValue value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<CSSValue> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(CSSValue element) => _Collections.contains(this, element);
-
-  void forEach(void f(CSSValue element)) => _Collections.forEach(this, f);
-
-  Collection map(f(CSSValue element)) => _Collections.map(this, [], f);
-
-  Collection<CSSValue> filter(bool f(CSSValue element)) =>
-     _Collections.filter(this, <CSSValue>[], f);
-
-  bool every(bool f(CSSValue element)) => _Collections.every(this, f);
-
-  bool some(bool f(CSSValue element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<CSSValue>:
-
-  void sort([Comparator<CSSValue> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(CSSValue element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(CSSValue element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  CSSValue get first => this[0];
-
-  CSSValue get last => this[length - 1];
-
-  CSSValue removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<CSSValue> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [CSSValue initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<CSSValue> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <CSSValue>[]);
-
-  // -- end List<CSSValue> mixins.
-
-  /// @domName CSSValueList.item; @docsEditable true
-  CSSValue item(int index) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName ClientRectList; @docsEditable true
 class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> native "*ClientRectList" {
 
   /// @domName ClientRectList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   ClientRect operator[](int index) => JS("ClientRect", "#[#]", this, index);
 
@@ -20278,38 +19950,53 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(ClientRect element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ClientRect)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(ClientRect element)) => _Collections.forEach(this, f);
+  bool contains(ClientRect element) => Collections.contains(this, element);
 
-  Collection map(f(ClientRect element)) => _Collections.map(this, [], f);
+  void forEach(void f(ClientRect element)) => Collections.forEach(this, f);
+
+  Collection map(f(ClientRect element)) => Collections.map(this, [], f);
 
   Collection<ClientRect> filter(bool f(ClientRect element)) =>
-     _Collections.filter(this, <ClientRect>[], f);
+     Collections.filter(this, <ClientRect>[], f);
 
-  bool every(bool f(ClientRect element)) => _Collections.every(this, f);
+  bool every(bool f(ClientRect element)) => Collections.every(this, f);
 
-  bool some(bool f(ClientRect element)) => _Collections.some(this, f);
+  bool some(bool f(ClientRect element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<ClientRect>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<ClientRect> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(ClientRect a, ClientRect b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(ClientRect element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(ClientRect element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   ClientRect get first => this[0];
 
   ClientRect get last => this[length - 1];
+
+  ClientRect removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   ClientRect removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -20328,7 +20015,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
   }
 
   List<ClientRect> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <ClientRect>[]);
+      Lists.getRange(this, start, rangeLength, <ClientRect>[]);
 
   // -- end List<ClientRect> mixins.
 
@@ -20340,90 +20027,105 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _DOMParserFactoryProvider {
-  static DOMParser createDOMParser() =>
-      JS('DOMParser', 'new DOMParser()' );
+class _CssMatrixFactoryProvider {
+  static CssMatrix createCssMatrix([String cssValue = '']) =>
+      JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMStringList; @docsEditable true
-class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
+/// @domName CSSRuleList; @docsEditable true
+class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "*CSSRuleList" {
 
-  /// @domName DOMStringList.length; @docsEditable true
-  final int length;
+  /// @domName CSSRuleList.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
 
-  String operator[](int index) => JS("String", "#[#]", this, index);
+  CssRule operator[](int index) => JS("CssRule", "#[#]", this, index);
 
-  void operator[]=(int index, String value) {
+  void operator[]=(int index, CssRule value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<String> mixins.
-  // String is the element type.
+  // -- start List<CssRule> mixins.
+  // CssRule is the element type.
 
-  // From Iterable<String>:
+  // From Iterable<CssRule>:
 
-  Iterator<String> iterator() {
+  Iterator<CssRule> iterator() {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<String>(this);
+    return new FixedSizeListIterator<CssRule>(this);
   }
 
-  // From Collection<String>:
+  // From Collection<CssRule>:
 
-  void add(String value) {
+  void add(CssRule value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(String value) {
+  void addLast(CssRule value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<String> collection) {
+  void addAll(Collection<CssRule> collection) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  // contains() defined by IDL.
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(String element)) => _Collections.forEach(this, f);
+  bool contains(CssRule element) => Collections.contains(this, element);
 
-  Collection map(f(String element)) => _Collections.map(this, [], f);
+  void forEach(void f(CssRule element)) => Collections.forEach(this, f);
 
-  Collection<String> filter(bool f(String element)) =>
-     _Collections.filter(this, <String>[], f);
+  Collection map(f(CssRule element)) => Collections.map(this, [], f);
 
-  bool every(bool f(String element)) => _Collections.every(this, f);
+  Collection<CssRule> filter(bool f(CssRule element)) =>
+     Collections.filter(this, <CssRule>[], f);
 
-  bool some(bool f(String element)) => _Collections.some(this, f);
+  bool every(bool f(CssRule element)) => Collections.every(this, f);
+
+  bool some(bool f(CssRule element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
-  // From List<String>:
+  // From List<CssRule>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<String> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(CssRule a, CssRule b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(String element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+  int indexOf(CssRule element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(String element, [int start]) {
+  int lastIndexOf(CssRule element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
-  String get first => this[0];
+  CssRule get first => this[0];
 
-  String get last => this[length - 1];
+  CssRule get last => this[length - 1];
 
-  String removeLast() {
+  CssRule removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  CssRule removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<CssRule> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -20431,20 +20133,131 @@ class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native 
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [String initialValue]) {
+  void insertRange(int start, int rangeLength, [CssRule initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<String> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <String>[]);
+  List<CssRule> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <CssRule>[]);
 
-  // -- end List<String> mixins.
+  // -- end List<CssRule> mixins.
 
-  /// @domName DOMStringList.contains; @docsEditable true
-  bool contains(String string) native;
+  /// @domName CSSRuleList.item; @docsEditable true
+  CssRule item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  /// @domName DOMStringList.item; @docsEditable true
-  String item(int index) native;
+
+/// @domName CSSValueList; @docsEditable true
+class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexingBehavior native "*CSSValueList" {
+
+  /// @domName CSSValueList.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
+
+  CssValue operator[](int index) => JS("CssValue", "#[#]", this, index);
+
+  void operator[]=(int index, CssValue value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<CssValue> mixins.
+  // CssValue is the element type.
+
+  // From Iterable<CssValue>:
+
+  Iterator<CssValue> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<CssValue>(this);
+  }
+
+  // From Collection<CssValue>:
+
+  void add(CssValue value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(CssValue value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<CssValue> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(CssValue element) => Collections.contains(this, element);
+
+  void forEach(void f(CssValue element)) => Collections.forEach(this, f);
+
+  Collection map(f(CssValue element)) => Collections.map(this, [], f);
+
+  Collection<CssValue> filter(bool f(CssValue element)) =>
+     Collections.filter(this, <CssValue>[], f);
+
+  bool every(bool f(CssValue element)) => Collections.every(this, f);
+
+  bool some(bool f(CssValue element)) => Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<CssValue>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(CssValue a, CssValue b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(CssValue element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(CssValue element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  CssValue get first => this[0];
+
+  CssValue get last => this[length - 1];
+
+  CssValue removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  CssValue removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<CssValue> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [CssValue initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<CssValue> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <CssValue>[]);
+
+  // -- end List<CssValue> mixins.
+
+  /// @domName CSSValueList.item; @docsEditable true
+  CssValue item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20468,11 +20281,20 @@ class _DataViewFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
+class _DomParserFactoryProvider {
+  static DomParser createDomParser() =>
+      JS('DomParser', 'new DOMParser()' );
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName EntryArray; @docsEditable true
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
 
   /// @domName EntryArray.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Entry operator[](int index) => JS("Entry", "#[#]", this, index);
 
@@ -20505,38 +20327,53 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Entry element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Entry)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Entry element)) => _Collections.forEach(this, f);
+  bool contains(Entry element) => Collections.contains(this, element);
 
-  Collection map(f(Entry element)) => _Collections.map(this, [], f);
+  void forEach(void f(Entry element)) => Collections.forEach(this, f);
+
+  Collection map(f(Entry element)) => Collections.map(this, [], f);
 
   Collection<Entry> filter(bool f(Entry element)) =>
-     _Collections.filter(this, <Entry>[], f);
+     Collections.filter(this, <Entry>[], f);
 
-  bool every(bool f(Entry element)) => _Collections.every(this, f);
+  bool every(bool f(Entry element)) => Collections.every(this, f);
 
-  bool some(bool f(Entry element)) => _Collections.some(this, f);
+  bool some(bool f(Entry element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Entry>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Entry> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Entry a, Entry b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Entry element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Entry element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Entry get first => this[0];
 
   Entry get last => this[length - 1];
+
+  Entry removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Entry removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -20555,7 +20392,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
   }
 
   List<Entry> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Entry>[]);
+      Lists.getRange(this, start, rangeLength, <Entry>[]);
 
   // -- end List<Entry> mixins.
 
@@ -20571,7 +20408,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> native "*EntryArraySync" {
 
   /// @domName EntryArraySync.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   EntrySync operator[](int index) => JS("EntrySync", "#[#]", this, index);
 
@@ -20604,38 +20441,53 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(EntrySync element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(EntrySync element)) => _Collections.forEach(this, f);
+  bool contains(EntrySync element) => Collections.contains(this, element);
 
-  Collection map(f(EntrySync element)) => _Collections.map(this, [], f);
+  void forEach(void f(EntrySync element)) => Collections.forEach(this, f);
+
+  Collection map(f(EntrySync element)) => Collections.map(this, [], f);
 
   Collection<EntrySync> filter(bool f(EntrySync element)) =>
-     _Collections.filter(this, <EntrySync>[], f);
+     Collections.filter(this, <EntrySync>[], f);
 
-  bool every(bool f(EntrySync element)) => _Collections.every(this, f);
+  bool every(bool f(EntrySync element)) => Collections.every(this, f);
 
-  bool some(bool f(EntrySync element)) => _Collections.some(this, f);
+  bool some(bool f(EntrySync element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<EntrySync>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<EntrySync> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(EntrySync a, EntrySync b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(EntrySync element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(EntrySync element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   EntrySync get first => this[0];
 
   EntrySync get last => this[length - 1];
+
+  EntrySync removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   EntrySync removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -20654,7 +20506,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
   }
 
   List<EntrySync> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <EntrySync>[]);
+      Lists.getRange(this, start, rangeLength, <EntrySync>[]);
 
   // -- end List<EntrySync> mixins.
 
@@ -20669,105 +20521,6 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 class _EventSourceFactoryProvider {
   static EventSource createEventSource(String scriptUrl) =>
       JS('EventSource', 'new EventSource(#)', scriptUrl);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName FileList; @docsEditable true
-class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
-
-  /// @domName FileList.length; @docsEditable true
-  final int length;
-
-  File operator[](int index) => JS("File", "#[#]", this, index);
-
-  void operator[]=(int index, File value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<File> mixins.
-  // File is the element type.
-
-  // From Iterable<File>:
-
-  Iterator<File> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<File>(this);
-  }
-
-  // From Collection<File>:
-
-  void add(File value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(File value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<File> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(File element) => _Collections.contains(this, element);
-
-  void forEach(void f(File element)) => _Collections.forEach(this, f);
-
-  Collection map(f(File element)) => _Collections.map(this, [], f);
-
-  Collection<File> filter(bool f(File element)) =>
-     _Collections.filter(this, <File>[], f);
-
-  bool every(bool f(File element)) => _Collections.every(this, f);
-
-  bool some(bool f(File element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<File>:
-
-  void sort([Comparator<File> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(File element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(File element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  File get first => this[0];
-
-  File get last => this[length - 1];
-
-  File removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [File initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<File> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <File>[]);
-
-  // -- end List<File> mixins.
-
-  /// @domName FileList.item; @docsEditable true
-  File item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20807,7 +20560,7 @@ class _FormDataFactoryProvider {
 class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
 
   /// @domName GamepadList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Gamepad operator[](int index) => JS("Gamepad", "#[#]", this, index);
 
@@ -20840,38 +20593,53 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Gamepad element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Gamepad element)) => _Collections.forEach(this, f);
+  bool contains(Gamepad element) => Collections.contains(this, element);
 
-  Collection map(f(Gamepad element)) => _Collections.map(this, [], f);
+  void forEach(void f(Gamepad element)) => Collections.forEach(this, f);
+
+  Collection map(f(Gamepad element)) => Collections.map(this, [], f);
 
   Collection<Gamepad> filter(bool f(Gamepad element)) =>
-     _Collections.filter(this, <Gamepad>[], f);
+     Collections.filter(this, <Gamepad>[], f);
 
-  bool every(bool f(Gamepad element)) => _Collections.every(this, f);
+  bool every(bool f(Gamepad element)) => Collections.every(this, f);
 
-  bool some(bool f(Gamepad element)) => _Collections.some(this, f);
+  bool some(bool f(Gamepad element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Gamepad>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Gamepad> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Gamepad a, Gamepad b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Gamepad element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Gamepad element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Gamepad get first => this[0];
 
   Gamepad get last => this[length - 1];
+
+  Gamepad removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Gamepad removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -20890,7 +20658,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
   }
 
   List<Gamepad> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Gamepad>[]);
+      Lists.getRange(this, start, rangeLength, <Gamepad>[]);
 
   // -- end List<Gamepad> mixins.
 
@@ -20959,7 +20727,7 @@ class _MediaStreamFactoryProvider {
 class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> native "*MediaStreamList" {
 
   /// @domName MediaStreamList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   MediaStream operator[](int index) => JS("MediaStream", "#[#]", this, index);
 
@@ -20992,38 +20760,53 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(MediaStream element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, MediaStream)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(MediaStream element)) => _Collections.forEach(this, f);
+  bool contains(MediaStream element) => Collections.contains(this, element);
 
-  Collection map(f(MediaStream element)) => _Collections.map(this, [], f);
+  void forEach(void f(MediaStream element)) => Collections.forEach(this, f);
+
+  Collection map(f(MediaStream element)) => Collections.map(this, [], f);
 
   Collection<MediaStream> filter(bool f(MediaStream element)) =>
-     _Collections.filter(this, <MediaStream>[], f);
+     Collections.filter(this, <MediaStream>[], f);
 
-  bool every(bool f(MediaStream element)) => _Collections.every(this, f);
+  bool every(bool f(MediaStream element)) => Collections.every(this, f);
 
-  bool some(bool f(MediaStream element)) => _Collections.some(this, f);
+  bool some(bool f(MediaStream element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<MediaStream>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<MediaStream> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(MediaStream a, MediaStream b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(MediaStream element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(MediaStream element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   MediaStream get first => this[0];
 
   MediaStream get last => this[length - 1];
+
+  MediaStream removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   MediaStream removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -21042,7 +20825,7 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
   }
 
   List<MediaStream> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <MediaStream>[]);
+      Lists.getRange(this, start, rangeLength, <MediaStream>[]);
 
   // -- end List<MediaStream> mixins.
 
@@ -21132,27 +20915,27 @@ class _PeerConnection00FactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _RTCIceCandidateFactoryProvider {
-  static RTCIceCandidate createRTCIceCandidate(Map dictionary) =>
-      JS('RTCIceCandidate', 'new RTCIceCandidate(#)', dictionary);
+class _RtcIceCandidateFactoryProvider {
+  static RtcIceCandidate createRtcIceCandidate(Map dictionary) =>
+      JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _RTCPeerConnectionFactoryProvider {
-  static RTCPeerConnection createRTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) =>
-      JS('RTCPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
+class _RtcPeerConnectionFactoryProvider {
+  static RtcPeerConnection createRtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) =>
+      JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _RTCSessionDescriptionFactoryProvider {
-  static RTCSessionDescription createRTCSessionDescription(Map dictionary) =>
-      JS('RTCSessionDescription', 'new RTCSessionDescription(#)', dictionary);
+class _RtcSessionDescriptionFactoryProvider {
+  static RtcSessionDescription createRtcSessionDescription(Map dictionary) =>
+      JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21211,7 +20994,7 @@ class _SpeechGrammarListFactoryProvider {
 class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "*SpeechInputResultList" {
 
   /// @domName SpeechInputResultList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   SpeechInputResult operator[](int index) => JS("SpeechInputResult", "#[#]", this, index);
 
@@ -21244,38 +21027,53 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechInputResult element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(SpeechInputResult element)) => _Collections.forEach(this, f);
+  bool contains(SpeechInputResult element) => Collections.contains(this, element);
 
-  Collection map(f(SpeechInputResult element)) => _Collections.map(this, [], f);
+  void forEach(void f(SpeechInputResult element)) => Collections.forEach(this, f);
+
+  Collection map(f(SpeechInputResult element)) => Collections.map(this, [], f);
 
   Collection<SpeechInputResult> filter(bool f(SpeechInputResult element)) =>
-     _Collections.filter(this, <SpeechInputResult>[], f);
+     Collections.filter(this, <SpeechInputResult>[], f);
 
-  bool every(bool f(SpeechInputResult element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechInputResult element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechInputResult element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechInputResult>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechInputResult> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(SpeechInputResult a, SpeechInputResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechInputResult element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechInputResult element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   SpeechInputResult get first => this[0];
 
   SpeechInputResult get last => this[length - 1];
+
+  SpeechInputResult removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   SpeechInputResult removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -21294,7 +21092,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
   }
 
   List<SpeechInputResult> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SpeechInputResult>[]);
+      Lists.getRange(this, start, rangeLength, <SpeechInputResult>[]);
 
   // -- end List<SpeechInputResult> mixins.
 
@@ -21319,7 +21117,7 @@ class _SpeechRecognitionFactoryProvider {
 class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "*SpeechRecognitionResultList" {
 
   /// @domName SpeechRecognitionResultList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   SpeechRecognitionResult operator[](int index) => JS("SpeechRecognitionResult", "#[#]", this, index);
 
@@ -21352,38 +21150,53 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SpeechRecognitionResult element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(SpeechRecognitionResult element)) => _Collections.forEach(this, f);
+  bool contains(SpeechRecognitionResult element) => Collections.contains(this, element);
 
-  Collection map(f(SpeechRecognitionResult element)) => _Collections.map(this, [], f);
+  void forEach(void f(SpeechRecognitionResult element)) => Collections.forEach(this, f);
+
+  Collection map(f(SpeechRecognitionResult element)) => Collections.map(this, [], f);
 
   Collection<SpeechRecognitionResult> filter(bool f(SpeechRecognitionResult element)) =>
-     _Collections.filter(this, <SpeechRecognitionResult>[], f);
+     Collections.filter(this, <SpeechRecognitionResult>[], f);
 
-  bool every(bool f(SpeechRecognitionResult element)) => _Collections.every(this, f);
+  bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
 
-  bool some(bool f(SpeechRecognitionResult element)) => _Collections.some(this, f);
+  bool some(bool f(SpeechRecognitionResult element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<SpeechRecognitionResult>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<SpeechRecognitionResult> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechRecognitionResult element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechRecognitionResult element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   SpeechRecognitionResult get first => this[0];
 
   SpeechRecognitionResult get last => this[length - 1];
+
+  SpeechRecognitionResult removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   SpeechRecognitionResult removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -21402,7 +21215,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
   }
 
   List<SpeechRecognitionResult> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SpeechRecognitionResult>[]);
+      Lists.getRange(this, start, rangeLength, <SpeechRecognitionResult>[]);
 
   // -- end List<SpeechRecognitionResult> mixins.
 
@@ -21418,7 +21231,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> native "*StyleSheetList" {
 
   /// @domName StyleSheetList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   StyleSheet operator[](int index) => JS("StyleSheet", "#[#]", this, index);
 
@@ -21451,38 +21264,53 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(StyleSheet element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(StyleSheet element)) => _Collections.forEach(this, f);
+  bool contains(StyleSheet element) => Collections.contains(this, element);
 
-  Collection map(f(StyleSheet element)) => _Collections.map(this, [], f);
+  void forEach(void f(StyleSheet element)) => Collections.forEach(this, f);
+
+  Collection map(f(StyleSheet element)) => Collections.map(this, [], f);
 
   Collection<StyleSheet> filter(bool f(StyleSheet element)) =>
-     _Collections.filter(this, <StyleSheet>[], f);
+     Collections.filter(this, <StyleSheet>[], f);
 
-  bool every(bool f(StyleSheet element)) => _Collections.every(this, f);
+  bool every(bool f(StyleSheet element)) => Collections.every(this, f);
 
-  bool some(bool f(StyleSheet element)) => _Collections.some(this, f);
+  bool some(bool f(StyleSheet element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<StyleSheet>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<StyleSheet> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(StyleSheet a, StyleSheet b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(StyleSheet element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(StyleSheet element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   StyleSheet get first => this[0];
 
   StyleSheet get last => this[length - 1];
+
+  StyleSheet removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   StyleSheet removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -21501,7 +21329,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
   }
 
   List<StyleSheet> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <StyleSheet>[]);
+      Lists.getRange(this, start, rangeLength, <StyleSheet>[]);
 
   // -- end List<StyleSheet> mixins.
 
@@ -21541,7 +21369,7 @@ class _TextTrackCueFactoryProvider {
 class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation> native "*WebKitAnimationList" {
 
   /// @domName WebKitAnimationList.length; @docsEditable true
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Animation operator[](int index) => JS("Animation", "#[#]", this, index);
 
@@ -21574,38 +21402,53 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Animation element) => _Collections.contains(this, element);
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Animation)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
-  void forEach(void f(Animation element)) => _Collections.forEach(this, f);
+  bool contains(Animation element) => Collections.contains(this, element);
 
-  Collection map(f(Animation element)) => _Collections.map(this, [], f);
+  void forEach(void f(Animation element)) => Collections.forEach(this, f);
+
+  Collection map(f(Animation element)) => Collections.map(this, [], f);
 
   Collection<Animation> filter(bool f(Animation element)) =>
-     _Collections.filter(this, <Animation>[], f);
+     Collections.filter(this, <Animation>[], f);
 
-  bool every(bool f(Animation element)) => _Collections.every(this, f);
+  bool every(bool f(Animation element)) => Collections.every(this, f);
 
-  bool some(bool f(Animation element)) => _Collections.some(this, f);
+  bool some(bool f(Animation element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Animation>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
 
-  void sort([Comparator<Animation> compare = Comparable.compare]) {
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(Animation a, Animation b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Animation element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
+      Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Animation element, [int start]) {
     if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Animation get first => this[0];
 
   Animation get last => this[length - 1];
+
+  Animation removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
 
   Animation removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -21624,7 +21467,7 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
   }
 
   List<Animation> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Animation>[]);
+      Lists.getRange(this, start, rangeLength, <Animation>[]);
 
   // -- end List<Animation> mixins.
 
@@ -21645,15 +21488,6 @@ class _WorkerFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _XMLSerializerFactoryProvider {
-  static XMLSerializer createXMLSerializer() =>
-      JS('XMLSerializer', 'new XMLSerializer()' );
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 class _XPathEvaluatorFactoryProvider {
   static XPathEvaluator createXPathEvaluator() =>
       JS('XPathEvaluator', 'new XPathEvaluator()' );
@@ -21663,9 +21497,18 @@ class _XPathEvaluatorFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _XSLTProcessorFactoryProvider {
-  static XSLTProcessor createXSLTProcessor() =>
-      JS('XSLTProcessor', 'new XSLTProcessor()' );
+class _XmlSerializerFactoryProvider {
+  static XmlSerializer createXmlSerializer() =>
+      JS('XmlSerializer', 'new XMLSerializer()' );
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class _XsltProcessorFactoryProvider {
+  static XsltProcessor createXsltProcessor() =>
+      JS('XsltProcessor', 'new XSLTProcessor()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21673,6 +21516,9 @@ class _XSLTProcessorFactoryProvider {
 
 
 abstract class _AttributeMap implements Map<String, String> {
+  final Element _element;
+
+  _AttributeMap(this._element);
 
   bool containsValue(String value) {
     for (var v in this.values) {
@@ -21745,9 +21591,7 @@ abstract class _AttributeMap implements Map<String, String> {
  */
 class _ElementAttributeMap extends _AttributeMap {
 
-  final Element _element;
-
-  _ElementAttributeMap(this._element);
+  _ElementAttributeMap(Element element): super(element);
 
   bool containsKey(String key) {
     return _element.$dom_hasAttribute(key);
@@ -21782,10 +21626,9 @@ class _ElementAttributeMap extends _AttributeMap {
  */
 class _NamespacedAttributeMap extends _AttributeMap {
 
-  final Element _element;
   final String _namespace;
 
-  _NamespacedAttributeMap(this._element, this._namespace);
+  _NamespacedAttributeMap(Element element, this._namespace): super(element);
 
   bool containsKey(String key) {
     return _element.$dom_hasAttributeNS(_namespace, key);
@@ -22005,7 +21848,7 @@ abstract class Window {
    * * [Window close discussion](http://www.w3.org/TR/html5/browsers.html#dom-window-close) from the W3C
    */
   void close();
-  void postMessage(var message, String targetOrigin, [List messagePorts = null]);
+  void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
 
 abstract class Location {
@@ -22071,6 +21914,11 @@ abstract class CssClassSet implements Set<String> {
   bool get isEmpty => readClasses().isEmpty;
 
   int get length =>readClasses().length;
+
+  dynamic reduce(dynamic initialValue,
+      dynamic combine(dynamic previousValue, String element)) {
+    return readClasses().reduce(initialValue, combine);
+  }
   // interface Collection - END
 
   // interface Set - BEGIN
@@ -22183,111 +22031,6 @@ class _Device {
 
 
 typedef void EventListener(Event event);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class FilteredElementList implements List {
-  final Node _node;
-  final List<Node> _childNodes;
-
-  FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
-
-  // We can't memoize this, since it's possible that children will be messed
-  // with externally to this class.
-  //
-  // TODO(nweiz): Do we really need to copy the list to make the types work out?
-  List<Element> get _filtered =>
-    new List.from(_childNodes.filter((n) => n is Element));
-
-  void forEach(void f(Element element)) {
-    _filtered.forEach(f);
-  }
-
-  void operator []=(int index, Element value) {
-    this[index].replaceWith(value);
-  }
-
-  void set length(int newLength) {
-    final len = this.length;
-    if (newLength >= len) {
-      return;
-    } else if (newLength < 0) {
-      throw new ArgumentError("Invalid list length");
-    }
-
-    removeRange(newLength - 1, len - newLength);
-  }
-
-  void add(Element value) {
-    _childNodes.add(value);
-  }
-
-  void addAll(Collection<Element> collection) {
-    collection.forEach(add);
-  }
-
-  void addLast(Element value) {
-    add(value);
-  }
-
-  bool contains(Element element) {
-    return element is Element && _childNodes.contains(element);
-  }
-
-  void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw new UnsupportedError('TODO(jacobr): should we impl?');
-  }
-
-  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw new UnimplementedError();
-  }
-
-  void removeRange(int start, int rangeLength) {
-    _filtered.getRange(start, rangeLength).forEach((el) => el.remove());
-  }
-
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw new UnimplementedError();
-  }
-
-  void clear() {
-    // Currently, ElementList#clear clears even non-element nodes, so we follow
-    // that behavior.
-    _childNodes.clear();
-  }
-
-  Element removeLast() {
-    final result = this.last;
-    if (result != null) {
-      result.remove();
-    }
-    return result;
-  }
-
-  Collection map(f(Element element)) => _filtered.map(f);
-  Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
-  bool every(bool f(Element element)) => _filtered.every(f);
-  bool some(bool f(Element element)) => _filtered.some(f);
-  bool get isEmpty => _filtered.isEmpty;
-  int get length => _filtered.length;
-  Element operator [](int index) => _filtered[index];
-  Iterator<Element> iterator() => _filtered.iterator();
-  List<Element> getRange(int start, int rangeLength) =>
-    _filtered.getRange(start, rangeLength);
-  int indexOf(Element element, [int start = 0]) =>
-    _filtered.indexOf(element, start);
-
-  int lastIndexOf(Element element, [int start = null]) {
-    if (start == null) start = length - 1;
-    return _filtered.lastIndexOf(element, start);
-  }
-
-  Element get first => _filtered.first;
-
-  Element get last => _filtered.last;
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22302,12 +22045,12 @@ class FilteredElementList implements List {
  *
  * This class is very much a work in progress, and we'd love to get information
  * on how we can make this class work with as many international keyboards as
- * possible. Bugs welcome! 
+ * possible. Bugs welcome!
  */
 class KeyboardEventController {
   // This code inspired by Closure's KeyHandling library.
   // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
-  
+
   /**
    * The set of keys that have been pressed down without seeing their
    * corresponding keyup event.
@@ -22321,10 +22064,10 @@ class KeyboardEventController {
   String _type;
 
   /** The element we are watching for events to happen on. */
-  EventTarget _target;
+  Element _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
-  int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
+  final int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
 
   // Instance members referring to the internal event handlers because closures
   // are not hashable.
@@ -22365,7 +22108,7 @@ class KeyboardEventController {
   KeyboardEventController.keypress(EventTarget target) {
     _KeyboardEventController(target, 'keypress');
   }
-  
+
   /** Named constructor to add an onKeyUp event listener to our handler. */
   KeyboardEventController.keyup(EventTarget target) {
     _KeyboardEventController(target, 'keyup');
@@ -22375,12 +22118,12 @@ class KeyboardEventController {
   KeyboardEventController.keydown(EventTarget target) {
     _KeyboardEventController(target, 'keydown');
   }
-  
+
   /**
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventController(EventTarget target, String type) {
+  _KeyboardEventController(Element target, String type) {
     _callbacks = [];
     _type = type;
     _target = target;
@@ -22407,7 +22150,7 @@ class KeyboardEventController {
     }
     _callbacks.add(callback);
   }
-  
+
   /**
    * Notify all callback listeners that a KeyEvent of the relevant type has
    * occurred.
@@ -22547,16 +22290,16 @@ class KeyboardEventController {
     if (!_Device.isIE && !_Device.isWebKit) {
       return true;
     }
-    
+
     if (_Device.userAgent.contains('Mac') && event.altKey) {
       return KeyCode.isCharacterKey(event.keyCode);
     }
- 
+
     // Alt but not AltGr which is represented as Alt+Ctrl.
     if (event.altKey && !event.ctrlKey) {
       return false;
     }
- 
+
     // Saves Ctrl or Alt + key for IE and WebKit, which won't fire keypress.
     if (!event.shiftKey &&
         (_keyDownList.last.keyCode == KeyCode.CTRL ||
@@ -22565,21 +22308,21 @@ class KeyboardEventController {
          _keyDownList.last.keyCode == KeyCode.META)) {
       return false;
     }
- 
+
     // Some keys with Ctrl/Shift do not issue keypress in WebKit.
     if (_Device.isWebKit && event.ctrlKey && event.shiftKey && (
-        event.keycode == KeyCode.BACKSLASH ||
-        event.keycode == KeyCode.OPEN_SQUARE_BRACKET ||
-        event.keycode == KeyCode.CLOSE_SQUARE_BRACKET ||
-        event.keycode == KeyCode.TILDE ||
-        event.keycode == KeyCode.SEMICOLON || event.keycode == KeyCode.DASH ||
-        event.keycode == KeyCode.EQUALS || event.keycode == KeyCode.COMMA ||
-        event.keycode == KeyCode.PERIOD || event.keycode == KeyCode.SLASH ||
-        event.keycode == KeyCode.APOSTROPHE ||
-        event.keycode == KeyCode.SINGLE_QUOTE)) {
+        event.keyCode == KeyCode.BACKSLASH ||
+        event.keyCode == KeyCode.OPEN_SQUARE_BRACKET ||
+        event.keyCode == KeyCode.CLOSE_SQUARE_BRACKET ||
+        event.keyCode == KeyCode.TILDE ||
+        event.keyCode == KeyCode.SEMICOLON || event.keyCode == KeyCode.DASH ||
+        event.keyCode == KeyCode.EQUALS || event.keyCode == KeyCode.COMMA ||
+        event.keyCode == KeyCode.PERIOD || event.keyCode == KeyCode.SLASH ||
+        event.keyCode == KeyCode.APOSTROPHE ||
+        event.keyCode == KeyCode.SINGLE_QUOTE)) {
       return false;
     }
- 
+
     switch (event.keyCode) {
       case KeyCode.ENTER:
         // IE9 does not fire keypress on ENTER.
@@ -22587,7 +22330,7 @@ class KeyboardEventController {
       case KeyCode.ESC:
         return !_Device.isWebKit;
     }
- 
+
     return KeyCode.isCharacterKey(event.keyCode);
   }
 
@@ -22655,18 +22398,18 @@ class KeyboardEventController {
       }
     } else if (_Device.isOpera) {
       // Opera reports the character code in the keyCode field.
-      e._shadowCharCode = KeyCode.isCharacterKey(keyCode) ? e.keyCode : 0;
+      e._shadowCharCode = KeyCode.isCharacterKey(e.keyCode) ? e.keyCode : 0;
     }
     // Now we guestimate about what the keycode is that was actually
     // pressed, given previous keydown information.
     e._shadowKeyCode = _determineKeyCodeForKeypress(e);
 
     // Correct the key value for certain browser-specific quirks.
-    if (e._shadowKeyIdentifier &&
-        _keyIdentifier.contains(e._shadowKeyIdentifier)) {
+    if (e._shadowKeyIdentifier != null &&
+        _keyIdentifier.containsKey(e._shadowKeyIdentifier)) {
       // This is needed for Safari Windows because it currently doesn't give a
       // keyCode/which for non printable keys.
-      e._shadowKeyCode = _keyIdentifier[keyIdentifier];
+      e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
     }
     e._shadowAltKey = _keyDownList.some((var element) => element.altKey);
     _dispatch(e);
@@ -22686,8 +22429,8 @@ class KeyboardEventController {
     } else if (_keyDownList.length > 0) {
       // This happens when we've reached some international keyboard case we
       // haven't accounted for or we haven't correctly eliminated all browser
-      // inconsistencies. Filing bugs on when this is reached is welcome! 
-      _keyDownList.removeLast(); 
+      // inconsistencies. Filing bugs on when this is reached is welcome!
+      _keyDownList.removeLast();
     }
     _dispatch(e);
   }
@@ -23513,66 +23256,6 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   timer = new _Timer(() { canceller(id); });
   return timer;
 };
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * The [Collections] class implements static methods useful when
- * writing a class that implements [Collection] and the [iterator]
- * method.
- */
-class _Collections {
-  static bool contains(Iterable<Object> iterable, Object element) {
-    for (final e in iterable) {
-      if (e == element) return true;
-    }
-    return false;
-  }
-
-  static void forEach(Iterable<Object> iterable, void f(Object o)) {
-    for (final e in iterable) {
-      f(e);
-    }
-  }
-
-  static List map(Iterable<Object> source,
-                  List<Object> destination,
-                  f(o)) {
-    for (final e in source) {
-      destination.add(f(e));
-    }
-    return destination;
-  }
-
-  static bool some(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (f(e)) return true;
-    }
-    return false;
-  }
-
-  static bool every(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (!f(e)) return false;
-    }
-    return true;
-  }
-
-  static List filter(Iterable<Object> source,
-                     List<Object> destination,
-                     bool f(o)) {
-    for (final e in source) {
-      if (f(e)) destination.add(e);
-    }
-    return destination;
-  }
-
-  static bool isEmpty(Iterable<Object> iterable) {
-    return !iterable.iterator().hasNext;
-  }
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23629,9 +23312,12 @@ class _JsSerializer extends _Serializer {
              ReceivePortSync._isolateId, x._receivePort._portId ];
   }
 
+  visitSendPort(SendPort x) {
+    throw new UnimplementedError('Asynchronous send port not yet implemented.');
+  }
+
   visitRemoteSendPortSync(_RemoteSendPortSync x) {
-    return [ 'sendport', 'dart',
-             x._receivePort._isolateId, x._receivePort._portId ];
+    return [ 'sendport', 'dart', x._isolateId, x._portId ];
   }
 }
 
@@ -23689,7 +23375,7 @@ class _RemoteSendPortSync implements SendPortSync {
   }
 
   static _call(int isolateId, int portId, var message) {
-    var target = 'dart-port-$isolateId-$portId'; 
+    var target = 'dart-port-$isolateId-$portId';
     // TODO(vsm): Make this re-entrant.
     // TODO(vsm): Set this up set once, on the first call.
     var source = '$target-result';
@@ -23754,13 +23440,13 @@ class ReceivePortSync {
   static int get _isolateId {
     // TODO(vsm): Make this coherent with existing isolate code.
     if (_cachedIsolateId == null) {
-      _cachedIsolateId = _getNewIsolateId();      
+      _cachedIsolateId = _getNewIsolateId();
     }
     return _cachedIsolateId;
   }
 
   static String _getListenerName(isolateId, portId) =>
-      'dart-port-$isolateId-$portId'; 
+      'dart-port-$isolateId-$portId';
   String get _listenerName => _getListenerName(_isolateId, _portId);
 
   void receive(callback(var message)) {
@@ -24025,7 +23711,7 @@ class _MessageTraverserVisitedMap {
 }
 
 /** Abstract visitor for dart objects that can be sent as isolate messages. */
-class _MessageTraverser {
+abstract class _MessageTraverser {
 
   _MessageTraverserVisitedMap _visited;
   _MessageTraverser() : _visited = new _MessageTraverserVisitedMap();
@@ -24071,43 +23757,8 @@ class _MessageTraverser {
 }
 
 
-/** A visitor that recursively copies a message. */
-class _Copier extends _MessageTraverser {
-
-  visitPrimitive(x) => x;
-
-  List visitList(List list) {
-    List copy = _visited[list];
-    if (copy != null) return copy;
-
-    int len = list.length;
-
-    // TODO(floitsch): we loose the generic type of the List.
-    copy = new List(len);
-    _visited[list] = copy;
-    for (int i = 0; i < len; i++) {
-      copy[i] = _dispatch(list[i]);
-    }
-    return copy;
-  }
-
-  Map visitMap(Map map) {
-    Map copy = _visited[map];
-    if (copy != null) return copy;
-
-    // TODO(floitsch): we loose the generic type of the map.
-    copy = new Map();
-    _visited[map] = copy;
-    map.forEach((key, val) {
-      copy[_dispatch(key)] = _dispatch(val);
-    });
-    return copy;
-  }
-
-}
-
 /** Visitor that serializes a message as a JSON array. */
-class _Serializer extends _MessageTraverser {
+abstract class _Serializer extends _MessageTraverser {
   int _nextFreeRefId = 0;
 
   visitPrimitive(x) => x;
@@ -24146,7 +23797,7 @@ class _Serializer extends _MessageTraverser {
 }
 
 /** Deserializes arrays created with [_Serializer]. */
-class _Deserializer {
+abstract class _Deserializer {
   Map<int, dynamic> _deserialized;
 
   _Deserializer();
@@ -24254,15 +23905,15 @@ class _MouseEventFactoryProvider {
   }
 }
 
-class _CSSStyleDeclarationFactoryProvider {
-  static CSSStyleDeclaration createCSSStyleDeclaration_css(String css) {
+class _CssStyleDeclarationFactoryProvider {
+  static CssStyleDeclaration createCssStyleDeclaration_css(String css) {
     final style = new Element.tag('div').style;
     style.cssText = css;
     return style;
   }
 
-  static CSSStyleDeclaration createCSSStyleDeclaration() {
-    return new CSSStyleDeclaration.css('');
+  static CssStyleDeclaration createCssStyleDeclaration() {
+    return new CssStyleDeclaration.css('');
   }
 }
 
@@ -24291,7 +23942,7 @@ class _DocumentFragmentFactoryProvider {
 
   static DocumentFragment createDocumentFragment_svg(String svgContent) {
     final fragment = new DocumentFragment();
-    final e = new svg.SVGSVGElement();
+    final e = new svg.SvgSvgElement();
     e.innerHtml = svgContent;
 
     // Copy list first since we don't want liveness during iteration.
@@ -24304,23 +23955,6 @@ class _DocumentFragmentFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-// Conversions for IDBKey.
-//
-// Per http://www.w3.org/TR/IndexedDB/#key-construct
-//
-// "A value is said to be a valid key if it is one of the following types: Array
-// JavaScript objects [ECMA-262], DOMString [WEBIDL], Date [ECMA-262] or float
-// [WEBIDL]. However Arrays are only valid keys if every item in the array is
-// defined and is a valid key (i.e. sparse arrays can not be valid keys) and if
-// the Array doesn't directly or indirectly contain itself. Any non-numeric
-// properties are ignored, and thus does not affect whether the Array is a valid
-// key. Additionally, if the value is of type float, it is only a valid key if
-// it is not NaN, and if the value is of type Date it is only a valid key if its
-// [[PrimitiveValue]] internal property, as defined by [ECMA-262], is not NaN."
-
-// What is required is to ensure that an Lists in the key are actually
-// JavaScript arrays, and any Dates are JavaScript Dates.
 
 // Conversions for Window.  These check if the window is the local
 // window, and if it's not, wraps or unwraps it with a secure wrapper.
@@ -24393,364 +24027,6 @@ _convertDartToNative_ImageData(ImageData imageData) {
   }
   return imageData;
 }
-
-
-/// Converts a JavaScript object with properties into a Dart Map.
-/// Not suitable for nested objects.
-Map _convertNativeToDart_Dictionary(object) {
-  if (object == null) return null;
-  var dict = {};
-  for (final key in JS('=List', 'Object.getOwnPropertyNames(#)', object)) {
-    dict[key] = JS('var', '#[#]', object, key);
-  }
-  return dict;
-}
-
-/// Converts a flat Dart map into a JavaScript object with properties.
-_convertDartToNative_Dictionary(Map dict) {
-  if (dict == null) return null;
-  var object = JS('var', '{}');
-  dict.forEach((String key, value) {
-      JS('void', '#[#] = #', object, key, value);
-    });
-  return object;
-}
-
-
-/**
- * Ensures that the input is a JavaScript Array.
- *
- * Creates a new JavaScript array if necessary, otherwise returns the original.
- */
-List _convertDartToNative_StringArray(List<String> input) {
-  // TODO(sra).  Implement this.
-  return input;
-}
-
-
-// -----------------------------------------------------------------------------
-
-/**
- * Converts a native IDBKey into a Dart object.
- *
- * May return the original input.  May mutate the original input (but will be
- * idempotent if mutation occurs).  It is assumed that this conversion happens
- * on native IDBKeys on all paths that return IDBKeys from native DOM calls.
- *
- * If necessary, JavaScript Dates are converted into Dart Dates.
- */
-_convertNativeToDart_IDBKey(nativeKey) {
-  containsDate(object) {
-    if (_isJavaScriptDate(object)) return true;
-    if (object is List) {
-      for (int i = 0; i < object.length; i++) {
-        if (containsDate(object[i])) return true;
-      }
-    }
-    return false;  // number, string.
-  }
-  if (containsDate(nativeKey)) {
-    throw new UnimplementedError('IDBKey containing Date');
-  }
-  // TODO: Cache conversion somewhere?
-  return nativeKey;
-}
-
-/**
- * Converts a Dart object into a valid IDBKey.
- *
- * May return the original input.  Does not mutate input.
- *
- * If necessary, [dartKey] may be copied to ensure all lists are converted into
- * JavaScript Arrays and Dart Dates into JavaScript Dates.
- */
-_convertDartToNative_IDBKey(dartKey) {
-  // TODO: Implement.
-  return dartKey;
-}
-
-
-
-/// May modify original.  If so, action is idempotent.
-_convertNativeToDart_IDBAny(object) {
-  return _convertNativeToDart_AcceptStructuredClone(object, mustCopy: false);
-}
-
-/// Converts a Dart value into a JavaScript SerializedScriptValue.
-_convertDartToNative_SerializedScriptValue(value) {
-  return _convertDartToNative_PrepareForStructuredClone(value);
-}
-
-/// Since the source object may be viewed via a JavaScript event listener the
-/// original may not be modified.
-_convertNativeToDart_SerializedScriptValue(object) {
-  return _convertNativeToDart_AcceptStructuredClone(object, mustCopy: true);
-}
-
-
-/**
- * Converts a Dart value into a JavaScript SerializedScriptValue.  Returns the
- * original input or a functional 'copy'.  Does not mutate the original.
- *
- * The main transformation is the translation of Dart Maps are converted to
- * JavaScript Objects.
- *
- * The algorithm is essentially a dry-run of the structured clone algorithm
- * described at
- * http://www.whatwg.org/specs/web-apps/current-work/multipage/common-dom-interfaces.html#structured-clone
- * https://www.khronos.org/registry/typedarray/specs/latest/#9
- *
- * Since the result of this function is expected to be passed only to JavaScript
- * operations that perform the structured clone algorithm which does not mutate
- * its output, the result may share structure with the input [value].
- */
-_convertDartToNative_PrepareForStructuredClone(value) {
-
-  // TODO(sra): Replace slots with identity hash table.
-  var values = [];
-  var copies = [];  // initially 'null', 'true' during initial DFS, then a copy.
-
-  int findSlot(value) {
-    int length = values.length;
-    for (int i = 0; i < length; i++) {
-      if (identical(values[i], value)) return i;
-    }
-    values.add(value);
-    copies.add(null);
-    return length;
-  }
-  readSlot(int i) => copies[i];
-  writeSlot(int i, x) { copies[i] = x; }
-  cleanupSlots() {}  // Will be needed if we mark objects with a property.
-
-  // Returns the input, or a clone of the input.
-  walk(e) {
-    if (e == null) return e;
-    if (e is bool) return e;
-    if (e is num) return e;
-    if (e is String) return e;
-    if (e is Date) {
-      // TODO(sra).
-      throw new UnimplementedError('structured clone of Date');
-    }
-    if (e is RegExp) {
-      // TODO(sra).
-      throw new UnimplementedError('structured clone of RegExp');
-    }
-
-    // The browser's internal structured cloning algorithm will copy certain
-    // types of object, but it will copy only its own implementations and not
-    // just any Dart implementations of the interface.
-
-    // TODO(sra): The JavaScript objects suitable for direct cloning by the
-    // structured clone algorithm could be tagged with an private interface.
-
-    if (e is File) return e;
-    if (e is Blob) return e;
-    if (e is _FileList) return e;
-
-    // TODO(sra): Firefox: How to convert _TypedImageData on the other end?
-    if (e is ImageData) return e;
-    if (e is ArrayBuffer) return e;
-
-    if (e is ArrayBufferView) return e;
-
-    if (e is Map) {
-      var slot = findSlot(e);
-      var copy = readSlot(slot);
-      if (copy != null) return copy;
-      copy = JS('var', '{}');
-      writeSlot(slot, copy);
-      e.forEach((key, value) {
-          JS('void', '#[#] = #', copy, key, walk(value));
-        });
-      return copy;
-    }
-
-    if (e is List) {
-      // Since a JavaScript Array is an instance of Dart List it is possible to
-      // avoid making a copy of the list if there is no need to copy anything
-      // reachable from the array.  We defer creating a new array until a cycle
-      // is detected or a subgraph was copied.
-      int length = e.length;
-      var slot = findSlot(e);
-      var copy = readSlot(slot);
-      if (copy != null) {
-        if (true == copy) {  // Cycle, so commit to making a copy.
-          copy = JS('=List', 'new Array(#)', length);
-          writeSlot(slot, copy);
-        }
-        return copy;
-      }
-
-      int i = 0;
-
-      if (_isJavaScriptArray(e) &&
-          // We have to copy immutable lists, otherwise the structured clone
-          // algorithm will copy the .immutable$list marker property, making the
-          // list immutable when received!
-          !_isImmutableJavaScriptArray(e)) {
-        writeSlot(slot, true);  // Deferred copy.
-        for ( ; i < length; i++) {
-          var element = e[i];
-          var elementCopy = walk(element);
-          if (!identical(elementCopy, element)) {
-            copy = readSlot(slot);   // Cyclic reference may have created it.
-            if (true == copy) {
-              copy = JS('=List', 'new Array(#)', length);
-              writeSlot(slot, copy);
-            }
-            for (int j = 0; j < i; j++) {
-              copy[j] = e[j];
-            }
-            copy[i] = elementCopy;
-            i++;
-            break;
-          }
-        }
-        if (copy == null) {
-          copy = e;
-          writeSlot(slot, copy);
-        }
-      } else {
-        // Not a JavaScript Array.  We are forced to make a copy.
-        copy = JS('=List', 'new Array(#)', length);
-        writeSlot(slot, copy);
-      }
-
-      for ( ; i < length; i++) {
-        copy[i] = walk(e[i]);
-      }
-      return copy;
-    }
-
-    throw new UnimplementedError('structured clone of other type');
-  }
-
-  var copy = walk(value);
-  cleanupSlots();
-  return copy;
-}
-
-/**
- * Converts a native value into a Dart object.
- *
- * If [mustCopy] is [:false:], may return the original input.  May mutate the
- * original input (but will be idempotent if mutation occurs).  It is assumed
- * that this conversion happens on native serializable script values such values
- * from native DOM calls.
- *
- * [object] is the result of a structured clone operation.
- *
- * If necessary, JavaScript Dates are converted into Dart Dates.
- *
- * If [mustCopy] is [:true:], the entire object is copied and the original input
- * is not mutated.  This should be the case where Dart and JavaScript code can
- * access the value, for example, via multiple event listeners for
- * MessageEvents.  Mutating the object to make it more 'Dart-like' would corrupt
- * the value as seen from the JavaScript listeners.
- */
-_convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
-
-  // TODO(sra): Replace slots with identity hash table that works on non-dart
-  // objects.
-  var values = [];
-  var copies = [];
-
-  int findSlot(value) {
-    int length = values.length;
-    for (int i = 0; i < length; i++) {
-      if (identical(values[i], value)) return i;
-    }
-    values.add(value);
-    copies.add(null);
-    return length;
-  }
-  readSlot(int i) => copies[i];
-  writeSlot(int i, x) { copies[i] = x; }
-
-  walk(e) {
-    if (e == null) return e;
-    if (e is bool) return e;
-    if (e is num) return e;
-    if (e is String) return e;
-
-    if (_isJavaScriptDate(e)) {
-      // TODO(sra).
-      throw new UnimplementedError('structured clone of Date');
-    }
-
-    if (_isJavaScriptRegExp(e)) {
-      // TODO(sra).
-      throw new UnimplementedError('structured clone of RegExp');
-    }
-
-    if (_isJavaScriptSimpleObject(e)) {
-      // TODO(sra): If mustCopy is false, swizzle the prototype for one of a Map
-      // implementation that uses the properies as storage.
-      var slot = findSlot(e);
-      var copy = readSlot(slot);
-      if (copy != null) return copy;
-      copy = {};
-
-      writeSlot(slot, copy);
-      for (final key in JS('=List', 'Object.keys(#)', e)) {
-        copy[key] = walk(JS('var', '#[#]', e, key));
-      }
-      return copy;
-    }
-
-    if (_isJavaScriptArray(e)) {
-      var slot = findSlot(e);
-      var copy = readSlot(slot);
-      if (copy != null) return copy;
-
-      int length = e.length;
-      // Since a JavaScript Array is an instance of Dart List, we can modify it
-      // in-place unless we must copy.
-      copy = mustCopy ? JS('=List', 'new Array(#)', length) : e;
-      writeSlot(slot, copy);
-
-      for (int i = 0; i < length; i++) {
-        copy[i] = walk(e[i]);
-      }
-      return copy;
-    }
-
-    // Assume anything else is already a valid Dart object, either by having
-    // already been processed, or e.g. a clonable native class.
-    return e;
-  }
-
-  var copy = walk(object);
-  return copy;
-}
-
-
-bool _isJavaScriptDate(value) => JS('bool', '# instanceof Date', value);
-bool _isJavaScriptRegExp(value) => JS('bool', '# instanceof RegExp', value);
-bool _isJavaScriptArray(value) => JS('bool', '# instanceof Array', value);
-bool _isJavaScriptSimpleObject(value) =>
-    JS('bool', 'Object.getPrototypeOf(#) === Object.prototype', value);
-bool _isImmutableJavaScriptArray(value) =>
-    JS('bool', r'!!(#.immutable$list)', value);
-
-
-
-const String _serializedScriptValue =
-    'num|String|bool|'
-    '=List|=Object|'
-    'Blob|File|ArrayBuffer|ArrayBufferView'
-    // TODO(sra): Add Date, RegExp.
-    ;
-const _annotation_Creates_SerializedScriptValue =
-    const Creates(_serializedScriptValue);
-const _annotation_Returns_SerializedScriptValue =
-    const Returns(_serializedScriptValue);
-
-const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add Date.
-const _annotation_Creates_IDBKey = const Creates(_idbKey);
-const _annotation_Returns_IDBKey = const Returns(_idbKey);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24887,7 +24163,7 @@ class KeyEvent implements KeyboardEvent {
 
   /** Accessor to the underlying keyCode value is the parent event. */
   int get _realKeyCode => JS('int', '#.keyCode', _parent);
-  
+
   /** Accessor to the underlying charCode value is the parent event. */
   int get _realCharCode => JS('int', '#.charCode', _parent);
 
@@ -24908,7 +24184,9 @@ class KeyEvent implements KeyboardEvent {
   /** True if this event can be cancelled. */
   bool get cancelable => _parent.cancelable;
   bool get cancelBubble => _parent.cancelBubble;
-  set cancelBubble(bool cancel) => _parent = cancel;  
+  void set cancelBubble(bool cancel) {
+    _parent.cancelBubble = cancel;
+  }
   /** Accessor to the clipboardData available for this event. */
   Clipboard get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
@@ -24931,7 +24209,9 @@ class KeyEvent implements KeyboardEvent {
   int get pageX => _parent.pageX;
   int get pageY => _parent.pageY;
   bool get returnValue => _parent.returnValue;
-  set returnValue(bool value) => _parent = value;  
+  void set returnValue(bool value) {
+    _parent.returnValue = value;
+  }
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
   int get timeStamp => _parent.timeStamp;
@@ -24953,6 +24233,20 @@ class KeyEvent implements KeyboardEvent {
     throw new UnsupportedError("Cannot initialize an Event from a KeyEvent.");
   }
   String get _shadowKeyIdentifier => JS('String', '#.keyIdentifier', _parent);
+
+  int get $dom_charCode => charCode;
+  int get $dom_keyCode => keyCode;
+  EventTarget get target => _parent.target;
+  String get $dom_keyIdentifier {
+    throw new UnsupportedError("keyIdentifier is unsupported.");
+  }
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
+      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      bool altKey, bool shiftKey, bool metaKey,
+      bool altGraphKey) {
+    throw new UnsupportedError(
+        "Cannot initialize a KeyboardEvent from a KeyEvent.");
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24972,56 +24266,6 @@ class _WebSocketFactoryProvider {
 class _TextFactoryProvider {
   static Text createText(String data) =>
       JS('Text', 'document.createTextNode(#)', data);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _IDBKeyRangeFactoryProvider {
-
-  static IDBKeyRange createIDBKeyRange_only(/*IDBKey*/ value) =>
-      _only(_class(), _translateKey(value));
-
-  static IDBKeyRange createIDBKeyRange_lowerBound(
-      /*IDBKey*/ bound, [bool open = false]) =>
-      _lowerBound(_class(), _translateKey(bound), open);
-
-  static IDBKeyRange createIDBKeyRange_upperBound(
-      /*IDBKey*/ bound, [bool open = false]) =>
-      _upperBound(_class(), _translateKey(bound), open);
-
-  static IDBKeyRange createIDBKeyRange_bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-      [bool lowerOpen = false, bool upperOpen = false]) =>
-      _bound(_class(), _translateKey(lower), _translateKey(upper),
-             lowerOpen, upperOpen);
-
-  static var _cachedClass;
-
-  static _class() {
-    if (_cachedClass != null) return _cachedClass;
-    return _cachedClass = _uncachedClass();
-  }
-
-  static _uncachedClass() =>
-    JS('var',
-       '''window.webkitIDBKeyRange || window.mozIDBKeyRange ||
-          window.msIDBKeyRange || window.IDBKeyRange''');
-
-  static _translateKey(idbkey) => idbkey;  // TODO: fixme.
-
-  static IDBKeyRange _only(cls, value) =>
-       JS('IDBKeyRange', '#.only(#)', cls, value);
-
-  static IDBKeyRange _lowerBound(cls, bound, open) =>
-       JS('IDBKeyRange', '#.lowerBound(#, #)', cls, bound, open);
-
-  static IDBKeyRange _upperBound(cls, bound, open) =>
-       JS('IDBKeyRange', '#.upperBound(#, #)', cls, bound, open);
-
-  static IDBKeyRange _bound(cls, lower, upper, lowerOpen, upperOpen) =>
-       JS('IDBKeyRange', '#.bound(#, #, #, #)',
-          cls, lower, upper, lowerOpen, upperOpen);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25320,72 +24564,4 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 
   final List<T> _array;
   int _pos;
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _Lists {
-
-  /**
-   * Returns the index in the array [a] of the given [element], starting
-   * the search at index [startIndex] to [endIndex] (exclusive).
-   * Returns -1 if [element] is not found.
-   */
-  static int indexOf(List a,
-                     Object element,
-                     int startIndex,
-                     int endIndex) {
-    if (startIndex >= a.length) {
-      return -1;
-    }
-    if (startIndex < 0) {
-      startIndex = 0;
-    }
-    for (int i = startIndex; i < endIndex; i++) {
-      if (a[i] == element) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /**
-   * Returns the last index in the array [a] of the given [element], starting
-   * the search at index [startIndex] to 0.
-   * Returns -1 if [element] is not found.
-   */
-  static int lastIndexOf(List a, Object element, int startIndex) {
-    if (startIndex < 0) {
-      return -1;
-    }
-    if (startIndex >= a.length) {
-      startIndex = a.length - 1;
-    }
-    for (int i = startIndex; i >= 0; i--) {
-      if (a[i] == element) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /**
-   * Returns a sub list copy of this list, from [start] to
-   * [:start + length:].
-   * Returns an empty list if [length] is 0.
-   * Throws an [ArgumentError] if [length] is negative.
-   * Throws a [RangeError] if [start] or [:start + length:] are out of range.
-   */
-  static List getRange(List a, int start, int length, List accumulator) {
-    if (length < 0) throw new ArgumentError('length');
-    if (start < 0) throw new RangeError.value(start);
-    int end = start + length;
-    if (end > a.length) throw new RangeError.value(end);
-    for (int i = start; i < end; i++) {
-      accumulator.add(a[i]);
-    }
-    return accumulator;
-  }
 }

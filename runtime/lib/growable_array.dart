@@ -211,7 +211,8 @@ class _GrowableObjectArray<T> implements List<T> {
     this.length = 0;
   }
 
-  void sort([Comparator<T> compare = Comparable.compare]) {
+  void sort([int compare(T a, T b)]) {
+    if (compare == null) compare = Comparable.compare;
     _Sort.sort(this, compare);
   }
 

@@ -74,6 +74,39 @@ DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
 }
 
 
+// This is high-performance code.
+DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
+  const String& receiver = String::CheckedHandle(isolate,
+                                                 arguments->NativeArgAt(0));
+  ASSERT(receiver.IsOneByteString());
+  GET_NATIVE_ARGUMENT(Smi, smi_split_code, arguments->NativeArgAt(1));
+  const intptr_t len = receiver.Length();
+  const intptr_t split_code = smi_split_code.Value();
+  const GrowableObjectArray& result = GrowableObjectArray::Handle(
+      isolate,
+      GrowableObjectArray::New(16, Heap::kNew));
+  String& str = String::Handle(isolate);
+  intptr_t start = 0;
+  intptr_t i = 0;
+  for (; i < len; i++) {
+    if (split_code == OneByteString::CharAt(receiver, i)) {
+      str = OneByteString::SubStringUnchecked(receiver,
+                                              start,
+                                              (i - start),
+                                              Heap::kNew);
+      result.Add(isolate, str);
+      start = i + 1;
+    }
+  }
+  str = OneByteString::SubStringUnchecked(receiver,
+                                          start,
+                                          (i - start),
+                                          Heap::kNew);
+  result.Add(isolate, str);
+  return result.raw();
+}
+
+
 DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   intptr_t hash_val = receiver.Hash();

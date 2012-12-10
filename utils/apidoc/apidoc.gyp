@@ -29,10 +29,13 @@
           'action_name': 'run_apidoc',
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '<(PRODUCT_DIR)/dart2js',
-            '<(PRODUCT_DIR)/dart2js.bat',
+            '<(PRODUCT_DIR)/dart2js.snapshot',
             '<!@(["python", "../../tools/list_files.py", "\\.(css|ico|js|json|png|sh|txt|yaml|py)$", ".", "../../sdk/lib/_internal/dartdoc"])',
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../sdk/lib", "../../runtime/lib", "../../runtime/bin"])',
+            '../../sdk/bin/dart',
+            '../../sdk/bin/dart.bat',
+            '../../sdk/bin/dart2js',
+            '../../sdk/bin/dart2js.bat',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/api_docs/index.html',

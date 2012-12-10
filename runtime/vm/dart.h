@@ -22,7 +22,10 @@ class Dart : public AllStatic {
       Dart_IsolateCreateCallback create,
       Dart_IsolateInterruptCallback interrupt,
       Dart_IsolateUnhandledExceptionCallback unhandled,
-      Dart_IsolateShutdownCallback shutdown);
+      Dart_IsolateShutdownCallback shutdown,
+      Dart_FileOpenCallback file_open,
+      Dart_FileWriteCallback file_write,
+      Dart_FileCloseCallback file_close);
 
   static Isolate* CreateIsolate(const char* name_prefix);
   static RawError* InitializeIsolate(const uint8_t* snapshot, void* data);
@@ -31,11 +34,11 @@ class Dart : public AllStatic {
   static Isolate* vm_isolate() { return vm_isolate_; }
   static ThreadPool* thread_pool() { return thread_pool_; }
 
-  static void set_perf_events_writer(Dart_FileWriterFunction writer_function) {
-    perf_events_writer_ = writer_function;
+  static void set_perf_events_file(void* file) {
+    perf_events_file_ = file;
   }
-  static Dart_FileWriterFunction perf_events_writer() {
-    return perf_events_writer_;
+  static void* perf_events_file() {
+    return perf_events_file_;
   }
 
   static void set_pprof_symbol_generator(DebugInfo* value) {
@@ -43,19 +46,11 @@ class Dart : public AllStatic {
   }
   static DebugInfo* pprof_symbol_generator() { return pprof_symbol_generator_; }
 
-  static void set_flow_graph_writer(Dart_FileWriterFunction writer_function) {
-    flow_graph_writer_ = writer_function;
-  }
-  static Dart_FileWriterFunction flow_graph_writer() {
-    return flow_graph_writer_;
-  }
-
  private:
   static Isolate* vm_isolate_;
   static ThreadPool* thread_pool_;
-  static Dart_FileWriterFunction perf_events_writer_;
+  static void* perf_events_file_;
   static DebugInfo* pprof_symbol_generator_;
-  static Dart_FileWriterFunction flow_graph_writer_;
 };
 
 }  // namespace dart

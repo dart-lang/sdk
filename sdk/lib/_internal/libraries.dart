@@ -38,6 +38,18 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       category: "Client",
       dart2jsPath: "html/dart2js/html_dart2js.dart"),
 
+  "html_common": const LibraryInfo(
+      "html/html_common/html_common.dart",
+      category: "Client",
+      dart2jsPath: "html/html_common/html_common_dart2js.dart",
+      documented: false,
+      implementation: true),
+
+  "indexed_db": const LibraryInfo(
+      "indexed_db/dartium/indexed_db_dartium.dart",
+      category: "Client",
+      dart2jsPath: "indexed_db/dart2js/indexed_db_dart2js.dart"),
+
   "io": const LibraryInfo(
       "io/io.dart",
       category: "Server",
@@ -94,6 +106,12 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
   "_interceptors": const LibraryInfo(
       "_internal/compiler/implementation/lib/interceptors.dart",
+      category: "Internal",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
+
+  "_foreign_helper": const LibraryInfo(
+      "_internal/compiler/implementation/lib/foreign_helper.dart",
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),

@@ -7,12 +7,12 @@ main() {
 
   useHtmlConfiguration();
 
-  var isXSLTProcessor =
-      predicate((x) => x is XSLTProcessor, 'is an XSLTProcessor');
+  var isXsltProcessor =
+      predicate((x) => x is XsltProcessor, 'is an XsltProcessor');
 
   test('constructorTest', () {
-      var processor = new XSLTProcessor();
+      var processor = new XsltProcessor();
       expect(processor, isNotNull);
-      expect(processor, isXSLTProcessor);
+      expect(processor, isXsltProcessor);
     });
 }
