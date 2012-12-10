@@ -33,28 +33,28 @@ main() {
     expect(builder.extension(r'a.b\c'), r'.b\c');
   });
 
-  test('filename', () {
-    expect(builder.filename(''), '');
-    expect(builder.filename('a'), 'a');
-    expect(builder.filename('a/b'), 'b');
-    expect(builder.filename('a/b/c'), 'c');
-    expect(builder.filename('a/b.c'), 'b.c');
-    expect(builder.filename('a/'), '');
-    expect(builder.filename('a/.'), '.');
-    expect(builder.filename(r'a/b\c'), r'b\c');
+  test('basename', () {
+    expect(builder.basename(''), '');
+    expect(builder.basename('a'), 'a');
+    expect(builder.basename('a/b'), 'b');
+    expect(builder.basename('a/b/c'), 'c');
+    expect(builder.basename('a/b.c'), 'b.c');
+    expect(builder.basename('a/'), '');
+    expect(builder.basename('a/.'), '.');
+    expect(builder.basename(r'a/b\c'), r'b\c');
   });
 
-  test('filenameWithoutExtension', () {
-    expect(builder.filenameWithoutExtension(''), '');
-    expect(builder.filenameWithoutExtension('a'), 'a');
-    expect(builder.filenameWithoutExtension('a/b'), 'b');
-    expect(builder.filenameWithoutExtension('a/b/c'), 'c');
-    expect(builder.filenameWithoutExtension('a/b.c'), 'b');
-    expect(builder.filenameWithoutExtension('a/'), '');
-    expect(builder.filenameWithoutExtension('a/.'), '.');
-    expect(builder.filenameWithoutExtension(r'a/b\c'), r'b\c');
-    expect(builder.filenameWithoutExtension('a/.bashrc'), '.bashrc');
-    expect(builder.filenameWithoutExtension('a/b/c.d.e'), 'c.d');
+  test('basenameWithoutExtension', () {
+    expect(builder.basenameWithoutExtension(''), '');
+    expect(builder.basenameWithoutExtension('a'), 'a');
+    expect(builder.basenameWithoutExtension('a/b'), 'b');
+    expect(builder.basenameWithoutExtension('a/b/c'), 'c');
+    expect(builder.basenameWithoutExtension('a/b.c'), 'b');
+    expect(builder.basenameWithoutExtension('a/'), '');
+    expect(builder.basenameWithoutExtension('a/.'), '.');
+    expect(builder.basenameWithoutExtension(r'a/b\c'), r'b\c');
+    expect(builder.basenameWithoutExtension('a/.bashrc'), '.bashrc');
+    expect(builder.basenameWithoutExtension('a/b/c.d.e'), 'c.d');
   });
 
   test('isAbsolute', () {
@@ -272,6 +272,7 @@ main() {
     expect(builder.withoutExtension('a/.'), 'a/.');
     expect(builder.withoutExtension('a/.b'), 'a/.b');
     expect(builder.withoutExtension('a.b/c'), 'a.b/c');
+    expect(builder.withoutExtension(r'a.b\c'), r'a');
     expect(builder.withoutExtension(r'a/b\c'), r'a/b\c');
     expect(builder.withoutExtension(r'a/b\c.d'), r'a/b\c');
   });

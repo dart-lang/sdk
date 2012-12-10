@@ -24,42 +24,44 @@ String get separator => _builder.separator;
 ///     path.absolute('foo/bar.txt'); // -> /your/current/dir/foo/bar.txt
 String absolute(String path) => join(current, path);
 
-/// Gets the file extension of [path]; the portion after the last `.` in the
-/// [basename] of the path.
+/// Gets the part of [path] after the last separator.
+///
+///     path.basename('path/to/foo.dart'); // -> 'foo.dart'
+///     path.basename('path/to');          // -> 'to'
+String basename(String path) => _builder.basename(path);
+
+/// Gets the part of [path] after the last separator, and without any trailing
+/// file extension.
+///
+///     path.basenameWithoutExtension('path/to/foo.dart'); // -> 'foo'
+String basenameWithoutExtension(String path) =>
+    _builder.basenameWithoutExtension(path);
+
+/// Gets the file extension of [path]: the portion of [basename] from the last
+/// `.` to the end (including the `.` itself).
 ///
 ///     path.extension('path/to/foo.dart');    // -> '.dart'
 ///     path.extension('path/to/foo');         // -> ''
 ///     path.extension('path.to/foo');         // -> ''
 ///     path.extension('path/to/foo.dart.js'); // -> '.js'
 ///
-/// If the file name starts with a `.`, then it is not considered an extension:
+/// If the file name starts with a `.`, then that is not considered the
+/// extension:
 ///
-///     path.extension('~/.bashrc'); // -> ''
+///     path.extension('~/.bashrc');    // -> ''
+///     path.extension('~/.notes.txt'); // -> '.txt'
 String extension(String path) => _builder.extension(path);
 
-/// Gets the part of [path] after the last separator on the current platform.
-///
-///     path.filename('path/to/foo.dart'); // -> 'foo.dart'
-///     path.filename('path/to');          // -> 'to'
-String filename(String path) => _builder.filename(path);
-
-/// Gets the part of [path] after the last separator on the current platform,
-/// and without any trailing file extension.
-///
-///     path.filenameWithoutExtension('path/to/foo.dart'); // -> 'foo'
-String filenameWithoutExtension(String path) =>
-    _builder.filenameWithoutExtension(path);
-
 /// Returns `true` if [path] is an absolute path and `false` if it is a
-/// relative path. On Mac and Unix systems, relative paths start with a `/`
-/// (forward slash). On Windows, an absolute path starts with `\\`, or a drive
-/// letter followed by `:/` or `:\`.
+/// relative path. On POSIX systems, absolute paths start with a `/` (forward
+/// slash). On Windows, an absolute path starts with `\\`, or a drive letter
+/// followed by `:/` or `:\`.
 bool isAbsolute(String path) => _builder.isAbsolute(path);
 
 /// Returns `true` if [path] is a relative path and `false` if it is absolute.
-/// On Mac and Unix systems, relative paths start with a `/` (forward slash).
-/// On Windows, an absolute path starts with `\\`, or a drive letter followed
-/// by `:/` or `:\`.
+/// On POSIX systems, absolute paths start with a `/` (forward slash). On
+/// Windows, an absolute path starts with `\\`, or a drive letter followed by
+/// `:/` or `:\`.
 bool isRelative(String path) => _builder.isRelative(path);
 
 /// Joins the given path parts into a single path using the current platform's
@@ -75,7 +77,6 @@ bool isRelative(String path) => _builder.isRelative(path);
 /// If a part is an absolute path, then anything before that will be ignored:
 ///
 ///     path.join('path', '/to', 'foo'); // -> '/to/foo'
-///
 String join(String part1, [String part2, String part3, String part4,
             String part5, String part6, String part7, String part8]) {
   if (!?part2) return _builder.join(part1);
@@ -95,11 +96,18 @@ String join(String part1, [String part2, String part3, String part4,
 ///     path.normalize('path/./to/..//file.text'); // -> 'path/file.txt'
 String normalize(String path) => _builder.normalize(path);
 
-/// Converts [path] to an equivalent relative path from the current directory.
+/// Attempts to convert [path] to an equivalent relative path from the current
+/// directory.
 ///
 ///     // Given current directory is /root/path:
 ///     path.relative('/root/path/a/b.dart'); // -> 'a/b.dart'
 ///     path.relative('/root/other.dart'); // -> '../other.dart'
+///
+/// Since there is no relative path from one drive letter to another on Windows,
+/// this will return an absolute path in that case.
+///
+///     // Given current directory is C:\home:
+///     path.relative(r'D:\other'); // -> 'D:\other'
 String relative(String path) => _builder.relative(path);
 
 /// Removes a trailing extension from the last part of [path].
@@ -113,7 +121,8 @@ class Builder {
   /// Creates a new path builder for the given style and root directory.
   ///
   /// If [style] is omitted, it uses the host operating system's path style. If
-  /// [root] is omitted, it defaults to the current working directory.
+  /// [root] is omitted, it defaults to the current working directory. If [root]
+  /// is relative, it is considered relative to the current working directory.
   factory Builder({Style style, String root}) {
     if (style == null) {
       if (io.Platform.operatingSystem == 'windows') {
@@ -123,7 +132,7 @@ class Builder {
       }
     }
 
-    if (root == null) root = new io.Directory.current().path;
+    if (root == null) root = current;
 
     return new Builder._(style, root);
   }
@@ -140,8 +149,22 @@ class Builder {
   /// this is `/`. On Windows, it's `\`.
   String get separator => style.separator;
 
-  /// Gets the file extension of [path]; the portion after the last `.` in the
-  /// [basename] of the path.
+  /// Gets the part of [path] after the last separator on the builder's
+  /// platform.
+  ///
+  ///     builder.basename('path/to/foo.dart'); // -> 'foo.dart'
+  ///     builder.basename('path/to');          // -> 'to'
+  String basename(String path) => _parse(path).basename;
+
+  /// Gets the part of [path] after the last separator on the builder's
+  /// platform, and without any trailing file extension.
+  ///
+  ///     builder.basenameWithoutExtension('path/to/foo.dart'); // -> 'foo'
+  String basenameWithoutExtension(String path) =>
+      _parse(path).basenameWithoutExtension;
+
+  /// Gets the file extension of [path]: the portion of [basename] from the last
+  /// `.` to the end (including the `.` itself).
   ///
   ///     builder.extension('path/to/foo.dart'); // -> '.dart'
   ///     builder.extension('path/to/foo'); // -> ''
@@ -151,33 +174,20 @@ class Builder {
   /// If the file name starts with a `.`, then it is not considered an
   /// extension:
   ///
-  ///     builder.extension('~/.bashrc'); // -> ''
+  ///     builder.extension('~/.bashrc');    // -> ''
+  ///     builder.extension('~/.notes.txt'); // -> '.txt'
   String extension(String path) => _parse(path).extension;
 
-  /// Gets the part of [path] after the last separator on the builder's
-  /// platform.
-  ///
-  ///     builder.filename('path/to/foo.dart'); // -> 'foo.dart'
-  ///     builder.filename('path/to');          // -> 'to'
-  String filename(String path) => _parse(path).filename;
-
-  /// Gets the part of [path] after the last separator on the builder's
-  /// platform, and without any trailing file extension.
-  ///
-  ///     builder.filenameWithoutExtension('path/to/foo.dart'); // -> 'foo'
-  String filenameWithoutExtension(String path) =>
-      _parse(path).filenameWithoutExtension;
-
   /// Returns `true` if [path] is an absolute path and `false` if it is a
-  /// relative path. On Mac and Unix systems, relative paths start with a `/`
-  /// (forward slash). On Windows, an absolute path starts with `\\`, or a drive
-  /// letter followed by `:/` or `:\`.
+  /// relative path. On POSIX systems, absolute paths start with a `/` (forward
+  /// slash). On Windows, an absolute path starts with `\\`, or a drive letter
+  /// followed by `:/` or `:\`.
   bool isAbsolute(String path) => _parse(path).isAbsolute;
 
   /// Returns `true` if [path] is a relative path and `false` if it is absolute.
-  /// On Mac and Unix systems, relative paths start with a `/` (forward slash).
-  /// On Windows, an absolute path starts with `\\`, or a drive letter followed
-  /// by `:/` or `:\`.
+  /// On POSIX systems, absolute paths start with a `/` (forward slash). On
+  /// Windows, an absolute path starts with `\\`, or a drive letter followed by
+  /// `:/` or `:\`.
   bool isRelative(String path) => !isAbsolute(path);
 
   /// Joins the given path parts into a single path. Example:
@@ -249,7 +259,7 @@ class Builder {
   /// Equivalent to [join()] with [root] as the first argument. Example:
   ///
   ///     var builder = new Builder(root: 'root');
-  ///     builder.join('path', 'to', 'foo'); // -> 'root/path/to/foo'
+  ///     builder.resolve('path', 'to', 'foo'); // -> 'root/path/to/foo'
   String resolve(String part1, [String part2, String part3, String part4,
               String part5, String part6, String part7]) {
     if (!?part2) return join(root, part1);
@@ -261,19 +271,28 @@ class Builder {
     return join(root, part1, part2, part3, part4, part5, part6, part7);
   }
 
-  /// Converts [path] to an equivalent relative path starting at [root].
+  /// Attempts to convert [path] to an equivalent relative path relative to
+  /// [root].
   ///
   ///     var builder = new Builder(root: '/root/path');
   ///     builder.relative('/root/path/a/b.dart'); // -> 'a/b.dart'
   ///     builder.relative('/root/other.dart'); // -> '../other.dart'
+  ///
+  /// Since there is no relative path from one drive letter to another on
+  /// Windows, this will return an absolute path in that case.
+  ///
+  ///     var builder = new Builder(root: r'C:\home');
+  ///     builder.relative(r'D:\other'); // -> 'D:\other'
   String relative(String path) {
+    if (path == '') return '.';
+
     // If the base path is relative, resolve it relative to the current
     // directory.
     var base = root;
     if (this.isRelative(base)) base = absolute(base);
 
     // If the given path is relative, resolve it relative to the base.
-    path = this.join(base, path);
+    if (this.isRelative(path)) return this.normalize(path);
 
     var baseParsed = _parse(base)..normalize();
     var pathParsed = _parse(path)..normalize();
@@ -281,11 +300,13 @@ class Builder {
     // If the root prefixes don't match (for example, different drive letters
     // on Windows), then there is no relative path, so just return the absolute
     // one.
+    // TODO(rnystrom): Drive letters are case-insentive on Windows. Should
+    // handle "C:\" and "c:\" being the same root.
     if (baseParsed.root != pathParsed.root) return pathParsed.toString();
 
     // Strip off their common prefix.
-    while (baseParsed.parts.length > 0 && pathParsed.parts.length > 0) {
-      if (baseParsed.parts[0] != pathParsed.parts[0]) break;
+    while (baseParsed.parts.length > 0 && pathParsed.parts.length > 0 &&
+           baseParsed.parts[0] == pathParsed.parts[0]) {
       baseParsed.parts.removeAt(0);
       baseParsed.separators.removeAt(0);
       pathParsed.parts.removeAt(0);
@@ -312,14 +333,9 @@ class Builder {
   ///
   ///     builder.withoutExtension('path/to/foo.dart'); // -> 'path/to/foo'
   String withoutExtension(String path) {
-    var lastSeparator = path.lastIndexOf(separator);
-    var lastDot = path.lastIndexOf('.');
-
-    // Ignore '.' in anything but the last component.
-    if (lastSeparator != -1 && lastDot <= lastSeparator + 1) lastDot = -1;
-
-    if (lastDot <= 0) return path;
-    return path.substring(0, lastDot);
+    var parsed = _parse(path);
+    parsed.extension = null;
+    return parsed.toString();
   }
 
   _ParsedPath _parse(String path) {
@@ -373,10 +389,13 @@ class Style {
   /// Windows paths use "\" (backslash) as separators. Absolute paths start with
   /// a drive letter followed by a colon (example, "C:") or two backslashes
   /// ("\\") for UNC paths.
+  // TODO(rnystrom): The UNC root prefix should include the drive name too, not
+  // just the "\\".
   static final windows = new Style._('windows', '\\', r'[/\\]',
       r'\\\\|[a-zA-Z]:[/\\]');
 
-  Style._(this.name, this.separator, String separatorPattern, String rootPattern)
+  Style._(this.name, this.separator, String separatorPattern,
+      String rootPattern)
     : separatorPattern = new RegExp(separatorPattern),
       _rootPattern = new RegExp('^$rootPattern');
 
@@ -442,13 +461,13 @@ class _ParsedPath {
   _ParsedPath(this.style, this.root, this.parts, this.separators,
               this.extension);
 
-  String get filename {
+  String get basename {
     if (parts.length == 0) return extension;
     if (hasTrailingSeparator) return '';
     return '${parts.last}$extension';
   }
 
-  String get filenameWithoutExtension {
+  String get basenameWithoutExtension {
     if (parts.length == 0) return '';
     if (hasTrailingSeparator) return '';
     return parts.last;

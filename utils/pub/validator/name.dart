@@ -35,7 +35,7 @@ class NameValidator extends Validator {
         file = relativeTo(file, libDir);
         if (splitPath(file).contains("src")) continue;
         if (path.extension(file) != '.dart') continue;
-        var libName = path.filenameWithoutExtension(file);
+        var libName = path.basenameWithoutExtension(file);
         _checkName(libName, 'The name of "$file", "$libName",');
       }
     });

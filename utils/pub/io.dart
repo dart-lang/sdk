@@ -50,7 +50,7 @@ String join(part1, [part2, part3, part4]) {
 
 /// Gets the basename, the file name without any leading directory path, for
 /// [file], which can either be a [String], [File], or [Directory].
-String basename(file) => path.filename(_getPath(file));
+String basename(file) => path.basename(_getPath(file));
 
 // TODO(nweiz): move this into path.dart.
 /// Gets the the leading directory path for [file], which can either be a
