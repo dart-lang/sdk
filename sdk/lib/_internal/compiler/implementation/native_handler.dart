@@ -823,11 +823,11 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
 
   // Check which pattern this native method follows:
   // 1) foo() native;
-  //      hasBody = false, isRedirecting = false
+  //      hasBody = false
   // 2) foo() native "bar";
-  //      hasBody = false, isRedirecting = true, no longer supported.
+  //      No longer supported, this is now done with @JSName('foo') and case 1.
   // 3) foo() native "return 42";
-  //      hasBody = true, isRedirecting = false
+  //      hasBody = true
   bool hasBody = false;
   assert(element.isNative());
   String nativeMethodName = element.nativeName();
