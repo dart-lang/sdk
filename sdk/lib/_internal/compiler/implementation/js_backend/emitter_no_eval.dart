@@ -39,7 +39,7 @@ function(cls, constructor, prototype) {
     // isolateProperties themselves.
     return """
 function(oldIsolate) {
-  var isolateProperties = oldIsolate.${namer.isolatePropertiesName};
+  var isolateProperties = oldIsolate.${namer.ISOLATE_PROPERTIES};
   function Isolate() {
     for (var staticName in isolateProperties) {
       if (Object.prototype.hasOwnProperty.call(isolateProperties, staticName)) {
@@ -54,7 +54,7 @@ function(oldIsolate) {
   }
   Isolate.prototype = oldIsolate.prototype;
   Isolate.prototype.constructor = Isolate;
-  Isolate.${namer.isolatePropertiesName} = isolateProperties;
+  Isolate.${namer.ISOLATE_PROPERTIES} = isolateProperties;
   return Isolate;
 }""";
   }
@@ -106,7 +106,6 @@ $lazyInitializerLogic
     List<String> fields = <String>[];
     visitClassFields(classElement, (Element member,
                                     String name,
-                                    String accessorName,
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {

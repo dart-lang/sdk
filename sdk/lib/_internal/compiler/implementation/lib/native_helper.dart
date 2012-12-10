@@ -122,16 +122,8 @@ propertyGet(var object, String property) {
   return JS('var', '#[#]', object, property);
 }
 
-bool callHasOwnProperty(var function, var object, String property) {
-  return JS('bool', '#.call(#, #)', function, object, property);
-}
-
 void propertySet(var object, String property, var value) {
   JS('var', '#[#] = #', object, property, value);
-}
-
-getPropertyFromPrototype(var object, String name) {
-  return JS('var', 'Object.getPrototypeOf(#)[#]', object, name);
 }
 
 newJsObject() {
@@ -213,33 +205,21 @@ dynamicBind(var obj,
             String name,
             var methods,
             List arguments) {
-  // The tag is related to the class name.  E.g. the dart:html class
-  // '_ButtonElement' has the tag 'HTMLButtonElement'.  TODO(erikcorry): rename
-  // getTypeNameOf to getTypeTag.
   String tag = getTypeNameOf(obj);
-  var hasOwnPropertyFunction = JS('var', 'Object.prototype.hasOwnProperty');
-  var method = lookupDynamicClass(hasOwnPropertyFunction, methods, tag);
+  var method = JS('var', '#[#]', methods, tag);
 
   if (method == null && _dynamicMetadata != null) {
-    // Look at the inheritance data, getting the class tags and using them
-    // to check the methods table for this method name.
     for (int i = 0; i < arrayLength(_dynamicMetadata); i++) {
       MetaInfo entry = arrayGet(_dynamicMetadata, i);
-      if (callHasOwnProperty(hasOwnPropertyFunction, entry._set, tag)) {
-        method =
-            lookupDynamicClass(hasOwnPropertyFunction, methods, entry._tag);
-        // Stop if we found it in the methods array.
+      if (JS('bool', '#', propertyGet(entry._set, tag))) {
+        method = propertyGet(methods, entry._tag);
         if (method != null) break;
       }
     }
   }
 
-  // If we didn't find the method then look up in the Dart Object class, using
-  // getTypeNameOf in case the minifier has renamed Object.
   if (method == null) {
-    String nameOfObjectClass = getTypeNameOf(const Object());
-    method =
-        lookupDynamicClass(hasOwnPropertyFunction, methods, nameOfObjectClass);
+    method = propertyGet(methods, 'Object');
   }
 
   var proto = JS('var', 'Object.getPrototypeOf(#)', obj);
@@ -259,24 +239,11 @@ dynamicBind(var obj,
       proto, name, name);
   }
 
-  if (callHasOwnProperty(hasOwnPropertyFunction, proto, name)) {
+  if (JS('bool', '!#.hasOwnProperty(#)', proto, name)) {
     defineProperty(proto, name, method);
   }
 
   return JS('var', '#.apply(#, #)', method, obj, arguments);
-}
-
-// For each method name and class inheritance subtree, we use an ordinary JS
-// object as a hash map to store the method for each class.  Entries are added
-// in native_emitter.dart (see dynamicName).  In order to avoid the class names
-// clashing with the method names on Object.prototype (needed for native
-// objects) we must always use hasOwnProperty.
-var lookupDynamicClass(var hasOwnPropertyFunction,
-                       var methods,
-                       String className) {
-  return callHasOwnProperty(hasOwnPropertyFunction, methods, className) ?
-         propertyGet(methods, className) :
-         null;
 }
 
 /**
@@ -306,9 +273,7 @@ dynamicFunction(name) {
   var methods = JS('var', '{}');
   // If there is a method attached to the Dart Object class, use it as
   // the method to call in case no method is registered for that type.
-  var dartMethod = getPropertyFromPrototype(const Object(), name);
-  // Take the method from the Dart Object class if we didn't find it yet and it
-  // is there.
+  var dartMethod = JS('var', 'Object.getPrototypeOf(#)[#]', const Object(), name);
   if (dartMethod != null) propertySet(methods, 'Object', dartMethod);
 
   var bind = JS('var',

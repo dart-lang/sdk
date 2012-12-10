@@ -23,9 +23,6 @@ class_test: Fail
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $minified ]
-to_string_test: Fail # Issue 7179.
-
 [ $jscl ]
 timer_test: Fail, OK # Timer is only supported in browsers.
 mirror_test: Fail, OK # Timer is only supported in browsers.

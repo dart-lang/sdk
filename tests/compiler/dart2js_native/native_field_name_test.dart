@@ -12,7 +12,7 @@ class A native "*A" {
 }
 
 
-// This code is inside the setup function, so the function names are not
+// This code is inside the setup function, so the function names are not 
 // accessible, but the makeA variable is global through the magic of JS scoping.
 // The contents of this are of course not analyzable by the compiler.
 void setup() native r"""
