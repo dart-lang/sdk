@@ -1857,6 +1857,16 @@ class Elements {
     return new SourceString('$r\$$s');
   }
 
+  static SourceString deconstructConstructorName(SourceString name,
+                                                 ClassElement holder) {
+    String r = '${holder.name.slowToString()}\$';
+    String s = name.slowToString();
+    if (s.startsWith(r)) {
+      return new SourceString(s.substring(r.length));
+    }
+    return null;
+  }
+
   /**
    * Map an operator-name to a valid Dart identifier.
    *

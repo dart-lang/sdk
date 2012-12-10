@@ -4,6 +4,8 @@
 
 // Smoke test of the dart2js compiler API.
 
+library dummy_compiler;
+
 import '../../sdk/lib/_internal/compiler/compiler.dart';
 import 'dart:uri';
 
@@ -14,7 +16,7 @@ Future<String> provider(Uri uri) {
     source = "main() {}";
   } else if (uri.scheme == "lib") {
     if (uri.path.endsWith("/core.dart")) {
-      source = """#library('core');
+      source = """library core;
                   class Object {}
                   class Type {}
                   class bool {}
@@ -36,11 +38,19 @@ Future<String> provider(Uri uri) {
       source = '';
     } else if (uri.path.endsWith('interceptors.dart')) {
       source = """class ObjectInterceptor {}
+                  class JSArray {}
+                  class JSString {}
+                  class JSFunction {}
+                  class JSInt {}
+                  class JSDouble {}
+                  class JSNumber {}
+                  class JSNull {}
+                  class JSBool {}
                   var getInterceptor;""";
     } else if (uri.path.endsWith('js_helper.dart')) {
       source = 'library jshelper; class JSInvocationMirror {}';
     } else {
-      source = "#library('lib');";
+      source = "library lib;";
     }
   } else {
    throw "unexpected URI $uri";

@@ -492,10 +492,39 @@ class ResolverTask extends CompilerTask {
             MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS.error([mismatchedFlags]),
             Diagnostic.ERROR);
         }
+        checkConstructorNameHack(holder, member);
       }
       checkAbstractField(member);
       checkValidOverride(member, cls.lookupSuperMember(member.name));
     });
+  }
+
+  // TODO(ahe): Remove this method.  It is only needed while we store
+  // constructor names as ClassName$id.  Once we start storing
+  // constructors as just id, this will be caught by the general
+  // mechanism for duplicate members.
+  /// Check that a constructor name does not conflict with a member.
+  void checkConstructorNameHack(ClassElement holder, FunctionElement member) {
+    // If the name of the constructor is the same as the name of the
+    // class, there cannot be a problem.
+    if (member.name == holder.name) return;
+
+    SourceString name =
+      Elements.deconstructConstructorName(member.name, holder);
+
+    // If the name could not be deconstructed, this is is from a
+    // factory method from a deprecated interface implementation.
+    if (name == null) return;
+
+    Element otherMember = holder.lookupLocalMember(name);
+    if (otherMember != null) {
+      compiler.onDeprecatedFeature(member, 'conflicting constructor');
+      compiler.reportMessage(
+          compiler.spanFromElement(otherMember),
+          MessageKind.GENERIC.error(['This member conflicts with a'
+                                     ' constructor.']),
+          Diagnostic.INFO);
+    }
   }
 
   void checkAbstractField(Element member) {

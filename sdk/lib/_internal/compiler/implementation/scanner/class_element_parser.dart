@@ -105,6 +105,9 @@ class MemberListener extends NodeListener {
         listener.cancel('library prefix in named factory constructor not '
                         'implemented', node: send.receiver);
       }
+      if (receiver.source != enclosingElement.name) {
+        listener.onDeprecatedFeature(receiver, 'interface factories');
+      }
       return Elements.constructConstructorName(receiver.source,
                                                selector.source);
     }
@@ -137,6 +140,12 @@ class MemberListener extends NodeListener {
     FunctionExpression method = popNode();
     pushNode(null);
     SourceString name = getMethodNameHack(method.name);
+    Identifier singleIdentifierName = method.name.asIdentifier();
+    if (singleIdentifierName != null && singleIdentifierName.source == name) {
+      if (name != enclosingElement.name) {
+        listener.onDeprecatedFeature(method.name, 'interface factories');
+      }
+    }
     ElementKind kind = ElementKind.FUNCTION;
     Element memberElement =
         new PartialFunctionElement(name, beginToken, null, endToken,
