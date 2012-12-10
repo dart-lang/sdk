@@ -1002,23 +1002,21 @@ class PannerNode extends AudioNode {
 
 
 /// @domName ScriptProcessorNode
-class ScriptProcessorNode extends AudioNode implements EventTarget {
+class ScriptProcessorNode extends AudioNode {
   ScriptProcessorNode.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  ScriptProcessorNodeEvents get on =>
-    new ScriptProcessorNodeEvents(this);
 
 
   /** @domName ScriptProcessorNode.bufferSize */
   int get bufferSize native "ScriptProcessorNode_bufferSize_Getter";
 
-}
 
-class ScriptProcessorNodeEvents extends Events {
-  ScriptProcessorNodeEvents(EventTarget _ptr) : super(_ptr);
+  /** @domName ScriptProcessorNode.onaudioprocess */
+  EventListener get onaudioprocess native "ScriptProcessorNode_onaudioprocess_Getter";
 
-  EventListenerList get audioProcess => this['audioprocess'];
+
+  /** @domName ScriptProcessorNode.onaudioprocess */
+  void set onaudioprocess(EventListener value) native "ScriptProcessorNode_onaudioprocess_Setter";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

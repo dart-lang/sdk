@@ -5,6 +5,7 @@
 
 """This module provides shared functionality for the system to generate
 dart:html APIs from the IDL database."""
+from htmleventgenerator import html_override_event_classes
 
 from generator import AnalyzeOperation, ConstantOutputOrder, \
     DartDomNameOfAttribute, FindMatchingAttribute, IsDartCollectionType, \
@@ -58,7 +59,8 @@ class HtmlDartGenerator(object):
       self.AddConstant(const)
 
     for attr in sorted(interface.attributes, ConstantOutputOrder):
-      if attr.type.id != 'EventListener':
+      if (attr.type.id != 'EventListener' or
+          interface.id in html_override_event_classes):
         self.AddAttribute(attr, declare_only)
 
     # The implementation should define an indexer if the interface directly

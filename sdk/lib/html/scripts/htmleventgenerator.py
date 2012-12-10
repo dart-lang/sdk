@@ -187,6 +187,12 @@ _html_event_names = {
 # doesn't match the interface hierarchy.
 _html_explicit_event_classes = set(['DocumentFragment'])
 
+# These classes are not really proper events targets, even though the IDL claims
+# they are. We don't make these the dart-style event names since they're not
+# really events -- the user uses them the same way they would use any other
+# event in JavaScript -- by assigning an event handler function.
+html_override_event_classes = set(['ScriptProcessorNode'])
+
 class HtmlEventGenerator(object):
 
   def __init__(self, database, renamer, template_loader):
@@ -208,7 +214,8 @@ class HtmlEventGenerator(object):
         if attr.type.id == 'EventListener' and attr.id[2:] in event_names:
           event_names.remove(attr.id[2:])
 
-    if not event_names and interface.id not in _html_explicit_event_classes:
+    if interface.id in html_override_event_classes or (
+        not event_names and interface.id not in _html_explicit_event_classes):
       return None
 
     self._event_classes.add(interface.id)
