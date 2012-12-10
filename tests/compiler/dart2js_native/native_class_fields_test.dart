@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Check that native fields are not incorrectly renamed.
-
+// Verify that native fields on classes are not renamed by the minifier.
 class A native "*A" {
   int myLongPropertyName;
   int getValue;
@@ -12,9 +11,6 @@ class A native "*A" {
 }
 
 
-// This code is inside the setup function, so the function names are not
-// accessible, but the makeA variable is global through the magic of JS scoping.
-// The contents of this are of course not analyzable by the compiler.
 void setup() native r"""
 function getter() {
   return ++this.getValue;
