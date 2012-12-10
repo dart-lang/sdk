@@ -55,11 +55,6 @@ class ArithmeticTest {
       b = -1;
       Expect.equals(1 << i, a ~/ b);
     }
-    for (int i = 0; i < 80; i++) {
-      a = -1 << i;
-      b = -1;
-      Expect.equals(1 << i, a ~/ b);
-    }
     a = 22;
     b = 4.0;
     // Smi & double.
