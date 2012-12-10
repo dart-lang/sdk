@@ -13,6 +13,7 @@
 /ipch
 /out
 /xcodebuild
+/.flaky.log
 /*.Makefile
 /*.opensdf
 /*.pyc
