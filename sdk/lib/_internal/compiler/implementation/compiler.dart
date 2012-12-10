@@ -151,6 +151,7 @@ abstract class Compiler implements DiagnosticListener {
   Element identicalFunction;
   Element functionApplyMethod;
   Element invokeOnMethod;
+  Element createInvocationMirrorElement;
 
   Element get currentElement => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -379,7 +380,7 @@ abstract class Compiler implements DiagnosticListener {
     enqueuer.resolution.registerInvocation(NO_SUCH_METHOD, selector);
     enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
 
-    Element createInvocationMirrorElement =
+    createInvocationMirrorElement =
         findHelper(const SourceString('createInvocationMirror'));
     enqueuer.resolution.addToWorkList(createInvocationMirrorElement);
     enqueuer.codegen.addToWorkList(createInvocationMirrorElement);

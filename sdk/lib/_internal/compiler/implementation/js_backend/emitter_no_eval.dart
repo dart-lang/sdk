@@ -71,29 +71,27 @@ $lazyInitializerLogic
     buffer.add(', function() { return $isolate.${namer.getName(element)}; }');
   }
 
+  js.Expression buildConstructor(String mangledName, List<String> fieldNames) {
+    return new js.NamedFunction(
+        new js.VariableDeclaration(mangledName),
+        new js.Fun(
+            fieldNames.map((fieldName) => new js.Parameter(fieldName)),
+            new js.Block(
+                fieldNames.map((fieldName) =>
+                    new js.ExpressionStatement(
+                        new js.Assignment(
+                            new js.This().dot(fieldName),
+                            new js.VariableUse(fieldName)))))));
+  }
+
   void emitBoundClosureClassHeader(String mangledName,
                                    String superName,
-                                   String extraArgument,
+                                   List<String> fieldNames,
                                    CodeBuffer buffer) {
-    if (!extraArgument.isEmpty) {
-      buffer.add("""
-$classesCollector.$mangledName = {'': function $mangledName(
-    self, $extraArgument, target) {
-  this.self = self;
-  this.$extraArgument = $extraArgument,
-  this.target = target;
- },
- 'super': '$superName',
-""");
-    } else {
-      buffer.add("""
-$classesCollector.$mangledName = {'': function $mangledName(self, target) {
-  this.self = self;
-  this.target = target;
- },
- 'super': '$superName',
-""");
-    }
+    buffer.add("$classesCollector.$mangledName = {'': ");
+    buffer.add(
+        js.prettyPrint(buildConstructor(mangledName, fieldNames), compiler));
+    buffer.add(",\n 'super': '$superName',\n");
   }
 
   void emitClassConstructor(ClassElement classElement, CodeBuffer buffer) {
@@ -113,23 +111,16 @@ $classesCollector.$mangledName = {'': function $mangledName(self, target) {
                                     bool needsCheckedSetter) {
       fields.add(name);
     });
-
-    List<String> argumentNames = fields;
-    if (fields.length < ($z - $a)) {
-      argumentNames = new List<String>(fields.length);
-      for (int i = 0; i < fields.length; i++) {
-        argumentNames[i] = new String.fromCharCodes([$a + i]);
-      }
-    }
     String constructorName = namer.safeName(classElement.name.slowToString());
-    // Generate the constructor.
-    buffer.add("'': function $constructorName(");
-    buffer.add(Strings.join(argumentNames, ", "));
-    buffer.add(") {\n");
-    for (int i = 0; i < fields.length; i++) {
-      buffer.add("  this.${fields[i]} = ${argumentNames[i]};\n");
+    buffer.add("'': ");
+    buffer.add(
+        js.prettyPrint(buildConstructor(constructorName, fields), compiler));
+  }
+
+  void emitSuper(String superName, CodeBuffer buffer) {
+    if (superName != '') {
+      buffer.add(",\n 'super': '$superName'");
     }
-    buffer.add(' }');
   }
 
   void emitClassFields(ClassElement classElement,

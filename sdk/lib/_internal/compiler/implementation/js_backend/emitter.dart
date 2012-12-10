@@ -217,10 +217,17 @@ function(collectedClasses) {
   for (var cls in collectedClasses) {
     if (hasOwnProperty.call(collectedClasses, cls)) {
       var desc = collectedClasses[cls];
-'''/* Get the superclass and the fields in the format Super;field1,field2 from
-      the null-string property on the descriptor. */'''
-      var s = desc[''].split(';'), supr = s[0];
-      var fields = s[1] == '' ? [] : s[1].split(',');
+'''/* The 'fields' are either a constructor function or a string encoding
+      fields, constructor and superclass.  Get the superclass and the fields
+      in the format Super;field1,field2 from the null-string property on the
+      descriptor. */'''
+      var fields = desc[''], supr;
+      if (typeof fields == 'string') {
+        var s = fields.split(';'); supr = s[0];
+        fields = s[1] == '' ? [] : s[1].split(',');
+      } else {
+        supr = desc['super'];
+      }
       $isolatePropertiesName[cls] = $defineClassName(cls, fields, desc);
       if (supr) $pendingClassesName[cls] = supr;
     }
@@ -833,6 +840,10 @@ $lazyInitializerLogic
     /* Do nothing. */
   }
 
+  void emitSuper(String superName, CodeBuffer buffer) {
+    /* Do nothing. */
+  }
+
   void emitClassFields(ClassElement classElement,
                        CodeBuffer buffer,
                        bool emitEndingComma,
@@ -964,6 +975,7 @@ $lazyInitializerLogic
 
     buffer.add('$classesCollector.$className = {');
     emitClassConstructor(classElement, buffer);
+    emitSuper(superName, buffer);
     emitClassFields(classElement, buffer, false,
                     superClass: superName, isNative: false);
     // TODO(floitsch): the emitInstanceMember should simply always emit a ',\n'.
@@ -1185,12 +1197,11 @@ $lazyInitializerLogic
 
   void emitBoundClosureClassHeader(String mangledName,
                                    String superName,
-                                   String extraArgument,
+                                   List<String> fieldNames,
                                    CodeBuffer buffer) {
-    extraArgument = extraArgument.isEmpty ? '' : ",$extraArgument";
     buffer.add("""
 $classesCollector.$mangledName = {'':
-\"$superName;self$extraArgument,target\",
+"$superName;${Strings.join(fieldNames,',')}",
 """);
   }
 
@@ -1227,25 +1238,24 @@ $classesCollector.$mangledName = {'':
     int parameterCount = member.parameterCount(compiler);
 
     Map<int, String> cache;
-    String extraArg;
-    String extraArgWithoutComma;
-    bool hasExtraArgument = false;
-    // Methods on foreign classes take an extra parameter, which is
-    // the actual receiver of the call.
+    String extraArg = null;
+    // Methods on interceptor classes take an extra parameter, which is the
+    // actual receiver of the call.
     JavaScriptBackend backend = compiler.backend;
-    if (backend.isInterceptorClass(member.getEnclosingClass())) {
-      hasExtraArgument = true;
+    bool inInterceptor = backend.isInterceptorClass(member.getEnclosingClass());
+    if (inInterceptor) {
       cache = interceptorClosureCache;
-      extraArg = 'receiver, ';
-      extraArgWithoutComma = 'receiver';
+      extraArg = 'receiver';
     } else {
       cache = boundClosureCache;
-      extraArg = '';
-      extraArgWithoutComma = '';
     }
+    List<String> fieldNames = compiler.enableMinification
+        ? inInterceptor ? const ['a', 'b', 'c']
+                        : const ['a', 'b']
+        : inInterceptor ? const ['self', 'target', 'receiver']
+                        : const ['self', 'target'];
 
-    String closureClass =
-        hasOptionalParameters ? null : cache[parameterCount];
+    String closureClass = hasOptionalParameters ? null : cache[parameterCount];
     if (closureClass == null) {
       // Either the class was not cached yet, or there are optional parameters.
       // Create a new closure class.
@@ -1259,7 +1269,7 @@ $classesCollector.$mangledName = {'':
       // Define the constructor with a name so that Object.toString can
       // find the class name of the closure class.
       emitBoundClosureClassHeader(
-          mangledName, superName, extraArgWithoutComma, boundClosureBuffer);
+          mangledName, superName, fieldNames, boundClosureBuffer);
       // Now add the methods on the closure class. The instance method does not
       // have the correct name. Since [addParameterStubs] use the name to create
       // its stubs we simply create a fake element with the correct name.
@@ -1268,20 +1278,31 @@ $classesCollector.$mangledName = {'':
           new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, member);
       
       String invocationName = namer.instanceMethodName(callElement);
-      List<String> arguments = new List<String>(parameterCount);
-      for (int i = 0; i < parameterCount; i++) {
-        arguments[i] = "p$i";
+
+      List<js.Parameter> parameters = <js.Parameter>[];
+      List<js.Expression> arguments = <js.Expression>[];
+      if (inInterceptor) {
+        arguments.add(new js.This().dot(fieldNames[2]));
       }
-      String joinedArgs = Strings.join(arguments, ", ");
+      for (int i = 0; i < parameterCount; i++) {
+        String name = 'p$i';
+        parameters.add(new js.Parameter(name));
+        arguments.add(new js.VariableUse(name));
+      }
+
+      js.Expression fun =
+          new js.Fun(parameters,
+              new js.Block(
+                  <js.Statement>[
+                      new js.Return(
+                          new js.PropertyAccess(
+                              new js.This().dot(fieldNames[0]),
+                              new js.This().dot(fieldNames[1]))
+                          .callWith(arguments))]));
+
       boundClosureBuffer.add(
-          "$invocationName: function($joinedArgs) {");
-      String callArgs = hasExtraArgument
-          ? joinedArgs.isEmpty
-              ? 'this.$extraArgWithoutComma'
-              : 'this.$extraArg$joinedArgs'
-          : joinedArgs;
-      boundClosureBuffer.add(" return this.self[this.target]($callArgs);");
-      boundClosureBuffer.add(" }");
+          ' $invocationName: ${js.prettyPrint(fun,compiler)}');
+
       addParameterStubs(callElement, (String stubName, CodeBuffer memberValue) {
         boundClosureBuffer.add(',\n $stubName: $memberValue');
       });
@@ -1298,9 +1319,27 @@ $classesCollector.$mangledName = {'':
     // And finally the getter.
     String getterName = namer.getterName(member.getLibrary(), member.name);
     String targetName = namer.instanceMethodName(member);
+
+    List<js.Parameter> parameters = <js.Parameter>[];
+    List<js.Expression> arguments = <js.Expression>[];
+    arguments.add(new js.This());
+    arguments.add(new js.LiteralString("'$targetName'"));
+    if (inInterceptor) {
+      parameters.add(new js.Parameter(extraArg));
+      arguments.add(new js.VariableUse(extraArg));
+    }
+        
+    js.Expression getterFunction =
+        new js.Fun(parameters,
+            new js.Block(
+                <js.Statement>[
+                    new js.Return(
+                        new js.New(
+                            new js.VariableUse(closureClass),
+                            arguments))]));
+            
     CodeBuffer getterBuffer = new CodeBuffer();
-    getterBuffer.add("function($extraArgWithoutComma) "
-        "{ return new $closureClass(this, $extraArg'$targetName'); }");
+    getterBuffer.add(js.prettyPrint(getterFunction, compiler));
     defineInstanceMember(getterName, getterBuffer);
   }
 
@@ -1517,7 +1556,7 @@ $classesCollector.$mangledName = {'':
       return result;
     }
 
-    CodeBuffer generateMethod(String methodName, Selector selector) {
+    js.Expression generateMethod(String methodName, Selector selector) {
       // Values match JSInvocationMirror in js-helper library.
       const int METHOD = 0;
       const int GETTER = 1;
@@ -1532,28 +1571,42 @@ $classesCollector.$mangledName = {'':
         assert(methodName.startsWith("set:"));
         methodName = "${methodName.substring(4)}=";
       }
-      CodeBuffer args = new CodeBuffer();
+
+      List<js.Parameter> parameters = <js.Parameter>[];
       for (int i = 0; i < selector.argumentCount; i++) {
-        if (i != 0) args.add(', ');
-        args.add('\$$i');
+        parameters.add(new js.Parameter('\$$i'));
       }
-      CodeBuffer argNames = new CodeBuffer();
-      List<SourceString> names = selector.getOrderedNamedArguments();
-      for (int i = 0; i < names.length; i++) {
-        if (i != 0) argNames.add(', ');
-        argNames.add('"');
-        argNames.add(names[i].slowToString());
-        argNames.add('"');
-      }
+      
+      List<js.Expression> argNames =
+          selector.getOrderedNamedArguments().map((SourceString name) =>
+              new js.LiteralString('"${name.slowToString()}"'));
+
       String internalName = namer.instanceMethodInvocationName(
           selector.library, new SourceString(methodName), selector);
-      CodeBuffer buffer = new CodeBuffer();
-      buffer.add('function($args) {\n');
-      buffer.add('  return this.$noSuchMethodName('
-                     '\$.createInvocationMirror("$methodName", "$internalName",'
-                     ' $type, [$args], [$argNames]));\n');
-      buffer.add(' }');
-      return buffer;
+
+      String createInvocationMirror = namer.getName(
+          compiler.createInvocationMirrorElement);
+
+      js.Expression expression =
+          new js.This()
+          .dot(noSuchMethodName)
+          .callWith(
+              <js.Expression>[
+                  new js.VariableUse(namer.CURRENT_ISOLATE)
+                  .dot(createInvocationMirror)
+                  .callWith(
+                      <js.Expression>[
+                          new js.LiteralString('"$methodName"'),
+                          new js.LiteralString('"$internalName"'),
+                          new js.LiteralNumber('$type'),
+                          new js.ArrayInitializer.from(
+                              parameters.map((param) =>
+                                  new js.VariableUse(param.name))),
+                          new js.ArrayInitializer.from(argNames)])]);
+      js.Expression function =
+          new js.Fun(parameters,
+              new js.Block(<js.Statement>[new js.Return(expression)]));
+      return function;
     }
 
     void addNoSuchMethodHandlers(SourceString ignore, Set<Selector> selectors) {
@@ -1660,7 +1713,9 @@ $classesCollector.$mangledName = {'':
         }
 
         if (!addedJsNames.contains(jsName)) {
-          CodeBuffer jsCode = generateMethod(methodName, selector);
+          js.Expression method = generateMethod(methodName, selector);
+          CodeBuffer jsCode = new CodeBuffer();
+          jsCode.add(js.prettyPrint(method, compiler));
           defineInstanceMember(jsName, jsCode);
           addedJsNames.add(jsName);
         }
