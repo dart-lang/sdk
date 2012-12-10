@@ -549,7 +549,7 @@ $if DART2JS
   void _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {
       case 'beforebegin':
-        this.parent.insertBefore(node, this);
+        this.parentNode.insertBefore(node, this);
         break;
       case 'afterbegin':
         var first = this.nodes.length > 0 ? this.nodes[0] : null;
@@ -559,7 +559,7 @@ $if DART2JS
         this.nodes.add(node);
         break;
       case 'afterend':
-        this.parent.insertBefore(node, this.nextNode);
+        this.parentNode.insertBefore(node, this.nextNode);
         break;
       default:
         throw new ArgumentError("Invalid position ${where}");

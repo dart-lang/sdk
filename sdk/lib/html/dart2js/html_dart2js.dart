@@ -7489,7 +7489,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   void _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {
       case 'beforebegin':
-        this.parent.insertBefore(node, this);
+        this.parentNode.insertBefore(node, this);
         break;
       case 'afterbegin':
         var first = this.nodes.length > 0 ? this.nodes[0] : null;
@@ -7499,7 +7499,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
         this.nodes.add(node);
         break;
       case 'afterend':
-        this.parent.insertBefore(node, this.nextNode);
+        this.parentNode.insertBefore(node, this.nextNode);
         break;
       default:
         throw new ArgumentError("Invalid position ${where}");
@@ -13436,9 +13436,9 @@ class Node extends EventTarget native "*Node" {
   void remove() {
     // TODO(jacobr): should we throw an exception if parent is already null?
     // TODO(vsm): Use the native remove when available.
-    if (this.parent != null) {
-      final Node parent = this.parent;
-      parent.$dom_removeChild(this);
+    if (this.parentNode != null) {
+      final Node parent = this.parentNode;
+      parentNode.$dom_removeChild(this);
     }
   }
 
@@ -13448,7 +13448,7 @@ class Node extends EventTarget native "*Node" {
    */
   Node replaceWith(Node otherNode) {
     try {
-      final Node parent = this.parent;
+      final Node parent = this.parentNode;
       parent.$dom_replaceChild(otherNode, this);
     } catch (e) {
 
@@ -13529,9 +13529,12 @@ class Node extends EventTarget native "*Node" {
   @JSName('ownerDocument')
   final Document document;
 
+  /// @domName Node.parentElement; @docsEditable true
+  @JSName('parentElement')
+  final Element parent;
+
   /// @domName Node.parentNode; @docsEditable true
-  @JSName('parentNode')
-  final Node parent;
+  final Node parentNode;
 
   /// @domName Node.previousSibling; @docsEditable true
   @JSName('previousSibling')

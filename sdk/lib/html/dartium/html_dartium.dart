@@ -16546,9 +16546,9 @@ class Node extends EventTarget {
   void remove() {
     // TODO(jacobr): should we throw an exception if parent is already null?
     // TODO(vsm): Use the native remove when available.
-    if (this.parent != null) {
-      final Node parent = this.parent;
-      parent.$dom_removeChild(this);
+    if (this.parentNode != null) {
+      final Node parent = this.parentNode;
+      parentNode.$dom_removeChild(this);
     }
   }
 
@@ -16558,7 +16558,7 @@ class Node extends EventTarget {
    */
   Node replaceWith(Node otherNode) {
     try {
-      final Node parent = this.parent;
+      final Node parent = this.parentNode;
       parent.$dom_replaceChild(otherNode, this);
     } catch (e) {
 
@@ -16641,8 +16641,12 @@ class Node extends EventTarget {
   Document get document native "Node_ownerDocument_Getter";
 
 
+  /** @domName Node.parentElement */
+  Element get parent native "Node_parentElement_Getter";
+
+
   /** @domName Node.parentNode */
-  Node get parent native "Node_parentNode_Getter";
+  Node get parentNode native "Node_parentNode_Getter";
 
 
   /** @domName Node.previousSibling */
