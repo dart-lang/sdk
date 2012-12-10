@@ -741,10 +741,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     if (constantInterceptor == null) return node;
 
-    ConstantHandler handler = compiler.constantHandler;
     Constant constant = new ConstructedConstant(
         constantInterceptor.computeType(compiler), <Constant>[]);
-    handler.registerCompileTimeConstant(constant);
     return graph.addConstant(constant);
   }
 }

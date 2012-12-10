@@ -1068,14 +1068,59 @@ $lazyInitializerLogic
     }
   }
 
+  /**
+   * Return a function that returns true if its argument is a class
+   * that needs to be emitted.
+   */
+  Function computeClassFilter() {
+    Set<ClassElement> unneededClasses = new Set<ClassElement>();
+    // The [Bool] class is not marked as abstract, but has a factory
+    // constructor that always throws. We never need to emit it.
+    unneededClasses.add(compiler.boolClass);
+
+    JavaScriptBackend backend = compiler.backend;
+
+    // Go over specialized interceptors and then constants to know which
+    // interceptors are needed.
+    Set<ClassElement> needed = new Set<ClassElement>();
+    backend.specializedGetInterceptors.forEach(
+        (_, Collection<ClassElement> elements) {
+          needed.addAll(elements);
+        }
+    );
+
+    ConstantHandler handler = compiler.constantHandler;
+    List<Constant> constants = handler.getConstantsForEmission();
+    for (Constant constant in constants) {
+      if (constant is ConstructedConstant) {
+        Element element = constant.computeType(compiler).element;
+        if (backend.isInterceptorClass(element)) {
+          needed.add(element);
+        }
+      }
+    }
+
+    // Add unneeded interceptors to the [unneededClasses] set.
+    for (ClassElement interceptor in backend.interceptedClasses.keys) {
+      if (!needed.contains(interceptor)) {
+        unneededClasses.add(interceptor);
+      }
+    }
+
+    return (ClassElement cls) => !unneededClasses.contains(cls);
+  }
+
   void emitClasses(CodeBuffer buffer) {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
     computeRequiredTypeChecks();
+
     Set<ClassElement> instantiatedClasses =
-        compiler.codegenWorld.instantiatedClasses;
+        compiler.codegenWorld.instantiatedClasses.filter(computeClassFilter());
+
     Set<ClassElement> neededClasses =
         new Set<ClassElement>.from(instantiatedClasses);
+
     for (ClassElement element in instantiatedClasses) {
       for (ClassElement superclass = element.superclass;
            superclass != null;
