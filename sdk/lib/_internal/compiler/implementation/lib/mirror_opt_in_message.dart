@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of _js_helper;
+
 // Yeah, seriously: mirrors in dart2js are experimental...
 const String MIRROR_OPT_IN_MESSAGE = """
 
