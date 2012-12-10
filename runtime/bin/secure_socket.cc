@@ -450,6 +450,14 @@ void SSLFilter::Connect(const char* host_name,
     if (SSL_SetURL(filter_, host_name) == -1) {
       ThrowPRException("Unsuccessful SetURL call");
     }
+
+    // This disables the SSL session cache for client connections.
+    // This resolves issue 7208, but degrades performance.
+    // TODO(7230): Reenable session cache, without breaking client connections.
+    status = SSL_OptionSet(filter_, SSL_NO_CACHE, PR_TRUE);
+    if (status != SECSuccess) {
+      ThrowPRException("Failed SSL_OptionSet(NO_CACHE) call");
+    }
   }
 
   // Install bad certificate callback, and pass 'this' to it if it is called.
