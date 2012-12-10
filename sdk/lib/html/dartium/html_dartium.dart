@@ -7368,9 +7368,11 @@ class DocumentFragment extends Node {
   factory DocumentFragment.svg(String svgContent) =>
       _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
 
+  @deprecated
   List<Element> get elements => this.children;
 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
+  @deprecated
   void set elements(value) {
     this.children = value;
   }
@@ -7473,12 +7475,12 @@ class DocumentFragment extends Node {
   String get webkitdropzone => "";
   String get webkitRegionOverflow => "";
   Element get $m_firstElementChild {
-    if (elements.length > 0) {
-      return elements[0];
+    if (children.length > 0) {
+      return children[0];
     }
     return null;
   }
-  Element get $m_lastElementChild => elements.last;
+  Element get $m_lastElementChild => children.last;
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
   Element get offsetParent => null;
@@ -8806,11 +8808,14 @@ abstract class Element extends Node implements ElementTraversal {
   /**
    * Deprecated, use innerHtml instead.
    */
+  @deprecated
   String get innerHTML => this.innerHtml;
+  @deprecated
   void set innerHTML(String value) {
     this.innerHtml = value;
   }
 
+  @deprecated
   void set elements(Collection<Element> value) {
     this.children = value;
   }
@@ -8818,6 +8823,7 @@ abstract class Element extends Node implements ElementTraversal {
   /**
    * Deprecated, use [children] instead.
    */
+  @deprecated
   List<Element> get elements => this.children;
 
   /**
