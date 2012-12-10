@@ -1251,6 +1251,22 @@ void RawICData::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawMegamorphicCache* MegamorphicCache::ReadFrom(SnapshotReader* reader,
+                                                intptr_t object_id,
+                                                intptr_t tags,
+                                                Snapshot::Kind kind) {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void RawMegamorphicCache::WriteTo(SnapshotWriter* writer,
+                                  intptr_t object_id,
+                                  Snapshot::Kind kind) {
+  UNREACHABLE();
+}
+
+
 RawSubtypeTestCache* SubtypeTestCache::ReadFrom(SnapshotReader* reader,
                                                 intptr_t object_id,
                                                 intptr_t tags,

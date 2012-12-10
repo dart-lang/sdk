@@ -483,6 +483,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in the class table.
   class_table()->VisitObjectPointers(visitor);
 
+  // Visit objects in the megamorphic cache.
+  megamorphic_cache_table()->VisitObjectPointers(visitor);
+
   // Visit objects in per isolate stubs.
   StubCode::VisitObjectPointers(visitor);
 

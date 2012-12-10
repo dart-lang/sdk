@@ -167,6 +167,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     reader.ReadFullSnapshot();
     if (FLAG_trace_isolates) {
       isolate->heap()->PrintSizes();
+      isolate->megamorphic_cache_table()->PrintSizes();
     }
     if (FLAG_print_bootstrap) {
       PrintLibrarySources(isolate);
@@ -174,6 +175,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
 
   StubCode::Init(isolate);
+  isolate->megamorphic_cache_table()->InitMissHandler();
   isolate->heap()->EnableGrowthControl();
   isolate->set_init_callback_data(data);
   if (FLAG_print_class_table) {
@@ -187,6 +189,7 @@ void Dart::ShutdownIsolate() {
   Isolate* isolate = Isolate::Current();
   if (FLAG_trace_isolates) {
     isolate->heap()->PrintSizes();
+    isolate->megamorphic_cache_table()->PrintSizes();
   }
   void* callback_data = isolate->init_callback_data();
   isolate->Shutdown();

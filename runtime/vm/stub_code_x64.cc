@@ -529,6 +529,45 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
+  AssemblerMacros::EnterStubFrame(assembler);
+  // Load the receiver into RAX.  The argument count in the arguments
+  // descriptor in R10 is a smi.
+  __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  // Two words (return addres, saved fp) in the stack above the last argument.
+  __ movq(RAX, Address(RSP, RAX, TIMES_4, 2 * kWordSize));
+  // Preserve IC data and arguments descriptor.
+  __ pushq(RBX);
+  __ pushq(R10);
+
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Instructions::null()));
+  __ pushq(raw_null);  // Space for the result of the runtime call.
+  __ pushq(RAX);  // Receiver.
+  __ pushq(RBX);  // IC data.
+  __ pushq(R10);  // Arguments descriptor.
+  __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry);
+  // Discard arguments.
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);  // Return value from the runtime call (instructions).
+  __ popq(R10);  // Restore arguments descriptor.
+  __ popq(RBX);  // Restore IC data.
+  __ LeaveFrame();
+
+  Label lookup;
+  __ cmpq(RAX, raw_null);
+  __ j(EQUAL, &lookup, Assembler::kNearJump);
+  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RAX);
+
+  __ Bind(&lookup);
+  __ jmp(&StubCode::InstanceFunctionLookupLabel());
+}
+
+
+
 // Called for inline allocation of arrays.
 // Input parameters:
 //   R10 : Array length as Smi.

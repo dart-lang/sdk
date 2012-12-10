@@ -159,6 +159,8 @@ class StubCode {
   static const intptr_t kNoInstantiator = 0;
 
  private:
+  friend class MegamorphicCacheTable;
+
   static const intptr_t kStubCodeSize = 4 * KB;
 
 #define STUB_CODE_GENERATE(name)                                               \
@@ -184,6 +186,7 @@ class StubCode {
   static RawCode* Generate(const char* name,
                            void (*GenerateStub)(Assembler* assembler));
 
+  static void GenerateMegamorphicMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(Assembler* assembler,
                                              const Class& cls);
   static void GenerateAllocationStubForClosure(Assembler* assembler,

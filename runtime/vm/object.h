@@ -294,6 +294,9 @@ class Object {
   }
   static RawClass* unwind_error_class() { return unwind_error_class_; }
   static RawClass* icdata_class() { return icdata_class_; }
+  static RawClass* megamorphic_cache_class() {
+    return megamorphic_cache_class_;
+  }
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
   static RawError* Init(Isolate* isolate);
@@ -428,6 +431,7 @@ class Object {
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
   static RawClass* icdata_class_;  // Class of ICData.
+  static RawClass* megamorphic_cache_class_;  // Class of MegamorphiCache.
   static RawClass* subtypetestcache_class_;  // Class of SubtypeTestCache.
   static RawClass* api_error_class_;  // Class of ApiError.
   static RawClass* language_error_class_;  // Class of LanguageError.
@@ -2929,6 +2933,59 @@ class ICData : public Object {
 
   HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
+};
+
+
+class MegamorphicCache : public Object {
+ public:
+  static const int kInitialCapacity = 16;
+  static const double kLoadFactor = 0.75;
+
+  RawArray* buckets() const;
+  void set_buckets(const Array& buckets) const;
+
+  intptr_t mask() const;
+  void set_mask(intptr_t mask) const;
+
+  intptr_t filled_entry_count() const;
+  void set_filled_entry_count(intptr_t num) const;
+
+  static intptr_t buckets_offset() {
+    return OFFSET_OF(RawMegamorphicCache, buckets_);
+  }
+  static intptr_t mask_offset() {
+    return OFFSET_OF(RawMegamorphicCache, mask_);
+  }
+
+  static RawMegamorphicCache* New();
+
+  void EnsureCapacity() const;
+
+  void Insert(const Smi& class_id, const Function& target) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawMegamorphicCache));
+  }
+
+ private:
+  friend class Class;
+
+  enum {
+    kClassIdIndex,
+    kTargetFunctionIndex,
+    kEntryLength,
+  };
+
+  static inline void SetEntry(const Array& array,
+                              intptr_t index,
+                              const Smi& class_id,
+                              const Function& target);
+
+  static inline RawObject* GetClassId(const Array& array, intptr_t index);
+  static inline RawObject* GetTargetFunction(const Array& array,
+                                             intptr_t index);
+
+  HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache, Object);
 };
 
 
@@ -6066,6 +6123,26 @@ bool String::Equals(const String& str,
     }
   }
   return true;
+}
+
+
+void MegamorphicCache::SetEntry(const Array& array,
+                                intptr_t index,
+                                const Smi& class_id,
+                                const Function& target) {
+  array.SetAt((index * kEntryLength) + kClassIdIndex, class_id);
+  array.SetAt((index * kEntryLength) + kTargetFunctionIndex, target);
+}
+
+
+RawObject* MegamorphicCache::GetClassId(const Array& array, intptr_t index) {
+  return array.At((index * kEntryLength) + kClassIdIndex);
+}
+
+
+RawObject* MegamorphicCache::GetTargetFunction(const Array& array,
+                                               intptr_t index) {
+  return array.At((index * kEntryLength) + kTargetFunctionIndex);
 }
 
 }  // namespace dart

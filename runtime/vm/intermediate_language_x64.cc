@@ -363,9 +363,9 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label check_identity;
   __ cmpq(Address(RSP, 0 * kWordSize), raw_null);
-  __ j(EQUAL, &check_identity, Assembler::kNearJump);
+  __ j(EQUAL, &check_identity);
   __ cmpq(Address(RSP, 1 * kWordSize), raw_null);
-  __ j(EQUAL, &check_identity, Assembler::kNearJump);
+  __ j(EQUAL, &check_identity);
 
   ICData& equality_ic_data = ICData::ZoneHandle(original_ic_data.raw());
   if (compiler->is_optimizing() && FLAG_propagate_ic_data) {

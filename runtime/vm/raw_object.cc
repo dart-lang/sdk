@@ -552,6 +552,14 @@ intptr_t RawICData::VisitICDataPointers(RawICData* raw_obj,
 }
 
 
+intptr_t RawMegamorphicCache::VisitMegamorphicCachePointers(
+    RawMegamorphicCache* raw_obj,
+    ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return MegamorphicCache::InstanceSize();
+}
+
+
 intptr_t RawSubtypeTestCache::VisitSubtypeTestCachePointers(
     RawSubtypeTestCache* raw_obj, ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.

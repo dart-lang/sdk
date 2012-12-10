@@ -533,6 +533,44 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
+  AssemblerMacros::EnterStubFrame(assembler);
+  // Load the receiver into EAX.  The argument count in the arguments
+  // descriptor in EDX is a smi.
+  __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
+  // Two words (return addres, saved fp) in the stack above the last argument.
+  __ movl(EAX, Address(ESP, EAX, TIMES_2, 2 * kWordSize));
+  // Preserve IC data and arguments descriptor.
+  __ pushl(ECX);
+  __ pushl(EDX);
+
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Instructions::null()));
+  __ pushl(raw_null);  // Space for the result of the runtime call.
+  __ pushl(EAX);  // Pass receiver.
+  __ pushl(ECX);  // Pass IC data.
+  __ pushl(EDX);  // Pass rguments descriptor.
+  __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry);
+  // Discard arguments.
+  __ popl(EAX);
+  __ popl(EAX);
+  __ popl(EAX);
+  __ popl(EAX);  // Return value from the runtime call (instructions).
+  __ popl(EDX);  // Restore arguments descriptor.
+  __ popl(ECX);  // Restore IC data.
+  __ LeaveFrame();
+
+  Label lookup;
+  __ cmpl(EAX, raw_null);
+  __ j(EQUAL, &lookup, Assembler::kNearJump);
+  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(EAX);
+
+  __ Bind(&lookup);
+  __ jmp(&StubCode::InstanceFunctionLookupLabel());
+}
+
+
 // Called for inline allocation of arrays.
 // Input parameters:
 //   EDX : Array length as Smi.

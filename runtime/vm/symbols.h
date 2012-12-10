@@ -96,6 +96,7 @@ class ObjectPointerVisitor;
   V(Context, "Context")                                                        \
   V(ContextScope, "ContextScope")                                              \
   V(ICData, "ICData")                                                          \
+  V(MegamorphicCache, "MegamorphicCache")                                      \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
   V(ApiError, "ApiError")                                                      \
   V(LanguageError, "LanguageError")                                            \

@@ -1098,6 +1098,73 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
 }
 
 
+void FlowGraphCompiler::EmitMegamorphicInstanceCall(
+    const ICData& ic_data,
+    const Array& arguments_descriptor,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
+  const String& name = String::Handle(ic_data.target_name());
+  const MegamorphicCache& cache =
+      MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
+  Label not_smi, load_cache;
+  __ movl(EAX, Address(ESP, (argument_count - 1) * kWordSize));
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+  __ movl(EAX, Immediate(Smi::RawValue(kSmiCid)));
+  __ jmp(&load_cache);
+
+  __ Bind(&not_smi);
+  __ LoadClassId(EAX, EAX);
+  __ SmiTag(EAX);
+
+  // EAX: class ID of the receiver (smi).
+  __ Bind(&load_cache);
+  __ LoadObject(EBX, cache);
+  __ movl(EDI, FieldAddress(EBX, MegamorphicCache::buckets_offset()));
+  __ movl(EBX, FieldAddress(EBX, MegamorphicCache::mask_offset()));
+  // EDI: cache buckets array.
+  // EBX: mask.
+  __ movl(ECX, EAX);
+
+  Label loop, update, call_target_function;
+  __ jmp(&loop);
+
+  __ Bind(&update);
+  __ addl(ECX, Immediate(Smi::RawValue(1)));
+  __ Bind(&loop);
+  __ andl(ECX, EBX);
+  const intptr_t base = Array::data_offset();
+  // ECX is smi tagged, but table entries are two words, so TIMES_4.
+  __ movl(EDX, FieldAddress(EDI, ECX, TIMES_4, base));
+
+  ASSERT(kIllegalCid == 0);
+  __ testl(EDX, EDX);
+  __ j(ZERO, &call_target_function, Assembler::kNearJump);
+  __ cmpl(EDX, EAX);
+  __ j(NOT_EQUAL, &update, Assembler::kNearJump);
+
+  __ Bind(&call_target_function);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
+  __ movl(EAX, FieldAddress(EAX, Function::code_offset()));
+  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  __ LoadObject(ECX, ic_data);
+  __ LoadObject(EDX, arguments_descriptor);
+  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ call(EAX);
+  AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
+  AddDeoptIndexAtCall(deopt_id, token_pos);
+  __ Drop(argument_count);
+}
+
+
 void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        const Array& arguments_descriptor,
                                        intptr_t argument_count,

@@ -7,10 +7,11 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/class_table.h"
 #include "platform/thread.h"
 #include "vm/base_isolate.h"
+#include "vm/class_table.h"
 #include "vm/gc_callbacks.h"
+#include "vm/megamorphic_cache_table.h"
 #include "vm/store_buffer.h"
 #include "vm/timer.h"
 
@@ -112,6 +113,10 @@ class Isolate : public BaseIsolate {
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
+  }
+
+  MegamorphicCacheTable* megamorphic_cache_table() {
+    return &megamorphic_cache_table_;
   }
 
   Dart_MessageNotifyCallback message_notify_callback() const {
@@ -343,6 +348,7 @@ class Isolate : public BaseIsolate {
   StoreBufferBlock store_buffer_block_;
   StoreBuffer store_buffer_;
   ClassTable class_table_;
+  MegamorphicCacheTable megamorphic_cache_table_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   Dart_Port main_port_;

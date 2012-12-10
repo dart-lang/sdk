@@ -534,24 +534,25 @@ void FlowGraphCompiler::GenerateInstanceCall(
                               argument_count, deopt_id, token_pos, locs);
     return;
   }
+
   if (is_optimizing()) {
-    // Megamorphic call requires one argument ICData.
-    ASSERT(ic_data.num_args_tested() == 1);
-    label_address = StubCode::MegamorphicCallEntryPoint();
-  } else {
-    switch (ic_data.num_args_tested()) {
-      case 1:
-        label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
-        break;
-      case 2:
-        label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
-        break;
-      case 3:
-        label_address = StubCode::ThreeArgsCheckInlineCacheEntryPoint();
-        break;
-      default:
-        UNIMPLEMENTED();
-    }
+    EmitMegamorphicInstanceCall(ic_data, arguments_descriptor, argument_count,
+                                deopt_id, token_pos, locs);
+    return;
+  }
+
+  switch (ic_data.num_args_tested()) {
+    case 1:
+      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
+      break;
+    case 2:
+      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
+      break;
+    case 3:
+      label_address = StubCode::ThreeArgsCheckInlineCacheEntryPoint();
+      break;
+    default:
+      UNIMPLEMENTED();
   }
   ExternalLabel target_label("InlineCache", label_address);
   EmitInstanceCall(&target_label, ic_data, arguments_descriptor, argument_count,

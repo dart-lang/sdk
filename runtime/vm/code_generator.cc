@@ -1000,6 +1000,64 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 5) {
 }
 
 
+// Handle a miss of a megamorphic cache.
+//   Arg0: Receiver.
+//   Arg1: ICData object.
+//   Arg2: Arguments descriptor array.
+
+//   Returns: target instructions to call or null if the
+// InstanceFunctionLookup stub should be used (e.g., to invoke no such
+// method and implicit closures)..
+DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
+  ASSERT(arguments.ArgCount() ==
+     kMegamorphicCacheMissHandlerRuntimeEntry.argument_count());
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
+  const Array& descriptor = Array::CheckedHandle(arguments.ArgAt(2));
+  const String& name = String::Handle(ic_data.target_name());
+  const MegamorphicCache& cache = MegamorphicCache::Handle(
+      isolate->megamorphic_cache_table()->Lookup(name, descriptor));
+  Class& cls = Class::Handle(receiver.clazz());
+  // For lookups treat null as an instance of class Object.
+  if (cls.IsNullClass()) {
+    cls = isolate->object_store()->object_class();
+  }
+  ASSERT(!cls.IsNull());
+  if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
+    OS::Print("Megamorphic IC miss, class=%s, function=%s\n",
+              cls.ToCString(), name.ToCString());
+  }
+
+  intptr_t arg_count =
+      Smi::Cast(Object::Handle(descriptor.At(0))).Value();
+  intptr_t named_arg_count =
+      arg_count - Smi::Cast(Object::Handle(descriptor.At(1))).Value();
+  const Function& target = Function::Handle(
+      Resolver::ResolveDynamicForReceiverClass(cls,
+                                               name,
+                                               arg_count,
+                                               named_arg_count));
+
+  Instructions& instructions = Instructions::Handle();
+  if (!target.IsNull()) {
+    if (!target.HasCode()) {
+      const Error& error =
+          Error::Handle(Compiler::CompileFunction(target));
+      if (!error.IsNull()) Exceptions::PropagateError(error);
+    }
+    ASSERT(target.HasCode());
+    instructions = Code::Handle(target.CurrentCode()).instructions();
+  }
+  arguments.SetReturn(instructions);
+  if (instructions.IsNull()) return;
+
+  cache.EnsureCapacity();
+  const Smi& class_id = Smi::Handle(Smi::New(cls.id()));
+  cache.Insert(class_id, target);
+  return;
+}
+
+
 // Updates IC data for two arguments. Used by the equality operation when
 // the control flow bypasses regular inline cache (null arguments).
 //   Arg0: Receiver object.

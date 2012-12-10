@@ -1102,6 +1102,73 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
 }
 
 
+void FlowGraphCompiler::EmitMegamorphicInstanceCall(
+    const ICData& ic_data,
+    const Array& arguments_descriptor,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
+  const String& name = String::Handle(ic_data.target_name());
+  const MegamorphicCache& cache =
+      MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
+  Label not_smi, load_cache;
+  __ movq(RAX, Address(RSP, (argument_count - 1) * kWordSize));
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+  __ movq(RAX, Immediate(Smi::RawValue(kSmiCid)));
+  __ jmp(&load_cache);
+
+  __ Bind(&not_smi);
+  __ LoadClassId(RAX, RAX);
+  __ SmiTag(RAX);
+
+  // RAX: class ID of the receiver (smi).
+  __ Bind(&load_cache);
+  __ LoadObject(RBX, cache);
+  __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
+  __ movq(RBX, FieldAddress(RBX, MegamorphicCache::mask_offset()));
+  // RDI: cache buckets array.
+  // RBX: mask.
+  __ movq(RCX, RAX);
+
+  Label loop, update, call_target_function;
+  __ jmp(&loop);
+
+  __ Bind(&update);
+  __ addq(RCX, Immediate(Smi::RawValue(1)));
+  __ Bind(&loop);
+  __ andq(RCX, RBX);
+  const intptr_t base = Array::data_offset();
+  // RCX is smi tagged, but table entries are two words, so TIMES_8.
+  __ movq(RDX, FieldAddress(RDI, RCX, TIMES_8, base));
+
+  ASSERT(kIllegalCid == 0);
+  __ testq(RDX, RDX);
+  __ j(ZERO, &call_target_function, Assembler::kNearJump);
+  __ cmpq(RDX, RAX);
+  __ j(NOT_EQUAL, &update, Assembler::kNearJump);
+
+  __ Bind(&call_target_function);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
+  __ movq(RAX, FieldAddress(RAX, Function::code_offset()));
+  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
+  __ LoadObject(RBX, ic_data);
+  __ LoadObject(R10, arguments_descriptor);
+  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ call(RAX);
+  AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
+  AddDeoptIndexAtCall(deopt_id, token_pos);
+  __ Drop(argument_count);
+}
+
+
 void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        const Array& arguments_descriptor,
                                        intptr_t argument_count,

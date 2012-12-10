@@ -37,6 +37,7 @@ DECLARE_RUNTIME_ENTRY(Instanceof);
 DECLARE_RUNTIME_ENTRY(InstantiateTypeArguments);
 DECLARE_RUNTIME_ENTRY(InvokeImplicitClosureFunction);
 DECLARE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction);
+DECLARE_RUNTIME_ENTRY(MegamorphicCacheMissHandler);
 DECLARE_RUNTIME_ENTRY(OptimizeInvokedFunction);
 DECLARE_RUNTIME_ENTRY(TraceICCall);
 DECLARE_RUNTIME_ENTRY(PatchStaticCall);
