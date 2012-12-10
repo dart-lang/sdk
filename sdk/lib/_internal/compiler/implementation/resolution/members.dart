@@ -518,12 +518,13 @@ class ResolverTask extends CompilerTask {
 
     Element otherMember = holder.lookupLocalMember(name);
     if (otherMember != null) {
-      compiler.onDeprecatedFeature(member, 'conflicting constructor');
-      compiler.reportMessage(
-          compiler.spanFromElement(otherMember),
-          MessageKind.GENERIC.error(['This member conflicts with a'
-                                     ' constructor.']),
-          Diagnostic.INFO);
+      if (compiler.onDeprecatedFeature(member, 'conflicting constructor')) {
+        compiler.reportMessage(
+            compiler.spanFromElement(otherMember),
+            MessageKind.GENERIC.error(['This member conflicts with a'
+                                       ' constructor.']),
+            Diagnostic.INFO);
+      }
     }
   }
 

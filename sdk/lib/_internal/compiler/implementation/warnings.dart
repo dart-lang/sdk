@@ -293,6 +293,9 @@ class MessageKind {
   static const LIBRARY_NAME_MISMATCH = const MessageKind(
       'Warning: expected part of library name "#{1}".');
 
+  static const MISSING_PART_OF_TAG = const MessageKind(
+      'Note: This file has no part-of tag, but it is being used as a part.');
+
   static const DUPLICATED_PART_OF = const MessageKind(
       'Error: duplicated part-of directive.');
 

@@ -771,12 +771,13 @@ abstract class Compiler implements DiagnosticListener {
     reportDiagnostic(span, "$message", kind);
   }
 
-  void onDeprecatedFeature(Spannable span, String feature) {
+  /// Returns true if a diagnostic was emitted.
+  bool onDeprecatedFeature(Spannable span, String feature) {
     if (currentElement == null)
       throw new SpannableAssertionFailure(span, feature);
     if (!checkDeprecationInSdk &&
         currentElement.getLibrary().isPlatformLibrary) {
-      return;
+      return false;
     }
     var kind = rejectDeprecatedFeatures
         ? api.Diagnostic.ERROR : api.Diagnostic.WARNING;
@@ -784,6 +785,7 @@ abstract class Compiler implements DiagnosticListener {
         ? MessageKind.DEPRECATED_FEATURE_ERROR.error([feature])
         : MessageKind.DEPRECATED_FEATURE_WARNING.error([feature]);
     reportMessage(spanFromSpannable(span), message, kind);
+    return true;
   }
 
   void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind);
@@ -810,7 +812,7 @@ abstract class Compiler implements DiagnosticListener {
     if (Elements.isErroneousElement(element)) {
       element = element.enclosingElement;
     }
-    if (element.position() == null) {
+    if (element.position() == null && !element.isCompilationUnit()) {
       // Sometimes, the backend fakes up elements that have no
       // position. So we use the enclosing element instead. It is
       // not a good error location, but cancel really is "internal

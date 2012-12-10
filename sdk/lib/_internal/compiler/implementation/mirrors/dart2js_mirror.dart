@@ -199,7 +199,7 @@ class Dart2JsDiagnosticListener implements DiagnosticListener {
     throw 'unimplemented';
   }
 
-  void onDeprecatedFeature(Spannable span, String feature) {
+  bool onDeprecatedFeature(Spannable span, String feature) {
     // TODO(johnniwinther): implement this?
     throw 'unimplemented';
   }

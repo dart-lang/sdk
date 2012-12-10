@@ -16,15 +16,19 @@ main() {
     if (uri == null) {
       messages.add('$kind: $message\n');
     } else {
-      Expect.equals('main:', '$uri');
-      messages.add('$begin<${TEST_SOURCE.substring(begin, end)}>:$kind: '
-                   '$message\n');
+      Expect.equals('main:${uri.path}', '$uri');
+      String source = TEST_SOURCE[uri.path];
+      Expect.isNotNull(source);
+      messages.add('$begin<${source.substring(begin, end)}>:${uri.path}:'
+                   '$kind: $message\n');
     }
   }
 
   Future<String> provider(Uri uri) {
     if (uri.scheme != "main") return dummy.provider(uri);
-    return (new Completer<String>()..complete(TEST_SOURCE)).future;
+    String source = TEST_SOURCE[uri.path];
+    Expect.isNotNull(source);
+    return (new Completer<String>()..complete(source)).future;
   }
 
   String code = compile(new Uri.fromComponents(scheme: 'main'),
@@ -37,28 +41,32 @@ main() {
   Expect.stringEquals(
       // This string is comprised of lines of the following format:
       //
-      // offset<source>:kind: message
+      // offset<source>:path:kind: message
       //
       // "offset" is the character offset from the beginning of TEST_SOURCE.
       // "source" is the substring of TEST_SOURCE that the compiler is
       // indicating as erroneous.
+      // "path" is the URI path.
       // "kind" is the result of calling toString on a [Diagnostic] object.
       // "message" is the expected message as a [String].  This is a
       // short-term solution and should eventually changed to include
       // a symbolic reference to a MessageKind.
-      "0<#library('test');>:${deprecatedMessage('# tags')}\n"
-      "19<interface>:${deprecatedMessage('interface declarations')}\n"
-      "144<Fisk>:${deprecatedMessage('interface factories')}\n"
+      "0<#library('test');>::${deprecatedMessage('# tags')}\n"
+      "38<interface>::${deprecatedMessage('interface declarations')}\n"
+      "19<part 'part.dart';>::${deprecatedMessage('missing part-of tag')}\n"
+      "0<>:/part.dart:info: Note: This file has no part-of tag, but it is being"
+      " used as a part.\n"
+      "163<Fisk>::${deprecatedMessage('interface factories')}\n"
 
       // TODO(ahe): Should be <Fisk.hest>.
-      "164<Fisk>:${deprecatedMessage('interface factories')}\n"
+      "183<Fisk>::${deprecatedMessage('interface factories')}\n"
 
       // TODO(ahe): Should be <bar>.
-      "90<Foo>:${deprecatedMessage('conflicting constructor')}\n"
+      "109<Foo>::${deprecatedMessage('conflicting constructor')}\n"
 
-      "110<bar>:info: This member conflicts with a constructor.\n"
-      "181<Dynamic>:${deprecatedMessage('Dynamic')}\n"
-      "202<()>:${deprecatedMessage('getter parameters')}\n",
+      "129<bar>::info: This member conflicts with a constructor.\n"
+      "200<Dynamic>::${deprecatedMessage('Dynamic')}\n"
+      "221<()>::${deprecatedMessage('getter parameters')}\n",
       messages.toString());
 }
 
@@ -68,8 +76,11 @@ deprecatedMessage(feature) {
     ", will be removed in a future Dart milestone.";
 }
 
-const String TEST_SOURCE = """
+const Map<String, String> TEST_SOURCE =
+  const <String, String>{ '': """
 #library('test');
+
+part 'part.dart';
 
 interface Fisk default Foo {
   Fisk();
@@ -91,4 +102,7 @@ main() {
   new Fisk();
   new Fisk.hest();
 }
-""";
+""",
+    // TODO(ahe): Why isn't this 'part.dart'? Why the leading slash?
+    '/part.dart': '',
+  };
