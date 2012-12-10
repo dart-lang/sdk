@@ -478,7 +478,7 @@ class ClosureTranslator extends Visitor {
   }
 
   /** Returns a non-unique name for the given closure element. */
-  String closureName(Element element) {
+  String computeClosureName(Element element) {
     Link<String> parts = const Link<String>();
     SourceString ownName = element.name;
     if (ownName == null || ownName.stringValue == "") {
@@ -505,7 +505,7 @@ class ClosureTranslator extends Visitor {
   }
 
   ClosureClassMap globalizeClosure(FunctionExpression node, Element element) {
-    SourceString closureName = new SourceString(closureName(element));
+    SourceString closureName = new SourceString(computeClosureName(element));
     ClassElement globalizedElement = new ClosureClassElement(
         closureName, compiler, element, element.getCompilationUnit());
     FunctionElement callElement =
