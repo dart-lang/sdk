@@ -436,9 +436,8 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   }
   const Class& target_class = Class::Handle(type.type_class());
   String& target_class_name = String::Handle(target_class.Name());
-  const String& period = String::Handle(Symbols::Dot());
   String& target_name = String::Handle(
-      String::Concat(target_class_name, period));
+      String::Concat(target_class_name, Symbols::DotHandle()));
   const String& identifier = String::Handle(factory.RedirectionIdentifier());
   if (!identifier.IsNull()) {
     target_name = String::Concat(target_name, identifier);

@@ -223,8 +223,8 @@ RawObject* DartLibraryCalls::ExceptionCreate(
   constructor_arguments.Add(&Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   constructor_arguments.AddArray(arguments);
 
-  const String& period = String::Handle(Symbols::Dot());
-  String& constructor_name = String::Handle(String::Concat(class_name, period));
+  String& constructor_name = String::Handle(
+      String::Concat(class_name, Symbols::DotHandle()));
   Function& constructor =
       Function::Handle(cls.LookupConstructor(constructor_name));
   ASSERT(!constructor.IsNull());

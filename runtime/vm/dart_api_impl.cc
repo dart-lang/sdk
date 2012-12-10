@@ -2745,8 +2745,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
     // Case 4.  Lookup the function with a . appended to find the
     // unnamed constructor.
     if (func.IsNull()) {
-      const String& dot = String::Handle(Symbols::Dot());
-      tmp_name = String::Concat(func_name, dot);
+      tmp_name = String::Concat(func_name, Symbols::DotHandle());
       func = cls.LookupFunction(tmp_name);
     }
   } else if (obj.IsLibrary()) {
@@ -3313,8 +3312,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   if (name_obj.IsNull()) {
     dot_name = Symbols::Dot();
   } else if (name_obj.IsString()) {
-    const String& dot = String::Handle(isolate, Symbols::Dot());
-    dot_name = String::Concat(dot, String::Cast(name_obj));
+    dot_name = String::Concat(Symbols::DotHandle(), String::Cast(name_obj));
   } else {
     RETURN_TYPE_ERROR(isolate, constructor_name, String);
   }

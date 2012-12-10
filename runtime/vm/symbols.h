@@ -145,6 +145,9 @@ class ObjectPointerVisitor;
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
 
+#define PREDEFINED_SYMBOL_HANDLES_LIST(V)                                      \
+  V(Dot)                                                                       \
+
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates
 // without having to maintain copies in each isolate.
@@ -170,6 +173,12 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   static RawString* symbol() { return predefined_[k##symbol]; }
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
 #undef DEFINE_SYMBOL_ACCESSOR
+
+  // Access methods for symbol handles stored in the vm isolate.
+#define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol)                                  \
+  static const String& symbol##Handle() { return *symbol##_handle_; }
+PREDEFINED_SYMBOL_HANDLES_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
+#undef DEFINE_SYMBOL_HANDLE_ACCESSOR
 
   // Initialize frequently used symbols in the vm isolate.
   static void InitOnce(Isolate* isolate);
@@ -255,6 +264,15 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
 
   // List of symbols that are stored in the vm isolate for easy access.
   static RawString* predefined_[kMaxId];
+
+  // Structure for managing handles allocation for symbols that are
+  // stored in the vm isolate.
+  static VMHandles predefined_handles_;
+
+#define DECLARE_SYMBOL_HANDLE(symbol)                                          \
+  static String* symbol##_handle_;
+PREDEFINED_SYMBOL_HANDLES_LIST(DECLARE_SYMBOL_HANDLE)
+#undef DECLARE_SYMBOL_HANDLE
 
   friend class String;
   friend class SnapshotReader;

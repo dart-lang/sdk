@@ -4,6 +4,8 @@
 
 #include "vm/symbols.h"
 
+#include "vm/handles.h"
+#include "vm/handles_impl.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -15,6 +17,12 @@
 namespace dart {
 
 RawString* Symbols::predefined_[Symbols::kMaxId];
+VMHandles Symbols::predefined_handles_;
+
+#define DEFINE_SYMBOL_HANDLE(symbol)                                           \
+  String* Symbols::symbol##_handle_ = NULL;
+PREDEFINED_SYMBOL_HANDLES_LIST(DEFINE_SYMBOL_HANDLE)
+#undef DEFINE_SYMBOL_HANDLE
 
 static const char* names[] = {
   NULL,
@@ -59,6 +67,13 @@ void Symbols::InitOnce(Isolate* isolate) {
     ASSERT(kMaxPredefinedId + c < kMaxId);
     predefined_[kMaxPredefinedId + c] = FromUTF32(&c, 1);
   }
+
+#define INITIALIZE_SYMBOL_HANDLE(symbol)                                       \
+  symbol##_handle_ = reinterpret_cast<String*>(                                \
+      predefined_handles_.AllocateScopedHandle());                             \
+  *symbol##_handle_ = symbol();
+PREDEFINED_SYMBOL_HANDLES_LIST(INITIALIZE_SYMBOL_HANDLE)
+#undef INITIALIZE_SYMBOL_HANDLE
 }
 
 

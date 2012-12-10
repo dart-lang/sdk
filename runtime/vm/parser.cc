@@ -1589,8 +1589,7 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
     return;
   }
   String& ctor_name = String::Handle(super_class.Name());
-  String& ctor_suffix = String::Handle(Symbols::Dot());
-  ctor_name = String::Concat(ctor_name, ctor_suffix);
+  ctor_name = String::Concat(ctor_name, Symbols::DotHandle());
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   // Implicit 'this' parameter is the first argument.
   AstNode* implicit_argument = new LoadLocalNode(supercall_pos, receiver);
@@ -1630,13 +1629,12 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
   const Class& super_class = Class::Handle(cls.SuperClass());
   ASSERT(!super_class.IsNull());
   String& ctor_name = String::Handle(super_class.Name());
-  String& ctor_suffix = String::Handle(Symbols::Dot());
+  ctor_name = String::Concat(ctor_name, Symbols::DotHandle());
   if (CurrentToken() == Token::kPERIOD) {
     ConsumeToken();
-    ctor_suffix = String::Concat(
-        ctor_suffix, *ExpectIdentifier("constructor name expected"));
+    ctor_name = String::Concat(ctor_name,
+                               *ExpectIdentifier("constructor name expected"));
   }
-  ctor_name = String::Concat(ctor_name, ctor_suffix);
   if (CurrentToken() != Token::kLPAREN) {
     ErrorMsg("parameter list expected");
   }
@@ -1849,14 +1847,13 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   const intptr_t call_pos = TokenPos();
   ConsumeToken();
   String& ctor_name = String::Handle(cls.Name());
-  String& ctor_suffix = String::Handle(Symbols::Dot());
 
+  ctor_name = String::Concat(ctor_name, Symbols::DotHandle());
   if (CurrentToken() == Token::kPERIOD) {
     ConsumeToken();
-    ctor_suffix = String::Concat(
-        ctor_suffix, *ExpectIdentifier("constructor name expected"));
+    ctor_name = String::Concat(ctor_name,
+                               *ExpectIdentifier("constructor name expected"));
   }
-  ctor_name = String::Concat(ctor_name, ctor_suffix);
   if (CurrentToken() != Token::kLPAREN) {
     ErrorMsg("parameter list expected");
   }
@@ -2541,8 +2538,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ConsumeToken();  // Colon.
       ExpectToken(Token::kTHIS);
       String& redir_name = String::ZoneHandle(
-          String::Concat(members->class_name(),
-                         String::Handle(Symbols::Dot())));
+          String::Concat(members->class_name(), Symbols::DotHandle()));
       if (CurrentToken() == Token::kPERIOD) {
         ConsumeToken();
         redir_name = String::Concat(redir_name,
@@ -2948,14 +2944,13 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     }
     // We must be dealing with a constructor or named constructor.
     member.kind = RawFunction::kConstructor;
-    String& ctor_suffix = String::ZoneHandle(Symbols::Dot());
+    *member.name = String::Concat(*member.name, Symbols::DotHandle());
     if (CurrentToken() == Token::kPERIOD) {
       // Named constructor.
       ConsumeToken();
       member.constructor_name = ExpectIdentifier("identifier expected");
-      ctor_suffix = String::Concat(ctor_suffix, *member.constructor_name);
+      *member.name = String::Concat(*member.name, *member.constructor_name);
     }
-    *member.name = String::Concat(*member.name, ctor_suffix);
     // Ensure that names are symbols.
     *member.name = Symbols::New(*member.name);
     if (member.type == NULL) {
@@ -3188,7 +3183,7 @@ void Parser::AddImplicitConstructor(ClassDesc* class_desc) {
   // The implicit constructor is unnamed, has no explicit parameter,
   // and contains a supercall in the initializer list.
   String& ctor_name = String::ZoneHandle(
-    String::Concat(class_desc->class_name(), String::Handle(Symbols::Dot())));
+    String::Concat(class_desc->class_name(), Symbols::DotHandle()));
   ctor_name = Symbols::New(ctor_name);
   // The token position for the implicit constructor is the 'class'
   // keyword of the constructor's class.
@@ -4075,10 +4070,9 @@ void Parser::ParseLibraryName() {
   ConsumeToken();
   String& lib_name = *ExpectIdentifier("library name expected");
   if (CurrentToken() == Token::kPERIOD) {
-    const String& dot = String::Handle(Symbols::Dot());
     while (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
-      lib_name = String::Concat(lib_name, dot);
+      lib_name = String::Concat(lib_name, Symbols::DotHandle());
       lib_name = String::Concat(lib_name,
           *ExpectIdentifier("malformed library name"));
     }
@@ -8876,9 +8870,8 @@ static const String& BuildConstructorName(const String& type_class_name,
   // for class 'A' is labeled 'A.C', and the static function implementing the
   // unnamed constructor for class 'A' is labeled 'A.'.
   // This convention prevents users from explicitly calling constructors.
-  const String& period = String::Handle(Symbols::Dot());
   String& constructor_name =
-      String::Handle(String::Concat(type_class_name, period));
+      String::Handle(String::Concat(type_class_name, Symbols::DotHandle()));
   if (named_constructor != NULL) {
     constructor_name = String::Concat(constructor_name, *named_constructor);
   }

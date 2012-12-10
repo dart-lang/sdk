@@ -1749,7 +1749,7 @@ static bool IsRecognizedConstructor(const Function& function,
 
   const String& function_name = String::Handle(function.name());
   const String& expected_function_name = String::Handle(
-      String::Concat(expected_class_name, String::Handle(Symbols::Dot())));
+      String::Concat(expected_class_name, Symbols::DotHandle()));
   return function_name.Equals(expected_function_name);
 }
 
