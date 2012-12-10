@@ -207,7 +207,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction handleInterceptorCall(HInvokeDynamic node) {
-    if (node is !HInvokeDynamicMethod) return;
+    if (node is !HInvokeDynamicMethod) return null;
     HInstruction input = node.inputs[1];
     if (input.isString(types)
         && node.selector.name == const SourceString('toString')) {
