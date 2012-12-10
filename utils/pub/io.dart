@@ -263,8 +263,9 @@ Future<Directory> createTempDir([dir = '']) {
  */
 Future<Directory> deleteDir(dir) {
   dir = _getDirectory(dir);
-  return log.ioAsync("delete directory ${dir.path}",
-      dir.delete(recursive: true));
+
+  return _attemptRetryable(() => log.ioAsync("delete directory ${dir.path}",
+      dir.delete(recursive: true)));
 }
 
 /**
@@ -349,37 +350,40 @@ Future<Directory> renameDir(from, String to) {
   from = _getDirectory(from);
   log.io("Renaming directory ${from.path} to $to.");
 
-  if (Platform.operatingSystem != 'windows') {
-    return from.rename(to).transform((dir) {
-      log.fine("Renamed directory ${from.path} to $to.");
-      return dir;
-    });
-  }
+  return _attemptRetryable(() => from.rename(to)).transform((dir) {
+    log.fine("Renamed directory ${from.path} to $to.");
+    return dir;
+  });
+}
 
-  // On Windows, we sometimes get failures where the directory is still in use
-  // when we try to move it. To be a bit more resilient, we wait and retry a
-  // few times.
+/// On Windows, we sometimes get failures where the directory is still in use
+/// when we try to do something with it. This is usually because the OS hasn't
+/// noticed yet that a process using that directory has closed. To be a bit
+/// more resilient, we wait and retry a few times.
+///
+/// Takes a [callback] which returns a future for the operation being attempted.
+/// If that future completes with an error, it will slepp and then [callback]
+/// will be invoked again to retry the operation. It will try a few times before
+/// giving up.
+Future _attemptRetryable(Future callback()) {
+  // Only do lame retry logic on Windows.
+  if (Platform.operatingSystem != 'windows') return callback();
+
   var attempts = 0;
-  attemptRename(_) {
+  makeAttempt(_) {
     attempts++;
-    return from.rename(to).transform((dir) {
-      log.fine("Renamed directory ${from.path} to $to.");
-      return dir;
-    }).transformException((e) {
+    return callback().transformException((e) {
       if (attempts >= 10) {
-        throw 'Could not move directory "${from.path}" to "$to". Gave up '
-              'after $attempts attempts.';
+        throw 'Could not complete operation. Gave up after $attempts attempts.';
       }
 
       // Wait a bit and try again.
-      log.fine("Rename ${from.path} failed, retrying (attempt $attempts).");
-      return sleep(500).chain(attemptRename);
+      log.fine("Operation failed, retrying (attempt $attempts).");
+      return sleep(500).chain(makeAttempt);
     });
-
-    return from;
   }
 
-  return attemptRename(null);
+  return makeAttempt(null);
 }
 
 /**
@@ -998,7 +1002,12 @@ InputStream createTarGz(List contents, {baseDir}) {
     // file and pass them in via --files-from for tar and -i@filename for 7zip.
     startProcess("tar", args).then((process) {
       pipeInputToInput(process.stdout, stream);
-      process.stderr.pipe(stderr, close: false);
+
+      // Drain and discard 7zip's stderr. 7zip writes its normal output to
+      // stderr. We don't want to show that since it's meaningless.
+      // TODO(rnystrom): Should log this and display it if an actual error
+      // occurs.
+      consumeInputStream(process.stderr);
     });
     return stream;
   }
@@ -1024,7 +1033,11 @@ InputStream createTarGz(List contents, {baseDir}) {
       args = ["a", "unused", "-tgzip", "-so", tarFile];
       return startProcess(command, args);
     }).chain((process) {
-      process.stderr.pipe(stderr, close: false);
+      // Drain and discard 7zip's stderr. 7zip writes its normal output to
+      // stderr. We don't want to show that since it's meaningless.
+      // TODO(rnystrom): Should log this and display it if an actual error
+      // occurs.
+      consumeInputStream(process.stderr);
       return pipeInputToInput(process.stdout, stream);
     });
   });

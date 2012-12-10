@@ -10,6 +10,3 @@
 [ $runtime == drt || $runtime == dartium || $runtime == opera ]
 *: Skip
 
-# TODO(rnystrom): Figure out why this is failing or timing out (#7211).
-[ $system == windows ]
-pub_lish_test: Skip
