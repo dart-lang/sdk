@@ -751,12 +751,54 @@ class CanvasElement extends Element implements Element native "*HTMLCanvasElemen
     return e;
   }
 
+  /// The height of this canvas element in CSS pixels.
   /// @domName HTMLCanvasElement.height; @docsEditable true
   int height;
 
+  /// The width of this canvas element in CSS pixels.
   /// @domName HTMLCanvasElement.width; @docsEditable true
   int width;
 
+  /**
+   * Returns a data URI containing a representation of the image in the 
+   * format specified by type (defaults to 'image/png'). 
+   * 
+   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
+   * 
+   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
+   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
+   * value is used. Note: the default value varies by browser.
+   * 
+   * If the height or width of this canvas element is 0, then 'data:' is returned,
+   * representing no data.
+   * 
+   * If the type requested is not 'image/png', and the returned value is 
+   * 'data:image/png', then the requested type is not supported.
+   * 
+   * Example usage:
+   * 
+   *     CanvasElement canvas = new CanvasElement();
+   *     var ctx = canvas.context2d
+   *     ..fillStyle = "rgb(200,0,0)"
+   *     ..fillRect(10, 10, 55, 50);
+   *     var dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+   *     // The Data Uri would look similar to
+   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
+   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
+   *     //Create a new image element from the data URI.
+   *     var img = new ImageElement();
+   *     img.src = dataUrl;
+   *     document.body.children.add(img);
+   *     
+   * See also:
+   * 
+   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
+   * 
+   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
+   * 
+   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
+   */
   /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
   @JSName('toDataURL')
   String toDataUrl(String type, [num quality]) native;
@@ -770,9 +812,47 @@ class CanvasElement extends Element implements Element native "*HTMLCanvasElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * An opaque canvas object representing a gradient.
+ *
+ * Created by calling [createLinearGradient] or [createRadialGradient] on a
+ * [CanvasRenderingContext2D] object.
+ *
+ * Example usage:
+ *
+ *     var canvas = new CanvasElement(width: 600, height: 600);
+ *     var ctx = canvas.context2d;
+ *     ctx.clearRect(0, 0, 600, 600);
+ *     ctx.save();
+ *     // Create radial gradient.
+ *     CanvasGradient gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 600);
+ *     gradient.addColorStop(0, '#000');
+ *     gradient.addColorStop(1, 'rgb(255, 255, 255)');
+ *     // Assign gradients to fill.
+ *     ctx.fillStyle = gradient;
+ *     // Draw a rectangle with a gradient fill.
+ *     ctx.fillRect(0, 0, 600, 600);
+ *     ctx.save();
+ *     document.body.children.add(canvas);
+ *
+ * See also:
+ *
+ * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.
+ * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.
+ * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
+ */
 /// @domName CanvasGradient; @docsEditable true
 class CanvasGradient native "*CanvasGradient" {
 
+  /**
+   * Adds a color stop to this gradient at the offset.
+   *
+   * The [offset] can range between 0.0 and 1.0.
+   *
+   * See also:
+   *
+   * * [Multiple Color Stops](https://developer.mozilla.org/en-US/docs/CSS/linear-gradient#Gradient_with_multiple_color_stops) from MDN.
+   */
   /// @domName CanvasGradient.addColorStop; @docsEditable true
   void addColorStop(num offset, String color) native;
 }
@@ -781,6 +861,33 @@ class CanvasGradient native "*CanvasGradient" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * An opaque object representing a pattern of image, canvas, or video.
+ *
+ * Created by calling [createPattern] on a [CanvasRenderingContext2D] object.
+ *
+ * Example usage:
+ *
+ *     var canvas = new CanvasElement(width: 600, height: 600);
+ *     var ctx = canvas.context2d;
+ *     var img = new ImageElement();
+ *     // Image src needs to be loaded before pattern is applied.
+ *     img.on.load.add((event) {
+ *       // When the image is loaded, create a pattern
+ *       // from the ImageElement.
+ *       CanvasPattern pattern = ctx.createPattern(img, 'repeat');
+ *       ctx.rect(0, 0, canvas.width, canvas.height);
+ *       ctx.fillStyle = pattern;
+ *       ctx.fill();
+ *     });
+ *     img.src = "images/foo.jpg";
+ *     document.body.children.add(canvas);
+ *
+ * See also:
+ * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.
+ * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.
+ * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
+ */
 /// @domName CanvasPattern; @docsEditable true
 class CanvasPattern native "*CanvasPattern" {
 }
@@ -789,9 +896,16 @@ class CanvasPattern native "*CanvasPattern" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * A rendering context for a canvas element.
+ *
+ * This context is extended by [CanvasRenderingContext2D] and
+ * [WebGLRenderingContext].
+ */
 /// @domName CanvasRenderingContext; @docsEditable true
 class CanvasRenderingContext native "*CanvasRenderingContext" {
 
+  /// Reference to the canvas element to which this context belongs.
   /// @domName CanvasRenderingContext.canvas; @docsEditable true
   final CanvasElement canvas;
 }
@@ -5598,6 +5712,7 @@ class Document extends Node  native "*Document"
   DocumentEvents get on =>
     new DocumentEvents(this);
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.body; @docsEditable true
   @JSName('body')
   Element $dom_body;
@@ -5621,6 +5736,7 @@ class Document extends Node  native "*Document"
   /// @domName Document.domain; @docsEditable true
   final String domain;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.head; @docsEditable true
   @JSName('head')
   final HeadElement $dom_head;
@@ -5628,6 +5744,7 @@ class Document extends Node  native "*Document"
   /// @domName Document.implementation; @docsEditable true
   final DomImplementation implementation;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.lastModified; @docsEditable true
   @JSName('lastModified')
   final String $dom_lastModified;
@@ -5639,6 +5756,7 @@ class Document extends Node  native "*Document"
   /// @domName Document.readyState; @docsEditable true
   final String readyState;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.referrer; @docsEditable true
   @JSName('referrer')
   final String $dom_referrer;
@@ -5647,39 +5765,48 @@ class Document extends Node  native "*Document"
   @JSName('selectedStylesheetSet')
   String $dom_selectedStylesheetSet;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.styleSheets; @docsEditable true
   @JSName('styleSheets')
   @Returns('_StyleSheetList') @Creates('_StyleSheetList')
   final List<StyleSheet> $dom_styleSheets;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.title; @docsEditable true
   @JSName('title')
   String $dom_title;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.webkitFullscreenElement; @docsEditable true
   @JSName('webkitFullscreenElement')
   final Element $dom_webkitFullscreenElement;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.webkitFullscreenEnabled; @docsEditable true
   @JSName('webkitFullscreenEnabled')
   final bool $dom_webkitFullscreenEnabled;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.webkitHidden; @docsEditable true
   @JSName('webkitHidden')
   final bool $dom_webkitHidden;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.webkitIsFullScreen; @docsEditable true
   @JSName('webkitIsFullScreen')
   final bool $dom_webkitIsFullScreen;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.webkitPointerLockElement; @docsEditable true
   @JSName('webkitPointerLockElement')
   final Element $dom_webkitPointerLockElement;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.webkitVisibilityState; @docsEditable true
   @JSName('webkitVisibilityState')
   final String $dom_webkitVisibilityState;
 
+  /// Use the [Range] constructor instead.
   /// @domName Document.caretRangeFromPoint; @docsEditable true
   @JSName('caretRangeFromPoint')
   Range $dom_caretRangeFromPoint(int x, int y) native;
@@ -5691,6 +5818,7 @@ class Document extends Node  native "*Document"
   /// @domName Document.createDocumentFragment; @docsEditable true
   DocumentFragment createDocumentFragment() native;
 
+  /// Deprecated: use new Element.tag(tagName) instead.
   /// @domName Document.createElement; @docsEditable true
   @JSName('createElement')
   Element $dom_createElement(String tagName) native;
@@ -5719,10 +5847,12 @@ class Document extends Node  native "*Document"
   @JSName('createTouch')
   Touch _$dom_createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
+  /// Use the [TouchList] constructor isntead.
   /// @domName Document.createTouchList; @docsEditable true
   @JSName('createTouchList')
   TouchList $dom_createTouchList() native;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.elementFromPoint; @docsEditable true
   @JSName('elementFromPoint')
   Element $dom_elementFromPoint(int x, int y) native;
@@ -5734,6 +5864,7 @@ class Document extends Node  native "*Document"
   @JSName('getCSSCanvasContext')
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native;
 
+  /// Deprecated: use query("#$elementId") instead.
   /// @domName Document.getElementById; @docsEditable true
   @JSName('getElementById')
   Element $dom_getElementById(String elementId) native;
@@ -5768,23 +5899,28 @@ class Document extends Node  native "*Document"
   /// @domName Document.queryCommandValue; @docsEditable true
   String queryCommandValue(String command) native;
 
+  /// Deprecated: renamed to the shorter name [query].
   /// @domName Document.querySelector; @docsEditable true
   @JSName('querySelector')
   Element $dom_querySelector(String selectors) native;
 
+  /// Deprecated: use query("#$elementId") instead.
   /// @domName Document.querySelectorAll; @docsEditable true
   @JSName('querySelectorAll')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.webkitCancelFullScreen; @docsEditable true
   @JSName('webkitCancelFullScreen')
   void $dom_webkitCancelFullScreen() native;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.webkitExitFullscreen; @docsEditable true
   @JSName('webkitExitFullscreen')
   void $dom_webkitExitFullscreen() native;
 
+  /// Moved to [HtmlDocument].
   /// @domName Document.webkitExitPointerLock; @docsEditable true
   @JSName('webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native;
