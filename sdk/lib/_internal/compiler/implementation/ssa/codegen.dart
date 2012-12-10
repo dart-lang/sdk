@@ -1777,13 +1777,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assignVariable(variableNames.getName(node.receiver), pop());
   }
 
+  // TODO(sra): We could be more picky about when to inhibit renaming of locals
+  // - most JS strings don't contain free variables, or contain safe ones like
+  // 'Object'.  JS strings like "#.length" and "#[#]" are perfectly safe for
+  // variable renaming.  For now, be shy of any potential identifiers.
+  static final RegExp safeCodeRegExp = new RegExp(r'^[^_$a-zA-Z]*$');
+
   visitForeign(HForeign node) {
-    // TODO(sra): We could be a lot more picky about when to inhibit renaming of
-    // locals - most JS strings don't contain free variables, or contain safe
-    // ones like 'Object'.  JS strings like "#.length" and "#[#]" are perfectly
-    // safe for variable renaming.
-    inhibitVariableMinification = true;
     String code = node.code.slowToString();
+    if (!safeCodeRegExp.hasMatch(code)) {
+      inhibitVariableMinification = true;
+    }
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement(types)) {
       if (!inputs.isEmpty) {
