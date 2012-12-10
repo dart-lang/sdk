@@ -2939,7 +2939,7 @@ class ICData : public Object {
 class MegamorphicCache : public Object {
  public:
   static const int kInitialCapacity = 16;
-  static const double kLoadFactor = 0.75;
+  static const double kLoadFactor;
 
   RawArray* buckets() const;
   void set_buckets(const Array& buckets) const;

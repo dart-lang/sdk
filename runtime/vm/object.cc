@@ -109,6 +109,9 @@ RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 #undef RAW_NULL
 
 
+const double MegamorphicCache::kLoadFactor = 0.75;
+
+
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
