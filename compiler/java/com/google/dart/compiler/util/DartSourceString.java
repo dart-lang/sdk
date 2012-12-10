@@ -79,7 +79,7 @@ public class DartSourceString implements DartSource {
   @Override
   public URI getUri() {
     try {
-      return new URI(null, null, getName(), null).normalize();
+      return new URI(null, null, getName(), null, null).normalize();
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
