@@ -389,56 +389,13 @@ int Process::Start(const char* path,
   }
 
   // Setup info structures.
-  STARTUPINFOEX startup_info;
+  STARTUPINFO startup_info;
   ZeroMemory(&startup_info, sizeof(startup_info));
-  startup_info.StartupInfo.cb = sizeof(startup_info);
-  startup_info.StartupInfo.hStdInput = stdin_handles[kReadHandle];
-  startup_info.StartupInfo.hStdOutput = stdout_handles[kWriteHandle];
-  startup_info.StartupInfo.hStdError = stderr_handles[kWriteHandle];
-  startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
-
-  // Setup the handles to inherit. We only want to inherit the three handles
-  // for stdin, stdout and stderr.
-  SIZE_T size = 0;
-  // The call to determine the size of an attribute list always fails with
-  // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
-  if (!InitializeProcThreadAttributeList(NULL, 1, 0, &size) &&
-      GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    return error_code;
-  }
-  LPPROC_THREAD_ATTRIBUTE_LIST attribute_list =
-      reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
-  ZeroMemory(attribute_list, size);
-  if (!InitializeProcThreadAttributeList(attribute_list, 1, 0, &size)) {
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    free(attribute_list);
-    return error_code;
-  }
-  static const int kNumInheritedHandles = 3;
-  HANDLE inherited_handles[kNumInheritedHandles] =
-      { stdin_handles[kReadHandle],
-        stdout_handles[kWriteHandle],
-        stderr_handles[kWriteHandle] };
-  if (!UpdateProcThreadAttribute(attribute_list,
-                                 0,
-                                 PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
-                                 inherited_handles,
-                                 kNumInheritedHandles * sizeof(HANDLE),
-                                 NULL,
-                                 NULL)) {
-    DeleteProcThreadAttributeList(attribute_list);
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    free(attribute_list);
-    return error_code;
-  }
-  startup_info.lpAttributeList = attribute_list;
+  startup_info.cb = sizeof(startup_info);
+  startup_info.hStdInput = stdin_handles[kReadHandle];
+  startup_info.hStdOutput = stdout_handles[kWriteHandle];
+  startup_info.hStdError = stderr_handles[kWriteHandle];
+  startup_info.dwFlags = STARTF_USESTDHANDLES;
 
   PROCESS_INFORMATION process_info;
   ZeroMemory(&process_info, sizeof(process_info));
@@ -463,8 +420,6 @@ int Process::Start(const char* path,
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     free(const_cast<char*>(path));
     for (int i = 0; i < arguments_length; i++) free(arguments[i]);
-    DeleteProcThreadAttributeList(attribute_list);
-    free(attribute_list);
     return error_code;
   }
 
@@ -527,10 +482,10 @@ int Process::Start(const char* path,
                               NULL,   // ProcessAttributes
                               NULL,   // ThreadAttributes
                               TRUE,   // InheritHandles
-                              EXTENDED_STARTUPINFO_PRESENT,
+                              0,      // CreationFlags
                               environment_block,
                               working_directory,
-                              reinterpret_cast<STARTUPINFO*>(&startup_info),
+                              &startup_info,
                               &process_info);
 
   // Deallocate command-line and environment block strings.
@@ -539,9 +494,6 @@ int Process::Start(const char* path,
   if (working_directory != NULL) {
     free(const_cast<char*>(working_directory));
   }
-
-  DeleteProcThreadAttributeList(attribute_list);
-  free(attribute_list);
 
   if (result == 0) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
