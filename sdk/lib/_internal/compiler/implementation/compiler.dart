@@ -163,6 +163,7 @@ abstract class Compiler implements DiagnosticListener {
       if (!hasCrashed) {
         SourceSpan span = spanFromSpannable(ex.node);
         reportDiagnostic(span, ex.message, api.Diagnostic.ERROR);
+        pleaseReportCrash();
       }
       hasCrashed = true;
       throw;
@@ -305,6 +306,10 @@ abstract class Compiler implements DiagnosticListener {
     reportDiagnostic(spanFromElement(element),
                      MessageKind.COMPILER_CRASHED.error().toString(),
                      api.Diagnostic.CRASH);
+    pleaseReportCrash();
+  }
+
+  void pleaseReportCrash() {
     print(MessageKind.PLEASE_REPORT_THE_CRASH.message([BUILD_ID]));
   }
 

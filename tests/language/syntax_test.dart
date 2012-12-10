@@ -233,6 +233,10 @@ main() {
 
     new Bad();
 
+    1 + 2 = 1; /// 63: compile-time error
+    new SyntaxTest() = 1; /// 64: compile-time error
+    futureOf(null) = 1; /// 65: compile-time error
+
   } catch (ex) {
     // Swallowing exceptions. Any error should be a compile-time error
     // which kills the current isolate.
