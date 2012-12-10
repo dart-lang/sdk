@@ -396,7 +396,7 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
   function.set_parameter_types(Array::Handle(Array::New(num_params)));
   function.set_parameter_names(Array::Handle(Array::New(num_params)));
   const Type& param_type = Type::Handle(Type::DynamicType());
-  for (int i = 0; i < num_params - 1; i++) {
+  for (int i = 0; i < num_params; i++) {
     function.SetParameterTypeAt(i, param_type);
   }
   const String& native_name =
@@ -463,6 +463,55 @@ CODEGEN_TEST2_RUN(
     StaticSumCallTenFiboCodegen,
     NativeSumCodegen,
     Smi::New(0 + 1 + 1 + 2 + 3))
+
+
+// Tested Dart code:
+//   int sum(a, b, c) native: "TestNonNullSmiSum";
+// The native entry TestNonNullSmiSum implements sum natively.
+CODEGEN_TEST_GENERATE(NativeNonNullSumCodegen, test) {
+  SequenceNode* node_seq = test->node_sequence();
+  const int num_params = 3;
+  LocalScope* local_scope = node_seq->scope();
+  local_scope->AddVariable(NewTestLocalVariable("a"));
+  local_scope->AddVariable(NewTestLocalVariable("b"));
+  local_scope->AddVariable(NewTestLocalVariable("c"));
+  ASSERT(local_scope->num_variables() == num_params);
+  const Function& function = test->function();
+  function.set_is_native(true);
+  function.set_num_fixed_parameters(num_params);
+  ASSERT(!function.HasOptionalParameters());
+  function.set_parameter_types(Array::Handle(Array::New(num_params)));
+  function.set_parameter_names(Array::Handle(Array::New(num_params)));
+  const Type& param_type = Type::Handle(Type::DynamicType());
+  for (int i = 0; i < num_params; i++) {
+    function.SetParameterTypeAt(i, param_type);
+  }
+  const String& native_name =
+      String::ZoneHandle(Symbols::New("TestNonNullSmiSum"));
+  NativeFunction native_function =
+      reinterpret_cast<NativeFunction>(TestNonNullSmiSum);
+  node_seq->Add(new ReturnNode(kPos,
+                               new NativeBodyNode(kPos,
+                                                  function,
+                                                  native_name,
+                                                  native_function)));
+}
+
+
+// Tested Dart code, calling function sum declared above:
+//   return sum(1, null, 3);
+CODEGEN_TEST2_GENERATE(StaticNonNullSumCallCodegen, function, test) {
+  SequenceNode* node_seq = test->node_sequence();
+  ArgumentListNode* arguments = new ArgumentListNode(kPos);
+  arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(1))));
+  arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle()));
+  arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3))));
+  node_seq->Add(new ReturnNode(kPos,
+                               new StaticCallNode(kPos, function, arguments)));
+}
+CODEGEN_TEST2_RUN(StaticNonNullSumCallCodegen,
+                  NativeNonNullSumCodegen,
+                  Smi::New(1 + 3))
 
 
 // Test allocation of dart objects.

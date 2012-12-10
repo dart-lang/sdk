@@ -13,7 +13,7 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
-  GET_NATIVE_ARGUMENT(Array, a, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, a, arguments->NativeArgAt(0));
   // TODO(srdjan): Check that parameterized type is an int.
   Zone* zone = isolate->current_zone();
   intptr_t array_len = a.Length();
@@ -53,8 +53,8 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
 
 DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
-  GET_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
   intptr_t start = start_obj.Value();
   intptr_t end = end_obj.Value();
@@ -65,8 +65,8 @@ DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
 DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
-  GET_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
-  GET_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
   const intptr_t start = start_obj.Value();
   const intptr_t end = end_obj.Value();
@@ -79,7 +79,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
   const String& receiver = String::CheckedHandle(isolate,
                                                  arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
-  GET_NATIVE_ARGUMENT(Smi, smi_split_code, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_split_code, arguments->NativeArgAt(1));
   const intptr_t len = receiver.Length();
   const intptr_t split_code = smi_split_code.Value();
   const GrowableObjectArray& result = GrowableObjectArray::Handle(
@@ -145,7 +145,7 @@ static int32_t StringValueAt(const String& str, const Integer& index) {
 
 DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
   uint32_t value = StringValueAt(receiver, index);
   ASSERT(value <= 0x10FFFF);
   return Symbols::FromCharCode(value);
@@ -153,7 +153,7 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
 
 DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
 
   int32_t value = StringValueAt(receiver, index);
   ASSERT(value >= 0);
@@ -164,7 +164,7 @@ DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {
 
 DEFINE_NATIVE_ENTRY(String_concat, 2) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(String, b, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, b, arguments->NativeArgAt(1));
   return String::Concat(receiver, b);
 }
 
@@ -184,7 +184,7 @@ DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
-  GET_NATIVE_ARGUMENT(Array, strings, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, strings, arguments->NativeArgAt(0));
   ASSERT(!strings.IsNull());
   // Check that the array contains strings.
   Instance& elem = Instance::Handle();

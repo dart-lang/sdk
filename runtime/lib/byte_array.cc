@@ -43,111 +43,112 @@ static void LengthCheck(intptr_t len, intptr_t max) {
 }
 
 
-#define GETTER_ARGUMENTS(ArrayT, ValueT)                                \
-  GET_NATIVE_ARGUMENT(ArrayT, array, arguments->NativeArgAt(0));        \
-  GET_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
+#define GETTER_ARGUMENTS(ArrayT, ValueT)                                       \
+  GET_NON_NULL_NATIVE_ARGUMENT(ArrayT, array, arguments->NativeArgAt(0));      \
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
 
 
-#define SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT)                       \
-  GET_NATIVE_ARGUMENT(ArrayT, array, arguments->NativeArgAt(0));        \
-  GET_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));           \
-  GET_NATIVE_ARGUMENT(ObjectT, value_object, arguments->NativeArgAt(2));
+#define SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT)                              \
+  GET_NON_NULL_NATIVE_ARGUMENT(ArrayT, array, arguments->NativeArgAt(0));      \
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));         \
+  GET_NON_NULL_NATIVE_ARGUMENT(                                                \
+      ObjectT, value_object, arguments->NativeArgAt(2));
 
 
-#define GETTER(ArrayT, ObjectT, ValueT)                                 \
-  GETTER_ARGUMENTS(ArrayT, ValueT);                                     \
-  RangeCheck(array, index.Value() * sizeof(ValueT), sizeof(ValueT));    \
-  ValueT result = array.At(index.Value());                              \
+#define GETTER(ArrayT, ObjectT, ValueT)                                        \
+  GETTER_ARGUMENTS(ArrayT, ValueT);                                            \
+  RangeCheck(array, index.Value() * sizeof(ValueT), sizeof(ValueT));           \
+  ValueT result = array.At(index.Value());                                     \
   return ObjectT::New(result);
 
 
-#define SETTER(ArrayT, ObjectT, Getter, ValueT)                         \
-  SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT);                            \
-  RangeCheck(array, index.Value() * sizeof(ValueT), sizeof(ValueT));    \
-  ValueT value = value_object.Getter();                                 \
-  array.SetAt(index.Value(), value);                                    \
+#define SETTER(ArrayT, ObjectT, Getter, ValueT)                                \
+  SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT);                                   \
+  RangeCheck(array, index.Value() * sizeof(ValueT), sizeof(ValueT));           \
+  ValueT value = value_object.Getter();                                        \
+  array.SetAt(index.Value(), value);                                           \
   return Object::null();
 
 
-#define UNALIGNED_GETTER(ArrayT, ObjectT, ValueT)                       \
-  GETTER_ARGUMENTS(ArrayT, ValueT);                                     \
-  RangeCheck(array, index.Value(), sizeof(ValueT));                     \
-  ValueT result;                                                        \
-  ByteArray::Copy(&result, array, index.Value(), sizeof(ValueT));       \
+#define UNALIGNED_GETTER(ArrayT, ObjectT, ValueT)                              \
+  GETTER_ARGUMENTS(ArrayT, ValueT);                                            \
+  RangeCheck(array, index.Value(), sizeof(ValueT));                            \
+  ValueT result;                                                               \
+  ByteArray::Copy(&result, array, index.Value(), sizeof(ValueT));              \
   return ObjectT::New(result);
 
 
-#define UNALIGNED_SETTER(ArrayT, ObjectT, Getter, ValueT)               \
-  SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT);                            \
-  RangeCheck(array, index.Value(), sizeof(ValueT));                     \
-  ValueT src = value_object.Getter();                                   \
-  ByteArray::Copy(array, index.Value(), &src, sizeof(ValueT));          \
+#define UNALIGNED_SETTER(ArrayT, ObjectT, Getter, ValueT)                      \
+  SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT);                                   \
+  RangeCheck(array, index.Value(), sizeof(ValueT));                            \
+  ValueT src = value_object.Getter();                                          \
+  ByteArray::Copy(array, index.Value(), &src, sizeof(ValueT));                 \
   return Integer::New(index.Value() + sizeof(ValueT));
 
 
-#define UINT64_TO_INTEGER(value, integer)                               \
-  if (value > static_cast<uint64_t>(Mint::kMaxValue)) {                 \
-    result = BigintOperations::NewFromUint64(value);                    \
-  } else if (value > static_cast<uint64_t>(Smi::kMaxValue)) {           \
-    result = Mint::New(value);                                          \
-  } else {                                                              \
-    result = Smi::New(value);                                           \
+#define UINT64_TO_INTEGER(value, integer)                                      \
+  if (value > static_cast<uint64_t>(Mint::kMaxValue)) {                        \
+    result = BigintOperations::NewFromUint64(value);                           \
+  } else if (value > static_cast<uint64_t>(Smi::kMaxValue)) {                  \
+    result = Mint::New(value);                                                 \
+  } else {                                                                     \
+    result = Smi::New(value);                                                  \
   }
 
 
-#define GETTER_UINT64(ArrayT)                                           \
-  GETTER_ARGUMENTS(ArrayT, uint64_t);                                   \
-  intptr_t size = sizeof(uint64_t);                                     \
-  RangeCheck(array, index.Value() * size, size);                        \
-  uint64_t value = array.At(index.Value());                             \
-  Integer& result = Integer::Handle();                                  \
-  UINT64_TO_INTEGER(value, result);                                     \
+#define GETTER_UINT64(ArrayT)                                                  \
+  GETTER_ARGUMENTS(ArrayT, uint64_t);                                          \
+  intptr_t size = sizeof(uint64_t);                                            \
+  RangeCheck(array, index.Value() * size, size);                               \
+  uint64_t value = array.At(index.Value());                                    \
+  Integer& result = Integer::Handle();                                         \
+  UINT64_TO_INTEGER(value, result);                                            \
   return result.raw();
 
 
-#define UNALIGNED_GETTER_UINT64(ArrayT)                                 \
-  GETTER_ARGUMENTS(ArrayT, uint64_t);                                   \
-  RangeCheck(array, index.Value(), sizeof(uint64_t));                   \
-  uint64_t value;                                                       \
-  ByteArray::Copy(&value, array, index.Value(), sizeof(uint64_t));      \
-  Integer& result = Integer::Handle();                                  \
-  UINT64_TO_INTEGER(value, result);                                     \
+#define UNALIGNED_GETTER_UINT64(ArrayT)                                        \
+  GETTER_ARGUMENTS(ArrayT, uint64_t);                                          \
+  RangeCheck(array, index.Value(), sizeof(uint64_t));                          \
+  uint64_t value;                                                              \
+  ByteArray::Copy(&value, array, index.Value(), sizeof(uint64_t));             \
+  Integer& result = Integer::Handle();                                         \
+  UINT64_TO_INTEGER(value, result);                                            \
   return result.raw();
 
 
-#define INTEGER_TO_UINT64(integer, uint64)                              \
-  if (integer.IsBigint()) {                                             \
-    Bigint& bigint = Bigint::Handle();                                  \
-    bigint ^= integer.raw();                                            \
-    ASSERT(BigintOperations::FitsIntoUint64(bigint));                   \
-    value = BigintOperations::AbsToUint64(bigint);                      \
-  } else {                                                              \
-    ASSERT(integer.IsMint() || integer.IsSmi());                        \
-    value = integer.AsInt64Value();                                     \
-  }                                                                     \
+#define INTEGER_TO_UINT64(integer, uint64)                                     \
+  if (integer.IsBigint()) {                                                    \
+    Bigint& bigint = Bigint::Handle();                                         \
+    bigint ^= integer.raw();                                                   \
+    ASSERT(BigintOperations::FitsIntoUint64(bigint));                          \
+    value = BigintOperations::AbsToUint64(bigint);                             \
+  } else {                                                                     \
+    ASSERT(integer.IsMint() || integer.IsSmi());                               \
+    value = integer.AsInt64Value();                                            \
+  }                                                                            \
 
 
-#define SETTER_UINT64(ArrayT)                                           \
-  SETTER_ARGUMENTS(ArrayT, Integer, uint64_t);                          \
-  intptr_t size = sizeof(uint64_t);                                     \
-  RangeCheck(array, index.Value() * size, size);                        \
-  uint64_t value;                                                       \
-  INTEGER_TO_UINT64(value_object, value);                               \
-  array.SetAt(index.Value(), value);                                    \
+#define SETTER_UINT64(ArrayT)                                                  \
+  SETTER_ARGUMENTS(ArrayT, Integer, uint64_t);                                 \
+  intptr_t size = sizeof(uint64_t);                                            \
+  RangeCheck(array, index.Value() * size, size);                               \
+  uint64_t value;                                                              \
+  INTEGER_TO_UINT64(value_object, value);                                      \
+  array.SetAt(index.Value(), value);                                           \
   return Object::null();
 
 
-#define UNALIGNED_SETTER_UINT64(ArrayT)                                 \
-  SETTER_ARGUMENTS(ArrayT, Integer, uint64_t);                          \
-  RangeCheck(array, index.Value(), sizeof(uint64_t));                   \
-  uint64_t value;                                                       \
-  INTEGER_TO_UINT64(value_object, value);                               \
-  ByteArray::Copy(array, index.Value(), &value, sizeof(uint64_t));      \
+#define UNALIGNED_SETTER_UINT64(ArrayT)                                        \
+  SETTER_ARGUMENTS(ArrayT, Integer, uint64_t);                                 \
+  RangeCheck(array, index.Value(), sizeof(uint64_t));                          \
+  uint64_t value;                                                              \
+  INTEGER_TO_UINT64(value_object, value);                                      \
+  ByteArray::Copy(array, index.Value(), &value, sizeof(uint64_t));             \
   return Integer::New(index.Value() + sizeof(uint64_t));
 
 
 DEFINE_NATIVE_ENTRY(ByteArray_getLength, 1) {
-  GET_NATIVE_ARGUMENT(ByteArray, array, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(ByteArray, array, arguments->NativeArgAt(0));
   return Smi::New(array.Length());
 }
 
@@ -254,10 +255,10 @@ DEFINE_NATIVE_ENTRY(ByteArray_setFloat64, 3) {
 
 DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
   ByteArray& dst = ByteArray::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Smi, dst_start, arguments->NativeArgAt(1));
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(2));
-  GET_NATIVE_ARGUMENT(ByteArray, src, arguments->NativeArgAt(3));
-  GET_NATIVE_ARGUMENT(Smi, src_start, arguments->NativeArgAt(4));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, dst_start, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(ByteArray, src, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, src_start, arguments->NativeArgAt(4));
   intptr_t length_value = length.Value();
   intptr_t src_start_value = src_start.Value();
   intptr_t dst_start_value = dst_start.Value();
@@ -278,7 +279,7 @@ DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
 // Int8Array
 
 DEFINE_NATIVE_ENTRY(Int8Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int8Array::kMaxElements);
   return Int8Array::New(len);
@@ -286,7 +287,7 @@ DEFINE_NATIVE_ENTRY(Int8Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Int8Array_newTransferable, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int8Array::kMaxElements);
   int8_t* bytes = OS::AllocateAlignedArray<int8_t>(
@@ -312,7 +313,7 @@ DEFINE_NATIVE_ENTRY(Int8Array_setIndexed, 3) {
 // Uint8Array
 
 DEFINE_NATIVE_ENTRY(Uint8Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint8Array::kMaxElements);
   return Uint8Array::New(len);
@@ -320,7 +321,7 @@ DEFINE_NATIVE_ENTRY(Uint8Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Uint8Array_newTransferable, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint8Array::kMaxElements);
   uint8_t* bytes = OS::AllocateAlignedArray<uint8_t>(
@@ -346,7 +347,7 @@ DEFINE_NATIVE_ENTRY(Uint8Array_setIndexed, 3) {
 // Uint8ClampedArray
 
 DEFINE_NATIVE_ENTRY(Uint8ClampedArray_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint8ClampedArray::kMaxElements);
   return Uint8ClampedArray::New(len);
@@ -354,7 +355,7 @@ DEFINE_NATIVE_ENTRY(Uint8ClampedArray_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Uint8ClampedArray_newTransferable, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint8ClampedArray::kMaxElements);
   uint8_t* bytes = OS::AllocateAlignedArray<uint8_t>(
@@ -380,7 +381,7 @@ DEFINE_NATIVE_ENTRY(Uint8ClampedArray_setIndexed, 3) {
 // Int16Array
 
 DEFINE_NATIVE_ENTRY(Int16Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int16Array::kMaxElements);
   return Int16Array::New(len);
@@ -388,7 +389,7 @@ DEFINE_NATIVE_ENTRY(Int16Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Int16Array_newTransferable, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int16Array::kMaxElements);
   int16_t* bytes = OS::AllocateAlignedArray<int16_t>(
@@ -414,7 +415,7 @@ DEFINE_NATIVE_ENTRY(Int16Array_setIndexed, 3) {
 // Uint16Array
 
 DEFINE_NATIVE_ENTRY(Uint16Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint16Array::kMaxElements);
   return Uint16Array::New(len);
@@ -422,7 +423,7 @@ DEFINE_NATIVE_ENTRY(Uint16Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Uint16Array_newTransferable, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint16Array::kMaxElements);
   uint16_t* bytes = OS::AllocateAlignedArray<uint16_t>(
@@ -448,7 +449,7 @@ DEFINE_NATIVE_ENTRY(Uint16Array_setIndexed, 3) {
 // Int32Array
 
 DEFINE_NATIVE_ENTRY(Int32Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int32Array::kMaxElements);
   return Int32Array::New(len);
@@ -456,7 +457,7 @@ DEFINE_NATIVE_ENTRY(Int32Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Int32Array_newTransferable, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int32Array::kMaxElements);
   int32_t* bytes = OS::AllocateAlignedArray<int32_t>(
@@ -482,7 +483,7 @@ DEFINE_NATIVE_ENTRY(Int32Array_setIndexed, 3) {
 // Uint32Array
 
 DEFINE_NATIVE_ENTRY(Uint32Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint32Array::kMaxElements);
   return Uint32Array::New(len);
@@ -490,7 +491,7 @@ DEFINE_NATIVE_ENTRY(Uint32Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Uint32Array_newTransferable, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint32Array::kMaxElements);
   uint32_t* bytes = OS::AllocateAlignedArray<uint32_t>(
@@ -516,7 +517,7 @@ DEFINE_NATIVE_ENTRY(Uint32Array_setIndexed, 3) {
 // Int64Array
 
 DEFINE_NATIVE_ENTRY(Int64Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int64Array::kMaxElements);
   return Int64Array::New(len);
@@ -524,7 +525,7 @@ DEFINE_NATIVE_ENTRY(Int64Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Int64Array_newTransferable, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int64Array::kMaxElements);
   int64_t* bytes = OS::AllocateAlignedArray<int64_t>(
@@ -550,7 +551,7 @@ DEFINE_NATIVE_ENTRY(Int64Array_setIndexed, 3) {
 // Uint64Array
 
 DEFINE_NATIVE_ENTRY(Uint64Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint64Array::kMaxElements);
   return Uint64Array::New(len);
@@ -558,7 +559,7 @@ DEFINE_NATIVE_ENTRY(Uint64Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Uint64Array_newTransferable, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint64Array::kMaxElements);
   uint64_t* bytes = OS::AllocateAlignedArray<uint64_t>(
@@ -584,7 +585,7 @@ DEFINE_NATIVE_ENTRY(Uint64Array_setIndexed, 3) {
 // Float32Array
 
 DEFINE_NATIVE_ENTRY(Float32Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float32Array::kMaxElements);
   return Float32Array::New(len);
@@ -592,7 +593,7 @@ DEFINE_NATIVE_ENTRY(Float32Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Float32Array_newTransferable, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float32Array::kMaxElements);
   float* bytes = OS::AllocateAlignedArray<float>(
@@ -618,7 +619,7 @@ DEFINE_NATIVE_ENTRY(Float32Array_setIndexed, 3) {
 // Float64Array
 
 DEFINE_NATIVE_ENTRY(Float64Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float64Array::kMaxElements);
   return Float64Array::New(len);
@@ -626,7 +627,7 @@ DEFINE_NATIVE_ENTRY(Float64Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Float64Array_newTransferable, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float64Array::kMaxElements);
   double* bytes = OS::AllocateAlignedArray<double>(

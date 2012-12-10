@@ -125,17 +125,17 @@ DEFINE_NATIVE_ENTRY(ReceivePortImpl_factory, 1) {
 
 
 DEFINE_NATIVE_ENTRY(ReceivePortImpl_closeInternal, 1) {
-  GET_NATIVE_ARGUMENT(Smi, id, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, id, arguments->NativeArgAt(0));
   PortMap::ClosePort(id.Value());
   return Object::null();
 }
 
 
 DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 3) {
-  GET_NATIVE_ARGUMENT(Smi, send_id, arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Smi, reply_id, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, send_id, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, reply_id, arguments->NativeArgAt(1));
   // TODO(iposva): Allow for arbitrary messages to be sent.
-  GET_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(2));
 
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator);
@@ -398,7 +398,7 @@ static RawObject* Spawn(NativeArguments* arguments, SpawnState* state) {
 
 
 DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
-  GET_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
   bool throw_exception = false;
   Function& func = Function::Handle();
   if (closure.IsClosure()) {
@@ -427,7 +427,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
 
 
 DEFINE_NATIVE_ENTRY(isolate_spawnUri, 1) {
-  GET_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(0));
 
   // Canonicalize the uri with respect to the current isolate.
   char* error = NULL;

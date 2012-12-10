@@ -20,8 +20,9 @@ DEFINE_NATIVE_ENTRY(Object_toString, 1) {
 DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 3) {
   const Instance& instance =
       Instance::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(String, function_name, arguments->NativeArgAt(1));
-  GET_NATIVE_ARGUMENT(Array, func_args, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      String, function_name, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, func_args, arguments->NativeArgAt(2));
   const Object& null_object = Object::Handle(Object::null());
   GrowableArray<const Object*> dart_arguments(4);
   dart_arguments.Add(&instance);

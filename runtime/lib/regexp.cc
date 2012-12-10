@@ -15,9 +15,11 @@ namespace dart {
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
   ASSERT(AbstractTypeArguments::CheckedHandle(
       arguments->NativeArgAt(0)).IsNull());
-  GET_NATIVE_ARGUMENT(String, pattern, arguments->NativeArgAt(1));
-  GET_NATIVE_ARGUMENT(Instance, handle_multi_line, arguments->NativeArgAt(2));
-  GET_NATIVE_ARGUMENT(Instance, handle_ignore_case, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, pattern, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      Instance, handle_multi_line, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      Instance, handle_ignore_case, arguments->NativeArgAt(3));
   bool ignore_case = handle_ignore_case.raw() == Bool::True();
   bool multi_line = handle_multi_line.raw() == Bool::True();
   return Jscre::Compile(pattern, multi_line, ignore_case);
@@ -65,8 +67,8 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  GET_NATIVE_ARGUMENT(String, str, arguments->NativeArgAt(1));
-  GET_NATIVE_ARGUMENT(Smi, start_index, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, str, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_index, arguments->NativeArgAt(2));
   return Jscre::Execute(regexp, str, start_index.Value());
 }
 
