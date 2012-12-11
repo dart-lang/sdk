@@ -399,13 +399,13 @@ function(cls, desc) {
           } else {
             // [subclass] is one of the preorderDispatchClasses, so CSE this
             // reference with the previous reference.
-            if (existing is js.VariableUse &&
-                varDefns.containsKey(existing.name)) {
+            js.VariableUse use = existing.asVariableUse();
+            if (use != null && varDefns.containsKey(use.name)) {
               // We end up here if the subclasses have a DAG structure.  We
               // don't have DAGs yet, but if the dispatch is used for mixins
               // that will be a possibility.
               // Re-use the previously created temporary variable.
-              expressions.add(new js.VariableUse(existing.name));
+              expressions.add(new js.VariableUse(use.name));
             } else {
               String varName = 'v${varNames.length}_${tag.name.slowToString()}';
               varNames.add(varName);
