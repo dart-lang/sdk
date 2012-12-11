@@ -17,8 +17,6 @@ import 'oauth2.dart' as oauth2;
 import 'pub.dart';
 import 'validator.dart';
 
-// TODO(nweiz): Make "publish" the primary name for this command. See issue
-// 6949.
 /// Handles the `lish` and `publish` pub commands.
 class LishCommand extends PubCommand {
   final description = "Publish the current package to pub.dartlang.org.";
@@ -144,9 +142,8 @@ class LishCommand extends PubCommand {
       if (file == null || _BLACKLISTED_FILES.contains(basename(file))) {
         return false;
       }
-      // TODO(nweiz): Since `file` is absolute, this will break if the package
-      // itself is in a directory named "packages" (issue 7215).
-      return !splitPath(file).some(_BLACKLISTED_DIRECTORIES.contains);
+      return !splitPath(relativeTo(file, rootDir))
+          .some(_BLACKLISTED_DIRECTORIES.contains);
     }));
   }
 

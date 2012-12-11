@@ -74,7 +74,7 @@ List<String> splitPath(path) => _sanitizePath(path).split('/');
 /// performs a path comparison; it doesn't look at the actual filesystem.
 bool isBeneath(entry, dir) {
   var relative = relativeTo(entry, dir);
-  return !path.isAbsolute(relative) && !relative.startsWith('..');
+  return !path.isAbsolute(relative) && splitPath(relative)[0] != '..';
 }
 
 // TODO(nweiz): move this into path.dart.
