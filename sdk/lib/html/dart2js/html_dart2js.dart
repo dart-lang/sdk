@@ -10537,8 +10537,31 @@ class ImageElement extends Element implements Element native "*HTMLImageElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLInputElement; @docsEditable true
-class InputElement extends Element implements Element native "*HTMLInputElement" {
+/// @domName HTMLInputElement
+class InputElement extends Element implements
+    HiddenInputElement,
+    SearchInputElement,
+    TextInputElement,
+    UrlInputElement,
+    TelephoneInputElement,
+    EmailInputElement,
+    PasswordInputElement,
+    DateTimeInputElement,
+    DateInputElement,
+    MonthInputElement,
+    WeekInputElement,
+    TimeInputElement,
+    LocalDateTimeInputElement,
+    NumberInputElement,
+    RangeInputElement,
+    CheckboxInputElement,
+    RadioButtonInputElement,
+    FileUploadInputElement,
+    SubmitButtonInputElement,
+    ImageButtonInputElement,
+    ResetButtonInputElement,
+    ButtonInputElement
+     native "*HTMLInputElement" {
 
   ///@docsEditable true
   factory InputElement({String type}) {
@@ -10724,7 +10747,473 @@ class InputElement extends Element implements Element native "*HTMLInputElement"
 
   /// @domName HTMLInputElement.stepUp; @docsEditable true
   void stepUp([int n]) native;
+
 }
+
+
+// Interfaces representing the InputElement APIs which are supported
+// for the various types of InputElement.
+// From http://dev.w3.org/html5/spec/the-input-element.html#the-input-element.
+
+/**
+ * Exposes the functionality common between all InputElement types.
+ */
+abstract class InputElementBase implements Element {
+  /// @domName HTMLInputElement.autofocus
+  bool autofocus;
+
+  /// @domName HTMLInputElement.disabled
+  bool disabled;
+
+  /// @domName HTMLInputElement.incremental
+  bool incremental;
+
+  /// @domName HTMLInputElement.indeterminate
+  bool indeterminate;
+
+  /// @domName HTMLInputElement.labels
+  List<Node> get labels;
+
+  /// @domName HTMLInputElement.name
+  String name;
+
+  /// @domName HTMLInputElement.validationMessage
+  String get validationMessage;
+
+  /// @domName HTMLInputElement.validity
+  ValidityState get validity;
+
+  /// @domName HTMLInputElement.value
+  String value;
+
+  /// @domName HTMLInputElement.willValidate
+  bool get willValidate;
+
+  /// @domName HTMLInputElement.checkValidity
+  bool checkValidity();
+
+  /// @domName HTMLInputElement.setCustomValidity
+  void setCustomValidity(String error);
+}
+
+/**
+ * Hidden input which is not intended to be seen or edited by the user.
+ */
+abstract class HiddenInputElement implements Element {
+  factory HiddenInputElement() => new InputElement(type: 'hidden');
+}
+
+
+/**
+ * Base interface for all inputs which involve text editing.
+ */
+abstract class TextInputElementBase implements InputElementBase {
+  /// @domName HTMLInputElement.autocomplete
+  String autocomplete;
+
+  /// @domName HTMLInputElement.maxLength
+  int maxLength;
+
+  /// @domName HTMLInputElement.pattern
+  String pattern;
+
+  /// @domName HTMLInputElement.placeholder
+  String placeholder;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+
+  /// @domName HTMLInputElement.size
+  int size;
+
+  /// @domName HTMLInputElement.select
+  void select();
+
+  /// @domName HTMLInputElement.selectionDirection
+  String selectionDirection;
+
+  /// @domName HTMLInputElement.selectionEnd
+  int selectionEnd;
+
+  /// @domName HTMLInputElement.selectionStart
+  int selectionStart;
+
+  /// @domName HTMLInputElement.setSelectionRange
+  void setSelectionRange(int start, int end, [String direction]);
+}
+
+/**
+ * Similar to [TextInputElement], but on platforms where search is styled
+ * differently this will get the search style.
+ */
+abstract class SearchInputElement implements TextInputElementBase {
+  factory SearchInputElement() => new InputElement(type: 'search');
+
+  /// @domName HTMLInputElement.dirName;
+  String dirName;
+
+  /// @domName HTMLInputElement.list;
+  Element get list;
+}
+
+/**
+ * A basic text input editor control.
+ */
+abstract class TextInputElement implements TextInputElementBase {
+  factory TextInputElement() => new InputElement(type: 'text');
+
+  /// @domName HTMLInputElement.dirName;
+  String dirName;
+
+  /// @domName HTMLInputElement.list;
+  Element get list;
+}
+
+/**
+ * A control for editing an absolute URL.
+ */
+abstract class UrlInputElement implements TextInputElementBase {
+  factory UrlInputElement() => new InputElement(type: 'url');
+
+  /// @domName HTMLInputElement.list;
+  Element get list;
+}
+
+/**
+ * Represents a control for editing a telephone number.
+ *
+ * This provides a single line of text with minimal formatting help since
+ * there is a wide variety of telephone numbers.
+ */
+abstract class TelephoneInputElement implements TextInputElementBase {
+  factory TelephoneInputElement() => new InputElement(type: 'tel');
+
+  /// @domName HTMLInputElement.list;
+  Element get list;
+}
+
+/**
+ * An e-mail address or list of e-mail addresses.
+ */
+abstract class EmailInputElement implements TextInputElementBase {
+  factory EmailInputElement() => new InputElement(type: 'email');
+
+  /// @domName HTMLInputElement.autocomplete
+  String autocomplete;
+
+  /// @domName HTMLInputElement.autofocus
+  bool autofocus;
+
+  /// @domName HTMLInputElement.list;
+  Element get list;
+
+  /// @domName HTMLInputElement.maxLength
+  int maxLength;
+
+  /// @domName HTMLInputElement.multiple;
+  bool multiple;
+
+  /// @domName HTMLInputElement.pattern
+  String pattern;
+
+  /// @domName HTMLInputElement.placeholder
+  String placeholder;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+
+  /// @domName HTMLInputElement.size
+  int size;
+}
+
+/**
+ * Text with no line breaks (sensitive information).
+ */
+abstract class PasswordInputElement implements TextInputElementBase {
+  factory PasswordInputElement() => new InputElement(type: 'password');
+}
+
+/**
+ * Base interface for all input element types which involve ranges.
+ */
+abstract class RangeInputElementBase implements InputElementBase {
+
+  /// @domName HTMLInputElement.list
+  Element get list;
+
+  /// @domName HTMLInputElement.max
+  String max;
+
+  /// @domName HTMLInputElement.min
+  String min;
+
+  /// @domName HTMLInputElement.step
+  String step;
+
+  /// @domName HTMLInputElement.valueAsNumber
+  num valueAsNumber;
+
+  /// @domName HTMLInputElement.stepDown
+  void stepDown([int n]);
+
+  /// @domName HTMLInputElement.stepUp
+  void stepUp([int n]);
+}
+
+/**
+ * A date and time (year, month, day, hour, minute, second, fraction of a
+ * second) with the time zone set to UTC.
+ */
+abstract class DateTimeInputElement implements RangeInputElementBase {
+  factory DateTimeInputElement() => new InputElement(type: 'datetime');
+
+  /// @domName HTMLInputElement.valueAsDate
+  Date valueAsDate;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A date (year, month, day) with no time zone.
+ */
+abstract class DateInputElement implements RangeInputElementBase {
+  factory DateInputElement() => new InputElement(type: 'date');
+
+  /// @domName HTMLInputElement.valueAsDate
+  Date valueAsDate;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A date consisting of a year and a month with no time zone.
+ */
+abstract class MonthInputElement implements RangeInputElementBase {
+  factory MonthInputElement() => new InputElement(type: 'month');
+
+  /// @domName HTMLInputElement.valueAsDate
+  Date valueAsDate;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A date consisting of a week-year number and a week number with no time zone.
+ */
+abstract class WeekInputElement implements RangeInputElementBase {
+  factory WeekInputElement() => new InputElement(type: 'week');
+
+  /// @domName HTMLInputElement.valueAsDate
+  Date valueAsDate;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A time (hour, minute, seconds, fractional seconds) with no time zone.
+ */
+abstract class TimeInputElement implements RangeInputElementBase {
+  factory TimeInputElement() => new InputElement(type: 'time');
+
+  /// @domName HTMLInputElement.valueAsDate
+  Date valueAsDate;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A date and time (year, month, day, hour, minute, second, fraction of a
+ * second) with no time zone.
+ */
+abstract class LocalDateTimeInputElement implements RangeInputElementBase {
+  factory LocalDateTimeInputElement() =>
+      new InputElement(type: 'datetime-local');
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A numeric editor control.
+ */
+abstract class NumberInputElement implements RangeInputElementBase {
+  factory NumberInputElement() => new InputElement(type: 'number');
+
+  /// @domName HTMLInputElement.placeholder
+  String placeholder;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * Similar to [NumberInputElement] but the browser may provide more optimal
+ * styling (such as a slider control).
+ */
+abstract class RangeInputElement implements RangeInputElementBase {
+  factory RangeInputElement() => new InputElement(type: 'range');
+}
+
+/**
+ * A boolean editor control.
+ *
+ * Note that if [indeterminate] is set then this control is in a third
+ * indeterminate state.
+ */
+abstract class CheckboxInputElement implements InputElementBase {
+  factory CheckboxInputElement() => new InputElement(type: 'checkbox');
+
+  /// @domName HTMLInputElement.checked
+  bool checked;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+
+/**
+ * A control that when used with other [ReadioButtonInputElement] controls
+ * forms a radio button group in which only one control can be checked at a
+ * time.
+ *
+ * Radio buttons are considered to be in the same radio button group if:
+ *
+ * * They are all of type 'radio'.
+ * * They all have either the same [FormElement] owner, or no owner.
+ * * Their name attributes contain the same name.
+ */
+abstract class RadioButtonInputElement implements InputElementBase {
+  factory RadioButtonInputElement() => new InputElement(type: 'radio');
+
+  /// @domName HTMLInputElement.checked
+  bool checked;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A control for picking files from the user's computer.
+ */
+abstract class FileUploadInputElement implements InputElementBase {
+  factory FileUploadInputElement() => new InputElement(type: 'file');
+
+  /// @domName HTMLInputElement.accept
+  String accept;
+
+  /// @domName HTMLInputElement.multiple
+  bool multiple;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+
+  /// @domName HTMLInputElement.files
+  List<File> files;
+}
+
+/**
+ * A button, which when clicked, submits the form.
+ */
+abstract class SubmitButtonInputElement implements InputElementBase {
+  factory SubmitButtonInputElement() => new InputElement(type: 'submit');
+
+  /// @domName HTMLInputElement.formAction
+  String formAction;
+
+  /// @domName HTMLInputElement.formEnctype
+  String formEnctype;
+
+  /// @domName HTMLInputElement.formMethod
+  String formMethod;
+
+  /// @domName HTMLInputElement.formNoValidate
+  bool formNoValidate;
+
+  /// @domName HTMLInputElement.formTarget
+  String formTarget;
+}
+
+/**
+ * Either an image which the user can select a coordinate to or a form
+ * submit button.
+ */
+abstract class ImageButtonInputElement implements InputElementBase {
+  factory ImageButtonInputElement() => new InputElement(type: 'image');
+
+  /// @domName HTMLInputElement.alt
+  String alt;
+
+  /// @domName HTMLInputElement.formAction
+  String formAction;
+
+  /// @domName HTMLInputElement.formEnctype
+  String formEnctype;
+
+  /// @domName HTMLInputElement.formMethod
+  String formMethod;
+
+  /// @domName HTMLInputElement.formNoValidate
+  bool formNoValidate;
+
+  /// @domName HTMLInputElement.formTarget
+  String formTarget;
+
+  /// @domName HTMLInputElement.height
+  int height;
+
+  /// @domName HTMLInputElement.src
+  String src;
+
+  /// @domName HTMLInputElement.width
+  int width;
+}
+
+/**
+ * A button, which when clicked, resets the form.
+ */
+abstract class ResetButtonInputElement implements InputElementBase {
+  factory ResetButtonInputElement() => new InputElement(type: 'reset');
+}
+
+/**
+ * A button, with no default behavior.
+ */
+abstract class ButtonInputElement implements InputElementBase {
+  factory ButtonInputElement() => new InputElement(type: 'button');
+}
+
 
 /// @docsEditable true
 class InputElementEvents extends ElementEvents {
