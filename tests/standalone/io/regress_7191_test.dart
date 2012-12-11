@@ -10,8 +10,10 @@
 // closed which will make this test hang.
 
 import 'dart:io';
+import 'dart:isolate';
 
 main() {
+  var port = new ReceivePort();
   var options = new Options();
   var executable = options.executable;
   var scriptDir = new Path.fromNative(options.script).directoryPath;
@@ -23,5 +25,6 @@ main() {
     process.stdout.onClosed = () {
       process.stdin.write([0]);
     };
+    process.onExit = (exitCode) => port.close();
   });
 }

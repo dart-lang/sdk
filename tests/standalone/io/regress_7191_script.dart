@@ -18,9 +18,9 @@ main() {
       // When receiving data again, kill sub-process and exit.
       stdin.onData = () {
         var data = stdin.read();
-        Expect.listEquals([1], data);
+        Expect.listEquals([0], data);
         p.kill();
-        p.onExit = port.close;
+        p.onExit = exit;
       };
       // Close stdout. If handles are incorrectly inherited this will
       // not actually close stdout and the test will hang.
