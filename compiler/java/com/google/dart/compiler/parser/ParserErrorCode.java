@@ -40,6 +40,8 @@ public enum ParserErrorCode implements ErrorCode {
   DEPRECATED_USE_OF_FACTORY_KEYWORD("Deprecated use of the 'factory' keyword: use 'default' instead"),
   DEPRECATED_RAW_STRING("The use of '@' to prefix a raw string has been deprecated; use 'r' instead"),
   DEPRECATED_RESOURCE_DIRECTIVE("The #resource directive has been deprecated and will soon be disallowed"),
+  DEPRECATED_STRICT_EQ("Deprecated use of '===', use 'identical()' or '==' instead."),
+  DEPRECATED_STRICT_NE("Deprecated use of '!==', use '!identical()' or '!=' instead."),
   DEPRECATED_LIBRARY_DIRECTIVE("The '#library(url)' directive has been deprecated, use 'library name' instead"),
   DEPRECATED_IMPORT_DIRECTIVE("The '#import(url)' directive has been deprecated, use 'import url' instead"),
   DEPRECATED_SOURCE_DIRECTIVE("The '#source(url)' directive has been deprecated, use 'part url' instead"),

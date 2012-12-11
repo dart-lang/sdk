@@ -73,6 +73,46 @@ Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail, OK
 
+
+# co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/approxEquals_A04_t01: Fail
+LibTest/core/Expect/equals_A02_t01: Fail
+LibTest/core/Expect/identical_A02_t01: Fail
+LibTest/core/Expect/isFalse_A02_t01: Fail
+LibTest/core/Expect/isNotNull_A02_t01: Fail
+LibTest/core/Expect/isNull_A02_t01: Fail
+LibTest/core/Expect/isTrue_A02_t01: Fail
+LibTest/core/Expect/listEquals_A03_t01: Fail
+LibTest/core/Expect/notEquals_A02_t01: Fail
+LibTest/core/Expect/setEquals_A03_t01: Fail
+LibTest/core/Expect/stringEquals_A02_t01: Fail
+LibTest/core/Expect/throws_A01_t04: Fail
+LibTest/core/Future/chain_A02_t04: Fail
+LibTest/core/Future/chain_A02_t05: Fail
+LibTest/core/Future/transform_A02_t03: Fail
+LibTest/core/Future/transform_A02_t04: Fail
+LibTest/core/List/every_A04_t01: Fail
+LibTest/core/List/filter_A04_t01: Fail
+LibTest/core/List/forEach_A03_t01: Fail
+LibTest/core/List/List.from_A01_t01: Fail
+LibTest/core/List/operator_subscript_A01_t01: Fail
+LibTest/core/List/operator_subscript_A01_t02: Fail
+LibTest/core/List/operator_subscripted_assignment_A01_t02: Fail
+LibTest/core/List/operator_subscripted_assignment_A01_t01: Fail
+LibTest/core/List/setRange_A01_t01: Fail
+LibTest/core/Queue/addFirst_A01_t01: Fail
+LibTest/core/Set/intersection_A01_t03: Fail
+LibTest/core/String/toLowerCase_A01_t02: Fail
+LibTest/core/String/toUpperCase_A01_t02: Fail
+LibTest/core/String/trim_A01_t02: Fail
+LibTest/core/StringBuffer/add_A02_t01: Fail
+LibTest/core/StringBuffer/addAll_A02_t01: Fail
+LibTest/core/StringBuffer/clear_A02_t01: Fail
+
+
+
+
+
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail, OK # contains syntax error
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
 
@@ -88,6 +128,8 @@ Language/11_Expressions/01_Constants_A17_t03: Fail # Issue 1473
 Language/11_Expressions/22_Equality_A01_t19: Fail # language change 3368
 Language/11_Expressions/22_Equality_A01_t20: Fail # language change 3368
 Language/11_Expressions/22_Equality_A02_t03: Fail, OK # co19 issue 169
+
+
 
 
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]

@@ -2564,6 +2564,12 @@ public class DartParser extends CompletionHooksParserBase {
           reportErrorAtPosition(prevPositionStart, prevPositionEnd,
                                 ParserErrorCode.SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND);
         }
+        if (token == Token.EQ_STRICT) {
+          reportError(tokenOffset, ParserErrorCode.DEPRECATED_STRICT_EQ);
+        }
+        if (token == Token.NE_STRICT) {
+          reportError(tokenOffset, ParserErrorCode.DEPRECATED_STRICT_NE);
+        }
         DartExpression right;
         if (token == Token.IS) {
           beginTypeExpression();

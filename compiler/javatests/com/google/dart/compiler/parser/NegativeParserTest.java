@@ -25,6 +25,24 @@ public class NegativeParserTest extends CompilerTestCase {
     parseExpectErrors("get foo() {}", errEx(ParserErrorCode.DEPRECATED_GETTER, 1, 5, 3));
   }
 
+  public void test_deprecatedStrictEQ() {
+    parseExpectErrors(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  1 === 2;",
+        "}",
+        ""), errEx(ParserErrorCode.DEPRECATED_STRICT_EQ, 3, 5, 3));
+  }
+
+  public void test_deprecatedStrictNE() {
+    parseExpectErrors(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  1 !== 2;",
+        "}",
+        ""), errEx(ParserErrorCode.DEPRECATED_STRICT_NE, 3, 5, 3));
+  }
+
   public void test_deprecatedAbstract() {
     parseExpectWarnings(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",

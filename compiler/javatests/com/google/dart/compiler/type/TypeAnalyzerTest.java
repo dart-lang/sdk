@@ -123,9 +123,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     }
 
     EnumSet<Token> equalityOperators = EnumSet.of(Token.EQ,
-                                                  Token.NE,
-                                                  Token.EQ_STRICT,
-                                                  Token.NE_STRICT);
+                                                  Token.NE);
     for (Token op : equalityOperators) {
       String expression;
       expression = String.format("untyped %s untyped", op.getSyntax());

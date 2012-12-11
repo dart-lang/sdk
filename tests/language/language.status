@@ -267,6 +267,17 @@ try_catch_on_syntax_test/07: Fail
 try_catch_syntax_test/08: Fail
 
 
+# test issue 7298 (use deprecated === and !==)
+compile_time_constant8_test: Fail
+compile_time_constant_b_test: Fail
+compile_time_constant_d_test: Fail
+compile_time_constant_e_test: Fail
+licm_test: Fail
+typed_equality_test: Fail
+
+
+
+
 #
 # Add new dartc annotations above in alphabetical order
 #
