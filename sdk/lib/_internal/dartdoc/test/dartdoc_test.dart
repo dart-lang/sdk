@@ -5,6 +5,8 @@
 /// Unit tests for doc.
 library dartdocTests;
 
+import 'dart:io';
+
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../lib/dartdoc.dart' as dd;
 import '../lib/markdown.dart' as md;
@@ -116,4 +118,35 @@ main() {
           '../../other/file.html'));
     });
   });
+  
+  group('integration tests', () {
+    test('no entrypoints', () {
+      expect(_runDartdoc([]), completes);
+    });
+
+    test('library with no packages', () {
+      expect(_runDartdoc(
+          [new Path.fromNative('test/test_files/other_place/'
+              'no_package_test_file.dart').toNativePath()]),
+        completes);
+    });
+
+    test('library with packages', () {
+      expect(_runDartdoc(
+          [new Path.fromNative('test/test_files/'
+              'package_test_file.dart').toNativePath()]),
+        completes);
+    });
+
+  });
+}
+
+Future _runDartdoc(List<String> arguments) {
+  var dartBin = new Options().executable;
+  var dartdoc = 'bin/dartdoc.dart';
+  arguments.insertRange(0, 1, dartdoc);
+  return Process.run(dartBin, arguments)
+      .transform((result) {
+        expect(result.exitCode, 0);
+      });
 }

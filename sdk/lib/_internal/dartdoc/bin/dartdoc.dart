@@ -36,7 +36,8 @@ main() {
   final argParser = new ArgParser();
 
   final Path libPath = scriptDir.append('../../../../');
-  Path pkgPath = scriptDir.append('../../../../pkg/');
+  
+  Path pkgPath;
 
   argParser.addFlag('no-code',
       help: 'Do not include source code in the documentation.',
@@ -178,8 +179,21 @@ main() {
   final entrypoints = <Path>[];
   try {
     final option = argParser.parse(args);
+    
+    // This checks to see if the root of all entrypoints is the same.
+    // If it is not, then we display a warning, as package imports might fail.
+    var entrypointRoot;
     for(final arg in option.rest) {
-      entrypoints.add(new Path.fromNative(arg));
+      var entrypoint = new Path.fromNative(arg);
+      entrypoints.add(entrypoint);
+      
+      if (entrypointRoot == null) {
+        entrypointRoot = entrypoint.directoryPath;
+      } else if (entrypointRoot.toNativePath() !=
+          entrypoint.directoryPath.toNativePath()) {
+        print('Warning: entrypoints are at different directories. "package:"'
+            ' imports may fail.');
+      }
     }
   } on FormatException catch (e) {
     print(e.message);
@@ -192,6 +206,10 @@ main() {
     print('No entrypoints provided.');
     print(argParser.getUsage());
     return;
+  }
+  
+  if (pkgPath == null) {
+    pkgPath = entrypoints[0].directoryPath.append('packages/');
   }
 
   cleanOutputDirectory(dartdoc.outputDir);
