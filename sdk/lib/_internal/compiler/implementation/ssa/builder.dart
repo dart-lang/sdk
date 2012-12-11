@@ -2740,8 +2740,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       HInstruction instruction;
-      if (RuntimeTypeInformation.hasTypeArguments(type) ||
-          type.element.isTypeVariable()) {
+      if (type.element.isTypeVariable() ||
+          RuntimeTypeInformation.hasTypeArguments(type)) {
         HInstruction typeInfo = getRuntimeTypeInfo(expression);
         // TODO(karlklose): make isSubtype a HInstruction to enable
         // optimizations?

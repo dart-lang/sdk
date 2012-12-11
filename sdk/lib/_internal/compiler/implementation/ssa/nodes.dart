@@ -2541,7 +2541,7 @@ class HIs extends HInstruction {
   HInstruction getCheck(int index) => inputs[index + 1];
   int get checkCount => inputs.length - 1;
 
-  bool hasArgumentChecks() => inputs.length >= 1;
+  bool hasArgumentChecks() => inputs.length > 1;
 
   HType get guaranteedType => HType.BOOLEAN;
 

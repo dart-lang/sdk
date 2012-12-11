@@ -59,6 +59,7 @@ class CodeEmitterTask extends CompilerTask {
    */
   final Map<int, String> interceptorClosureCache;
   Set<ClassElement> checkedClasses;
+  Set<TypedefElement> checkedTypedefs;
 
   final bool generateSourceMap;
 
@@ -76,8 +77,13 @@ class CodeEmitterTask extends CompilerTask {
   void computeRequiredTypeChecks() {
     assert(checkedClasses == null);
     checkedClasses = new Set<ClassElement>();
+    checkedTypedefs = new Set<TypedefElement>();
     compiler.codegenWorld.isChecks.forEach((DartType t) {
-      if (t is InterfaceType) checkedClasses.add(t.element);
+      if (t is InterfaceType) {
+        checkedClasses.add(t.element);
+      } else if (t is TypedefType) {
+        checkedTypedefs.add(t.element);
+      }
     });
   }
 
@@ -722,9 +728,9 @@ $lazyInitializerLogic
         },
         includeBackendMembers: true);
 
-    generateIsTestsOn(classElement, (ClassElement other) {
+    generateIsTestsOn(classElement, (Element other) {
       String code;
-      if (other.isObject(compiler)) return;
+      if (compiler.objectClass == other) return;
       if (nativeEmitter.requiresNativeIsCheck(other)) {
         code = 'function() { return true; }';
       } else {
@@ -1023,16 +1029,30 @@ $lazyInitializerLogic
    * super class because they will be inherited at runtime.
    */
   void generateIsTestsOn(ClassElement cls,
-                         void emitIsTest(ClassElement element)) {
+                         void emitIsTest(Element element)) {
     if (checkedClasses.contains(cls)) {
       emitIsTest(cls);
     }
+
     Set<Element> generated = new Set<Element>();
     // A class that defines a [:call:] method implicitly implements
-    // [Function].
-    if (checkedClasses.contains(compiler.functionClass)
-        && cls.lookupLocalMember(Compiler.CALL_OPERATOR_NAME) != null) {
-      generateInterfacesIsTests(compiler.functionClass, emitIsTest, generated);
+    // [Function] and needs checks for all typedefs that are used in is-checks.
+    if (checkedClasses.contains(compiler.functionClass) ||
+        !checkedTypedefs.isEmpty) {
+      FunctionElement call = cls.lookupLocalMember(Compiler.CALL_OPERATOR_NAME);
+      if (call != null) {
+        generateInterfacesIsTests(compiler.functionClass,
+                                  emitIsTest,
+                                  generated);
+        FunctionType callType = call.computeType(compiler);
+        for (TypedefElement typedef in checkedTypedefs) {
+          FunctionType typedefType =
+              typedef.computeType(compiler).unalias(compiler);
+          if (compiler.types.isSubtype(callType, typedefType)) {
+            emitIsTest(typedef);
+          }
+        }
+      }
     }
     for (DartType interfaceType in cls.interfaces) {
       generateInterfacesIsTests(interfaceType.element, emitIsTest, generated);

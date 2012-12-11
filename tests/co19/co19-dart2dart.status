@@ -21,6 +21,17 @@ Language/14_Types/5_Function_Types_A04_t01: Fail # TODO(dart2dart-team): Please 
 Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules_A01_t11: Fail # TODO(dart2dart-team): Please triage this failure.
 
+Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t01: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t02: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t03: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t04: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t05: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # http://dartbug.com/7202
+
 
 # Calling unresolved class constructor:
 Language/03_Overview/2_Privacy_A01_t19: Fail

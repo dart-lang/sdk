@@ -511,8 +511,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitIs(HIs node) {
     DartType type = node.typeExpression;
     Element element = type.element;
-    if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
+    if (element.isTypeVariable()) {
       compiler.unimplemented("visitIs for type variables");
+    } if (element.isTypedef()) {
+      return node;
     }
 
     HType expressionType = types[node.expression];

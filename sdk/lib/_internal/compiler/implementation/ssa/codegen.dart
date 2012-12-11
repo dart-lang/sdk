@@ -2355,15 +2355,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
       compiler.unimplemented("visitIs for type variables",
                              instruction: node.expression);
-    } else if (identical(element.kind, ElementKind.TYPEDEF)) {
-      compiler.unimplemented("visitIs for typedefs",
-                             instruction: node.expression);
     }
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
 
-    if (identical(element, objectClass) || identical(element, compiler.dynamicClass)) {
+    if (identical(element, objectClass) ||
+        identical(element, compiler.dynamicClass)) {
       // The constant folder also does this optimization, but we make
       // it safe by assuming it may have not run.
       push(newLiteralBool(true), node);
