@@ -1039,6 +1039,58 @@
       "   * [String]). `null` indicates request failure.",
       "   */"
     ],
+  "  EventListenerList get abort => this['abort'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified when request has been aborted,",
+      "   * generally due to calling `httpRequest.abort()`.",
+      "   */"
+    ],
+  "  EventListenerList get error => this['error'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified when a request has failed, such as when a",
+      "   * cross-domain error occurred or the file wasn't found on the server.",
+      "   */"
+    ],
+  "  EventListenerList get load => this['load'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified once the request has completed",
+      "   * *successfully*.",
+      "   */"
+    ],
+  "  EventListenerList get loadEnd => this['loadend'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified once the request has completed (on",
+      "   * either success or failure).",
+      "   */"
+    ],
+  "  EventListenerList get loadStart => this['loadstart'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified when the request starts, once",
+      "   * `httpRequest.send()` has been called.",
+      "   */"
+    ],
+  "  EventListenerList get progress => this['progress'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified when data for the request ",
+      "   * is being sent or loaded.",
+      "   *",
+      "   * Progress events are fired every 50ms or for every byte transmitted,",
+      "   * whichever is less frequent.",
+      "   */"
+    ],
+  "  EventListenerList get readyStateChange => this['readystatechange'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified every time the [HttpRequest]",
+      "   * object's `readyState` changes values.",
+      "   */"
+    ],
   "  HttpRequestEvents get on =>":
     [
       "  /**",
@@ -1184,6 +1236,22 @@
   "  void setRequestHeader(String header, String value) native;":
     [
       "  /** Sets HTTP `header` to `value`. */"
+    ],
+  "class HttpRequestEvents extends Events {":
+    [
+      "/**",
+      " * A class that supports listening for and dispatching events that can fire when",
+      " * making an HTTP request. ",
+      " *  ",
+      " * Here's an example of adding an event handler that executes once an HTTP",
+      " * request has fully loaded:",
+      " * ",
+      " *     httpRequest.on.loadEnd.add((e) => myCustomLoadEndHandler(e));",
+      " *",
+      " * Each property of this class is a read-only pointer to an [EventListenerList].",
+      " * That list holds all of the [EventListener]s that have registered for that",
+      " * particular type of event that fires from an HttpRequest.",
+      " */"
     ]
   },
 "HttpRequestException.dart":

@@ -301,13 +301,18 @@ class Database extends EventTarget native "*IDBDatabase" {
 // can't handle that.  Move it back after dart2js is completely done.
 var _transaction_fn;  // Assigned one of the static methods.
 
+/// @docsEditable true
 class DatabaseEvents extends Events {
+  /// @docsEditable true
   DatabaseEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get versionChange => this['versionchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -867,11 +872,15 @@ class OpenDBRequest extends Request implements EventTarget native "*IDBOpenDBReq
     new OpenDBRequestEvents(this);
 }
 
+/// @docsEditable true
 class OpenDBRequestEvents extends RequestEvents {
+  /// @docsEditable true
   OpenDBRequestEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get blocked => this['blocked'];
 
+  /// @docsEditable true
   EventListenerList get upgradeNeeded => this['upgradeneeded'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -924,11 +933,15 @@ class Request extends EventTarget native "*IDBRequest" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class RequestEvents extends Events {
+  /// @docsEditable true
   RequestEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get success => this['success'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -977,13 +990,18 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class TransactionEvents extends Events {
+  /// @docsEditable true
   TransactionEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get complete => this['complete'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1024,9 +1042,12 @@ class VersionChangeRequest extends Request implements EventTarget native "*IDBVe
     new VersionChangeRequestEvents(this);
 }
 
+/// @docsEditable true
 class VersionChangeRequestEvents extends RequestEvents {
+  /// @docsEditable true
   VersionChangeRequestEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get blocked => this['blocked'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

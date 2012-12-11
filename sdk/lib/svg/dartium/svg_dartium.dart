@@ -1171,87 +1171,129 @@ class ElementInstance extends EventTarget {
 
 }
 
+/// @docsEditable true
 class ElementInstanceEvents extends Events {
+  /// @docsEditable true
   ElementInstanceEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get beforeCopy => this['beforecopy'];
 
+  /// @docsEditable true
   EventListenerList get beforeCut => this['beforecut'];
 
+  /// @docsEditable true
   EventListenerList get beforePaste => this['beforepaste'];
 
+  /// @docsEditable true
   EventListenerList get blur => this['blur'];
 
+  /// @docsEditable true
   EventListenerList get change => this['change'];
 
+  /// @docsEditable true
   EventListenerList get click => this['click'];
 
+  /// @docsEditable true
   EventListenerList get contextMenu => this['contextmenu'];
 
+  /// @docsEditable true
   EventListenerList get copy => this['copy'];
 
+  /// @docsEditable true
   EventListenerList get cut => this['cut'];
 
+  /// @docsEditable true
   EventListenerList get doubleClick => this['dblclick'];
 
+  /// @docsEditable true
   EventListenerList get drag => this['drag'];
 
+  /// @docsEditable true
   EventListenerList get dragEnd => this['dragend'];
 
+  /// @docsEditable true
   EventListenerList get dragEnter => this['dragenter'];
 
+  /// @docsEditable true
   EventListenerList get dragLeave => this['dragleave'];
 
+  /// @docsEditable true
   EventListenerList get dragOver => this['dragover'];
 
+  /// @docsEditable true
   EventListenerList get dragStart => this['dragstart'];
 
+  /// @docsEditable true
   EventListenerList get drop => this['drop'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get focus => this['focus'];
 
+  /// @docsEditable true
   EventListenerList get input => this['input'];
 
+  /// @docsEditable true
   EventListenerList get keyDown => this['keydown'];
 
+  /// @docsEditable true
   EventListenerList get keyPress => this['keypress'];
 
+  /// @docsEditable true
   EventListenerList get keyUp => this['keyup'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get mouseDown => this['mousedown'];
 
+  /// @docsEditable true
   EventListenerList get mouseMove => this['mousemove'];
 
+  /// @docsEditable true
   EventListenerList get mouseOut => this['mouseout'];
 
+  /// @docsEditable true
   EventListenerList get mouseOver => this['mouseover'];
 
+  /// @docsEditable true
   EventListenerList get mouseUp => this['mouseup'];
 
+  /// @docsEditable true
   EventListenerList get mouseWheel => this['mousewheel'];
 
+  /// @docsEditable true
   EventListenerList get paste => this['paste'];
 
+  /// @docsEditable true
   EventListenerList get reset => this['reset'];
 
+  /// @docsEditable true
   EventListenerList get resize => this['resize'];
 
+  /// @docsEditable true
   EventListenerList get scroll => this['scroll'];
 
+  /// @docsEditable true
   EventListenerList get search => this['search'];
 
+  /// @docsEditable true
   EventListenerList get select => this['select'];
 
+  /// @docsEditable true
   EventListenerList get selectStart => this['selectstart'];
 
+  /// @docsEditable true
   EventListenerList get submit => this['submit'];
 
+  /// @docsEditable true
   EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

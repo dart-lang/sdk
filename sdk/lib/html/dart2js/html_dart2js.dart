@@ -73,9 +73,12 @@ class AbstractWorker extends EventTarget native "*AbstractWorker" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class AbstractWorkerEvents extends Events {
+  /// @docsEditable true
   AbstractWorkerEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -313,23 +316,33 @@ class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
   void update() native;
 }
 
+/// @docsEditable true
 class ApplicationCacheEvents extends Events {
+  /// @docsEditable true
   ApplicationCacheEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get cached => this['cached'];
 
+  /// @docsEditable true
   EventListenerList get checking => this['checking'];
 
+  /// @docsEditable true
   EventListenerList get downloading => this['downloading'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get noUpdate => this['noupdate'];
 
+  /// @docsEditable true
   EventListenerList get obsolete => this['obsolete'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
+  /// @docsEditable true
   EventListenerList get updateReady => this['updateready'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -554,15 +567,21 @@ class BatteryManager extends EventTarget native "*BatteryManager" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class BatteryManagerEvents extends Events {
+  /// @docsEditable true
   BatteryManagerEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get chargingChange => this['chargingchange'];
 
+  /// @docsEditable true
   EventListenerList get chargingTimeChange => this['chargingtimechange'];
 
+  /// @docsEditable true
   EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
 
+  /// @docsEditable true
   EventListenerList get levelChange => this['levelchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -635,33 +654,48 @@ class BodyElement extends Element implements Element native "*HTMLBodyElement" {
   String vLink;
 }
 
+/// @docsEditable true
 class BodyElementEvents extends ElementEvents {
+  /// @docsEditable true
   BodyElementEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get beforeUnload => this['beforeunload'];
 
+  /// @docsEditable true
   EventListenerList get blur => this['blur'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get focus => this['focus'];
 
+  /// @docsEditable true
   EventListenerList get hashChange => this['hashchange'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get offline => this['offline'];
 
+  /// @docsEditable true
   EventListenerList get online => this['online'];
 
+  /// @docsEditable true
   EventListenerList get popState => this['popstate'];
 
+  /// @docsEditable true
   EventListenerList get resize => this['resize'];
 
+  /// @docsEditable true
   EventListenerList get storage => this['storage'];
 
+  /// @docsEditable true
   EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5468,9 +5502,12 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
   void _postMessage_2(message) native;
 }
 
+/// @docsEditable true
 class DedicatedWorkerContextEvents extends WorkerContextEvents {
+  /// @docsEditable true
   DedicatedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5988,15 +6025,21 @@ class Document extends Node  native "*Document"
   }
 }
 
+/// @docsEditable true
 class DocumentEvents extends ElementEvents {
+  /// @docsEditable true
   DocumentEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get readyStateChange => this['readystatechange'];
 
+  /// @docsEditable true
   EventListenerList get selectionChange => this['selectionchange'];
 
+  /// @docsEditable true
   EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
 
+  /// @docsEditable true
   EventListenerList get pointerLockError => this['webkitpointerlockerror'];
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -7792,98 +7835,145 @@ class _ElementFactoryProvider {
 class ElementEvents extends Events {
   ElementEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get beforeCopy => this['beforecopy'];
 
+  /// @docsEditable true
   EventListenerList get beforeCut => this['beforecut'];
 
+  /// @docsEditable true
   EventListenerList get beforePaste => this['beforepaste'];
 
+  /// @docsEditable true
   EventListenerList get blur => this['blur'];
 
+  /// @docsEditable true
   EventListenerList get change => this['change'];
 
+  /// @docsEditable true
   EventListenerList get click => this['click'];
 
+  /// @docsEditable true
   EventListenerList get contextMenu => this['contextmenu'];
 
+  /// @docsEditable true
   EventListenerList get copy => this['copy'];
 
+  /// @docsEditable true
   EventListenerList get cut => this['cut'];
 
+  /// @docsEditable true
   EventListenerList get doubleClick => this['dblclick'];
 
+  /// @docsEditable true
   EventListenerList get drag => this['drag'];
 
+  /// @docsEditable true
   EventListenerList get dragEnd => this['dragend'];
 
+  /// @docsEditable true
   EventListenerList get dragEnter => this['dragenter'];
 
+  /// @docsEditable true
   EventListenerList get dragLeave => this['dragleave'];
 
+  /// @docsEditable true
   EventListenerList get dragOver => this['dragover'];
 
+  /// @docsEditable true
   EventListenerList get dragStart => this['dragstart'];
 
+  /// @docsEditable true
   EventListenerList get drop => this['drop'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get focus => this['focus'];
 
+  /// @docsEditable true
   EventListenerList get input => this['input'];
 
+  /// @docsEditable true
   EventListenerList get invalid => this['invalid'];
 
+  /// @docsEditable true
   EventListenerList get keyDown => this['keydown'];
 
+  /// @docsEditable true
   EventListenerList get keyPress => this['keypress'];
 
+  /// @docsEditable true
   EventListenerList get keyUp => this['keyup'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get mouseDown => this['mousedown'];
 
+  /// @docsEditable true
   EventListenerList get mouseMove => this['mousemove'];
 
+  /// @docsEditable true
   EventListenerList get mouseOut => this['mouseout'];
 
+  /// @docsEditable true
   EventListenerList get mouseOver => this['mouseover'];
 
+  /// @docsEditable true
   EventListenerList get mouseUp => this['mouseup'];
 
+  /// @docsEditable true
   EventListenerList get paste => this['paste'];
 
+  /// @docsEditable true
   EventListenerList get reset => this['reset'];
 
+  /// @docsEditable true
   EventListenerList get scroll => this['scroll'];
 
+  /// @docsEditable true
   EventListenerList get search => this['search'];
 
+  /// @docsEditable true
   EventListenerList get select => this['select'];
 
+  /// @docsEditable true
   EventListenerList get selectStart => this['selectstart'];
 
+  /// @docsEditable true
   EventListenerList get submit => this['submit'];
 
+  /// @docsEditable true
   EventListenerList get touchCancel => this['touchcancel'];
 
+  /// @docsEditable true
   EventListenerList get touchEnd => this['touchend'];
 
+  /// @docsEditable true
   EventListenerList get touchEnter => this['touchenter'];
 
+  /// @docsEditable true
   EventListenerList get touchLeave => this['touchleave'];
 
+  /// @docsEditable true
   EventListenerList get touchMove => this['touchmove'];
 
+  /// @docsEditable true
   EventListenerList get touchStart => this['touchstart'];
 
+  /// @docsEditable true
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 
+  /// @docsEditable true
   EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
 
+  /// @docsEditable true
   EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 
   EventListenerList get mouseWheel {
@@ -8257,13 +8347,18 @@ class EventSource extends EventTarget native "*EventSource" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class EventSourceEvents extends Events {
+  /// @docsEditable true
   EventSourceEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8718,19 +8813,27 @@ class FileReader extends EventTarget native "*FileReader" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class FileReaderEvents extends Events {
+  /// @docsEditable true
   FileReaderEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get loadEnd => this['loadend'];
 
+  /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8848,19 +8951,27 @@ class FileWriter extends EventTarget native "*FileWriter" {
   void write(Blob data) native;
 }
 
+/// @docsEditable true
 class FileWriterEvents extends Events {
+  /// @docsEditable true
   FileWriterEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
+  /// @docsEditable true
   EventListenerList get write => this['write'];
 
+  /// @docsEditable true
   EventListenerList get writeEnd => this['writeend'];
 
+  /// @docsEditable true
   EventListenerList get writeStart => this['writestart'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9298,33 +9409,48 @@ class FrameSetElement extends Element implements Element native "*HTMLFrameSetEl
   String rows;
 }
 
+/// @docsEditable true
 class FrameSetElementEvents extends ElementEvents {
+  /// @docsEditable true
   FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get beforeUnload => this['beforeunload'];
 
+  /// @docsEditable true
   EventListenerList get blur => this['blur'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get focus => this['focus'];
 
+  /// @docsEditable true
   EventListenerList get hashChange => this['hashchange'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get offline => this['offline'];
 
+  /// @docsEditable true
   EventListenerList get online => this['online'];
 
+  /// @docsEditable true
   EventListenerList get popState => this['popstate'];
 
+  /// @docsEditable true
   EventListenerList get resize => this['resize'];
 
+  /// @docsEditable true
   EventListenerList get storage => this['storage'];
 
+  /// @docsEditable true
   EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10081,21 +10207,74 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
 }
 
+/**
+ * A class that supports listening for and dispatching events that can fire when
+ * making an HTTP request. 
+ *  
+ * Here's an example of adding an event handler that executes once an HTTP
+ * request has fully loaded:
+ * 
+ *     httpRequest.on.loadEnd.add((e) => myCustomLoadEndHandler(e));
+ *
+ * Each property of this class is a read-only pointer to an [EventListenerList].
+ * That list holds all of the [EventListener]s that have registered for that
+ * particular type of event that fires from an HttpRequest.
+ */
+/// @docsEditable true
 class HttpRequestEvents extends Events {
+  /// @docsEditable true
   HttpRequestEvents(EventTarget _ptr) : super(_ptr);
 
+  /**
+   * Event listeners to be notified when request has been aborted,
+   * generally due to calling `httpRequest.abort()`.
+   */
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /**
+   * Event listeners to be notified when a request has failed, such as when a
+   * cross-domain error occurred or the file wasn't found on the server.
+   */
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /**
+   * Event listeners to be notified once the request has completed
+   * *successfully*.
+   */
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /**
+   * Event listeners to be notified once the request has completed (on
+   * either success or failure).
+   */
+  /// @docsEditable true
   EventListenerList get loadEnd => this['loadend'];
 
+  /**
+   * Event listeners to be notified when the request starts, once
+   * `httpRequest.send()` has been called.
+   */
+  /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
+  /**
+   * Event listeners to be notified when data for the request 
+   * is being sent or loaded.
+   *
+   * Progress events are fired every 50ms or for every byte transmitted,
+   * whichever is less frequent.
+   */
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
+  /**
+   * Event listeners to be notified every time the [HttpRequest]
+   * object's `readyState` changes values.
+   */
+  /// @docsEditable true
   EventListenerList get readyStateChange => this['readystatechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10161,19 +10340,27 @@ class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class HttpRequestUploadEvents extends Events {
+  /// @docsEditable true
   HttpRequestUploadEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get loadEnd => this['loadend'];
 
+  /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10539,9 +10726,12 @@ class InputElement extends Element implements Element native "*HTMLInputElement"
   void stepUp([int n]) native;
 }
 
+/// @docsEditable true
 class InputElementEvents extends ElementEvents {
+  /// @docsEditable true
   InputElementEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get speechChange => this['webkitSpeechChange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11720,153 +11910,228 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
 }
 
+/// @docsEditable true
 class LocalWindowEvents extends Events {
+  /// @docsEditable true
   LocalWindowEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get beforeUnload => this['beforeunload'];
 
+  /// @docsEditable true
   EventListenerList get blur => this['blur'];
 
+  /// @docsEditable true
   EventListenerList get canPlay => this['canplay'];
 
+  /// @docsEditable true
   EventListenerList get canPlayThrough => this['canplaythrough'];
 
+  /// @docsEditable true
   EventListenerList get change => this['change'];
 
+  /// @docsEditable true
   EventListenerList get click => this['click'];
 
+  /// @docsEditable true
   EventListenerList get contextMenu => this['contextmenu'];
 
+  /// @docsEditable true
   EventListenerList get doubleClick => this['dblclick'];
 
+  /// @docsEditable true
   EventListenerList get deviceMotion => this['devicemotion'];
 
+  /// @docsEditable true
   EventListenerList get deviceOrientation => this['deviceorientation'];
 
+  /// @docsEditable true
   EventListenerList get drag => this['drag'];
 
+  /// @docsEditable true
   EventListenerList get dragEnd => this['dragend'];
 
+  /// @docsEditable true
   EventListenerList get dragEnter => this['dragenter'];
 
+  /// @docsEditable true
   EventListenerList get dragLeave => this['dragleave'];
 
+  /// @docsEditable true
   EventListenerList get dragOver => this['dragover'];
 
+  /// @docsEditable true
   EventListenerList get dragStart => this['dragstart'];
 
+  /// @docsEditable true
   EventListenerList get drop => this['drop'];
 
+  /// @docsEditable true
   EventListenerList get durationChange => this['durationchange'];
 
+  /// @docsEditable true
   EventListenerList get emptied => this['emptied'];
 
+  /// @docsEditable true
   EventListenerList get ended => this['ended'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get focus => this['focus'];
 
+  /// @docsEditable true
   EventListenerList get hashChange => this['hashchange'];
 
+  /// @docsEditable true
   EventListenerList get input => this['input'];
 
+  /// @docsEditable true
   EventListenerList get invalid => this['invalid'];
 
+  /// @docsEditable true
   EventListenerList get keyDown => this['keydown'];
 
+  /// @docsEditable true
   EventListenerList get keyPress => this['keypress'];
 
+  /// @docsEditable true
   EventListenerList get keyUp => this['keyup'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get loadedData => this['loadeddata'];
 
+  /// @docsEditable true
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
+  /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get mouseDown => this['mousedown'];
 
+  /// @docsEditable true
   EventListenerList get mouseMove => this['mousemove'];
 
+  /// @docsEditable true
   EventListenerList get mouseOut => this['mouseout'];
 
+  /// @docsEditable true
   EventListenerList get mouseOver => this['mouseover'];
 
+  /// @docsEditable true
   EventListenerList get mouseUp => this['mouseup'];
 
+  /// @docsEditable true
   EventListenerList get mouseWheel => this['mousewheel'];
 
+  /// @docsEditable true
   EventListenerList get offline => this['offline'];
 
+  /// @docsEditable true
   EventListenerList get online => this['online'];
 
+  /// @docsEditable true
   EventListenerList get pageHide => this['pagehide'];
 
+  /// @docsEditable true
   EventListenerList get pageShow => this['pageshow'];
 
+  /// @docsEditable true
   EventListenerList get pause => this['pause'];
 
+  /// @docsEditable true
   EventListenerList get play => this['play'];
 
+  /// @docsEditable true
   EventListenerList get playing => this['playing'];
 
+  /// @docsEditable true
   EventListenerList get popState => this['popstate'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
+  /// @docsEditable true
   EventListenerList get rateChange => this['ratechange'];
 
+  /// @docsEditable true
   EventListenerList get reset => this['reset'];
 
+  /// @docsEditable true
   EventListenerList get resize => this['resize'];
 
+  /// @docsEditable true
   EventListenerList get scroll => this['scroll'];
 
+  /// @docsEditable true
   EventListenerList get search => this['search'];
 
+  /// @docsEditable true
   EventListenerList get seeked => this['seeked'];
 
+  /// @docsEditable true
   EventListenerList get seeking => this['seeking'];
 
+  /// @docsEditable true
   EventListenerList get select => this['select'];
 
+  /// @docsEditable true
   EventListenerList get stalled => this['stalled'];
 
+  /// @docsEditable true
   EventListenerList get storage => this['storage'];
 
+  /// @docsEditable true
   EventListenerList get submit => this['submit'];
 
+  /// @docsEditable true
   EventListenerList get suspend => this['suspend'];
 
+  /// @docsEditable true
   EventListenerList get timeUpdate => this['timeupdate'];
 
+  /// @docsEditable true
   EventListenerList get touchCancel => this['touchcancel'];
 
+  /// @docsEditable true
   EventListenerList get touchEnd => this['touchend'];
 
+  /// @docsEditable true
   EventListenerList get touchMove => this['touchmove'];
 
+  /// @docsEditable true
   EventListenerList get touchStart => this['touchstart'];
 
+  /// @docsEditable true
   EventListenerList get unload => this['unload'];
 
+  /// @docsEditable true
   EventListenerList get volumeChange => this['volumechange'];
 
+  /// @docsEditable true
   EventListenerList get waiting => this['waiting'];
 
+  /// @docsEditable true
   EventListenerList get animationEnd => this['webkitAnimationEnd'];
 
+  /// @docsEditable true
   EventListenerList get animationIteration => this['webkitAnimationIteration'];
 
+  /// @docsEditable true
   EventListenerList get animationStart => this['webkitAnimationStart'];
 
+  /// @docsEditable true
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12143,57 +12408,84 @@ class MediaElement extends Element implements Element native "*HTMLMediaElement"
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) native;
 }
 
+/// @docsEditable true
 class MediaElementEvents extends ElementEvents {
+  /// @docsEditable true
   MediaElementEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get canPlay => this['canplay'];
 
+  /// @docsEditable true
   EventListenerList get canPlayThrough => this['canplaythrough'];
 
+  /// @docsEditable true
   EventListenerList get durationChange => this['durationchange'];
 
+  /// @docsEditable true
   EventListenerList get emptied => this['emptied'];
 
+  /// @docsEditable true
   EventListenerList get ended => this['ended'];
 
+  /// @docsEditable true
   EventListenerList get loadedData => this['loadeddata'];
 
+  /// @docsEditable true
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
+  /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
+  /// @docsEditable true
   EventListenerList get pause => this['pause'];
 
+  /// @docsEditable true
   EventListenerList get play => this['play'];
 
+  /// @docsEditable true
   EventListenerList get playing => this['playing'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
+  /// @docsEditable true
   EventListenerList get rateChange => this['ratechange'];
 
+  /// @docsEditable true
   EventListenerList get seeked => this['seeked'];
 
+  /// @docsEditable true
   EventListenerList get seeking => this['seeking'];
 
+  /// @docsEditable true
   EventListenerList get show => this['show'];
 
+  /// @docsEditable true
   EventListenerList get stalled => this['stalled'];
 
+  /// @docsEditable true
   EventListenerList get suspend => this['suspend'];
 
+  /// @docsEditable true
   EventListenerList get timeUpdate => this['timeupdate'];
 
+  /// @docsEditable true
   EventListenerList get volumeChange => this['volumechange'];
 
+  /// @docsEditable true
   EventListenerList get waiting => this['waiting'];
 
+  /// @docsEditable true
   EventListenerList get keyAdded => this['webkitkeyadded'];
 
+  /// @docsEditable true
   EventListenerList get keyError => this['webkitkeyerror'];
 
+  /// @docsEditable true
   EventListenerList get keyMessage => this['webkitkeymessage'];
 
+  /// @docsEditable true
   EventListenerList get needKey => this['webkitneedkey'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12412,9 +12704,12 @@ class MediaStream extends EventTarget native "*MediaStream" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class MediaStreamEvents extends Events {
+  /// @docsEditable true
   MediaStreamEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get ended => this['ended'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12471,13 +12766,18 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class MediaStreamTrackEvents extends Events {
+  /// @docsEditable true
   MediaStreamTrackEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get ended => this['ended'];
 
+  /// @docsEditable true
   EventListenerList get mute => this['mute'];
 
+  /// @docsEditable true
   EventListenerList get unmute => this['unmute'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12528,11 +12828,15 @@ class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class MediaStreamTrackListEvents extends Events {
+  /// @docsEditable true
   MediaStreamTrackListEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get addTrack => this['addtrack'];
 
+  /// @docsEditable true
   EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12673,9 +12977,12 @@ class MessagePort extends EventTarget native "*MessagePort" {
   void start() native;
 }
 
+/// @docsEditable true
 class MessagePortEvents extends Events {
+  /// @docsEditable true
   MessagePortEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13846,17 +14153,24 @@ class Notification extends EventTarget native "*Notification" {
   void show() native;
 }
 
+/// @docsEditable true
 class NotificationEvents extends Events {
+  /// @docsEditable true
   NotificationEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get click => this['click'];
 
+  /// @docsEditable true
   EventListenerList get close => this['close'];
 
+  /// @docsEditable true
   EventListenerList get display => this['display'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get show => this['show'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14383,17 +14697,24 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   void _startIce_2() native;
 }
 
+/// @docsEditable true
 class PeerConnection00Events extends Events {
+  /// @docsEditable true
   PeerConnection00Events(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get addStream => this['addstream'];
 
+  /// @docsEditable true
   EventListenerList get connecting => this['connecting'];
 
+  /// @docsEditable true
   EventListenerList get open => this['open'];
 
+  /// @docsEditable true
   EventListenerList get removeStream => this['removestream'];
 
+  /// @docsEditable true
   EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14936,15 +15257,21 @@ class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
   void send(data) native;
 }
 
+/// @docsEditable true
 class RtcDataChannelEvents extends Events {
+  /// @docsEditable true
   RtcDataChannelEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get close => this['close'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15141,21 +15468,30 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void _updateIce_3() native;
 }
 
+/// @docsEditable true
 class RtcPeerConnectionEvents extends Events {
+  /// @docsEditable true
   RtcPeerConnectionEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get addStream => this['addstream'];
 
+  /// @docsEditable true
   EventListenerList get iceCandidate => this['icecandidate'];
 
+  /// @docsEditable true
   EventListenerList get iceChange => this['icechange'];
 
+  /// @docsEditable true
   EventListenerList get negotiationNeeded => this['negotiationneeded'];
 
+  /// @docsEditable true
   EventListenerList get open => this['open'];
 
+  /// @docsEditable true
   EventListenerList get removeStream => this['removestream'];
 
+  /// @docsEditable true
   EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15572,9 +15908,12 @@ class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
   final String name;
 }
 
+/// @docsEditable true
 class SharedWorkerContextEvents extends WorkerContextEvents {
+  /// @docsEditable true
   SharedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get connect => this['connect'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15972,29 +16311,42 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
   void stop() native;
 }
 
+/// @docsEditable true
 class SpeechRecognitionEvents extends Events {
+  /// @docsEditable true
   SpeechRecognitionEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get audioEnd => this['audioend'];
 
+  /// @docsEditable true
   EventListenerList get audioStart => this['audiostart'];
 
+  /// @docsEditable true
   EventListenerList get end => this['end'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get noMatch => this['nomatch'];
 
+  /// @docsEditable true
   EventListenerList get result => this['result'];
 
+  /// @docsEditable true
   EventListenerList get soundEnd => this['soundend'];
 
+  /// @docsEditable true
   EventListenerList get soundStart => this['soundstart'];
 
+  /// @docsEditable true
   EventListenerList get speechEnd => this['speechend'];
 
+  /// @docsEditable true
   EventListenerList get speechStart => this['speechstart'];
 
+  /// @docsEditable true
   EventListenerList get start => this['start'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16975,9 +17327,12 @@ class TextTrack extends EventTarget native "*TextTrack" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class TextTrackEvents extends Events {
+  /// @docsEditable true
   TextTrackEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get cueChange => this['cuechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17048,11 +17403,15 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class TextTrackCueEvents extends Events {
+  /// @docsEditable true
   TextTrackCueEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get enter => this['enter'];
 
+  /// @docsEditable true
   EventListenerList get exit => this['exit'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17303,9 +17662,12 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
+/// @docsEditable true
 class TextTrackListEvents extends Events {
+  /// @docsEditable true
   TextTrackListEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get addTrack => this['addtrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19687,15 +20049,21 @@ class WebSocket extends EventTarget native "*WebSocket" {
 
 }
 
+/// @docsEditable true
 class WebSocketEvents extends Events {
+  /// @docsEditable true
   WebSocketEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get close => this['close'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19821,9 +20189,12 @@ class Worker extends AbstractWorker native "*Worker" {
   void terminate() native;
 }
 
+/// @docsEditable true
 class WorkerEvents extends AbstractWorkerEvents {
+  /// @docsEditable true
   WorkerEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19911,9 +20282,12 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
          this, this, this);
 }
 
+/// @docsEditable true
 class WorkerContextEvents extends Events {
+  /// @docsEditable true
   WorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

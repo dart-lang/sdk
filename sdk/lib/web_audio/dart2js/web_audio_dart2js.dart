@@ -247,9 +247,12 @@ class AudioContext extends EventTarget native "*AudioContext" {
   }
 }
 
+/// @docsEditable true
 class AudioContextEvents extends Events {
+  /// @docsEditable true
   AudioContextEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get complete => this['complete'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -655,9 +658,12 @@ class ScriptProcessorNode extends AudioNode implements EventTarget native "*Scri
   final int bufferSize;
 }
 
+/// @docsEditable true
 class ScriptProcessorNodeEvents extends Events {
+  /// @docsEditable true
   ScriptProcessorNodeEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get audioProcess => this['audioprocess'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
