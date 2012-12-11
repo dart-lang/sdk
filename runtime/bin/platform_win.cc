@@ -35,25 +35,35 @@ bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
 }
 
 
+static char* WideToUtf8(wchar_t* wide) {
+  int len = WideCharToMultiByte(CP_UTF8, 0, wide, -1, NULL, 0, NULL, NULL);
+  char* utf8 = reinterpret_cast<char*>(malloc(len + 1));
+  WideCharToMultiByte(CP_UTF8, 0, wide, -1, utf8, len, NULL, NULL);
+  utf8[len] = '\0';
+  return utf8;
+}
+
+
 char** Platform::Environment(intptr_t* count) {
-  char* strings = GetEnvironmentStrings();
+  wchar_t* strings = GetEnvironmentStringsW();
   if (strings == NULL) return NULL;
-  char* tmp = strings;
+  wchar_t* tmp = strings;
   intptr_t i = 0;
   while (*tmp != '\0') {
     i++;
-    tmp += (strlen(tmp) + 1);
+    tmp += (wcslen(tmp) + 1);
   }
   *count = i;
   char** result = new char*[i];
   tmp = strings;
   for (intptr_t current = 0; current < i; current++) {
-    result[current] = StringUtils::SystemStringToUtf8(tmp);
-    tmp += (strlen(tmp) + 1);
+    result[current] = WideToUtf8(tmp);
+    tmp += (wcslen(tmp) + 1);
   }
-  FreeEnvironmentStrings(strings);
+  FreeEnvironmentStringsW(strings);
   return result;
 }
+
 
 void Platform::FreeEnvironment(char** env, int count) {
   for (int i = 0; i < count; i++) free(env[i]);
