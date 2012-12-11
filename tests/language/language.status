@@ -524,3 +524,4 @@ invocation_mirror_indirect_test: Fail # issue 3326.
 [ $compiler == dart2dart && $minified ]
 import_core_prefix_test: Pass
 prefix22_test: Pass
+invocation_mirror2_test: Fail
