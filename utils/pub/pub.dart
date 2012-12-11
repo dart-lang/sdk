@@ -56,21 +56,21 @@ Map<String, PubCommand> get pubCommands {
 ArgParser get pubArgParser {
   var parser = new ArgParser();
   parser.addFlag('help', abbr: 'h', negatable: false,
-      help: 'print this usage information');
+      help: 'Print this usage information.');
   parser.addFlag('version', negatable: false,
-      help: 'print the version of pub');
+      help: 'Print pub version.');
   parser.addFlag('trace',
-       help: 'print debugging information when an error occurs');
+       help: 'Print debugging information when an error occurs.');
   parser.addOption('verbosity',
-      help: 'control output verbosity',
+      help: 'Control output verbosity.',
       allowed: ['normal', 'io', 'all'],
       allowedHelp: {
-        'normal': 'errors, warnings, and user messages are shown',
-        'io':     'IO operations are also shown',
-        'all':    'all output including internal tracing messages are shown'
+        'normal': 'Errors, warnings, and user messages are shown.',
+        'io':     'IO operations are also shown.',
+        'all':    'All output including internal tracing messages are shown.'
       });
   parser.addFlag('verbose', abbr: 'v', negatable: false,
-      help: 'shortcut for "--verbosity=all"');
+      help: 'Shortcut for "--verbosity=all"');
   return parser;
 }
 
@@ -297,13 +297,11 @@ abstract class PubCommand {
     if (description == null) description = this.description;
 
     var buffer = new StringBuffer();
-    buffer.add(description);
-    buffer.add('');
-    buffer.add('Usage: $usage');
+    buffer.add('$description\n\nUsage: $usage');
 
     var commandUsage = commandParser.getUsage();
     if (!commandUsage.isEmpty) {
-      buffer.add('');
+      buffer.add('\n');
       buffer.add(commandUsage);
     }
 

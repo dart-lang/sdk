@@ -11,7 +11,7 @@ import 'pub.dart';
 /** Handles the `update` pub command. */
 class UpdateCommand extends PubCommand {
   String get description =>
-    "update the current package's dependencies to the latest versions";
+    "Update the current package's dependencies to the latest versions.";
 
   String get usage => 'pub update [dependencies...]';
 

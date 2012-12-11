@@ -10,7 +10,7 @@ import 'pub.dart';
 
 /** Handles the `install` pub command. */
 class InstallCommand extends PubCommand {
-  String get description => "install the current package's dependencies";
+  String get description => "Install the current package's dependencies.";
   String get usage => "pub install";
 
   Future onRun() {

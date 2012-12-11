@@ -12,7 +12,7 @@ import 'pub.dart';
 
 /** Handles the `help` pub command. */
 class HelpCommand extends PubCommand {
-  String get description => "display help information for Pub";
+  String get description => "Display help information for Pub.";
   String get usage => 'pub help [command]';
   bool get requiresEntrypoint => false;
 

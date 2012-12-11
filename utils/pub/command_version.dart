@@ -8,7 +8,7 @@ import 'pub.dart';
 
 /** Handles the `version` pub command. */
 class VersionCommand extends PubCommand {
-  String get description => 'print Pub version';
+  String get description => 'Print pub version.';
   String get usage => 'pub version';
   bool get requiresEntrypoint => false;
 

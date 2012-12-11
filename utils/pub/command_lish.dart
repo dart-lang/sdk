@@ -21,7 +21,7 @@ import 'validator.dart';
 // 6949.
 /// Handles the `lish` and `publish` pub commands.
 class LishCommand extends PubCommand {
-  final description = "publish the current package to pub.dartlang.org";
+  final description = "Publish the current package to pub.dartlang.org.";
   final usage = "pub publish [options]";
   final aliases = const ["lish", "lush"];
 

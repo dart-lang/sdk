@@ -15,23 +15,23 @@ final USAGE_STRING = """
     Usage: pub command [arguments]
 
     Global options:
-    -h, --help            print this usage information
-        --version         print the version of pub
-        --[no-]trace      print debugging information when an error occurs
-        --verbosity       control output verbosity
+    -h, --help            Print this usage information.
+        --version         Print pub version.
+        --[no-]trace      Print debugging information when an error occurs.
+        --verbosity       Control output verbosity.
 
-              [all]       all output including internal tracing messages are shown
-              [io]        IO operations are also shown
-              [normal]    errors, warnings, and user messages are shown
+              [all]       All output including internal tracing messages are shown.
+              [io]        IO operations are also shown.
+              [normal]    Errors, warnings, and user messages are shown.
 
-    -v, --verbose         shortcut for "--verbosity=all"
+    -v, --verbose         Shortcut for "--verbosity=all"
 
     Available commands:
-      help      display help information for Pub
-      install   install the current package's dependencies
-      publish   publish the current package to pub.dartlang.org
-      update    update the current package's dependencies to the latest versions
-      version   print Pub version
+      help      Display help information for Pub.
+      install   Install the current package's dependencies.
+      publish   Publish the current package to pub.dartlang.org.
+      update    Update the current package's dependencies to the latest versions.
+      version   Print pub version.
 
     Use "pub help [command]" for more information about a command.
     """;
@@ -82,13 +82,36 @@ main() {
         exitCode: 64);
   });
 
-  test('an unknown help command displays an error message', () {
-    runPub(args: ['help', 'quylthulg'],
-        error: '''
-        Could not find a command named "quylthulg".
-        Run "pub help" to see available commands.
-        ''',
-        exitCode: 64);
+  group('help', () {
+    test('shows help for a command', () {
+      runPub(args: ['help', 'install'],
+          output: '''
+            Install the current package's dependencies.
+
+            Usage: pub install
+            ''');
+    });
+
+    test('shows help for a command', () {
+      runPub(args: ['help', 'publish'],
+          output: '''
+            Publish the current package to pub.dartlang.org.
+
+            Usage: pub publish [options]
+            --server    The package server to which to upload this package
+                        (defaults to "https://pub.dartlang.org")
+            ''');
+    });
+
+    test('an unknown help command displays an error message', () {
+      runPub(args: ['help', 'quylthulg'],
+          error: '''
+            Could not find a command named "quylthulg".
+            Run "pub help" to see available commands.
+            ''',
+            exitCode: 64);
+    });
+
   });
 
   test('displays the current version', () =>
