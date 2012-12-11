@@ -217,6 +217,12 @@ class Selector {
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
   DartType get receiverType => null;
 
+  /**
+   * The member name for invocation mirrors created from this selector.
+   */
+  String get invocationMirrorMemberName =>
+      isSetter() ? '${name.slowToString()}=' : name.slowToString();
+
   bool applies(Element element, Compiler compiler)
       => appliesUntyped(element, compiler);
 

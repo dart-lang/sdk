@@ -68,7 +68,6 @@ Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(ahe): Please t
 Language/11_Expressions/18_Assignment_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/18_Assignment_A08_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/19_Conditional_A01_t14: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/19_Conditional_A01_t15: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # TODO(ahe): Please triage this failure.

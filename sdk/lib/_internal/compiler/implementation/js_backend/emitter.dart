@@ -1002,7 +1002,7 @@ $lazyInitializerLogic
           arguments.add(new js.VariableUse(argName));
         }
       }
-      js.Fun function = 
+      js.Fun function =
           new js.Fun(parameters,
               new js.Block(
                   <js.Statement>[
@@ -1363,7 +1363,7 @@ $classesCollector.$mangledName = {'':
       parameters.add(new js.Parameter(extraArg));
       arguments.add(new js.VariableUse(extraArg));
     }
-        
+
     js.Expression getterFunction =
         new js.Fun(parameters,
             new js.Block(
@@ -1372,7 +1372,7 @@ $classesCollector.$mangledName = {'':
                         new js.New(
                             new js.VariableUse(closureClass),
                             arguments))]));
-            
+
     CodeBuffer getterBuffer = new CodeBuffer();
     getterBuffer.add(js.prettyPrint(getterFunction, compiler));
     defineInstanceMember(getterName, getterBuffer);
@@ -1569,6 +1569,11 @@ $classesCollector.$mangledName = {'':
     String noSuchMethodName = namer.publicInstanceMethodNameByArity(
         Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
 
+    Element createInvocationMirrorElement =
+        compiler.findHelper(const SourceString("createInvocationMirror"));
+    String createInvocationMirrorName =
+        namer.getName(createInvocationMirrorElement);
+
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
     Set<String> addedJsNames = new Set<String>();
@@ -1591,7 +1596,7 @@ $classesCollector.$mangledName = {'':
       return result;
     }
 
-    js.Expression generateMethod(String methodName, Selector selector) {
+    js.Expression generateMethod(String jsName, Selector selector) {
       // Values match JSInvocationMirror in js-helper library.
       const int METHOD = 0;
       const int GETTER = 1;
@@ -1599,19 +1604,16 @@ $classesCollector.$mangledName = {'':
       int type = METHOD;
       if (selector.isGetter()) {
         type = GETTER;
-        assert(methodName.startsWith("get:"));
-        methodName = methodName.substring(4);
       } else if (selector.isSetter()) {
         type = SETTER;
-        assert(methodName.startsWith("set:"));
-        methodName = "${methodName.substring(4)}=";
       }
-
+      String methodName = selector.invocationMirrorMemberName;
       List<js.Parameter> parameters = <js.Parameter>[];
+      CodeBuffer args = new CodeBuffer();
       for (int i = 0; i < selector.argumentCount; i++) {
         parameters.add(new js.Parameter('\$$i'));
       }
-      
+
       List<js.Expression> argNames =
           selector.getOrderedNamedArguments().map((SourceString name) =>
               new js.LiteralString('"${name.slowToString()}"'));
@@ -1661,11 +1663,15 @@ $classesCollector.$mangledName = {'':
           // Selector.applies() method.
           if (element is AbstractFieldElement) {
             AbstractFieldElement field = element;
-            if (identical(selector.kind, SelectorKind.GETTER)) {
+            if (selector.isGetter()) {
               return field.getter != null;
-            } else if (identical(selector.kind, SelectorKind.SETTER)) {
+            } else if (selector.isSetter()) {
               return field.setter != null;
             } else {
+              return false;
+            }
+          } else if (element is VariableElement) {
+            if (selector.isSetter() && element.modifiers.isFinalOrConst()) {
               return false;
             }
           }
@@ -1727,28 +1733,9 @@ $classesCollector.$mangledName = {'':
         // does not implement bar.
         Set<ClassElement> holders = noSuchMethodHoldersFor(receiverType);
         if (holders.every(hasMatchingMember)) continue;
-
-        String jsName = null;
-        String methodName = null;
-        String nameString = selector.name.slowToString();
-        if (selector.isGetter()) {
-          jsName = namer.getterName(selector.library, selector.name);
-          methodName = 'get:$nameString';
-        } else if (selector.isSetter()) {
-          jsName = namer.setterName(selector.library, selector.name);
-          methodName = 'set:$nameString';
-        } else if (selector.isCall()) {
-          jsName = namer.instanceMethodInvocationName(
-              selector.library, selector.name, selector);
-          methodName = nameString;
-        } else {
-          // We simply ignore selectors that do not need
-          // noSuchMethod handlers.
-          continue;
-        }
-
+        String jsName = namer.invocationMirrorInternalName(selector);
         if (!addedJsNames.contains(jsName)) {
-          js.Expression method = generateMethod(methodName, selector);
+          js.Expression method = generateMethod(jsName, selector);
           CodeBuffer jsCode = new CodeBuffer();
           jsCode.add(js.prettyPrint(method, compiler));
           defineInstanceMember(jsName, jsCode);

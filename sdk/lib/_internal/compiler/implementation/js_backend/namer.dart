@@ -207,6 +207,21 @@ class Namer {
         '${privateName(lib, name)}\$${selector.argumentCount}$buffer');
   }
 
+  /**
+   * Returns the internal name used for an invocation mirror of this selector.
+   */
+  String invocationMirrorInternalName(Selector selector) {
+    String nameString = selector.name.slowToString();
+    if (selector.isGetter()) {
+      return getterName(selector.library, selector.name);
+    } else if (selector.isSetter()) {
+      return setterName(selector.library, selector.name);
+    } else {
+      return instanceMethodInvocationName(
+          selector.library, selector.name, selector);
+    }
+  }
+
   String instanceFieldName(LibraryElement libraryElement, SourceString name) {
     String proposedName = privateName(libraryElement, name);
     return getMappedInstanceName(proposedName);
