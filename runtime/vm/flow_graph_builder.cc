@@ -2809,7 +2809,13 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
   // The first argument is the original method name.
   arguments->Add(new LiteralNode(args_pos, method_name));
-  // The second argument is an array containing the original method arguments.
+  // The second argument is the arguments descriptor of the original method.
+  const Array& args_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(method_arguments->length(),
+                                                 method_arguments->names()));
+  arguments->Add(new LiteralNode(args_pos, args_descriptor));
+  // The third argument is an array containing the original method arguments,
+  // including the receiver.
   ArrayNode* args_array =
       new ArrayNode(args_pos, Type::ZoneHandle(Type::ArrayType()));
   for (intptr_t i = 0; i < method_arguments->length(); i++) {

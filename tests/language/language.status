@@ -53,7 +53,6 @@ type_error_test: Fail # http://dartbug.com/5280
 compile_time_constant10_test/none: Fail # issue 5214
 
 invocation_mirror_test: Fail # issue 3326, 3622.
-no_such_method_test: Fail # issue 3326, 3622.
 
 export_cyclic_test: Fail, Crash # issue 6060
 duplicate_export_negative_test: Fail # issue 6134

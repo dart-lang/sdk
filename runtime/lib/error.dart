@@ -91,7 +91,8 @@ class InternalError {
 }
 
 
-// TODO(regis): This class will change once mirrors are available.
+// TODO(regis): This class should be removed and the corresponding class in the
+// core lib should be used.
 class NoSuchMethodErrorImplementation implements NoSuchMethodError {
   factory NoSuchMethodErrorImplementation._uninstantiable() {
     throw new UnsupportedError(

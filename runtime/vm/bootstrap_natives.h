@@ -14,7 +14,7 @@ namespace dart {
 // List of bootstrap native entry points used in the core dart library.
 #define BOOTSTRAP_NATIVE_LIST(V)                                               \
   V(Object_toString, 1)                                                        \
-  V(Object_noSuchMethod, 3)                                                    \
+  V(Object_noSuchMethod, 5)                                                    \
   V(Object_runtimeType, 1)                                                     \
   V(AbstractType_toString, 1)                                                  \
   V(Integer_bitAndFromInteger, 2)                                              \

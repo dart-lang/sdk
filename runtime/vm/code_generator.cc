@@ -1184,9 +1184,9 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
                                getter_function_name,
                                kNumArguments,
                                kNumNamedArguments));
-  Code& code = Code::Handle();
+  const Object& null_object = Object::Handle();
   if (function.IsNull()) {
-    arguments.SetReturn(code);
+    arguments.SetReturn(null_object);
     return;  // No getter function found so can't be an implicit closure.
   }
   GrowableArray<const Object*> invoke_arguments(0);
@@ -1199,7 +1199,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
   if (result.IsError()) {
     if (result.IsUnhandledException()) {
       // If the getter throws an exception, treat as no such method.
-      arguments.SetReturn(code);
+      arguments.SetReturn(null_object);
       return;
     } else {
       Exceptions::PropagateError(Error::Cast(result));
@@ -1226,7 +1226,6 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
 
   // TODO(regis): Resolve and invoke "call" method, if existing.
 
-  const Object& null_object = Object::Handle();
   dart_arguments.Add(&result);
   dart_arguments.Add(&function_name);
   dart_arguments.Add(&function_args);
@@ -1281,13 +1280,13 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
   const Instructions& instrs = Instructions::Handle(code.instructions());
   ASSERT(!instrs.IsNull());
 
-  // Receiver parameter has already been skipped by caller.
   // The closure object is passed as implicit first argument to closure
   // functions, since it may be needed to throw a NoSuchMethodError, in case
   // the wrong number of arguments is passed.
-  GrowableArray<const Object*> invoke_arguments(func_arguments.Length() + 1);
+  // Replace the original receiver in the arguments array by the closure.
+  GrowableArray<const Object*> invoke_arguments(func_arguments.Length());
   invoke_arguments.Add(&closure);
-  for (intptr_t i = 0; i < func_arguments.Length(); i++) {
+  for (intptr_t i = 1; i < func_arguments.Length(); i++) {
     const Object& value = Object::Handle(func_arguments.At(i));
     invoke_arguments.Add(&value);
   }
@@ -1317,12 +1316,9 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   const String& original_function_name = String::Handle(ic_data.target_name());
-  ASSERT(!Array::CheckedHandle(arguments.ArgAt(2)).IsNull());
+  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
   const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
   // Allocate an InvocationMirror object.
-  // TODO(regis): Fill in the InvocationMirror object correctly at
-  // this point we do not deal with named arguments and treat them
-  // all as positional.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const String& invocation_mirror_name = String::Handle(
       Symbols::InvocationMirror());
@@ -1336,8 +1332,9 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
                                     allocation_function_name,
                                     Resolver::kIsQualified));
   ASSERT(!allocation_function.IsNull());
-  GrowableArray<const Object*> allocation_arguments(2);
+  GrowableArray<const Object*> allocation_arguments(3);
   allocation_arguments.Add(&original_function_name);
+  allocation_arguments.Add(&orig_arguments_desc);
   allocation_arguments.Add(&orig_arguments);
   const Array& kNoArgumentNames = Array::Handle();
   const Object& invocation_mirror = Object::Handle(
@@ -1369,7 +1366,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
 // A non-closure object was invoked as a closure, so call the "call" method
 // on it.
 // Arg0: non-closure object.
-// Arg1: arguments array.
+// Arg1: arguments array, including non-closure object.
 // TODO(regis): Rename this entry?
 DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
   ASSERT(arguments.ArgCount() ==

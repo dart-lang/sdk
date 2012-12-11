@@ -141,6 +141,11 @@ DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
 }
 
 
+// TODO(regis): This helper is used to compile a throw when a call cannot be
+// resolved at compile time. The thrown instance of NoSuchMethodError is of a
+// different type than a NoSuchMethodError thrown at runtime. This should be
+// merged.
+//
 // Allocate and throw NoSuchMethodError.
 // Arg0: index of the call that was not resolved at compile time.
 // Arg1: name of the method that was not resolved at compile time.

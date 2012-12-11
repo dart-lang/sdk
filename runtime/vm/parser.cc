@@ -1338,10 +1338,16 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
   // The first argument is the original function name.
   arguments->Add(new LiteralNode(args_pos, function_name));
-  // The second argument is an array containing the original function arguments.
+  // The second argument is the arguments descriptor of the original function.
+  const Array& args_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(function_args.length(),
+                                                 function_args.names()));
+  arguments->Add(new LiteralNode(args_pos, args_descriptor));
+  // The third argument is an array containing the original function arguments,
+  // including the receiver.
   ArrayNode* args_array = new ArrayNode(
       args_pos, Type::ZoneHandle(Type::ArrayType()));
-  for (intptr_t i = 1; i < function_args.length(); i++) {
+  for (intptr_t i = 0; i < function_args.length(); i++) {
     args_array->AddElement(function_args.NodeAt(i));
   }
   arguments->Add(args_array);

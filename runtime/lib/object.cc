@@ -17,37 +17,39 @@ DEFINE_NATIVE_ENTRY(Object_toString, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 3) {
-  const Instance& instance =
-      Instance::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 5) {
+  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, is_method, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, member_name, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, func_args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(
-      String, function_name, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, func_args, arguments->NativeArgAt(2));
-  const Object& null_object = Object::Handle(Object::null());
-  GrowableArray<const Object*> dart_arguments(4);
+      Instance, func_named_args, arguments->NativeArgAt(4));
+  GrowableArray<const Object*> dart_arguments(5);
   dart_arguments.Add(&instance);
-  dart_arguments.Add(&function_name);
+  dart_arguments.Add(&member_name);
   dart_arguments.Add(&func_args);
-  dart_arguments.Add(&null_object);
+  dart_arguments.Add(&func_named_args);
 
-  // Report if a function with same name (but different arguments) has been
-  // found.
-  Class& instance_class = Class::Handle(instance.clazz());
-  Function& function =
-      Function::Handle(instance_class.LookupDynamicFunction(function_name));
-  while (function.IsNull()) {
-    instance_class = instance_class.SuperClass();
-    if (instance_class.IsNull()) break;
-    function = instance_class.LookupDynamicFunction(function_name);
-  }
-  if (!function.IsNull()) {
-    const int total_num_parameters = function.NumParameters();
-    const Array& array = Array::Handle(Array::New(total_num_parameters - 1));
-    // Skip receiver.
-    for (int i = 1; i < total_num_parameters; i++) {
-      array.SetAt(i - 1, String::Handle(function.ParameterNameAt(i)));
+  if (is_method.value()) {
+    // Report if a function with same name (but different arguments) has been
+    // found.
+    Class& instance_class = Class::Handle(instance.clazz());
+    Function& function =
+        Function::Handle(instance_class.LookupDynamicFunction(member_name));
+    while (function.IsNull()) {
+      instance_class = instance_class.SuperClass();
+      if (instance_class.IsNull()) break;
+      function = instance_class.LookupDynamicFunction(member_name);
     }
-    dart_arguments.Add(&array);
+    if (!function.IsNull()) {
+      const int total_num_parameters = function.NumParameters();
+      const Array& array = Array::Handle(Array::New(total_num_parameters - 1));
+      // Skip receiver.
+      for (int i = 1; i < total_num_parameters; i++) {
+        array.SetAt(i - 1, String::Handle(function.ParameterNameAt(i)));
+      }
+      dart_arguments.Add(&array);
+    }
   }
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
   return Object::null();

@@ -343,8 +343,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   __ pushq(RCX);  // Closure object.
   __ pushq(R10);  // Arguments descriptor.
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R13);
-  __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
+  __ SmiUntag(R13);  // Arguments array length, including the original receiver.
   PushArgumentsArray(assembler, (kWordSize * 6));
   // Stack layout explaining "(kWordSize * 6)" offset.
   // TOS + 0: Argument array.
@@ -370,7 +369,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
 
   __ Bind(&function_not_found);
   // The target function was not found, so invoke method
-  // "void noSuchMethod(function_name, args_array)".
+  // "dynamic noSuchMethod(InvocationMirror invocation)".
   //   RAX: receiver.
   //   RBX: ic-data.
   //   R10: arguments descriptor array.
@@ -380,8 +379,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   __ pushq(RBX);  // IC-data array.
   __ pushq(R10);  // Arguments descriptor array.
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R13);
-  __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
+  __ SmiUntag(R13);  // Arguments array length, including the original receiver.
   // See stack layout below explaining "wordSize * 7" offset.
   PushArgumentsArray(assembler, (kWordSize * 7));
 
@@ -776,8 +774,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ pushq(R13);  // Non-closure object.
   // Load num_args.
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R13);
-  __ subq(R13, Immediate(1));  // Arguments array length, minus the closure.
+  __ SmiUntag(R13);  // Arguments array length, including the non-closure.
   // See stack layout below explaining "wordSize * 5" offset.
   PushArgumentsArray(assembler, (kWordSize * 5));
 
@@ -1429,14 +1426,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 //   R10 : arguments descriptor array.
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // The target function was not found, so invoke method
-  // "void noSuchMethod(function_name, Array arguments)".
-  // TODO(regis): For now, we simply pass the actual arguments, both positional
-  // and named, as the argument array. This is not correct if out-of-order
-  // named arguments were passed.
-  // The signature of the "noSuchMethod" method has to change from
-  // noSuchMethod(String name, Array arguments) to something like
-  // noSuchMethod(InvocationMirror call).
-  // Also, the class NoSuchMethodError has to be modified accordingly.
+  // "dynamic noSuchMethod(InvocationMirror invocation)".
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
@@ -1450,7 +1440,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // IC data array.
   __ pushq(R10);  // Arguments descriptor array.
-  __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
+  // R13: Arguments array length, including the receiver.
   // See stack layout below explaining "wordSize * 10" offset.
   PushArgumentsArray(assembler, (kWordSize * 10));
 
