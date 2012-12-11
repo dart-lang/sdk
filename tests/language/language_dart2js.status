@@ -346,6 +346,10 @@ type_checks_in_factory_method_test: Fail
 
 
 [ $compiler == dart2js && $runtime == safari ]
+execute_finally8_test: Fail # TODO(ahe): Please triage this failure.
+execute_finally9_test: Fail # TODO(ahe): Please triage this failure.
+null_access_error_test: Fail # TODO(ahe): Please triage this failure.
+string_interpolate_null_test: Fail # TODO(ahe): Please triage this failure.
 arithmetic_test: Skip # BUG(3492): Times out.
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 closure3_test: Fail # Uncaught error: Instance of 'TypeError'
