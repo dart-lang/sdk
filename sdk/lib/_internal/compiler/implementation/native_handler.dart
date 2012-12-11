@@ -794,19 +794,6 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   Compiler compiler = builder.compiler;
   FunctionElement element = builder.work.element;
   NativeEmitter nativeEmitter = builder.emitter.nativeEmitter;
-  // If what we're compiling is a getter named 'typeName' and the native
-  // class is named 'DOMType', we generate a call to the typeNameOf
-  // function attached on the isolate.
-  // The DOM classes assume that their 'typeName' property, which is
-  // not a JS property on the DOM types, returns the type name.
-  if (element.name == const SourceString('typeName')
-      && element.isGetter()
-      && nativeEmitter.toNativeName(element.getEnclosingClass()) == 'DOMType') {
-    Element helper =
-        compiler.findHelper(const SourceString('getTypeNameOf'));
-    builder.pushInvokeHelper1(helper, builder.localsHandler.readThis());
-    builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
-  }
 
   HInstruction convertDartClosure(Element parameter, FunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
