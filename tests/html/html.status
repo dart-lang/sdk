@@ -172,8 +172,6 @@ contentelement_test: Fail # Safari 6 does not support content element.
 audiocontext_test: Fail
 datalistelement_test: Pass,Fail
 element_test/elements: Crash
-element_test/eventListening: Fail
-element_test/queryAll: Fail, Crash
 node_test: Skip # Issue 6457
 svgelement_test/innerHtml: Crash, Fail
 svgelement_test/outerHtml: Fail
