@@ -11,6 +11,7 @@ xmlelement_test: Skip  # XML in dart:html is incomplete
 
 [ $runtime == chrome ]
 contentelement_test: Fail   # Issue 5445: not currently supported on chrome stable.
+input_element_test/date: Pass, Fail      # Chrome stable does not support this input type.
 input_element_test/datetime: Fail        # Chrome stable does not support this input type.
 input_element_test/datetime-local: Fail  # Chrome stable does not support this input type.
 input_element_test/month: Fail           # Chrome stable does not support this input type.
@@ -266,10 +267,13 @@ indexeddb_3_test: Fail     # FF disables indexedDB from file URLs.
 indexeddb_4_test: Fail     # FF disables indexedDB from file URLs.
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
+input_element_test/date: Fail            # FF does not support this input type.
 input_element_test/datetime: Fail        # FF does not support this input type.
 input_element_test/datetime-local: Fail  # FF does not support this input type.
 input_element_test/month: Fail           # FF does not support this input type.
+input_element_test/time: Fail            # FF does not support this input type.
 input_element_test/week: Fail            # FF does not support this input type.
+input_element_test/range: Fail           # FF does not support this input type.
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
