@@ -114,48 +114,48 @@ Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # Dart issue 7257
 Language/11_Expressions/30_Identifier_Reference_A08_t02: Fail # Dart issue 5802
 Language/11_Expressions/31_Type_Test_A01_t02: Fail # Dart issue 7258
 Language/11_Expressions/31_Type_Test_A01_t04: Fail # Dart issue 7258
-Language/12_Statements/03_Variable_Declaration_A04_t07: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/06_For_A01_t11: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/09_Switch_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/09_Switch_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/09_Switch_A02_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/09_Switch_A02_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/09_Switch_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/09_Switch_A03_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/09_Switch_A04_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/09_Switch_A06_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/10_Try_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/10_Try_A03_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/10_Try_A03_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/10_Try_A11_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/12_Labels_A01_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t29: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A04_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t11: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t14: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t15: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # TODO(vm-team): Please triage this failure.
-Language/14_Types/5_Function_Types_A04_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/14_Types/5_Function_Types_A06_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(vm-team): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules_A01_t11: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/double/parse_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # TODO(vm-team): Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # TODO(vm-team): Please triage this failure.
-LibTest/math/pow_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/math/pow_A11_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/math/pow_A13_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/math/sin_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/12_Statements/03_Variable_Declaration_A04_t07: Fail # Dart issue 7305
+Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # Dart issue 5773
+Language/12_Statements/06_For_A01_t11: Fail # Dart issue 5675
+Language/12_Statements/09_Switch_A01_t02: Fail # Dart issue 2238
+Language/12_Statements/09_Switch_A02_t01: Fail # Dart issue 7306
+Language/12_Statements/09_Switch_A02_t02: Fail # Dart issue 7307
+Language/12_Statements/09_Switch_A02_t03: Fail # Dart issue 7308
+Language/12_Statements/09_Switch_A03_t01: Fail # Dart issue 7307
+Language/12_Statements/09_Switch_A03_t02: Fail # Dart issue 7307
+Language/12_Statements/09_Switch_A04_t01: Fail # Dart issue 6897
+Language/12_Statements/09_Switch_A06_t02: Fail # Dart issue 5837
+Language/12_Statements/10_Try_A03_t01: Fail # Dart issue 7311
+Language/12_Statements/10_Try_A03_t02: Fail # Dart issue 7311
+Language/12_Statements/10_Try_A03_t03: Fail # Dart issue 7311
+Language/12_Statements/10_Try_A11_t01: Fail # Dart issue 430
+Language/12_Statements/12_Labels_A01_t03: Fail # Dart issue 2238
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # Dart issue 5839
+Language/13_Libraries_and_Scripts/1_Imports_A02_t29: Fail # Dart issue 6783
+Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Dart issue 3206
+Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Fail # Dart issue 6134
+Language/13_Libraries_and_Scripts/2_Exports_A04_t03: Fail # Dart issue 6134
+Language/13_Libraries_and_Scripts/5_URIs_A01_t01: Fail # Dart issue 6352
+Language/13_Libraries_and_Scripts/5_URIs_A01_t04: Fail # Dart issue 7317
+Language/13_Libraries_and_Scripts/5_URIs_A01_t05: Fail # Dart issue 7317
+Language/13_Libraries_and_Scripts/5_URIs_A01_t11: Fail # Dart issue 6352
+Language/13_Libraries_and_Scripts/5_URIs_A01_t14: Fail # Dart issue 7317
+Language/13_Libraries_and_Scripts/5_URIs_A01_t15: Fail # Dart issue 7317
+Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # Dart issue 6352
+Language/14_Types/5_Function_Types_A04_t01: Fail # Dart issue 6921
+Language/14_Types/5_Function_Types_A06_t01: Fail # Dart issue 1604
+Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # Dart issue 2687
+Language/15_Reference/1_Lexical_Rules_A01_t11: Fail # Dart issue 2687
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail # co19 issue 353
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail # co19 issue 353
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # co19 issue 353
+LibTest/core/double/parse_A02_t01: Fail # Dart issue 1929
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # Dart issue 5222
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # Dart issue 5222
+LibTest/math/pow_A01_t01: Fail # Dart issue 7318
+LibTest/math/pow_A11_t01: Fail # Dart issue 449
+LibTest/math/pow_A13_t01: Fail # Dart issue 449
+LibTest/math/sin_A01_t01: Fail # Dart issue 7318
 
 Language/05_Variables/05_Variables_A05_t04: Fail # Dart issue 5881
 Language/05_Variables/05_Variables_A05_t11: Fail # Dart issue 5885
