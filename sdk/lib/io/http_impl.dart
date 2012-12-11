@@ -1291,10 +1291,16 @@ class _HttpClientResponse
   String get reasonPhrase => _reasonPhrase;
 
   bool get isRedirect {
-    return statusCode == HttpStatus.MOVED_PERMANENTLY ||
-           statusCode == HttpStatus.FOUND ||
-           statusCode == HttpStatus.SEE_OTHER ||
-           statusCode == HttpStatus.TEMPORARY_REDIRECT;
+    var method = _connection._request._method;
+    if (method == "GET" || method == "HEAD") {
+      return statusCode == HttpStatus.MOVED_PERMANENTLY ||
+             statusCode == HttpStatus.FOUND ||
+             statusCode == HttpStatus.SEE_OTHER ||
+             statusCode == HttpStatus.TEMPORARY_REDIRECT;
+    } else if (method == "POST") {
+      return statusCode == HttpStatus.SEE_OTHER;
+    }
+    return false;
   }
 
   List<Cookie> get cookies {
@@ -1351,7 +1357,12 @@ class _HttpClientResponse
         }
         // Drain body and redirect.
         inputStream.onData = inputStream.read;
-        _connection.redirect();
+        if (_statusCode == HttpStatus.SEE_OTHER &&
+            _connection._method == "POST") {
+          _connection.redirect("GET");
+        } else {
+          _connection.redirect();
+        }
       } else {
         throw new RedirectLimitExceededException(_connection._redirects);
       }
