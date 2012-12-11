@@ -28,7 +28,3 @@ dart2js_test: Fail # http://dartbug.com/2264
 *: Skip
 
 [ $compiler == dartc ]
-# dart2js issue 7297 (use deprecated === and !==)
-dart2js_test: Fail
-dummy_compiler_test: Fail
-recursive_import_test: Fail

@@ -2806,7 +2806,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     ClassElement classElement = type.element;
     Link<DartType> typeVariables = classElement.typeVariables;
     Link<DartType> supertypes = classElement.allSupertypes;
-    assert(invariant(element, supertypes !== null,
+    assert(invariant(element, supertypes != null,
         message: "Supertypes not computed on $classElement "
                  "during resolution of $element"));
     while (!supertypes.isEmpty) {
