@@ -615,7 +615,7 @@
   },
 "DivElement.dart":
   {
-  "class DivElement extends Element implements Element native \"*HTMLDivElement\" {":
+  "class DivElement extends Element native \"*HTMLDivElement\" {":
     [
       "/**",
       " * Represents an HTML <div> element.",
@@ -1488,7 +1488,7 @@
   },
 "MenuElement.dart":
   {
-  "class MenuElement extends Element implements Element native \"*HTMLMenuElement\" {":
+  "class MenuElement extends Element native \"*HTMLMenuElement\" {":
     [
       "/**",
       " * An HTML <menu> element.",

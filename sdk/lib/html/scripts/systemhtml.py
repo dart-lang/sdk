@@ -48,7 +48,7 @@ _js_custom_members = set([
     'HTMLSelectElement.selectedOptions',
     'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
-    'KeyboardEvent.initKeyboardEvent',    
+    'KeyboardEvent.initKeyboardEvent',
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
     'Navigator.language',
@@ -363,7 +363,8 @@ class HtmlDartInterfaceGenerator(object):
     implements = self._backend.AdditionalImplementedInterfaces()
     for parent in self._interface.parents:
       parent_type_info = self._type_registry.TypeInfo(parent.type.id)
-      if parent_type_info != base_type_info:
+      if parent_type_info.interface_name() != base_class and \
+          parent_type_info != base_type_info:
         implements.append(parent_type_info.interface_name())
 
     secure_base_name = self._backend.SecureBaseName(interface_name)

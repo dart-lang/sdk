@@ -87,7 +87,7 @@ class AbstractWorkerEvents extends Events {
 
 
 /// @domName HTMLAnchorElement; @docsEditable true
-class AnchorElement extends Element implements Element native "*HTMLAnchorElement" {
+class AnchorElement extends Element native "*HTMLAnchorElement" {
 
   ///@docsEditable true
   factory AnchorElement({String href}) {
@@ -232,7 +232,7 @@ class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 
 
 /// @domName HTMLAppletElement; @docsEditable true
-class AppletElement extends Element implements Element native "*HTMLAppletElement" {
+class AppletElement extends Element native "*HTMLAppletElement" {
 
   /// @domName HTMLAppletElement.align; @docsEditable true
   String align;
@@ -351,7 +351,7 @@ class ApplicationCacheEvents extends Events {
 
 
 /// @domName HTMLAreaElement; @docsEditable true
-class AreaElement extends Element implements Element native "*HTMLAreaElement" {
+class AreaElement extends Element native "*HTMLAreaElement" {
 
   ///@docsEditable true
   factory AreaElement() => document.$dom_createElement("area");
@@ -477,7 +477,7 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
 
 
 /// @domName HTMLBRElement; @docsEditable true
-class BRElement extends Element implements Element native "*HTMLBRElement" {
+class BRElement extends Element native "*HTMLBRElement" {
 
   ///@docsEditable true
   factory BRElement() => document.$dom_createElement("br");
@@ -502,7 +502,7 @@ class BarInfo native "*BarInfo" {
 
 
 /// @domName HTMLBaseElement; @docsEditable true
-class BaseElement extends Element implements Element native "*HTMLBaseElement" {
+class BaseElement extends Element native "*HTMLBaseElement" {
 
   ///@docsEditable true
   factory BaseElement() => document.$dom_createElement("base");
@@ -519,7 +519,7 @@ class BaseElement extends Element implements Element native "*HTMLBaseElement" {
 
 
 /// @domName HTMLBaseFontElement; @docsEditable true
-class BaseFontElement extends Element implements Element native "*HTMLBaseFontElement" {
+class BaseFontElement extends Element native "*HTMLBaseFontElement" {
 
   /// @domName HTMLBaseFontElement.color; @docsEditable true
   String color;
@@ -629,7 +629,7 @@ class Blob native "*Blob" {
 
 
 /// @domName HTMLBodyElement; @docsEditable true
-class BodyElement extends Element implements Element native "*HTMLBodyElement" {
+class BodyElement extends Element native "*HTMLBodyElement" {
 
   ///@docsEditable true
   factory BodyElement() => document.$dom_createElement("body");
@@ -704,7 +704,7 @@ class BodyElementEvents extends ElementEvents {
 
 
 /// @domName HTMLButtonElement; @docsEditable true
-class ButtonElement extends Element implements Element native "*HTMLButtonElement" {
+class ButtonElement extends Element native "*HTMLButtonElement" {
 
   ///@docsEditable true
   factory ButtonElement() => document.$dom_createElement("button");
@@ -775,7 +775,7 @@ class CDataSection extends Text native "*CDATASection" {
 
 
 /// @domName HTMLCanvasElement
-class CanvasElement extends Element implements Element native "*HTMLCanvasElement" {
+class CanvasElement extends Element native "*HTMLCanvasElement" {
 
   ///@docsEditable true
   factory CanvasElement({int width, int height}) {
@@ -1484,7 +1484,7 @@ class Console {
 
 
 /// @domName HTMLContentElement; @docsEditable true
-class ContentElement extends Element implements Element native "*HTMLContentElement" {
+class ContentElement extends Element native "*HTMLContentElement" {
 
   ///@docsEditable true
   factory ContentElement() => document.$dom_createElement("content");
@@ -5290,7 +5290,7 @@ class CustomEvent extends Event native "*CustomEvent" {
 
 
 /// @domName HTMLDListElement; @docsEditable true
-class DListElement extends Element implements Element native "*HTMLDListElement" {
+class DListElement extends Element native "*HTMLDListElement" {
 
   ///@docsEditable true
   factory DListElement() => document.$dom_createElement("dl");
@@ -5304,7 +5304,7 @@ class DListElement extends Element implements Element native "*HTMLDListElement"
 
 
 /// @domName HTMLDataListElement; @docsEditable true
-class DataListElement extends Element implements Element native "*HTMLDataListElement" {
+class DataListElement extends Element native "*HTMLDataListElement" {
 
   ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
@@ -5516,7 +5516,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 
 
 /// @domName HTMLDetailsElement; @docsEditable true
-class DetailsElement extends Element implements Element native "*HTMLDetailsElement" {
+class DetailsElement extends Element native "*HTMLDetailsElement" {
 
   ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
@@ -5564,7 +5564,7 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 
 
 /// @domName HTMLDirectoryElement; @docsEditable true
-class DirectoryElement extends Element implements Element native "*HTMLDirectoryElement" {
+class DirectoryElement extends Element native "*HTMLDirectoryElement" {
 
   /// @domName HTMLDirectoryElement.compact; @docsEditable true
   bool compact;
@@ -5721,7 +5721,7 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
  * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
  */
 /// @domName HTMLDivElement; @docsEditable true
-class DivElement extends Element implements Element native "*HTMLDivElement" {
+class DivElement extends Element native "*HTMLDivElement" {
 
   ///@docsEditable true
   factory DivElement() => document.$dom_createElement("div");
@@ -8013,7 +8013,7 @@ abstract class ElementTraversal {
 
 
 /// @domName HTMLEmbedElement; @docsEditable true
-class EmbedElement extends Element implements Element native "*HTMLEmbedElement" {
+class EmbedElement extends Element native "*HTMLEmbedElement" {
 
   ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
@@ -8472,7 +8472,7 @@ class ExtTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 
 
 /// @domName HTMLFieldSetElement; @docsEditable true
-class FieldSetElement extends Element implements Element native "*HTMLFieldSetElement" {
+class FieldSetElement extends Element native "*HTMLFieldSetElement" {
 
   ///@docsEditable true
   factory FieldSetElement() => document.$dom_createElement("fieldset");
@@ -9263,7 +9263,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
 
 /// @domName HTMLFontElement; @docsEditable true
-class FontElement extends Element implements Element native "*HTMLFontElement" {
+class FontElement extends Element native "*HTMLFontElement" {
 
   /// @domName HTMLFontElement.color; @docsEditable true
   String color;
@@ -9299,7 +9299,7 @@ class FormData native "*FormData" {
 
 
 /// @domName HTMLFormElement; @docsEditable true
-class FormElement extends Element implements Element native "*HTMLFormElement" {
+class FormElement extends Element native "*HTMLFormElement" {
 
   ///@docsEditable true
   factory FormElement() => document.$dom_createElement("form");
@@ -9349,7 +9349,7 @@ class FormElement extends Element implements Element native "*HTMLFormElement" {
 
 
 /// @domName HTMLFrameElement; @docsEditable true
-class FrameElement extends Element implements Element native "*HTMLFrameElement" {
+class FrameElement extends Element native "*HTMLFrameElement" {
 
   /// @domName HTMLFrameElement.contentWindow; @docsEditable true
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
@@ -9396,7 +9396,7 @@ class FrameElement extends Element implements Element native "*HTMLFrameElement"
 
 
 /// @domName HTMLFrameSetElement; @docsEditable true
-class FrameSetElement extends Element implements Element native "*HTMLFrameSetElement" {
+class FrameSetElement extends Element native "*HTMLFrameSetElement" {
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FrameSetElementEvents get on =>
@@ -9513,7 +9513,7 @@ class Geoposition native "*Geoposition" {
 
 
 /// @domName HTMLHRElement; @docsEditable true
-class HRElement extends Element implements Element native "*HTMLHRElement" {
+class HRElement extends Element native "*HTMLHRElement" {
 
   ///@docsEditable true
   factory HRElement() => document.$dom_createElement("hr");
@@ -9555,7 +9555,7 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
 
 
 /// @domName HTMLHeadElement; @docsEditable true
-class HeadElement extends Element implements Element native "*HTMLHeadElement" {
+class HeadElement extends Element native "*HTMLHeadElement" {
 
   ///@docsEditable true
   factory HeadElement() => document.$dom_createElement("head");
@@ -9569,7 +9569,7 @@ class HeadElement extends Element implements Element native "*HTMLHeadElement" {
 
 
 /// @domName HTMLHeadingElement; @docsEditable true
-class HeadingElement extends Element implements Element native "*HTMLHeadingElement" {
+class HeadingElement extends Element native "*HTMLHeadingElement" {
 
   ///@docsEditable true
   factory HeadingElement.h1() => document.$dom_createElement("h1");
@@ -9936,7 +9936,7 @@ class HtmlDocument extends Document native "*HTMLDocument" {
 
 
 /// @domName HTMLHtmlElement; @docsEditable true
-class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
+class HtmlElement extends Element native "*HTMLHtmlElement" {
 
   ///@docsEditable true
   factory HtmlElement() => document.$dom_createElement("html");
@@ -10369,7 +10369,7 @@ class HttpRequestUploadEvents extends Events {
 
 
 /// @domName HTMLIFrameElement; @docsEditable true
-class IFrameElement extends Element implements Element native "*HTMLIFrameElement" {
+class IFrameElement extends Element native "*HTMLIFrameElement" {
 
   ///@docsEditable true
   factory IFrameElement() => document.$dom_createElement("iframe");
@@ -10464,7 +10464,7 @@ class ImageData native "*ImageData" {
 
 
 /// @domName HTMLImageElement; @docsEditable true
-class ImageElement extends Element implements Element native "*HTMLImageElement" {
+class ImageElement extends Element native "*HTMLImageElement" {
 
   ///@docsEditable true
   factory ImageElement({String src, int width, int height}) {
@@ -11726,7 +11726,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
 
 /// @domName HTMLKeygenElement; @docsEditable true
-class KeygenElement extends Element implements Element native "*HTMLKeygenElement" {
+class KeygenElement extends Element native "*HTMLKeygenElement" {
 
   ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
@@ -11777,7 +11777,7 @@ class KeygenElement extends Element implements Element native "*HTMLKeygenElemen
 
 
 /// @domName HTMLLIElement; @docsEditable true
-class LIElement extends Element implements Element native "*HTMLLIElement" {
+class LIElement extends Element native "*HTMLLIElement" {
 
   ///@docsEditable true
   factory LIElement() => document.$dom_createElement("li");
@@ -11794,7 +11794,7 @@ class LIElement extends Element implements Element native "*HTMLLIElement" {
 
 
 /// @domName HTMLLabelElement; @docsEditable true
-class LabelElement extends Element implements Element native "*HTMLLabelElement" {
+class LabelElement extends Element native "*HTMLLabelElement" {
 
   ///@docsEditable true
   factory LabelElement() => document.$dom_createElement("label");
@@ -11814,7 +11814,7 @@ class LabelElement extends Element implements Element native "*HTMLLabelElement"
 
 
 /// @domName HTMLLegendElement; @docsEditable true
-class LegendElement extends Element implements Element native "*HTMLLegendElement" {
+class LegendElement extends Element native "*HTMLLegendElement" {
 
   ///@docsEditable true
   factory LegendElement() => document.$dom_createElement("legend");
@@ -11831,7 +11831,7 @@ class LegendElement extends Element implements Element native "*HTMLLegendElemen
 
 
 /// @domName HTMLLinkElement; @docsEditable true
-class LinkElement extends Element implements Element native "*HTMLLinkElement" {
+class LinkElement extends Element native "*HTMLLinkElement" {
 
   ///@docsEditable true
   factory LinkElement() => document.$dom_createElement("link");
@@ -12629,7 +12629,7 @@ class LocalWindowEvents extends Events {
 
 
 /// @domName HTMLMapElement; @docsEditable true
-class MapElement extends Element implements Element native "*HTMLMapElement" {
+class MapElement extends Element native "*HTMLMapElement" {
 
   ///@docsEditable true
   factory MapElement() => document.$dom_createElement("map");
@@ -12646,7 +12646,7 @@ class MapElement extends Element implements Element native "*HTMLMapElement" {
 
 
 /// @domName HTMLMarqueeElement; @docsEditable true
-class MarqueeElement extends Element implements Element native "*HTMLMarqueeElement" {
+class MarqueeElement extends Element native "*HTMLMarqueeElement" {
 
   /// @domName HTMLMarqueeElement.behavior; @docsEditable true
   String behavior;
@@ -12752,7 +12752,7 @@ class MediaController extends EventTarget native "*MediaController" {
 
 
 /// @domName HTMLMediaElement; @docsEditable true
-class MediaElement extends Element implements Element native "*HTMLMediaElement" {
+class MediaElement extends Element native "*HTMLMediaElement" {
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaElementEvents get on =>
@@ -13361,7 +13361,7 @@ class MemoryInfo native "*MemoryInfo" {
  *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
  */
 /// @domName HTMLMenuElement; @docsEditable true
-class MenuElement extends Element implements Element native "*HTMLMenuElement" {
+class MenuElement extends Element native "*HTMLMenuElement" {
 
   ///@docsEditable true
   factory MenuElement() => document.$dom_createElement("menu");
@@ -13480,7 +13480,7 @@ class MessagePortEvents extends Events {
 
 
 /// @domName HTMLMetaElement; @docsEditable true
-class MetaElement extends Element implements Element native "*HTMLMetaElement" {
+class MetaElement extends Element native "*HTMLMetaElement" {
 
   /// @domName HTMLMetaElement.content; @docsEditable true
   String content;
@@ -13522,7 +13522,7 @@ typedef void MetadataCallback(Metadata metadata);
 
 
 /// @domName HTMLMeterElement; @docsEditable true
-class MeterElement extends Element implements Element native "*HTMLMeterElement" {
+class MeterElement extends Element native "*HTMLMeterElement" {
 
   ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
@@ -13555,7 +13555,7 @@ class MeterElement extends Element implements Element native "*HTMLMeterElement"
 
 
 /// @domName HTMLModElement; @docsEditable true
-class ModElement extends Element implements Element native "*HTMLModElement" {
+class ModElement extends Element native "*HTMLModElement" {
 
   /// @domName HTMLModElement.cite; @docsEditable true
   String cite;
@@ -14697,7 +14697,7 @@ typedef void NotificationPermissionCallback(String permission);
 
 
 /// @domName HTMLOListElement; @docsEditable true
-class OListElement extends Element implements Element native "*HTMLOListElement" {
+class OListElement extends Element native "*HTMLOListElement" {
 
   ///@docsEditable true
   factory OListElement() => document.$dom_createElement("ol");
@@ -14720,7 +14720,7 @@ class OListElement extends Element implements Element native "*HTMLOListElement"
 
 
 /// @domName HTMLObjectElement; @docsEditable true
-class ObjectElement extends Element implements Element native "*HTMLObjectElement" {
+class ObjectElement extends Element native "*HTMLObjectElement" {
 
   ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
@@ -14849,7 +14849,7 @@ class OesVertexArrayObject native "*OESVertexArrayObject" {
 
 
 /// @domName HTMLOptGroupElement; @docsEditable true
-class OptGroupElement extends Element implements Element native "*HTMLOptGroupElement" {
+class OptGroupElement extends Element native "*HTMLOptGroupElement" {
 
   ///@docsEditable true
   factory OptGroupElement() => document.$dom_createElement("optgroup");
@@ -14866,7 +14866,7 @@ class OptGroupElement extends Element implements Element native "*HTMLOptGroupEl
 
 
 /// @domName HTMLOptionElement; @docsEditable true
-class OptionElement extends Element implements Element native "*HTMLOptionElement" {
+class OptionElement extends Element native "*HTMLOptionElement" {
 
   ///@docsEditable true
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
@@ -14912,7 +14912,7 @@ class OptionElement extends Element implements Element native "*HTMLOptionElemen
 
 
 /// @domName HTMLOutputElement; @docsEditable true
-class OutputElement extends Element implements Element native "*HTMLOutputElement" {
+class OutputElement extends Element native "*HTMLOutputElement" {
 
   ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
@@ -15008,7 +15008,7 @@ class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 
 
 /// @domName HTMLParagraphElement; @docsEditable true
-class ParagraphElement extends Element implements Element native "*HTMLParagraphElement" {
+class ParagraphElement extends Element native "*HTMLParagraphElement" {
 
   ///@docsEditable true
   factory ParagraphElement() => document.$dom_createElement("p");
@@ -15022,7 +15022,7 @@ class ParagraphElement extends Element implements Element native "*HTMLParagraph
 
 
 /// @domName HTMLParamElement; @docsEditable true
-class ParamElement extends Element implements Element native "*HTMLParamElement" {
+class ParamElement extends Element native "*HTMLParamElement" {
 
   ///@docsEditable true
   factory ParamElement() => document.$dom_createElement("param");
@@ -15393,7 +15393,7 @@ typedef void PositionErrorCallback(PositionError error);
 
 
 /// @domName HTMLPreElement; @docsEditable true
-class PreElement extends Element implements Element native "*HTMLPreElement" {
+class PreElement extends Element native "*HTMLPreElement" {
 
   ///@docsEditable true
   factory PreElement() => document.$dom_createElement("pre");
@@ -15427,7 +15427,7 @@ class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 
 
 /// @domName HTMLProgressElement; @docsEditable true
-class ProgressElement extends Element implements Element native "*HTMLProgressElement" {
+class ProgressElement extends Element native "*HTMLProgressElement" {
 
   ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
@@ -15468,7 +15468,7 @@ class ProgressEvent extends Event native "*ProgressEvent" {
 
 
 /// @domName HTMLQuoteElement; @docsEditable true
-class QuoteElement extends Element implements Element native "*HTMLQuoteElement" {
+class QuoteElement extends Element native "*HTMLQuoteElement" {
 
   /// @domName HTMLQuoteElement.cite; @docsEditable true
   String cite;
@@ -16117,7 +16117,7 @@ class Screen native "*Screen" {
 
 
 /// @domName HTMLScriptElement; @docsEditable true
-class ScriptElement extends Element implements Element native "*HTMLScriptElement" {
+class ScriptElement extends Element native "*HTMLScriptElement" {
 
   ///@docsEditable true
   factory ScriptElement() => document.$dom_createElement("script");
@@ -16205,7 +16205,7 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 
 
 /// @domName HTMLSelectElement
-class SelectElement extends Element implements Element native "*HTMLSelectElement" {
+class SelectElement extends Element native "*HTMLSelectElement" {
 
   ///@docsEditable true
   factory SelectElement() => document.$dom_createElement("select");
@@ -16307,7 +16307,7 @@ class SessionDescription native "*SessionDescription" {
 
 
 /// @domName HTMLShadowElement; @docsEditable true
-class ShadowElement extends Element implements Element native "*HTMLShadowElement" {
+class ShadowElement extends Element native "*HTMLShadowElement" {
 
   /// @domName HTMLShadowElement.resetStyleInheritance; @docsEditable true
   bool resetStyleInheritance;
@@ -16557,7 +16557,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 
 
 /// @domName HTMLSourceElement; @docsEditable true
-class SourceElement extends Element implements Element native "*HTMLSourceElement" {
+class SourceElement extends Element native "*HTMLSourceElement" {
 
   ///@docsEditable true
   factory SourceElement() => document.$dom_createElement("source");
@@ -16577,7 +16577,7 @@ class SourceElement extends Element implements Element native "*HTMLSourceElemen
 
 
 /// @domName HTMLSpanElement; @docsEditable true
-class SpanElement extends Element implements Element native "*HTMLSpanElement" {
+class SpanElement extends Element native "*HTMLSpanElement" {
 
   ///@docsEditable true
   factory SpanElement() => document.$dom_createElement("span");
@@ -17303,7 +17303,7 @@ typedef void StringCallback(String data);
 
 
 /// @domName HTMLStyleElement; @docsEditable true
-class StyleElement extends Element implements Element native "*HTMLStyleElement" {
+class StyleElement extends Element native "*HTMLStyleElement" {
 
   ///@docsEditable true
   factory StyleElement() => document.$dom_createElement("style");
@@ -17372,7 +17372,7 @@ class StyleSheet native "*StyleSheet" {
 
 
 /// @domName HTMLTableCaptionElement; @docsEditable true
-class TableCaptionElement extends Element implements Element native "*HTMLTableCaptionElement" {
+class TableCaptionElement extends Element native "*HTMLTableCaptionElement" {
 
   ///@docsEditable true
   factory TableCaptionElement() => document.$dom_createElement("caption");
@@ -17386,7 +17386,7 @@ class TableCaptionElement extends Element implements Element native "*HTMLTableC
 
 
 /// @domName HTMLTableCellElement; @docsEditable true
-class TableCellElement extends Element implements Element native "*HTMLTableCellElement" {
+class TableCellElement extends Element native "*HTMLTableCellElement" {
 
   ///@docsEditable true
   factory TableCellElement() => document.$dom_createElement("td");
@@ -17442,7 +17442,7 @@ class TableCellElement extends Element implements Element native "*HTMLTableCell
 
 
 /// @domName HTMLTableColElement; @docsEditable true
-class TableColElement extends Element implements Element native "*HTMLTableColElement" {
+class TableColElement extends Element native "*HTMLTableColElement" {
 
   ///@docsEditable true
   factory TableColElement() => document.$dom_createElement("col");
@@ -17471,7 +17471,7 @@ class TableColElement extends Element implements Element native "*HTMLTableColEl
 
 
 /// @domName HTMLTableElement
-class TableElement extends Element implements Element native "*HTMLTableElement" {
+class TableElement extends Element native "*HTMLTableElement" {
 
   ///@docsEditable true
   factory TableElement() => document.$dom_createElement("table");
@@ -17561,7 +17561,7 @@ class TableElement extends Element implements Element native "*HTMLTableElement"
 
 
 /// @domName HTMLTableRowElement; @docsEditable true
-class TableRowElement extends Element implements Element native "*HTMLTableRowElement" {
+class TableRowElement extends Element native "*HTMLTableRowElement" {
 
   ///@docsEditable true
   factory TableRowElement() => document.$dom_createElement("tr");
@@ -17602,7 +17602,7 @@ class TableRowElement extends Element implements Element native "*HTMLTableRowEl
 
 
 /// @domName HTMLTableSectionElement; @docsEditable true
-class TableSectionElement extends Element implements Element native "*HTMLTableSectionElement" {
+class TableSectionElement extends Element native "*HTMLTableSectionElement" {
 
   /// @domName HTMLTableSectionElement.align; @docsEditable true
   String align;
@@ -17652,7 +17652,7 @@ class Text extends CharacterData native "*Text" {
 
 
 /// @domName HTMLTextAreaElement; @docsEditable true
-class TextAreaElement extends Element implements Element native "*HTMLTextAreaElement" {
+class TextAreaElement extends Element native "*HTMLTextAreaElement" {
 
   ///@docsEditable true
   factory TextAreaElement() => document.$dom_createElement("textarea");
@@ -18190,7 +18190,7 @@ typedef void TimeoutHandler();
 
 
 /// @domName HTMLTitleElement; @docsEditable true
-class TitleElement extends Element implements Element native "*HTMLTitleElement" {
+class TitleElement extends Element native "*HTMLTitleElement" {
 
   ///@docsEditable true
   factory TitleElement() => document.$dom_createElement("title");
@@ -18394,7 +18394,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
 
 /// @domName HTMLTrackElement; @docsEditable true
-class TrackElement extends Element implements Element native "*HTMLTrackElement" {
+class TrackElement extends Element native "*HTMLTrackElement" {
 
   ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
@@ -18563,7 +18563,7 @@ class UIEvent extends Event native "*UIEvent" {
 
 
 /// @domName HTMLUListElement; @docsEditable true
-class UListElement extends Element implements Element native "*HTMLUListElement" {
+class UListElement extends Element native "*HTMLUListElement" {
 
   ///@docsEditable true
   factory UListElement() => document.$dom_createElement("ul");
@@ -18985,7 +18985,7 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
 
 
 /// @domName HTMLUnknownElement; @docsEditable true
-class UnknownElement extends Element implements Element native "*HTMLUnknownElement" {
+class UnknownElement extends Element native "*HTMLUnknownElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
