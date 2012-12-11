@@ -435,7 +435,7 @@ struct ParamList {
   }
 
   void AddFinalParameter(intptr_t name_pos,
-                         String* name,
+                         const String* name,
                          const AbstractType* type) {
     this->num_fixed_parameters++;
     ParamDesc param;
@@ -449,7 +449,7 @@ struct ParamList {
   void AddReceiver(const Type* receiver_type) {
     ASSERT(this->parameters->is_empty());
     AddFinalParameter(receiver_type->token_pos(),
-                      &String::ZoneHandle(Symbols::This()),
+                      &Symbols::ThisHandle(),
                       receiver_type);
   }
 
@@ -1903,7 +1903,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   const Class& cls = Class::Handle(func.Owner());
   LocalVariable* receiver = new LocalVariable(
       ctor_pos,
-      String::ZoneHandle(Symbols::This()),
+      Symbols::ThisHandle(),
       Type::ZoneHandle(Type::DynamicType()));
   current_block_->scope->AddVariable(receiver);
 
@@ -4538,8 +4538,7 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
 
 LocalVariable* Parser::LookupReceiver(LocalScope* from_scope, bool test_only) {
   ASSERT(!current_function().is_static());
-  const String& this_name = String::Handle(Symbols::This());
-  return from_scope->LookupVariable(this_name, test_only);
+  return from_scope->LookupVariable(Symbols::ThisHandle(), test_only);
 }
 
 
@@ -7697,7 +7696,7 @@ bool Parser::IsFormalParameter(const String& ident,
   if (current_block_ == NULL) {
     return false;
   }
-  if (ident.Equals(String::Handle(Symbols::This()))) {
+  if (ident.Equals(Symbols::ThisHandle())) {
     // 'this' is not a formal parameter.
     return false;
   }
@@ -9312,8 +9311,7 @@ AstNode* Parser::ParsePrimary() {
     }
     ASSERT(primary != NULL);
   } else if (CurrentToken() == Token::kTHIS) {
-    const String& this_name = String::Handle(Symbols::This());
-    LocalVariable* local = LookupLocalScope(this_name);
+    LocalVariable* local = LookupLocalScope(Symbols::ThisHandle());
     if (local == NULL) {
       ErrorMsg("receiver 'this' is not in scope");
     }

@@ -353,7 +353,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    deopt_id,
                                    token_pos);
   }
-  const String& operator_name = String::ZoneHandle(Symbols::EqualOperator());
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;
@@ -378,7 +377,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     }
   } else {
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
-                                   operator_name,
+                                   Symbols::EqualOperatorHandle(),
                                    deopt_id,
                                    kNumArgumentsChecked);
   }

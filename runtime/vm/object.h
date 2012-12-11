@@ -210,6 +210,8 @@ class Object {
     return VMHandles::IsZoneHandle(reinterpret_cast<uword>(this));
   }
 
+  bool IsNotTemporaryScopedHandle() const;
+
   static RawObject* Clone(const Object& src, Heap::Space space = Heap::kNew);
 
   static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {

@@ -525,9 +525,8 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
       ContextScope::Handle(ContextScope::New(kNumCapturedVars));
 
   // Create a descriptor for 'this' variable.
-  const String& name = String::Handle(Symbols::This());
   context_scope.SetTokenIndexAt(0, func.token_pos());
-  context_scope.SetNameAt(0, name);
+  context_scope.SetNameAt(0, Symbols::ThisHandle());
   context_scope.SetIsFinalAt(0, true);
   context_scope.SetIsConstAt(0, false);
   const AbstractType& type = AbstractType::Handle(func.ParameterTypeAt(0));

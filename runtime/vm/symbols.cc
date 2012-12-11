@@ -263,6 +263,11 @@ RawString* Symbols::FromCharCode(int32_t char_code) {
 }
 
 
+bool Symbols::IsPredefinedHandle(uword address) {
+  return predefined_handles_.IsValidScopedHandle(address);
+}
+
+
 void Symbols::GrowSymbolTable(const Array& symbol_table) {
   // TODO(iposva): Avoid exponential growth.
   intptr_t table_size = symbol_table.Length() - 1;

@@ -2060,13 +2060,12 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ Bind(&update_ic_data);
 
   // RCX: ICData
-  const String& equal_name = String::ZoneHandle(Symbols::New("=="));
   __ movq(RAX, Address(RSP, 1 * kWordSize));
   __ movq(R13, Address(RSP, 2 * kWordSize));
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R13);  // arg 0
   __ pushq(RAX);  // arg 1
-  __ PushObject(equal_name);  // Target's name.
+  __ PushObject(Symbols::EqualOperatorHandle());  // Target's name.
   __ pushq(RBX);  // ICData
   __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry);
   __ Drop(4);

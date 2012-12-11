@@ -1652,7 +1652,7 @@ void Assembler::LoadObject(Register dst, const Object& object) {
   if (object.IsSmi() || object.IsNull()) {
     movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   } else {
-    ASSERT(object.IsZoneHandle());
+    ASSERT(object.IsNotTemporaryScopedHandle());
     ASSERT(object.IsOld());
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitRegisterREX(dst, REX_W);
@@ -1666,7 +1666,7 @@ void Assembler::StoreObject(const Address& dst, const Object& object) {
   if (object.IsSmi() || object.IsNull()) {
     movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   } else {
-    ASSERT(object.IsZoneHandle());
+    ASSERT(object.IsNotTemporaryScopedHandle());
     ASSERT(object.IsOld());
     LoadObject(TMP, object);
     movq(dst, TMP);

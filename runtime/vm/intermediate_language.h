@@ -2058,7 +2058,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
         arguments_(arguments),
         argument_names_(argument_names),
         checked_argument_count_(checked_argument_count) {
-    ASSERT(function_name.IsZoneHandle());
+    ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
     ASSERT(argument_names.IsZoneHandle());
     ASSERT(Token::IsBinaryOperator(token_kind) ||

@@ -303,7 +303,7 @@ class LiteralNode : public AstNode {
  public:
   LiteralNode(intptr_t token_pos, const Instance& literal)
       : AstNode(token_pos), literal_(literal) {
-    ASSERT(literal_.IsZoneHandle());
+    ASSERT(literal_.IsNotTemporaryScopedHandle());
     ASSERT(literal_.IsSmi() || literal_.IsOld());
 #if defined(DEBUG)
     if (literal_.IsString()) {

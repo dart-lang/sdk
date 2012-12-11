@@ -265,7 +265,6 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
 
 RawObject* DartLibraryCalls::Equals(const Instance& left,
                                     const Instance& right) {
-  const String& function_name = String::Handle(Symbols::EqualOperator());
   GrowableArray<const Object*> arguments;
   arguments.Add(&right);
   const int kNumArguments = 2;
@@ -273,7 +272,7 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(left,
-                               function_name,
+                               Symbols::EqualOperatorHandle(),
                                kNumArguments,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());

@@ -147,6 +147,10 @@ class ObjectPointerVisitor;
 
 #define PREDEFINED_SYMBOL_HANDLES_LIST(V)                                      \
   V(Dot)                                                                       \
+  V(EqualOperator)                                                             \
+  V(IndexToken)                                                                \
+  V(AssignIndexToken)                                                          \
+  V(This)                                                                      \
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates
@@ -219,6 +223,8 @@ PREDEFINED_SYMBOL_HANDLES_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
   static RawString** PredefinedAddress() {
     return reinterpret_cast<RawString**>(&predefined_);
   }
+
+  static bool IsPredefinedHandle(uword address);
 
  private:
   enum {

@@ -2368,11 +2368,9 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
   Function* super_function = NULL;
   if (node->IsSuperLoad()) {
     // Resolve the load indexed operator in the super class.
-    const String& index_operator_name =
-        String::ZoneHandle(Symbols::IndexToken());
     super_function = &Function::ZoneHandle(
           Resolver::ResolveDynamicAnyArgs(node->super_class(),
-                                          index_operator_name));
+                                          Symbols::IndexTokenHandle()));
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
@@ -2381,7 +2379,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
       StaticCallInstr* call =
           BuildStaticNoSuchMethodCall(node->super_class(),
                                       node->array(),
-                                      index_operator_name,
+                                      Symbols::IndexTokenHandle(),
                                       arguments);
       ReturnDefinition(call);
       return;
@@ -2409,9 +2407,8 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
   } else {
     // Generate dynamic call to index operator.
     const intptr_t checked_argument_count = 1;
-    const String& name = String::ZoneHandle(Symbols::IndexToken());
     InstanceCallInstr* load = new InstanceCallInstr(node->token_pos(),
-                                                    name,
+                                                    Symbols::IndexTokenHandle(),
                                                     Token::kINDEX,
                                                     arguments,
                                                     Array::ZoneHandle(),
@@ -2427,11 +2424,9 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
   Function* super_function = NULL;
   if (node->IsSuperStore()) {
     // Resolve the store indexed operator in the super class.
-    const String& store_index_op_name =
-        String::ZoneHandle(Symbols::AssignIndexToken());
     super_function = &Function::ZoneHandle(
         Resolver::ResolveDynamicAnyArgs(node->super_class(),
-                                        store_index_op_name));
+                                        Symbols::AssignIndexTokenHandle()));
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
@@ -2449,7 +2444,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
       StaticCallInstr* call =
           BuildStaticNoSuchMethodCall(node->super_class(),
                                       node->array(),
-                                      store_index_op_name,
+                                      Symbols::AssignIndexTokenHandle(),
                                       arguments);
       if (result_is_needed) {
         Do(call);

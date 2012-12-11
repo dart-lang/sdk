@@ -1908,10 +1908,12 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, Symbols::IndexToken());
-      const Function& function =
-          Function::Handle(isolate,
-                           Resolver::ResolveDynamic(instance, name, 2, 0));
+      const Function& function = Function::Handle(
+          isolate,
+          Resolver::ResolveDynamic(instance,
+                                   Symbols::IndexTokenHandle(),
+                                   2,
+                                   0));
       if (!function.IsNull()) {
         GrowableArray<const Object*> args(1);
         Integer& indexobj = Integer::Handle(isolate);
@@ -1960,10 +1962,12 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, Symbols::AssignIndexToken());
-      const Function& function =
-          Function::Handle(isolate,
-                           Resolver::ResolveDynamic(instance, name, 3, 0));
+      const Function& function = Function::Handle(
+          isolate,
+          Resolver::ResolveDynamic(instance,
+                                   Symbols::AssignIndexTokenHandle(),
+                                   3,
+                                   0));
       if (!function.IsNull()) {
         const Integer& index_obj =
             Integer::Handle(isolate, Integer::New(index));
@@ -2043,10 +2047,12 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, Symbols::IndexToken());
-      const Function& function =
-          Function::Handle(isolate,
-                           Resolver::ResolveDynamic(instance, name, 2, 0));
+      const Function& function = Function::Handle(
+          isolate,
+          Resolver::ResolveDynamic(instance,
+                                   Symbols::IndexTokenHandle(),
+                                   2,
+                                   0));
       if (!function.IsNull()) {
         Object& result = Object::Handle(isolate);
         Integer& intobj = Integer::Handle(isolate);
@@ -2132,10 +2138,12 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      String& name = String::Handle(isolate, Symbols::AssignIndexToken());
-      const Function& function =
-          Function::Handle(isolate,
-                           Resolver::ResolveDynamic(instance, name, 3, 0));
+      const Function& function = Function::Handle(
+          isolate,
+          Resolver::ResolveDynamic(instance,
+                                   Symbols::AssignIndexTokenHandle(),
+                                   3,
+                                   0));
       if (!function.IsNull()) {
         Integer& indexobj = Integer::Handle(isolate);
         Integer& valueobj = Integer::Handle(isolate);
