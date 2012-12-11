@@ -8,8 +8,8 @@
 // should analyze without any warnings.
 // @static-clean
 
-import '../../sdk/lib/_internal/compiler/implementation/dart2js.dart'
-    as dart2js;
+#import('../../sdk/lib/_internal/compiler/implementation/dart2js.dart',
+    prefix: 'dart2js');
 
 void main() {
   // Do nothing.
