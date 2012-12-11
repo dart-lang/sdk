@@ -832,7 +832,7 @@ class _HttpConnection extends _HttpConnectionBase {
   }
 
   bool _write(List<int> data, [bool copyBuffer = false]) {
-    if (_isRequestDone) {
+    if (_isRequestDone || !_hasBody || _httpParser.upgrade) {
       return _socket.outputStream.write(data, copyBuffer);
     } else {
       _bufferData(data, copyBuffer);
@@ -841,7 +841,7 @@ class _HttpConnection extends _HttpConnectionBase {
   }
 
   bool _writeFrom(List<int> data, [int offset, int len]) {
-    if (_isRequestDone) {
+    if (_isRequestDone || !_hasBody || _httpParser.upgrade) {
       return _socket.outputStream.writeFrom(data, offset, len);
     } else {
       if (offset == null) offset = 0;
@@ -895,7 +895,8 @@ class _HttpConnection extends _HttpConnectionBase {
   void _onRequestReceived(String method,
                           String uri,
                           String version,
-                          _HttpHeaders headers) {
+                          _HttpHeaders headers,
+                          bool hasBody) {
     _state = _HttpConnectionBase.ACTIVE;
     // Create new request and response objects for this request.
     _request = new _HttpRequest(this);
@@ -905,13 +906,16 @@ class _HttpConnection extends _HttpConnectionBase {
     _response._protocolVersion = version;
     _response._headResponse = method == "HEAD";
     _response.persistentConnection = _httpParser.persistentConnection;
+    _hasBody = hasBody;
     if (onRequestReceived != null) {
       onRequestReceived(_request, _response);
     }
+    _checkDone();
   }
 
   void _onDataReceived(List<int> data) {
     _request._onDataReceived(data);
+    _checkDone();
   }
 
   void _checkDone() {
@@ -933,7 +937,7 @@ class _HttpConnection extends _HttpConnectionBase {
       } else {
         _state = _HttpConnectionBase.IDLE;
       }
-    } else if (_isResponseDone) {
+    } else if (_isResponseDone && _hasBody) {
       // If the response is closed before the request is fully read
       // close this connection. If there is buffered output
       // (e.g. error response for invalid request where the server did
@@ -947,19 +951,20 @@ class _HttpConnection extends _HttpConnectionBase {
 
   void _onDataEnd(bool close) {
     // Start sending queued response if any.
-    _writeBufferedResponse();
     _state |= _HttpConnectionBase.REQUEST_DONE;
+    _writeBufferedResponse();
     _request._onDataEnd();
+    _checkDone();
   }
 
   void _responseClosed() {
     _state |= _HttpConnectionBase.RESPONSE_DONE;
-    _checkDone();
   }
 
   HttpServer _server;
   HttpRequest _request;
   HttpResponse _response;
+  bool _hasBody = false;
 
   // Buffer for data written before full response has been processed.
   _BufferList _buffer;
@@ -1314,7 +1319,8 @@ class _HttpClientResponse
   void _onResponseReceived(int statusCode,
                            String reasonPhrase,
                            String version,
-                           _HttpHeaders headers) {
+                           _HttpHeaders headers,
+                           bool hasBody) {
     _statusCode = statusCode;
     _reasonPhrase = reasonPhrase;
     _headers = headers;
@@ -1324,7 +1330,6 @@ class _HttpClientResponse
     // Prepare for receiving data.
     _headers._mutable = false;
     _buffer = new _BufferList();
-
     if (isRedirect && _connection.followRedirects) {
       if (_connection._redirects == null ||
           _connection._redirects.length < _connection.maxRedirects) {
@@ -1615,8 +1620,10 @@ class _HttpClientConnection
   void _onResponseReceived(int statusCode,
                            String reasonPhrase,
                            String version,
-                           _HttpHeaders headers) {
-    _response._onResponseReceived(statusCode, reasonPhrase, version, headers);
+                           _HttpHeaders headers,
+                           bool hasBody) {
+    _response._onResponseReceived(
+        statusCode, reasonPhrase, version, headers, hasBody);
   }
 
   void _onDataReceived(List<int> data) {
