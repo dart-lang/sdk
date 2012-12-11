@@ -66,7 +66,8 @@ buildLibraryNavigation(StringBuffer html, Map libraryInfo) {
   final exceptions = [];
 
   for (Map typeInfo in libraryInfo[TYPES]) {
-    if (typeInfo[NAME].endsWith('Exception')) {
+    var name = typeInfo[NAME];
+    if (name.endsWith('Exception') || name.endsWith('Error')) {
       exceptions.add(typeInfo);
     } else {
       types.add(typeInfo);
