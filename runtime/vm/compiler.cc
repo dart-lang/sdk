@@ -550,6 +550,7 @@ RawError* Compiler::CompileParsedFunction(
 
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
+  Isolate* isolate = Isolate::Current();
   Error& error = Error::Handle();
   Array& functions = Array::Handle(cls.functions());
   Function& func = Function::Handle();
@@ -565,6 +566,8 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     if (!func.HasCode() &&
         !func.is_abstract() &&
         !func.IsRedirectingFactory()) {
+      StackZone zone(isolate);
+      HANDLESCOPE(isolate);
       error = CompileFunction(func);
       if (!error.IsNull()) {
         return error.raw();
