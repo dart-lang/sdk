@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Check whether two references are to the same object.
- */
-external bool identical(Object a, Object b);
+patch bool identical(Object a, Object b) {
+  throw new Error('Should not reach the body of identical');  
+}

@@ -211,3 +211,8 @@ patch class RegExp {
                           multiLine: multiLine,
                           ignoreCase: ignoreCase);
 }
+
+// Patch for 'identical' function.
+patch bool identical(Object a, Object b) {
+  throw new Error('Should not reach the body of identical');
+}

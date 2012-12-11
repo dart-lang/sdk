@@ -3370,8 +3370,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return;
       }
 
-      // TODO(kasperl): Try to use the general inlining infrastructure for
-      // inlining the identical function.
       if (identical(element, compiler.identicalFunction)) {
         pushWithPosition(new HIdentity(target, inputs[1], inputs[2]), node);
         return;
