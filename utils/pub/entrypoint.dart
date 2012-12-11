@@ -167,29 +167,18 @@ class Entrypoint {
    * warning message and act as though the file doesn't exist.
    */
   Future<LockFile> _loadLockFile() {
-    var completer = new Completer<LockFile>();
     var lockFilePath = join(root.dir, 'pubspec.lock');
 
     log.fine("Loading lockfile.");
-    var future = readTextFile(lockFilePath);
-
-    future.handleException((_) {
-      // If we failed to load the lockfile but it does exist, something's
-      // probably wrong and we should notify the user.
-      fileExists(lockFilePath).transform((exists) {
-        if (!exists) return;
-        log.error("Error reading pubspec.lock: ${future.exception}");
-      }).then((_) {
+    return fileExists(lockFilePath).chain((exists) {
+      if (!exists) {
         log.fine("No lock file at $lockFilePath, creating empty one.");
-        completer.complete(new LockFile.empty());
-      });
+        return new Future<LockFile>.immediate(new LockFile.empty());
+      }
 
-      return true;
+      return readTextFile(lockFilePath).transform((text) =>
+          new LockFile.parse(text, cache.sources));
     });
-
-    future.then((text) =>
-        completer.complete(new LockFile.parse(text, cache.sources)));
-    return completer.future;
   }
 
   /**
