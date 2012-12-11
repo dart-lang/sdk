@@ -1618,15 +1618,7 @@ $classesCollector.$mangledName = {'':
 
     js.Expression generateMethod(String jsName, Selector selector) {
       // Values match JSInvocationMirror in js-helper library.
-      const int METHOD = 0;
-      const int GETTER = 1;
-      const int SETTER = 2;
-      int type = METHOD;
-      if (selector.isGetter()) {
-        type = GETTER;
-      } else if (selector.isSetter()) {
-        type = SETTER;
-      }
+      int type = selector.invocationMirrorKind;
       String methodName = selector.invocationMirrorMemberName;
       List<js.Parameter> parameters = <js.Parameter>[];
       CodeBuffer args = new CodeBuffer();

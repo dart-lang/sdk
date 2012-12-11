@@ -54,6 +54,7 @@ compile_time_constant10_test/none: Fail # issue 5214
 
 invocation_mirror_test: Fail # issue 3326.
 invocation_mirror_indirect_test: Fail # Issue 3326
+super_call4_test: Fail # issue 3326.
 
 export_cyclic_test: Fail, Crash # issue 6060
 duplicate_export_negative_test: Fail # issue 6134
@@ -520,6 +521,7 @@ type_error_test: Fail, OK # VM bug: http://dartbug.com/5280
 # This is a VM error when the compiled code is run.
 invocation_mirror_test: Fail # issue 3326.
 invocation_mirror_indirect_test: Fail # issue 3326.
+super_call4_test: Fail # issue 3326.
 
 [ $compiler == dart2dart && $minified ]
 import_core_prefix_test: Pass

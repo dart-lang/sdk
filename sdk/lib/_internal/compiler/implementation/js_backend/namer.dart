@@ -211,7 +211,6 @@ class Namer {
    * Returns the internal name used for an invocation mirror of this selector.
    */
   String invocationMirrorInternalName(Selector selector) {
-    String nameString = selector.name.slowToString();
     if (selector.isGetter()) {
       return getterName(selector.library, selector.name);
     } else if (selector.isSetter()) {

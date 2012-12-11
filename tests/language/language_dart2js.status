@@ -54,8 +54,6 @@ factory1_test/00: Fail
 factory1_test/01: Fail
 type_annotation_test/09: Fail # Named constructors interpreted as a type.
 
-super_call4_test: Fail # Badly generated noSuchMethod call.
-
 [ $compiler == dart2js && $unchecked ]
 default_factory2_test/01: Fail # type arguments on redirecting factory not implemented
 type_variable_scope_test: Fail # type arguments on redirecting factory not implemented

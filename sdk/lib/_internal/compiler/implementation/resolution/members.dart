@@ -2100,7 +2100,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         new VariableDefinitionsVisitor(compiler, node, this,
                                        ElementKind.VARIABLE);
     // Ensure that we set the type of the [VariableListElement] since it depends
-    // the current scope. If the current scope is a [MethodScope] or
+    // on the current scope. If the current scope is a [MethodScope] or
     // [BlockScope] it will not be available for the
     // [VariableListElement.computeType] method.
     if (node.type != null) {

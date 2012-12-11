@@ -206,6 +206,8 @@ abstract class Compiler implements DiagnosticListener {
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
   static const SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
   static const int NO_SUCH_METHOD_ARG_COUNT = 1;
+  static const SourceString CREATE_INVOCATION_MIRROR =
+      const SourceString('createInvocationMirror');
   static const SourceString INVOKE_ON = const SourceString('invokeOn');
   static const SourceString RUNTIME_TYPE = const SourceString('runtimeType');
   static const SourceString START_ROOT_ISOLATE =
@@ -386,7 +388,7 @@ abstract class Compiler implements DiagnosticListener {
     enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
 
     createInvocationMirrorElement =
-        findHelper(const SourceString('createInvocationMirror'));
+        findHelper(CREATE_INVOCATION_MIRROR);
     enqueuer.resolution.addToWorkList(createInvocationMirrorElement);
     enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
   }

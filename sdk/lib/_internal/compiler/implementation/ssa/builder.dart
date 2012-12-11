@@ -2633,6 +2633,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(result);
   }
 
+  void pushInvokeHelper5(Element helper, HInstruction a0, HInstruction a1,
+                         HInstruction a2, HInstruction a3, HInstruction a4) {
+    HInstruction reference = new HStatic(helper);
+    add(reference);
+    List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2, a3, a4];
+    HInstruction result = new HInvokeStatic(inputs);
+    push(result);
+  }
+
   HForeign createForeign(String code, String type, List<HInstruction> inputs) {
     return new HForeign(new LiteralDartString(code),
                         new LiteralDartString(type),
@@ -3108,21 +3117,58 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   generateSuperNoSuchMethodSend(Send node) {
+    Selector selector = elements.getSelector(node);
+    SourceString name = selector.name;
+
     ClassElement cls = work.element.getEnclosingClass();
     Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
+    if (element.enclosingElement.declaration != compiler.objectClass) {
+      // Register the call as dynamic if [:noSuchMethod:] on the super class
+      // is _not_ the default implementation from [:Object:].
+      compiler.enqueuer.codegen.registerDynamicInvocation(name, selector);
+    }
     HStatic target = new HStatic(element);
     add(target);
     HInstruction self = localsHandler.readThis();
-    Identifier identifier = node.selector.asIdentifier();
-    String name = identifier.source.slowToString();
-    // TODO(ahe): Add the arguments to this list.
-    push(new HLiteralList([]));
-    Constant nameConstant =
-        constantSystem.createString(new DartString.literal(name), node);
+    Constant nameConstant = constantSystem.createString(
+        new DartString.literal(name.slowToString()), node);
+
+    String internalName = backend.namer.instanceMethodInvocationName(
+        currentLibrary, name, selector);
+    Constant internalNameConstant =
+        constantSystem.createString(new DartString.literal(internalName), node);
+
+    Element createInvocationMirror =
+        compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);
+
+    var arguments = new List<HInstruction>();
+    addGenericSendArgumentsToList(node.arguments, arguments);
+    var argumentsInstruction = new HLiteralList(arguments);
+    add(argumentsInstruction);
+
+    var argumentNames = new List<HInstruction>();
+    for (SourceString argumentName in selector.namedArguments) {
+      Constant argumentNameConstant =
+          constantSystem.createString(new DartString.literal(
+              argumentName.slowToString()), node);
+      argumentNames.add(graph.addConstant(argumentNameConstant));
+    }
+    var argumentNamesInstruction = new HLiteralList(argumentNames);
+    add(argumentNamesInstruction);
+
+    Constant kindConstant =
+        constantSystem.createInt(selector.invocationMirrorKind);
+
+    pushInvokeHelper5(createInvocationMirror,
+                      graph.addConstant(nameConstant),
+                      graph.addConstant(internalNameConstant),
+                      graph.addConstant(kindConstant),
+                      argumentsInstruction,
+                      argumentNamesInstruction);
+
     var inputs = <HInstruction>[
         target,
         self,
-        graph.addConstant(nameConstant),
         pop()];
     push(new HInvokeSuper(inputs));
   }
