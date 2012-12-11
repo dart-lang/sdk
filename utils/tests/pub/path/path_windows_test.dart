@@ -254,7 +254,12 @@ main() {
       });
     });
 
-    test('given absolute with differnt root prefix', () {
+    test('from a root with extension', () {
+      var r = new path.Builder(style: path.Style.windows, root: r'C:\dir.ext');
+      expect(r.relative(r'C:\dir.ext\file'), 'file');
+    });
+
+    test('given absolute with different root prefix', () {
       expect(builder.relative(r'D:\a\b'), r'D:\a\b');
       expect(builder.relative(r'\\a\b'), r'\\a\b');
     });
@@ -301,5 +306,6 @@ main() {
     expect(builder.withoutExtension(r'a/b.c/d'), r'a/b.c/d');
     expect(builder.withoutExtension(r'a\b/c'), r'a\b/c');
     expect(builder.withoutExtension(r'a\b/c.d'), r'a\b/c');
+    expect(builder.withoutExtension(r'a.b/c'), r'a.b/c');
   });
 }

@@ -334,7 +334,12 @@ class Builder {
   ///     builder.withoutExtension('path/to/foo.dart'); // -> 'path/to/foo'
   String withoutExtension(String path) {
     var parsed = _parse(path);
-    parsed.extension = null;
+    if (parsed.hasTrailingSeparator) return parsed.toString();
+
+    if (!parsed.parts.isEmpty) {
+      parsed.parts[parsed.parts.length - 1] = parsed.basenameWithoutExtension;
+    }
+
     return parsed.toString();
   }
 
@@ -361,22 +366,7 @@ class Builder {
       separators.add('');
     }
 
-    // Separate out the file extension.
-    var extension = '';
-    if (parts.length > 0) {
-      var file = parts.last;
-      if (file != '..') {
-        var lastDot = file.lastIndexOf('.');
-
-        // If there is a dot (and it's not the first character, like '.bashrc').
-        if (lastDot > 0) {
-          parts[parts.length - 1] = file.substring(0, lastDot);
-          extension = file.substring(lastDot);
-        }
-      }
-    }
-
-    return new _ParsedPath(style, root, parts, separators, extension);
+    return new _ParsedPath(style, root, parts, separators);
   }
 }
 
@@ -438,16 +428,15 @@ class _ParsedPath {
   String root;
 
   /// The path-separated parts of the path. All but the last will be
-  /// directories. The last could be a directory, or could be the file name
-  /// without its extension.
+  /// directories.
   List<String> parts;
 
   /// The path separators following each part. The last one will be an empty
   /// string unless the path ends with a trailing separator.
   List<String> separators;
 
-  /// The file's extension, or "" if it doesn't have one.
-  String extension;
+  /// The file extension of the last part, or "" if it doesn't have one.
+  String get extension => _splitExtension()[1];
 
   /// `true` if the path ends with a trailing separator.
   bool get hasTrailingSeparator {
@@ -458,20 +447,15 @@ class _ParsedPath {
   /// `true` if this is an absolute path.
   bool get isAbsolute => root != null;
 
-  _ParsedPath(this.style, this.root, this.parts, this.separators,
-              this.extension);
+  _ParsedPath(this.style, this.root, this.parts, this.separators);
 
   String get basename {
     if (parts.length == 0) return extension;
     if (hasTrailingSeparator) return '';
-    return '${parts.last}$extension';
-  }
-
-  String get basenameWithoutExtension {
-    if (parts.length == 0) return '';
-    if (hasTrailingSeparator) return '';
     return parts.last;
   }
+
+  String get basenameWithoutExtension => _splitExtension()[0];
 
   void removeTrailingSeparator() {
     if (separators.length > 0) {
@@ -524,10 +508,28 @@ class _ParsedPath {
     if (root != null) builder.add(root);
     for (var i = 0; i < parts.length; i++) {
       builder.add(parts[i]);
-      if (extension != null && i == parts.length - 1) builder.add(extension);
       builder.add(separators[i]);
     }
 
     return builder.toString();
+  }
+
+  /// Splits the last part of the path into a two-element list. The first is
+  /// the name of the file without any extension. The second is the extension
+  /// or "" if it has none.
+  List<String> _splitExtension() {
+    if (parts.isEmpty) return ['', ''];
+    if (hasTrailingSeparator) return ['', ''];
+
+    var file = parts.last;
+    if (file == '..') return ['..', ''];
+
+    var lastDot = file.lastIndexOf('.');
+
+    // If there is no dot, or it's the first character, like '.bashrc', it
+    // doesn't count.
+    if (lastDot <= 0) return [file, ''];
+
+    return [file.substring(0, lastDot), file.substring(lastDot)];
   }
 }

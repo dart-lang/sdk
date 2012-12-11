@@ -233,6 +233,11 @@ main() {
         expect(r.relative('a/./b/../c.txt'), 'a/c.txt');
       });
     });
+
+    test('from a root with extension', () {
+      var r = new path.Builder(style: path.Style.posix, root: '/dir.ext');
+      expect(r.relative('/dir.ext/file'), 'file');
+    });
   });
 
   group('resolve', () {
