@@ -177,13 +177,11 @@ Future<Client> _authorize() {
       if (queryString == null) queryString = '';
       response.statusCode = 302;
       response.headers.set('location', 'http://pub.dartlang.org/authorized');
-      return Futures.wait([
-        closeHttpResponse(request, response),
-        grant.handleAuthorizationResponse(queryToMap(queryString))
-      ]);
-    }).transform((results) {
+      response.outputStream.close();
+      return grant.handleAuthorizationResponse(queryToMap(queryString));
+    }).transform((client) {
       server.close();
-      return results[1];
+      return client;
     }), completer);
   });
   server.listen('127.0.0.1', 0);
