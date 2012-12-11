@@ -58,8 +58,6 @@ class ElementCategory {
   static const int TYPE_VARIABLE = 128;
 
   static const int IMPLIES_TYPE = CLASS | ALIAS | TYPE_VARIABLE;
-
-  static const int IS_EXTENDABLE = CLASS | ALIAS;
 }
 
 class ElementKind {
@@ -191,7 +189,6 @@ class Element implements Spannable {
   bool isAccessor() => isGetter() || isSetter();
   bool isLibrary() => identical(kind, ElementKind.LIBRARY);
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
-  bool isExtendable() => (kind.category & ElementCategory.IS_EXTENDABLE) != 0;
 
   /** See [ErroneousElement] for documentation. */
   bool isErroneous() => false;

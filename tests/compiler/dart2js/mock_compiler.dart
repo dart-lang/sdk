@@ -81,7 +81,7 @@ const String DEFAULT_CORELIB = r'''
   class Object {}
   class Type {}
   class Function {}
-  class List<T> {}
+  class List<E> {}
   abstract class Map<K,V> {}
   class Closure {}
   class Null {}
