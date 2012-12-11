@@ -400,8 +400,17 @@ void HeapProfiler::WriteLoadClass(const RawClass* raw_class) {
   record.WritePointer(raw_class);
   // stack trace serial number
   record.Write32(0);
-  ASSERT(raw_class->ptr()->name_ != String::null());
-  record.WritePointer(StringId(raw_class->ptr()->name_));
+  // class name string ID
+  if (raw_class->ptr()->name_ != String::null()) {
+    record.WritePointer(StringId(raw_class->ptr()->name_));
+  } else {
+    const char* format = "<an unnamed class with id %d>";
+    intptr_t len = OS::SNPrint(NULL, 0, format, raw_class->ptr()->id_);
+    char* str = new char[len + 1];
+    OS::SNPrint(str, len + 1, format, raw_class->ptr()->id_);
+    record.WritePointer(StringId(str));
+    delete[] str;
+  }
 }
 
 
@@ -600,8 +609,9 @@ void HeapProfiler::WriteInstanceDump(const RawObject* raw_obj) {
         RawField* raw_field =
             reinterpret_cast<RawField*>(raw_array->ptr()->data()[i]);
         if (!Field::StaticBit::decode(raw_field->ptr()->kind_bits_)) {
-          intptr_t offset =
+          intptr_t offset_in_words =
               Smi::Value(reinterpret_cast<RawSmi*>(raw_field->ptr()->value_));
+          intptr_t offset = offset_in_words * kWordSize;
           RawObject* ptr = *reinterpret_cast<RawObject**>(base + offset);
           sub.WritePointer(ObjectId(ptr));
         }

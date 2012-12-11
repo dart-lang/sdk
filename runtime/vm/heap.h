@@ -158,6 +158,7 @@ class Heap {
 
   // Generates a profile of the current and VM isolate heaps.
   void Profile(Dart_FileWriteCallback callback, void* stream) const;
+  void ProfileToFile(const char* reason) const;
 
   static const char* GCReasonToString(GCReason gc_reason);
 

@@ -286,6 +286,26 @@ void Heap::Profile(Dart_FileWriteCallback callback, void* stream) const {
 }
 
 
+void Heap::ProfileToFile(const char* reason) const {
+  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
+  ASSERT(file_open != NULL);
+  Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+  ASSERT(file_write != NULL);
+  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+  ASSERT(file_close != NULL);
+  Isolate* isolate = Isolate::Current();
+  const char* format = "%s-%s.hprof";
+  intptr_t len = OS::SNPrint(NULL, 0, format, isolate->name(), reason);
+  char* filename = isolate->current_zone()->Alloc<char>(len + 1);
+  OS::SNPrint(filename, len + 1, format, isolate->name(), reason);
+  void* file = (*file_open)(filename);
+  if (file != NULL) {
+    Profile(file_write, file);
+    (*file_close)(file);
+  }
+}
+
+
 const char* Heap::GCReasonToString(GCReason gc_reason) {
   switch (gc_reason) {
     case kNewSpace:

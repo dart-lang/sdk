@@ -793,9 +793,9 @@ static char* BuildIsolateName(const char* script_uri,
   }
 
   char* chars = NULL;
-  intptr_t len = OS::SNPrint(NULL, 0, "%s/%s", script_uri, main) + 1;
+  intptr_t len = OS::SNPrint(NULL, 0, "%s$%s", script_uri, main) + 1;
   chars = reinterpret_cast<char*>(malloc(len));
-  OS::SNPrint(chars, len, "%s/%s", script_uri, main);
+  OS::SNPrint(chars, len, "%s$%s", script_uri, main);
   return chars;
 }
 

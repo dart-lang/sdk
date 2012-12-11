@@ -9,6 +9,7 @@
 #include "vm/debugger.h"
 #include "vm/flags.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -16,7 +17,10 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
-    "Prints a stack trace everytime a throw occurs.");
+            "Prints a stack trace everytime a throw occurs.");
+DEFINE_FLAG(bool, heap_profile_out_of_memory, false,
+            "Writes a heap profile on unhandled out-of-memory exceptions.");
+DECLARE_FLAG(bool, heap_profile_out_of_memory);
 
 
 const char* Exceptions::kCastErrorDstName = "type cast";
@@ -190,6 +194,12 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
                            exception,
                            stacktrace);
   } else {
+    if (FLAG_heap_profile_out_of_memory) {
+      Isolate* isolate = Isolate::Current();
+      if (exception.raw() == isolate->object_store()->out_of_memory()) {
+        isolate->heap()->ProfileToFile("out-of-memory");
+      }
+    }
     // No dart exception handler found in this invocation sequence,
     // so we create an unhandled exception object and return to the
     // invocation stub so that it returns this unhandled exception
