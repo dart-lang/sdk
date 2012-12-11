@@ -74,18 +74,20 @@ class SSLFilter {
   void Connect(const char* host,
                int port,
                bool is_server,
-               const char* certificate_name);
+               const char* certificate_name,
+               bool request_client_certificate,
+               bool require_client_certificate,
+               bool send_client_certificate);
   void Destroy();
   void Handshake();
   void RegisterHandshakeCompleteCallback(Dart_Handle handshake_complete);
   void RegisterBadCertificateCallback(Dart_Handle callback);
+  Dart_Handle bad_certificate_callback() { return bad_certificate_callback_; }
   static void InitializeLibrary(const char* certificate_database,
                                 const char* password,
                                 bool use_builtin_root_certificates);
-
   intptr_t ProcessBuffer(int bufferIndex);
-
-  SECStatus HandleBadCertificate(PRFileDesc* fd);
+  Dart_Handle PeerCertificate();
 
  private:
   static const int kMemioBufferSize = 20 * KB;

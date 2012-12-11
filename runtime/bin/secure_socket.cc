@@ -73,43 +73,40 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle host_name_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
   Dart_Handle port_object = ThrowIfError(Dart_GetNativeArgument(args, 2));
-  Dart_Handle is_server_object = ThrowIfError(Dart_GetNativeArgument(args, 3));
+  bool is_server = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
   Dart_Handle certificate_name_object =
       ThrowIfError(Dart_GetNativeArgument(args, 4));
+  bool request_client_certificate =
+      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 5));
+  bool require_client_certificate =
+      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 6));
+  bool send_client_certificate =
+      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 7));
 
   const char* host_name = NULL;
   // TODO(whesse): Is truncating a Dart string containing \0 what we want?
   ThrowIfError(Dart_StringToCString(host_name_object, &host_name));
 
   int64_t port;
-  if (!DartUtils::GetInt64Value(port_object, &port) ||
-      port < 0 || port > 65535) {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-      "Illegal port parameter in _SSLFilter.connect"));
+  if (!DartUtils::GetInt64Value(port_object, &port)) {
+    FATAL("The range of port_object was checked in Dart - it cannot fail here");
   }
-
-  if (!Dart_IsBoolean(is_server_object)) {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-      "Illegal is_server parameter in _SSLFilter.connect"));
-  }
-  bool is_server = DartUtils::GetBooleanValue(is_server_object);
 
   const char* certificate_name = NULL;
-  // If this is a server connection, get the certificate to connect with.
-  // TODO(whesse): Use this parameter for a client certificate as well.
-  if (is_server) {
-    if (!Dart_IsString(certificate_name_object)) {
-      Dart_ThrowException(DartUtils::NewDartArgumentError(
-          "Non-String certificate parameter in _SSLFilter.connect"));
-    }
+  if (Dart_IsString(certificate_name_object)) {
     ThrowIfError(Dart_StringToCString(certificate_name_object,
                                       &certificate_name));
   }
+  // If this is a server connection, it must have a certificate to connect with.
+  ASSERT(!is_server || certificate_name != NULL);
 
   GetFilter(args)->Connect(host_name,
-                              static_cast<int>(port),
-                              is_server,
-                              certificate_name);
+                           static_cast<int>(port),
+                           is_server,
+                           certificate_name,
+                           request_client_certificate,
+                           require_client_certificate,
+                           send_client_certificate);
   Dart_ExitScope();
 }
 
@@ -221,17 +218,30 @@ void FUNCTION_NAME(SecureSocket_InitializeLibrary)
 }
 
 
-static bool CallBadCertificateCallback(Dart_Handle callback,
-                                       const char* subject_name,
-                                       const char* issuer_name,
-                                       int64_t start_validity,
-                                       int64_t end_validity) {
-  if (callback == NULL || Dart_IsNull(callback)) return false;
+void FUNCTION_NAME(SecureSocket_PeerCertificate)
+    (Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_Handle subject_name_object = DartUtils::NewString(subject_name);
-  Dart_Handle issuer_name_object = DartUtils::NewString(issuer_name);
-  Dart_Handle start_validity_int = Dart_NewInteger(start_validity);
-  Dart_Handle end_validity_int = Dart_NewInteger(end_validity);
+  Dart_SetReturnValue(args, GetFilter(args)->PeerCertificate());
+  Dart_ExitScope();
+}
+
+
+static Dart_Handle X509FromCertificate(CERTCertificate* certificate) {
+  PRTime start_validity;
+  PRTime end_validity;
+  SECStatus status =
+      CERT_GetCertTimes(certificate, &start_validity, &end_validity);
+  if (status != SECSuccess) {
+    ThrowPRException("Cannot get validity times from certificate");
+  }
+  int64_t start_epoch_ms = start_validity / PR_USEC_PER_MSEC;
+  int64_t end_epoch_ms = end_validity / PR_USEC_PER_MSEC;
+  Dart_Handle subject_name_object =
+      DartUtils::NewString(certificate->subjectName);
+  Dart_Handle issuer_name_object =
+      DartUtils::NewString(certificate->issuerName);
+  Dart_Handle start_epoch_ms_int = Dart_NewInteger(start_epoch_ms);
+  Dart_Handle end_epoch_ms_int = Dart_NewInteger(end_epoch_ms);
 
   Dart_Handle date_class =
       DartUtils::GetDartClass(DartUtils::kCoreLibURL, "Date");
@@ -239,9 +249,9 @@ static bool CallBadCertificateCallback(Dart_Handle callback,
       DartUtils::NewString("fromMillisecondsSinceEpoch");
 
   Dart_Handle start_validity_date =
-      Dart_New(date_class, from_milliseconds, 1, &start_validity_int);
+      Dart_New(date_class, from_milliseconds, 1, &start_epoch_ms_int);
   Dart_Handle end_validity_date =
-      Dart_New(date_class, from_milliseconds, 1, &end_validity_int);
+      Dart_New(date_class, from_milliseconds, 1, &end_epoch_ms_int);
 
   Dart_Handle x509_class =
       DartUtils::GetDartClass(DartUtils::kIOLibURL, "X509Certificate");
@@ -249,13 +259,7 @@ static bool CallBadCertificateCallback(Dart_Handle callback,
                               issuer_name_object,
                               start_validity_date,
                               end_validity_date };
-  Dart_Handle certificate = Dart_New(x509_class, Dart_Null(), 4, arguments);
-
-  Dart_Handle result =
-      ThrowIfError(Dart_InvokeClosure(callback, 1, &certificate));
-  bool c_result = Dart_IsBoolean(result) && DartUtils::GetBooleanValue(result);
-  Dart_ExitScope();
-  return c_result;
+  return Dart_New(x509_class, Dart_Null(), 4, arguments);
 }
 
 
@@ -341,21 +345,21 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
                                       SECMOD_DB,
                                       init_flags);
     if (status != SECSuccess) {
-      ThrowPRException("Unsuccessful NSS_Init call.");
+      ThrowPRException("Failed NSS_Init call.");
     }
 
     status = NSS_SetDomesticPolicy();
     if (status != SECSuccess) {
-      ThrowPRException("Unsuccessful NSS_SetDomesticPolicy call.");
+      ThrowPRException("Failed NSS_SetDomesticPolicy call.");
     }
     // Enable TLS, as well as SSL3 and SSL2.
     status = SSL_OptionSetDefault(SSL_ENABLE_TLS, PR_TRUE);
     if (status != SECSuccess) {
-      ThrowPRException("Unsuccessful SSL_OptionSetDefault enable TLS call.");
+      ThrowPRException("Failed SSL_OptionSetDefault enable TLS call.");
     }
     status = SSL_ConfigServerSessionIDCache(0, 0, 0, NULL);
     if (status != SECSuccess) {
-      ThrowPRException("Unsuccessful SSL_ConfigServerSessionIDCache call.");
+      ThrowPRException("Failed SSL_ConfigServerSessionIDCache call.");
     }
 
   } else {
@@ -373,36 +377,36 @@ char* PasswordCallback(PK11SlotInfo* slot, PRBool retry, void* arg) {
 
 
 SECStatus BadCertificateCallback(void* filter, PRFileDesc* fd) {
-  return static_cast<SSLFilter*>(filter)->HandleBadCertificate(fd);
+  SSLFilter* ssl_filter = static_cast<SSLFilter*>(filter);
+  Dart_Handle callback = ssl_filter->bad_certificate_callback();
+  if (callback == NULL || Dart_IsNull(callback)) return SECFailure;
+
+  Dart_EnterScope();
+  Dart_Handle x509_object = ssl_filter->PeerCertificate();
+  Dart_Handle result =
+      ThrowIfError(Dart_InvokeClosure(callback, 1, &x509_object));
+  bool c_result = Dart_IsBoolean(result) && DartUtils::GetBooleanValue(result);
+  Dart_ExitScope();
+  return c_result ? SECSuccess : SECFailure;
 }
 
 
-SECStatus SSLFilter::HandleBadCertificate(PRFileDesc* fd) {
-  ASSERT(fd == filter_);
-  CERTCertificate* certificate = SSL_PeerCertificate(fd);
-  PRTime start_validity;
-  PRTime end_validity;
-  SECStatus status =
-      CERT_GetCertTimes(certificate, &start_validity, &end_validity);
-  if (status != SECSuccess) {
-    ThrowPRException("Cannot get validity times from certificate");
-  }
-  int64_t start_epoch_ms = start_validity / PR_USEC_PER_MSEC;
-  int64_t end_epoch_ms = end_validity / PR_USEC_PER_MSEC;
-  bool accept = CallBadCertificateCallback(bad_certificate_callback_,
-                                           certificate->subjectName,
-                                           certificate->issuerName,
-                                           start_epoch_ms,
-                                           end_epoch_ms);
+Dart_Handle SSLFilter::PeerCertificate() {
+  CERTCertificate* certificate = SSL_PeerCertificate(filter_);
+  if (certificate == NULL) return Dart_Null();
+  Dart_Handle x509_object = X509FromCertificate(certificate);
   CERT_DestroyCertificate(certificate);
-  return accept ? SECSuccess : SECFailure;
+  return x509_object;
 }
 
 
 void SSLFilter::Connect(const char* host_name,
                         int port,
                         bool is_server,
-                        const char* certificate_name) {
+                        const char* certificate_name,
+                        bool request_client_certificate,
+                        bool require_client_certificate,
+                        bool send_client_certificate) {
   is_server_ = is_server;
   if (in_handshake_) {
     ThrowException("Connect called while already in handshake state.");
@@ -410,7 +414,7 @@ void SSLFilter::Connect(const char* host_name,
 
   filter_ = SSL_ImportFD(NULL, filter_);
   if (filter_ == NULL) {
-    ThrowPRException("Unsuccessful SSL_ImportFD call");
+    ThrowPRException("Failed SSL_ImportFD call");
   }
 
   SECStatus status;
@@ -420,6 +424,8 @@ void SSLFilter::Connect(const char* host_name,
     if (certificate_database == NULL) {
       ThrowPRException("Certificate database cannot be loaded");
     }
+    // TODO(whesse): Switch to a function that looks up certs by nickname,
+    // so that server and client uses of certificateName agree.
     CERTCertificate* certificate = CERT_FindCertByNameString(
         certificate_database,
         const_cast<char*>(certificate_name));
@@ -434,7 +440,7 @@ void SSLFilter::Connect(const char* host_name,
       if (PR_GetError() == -8177) {
         ThrowPRException("Certificate database password incorrect");
       } else {
-        ThrowPRException("Unsuccessful PK11_FindKeyByAnyCert call."
+        ThrowPRException("Failed PK11_FindKeyByAnyCert call."
                          " Cannot find private key for certificate");
       }
     }
@@ -444,11 +450,23 @@ void SSLFilter::Connect(const char* host_name,
     CERT_DestroyCertificate(certificate);
     SECKEY_DestroyPrivateKey(key);
     if (status != SECSuccess) {
-      ThrowPRException("Unsuccessful SSL_ConfigSecureServer call");
+      ThrowPRException("Failed SSL_ConfigSecureServer call");
+    }
+
+    if (request_client_certificate) {
+      status = SSL_OptionSet(filter_, SSL_REQUEST_CERTIFICATE, PR_TRUE);
+      if (status != SECSuccess) {
+        ThrowPRException("Failed SSL_OptionSet(REQUEST_CERTIFICATE) call");
+      }
+      PRBool require_cert = require_client_certificate ? PR_TRUE : PR_FALSE;
+      status = SSL_OptionSet(filter_, SSL_REQUIRE_CERTIFICATE, require_cert);
+      if (status != SECSuccess) {
+        ThrowPRException("Failed SSL_OptionSet(REQUIRE_CERTIFICATE) call");
+      }
     }
   } else {  // Client.
     if (SSL_SetURL(filter_, host_name) == -1) {
-      ThrowPRException("Unsuccessful SetURL call");
+      ThrowPRException("Failed SetURL call");
     }
 
     // This disables the SSL session cache for client connections.
@@ -457,6 +475,16 @@ void SSLFilter::Connect(const char* host_name,
     status = SSL_OptionSet(filter_, SSL_NO_CACHE, PR_TRUE);
     if (status != SECSuccess) {
       ThrowPRException("Failed SSL_OptionSet(NO_CACHE) call");
+    }
+
+    if (send_client_certificate) {
+      status = SSL_GetClientAuthDataHook(
+          filter_,
+          NSS_GetClientAuthData,
+          static_cast<void*>(const_cast<char*>(certificate_name)));
+      if (status != SECSuccess) {
+        ThrowPRException("Failed SSL_GetClientAuthDataHook call");
+      }
     }
   }
 
@@ -468,7 +496,7 @@ void SSLFilter::Connect(const char* host_name,
   PRBool as_server = is_server ? PR_TRUE : PR_FALSE;
   status = SSL_ResetHandshake(filter_, as_server);
   if (status != SECSuccess) {
-    ThrowPRException("Unsuccessful SSL_ResetHandshake call");
+    ThrowPRException("Failed SSL_ResetHandshake call");
   }
 
   // SetPeerAddress
@@ -478,12 +506,12 @@ void SSLFilter::Connect(const char* host_name,
   PRStatus rv = PR_GetHostByName(host_name, host_entry_buffer,
                                  PR_NETDB_BUF_SIZE, &host_entry);
   if (rv != PR_SUCCESS) {
-    ThrowPRException("Unsuccessful PR_GetHostByName call");
+    ThrowPRException("Failed PR_GetHostByName call");
   }
 
   int index = PR_EnumerateHostEnt(0, &host_entry, port, &host_address);
   if (index == -1 || index == 0) {
-    ThrowPRException("Unsuccessful PR_EnumerateHostEnt call");
+    ThrowPRException("Failed PR_EnumerateHostEnt call");
   }
   memio_SetPeerName(filter_, &host_address);
 }

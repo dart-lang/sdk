@@ -26,6 +26,8 @@ class SecureTestServer {
   void onConnection(Socket connection) {
     connection.onConnect = () {
       numConnections++;
+      var certificate = connection.peerCertificate;
+      Expect.isTrue(certificate.subject.contains("CN="));
     };
     String received = "";
     connection.onData = () {
@@ -43,7 +45,11 @@ class SecureTestServer {
   }
 
   int start() {
-    server = new SecureServerSocket(SERVER_ADDRESS, 0, 10, "CN=$HOST_NAME");
+    server = new SecureServerSocket(SERVER_ADDRESS,
+                                    0,
+                                    10,
+                                    "CN=$HOST_NAME",
+                                    requireClientCertificate: true);
     Expect.isNotNull(server);
     server.onConnection = onConnection;
     server.onError = errorHandlerServer;
@@ -60,7 +66,7 @@ class SecureTestServer {
 
 class SecureTestClient {
   SecureTestClient(int this.port, String this.name) {
-    socket = new SecureSocket(HOST_NAME, port);
+    socket = new SecureSocket(HOST_NAME, port, sendClientCertificate: true);
     socket.onConnect = this.onConnect;
     socket.onData = () {
       reply = reply.concat(new String.fromCharCodes(socket.read()));
