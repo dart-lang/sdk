@@ -413,6 +413,11 @@ class ResolverTask extends CompilerTask {
     }));
   }
 
+  // TODO(johnniwinther): Remove this queue when resolution has been split into
+  // syntax and semantic resolution.
+  ClassElement currentlyResolvedClass;
+  Queue<ClassElement> pendingClassesToBeResolved = new Queue<ClassElement>();
+
   /**
    * Resolve the class [element].
    *
@@ -425,6 +430,26 @@ class ResolverTask extends CompilerTask {
    * [:element.ensureResolved(compiler):].
    */
   void resolveClass(ClassElement element) {
+    ClassElement previousResolvedClass = currentlyResolvedClass;
+    currentlyResolvedClass = element;
+    resolveClassInternal(element);
+    if (previousResolvedClass == null) {
+      while (!pendingClassesToBeResolved.isEmpty) {
+        pendingClassesToBeResolved.removeFirst().ensureResolved(compiler);
+      }
+    }
+    currentlyResolvedClass = previousResolvedClass;
+  }
+
+  void _ensureClassWillBeResolved(ClassElement element) {
+    if (currentlyResolvedClass == null) {
+      element.ensureResolved(compiler);
+    } else {
+      pendingClassesToBeResolved.add(element);
+    }
+  }
+
+  void resolveClassInternal(ClassElement element) {
     if (!element.isPatch) {
       compiler.withCurrentElement(element, () => measure(() {
         assert(element.resolutionState == STATE_NOT_STARTED);
@@ -1183,7 +1208,8 @@ class TypeResolver {
         type = checkNoTypeArguments(element.computeType(compiler));
       } else if (element.isClass()) {
         ClassElement cls = element;
-        cls.ensureResolved(compiler);
+        compiler.resolver._ensureClassWillBeResolved(cls);
+        element.computeType(compiler);
         var arguments = new LinkBuilder<DartType>();
         bool hashTypeArgumentMismatch = resolveTypeArguments(
             node, cls.typeVariables, enclosingElement,
