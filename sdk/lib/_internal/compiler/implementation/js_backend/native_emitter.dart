@@ -160,7 +160,8 @@ function(cls, desc) {
     CodeBuffer getterSetterBuffer = new CodeBuffer();
     CodeBuffer methodBuffer = new CodeBuffer();
 
-    emitter.emitClassFields(classElement, fieldBuffer, false, isNative: true);
+    emitter.emitClassFields(classElement, fieldBuffer, false,
+                            classIsNative: true);
     emitter.emitClassGettersSetters(classElement, getterSetterBuffer, false);
     emitter.emitInstanceMembers(classElement, methodBuffer, false);
 
@@ -266,7 +267,7 @@ function(cls, desc) {
     } else {
       // When calling a JS method, we call it with the native name, and only the
       // arguments up until the last one provided.
-      target = member.nativeName();
+      target = member.fixedBackendName();
       arguments = argumentsBuffer.getRange(
           0, indexOfLastOptionalArgumentInParameters + 1);
     }

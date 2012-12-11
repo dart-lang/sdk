@@ -9,9 +9,15 @@ import "dart2jslib.dart";
 import "tree/tree.dart";
 import "util/util.dart";
 
+abstract class ClosureNamer {
+  SourceString getClosureVariableName(SourceString name, int id);
+}
+
+
 class ClosureTask extends CompilerTask {
   Map<Node, ClosureClassMap> closureMappingCache;
-  ClosureTask(Compiler compiler)
+  ClosureNamer namer;
+  ClosureTask(Compiler compiler, this.namer)
       : closureMappingCache = new Map<Node, ClosureClassMap>(),
         super(compiler);
 
@@ -25,7 +31,7 @@ class ClosureTask extends CompilerTask {
       if (cached != null) return cached;
 
       ClosureTranslator translator =
-          new ClosureTranslator(compiler, elements, closureMappingCache);
+          new ClosureTranslator(compiler, elements, closureMappingCache, namer);
 
       // The translator will store the computed closure-mappings inside the
       // cache. One for given node and one for each nested closure.
@@ -58,6 +64,10 @@ class ClosureFieldElement extends Element {
 
   bool isInstanceMember() => true;
   bool isAssignable() => false;
+  // The names of closure variables don't need renaming, since their use is very
+  // simple and they have 1-character names in the minified mode.
+  bool hasFixedBackendName() => true;
+  String fixedBackendName() => name.slowToString();
 
   String toString() => "ClosureFieldElement($name)";
 }
@@ -151,9 +161,9 @@ class ClosureClassMap {
   final Map<Element, Element> parametersWithSentinel;
 
   ClosureClassMap(this.closureElement,
-              this.closureClassElement,
-              this.callElement,
-              this.thisElement)
+                  this.closureClassElement,
+                  this.callElement,
+                  this.thisElement)
       : this.freeVariableMapping = new Map<Element, Element>(),
         this.capturedFieldMapping = new Map<Element, Element>(),
         this.capturingScopes = new Map<Node, ClosureScope>(),
@@ -167,6 +177,7 @@ class ClosureTranslator extends Visitor {
   final Compiler compiler;
   final TreeElements elements;
   int closureFieldCounter = 0;
+  int boxedFieldCounter = 0;
   bool inTryStatement = false;
   final Map<Node, ClosureClassMap> closureMappingCache;
 
@@ -190,9 +201,12 @@ class ClosureTranslator extends Visitor {
   // The closureData of the currentFunctionElement.
   ClosureClassMap closureData;
 
+  ClosureNamer namer;
+
   bool insideClosure = false;
 
-  ClosureTranslator(this.compiler, this.elements, this.closureMappingCache)
+  ClosureTranslator(this.compiler, this.elements, this.closureMappingCache,
+                    this.namer)
       : capturedVariableMapping = new Map<Element, Element>(),
         closures = <Expression>[],
         mutatedVariables = new Set<Element>();
@@ -225,6 +239,7 @@ class ClosureTranslator extends Visitor {
       // The captured variables that need to be stored in a field of the closure
       // class.
       Set<Element> fieldCaptures = new Set<Element>();
+      Set<Element> boxes = new Set<Element>();
       ClosureClassMap data = closureMappingCache[closure];
       Map<Element, Element> freeVariableMapping = data.freeVariableMapping;
       // We get a copy of the keys and iterate over it, to avoid modifications
@@ -244,26 +259,30 @@ class ClosureTranslator extends Visitor {
           freeVariableMapping[fromElement] = updatedElement;
           Element boxElement = updatedElement.enclosingElement;
           assert(boxElement.kind == ElementKind.VARIABLE);
-          fieldCaptures.add(boxElement);
+          boxes.add(boxElement);
         }
       });
       ClassElement closureElement = data.closureClassElement;
-      assert(closureElement != null || fieldCaptures.isEmpty);
-      for (Element capturedElement in fieldCaptures) {
-        SourceString name;
-        if (capturedElement is BoxElement) {
-          // The name is already mangled.
-          name = capturedElement.name;
-        } else {
-          int id = closureFieldCounter++;
-          name = new SourceString("${capturedElement.name.slowToString()}_$id");
-        }
+      assert(closureElement != null ||
+             (fieldCaptures.isEmpty && boxes.isEmpty));
+      void addElement(Element element, SourceString name) {
         Element fieldElement = new ClosureFieldElement(name, closureElement);
         closureElement.backendMembers =
             closureElement.backendMembers.prepend(fieldElement);
-        data.capturedFieldMapping[fieldElement] = capturedElement;
-        freeVariableMapping[capturedElement] = fieldElement;
+        data.capturedFieldMapping[fieldElement] = element;
+        freeVariableMapping[element] = fieldElement;
       }
+      // Add the box elements first so we get the same ordering.
+      for (Element capturedElement in boxes) {
+        addElement(capturedElement, capturedElement.name);
+      }
+      for (Element capturedElement in fieldCaptures) {
+        int id = closureFieldCounter++;
+        SourceString name =
+            namer.getClosureVariableName(capturedElement.name, id);
+        addElement(capturedElement, name);
+      }
+      closureElement.backendMembers = closureElement.backendMembers.reverse();
     }
   }
 
@@ -418,17 +437,18 @@ class ClosureTranslator extends Visitor {
         if (box == null) {
           // TODO(floitsch): construct better box names.
           SourceString boxName =
-              new SourceString("box_${closureFieldCounter++}");
+              namer.getClosureVariableName(const SourceString('box'),
+                                           closureFieldCounter++);
           box = new BoxElement(boxName, currentElement);
         }
-        // TODO(floitsch): construct better boxed names.
         String elementName = element.name.slowToString();
-        // We are currently using the name in an HForeign which could replace
-        // "$X" with something else.
-        String escaped = elementName.replaceAll("\$", "_");
         SourceString boxedName =
-            new SourceString("${escaped}_${closureFieldCounter++}");
+            namer.getClosureVariableName(new SourceString(elementName),
+                                         boxedFieldCounter++);
         Element boxed = new Element(boxedName, ElementKind.FIELD, box);
+        // No need to rename the fields of a box, so we give them a native name
+        // right now.
+        boxed.setFixedBackendName(boxedName.slowToString());
         scopeMapping[element] = boxed;
         capturedVariableMapping[element] = boxed;
       }
@@ -513,7 +533,7 @@ class ClosureTranslator extends Visitor {
                                  element,
                                  globalizedElement);
     globalizedElement.backendMembers =
-        const Link<Element>().prepend(callElement);
+        globalizedElement.backendMembers.prepend(callElement);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     Element thisElement = closureData.thisElement;

@@ -1764,8 +1764,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         node);
   }
 
-  String _fieldPropertyName(Element element) => element.isNative()
-      ? element.nativeName()
+  String _fieldPropertyName(Element element) => element.hasFixedBackendName()
+      ? element.fixedBackendName()
       : backend.namer.getName(element);
 
   visitLocalGet(HLocalGet node) {

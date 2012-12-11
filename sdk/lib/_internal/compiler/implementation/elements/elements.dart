@@ -347,11 +347,19 @@ class Element implements Spannable {
     }
   }
 
-  String _nativeName = null;
-  bool isNative() => _nativeName != null;
-  String nativeName() => _nativeName;
-  /// Marks this element as a native element.
-  void setNative(String name) { _nativeName = name; }
+  String _fixedBackendName = null;
+  bool _isNative = false;
+  bool isNative() => _isNative;
+  bool hasFixedBackendName() => _fixedBackendName != null;
+  String fixedBackendName() => _fixedBackendName;
+  // Marks this element as a native element.
+  void setNative(String name) {
+    _isNative = true;
+    _fixedBackendName = name;
+  }
+  void setFixedBackendName(String name) {
+    _fixedBackendName = name;
+  }
 
   FunctionElement asFunctionElement() => null;
 

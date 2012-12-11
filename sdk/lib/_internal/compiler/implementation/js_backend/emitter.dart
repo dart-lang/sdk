@@ -510,7 +510,7 @@ $lazyInitializerLogic
     });
 
     List<js.Statement> body;
-    if (member.isNative()) {
+    if (member.hasFixedBackendName()) {
       body = nativeEmitter.generateParameterStubStatements(
           member, invocationName, parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
@@ -656,8 +656,8 @@ $lazyInitializerLogic
 
   String compiledFieldName(Element member) {
     assert(member.isField());
-    return member.isNative()
-        ? member.nativeName()
+    return member.hasFixedBackendName()
+        ? member.fixedBackendName()
         : namer.getName(member);
   }
 
@@ -799,8 +799,8 @@ $lazyInitializerLogic
         String accessorName = isShadowed
             ? namer.shadowedFieldName(member)
             : namer.getName(member);
-        String fieldName = member.isNative()
-            ? member.nativeName()
+        String fieldName = member.hasFixedBackendName()
+            ? member.fixedBackendName()
             : accessorName;
         bool needsCheckedSetter = false;
         if (needsSetter && compiler.enableTypeAssertions
@@ -869,10 +869,10 @@ $lazyInitializerLogic
                        CodeBuffer buffer,
                        bool emitEndingComma,
                        { String superClass: "",
-                         bool isNative: false}) {
+                         bool classIsNative: false}) {
     bool isFirstField = true;
     bool isAnythingOutput = false;
-    if (!isNative) {
+    if (!classIsNative) {
       buffer.add('"":"$superClass;');
       isAnythingOutput = true;
     }
@@ -882,7 +882,14 @@ $lazyInitializerLogic
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
-      if (!isNative || needsCheckedSetter || needsGetter || needsSetter) {
+      // Ignore needsCheckedSetter - that is handled below.
+      bool needsAccessor = (needsGetter || needsSetter);
+      // We need to output the fields for non-native classes so we can auto-
+      // generate the constructor.  For native classes there are no
+      // constructors, so we don't need the fields unless we are generating
+      // accessors at runtime.
+      if (!classIsNative || needsAccessor) {
+        // Emit correct commas.
         if (isFirstField) {
           isFirstField = false;
           if (!isAnythingOutput) {
@@ -892,12 +899,21 @@ $lazyInitializerLogic
         } else {
           buffer.add(",");
         }
-        buffer.add('$accessorName');
         int flag = 0;
-        if (name != accessorName) {
-          buffer.add(':$name');
-          assert(needsGetter || needsSetter);
-          flag = RENAMING_FLAG;
+        if (!needsAccessor) {
+          // Emit field for constructor generation.
+          assert(!classIsNative);
+          buffer.add(name);
+        } else {
+          // Emit (possibly renaming) field name so we can add accessors at
+          // runtime.
+          buffer.add(accessorName);
+          if (name != accessorName) {
+            buffer.add(':$name');
+            // Only the native classes can have renaming accessors.
+            assert(classIsNative);
+            flag = RENAMING_FLAG;
+          }
         }
         if (needsGetter && needsSetter) {
           buffer.addCharCode(GETTER_SETTER_CODE + flag);
@@ -971,7 +987,7 @@ $lazyInitializerLogic
     emitClassConstructor(classElement, buffer);
     emitSuper(superName, buffer);
     emitClassFields(classElement, buffer, false,
-                    superClass: superName, isNative: false);
+                    superClass: superName, classIsNative: false);
     // TODO(floitsch): the emitInstanceMember should simply always emit a ',\n'.
     // That does currently not work because the native classes have a different
     // syntax.
@@ -1253,10 +1269,8 @@ $lazyInitializerLogic
                                    String superName,
                                    List<String> fieldNames,
                                    CodeBuffer buffer) {
-    buffer.add("""
-$classesCollector.$mangledName = {'':
-"$superName;${Strings.join(fieldNames,',')}",
-""");
+    buffer.add('$classesCollector.$mangledName = '
+               '{"":"$superName;${Strings.join(fieldNames,',')}",');
   }
 
   /**
@@ -1424,8 +1438,8 @@ $classesCollector.$mangledName = {'':
                 ? <js.Expression>[new js.VariableUse(receiverArgumentName)]
                 : <js.Expression>[]);
       } else {
-        String fieldName = member.isNative()
-            ? member.nativeName()
+        String fieldName = member.hasFixedBackendName()
+            ? member.fixedBackendName()
             : namer.instanceFieldName(memberLibrary, member.name);
         return new js.VariableUse('this').dot(fieldName);
       }

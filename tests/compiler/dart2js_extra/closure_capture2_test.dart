@@ -24,8 +24,8 @@ closure0() {
 }
 
 closure1() {
-  // f captures variable $0 which could yield to troubles with HForeign if we
-  // don't mangle correctly.
+  // f captures variable $0 which once could yield to troubles with HForeign if
+  // we did not mangle correctly.
   var $1 = 499;
   // TODO(floitsch): remove name from functions.
   var f = fun() { return $1; };

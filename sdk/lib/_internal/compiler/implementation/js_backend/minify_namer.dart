@@ -25,6 +25,13 @@ class MinifyNamer extends Namer {
     return freshName;
   }
 
+  SourceString getClosureVariableName(SourceString name, int id) {
+    if (id < ALPHABET_CHARACTERS) {
+      return new SourceString(new String.fromCharCodes([_letterNumber(id)]));
+    }
+    return new SourceString("${getMappedInstanceName('closure')}_$id");
+  }
+
   // This gets a minified name based on a hash of the proposed name.  This
   // is slightly less efficient than just getting the next name in a series,
   // but it means that small changes in the input program will give smallish

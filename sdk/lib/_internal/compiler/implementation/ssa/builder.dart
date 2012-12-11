@@ -1054,10 +1054,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (node.hasEmptyBody()) return null;
     ClassElement classElement = constructor.getEnclosingClass();
     ConstructorBodyElement bodyElement;
-    for (Link<Element> backendMembers = classElement.backendMembers;
-         !backendMembers.isEmpty;
-         backendMembers = backendMembers.tail) {
-      Element backendMember = backendMembers.head;
+    for (Element backendMember in classElement.backendMembers) {
       if (backendMember.isGenerativeConstructorBody()) {
         ConstructorBodyElement body = backendMember;
         if (body.constructor == constructor) {

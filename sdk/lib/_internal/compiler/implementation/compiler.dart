@@ -245,11 +245,17 @@ abstract class Compiler implements DiagnosticListener {
         progress = new Stopwatch() {
     progress.start();
     world = new World(this);
-    backend = emitJavaScript ?
-        new js_backend.JavaScriptBackend(this,
-                                         generateSourceMap,
-                                         disallowUnsafeEval) :
-        new dart_backend.DartBackend(this, strips);
+
+    closureMapping.ClosureNamer closureNamer;
+    if (emitJavaScript) {
+      js_backend.JavaScriptBackend jsBackend =
+          new js_backend.JavaScriptBackend(this, generateSourceMap,
+                                           disallowUnsafeEval);
+      closureNamer = jsBackend.namer;
+      backend = jsBackend;
+    } else {
+      backend = new dart_backend.DartBackend(this, strips);
+    }
 
     // No-op in production mode.
     validator = new TreeValidatorTask(this);
@@ -262,7 +268,7 @@ abstract class Compiler implements DiagnosticListener {
       parser = new ParserTask(this),
       patchParser = new PatchParserTask(this),
       resolver = new ResolverTask(this),
-      closureToClassMapper = new closureMapping.ClosureTask(this),
+      closureToClassMapper = new closureMapping.ClosureTask(this, closureNamer),
       checker = new TypeCheckerTask(this),
       typesTask = new ti.TypesTask(this, enableConcreteTypeInference),
       constantHandler = new ConstantHandler(this, backend.constantSystem),

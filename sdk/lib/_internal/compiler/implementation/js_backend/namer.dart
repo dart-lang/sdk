@@ -7,7 +7,7 @@ part of js_backend;
 /**
  * Assigns JavaScript identifiers to Dart variables, class-names and members.
  */
-class Namer {
+class Namer implements ClosureNamer {
   static Set<String> _jsReserved = null;
   Set<String> get jsReserved {
     if (_jsReserved == null) {
@@ -237,7 +237,7 @@ class Namer {
     // name.  We normally handle that by renaming the superclass field, but we
     // can't do that because native fields have fixed JSNames.  In practice
     // this can't happen because we can't inherit from native classes.
-    assert (!fieldElement.isNative());
+    assert (!fieldElement.hasFixedBackendName());
 
     ClassElement cls = fieldElement.getEnclosingClass();
     LibraryElement libraryElement = fieldElement.getLibrary();
@@ -314,6 +314,10 @@ class Namer {
     }
     usedNames.add(candidate);
     return candidate;
+  }
+
+  SourceString getClosureVariableName(SourceString name, int id) {
+    return new SourceString("${name.slowToString()}_$id");
   }
 
   static const String LIBRARY_PREFIX = "lib";
@@ -429,15 +433,16 @@ class Namer {
           kind == ElementKind.TYPEDEF ||
           kind == ElementKind.LIBRARY ||
           kind == ElementKind.MALFORMED_TYPE) {
-        bool isNative = false;
+        bool fixedName = false;
         if (kind == ElementKind.CLASS) {
           ClassElement classElement = element;
-          isNative = classElement.isNative();
+          fixedName = classElement.isNative();
         }
         if (Elements.isInstanceField(element)) {
-          isNative = element.isNative();
+          fixedName = element.hasFixedBackendName();
         }
-        String result = isNative ? guess : getFreshName(guess, usedGlobalNames);
+        String result =
+            fixedName ? guess : getFreshName(guess, usedGlobalNames);
         globals[element] = result;
         return result;
       }

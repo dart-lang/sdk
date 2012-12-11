@@ -128,7 +128,7 @@ $lazyInitializerLogic
                        CodeBuffer buffer,
                        bool emitEndingComma,
                        { String superClass: "",
-                         bool isNative: false}) {
+                         bool classIsNative: false}) {
     if (emitEndingComma) buffer.add(', ');
   }
 
