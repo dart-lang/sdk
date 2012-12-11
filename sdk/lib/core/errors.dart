@@ -245,3 +245,12 @@ class StackOverflowError implements Error {
   const StackOverflowError();
   String toString() => "Stack Overflow";
 }
+
+/**
+ * Error thrown when a runtime error occurs.
+ */
+class RuntimeError implements Error {
+  final message;
+  RuntimeError(this.message);
+  String toString() => "RuntimeError: $message";
+}
