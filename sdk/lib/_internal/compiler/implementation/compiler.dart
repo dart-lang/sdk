@@ -128,6 +128,7 @@ abstract class Compiler implements DiagnosticListener {
   Element _currentElement;
   LibraryElement coreLibrary;
   LibraryElement isolateLibrary;
+  LibraryElement isolateHelperLibrary;
   LibraryElement jsHelperLibrary;
   LibraryElement interceptorsLibrary;
   LibraryElement foreignLibrary;
@@ -402,12 +403,33 @@ abstract class Compiler implements DiagnosticListener {
   void enableIsolateSupport(LibraryElement element) {
     // TODO(ahe): Move this method to Enqueuer.
     isolateLibrary = element.patch;
-    enqueuer.resolution.addToWorkList(isolateLibrary.find(START_ROOT_ISOLATE));
+    isolateHelperLibrary = scanBuiltinLibrary('_isolate_helper');
+    importForeignLibrary(isolateHelperLibrary);
+    importHelperLibrary(isolateHelperLibrary);
+
+    libraryLoader.importLibrary(isolateLibrary, isolateHelperLibrary, null);
     enqueuer.resolution.addToWorkList(
-        isolateLibrary.find(const SourceString('_currentIsolate')));
+        isolateHelperLibrary.find(START_ROOT_ISOLATE));
     enqueuer.resolution.addToWorkList(
-        isolateLibrary.find(const SourceString('_callInIsolate')));
-    enqueuer.codegen.addToWorkList(isolateLibrary.find(START_ROOT_ISOLATE));
+        isolateHelperLibrary.find(const SourceString('_currentIsolate')));
+    enqueuer.resolution.addToWorkList(
+        isolateHelperLibrary.find(const SourceString('_callInIsolate')));
+    enqueuer.codegen.addToWorkList(
+        isolateHelperLibrary.find(START_ROOT_ISOLATE));
+
+    // The helper library does not use the native language extension,
+    // so we manually set the native classes this library defines.
+    // TODO(ngeoffray): Enable annotations on these classes.
+    ClassElement cls = isolateHelperLibrary.find(const SourceString('_Window'));
+    cls.setNative('"*DOMWindow"');
+
+    cls = isolateHelperLibrary.find(const SourceString('_WorkerStub'));
+    cls.setNative('"*Worker"');
+
+    enqueuer.resolution.nativeEnqueuer.processNativeClassesInLibrary(
+        isolateHelperLibrary);
+    enqueuer.codegen.nativeEnqueuer.processNativeClassesInLibrary(
+        isolateHelperLibrary);
   }
 
   bool hasIsolateSupport() => isolateLibrary != null;
@@ -500,7 +522,7 @@ abstract class Compiler implements DiagnosticListener {
 
   /** Define the JS helper functions in the given library. */
   void importForeignLibrary(LibraryElement library) {
-    if (jsHelperLibrary != null) {
+    if (foreignLibrary != null) {
       libraryLoader.importLibrary(library, foreignLibrary, null);
     }
   }
@@ -513,7 +535,6 @@ abstract class Compiler implements DiagnosticListener {
         'dart/tests/compiler/dart2js_native');
     if (nativeTest
         || libraryName == 'dart:mirrors'
-        || libraryName == 'dart:isolate'
         || libraryName == 'dart:math'
         || libraryName == 'dart:html'
         || libraryName == 'dart:html_common'

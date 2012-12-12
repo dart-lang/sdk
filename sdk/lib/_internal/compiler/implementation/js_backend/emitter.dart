@@ -1815,9 +1815,9 @@ $mainEnsureGetter
     if (compiler.isMockCompilation) return;
     Element main = compiler.mainApp.find(Compiler.MAIN);
     String mainCall = null;
-    if (compiler.isolateLibrary != null) {
+    if (compiler.isolateHelperLibrary != null) {
       Element isolateMain =
-        compiler.isolateLibrary.find(Compiler.START_ROOT_ISOLATE);
+        compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
       mainCall = buildIsolateSetup(buffer, main, isolateMain);
     } else {
       mainCall = '${namer.isolateAccess(main)}()';

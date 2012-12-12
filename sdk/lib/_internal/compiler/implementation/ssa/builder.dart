@@ -3027,7 +3027,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
       // Leg's isolate.
-      Element element = compiler.isolateLibrary.find(
+      Element element = compiler.isolateHelperLibrary.find(
           const SourceString('_currentIsolate'));
       if (element == null) {
         compiler.cancel(
@@ -3047,7 +3047,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       push(new HInvokeClosure(selector, <HInstruction>[pop()]));
     } else {
       // Call a helper method from the isolate library.
-      Element element = compiler.isolateLibrary.find(
+      Element element = compiler.isolateHelperLibrary.find(
           const SourceString('_callInIsolate'));
       if (element == null) {
         compiler.cancel(
