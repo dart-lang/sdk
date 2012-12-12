@@ -37,6 +37,12 @@ String basename(String path) => _builder.basename(path);
 String basenameWithoutExtension(String path) =>
     _builder.basenameWithoutExtension(path);
 
+/// Gets the part of [path] before the last separator.
+///
+///     path.dirname('path/to/foo.dart'); // -> 'path/to'
+///     path.dirname('path/to');          // -> 'to'
+String dirname(String path) => _builder.dirname(path);
+
 /// Gets the file extension of [path]: the portion of [basename] from the last
 /// `.` to the end (including the `.` itself).
 ///
@@ -51,6 +57,19 @@ String basenameWithoutExtension(String path) =>
 ///     path.extension('~/.bashrc');    // -> ''
 ///     path.extension('~/.notes.txt'); // -> '.txt'
 String extension(String path) => _builder.extension(path);
+
+// TODO(nweiz): add a UNC example for Windows once issue 7323 is fixed.
+/// Returns the root of [path], if it's absolute, or the empty string if it's
+/// relative.
+///
+///     // Unix
+///     path.rootPrefix('path/to/foo'); // -> ''
+///     path.rootPrefix('/path/to/foo'); // -> '/'
+///
+///     // Windows
+///     path.rootPrefix(r'path\to\foo'); // -> ''
+///     path.rootPrefix(r'C:\path\to\foo'); // -> r'C:\'
+String rootPrefix(String path) => _builder.rootPrefix(path);
 
 /// Returns `true` if [path] is an absolute path and `false` if it is a
 /// relative path. On POSIX systems, absolute paths start with a `/` (forward
@@ -78,17 +97,24 @@ bool isRelative(String path) => _builder.isRelative(path);
 ///
 ///     path.join('path', '/to', 'foo'); // -> '/to/foo'
 String join(String part1, [String part2, String part3, String part4,
-            String part5, String part6, String part7, String part8]) {
-  if (!?part2) return _builder.join(part1);
-  if (!?part3) return _builder.join(part1, part2);
-  if (!?part4) return _builder.join(part1, part2, part3);
-  if (!?part5) return _builder.join(part1, part2, part3, part4);
-  if (!?part6) return _builder.join(part1, part2, part3, part4, part5);
-  if (!?part7) return _builder.join(part1, part2, part3, part4, part5, part6);
-  if (!?part8) return _builder.join(part1, part2, part3, part4, part5, part6,
-                                    part7);
-  return _builder.join(part1, part2, part3, part4, part5, part6, part7, part8);
-}
+            String part5, String part6, String part7, String part8]) =>
+  _builder.join(part1, part2, part3, part4, part5, part6, part7, part8);
+
+// TODO(nweiz): add a UNC example for Windows once issue 7323 is fixed.
+/// Splits [path] into its components using the current platform's [separator].
+/// Example:
+///
+///     path.split('path/to/foo'); // -> ['path', 'to', 'foo']
+///
+/// If [path] is absolute, the root directory will be the first element in the
+/// array. Example:
+///
+///     // Unix
+///     path.split('/path/to/foo'); // -> ['/', 'path', 'to', 'foo']
+///
+///     // Windows
+///     path.split(r'C:\path\to\foo'); // -> [r'C:\', 'path', 'to', 'foo']
+List<String> split(String path) => _builder.split(path);
 
 /// Normalizes [path], simplifying it by handling `..`, and `.`, and
 /// removing redundant path separators whenever possible.
@@ -103,12 +129,19 @@ String normalize(String path) => _builder.normalize(path);
 ///     path.relative('/root/path/a/b.dart'); // -> 'a/b.dart'
 ///     path.relative('/root/other.dart'); // -> '../other.dart'
 ///
+/// If the [from] argument is passed, [path] is made relative to that instead.
+///
+///     path.relative('/root/path/a/b.dart',
+///         from: '/root/path'); // -> 'a/b.dart'
+///     path.relative('/root/other.dart',
+///         from: '/root/path'); // -> '../other.dart'
+///
 /// Since there is no relative path from one drive letter to another on Windows,
 /// this will return an absolute path in that case.
 ///
-///     // Given current directory is C:\home:
-///     path.relative(r'D:\other'); // -> 'D:\other'
-String relative(String path) => _builder.relative(path);
+///     path.relative(r'D:\other', from: r'C:\home'); // -> 'D:\other'
+String relative(String path, {String from}) =>
+    _builder.relative(path, from: from);
 
 /// Removes a trailing extension from the last part of [path].
 ///
@@ -163,6 +196,24 @@ class Builder {
   String basenameWithoutExtension(String path) =>
       _parse(path).basenameWithoutExtension;
 
+  /// Gets the part of [path] before the last separator.
+  ///
+  ///     builder.dirname('path/to/foo.dart'); // -> 'path/to'
+  ///     builder.dirname('path/to');          // -> 'to'
+  String dirname(String path) {
+    var parsed = _parse(path);
+    if (parsed.parts.isEmpty) return parsed.root == null ? '.' : parsed.root;
+    if (!parsed.hasTrailingSeparator) {
+      if (parsed.parts.length == 1) {
+        return parsed.root == null ? '.' : parsed.root;
+      }
+      parsed.parts.removeLast();
+      parsed.separators.removeLast();
+    }
+    parsed.separators[parsed.separators.length - 1] = '';
+    return parsed.toString();
+  }
+
   /// Gets the file extension of [path]: the portion of [basename] from the last
   /// `.` to the end (including the `.` itself).
   ///
@@ -177,6 +228,22 @@ class Builder {
   ///     builder.extension('~/.bashrc');    // -> ''
   ///     builder.extension('~/.notes.txt'); // -> '.txt'
   String extension(String path) => _parse(path).extension;
+
+  // TODO(nweiz): add a UNC example for Windows once issue 7323 is fixed.
+  /// Returns the root of [path], if it's absolute, or an empty string if it's
+  /// relative.
+  ///
+  ///     // Unix
+  ///     builder.rootPrefix('path/to/foo'); // -> ''
+  ///     builder.rootPrefix('/path/to/foo'); // -> '/'
+  ///
+  ///     // Windows
+  ///     builder.rootPrefix(r'path\to\foo'); // -> ''
+  ///     builder.rootPrefix(r'C:\path\to\foo'); // -> r'C:\'
+  String rootPrefix(String path) {
+    var root = _parse(path).root;
+    return root == null ? '' : root;
+  }
 
   /// Returns `true` if [path] is an absolute path and `false` if it is a
   /// relative path. On POSIX systems, absolute paths start with a `/` (forward
@@ -208,8 +275,16 @@ class Builder {
     var buffer = new StringBuffer();
     var needsSeparator = false;
 
-    addPart(condition, part) {
-      if (!condition) return;
+    var parts = [part1, part2, part3, part4, part5, part6, part7, part8];
+    for (var i = 1; i < parts.length; i++) {
+      if (parts[i] != null && parts[i - 1] == null) {
+        throw new ArgumentError("join(): part ${i - 1} was null, but part $i "
+            "was not.");
+      }
+    }
+
+    for (var part in parts) {
+      if (part == null) continue;
 
       if (this.isAbsolute(part)) {
         // An absolute path discards everything before it.
@@ -231,16 +306,29 @@ class Builder {
           !style.separatorPattern.hasMatch(part[part.length - 1]);
     }
 
-    addPart(true, part1);
-    addPart(?part2, part2);
-    addPart(?part3, part3);
-    addPart(?part4, part4);
-    addPart(?part5, part5);
-    addPart(?part6, part6);
-    addPart(?part7, part7);
-    addPart(?part8, part8);
-
     return buffer.toString();
+  }
+
+  // TODO(nweiz): add a UNC example for Windows once issue 7323 is fixed.
+  /// Splits [path] into its components using the current platform's
+  /// [separator]. Example:
+  ///
+  ///     builder.split('path/to/foo'); // -> ['path', 'to', 'foo']
+  ///
+  /// If [path] is absolute, the root directory will be the first element in the
+  /// array. Example:
+  ///
+  ///     // Unix
+  ///     builder.split('/path/to/foo'); // -> ['/', 'path', 'to', 'foo']
+  ///
+  ///     // Windows
+  ///     builder.split(r'C:\path\to\foo'); // -> [r'C:\', 'path', 'to', 'foo']
+  List<String> split(String path) {
+    var parsed = _parse(path);
+    // Filter out empty parts that exist due to multiple separators in a row.
+    parsed.parts = parsed.parts.filter((part) => part != '');
+    if (parsed.root != null) parsed.parts.insertRange(0, 1, parsed.root);
+    return parsed.parts;
   }
 
   /// Normalizes [path], simplifying it by handling `..`, and `.`, and
@@ -278,23 +366,44 @@ class Builder {
   ///     builder.relative('/root/path/a/b.dart'); // -> 'a/b.dart'
   ///     builder.relative('/root/other.dart'); // -> '../other.dart'
   ///
+  /// If the [from] argument is passed, [path] is made relative to that instead.
+  ///
+  ///     builder.relative('/root/path/a/b.dart',
+  ///         from: '/root/path'); // -> 'a/b.dart'
+  ///     builder.relative('/root/other.dart',
+  ///         from: '/root/path'); // -> '../other.dart'
+  ///
   /// Since there is no relative path from one drive letter to another on
   /// Windows, this will return an absolute path in that case.
   ///
-  ///     var builder = new Builder(root: r'C:\home');
-  ///     builder.relative(r'D:\other'); // -> 'D:\other'
-  String relative(String path) {
+  ///     builder.relative(r'D:\other', from: r'C:\other'); // -> 'D:\other'
+  ///
+  /// This will also return an absolute path if an absolute [path] is passed to
+  /// a builder with a relative [root].
+  ///
+  ///     var builder = new Builder(r'some/relative/path');
+  ///     builder.relative(r'/absolute/path'); // -> '/absolute/path'
+  String relative(String path, {String from}) {
     if (path == '') return '.';
 
-    // If the base path is relative, resolve it relative to the current
-    // directory.
-    var base = root;
-    if (this.isRelative(base)) base = absolute(base);
+    from = from == null ? root : this.join(root, from);
 
-    // If the given path is relative, resolve it relative to the base.
-    if (this.isRelative(path)) return this.normalize(path);
+    // We can't determine the path from a relative path to an absolute path.
+    if (this.isRelative(from) && this.isAbsolute(path)) {
+      return this.normalize(path);
+    }
 
-    var baseParsed = _parse(base)..normalize();
+    // If the given path is relative, resolve it relative to the root of the
+    // builder.
+    if (this.isRelative(path)) path = this.resolve(path);
+
+    // If the path is still relative and `from` is absolute, we're unable to
+    // find a path from `from` to `path`.
+    if (this.isRelative(path) && this.isAbsolute(from)) {
+      throw new ArgumentError('Unable to find a path to "$path" from "$from".');
+    }
+
+    var fromParsed = _parse(from)..normalize();
     var pathParsed = _parse(path)..normalize();
 
     // If the root prefixes don't match (for example, different drive letters
@@ -302,21 +411,21 @@ class Builder {
     // one.
     // TODO(rnystrom): Drive letters are case-insentive on Windows. Should
     // handle "C:\" and "c:\" being the same root.
-    if (baseParsed.root != pathParsed.root) return pathParsed.toString();
+    if (fromParsed.root != pathParsed.root) return pathParsed.toString();
 
     // Strip off their common prefix.
-    while (baseParsed.parts.length > 0 && pathParsed.parts.length > 0 &&
-           baseParsed.parts[0] == pathParsed.parts[0]) {
-      baseParsed.parts.removeAt(0);
-      baseParsed.separators.removeAt(0);
+    while (fromParsed.parts.length > 0 && pathParsed.parts.length > 0 &&
+           fromParsed.parts[0] == pathParsed.parts[0]) {
+      fromParsed.parts.removeAt(0);
+      fromParsed.separators.removeAt(0);
       pathParsed.parts.removeAt(0);
       pathParsed.separators.removeAt(0);
     }
 
     // If there are any directories left in the root path, we need to walk up
     // out of them.
-    pathParsed.parts.insertRange(0, baseParsed.parts.length, '..');
-    pathParsed.separators.insertRange(0, baseParsed.parts.length,
+    pathParsed.parts.insertRange(0, fromParsed.parts.length, '..');
+    pathParsed.separators.insertRange(0, fromParsed.parts.length,
         style.separator);
 
     // Corner case: the paths completely collapsed.

@@ -33,6 +33,30 @@ main() {
     expect(builder.extension(r'a.b\c'), r'.b\c');
   });
 
+  test('rootPrefix', () {
+    expect(builder.rootPrefix(''), '');
+    expect(builder.rootPrefix('a'), '');
+    expect(builder.rootPrefix('a/b'), '');
+    expect(builder.rootPrefix('/a/c'), '/');
+    expect(builder.rootPrefix('/'), '/');
+  });
+
+  test('dirname', () {
+    expect(builder.dirname(''), '.');
+    expect(builder.dirname('a'), '.');
+    expect(builder.dirname('a/b'), 'a');
+    expect(builder.dirname('a/b/c'), 'a/b');
+    expect(builder.dirname('a/b.c'), 'a');
+    expect(builder.dirname('a/'), 'a');
+    expect(builder.dirname('a/.'), 'a');
+    expect(builder.dirname(r'a\b/c'), r'a\b');
+    expect(builder.dirname('/a'), '/');
+    expect(builder.dirname('/'), '/');
+    expect(builder.dirname('a/b/'), 'a/b');
+    expect(builder.dirname(r'a/b\c'), 'a');
+    expect(builder.dirname('a//'), 'a/');
+  });
+
   test('basename', () {
     expect(builder.basename(''), '');
     expect(builder.basename('a'), 'a');
@@ -41,7 +65,13 @@ main() {
     expect(builder.basename('a/b.c'), 'b.c');
     expect(builder.basename('a/'), '');
     expect(builder.basename('a/.'), '.');
+    expect(builder.basename(r'a\b/c'), 'c');
+    expect(builder.basename('/a'), 'a');
+    // TODO(nweiz): this should actually return '/'
+    expect(builder.basename('/'), '');
+    expect(builder.basename('a/b/'), '');
     expect(builder.basename(r'a/b\c'), r'b\c');
+    expect(builder.basename('a//'), '');
   });
 
   test('basenameWithoutExtension', () {
@@ -104,9 +134,41 @@ main() {
     });
 
     test('ignores parts before an absolute path', () {
+      expect(builder.join('a', '/', 'b', 'c'), '/b/c');
       expect(builder.join('a', '/b', '/c', 'd'), '/c/d');
       expect(builder.join('a', r'c:\b', 'c', 'd'), r'a/c:\b/c/d');
       expect(builder.join('a', r'\\b', 'c', 'd'), r'a/\\b/c/d');
+    });
+
+    test('ignores trailing nulls', () {
+      expect(builder.join('a', null), equals('a'));
+      expect(builder.join('a', 'b', 'c', null, null), equals('a/b/c'));
+    });
+
+    test('disallows intermediate nulls', () {
+      expect(() => builder.join('a', null, 'b'), throwsArgumentError);
+      expect(() => builder.join(null, 'a'), throwsArgumentError);
+    });
+  });
+
+  group('split', () {
+    test('simple cases', () {
+      expect(builder.split('foo'), equals(['foo']));
+      expect(builder.split('foo/bar'), equals(['foo', 'bar']));
+      expect(builder.split('foo/bar/baz'), equals(['foo', 'bar', 'baz']));
+      expect(builder.split('foo/../bar/./baz'),
+          equals(['foo', '..', 'bar', '.', 'baz']));
+      expect(builder.split('foo//bar///baz'), equals(['foo', 'bar', 'baz']));
+      expect(builder.split('foo/\\/baz'), equals(['foo', '\\', 'baz']));
+      expect(builder.split('.'), equals(['.']));
+      expect(builder.split(''), equals([]));
+      expect(builder.split('foo/'), equals(['foo']));
+      expect(builder.split('//'), equals(['/']));
+    });
+
+    test('includes the root for absolute paths', () {
+      expect(builder.split('/foo/bar/baz'), equals(['/', 'foo', 'bar', 'baz']));
+      expect(builder.split('/'), equals(['/']));
     });
   });
 
@@ -211,15 +273,10 @@ main() {
     group('from relative root', () {
       var r = new path.Builder(style: path.Style.posix, root: 'foo/bar');
 
-      // These tests rely on the current working directory, so don't do the
-      // right thing if you run them on the wrong platform.
-      if (io.Platform.operatingSystem != 'windows') {
-        test('given absolute path', () {
-          var b = new path.Builder(style: path.Style.posix);
-          expect(r.relative('/'), b.join(b.relative('/'), '../..'));
-          expect(r.relative('/a/b'), b.join(b.relative('/'), '../../a/b'));
-        });
-      }
+      test('given absolute path', () {
+        expect(r.relative('/'), equals('/'));
+        expect(r.relative('/a/b'), equals('/a/b'));
+      });
 
       test('given relative path', () {
         // The path is considered relative to the root, so it basically just
@@ -237,6 +294,23 @@ main() {
     test('from a root with extension', () {
       var r = new path.Builder(style: path.Style.posix, root: '/dir.ext');
       expect(r.relative('/dir.ext/file'), 'file');
+    });
+
+    test('with a root parameter', () {
+      expect(builder.relative('/foo/bar/baz', from: '/foo/bar'), equals('baz'));
+      expect(builder.relative('..', from: '/foo/bar'), equals('../../root'));
+      expect(builder.relative('/foo/bar/baz', from: 'foo/bar'),
+          equals('../../../../foo/bar/baz'));
+      expect(builder.relative('..', from: 'foo/bar'), equals('../../..'));
+    });
+
+    test('with a root parameter and a relative root', () {
+      var r = new path.Builder(style: path.Style.posix, root: 'relative/root');
+      expect(r.relative('/foo/bar/baz', from: '/foo/bar'), equals('baz'));
+      expect(() => r.relative('..', from: '/foo/bar'), throwsArgumentError);
+      expect(r.relative('/foo/bar/baz', from: 'foo/bar'),
+          equals('/foo/bar/baz'));
+      expect(r.relative('..', from: 'foo/bar'), equals('../../..'));
     });
   });
 

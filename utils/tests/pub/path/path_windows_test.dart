@@ -35,6 +35,35 @@ main() {
     expect(builder.extension(r'a.b/c'), r'');
   });
 
+  test('rootPrefix', () {
+    expect(builder.rootPrefix(''), '');
+    expect(builder.rootPrefix('a'), '');
+    expect(builder.rootPrefix(r'a\b'), '');
+    expect(builder.rootPrefix(r'C:\a\c'), r'C:\');
+    expect(builder.rootPrefix('C:\\'), r'C:\');
+    expect(builder.rootPrefix('C:/'), 'C:/');
+
+    // TODO(nweiz): enable this once issue 7323 is fixed.
+    // expect(builder.rootPrefix(r'\\server\a\b'), r'\\server\');
+  });
+
+  test('dirname', () {
+    expect(builder.dirname(r''), '.');
+    expect(builder.dirname(r'a'), '.');
+    expect(builder.dirname(r'a\b'), 'a');
+    expect(builder.dirname(r'a\b\c'), r'a\b');
+    expect(builder.dirname(r'a\b.c'), 'a');
+    expect(builder.dirname(r'a\'), 'a');
+    expect(builder.dirname('a/'), 'a');
+    expect(builder.dirname(r'a\.'), 'a');
+    expect(builder.dirname(r'a\b/c'), r'a\b');
+    expect(builder.dirname(r'C:\a'), r'C:\');
+    expect(builder.dirname('C:\\'), r'C:\');
+    expect(builder.dirname(r'a\b\'), r'a\b');
+    expect(builder.dirname(r'a/b\c'), 'a/b');
+    expect(builder.dirname(r'a\\'), r'a\');
+  });
+
   test('basename', () {
     expect(builder.basename(r''), '');
     expect(builder.basename(r'a'), 'a');
@@ -45,6 +74,12 @@ main() {
     expect(builder.basename(r'a/'), '');
     expect(builder.basename(r'a\.'), '.');
     expect(builder.basename(r'a\b/c'), r'c');
+    expect(builder.basename(r'C:\a'), 'a');
+    // TODO(nweiz): this should actually return 'C:\'
+    expect(builder.basename(r'C:\'), '');
+    expect(builder.basename(r'a\b\'), '');
+    expect(builder.basename(r'a/b\c'), 'c');
+    expect(builder.basename(r'a\\'), '');
   });
 
   test('basenameWithoutExtension', () {
@@ -122,6 +157,43 @@ main() {
       expect(builder.join('a', '/b', '/c', 'd'), r'a/b/c\d');
       expect(builder.join('a', r'c:\b', 'c', 'd'), r'c:\b\c\d');
       expect(builder.join('a', r'\\b', r'\\c', 'd'), r'\\c\d');
+    });
+
+    test('ignores trailing nulls', () {
+      expect(builder.join('a', null), equals('a'));
+      expect(builder.join('a', 'b', 'c', null, null), equals(r'a\b\c'));
+    });
+
+    test('disallows intermediate nulls', () {
+      expect(() => builder.join('a', null, 'b'), throwsArgumentError);
+      expect(() => builder.join(null, 'a'), throwsArgumentError);
+    });
+  });
+
+  group('split', () {
+    test('simple cases', () {
+      expect(builder.split('foo'), equals(['foo']));
+      expect(builder.split(r'foo\bar'), equals(['foo', 'bar']));
+      expect(builder.split(r'foo\bar\baz'), equals(['foo', 'bar', 'baz']));
+      expect(builder.split(r'foo\..\bar\.\baz'),
+          equals(['foo', '..', 'bar', '.', 'baz']));
+      expect(builder.split(r'foo\\bar\\\baz'), equals(['foo', 'bar', 'baz']));
+      expect(builder.split(r'foo\/\baz'), equals(['foo', 'baz']));
+      expect(builder.split('.'), equals(['.']));
+      expect(builder.split(''), equals([]));
+      expect(builder.split('foo/'), equals(['foo']));
+      expect(builder.split(r'C:\'), equals([r'C:\']));
+    });
+
+    test('includes the root for absolute paths', () {
+      expect(builder.split(r'C:\foo\bar\baz'),
+          equals([r'C:\', 'foo', 'bar', 'baz']));
+      expect(builder.split(r'C:\\'), equals([r'C:\']));
+
+      // TODO(nweiz): enable these once issue 7323 is fixed.
+      // expect(builder.split(r'\\server\foo\bar\baz'),
+      //     equals([r'\\server\', 'foo', 'bar', 'baz']));
+      // expect(builder.split(r'\\server\'), equals([r'\\server\']));
     });
   });
 
@@ -225,21 +297,10 @@ main() {
     group('from relative root', () {
       var r = new path.Builder(style: path.Style.windows, root: r'foo\bar');
 
-      // These tests rely on the current working directory, so don't do the
-      // right thing if you run them on the wrong platform.
-      if (io.Platform.operatingSystem == 'windows') {
-        test('given absolute path', () {
-          var b = new path.Builder(style: path.Style.windows);
-          // TODO(rnystrom): Use a path method here to get the root prefix
-          // when one exists.
-          var drive = path.current.substring(0, 3);
-          expect(r.relative(drive), b.join(b.relative(drive), r'..\..'));
-          expect(r.relative(b.join(drive, r'a\b')),
-              b.join(b.relative(drive), r'..\..\a\b'));
-
-          // TODO(rnystrom): Test behavior when drive letters differ.
-        });
-      }
+      test('given absolute path', () {
+        expect(r.relative(r'C:\'), equals(r'C:\'));
+        expect(r.relative(r'C:\a\b'), equals(r'C:\a\b'));
+      });
 
       test('given relative path', () {
         // The path is considered relative to the root, so it basically just
@@ -257,6 +318,26 @@ main() {
     test('from a root with extension', () {
       var r = new path.Builder(style: path.Style.windows, root: r'C:\dir.ext');
       expect(r.relative(r'C:\dir.ext\file'), 'file');
+    });
+
+    test('with a root parameter', () {
+      expect(builder.relative(r'C:\foo\bar\baz', from: r'C:\foo\bar'),
+          equals('baz'));
+      expect(builder.relative('..', from: r'C:\foo\bar'),
+          equals(r'..\..\root'));
+      expect(builder.relative('..', from: r'D:\foo\bar'), equals(r'C:\root'));
+      expect(builder.relative(r'C:\foo\bar\baz', from: r'foo\bar'),
+          equals(r'..\..\..\..\foo\bar\baz'));
+      expect(builder.relative('..', from: r'foo\bar'), equals(r'..\..\..'));
+    });
+
+    test('with a root parameter and a relative root', () {
+      var r = new path.Builder(style: path.Style.windows, root: r'relative\root');
+      expect(r.relative(r'C:\foo\bar\baz', from: r'C:\foo\bar'), equals('baz'));
+      expect(() => r.relative('..', from: r'C:\foo\bar'), throwsArgumentError);
+      expect(r.relative(r'C:\foo\bar\baz', from: r'foo\bar'),
+          equals(r'C:\foo\bar\baz'));
+      expect(r.relative('..', from: r'foo\bar'), equals(r'..\..\..'));
     });
 
     test('given absolute with different root prefix', () {
