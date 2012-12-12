@@ -252,6 +252,9 @@ class DartBackend extends Backend {
         fixedMemberNames.add(element.name.slowToString());
       });
     }
+    // The VM will automatically invoke the call method of objects
+    // that are invoked as functions. Make sure to not rename that.
+    fixedMemberNames.add('call');
     // TODO(antonm): TypeError.srcType and TypeError.dstType are defined in
     // runtime/lib/error.dart. Overall, all DartVM specific libs should be
     // accounted for.

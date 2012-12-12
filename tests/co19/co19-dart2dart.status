@@ -456,7 +456,3 @@ LibTest/core/double/remainder_A01_t04: Fail # Result is NaN
 LibTest/math/acos_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
-
-[ $compiler == dart2dart && $minified ]
-Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: Fail

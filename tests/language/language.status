@@ -533,4 +533,3 @@ super_call4_test: Fail # issue 3326.
 import_core_prefix_test: Pass
 prefix22_test: Pass
 invocation_mirror2_test: Fail
-call_operator_test: Fail
