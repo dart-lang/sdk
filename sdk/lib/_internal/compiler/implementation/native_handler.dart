@@ -104,11 +104,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   void processNativeClasses(Collection<LibraryElement> libraries) {
     libraries.forEach(processNativeClassesInLibrary);
-    processNativeClass(compiler.listClass);
-    processNativeClass(compiler.stringClass);
-    processNativeClass(compiler.intClass);
-    processNativeClass(compiler.doubleClass);
-    processNativeClass(compiler.nullClass);
     if (!enableLiveTypeAnalysis) {
       nativeClasses.forEach((c) => enqueueClass(c, 'forced'));
       flushQueue();
@@ -118,17 +113,17 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void processNativeClassesInLibrary(LibraryElement library) {
     // Use implementation to ensure the inclusion of injected members.
     library.implementation.forEachLocalMember((Element element) {
-      if (element.isClass() && element.isNative()) {
-        processNativeClass(element);
+      if (element.kind == ElementKind.CLASS) {
+        ClassElement classElement = element;
+        if (classElement.isNative()) {
+          nativeClasses.add(classElement);
+          unusedClasses.add(classElement);
+
+          // Resolve class to ensure the class has valid inheritance info.
+          classElement.ensureResolved(compiler);
+        }
       }
     });
-  }
-
-  void processNativeClass(ClassElement classElement) {
-    nativeClasses.add(classElement);
-    unusedClasses.add(classElement);
-    // Resolve class to ensure the class has valid inheritance info.
-    classElement.ensureResolved(compiler);
   }
 
   ClassElement get annotationCreatesClass {
@@ -316,11 +311,26 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       matchedTypeConstraints.add(type);
       if (type is SpecialType) {
         if (type == SpecialType.JsArray) {
-          enqueueClass(compiler.listClass, 'core type');
+          world.registerInstantiatedClass(compiler.listClass);
         } else if (type == SpecialType.JsObject) {
-          enqueueClass(compiler.objectClass, 'core type');
+          world.registerInstantiatedClass(compiler.objectClass);
         }
         continue;
+      }
+      if (type is InterfaceType) {
+        if (type.element == compiler.intClass) {
+          world.registerInstantiatedClass(compiler.intClass);
+        } else if (type.element == compiler.doubleClass) {
+          world.registerInstantiatedClass(compiler.doubleClass);
+        } else if (type.element == compiler.numClass) {
+          world.registerInstantiatedClass(compiler.numClass);
+        } else if (type.element == compiler.stringClass) {
+          world.registerInstantiatedClass(compiler.stringClass);
+        } else if (type.element == compiler.nullClass) {
+          world.registerInstantiatedClass(compiler.nullClass);
+        } else if (type.element == compiler.boolClass) {
+          world.registerInstantiatedClass(compiler.boolClass);
+        }
       }
       assert(type is DartType);
       enqueueUnusedClassesMatching(

@@ -206,7 +206,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
-  HInstruction handleInterceptorCall(HInvokeDynamicMethod node) {
+  HInstruction handleInterceptorCall(HInvokeDynamic node) {
+    if (node is !HInvokeDynamicMethod) return null;
     HInstruction input = node.inputs[1];
     if (input.isString(types)
         && node.selector.name == const SourceString('toString')) {
@@ -228,11 +229,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
 
     Selector selector = node.selector;
-
-    if (node.isIndexOperatorOnIndexablePrimitive(types)) {
-      return new HIndex(node.inputs[1], node.inputs[2]);
-    }
-
     SourceString selectorName = selector.name;
     Element target;
     if (input.isExtendableArray(types)) {
@@ -281,7 +277,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
-  HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
+  HInstruction visitInvokeDynamic(HInvokeDynamic node) {
     if (node.isInterceptorCall) return handleInterceptorCall(node);
     HType receiverType = types[node.receiver];
     if (receiverType.isExact()) {
@@ -308,7 +304,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
    * [HInvokeDynamic] because we know the receiver is not a JS
    * primitive object.
    */
-  HInstruction fromPrimitiveInstructionToDynamicInvocation(HInstruction node,
+  HInstruction fromPrimitiveInstructionToDynamicInvocation(HInvokeStatic node,
                                                            Selector selector) {
     HBoundedType type = types[node.inputs[1]];
     HInvokeDynamicMethod result = new HInvokeDynamicMethod(
@@ -331,6 +327,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // -0.0 is a double but will pass the runtime integer check.
         node.alwaysFalse = true;
       }
+    }
+    return node;
+  }
+
+
+  HInstruction visitIndex(HIndex node) {
+    if (!node.receiver.canBePrimitive(types)) {
+      Selector selector = new Selector.index();
+      return fromPrimitiveInstructionToDynamicInvocation(node, selector);
     }
     return node;
   }
@@ -798,6 +803,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitIndex(HIndex node) {
+    if (!node.receiver.isIndexablePrimitive(types)) return;
     if (boundsChecked.contains(node)) return;
     HInstruction index = node.index;
     if (!node.index.isInteger(types)) {
@@ -805,6 +811,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     }
     index = insertBoundsCheck(node, node.receiver, index);
     node.changeUse(node.index, index);
+    assert(node.isBuiltin(types));
   }
 
   void visitIndexAssign(HIndexAssign node) {

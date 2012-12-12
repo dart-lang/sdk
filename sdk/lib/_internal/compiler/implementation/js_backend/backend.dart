@@ -849,12 +849,6 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsStringClass, enqueuer);
     } else if (cls == compiler.listClass) {
       addInterceptors(jsArrayClass, enqueuer);
-      // The backend will try to optimize array access and use the
-      // `ioore` and `iae` helpers directly.
-      enqueuer.registerStaticUse(
-          compiler.findHelper(const SourceString('ioore')));
-      enqueuer.registerStaticUse(
-          compiler.findHelper(const SourceString('iae')));
     } else if (cls == compiler.intClass) {
       addInterceptors(jsIntClass, enqueuer);
       addInterceptors(jsNumberClass, enqueuer);

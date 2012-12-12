@@ -289,7 +289,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
   visitIdentity(HIdentity node) => visitRelational(node);
   visitIf(HIf node) => visitConditionalBranch(node);
-  visitIndex(HIndex node) => visitInstruction(node);
+  visitIndex(HIndex node) => visitInvokeStatic(node);
   visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
   visitIntegerCheck(HIntegerCheck node) => visitCheck(node);
   visitInterceptor(HInterceptor node) => visitInstruction(node);
@@ -1320,34 +1320,8 @@ class HInvokeClosure extends HInvokeDynamic {
 class HInvokeDynamicMethod extends HInvokeDynamic {
   HInvokeDynamicMethod(Selector selector, List<HInstruction> inputs)
     : super(selector, null, inputs);
-  String toString() => 'invoke dynamic method: $selector';
+  toString() => 'invoke dynamic method: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
-
-  bool isIndexOperatorOnIndexablePrimitive(HTypeMap types) {
-    return isInterceptorCall
-        && selector.kind == SelectorKind.INDEX
-        && inputs[1].isIndexablePrimitive(types);
-  }
-
-  HType computeDesiredTypeForInput(HInstruction input,
-                                   HTypeMap types,
-                                   Compiler compiler) {
-    // TODO(ngeoffray): Move this logic into a different class that
-    // will know what type it wants for a given selector.
-    if (selector.kind != SelectorKind.INDEX) return HType.UNKNOWN;
-    if (!isInterceptorCall) return HType.UNKNOWN;
-
-    HInstruction index = inputs[2];
-    if (input == inputs[1] &&
-        (index.isTypeUnknown(types) || index.isNumber(types))) {
-      return HType.INDEXABLE_PRIMITIVE;
-    }
-    // The index should be an int when the receiver is a string or array.
-    // However it turns out that inserting an integer check in the optimized
-    // version is cheaper than having another bailout case. This is true,
-    // because the integer check will simply throw if it fails.
-    return HType.UNKNOWN;
-  }
 }
 
 abstract class HInvokeDynamicField extends HInvokeDynamic {
@@ -2465,20 +2439,41 @@ class HLiteralList extends HInstruction {
   }
 }
 
-class HIndex extends HInstruction {
-  HIndex(HInstruction receiver, HInstruction index)
-      : super(<HInstruction>[receiver, index]);
-  String toString() => 'index operator';
+class HIndex extends HInvokeStatic {
+  HIndex(HStatic target, HInstruction receiver, HInstruction index)
+      : super(<HInstruction>[target, receiver, index]);
+  toString() => 'index operator';
   accept(HVisitor visitor) => visitor.visitIndex(this);
 
   void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
-    setDependsOnIndexStore();
-    setUseGvn();
+    if (isBuiltin(types)) {
+      setDependsOnIndexStore();
+      setUseGvn();
+    } else {
+      setAllSideEffects();
+    }
   }
 
-  HInstruction get receiver => inputs[0];
-  HInstruction get index => inputs[1];
+  HInstruction get receiver => inputs[1];
+  HInstruction get index => inputs[2];
+
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types,
+                                            Compiler compiler) {
+    if (input == receiver &&
+        (index.isTypeUnknown(types) || index.isNumber(types))) {
+      return HType.INDEXABLE_PRIMITIVE;
+    }
+    // The index should be an int when the receiver is a string or array.
+    // However it turns out that inserting an integer check in the optimized
+    // version is cheaper than having another bailout case. This is true,
+    // because the integer check will simply throw if it fails.
+    return HType.UNKNOWN;
+  }
+
+  bool isBuiltin(HTypeMap types)
+      => receiver.isIndexablePrimitive(types) && index.isInteger(types);
 
   int typeCode() => HInstruction.INDEX_TYPECODE;
   bool typeEquals(HInstruction other) => other is HIndex;

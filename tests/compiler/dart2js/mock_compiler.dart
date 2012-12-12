@@ -51,7 +51,6 @@ const String DEFAULT_HELPERLIB = r'''
 const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSArray {
     var length;
-    operator[](index) {}
   }
   class JSString {
     var length;
