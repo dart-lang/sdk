@@ -17,7 +17,8 @@
 namespace dart {
 
 RawString* Symbols::predefined_[Symbols::kMaxId];
-VMHandles Symbols::predefined_handles_;
+
+Symbols::ReadOnlyHandles* Symbols::predefined_handles_ = NULL;
 
 #define DEFINE_SYMBOL_HANDLE(symbol)                                           \
   String* Symbols::symbol##_handle_ = NULL;
@@ -80,9 +81,10 @@ void Symbols::InitOnce(Isolate* isolate) {
     predefined_[kMaxPredefinedId + c] = FromUTF32(&c, 1);
   }
 
+  predefined_handles_ = new ReadOnlyHandles();
 #define INITIALIZE_SYMBOL_HANDLE(symbol)                                       \
   symbol##_handle_ = reinterpret_cast<String*>(                                \
-      predefined_handles_.AllocateScopedHandle());                             \
+      predefined_handles_->AllocateHandle());                                  \
   *symbol##_handle_ = symbol();
 PREDEFINED_SYMBOL_HANDLES_LIST(INITIALIZE_SYMBOL_HANDLE)
 #undef INITIALIZE_SYMBOL_HANDLE
@@ -276,7 +278,7 @@ RawString* Symbols::FromCharCode(int32_t char_code) {
 
 
 bool Symbols::IsPredefinedHandle(uword address) {
-  return predefined_handles_.IsValidScopedHandle(address);
+  return predefined_handles_->IsValidHandle(address);
 }
 
 
