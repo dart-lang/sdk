@@ -828,6 +828,18 @@ $lazyInitializerLogic
         includeSuperMembers: isInstantiated && !classElement.isNative());
   }
 
+  void generateGetter(Element member, String fieldName, String accessorName,
+                      CodeBuffer buffer) {      
+    String getterName = namer.getterNameFromAccessorName(accessorName);
+    buffer.add("$getterName: function() { return this.$fieldName; }");    
+  }       
+  
+  void generateSetter(Element member, String fieldName, String accessorName,
+                      CodeBuffer buffer) {      
+    String setterName = namer.setterNameFromAccessorName(accessorName);
+    buffer.add("$setterName: function(v) { this.$fieldName = v; }");      
+  }       
+  
   bool canGenerateCheckedSetter(Element member) {
     DartType type = member.computeType(compiler);
     if (type.element.isTypeVariable()
@@ -955,6 +967,16 @@ $lazyInitializerLogic
         emitComma();
         generateCheckedSetter(member, name, accessorName, buffer);
       }
+      if (!getterAndSetterCanBeImplementedByFieldSpec) {
+        if (needsGetter) {
+          emitComma();
+          generateGetter(member, name, accessorName, buffer);
+        }
+        if (needsSetter) {
+          emitComma();
+          generateSetter(member, name, accessorName, buffer);
+        }
+      }
     });
   }
 
@@ -995,6 +1017,8 @@ $lazyInitializerLogic
     emitInstanceMembers(classElement, buffer, true);
     buffer.add('\n};\n\n');
   }
+
+  bool get getterAndSetterCanBeImplementedByFieldSpec => true;
 
   void emitInterceptorMethods(
       void defineInstanceMember(String name, StringBuffer memberBuffer)) {

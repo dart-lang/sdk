@@ -132,10 +132,5 @@ $lazyInitializerLogic
     if (emitEndingComma) buffer.add(', ');
   }
 
-  bool getterAndSetterCanBeImplementedByFieldSpec(Element member,
-                                                  String name,
-                                                  bool needsGetter,
-                                                  bool needsSetter) {
-    return false;
-  }
+  bool get getterAndSetterCanBeImplementedByFieldSpec => false;
 }
