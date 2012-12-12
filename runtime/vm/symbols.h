@@ -226,10 +226,12 @@ PREDEFINED_SYMBOL_HANDLES_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 
   static bool IsPredefinedHandle(uword address);
 
+  static void DumpStats();
+
  private:
   enum {
-    kInitialVMIsolateSymtabSize = ((kMaxId + 15) & -16),
-    kInitialSymtabSize = 256
+    kInitialVMIsolateSymtabSize = 512,
+    kInitialSymtabSize = 2048
   };
 
   // Helper functions to create a symbol given a string or set of characters.
@@ -274,6 +276,11 @@ PREDEFINED_SYMBOL_HANDLES_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
   // Structure for managing handles allocation for symbols that are
   // stored in the vm isolate.
   static VMHandles predefined_handles_;
+
+  // Statistics used to measure the efficiency of the symbol table.
+  static const intptr_t kMaxCollisionBuckets = 10;
+  static intptr_t num_of_grows_;
+  static intptr_t collision_count_[kMaxCollisionBuckets];
 
 #define DECLARE_SYMBOL_HANDLE(symbol)                                          \
   static String* symbol##_handle_;

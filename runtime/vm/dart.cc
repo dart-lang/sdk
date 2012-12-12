@@ -193,10 +193,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 
 void Dart::ShutdownIsolate() {
   Isolate* isolate = Isolate::Current();
-  if (FLAG_trace_isolates) {
-    isolate->heap()->PrintSizes();
-    isolate->megamorphic_cache_table()->PrintSizes();
-  }
   void* callback_data = isolate->init_callback_data();
   isolate->Shutdown();
   delete isolate;

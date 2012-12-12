@@ -452,7 +452,9 @@ void Isolate::Shutdown() {
   if (FLAG_trace_isolates) {
     StackZone zone(this);
     HandleScope handle_scope(this);
-    OS::Print("Number of symbols added = %"Pd"\n", Symbols::Size(this));
+    heap()->PrintSizes();
+    megamorphic_cache_table()->PrintSizes();
+    Symbols::DumpStats();
     OS::Print("[-] Stopping isolate:\n"
               "\tisolate:    %s\n", name());
   }
