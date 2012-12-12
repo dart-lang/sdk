@@ -35,7 +35,6 @@
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
         'utils/compiler/compiler.gyp:dart2js',
-        'compiler',
       ],
       'actions': [
         {
@@ -46,7 +45,6 @@
             'tools/create_sdk.py',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(PRODUCT_DIR)/dart2js.snapshot',
-            '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/dart-sdk/README',
@@ -57,7 +55,21 @@
             '<(PRODUCT_DIR)/dart-sdk',
           ],
           'message': 'Creating SDK.',
+          'conditions' : [
+            ['(OS=="linux" or OS=="mac") ', {
+              'inputs' : [
+                '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer'
+              ],
+            }],
+          ],
         },
+      ],
+      'conditions' : [
+        ['(OS=="linux" or OS=="mac") ', {
+          'dependencies': [
+            'compiler',
+          ],
+        }],
       ],
     },
     {
