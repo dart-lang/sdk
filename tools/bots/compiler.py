@@ -121,6 +121,10 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
                 '--use-sdk',
                 '--report'])
 
+    # TODO(ricow/kustermann): Issue 7339
+    if runtime == "safari":
+      cmd.append('--nobatch')
+
     if user_test == 'yes':
       cmd.append('--progress=color')
     else:
