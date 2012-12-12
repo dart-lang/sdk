@@ -1090,275 +1090,267 @@ DEFINE_RUNTIME_ENTRY(UpdateICDataTwoArgs, 4) {
 }
 
 
-static RawFunction* LookupDynamicFunction(Isolate* isolate,
-                                          const Class& in_cls,
-                                          const String& name) {
-  Class& cls = Class::Handle();
-  // For lookups treat null as an instance of class Object.
-  if (in_cls.IsNullClass()) {
-    cls = isolate->object_store()->object_class();
-  } else {
-    cls = in_cls.raw();
-  }
+// An instance call could not be resolved by an IC miss handler.  Check if
+// it was a getter call and if there is an instance function with the same
+// name.  If so, create and return an implicit closure from the function.
+// Otherwise return null.
+static RawInstance* ResolveImplicitClosure(const Instance& receiver,
+                                           const Class& receiver_class,
+                                           const String& target_name) {
+  // 1. Check if was a getter call.
+  if (!Field::IsGetterName(target_name)) return Instance::null();
 
-  Function& function = Function::Handle();
-  while (!cls.IsNull()) {
-    // Check if function exists.
-    function = cls.LookupDynamicFunction(name);
-    if (!function.IsNull()) {
-      break;
-    }
-    cls = cls.SuperClass();
-  }
-  return function.raw();
-}
-
-
-// Resolve an implicit closure by checking if an instance function
-// of the same name exists and creating a closure object of the function.
-// Arg0: receiver object.
-// Arg1: ic-data.
-// Returns: Closure object or NULL (instance function not found).
-// This is called by the megamorphic stub when it is unable to resolve an
-// instance method. This is done just before the call to noSuchMethod.
-DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
-  ASSERT(arguments.ArgCount() ==
-         kResolveImplicitClosureFunctionRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
-  const String& original_function_name = String::Handle(ic_data.target_name());
-  Instance& closure = Instance::Handle();
-  if (!Field::IsGetterName(original_function_name)) {
-    // This is not a getter so can't be the case where we are trying to
-    // create an implicit closure of an instance function.
-    arguments.SetReturn(closure);
-    return;
-  }
-  const Class& receiver_class = Class::Handle(receiver.clazz());
-  ASSERT(!receiver_class.IsNull());
-  String& func_name = String::Handle();
-  func_name = Field::NameFromGetter(original_function_name);
-  func_name = Symbols::New(func_name);
+  // 2. Check if there is an instance function with the same name.
+  String& function_name = String::Handle(Field::NameFromGetter(target_name));
+  function_name = Symbols::New(function_name);
   const Function& function = Function::Handle(
-      LookupDynamicFunction(isolate, receiver_class, func_name));
-  if (function.IsNull()) {
-    // There is no function of the same name so can't be the case where
-    // we are trying to create an implicit closure of an instance function.
-    arguments.SetReturn(closure);
-    return;
-  }
-  Function& implicit_closure_function =
-      Function::Handle(function.ImplicitClosureFunction());
+      Resolver::ResolveDynamicAnyArgs(receiver_class, function_name));
+  if (function.IsNull()) return Instance::null();
+
   // Create a closure object for the implicit closure function.
+  const Function& closure_function =
+      Function::Handle(function.ImplicitClosureFunction());
   const Context& context = Context::Handle(Context::New(1));
   context.SetAt(0, receiver);
-  closure = Closure::New(implicit_closure_function, context);
+  const Instance& closure =
+      Instance::Handle(Closure::New(closure_function, context));
   if (receiver_class.HasTypeArguments()) {
     const AbstractTypeArguments& type_arguments =
         AbstractTypeArguments::Handle(receiver.GetTypeArguments());
     closure.SetTypeArguments(type_arguments);
   }
-  arguments.SetReturn(closure);
+  return closure.raw();
 }
 
 
-// Resolve an implicit closure by invoking getter and checking if the return
-// value from getter is a closure.
-// Arg0: receiver object.
-// Arg1: ic-data.
-// Returns: Closure object or NULL (closure not found).
-// This is called by the megamorphic stub when it is unable to resolve an
-// instance method. This is done just before the call to noSuchMethod.
-DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
-  ASSERT(arguments.ArgCount() ==
-         kResolveImplicitClosureThroughGetterRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
-  const String& original_function_name = String::Handle(ic_data.target_name());
-  const int kNumArguments = 1;
-  const int kNumNamedArguments = 0;
-  const String& getter_function_name =
-      String::Handle(Field::GetterName(original_function_name));
-  Function& function = Function::ZoneHandle(
-      Resolver::ResolveDynamic(receiver,
-                               getter_function_name,
-                               kNumArguments,
-                               kNumNamedArguments));
-  const Object& null_object = Object::Handle();
-  if (function.IsNull()) {
-    arguments.SetReturn(null_object);
-    return;  // No getter function found so can't be an implicit closure.
-  }
-  GrowableArray<const Object*> invoke_arguments(0);
-  const Array& kNoArgumentNames = Array::Handle();
-  const Object& result =
-      Object::Handle(DartEntry::InvokeDynamic(receiver,
-                                              function,
-                                              invoke_arguments,
-                                              kNoArgumentNames));
-  if (result.IsError()) {
-    if (result.IsUnhandledException()) {
-      // If the getter throws an exception, treat as no such method.
-      arguments.SetReturn(null_object);
-      return;
-    } else {
-      Exceptions::PropagateError(Error::Cast(result));
-    }
-  }
-  if (!result.IsSmi()) {
-    const Class& cls = Class::Handle(result.clazz());
-    ASSERT(!cls.IsNull());
-    function = cls.signature_function();
-    if (!function.IsNull()) {
-      arguments.SetReturn(result);
-      return;  // Return closure object.
-    }
-  }
-  // The result instance is not a closure, try to invoke method "call" before
-  // throwing a NoSuchMethodError.
-
-  // TODO(regis): Factorize the following code.
-
-  // TODO(regis): Args should be passed.
-  const Array& function_args = Array::Handle();
-  const String& function_name = String::Handle(Symbols::Call());
-  GrowableArray<const Object*> dart_arguments(5);
-
-  // TODO(regis): Resolve and invoke "call" method, if existing.
-
-  dart_arguments.Add(&result);
-  dart_arguments.Add(&function_name);
-  dart_arguments.Add(&function_args);
-  dart_arguments.Add(&null_object);
-
-  // Report if a function "call" with different arguments has been found.
-  {
-    Class& instance_class = Class::Handle(result.clazz());
-    Function& function =
-        Function::Handle(instance_class.LookupDynamicFunction(function_name));
-    while (function.IsNull()) {
-      instance_class = instance_class.SuperClass();
-      if (instance_class.IsNull()) break;
-      function = instance_class.LookupDynamicFunction(function_name);
-    }
-    if (!function.IsNull()) {
-      const int total_num_parameters = function.NumParameters();
-      const Array& array = Array::Handle(Array::New(total_num_parameters - 1));
-      // Skip receiver.
-      for (int i = 1; i < total_num_parameters; i++) {
-        array.SetAt(i - 1, String::Handle(function.ParameterNameAt(i)));
-      }
-      dart_arguments.Add(&array);
-    }
-  }
-  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
-  UNREACHABLE();
-}
-
-
-// Invoke Implicit Closure function.
-// Arg0: closure object.
-// Arg1: arguments descriptor (originally passed as dart instance invocation).
-// Arg2: arguments array (originally passed to dart instance invocation).
-DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
-  ASSERT(arguments.ArgCount() ==
-         kInvokeImplicitClosureFunctionRuntimeEntry.argument_count());
-  const Instance& closure = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(1));
-  const Array& func_arguments = Array::CheckedHandle(arguments.ArgAt(2));
-  const Function& function = Function::Handle(Closure::function(closure));
-  ASSERT(!function.IsNull());
+static RawInstructions* EnsureCompiled(const Function& function) {
   if (!function.HasCode()) {
     const Error& error = Error::Handle(Compiler::CompileFunction(function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
+      UNREACHABLE();
     }
   }
-  const Context& context = Context::Handle(Closure::context(closure));
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
   const Instructions& instrs = Instructions::Handle(code.instructions());
   ASSERT(!instrs.IsNull());
+  return instrs.raw();
+}
+
+
+static RawObject* InvokeClosure(const Instance& closure,
+                                const Array& arguments_descriptor,
+                                const Array& arguments) {
+  const Function& function = Function::Handle(Closure::function(closure));
+  ASSERT(!function.IsNull());
+  const Instructions& instrs = Instructions::Handle(EnsureCompiled(function));
+  const Context& context = Context::Handle(Closure::context(closure));
 
   // The closure object is passed as implicit first argument to closure
   // functions, since it may be needed to throw a NoSuchMethodError, in case
   // the wrong number of arguments is passed.
   // Replace the original receiver in the arguments array by the closure.
-  GrowableArray<const Object*> invoke_arguments(func_arguments.Length());
+  GrowableArray<const Object*> invoke_arguments(arguments.Length());
   invoke_arguments.Add(&closure);
-  for (intptr_t i = 1; i < func_arguments.Length(); i++) {
-    const Object& value = Object::Handle(func_arguments.At(i));
+  for (intptr_t i = 1; i < arguments.Length(); i++) {
+    const Object& value = Object::Handle(arguments.At(i));
     invoke_arguments.Add(&value);
   }
-
   // Now call the invoke stub which will invoke the closure.
   DartEntry::invokestub entrypoint = reinterpret_cast<DartEntry::invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
   ASSERT(context.isolate() == Isolate::Current());
-  const Object& result = Object::Handle(
-      entrypoint(instrs.EntryPoint(),
-                 args_descriptor,
-                 invoke_arguments.data(),
-                 context));
+  const Object& result = Object::Handle(entrypoint(instrs.EntryPoint(),
+                                                   arguments_descriptor,
+                                                   invoke_arguments.data(),
+                                                   context));
   CheckResultError(result);
-  arguments.SetReturn(result);
+  return result.raw();
 }
 
 
-// Invoke appropriate noSuchMethod function.
-// Arg0: receiver.
-// Arg1: ic-data.
-// Arg2: original arguments descriptor array.
-// Arg3: original arguments array.
-DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
-  ASSERT(arguments.ArgCount() ==
-         kInvokeNoSuchMethodFunctionRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
-  const String& original_function_name = String::Handle(ic_data.target_name());
-  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
-  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
+static RawObject* InvokeNonClosure(const Instance& receiver,
+                                   const Class& receiver_class,
+                                   const Array& arguments_descriptor,
+                                   const Array& arguments) {
+  // Resolve and invoke the "call" method if it exists.
+  const String& call_symbol = String::Handle(Symbols::Call());
+
+  Class& current_class = Class::Handle(receiver_class.raw());
+  Function& call_function = Function::Handle();
+  do {
+    call_function = current_class.LookupDynamicFunction(call_symbol);
+
+    if (!call_function.IsNull()) {
+      const Instructions& instrs =
+          Instructions::Handle(EnsureCompiled(call_function));
+      // The non-closure object is passed as implicit first argument
+      // (receiver).  It is already included in the arguments array.
+      GrowableArray<const Object*> invoke_arguments(arguments.Length());
+      for (intptr_t i = 0; i < arguments.Length(); i++) {
+        const Object& value = Object::Handle(arguments.At(i));
+        invoke_arguments.Add(&value);
+      }
+
+      // Now call the invoke stub which will invoke the call method.
+      DartEntry::invokestub entrypoint =
+          reinterpret_cast<DartEntry::invokestub>(
+              StubCode::InvokeDartCodeEntryPoint());
+      const Context& context = Context::ZoneHandle(
+          Isolate::Current()->object_store()->empty_context());
+      const Object& result =
+          Object::Handle(entrypoint(instrs.EntryPoint(),
+                                    arguments_descriptor,
+                                    invoke_arguments.data(),
+                                    context));
+      CheckResultError(result);
+      return result.raw();
+    }
+
+    current_class = current_class.SuperClass();
+  } while (!current_class.IsNull());
+
+  const Object& null_object = Object::Handle();
+  GrowableArray<const Object*> dart_arguments(5);
+  dart_arguments.Add(&receiver);
+  dart_arguments.Add(&call_symbol);
+  dart_arguments.Add(&arguments);
+  dart_arguments.Add(&null_object);
+  // If a function "call" with different arguments exists, it will have been
+  // invoked above, so no need to handle this case here.
+  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
+  UNREACHABLE();
+  return Object::null();
+}
+
+
+// An instance call of the form o.f(...) could not be resolved.  Check if
+// there is a getter with the same name.  If so, invoke it.  If the value is
+// a closure, invoke it with the given arguments.  If the value is a
+// non-closure, attempt to invoke "call" on it.
+static bool ResolveCallThroughGetter(const Instance& receiver,
+                                     const Class& receiver_class,
+                                     const String& target_name,
+                                     const Array& arguments_descriptor,
+                                     const Array& arguments,
+                                     Object* result) {
+  // 1. Check if there is a getter with the same name.
+  const String& getter_name = String::Handle(Field::GetterName(target_name));
+  const int kNumArguments = 1;
+  const int kNumNamedArguments = 0;
+  const Function& getter = Function::ZoneHandle(
+      Resolver::ResolveDynamicForReceiverClass(receiver_class,
+                                               getter_name,
+                                               kNumArguments,
+                                               kNumNamedArguments));
+  if (getter.IsNull()) return false;
+
+  // 2. Invoke the getter.
+  GrowableArray<const Object*> invoke_arguments(0);
+  const Array& kNoArgumentNames = Array::Handle();
+  const Object& value =
+      Object::Handle(DartEntry::InvokeDynamic(receiver,
+                                              getter,
+                                              invoke_arguments,
+                                              kNoArgumentNames));
+
+  // 3. If the getter threw an exception, treat it as no such method.
+  if (value.IsUnhandledException()) return false;
+
+  // 4. If there was some other error, propagate it.
+  if (value.IsError()) {
+    Exceptions::PropagateError(Error::Cast(value));
+    UNREACHABLE();
+  }
+
+  // 5. If the value is a closure, invoke it and return the result.  If it
+  // is a non-closure, invoke "call" on it and return the result.
+  Instance& instance = Instance::Handle();
+  instance ^= value.raw();
+  const Class& instance_class = Class::Handle(instance.clazz());
+  ASSERT(!instance_class.IsNull());
+  // An object is a closure iff. its class has a non-null signature function.
+  if (instance_class.signature_function() != Function::null()) {
+    *result = InvokeClosure(instance, arguments_descriptor, arguments);
+  } else {
+    *result = InvokeNonClosure(instance,
+                               instance_class,
+                               arguments_descriptor,
+                               arguments);
+  }
+  return true;
+}
+
+
+static RawObject* InvokeNoSuchMethod(const Instance& receiver,
+                                     const String& target_name,
+                                     const Array& arguments_descriptor,
+                                     const Array& arguments) {
   // Allocate an InvocationMirror object.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const String& invocation_mirror_name = String::Handle(
-      Symbols::InvocationMirror());
-  Class& invocation_mirror_class = Class::Handle(
-      core_lib.LookupClassAllowPrivate(invocation_mirror_name));
+  const String& invocation_mirror_name =
+      String::Handle(Symbols::InvocationMirror());
+  Class& invocation_mirror_class =
+      Class::Handle(core_lib.LookupClassAllowPrivate(invocation_mirror_name));
   ASSERT(!invocation_mirror_class.IsNull());
-  const String& allocation_function_name = String::Handle(
-      Symbols::AllocateInvocationMirror());
+  const String& allocation_function_name =
+      String::Handle(Symbols::AllocateInvocationMirror());
   const Function& allocation_function = Function::ZoneHandle(
       Resolver::ResolveStaticByName(invocation_mirror_class,
                                     allocation_function_name,
                                     Resolver::kIsQualified));
   ASSERT(!allocation_function.IsNull());
   GrowableArray<const Object*> allocation_arguments(3);
-  allocation_arguments.Add(&original_function_name);
-  allocation_arguments.Add(&orig_arguments_desc);
-  allocation_arguments.Add(&orig_arguments);
+  allocation_arguments.Add(&target_name);
+  allocation_arguments.Add(&arguments_descriptor);
+  allocation_arguments.Add(&arguments);
   const Array& kNoArgumentNames = Array::Handle();
-  const Object& invocation_mirror = Object::Handle(
-      DartEntry::InvokeStatic(allocation_function,
-                              allocation_arguments,
-                              kNoArgumentNames));
+  const Object& invocation_mirror =
+      Object::Handle(DartEntry::InvokeStatic(allocation_function,
+                                             allocation_arguments,
+                                             kNoArgumentNames));
 
+  const String& function_name = String::Handle(Symbols::NoSuchMethod());
   const int kNumArguments = 2;
   const int kNumNamedArguments = 0;
-  const String& function_name = String::Handle(Symbols::NoSuchMethod());
-  const Function& function = Function::ZoneHandle(
-      Resolver::ResolveDynamic(receiver,
-                               function_name,
-                               kNumArguments,
-                               kNumNamedArguments));
+  const Function& function =
+      Function::ZoneHandle(Resolver::ResolveDynamic(receiver,
+                                                    function_name,
+                                                    kNumArguments,
+                                                    kNumNamedArguments));
   ASSERT(!function.IsNull());
   GrowableArray<const Object*> invoke_arguments(1);
   invoke_arguments.Add(&invocation_mirror);
-  const Object& result = Object::Handle(
-      DartEntry::InvokeDynamic(receiver,
-                               function,
-                               invoke_arguments,
-                               kNoArgumentNames));
+  const Object& result =
+      Object::Handle(DartEntry::InvokeDynamic(receiver,
+                                              function,
+                                              invoke_arguments,
+                                              kNoArgumentNames));
   CheckResultError(result);
+  return result.raw();
+}
+
+
+// Invoke appropriate noSuchMethod function.
+// Arg0: receiver.
+// Arg1: ic-data.
+// Arg2: arguments descriptor array.
+// Arg3: arguments array.
+DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
+  ASSERT(arguments.ArgCount() ==
+         kInvokeNoSuchMethodFunctionRuntimeEntry.argument_count());
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
+  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
+
+  const String& original_function_name = String::Handle(ic_data.target_name());
+  const Object& result =
+      Object::Handle(InvokeNoSuchMethod(receiver,
+                                        original_function_name,
+                                        orig_arguments_desc,
+                                        orig_arguments));
   arguments.SetReturn(result);
 }
 
@@ -1375,60 +1367,60 @@ DEFINE_RUNTIME_ENTRY(InvokeNonClosure, 3) {
   const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(1));
   const Array& function_args = Array::CheckedHandle(arguments.ArgAt(2));
 
-  // Resolve and invoke "call" method, if existing.
-  const String& function_name = String::Handle(Symbols::Call());
-  Class& instance_class = Class::Handle(instance.clazz());
-  Function& function =
-      Function::Handle(instance_class.LookupDynamicFunction(function_name));
-  while (function.IsNull()) {
-    instance_class = instance_class.SuperClass();
-    if (instance_class.IsNull()) break;
-    function = instance_class.LookupDynamicFunction(function_name);
+  const Class& instance_class = Class::Handle(instance.clazz());
+  const Object& result = Object::Handle(InvokeNonClosure(instance,
+                                                         instance_class,
+                                                         args_descriptor,
+                                                         function_args));
+  arguments.SetReturn(result);
+}
+
+
+// The IC miss handler has failed to find a (cacheable) instance function to
+// invoke.  Handle three possibilities:
+//
+// 1. If the call was a getter o.f, there may be an instance function with
+//    the same name.  If so, create an implicit closure and return it.
+//
+// 2. If the call was an instance call o.f(...), there may be a getter with
+//    the same name.  If so, invoke it.  If the value is a closure, invoke
+//    it with the given arguments.  If the value is a non-closure, attempt
+//    to invoke "call" on it.
+//
+// 3. There is no such method.
+DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
+  ASSERT(arguments.ArgCount() ==
+         kInstanceFunctionLookupRuntimeEntry.argument_count());
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
+  const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(2));
+  const Array& args = Array::CheckedHandle(arguments.ArgAt(3));
+
+  Class& receiver_class = Class::Handle(receiver.clazz());
+  // For lookups treat null as an instance of class Object.
+  if (receiver_class.IsNullClass()) {
+    receiver_class = isolate->object_store()->object_class();
   }
-  if (!function.IsNull()) {
-    if (!function.HasCode()) {
-      const Error& error = Error::Handle(Compiler::CompileFunction(function));
-      if (!error.IsNull()) {
-        Exceptions::PropagateError(error);
-      }
-    }
-    const Code& code = Code::Handle(function.CurrentCode());
-    ASSERT(!code.IsNull());
-    const Instructions& instrs = Instructions::Handle(code.instructions());
-    ASSERT(!instrs.IsNull());
+  const String& target_name = String::Handle(ic_data.target_name());
 
-    // The non-closure object is passed as implicit first argument (receiver).
-    // It is already included in the arguments array.
-    GrowableArray<const Object*> invoke_arguments(function_args.Length());
-    for (intptr_t i = 0; i < function_args.Length(); i++) {
-      const Object& value = Object::Handle(function_args.At(i));
-      invoke_arguments.Add(&value);
-    }
-
-    // Now call the invoke stub which will invoke the call method.
-    DartEntry::invokestub entrypoint = reinterpret_cast<DartEntry::invokestub>(
-        StubCode::InvokeDartCodeEntryPoint());
-    const Context& context = Context::ZoneHandle(
-        Isolate::Current()->object_store()->empty_context());
-    const Object& result = Object::Handle(
-        entrypoint(instrs.EntryPoint(),
-                   args_descriptor,
-                   invoke_arguments.data(),
-                   context));
-    CheckResultError(result);
-    arguments.SetReturn(result);
+  Instance& closure = Instance::Handle(ResolveImplicitClosure(receiver,
+                                                              receiver_class,
+                                                              target_name));
+  if (!closure.IsNull()) {
+    arguments.SetReturn(closure);
     return;
   }
-  const Object& null_object = Object::Handle();
-  GrowableArray<const Object*> dart_arguments(5);
-  dart_arguments.Add(&instance);
-  dart_arguments.Add(&function_name);
-  dart_arguments.Add(&function_args);
-  dart_arguments.Add(&null_object);
-  // If a function "call" with different arguments exists, it will have been
-  // invoked above, so no need to handle this case here.
-  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
-  UNREACHABLE();
+
+  Object& result = Object::Handle();
+  if (!ResolveCallThroughGetter(receiver,
+                                receiver_class,
+                                target_name,
+                                args_descriptor,
+                                args,
+                                &result)) {
+    result = InvokeNoSuchMethod(receiver, target_name, args_descriptor, args);
+  }
+  arguments.SetReturn(result);
 }
 
 

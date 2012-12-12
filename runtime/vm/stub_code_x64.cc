@@ -223,14 +223,12 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 
 
 // Input parameters:
-//   R13: argument count, may be zero.
+//   R10: smi-tagged argument count, may be zero.
 static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
   // Allocate array to store arguments of caller.
-  __ movq(R10, R13);  // Arguments array length.
-  __ SmiTag(R10);  // Convert to Smi.
   __ movq(RBX, raw_null);  // Null element type for raw Array.
   __ call(&StubCode::AllocateArrayLabel());
   __ SmiUntag(R10);
@@ -259,151 +257,44 @@ static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
 //       called, the stub accesses the receiver from this location directly
 //       when trying to resolve the call.
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
   AssemblerMacros::EnterStubFrame(assembler);
 
-  // Preserve values across call to resolving.
-  // Stack at this point:
-  // TOS + 0: PC marker => RawInstruction object.
-  // TOS + 1: Saved RBP of previous frame. <== RBP
-  // TOS + 2: Dart code return address
-  // TOS + 3: Last argument of caller.
-  // ....
-  __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ movq(RAX, Address(RBP, RAX, TIMES_4, kWordSize));  // Get receiver.
-  // RAX: receiver.
-  // RBX: ic-data.
-  // R10: arguments descriptor array.
-  // The target function was not found.
-  // First check to see if this is a getter function and we are
-  // trying to create a closure of an instance function.
-  // Push values that need to be preserved across runtime call.
-  __ pushq(RAX);  // Preserve receiver.
-  __ pushq(RBX);  // Preserve ic-data.
-  __ pushq(R10);  // Preserve arguments descriptor array.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ pushq(raw_null);  // Space for the return value.
 
-  __ pushq(raw_null);  // Setup space on stack for return value.
-  __ pushq(RAX);  // Push receiver.
-  __ pushq(RBX);  // Ic-data array.
-  __ CallRuntime(kResolveImplicitClosureFunctionRuntimeEntry);
-  __ popq(RAX);
-  __ popq(RAX);
-  __ popq(RCX);  // Get return value into RCX, might be Closure object.
-
-  // Pop preserved values.
-  __ popq(R10);  // Restore arguments descriptor array.
-  __ popq(RBX);  // Restore ic-data.
-  __ popq(RAX);  // Restore receiver.
-
-  __ cmpq(RCX, raw_null);
-  Label check_implicit_closure_through_getter;
-  __ j(EQUAL, &check_implicit_closure_through_getter, Assembler::kNearJump);
-
-  __ movq(RAX, RCX);  // Return value is the closure object.
-  // Remove the stub frame as we are about return.
-  __ LeaveFrame();
-  __ ret();
-
-  __ Bind(&check_implicit_closure_through_getter);
-  // RAX: receiver.
-  // RBX: ic-data.
-  // R10: arguments descriptor array.
-  // This is not the case of an instance so invoke the getter of the
-  // same name and see if we get a closure back which we are then
-  // supposed to invoke.
-  // Push values that need to be preserved across runtime call.
-  __ pushq(RAX);  // Preserve receiver.
-  __ pushq(RBX);  // Preserve ic-data.
-  __ pushq(R10);  // Preserve arguments descriptor array.
-
-  __ pushq(raw_null);  // Setup space on stack for return value.
-  __ pushq(RAX);  // Push receiver.
-  __ pushq(RBX);  // Ic-data array.
-  __ CallRuntime(kResolveImplicitClosureThroughGetterRuntimeEntry);
-  __ popq(RAX);  // Pop argument.
-  __ popq(RAX);  // Pop argument.
-  __ popq(RCX);  // get return value into RCX, might be Closure object.
-
-  // Pop preserved values.
-  __ popq(R10);  // Restore arguments descriptor array.
-  __ popq(RBX);  // Restore ic-data.
-  __ popq(RAX);  // Restore receiver.
-
-  __ cmpq(RCX, raw_null);
-  Label function_not_found;
-  __ j(EQUAL, &function_not_found);
-
-  // RCX: Closure object.
-  // R10: Arguments descriptor array.
-  __ pushq(raw_null);  // Setup space on stack for result from invoking Closure.
-  __ pushq(RCX);  // Closure object.
-  __ pushq(R10);  // Arguments descriptor.
+  // Push the receiver as an argument.  Load the smi-tagged argument
+  // count into R13 to index the receiver in the stack.  There are
+  // three words (null, stub's pc marker, saved fp) above the return
+  // address.
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R13);  // Arguments array length, including the original receiver.
-  PushArgumentsArray(assembler, (kWordSize * 6));
-  // Stack layout explaining "(kWordSize * 6)" offset.
-  // TOS + 0: Argument array.
-  // TOS + 1: Arguments descriptor array.
-  // TOS + 2: Closure object.
-  // TOS + 3: Place for result from closure function.
-  // TOS + 4: PC marker => RawInstruction object.
-  // TOS + 5: Saved RBP of previous frame. <== RBP
-  // TOS + 6: Dart code return address
-  // TOS + 7: Last argument of caller.
-  // ....
+  __ pushq(Address(RSP, R13, TIMES_4, (3 * kWordSize)));
 
-  __ CallRuntime(kInvokeImplicitClosureFunctionRuntimeEntry);
-  // Remove arguments.
-  __ popq(RAX);
-  __ popq(RAX);
-  __ popq(RAX);
-  __ popq(RAX);  // Get result into RAX.
+  __ pushq(RBX);  // Pass IC data object.
+  __ pushq(R10);  // Pass arguments descriptor array.
 
-  // Remove the stub frame as we are about to return.
-  __ LeaveFrame();
-  __ ret();
-
-  __ Bind(&function_not_found);
-  // The target function was not found, so invoke method
-  // "dynamic noSuchMethod(InvocationMirror invocation)".
-  //   RAX: receiver.
-  //   RBX: ic-data.
-  //   R10: arguments descriptor array.
-
-  __ pushq(raw_null);  // Setup space on stack for result from noSuchMethod.
-  __ pushq(RAX);  // Receiver.
-  __ pushq(RBX);  // IC-data array.
-  __ pushq(R10);  // Arguments descriptor array.
-  __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R13);  // Arguments array length, including the original receiver.
-  // See stack layout below explaining "wordSize * 7" offset.
-  PushArgumentsArray(assembler, (kWordSize * 7));
-
-  // Stack:
+  // Pass the call's arguments array.
+  __ movq(R10, R13);  // Smi-tagged arguments array length.
+  PushArgumentsArray(assembler, (7 * kWordSize));
+  // Stack layout explaining "(7 * kWordSize)" offset.
   // TOS + 0: Arguments array.
   // TOS + 1: Arguments descriptor array.
-  // TOS + 2: IC-data array.
+  // TOS + 2: IC data object.
   // TOS + 3: Receiver.
-  // TOS + 4: Place for result from noSuchMethod.
-  // TOS + 5: PC marker => RawInstruction object.
-  // TOS + 6: Saved RBP of previous frame. <== RBP
+  // TOS + 4: Space for the result of the runtime call.
+  // TOS + 5: Stub's PC marker (0)
+  // TOS + 6: Saved FP
   // TOS + 7: Dart code return address
   // TOS + 8: Last argument of caller.
   // ....
 
-  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
+  __ CallRuntime(kInstanceFunctionLookupRuntimeEntry);
   // Remove arguments.
   __ popq(RAX);
   __ popq(RAX);
   __ popq(RAX);
   __ popq(RAX);
   __ popq(RAX);  // Get result into RAX.
-
-  // Remove the stub frame as we are about to return.
   __ LeaveFrame();
   __ ret();
 }
@@ -532,7 +423,8 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   // Load the receiver into RAX.  The argument count in the arguments
   // descriptor in R10 is a smi.
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  // Two words (return addres, saved fp) in the stack above the last argument.
+  // Two words (saved fp, stub's pc marker) in the stack above the return
+  // address.
   __ movq(RAX, Address(RSP, RAX, TIMES_4, 2 * kWordSize));
   // Preserve IC data and arguments descriptor.
   __ pushq(RBX);
@@ -778,9 +670,8 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ pushq(raw_null);  // Setup space on stack for result from call.
   __ pushq(R13);  // Non-closure object.
   __ pushq(R10);  // Arguments descriptor.
-  // Load num_args.
-  __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R13);  // Arguments array length, including the non-closure.
+  // Load smi-tagged arguments array length, including the non-closure.
+  __ movq(R10, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   // See stack layout below explaining "wordSize * 6" offset.
   PushArgumentsArray(assembler, (kWordSize * 6));
 
@@ -1445,8 +1336,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R13);
-  __ movq(RAX, Address(RBP, R13, TIMES_8, kWordSize));  // Get receiver.
+  __ movq(RAX, Address(RBP, R13, TIMES_4, kWordSize));  // Get receiver.
 
   // Create a stub frame.
   AssemblerMacros::EnterStubFrame(assembler);
@@ -1455,7 +1345,8 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // IC data array.
   __ pushq(R10);  // Arguments descriptor array.
-  // R13: Arguments array length, including the receiver.
+
+  __ movq(R10, R13);  // Smi-tagged arguments array length.
   // See stack layout below explaining "wordSize * 10" offset.
   PushArgumentsArray(assembler, (kWordSize * 10));
 
