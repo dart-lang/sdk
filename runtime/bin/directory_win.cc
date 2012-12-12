@@ -10,27 +10,27 @@
 #include "bin/log.h"
 
 // Forward declaration.
-static bool ListRecursively(const char* dir_name,
+static bool ListRecursively(const wchar_t* dir_name,
                             bool recursive,
                             DirectoryListing* listing);
-static bool DeleteRecursively(const char* dir_name);
+static bool DeleteRecursively(const wchar_t* dir_name);
 
 
-static bool HandleDir(char* dir_name,
-                      char* path,
+static bool HandleDir(wchar_t* dir_name,
+                      wchar_t* path,
                       int path_length,
                       bool recursive,
                       DirectoryListing* listing) {
-  if (strcmp(dir_name, ".") != 0 &&
-      strcmp(dir_name, "..") != 0) {
-    size_t written = snprintf(path + path_length,
-                              MAX_PATH - path_length,
-                              "%s",
-                              dir_name);
-    if (written != strlen(dir_name)) {
+  if (wcscmp(dir_name, L".") != 0 &&
+      wcscmp(dir_name, L"..") != 0) {
+    size_t written = _snwprintf(path + path_length,
+                                MAX_PATH - path_length,
+                                L"%s",
+                                dir_name);
+    if (written != wcslen(dir_name)) {
       return false;
     }
-    char* utf8_path = StringUtils::ConsoleStringToUtf8(path);
+    char* utf8_path = StringUtils::WideToUtf8(path);
     bool ok = listing->HandleDirectory(utf8_path);
     free(utf8_path);
     if (!ok) return ok;
@@ -42,26 +42,26 @@ static bool HandleDir(char* dir_name,
 }
 
 
-static bool HandleFile(char* file_name,
-                       char* path,
+static bool HandleFile(wchar_t* file_name,
+                       wchar_t* path,
                        int path_length,
                        DirectoryListing* listing) {
-  size_t written = snprintf(path + path_length,
-                            MAX_PATH - path_length,
-                            "%s",
-                            file_name);
-  if (written != strlen(file_name)) {
+  size_t written = _snwprintf(path + path_length,
+                              MAX_PATH - path_length,
+                              L"%s",
+                              file_name);
+  if (written != wcslen(file_name)) {
     return false;
   };
-  char* utf8_path = StringUtils::ConsoleStringToUtf8(path);
+  char* utf8_path = StringUtils::WideToUtf8(path);
   bool ok = listing->HandleFile(utf8_path);
   free(utf8_path);
   return ok;
 }
 
 
-static bool HandleEntry(LPWIN32_FIND_DATA find_file_data,
-                        char* path,
+static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
+                        wchar_t* path,
                         int path_length,
                         bool recursive,
                         DirectoryListing* listing) {
@@ -80,24 +80,24 @@ static bool HandleEntry(LPWIN32_FIND_DATA find_file_data,
 
 // ComputeFullSearchPath must be called with a path array of size at
 // least MAX_PATH.
-static bool ComputeFullSearchPath(const char* dir_name,
-                                  char* path,
+static bool ComputeFullSearchPath(const wchar_t* dir_name,
+                                  wchar_t* path,
                                   int* path_length) {
   // GetFullPathName only works in a multi-threaded environment if
   // SetCurrentDirectory is not used. We currently have no plan for
   // exposing SetCurrentDirectory.
-  size_t written = GetFullPathName(dir_name, MAX_PATH, path, NULL);
+  size_t written = GetFullPathNameW(dir_name, MAX_PATH, path, NULL);
   // GetFullPathName only accepts input strings of size less than
   // MAX_PATH and returns 0 to indicate failure for paths longer than
   // that. Therefore the path buffer is always big enough.
-  if (written == 0) {
+  if (written == 0 || written > MAX_PATH) {
     return false;
   }
   *path_length = written;
-  written = snprintf(path + *path_length,
-                     MAX_PATH - *path_length,
-                     "%s",
-                     "\\*");
+  written = _snwprintf(path + *path_length,
+                       MAX_PATH - *path_length,
+                       L"%s",
+                       L"\\*");
   if (written != 2) {
     return false;
   }
@@ -106,14 +106,14 @@ static bool ComputeFullSearchPath(const char* dir_name,
 }
 
 static void PostError(DirectoryListing* listing,
-                      const char* dir_name) {
-  const char* utf8_path = StringUtils::ConsoleStringToUtf8(dir_name);
+                      const wchar_t* dir_name) {
+  const char* utf8_path = StringUtils::WideToUtf8(dir_name);
   listing->HandleError(utf8_path);
   free(const_cast<char*>(utf8_path));
 }
 
 
-static bool ListRecursively(const char* dir_name,
+static bool ListRecursively(const wchar_t* dir_name,
                             bool recursive,
                             DirectoryListing* listing) {
   // Compute full path for the directory currently being listed.  The
@@ -121,7 +121,7 @@ static bool ListRecursively(const char* dir_name,
   // recursive traversal. path_length does not always equal
   // strlen(path) but indicates the current prefix of path that is the
   // path of the current directory in the traversal.
-  char* path = static_cast<char*>(malloc(MAX_PATH));
+  wchar_t* path = static_cast<wchar_t*>(malloc(MAX_PATH * sizeof(wchar_t)));
   int path_length = 0;
   bool valid = ComputeFullSearchPath(dir_name, path, &path_length);
   if (!valid) {
@@ -130,8 +130,8 @@ static bool ListRecursively(const char* dir_name,
     return false;
   }
 
-  WIN32_FIND_DATA find_file_data;
-  HANDLE find_handle = FindFirstFile(path, &find_file_data);
+  WIN32_FIND_DATAW find_file_data;
+  HANDLE find_handle = FindFirstFileW(path, &find_file_data);
 
   // Adjust the path by removing the '*' used for the search.
   path_length -= 1;
@@ -149,7 +149,7 @@ static bool ListRecursively(const char* dir_name,
                              recursive,
                              listing);
 
-  while ((FindNextFile(find_handle, &find_file_data) != 0)) {
+  while ((FindNextFileW(find_handle, &find_file_data) != 0)) {
     success = HandleEntry(&find_file_data,
                           path,
                           path_length,
@@ -172,18 +172,18 @@ static bool ListRecursively(const char* dir_name,
 }
 
 
-static bool DeleteFile(char* file_name,
-                       char* path,
+static bool DeleteFile(wchar_t* file_name,
+                       wchar_t* path,
                        int path_length) {
-  size_t written = snprintf(path + path_length,
-                            MAX_PATH - path_length,
-                            "%s",
-                            file_name);
-  if (written != strlen(file_name)) {
+  size_t written = _snwprintf(path + path_length,
+                              MAX_PATH - path_length,
+                              L"%s",
+                              file_name);
+  if (written != wcslen(file_name)) {
     return false;
   }
 
-  if (DeleteFile(path) != 0) {
+  if (DeleteFileW(path) != 0) {
     return true;
   }
 
@@ -191,7 +191,7 @@ static bool DeleteFile(char* file_name,
   // again. This mirrors Linux/Mac where a directory containing read-only files
   // can still be recursively deleted.
   if (GetLastError() == ERROR_ACCESS_DENIED) {
-    DWORD attributes = GetFileAttributes(path);
+    DWORD attributes = GetFileAttributesW(path);
     if (attributes == INVALID_FILE_ATTRIBUTES) {
       return false;
     }
@@ -199,11 +199,11 @@ static bool DeleteFile(char* file_name,
     if ((attributes & FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY) {
       attributes &= ~FILE_ATTRIBUTE_READONLY;
 
-      if (SetFileAttributes(path, attributes) == 0) {
+      if (SetFileAttributesW(path, attributes) == 0) {
         return false;
       }
 
-      return DeleteFile(path) != 0;
+      return DeleteFileW(path) != 0;
     }
   }
 
@@ -211,16 +211,16 @@ static bool DeleteFile(char* file_name,
 }
 
 
-static bool DeleteDir(char* dir_name,
-                      char* path,
+static bool DeleteDir(wchar_t* dir_name,
+                      wchar_t* path,
                       int path_length) {
-  if (strcmp(dir_name, ".") != 0 &&
-      strcmp(dir_name, "..") != 0) {
-    size_t written = snprintf(path + path_length,
-                              MAX_PATH - path_length,
-                              "%s",
-                              dir_name);
-    if (written != strlen(dir_name)) {
+  if (wcscmp(dir_name, L".") != 0 &&
+      wcscmp(dir_name, L"..") != 0) {
+    size_t written = _snwprintf(path + path_length,
+                                MAX_PATH - path_length,
+                                L"%s",
+                                dir_name);
+    if (written != wcslen(dir_name)) {
       return false;
     }
     return DeleteRecursively(path);
@@ -229,8 +229,8 @@ static bool DeleteDir(char* dir_name,
 }
 
 
-static bool DeleteEntry(LPWIN32_FIND_DATA find_file_data,
-                        char* path,
+static bool DeleteEntry(LPWIN32_FIND_DATAW find_file_data,
+                        wchar_t* path,
                         int path_length) {
   DWORD attributes = find_file_data->dwFileAttributes;
 
@@ -242,14 +242,14 @@ static bool DeleteEntry(LPWIN32_FIND_DATA find_file_data,
 }
 
 
-static bool DeleteRecursively(const char* dir_name) {
+static bool DeleteRecursively(const wchar_t* dir_name) {
   // If the directory is a junction, it's pointing to some other place in the
   // filesystem that we do not want to recurse into.
-  DWORD attributes = GetFileAttributes(dir_name);
+  DWORD attributes = GetFileAttributesW(dir_name);
   if ((attributes != INVALID_FILE_ATTRIBUTES) &&
       (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     // Just delete the junction itself.
-    return RemoveDirectory(dir_name) != 0;
+    return RemoveDirectoryW(dir_name) != 0;
   }
 
   // Compute full path for the directory currently being deleted.  The
@@ -257,7 +257,7 @@ static bool DeleteRecursively(const char* dir_name) {
   // recursive traversal. path_length does not always equal
   // strlen(path) but indicates the current prefix of path that is the
   // path of the current directory in the traversal.
-  char* path = static_cast<char*>(malloc(MAX_PATH));
+  wchar_t* path = static_cast<wchar_t*>(malloc(MAX_PATH * sizeof(wchar_t)));
   int path_length = 0;
   bool valid = ComputeFullSearchPath(dir_name, path, &path_length);
   if (!valid) {
@@ -265,8 +265,8 @@ static bool DeleteRecursively(const char* dir_name) {
     return false;
   }
 
-  WIN32_FIND_DATA find_file_data;
-  HANDLE find_handle = FindFirstFile(path, &find_file_data);
+  WIN32_FIND_DATAW find_file_data;
+  HANDLE find_handle = FindFirstFileW(path, &find_file_data);
 
   // Adjust the path by removing the '*' used for the search.
   path_length -= 1;
@@ -279,7 +279,7 @@ static bool DeleteRecursively(const char* dir_name) {
 
   bool success = DeleteEntry(&find_file_data, path, path_length);
 
-  while ((FindNextFile(find_handle, &find_file_data) != 0) && success) {
+  while ((FindNextFileW(find_handle, &find_file_data) != 0) && success) {
     success = success && DeleteEntry(&find_file_data, path, path_length);
   }
 
@@ -287,7 +287,7 @@ static bool DeleteRecursively(const char* dir_name) {
 
   if ((GetLastError() != ERROR_NO_MORE_FILES) ||
       (FindClose(find_handle) == 0) ||
-      (RemoveDirectory(dir_name) == 0)) {
+      (RemoveDirectoryW(dir_name) == 0)) {
     return false;
   }
 
@@ -298,15 +298,15 @@ static bool DeleteRecursively(const char* dir_name) {
 bool Directory::List(const char* dir_name,
                      bool recursive,
                      DirectoryListing* listing) {
-  const char* system_name = StringUtils::Utf8ToConsoleString(dir_name);
+  const wchar_t* system_name = StringUtils::Utf8ToWide(dir_name);
   bool completed = ListRecursively(system_name, recursive, listing);
-  free(const_cast<char*>(system_name));
+  free(const_cast<wchar_t*>(system_name));
   return completed;
 }
 
 
-static Directory::ExistsResult ExistsHelper(const char* dir_name) {
-  DWORD attributes = GetFileAttributes(dir_name);
+static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
+  DWORD attributes = GetFileAttributesW(dir_name);
   if (attributes == INVALID_FILE_ATTRIBUTES) {
     DWORD last_error = GetLastError();
     if (last_error == ERROR_FILE_NOT_FOUND ||
@@ -325,33 +325,33 @@ static Directory::ExistsResult ExistsHelper(const char* dir_name) {
 
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
-  const char* system_name = StringUtils::Utf8ToConsoleString(dir_name);
+  const wchar_t* system_name = StringUtils::Utf8ToWide(dir_name);
   Directory::ExistsResult result = ExistsHelper(system_name);
-  free(const_cast<char*>(system_name));
+  free(const_cast<wchar_t*>(system_name));
   return result;
 }
 
 
 char* Directory::Current() {
-  int length = GetCurrentDirectory(0, NULL);
-  char* current = reinterpret_cast<char*>(malloc(length + 1));
-  GetCurrentDirectory(length + 1, current);
-  char* result = StringUtils::ConsoleStringToUtf8(current);
-  free(current);
+  int length = GetCurrentDirectoryW(0, NULL);
+  wchar_t* current = new wchar_t[length + 1];
+  GetCurrentDirectoryW(length + 1, current);
+  char* result = StringUtils::WideToUtf8(current);
+  delete[] current;
   return result;
 }
 
 
 bool Directory::Create(const char* dir_name) {
-  const char* system_name = StringUtils::Utf8ToConsoleString(dir_name);
+  const wchar_t* system_name = StringUtils::Utf8ToWide(dir_name);
   // If the directory already exists and is a directory do not
   // attempt to create it again and treat it as a success.
   if (ExistsHelper(system_name) == EXISTS) {
-    free(const_cast<char*>(system_name));
+    free(const_cast<wchar_t*>(system_name));
     return true;
   }
-  int create_status = CreateDirectory(system_name, NULL);
-  free(const_cast<char*>(system_name));
+  int create_status = CreateDirectoryW(system_name, NULL);
+  free(const_cast<wchar_t*>(system_name));
   return (create_status != 0);
 }
 
@@ -361,30 +361,29 @@ char* Directory::CreateTemp(const char* const_template) {
   // dir_template.  Creates this directory, with a default security
   // descriptor inherited from its parent directory.
   // The return value must be freed by the caller.
-  char* path = static_cast<char*>(malloc(MAX_PATH));
+  wchar_t* path = static_cast<wchar_t*>(malloc(MAX_PATH * sizeof(wchar_t)));
   int path_length;
   if (0 == strncmp(const_template, "", 1)) {
-    path_length = GetTempPath(MAX_PATH, path);
+    path_length = GetTempPathW(MAX_PATH, path);
     if (path_length == 0) {
       free(path);
       return NULL;
     }
   } else {
-    const char* system_template =
-        StringUtils::Utf8ToConsoleString(const_template);
-    snprintf(path, MAX_PATH, "%s", system_template);
-    free(const_cast<char*>(system_template));
-    path_length = strlen(path);
+    const wchar_t* system_template = StringUtils::Utf8ToWide(const_template);
+    _snwprintf(path, MAX_PATH, L"%s", system_template);
+    free(const_cast<wchar_t*>(system_template));
+    path_length = wcslen(path);
   }
   // Length of tempdir-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx is 44.
   if (path_length > MAX_PATH - 44) {
     free(path);
     return NULL;
   }
-  if ((path)[path_length - 1] == '\\') {
+  if ((path)[path_length - 1] == L'\\') {
     // No base name for the directory - use "tempdir".
-    snprintf(path + path_length, MAX_PATH - path_length, "tempdir");
-    path_length = strlen(path);
+    _snwprintf(path + path_length, MAX_PATH - path_length, L"tempdir");
+    path_length = wcslen(path);
   }
 
   UUID uuid;
@@ -393,19 +392,20 @@ char* Directory::CreateTemp(const char* const_template) {
     free(path);
     return NULL;
   }
-  RPC_CSTR uuid_string;
-  status = UuidToString(&uuid, &uuid_string);
+  RPC_WSTR uuid_string;
+  status = UuidToStringW(&uuid, &uuid_string);
   if (status != RPC_S_OK) {
     free(path);
     return NULL;
   }
 
-  snprintf(path + path_length, MAX_PATH - path_length, "-%s", uuid_string);
-  if (!CreateDirectory(path, NULL)) {
+  _snwprintf(path + path_length, MAX_PATH - path_length, L"-%s", uuid_string);
+  RpcStringFreeW(&uuid_string);
+  if (!CreateDirectoryW(path, NULL)) {
     free(path);
     return NULL;
   }
-  char* result = StringUtils::ConsoleStringToUtf8(path);
+  char* result = StringUtils::WideToUtf8(path);
   free(path);
   return result;
 }
@@ -413,22 +413,20 @@ char* Directory::CreateTemp(const char* const_template) {
 
 bool Directory::Delete(const char* dir_name, bool recursive) {
   bool result = false;
-  const char* system_dir_name =
-      StringUtils::Utf8ToConsoleString(dir_name);
+  const wchar_t* system_dir_name = StringUtils::Utf8ToWide(dir_name);
   if (!recursive) {
-    result = (RemoveDirectory(system_dir_name) != 0);
+    result = (RemoveDirectoryW(system_dir_name) != 0);
   } else {
     result = DeleteRecursively(system_dir_name);
   }
-  free(const_cast<char*>(system_dir_name));
+  free(const_cast<wchar_t*>(system_dir_name));
   return result;
 }
 
 
 bool Directory::Rename(const char* path, const char* new_path) {
-  const char* system_path = StringUtils::Utf8ToConsoleString(path);
-  const char* system_new_path =
-      StringUtils::Utf8ToConsoleString(new_path);
+  const wchar_t* system_path = StringUtils::Utf8ToWide(path);
+  const wchar_t* system_new_path = StringUtils::Utf8ToWide(new_path);
   ExistsResult exists = ExistsHelper(system_path);
   if (exists != EXISTS) return false;
   ExistsResult new_exists = ExistsHelper(system_new_path);
@@ -441,8 +439,8 @@ bool Directory::Rename(const char* path, const char* new_path) {
   }
   DWORD flags = MOVEFILE_WRITE_THROUGH;
   int move_status =
-      MoveFileEx(system_path, system_new_path, flags);
-  free(const_cast<char*>(system_path));
-  free(const_cast<char*>(system_new_path));
+      MoveFileExW(system_path, system_new_path, flags);
+  free(const_cast<wchar_t*>(system_path));
+  free(const_cast<wchar_t*>(system_new_path));
   return (move_status != 0);
 }
