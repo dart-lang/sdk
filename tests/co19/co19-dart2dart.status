@@ -274,13 +274,11 @@ Language/11_Expressions/11_Instance_Creation/2_Const_A06_t01: Fail # http://dart
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # inherited from VM
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # inherited from VM
-Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t03: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t04: Fail # http://dartbug.com/5519
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t06: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: Fail # inherited from VM
 Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # inherited from VM
 Language/11_Expressions/18_Assignment_A05_t02: Fail # inherited from VM
 Language/11_Expressions/18_Assignment_A05_t04: Fail, Pass, OK # Fails in minified, depends on method names.
