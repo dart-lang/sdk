@@ -470,6 +470,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "        throw new Exception();",
         "      case 4:",
         "        bar();",
+        "      default:",
+        "        bar();",
         "    }",
         "  }",
         "}",
@@ -477,7 +479,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.SWITCH_CASE_FALL_THROUGH, 14, 9, 6));
+        errEx(ResolverErrorCode.SWITCH_CASE_FALL_THROUGH, 14, 9, 6),
+        errEx(ResolverErrorCode.SWITCH_CASE_FALL_THROUGH, 16, 9, 6));
   }
 
   /**
@@ -3363,6 +3366,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  switch (true) {",
         "    default:",
         "      int v = foo;",
+        "      break;",
         "  }",
         "}",
         "");

@@ -19,7 +19,6 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartBreakStatement;
-import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartComment;
@@ -1132,21 +1131,6 @@ public class Resolver {
       return null;
     }
 
-    @Override
-    public Element visitCase(DartCase node) {
-      super.visitCase(node);
-      List<DartStatement> statements = node.getStatements();
-      // the last statement should be: break, continue, return, throw
-      if (!statements.isEmpty()) {
-        DartStatement lastStatement = statements.get(statements.size() - 1);
-        if (!isValidLastSwitchCaseStatement(lastStatement)) {
-          onError(lastStatement, ResolverErrorCode.SWITCH_CASE_FALL_THROUGH);
-        }
-      }
-      // done
-      return null;
-    }
-
     private boolean isValidLastSwitchCaseStatement(DartStatement statement) {
       if (statement instanceof DartExprStmt) {
         DartExprStmt exprStmt = (DartExprStmt) statement;
@@ -1160,9 +1144,23 @@ public class Resolver {
 
     @Override
     public Element visitSwitchMember(DartSwitchMember x) {
-      getContext().pushScope("<switch member>");
-      x.visitChildren(this);
-      getContext().popScope();
+      // visit children
+      {
+        getContext().pushScope("<switch member>");
+        x.visitChildren(this);
+        getContext().popScope();
+      }
+      // check fall-through
+      {
+        List<DartStatement> statements = x.getStatements();
+        // the last statement should be: break, continue, return, throw
+        if (!statements.isEmpty()) {
+          DartStatement lastStatement = statements.get(statements.size() - 1);
+          if (!isValidLastSwitchCaseStatement(lastStatement)) {
+            onError(lastStatement, ResolverErrorCode.SWITCH_CASE_FALL_THROUGH);
+          }
+        }
+      }
       return null;
     }
 
