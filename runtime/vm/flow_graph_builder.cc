@@ -2936,9 +2936,6 @@ FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context,
                            initial_loop_depth);
   graph_entry_ = new GraphEntryInstr(normal_entry);
   EffectGraphVisitor for_effect(this, 0, initial_loop_depth);
-  if (InInliningContext()) {
-    exits_ = new ZoneGrowableArray<ReturnInstr*>();
-  }
   // TODO(kmillikin): We can eliminate stack checks in some cases (e.g., the
   // stack check on entry for leaf routines).
   Instruction* check = new CheckStackOverflowInstr(function.token_pos());
