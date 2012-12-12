@@ -47,12 +47,7 @@ void handleUpload(ScheduledServer server) {
 }
 
 main() {
-  setUp(() {
-    dir(appPath, [
-      libPubspec("test_pkg", "1.0.0"),
-      file("LICENSE", "Eh, do what you want.")
-    ]).scheduleCreate();
-  });
+  setUp(() => normalPackage.scheduleCreate());
 
   test('archives and uploads a package', () {
     var server = new ScheduledServer();

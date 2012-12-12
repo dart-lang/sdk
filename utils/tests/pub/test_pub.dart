@@ -222,6 +222,15 @@ void servePackages(List<Map> pubspecs) {
 /** Converts [value] into a YAML string. */
 String yaml(value) => JSON.stringify(value);
 
+/// Describes a package that passes all validation.
+Descriptor get normalPackage => dir(appPath, [
+  libPubspec("test_pkg", "1.0.0"),
+  file("LICENSE", "Eh, do what you want."),
+  dir("lib", [
+    file("test_pkg.dart", "int i = 1;")
+  ])
+]);
+
 /**
  * Describes a file named `pubspec.yaml` with the given YAML-serialized
  * [contents], which should be a serializable object.

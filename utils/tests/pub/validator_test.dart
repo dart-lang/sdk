@@ -12,6 +12,7 @@ import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/entrypoint.dart';
 import '../../pub/io.dart';
 import '../../pub/validator.dart';
+import '../../pub/validator/lib.dart';
 import '../../pub/validator/license.dart';
 import '../../pub/validator/name.dart';
 import '../../pub/validator/pubspec_field.dart';
@@ -28,19 +29,16 @@ void expectValidationWarning(ValidatorCreator fn) {
   expectLater(schedulePackageValidation(fn), pairOf(isEmpty, isNot(isEmpty)));
 }
 
-Validator pubspecField(Entrypoint entrypoint) =>
-  new PubspecFieldValidator(entrypoint);
+Validator lib(Entrypoint entrypoint) => new LibValidator(entrypoint);
 
 Validator license(Entrypoint entrypoint) => new LicenseValidator(entrypoint);
 
 Validator name(Entrypoint entrypoint) => new NameValidator(entrypoint);
 
-void scheduleNormalPackage() {
-  dir(appPath, [
-    libPubspec("test_pkg", "1.0.0"),
-    file("LICENSE", "Eh, do what you want.")
-  ]).scheduleCreate();
-}
+Validator pubspecField(Entrypoint entrypoint) =>
+  new PubspecFieldValidator(entrypoint);
+
+void scheduleNormalPackage() => normalPackage.scheduleCreate();
 
 main() {
   group('should consider a package valid if it', () {
@@ -91,6 +89,17 @@ main() {
         ])
       ]).scheduleCreate();
       expectNoValidationError(name);
+      run();
+    });
+
+    test('has a non-Dart file in lib', () {
+      dir(appPath, [
+        libPubspec("test_pkg", "1.0.0"),
+        dir("lib", [
+          file("thing.txt", "woo hoo")
+        ])
+      ]).scheduleCreate();
+      expectNoValidationError(lib);
       run();
     });
   });
@@ -240,6 +249,29 @@ main() {
         dir("lib", [file("operator.dart", "int i = 0;")])
       ]).scheduleCreate();
       expectValidationError(name);
+      run();
+    });
+
+    test('has no lib directory', () {
+      dir(join(appPath, "lib")).scheduleDelete();
+      expectValidationError(lib);
+      run();
+    });
+
+    test('has an empty lib directory', () {
+      file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      expectValidationError(lib);
+      run();
+    });
+
+    test('has a lib directory containing only src', () {
+      file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      dir(appPath, [
+        dir("lib", [
+          dir("src", [file("test_pkg.dart", "int i = 0;")])
+        ])
+      ]).scheduleCreate();
+      expectValidationError(lib);
       run();
     });
   });

@@ -15,12 +15,7 @@ import '../../pub/io.dart';
 import '../../pub/utils.dart';
 
 main() {
-  setUp(() {
-    dir(appPath, [
-      libPubspec("test_pkg", "1.0.0"),
-      file("LICENSE", "Eh, do what you want.")
-    ]).scheduleCreate();
-  });
+  setUp(() => normalPackage.scheduleCreate());
 
   test('with no credentials.json, authenticates and saves credentials.json',
       () {
