@@ -5047,7 +5047,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_CYCLE, 6, 11, 7),
         errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_CYCLE, 9, 11, 7));
   }
-  
+
   public void test_redirectingFactoryConstructor_notConst_fromConst() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5062,6 +5062,78 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_CONST, 7, 29, 5));
+  }
+
+  public void test_redirectingFactoryConstructor_shouldBeSubType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "  A.named(p0) {}",
+        "}",
+        "",
+        "class B {",
+        "  factory B.foo(p0) = A;",
+        "  factory B.bar() = A.named;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_SUBTYPE, 8, 23, 1),
+        errEx(TypeErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_SUBTYPE, 9, 23, 5));
+  }
+
+  public void test_redirectingFactoryConstructor_shouldBeSubType2() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> {",
+        "  A.named(T t) {}",
+        "}",
+        "",
+        "class B<T> {",
+        "  factory B.foo(T t) = A<T>.named;",
+        "}",
+        "class B2<T, V> {",
+        "  factory B2.foo(V v) = A<V>.named;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
+  public void test_redirectingFactoryConstructor_shouldBeSubType3() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> {",
+        "  A(A<T> p) {}",
+        "}",
+        "",
+        "class B<T> {",
+        "  factory B.foo(A<T> p) = A;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
+  public void test_redirectingFactoryConstructor_notSubType_typeParameterBounds() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A1<T extends String> {",
+        "  A1() {}",
+        "}",
+        "class A2<T> {",
+        "  A2() {}",
+        "}",
+        "",
+        "class B {",
+        "  factory B.name1() = A1<String>;",
+        "  factory B.name2() = A1<int>;",
+        "  factory B.name3() = A2<String>;",
+        "  factory B.name4() = A2<int>;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 11, 26, 3));
   }
 
   /**

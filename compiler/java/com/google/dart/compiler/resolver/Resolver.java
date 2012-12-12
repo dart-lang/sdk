@@ -768,7 +768,7 @@ public class Resolver {
                     break;
                 }
               } else {
-                targetConstructor = ((ClassElement) element).lookupConstructor(element.getName());
+                targetConstructor = ((ClassElement) element).lookupConstructor("");
               }
               Elements.setRedirectingFactoryConstructor(((ConstructorElement) member),
                   targetConstructor);

@@ -2096,7 +2096,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartTypeNode returnTypeNode = node.getFunction().getReturnTypeNode();
       if (modifiers.isFactory()
           && ElementKind.of(methodElement).equals(ElementKind.CONSTRUCTOR)) {
-        analyzeFactory(node.getName(), (ConstructorElement) methodElement);
+        analyzeFactory(node, node.getName(), (ConstructorElement) methodElement);
       } else if (modifiers.isSetter()) {
         if (returnTypeNode != null && returnTypeNode.getType() != voidType) {
           typeError(returnTypeNode, TypeErrorCode.SETTER_RETURN_TYPE, methodElement.getName());
@@ -2187,7 +2187,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return superTypes;
     }
 
-    private void analyzeFactory(DartExpression name, final ConstructorElement methodElement) {
+    private void analyzeFactory(DartMethodDefinition node, DartExpression name,
+        final ConstructorElement methodElement) {
       ASTVisitor<Void> visitor = new ASTVisitor<Void>() {
         @Override
         public Void visitParameterizedTypeNode(DartParameterizedTypeNode node) {
@@ -2207,6 +2208,25 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       };
       name.accept(visitor);
+      // redirecting factory constructor
+      if (methodElement instanceof ConstructorElement) {
+        ConstructorElement constructorElement = (ConstructorElement) methodElement;
+        ConstructorElement targetElement = constructorElement.getRedirectingFactoryConstructor();
+        if (targetElement != null) {
+          ClassElement targetEnclosingClass = (ClassElement) targetElement.getEnclosingElement();
+          Type sourceMethodType = methodElement.getType();
+          Type targetMethodType = targetElement.getType();
+          InterfaceType targetClassType = (InterfaceType) node.getRedirectedTypeName().getType();
+          targetMethodType = targetMethodType.subst(targetClassType.getArguments(),
+              targetEnclosingClass.getTypeParameters());
+          if (!types.isSubtype(targetMethodType, sourceMethodType)) {
+            DartNode errorNode = node.getRedirectedConstructorName() != null
+                ? node.getRedirectedConstructorName() : node.getRedirectedTypeName();
+            typeError(errorNode, TypeErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_SUBTYPE,
+                targetMethodType, sourceMethodType);
+          }
+        }
+      }
     }
 
     @Override
