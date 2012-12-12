@@ -46,9 +46,6 @@ void startRootIsolate(entry) {
   // by having a "default" isolate (the first one created).
   _globalState.currentContext = rootContext;
 
-  if (_window != null)  {
-    rootContext.eval(() => _setTimerFactoryClosure( _timerFactory));
-  }
   rootContext.eval(entry);
   _globalState.topEventLoop.run();
 }
@@ -574,11 +571,6 @@ class _IsolateNatives {
     _fillStatics(_globalState.currentContext);
     _lazyPort = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
-
-    if (_window != null)  {
-      _globalState.currentContext.eval(
-          () => _setTimerFactoryClosure(_timerFactory));
-    }
 
     topLevel();
   }
@@ -1285,6 +1277,22 @@ class _Timer implements Timer {
   }
 }
 
-Timer _timerFactory(int millis, void callback(Timer timer), bool repeating) =>
-  repeating ? new _Timer.repeating(millis, callback)
-            : new _Timer(millis, callback);
+patch class Timer {
+  patch factory Timer(int milliSeconds, void callback(Timer timer)) {
+    if (_window == null) {
+      throw new UnsupportedError("Timer interface not supported.");
+    }
+    return new _Timer(milliSeconds, callback);
+  }
+
+  /**
+   * Creates a new repeating timer. The [callback] is invoked every
+   * [milliSeconds] millisecond until cancelled.
+   */
+  patch factory Timer.repeating(int milliSeconds, void callback(Timer timer)) {
+    if (_window == null) {
+      throw new UnsupportedError("Timer interface not supported.");
+    }
+    return new _Timer.repeating(milliSeconds, callback);
+  }
+}
