@@ -24,7 +24,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_ASSIGN_TO_METHOD(ErrorSeverity.WARNING, "cannot assign value to method '%s'."),
   CANNOT_BE_RESOLVED("cannot resolve %s"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
-  CANNOT_BE_RESOLVED_LIBRARY("cannot resolve %s in library %s"),
+  CANNOT_BE_RESOLVED_LIBRARY(ErrorSeverity.WARNING, "cannot resolve %s in library %s"),
   CANNOT_CALL_FUNCTION_TYPE_ALIAS("Function type aliases cannot be called"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   CANNOT_CALL_LIBRARY_PREFIX("Library prefixes cannot be called"),

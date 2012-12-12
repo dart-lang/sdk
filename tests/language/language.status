@@ -273,6 +273,10 @@ licm_test: Fail
 typed_equality_test: Fail
 
 
+# test issue 7337 (reference unknown ID from static is warning, even when with import prefix)
+prefix12_negative_test: Fail
+prefix2_negative_test: Fail
+
 
 
 #

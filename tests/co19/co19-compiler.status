@@ -115,7 +115,6 @@ LibTest/isolate/SendPort/send_A01_t01: Fail
 
 
 
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail, OK # contains syntax error
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
 
 Language/03_Overview/1_Scoping_A02_t28: Fail # language change 1031
