@@ -4424,12 +4424,6 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
   }
 }
 
-
-DART_EXPORT void Dart_InitPerfEventsSupport(void* perf_events_file) {
-  Dart::set_perf_events_file(perf_events_file);
-}
-
-
 // --- Peer support ---
 
 
