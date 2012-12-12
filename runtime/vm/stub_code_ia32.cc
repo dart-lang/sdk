@@ -775,8 +775,10 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ jmp(ECX);
 
   __ Bind(&not_closure);
-  // Call runtime to report that a closure call was attempted on a non-closure
-  // object, passing the non-closure object and its arguments array.
+  // Call runtime to attempt to resolve and invoke a call method on a
+  // non-closure object, passing the non-closure object and its arguments array,
+  // returning here.
+  // If no call method exists, throw a NoSuchMethodError.
   // EDI: non-closure object.
   // EDX: arguments descriptor array.
 
@@ -786,23 +788,33 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   __ pushl(raw_null);  // Setup space on stack for result from error reporting.
   __ pushl(EDI);  // Non-closure object.
+  __ pushl(EDX);  // Arguments descriptor.
   // Load num_args.
   __ movl(EDI, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(EDI);  // Arguments array length, including the non-closure.
-  // See stack layout below explaining "wordSize * 5" offset.
-  PushArgumentsArray(assembler, (kWordSize * 5));
+  // See stack layout below explaining "wordSize * 6" offset.
+  PushArgumentsArray(assembler, (kWordSize * 6));
 
   // Stack:
   // TOS + 0: Argument array.
-  // TOS + 1: Non-closure object.
-  // TOS + 2: Place for result from reporting the error.
-  // TOS + 3: PC marker => RawInstruction object.
-  // TOS + 4: Saved EBP of previous frame. <== EBP
-  // TOS + 5: Dart code return address
-  // TOS + 6: Last argument of caller.
+  // TOS + 1: Arguments descriptor array.
+  // TOS + 2: Non-closure object.
+  // TOS + 3: Place for result from the call.
+  // TOS + 4: PC marker => RawInstruction object.
+  // TOS + 5: Saved EBP of previous frame. <== EBP
+  // TOS + 6: Dart code return address
+  // TOS + 7: Last argument of caller.
   // ....
-  __ CallRuntime(kReportObjectNotClosureRuntimeEntry);
-  __ Stop("runtime call throws an exception");
+  __ CallRuntime(kInvokeNonClosureRuntimeEntry);
+  // Remove arguments.
+  __ popl(EAX);
+  __ popl(EAX);
+  __ popl(EAX);
+  __ popl(EAX);  // Get result into EAX.
+
+  // Remove the stub frame as we are about to return.
+  __ LeaveFrame();
+  __ ret();
 }
 
 

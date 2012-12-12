@@ -35,9 +35,6 @@ closure_in_initializer_test: Fail # Issue 6422
 const_init6_negative_test: Fail       # Issue 811
 super_first_constructor_test: Fail # Issue 1372.
 
-# Issue 1355
-call_operator_test: Fail
-
 parameter_initializer6_negative_test: Fail # Issue 3502
 
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.

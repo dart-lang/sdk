@@ -565,7 +565,6 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 }
 
 
-
 // Called for inline allocation of arrays.
 // Input parameters:
 //   R10 : Array length as Smi.
@@ -660,6 +659,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // Initialize all array elements to raw_null.
     // RAX: new object start as a tagged pointer.
     // R12: new object end address.
+    // R10: Array length as Smi.
     __ leaq(RBX, FieldAddress(RAX, Array::data_offset()));
     // RBX: iterator which initially points to the start of the variable
     // data area to be initialized.
@@ -668,6 +668,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ Bind(&init_loop);
     __ cmpq(RBX, R12);
     __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+    // TODO(cshapiro): StoreIntoObjectNoBarrier
     __ movq(Address(RBX, 0), raw_null);
     __ addq(RBX, Immediate(kWordSize));
     __ jmp(&init_loop, Assembler::kNearJump);
@@ -682,6 +683,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Unable to allocate the array using the fast inline code, just call
   // into the runtime.
   __ Bind(&slow_case);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(R10);  // Array length as Smi.
@@ -761,8 +764,10 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ jmp(RBX);
 
   __ Bind(&not_closure);
-  // Call runtime to report that a closure call was attempted on a non-closure
-  // object, passing the non-closure object and its arguments array.
+  // Call runtime to attempt to resolve and invoke a call method on a
+  // non-closure object, passing the non-closure object and its arguments array,
+  // returning here.
+  // If no call method exists, throw a NoSuchMethodError.
   // R13: non-closure object.
   // R10: arguments descriptor array.
 
@@ -770,25 +775,35 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // calling into the runtime.
   AssemblerMacros::EnterStubFrame(assembler);
 
-  __ pushq(raw_null);  // Setup space on stack for result from error reporting.
+  __ pushq(raw_null);  // Setup space on stack for result from call.
   __ pushq(R13);  // Non-closure object.
+  __ pushq(R10);  // Arguments descriptor.
   // Load num_args.
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(R13);  // Arguments array length, including the non-closure.
-  // See stack layout below explaining "wordSize * 5" offset.
-  PushArgumentsArray(assembler, (kWordSize * 5));
+  // See stack layout below explaining "wordSize * 6" offset.
+  PushArgumentsArray(assembler, (kWordSize * 6));
 
   // Stack:
   // TOS + 0: Argument array.
-  // TOS + 1: Non-closure object.
-  // TOS + 2: Place for result from reporting the error.
-  // TOS + 3: PC marker => RawInstruction object.
-  // TOS + 4: Saved RBP of previous frame. <== RBP
-  // TOS + 5: Dart code return address
-  // TOS + 6: Last argument of caller.
+  // TOS + 1: Arguments descriptor array.
+  // TOS + 2: Non-closure object.
+  // TOS + 3: Place for result from the call.
+  // TOS + 4: PC marker => RawInstruction object.
+  // TOS + 5: Saved RBP of previous frame. <== RBP
+  // TOS + 6: Dart code return address
+  // TOS + 7: Last argument of caller.
   // ....
-  __ CallRuntime(kReportObjectNotClosureRuntimeEntry);
-  __ Stop("runtime call throws an exception");
+  __ CallRuntime(kInvokeNonClosureRuntimeEntry);
+  // Remove arguments.
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);  // Get result into RAX.
+
+  // Remove the stub frame as we are about to return.
+  __ LeaveFrame();
+  __ ret();
 }
 
 

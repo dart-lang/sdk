@@ -106,7 +106,7 @@ RawObject* DartEntry::InvokeClosure(
   for (int i = 1; i < num_arguments; i++) {
     args.Add(arguments[i - 1]);
   }
-  // Now Call the invoke stub which will invoke the closure.
+  // Now call the invoke stub which will invoke the closure.
   invokestub entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
   ASSERT(context.isolate() == Isolate::Current());

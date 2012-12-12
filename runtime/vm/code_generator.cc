@@ -1264,7 +1264,7 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
   ASSERT(arguments.ArgCount() ==
          kInvokeImplicitClosureFunctionRuntimeEntry.argument_count());
   const Instance& closure = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Array& arg_descriptor = Array::CheckedHandle(arguments.ArgAt(1));
+  const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(1));
   const Array& func_arguments = Array::CheckedHandle(arguments.ArgAt(2));
   const Function& function = Function::Handle(Closure::function(closure));
   ASSERT(!function.IsNull());
@@ -1291,13 +1291,13 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
     invoke_arguments.Add(&value);
   }
 
-  // Now Call the invoke stub which will invoke the closure.
+  // Now call the invoke stub which will invoke the closure.
   DartEntry::invokestub entrypoint = reinterpret_cast<DartEntry::invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
   ASSERT(context.isolate() == Isolate::Current());
   const Object& result = Object::Handle(
       entrypoint(instrs.EntryPoint(),
-                 arg_descriptor,
+                 args_descriptor,
                  invoke_arguments.data(),
                  context));
   CheckResultError(result);
@@ -1366,25 +1366,17 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
 // A non-closure object was invoked as a closure, so call the "call" method
 // on it.
 // Arg0: non-closure object.
-// Arg1: arguments array, including non-closure object.
-// TODO(regis): Rename this entry?
-DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
+// Arg1: arguments descriptor.
+// Arg2: arguments array, including non-closure object.
+DEFINE_RUNTIME_ENTRY(InvokeNonClosure, 3) {
   ASSERT(arguments.ArgCount() ==
-         kReportObjectNotClosureRuntimeEntry.argument_count());
+         kInvokeNonClosureRuntimeEntry.argument_count());
   const Instance& instance = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Array& function_args = Array::CheckedHandle(arguments.ArgAt(1));
+  const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(1));
+  const Array& function_args = Array::CheckedHandle(arguments.ArgAt(2));
+
+  // Resolve and invoke "call" method, if existing.
   const String& function_name = String::Handle(Symbols::Call());
-  GrowableArray<const Object*> dart_arguments(5);
-
-  // TODO(regis): Resolve and invoke "call" method, if existing.
-
-  const Object& null_object = Object::Handle();
-  dart_arguments.Add(&instance);
-  dart_arguments.Add(&function_name);
-  dart_arguments.Add(&function_args);
-  dart_arguments.Add(&null_object);
-
-  // Report if a function "call" with different arguments has been found.
   Class& instance_class = Class::Handle(instance.clazz());
   Function& function =
       Function::Handle(instance_class.LookupDynamicFunction(function_name));
@@ -1394,14 +1386,47 @@ DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
     function = instance_class.LookupDynamicFunction(function_name);
   }
   if (!function.IsNull()) {
-    const int total_num_parameters = function.NumParameters();
-    const Array& array = Array::Handle(Array::New(total_num_parameters - 1));
-    // Skip receiver.
-    for (int i = 1; i < total_num_parameters; i++) {
-      array.SetAt(i - 1, String::Handle(function.ParameterNameAt(i)));
+    if (!function.HasCode()) {
+      const Error& error = Error::Handle(Compiler::CompileFunction(function));
+      if (!error.IsNull()) {
+        Exceptions::PropagateError(error);
+      }
     }
-    dart_arguments.Add(&array);
+    const Code& code = Code::Handle(function.CurrentCode());
+    ASSERT(!code.IsNull());
+    const Instructions& instrs = Instructions::Handle(code.instructions());
+    ASSERT(!instrs.IsNull());
+
+    // The non-closure object is passed as implicit first argument (receiver).
+    // It is already included in the arguments array.
+    GrowableArray<const Object*> invoke_arguments(function_args.Length());
+    for (intptr_t i = 0; i < function_args.Length(); i++) {
+      const Object& value = Object::Handle(function_args.At(i));
+      invoke_arguments.Add(&value);
+    }
+
+    // Now call the invoke stub which will invoke the call method.
+    DartEntry::invokestub entrypoint = reinterpret_cast<DartEntry::invokestub>(
+        StubCode::InvokeDartCodeEntryPoint());
+    const Context& context = Context::ZoneHandle(
+        Isolate::Current()->object_store()->empty_context());
+    const Object& result = Object::Handle(
+        entrypoint(instrs.EntryPoint(),
+                   args_descriptor,
+                   invoke_arguments.data(),
+                   context));
+    CheckResultError(result);
+    arguments.SetReturn(result);
+    return;
   }
+  const Object& null_object = Object::Handle();
+  GrowableArray<const Object*> dart_arguments(5);
+  dart_arguments.Add(&instance);
+  dart_arguments.Add(&function_name);
+  dart_arguments.Add(&function_args);
+  dart_arguments.Add(&null_object);
+  // If a function "call" with different arguments exists, it will have been
+  // invoked above, so no need to handle this case here.
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
   UNREACHABLE();
 }
