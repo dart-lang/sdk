@@ -42,7 +42,7 @@ io/secure_server_stream_test: Pass, Crash, Timeout  # Issue 6893
 io/secure_server_test: Pass, Crash, Fail, Timeout  # Issue 6893
 io/secure_no_builtin_roots_test: Pass, Crash  # Issue 7157
 io/secure_socket_bad_certificate_test: Pass, Crash, Fail, Timeout  # Issue 7157
-io/http_shutdown_test: Pass, Fail  # Issue 7294
+io/http_shutdown_test: Pass, Fail, Timeout  # Issue 7294
 
 [ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser
