@@ -105,7 +105,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
   if ((mode & kTruncate) != 0) {
     flags = flags | O_TRUNC;
   }
-  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  const char* system_name = StringUtils::Utf8ToConsoleString(name);
   int fd = open(system_name, flags, 0666);
   free(const_cast<char*>(system_name));
   if (fd < 0) {
@@ -129,7 +129,7 @@ File* File::OpenStdio(int fd) {
 
 bool File::Exists(const char* name) {
   struct stat st;
-  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  const char* system_name = StringUtils::Utf8ToConsoleString(name);
   bool stat_status = stat(system_name, &st);
   free(const_cast<char*>(system_name));
   if (stat_status == 0) {
@@ -141,7 +141,7 @@ bool File::Exists(const char* name) {
 
 
 bool File::Create(const char* name) {
-  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  const char* system_name = StringUtils::Utf8ToConsoleString(name);
   int fd = open(system_name, O_RDONLY | O_CREAT, 0666);
   free(const_cast<char*>(system_name));
   if (fd < 0) {
@@ -152,7 +152,7 @@ bool File::Create(const char* name) {
 
 
 bool File::Delete(const char* name) {
-  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  const char* system_name = StringUtils::Utf8ToConsoleString(name);
   int status = remove(system_name);
   free(const_cast<char*>(system_name));
   if (status == -1) {
@@ -164,7 +164,7 @@ bool File::Delete(const char* name) {
 
 off_t File::LengthFromName(const char* name) {
   struct stat st;
-  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  const char* system_name = StringUtils::Utf8ToConsoleString(name);
   int stat_status = stat(system_name, &st);
   free(const_cast<char*>(system_name));
   if (stat_status == 0) {
@@ -176,7 +176,7 @@ off_t File::LengthFromName(const char* name) {
 
 time_t File::LastModified(const char* name) {
   struct stat st;
-  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  const char* system_name = StringUtils::Utf8ToConsoleString(name);
   int stat_status = stat(system_name, &st);
   free(const_cast<char*>(system_name));
   if (stat_status == 0) {
@@ -197,7 +197,7 @@ bool File::IsAbsolutePath(const char* pathname) {
 
 char* File::GetCanonicalPath(const char* pathname) {
   struct stat st;
-  const char* system_name = StringUtils::Utf8ToSystemString(pathname);
+  const char* system_name = StringUtils::Utf8ToConsoleString(pathname);
   int stat_status = stat(system_name, &st);
   if (stat_status != 0) {
     SetLastError(ERROR_FILE_NOT_FOUND);
@@ -209,7 +209,7 @@ char* File::GetCanonicalPath(const char* pathname) {
   int written = GetFullPathName(system_name, required_size, path, NULL);
   free(const_cast<char*>(system_name));
   ASSERT(written == (required_size - 1));
-  char* result = StringUtils::SystemStringToUtf8(path);
+  char* result = StringUtils::ConsoleStringToUtf8(path);
   free(path);
   return result;
 }
@@ -217,7 +217,7 @@ char* File::GetCanonicalPath(const char* pathname) {
 
 char* File::GetContainingDirectory(char* pathname) {
   struct stat st;
-  char* system_name = StringUtils::Utf8ToSystemString(pathname);
+  char* system_name = StringUtils::Utf8ToConsoleString(pathname);
   int stat_status = stat(system_name, &st);
   if (stat_status == 0) {
     if ((st.st_mode & S_IFMT) != S_IFREG) {
@@ -241,7 +241,7 @@ char* File::GetContainingDirectory(char* pathname) {
   ASSERT(file_part > path);
   ASSERT(file_part[-1] == '\\');
   file_part[-1] = '\0';
-  char* result = StringUtils::SystemStringToUtf8(path);
+  char* result = StringUtils::ConsoleStringToUtf8(path);
   free(path);
   return result;
 }

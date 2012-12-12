@@ -65,16 +65,3 @@ char** Platform::Environment(intptr_t* count) {
 void Platform::FreeEnvironment(char** env, intptr_t count) {
   delete[] env;
 }
-
-
-char* Platform::StrError(int error_code) {
-  static const int kBufferSize = 1024;
-  char* error = static_cast<char*>(malloc(kBufferSize));
-  error[0] = '\0';
-  char* error_str = strerror_r(error_code, error, kBufferSize);
-  if (error_str != error) {
-    size_t written = snprintf(error, kBufferSize, "%s", error_str);
-    ASSERT(written == strlen(error_str));
-  }
-  return error;
-}

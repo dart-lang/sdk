@@ -59,10 +59,14 @@ class StringUtils {
   // conversions are only needed on Windows. If the methods returns a
   // pointer that is different from the input pointer the returned
   // pointer is allocated with malloc and should be freed using free.
-  static const char* SystemStringToUtf8(const char* str);
-  static char* SystemStringToUtf8(char* str);
-  static const char* Utf8ToSystemString(const char* utf8);
-  static char* Utf8ToSystemString(char* utf8);
+  static const char* ConsoleStringToUtf8(const char* str);
+  static char* ConsoleStringToUtf8(char* str);
+  static const char* Utf8ToConsoleString(const char* utf8);
+  static char* Utf8ToConsoleString(char* utf8);
+  static char* WideToUtf8(wchar_t* wide);
+  static const char* WideToUtf8(const wchar_t* wide);
+  static wchar_t* Utf8ToWide(char* utf8);
+  static const wchar_t* Utf8ToWide(const char* utf8);
 };
 
 #endif  // BIN_UTILS_H_

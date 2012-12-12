@@ -257,7 +257,7 @@ static bool Utf8ConvertArgv(int argc, char** argv) {
   bool result = false;
   for (int i = 0; i < argc; i++) {
     char* arg = argv[i];
-    argv[i] = StringUtils::SystemStringToUtf8(arg);
+    argv[i] = StringUtils::ConsoleStringToUtf8(arg);
     if (i == 0) {
       result = argv[i] != arg;
     } else {

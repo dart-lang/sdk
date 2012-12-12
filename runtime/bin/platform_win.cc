@@ -35,15 +35,6 @@ bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
 }
 
 
-static char* WideToUtf8(wchar_t* wide) {
-  int len = WideCharToMultiByte(CP_UTF8, 0, wide, -1, NULL, 0, NULL, NULL);
-  char* utf8 = reinterpret_cast<char*>(malloc(len + 1));
-  WideCharToMultiByte(CP_UTF8, 0, wide, -1, utf8, len, NULL, NULL);
-  utf8[len] = '\0';
-  return utf8;
-}
-
-
 char** Platform::Environment(intptr_t* count) {
   wchar_t* strings = GetEnvironmentStringsW();
   if (strings == NULL) return NULL;
@@ -57,7 +48,7 @@ char** Platform::Environment(intptr_t* count) {
   char** result = new char*[i];
   tmp = strings;
   for (intptr_t current = 0; current < i; current++) {
-    result[current] = WideToUtf8(tmp);
+    result[current] = StringUtils::WideToUtf8(tmp);
     tmp += (wcslen(tmp) + 1);
   }
   FreeEnvironmentStringsW(strings);
@@ -68,34 +59,4 @@ char** Platform::Environment(intptr_t* count) {
 void Platform::FreeEnvironment(char** env, int count) {
   for (int i = 0; i < count; i++) free(env[i]);
   delete[] env;
-}
-
-
-char* Platform::StrError(int error_code) {
-  static const int kBufferSize = 1024;
-  char* error = static_cast<char*>(malloc(kBufferSize));
-  DWORD message_size =
-      FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                    NULL,
-                    error_code,
-                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                    error,
-                    kBufferSize,
-                    NULL);
-  if (message_size == 0) {
-    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      Log::PrintErr("FormatMessage failed %d\n", GetLastError());
-    }
-    snprintf(error, kBufferSize, "OS Error %d", error_code);
-  }
-  // Strip out \r\n at the end of the generated message and ensure
-  // null termination.
-  if (message_size > 2 &&
-      error[message_size - 2] == '\r' &&
-      error[message_size - 1] == '\n') {
-    error[message_size - 2] = '\0';
-  } else {
-    error[kBufferSize - 1] = '\0';
-  }
-  return error;
 }

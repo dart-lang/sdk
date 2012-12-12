@@ -9,28 +9,6 @@
 
 #include "bin/log.h"
 
-static int SetOsErrorMessage(char* os_error_message,
-                             int os_error_message_len) {
-  int error_code = GetLastError();
-  DWORD message_size =
-      FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                    NULL,
-                    error_code,
-                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                    os_error_message,
-                    os_error_message_len,
-                    NULL);
-  if (message_size == 0) {
-    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      Log::PrintErr("FormatMessage failed %d\n", GetLastError());
-    }
-    snprintf(os_error_message, os_error_message_len, "OS Error %d", error_code);
-  }
-  os_error_message[os_error_message_len - 1] = '\0';
-  return error_code;
-}
-
-
 // Forward declaration.
 static bool ListRecursively(const char* dir_name,
                             bool recursive,
@@ -52,7 +30,7 @@ static bool HandleDir(char* dir_name,
     if (written != strlen(dir_name)) {
       return false;
     }
-    char* utf8_path = StringUtils::SystemStringToUtf8(path);
+    char* utf8_path = StringUtils::ConsoleStringToUtf8(path);
     bool ok = listing->HandleDirectory(utf8_path);
     free(utf8_path);
     if (!ok) return ok;
@@ -75,7 +53,7 @@ static bool HandleFile(char* file_name,
   if (written != strlen(file_name)) {
     return false;
   };
-  char* utf8_path = StringUtils::SystemStringToUtf8(path);
+  char* utf8_path = StringUtils::ConsoleStringToUtf8(path);
   bool ok = listing->HandleFile(utf8_path);
   free(utf8_path);
   return ok;
@@ -129,7 +107,7 @@ static bool ComputeFullSearchPath(const char* dir_name,
 
 static void PostError(DirectoryListing* listing,
                       const char* dir_name) {
-  const char* utf8_path = StringUtils::SystemStringToUtf8(dir_name);
+  const char* utf8_path = StringUtils::ConsoleStringToUtf8(dir_name);
   listing->HandleError(utf8_path);
   free(const_cast<char*>(utf8_path));
 }
@@ -320,7 +298,7 @@ static bool DeleteRecursively(const char* dir_name) {
 bool Directory::List(const char* dir_name,
                      bool recursive,
                      DirectoryListing* listing) {
-  const char* system_name = StringUtils::Utf8ToSystemString(dir_name);
+  const char* system_name = StringUtils::Utf8ToConsoleString(dir_name);
   bool completed = ListRecursively(system_name, recursive, listing);
   free(const_cast<char*>(system_name));
   return completed;
@@ -347,7 +325,7 @@ static Directory::ExistsResult ExistsHelper(const char* dir_name) {
 
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
-  const char* system_name = StringUtils::Utf8ToSystemString(dir_name);
+  const char* system_name = StringUtils::Utf8ToConsoleString(dir_name);
   Directory::ExistsResult result = ExistsHelper(system_name);
   free(const_cast<char*>(system_name));
   return result;
@@ -358,14 +336,14 @@ char* Directory::Current() {
   int length = GetCurrentDirectory(0, NULL);
   char* current = reinterpret_cast<char*>(malloc(length + 1));
   GetCurrentDirectory(length + 1, current);
-  char* result = StringUtils::SystemStringToUtf8(current);
+  char* result = StringUtils::ConsoleStringToUtf8(current);
   free(current);
   return result;
 }
 
 
 bool Directory::Create(const char* dir_name) {
-  const char* system_name = StringUtils::Utf8ToSystemString(dir_name);
+  const char* system_name = StringUtils::Utf8ToConsoleString(dir_name);
   // If the directory already exists and is a directory do not
   // attempt to create it again and treat it as a success.
   if (ExistsHelper(system_name) == EXISTS) {
@@ -393,7 +371,7 @@ char* Directory::CreateTemp(const char* const_template) {
     }
   } else {
     const char* system_template =
-        StringUtils::Utf8ToSystemString(const_template);
+        StringUtils::Utf8ToConsoleString(const_template);
     snprintf(path, MAX_PATH, "%s", system_template);
     free(const_cast<char*>(system_template));
     path_length = strlen(path);
@@ -427,7 +405,7 @@ char* Directory::CreateTemp(const char* const_template) {
     free(path);
     return NULL;
   }
-  char* result = StringUtils::SystemStringToUtf8(path);
+  char* result = StringUtils::ConsoleStringToUtf8(path);
   free(path);
   return result;
 }
@@ -436,7 +414,7 @@ char* Directory::CreateTemp(const char* const_template) {
 bool Directory::Delete(const char* dir_name, bool recursive) {
   bool result = false;
   const char* system_dir_name =
-      StringUtils::Utf8ToSystemString(dir_name);
+      StringUtils::Utf8ToConsoleString(dir_name);
   if (!recursive) {
     result = (RemoveDirectory(system_dir_name) != 0);
   } else {
@@ -448,9 +426,9 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
 
 
 bool Directory::Rename(const char* path, const char* new_path) {
-  const char* system_path = StringUtils::Utf8ToSystemString(path);
+  const char* system_path = StringUtils::Utf8ToConsoleString(path);
   const char* system_new_path =
-      StringUtils::Utf8ToSystemString(new_path);
+      StringUtils::Utf8ToConsoleString(new_path);
   ExistsResult exists = ExistsHelper(system_path);
   if (exists != EXISTS) return false;
   ExistsResult new_exists = ExistsHelper(system_new_path);

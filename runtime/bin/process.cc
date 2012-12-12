@@ -122,8 +122,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_Handle err_handle = Dart_GetNativeArgument(args, 7);
   Dart_Handle exit_handle = Dart_GetNativeArgument(args, 8);
   intptr_t pid = -1;
-  static const int kMaxChildOsErrorMessageLength = 256;
-  char os_error_message[kMaxChildOsErrorMessageLength];
+  char* os_error_message = NULL;
 
   int error_code = Process::Start(path,
                                   string_args,
@@ -136,7 +135,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
                                   &err,
                                   &pid,
                                   &exit_event,
-      os_error_message, kMaxChildOsErrorMessageLength);
+                                  &os_error_message);
   if (error_code == 0) {
     Socket::SetSocketIdNativeField(in_handle, in);
     Socket::SetSocketIdNativeField(out_handle, out);
@@ -151,6 +150,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   }
   delete[] string_args;
   delete[] string_environment;
+  free(os_error_message);
   Dart_SetReturnValue(args, Dart_NewBoolean(error_code == 0));
   Dart_ExitScope();
 }
@@ -194,7 +194,7 @@ void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
     Dart_PropagateError(result);
   }
   char* str =
-      StringUtils::SystemStringToUtf8(reinterpret_cast<char*>(buffer));
+      StringUtils::ConsoleStringToUtf8(reinterpret_cast<char*>(buffer));
   Dart_SetReturnValue(args, DartUtils::NewString(str));
   if (str != reinterpret_cast<char*>(buffer)) free(str);
   Dart_ExitScope();
@@ -205,7 +205,7 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
   const char* utf8 = DartUtils::GetStringValue(str);
-  const char* system_string = StringUtils::Utf8ToSystemString(utf8);
+  const char* system_string = StringUtils::Utf8ToConsoleString(utf8);
   int external_length = strlen(system_string);
   uint8_t* buffer = NULL;
   Dart_Handle external_array = IOBuffer::Allocate(external_length, &buffer);

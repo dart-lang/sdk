@@ -294,24 +294,27 @@ static void CloseProcessPipes(HANDLE handles1[2],
   CloseProcessPipe(handles4);
 }
 
-static int SetOsErrorMessage(char* os_error_message,
-                             int os_error_message_len) {
+
+static int SetOsErrorMessage(char** os_error_message) {
   int error_code = GetLastError();
+  static const int kMaxMessageLength = 256;
+  wchar_t message[kMaxMessageLength];
   DWORD message_size =
-      FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                    NULL,
-                    error_code,
-                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                    os_error_message,
-                    os_error_message_len,
-                    NULL);
+      FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                     NULL,
+                     error_code,
+                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                     message,
+                     kMaxMessageLength,
+                     NULL);
   if (message_size == 0) {
     if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
       Log::PrintErr("FormatMessage failed %d\n", GetLastError());
     }
-    snprintf(os_error_message, os_error_message_len, "OS Error %d", error_code);
+    _snwprintf(message, kMaxMessageLength, L"OS Error %d", error_code);
   }
-  os_error_message[os_error_message_len - 1] = '\0';
+  message[kMaxMessageLength - 1] = '\0';
+  *os_error_message = StringUtils::WideToUtf8(message);
   return error_code;
 }
 
@@ -327,8 +330,7 @@ int Process::Start(const char* path,
                    intptr_t* err,
                    intptr_t* id,
                    intptr_t* exit_handler,
-                   char* os_error_message,
-                   int os_error_message_len) {
+                   char** os_error_message) {
   HANDLE stdin_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
   HANDLE stdout_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
   HANDLE stderr_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
@@ -339,15 +341,15 @@ int Process::Start(const char* path,
   UUID uuid;
   RPC_STATUS status = UuidCreateSequential(&uuid);
   if (status != RPC_S_OK && status != RPC_S_UUID_LOCAL_ONLY) {
+    SetOsErrorMessage(os_error_message);
     Log::PrintErr("UuidCreateSequential failed %d\n", status);
-    SetOsErrorMessage(os_error_message, os_error_message_len);
     return status;
   }
   RPC_CSTR uuid_string;
   status = UuidToString(&uuid, &uuid_string);
   if (status != RPC_S_OK) {
+    SetOsErrorMessage(os_error_message);
     Log::PrintErr("UuidToString failed %d\n", status);
-    SetOsErrorMessage(os_error_message, os_error_message_len);
     return status;
   }
   for (int i = 0; i < 4; i++) {
@@ -358,31 +360,31 @@ int Process::Start(const char* path,
   }
   status = RpcStringFree(&uuid_string);
   if (status != RPC_S_OK) {
+    SetOsErrorMessage(os_error_message);
     Log::PrintErr("RpcStringFree failed %d\n", status);
-    SetOsErrorMessage(os_error_message, os_error_message_len);
     return status;
   }
 
   if (!CreateProcessPipe(stdin_handles, pipe_names[0], kInheritRead)) {
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
+    int error_code = SetOsErrorMessage(os_error_message);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
   if (!CreateProcessPipe(stdout_handles, pipe_names[1], kInheritWrite)) {
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
+    int error_code = SetOsErrorMessage(os_error_message);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
   if (!CreateProcessPipe(stderr_handles, pipe_names[2], kInheritWrite)) {
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
+    int error_code = SetOsErrorMessage(os_error_message);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
   if (!CreateProcessPipe(exit_handles, pipe_names[3], kInheritNone)) {
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
+    int error_code = SetOsErrorMessage(os_error_message);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
@@ -404,7 +406,7 @@ int Process::Start(const char* path,
   // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
   if (!InitializeProcThreadAttributeList(NULL, 1, 0, &size) &&
       GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
+    int error_code = SetOsErrorMessage(os_error_message);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
@@ -413,7 +415,7 @@ int Process::Start(const char* path,
       reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
   ZeroMemory(attribute_list, size);
   if (!InitializeProcThreadAttributeList(attribute_list, 1, 0, &size)) {
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
+    int error_code = SetOsErrorMessage(os_error_message);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     free(attribute_list);
@@ -432,7 +434,7 @@ int Process::Start(const char* path,
                                  NULL,
                                  NULL)) {
     DeleteProcThreadAttributeList(attribute_list);
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
+    int error_code = SetOsErrorMessage(os_error_message);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     free(attribute_list);
@@ -444,9 +446,9 @@ int Process::Start(const char* path,
   ZeroMemory(&process_info, sizeof(process_info));
 
   // Transform input strings to system format.
-  path = StringUtils::Utf8ToSystemString(path);
+  path = StringUtils::Utf8ToConsoleString(path);
   for (int i = 0; i < arguments_length; i++) {
-     arguments[i] = StringUtils::Utf8ToSystemString(arguments[i]);
+     arguments[i] = StringUtils::Utf8ToConsoleString(arguments[i]);
   }
 
   // Compute command-line length.
@@ -458,7 +460,7 @@ int Process::Start(const char* path,
   command_line_length += arguments_length + 1;
   static const int kMaxCommandLineLength = 32768;
   if (command_line_length > kMaxCommandLineLength) {
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
+    int error_code = SetOsErrorMessage(os_error_message);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     free(const_cast<char*>(path));
@@ -490,7 +492,7 @@ int Process::Start(const char* path,
   if (environment != NULL) {
     // Convert environment strings to system strings.
     for (intptr_t i = 0; i < environment_length; i++) {
-      environment[i] = StringUtils::Utf8ToSystemString(environment[i]);
+      environment[i] = StringUtils::Utf8ToConsoleString(environment[i]);
     }
 
     // An environment block is a sequence of zero-terminated strings
@@ -518,7 +520,7 @@ int Process::Start(const char* path,
   }
 
   if (working_directory != NULL) {
-    working_directory = StringUtils::Utf8ToSystemString(working_directory);
+    working_directory = StringUtils::Utf8ToConsoleString(working_directory);
   }
 
   // Create process.
@@ -544,7 +546,7 @@ int Process::Start(const char* path,
   free(attribute_list);
 
   if (result == 0) {
-    int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
+    int error_code = SetOsErrorMessage(os_error_message);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;

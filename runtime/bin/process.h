@@ -24,8 +24,7 @@ class Process {
                    intptr_t* err,
                    intptr_t* id,
                    intptr_t* exit_handler,
-                   char* os_error_message,
-                   int os_error_message_len);
+                   char** os_error_message);
 
   // Kill a process with a given pid.
   static bool Kill(intptr_t id, int signal);
