@@ -208,7 +208,6 @@ node_test: Skip # Issue 6457
 svgelement_test/elementset: Crash, Pass
 svgelement_test/elementget: Crash, Pass
 svgelement_test/css: Crash, Pass
-element_test/_ElementList: Crash
 element_test/eventListening: Crash, Pass
 
 [ $runtime == opera && $system == windows ]
