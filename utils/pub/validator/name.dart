@@ -45,14 +45,15 @@ class NameValidator extends Validator {
     if (name == "") {
       errors.add("$description may not be empty.");
     } else if (!new RegExp(r"^[a-zA-Z0-9_]*$").hasMatch(name)) {
-      errors.add("$description must be a valid Dart identifier: it may only "
-          "contain letters, numbers, and underscores.");
+      errors.add("$description may only contain letters, numbers, and "
+          "underscores.\n"
+          "Using a valid Dart identifier makes the name usable in Dart code.");
     } else if (!new RegExp(r"^[a-zA-Z]").hasMatch(name)) {
-      errors.add("$description must be a valid Dart identifier: it must begin "
-          "with a letter.");
+      errors.add("$description must begin with letter.\n"
+          "Using a valid Dart identifier makes the name usable in Dart code.");
     } else if (_RESERVED_WORDS.contains(name.toLowerCase())) {
-      errors.add("$description must be a valid Dart identifier: it may not be "
-          "a reserved word in Dart.");
+      errors.add("$description may not be a reserved word in Dart.\n"
+          "Using a valid Dart identifier makes the name usable in Dart code.");
     } else if (new RegExp(r"[A-Z]").hasMatch(name)) {
       warnings.add('$description should be lower-case. Maybe use '
           '"${_unCamelCase(name)}"?');

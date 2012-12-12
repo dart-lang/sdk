@@ -629,6 +629,23 @@ ScheduledProcess startPubLish(ScheduledServer server, {List<String> args}) {
   return new ScheduledProcess("pub lish", process);
 }
 
+/// Handles the beginning confirmation process for uploading a packages.
+/// Ensures that the right output is shown and then enters "y" to confirm the
+/// upload.
+void confirmPublish(ScheduledProcess pub) {
+  // TODO(rnystrom): This is overly specific and inflexible regarding different
+  // test packages. Should validate this a little more loosely.
+  expectLater(pub.nextLine(), equals('Publishing "test_pkg" 1.0.0:'));
+  expectLater(pub.nextLine(), equals("|-- LICENSE"));
+  expectLater(pub.nextLine(), equals("|-- lib"));
+  expectLater(pub.nextLine(), equals("|   '-- test_pkg.dart"));
+  expectLater(pub.nextLine(), equals("'-- pubspec.yaml"));
+  expectLater(pub.nextLine(), equals(""));
+
+  pub.writeLine("y");
+}
+
+
 /// Calls [fn] with appropriately modified arguments to run a pub process. [fn]
 /// should have the same signature as [startProcess], except that the returned
 /// [Future] may have a type other than [Process].

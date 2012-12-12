@@ -8826,17 +8826,56 @@ class _ElementCssClassSet extends CssClassSet {
   }
 }
 
-/// @domName Element
+/**
+ * An abstract class, which all HTML elements extend.
+ */
 abstract class Element extends Node implements ElementTraversal {
 
+  /**
+   * Creates an HTML element from a valid fragment of HTML.
+   *
+   * The [html] fragment must represent valid HTML with a single element root,
+   * which will be parsed and returned.
+   *
+   * Important: the contents of [html] should not contain any user-supplied
+   * data. Without strict data validation it is impossible to prevent script
+   * injection exploits.
+   *
+   * It is instead recommended that elements be constructed via [Element.tag]
+   * and text be added via [text].
+   *
+   *     var element = new Element.html('<div class="foo">content</div>');
+   */
   factory Element.html(String html) =>
       _ElementFactoryProvider.createElement_html(html);
+
+  /**
+   * Creates the HTML element specified by the tag name.
+   *
+   * This is similar to [Document.createElement].
+   * [tag] should be a valid HTML tag name. If [tag] is an unknown tag then
+   * this will create an [UnknownElement].
+   *
+   *     var divElement = new Element.tag('div');
+   *     print(divElement is DivElement); // 'true'
+   *     var myElement = new Element.tag('unknownTag');
+   *     print(myElement is UnknownElement); // 'true'
+   *
+   * For standard elements it is more preferable to use the type constructors:
+   *     var element = new DivElement();
+   */
   factory Element.tag(String tag) =>
       _ElementFactoryProvider.createElement_tag(tag);
 
   /**
-   * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
-   *   Element.removeAttribute
+   * All attributes on this element.
+   *
+   * Any modifications to the attribute map will automatically be applied to
+   * this element.
+   *
+   * This only includes attributes which are not in a namespace
+   * (such as 'xlink:href'), additional attributes can be accessed via
+   * [getNamespacedAttributes].
    */
   Map<String, String> get attributes => new _ElementAttributeMap(this);
 
@@ -8870,8 +8909,16 @@ abstract class Element extends Node implements ElementTraversal {
   List<Element> get elements => this.children;
 
   /**
-   * @domName childElementCount, firstElementChild, lastElementChild,
-   *   children, Node.nodes.add
+   * List of the direct children of this element.
+   *
+   * This collection can be used to add and remove elements from the document.
+   *
+   *     var item = new DivElement();
+   *     item.text = 'Something';
+   *     document.body.children.add(item) // Item is now displayed on the page.
+   *     for (var element in document.body.children) {
+   *       element.style.background = 'red'; // Turns every child of body red.
+   *     }
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
@@ -8883,12 +8930,46 @@ abstract class Element extends Node implements ElementTraversal {
     children.addAll(copy);
   }
 
+  /**
+   * Finds the first descendant element of this element that matches the
+   * specified group of selectors.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     // Gets the first descendant with the class 'classname'
+   *     var element = element.query('.className');
+   *     // Gets the element with id 'id'
+   *     var element = element.query('#id');
+   *     // Gets the first descendant [ImageElement]
+   *     var img = element.query('img');
+   *
+   * See also:
+   *
+   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
+   */
   Element query(String selectors) => $dom_querySelector(selectors);
 
+  /**
+   * Finds all descendent elements of this element that match the specified
+   * group of selectors.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     var items = element.query('.itemClassName');
+   */
   List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
-  /** @domName className, classList */
+  /**
+   * The set of CSS classes applied to this element.
+   *
+   * This set makes it easy to add, remove or toggle the classes applied to
+   * this element.
+   *
+   *     element.classes.add('selected');
+   *     element.classes.toggle('isOnline');
+   *     element.classes.remove('selected');
+   */
   CssClassSet get classes => new _ElementCssClassSet(this);
 
   void set classes(Collection<String> value) {
@@ -8897,6 +8978,29 @@ abstract class Element extends Node implements ElementTraversal {
     classSet.addAll(value);
   }
 
+  /**
+   * Allows access to all custom data attributes (data-*) set on this element.
+   *
+   * The keys for the map must follow these rules:
+   *
+   * * The name must not begin with 'xml'.
+   * * The name cannot contain a semi-colon (';').
+   * * The name cannot contain any capital letters.
+   *
+   * Any keys from markup will be converted to camel-cased keys in the map.
+   *
+   * For example, HTML specified as:
+   *
+   *     <div data-my-random-value='value'></div>
+   *
+   * Would be accessed in Dart as:
+   *
+   *     var value = element.dataAttributes['myRandomValue'];
+   *
+   * See also:
+   *
+   * * [Custom data attributes](http://www.w3.org/TR/html5/global-attributes.html#custom-data-attribute)
+   */
   Map<String, String> get dataAttributes =>
     new _DataAttributeMap(attributes);
 
@@ -8910,19 +9014,39 @@ abstract class Element extends Node implements ElementTraversal {
 
   /**
    * Gets a map for manipulating the attributes of a particular namespace.
+   *
    * This is primarily useful for SVG attributes such as xref:link.
    */
   Map<String, String> getNamespacedAttributes(String namespace) {
     return new _NamespacedAttributeMap(this, namespace);
   }
 
-  /** @domName Window.getComputedStyle */
+  /**
+   * The set of all CSS values applied to this element, including inherited
+   * and default values.
+   *
+   * The computedStyle contains values that are inherited from other
+   * sources, such as parent elements or stylesheets. This differs from the
+   * [style] property, which contains only the values specified directly on this
+   * element.
+   *
+   * See also:
+   *
+   * * [CSS Inheritance and Cascade](http://docs.webplatform.org/wiki/tutorials/inheritance_and_cascade)
+   */
   Future<CssStyleDeclaration> get computedStyle {
      // TODO(jacobr): last param should be null, see b/5045788
      return getComputedStyle('');
   }
 
-  /** @domName Window.getComputedStyle */
+  /**
+   * Returns the computed styles for pseudo-elements such as `::after`,
+   * `::before`, `::marker`, `::line-marker`.
+   *
+   * See also:
+   *
+   * * [Pseudo-elements](http://docs.webplatform.org/wiki/css/selectors/pseudo-elements)
+   */
   Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) {
     return _createMeasurementFuture(
         () => window.$dom_getComputedStyle(this, pseudoElement),
@@ -8930,14 +9054,15 @@ abstract class Element extends Node implements ElementTraversal {
   }
 
   /**
-   * Adds the specified element to after the last child of this.
+   * Adds the specified element to after the last child of this element.
    */
   void append(Element e) {
     this.children.add(e);
   }
 
   /**
-   * Adds the specified text as a text node after the last child of this.
+   * Adds the specified text as a text node after the last child of this
+   * element.
    */
   void appendText(String text) {
     this.insertAdjacentText('beforeend', text);
@@ -8945,7 +9070,7 @@ abstract class Element extends Node implements ElementTraversal {
 
   /**
    * Parses the specified text as HTML and adds the resulting node after the
-   * last child of this.
+   * last child of this element.
    */
   void appendHtml(String text) {
     this.insertAdjacentHtml('beforeend', text);

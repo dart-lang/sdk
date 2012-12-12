@@ -21,21 +21,30 @@ class LibValidator extends Validator {
 
   Future validate() {
     var libDir = join(entrypoint.root.dir, "lib");
+
     return dirExists(libDir).chain((libDirExists) {
       if (!libDirExists) {
-        errors.add('Your package must have a "lib/" directory so users have '
-            'something to import.');
+        errors.add('You must have a "lib" directory.\n'
+            "Without that, users cannot import any code from your package.");
         return new Future.immediate(null);
       }
+
+      // TODO(rnystrom): listDir() returns real file paths after symlinks are
+      // resolved. This means if libDir contains a symlink, the resulting paths
+      // won't appear to be within it, which confuses relativeTo(). Work around
+      // that here by making sure we have the real path to libDir. Remove this
+      // when #7346 is fixed.
+      libDir = new File(libDir).fullPathSync();
 
       return listDir(libDir).transform((files) {
         files = files.map((file) => relativeTo(file, libDir));
         if (files.isEmpty) {
-          errors.add('The "lib/" directory may not be empty so users have '
-              'something to import');
+          errors.add('You must have a non-empty "lib" directory.\n'
+              "Without that, users cannot import any code from your package.");
         } else if (files.length == 1 && files.first == "src") {
-          errors.add('The "lib/" directory must contain something other than '
-              '"src/" so users have something to import');
+          errors.add('The "lib" directory must contain something other than '
+              '"src".\n'
+              "Otherwise, users cannot import any code from your package.");
         }
       });
     });

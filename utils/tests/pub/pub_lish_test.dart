@@ -53,6 +53,8 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
+
+    confirmPublish(pub);
     handleUploadForm(server);
     handleUpload(server);
 
@@ -63,7 +65,12 @@ main() {
       response.outputStream.close();
     });
 
-    expectLater(pub.nextLine(), equals('Package test_pkg 1.0.0 uploaded!'));
+    // TODO(rnystrom): The confirm line is run together with this one because
+    // in normal usage, the user will have entered a newline on stdin which
+    // gets echoed to the terminal. Do something better here?
+    expectLater(pub.nextLine(), equals(
+        'Looks great! Are you ready to upload your package (y/n)?'
+        ' Package test_pkg 1.0.0 uploaded!'));
     pub.shouldExit(0);
 
     run();
@@ -77,6 +84,8 @@ main() {
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
 
+    confirmPublish(pub);
+
     server.handle('GET', '/packages/versions/new.json', (request, response) {
       response.statusCode = 401;
       response.headers.set('www-authenticate', 'Bearer error="invalid_token",'
@@ -89,10 +98,13 @@ main() {
 
     expectLater(pub.nextErrLine(), equals('OAuth2 authorization failed (your '
         'token sucks).'));
-    expectLater(pub.nextLine(), equals('Pub needs your authorization to upload '
-        'packages on your behalf.'));
+    // TODO(rnystrom): The confirm line is run together with this one because
+    // in normal usage, the user will have entered a newline on stdin which
+    // gets echoed to the terminal. Do something better here?
+    expectLater(pub.nextLine(), equals(
+        'Looks great! Are you ready to upload your package (y/n)? '
+        'Pub needs your authorization to upload packages on your behalf.'));
     pub.kill();
-
     run();
   });
 
@@ -102,12 +114,12 @@ main() {
     dir(appPath, [pubspec(package)]).scheduleCreate();
 
     var server = new ScheduledServer();
-    credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
-    server.ignore('GET', '/packages/versions/new.json');
 
     pub.shouldExit(1);
-    expectLater(pub.remainingStderr(), contains("Package validation failed."));
+    expectLater(pub.remainingStderr(),
+        contains("Sorry, your package is missing a requirement and can't be "
+            "published yet."));
 
     run();
   });
@@ -118,9 +130,7 @@ main() {
     dir(appPath, [pubspec(package)]).scheduleCreate();
 
     var server = new ScheduledServer();
-    credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
-    server.ignore('GET', '/packages/versions/new.json');
 
     pub.writeLine("n");
     pub.shouldExit(1);
@@ -160,6 +170,8 @@ main() {
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
 
+    confirmPublish(pub);
+
     server.handle('GET', '/packages/versions/new.json', (request, response) {
       response.statusCode = 400;
       response.outputStream.writeString(JSON.stringify({
@@ -179,6 +191,8 @@ main() {
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
 
+    confirmPublish(pub);
+
     server.handle('GET', '/packages/versions/new.json', (request, response) {
       response.outputStream.writeString('{not json');
       response.outputStream.close();
@@ -195,6 +209,8 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
+
+    confirmPublish(pub);
 
     var body = {
       'fields': {
@@ -215,6 +231,8 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
+
+    confirmPublish(pub);
 
     var body = {
       'url': 12,
@@ -237,6 +255,8 @@ main() {
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
 
+    confirmPublish(pub);
+
     var body = {'url': 'http://example.com/upload'};
     handleUploadForm(server, body);
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
@@ -251,6 +271,8 @@ main() {
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
 
+    confirmPublish(pub);
+
     var body = {'url': 'http://example.com/upload', 'fields': 12};
     handleUploadForm(server, body);
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
@@ -264,6 +286,8 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
+
+    confirmPublish(pub);
 
     var body = {
       'url': 'http://example.com/upload',
@@ -281,6 +305,8 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
+
+    confirmPublish(pub);
     handleUploadForm(server);
 
     server.handle('POST', '/upload', (request, response) {
@@ -303,6 +329,8 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
+
+    confirmPublish(pub);
     handleUploadForm(server);
 
     server.handle('POST', '/upload', (request, response) {
@@ -320,6 +348,8 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
+
+    confirmPublish(pub);
     handleUploadForm(server);
     handleUpload(server);
 
@@ -341,6 +371,8 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
+
+    confirmPublish(pub);
     handleUploadForm(server);
     handleUpload(server);
 
@@ -360,6 +392,8 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
+
+    confirmPublish(pub);
     handleUploadForm(server);
     handleUpload(server);
 
@@ -381,6 +415,8 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
+
+    confirmPublish(pub);
     handleUploadForm(server);
     handleUpload(server);
 

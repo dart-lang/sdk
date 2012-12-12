@@ -7,6 +7,7 @@ library pubspec_field_validator;
 import '../entrypoint.dart';
 import '../system_cache.dart';
 import '../validator.dart';
+import '../version.dart';
 
 /// A validator that checks that the pubspec has valid "author" and "homepage"
 /// fields.
@@ -20,7 +21,7 @@ class PubspecFieldValidator extends Validator {
     var author = pubspec.fields['author'];
     var authors = pubspec.fields['authors'];
     if (author == null && authors == null) {
-      errors.add('pubspec.yaml is missing an "author" or "authors" field.');
+      errors.add('Your pubspec.yaml must have an "author" or "authors" field.');
     } else {
       if (authors == null) authors = [author];
 
@@ -28,24 +29,29 @@ class PubspecFieldValidator extends Validator {
       var hasEmail = new RegExp(r"<[^>]+> *$");
       for (var authorName in authors) {
         if (!hasName.hasMatch(authorName)) {
-          warnings.add('Author "$authorName" in pubspec.yaml is missing a '
+          warnings.add('Author "$authorName" in pubspec.yaml should have a '
               'name.');
         }
         if (!hasEmail.hasMatch(authorName)) {
-          warnings.add('Author "$authorName" in pubspec.yaml is missing an '
-              'email address (e.g. "name <email>").');
+          warnings.add('Author "$authorName" in pubspec.yaml should have an '
+              'email address\n(e.g. "name <email>").');
         }
       }
     }
 
     var homepage = pubspec.fields['homepage'];
     if (homepage == null) {
-      errors.add('pubspec.yaml is missing a "homepage" field.');
+      errors.add('Your pubspec.yaml is missing a "homepage" field.');
     }
 
     var description = pubspec.fields['description'];
     if (description == null) {
-      errors.add('pubspec.yaml is missing a "description" field.');
+      errors.add('Your pubspec.yaml is missing a "description" field.');
+    }
+
+    var version = pubspec.fields['version'];
+    if (version == null) {
+      errors.add('Your pubspec.yaml is missing a "version" field.');
     }
 
     return new Future.immediate(null);

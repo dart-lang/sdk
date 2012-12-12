@@ -30,45 +30,24 @@ final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
  * platform-specific path separators. Parts can be [String], [Directory], or
  * [File] objects.
  */
-String join(part1, [part2, part3, part4]) {
-  part1 = _getPath(part1);
-  if (part2 != null) part2 = _getPath(part2);
-  if (part3 != null) part3 = _getPath(part3);
-  if (part4 != null) part4 = _getPath(part4);
+String join(part1, [part2, part3, part4, part5, part6, part7, part8]) {
+  var parts = [part1, part2, part3, part4, part5, part6, part7, part8]
+      .map((part) => part == null ? null : _getPath(part));
 
-  // TODO(nweiz): Don't use "?part" in path.dart.
-  if (part4 != null) {
-    return path.join(part1, part2, part3, part4);
-  } else if (part3 != null) {
-    return path.join(part1, part2, part3);
-  } else if (part2 != null) {
-    return path.join(part1, part2);
-  } else {
-    return path.join(part1);
-  }
+  return path.join(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5],
+      parts[6], parts[7]);
 }
 
 /// Gets the basename, the file name without any leading directory path, for
 /// [file], which can either be a [String], [File], or [Directory].
 String basename(file) => path.basename(_getPath(file));
 
-// TODO(nweiz): move this into path.dart.
 /// Gets the the leading directory path for [file], which can either be a
 /// [String], [File], or [Directory].
-String dirname(file) {
-  file = _sanitizePath(file);
+String dirname(file) => path.dirname(_getPath(file));
 
-  int lastSlash = file.lastIndexOf('/', file.length);
-  if (lastSlash == -1) {
-    return '.';
-  } else {
-    return file.substring(0, lastSlash);
-  }
-}
-
-// TODO(nweiz): move this into path.dart.
-/// Splits [path] into its individual components.
-List<String> splitPath(path) => _sanitizePath(path).split('/');
+/// Splits [entry] into its individual components.
+List<String> splitPath(entry) => path.split(_getPath(entry));
 
 /// Returns whether or not [entry] is nested somewhere within [dir]. This just
 /// performs a path comparison; it doesn't look at the actual filesystem.
@@ -77,10 +56,8 @@ bool isBeneath(entry, dir) {
   return !path.isAbsolute(relative) && splitPath(relative)[0] != '..';
 }
 
-// TODO(nweiz): move this into path.dart.
 /// Returns the path to [target] from [base].
-String relativeTo(target, base) =>
-  new path.Builder(root: base).relative(target);
+String relativeTo(target, base) => path.relative(target, from: base);
 
 /**
  * Asynchronously determines if [path], which can be a [String] file path, a
@@ -469,6 +446,18 @@ String relativeToPub(String target) {
 /// A StringInputStream reading from stdin.
 final _stringStdin = new StringInputStream(stdin);
 
+/// Displays a message and reads a yes/no confirmation from the user. Returns
+/// a [Future] that completes to `true` if the user confirms or `false` if they
+/// do not.
+///
+/// This will automatically append " (y/n)?" to the message, so [message]
+/// should just be a fragment like, "Are you sure you want to proceed".
+Future<bool> confirm(String message) {
+  log.fine('Showing confirm message: $message');
+  stdout.writeString("$message (y/n)? ");
+  return readLine().transform((line) => new RegExp(r"^[yY]").hasMatch(line));
+}
+
 /// Returns a single line read from a [StringInputStream]. By default, reads
 /// from stdin.
 ///
@@ -498,7 +487,9 @@ Future<String> readLine([StringInputStream stream]) {
 
   stream.onLine = () {
     removeCallbacks();
-    completer.complete(stream.readLine());
+    var line = stream.readLine();
+    log.io('Read line: $line');
+    completer.complete(line);
   };
 
   stream.onError = (e) {
@@ -952,7 +943,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
 InputStream createTarGz(List contents, {baseDir}) {
   var buffer = new StringBuffer();
   buffer.add('Creating .tag.gz stream containing:\n');
-  contents.forEach(buffer.add);
+  contents.forEach((file) => buffer.add('$file\n'));
   log.fine(buffer.toString());
 
   // TODO(nweiz): Propagate errors to the returned stream (including non-zero
@@ -1065,40 +1056,6 @@ String _getPath(entry) {
   if (entry is File) return entry.name;
   if (entry is Directory) return entry.path;
   throw 'Entry $entry is not a supported type.';
-}
-
-/// Gets the path string for [entry], normalizing backslashes to forward slashes
-/// on Windows.
-String _sanitizePath(entry) {
-  entry = _getPath(entry);
-  if (Platform.operatingSystem != 'windows') return entry;
-
-  var split = _splitAbsolute(entry);
-  if (split.first == null) return split.last.replaceAll('\\', '/');
-
-  // For absolute Windows paths, we don't want the prefix (either "\\" or e.g.
-  // "C:\") to look like a normal path component, so we ensure that it only
-  // contains backslashes.
-  return '${split.first.replaceAll('/', '\\')}'
-         '${split.last.replaceAll('\\', '/')}';
-}
-
-// TODO(nweiz): Add something like this to path.dart.
-/// Splits [entry] into two components: the absolute path prefix and the
-/// remaining path. Takes into account Windows' quirky absolute paths syntaxes.
-Pair<String, String> _splitAbsolute(entry) {
-  var path = _getPath(entry);
-
-  if (Platform.operatingSystem != 'windows') {
-    return !path.startsWith('/') ? new Pair(null, path)
-        : new Pair('/', path.substring(1));
-  }
-
-  // An absolute path on Windows is either UNC (two leading backslashes),
-  // or a drive letter followed by a colon and a slash.
-  var match = new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])').firstMatch(path);
-  return match == null ? new Pair(null, path)
-      : new Pair(match.group(0), path.substring(match.end));
 }
 
 /**

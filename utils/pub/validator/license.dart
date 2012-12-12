@@ -20,9 +20,10 @@ class LicenseValidator extends Validator {
           r"^([a-zA-Z0-9]+[-_])?(LICENSE|COPYING)(\..*)?$");
       if (files.map(basename).some(licenseLike.hasMatch)) return;
 
-      errors.add("Your package must have a COPYING or LICENSE file containing "
-          "an open-source license. For more details, see "
-          "http://pub.dartlang.org/doc/pub-lish.html.");
+      errors.add(
+          "You must have a COPYING or LICENSE file in the root directory.\n"
+          "An open-source license helps ensure people can legally use your "
+          "code.");
     });
   }
 }
