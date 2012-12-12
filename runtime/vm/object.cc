@@ -2025,6 +2025,11 @@ void Class::set_allocation_stub(const Code& value) const {
 }
 
 
+bool Class::IsFunctionClass() const {
+  return raw() == Type::Handle(Type::Function()).type_class();
+}
+
+
 bool Class::IsListClass() const {
   return raw() == Isolate::Current()->object_store()->list_class();
 }
@@ -2098,16 +2103,42 @@ bool Class::TypeTest(
                                    len,
                                    malformed_error);
   }
-  // TODO(regis): Check if type S has a call() method of function type T.
-  // Check for two function types.
-  if (IsSignatureClass() && other.IsSignatureClass()) {
-    const Function& fun = Function::Handle(signature_function());
+  const bool other_is_function_class = other.IsFunctionClass();
+  if (other.IsSignatureClass() || other_is_function_class) {
     const Function& other_fun = Function::Handle(other.signature_function());
-    return fun.TypeTest(test_kind,
-                        type_arguments,
-                        other_fun,
-                        other_type_arguments,
-                        malformed_error);
+    if (IsSignatureClass()) {
+      if (other_is_function_class) {
+        return true;
+      }
+      // Check for two function types.
+      const Function& fun = Function::Handle(signature_function());
+      return fun.TypeTest(test_kind,
+                          type_arguments,
+                          other_fun,
+                          other_type_arguments,
+                          malformed_error);
+    }
+    // Check if type S has a call() method of function type T.
+    const String& function_name = String::Handle(Symbols::Call());
+    Function& function = Function::Handle(LookupDynamicFunction(function_name));
+    if (function.IsNull()) {
+      // Walk up the super_class chain.
+      Class& cls = Class::Handle(SuperClass());
+      while (!cls.IsNull() && function.IsNull()) {
+        function = cls.LookupDynamicFunction(function_name);
+        cls = cls.SuperClass();
+      }
+    }
+    if (!function.IsNull()) {
+      if (other_is_function_class ||
+          function.TypeTest(test_kind,
+                            type_arguments,
+                            other_fun,
+                            other_type_arguments,
+                            malformed_error)) {
+        return true;
+      }
+    }
   }
   // Check for 'direct super type' specified in the implements clause
   // and check for transitivity at the same time.
