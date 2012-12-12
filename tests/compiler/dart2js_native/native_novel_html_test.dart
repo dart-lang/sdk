@@ -5,8 +5,8 @@
 // Test to see if novel HTML tags are interpreted as HTMLElement.
 
 class Element native "*HTMLElement" {
-  String foo(int x) => '[${bar(x+1)}]';
-  String bar(int x) native;
+  String dartMethod(int x) => 'dartMethod(${nativeMethod(x+1)})';
+  String nativeMethod(int x) native;
 }
 
 makeE() native;
@@ -15,12 +15,16 @@ makeF() native;
 void setup() native """
 // A novel HTML element.
 function HTMLGoofyElement(){}
-HTMLGoofyElement.prototype.bar = function(a){return 'Goofy.foo(' + a  + ')';}
+HTMLGoofyElement.prototype.nativeMethod = function(a) {
+  return 'Goofy.nativeMethod(' + a  + ')';
+};
 makeE = function(){return new HTMLGoofyElement};
 
 // A non-HTML element with a misleading name.
 function HTMLFakeyElement(){}
-HTMLFakeyElement.prototype.bar = function(a){return 'Fakey.foo(' + a  + ')';}
+HTMLFakeyElement.prototype.nativeMethod = function(a) {
+  return 'Fakey.nativeMethod(' + a  + ')';
+};
 makeF = function(){return new HTMLFakeyElement};
 
 // Make the HTMLGoofyElement look like a real host object.
@@ -35,21 +39,13 @@ Object.prototype.toString = function() {
 main() {
   setup();
 
-  print(123);
   var e = makeE();
-  Expect.equals('[Goofy.foo(11)]', e.foo(10));
+  Expect.equals('Goofy.nativeMethod(10)', e.nativeMethod(10));
+  Expect.equals('dartMethod(Goofy.nativeMethod(11))', e.dartMethod(10));
 
   var f = makeF();
-  expectNoSuchMethod(() => f.foo(20), 'f.foo(20) should fail');
-}
-
-expectNoSuchMethod(action, note) {
-  bool caught = false;
-  try {
-    action();
-  } catch (ex) {
-    caught = true;
-    Expect.isTrue(ex is NoSuchMethodError, note);
-  }
-  Expect.isTrue(caught, note);
+  Expect.throws(() => f.nativeMethod(20), (e) => e is NoSuchMethodError,
+      'fake HTML Element must not run Dart method on native class');
+  Expect.throws(() => f.dartMethod(20), (e) => e is NoSuchMethodError,
+      'fake HTML Element must not run native method on native class');
 }

@@ -236,9 +236,9 @@ dynamicBind(var obj,
 
   var method = dynamicBindLookup(hasOwnPropertyFunction, tag, methods);
   if (method == null) {
-    String altTag = alternateTag(obj, tag);
-    if (altTag != null) {
-      method = dynamicBindLookup(hasOwnPropertyFunction, altTag, methods);
+    String secondTag = alternateTag(obj, tag);
+    if (secondTag != null) {
+      method = dynamicBindLookup(hasOwnPropertyFunction, secondTag, methods);
     }
   }
 
