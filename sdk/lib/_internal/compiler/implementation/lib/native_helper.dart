@@ -6,22 +6,17 @@ part of _js_helper;
 
 String typeNameInChrome(obj) {
   String name = JS('String', "#.constructor.name", obj);
-  if (name == 'Window') return 'DOMWindow';
-  if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
-  if (name == 'WebKitMutationObserver') return 'MutationObserver';
-  if (name == 'AudioChannelMerger') return 'ChannelMergerNode';
-  if (name == 'AudioChannelSplitter') return 'ChannelSplitterNode';
-  if (name == 'AudioGainNode') return 'GainNode';
-  if (name == 'AudioPannerNode') return 'PannerNode';
-  if (name == 'JavaScriptAudioNode') return 'ScriptProcessorNode';
-  if (name == 'Oscillator') return 'OscillatorNode';
-  if (name == 'RealtimeAnalyserNode') return 'AnalyserNode';
-  return name;
+  return typeNameInWebKitCommon(name);
 }
 
 String typeNameInSafari(obj) {
   String name = JS('String', '#', constructorNameFallback(obj));
   // Safari is very similar to Chrome.
+  return typeNameInWebKitCommon(name);
+}
+
+String typeNameInWebKitCommon(tag) {
+  String name = JS('String', '#', tag);
   if (name == 'Window') return 'DOMWindow';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
   if (name == 'WebKitMutationObserver') return 'MutationObserver';
@@ -100,6 +95,23 @@ String constructorNameFallback(object) {
   }
   String string = JS('String', 'Object.prototype.toString.call(#)', object);
   return JS('String', '#.substring(8, # - 1)', string, string.length);
+}
+
+/**
+ * If a lookup on an object [object] that has [tag] fails, this function is
+ * called to provide an alternate tag.  This allows us to fail gracefully if we
+ * can make a good guess, for example, when browsers add novel kinds of
+ * HTMLElement that we have never heard of.
+ */
+String alternateTag(object, String tag) {
+  // Does it smell like some kind of HTML element?
+  if (JS('bool', r'!!/^HTML[A-Z].*Element$/.test(#)', tag)) {
+    // Check that it is not a simple JavaScript object.
+    String string = JS('String', 'Object.prototype.toString.call(#)', object);
+    if (string == '[object Object]') return null;
+    return 'HTMLElement';
+  }
+  return null;
 }
 
 // TODO(ngeoffray): stop using this method once our optimizers can
@@ -193,8 +205,9 @@ int hashCodeForNativeObject(object) => Primitives.objectHashCode(object);
  * Sets a JavaScript property on an object.
  */
 void defineProperty(var obj, String property, var value) {
-  JS('void', """Object.defineProperty(#, #,
-      {value: #, enumerable: false, writable: true, configurable: true})""",
+  JS('void',
+      'Object.defineProperty(#, #, '
+          '{value: #, enumerable: false, writable: true, configurable: true})',
       obj,
       property,
       value);
@@ -220,19 +233,12 @@ dynamicBind(var obj,
   // getTypeNameOf to getTypeTag.
   String tag = getTypeNameOf(obj);
   var hasOwnPropertyFunction = JS('var', 'Object.prototype.hasOwnProperty');
-  var method = lookupDynamicClass(hasOwnPropertyFunction, methods, tag);
 
-  if (method == null && _dynamicMetadata != null) {
-    // Look at the inheritance data, getting the class tags and using them
-    // to check the methods table for this method name.
-    for (int i = 0; i < arrayLength(_dynamicMetadata); i++) {
-      MetaInfo entry = arrayGet(_dynamicMetadata, i);
-      if (callHasOwnProperty(hasOwnPropertyFunction, entry._set, tag)) {
-        method =
-            lookupDynamicClass(hasOwnPropertyFunction, methods, entry._tag);
-        // Stop if we found it in the methods array.
-        if (method != null) break;
-      }
+  var method = dynamicBindLookup(hasOwnPropertyFunction, tag, methods);
+  if (method == null) {
+    String altTag = alternateTag(obj, tag);
+    if (altTag != null) {
+      method = dynamicBindLookup(hasOwnPropertyFunction, altTag, methods);
     }
   }
 
@@ -266,6 +272,24 @@ dynamicBind(var obj,
   }
 
   return JS('var', '#.apply(#, #)', method, obj, arguments);
+}
+
+dynamicBindLookup(var hasOwnPropertyFunction, String tag, var methods) {
+  var method = lookupDynamicClass(hasOwnPropertyFunction, methods, tag);
+  // Look at the inheritance data, getting the class tags and using them
+  // to check the methods table for this method name.
+  if (method == null && _dynamicMetadata != null) {
+    for (int i = 0; i < arrayLength(_dynamicMetadata); i++) {
+      MetaInfo entry = arrayGet(_dynamicMetadata, i);
+      if (callHasOwnProperty(hasOwnPropertyFunction, entry._set, tag)) {
+        method =
+            lookupDynamicClass(hasOwnPropertyFunction, methods, entry._tag);
+        // Stop if we found it in the methods array.
+        if (method != null) break;
+      }
+    }
+  }
+  return method;
 }
 
 // For each method name and class inheritance subtree, we use an ordinary JS
