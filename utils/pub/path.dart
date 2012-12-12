@@ -102,9 +102,12 @@ String join(String part1, [String part2, String part3, String part4,
 
 // TODO(nweiz): add a UNC example for Windows once issue 7323 is fixed.
 /// Splits [path] into its components using the current platform's [separator].
-/// Example:
 ///
 ///     path.split('path/to/foo'); // -> ['path', 'to', 'foo']
+///
+/// The path will *not* be normalized before splitting.
+///
+///     path.split('path/../foo'); // -> ['path', '..', 'foo']
 ///
 /// If [path] is absolute, the root directory will be the first element in the
 /// array. Example:
@@ -314,6 +317,10 @@ class Builder {
   /// [separator]. Example:
   ///
   ///     builder.split('path/to/foo'); // -> ['path', 'to', 'foo']
+  ///
+  /// The path will *not* be normalized before splitting.
+  ///
+  ///     builder.split('path/../foo'); // -> ['path', '..', 'foo']
   ///
   /// If [path] is absolute, the root directory will be the first element in the
   /// array. Example:

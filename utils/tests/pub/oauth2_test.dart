@@ -21,6 +21,7 @@ main() {
       () {
     var server = new ScheduledServer();
     var pub = startPubLish(server);
+    confirmPublish(pub);
     authorizePub(pub, server);
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
@@ -41,6 +42,7 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
+    confirmPublish(pub);
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
       expect(request.headers.value('authorization'),
@@ -63,6 +65,7 @@ main() {
         .scheduleCreate();
 
     var pub = startPubLish(server);
+    confirmPublish(pub);
 
     server.handle('POST', '/token', (request, response) {
       return consumeInputStream(request.inputStream).transform((bytes) {
@@ -102,6 +105,7 @@ main() {
         .scheduleCreate();
 
     var pub = startPubLish(server);
+    confirmPublish(pub);
 
     expectLater(pub.nextErrLine(), equals("Pub's authorization to upload "
           "packages has expired and can't be automatically refreshed."));
@@ -129,6 +133,7 @@ main() {
     ]).scheduleCreate();
 
     var pub = startPubLish(server);
+    confirmPublish(pub);
     authorizePub(pub, server, "new access token");
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
@@ -148,8 +153,12 @@ main() {
 
 void authorizePub(ScheduledProcess pub, ScheduledServer server,
     [String accessToken="access token"]) {
-  expectLater(pub.nextLine(), equals('Pub needs your '
-     'authorization to upload packages on your behalf.'));
+  // TODO(rnystrom): The confirm line is run together with this one because
+  // in normal usage, the user will have entered a newline on stdin which
+  // gets echoed to the terminal. Do something better here?
+  expectLater(pub.nextLine(), equals(
+      'Looks great! Are you ready to upload your package (y/n)? '
+      'Pub needs your authorization to upload packages on your behalf.'));
 
   expectLater(pub.nextLine().chain((line) {
     var match = new RegExp(r'[?&]redirect_uri=([0-9a-zA-Z%+-]+)[$&]')

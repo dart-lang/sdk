@@ -446,6 +446,18 @@ String relativeToPub(String target) {
 /// A StringInputStream reading from stdin.
 final _stringStdin = new StringInputStream(stdin);
 
+/// Displays a message and reads a yes/no confirmation from the user. Returns
+/// a [Future] that completes to `true` if the user confirms or `false` if they
+/// do not.
+///
+/// This will automatically append " (y/n)?" to the message, so [message]
+/// should just be a fragment like, "Are you sure you want to proceed".
+Future<bool> confirm(String message) {
+  log.fine('Showing confirm message: $message');
+  stdout.writeString("$message (y/n)? ");
+  return readLine().transform((line) => new RegExp(r"^[yY]").hasMatch(line));
+}
+
 /// Returns a single line read from a [StringInputStream]. By default, reads
 /// from stdin.
 ///
@@ -475,7 +487,9 @@ Future<String> readLine([StringInputStream stream]) {
 
   stream.onLine = () {
     removeCallbacks();
-    completer.complete(stream.readLine());
+    var line = stream.readLine();
+    log.io('Read line: $line');
+    completer.complete(line);
   };
 
   stream.onError = (e) {
@@ -929,7 +943,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
 InputStream createTarGz(List contents, {baseDir}) {
   var buffer = new StringBuffer();
   buffer.add('Creating .tag.gz stream containing:\n');
-  contents.forEach(buffer.add);
+  contents.forEach((file) => buffer.add('$file\n'));
   log.fine(buffer.toString());
 
   // TODO(nweiz): Propagate errors to the returned stream (including non-zero

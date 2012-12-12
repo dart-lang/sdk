@@ -57,17 +57,17 @@ abstract class Validator {
       var warnings = flatten(validators.map((validator) => validator.warnings));
 
       if (!errors.isEmpty) {
-        log.error("== Errors:");
+        log.error("Missing requirements:");
         for (var error in errors) {
-          log.error("* $error");
+          log.error("* ${Strings.join(error.split('\n'), '\n  ')}");
         }
         log.error("");
       }
 
       if (!warnings.isEmpty) {
-        log.warning("== Warnings:");
+        log.warning("Suggestions:");
         for (var warning in warnings) {
-          log.warning("* $warning");
+          log.warning("* ${Strings.join(warning.split('\n'), '\n  ')}");
         }
         log.warning("");
       }

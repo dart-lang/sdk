@@ -153,8 +153,11 @@ main() {
 
   group('split', () {
     test('simple cases', () {
+      expect(builder.split(''), []);
+      expect(builder.split('.'), ['.']);
+      expect(builder.split('..'), ['..']);
       expect(builder.split('foo'), equals(['foo']));
-      expect(builder.split('foo/bar'), equals(['foo', 'bar']));
+      expect(builder.split('foo/bar.txt'), equals(['foo', 'bar.txt']));
       expect(builder.split('foo/bar/baz'), equals(['foo', 'bar', 'baz']));
       expect(builder.split('foo/../bar/./baz'),
           equals(['foo', '..', 'bar', '.', 'baz']));

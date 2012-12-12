@@ -10,6 +10,7 @@ import 'dart:uri';
 
 import '../../pkg/args/lib/args.dart';
 import '../../pkg/http/lib/http.dart' as http;
+import 'directory_tree.dart';
 import 'git.dart' as git;
 import 'io.dart';
 import 'log.dart' as log;
@@ -33,21 +34,13 @@ class LishCommand extends PubCommand {
   /// The URL of the server to which to upload the package.
   Uri get server => new Uri.fromString(commandOptions['server']);
 
-  Future onRun() {
+  Future _publish(packageBytes) {
     var cloudStorageUrl;
     return oauth2.withClient(cache, (client) {
       // TODO(nweiz): Cloud Storage can provide an XML-formatted error. We
       // should report that error and exit.
-      return Futures.wait([
-        client.get(server.resolve("/packages/versions/new.json")),
-        _filesToPublish.transform((files) {
-          log.fine('Archiving and publishing ${entrypoint.root}.');
-          return createTarGz(files, baseDir: entrypoint.root.dir);
-        }).chain(consumeInputStream),
-        _validate()
-      ]).chain((results) {
-        var response = results[0];
-        var packageBytes = results[1];
+      var newUri = server.resolve("/packages/versions/new.json");
+      return client.get(newUri).chain((response) {
         var parameters = _parseJson(response);
 
         var url = _expectField(parameters, 'url', response);
@@ -98,16 +91,35 @@ class LishCommand extends PubCommand {
         }
       } else if (e is oauth2.ExpirationException) {
         log.error("Pub's authorization to upload packages has expired and "
-            "can't be automatically refreshed.");
-        return onRun();
+        "can't be automatically refreshed.");
+        return _publish(packageBytes);
       } else if (e is oauth2.AuthorizationException) {
         var message = "OAuth2 authorization failed";
         if (e.description != null) message = "$message (${e.description})";
         log.error("$message.");
-        return oauth2.clearCredentials(cache).chain((_) => onRun());
+        return oauth2.clearCredentials(cache).chain((_) =>
+            _publish(packageBytes));
       } else {
         throw e;
       }
+    });
+  }
+
+  Future onRun() {
+    var files;
+    return _filesToPublish.transform((f) {
+      files = f;
+      log.fine('Archiving and publishing ${entrypoint.root}.');
+      return createTarGz(files, baseDir: entrypoint.root.dir);
+    }).chain(consumeInputStream).chain((packageBytes) {
+      // Show the package contents so the user can verify they look OK.
+      var package = entrypoint.root;
+      log.message(
+          'Publishing "${package.name}" ${package.version}:\n'
+          '${generateTree(files)}');
+
+      // Validate the package.
+      return _validate().chain((_) => _publish(packageBytes));
     });
   }
 
@@ -123,6 +135,14 @@ class LishCommand extends PubCommand {
   /// will return all non-hidden files.
   Future<List<String>> get _filesToPublish {
     var rootDir = entrypoint.root.dir;
+
+    // TODO(rnystrom): listDir() returns real file paths after symlinks are
+    // resolved. This means if libDir contains a symlink, the resulting paths
+    // won't appear to be within it, which confuses relativeTo(). Work around
+    // that here by making sure we have the real path to libDir. Remove this
+    // when #7346 is fixed.
+    rootDir = new File(rootDir).fullPathSync();
+
     return Futures.wait([
       dirExists(join(rootDir, '.git')),
       git.isInstalled
@@ -135,15 +155,25 @@ class LishCommand extends PubCommand {
 
       return listDir(rootDir, recursive: true).chain((entries) {
         return Futures.wait(entries.map((entry) {
-          return fileExists(entry).transform((isFile) => isFile ? entry : null);
+          return fileExists(entry).transform((isFile) {
+            // Skip directories.
+            if (!isFile) return null;
+
+            // TODO(rnystrom): Making these relative will break archive
+            // creation if the cwd is ever *not* the package root directory.
+            // Should instead only make these relative right before generating
+            // the tree display (which is what really needs them to be).
+            // Make it relative to the package root.
+            return relativeTo(entry, rootDir);
+          });
         }));
       });
     }).transform((files) => files.filter((file) {
       if (file == null || _BLACKLISTED_FILES.contains(basename(file))) {
         return false;
       }
-      return !splitPath(relativeTo(file, rootDir))
-          .some(_BLACKLISTED_DIRECTORIES.contains);
+
+      return !splitPath(file).some(_BLACKLISTED_DIRECTORIES.contains);
     }));
   }
 
@@ -180,15 +210,22 @@ class LishCommand extends PubCommand {
       var errors = pair.first;
       var warnings = pair.last;
 
-      if (errors.isEmpty && warnings.isEmpty) return new Future.immediate(null);
-      if (!errors.isEmpty) throw "Package validation failed.";
+      if (!errors.isEmpty) {
+        throw "Sorry, your package is missing "
+            "${(errors.length > 1) ? 'some requirements' : 'a requirement'} "
+            "and can't be published yet.\nFor more information, see: "
+            "http://pub.dartlang.org/doc/pub-lish.html.\n";
+      }
 
-      var s = warnings.length == 1 ? '' : 's';
-      stdout.writeString("Package has ${warnings.length} warning$s. Upload "
-          "anyway (y/n)? ");
-      return readLine().transform((line) {
-        if (new RegExp(r"^[yY]").hasMatch(line)) return;
-        throw "Package upload canceled.";
+      var message = 'Looks great! Are you ready to upload your package';
+
+      if (!warnings.isEmpty) {
+        var s = warnings.length == 1 ? '' : 's';
+        message = "Package has ${warnings.length} warning$s. Upload anyway";
+      }
+
+      return confirm(message).transform((confirmed) {
+        if (!confirmed) throw "Package upload canceled.";
       });
     });
   }
