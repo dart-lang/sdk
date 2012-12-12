@@ -4596,7 +4596,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertNotNull(access.getElement());
     }
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4315
@@ -4623,6 +4623,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       DartMethodInvocation invocation = findNode(DartMethodInvocation.class, "..m(2)");
       assertNotNull(invocation.getElement());
     }
+  }
+
+  /**
+   * Test that we already support cascaded calls in initializers. No implementation was changed.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6955
+   */
+  public void test_cascade_inInitializer() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "  A() : f = ''..length;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
   }
 
   /**
