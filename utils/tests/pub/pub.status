@@ -10,3 +10,6 @@
 [ $runtime == drt || $runtime == dartium || $runtime == opera ]
 *: Skip
 
+[ $system == macos ]
+validator_test: Fail # Issue 7330
+
