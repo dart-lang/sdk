@@ -187,8 +187,12 @@ class MessageKind {
 
   static const CYCLIC_TYPE_VARIABLE = const MessageKind(
       "cyclic reference to type variable #{1}");
-  static const TYPE_NAME_EXPECTED = const MessageKind(
-      "class or interface name expected");
+
+  static const CLASS_NAME_EXPECTED = const MessageKind(
+      "class name expected");
+
+  static const INTERFACE_TYPE_EXPECTED = const MessageKind(
+      "interface type expected");
 
   static const CANNOT_EXTEND = const MessageKind(
       "#{1} cannot be extended");
@@ -292,6 +296,9 @@ class MessageKind {
 
   static const LIBRARY_NAME_MISMATCH = const MessageKind(
       'Warning: expected part of library name "#{1}".');
+
+  static const MISSING_PART_OF_TAG = const MessageKind(
+      'Note: This file has no part-of tag, but it is being used as a part.');
 
   static const DUPLICATED_PART_OF = const MessageKind(
       'Error: duplicated part-of directive.');

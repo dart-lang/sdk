@@ -7,16 +7,51 @@ class _InvocationMirror implements InvocationMirror {
   static final int GETTER = 1;
   static final int SETTER = 2;
 
+  // TODO(regis): Compute lazily the value of these fields, and save the
+  // arguments passed into _allocateInvocationMirror.
+
   final String memberName;
   final List positionalArguments;
-  final Map<String,dynamic> namedArguments = null;
+  final Map<String, dynamic> namedArguments;
 
   final int _type;
 
-  _InvocationMirror(this.memberName, this._type, this.positionalArguments);
+  _InvocationMirror(this.memberName,
+                    this._type,
+                    this.positionalArguments,
+                    this.namedArguments);
 
-  static _allocateInvocationMirror(name, arguments) {
-    return new _InvocationMirror(name, METHOD, arguments);
+  static _allocateInvocationMirror(String name,
+                                   List argumentsDescriptor,
+                                   List arguments) {
+    var memberName;
+    var type;
+    if (name.startsWith("get:")) {
+      type = GETTER;
+      memberName = name.substring(4);
+    } else if (name.startsWith("set:")) {
+      type = SETTER;
+      memberName = name.substring(4).concat("=");
+    } else {
+      type = METHOD;
+      memberName = name;
+    }
+    // Exclude receiver.
+    int numArguments = argumentsDescriptor[0] - 1;
+    int numPositionalArguments = argumentsDescriptor[1] - 1;
+    int numNamedArguments = numArguments - numPositionalArguments;
+    List positionalArguments = arguments.getRange(1, numPositionalArguments);
+    Map<String, dynamic> namedArguments;
+    if (numNamedArguments > 0) {
+      namedArguments = new Map<String, dynamic>();
+      for (int i = 0; i < numNamedArguments; i++) {
+        String arg_name = argumentsDescriptor[2 + 2*i];
+        var arg_value = arguments[argumentsDescriptor[3 + 2*i]];
+        namedArguments[arg_name] = arg_value;
+      }
+    }
+    return new _InvocationMirror(memberName, type,
+                                 positionalArguments, namedArguments);
   }
 
   bool get isMethod => _type == METHOD;

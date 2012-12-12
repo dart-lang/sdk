@@ -1749,7 +1749,7 @@ static bool IsRecognizedConstructor(const Function& function,
 
   const String& function_name = String::Handle(function.name());
   const String& expected_function_name = String::Handle(
-      String::Concat(expected_class_name, String::Handle(Symbols::Dot())));
+      String::Concat(expected_class_name, Symbols::DotHandle()));
   return function_name.Equals(expected_function_name);
 }
 
@@ -2368,11 +2368,9 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
   Function* super_function = NULL;
   if (node->IsSuperLoad()) {
     // Resolve the load indexed operator in the super class.
-    const String& index_operator_name =
-        String::ZoneHandle(Symbols::IndexToken());
     super_function = &Function::ZoneHandle(
           Resolver::ResolveDynamicAnyArgs(node->super_class(),
-                                          index_operator_name));
+                                          Symbols::IndexTokenHandle()));
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
@@ -2381,7 +2379,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
       StaticCallInstr* call =
           BuildStaticNoSuchMethodCall(node->super_class(),
                                       node->array(),
-                                      index_operator_name,
+                                      Symbols::IndexTokenHandle(),
                                       arguments);
       ReturnDefinition(call);
       return;
@@ -2409,9 +2407,8 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
   } else {
     // Generate dynamic call to index operator.
     const intptr_t checked_argument_count = 1;
-    const String& name = String::ZoneHandle(Symbols::IndexToken());
     InstanceCallInstr* load = new InstanceCallInstr(node->token_pos(),
-                                                    name,
+                                                    Symbols::IndexTokenHandle(),
                                                     Token::kINDEX,
                                                     arguments,
                                                     Array::ZoneHandle(),
@@ -2427,11 +2424,9 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
   Function* super_function = NULL;
   if (node->IsSuperStore()) {
     // Resolve the store indexed operator in the super class.
-    const String& store_index_op_name =
-        String::ZoneHandle(Symbols::AssignIndexToken());
     super_function = &Function::ZoneHandle(
         Resolver::ResolveDynamicAnyArgs(node->super_class(),
-                                        store_index_op_name));
+                                        Symbols::AssignIndexTokenHandle()));
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
@@ -2449,7 +2444,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
       StaticCallInstr* call =
           BuildStaticNoSuchMethodCall(node->super_class(),
                                       node->array(),
-                                      store_index_op_name,
+                                      Symbols::AssignIndexTokenHandle(),
                                       arguments);
       if (result_is_needed) {
         Do(call);
@@ -2809,7 +2804,13 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
   // The first argument is the original method name.
   arguments->Add(new LiteralNode(args_pos, method_name));
-  // The second argument is an array containing the original method arguments.
+  // The second argument is the arguments descriptor of the original method.
+  const Array& args_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(method_arguments->length(),
+                                                 method_arguments->names()));
+  arguments->Add(new LiteralNode(args_pos, args_descriptor));
+  // The third argument is an array containing the original method arguments,
+  // including the receiver.
   ArrayNode* args_array =
       new ArrayNode(args_pos, Type::ZoneHandle(Type::ArrayType()));
   for (intptr_t i = 0; i < method_arguments->length(); i++) {
@@ -2935,9 +2936,6 @@ FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context,
                            initial_loop_depth);
   graph_entry_ = new GraphEntryInstr(normal_entry);
   EffectGraphVisitor for_effect(this, 0, initial_loop_depth);
-  if (InInliningContext()) {
-    exits_ = new ZoneGrowableArray<ReturnInstr*>();
-  }
   // TODO(kmillikin): We can eliminate stack checks in some cases (e.g., the
   // stack check on entry for leaf routines).
   Instruction* check = new CheckStackOverflowInstr(function.token_pos());

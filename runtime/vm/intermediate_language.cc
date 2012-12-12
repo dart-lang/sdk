@@ -1323,12 +1323,12 @@ RawAbstractType* CheckStackOverflowInstr::CompileType() const {
 
 
 RawAbstractType* BinarySmiOpInstr::CompileType() const {
-  return (op_kind() == Token::kSHL) ? Type::IntType() : Type::SmiType();
+  return Type::SmiType();
 }
 
 
 intptr_t BinarySmiOpInstr::ResultCid() const {
-  return (op_kind() == Token::kSHL) ? kDynamicCid : kSmiCid;
+  return kSmiCid;
 }
 
 

@@ -628,6 +628,37 @@ testClassHierarchy() {
   Link<DartType> supertypes = aElement.allSupertypes;
   Expect.equals(<String>['B', 'C', 'Object'].toString(),
                 asSortedStrings(supertypes).toString());
+
+  compiler = new MockCompiler();
+  compiler.parseScript("""class A<T> {}
+                          class B<Z,W> extends A<int> implements I<Z,List<W>> {}
+                          class I<X,Y> {}
+                          class C extends B<bool,String> {}
+                          main() { return new C(); }""");
+  mainElement = compiler.mainApp.find(MAIN);
+  compiler.resolver.resolve(mainElement);
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(0, compiler.errors.length);
+  aElement = compiler.mainApp.find(buildSourceString("C"));
+  supertypes = aElement.allSupertypes;
+  // Object is once per inheritance path, that is from both A and I.
+  Expect.equals(<String>['A<int>', 'B<bool, String>', 'I<bool, List<String>>',
+                         'Object', 'Object'].toString(),
+                asSortedStrings(supertypes).toString());
+
+  compiler = new MockCompiler();
+  compiler.parseScript("""class A<T> {}
+                          class D extends A<E> {}
+                          class E extends D {}
+                          main() { return new E(); }""");
+  mainElement = compiler.mainApp.find(MAIN);
+  compiler.resolver.resolve(mainElement);
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(0, compiler.errors.length);
+  aElement = compiler.mainApp.find(buildSourceString("E"));
+  supertypes = aElement.allSupertypes;
+  Expect.equals(<String>['A<E>', 'D', 'Object'].toString(),
+                asSortedStrings(supertypes).toString());
 }
 
 testInitializers() {

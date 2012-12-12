@@ -162,12 +162,14 @@ patch class Process {
 
 patch class ServerSocket {
   patch factory ServerSocket(String bindAddress, int port, int backlog) {
-    return new _ServerSocket(bindAddress, port, backlog);
+    throw new UnsupportedError("ServerSocket constructor");
   }
 }
 
 patch class Socket {
-  patch factory Socket(String host, int port) => new _Socket(host, port);
+  patch factory Socket(String host, int port) {
+    throw new UnsupportedError("Socket constructor");
+  }
 }
 
 patch class SecureSocket {
@@ -185,11 +187,11 @@ patch class _SecureFilter {
 }
 
 patch class _StdIOUtils {
-  patch static _getStdioHandle(Socket socket, int num) {
-    throw new UnsupportedError("StdIOUtils._getStdioHandle");
+  patch static InputStream _getStdioInputStream() {
+    throw new UnsupportedError("StdIOUtils._getStdioInputStream");
   }
-  patch static _getStdioHandleType(int num) {
-    throw new UnsupportedError("StdIOUtils._getStdioHandleType");
+  patch static OutputStream _getStdioOutputStream(int fd) {
+    throw new UnsupportedError("StdIOUtils._getStdioOutputStream");
   }
 }
 

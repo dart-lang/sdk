@@ -131,11 +131,11 @@ class ConstantReferenceEmitter implements ConstantVisitor<js.Expression> {
   js.Expression emitCanonicalVersion(Constant constant) {
     String name = namer.constantName(constant);
     if (inIsolateInitializationContext) {
-      //  $ISOLATE.$ISOLATE_PROPERTIES.$name
+      //  $isolateName.$isolatePropertiesName.$name
       return new js.PropertyAccess.field(
           new js.PropertyAccess.field(
-              new js.VariableUse(namer.ISOLATE),
-              namer.ISOLATE_PROPERTIES),
+              new js.VariableUse(namer.isolateName),
+              namer.isolatePropertiesName),
           name);
     } else {
       return new js.PropertyAccess.field(
@@ -222,7 +222,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<js.Expression> {
   js.Expression visitList(ListConstant constant) {
     return new js.Call(
         new js.PropertyAccess.field(
-            new js.VariableUse(namer.ISOLATE),
+            new js.VariableUse(namer.isolateName),
             'makeConstantList'),
         [new js.ArrayInitializer.from(_array(constant.entries))]);
   }

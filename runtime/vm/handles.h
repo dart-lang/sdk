@@ -214,6 +214,7 @@ class Handles {
   HandlesBlock* scoped_blocks_;  // List of scoped handles.
 
   friend class HandleScope;
+  friend class Symbols;
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Handles);
 };

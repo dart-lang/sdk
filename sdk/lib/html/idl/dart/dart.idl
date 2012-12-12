@@ -311,6 +311,9 @@ module html {
      // Provide missing constructor signature.
      Constructor([Optional] in HTMLFormElement form)]
     interface DOMFormData {
+      [Suppressed] void append(in DOMString name, in DOMString value, in DOMString filename);
+      [Custom] void append(in DOMString name, in DOMString value);
+      [Custom] void append(in DOMString name, in Blob value, [Optional] in DOMString filename);
     };
 }
 

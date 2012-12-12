@@ -2,24 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of _js_helper;
+
 String typeNameInChrome(obj) {
   String name = JS('String', "#.constructor.name", obj);
-  if (name == 'Window') return 'DOMWindow';
-  if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
-  if (name == 'WebKitMutationObserver') return 'MutationObserver';
-  if (name == 'AudioChannelMerger') return 'ChannelMergerNode';
-  if (name == 'AudioChannelSplitter') return 'ChannelSplitterNode';
-  if (name == 'AudioGainNode') return 'GainNode';
-  if (name == 'AudioPannerNode') return 'PannerNode';
-  if (name == 'JavaScriptAudioNode') return 'ScriptProcessorNode';
-  if (name == 'Oscillator') return 'OscillatorNode';
-  if (name == 'RealtimeAnalyserNode') return 'AnalyserNode';
-  return name;
+  return typeNameInWebKitCommon(name);
 }
 
 String typeNameInSafari(obj) {
   String name = JS('String', '#', constructorNameFallback(obj));
   // Safari is very similar to Chrome.
+  return typeNameInWebKitCommon(name);
+}
+
+String typeNameInWebKitCommon(tag) {
+  String name = JS('String', '#', tag);
   if (name == 'Window') return 'DOMWindow';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
   if (name == 'WebKitMutationObserver') return 'MutationObserver';
@@ -100,6 +97,23 @@ String constructorNameFallback(object) {
   return JS('String', '#.substring(8, # - 1)', string, string.length);
 }
 
+/**
+ * If a lookup on an object [object] that has [tag] fails, this function is
+ * called to provide an alternate tag.  This allows us to fail gracefully if we
+ * can make a good guess, for example, when browsers add novel kinds of
+ * HTMLElement that we have never heard of.
+ */
+String alternateTag(object, String tag) {
+  // Does it smell like some kind of HTML element?
+  if (JS('bool', r'!!/^HTML[A-Z].*Element$/.test(#)', tag)) {
+    // Check that it is not a simple JavaScript object.
+    String string = JS('String', 'Object.prototype.toString.call(#)', object);
+    if (string == '[object Object]') return null;
+    return 'HTMLElement';
+  }
+  return null;
+}
+
 // TODO(ngeoffray): stop using this method once our optimizers can
 // change str1.contains(str2) into str1.indexOf(str2) != -1.
 bool contains(String userAgent, String name) {
@@ -122,8 +136,16 @@ propertyGet(var object, String property) {
   return JS('var', '#[#]', object, property);
 }
 
+bool callHasOwnProperty(var function, var object, String property) {
+  return JS('bool', '#.call(#, #)', function, object, property);
+}
+
 void propertySet(var object, String property, var value) {
   JS('var', '#[#] = #', object, property, value);
+}
+
+getPropertyFromPrototype(var object, String name) {
+  return JS('var', 'Object.getPrototypeOf(#)[#]', object, name);
 }
 
 newJsObject() {
@@ -183,8 +205,9 @@ int hashCodeForNativeObject(object) => Primitives.objectHashCode(object);
  * Sets a JavaScript property on an object.
  */
 void defineProperty(var obj, String property, var value) {
-  JS('void', """Object.defineProperty(#, #,
-      {value: #, enumerable: false, writable: true, configurable: true})""",
+  JS('void',
+      'Object.defineProperty(#, #, '
+          '{value: #, enumerable: false, writable: true, configurable: true})',
       obj,
       property,
       value);
@@ -205,21 +228,26 @@ dynamicBind(var obj,
             String name,
             var methods,
             List arguments) {
+  // The tag is related to the class name.  E.g. the dart:html class
+  // '_ButtonElement' has the tag 'HTMLButtonElement'.  TODO(erikcorry): rename
+  // getTypeNameOf to getTypeTag.
   String tag = getTypeNameOf(obj);
-  var method = JS('var', '#[#]', methods, tag);
+  var hasOwnPropertyFunction = JS('var', 'Object.prototype.hasOwnProperty');
 
-  if (method == null && _dynamicMetadata != null) {
-    for (int i = 0; i < arrayLength(_dynamicMetadata); i++) {
-      MetaInfo entry = arrayGet(_dynamicMetadata, i);
-      if (JS('bool', '#', propertyGet(entry._set, tag))) {
-        method = propertyGet(methods, entry._tag);
-        if (method != null) break;
-      }
+  var method = dynamicBindLookup(hasOwnPropertyFunction, tag, methods);
+  if (method == null) {
+    String secondTag = alternateTag(obj, tag);
+    if (secondTag != null) {
+      method = dynamicBindLookup(hasOwnPropertyFunction, secondTag, methods);
     }
   }
 
+  // If we didn't find the method then look up in the Dart Object class, using
+  // getTypeNameOf in case the minifier has renamed Object.
   if (method == null) {
-    method = propertyGet(methods, 'Object');
+    String nameOfObjectClass = getTypeNameOf(const Object());
+    method =
+        lookupDynamicClass(hasOwnPropertyFunction, methods, nameOfObjectClass);
   }
 
   var proto = JS('var', 'Object.getPrototypeOf(#)', obj);
@@ -239,11 +267,42 @@ dynamicBind(var obj,
       proto, name, name);
   }
 
-  if (JS('bool', '!#.hasOwnProperty(#)', proto, name)) {
+  if (!callHasOwnProperty(hasOwnPropertyFunction, proto, name)) {
     defineProperty(proto, name, method);
   }
 
   return JS('var', '#.apply(#, #)', method, obj, arguments);
+}
+
+dynamicBindLookup(var hasOwnPropertyFunction, String tag, var methods) {
+  var method = lookupDynamicClass(hasOwnPropertyFunction, methods, tag);
+  // Look at the inheritance data, getting the class tags and using them
+  // to check the methods table for this method name.
+  if (method == null && _dynamicMetadata != null) {
+    for (int i = 0; i < arrayLength(_dynamicMetadata); i++) {
+      MetaInfo entry = arrayGet(_dynamicMetadata, i);
+      if (callHasOwnProperty(hasOwnPropertyFunction, entry._set, tag)) {
+        method =
+            lookupDynamicClass(hasOwnPropertyFunction, methods, entry._tag);
+        // Stop if we found it in the methods array.
+        if (method != null) break;
+      }
+    }
+  }
+  return method;
+}
+
+// For each method name and class inheritance subtree, we use an ordinary JS
+// object as a hash map to store the method for each class.  Entries are added
+// in native_emitter.dart (see dynamicName).  In order to avoid the class names
+// clashing with the method names on Object.prototype (needed for native
+// objects) we must always use hasOwnProperty.
+var lookupDynamicClass(var hasOwnPropertyFunction,
+                       var methods,
+                       String className) {
+  return callHasOwnProperty(hasOwnPropertyFunction, methods, className) ?
+         propertyGet(methods, className) :
+         null;
 }
 
 /**
@@ -273,7 +332,9 @@ dynamicFunction(name) {
   var methods = JS('var', '{}');
   // If there is a method attached to the Dart Object class, use it as
   // the method to call in case no method is registered for that type.
-  var dartMethod = JS('var', 'Object.getPrototypeOf(#)[#]', const Object(), name);
+  var dartMethod = getPropertyFromPrototype(const Object(), name);
+  // Take the method from the Dart Object class if we didn't find it yet and it
+  // is there.
   if (dartMethod != null) propertySet(methods, 'Object', dartMethod);
 
   var bind = JS('var',

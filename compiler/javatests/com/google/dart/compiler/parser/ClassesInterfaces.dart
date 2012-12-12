@@ -77,20 +77,12 @@ class Baz extends Kuk implements A, B, C {
       id(x) { return x; }
       int id(x) { return x; }
       Box<int, double> id(x) { return x; }
-      var f = hest() { };
-      var f = int horse() { };
-      var f = Box<int> llama() { };
-      var f = Box<int, double> llama() { };
+      var f = () { };
       assert(x == 12);
-      id(void foo(x) {});
-      id(foo(x) {});
-      id(Box<int> foo(x) {});
-      id(Box<int, double> foo(x) {});
-      id(Box<int, double> foo);
+      id((x) {});
       a < b;
       int x = a < b;
       id(() {});
-      id(void _() {});
     }
   }
 

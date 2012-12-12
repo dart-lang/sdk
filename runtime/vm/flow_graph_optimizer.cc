@@ -1669,6 +1669,13 @@ void SminessPropagator::PropagateSminessRecursive(BlockEntryInstr* block) {
         known_smis_->Add(value_ssa_index);
         rollback_checks_.Add(value_ssa_index);
       }
+    } else if (instr->IsBranch()) {
+      for (intptr_t i = 0; i < instr->InputCount(); i++) {
+        Value* use = instr->InputAt(i);
+        if (known_smis_->Contains(use->definition()->ssa_temp_index())) {
+          use->set_reaching_cid(kSmiCid);
+        }
+      }
     }
   }
 

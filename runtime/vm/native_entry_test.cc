@@ -6,6 +6,7 @@
 
 #include "vm/assembler.h"
 #include "vm/code_patcher.h"
+#include "vm/dart_api_impl.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"
@@ -49,6 +50,38 @@ void TestSmiSum(Dart_NativeArguments args) {
 
     // Ignoring overflow in the addition below.
     result += arg_value;
+  }
+  Dart_SetReturnValue(args, Dart_NewInteger(result));
+  Dart_ExitScope();
+}
+
+
+// Test for accepting null arguments in native function.
+// Arg0-4: 5 smis or null.
+// Result: a smi representing the sum of all non-null arguments.
+void TestNonNullSmiSum(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Isolate* isolate = Isolate::Current();
+  int64_t result = 0;
+  int arg_count = Dart_GetNativeArgumentCount(args);
+  // Test the lower level macro GET_NATIVE_ARGUMENT.
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  for (int i = 0; i < arg_count; i++) {
+    Dart_Handle arg = Dart_GetNativeArgument(args, i);
+    GET_NATIVE_ARGUMENT(Integer, argument, arguments->NativeArgAt(i));
+    EXPECT(argument.IsInteger());  // May be null.
+    EXPECT_EQ(Api::UnwrapHandle(arg), argument.raw());  // May be null.
+    int64_t arg_value = -1;
+    if (argument.IsNull()) {
+      EXPECT_ERROR(Dart_IntegerToInt64(arg, &arg_value),
+                   "Dart_IntegerToInt64 expects argument 'integer' "
+                   "to be non-null.");
+    } else {
+      EXPECT_VALID(Dart_IntegerToInt64(arg, &arg_value));
+      EXPECT_EQ(arg_value, argument.AsInt64Value());
+      // Ignoring overflow in the addition below.
+      result += arg_value;
+    }
   }
   Dart_SetReturnValue(args, Dart_NewInteger(result));
   Dart_ExitScope();

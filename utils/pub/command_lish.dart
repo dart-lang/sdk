@@ -10,17 +10,16 @@ import 'dart:uri';
 
 import '../../pkg/args/lib/args.dart';
 import '../../pkg/http/lib/http.dart' as http;
-import 'pub.dart';
-import 'io.dart';
 import 'git.dart' as git;
+import 'io.dart';
+import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
+import 'pub.dart';
 import 'validator.dart';
 
-// TODO(nweiz): Make "publish" the primary name for this command. See issue
-// 6949.
 /// Handles the `lish` and `publish` pub commands.
 class LishCommand extends PubCommand {
-  final description = "publish the current package to pub.dartlang.org";
+  final description = "Publish the current package to pub.dartlang.org.";
   final usage = "pub publish [options]";
   final aliases = const ["lish", "lush"];
 
@@ -42,6 +41,7 @@ class LishCommand extends PubCommand {
       return Futures.wait([
         client.get(server.resolve("/packages/versions/new.json")),
         _filesToPublish.transform((files) {
+          log.fine('Archiving and publishing ${entrypoint.root}.');
           return createTarGz(files, baseDir: entrypoint.root.dir);
         }).chain(consumeInputStream),
         _validate()
@@ -77,7 +77,7 @@ class LishCommand extends PubCommand {
             parsed['success']['message'] is! String) {
           _invalidServerResponse(response);
         }
-        print(parsed['success']['message']);
+        log.message(parsed['success']['message']);
       });
     }).transformException((e) {
       if (e is PubHttpException) {
@@ -97,13 +97,13 @@ class LishCommand extends PubCommand {
           throw errorMap['error']['message'];
         }
       } else if (e is oauth2.ExpirationException) {
-        printError("Pub's authorization to upload packages has expired and "
+        log.error("Pub's authorization to upload packages has expired and "
             "can't be automatically refreshed.");
         return onRun();
       } else if (e is oauth2.AuthorizationException) {
         var message = "OAuth2 authorization failed";
         if (e.description != null) message = "$message (${e.description})";
-        printError("$message.");
+        log.error("$message.");
         return oauth2.clearCredentials(cache).chain((_) => onRun());
       } else {
         throw e;
@@ -142,9 +142,8 @@ class LishCommand extends PubCommand {
       if (file == null || _BLACKLISTED_FILES.contains(basename(file))) {
         return false;
       }
-      // TODO(nweiz): Since `file` is absolute, this will break if the package
-      // itself is in a directory named "packages" (issue 7215).
-      return !splitPath(file).some(_BLACKLISTED_DIRECTORIES.contains);
+      return !splitPath(relativeTo(file, rootDir))
+          .some(_BLACKLISTED_DIRECTORIES.contains);
     }));
   }
 

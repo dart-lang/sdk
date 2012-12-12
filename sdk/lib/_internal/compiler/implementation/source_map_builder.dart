@@ -66,18 +66,22 @@ class SourceMapBuilder {
   }
 
   String build(SourceFile targetFile) {
+    StringBuffer mappingsBuffer = new StringBuffer();
+    entries.forEach((SourceMapEntry entry) => writeEntry(entry, targetFile,
+                                                         mappingsBuffer));
     StringBuffer buffer = new StringBuffer();
     buffer.add('{\n');
     buffer.add('  "version": 3,\n');
-    buffer.add('  "mappings": "');
-    entries.forEach((SourceMapEntry entry) => writeEntry(entry, targetFile, buffer));
-    buffer.add('",\n');
+    buffer.add('  "sourceRoot": "",\n');
     buffer.add('  "sources": ');
     printStringListOn(sourceUrlList, buffer);
     buffer.add(',\n');
     buffer.add('  "names": ');
     printStringListOn(sourceNameList, buffer);
-    buffer.add('\n}\n');
+    buffer.add(',\n');
+    buffer.add('  "mappings": "');
+    buffer.add(mappingsBuffer);
+    buffer.add('"\n}\n');
     return buffer.toString();
   }
 

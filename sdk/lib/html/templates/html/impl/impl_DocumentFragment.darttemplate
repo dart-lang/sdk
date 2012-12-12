@@ -29,9 +29,11 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME.svg(String svgContent) =>
       _$(CLASSNAME)FactoryProvider.createDocumentFragment_svg(svgContent);
 
+  @deprecated
   List<Element> get elements => this.children;
 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
+  @deprecated
   void set elements(value) {
     this.children = value;
   }
@@ -139,12 +141,12 @@ $endif
   String get webkitdropzone => "";
   String get webkitRegionOverflow => "";
   Element get $m_firstElementChild {
-    if (elements.length > 0) {
-      return elements[0];
+    if (children.length > 0) {
+      return children[0];
     }
     return null;
   }
-  Element get $m_lastElementChild => elements.last;
+  Element get $m_lastElementChild => children.last;
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
   Element get offsetParent => null;

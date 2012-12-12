@@ -34,6 +34,7 @@ class SpecialType {
 class NativeEnqueuer {
   /// Initial entry point to native enqueuer.
   void processNativeClasses(Collection<LibraryElement> libraries) {}
+  void processNativeClassesInLibrary(LibraryElement library) {}
 
   /// Notification of a main Enqueuer worklist element.  For methods, adds
   /// information from metadata attributes, and computes types instantiated due
@@ -452,7 +453,6 @@ void maybeEnableNative(Compiler compiler,
   String libraryName = uri.toString();
   if (library.entryCompilationUnit.script.name.contains(
           'dart/tests/compiler/dart2js_native')
-      || libraryName == 'dart:isolate'
       || libraryName == 'dart:html'
       || libraryName == 'dart:html_common'
       || libraryName == 'dart:indexed_db'
@@ -794,19 +794,6 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   Compiler compiler = builder.compiler;
   FunctionElement element = builder.work.element;
   NativeEmitter nativeEmitter = builder.emitter.nativeEmitter;
-  // If what we're compiling is a getter named 'typeName' and the native
-  // class is named 'DOMType', we generate a call to the typeNameOf
-  // function attached on the isolate.
-  // The DOM classes assume that their 'typeName' property, which is
-  // not a JS property on the DOM types, returns the type name.
-  if (element.name == const SourceString('typeName')
-      && element.isGetter()
-      && nativeEmitter.toNativeName(element.getEnclosingClass()) == 'DOMType') {
-    Element helper =
-        compiler.findHelper(const SourceString('getTypeNameOf'));
-    builder.pushInvokeHelper1(helper, builder.localsHandler.readThis());
-    builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
-  }
 
   HInstruction convertDartClosure(Element parameter, FunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
@@ -823,14 +810,14 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
 
   // Check which pattern this native method follows:
   // 1) foo() native;
-  //      hasBody = false, isRedirecting = false
+  //      hasBody = false
   // 2) foo() native "bar";
-  //      hasBody = false, isRedirecting = true, no longer supported.
+  //      No longer supported, this is now done with @JSName('foo') and case 1.
   // 3) foo() native "return 42";
-  //      hasBody = true, isRedirecting = false
+  //      hasBody = true
   bool hasBody = false;
   assert(element.isNative());
-  String nativeMethodName = element.nativeName();
+  String nativeMethodName = element.fixedBackendName();
   if (nativeBody != null) {
     LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();

@@ -6,7 +6,6 @@
  * Tests date formatting and parsing using locale data read from the
  * local file system.
  */
-
 library date_time_format_file_test;
 
 import '../lib/intl.dart';
@@ -25,11 +24,13 @@ runWith([Function getSubset]) {
 }
 
 void runEverything(Function getSubset) {
-  // Initialize all locales and wait for them to finish before running tests.
-  var futures = DateFormat.allLocalesWithSymbols().map(
+  // Initialize all locales sequentially before running tests. Be sure not
+  // to do it in parallel or we can run into ulimit problems on fast machines.
+  var futureList = Futures.forEach(DateFormat.allLocalesWithSymbols(),
       (locale) => initializeDateFormatting(locale, dataDirectory));
+
   test('Run all date formatting tests nested test', () {
-    Futures.wait(futures).then(
+    futureList.then(
         expectAsync1((results) => runDateTests(getSubset())));
   });
 }

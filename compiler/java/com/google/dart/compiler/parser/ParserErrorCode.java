@@ -34,12 +34,15 @@ public enum ParserErrorCode implements ErrorCode {
   DEPRECATED_CATCH("This style of catch clause has been deprecated. Please use the 'on' <type> " +
       "'catch' '(' <identifier> (',' <identifier>)? ')' form."),
   DEPRECATED_ABSTRACT_METHOD(ErrorSeverity.WARNING, "Modifier 'abstract' is deprecated for methods without body. Remove it."),
+  DEPRECATED_FUNCTION_LITERAL("Deprecated function literal syntax, remove return type and name"),
   DEPRECATED_GETTER("The presence of parentheses after the name of the getter "
       + "has been deprecated and will soon be disallowed. Please remove the parentheses."),
   DEPRECATED_INTERFACE("Deprecated declaration of the 'interface', use abstract 'class' instead"),
   DEPRECATED_USE_OF_FACTORY_KEYWORD("Deprecated use of the 'factory' keyword: use 'default' instead"),
   DEPRECATED_RAW_STRING("The use of '@' to prefix a raw string has been deprecated; use 'r' instead"),
   DEPRECATED_RESOURCE_DIRECTIVE("The #resource directive has been deprecated and will soon be disallowed"),
+  DEPRECATED_STRICT_EQ("Deprecated use of '===', use 'identical()' or '==' instead."),
+  DEPRECATED_STRICT_NE("Deprecated use of '!==', use '!identical()' or '!=' instead."),
   DEPRECATED_LIBRARY_DIRECTIVE("The '#library(url)' directive has been deprecated, use 'library name' instead"),
   DEPRECATED_IMPORT_DIRECTIVE("The '#import(url)' directive has been deprecated, use 'import url' instead"),
   DEPRECATED_SOURCE_DIRECTIVE("The '#source(url)' directive has been deprecated, use 'part url' instead"),

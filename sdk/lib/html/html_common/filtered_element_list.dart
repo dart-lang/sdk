@@ -4,10 +4,22 @@
 
 part of html_common;
 
+/**
+ * An indexable collection of a node's descendants in the document tree,
+ * filtered so that only elements are in the collection.
+ */
 class FilteredElementList implements List {
   final Node _node;
   final List<Node> _childNodes;
 
+  /**
+   * Creates a collection of the elements that descend from a node.
+   *
+   * Example usage:
+   *
+   *     var filteredElements = new FilteredElementList(query("#container"));
+   *     // filteredElements is [a, b, c].
+   */
   FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
 
   // We can't memoize this, since it's possible that children will be messed

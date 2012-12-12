@@ -23,6 +23,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, heap_profile_initialize, false,
+            "Writes a heap profile on isolate initialization.");
 DECLARE_FLAG(bool, print_bootstrap);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
@@ -167,13 +169,19 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     reader.ReadFullSnapshot();
     if (FLAG_trace_isolates) {
       isolate->heap()->PrintSizes();
+      isolate->megamorphic_cache_table()->PrintSizes();
     }
     if (FLAG_print_bootstrap) {
       PrintLibrarySources(isolate);
     }
   }
 
+  if (FLAG_heap_profile_initialize) {
+    isolate->heap()->ProfileToFile("initialize");
+  }
+
   StubCode::Init(isolate);
+  isolate->megamorphic_cache_table()->InitMissHandler();
   isolate->heap()->EnableGrowthControl();
   isolate->set_init_callback_data(data);
   if (FLAG_print_class_table) {
@@ -185,9 +193,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 
 void Dart::ShutdownIsolate() {
   Isolate* isolate = Isolate::Current();
-  if (FLAG_trace_isolates) {
-    isolate->heap()->PrintSizes();
-  }
   void* callback_data = isolate->init_callback_data();
   isolate->Shutdown();
   delete isolate;

@@ -268,7 +268,22 @@ class LibraryLoaderTask extends LibraryLoader {
     Script sourceScript = compiler.readScript(path, part);
     CompilationUnitElement unit =
         new CompilationUnitElement(sourceScript, library);
-    compiler.withCurrentElement(unit, () => compiler.scanner.scan(unit));
+    compiler.withCurrentElement(unit, () {
+      compiler.scanner.scan(unit);
+      if (unit.partTag == null) {
+        bool wasDiagnosticEmitted = false;
+        compiler.withCurrentElement(library, () {
+          wasDiagnosticEmitted =
+              compiler.onDeprecatedFeature(part, 'missing part-of tag');
+        });
+        if (wasDiagnosticEmitted) {
+          compiler.reportMessage(
+              compiler.spanFromElement(unit),
+              MessageKind.MISSING_PART_OF_TAG.error([]),
+              api.Diagnostic.INFO);
+        }
+      }
+    });
   }
 
   /**

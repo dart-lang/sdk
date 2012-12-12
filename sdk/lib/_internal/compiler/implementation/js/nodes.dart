@@ -149,6 +149,8 @@ abstract class Node {
 
   accept(NodeVisitor visitor);
   void visitChildren(NodeVisitor visitor);
+
+  VariableUse asVariableUse() => null;
 }
 
 class Program extends Node {
@@ -657,6 +659,8 @@ class VariableUse extends VariableReference {
   VariableUse(String name) : super(name);
 
   accept(NodeVisitor visitor) => visitor.visitVariableUse(this);
+
+  VariableUse asVariableUse() => this;
 }
 
 class VariableDeclaration extends VariableReference {

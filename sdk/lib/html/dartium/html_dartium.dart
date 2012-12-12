@@ -93,9 +93,12 @@ class AbstractWorker extends EventTarget {
 
 }
 
+/// @docsEditable true
 class AbstractWorkerEvents extends Events {
+  /// @docsEditable true
   AbstractWorkerEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -526,23 +529,33 @@ class ApplicationCache extends EventTarget {
 
 }
 
+/// @docsEditable true
 class ApplicationCacheEvents extends Events {
+  /// @docsEditable true
   ApplicationCacheEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get cached => this['cached'];
 
+  /// @docsEditable true
   EventListenerList get checking => this['checking'];
 
+  /// @docsEditable true
   EventListenerList get downloading => this['downloading'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get noUpdate => this['noupdate'];
 
+  /// @docsEditable true
   EventListenerList get obsolete => this['obsolete'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
+  /// @docsEditable true
   EventListenerList get updateReady => this['updateready'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -909,15 +922,21 @@ class BatteryManager extends EventTarget {
 
 }
 
+/// @docsEditable true
 class BatteryManagerEvents extends Events {
+  /// @docsEditable true
   BatteryManagerEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get chargingChange => this['chargingchange'];
 
+  /// @docsEditable true
   EventListenerList get chargingTimeChange => this['chargingtimechange'];
 
+  /// @docsEditable true
   EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
 
+  /// @docsEditable true
   EventListenerList get levelChange => this['levelchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1056,33 +1075,48 @@ class BodyElement extends _Element_Merged {
 
 }
 
+/// @docsEditable true
 class BodyElementEvents extends ElementEvents {
+  /// @docsEditable true
   BodyElementEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get beforeUnload => this['beforeunload'];
 
+  /// @docsEditable true
   EventListenerList get blur => this['blur'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get focus => this['focus'];
 
+  /// @docsEditable true
   EventListenerList get hashChange => this['hashchange'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get offline => this['offline'];
 
+  /// @docsEditable true
   EventListenerList get online => this['online'];
 
+  /// @docsEditable true
   EventListenerList get popState => this['popstate'];
 
+  /// @docsEditable true
   EventListenerList get resize => this['resize'];
 
+  /// @docsEditable true
   EventListenerList get storage => this['storage'];
 
+  /// @docsEditable true
   EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6829,9 +6863,12 @@ class DedicatedWorkerContext extends WorkerContext {
 
 }
 
+/// @docsEditable true
 class DedicatedWorkerContextEvents extends WorkerContextEvents {
+  /// @docsEditable true
   DedicatedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7327,15 +7364,21 @@ class Document extends Node
   }
 }
 
+/// @docsEditable true
 class DocumentEvents extends ElementEvents {
+  /// @docsEditable true
   DocumentEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get readyStateChange => this['readystatechange'];
 
+  /// @docsEditable true
   EventListenerList get selectionChange => this['selectionchange'];
 
+  /// @docsEditable true
   EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
 
+  /// @docsEditable true
   EventListenerList get pointerLockError => this['webkitpointerlockerror'];
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -7368,9 +7411,11 @@ class DocumentFragment extends Node {
   factory DocumentFragment.svg(String svgContent) =>
       _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
 
+  @deprecated
   List<Element> get elements => this.children;
 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
+  @deprecated
   void set elements(value) {
     this.children = value;
   }
@@ -7473,12 +7518,12 @@ class DocumentFragment extends Node {
   String get webkitdropzone => "";
   String get webkitRegionOverflow => "";
   Element get $m_firstElementChild {
-    if (elements.length > 0) {
-      return elements[0];
+    if (children.length > 0) {
+      return children[0];
     }
     return null;
   }
-  Element get $m_lastElementChild => elements.last;
+  Element get $m_lastElementChild => children.last;
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
   Element get offsetParent => null;
@@ -8806,11 +8851,14 @@ abstract class Element extends Node implements ElementTraversal {
   /**
    * Deprecated, use innerHtml instead.
    */
+  @deprecated
   String get innerHTML => this.innerHtml;
+  @deprecated
   void set innerHTML(String value) {
     this.innerHtml = value;
   }
 
+  @deprecated
   void set elements(Collection<Element> value) {
     this.children = value;
   }
@@ -8818,6 +8866,7 @@ abstract class Element extends Node implements ElementTraversal {
   /**
    * Deprecated, use [children] instead.
    */
+  @deprecated
   List<Element> get elements => this.children;
 
   /**
@@ -9266,103 +9315,153 @@ class _ElementFactoryProvider {
       document.$dom_createElement(tag);
 }
 
+/// @docsEditable true
 class ElementEvents extends Events {
+  /// @docsEditable true
   ElementEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get beforeCopy => this['beforecopy'];
 
+  /// @docsEditable true
   EventListenerList get beforeCut => this['beforecut'];
 
+  /// @docsEditable true
   EventListenerList get beforePaste => this['beforepaste'];
 
+  /// @docsEditable true
   EventListenerList get blur => this['blur'];
 
+  /// @docsEditable true
   EventListenerList get change => this['change'];
 
+  /// @docsEditable true
   EventListenerList get click => this['click'];
 
+  /// @docsEditable true
   EventListenerList get contextMenu => this['contextmenu'];
 
+  /// @docsEditable true
   EventListenerList get copy => this['copy'];
 
+  /// @docsEditable true
   EventListenerList get cut => this['cut'];
 
+  /// @docsEditable true
   EventListenerList get doubleClick => this['dblclick'];
 
+  /// @docsEditable true
   EventListenerList get drag => this['drag'];
 
+  /// @docsEditable true
   EventListenerList get dragEnd => this['dragend'];
 
+  /// @docsEditable true
   EventListenerList get dragEnter => this['dragenter'];
 
+  /// @docsEditable true
   EventListenerList get dragLeave => this['dragleave'];
 
+  /// @docsEditable true
   EventListenerList get dragOver => this['dragover'];
 
+  /// @docsEditable true
   EventListenerList get dragStart => this['dragstart'];
 
+  /// @docsEditable true
   EventListenerList get drop => this['drop'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get focus => this['focus'];
 
+  /// @docsEditable true
   EventListenerList get input => this['input'];
 
+  /// @docsEditable true
   EventListenerList get invalid => this['invalid'];
 
+  /// @docsEditable true
   EventListenerList get keyDown => this['keydown'];
 
+  /// @docsEditable true
   EventListenerList get keyPress => this['keypress'];
 
+  /// @docsEditable true
   EventListenerList get keyUp => this['keyup'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get mouseDown => this['mousedown'];
 
+  /// @docsEditable true
   EventListenerList get mouseMove => this['mousemove'];
 
+  /// @docsEditable true
   EventListenerList get mouseOut => this['mouseout'];
 
+  /// @docsEditable true
   EventListenerList get mouseOver => this['mouseover'];
 
+  /// @docsEditable true
   EventListenerList get mouseUp => this['mouseup'];
 
+  /// @docsEditable true
   EventListenerList get mouseWheel => this['mousewheel'];
 
+  /// @docsEditable true
   EventListenerList get paste => this['paste'];
 
+  /// @docsEditable true
   EventListenerList get reset => this['reset'];
 
+  /// @docsEditable true
   EventListenerList get scroll => this['scroll'];
 
+  /// @docsEditable true
   EventListenerList get search => this['search'];
 
+  /// @docsEditable true
   EventListenerList get select => this['select'];
 
+  /// @docsEditable true
   EventListenerList get selectStart => this['selectstart'];
 
+  /// @docsEditable true
   EventListenerList get submit => this['submit'];
 
+  /// @docsEditable true
   EventListenerList get touchCancel => this['touchcancel'];
 
+  /// @docsEditable true
   EventListenerList get touchEnd => this['touchend'];
 
+  /// @docsEditable true
   EventListenerList get touchEnter => this['touchenter'];
 
+  /// @docsEditable true
   EventListenerList get touchLeave => this['touchleave'];
 
+  /// @docsEditable true
   EventListenerList get touchMove => this['touchmove'];
 
+  /// @docsEditable true
   EventListenerList get touchStart => this['touchstart'];
 
+  /// @docsEditable true
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 
+  /// @docsEditable true
   EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
 
+  /// @docsEditable true
   EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9866,13 +9965,18 @@ class EventSource extends EventTarget {
 
 }
 
+/// @docsEditable true
 class EventSourceEvents extends Events {
+  /// @docsEditable true
   EventSourceEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10414,19 +10518,27 @@ class FileReader extends EventTarget {
 
 }
 
+/// @docsEditable true
 class FileReaderEvents extends Events {
+  /// @docsEditable true
   FileReaderEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get loadEnd => this['loadend'];
 
+  /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10586,19 +10698,27 @@ class FileWriter extends EventTarget {
 
 }
 
+/// @docsEditable true
 class FileWriterEvents extends Events {
+  /// @docsEditable true
   FileWriterEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
+  /// @docsEditable true
   EventListenerList get write => this['write'];
 
+  /// @docsEditable true
   EventListenerList get writeEnd => this['writeend'];
 
+  /// @docsEditable true
   EventListenerList get writeStart => this['writestart'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10994,7 +11114,7 @@ class FormData extends NativeFieldWrapperClass1 {
 
 
   /** @domName DOMFormData.append */
-  void append(String name, String value, String filename) native "DOMFormData_append_Callback";
+  void append(String name, value, [String filename]) native "DOMFormData_append_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11229,33 +11349,48 @@ class FrameSetElement extends _Element_Merged {
 
 }
 
+/// @docsEditable true
 class FrameSetElementEvents extends ElementEvents {
+  /// @docsEditable true
   FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get beforeUnload => this['beforeunload'];
 
+  /// @docsEditable true
   EventListenerList get blur => this['blur'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get focus => this['focus'];
 
+  /// @docsEditable true
   EventListenerList get hashChange => this['hashchange'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get offline => this['offline'];
 
+  /// @docsEditable true
   EventListenerList get online => this['online'];
 
+  /// @docsEditable true
   EventListenerList get popState => this['popstate'];
 
+  /// @docsEditable true
   EventListenerList get resize => this['resize'];
 
+  /// @docsEditable true
   EventListenerList get storage => this['storage'];
 
+  /// @docsEditable true
   EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12032,21 +12167,30 @@ class HttpRequest extends EventTarget {
 
 }
 
+/// @docsEditable true
 class HttpRequestEvents extends Events {
+  /// @docsEditable true
   HttpRequestEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get loadEnd => this['loadend'];
 
+  /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
+  /// @docsEditable true
   EventListenerList get readyStateChange => this['readystatechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12130,19 +12274,27 @@ class HttpRequestUpload extends EventTarget {
 
 }
 
+/// @docsEditable true
 class HttpRequestUploadEvents extends Events {
+  /// @docsEditable true
   HttpRequestUploadEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get loadEnd => this['loadend'];
 
+  /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12472,11 +12624,32 @@ class ImageElement extends _Element_Merged {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 /// @domName HTMLInputElement
-class InputElement extends _Element_Merged {
+class InputElement extends _Element_Merged implements
+    HiddenInputElement,
+    SearchInputElement,
+    TextInputElement,
+    UrlInputElement,
+    TelephoneInputElement,
+    EmailInputElement,
+    PasswordInputElement,
+    DateTimeInputElement,
+    DateInputElement,
+    MonthInputElement,
+    WeekInputElement,
+    TimeInputElement,
+    LocalDateTimeInputElement,
+    NumberInputElement,
+    RangeInputElement,
+    CheckboxInputElement,
+    RadioButtonInputElement,
+    FileUploadInputElement,
+    SubmitButtonInputElement,
+    ImageButtonInputElement,
+    ResetButtonInputElement,
+    ButtonInputElement
+     {
 
   ///@docsEditable true
   factory InputElement({String type}) {
@@ -12932,9 +13105,477 @@ class InputElement extends _Element_Merged {
 
 }
 
+
+// Interfaces representing the InputElement APIs which are supported
+// for the various types of InputElement.
+// From http://dev.w3.org/html5/spec/the-input-element.html#the-input-element.
+
+/**
+ * Exposes the functionality common between all InputElement types.
+ */
+abstract class InputElementBase implements Element {
+  /// @domName HTMLInputElement.autofocus
+  bool autofocus;
+
+  /// @domName HTMLInputElement.disabled
+  bool disabled;
+
+  /// @domName HTMLInputElement.incremental
+  bool incremental;
+
+  /// @domName HTMLInputElement.indeterminate
+  bool indeterminate;
+
+  /// @domName HTMLInputElement.labels
+  List<Node> get labels;
+
+  /// @domName HTMLInputElement.name
+  String name;
+
+  /// @domName HTMLInputElement.validationMessage
+  String get validationMessage;
+
+  /// @domName HTMLInputElement.validity
+  ValidityState get validity;
+
+  /// @domName HTMLInputElement.value
+  String value;
+
+  /// @domName HTMLInputElement.willValidate
+  bool get willValidate;
+
+  /// @domName HTMLInputElement.checkValidity
+  bool checkValidity();
+
+  /// @domName HTMLInputElement.setCustomValidity
+  void setCustomValidity(String error);
+}
+
+/**
+ * Hidden input which is not intended to be seen or edited by the user.
+ */
+abstract class HiddenInputElement implements Element {
+  factory HiddenInputElement() => new InputElement(type: 'hidden');
+}
+
+
+/**
+ * Base interface for all inputs which involve text editing.
+ */
+abstract class TextInputElementBase implements InputElementBase {
+  /// @domName HTMLInputElement.autocomplete
+  String autocomplete;
+
+  /// @domName HTMLInputElement.maxLength
+  int maxLength;
+
+  /// @domName HTMLInputElement.pattern
+  String pattern;
+
+  /// @domName HTMLInputElement.placeholder
+  String placeholder;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+
+  /// @domName HTMLInputElement.size
+  int size;
+
+  /// @domName HTMLInputElement.select
+  void select();
+
+  /// @domName HTMLInputElement.selectionDirection
+  String selectionDirection;
+
+  /// @domName HTMLInputElement.selectionEnd
+  int selectionEnd;
+
+  /// @domName HTMLInputElement.selectionStart
+  int selectionStart;
+
+  /// @domName HTMLInputElement.setSelectionRange
+  void setSelectionRange(int start, int end, [String direction]);
+}
+
+/**
+ * Similar to [TextInputElement], but on platforms where search is styled
+ * differently this will get the search style.
+ */
+abstract class SearchInputElement implements TextInputElementBase {
+  factory SearchInputElement() => new InputElement(type: 'search');
+
+  /// @domName HTMLInputElement.dirName;
+  String dirName;
+
+  /// @domName HTMLInputElement.list;
+  Element get list;
+}
+
+/**
+ * A basic text input editor control.
+ */
+abstract class TextInputElement implements TextInputElementBase {
+  factory TextInputElement() => new InputElement(type: 'text');
+
+  /// @domName HTMLInputElement.dirName;
+  String dirName;
+
+  /// @domName HTMLInputElement.list;
+  Element get list;
+}
+
+/**
+ * A control for editing an absolute URL.
+ */
+abstract class UrlInputElement implements TextInputElementBase {
+  factory UrlInputElement() => new InputElement(type: 'url');
+
+  /// @domName HTMLInputElement.list;
+  Element get list;
+}
+
+/**
+ * Represents a control for editing a telephone number.
+ *
+ * This provides a single line of text with minimal formatting help since
+ * there is a wide variety of telephone numbers.
+ */
+abstract class TelephoneInputElement implements TextInputElementBase {
+  factory TelephoneInputElement() => new InputElement(type: 'tel');
+
+  /// @domName HTMLInputElement.list;
+  Element get list;
+}
+
+/**
+ * An e-mail address or list of e-mail addresses.
+ */
+abstract class EmailInputElement implements TextInputElementBase {
+  factory EmailInputElement() => new InputElement(type: 'email');
+
+  /// @domName HTMLInputElement.autocomplete
+  String autocomplete;
+
+  /// @domName HTMLInputElement.autofocus
+  bool autofocus;
+
+  /// @domName HTMLInputElement.list;
+  Element get list;
+
+  /// @domName HTMLInputElement.maxLength
+  int maxLength;
+
+  /// @domName HTMLInputElement.multiple;
+  bool multiple;
+
+  /// @domName HTMLInputElement.pattern
+  String pattern;
+
+  /// @domName HTMLInputElement.placeholder
+  String placeholder;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+
+  /// @domName HTMLInputElement.size
+  int size;
+}
+
+/**
+ * Text with no line breaks (sensitive information).
+ */
+abstract class PasswordInputElement implements TextInputElementBase {
+  factory PasswordInputElement() => new InputElement(type: 'password');
+}
+
+/**
+ * Base interface for all input element types which involve ranges.
+ */
+abstract class RangeInputElementBase implements InputElementBase {
+
+  /// @domName HTMLInputElement.list
+  Element get list;
+
+  /// @domName HTMLInputElement.max
+  String max;
+
+  /// @domName HTMLInputElement.min
+  String min;
+
+  /// @domName HTMLInputElement.step
+  String step;
+
+  /// @domName HTMLInputElement.valueAsNumber
+  num valueAsNumber;
+
+  /// @domName HTMLInputElement.stepDown
+  void stepDown([int n]);
+
+  /// @domName HTMLInputElement.stepUp
+  void stepUp([int n]);
+}
+
+/**
+ * A date and time (year, month, day, hour, minute, second, fraction of a
+ * second) with the time zone set to UTC.
+ */
+abstract class DateTimeInputElement implements RangeInputElementBase {
+  factory DateTimeInputElement() => new InputElement(type: 'datetime');
+
+  /// @domName HTMLInputElement.valueAsDate
+  Date valueAsDate;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A date (year, month, day) with no time zone.
+ */
+abstract class DateInputElement implements RangeInputElementBase {
+  factory DateInputElement() => new InputElement(type: 'date');
+
+  /// @domName HTMLInputElement.valueAsDate
+  Date valueAsDate;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A date consisting of a year and a month with no time zone.
+ */
+abstract class MonthInputElement implements RangeInputElementBase {
+  factory MonthInputElement() => new InputElement(type: 'month');
+
+  /// @domName HTMLInputElement.valueAsDate
+  Date valueAsDate;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A date consisting of a week-year number and a week number with no time zone.
+ */
+abstract class WeekInputElement implements RangeInputElementBase {
+  factory WeekInputElement() => new InputElement(type: 'week');
+
+  /// @domName HTMLInputElement.valueAsDate
+  Date valueAsDate;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A time (hour, minute, seconds, fractional seconds) with no time zone.
+ */
+abstract class TimeInputElement implements RangeInputElementBase {
+  factory TimeInputElement() => new InputElement(type: 'time');
+
+  /// @domName HTMLInputElement.valueAsDate
+  Date valueAsDate;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A date and time (year, month, day, hour, minute, second, fraction of a
+ * second) with no time zone.
+ */
+abstract class LocalDateTimeInputElement implements RangeInputElementBase {
+  factory LocalDateTimeInputElement() =>
+      new InputElement(type: 'datetime-local');
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A numeric editor control.
+ */
+abstract class NumberInputElement implements RangeInputElementBase {
+  factory NumberInputElement() => new InputElement(type: 'number');
+
+  /// @domName HTMLInputElement.placeholder
+  String placeholder;
+
+  /// @domName HTMLInputElement.readOnly
+  bool readOnly;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * Similar to [NumberInputElement] but the browser may provide more optimal
+ * styling (such as a slider control).
+ */
+abstract class RangeInputElement implements RangeInputElementBase {
+  factory RangeInputElement() => new InputElement(type: 'range');
+}
+
+/**
+ * A boolean editor control.
+ *
+ * Note that if [indeterminate] is set then this control is in a third
+ * indeterminate state.
+ */
+abstract class CheckboxInputElement implements InputElementBase {
+  factory CheckboxInputElement() => new InputElement(type: 'checkbox');
+
+  /// @domName HTMLInputElement.checked
+  bool checked;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+
+/**
+ * A control that when used with other [ReadioButtonInputElement] controls
+ * forms a radio button group in which only one control can be checked at a
+ * time.
+ *
+ * Radio buttons are considered to be in the same radio button group if:
+ *
+ * * They are all of type 'radio'.
+ * * They all have either the same [FormElement] owner, or no owner.
+ * * Their name attributes contain the same name.
+ */
+abstract class RadioButtonInputElement implements InputElementBase {
+  factory RadioButtonInputElement() => new InputElement(type: 'radio');
+
+  /// @domName HTMLInputElement.checked
+  bool checked;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+}
+
+/**
+ * A control for picking files from the user's computer.
+ */
+abstract class FileUploadInputElement implements InputElementBase {
+  factory FileUploadInputElement() => new InputElement(type: 'file');
+
+  /// @domName HTMLInputElement.accept
+  String accept;
+
+  /// @domName HTMLInputElement.multiple
+  bool multiple;
+
+  /// @domName HTMLInputElement.required
+  bool required;
+
+  /// @domName HTMLInputElement.files
+  List<File> files;
+}
+
+/**
+ * A button, which when clicked, submits the form.
+ */
+abstract class SubmitButtonInputElement implements InputElementBase {
+  factory SubmitButtonInputElement() => new InputElement(type: 'submit');
+
+  /// @domName HTMLInputElement.formAction
+  String formAction;
+
+  /// @domName HTMLInputElement.formEnctype
+  String formEnctype;
+
+  /// @domName HTMLInputElement.formMethod
+  String formMethod;
+
+  /// @domName HTMLInputElement.formNoValidate
+  bool formNoValidate;
+
+  /// @domName HTMLInputElement.formTarget
+  String formTarget;
+}
+
+/**
+ * Either an image which the user can select a coordinate to or a form
+ * submit button.
+ */
+abstract class ImageButtonInputElement implements InputElementBase {
+  factory ImageButtonInputElement() => new InputElement(type: 'image');
+
+  /// @domName HTMLInputElement.alt
+  String alt;
+
+  /// @domName HTMLInputElement.formAction
+  String formAction;
+
+  /// @domName HTMLInputElement.formEnctype
+  String formEnctype;
+
+  /// @domName HTMLInputElement.formMethod
+  String formMethod;
+
+  /// @domName HTMLInputElement.formNoValidate
+  bool formNoValidate;
+
+  /// @domName HTMLInputElement.formTarget
+  String formTarget;
+
+  /// @domName HTMLInputElement.height
+  int height;
+
+  /// @domName HTMLInputElement.src
+  String src;
+
+  /// @domName HTMLInputElement.width
+  int width;
+}
+
+/**
+ * A button, which when clicked, resets the form.
+ */
+abstract class ResetButtonInputElement implements InputElementBase {
+  factory ResetButtonInputElement() => new InputElement(type: 'reset');
+}
+
+/**
+ * A button, with no default behavior.
+ */
+abstract class ButtonInputElement implements InputElementBase {
+  factory ButtonInputElement() => new InputElement(type: 'button');
+}
+
+
+/// @docsEditable true
 class InputElementEvents extends ElementEvents {
+  /// @docsEditable true
   InputElementEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get speechChange => this['webkitSpeechChange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14353,153 +14994,228 @@ class LocalWindow extends EventTarget implements Window {
 
 }
 
+/// @docsEditable true
 class LocalWindowEvents extends Events {
+  /// @docsEditable true
   LocalWindowEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
+  /// @docsEditable true
   EventListenerList get beforeUnload => this['beforeunload'];
 
+  /// @docsEditable true
   EventListenerList get blur => this['blur'];
 
+  /// @docsEditable true
   EventListenerList get canPlay => this['canplay'];
 
+  /// @docsEditable true
   EventListenerList get canPlayThrough => this['canplaythrough'];
 
+  /// @docsEditable true
   EventListenerList get change => this['change'];
 
+  /// @docsEditable true
   EventListenerList get click => this['click'];
 
+  /// @docsEditable true
   EventListenerList get contextMenu => this['contextmenu'];
 
+  /// @docsEditable true
   EventListenerList get doubleClick => this['dblclick'];
 
+  /// @docsEditable true
   EventListenerList get deviceMotion => this['devicemotion'];
 
+  /// @docsEditable true
   EventListenerList get deviceOrientation => this['deviceorientation'];
 
+  /// @docsEditable true
   EventListenerList get drag => this['drag'];
 
+  /// @docsEditable true
   EventListenerList get dragEnd => this['dragend'];
 
+  /// @docsEditable true
   EventListenerList get dragEnter => this['dragenter'];
 
+  /// @docsEditable true
   EventListenerList get dragLeave => this['dragleave'];
 
+  /// @docsEditable true
   EventListenerList get dragOver => this['dragover'];
 
+  /// @docsEditable true
   EventListenerList get dragStart => this['dragstart'];
 
+  /// @docsEditable true
   EventListenerList get drop => this['drop'];
 
+  /// @docsEditable true
   EventListenerList get durationChange => this['durationchange'];
 
+  /// @docsEditable true
   EventListenerList get emptied => this['emptied'];
 
+  /// @docsEditable true
   EventListenerList get ended => this['ended'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get focus => this['focus'];
 
+  /// @docsEditable true
   EventListenerList get hashChange => this['hashchange'];
 
+  /// @docsEditable true
   EventListenerList get input => this['input'];
 
+  /// @docsEditable true
   EventListenerList get invalid => this['invalid'];
 
+  /// @docsEditable true
   EventListenerList get keyDown => this['keydown'];
 
+  /// @docsEditable true
   EventListenerList get keyPress => this['keypress'];
 
+  /// @docsEditable true
   EventListenerList get keyUp => this['keyup'];
 
+  /// @docsEditable true
   EventListenerList get load => this['load'];
 
+  /// @docsEditable true
   EventListenerList get loadedData => this['loadeddata'];
 
+  /// @docsEditable true
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
+  /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get mouseDown => this['mousedown'];
 
+  /// @docsEditable true
   EventListenerList get mouseMove => this['mousemove'];
 
+  /// @docsEditable true
   EventListenerList get mouseOut => this['mouseout'];
 
+  /// @docsEditable true
   EventListenerList get mouseOver => this['mouseover'];
 
+  /// @docsEditable true
   EventListenerList get mouseUp => this['mouseup'];
 
+  /// @docsEditable true
   EventListenerList get mouseWheel => this['mousewheel'];
 
+  /// @docsEditable true
   EventListenerList get offline => this['offline'];
 
+  /// @docsEditable true
   EventListenerList get online => this['online'];
 
+  /// @docsEditable true
   EventListenerList get pageHide => this['pagehide'];
 
+  /// @docsEditable true
   EventListenerList get pageShow => this['pageshow'];
 
+  /// @docsEditable true
   EventListenerList get pause => this['pause'];
 
+  /// @docsEditable true
   EventListenerList get play => this['play'];
 
+  /// @docsEditable true
   EventListenerList get playing => this['playing'];
 
+  /// @docsEditable true
   EventListenerList get popState => this['popstate'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
+  /// @docsEditable true
   EventListenerList get rateChange => this['ratechange'];
 
+  /// @docsEditable true
   EventListenerList get reset => this['reset'];
 
+  /// @docsEditable true
   EventListenerList get resize => this['resize'];
 
+  /// @docsEditable true
   EventListenerList get scroll => this['scroll'];
 
+  /// @docsEditable true
   EventListenerList get search => this['search'];
 
+  /// @docsEditable true
   EventListenerList get seeked => this['seeked'];
 
+  /// @docsEditable true
   EventListenerList get seeking => this['seeking'];
 
+  /// @docsEditable true
   EventListenerList get select => this['select'];
 
+  /// @docsEditable true
   EventListenerList get stalled => this['stalled'];
 
+  /// @docsEditable true
   EventListenerList get storage => this['storage'];
 
+  /// @docsEditable true
   EventListenerList get submit => this['submit'];
 
+  /// @docsEditable true
   EventListenerList get suspend => this['suspend'];
 
+  /// @docsEditable true
   EventListenerList get timeUpdate => this['timeupdate'];
 
+  /// @docsEditable true
   EventListenerList get touchCancel => this['touchcancel'];
 
+  /// @docsEditable true
   EventListenerList get touchEnd => this['touchend'];
 
+  /// @docsEditable true
   EventListenerList get touchMove => this['touchmove'];
 
+  /// @docsEditable true
   EventListenerList get touchStart => this['touchstart'];
 
+  /// @docsEditable true
   EventListenerList get unload => this['unload'];
 
+  /// @docsEditable true
   EventListenerList get volumeChange => this['volumechange'];
 
+  /// @docsEditable true
   EventListenerList get waiting => this['waiting'];
 
+  /// @docsEditable true
   EventListenerList get animationEnd => this['webkitAnimationEnd'];
 
+  /// @docsEditable true
   EventListenerList get animationIteration => this['webkitAnimationIteration'];
 
+  /// @docsEditable true
   EventListenerList get animationStart => this['webkitAnimationStart'];
 
+  /// @docsEditable true
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15029,57 +15745,84 @@ class MediaElement extends _Element_Merged {
 
 }
 
+/// @docsEditable true
 class MediaElementEvents extends ElementEvents {
+  /// @docsEditable true
   MediaElementEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get canPlay => this['canplay'];
 
+  /// @docsEditable true
   EventListenerList get canPlayThrough => this['canplaythrough'];
 
+  /// @docsEditable true
   EventListenerList get durationChange => this['durationchange'];
 
+  /// @docsEditable true
   EventListenerList get emptied => this['emptied'];
 
+  /// @docsEditable true
   EventListenerList get ended => this['ended'];
 
+  /// @docsEditable true
   EventListenerList get loadedData => this['loadeddata'];
 
+  /// @docsEditable true
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
+  /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
+  /// @docsEditable true
   EventListenerList get pause => this['pause'];
 
+  /// @docsEditable true
   EventListenerList get play => this['play'];
 
+  /// @docsEditable true
   EventListenerList get playing => this['playing'];
 
+  /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
+  /// @docsEditable true
   EventListenerList get rateChange => this['ratechange'];
 
+  /// @docsEditable true
   EventListenerList get seeked => this['seeked'];
 
+  /// @docsEditable true
   EventListenerList get seeking => this['seeking'];
 
+  /// @docsEditable true
   EventListenerList get show => this['show'];
 
+  /// @docsEditable true
   EventListenerList get stalled => this['stalled'];
 
+  /// @docsEditable true
   EventListenerList get suspend => this['suspend'];
 
+  /// @docsEditable true
   EventListenerList get timeUpdate => this['timeupdate'];
 
+  /// @docsEditable true
   EventListenerList get volumeChange => this['volumechange'];
 
+  /// @docsEditable true
   EventListenerList get waiting => this['waiting'];
 
+  /// @docsEditable true
   EventListenerList get keyAdded => this['webkitkeyadded'];
 
+  /// @docsEditable true
   EventListenerList get keyError => this['webkitkeyerror'];
 
+  /// @docsEditable true
   EventListenerList get keyMessage => this['webkitkeymessage'];
 
+  /// @docsEditable true
   EventListenerList get needKey => this['webkitneedkey'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15367,9 +16110,12 @@ class MediaStream extends EventTarget {
 
 }
 
+/// @docsEditable true
 class MediaStreamEvents extends Events {
+  /// @docsEditable true
   MediaStreamEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get ended => this['ended'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15443,13 +16189,18 @@ class MediaStreamTrack extends EventTarget {
 
 }
 
+/// @docsEditable true
 class MediaStreamTrackEvents extends Events {
+  /// @docsEditable true
   MediaStreamTrackEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get ended => this['ended'];
 
+  /// @docsEditable true
   EventListenerList get mute => this['mute'];
 
+  /// @docsEditable true
   EventListenerList get unmute => this['unmute'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15513,11 +16264,15 @@ class MediaStreamTrackList extends EventTarget {
 
 }
 
+/// @docsEditable true
 class MediaStreamTrackListEvents extends Events {
+  /// @docsEditable true
   MediaStreamTrackListEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get addTrack => this['addtrack'];
 
+  /// @docsEditable true
   EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15663,9 +16418,12 @@ class MessagePort extends EventTarget {
 
 }
 
+/// @docsEditable true
 class MessagePortEvents extends Events {
+  /// @docsEditable true
   MessagePortEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16540,9 +17298,9 @@ class Node extends EventTarget {
   void remove() {
     // TODO(jacobr): should we throw an exception if parent is already null?
     // TODO(vsm): Use the native remove when available.
-    if (this.parent != null) {
-      final Node parent = this.parent;
-      parent.$dom_removeChild(this);
+    if (this.parentNode != null) {
+      final Node parent = this.parentNode;
+      parentNode.$dom_removeChild(this);
     }
   }
 
@@ -16552,7 +17310,7 @@ class Node extends EventTarget {
    */
   Node replaceWith(Node otherNode) {
     try {
-      final Node parent = this.parent;
+      final Node parent = this.parentNode;
       parent.$dom_replaceChild(otherNode, this);
     } catch (e) {
 
@@ -16635,8 +17393,12 @@ class Node extends EventTarget {
   Document get document native "Node_ownerDocument_Getter";
 
 
+  /** @domName Node.parentElement */
+  Element get parent native "Node_parentElement_Getter";
+
+
   /** @domName Node.parentNode */
-  Node get parent native "Node_parentNode_Getter";
+  Node get parentNode native "Node_parentNode_Getter";
 
 
   /** @domName Node.previousSibling */
@@ -17008,17 +17770,24 @@ class Notification extends EventTarget {
 
 }
 
+/// @docsEditable true
 class NotificationEvents extends Events {
+  /// @docsEditable true
   NotificationEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get click => this['click'];
 
+  /// @docsEditable true
   EventListenerList get close => this['close'];
 
+  /// @docsEditable true
   EventListenerList get display => this['display'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get show => this['show'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17782,17 +18551,24 @@ class PeerConnection00 extends EventTarget {
 
 }
 
+/// @docsEditable true
 class PeerConnection00Events extends Events {
+  /// @docsEditable true
   PeerConnection00Events(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get addStream => this['addstream'];
 
+  /// @docsEditable true
   EventListenerList get connecting => this['connecting'];
 
+  /// @docsEditable true
   EventListenerList get open => this['open'];
 
+  /// @docsEditable true
   EventListenerList get removeStream => this['removestream'];
 
+  /// @docsEditable true
   EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18559,15 +19335,21 @@ class RtcDataChannel extends EventTarget {
 
 }
 
+/// @docsEditable true
 class RtcDataChannelEvents extends Events {
+  /// @docsEditable true
   RtcDataChannelEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get close => this['close'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18734,21 +19516,30 @@ class RtcPeerConnection extends EventTarget {
 
 }
 
+/// @docsEditable true
 class RtcPeerConnectionEvents extends Events {
+  /// @docsEditable true
   RtcPeerConnectionEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get addStream => this['addstream'];
 
+  /// @docsEditable true
   EventListenerList get iceCandidate => this['icecandidate'];
 
+  /// @docsEditable true
   EventListenerList get iceChange => this['icechange'];
 
+  /// @docsEditable true
   EventListenerList get negotiationNeeded => this['negotiationneeded'];
 
+  /// @docsEditable true
   EventListenerList get open => this['open'];
 
+  /// @docsEditable true
   EventListenerList get removeStream => this['removestream'];
 
+  /// @docsEditable true
   EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19360,9 +20151,12 @@ class SharedWorkerContext extends WorkerContext {
 
 }
 
+/// @docsEditable true
 class SharedWorkerContextEvents extends WorkerContextEvents {
+  /// @docsEditable true
   SharedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get connect => this['connect'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19889,29 +20683,42 @@ class SpeechRecognition extends EventTarget {
 
 }
 
+/// @docsEditable true
 class SpeechRecognitionEvents extends Events {
+  /// @docsEditable true
   SpeechRecognitionEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get audioEnd => this['audioend'];
 
+  /// @docsEditable true
   EventListenerList get audioStart => this['audiostart'];
 
+  /// @docsEditable true
   EventListenerList get end => this['end'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get noMatch => this['nomatch'];
 
+  /// @docsEditable true
   EventListenerList get result => this['result'];
 
+  /// @docsEditable true
   EventListenerList get soundEnd => this['soundend'];
 
+  /// @docsEditable true
   EventListenerList get soundStart => this['soundstart'];
 
+  /// @docsEditable true
   EventListenerList get speechEnd => this['speechend'];
 
+  /// @docsEditable true
   EventListenerList get speechStart => this['speechstart'];
 
+  /// @docsEditable true
   EventListenerList get start => this['start'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21408,9 +22215,12 @@ class TextTrack extends EventTarget {
 
 }
 
+/// @docsEditable true
 class TextTrackEvents extends Events {
+  /// @docsEditable true
   TextTrackEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get cueChange => this['cuechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21541,11 +22351,15 @@ class TextTrackCue extends EventTarget {
 
 }
 
+/// @docsEditable true
 class TextTrackCueEvents extends Events {
+  /// @docsEditable true
   TextTrackCueEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get enter => this['enter'];
 
+  /// @docsEditable true
   EventListenerList get exit => this['exit'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21809,9 +22623,12 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
 }
 
+/// @docsEditable true
 class TextTrackListEvents extends Events {
+  /// @docsEditable true
   TextTrackListEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get addTrack => this['addtrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24805,15 +25622,21 @@ class WebSocket extends EventTarget {
 
 }
 
+/// @docsEditable true
 class WebSocketEvents extends Events {
+  /// @docsEditable true
   WebSocketEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get close => this['close'];
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 
+  /// @docsEditable true
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24878,9 +25701,12 @@ class Worker extends AbstractWorker {
 
 }
 
+/// @docsEditable true
 class WorkerEvents extends AbstractWorkerEvents {
+  /// @docsEditable true
   WorkerEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24984,9 +25810,12 @@ class WorkerContext extends EventTarget {
 
 }
 
+/// @docsEditable true
 class WorkerContextEvents extends Events {
+  /// @docsEditable true
   WorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
+  /// @docsEditable true
   EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27549,7 +28378,7 @@ class KeyboardEventController {
   String _type;
 
   /** The element we are watching for events to happen on. */
-  Element _target;
+  EventTarget _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
   final int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
@@ -27608,7 +28437,7 @@ class KeyboardEventController {
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventController(Element target, String type) {
+  _KeyboardEventController(EventTarget target, String type) {
     _callbacks = [];
     _type = type;
     _target = target;

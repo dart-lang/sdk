@@ -87,6 +87,43 @@ HttpServer setupServer() {
      }
   );
 
+  // Setup redirect for 301 where POST should not redirect.
+  server.addRequestHandler(
+     (HttpRequest request) => request.path == "/301src",
+     (HttpRequest request, HttpResponse response) {
+       Expect.equals("POST", request.method);
+       response.headers.set(HttpHeaders.LOCATION,
+                            "http://127.0.0.1:${server.port}/301target");
+       response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+       response.outputStream.close();
+     }
+  );
+  server.addRequestHandler(
+     (HttpRequest request) => request.path == "/301target",
+     (HttpRequest request, HttpResponse response) {
+       Expect.fail("Redirect of POST should not happen");
+     }
+  );
+
+  // Setup redirect for 303 where POST should turn into GET.
+  server.addRequestHandler(
+     (HttpRequest request) => request.path == "/303src",
+     (HttpRequest request, HttpResponse response) {
+       Expect.equals("POST", request.method);
+       response.headers.set(HttpHeaders.LOCATION,
+                            "http://127.0.0.1:${server.port}/303target");
+       response.statusCode = HttpStatus.SEE_OTHER;
+       response.outputStream.close();
+     }
+  );
+  server.addRequestHandler(
+     (HttpRequest request) => request.path == "/303target",
+     (HttpRequest request, HttpResponse response) {
+       Expect.equals("GET", request.method);
+       response.outputStream.close();
+     }
+  );
+
   return server;
 }
 
@@ -212,6 +249,66 @@ void testAutoRedirectWithHeaders() {
   conn.onError = (e) => Expect.fail("Error not expected ($e)");
 }
 
+void testAutoRedirect301POST() {
+  HttpServer server = setupServer();
+  HttpClient client = new HttpClient();
+
+  var requestCount = 0;
+
+  void onRequest(HttpClientRequest request) {
+    requestCount++;
+    request.outputStream.close();
+  };
+
+  void onResponse(HttpClientResponse response) {
+    Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
+    response.inputStream.onData =
+        () => Expect.fail("Response data not expected");
+    response.inputStream.onClosed = () {
+      Expect.equals(1, requestCount);
+      server.close();
+      client.shutdown();
+    };
+  };
+
+  HttpClientConnection conn =
+      client.postUrl(
+          new Uri.fromString("http://127.0.0.1:${server.port}/301src"));
+  conn.onRequest = onRequest;
+  conn.onResponse = onResponse;
+  conn.onError = (e) => Expect.fail("Error not expected ($e)");
+}
+
+void testAutoRedirect303POST() {
+  HttpServer server = setupServer();
+  HttpClient client = new HttpClient();
+
+  var requestCount = 0;
+
+  void onRequest(HttpClientRequest request) {
+    requestCount++;
+    request.outputStream.close();
+  };
+
+  void onResponse(HttpClientResponse response) {
+    Expect.equals(HttpStatus.OK, response.statusCode);
+    response.inputStream.onData =
+        () => Expect.fail("Response data not expected");
+    response.inputStream.onClosed = () {
+      Expect.equals(1, requestCount);
+      server.close();
+      client.shutdown();
+    };
+  };
+
+  HttpClientConnection conn =
+      client.postUrl(
+          new Uri.fromString("http://127.0.0.1:${server.port}/303src"));
+  conn.onRequest = onRequest;
+  conn.onResponse = onResponse;
+  conn.onError = (e) => Expect.fail("Error not expected ($e)");
+}
+
 void testAutoRedirectLimit() {
   HttpServer server = setupServer();
   HttpClient client = new HttpClient();
@@ -254,6 +351,8 @@ main() {
   testManualRedirectWithHeaders();
   testAutoRedirect();
   testAutoRedirectWithHeaders();
+  testAutoRedirect301POST();
+  testAutoRedirect303POST();
   testAutoRedirectLimit();
   testRedirectLoop();
 }

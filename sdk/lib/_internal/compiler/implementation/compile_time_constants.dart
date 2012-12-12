@@ -75,11 +75,6 @@ class ConstantHandler extends CompilerTask {
     SourceString helperName = const SourceString('createRuntimeType');
     createRuntimeTypeFunction = compiler.findHelper(helperName);
     registerStaticUse(createRuntimeTypeFunction);
-    // TODO(kasperl): It looks a bit fishy that we have to register
-    // this in the resolution queue too. Can we do this in the
-    // resolver instead? That would be more consistent with how we
-    // register all the other resolution work items.
-    compiler.enqueuer.resolution.registerStaticUse(createRuntimeTypeFunction);
   }
 
   /**

@@ -40,10 +40,11 @@
   V(Socket_GetError, 1)                                                        \
   V(Socket_GetStdioHandle, 2)                                                  \
   V(Socket_NewServicePort, 0)                                                  \
-  V(SecureSocket_Connect, 5)                                                   \
+  V(SecureSocket_Connect, 8)                                                   \
   V(SecureSocket_Destroy, 1)                                                   \
   V(SecureSocket_Handshake, 1)                                                 \
   V(SecureSocket_Init, 1)                                                      \
+  V(SecureSocket_PeerCertificate, 1)                                           \
   V(SecureSocket_ProcessBuffer, 2)                                             \
   V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \

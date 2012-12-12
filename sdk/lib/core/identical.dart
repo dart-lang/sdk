@@ -5,4 +5,4 @@
 /**
  * Check whether two references are to the same object.
  */
-bool identical(Object a, Object b) => a === b;
+external bool identical(Object a, Object b);

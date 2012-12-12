@@ -6,12 +6,13 @@ library entrypoint;
 
 import 'io.dart';
 import 'lock_file.dart';
+import 'log.dart' as log;
 import 'package.dart';
 import 'root_source.dart';
 import 'system_cache.dart';
+import 'utils.dart';
 import 'version.dart';
 import 'version_solver.dart';
-import 'utils.dart';
 
 /**
  * Pub operates over a directed graph of dependencies that starts at a root
@@ -87,6 +88,7 @@ class Entrypoint {
       if (!exists) return new Future.immediate(null);
       // TODO(nweiz): figure out when to actually delete the directory, and when
       // we can just re-use the existing symlink.
+      log.fine("Deleting package directory for ${id.name} before install.");
       return deleteDir(packageDir);
     }).chain((_) {
       if (id.source.shouldCache) {
@@ -165,26 +167,18 @@ class Entrypoint {
    * warning message and act as though the file doesn't exist.
    */
   Future<LockFile> _loadLockFile() {
-    var completer = new Completer<LockFile>();
     var lockFilePath = join(root.dir, 'pubspec.lock');
-    var future = readTextFile(lockFilePath);
 
-    future.handleException((_) {
-      // If we failed to load the lockfile but it does exist, something's
-      // probably wrong and we should notify the user.
-      fileExists(lockFilePath).transform((exists) {
-        if (!exists) return;
-        printError("Error reading pubspec.lock: ${future.exception}");
-      }).then((_) {
-        completer.complete(new LockFile.empty());
-      });
+    log.fine("Loading lockfile.");
+    return fileExists(lockFilePath).chain((exists) {
+      if (!exists) {
+        log.fine("No lock file at $lockFilePath, creating empty one.");
+        return new Future<LockFile>.immediate(new LockFile.empty());
+      }
 
-      return true;
+      return readTextFile(lockFilePath).transform((text) =>
+          new LockFile.parse(text, cache.sources));
     });
-
-    future.then((text) =>
-        completer.complete(new LockFile.parse(text, cache.sources)));
-    return completer.future;
   }
 
   /**
@@ -196,7 +190,9 @@ class Entrypoint {
       if (id.source is! RootSource) lockFile.packages[id.name] = id;
     }
 
-    return writeTextFile(join(root.dir, 'pubspec.lock'), lockFile.serialize());
+    var lockFilePath = join(root.dir, 'pubspec.lock');
+    log.fine("Saving lockfile.");
+    return writeTextFile(lockFilePath, lockFile.serialize());
   }
 
   /**

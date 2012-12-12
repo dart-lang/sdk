@@ -207,7 +207,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction handleInterceptorCall(HInvokeDynamic node) {
-    if (node is !HInvokeDynamicMethod) return;
+    if (node is !HInvokeDynamicMethod) return null;
     HInstruction input = node.inputs[1];
     if (input.isString(types)
         && node.selector.name == const SourceString('toString')) {
@@ -511,8 +511,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitIs(HIs node) {
     DartType type = node.typeExpression;
     Element element = type.element;
-    if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
+    if (element.isTypeVariable()) {
       compiler.unimplemented("visitIs for type variables");
+    } if (element.isTypedef()) {
+      return node;
     }
 
     HType expressionType = types[node.expression];
@@ -741,10 +743,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     if (constantInterceptor == null) return node;
 
-    ConstantHandler handler = compiler.constantHandler;
     Constant constant = new ConstructedConstant(
         constantInterceptor.computeType(compiler), <Constant>[]);
-    handler.registerCompileTimeConstant(constant);
     return graph.addConstant(constant);
   }
 }

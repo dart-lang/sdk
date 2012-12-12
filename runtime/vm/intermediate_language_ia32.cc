@@ -353,7 +353,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    deopt_id,
                                    token_pos);
   }
-  const String& operator_name = String::ZoneHandle(Symbols::EqualOperator());
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;
@@ -362,9 +361,9 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label check_identity;
   __ cmpl(Address(ESP, 0 * kWordSize), raw_null);
-  __ j(EQUAL, &check_identity, Assembler::kNearJump);
+  __ j(EQUAL, &check_identity);
   __ cmpl(Address(ESP, 1 * kWordSize), raw_null);
-  __ j(EQUAL, &check_identity, Assembler::kNearJump);
+  __ j(EQUAL, &check_identity);
 
   ICData& equality_ic_data = ICData::ZoneHandle();
   if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
@@ -378,7 +377,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     }
   } else {
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
-                                   operator_name,
+                                   Symbols::EqualOperatorHandle(),
                                    deopt_id,
                                    kNumArgumentsChecked);
   }
@@ -1748,6 +1747,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
     compiler->SaveLiveRegisters(instruction_->locs());
     compiler->GenerateCallRuntime(instruction_->token_pos(),
@@ -2084,6 +2084,7 @@ class BoxDoubleSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("BoxDoubleSlowPath");
     __ Bind(entry_label());
     const Class& double_class = compiler->double_class();
     const Code& stub =
@@ -2560,6 +2561,7 @@ class BoxIntegerSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("BoxIntegerSlowPath");
     __ Bind(entry_label());
     const Class& mint_class =
         Class::ZoneHandle(Isolate::Current()->object_store()->mint_class());

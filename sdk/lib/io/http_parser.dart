@@ -326,13 +326,10 @@ class _HttpParser {
           case _State.RESPONSE_LINE_ENDING:
             _expect(byte, _CharCode.LF);
             _messageType == _MessageType.RESPONSE;
-             _statusCode = parseInt(new String.fromCharCodes(_method_or_status_code));
+             _statusCode = parseInt(
+                 new String.fromCharCodes(_method_or_status_code));
             if (_statusCode < 100 || _statusCode > 599) {
               throw new HttpParserException("Invalid response status code");
-            } else {
-              // Check whether this response will never have a body.
-              _noMessageBody =
-                  _statusCode <= 199 || _statusCode == 204 || _statusCode == 304;
             }
             _state = _State.HEADER_START;
             break;
@@ -443,34 +440,37 @@ class _HttpParser {
             if (_connectionUpgrade) {
               _state = _State.UPGRADED;
             }
+            var noBody;
             if (_requestParser) {
+              noBody = _contentLength == 0;
               requestStart(new String.fromCharCodes(_method_or_status_code),
                            new String.fromCharCodes(_uri_or_reason_phrase),
                            version,
-                           _headers);
+                           _headers,
+                           !noBody);
             } else {
+              // Check whether this response will never have a body.
+              noBody = _contentLength == 0 ||
+                       _statusCode <= 199 ||
+                       _statusCode == HttpStatus.NO_CONTENT ||
+                       _statusCode == HttpStatus.NOT_MODIFIED ||
+                       _responseToMethod == "HEAD";
               responseStart(_statusCode,
                             new String.fromCharCodes(_uri_or_reason_phrase),
                             version,
-                            _headers);
+                            _headers,
+                            !noBody);
             }
-            if (_state == _State.CANCELED) continue;
             _method_or_status_code.clear();
             _uri_or_reason_phrase.clear();
+            if (_state == _State.CANCELED) continue;
             if (!_connectionUpgrade) {
-              _method_or_status_code.clear();
-              _uri_or_reason_phrase.clear();
-              if (_chunked) {
+              if (noBody) {
+                _bodyEnd();
+                _reset();
+              } else if (_chunked) {
                 _state = _State.CHUNK_SIZE;
                 _remainingContent = 0;
-              } else if (_contentLength == 0 ||
-                         (_messageType == _MessageType.RESPONSE &&
-                          (_noMessageBody || _responseToMethod == "HEAD"))) {
-                // If there is no message body get ready to process the
-                // next request.
-                _bodyEnd();
-                if (_state == _State.CANCELED) continue;
-                _reset();
               } else if (_contentLength > 0) {
                 _remainingContent = _contentLength;
                 _state = _State.BODY;
@@ -691,7 +691,6 @@ class _HttpParser {
     _connectionUpgrade = false;
     _chunked = false;
 
-    _noMessageBody = false;
     _responseToMethod = null;
     _remainingContent = null;
 
@@ -771,7 +770,6 @@ class _HttpParser {
   bool _connectionUpgrade;
   bool _chunked;
 
-  bool _noMessageBody;
   String _responseToMethod;  // Indicates the method used for the request.
   int _remainingContent;
 

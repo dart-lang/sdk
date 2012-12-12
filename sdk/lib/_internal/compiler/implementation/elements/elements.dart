@@ -58,8 +58,6 @@ class ElementCategory {
   static const int TYPE_VARIABLE = 128;
 
   static const int IMPLIES_TYPE = CLASS | ALIAS | TYPE_VARIABLE;
-
-  static const int IS_EXTENDABLE = CLASS | ALIAS;
 }
 
 class ElementKind {
@@ -191,7 +189,6 @@ class Element implements Spannable {
   bool isAccessor() => isGetter() || isSetter();
   bool isLibrary() => identical(kind, ElementKind.LIBRARY);
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
-  bool isExtendable() => (kind.category & ElementCategory.IS_EXTENDABLE) != 0;
 
   /** See [ErroneousElement] for documentation. */
   bool isErroneous() => false;
@@ -350,11 +347,19 @@ class Element implements Spannable {
     }
   }
 
-  String _nativeName = null;
-  bool isNative() => _nativeName != null;
-  String nativeName() => _nativeName;
-  /// Marks this element as a native element.
-  void setNative(String name) { _nativeName = name; }
+  String _fixedBackendName = null;
+  bool _isNative = false;
+  bool isNative() => _isNative;
+  bool hasFixedBackendName() => _fixedBackendName != null;
+  String fixedBackendName() => _fixedBackendName;
+  // Marks this element as a native element.
+  void setNative(String name) {
+    _isNative = true;
+    _fixedBackendName = name;
+  }
+  void setFixedBackendName(String name) {
+    _fixedBackendName = name;
+  }
 
   FunctionElement asFunctionElement() => null;
 
@@ -1756,6 +1761,9 @@ abstract class ClassElement extends ScopeContainerElement
 
   bool isInterface() => false;
   bool isNative() => nativeTagInfo != null;
+  void setNative(String name) {
+    nativeTagInfo = new SourceString(name);
+  }
   int get hashCode => id;
 
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
@@ -1855,6 +1863,16 @@ class Elements {
     String r = receiver.slowToString();
     String s = selector.slowToString();
     return new SourceString('$r\$$s');
+  }
+
+  static SourceString deconstructConstructorName(SourceString name,
+                                                 ClassElement holder) {
+    String r = '${holder.name.slowToString()}\$';
+    String s = name.slowToString();
+    if (s.startsWith(r)) {
+      return new SourceString(s.substring(r.length));
+    }
+    return null;
   }
 
   /**

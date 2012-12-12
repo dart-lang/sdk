@@ -99,7 +99,7 @@ def TestStepName(name, flags):
   flags = [x for x in flags if not '=' in x]
   return ('%s tests %s' % (name, ' '.join(flags))).strip()
 
-
+IsFirstTestStepCall = True
 def TestStep(name, mode, system, compiler, runtime, targets, flags):
   step_name = TestStepName(name, flags)
   with bot.BuildStep(step_name, swallow_error=True):
@@ -121,10 +121,20 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
                 '--use-sdk',
                 '--report'])
 
+    # TODO(ricow/kustermann): Issue 7339
+    if runtime == "safari":
+      cmd.append('--nobatch')
+
     if user_test == 'yes':
       cmd.append('--progress=color')
     else:
       cmd.extend(['--progress=buildbot', '-v'])
+
+    global IsFirstTestStepCall
+    if IsFirstTestStepCall:
+      IsFirstTestStepCall = False
+    else:
+      cmd.append('--append_flaky_log')
 
     if flags:
       cmd.extend(flags)

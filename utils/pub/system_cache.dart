@@ -10,6 +10,7 @@ import 'git_source.dart';
 import 'hosted_source.dart';
 import 'io.dart';
 import 'io.dart' as io show createTempDir;
+import 'log.dart' as log;
 import 'package.dart';
 import 'sdk_source.dart';
 import 'source.dart';
@@ -102,6 +103,7 @@ class SystemCache {
 
   /// Delete's the system cache's internal temp directory.
   Future deleteTempDir() {
+    log.fine('Clean up system cache temp directory $tempDir.');
     return dirExists(tempDir).chain((exists) {
       if (!exists) return new Future.immediate(null);
       return deleteDir(tempDir);

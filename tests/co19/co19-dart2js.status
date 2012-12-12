@@ -68,7 +68,6 @@ Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(ahe): Please t
 Language/11_Expressions/18_Assignment_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/18_Assignment_A08_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/19_Conditional_A01_t14: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/19_Conditional_A01_t15: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # TODO(ahe): Please triage this failure.
@@ -132,12 +131,8 @@ Language/12_Statements/14_Continue_A02_t13: Fail # TODO(ahe): Please triage this
 Language/13_Libraries_and_Scripts/1_Imports_A02_t14: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t27: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t28: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t51: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A06_t02: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/3_Parts_A03_t02: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t20: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t21: Fail # TODO(ahe): Please triage this failure.
@@ -148,34 +143,19 @@ Language/13_Libraries_and_Scripts/5_URIs_A01_t11: Fail # TODO(ahe): Please triag
 Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t24: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t25: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t05: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t06: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t07: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A01_t04: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t10: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A02_t02: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A02_t04: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A02_t05: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A02_t06: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A02_t07: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A02_t08: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A02_t09: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A02_t10: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A03_t02: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A03_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t06: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t07: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t08: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A03_t09: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t10: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t11: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A03_t12: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A03_t13: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules_A01_t11: Fail # TODO(ahe): Please triage this failure.
@@ -200,8 +180,6 @@ LibTest/math/exp_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
-
-Language/09_Generics/09_Generics_A05_t01: Fail # TODO(johnniwinther): Please triage this failure.
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/double/round_A01_t01: Fail # TODO(ahe): Triage these tests.
@@ -272,13 +250,6 @@ LibTest/core/TypeError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage 
 LibTest/core/TypeError/line_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/srcType_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
-
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Checked mode failure for noSuchMethod type.
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Checked mode failure for noSuchMethod type.
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # Checked mode failure for noSuchMethod type.
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # Checked mode failure for noSuchMethod type.
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t01: Fail # Checked mode failure for noSuchMethod type.
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t02: Fail # Checked mode failure for noSuchMethod type.
 
 Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # http://dartbug.com/3970
 
@@ -586,9 +557,6 @@ Language/14_Types/5_Function_Types_A01_t03: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t05: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t06: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t07: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t08: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t09: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t11: Fail # http://dartbug.com/5022
 
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5683
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5683
@@ -614,3 +582,14 @@ Language/14_Types/4_Interface_Types_A12_t09: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A12_t10: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A12_t14: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A12_t16 :Fail # http://dartbug.com/5020
+
+Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t01: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t02: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t03: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t04: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t05: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # http://dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # http://dartbug.com/7202

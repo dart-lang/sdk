@@ -125,4 +125,6 @@ abstract class BaseRequest {
     if (!finalized) return;
     throw new StateError("Can't modify a finalized Request.");
   }
+
+  String toString() => "$method $url";
 }

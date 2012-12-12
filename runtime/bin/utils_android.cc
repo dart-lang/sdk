@@ -27,18 +27,38 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   }
 }
 
-const char* StringUtils::SystemStringToUtf8(const char* str) {
+const char* StringUtils::ConsoleStringToUtf8(const char* str) {
   return str;
 }
 
-const char* StringUtils::Utf8ToSystemString(const char* utf8) {
+const char* StringUtils::Utf8ToConsoleString(const char* utf8) {
   return utf8;
 }
 
-char* StringUtils::SystemStringToUtf8(char* str) {
+char* StringUtils::ConsoleStringToUtf8(char* str) {
   return str;
 }
 
-char* StringUtils::Utf8ToSystemString(char* utf8) {
+char* StringUtils::Utf8ToConsoleString(char* utf8) {
   return utf8;
+}
+
+wchar_t* StringUtils::Utf8ToWide(char* utf8) {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+const wchar_t* StringUtils::Utf8ToWide(const char* utf8) {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+char* StringUtils::WideToUtf8(wchar_t* str) {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+const char* StringUtils::WideToUtf8(const wchar_t* str) {
+  UNIMPLEMENTED();
+  return NULL;
 }

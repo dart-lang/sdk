@@ -1337,8 +1337,14 @@ class NodeListener extends ElementListener {
     Node receiver = popNode();
     String tokenString = token.stringValue;
     if (identical(tokenString, '.') || identical(tokenString, '..')) {
-      if (argument is !Send) internalError(node: argument);
-      if (argument.asSend().receiver != null) internalError(node: argument);
+      Send argumentSend = argument.asSend();
+      if (argumentSend == null) {
+        // TODO(ahe): The parser should diagnose this problem, not
+        // this listener.
+        listener.cancel('Syntax error: Expected an identifier.',
+                        node: argument);
+      }
+      if (argumentSend.receiver != null) internalError(node: argument);
       if (argument is SendSet) internalError(node: argument);
       pushNode(argument.asSend().copyWithReceiver(receiver));
     } else {
@@ -1369,8 +1375,9 @@ class NodeListener extends ElementListener {
     Node arg = popNode();
     Node node = popNode();
     Send send = node.asSend();
-    if (send == null) internalError(node: node);
-    if (!(send.isPropertyAccess || send.isIndex)) internalError(node: send);
+    if (send == null || !(send.isPropertyAccess || send.isIndex)) {
+      reportNotAssignable(node);
+    }
     if (send.asSendSet() != null) internalError(node: send);
     NodeList arguments;
     if (send.isIndex) {
@@ -1382,6 +1389,12 @@ class NodeListener extends ElementListener {
     }
     Operator op = new Operator(token);
     pushNode(new SendSet(send.receiver, send.selector, op, arguments));
+  }
+
+  void reportNotAssignable(Node node) {
+    // TODO(ahe): The parser should diagnose this problem, not this
+    // listener.
+    listener.cancel('Syntax error: Not assignable.', node: node);
   }
 
   void handleConditionalExpression(Token question, Token colon) {
@@ -1505,8 +1518,12 @@ class NodeListener extends ElementListener {
   void handleUnaryAssignmentExpression(Token token, bool isPrefix) {
     Node node = popNode();
     Send send = node.asSend();
-    if (send == null) internalError(node: node);
-    if (!(send.isPropertyAccess || send.isIndex)) internalError(node: send);
+    if (send == null) {
+      reportNotAssignable(node);
+    }
+    if (!(send.isPropertyAccess || send.isIndex)) {
+      reportNotAssignable(node);
+    }
     if (send.asSendSet() != null) internalError(node: send);
     Node argument = null;
     if (send.isIndex) argument = send.arguments.head;
@@ -1817,8 +1834,8 @@ class NodeListener extends ElementListener {
 
   void internalError({Token token, Node node}) {
     // TODO(ahe): This should call listener.internalError.
-    listener.cancel('internal error', token: token, node: node);
-    throw 'internal error';
+    Spannable spannable = (token == null) ? node : token;
+    throw new SpannableAssertionFailure(spannable, 'internal error in parser');
   }
 }
 

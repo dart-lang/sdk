@@ -128,6 +128,7 @@ abstract class Compiler implements DiagnosticListener {
   Element _currentElement;
   LibraryElement coreLibrary;
   LibraryElement isolateLibrary;
+  LibraryElement isolateHelperLibrary;
   LibraryElement jsHelperLibrary;
   LibraryElement interceptorsLibrary;
   LibraryElement foreignLibrary;
@@ -151,6 +152,7 @@ abstract class Compiler implements DiagnosticListener {
   Element identicalFunction;
   Element functionApplyMethod;
   Element invokeOnMethod;
+  Element createInvocationMirrorElement;
 
   Element get currentElement => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -162,6 +164,7 @@ abstract class Compiler implements DiagnosticListener {
       if (!hasCrashed) {
         SourceSpan span = spanFromSpannable(ex.node);
         reportDiagnostic(span, ex.message, api.Diagnostic.ERROR);
+        pleaseReportCrash();
       }
       hasCrashed = true;
       throw;
@@ -204,6 +207,8 @@ abstract class Compiler implements DiagnosticListener {
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
   static const SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
   static const int NO_SUCH_METHOD_ARG_COUNT = 1;
+  static const SourceString CREATE_INVOCATION_MIRROR =
+      const SourceString('createInvocationMirror');
   static const SourceString INVOKE_ON = const SourceString('invokeOn');
   static const SourceString RUNTIME_TYPE = const SourceString('runtimeType');
   static const SourceString START_ROOT_ISOLATE =
@@ -241,11 +246,17 @@ abstract class Compiler implements DiagnosticListener {
         progress = new Stopwatch() {
     progress.start();
     world = new World(this);
-    backend = emitJavaScript ?
-        new js_backend.JavaScriptBackend(this,
-                                         generateSourceMap,
-                                         disallowUnsafeEval) :
-        new dart_backend.DartBackend(this, strips);
+
+    closureMapping.ClosureNamer closureNamer;
+    if (emitJavaScript) {
+      js_backend.JavaScriptBackend jsBackend =
+          new js_backend.JavaScriptBackend(this, generateSourceMap,
+                                           disallowUnsafeEval);
+      closureNamer = jsBackend.namer;
+      backend = jsBackend;
+    } else {
+      backend = new dart_backend.DartBackend(this, strips);
+    }
 
     // No-op in production mode.
     validator = new TreeValidatorTask(this);
@@ -258,7 +269,7 @@ abstract class Compiler implements DiagnosticListener {
       parser = new ParserTask(this),
       patchParser = new PatchParserTask(this),
       resolver = new ResolverTask(this),
-      closureToClassMapper = new closureMapping.ClosureTask(this),
+      closureToClassMapper = new closureMapping.ClosureTask(this, closureNamer),
       checker = new TypeCheckerTask(this),
       typesTask = new ti.TypesTask(this, enableConcreteTypeInference),
       constantHandler = new ConstantHandler(this, backend.constantSystem),
@@ -304,6 +315,10 @@ abstract class Compiler implements DiagnosticListener {
     reportDiagnostic(spanFromElement(element),
                      MessageKind.COMPILER_CRASHED.error().toString(),
                      api.Diagnostic.CRASH);
+    pleaseReportCrash();
+  }
+
+  void pleaseReportCrash() {
     print(MessageKind.PLEASE_REPORT_THE_CRASH.message([BUILD_ID]));
   }
 
@@ -379,8 +394,8 @@ abstract class Compiler implements DiagnosticListener {
     enqueuer.resolution.registerInvocation(NO_SUCH_METHOD, selector);
     enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
 
-    Element createInvocationMirrorElement =
-        findHelper(const SourceString('createInvocationMirror'));
+    createInvocationMirrorElement =
+        findHelper(CREATE_INVOCATION_MIRROR);
     enqueuer.resolution.addToWorkList(createInvocationMirrorElement);
     enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
   }
@@ -388,12 +403,33 @@ abstract class Compiler implements DiagnosticListener {
   void enableIsolateSupport(LibraryElement element) {
     // TODO(ahe): Move this method to Enqueuer.
     isolateLibrary = element.patch;
-    enqueuer.resolution.addToWorkList(isolateLibrary.find(START_ROOT_ISOLATE));
+    isolateHelperLibrary = scanBuiltinLibrary('_isolate_helper');
+    importForeignLibrary(isolateHelperLibrary);
+    importHelperLibrary(isolateHelperLibrary);
+
+    libraryLoader.importLibrary(isolateLibrary, isolateHelperLibrary, null);
     enqueuer.resolution.addToWorkList(
-        isolateLibrary.find(const SourceString('_currentIsolate')));
+        isolateHelperLibrary.find(START_ROOT_ISOLATE));
     enqueuer.resolution.addToWorkList(
-        isolateLibrary.find(const SourceString('_callInIsolate')));
-    enqueuer.codegen.addToWorkList(isolateLibrary.find(START_ROOT_ISOLATE));
+        isolateHelperLibrary.find(const SourceString('_currentIsolate')));
+    enqueuer.resolution.addToWorkList(
+        isolateHelperLibrary.find(const SourceString('_callInIsolate')));
+    enqueuer.codegen.addToWorkList(
+        isolateHelperLibrary.find(START_ROOT_ISOLATE));
+
+    // The helper library does not use the native language extension,
+    // so we manually set the native classes this library defines.
+    // TODO(ngeoffray): Enable annotations on these classes.
+    ClassElement cls = isolateHelperLibrary.find(const SourceString('_Window'));
+    cls.setNative('"*DOMWindow"');
+
+    cls = isolateHelperLibrary.find(const SourceString('_WorkerStub'));
+    cls.setNative('"*Worker"');
+
+    enqueuer.resolution.nativeEnqueuer.processNativeClassesInLibrary(
+        isolateHelperLibrary);
+    enqueuer.codegen.nativeEnqueuer.processNativeClassesInLibrary(
+        isolateHelperLibrary);
   }
 
   bool hasIsolateSupport() => isolateLibrary != null;
@@ -486,7 +522,7 @@ abstract class Compiler implements DiagnosticListener {
 
   /** Define the JS helper functions in the given library. */
   void importForeignLibrary(LibraryElement library) {
-    if (jsHelperLibrary != null) {
+    if (foreignLibrary != null) {
       libraryLoader.importLibrary(library, foreignLibrary, null);
     }
   }
@@ -499,7 +535,6 @@ abstract class Compiler implements DiagnosticListener {
         'dart/tests/compiler/dart2js_native');
     if (nativeTest
         || libraryName == 'dart:mirrors'
-        || libraryName == 'dart:isolate'
         || libraryName == 'dart:math'
         || libraryName == 'dart:html'
         || libraryName == 'dart:html_common'
@@ -765,12 +800,13 @@ abstract class Compiler implements DiagnosticListener {
     reportDiagnostic(span, "$message", kind);
   }
 
-  void onDeprecatedFeature(Spannable span, String feature) {
+  /// Returns true if a diagnostic was emitted.
+  bool onDeprecatedFeature(Spannable span, String feature) {
     if (currentElement == null)
       throw new SpannableAssertionFailure(span, feature);
     if (!checkDeprecationInSdk &&
         currentElement.getLibrary().isPlatformLibrary) {
-      return;
+      return false;
     }
     var kind = rejectDeprecatedFeatures
         ? api.Diagnostic.ERROR : api.Diagnostic.WARNING;
@@ -778,6 +814,7 @@ abstract class Compiler implements DiagnosticListener {
         ? MessageKind.DEPRECATED_FEATURE_ERROR.error([feature])
         : MessageKind.DEPRECATED_FEATURE_WARNING.error([feature]);
     reportMessage(spanFromSpannable(span), message, kind);
+    return true;
   }
 
   void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind);
@@ -804,7 +841,7 @@ abstract class Compiler implements DiagnosticListener {
     if (Elements.isErroneousElement(element)) {
       element = element.enclosingElement;
     }
-    if (element.position() == null) {
+    if (element.position() == null && !element.isCompilationUnit()) {
       // Sometimes, the backend fakes up elements that have no
       // position. So we use the enclosing element instead. It is
       // not a good error location, but cancel really is "internal

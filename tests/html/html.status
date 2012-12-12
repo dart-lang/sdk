@@ -11,6 +11,11 @@ xmlelement_test: Skip  # XML in dart:html is incomplete
 
 [ $runtime == chrome ]
 contentelement_test: Fail   # Issue 5445: not currently supported on chrome stable.
+input_element_test/date: Pass, Fail      # Chrome stable does not support this input type.
+input_element_test/datetime: Fail        # Chrome stable does not support this input type.
+input_element_test/datetime-local: Fail  # Chrome stable does not support this input type.
+input_element_test/month: Fail           # Chrome stable does not support this input type.
+input_element_test/week: Fail            # Chrome stable does not support this input type.
 
 [ $runtime == chrome || $runtime == drt]
 audiobuffersourcenode_test: Pass, Fail  # AudiobufferSourceNode is flaky on Chrome and Dartium.
@@ -75,6 +80,12 @@ indexeddb_2_test: Fail
 indexeddb_3_test: Fail
 indexeddb_4_test: Fail
 inner_frame_test: Skip
+input_element_test/date: Fail            # IE10 does not support this input type.
+input_element_test/datetime: Fail        # IE10 does not support this input type.
+input_element_test/datetime-local: Fail  # IE10 does not support this input type.
+input_element_test/month: Fail           # IE10 does not support this input type.
+input_element_test/time: Fail            # IE10 does not support this input type.
+input_element_test/week: Fail            # IE10 does not support this input type.
 isolates_test: Skip
 localstorage_test: Fail
 measurement_test: Fail, Pass
@@ -134,6 +145,14 @@ indexeddb_1_test: Fail
 indexeddb_2_test: Fail
 indexeddb_3_test: Fail
 indexeddb_4_test: Fail
+input_element_test/date: Fail            # IE9 does not support this input type.
+input_element_test/datetime: Fail        # IE9 does not support this input type.
+input_element_test/datetime-local: Fail  # IE9 does not support this input type.
+input_element_test/month: Fail           # IE9 does not support this input type.
+input_element_test/range: Fail           # IE9 does not support this input type.
+input_element_test/time: Fail            # IE9 does not support this input type.
+input_element_test/week: Fail            # IE9 does not support this input type.
+
 messageevent_test: Fail
 mutationobserver_test: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
@@ -157,53 +176,39 @@ xhr_test: Skip              # BUG(4016)
 xhr_cross_origin_test: Fail # Issue 6016.
 
 [ $runtime == safari ]
+# TODO(ahe, efortuna): These tests need to be retriaged now that we're testing
+# with Safari 6.
+audiocontext_test: Crash, Fail # TODO(ahe): Please triage this failure.
+svgelement_test/innerHtml: Crash, Fail, Pass # TODO(ahe): Please triage this failure.
+svgelement_test/outerHtml: Crash, Fail, Pass # TODO(ahe): Please triage this failure.
+element_test/elements: Crash, Fail # TODO(ahe): Please triage this failure.
+element_test/children: Crash, Fail, Pass # TODO(ahe): Please triage this failure.
+element_test/attributes: Pass, Crash, Fail # TODO(ahe): Please triage this failure.
 performance_api_test: Fail # window.performance.timing not in Safari 6.
 indexeddb_1_test: Fail # indexedDB not in Safari 6.
 indexeddb_2_test: Fail # indexedDB not in Safari 6.
 indexeddb_3_test: Fail # indexedDB not in Safari 6.
 indexeddb_4_test: Fail # indexedDB not in Safari 6.
+input_element_test/date: Fail            # Safari does not support this input type.
+input_element_test/datetime: Fail        # Safari does not support this input type.
+input_element_test/datetime-local: Fail  # Safari does not support this input type.
+input_element_test/month: Fail, Crash    # Safari does not support this input type.
+input_element_test/range: Fail, Crash    # TODO(efortuna): Please triage this failure.
+input_element_test/time: Fail, Crash     # Safari does not support this input type.
+input_element_test/week: Fail, Crash     # Safari does not support this input type.
 fileapi_test: Fail # requestFileSystem not supported in Safari 6.
 datalistelement_test: Fail # HTMLDataListElement not yet supported in Safari.
 contentelement_test: Fail # Safari 6 does not support content element.
-# The following tests all fail in Safari 5.1. (NOT Mountain Lion). These will go
-# away after we upgrade the buildbots to Mountain Lion after M1.
+# TODO: The following tests need to be triaged to understand why they are
+# failing (They are expected to pass in Safari 6).
 # TODO(efortuna): Make our test framework able to separate tests out by browser
 # version.
-audiobuffersourcenode_test: Fail
-audiocontext_test: Fail
-blob_constructor_test: Fail
-canvas_pixel_array_type_alias_test: Fail
-canvas_test: Fail # createImageData not in Safari 5.
-canvasrenderingcontext2d_test: Fail
 datalistelement_test: Pass,Fail
-document_test: Fail
-dom_constructors_test: Fail
-element_test/additionalConstructors: Fail
-element_test/attributes: Fail, Crash
-element_test/constructors: Fail
-element_test/elements: Crash
-element_test/eventListening: Fail
-element_test/_ElementList: Fail, Crash
-element_test/queryAll: Fail, Crash
-element_add_test: Fail
-element_constructor_1_test: Fail
-element_webkit_test: Fail
-exceptions_test: Fail
-instance_of_test: Fail
-mutationobserver_test: Fail
-native_gc_test: Fail
 node_test: Skip # Issue 6457
-serialized_script_value_test: Fail
-svgelement2_test: Fail
-svgelement_test/constructors: Crash
-svgelement_test/css: Crash
-svgelement_test/additionalConstructors: Fail
-svgelement_test/elementget: Fail
-svgelement_test/elementset: Fail
-svgelement_test/innerHtml: Crash, Fail
-svgelement_test/outerHtml: Fail
-svgelement_test/svg: Fail
-url_test: Fail
+svgelement_test/elementset: Crash, Pass
+svgelement_test/elementget: Crash, Pass
+svgelement_test/css: Crash, Pass
+element_test/eventListening: Crash, Pass
 
 [ $runtime == opera && $system == windows ]
 htmlelement_test: Fail, Pass
@@ -269,6 +274,13 @@ indexeddb_3_test: Fail     # FF disables indexedDB from file URLs.
 indexeddb_4_test: Fail     # FF disables indexedDB from file URLs.
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
+input_element_test/date: Fail            # FF does not support this input type.
+input_element_test/datetime: Fail        # FF does not support this input type.
+input_element_test/datetime-local: Fail  # FF does not support this input type.
+input_element_test/month: Fail           # FF does not support this input type.
+input_element_test/time: Fail            # FF does not support this input type.
+input_element_test/week: Fail            # FF does not support this input type.
+input_element_test/range: Fail           # FF does not support this input type.
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail

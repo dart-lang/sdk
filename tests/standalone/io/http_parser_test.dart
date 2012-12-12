@@ -40,7 +40,7 @@ class HttpParserTest {
 
     void reset() {
       httpParser = new _HttpParser.requestParser();
-      httpParser.requestStart = (m, u, v, h) {
+      httpParser.requestStart = (m, u, v, h, b) {
         method = m;
         uri = u;
         version = v;
@@ -60,7 +60,7 @@ class HttpParserTest {
         Expect.equals(connectionClose, !httpParser.persistentConnection);
         headersCompleteCalled = true;
       };
-      httpParser.responseStart = (s, r, v, h) {
+      httpParser.responseStart = (s, r, v, h, b) {
         Expect.fail("Expected request");
       };
       httpParser.dataReceived = (List<int> data) {
@@ -126,7 +126,9 @@ class HttpParserTest {
 
     void reset() {
       httpParser = new _HttpParser.requestParser();
-      httpParser.responseStart = (s, r) { Expect.fail("Expected request"); };
+      httpParser.responseStart = (s, r, v, h, b) {
+        Expect.fail("Expected request");
+      };
       httpParser.error = (e) {
         errorCalled = true;
       };
@@ -185,10 +187,10 @@ class HttpParserTest {
       if (responseToMethod != null) {
         httpParser.responseToMethod = responseToMethod;
       }
-      httpParser.requestStart = (m, u, v, h) {
+      httpParser.requestStart = (m, u, v, h, b) {
         Expect.fail("Expected response");
       };
-      httpParser.responseStart = (s, r, v, h) {
+      httpParser.responseStart = (s, r, v, h, b) {
         statusCode = s;
         reasonPhrase = r;
         version = v;
@@ -276,7 +278,9 @@ class HttpParserTest {
 
     void reset() {
       httpParser = new _HttpParser.responseParser();
-      httpParser.requestStart = (m, u) => Expect.fail("Expected response");
+      httpParser.requestStart = (m, u, v, h, b) {
+        Expect.fail("Expected response");
+      };
       httpParser.error = (e) => errorCalled = true;
       httpParser.closed = () { };
 

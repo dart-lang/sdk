@@ -5,12 +5,13 @@
 library command_update;
 
 import 'entrypoint.dart';
+import 'log.dart' as log;
 import 'pub.dart';
 
 /** Handles the `update` pub command. */
 class UpdateCommand extends PubCommand {
   String get description =>
-    "update the current package's dependencies to the latest versions";
+    "Update the current package's dependencies to the latest versions.";
 
   String get usage => 'pub update [dependencies...]';
 
@@ -21,6 +22,6 @@ class UpdateCommand extends PubCommand {
     } else {
       future = entrypoint.updateDependencies(commandOptions.rest);
     }
-    return future.transform((_) => print("Dependencies updated!"));
+    return future.transform((_) => log.message("Dependencies updated!"));
   }
 }

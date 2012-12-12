@@ -20,5 +20,6 @@ abstract class DiagnosticListener {
 
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind);
 
-  void onDeprecatedFeature(Spannable span, String feature);
+  /// Returns true if a diagnostic was emitted.
+  bool onDeprecatedFeature(Spannable span, String feature);
 }

@@ -101,7 +101,8 @@ void main() {
   Path scriptDir = new Path.fromNative(new Options().script).directoryPath;
   Path certificateDatabase = scriptDir.append('pkcert');
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
-                          password: 'dartdart');
+                          password: 'dartdart',
+                          useBuiltinRoots: false);
 
   var server = new SecureTestServer();
   int port = server.start();

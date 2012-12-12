@@ -23,6 +23,7 @@ import '../../pub/entrypoint.dart';
 import '../../pub/git_source.dart';
 import '../../pub/hosted_source.dart';
 import '../../pub/io.dart';
+import '../../pub/path.dart' as path;
 import '../../pub/sdk_source.dart';
 import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
@@ -108,7 +109,7 @@ void serve([List<Descriptor> contents]) {
         } catch (e) {
           response.statusCode = 404;
           response.contentLength = 0;
-          closeHttpResponse(request, response);
+          response.outputStream.close();
           return;
         }
 
@@ -117,14 +118,14 @@ void serve([List<Descriptor> contents]) {
           response.statusCode = 200;
           response.contentLength = data.length;
           response.outputStream.write(data);
-          closeHttpResponse(request, response);
+          response.outputStream.close();
         });
 
         future.handleException((e) {
           print("Exception while handling ${request.uri}: $e");
           response.statusCode = 500;
           response.reasonPhrase = e.message;
-          closeHttpResponse(request, response);
+          response.outputStream.close();
         });
       };
       _server.listen("127.0.0.1", 0);
@@ -220,6 +221,15 @@ void servePackages(List<Map> pubspecs) {
 
 /** Converts [value] into a YAML string. */
 String yaml(value) => JSON.stringify(value);
+
+/// Describes a package that passes all validation.
+Descriptor get normalPackage => dir(appPath, [
+  libPubspec("test_pkg", "1.0.0"),
+  file("LICENSE", "Eh, do what you want."),
+  dir("lib", [
+    file("test_pkg.dart", "int i = 1;")
+  ])
+]);
 
 /**
  * Describes a file named `pubspec.yaml` with the given YAML-serialized
@@ -527,15 +537,15 @@ void run() {
     // If an error occurs during testing, delete the sandbox, throw the error so
     // that the test framework sees it, then finally call asyncDone so that the
     // test framework knows we're done doing asynchronous stuff.
-    var future = _runScheduled(createdSandboxDir, _scheduledOnException)
+    var subFuture = _runScheduled(createdSandboxDir, _scheduledOnException)
         .chain((_) => cleanup());
-    future.handleException((e) {
+    subFuture.handleException((e) {
       print("Exception while cleaning up: $e");
-      print(future.stackTrace);
-      registerException(error, future.stackTrace);
+      print(subFuture.stackTrace);
+      registerException(error, subFuture.stackTrace);
       return true;
     });
-    future.then((_) => registerException(error, future.stackTrace));
+    subFuture.then((_) => registerException(error, future.stackTrace));
     return true;
   });
 
@@ -546,10 +556,10 @@ void run() {
 
 /// Get the path to the root "util/test/pub" directory containing the pub tests.
 String get testDirectory {
-  var dir = new Path.fromNative(new Options().script);
-  while (dir.filename != 'pub') dir = dir.directoryPath;
+  var dir = new Options().script;
+  while (basename(dir) != 'pub') dir = dirname(dir);
 
-  return new File(dir.toNativePath()).fullPathSync();
+  return getFullPath(dir);
 }
 
 /**
@@ -639,14 +649,14 @@ Future _doPub(Function fn, sandboxDir, List<String> args, Uri tokenEndpoint) {
     // Find the main pub entrypoint.
     var pubPath = fs.joinPaths(testDirectory, '../../pub/pub.dart');
 
-    var dartArgs =
-        ['--enable-type-checks', '--enable-asserts', pubPath, '--trace'];
+    var dartArgs = ['--checked', pubPath, '--trace'];
     dartArgs.addAll(args);
 
     var environment = {
       'PUB_CACHE': pathInSandbox(cachePath),
       'DART_SDK': pathInSandbox(sdkPath)
     };
+
     if (tokenEndpoint != null) {
       environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
     }
@@ -1268,7 +1278,7 @@ Future<Pair<List<String>, List<String>>> schedulePackageValidation(
   });
 }
 
-/// A matcher that matches a Pair.	
+/// A matcher that matches a Pair.
 Matcher pairOf(Matcher firstMatcher, Matcher lastMatcher) =>
    new _PairMatcher(firstMatcher, lastMatcher);
 

@@ -13,27 +13,17 @@ import 'dart:uri';
 
 // TODO(nweiz): Make this import better.
 import '../../pkg/http/lib/http.dart' as http;
-import 'utils.dart';
 import 'curl_client.dart';
+import 'log.dart' as log;
+import 'path.dart' as path;
+import 'utils.dart';
 
 bool _isGitInstalledCache;
 
 /// The cached Git command.
 String _gitCommandCache;
 
-/** Gets the current working directory. */
-String get currentWorkingDir => new File('.').fullPathSync();
-
 final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
-
-/**
- * Prints the given string to `stderr` on its own line.
- */
-void printError(value) {
-  stderr.writeString(value.toString());
-  stderr.writeString('\n');
-}
-
 
 /**
  * Joins a number of path string parts into a single path. Handles
@@ -41,55 +31,32 @@ void printError(value) {
  * [File] objects.
  */
 String join(part1, [part2, part3, part4]) {
-  final parts = sanitizePath(part1).split('/');
+  part1 = _getPath(part1);
+  if (part2 != null) part2 = _getPath(part2);
+  if (part3 != null) part3 = _getPath(part3);
+  if (part4 != null) part4 = _getPath(part4);
 
-  for (final part in [part2, part3, part4]) {
-    if (part == null) continue;
-
-    for (final piece in _getPath(part).split('/')) {
-      if (piece == '..' && parts.length > 0 &&
-          parts.last != '.' && parts.last != '..') {
-        parts.removeLast();
-      } else if (piece != '') {
-        if (parts.length > 0 && parts.last == '.') {
-          parts.removeLast();
-        }
-        parts.add(piece);
-      }
-    }
-  }
-
-  return Strings.join(parts, Platform.pathSeparator);
-}
-
-/// Splits [path] into its individual components.
-List<String> splitPath(path) => sanitizePath(path).split('/');
-
-/**
- * Gets the basename, the file name without any leading directory path, for
- * [file], which can either be a [String], [File], or [Directory].
- */
-// TODO(rnystrom): Copied from file_system (so that we don't have to add
-// file_system to the SDK). Should unify.
-String basename(file) {
-  file = sanitizePath(file);
-
-  int lastSlash = file.lastIndexOf('/', file.length);
-  if (lastSlash == -1) {
-    return file;
+  // TODO(nweiz): Don't use "?part" in path.dart.
+  if (part4 != null) {
+    return path.join(part1, part2, part3, part4);
+  } else if (part3 != null) {
+    return path.join(part1, part2, part3);
+  } else if (part2 != null) {
+    return path.join(part1, part2);
   } else {
-    return file.substring(lastSlash + 1);
+    return path.join(part1);
   }
 }
 
-/**
- * Gets the the leading directory path for [file], which can either be a
- * [String], [File], or [Directory].
- */
-// TODO(nweiz): Copied from file_system (so that we don't have to add
-// file_system to the SDK). Should unify.
+/// Gets the basename, the file name without any leading directory path, for
+/// [file], which can either be a [String], [File], or [Directory].
+String basename(file) => path.basename(_getPath(file));
+
+// TODO(nweiz): move this into path.dart.
+/// Gets the the leading directory path for [file], which can either be a
+/// [String], [File], or [Directory].
 String dirname(file) {
-  file = sanitizePath(file);
+  file = _sanitizePath(file);
 
   int lastSlash = file.lastIndexOf('/', file.length);
   if (lastSlash == -1) {
@@ -99,10 +66,21 @@ String dirname(file) {
   }
 }
 
+// TODO(nweiz): move this into path.dart.
+/// Splits [path] into its individual components.
+List<String> splitPath(path) => _sanitizePath(path).split('/');
+
 /// Returns whether or not [entry] is nested somewhere within [dir]. This just
 /// performs a path comparison; it doesn't look at the actual filesystem.
-bool isBeneath(entry, dir) =>
-  sanitizePath(entry).startsWith('${sanitizePath(dir)}/');
+bool isBeneath(entry, dir) {
+  var relative = relativeTo(entry, dir);
+  return !path.isAbsolute(relative) && splitPath(relative)[0] != '..';
+}
+
+// TODO(nweiz): move this into path.dart.
+/// Returns the path to [target] from [base].
+String relativeTo(target, base) =>
+  new path.Builder(root: base).relative(target);
 
 /**
  * Asynchronously determines if [path], which can be a [String] file path, a
@@ -122,7 +100,10 @@ Future<bool> exists(path) {
  * the result.
  */
 Future<bool> fileExists(file) {
-  return new File(_getPath(file)).exists();
+  var path = _getPath(file);
+  return log.ioAsync("Seeing if file $path exists.",
+      new File(path).exists(),
+      (exists) => "File $path ${exists ? 'exists' : 'does not exist'}.");
 }
 
 /**
@@ -130,7 +111,17 @@ Future<bool> fileExists(file) {
  * a [File].
  */
 Future<String> readTextFile(file) {
-  return new File(_getPath(file)).readAsString(Encoding.UTF_8);
+  var path = _getPath(file);
+  return log.ioAsync("Reading text file $path.",
+      new File(path).readAsString(Encoding.UTF_8),
+      (contents) {
+        // Sanity check: don't spew a huge file.
+        if (contents.length < 1024 * 1024) {
+          return "Read $path. Contents:\n$contents";
+        } else {
+          return "Read ${contents.length} characters from $path.";
+        }
+      });
 }
 
 /**
@@ -138,10 +129,21 @@ Future<String> readTextFile(file) {
  * [contents] to it. Completes when the file is written and closed.
  */
 Future<File> writeTextFile(file, String contents) {
-  file = new File(_getPath(file));
+  var path = _getPath(file);
+  file = new File(path);
+
+  // Sanity check: don't spew a huge file.
+  log.io("Writing ${contents.length} characters to text file $path.");
+  if (contents.length < 1024 * 1024) {
+    log.fine("Contents:\n$contents");
+  }
+
   return file.open(FileMode.WRITE).chain((opened) {
     return opened.writeString(contents).chain((ignore) {
-        return opened.close().transform((ignore) => file);
+        return opened.close().transform((_) {
+          log.fine("Wrote text file $path.");
+          return file;
+        });
     });
   });
 }
@@ -151,7 +153,9 @@ Future<File> writeTextFile(file, String contents) {
  * [Future] that completes when the deletion is done.
  */
 Future<File> deleteFile(file) {
-  return new File(_getPath(file)).delete();
+  var path = _getPath(file);
+  return log.ioAsync("delete file $path",
+      new File(path).delete());
 }
 
 /// Writes [stream] to a new file at [path], which may be a [String] or a
@@ -160,12 +164,15 @@ Future<File> deleteFile(file) {
 Future<File> createFileFromStream(InputStream stream, path) {
   path = _getPath(path);
 
+  log.io("Creating $path from stream.");
+
   var completer = new Completer<File>();
   var file = new File(path);
   var outputStream = file.openOutputStream();
   stream.pipe(outputStream);
 
   outputStream.onClosed = () {
+    log.fine("Created $path from stream.");
     completer.complete(file);
   };
 
@@ -178,7 +185,11 @@ Future<File> createFileFromStream(InputStream stream, path) {
   }
 
   completeError(error) {
-    if (!completer.isComplete) completer.completeException(error, stackTrace);
+    if (!completer.isComplete) {
+      completer.completeException(error, stackTrace);
+    } else {
+      log.fine("Got error after stream was closed: $error");
+    }
   }
 
   stream.onError = completeError;
@@ -193,7 +204,8 @@ Future<File> createFileFromStream(InputStream stream, path) {
  */
 Future<Directory> createDir(dir) {
   dir = _getDirectory(dir);
-  return dir.create();
+  return log.ioAsync("create directory ${dir.path}",
+      dir.create());
 }
 
 /**
@@ -203,10 +215,15 @@ Future<Directory> createDir(dir) {
  */
 Future<Directory> ensureDir(path) {
   path = _getPath(path);
+  log.fine("Ensuring directory $path exists.");
   if (path == '.') return new Future.immediate(new Directory('.'));
 
   return dirExists(path).chain((exists) {
-    if (exists) return new Future.immediate(new Directory(path));
+    if (exists) {
+      log.fine("Directory $path already exists.");
+      return new Future.immediate(new Directory(path));
+    }
+
     return ensureDir(dirname(path)).chain((_) {
       var completer = new Completer<Directory>();
       var future = createDir(path);
@@ -214,7 +231,10 @@ Future<Directory> ensureDir(path) {
         if (error is! DirectoryIOException) return false;
         // Error 17 means the directory already exists (or 183 on Windows).
         if (error.osError.errorCode != 17 &&
-            error.osError.errorCode != 183) return false;
+            error.osError.errorCode != 183) {
+          log.fine("Got 'already exists' error when creating directory.");
+          return false;
+        }
 
         completer.complete(_getDirectory(path));
         return true;
@@ -233,7 +253,8 @@ Future<Directory> ensureDir(path) {
  */
 Future<Directory> createTempDir([dir = '']) {
   dir = _getDirectory(dir);
-  return dir.createTemp();
+  return log.ioAsync("create temp directory ${dir.path}",
+      dir.createTemp());
 }
 
 /**
@@ -242,7 +263,9 @@ Future<Directory> createTempDir([dir = '']) {
  */
 Future<Directory> deleteDir(dir) {
   dir = _getDirectory(dir);
-  return dir.delete(recursive: true);
+
+  return _attemptRetryable(() => log.ioAsync("delete directory ${dir.path}",
+      dir.delete(recursive: true)));
 }
 
 /**
@@ -257,12 +280,17 @@ Future<List<String>> listDir(dir,
   final contents = <String>[];
 
   dir = _getDirectory(dir);
+  log.io("Listing directory ${dir.path}.");
   var lister = dir.list(recursive: recursive);
 
   lister.onDone = (done) {
     // TODO(rnystrom): May need to sort here if it turns out onDir and onFile
     // aren't guaranteed to be called in a certain order. So far, they seem to.
-    if (done) completer.complete(contents);
+    if (done) {
+      log.fine("Listed directory ${dir.path}:\n"
+                "${Strings.join(contents, '\n')}");
+      completer.complete(contents);
+    }
   };
 
   // TODO(nweiz): remove this when issue 4061 is fixed.
@@ -293,7 +321,10 @@ Future<List<String>> listDir(dir,
  */
 Future<bool> dirExists(dir) {
   dir = _getDirectory(dir);
-  return dir.exists();
+  return log.ioAsync("Seeing if directory ${dir.path} exists.",
+      dir.exists(),
+      (exists) => "Directory ${dir.path} "
+                  "${exists ? 'exists' : 'does not exist'}.");
 }
 
 /**
@@ -317,29 +348,42 @@ Future<Directory> cleanDir(dir) {
 /// the destination directory.
 Future<Directory> renameDir(from, String to) {
   from = _getDirectory(from);
+  log.io("Renaming directory ${from.path} to $to.");
 
-  if (Platform.operatingSystem != 'windows') return from.rename(to);
+  return _attemptRetryable(() => from.rename(to)).transform((dir) {
+    log.fine("Renamed directory ${from.path} to $to.");
+    return dir;
+  });
+}
 
-  // On Windows, we sometimes get failures where the directory is still in use
-  // when we try to move it. To be a bit more resilient, we wait and retry a
-  // few times.
+/// On Windows, we sometimes get failures where the directory is still in use
+/// when we try to do something with it. This is usually because the OS hasn't
+/// noticed yet that a process using that directory has closed. To be a bit
+/// more resilient, we wait and retry a few times.
+///
+/// Takes a [callback] which returns a future for the operation being attempted.
+/// If that future completes with an error, it will slepp and then [callback]
+/// will be invoked again to retry the operation. It will try a few times before
+/// giving up.
+Future _attemptRetryable(Future callback()) {
+  // Only do lame retry logic on Windows.
+  if (Platform.operatingSystem != 'windows') return callback();
+
   var attempts = 0;
-  attemptRename(_) {
+  makeAttempt(_) {
     attempts++;
-    return from.rename(to).transformException((e) {
+    return callback().transformException((e) {
       if (attempts >= 10) {
-        throw 'Could not move directory "${from.path}" to "$to". Gave up '
-              'after $attempts attempts.';
+        throw 'Could not complete operation. Gave up after $attempts attempts.';
       }
 
       // Wait a bit and try again.
-      return sleep(500).chain(attemptRename);
+      log.fine("Operation failed, retrying (attempt $attempts).");
+      return sleep(500).chain(makeAttempt);
     });
-
-    return from;
   }
 
-  return attemptRename(null);
+  return makeAttempt(null);
 }
 
 /**
@@ -350,6 +394,8 @@ Future<Directory> renameDir(from, String to) {
 Future<File> createSymlink(from, to) {
   from = _getPath(from);
   to = _getPath(to);
+
+  log.fine("Create symlink $from -> $to.");
 
   var command = 'ln';
   var args = ['-s', from, to];
@@ -382,15 +428,15 @@ Future<File> createPackageSymlink(String name, from, to,
   // See if the package has a "lib" directory.
   from = join(from, 'lib');
   return dirExists(from).chain((exists) {
+    log.fine("Creating ${isSelfLink ? "self" : ""}link for package '$name'.");
     if (exists) return createSymlink(from, to);
 
     // It's OK for the self link (i.e. the root package) to not have a lib
     // directory since it may just be a leaf application that only has
     // code in bin or web.
     if (!isSelfLink) {
-      printError(
-          'Warning: Package "$name" does not have a "lib" directory so you '
-          'will not be able to import any libraries from it.');
+      log.warning('Warning: Package "$name" does not have a "lib" directory so '
+                  'you will not be able to import any libraries from it.');
     }
 
     return new Future.immediate(to);
@@ -399,52 +445,25 @@ Future<File> createPackageSymlink(String name, from, to,
 
 /// Given [entry] which may be a [String], [File], or [Directory] relative to
 /// the current working directory, returns its full canonicalized path.
-String getFullPath(entry) {
-  var path = _getPath(entry);
-
-  // Don't do anything if it's already absolute.
-  if (isAbsolute(path)) return path;
-
-  // Using Path.join here instead of File().fullPathSync() because the former
-  // does not require an actual file to exist at that path.
-  return new Path.fromNative(currentWorkingDir).join(new Path(path))
-      .toNativePath();
-}
+String getFullPath(entry) => path.absolute(_getPath(entry));
 
 /// Returns whether or not [entry] is an absolute path.
-bool isAbsolute(entry) => _splitAbsolute(entry).first != null;
+bool isAbsolute(entry) => path.isAbsolute(_getPath(entry));
 
-/// Splits [entry] into two components: the absolute path prefix and the
-/// remaining path. Takes into account Windows' quirky absolute paths syntaxes.
-Pair<String, String> _splitAbsolute(entry) {
-  var path = _getPath(entry);
-
-  if (Platform.operatingSystem != 'windows') {
-    return !path.startsWith('/') ? new Pair(null, path)
-        : new Pair('/', path.substring(1));
-  }
-
-  // An absolute path on Windows is either UNC (two leading backslashes),
-  // or a drive letter followed by a colon and a slash.
-  var match = new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])').firstMatch(path);
-  return match == null ? new Pair(null, path)
-      : new Pair(match.group(0), path.substring(match.end));
-}
-
-/// Resolves [path] relative to the location of pub.dart.
-String relativeToPub(String path) {
+/// Resolves [target] relative to the location of pub.dart.
+String relativeToPub(String target) {
   var scriptPath = new File(new Options().script).fullPathSync();
 
   // Walk up until we hit the "util(s)" directory. This lets us figure out where
   // we are if this function is called from pub.dart, or one of the tests,
   // which also live under "utils", or from the SDK where pub is in "util".
-  var utilDir = new Path.fromNative(scriptPath).directoryPath;
-  while (utilDir.filename != 'utils' && utilDir.filename != 'util') {
-    if (utilDir.filename == '') throw 'Could not find path to pub.';
-    utilDir = utilDir.directoryPath;
+  var utilDir = dirname(scriptPath);
+  while (basename(utilDir) != 'utils' && basename(utilDir) != 'util') {
+    if (basename(utilDir) == '') throw 'Could not find path to pub.';
+    utilDir = dirname(utilDir);
   }
 
-  return utilDir.append('pub').append(path).canonicalize().toNativePath();
+  return path.normalize(join(utilDir, 'pub', target));
 }
 
 /// A StringInputStream reading from stdin.
@@ -506,6 +525,9 @@ class PubHttpClient extends http.BaseClient {
     : _inner = inner == null ? new http.Client() : inner;
 
   Future<http.StreamedResponse> send(http.BaseRequest request) {
+    log.io("Sending HTTP request $request.");
+    // TODO(rnystrom): Log request body when it's available and plaintext.
+
     // TODO(nweiz): remove this when issue 4061 is fixed.
     var stackTrace;
     try {
@@ -517,6 +539,9 @@ class PubHttpClient extends http.BaseClient {
     // TODO(nweiz): Ideally the timeout would extend to reading from the
     // response input stream, but until issue 3657 is fixed that's not feasible.
     return timeout(_inner.send(request).chain((streamedResponse) {
+      log.fine("Got response ${streamedResponse.statusCode} "
+               "${streamedResponse.reasonPhrase}.");
+
       var status = streamedResponse.statusCode;
       // 401 responses should be handled by the OAuth2 client. It's very
       // unlikely that they'll be returned by non-OAuth2 requests.
@@ -557,7 +582,18 @@ Future pipeInputToInput(InputStream source, ListInputStream sink) {
     sink.markEndOfStream();
     completer.complete(null);
   };
-  source.onData = () => sink.write(source.read());
+  source.onData = () {
+    // Even if the sink is closed and we aren't going to do anything with more
+    // data, we still need to drain it from source to work around issue 7218.
+    var data = source.read();
+    try {
+      if (!sink.closed) sink.write(data);
+    } on StreamException catch (e, stackTrace) {
+      // Ignore an exception to work around issue 4222.
+      log.io("Writing to an unclosed ListInputStream caused exception $e\n"
+          "$stackTrace");
+    }
+  };
   // TODO(nweiz): propagate this error to the sink. See issue 3657.
   source.onError = (e) { throw e; };
   return completer.future;
@@ -605,6 +641,16 @@ Future<String> consumeStringInputStream(StringInputStream stream) {
   return completer.future;
 }
 
+/// Wrap an InputStream in a ListInputStream. This eagerly drains the [source]
+/// input stream. This is useful for spawned processes which will not exit until
+/// their output streams have been drained.
+/// TODO(rnystrom): We should use this logic anywhere we spawn a process.
+InputStream wrapInputStream(InputStream source) {
+  var sink = new ListInputStream();
+  pipeInputToInput(source, sink);
+  return sink;
+}
+
 /// Spawns and runs the process located at [executable], passing in [args].
 /// Returns a [Future] that will complete with the results of the process after
 /// it has ended.
@@ -622,9 +668,13 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
       if (!lines.isEmpty && lines.last == "") lines.removeLast();
       return lines;
     }
-    return new PubProcessResult(toLines(result.stdout),
+
+    var pubResult = new PubProcessResult(toLines(result.stdout),
                                 toLines(result.stderr),
                                 result.exitCode);
+
+    log.processResult(executable, pubResult);
+    return pubResult;
   });
 }
 
@@ -636,7 +686,30 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 /// the inherited variables.
 Future<Process> startProcess(String executable, List<String> args,
     {workingDir, Map<String, String> environment}) =>
-  _doProcess(Process.start, executable, args, workingDir, environment);
+  _doProcess(Process.start, executable, args, workingDir, environment)
+    .transform((process) => new _WrappedProcess(process));
+
+/// A wrapper around [Process] that buffers the stdout and stderr to avoid
+/// running into issue 7218.
+class _WrappedProcess implements Process {
+  final Process _process;
+  final InputStream stderr;
+  final InputStream stdout;
+
+  OutputStream get stdin => _process.stdin;
+
+  void set onExit(void callback(int exitCode)) {
+    _process.onExit = callback;
+  }
+
+  _WrappedProcess(Process process)
+    : _process = process,
+      stderr = wrapInputStream(process.stderr),
+      stdout = wrapInputStream(process.stdout);
+
+  bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) =>
+    _process.kill(signal);
+}
 
 /// Calls [fn] with appropriately modified arguments. [fn] should have the same
 /// signature as [Process.start], except that the returned [Future] may have a
@@ -663,32 +736,9 @@ Future _doProcess(Function fn, String executable, List<String> args, workingDir,
     environment.forEach((key, value) => options.environment[key] = value);
   }
 
+  log.process(executable, args);
+
   return fn(executable, args, options);
-}
-
-/// Closes [response] while ignoring the body of [request]. Returns a Future
-/// that completes once the response is closed.
-///
-/// Due to issue 6984, it's necessary to drain the request body before closing
-/// the response.
-Future closeHttpResponse(HttpRequest request, HttpResponse response) {
-  // TODO(nweiz): remove this when issue 4061 is fixed.
-  var stackTrace;
-  try {
-    throw "";
-  } catch (_, localStackTrace) {
-    stackTrace = localStackTrace;
-  }
-
-  var completer = new Completer();
-  request.inputStream.onError = (e) =>
-      completer.completeException(e, stackTrace);
-  request.inputStream.onData = request.inputStream.read;
-  request.inputStream.onClosed = () {
-    response.outputStream.close();
-    completer.complete(null);
-  };
-  return completer.future;
 }
 
 /**
@@ -731,7 +781,10 @@ Future withTempDir(Future fn(String path)) {
     tempDir = dir;
     return fn(tempDir.path);
   });
-  future.onComplete((_) => tempDir.delete(recursive: true));
+  future.onComplete((_) {
+    log.fine('Cleaning up temp directory ${tempDir.path}.');
+    deleteDir(tempDir);
+  });
   return future;
 }
 
@@ -804,12 +857,14 @@ Future<bool> _tryGitCommand(String command) {
 Future<bool> extractTarGz(InputStream stream, destination) {
   destination = _getPath(destination);
 
+  log.fine("Extracting .tar.gz stream to $destination.");
+
   if (Platform.operatingSystem == "windows") {
     return _extractTarGzWindows(stream, destination);
   }
 
   var completer = new Completer<int>();
-  var processFuture = Process.start("tar",
+  var processFuture = startProcess("tar",
       ["--extract", "--gunzip", "--directory", destination]);
   processFuture.then((process) {
     process.onExit = completer.complete;
@@ -822,7 +877,12 @@ Future<bool> extractTarGz(InputStream stream, destination) {
     return true;
   });
 
-  return completer.future.transform((exitCode) => exitCode == 0);
+  return completer.future.transform((exitCode) {
+    log.fine("Extracted .tar.gz stream to $destination. Exit code $exitCode.");
+    // TODO(rnystrom): Does anything check this result value? If not, it should
+    // throw on a bad exit code.
+    return exitCode == 0;
+  });
 }
 
 Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
@@ -862,7 +922,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
   }).chain((files) {
     var tarFile;
     for (var file in files) {
-      if (new Path(file).extension == 'tar') {
+      if (path.extension(file) == '.tar') {
         tarFile = file;
         break;
       }
@@ -879,7 +939,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
           '${Strings.join(result.stderr, "\n")}';
     }
 
-    // Clean up the temp directory.
+    log.fine('Clean up 7zip temp directory ${tempDir.path}.');
     // TODO(rnystrom): Should also delete this if anything fails.
     return deleteDir(tempDir);
   }).transform((_) => true);
@@ -890,19 +950,23 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
 /// considered to be [baseDir], which defaults to the current working directory.
 /// Returns an [InputStream] that will emit the contents of the archive.
 InputStream createTarGz(List contents, {baseDir}) {
+  var buffer = new StringBuffer();
+  buffer.add('Creating .tag.gz stream containing:\n');
+  contents.forEach(buffer.add);
+  log.fine(buffer.toString());
+
   // TODO(nweiz): Propagate errors to the returned stream (including non-zero
   // exit codes). See issue 3657.
   var stream = new ListInputStream();
 
-  if (baseDir == null) baseDir = currentWorkingDir;
+  if (baseDir == null) baseDir = path.current;
   baseDir = getFullPath(baseDir);
   contents = contents.map((entry) {
     entry = getFullPath(entry);
     if (!isBeneath(entry, baseDir)) {
       throw 'Entry $entry is not inside $baseDir.';
     }
-    return new Path.fromNative(entry).relativeTo(new Path.fromNative(baseDir))
-        .toNativePath();
+    return relativeTo(entry, baseDir);
   });
 
   if (Platform.operatingSystem != "windows") {
@@ -913,7 +977,12 @@ InputStream createTarGz(List contents, {baseDir}) {
     // file and pass them in via --files-from for tar and -i@filename for 7zip.
     startProcess("tar", args).then((process) {
       pipeInputToInput(process.stdout, stream);
-      process.stderr.pipe(stderr, close: false);
+
+      // Drain and discard 7zip's stderr. 7zip writes its normal output to
+      // stderr. We don't want to show that since it's meaningless.
+      // TODO(rnystrom): Should log this and display it if an actual error
+      // occurs.
+      consumeInputStream(process.stderr);
     });
     return stream;
   }
@@ -939,7 +1008,11 @@ InputStream createTarGz(List contents, {baseDir}) {
       args = ["a", "unused", "-tgzip", "-so", tarFile];
       return startProcess(command, args);
     }).chain((process) {
-      process.stderr.pipe(stderr, close: false);
+      // Drain and discard 7zip's stderr. 7zip writes its normal output to
+      // stderr. We don't want to show that since it's meaningless.
+      // TODO(rnystrom): Should log this and display it if an actual error
+      // occurs.
+      consumeInputStream(process.stderr);
       return pipeInputToInput(process.stdout, stream);
     });
   });
@@ -955,7 +1028,7 @@ class PubHttpException implements Exception {
   const PubHttpException(this.response);
 
   String toString() => 'HTTP error ${response.statusCode}: '
-    '${response.reasonPhrase}';
+      '${response.reasonPhrase}';
 }
 
 /**
@@ -996,7 +1069,7 @@ String _getPath(entry) {
 
 /// Gets the path string for [entry], normalizing backslashes to forward slashes
 /// on Windows.
-String sanitizePath(entry) {
+String _sanitizePath(entry) {
   entry = _getPath(entry);
   if (Platform.operatingSystem != 'windows') return entry;
 
@@ -1008,6 +1081,24 @@ String sanitizePath(entry) {
   // contains backslashes.
   return '${split.first.replaceAll('/', '\\')}'
          '${split.last.replaceAll('\\', '/')}';
+}
+
+// TODO(nweiz): Add something like this to path.dart.
+/// Splits [entry] into two components: the absolute path prefix and the
+/// remaining path. Takes into account Windows' quirky absolute paths syntaxes.
+Pair<String, String> _splitAbsolute(entry) {
+  var path = _getPath(entry);
+
+  if (Platform.operatingSystem != 'windows') {
+    return !path.startsWith('/') ? new Pair(null, path)
+        : new Pair('/', path.substring(1));
+  }
+
+  // An absolute path on Windows is either UNC (two leading backslashes),
+  // or a drive letter followed by a colon and a slash.
+  var match = new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])').firstMatch(path);
+  return match == null ? new Pair(null, path)
+      : new Pair(match.group(0), path.substring(match.end));
 }
 
 /**

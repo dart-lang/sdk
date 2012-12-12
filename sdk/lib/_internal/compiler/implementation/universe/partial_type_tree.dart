@@ -117,9 +117,9 @@ abstract class PartialTypeTree {
       // Create a new node and move the children of the current node
       // that are subtypes of the type of the new node below the new
       // node in the hierarchy.
-      PartialTypeTreeNode newNode = newNode(type);
+      PartialTypeTreeNode node = newNode(type);
       if (!subtypes.isEmpty) {
-        newNode.children = subtypes;
+        node.children = subtypes;
         Link<PartialTypeTreeNode> remaining = const Link();
         for (Link link = current.children; !link.isEmpty; link = link.tail) {
           PartialTypeTreeNode child = link.head;
@@ -131,8 +131,8 @@ abstract class PartialTypeTree {
       }
 
       // Add the new node as a child node of the current node and return it.
-      current.children = current.children.prepend(newNode);
-      return newNode;
+      current.children = current.children.prepend(node);
+      return node;
     }
 
     // We found an exact match. No need to insert new nodes.

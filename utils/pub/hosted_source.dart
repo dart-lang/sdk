@@ -11,6 +11,7 @@ import 'dart:uri';
 // TODO(nweiz): Make this import better.
 import '../../pkg/http/lib/http.dart' as http;
 import 'io.dart';
+import 'log.dart' as log;
 import 'package.dart';
 import 'pubspec.dart';
 import 'source.dart';
@@ -73,7 +74,7 @@ class HostedSource extends Source {
 
     var fullUrl = "$url/packages/$name/versions/${id.version}.tar.gz";
 
-    print('Downloading $id...');
+    log.message('Downloading $id...');
 
     // Download and extract the archive to a temp directory.
     var tempDir;

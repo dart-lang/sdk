@@ -13,24 +13,40 @@ abstract class SecureServerSocket implements ServerSocket {
    * the certificate, such as "CN=localhost" or "CN=myserver.mydomain.com".
    * The certificate is looked up in the NSS certificate database set by
    * SecureSocket.setCertificateDatabase.
+   *
+   * To request or require that clients authenticate by providing an SSL (TLS)
+   * client certificate, set the optional parameters requestClientCertificate or
+   * requireClientCertificate to true.  Require implies request, so one doesn't
+   * need to specify both.  To check whether a client certificate was received,
+   * check SecureSocket.peerCertificate after connecting.  If no certificate
+   * was received, the result will be null.
    */
   factory SecureServerSocket(String bindAddress,
-                          int port,
-                          int backlog,
-                          String certificate_name) =>
-      new _SecureServerSocket(bindAddress, port, backlog, certificate_name);
+                             int port,
+                             int backlog,
+                             String certificate_name,
+                             {bool requestClientCertificate: false,
+                              bool requireClientCertificate: false}) {
+    return new _SecureServerSocket(bindAddress,
+                                   port,
+                                   backlog,
+                                   certificate_name,
+                                   requestClientCertificate,
+                                   requireClientCertificate);
+  }
 }
 
 
 class _SecureServerSocket implements SecureServerSocket {
 
   _SecureServerSocket(String bindAddress,
-                   int port,
-                   int backlog,
-                   String certificate_name) {
-    _socket = new ServerSocket(bindAddress, port, backlog);
-    _socket.onConnection = this._onConnectionHandler;
-    _certificate_name = certificate_name;
+                      int port,
+                      int backlog,
+                      String this.certificate_name,
+                      bool this.requestClientCertificate,
+                      bool this.requireClientCertificate) {
+    socket = new ServerSocket(bindAddress, port, backlog);
+    socket.onConnection = this._onConnectionHandler;
   }
 
   void set onConnection(void callback(Socket connection)) {
@@ -38,19 +54,19 @@ class _SecureServerSocket implements SecureServerSocket {
   }
 
   void set onError(void callback(e)) {
-    _socket.onError = callback;
+    socket.onError = callback;
   }
 
   /**
    * Returns the port used by this socket.
    */
-  int get port => _socket.port;
+  int get port => socket.port;
 
   /**
    * Closes the socket.
    */
   void close() {
-    _socket.close();
+    socket.close();
   }
 
   void _onConnectionHandler(Socket connection) {
@@ -59,19 +75,25 @@ class _SecureServerSocket implements SecureServerSocket {
       throw new SocketIOException(
           "SecureServerSocket with no onConnection callback connected to");
     }
-    if (_certificate_name == null) {
+    if (certificate_name == null) {
       connection.close();
       throw new SocketIOException(
           "SecureServerSocket with server certificate not set connected to");
     }
-    var secure_connection = new _SecureSocket.server(connection.remoteHost,
-                                                  connection.remotePort,
-                                                  connection,
-                                                  _certificate_name);
+    var secure_connection = new _SecureSocket(
+        connection.remoteHost,
+        connection.remotePort,
+        certificate_name,
+        is_server: true,
+        socket: connection,
+        requestClientCertificate: requestClientCertificate,
+        requireClientCertificate: requireClientCertificate);
     _onConnectionCallback(secure_connection);
   }
 
-  ServerSocket _socket;
+  ServerSocket socket;
   var _onConnectionCallback;
-  String _certificate_name;
+  final String certificate_name;
+  final bool requestClientCertificate;
+  final bool requireClientCertificate;
 }

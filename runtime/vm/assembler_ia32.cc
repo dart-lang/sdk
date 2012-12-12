@@ -1554,7 +1554,7 @@ void Assembler::LoadObject(Register dst, const Object& object) {
   if (object.IsSmi() || object.IsNull()) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
-    ASSERT(object.IsZoneHandle());
+    ASSERT(object.IsNotTemporaryScopedHandle());
     ASSERT(object.IsOld());
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0xB8 + dst);
@@ -1567,7 +1567,7 @@ void Assembler::PushObject(const Object& object) {
   if (object.IsSmi() || object.IsNull()) {
     pushl(Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
-    ASSERT(object.IsZoneHandle());
+    ASSERT(object.IsNotTemporaryScopedHandle());
     ASSERT(object.IsOld());
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0x68);
@@ -1580,7 +1580,7 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   if (object.IsSmi() || object.IsNull()) {
     cmpl(reg, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
-    ASSERT(object.IsZoneHandle());
+    ASSERT(object.IsNotTemporaryScopedHandle());
     ASSERT(object.IsOld());
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     if (reg == EAX) {

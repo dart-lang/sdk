@@ -48,6 +48,10 @@ class NativeEmitter {
   Compiler get compiler => emitter.compiler;
   JavaScriptBackend get backend => compiler.backend;
 
+  String get _ => emitter._;
+  String get n => emitter.n;
+  String get N => emitter.N;
+
   String get dynamicName {
     Element element = compiler.findHelper(
         const SourceString('dynamicFunction'));
@@ -111,12 +115,12 @@ function(cls, desc) {
     String nativeCode = quotedNative.substring(2, quotedNative.length - 1);
     String className = backend.namer.getName(classElement);
     nativeBuffer.add(className);
-    nativeBuffer.add(' = ');
+    nativeBuffer.add('$_=$_');
     nativeBuffer.add(nativeCode);
-    nativeBuffer.add(';\n');
+    nativeBuffer.add('$N');
 
     void defineInstanceMember(String name, CodeBuffer value) {
-      nativeBuffer.add("$className.$name = $value;\n");
+      nativeBuffer.add("$className.$name$_=$_$value$N");
     }
 
     classElement.implementation.forEachMember((_, Element member) {
@@ -160,7 +164,8 @@ function(cls, desc) {
     CodeBuffer getterSetterBuffer = new CodeBuffer();
     CodeBuffer methodBuffer = new CodeBuffer();
 
-    emitter.emitClassFields(classElement, fieldBuffer, false, isNative: true);
+    emitter.emitClassFields(classElement, fieldBuffer, false,
+                            classIsNative: true);
     emitter.emitClassGettersSetters(classElement, getterSetterBuffer, false);
     emitter.emitInstanceMembers(classElement, methodBuffer, false);
 
@@ -171,7 +176,7 @@ function(cls, desc) {
     }
 
     String nativeTag = toNativeTag(classElement);
-    nativeBuffer.add("$defineNativeClassName('$nativeTag', ");
+    nativeBuffer.add("$defineNativeClassName('$nativeTag',$_");
     nativeBuffer.add('{');
     bool firstInMap = true;
     if (!fieldBuffer.isEmpty) {
@@ -181,14 +186,14 @@ function(cls, desc) {
     if (!getterSetterBuffer.isEmpty) {
       if (!firstInMap) nativeBuffer.add(",");
       firstInMap = false;
-      nativeBuffer.add("\n ");
+      nativeBuffer.add("\n$_");
       nativeBuffer.add(getterSetterBuffer);
     }
     if (!methodBuffer.isEmpty) {
       if (!firstInMap) nativeBuffer.add(",");
       nativeBuffer.add(methodBuffer);
     }
-    nativeBuffer.add('\n});\n\n');
+    nativeBuffer.add('$n})$N$n');
 
     classesWithDynamicDispatch.add(classElement);
   }
@@ -266,7 +271,7 @@ function(cls, desc) {
     } else {
       // When calling a JS method, we call it with the native name, and only the
       // arguments up until the last one provided.
-      target = member.nativeName();
+      target = member.fixedBackendName();
       arguments = argumentsBuffer.getRange(
           0, indexOfLastOptionalArgumentInParameters + 1);
     }
@@ -337,7 +342,9 @@ function(cls, desc) {
   void emitDynamicDispatchMetadata() {
     if (classesWithDynamicDispatch.isEmpty) return;
     int length = classesWithDynamicDispatch.length;
-    nativeBuffer.add('// $length dynamic classes.\n');
+    if (!compiler.enableMinification) {
+      nativeBuffer.add('// $length dynamic classes.\n');
+    }
 
     // Build a pre-order traversal over all the classes and their subclasses.
     Set<ClassElement> seen = new Set<ClassElement>();
@@ -354,10 +361,14 @@ function(cls, desc) {
         (cls) => !getDirectSubclasses(cls).isEmpty &&
                   classesWithDynamicDispatch.contains(cls));
 
-    nativeBuffer.add('// ${classes.length} classes\n');
+    if (!compiler.enableMinification) {
+      nativeBuffer.add('// ${classes.length} classes\n');
+    }
     Collection<ClassElement> classesThatHaveSubclasses = classes.filter(
         (ClassElement t) => !getDirectSubclasses(t).isEmpty);
-    nativeBuffer.add('// ${classesThatHaveSubclasses.length} !leaf\n');
+    if (!compiler.enableMinification) {
+      nativeBuffer.add('// ${classesThatHaveSubclasses.length} !leaf\n');
+    }
 
     // Generate code that builds the map from cls tags used in dynamic dispatch
     // to the set of cls tags of classes that extend (TODO: or implement) those
@@ -399,13 +410,13 @@ function(cls, desc) {
           } else {
             // [subclass] is one of the preorderDispatchClasses, so CSE this
             // reference with the previous reference.
-            if (existing is js.VariableUse &&
-                varDefns.containsKey(existing.name)) {
+            js.VariableUse use = existing.asVariableUse();
+            if (use != null && varDefns.containsKey(use.name)) {
               // We end up here if the subclasses have a DAG structure.  We
               // don't have DAGs yet, but if the dispatch is used for mixins
               // that will be a possibility.
               // Re-use the previously created temporary variable.
-              expressions.add(new js.VariableUse(existing.name));
+              expressions.add(new js.VariableUse(use.name));
             } else {
               String varName = 'v${varNames.length}_${tag.name.slowToString()}';
               varNames.add(varName);
@@ -475,6 +486,7 @@ function(cls, desc) {
                   [table])));
 
       //  (function(){statements})();
+      if (emitter.compiler.enableMinification) nativeBuffer.add(';');
       nativeBuffer.add(
           js.prettyPrint(
               new js.ExpressionStatement(
@@ -514,7 +526,7 @@ function(cls, desc) {
       if (!requiresNativeIsCheck(element)) continue;
       if (element.isObject(compiler)) continue;
       String name = backend.namer.operatorIs(element);
-      objectProperties[name] = 'function() { return false; }';
+      objectProperties[name] = 'function()$_{${_}return false;$_}';
     }
   }
 
@@ -522,7 +534,7 @@ function(cls, desc) {
     if (nativeClasses.isEmpty) return;
     emitDynamicDispatchMetadata();
     targetBuffer.add('$defineNativeClassName = '
-                     '$defineNativeClassFunction;\n\n');
+                     '$defineNativeClassFunction$N$n');
 
     // Because of native classes, we have to generate some is checks
     // by calling a method, instead of accessing a property. So we
@@ -540,8 +552,8 @@ function(cls, desc) {
         'function() { return $toStringHelperName(this); }';
 
     // Same as above, but for hashCode.
-    String hashCodeName = backend.namer.publicGetterName(
-        const SourceString('hashCode'));
+    String hashCodeName =
+        backend.namer.publicGetterName(const SourceString('hashCode'));
     objectProperties[hashCodeName] =
         'function() { return $hashCodeHelperName(this); }';
 
@@ -556,6 +568,7 @@ function(cls, desc) {
     // If we have any properties to add to Object.prototype, we run
     // through them and add them using defineProperty.
     if (!objectProperties.isEmpty) {
+      if (emitter.compiler.enableMinification) targetBuffer.add(";");
       targetBuffer.add("(function(table) {\n"
                        "  for (var key in table) {\n"
                        "    $defPropName(Object.prototype, key, table[key]);\n"
@@ -564,10 +577,10 @@ function(cls, desc) {
       bool first = true;
       objectProperties.forEach((String name, String function) {
         if (!first) targetBuffer.add(",\n");
-        targetBuffer.add(" $name: $function");
+        targetBuffer.add("$_$name:$_$function");
         first = false;
       });
-      targetBuffer.add("\n});\n\n");
+      targetBuffer.add("\n})$N$n");
     }
     targetBuffer.add(nativeBuffer);
     targetBuffer.add('\n');

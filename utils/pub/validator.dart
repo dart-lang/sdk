@@ -5,9 +5,12 @@
 library validator;
 
 import 'entrypoint.dart';
+import 'log.dart' as log;
 import 'io.dart';
 import 'system_cache.dart';
 import 'utils.dart';
+import 'validator/lib.dart';
+import 'validator/license.dart';
 import 'validator/name.dart';
 import 'validator/pubspec_field.dart';
 
@@ -38,6 +41,8 @@ abstract class Validator {
   static Future<Pair<List<String>, List<String>>> runAll(
       Entrypoint entrypoint) {
     var validators = [
+      new LibValidator(entrypoint),
+      new LicenseValidator(entrypoint),
       new NameValidator(entrypoint),
       new PubspecFieldValidator(entrypoint)
     ];
@@ -52,19 +57,19 @@ abstract class Validator {
       var warnings = flatten(validators.map((validator) => validator.warnings));
 
       if (!errors.isEmpty) {
-        printError("== Errors:");
+        log.error("== Errors:");
         for (var error in errors) {
-          printError("* $error");
+          log.error("* $error");
         }
-        printError("");
+        log.error("");
       }
 
       if (!warnings.isEmpty) {
-        printError("== Warnings:");
+        log.warning("== Warnings:");
         for (var warning in warnings) {
-          printError("* $warning");
+          log.warning("* $warning");
         }
-        printError("");
+        log.warning("");
       }
 
       return new Pair<List<String>, List<String>>(errors, warnings);

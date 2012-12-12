@@ -37,7 +37,10 @@ class _SecureFilterImpl
   void connect(String hostName,
                int port,
                bool is_server,
-               String certificate_name) native "SecureSocket_Connect";
+               String certificateName,
+               bool requestClientCertificate,
+               bool requireClientCertificate,
+               bool sendClientCertificate) native "SecureSocket_Connect";
 
   void destroy() {
     buffers = null;
@@ -49,6 +52,8 @@ class _SecureFilterImpl
   void handshake() native "SecureSocket_Handshake";
 
   void init() native "SecureSocket_Init";
+
+  X509Certificate get peerCertificate native "SecureSocket_PeerCertificate";
 
   int processBuffer(int bufferIndex) native "SecureSocket_ProcessBuffer";
 

@@ -236,12 +236,6 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 26,2),
             errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 12));
   }
-
-  public void test_expressionsWithNull() {
-    resolveAndTestCtConst(Joiner.on("\n").join(
-        "class Object {}",
-        "var b = null === '';"));
-  }
   
   public void test_parameterDefaultValue_inLocalFunction() {
     resolveAndTestCtConstExpectErrors(
@@ -541,8 +535,6 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         " static const BOP7 = false || BOOL_LIT;",
         " static const BOP8 = STRING_LIT == 'World!';",
         " static const BOP9 = 'Hello' != STRING_LIT;",
-        " static const BOP10 = INT_LIT === INT_LIT_REF;",
-        " static const BOP11 = BOOL_LIT !== true;",
         "}"));
   }
 
@@ -625,31 +617,28 @@ public class CompileTimeConstantTest extends ResolverTestCase {
   }
 
   public void testConstantBinaryExpression9() {
-    resolveAndTestCtConst(Joiner.on("\n").join(
-        "class Object {}",
-        "class bool {}",
-        "class int {}",
-        "class double {}",
-        "class num {}",
-        "class A {",
-        " static Object foo() { return true; }",
-        "}",
-        "class B {",
-        " const B();",
-        " static const OBJECT_LIT = const B();",
-        " static const INT_LIT = 1;",
-        " static const STRING_LIT = 'true';",
-        " static const BOP1 = STRING_LIT && true;",
-        " static const BOP2 = false || STRING_LIT;",
-        " static const BOP3 = 59 == OBJECT_LIT;",
-        " static const BOP4 = OBJECT_LIT != 59;",
-        " static const BOP5 = INT_LIT === OBJECT_LIT;",
-        " static const BOP6 = OBJECT_LIT !== true;",
-        "}"),
+    resolveAndTestCtConst(
+        Joiner.on("\n").join(
+            "class Object {}",
+            "class bool {}",
+            "class int {}",
+            "class double {}",
+            "class num {}",
+            "class A {",
+            " static Object foo() { return true; }",
+            "}",
+            "class B {",
+            " const B();",
+            " static const OBJECT_LIT = const B();",
+            " static const INT_LIT = 1;",
+            " static const STRING_LIT = 'true';",
+            " static const BOP1 = STRING_LIT && true;",
+            " static const BOP2 = false || STRING_LIT;",
+            " static const BOP3 = 59 == OBJECT_LIT;",
+            " static const BOP4 = OBJECT_LIT != 59;",
+            "}"),
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL);
   }

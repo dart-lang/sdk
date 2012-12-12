@@ -30,7 +30,7 @@ DEFINE_NATIVE_ENTRY(Double_doubleFromInteger, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_add, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
-  GET_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Double_add %f + %f\n", left, right);
@@ -41,7 +41,7 @@ DEFINE_NATIVE_ENTRY(Double_add, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_sub, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
-  GET_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Double_sub %f - %f\n", left, right);
@@ -52,7 +52,7 @@ DEFINE_NATIVE_ENTRY(Double_sub, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_mul, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
-  GET_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Double_mul %f * %f\n", left, right);
@@ -63,7 +63,7 @@ DEFINE_NATIVE_ENTRY(Double_mul, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_div, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
-  GET_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Double_div %f / %f\n", left, right);
@@ -74,7 +74,7 @@ DEFINE_NATIVE_ENTRY(Double_div, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
-  GET_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Double_trunc_div %f ~/ %f\n", left, right);
@@ -85,7 +85,7 @@ DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_modulo, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
-  GET_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
 
   double remainder = fmod_ieee(left, right);
@@ -105,7 +105,7 @@ DEFINE_NATIVE_ENTRY(Double_modulo, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_remainder, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
-  GET_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   return Double::New(fmod_ieee(left, right));
 }
@@ -113,7 +113,7 @@ DEFINE_NATIVE_ENTRY(Double_remainder, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_greaterThan, 2) {
   const Double& left = Double::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Double, right, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, right, arguments->NativeArgAt(1));
   bool result = right.IsNull() ? false : (left.value() > right.value());
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Double_greaterThan %s > %s\n",
@@ -125,14 +125,14 @@ DEFINE_NATIVE_ENTRY(Double_greaterThan, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_greaterThanFromInteger, 2) {
   const Double& right = Double::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
   return Bool::Get(left.AsDoubleValue() > right.value());
 }
 
 
 DEFINE_NATIVE_ENTRY(Double_equal, 2) {
   const Double& left = Double::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Double, right, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, right, arguments->NativeArgAt(1));
   bool result = right.IsNull() ? false : (left.value() == right.value());
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Double_equal %s == %s\n",
@@ -144,7 +144,7 @@ DEFINE_NATIVE_ENTRY(Double_equal, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_equalToInteger, 2) {
   const Double& left = Double::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Integer, right, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, right, arguments->NativeArgAt(1));
   return Bool::Get(left.value() == right.AsDoubleValue());
 }
 
@@ -174,7 +174,8 @@ DEFINE_NATIVE_ENTRY(Double_truncate, 1) {
 DEFINE_NATIVE_ENTRY(Double_pow, 2) {
   const double operand =
       Double::CheckedHandle(arguments->NativeArgAt(0)).value();
-  GET_NATIVE_ARGUMENT(Double, exponent_object, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      Double, exponent_object, arguments->NativeArgAt(1));
   const double exponent = exponent_object.value();
   return Double::New(pow(operand, exponent));
 }
@@ -205,7 +206,7 @@ DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Double_parse, 1) {
-  GET_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
   const String& dummy_key = String::Handle(Symbols::Empty());
   Scanner scanner(value, dummy_key);
   const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
@@ -265,7 +266,7 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 2) {
   static const double kUpperBoundary = 1e21;
 
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Smi, fraction_digits, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, fraction_digits, arguments->NativeArgAt(1));
   double d = arg.value();
   intptr_t fraction_digits_value = fraction_digits.Value();
   if (0 <= fraction_digits_value && fraction_digits_value <= 20
@@ -283,7 +284,7 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_toStringAsExponential, 2) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Smi, fraction_digits, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, fraction_digits, arguments->NativeArgAt(1));
   double d = arg.value();
   intptr_t fraction_digits_value = fraction_digits.Value();
   if (-1 <= fraction_digits_value && fraction_digits_value <= 20) {
@@ -301,7 +302,7 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsExponential, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 2) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Smi, precision, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, precision, arguments->NativeArgAt(1));
   double d = arg.value();
   intptr_t precision_value = precision.Value();
   if (1 <= precision_value && precision_value <= 21) {

@@ -97,6 +97,8 @@ RawClass* Object::deopt_info_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::megamorphic_cache_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::subtypetestcache_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::api_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -105,6 +107,9 @@ RawClass* Object::unhandled_exception_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 #undef RAW_NULL
+
+
+const double MegamorphicCache::kLoadFactor = 0.75;
 
 
 // Takes a vm internal name and makes it suitable for external user.
@@ -382,6 +387,9 @@ void Object::InitOnce() {
   cls = Class::New<ICData>();
   icdata_class_ = cls.raw();
 
+  cls = Class::New<MegamorphicCache>();
+  megamorphic_cache_class_ = cls.raw();
+
   cls = Class::New<SubtypeTestCache>();
   subtypetestcache_class_ = cls.raw();
 
@@ -457,6 +465,7 @@ void Object::RegisterSingletonClassNames() {
   SET_CLASS_NAME(context, Context);
   SET_CLASS_NAME(context_scope, ContextScope);
   SET_CLASS_NAME(icdata, ICData);
+  SET_CLASS_NAME(megamorphic_cache, MegamorphicCache);
   SET_CLASS_NAME(subtypetestcache, SubtypeTestCache);
   SET_CLASS_NAME(api_error, ApiError);
   SET_CLASS_NAME(language_error, LanguageError);
@@ -1239,6 +1248,13 @@ class StoreBufferObjectPointerVisitor : public ObjectPointerVisitor {
  private:
   DISALLOW_COPY_AND_ASSIGN(StoreBufferObjectPointerVisitor);
 };
+
+
+bool Object::IsNotTemporaryScopedHandle() const {
+  return (IsZoneHandle() ||
+          Symbols::IsPredefinedHandle(reinterpret_cast<uword>(this)));
+}
+
 
 
 RawObject* Object::Clone(const Object& src, Heap::Space space) {
@@ -3386,10 +3402,9 @@ void Function::set_is_inlinable(bool value) const {
 
 bool Function::IsInlineable() const {
   // '==' call is handled specially.
-  const String& equality_name = String::Handle(Symbols::EqualOperator());
   return InlinableBit::decode(raw_ptr()->kind_tag_) &&
          HasCode() &&
-         name() != equality_name.raw();
+         name() != Symbols::EqualOperator();
 }
 
 
@@ -7777,6 +7792,120 @@ RawICData* ICData::New(const Function& function,
 }
 
 
+RawArray* MegamorphicCache::buckets() const {
+  return raw_ptr()->buckets_;
+}
+
+
+void MegamorphicCache::set_buckets(const Array& buckets) const {
+  StorePointer(&raw_ptr()->buckets_, buckets.raw());
+}
+
+
+// Class IDs in the table are smi-tagged, so we use a smi-tagged mask
+// and target class ID to avoid untagging (on each iteration of the
+// test loop) in generated code.
+intptr_t MegamorphicCache::mask() const {
+  return Smi::Value(raw_ptr()->mask_);
+}
+
+
+void MegamorphicCache::set_mask(intptr_t mask) const {
+  raw_ptr()->mask_ = Smi::New(mask);
+}
+
+
+intptr_t MegamorphicCache::filled_entry_count() const {
+  return raw_ptr()->filled_entry_count_;
+}
+
+
+void MegamorphicCache::set_filled_entry_count(intptr_t count) const {
+  raw_ptr()->filled_entry_count_ = count;
+}
+
+
+RawMegamorphicCache* MegamorphicCache::New() {
+  MegamorphicCache& result = MegamorphicCache::Handle();
+  { RawObject* raw = Object::Allocate(MegamorphicCache::kClassId,
+                                      MegamorphicCache::InstanceSize(),
+                                      Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  const intptr_t capacity = kInitialCapacity;
+  const Array& buckets = Array::Handle(Array::New(kEntryLength * capacity));
+  const Smi& illegal = Smi::Handle(Smi::New(kIllegalCid));
+  const Function& handler = Function::Handle(
+      Isolate::Current()->megamorphic_cache_table()->miss_handler());
+  for (intptr_t i = 0; i < capacity; ++i) {
+    SetEntry(buckets, i, illegal, handler);
+  }
+  result.set_buckets(buckets);
+  result.set_mask(capacity - 1);
+  result.set_filled_entry_count(0);
+  return result.raw();
+}
+
+
+void MegamorphicCache::EnsureCapacity() const {
+  intptr_t old_capacity = mask() + 1;
+  double load_limit = kLoadFactor * static_cast<double>(old_capacity);
+  if (static_cast<double>(filled_entry_count() + 1) > load_limit) {
+    const Array& old_buckets = Array::Handle(buckets());
+    intptr_t new_capacity = old_capacity * 2;
+    const Array& new_buckets =
+        Array::Handle(Array::New(kEntryLength * new_capacity));
+
+    Smi& class_id = Smi::Handle(Smi::New(kIllegalCid));
+    Function& target = Function::Handle(
+        Isolate::Current()->megamorphic_cache_table()->miss_handler());
+    for (intptr_t i = 0; i < new_capacity; ++i) {
+      SetEntry(new_buckets, i, class_id, target);
+    }
+    set_buckets(new_buckets);
+    set_mask(new_capacity - 1);
+    set_filled_entry_count(0);
+
+    // Rehash the valid entries.
+    for (intptr_t i = 0; i < old_capacity; ++i) {
+      class_id ^= GetClassId(old_buckets, i);
+      if (class_id.Value() != kIllegalCid) {
+        target ^= GetTargetFunction(old_buckets, i);
+        Insert(class_id, target);
+      }
+    }
+  }
+}
+
+
+void MegamorphicCache::Insert(const Smi& class_id,
+                              const Function& target) const {
+  ASSERT(static_cast<double>(filled_entry_count() + 1) <=
+         (kLoadFactor * static_cast<double>(mask() + 1)));
+  const Array& backing_array = Array::Handle(buckets());
+  intptr_t id_mask = mask();
+  intptr_t index = class_id.Value() & id_mask;
+  Smi& probe = Smi::Handle();
+  intptr_t i = index;
+  do {
+    probe ^= GetClassId(backing_array, i);
+    if (probe.Value() == kIllegalCid) {
+      SetEntry(backing_array, i, class_id, target);
+      set_filled_entry_count(filled_entry_count() + 1);
+      return;
+    }
+    i = (i + 1) & id_mask;
+  } while (i != index);
+  UNREACHABLE();
+}
+
+
+const char* MegamorphicCache::ToCString() const {
+  return "";
+}
+
+
 RawSubtypeTestCache* SubtypeTestCache::New() {
   ASSERT(Object::subtypetestcache_class() != Class::null());
   SubtypeTestCache& result = SubtypeTestCache::Handle();
@@ -11187,33 +11316,25 @@ const char* ImmutableArray::ToCString() const {
 
 
 void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
-  Add(Isolate::Current(), value, space);
-}
-
-
-void GrowableObjectArray::Add(Isolate* isolate,
-                              const Object& value,
-                              Heap::Space space) const {
   ASSERT(!IsNull());
-  Array& contents = Array::Handle(isolate, data());
   if (Length() == Capacity()) {
     // TODO(Issue 2500): Need a better growth strategy.
     intptr_t new_capacity = (Capacity() == 0) ? 4 : Capacity() * 2;
     if (new_capacity <= Capacity()) {
       // Use the preallocated out of memory exception to avoid calling
       // into dart code or allocating any code.
+      Isolate* isolate = Isolate::Current();
       const Instance& exception =
           Instance::Handle(isolate->object_store()->out_of_memory());
       Exceptions::Throw(exception);
       UNREACHABLE();
     }
     Grow(new_capacity, space);
-    contents = data();
   }
   ASSERT(Length() < Capacity());
   intptr_t index = Length();
   SetLength(index + 1);
-  contents.SetAt(index, value);
+  SetAt(index, value);
 }
 
 

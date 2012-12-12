@@ -435,7 +435,7 @@ struct ParamList {
   }
 
   void AddFinalParameter(intptr_t name_pos,
-                         String* name,
+                         const String* name,
                          const AbstractType* type) {
     this->num_fixed_parameters++;
     ParamDesc param;
@@ -449,7 +449,7 @@ struct ParamList {
   void AddReceiver(const Type* receiver_type) {
     ASSERT(this->parameters->is_empty());
     AddFinalParameter(receiver_type->token_pos(),
-                      &String::ZoneHandle(Symbols::This()),
+                      &Symbols::ThisHandle(),
                       receiver_type);
   }
 
@@ -1338,10 +1338,16 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
   // The first argument is the original function name.
   arguments->Add(new LiteralNode(args_pos, function_name));
-  // The second argument is an array containing the original function arguments.
+  // The second argument is the arguments descriptor of the original function.
+  const Array& args_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(function_args.length(),
+                                                 function_args.names()));
+  arguments->Add(new LiteralNode(args_pos, args_descriptor));
+  // The third argument is an array containing the original function arguments,
+  // including the receiver.
   ArrayNode* args_array = new ArrayNode(
       args_pos, Type::ZoneHandle(Type::ArrayType()));
-  for (intptr_t i = 1; i < function_args.length(); i++) {
+  for (intptr_t i = 0; i < function_args.length(); i++) {
     args_array->AddElement(function_args.NodeAt(i));
   }
   arguments->Add(args_array);
@@ -1589,8 +1595,7 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
     return;
   }
   String& ctor_name = String::Handle(super_class.Name());
-  String& ctor_suffix = String::Handle(Symbols::Dot());
-  ctor_name = String::Concat(ctor_name, ctor_suffix);
+  ctor_name = String::Concat(ctor_name, Symbols::DotHandle());
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   // Implicit 'this' parameter is the first argument.
   AstNode* implicit_argument = new LoadLocalNode(supercall_pos, receiver);
@@ -1630,13 +1635,12 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
   const Class& super_class = Class::Handle(cls.SuperClass());
   ASSERT(!super_class.IsNull());
   String& ctor_name = String::Handle(super_class.Name());
-  String& ctor_suffix = String::Handle(Symbols::Dot());
+  ctor_name = String::Concat(ctor_name, Symbols::DotHandle());
   if (CurrentToken() == Token::kPERIOD) {
     ConsumeToken();
-    ctor_suffix = String::Concat(
-        ctor_suffix, *ExpectIdentifier("constructor name expected"));
+    ctor_name = String::Concat(ctor_name,
+                               *ExpectIdentifier("constructor name expected"));
   }
-  ctor_name = String::Concat(ctor_name, ctor_suffix);
   if (CurrentToken() != Token::kLPAREN) {
     ErrorMsg("parameter list expected");
   }
@@ -1849,14 +1853,13 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   const intptr_t call_pos = TokenPos();
   ConsumeToken();
   String& ctor_name = String::Handle(cls.Name());
-  String& ctor_suffix = String::Handle(Symbols::Dot());
 
+  ctor_name = String::Concat(ctor_name, Symbols::DotHandle());
   if (CurrentToken() == Token::kPERIOD) {
     ConsumeToken();
-    ctor_suffix = String::Concat(
-        ctor_suffix, *ExpectIdentifier("constructor name expected"));
+    ctor_name = String::Concat(ctor_name,
+                               *ExpectIdentifier("constructor name expected"));
   }
-  ctor_name = String::Concat(ctor_name, ctor_suffix);
   if (CurrentToken() != Token::kLPAREN) {
     ErrorMsg("parameter list expected");
   }
@@ -1900,7 +1903,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   const Class& cls = Class::Handle(func.Owner());
   LocalVariable* receiver = new LocalVariable(
       ctor_pos,
-      String::ZoneHandle(Symbols::This()),
+      Symbols::ThisHandle(),
       Type::ZoneHandle(Type::DynamicType()));
   current_block_->scope->AddVariable(receiver);
 
@@ -2541,8 +2544,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ConsumeToken();  // Colon.
       ExpectToken(Token::kTHIS);
       String& redir_name = String::ZoneHandle(
-          String::Concat(members->class_name(),
-                         String::Handle(Symbols::Dot())));
+          String::Concat(members->class_name(), Symbols::DotHandle()));
       if (CurrentToken() == Token::kPERIOD) {
         ConsumeToken();
         redir_name = String::Concat(redir_name,
@@ -2948,14 +2950,13 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     }
     // We must be dealing with a constructor or named constructor.
     member.kind = RawFunction::kConstructor;
-    String& ctor_suffix = String::ZoneHandle(Symbols::Dot());
+    *member.name = String::Concat(*member.name, Symbols::DotHandle());
     if (CurrentToken() == Token::kPERIOD) {
       // Named constructor.
       ConsumeToken();
       member.constructor_name = ExpectIdentifier("identifier expected");
-      ctor_suffix = String::Concat(ctor_suffix, *member.constructor_name);
+      *member.name = String::Concat(*member.name, *member.constructor_name);
     }
-    *member.name = String::Concat(*member.name, ctor_suffix);
     // Ensure that names are symbols.
     *member.name = Symbols::New(*member.name);
     if (member.type == NULL) {
@@ -3188,7 +3189,7 @@ void Parser::AddImplicitConstructor(ClassDesc* class_desc) {
   // The implicit constructor is unnamed, has no explicit parameter,
   // and contains a supercall in the initializer list.
   String& ctor_name = String::ZoneHandle(
-    String::Concat(class_desc->class_name(), String::Handle(Symbols::Dot())));
+    String::Concat(class_desc->class_name(), Symbols::DotHandle()));
   ctor_name = Symbols::New(ctor_name);
   // The token position for the implicit constructor is the 'class'
   // keyword of the constructor's class.
@@ -4075,10 +4076,9 @@ void Parser::ParseLibraryName() {
   ConsumeToken();
   String& lib_name = *ExpectIdentifier("library name expected");
   if (CurrentToken() == Token::kPERIOD) {
-    const String& dot = String::Handle(Symbols::Dot());
     while (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
-      lib_name = String::Concat(lib_name, dot);
+      lib_name = String::Concat(lib_name, Symbols::DotHandle());
       lib_name = String::Concat(lib_name,
           *ExpectIdentifier("malformed library name"));
     }
@@ -4538,8 +4538,7 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
 
 LocalVariable* Parser::LookupReceiver(LocalScope* from_scope, bool test_only) {
   ASSERT(!current_function().is_static());
-  const String& this_name = String::Handle(Symbols::This());
-  return from_scope->LookupVariable(this_name, test_only);
+  return from_scope->LookupVariable(Symbols::ThisHandle(), test_only);
 }
 
 
@@ -7697,7 +7696,7 @@ bool Parser::IsFormalParameter(const String& ident,
   if (current_block_ == NULL) {
     return false;
   }
-  if (ident.Equals(String::Handle(Symbols::This()))) {
+  if (ident.Equals(Symbols::ThisHandle())) {
     // 'this' is not a formal parameter.
     return false;
   }
@@ -8876,9 +8875,8 @@ static const String& BuildConstructorName(const String& type_class_name,
   // for class 'A' is labeled 'A.C', and the static function implementing the
   // unnamed constructor for class 'A' is labeled 'A.'.
   // This convention prevents users from explicitly calling constructors.
-  const String& period = String::Handle(Symbols::Dot());
   String& constructor_name =
-      String::Handle(String::Concat(type_class_name, period));
+      String::Handle(String::Concat(type_class_name, Symbols::DotHandle()));
   if (named_constructor != NULL) {
     constructor_name = String::Concat(constructor_name, *named_constructor);
   }
@@ -9313,8 +9311,7 @@ AstNode* Parser::ParsePrimary() {
     }
     ASSERT(primary != NULL);
   } else if (CurrentToken() == Token::kTHIS) {
-    const String& this_name = String::Handle(Symbols::This());
-    LocalVariable* local = LookupLocalScope(this_name);
+    LocalVariable* local = LookupLocalScope(Symbols::ThisHandle());
     if (local == NULL) {
       ErrorMsg("receiver 'this' is not in scope");
     }

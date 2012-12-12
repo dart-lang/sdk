@@ -11,9 +11,24 @@ abstract class SecureSocket implements Socket {
   /**
    * Constructs a new secure client socket and connect it to the given
    * host on the given port. The returned socket is not yet connected
-   * but ready for registration of callbacks.
+   * but ready for registration of callbacks.  If sendClientCertificate is
+   * set to true, the socket will send a client certificate if one is
+   * requested by the server.  If clientCertificate is the nickname of
+   * a certificate in the certificate database, that certificate will be sent.
+   * If clientCertificate is null, which is the usual use case, an
+   * appropriate certificate will be searched for in the database and
+   * sent automatically, based on what the server says it will accept.
    */
-  factory SecureSocket(String host, int port) => new _SecureSocket(host, port);
+  factory SecureSocket(String host,
+                       int port,
+                       {bool sendClientCertificate: false,
+                        String certificateName}) {
+    return new _SecureSocket(host,
+                             port,
+                             certificateName,
+                             is_server: false,
+                             sendClientCertificate: sendClientCertificate);
+  }
 
   /**
    * Install a handler for unverifiable certificates.  The handler can inspect
@@ -22,6 +37,14 @@ abstract class SecureSocket implements Socket {
    * to continue the SecureSocket connection.
    */
   void set onBadCertificate(bool callback(X509Certificate certificate));
+
+  /**
+   * Get the peerCertificate for a connected secure socket.  For a server
+   * socket, this will return the client certificate, or null, if no
+   * client certificate was received.  For a client socket, this
+   * will return the server's certificate.
+   */
+  X509Certificate get peerCertificate;
 
    /**
    * Initializes the NSS library with the path to a certificate database
@@ -89,45 +112,61 @@ class _SecureSocket implements SecureSocket {
   static final int WRITE_ENCRYPTED = 3;
   static final int NUM_BUFFERS = 4;
 
-  int _count = 0;
-  // Constructs a new secure client socket.
-  factory _SecureSocket(String host, int port) =>
-      new _SecureSocket.internal(host, port, false);
-
-  // Constructs a new secure server socket, with the named server certificate.
-  factory _SecureSocket.server(String host,
-                            int port,
-                            Socket socket,
-                            String certificateName) =>
-      new _SecureSocket.internal(host, port, true, socket, certificateName);
-
-  _SecureSocket.internal(String host,
-                      int port,
-                      bool is_server,
-                      [Socket socket,
-                       String certificateName])
-      : _host = host,
-        _port = port,
-        _socket = socket,
-        _certificateName = certificateName,
-        _is_server = is_server,
-        _secureFilter = new _SecureFilter() {
-    if (_socket == null) {
-      _socket = new Socket(host, port);
+  _SecureSocket(String this.host,
+                int requestedPort,
+                String this.certificateName,
+                {bool this.is_server,
+                 Socket this.socket,
+                 bool this.requestClientCertificate: false,
+                 bool this.requireClientCertificate: false,
+                 bool this.sendClientCertificate: false})
+      : secureFilter = new _SecureFilter() {
+    // Throw an ArgumentError if any field is invalid.
+    _verifyFields();
+    if (socket == null) {
+      socket = new Socket(host, requestedPort);
     }
-    _socket.onConnect = _secureConnectHandler;
-    _socket.onData = _secureDataHandler;
-    _socket.onClosed = _secureCloseHandler;
-    _socket.onError = _secureErrorHandler;
-    _secureFilter.init();
-    _secureFilter.registerHandshakeCompleteCallback(_secureHandshakeCompleteHandler);
+    socket.onConnect = _secureConnectHandler;
+    socket.onData = _secureDataHandler;
+    socket.onClosed = _secureCloseHandler;
+    socket.onError = _secureErrorHandler;
+    secureFilter.init();
+    secureFilter.registerHandshakeCompleteCallback(
+        _secureHandshakeCompleteHandler);
   }
 
-  int get port => _socket.port;
+  void _verifyFields() {
+    if (host is! String) throw new ArgumentError(
+        "SecureSocket constructor: host is not a String");
+    assert(is_server is bool);
+    assert(socket == null || socket is Socket);
+    if (certificateName != null && certificateName is! String) {
+      throw new ArgumentError(
+          "SecureSocket constructor: certificateName is not null or a String");
+    }
+    if (certificateName == null && is_server) {
+      throw new ArgumentError(
+          "SecureSocket constructor: certificateName is null on a server");
+    }
+    if (requestClientCertificate is! bool) {
+      throw new ArgumentError(
+          "SecureSocket constructor: requestClientCertificate is not a bool");
+    }
+    if (requireClientCertificate is! bool) {
+      throw new ArgumentError(
+          "SecureSocket constructor: requireClientCertificate is not a bool");
+    }
+    if (sendClientCertificate is! bool) {
+      throw new ArgumentError(
+          "SecureSocket constructor: sendClientCertificate is not a bool");
+    }
+  }
 
-  String get remoteHost => _socket.remoteHost;
+  int get port => socket.port;
 
-  int get remotePort => _socket.remotePort;
+  String get remoteHost => socket.remoteHost;
+
+  int get remotePort => socket.remotePort;
 
   void set onClosed(void callback()) {
     if (_inputStream != null && callback != null) {
@@ -180,7 +219,7 @@ class _SecureSocket implements SecureSocket {
   void set _onWrite(void callback()) {
     _socketWriteHandler = callback;
     // Reset the one-shot onWrite handler.
-    _socket.onWrite = _secureWriteHandler;
+    socket.onWrite = _secureWriteHandler;
   }
 
   void set onBadCertificate(bool callback(X509Certificate certificate)) {
@@ -188,7 +227,7 @@ class _SecureSocket implements SecureSocket {
       throw new SocketIOException(
           "Callback provided to onBadCertificate is not a function or null");
     }
-    _secureFilter.registerBadCertificateCallback(callback);
+    secureFilter.registerBadCertificateCallback(callback);
   }
 
   InputStream get inputStream {
@@ -223,7 +262,7 @@ class _SecureSocket implements SecureSocket {
       _closedWrite = true;
       _writeEncryptedData();
       if (_filterWriteEmpty) {
-        _socket.close(true);
+        socket.close(true);
         _socketClosedWrite = true;
         if (_closedRead) {
           close(false);
@@ -232,11 +271,11 @@ class _SecureSocket implements SecureSocket {
     } else {
       _closedWrite = true;
       _closedRead = true;
-      _socket.close(false);
+      socket.close(false);
       _socketClosedWrite = true;
       _socketClosedRead = true;
-      _secureFilter.destroy();
-      _secureFilter = null;
+      secureFilter.destroy();
+      secureFilter = null;
       if (scheduledDataEvent != null) {
         scheduledDataEvent.cancel();
       }
@@ -253,7 +292,7 @@ class _SecureSocket implements SecureSocket {
     if (_status != CONNECTED) {
       return new List<int>(0);
     }
-    var buffer = _secureFilter.buffers[READ_PLAINTEXT];
+    var buffer = secureFilter.buffers[READ_PLAINTEXT];
     _readEncryptedData();
     int toRead = buffer.length;
     if (len != null) {
@@ -284,7 +323,7 @@ class _SecureSocket implements SecureSocket {
     }
 
     int bytesRead = 0;
-    var buffer = _secureFilter.buffers[READ_PLAINTEXT];
+    var buffer = secureFilter.buffers[READ_PLAINTEXT];
     // TODO(whesse): Currently this fails if the if is turned into a while loop.
     // Fix it so that it can loop and read more than one buffer's worth of data.
     if (bytes > bytesRead) {
@@ -310,7 +349,7 @@ class _SecureSocket implements SecureSocket {
       throw new SocketIOException("Writing to a closed socket");
     }
     if (_status != CONNECTED) return 0;
-    var buffer = _secureFilter.buffers[WRITE_PLAINTEXT];
+    var buffer = secureFilter.buffers[WRITE_PLAINTEXT];
     if (bytes > buffer.free) {
       bytes = buffer.free;
     }
@@ -322,9 +361,17 @@ class _SecureSocket implements SecureSocket {
     return bytes;
   }
 
+  X509Certificate get peerCertificate => secureFilter.peerCertificate;
+
   void _secureConnectHandler() {
     _connectPending = true;
-    _secureFilter.connect(_host, _port, _is_server, _certificateName);
+    secureFilter.connect(host,
+                         port,
+                         is_server,
+                         certificateName,
+                         requestClientCertificate || requireClientCertificate,
+                         requireClientCertificate,
+                         sendClientCertificate);
     _status = HANDSHAKE;
     _secureHandshake();
   }
@@ -338,7 +385,7 @@ class _SecureSocket implements SecureSocket {
       _secureHandshake();
     } else if (_status == CONNECTED &&
                _socketWriteHandler != null &&
-               _secureFilter.buffers[WRITE_PLAINTEXT].free > 0) {
+               secureFilter.buffers[WRITE_PLAINTEXT].free > 0) {
       // We must be able to set onWrite from the onWrite callback.
       var handler = _socketWriteHandler;
       // Reset the one-shot handler.
@@ -420,10 +467,10 @@ class _SecureSocket implements SecureSocket {
 
   void _secureHandshake() {
     _readEncryptedData();
-    _secureFilter.handshake();
+    secureFilter.handshake();
     _writeEncryptedData();
-    if (_secureFilter.buffers[WRITE_ENCRYPTED].length > 0) {
-      _socket.onWrite = _secureWriteHandler;
+    if (secureFilter.buffers[WRITE_ENCRYPTED].length > 0) {
+      socket.onWrite = _secureWriteHandler;
     }
   }
 
@@ -434,7 +481,7 @@ class _SecureSocket implements SecureSocket {
       _socketConnectHandler();
     }
     if (_socketWriteHandler != null) {
-      _socket.onWrite = _secureWriteHandler;
+      socket.onWrite = _secureWriteHandler;
     }
   }
 
@@ -445,30 +492,30 @@ class _SecureSocket implements SecureSocket {
   void _readEncryptedData() {
     // Read from the socket, and push it through the filter as far as
     // possible.
-    var encrypted = _secureFilter.buffers[READ_ENCRYPTED];
-    var plaintext = _secureFilter.buffers[READ_PLAINTEXT];
+    var encrypted = secureFilter.buffers[READ_ENCRYPTED];
+    var plaintext = secureFilter.buffers[READ_PLAINTEXT];
     bool progress = true;
     while (progress) {
       progress = false;
       // Do not try to read plaintext from the filter while handshaking.
       if ((_status == CONNECTED) && plaintext.free > 0) {
-        int bytes = _secureFilter.processBuffer(READ_PLAINTEXT);
+        int bytes = secureFilter.processBuffer(READ_PLAINTEXT);
         if (bytes > 0) {
           plaintext.length += bytes;
           progress = true;
         }
       }
       if (encrypted.length > 0) {
-        int bytes = _secureFilter.processBuffer(READ_ENCRYPTED);
+        int bytes = secureFilter.processBuffer(READ_ENCRYPTED);
         if (bytes > 0) {
           encrypted.advanceStart(bytes);
           progress = true;
         }
       }
       if (!_socketClosedRead) {
-        int bytes = _socket.readList(encrypted.data,
-                                     encrypted.start + encrypted.length,
-                                     encrypted.free);
+        int bytes = socket.readList(encrypted.data,
+                                    encrypted.start + encrypted.length,
+                                    encrypted.free);
         if (bytes > 0) {
           encrypted.length += bytes;
           progress = true;
@@ -484,29 +531,29 @@ class _SecureSocket implements SecureSocket {
 
   void _writeEncryptedData() {
     if (_socketClosedWrite) return;
-    var encrypted = _secureFilter.buffers[WRITE_ENCRYPTED];
-    var plaintext = _secureFilter.buffers[WRITE_PLAINTEXT];
+    var encrypted = secureFilter.buffers[WRITE_ENCRYPTED];
+    var plaintext = secureFilter.buffers[WRITE_PLAINTEXT];
     while (true) {
       if (encrypted.length > 0) {
         // Write from the filter to the socket.
-        int bytes = _socket.writeList(encrypted.data,
-                                      encrypted.start,
-                                      encrypted.length);
+        int bytes = socket.writeList(encrypted.data,
+                                     encrypted.start,
+                                     encrypted.length);
         if (bytes == 0) {
           // The socket has blocked while we have data to write.
           // We must be notified when it becomes unblocked.
-          _socket.onWrite = _secureWriteHandler;
+          socket.onWrite = _secureWriteHandler;
           _filterWriteEmpty = false;
           break;
         }
         encrypted.advanceStart(bytes);
       } else {
-        var plaintext = _secureFilter.buffers[WRITE_PLAINTEXT];
+        var plaintext = secureFilter.buffers[WRITE_PLAINTEXT];
         if (plaintext.length > 0) {
-           int plaintext_bytes = _secureFilter.processBuffer(WRITE_PLAINTEXT);
+           int plaintext_bytes = secureFilter.processBuffer(WRITE_PLAINTEXT);
            plaintext.advanceStart(plaintext_bytes);
         }
-        int bytes = _secureFilter.processBuffer(WRITE_ENCRYPTED);
+        int bytes = secureFilter.processBuffer(WRITE_ENCRYPTED);
         if (bytes <= 0) {
           // We know the WRITE_ENCRYPTED buffer is empty, and the
           // filter wrote zero bytes to it, so the filter must be empty.
@@ -557,11 +604,13 @@ class _SecureSocket implements SecureSocket {
   bool get _socketClosed => _closedRead;
 
   // _SecureSocket cannot extend _Socket and use _Socket's factory constructor.
-  Socket _socket;
-  String _host;
-  int _port;
-  bool _is_server;
-  String _certificateName;
+  Socket socket;
+  final String host;
+  final bool is_server;
+  final String certificateName;
+  final bool requestClientCertificate;
+  final bool requireClientCertificate;
+  final bool sendClientCertificate;
 
   var _status = NOT_CONNECTED;
   bool _socketClosedRead = false;  // The network socket is closed for reading.
@@ -580,7 +629,7 @@ class _SecureSocket implements SecureSocket {
   Function _socketCloseHandler;
   Timer scheduledDataEvent;
 
-  _SecureFilter _secureFilter;
+  _SecureFilter secureFilter;
 }
 
 
@@ -611,10 +660,14 @@ abstract class _SecureFilter {
   void connect(String hostName,
                int port,
                bool is_server,
-               String certificateName);
+               String certificateName,
+               bool requestClientCertificate,
+               bool requireClientCertificate,
+               bool sendClientCertificate);
   void destroy();
   void handshake();
   void init();
+  X509Certificate get peerCertificate;
   int processBuffer(int bufferIndex);
   void registerBadCertificateCallback(Function callback);
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler);

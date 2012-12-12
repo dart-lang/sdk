@@ -712,7 +712,7 @@ class Dartdoc {
   /** Writes a linked navigation list item for the given type. */
   void docTypeNavigation(ClassMirror type) {
     var icon = 'interface';
-    if (type.simpleName.endsWith('Exception')) {
+    if (isException(type)) {
       icon = 'exception';
     } else if (type.isClass) {
       icon = 'class';
@@ -874,7 +874,7 @@ class Dartdoc {
    */
   void typeSpan(ClassMirror type) {
     var icon = 'interface';
-    if (type.simpleName.endsWith('Exception')) {
+    if (isException(type)) {
       icon = 'exception';
     } else if (type.isClass) {
       icon = 'class';

@@ -17,7 +17,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_allocate, 2) {
       AbstractTypeArguments::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.IsInstantiated() && (type_arguments.Length() == 1)));
-  GET_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
   if ((data.Length() <= 0)) {
     const Integer& index = Integer::Handle(Integer::New(data.Length()));
     GrowableArray<const Object*> args;
@@ -34,7 +34,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_allocate, 2) {
 DEFINE_NATIVE_ENTRY(GrowableObjectArray_getIndexed, 2) {
   const GrowableObjectArray& array =
       GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     GrowableArray<const Object*> args;
     args.Add(&index);
@@ -48,13 +48,13 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_getIndexed, 2) {
 DEFINE_NATIVE_ENTRY(GrowableObjectArray_setIndexed, 3) {
   const GrowableObjectArray& array =
       GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     GrowableArray<const Object*> args;
     args.Add(&index);
     Exceptions::ThrowByType(Exceptions::kRange, args);
   }
-  GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(2));
   array.SetAt(index.Value(), value);
   return Object::null();
 }
@@ -77,7 +77,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_getCapacity, 1) {
 DEFINE_NATIVE_ENTRY(GrowableObjectArray_setLength, 2) {
   const GrowableObjectArray& array =
       GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));
   if ((length.Value() < 0) || (length.Value() > array.Capacity())) {
     GrowableArray<const Object*> args;
     args.Add(&length);
@@ -91,7 +91,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_setLength, 2) {
 DEFINE_NATIVE_ENTRY(GrowableObjectArray_setData, 2) {
   const GrowableObjectArray& array =
       GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
   ASSERT(data.Length() > 0);
   array.SetData(data);
   return Object::null();

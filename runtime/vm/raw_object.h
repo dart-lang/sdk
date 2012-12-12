@@ -40,6 +40,7 @@ namespace dart {
   V(Context)                                                                   \
   V(ContextScope)                                                              \
   V(ICData)                                                                    \
+  V(MegamorphicCache)                                                          \
   V(SubtypeTestCache)                                                          \
   V(Error)                                                                     \
     V(ApiError)                                                                \
@@ -933,6 +934,22 @@ class RawICData : public RawObject {
   intptr_t num_args_tested_;  // Number of arguments tested in IC.
   uint8_t deopt_reason_;      // Last deoptimization reason.
   uint8_t is_closure_call_;   // 0 or 1.
+};
+
+
+class RawMegamorphicCache : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->buckets_);
+  }
+  RawArray* buckets_;
+  RawSmi* mask_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->mask_);
+  }
+
+  intptr_t filled_entry_count_;
 };
 
 

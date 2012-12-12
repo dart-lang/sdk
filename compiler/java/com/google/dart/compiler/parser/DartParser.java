@@ -2564,6 +2564,12 @@ public class DartParser extends CompletionHooksParserBase {
           reportErrorAtPosition(prevPositionStart, prevPositionEnd,
                                 ParserErrorCode.SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND);
         }
+        if (token == Token.EQ_STRICT) {
+          reportError(tokenOffset, ParserErrorCode.DEPRECATED_STRICT_EQ);
+        }
+        if (token == Token.NE_STRICT) {
+          reportError(tokenOffset, ParserErrorCode.DEPRECATED_STRICT_NE);
+        }
         DartExpression right;
         if (token == Token.IS) {
           beginTypeExpression();
@@ -3563,6 +3569,11 @@ public class DartParser extends CompletionHooksParserBase {
     if (function == null) {
       rollback();
       return null;
+    }
+    if (function != null && function.getReturnTypeNode() != null) {
+      reportError(function.getReturnTypeNode(), ParserErrorCode.DEPRECATED_FUNCTION_LITERAL);
+    } else if (namePtr[0] != null) {
+      reportError(namePtr[0], ParserErrorCode.DEPRECATED_FUNCTION_LITERAL);
     }
     return done(new DartFunctionExpression(namePtr[0], doneWithoutConsuming(function), false));
   }

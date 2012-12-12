@@ -373,11 +373,14 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   /**
    * Deprecated, use innerHtml instead.
    */
+  @deprecated
   String get innerHTML => this.innerHtml;
+  @deprecated
   void set innerHTML(String value) {
     this.innerHtml = value;
   }
 
+  @deprecated
   void set elements(Collection<Element> value) {
     this.children = value;
   }
@@ -385,6 +388,7 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   /**
    * Deprecated, use [children] instead.
    */
+  @deprecated
   List<Element> get elements => this.children;
 
   /**
@@ -545,7 +549,7 @@ $if DART2JS
   void _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {
       case 'beforebegin':
-        this.parent.insertBefore(node, this);
+        this.parentNode.insertBefore(node, this);
         break;
       case 'afterbegin':
         var first = this.nodes.length > 0 ? this.nodes[0] : null;
@@ -555,7 +559,7 @@ $if DART2JS
         this.nodes.add(node);
         break;
       case 'afterend':
-        this.parent.insertBefore(node, this.nextNode);
+        this.parentNode.insertBefore(node, this.nextNode);
         break;
       default:
         throw new ArgumentError("Invalid position ${where}");

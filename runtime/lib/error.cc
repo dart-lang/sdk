@@ -82,7 +82,7 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
 // Arg0: index of the case clause token into which we fall through.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
-  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
   intptr_t fallthrough_pos = smi_pos.Value();
 
   // Allocate a new instance of type FallThroughError.
@@ -114,8 +114,8 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
 // Arg1: class name of the abstract class that cannot be instantiated.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
-  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(String, class_name, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, class_name, arguments->NativeArgAt(1));
   intptr_t error_pos = smi_pos.Value();
 
   // Allocate a new instance of type AbstractClassInstantiationError.
@@ -141,13 +141,19 @@ DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
 }
 
 
+// TODO(regis): This helper is used to compile a throw when a call cannot be
+// resolved at compile time. The thrown instance of NoSuchMethodError is of a
+// different type than a NoSuchMethodError thrown at runtime. This should be
+// merged.
+//
 // Allocate and throw NoSuchMethodError.
 // Arg0: index of the call that was not resolved at compile time.
 // Arg1: name of the method that was not resolved at compile time.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(NoSuchMethodError_throwNew, 2) {
-  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(String, function_name, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      String, function_name, arguments->NativeArgAt(1));
   intptr_t call_pos = smi_pos.Value();
   // Allocate a new instance of type NoSuchMethodError.
   const Instance& error = Instance::Handle(

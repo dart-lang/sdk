@@ -106,7 +106,7 @@ RawObject* DartEntry::InvokeClosure(
   for (int i = 1; i < num_arguments; i++) {
     args.Add(arguments[i - 1]);
   }
-  // Now Call the invoke stub which will invoke the closure.
+  // Now call the invoke stub which will invoke the closure.
   invokestub entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
   ASSERT(context.isolate() == Isolate::Current());
@@ -223,8 +223,8 @@ RawObject* DartLibraryCalls::ExceptionCreate(
   constructor_arguments.Add(&Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   constructor_arguments.AddArray(arguments);
 
-  const String& period = String::Handle(Symbols::Dot());
-  String& constructor_name = String::Handle(String::Concat(class_name, period));
+  String& constructor_name = String::Handle(
+      String::Concat(class_name, Symbols::DotHandle()));
   Function& constructor =
       Function::Handle(cls.LookupConstructor(constructor_name));
   ASSERT(!constructor.IsNull());
@@ -265,7 +265,6 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
 
 RawObject* DartLibraryCalls::Equals(const Instance& left,
                                     const Instance& right) {
-  const String& function_name = String::Handle(Symbols::EqualOperator());
   GrowableArray<const Object*> arguments;
   arguments.Add(&right);
   const int kNumArguments = 2;
@@ -273,7 +272,7 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(left,
-                               function_name,
+                               Symbols::EqualOperatorHandle(),
                                kNumArguments,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());

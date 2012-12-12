@@ -36,56 +36,27 @@ bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
 
 
 char** Platform::Environment(intptr_t* count) {
-  char* strings = GetEnvironmentStrings();
+  wchar_t* strings = GetEnvironmentStringsW();
   if (strings == NULL) return NULL;
-  char* tmp = strings;
+  wchar_t* tmp = strings;
   intptr_t i = 0;
   while (*tmp != '\0') {
     i++;
-    tmp += (strlen(tmp) + 1);
+    tmp += (wcslen(tmp) + 1);
   }
   *count = i;
   char** result = new char*[i];
   tmp = strings;
   for (intptr_t current = 0; current < i; current++) {
-    result[current] = StringUtils::SystemStringToUtf8(tmp);
-    tmp += (strlen(tmp) + 1);
+    result[current] = StringUtils::WideToUtf8(tmp);
+    tmp += (wcslen(tmp) + 1);
   }
-  FreeEnvironmentStrings(strings);
+  FreeEnvironmentStringsW(strings);
   return result;
 }
+
 
 void Platform::FreeEnvironment(char** env, int count) {
   for (int i = 0; i < count; i++) free(env[i]);
   delete[] env;
-}
-
-
-char* Platform::StrError(int error_code) {
-  static const int kBufferSize = 1024;
-  char* error = static_cast<char*>(malloc(kBufferSize));
-  DWORD message_size =
-      FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                    NULL,
-                    error_code,
-                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                    error,
-                    kBufferSize,
-                    NULL);
-  if (message_size == 0) {
-    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      Log::PrintErr("FormatMessage failed %d\n", GetLastError());
-    }
-    snprintf(error, kBufferSize, "OS Error %d", error_code);
-  }
-  // Strip out \r\n at the end of the generated message and ensure
-  // null termination.
-  if (message_size > 2 &&
-      error[message_size - 2] == '\r' &&
-      error[message_size - 1] == '\n') {
-    error[message_size - 2] = '\0';
-  } else {
-    error[kBufferSize - 1] = '\0';
-  }
-  return error;
 }

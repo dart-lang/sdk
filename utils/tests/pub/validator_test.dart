@@ -12,6 +12,8 @@ import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/entrypoint.dart';
 import '../../pub/io.dart';
 import '../../pub/validator.dart';
+import '../../pub/validator/lib.dart';
+import '../../pub/validator/license.dart';
 import '../../pub/validator/name.dart';
 import '../../pub/validator/pubspec_field.dart';
 
@@ -27,16 +29,46 @@ void expectValidationWarning(ValidatorCreator fn) {
   expectLater(schedulePackageValidation(fn), pairOf(isEmpty, isNot(isEmpty)));
 }
 
-Validator pubspecField(Entrypoint entrypoint) =>
-  new PubspecFieldValidator(entrypoint);
+Validator lib(Entrypoint entrypoint) => new LibValidator(entrypoint);
+
+Validator license(Entrypoint entrypoint) => new LicenseValidator(entrypoint);
 
 Validator name(Entrypoint entrypoint) => new NameValidator(entrypoint);
 
+Validator pubspecField(Entrypoint entrypoint) =>
+  new PubspecFieldValidator(entrypoint);
+
+void scheduleNormalPackage() => normalPackage.scheduleCreate();
+
 main() {
   group('should consider a package valid if it', () {
+    setUp(scheduleNormalPackage);
+
     test('looks normal', () {
       dir(appPath, [libPubspec("test_pkg", "1.0.0")]).scheduleCreate();
+      expectNoValidationError(license);
       expectNoValidationError(pubspecField);
+      run();
+    });
+
+    test('has a COPYING file', () {
+      file(join(appPath, 'LICENSE'), '').scheduleDelete();
+      file(join(appPath, 'COPYING'), '').scheduleCreate();
+      expectNoValidationError(license);
+      run();
+    });
+
+    test('has a prefixed LICENSE file', () {
+      file(join(appPath, 'LICENSE'), '').scheduleDelete();
+      file(join(appPath, 'MIT_LICENSE'), '').scheduleCreate();
+      expectNoValidationError(license);
+      run();
+    });
+
+    test('has a suffixed LICENSE file', () {
+      file(join(appPath, 'LICENSE'), '').scheduleDelete();
+      file(join(appPath, 'LICENSE.md'), '').scheduleCreate();
+      expectNoValidationError(license);
       run();
     });
 
@@ -59,9 +91,22 @@ main() {
       expectNoValidationError(name);
       run();
     });
+
+    test('has a non-Dart file in lib', () {
+      dir(appPath, [
+        libPubspec("test_pkg", "1.0.0"),
+        dir("lib", [
+          file("thing.txt", "woo hoo")
+        ])
+      ]).scheduleCreate();
+      expectNoValidationError(lib);
+      run();
+    });
   });
 
   group('should consider a package invalid if it', () {
+    setUp(scheduleNormalPackage);
+
     test('is missing the "homepage" field', () {
       var package = package("test_pkg", "1.0.0");
       package.remove("homepage");
@@ -135,6 +180,12 @@ main() {
       run();
     });
 
+    test('has no LICENSE file', () {
+      file(join(appPath, 'LICENSE'), '').scheduleDelete();
+      expectValidationError(license);
+      run();
+    });
+
     test('has an empty package name', () {
       dir(appPath, [libPubspec("", "1.0.0")]).scheduleCreate();
       expectValidationError(name);
@@ -198,6 +249,29 @@ main() {
         dir("lib", [file("operator.dart", "int i = 0;")])
       ]).scheduleCreate();
       expectValidationError(name);
+      run();
+    });
+
+    test('has no lib directory', () {
+      dir(join(appPath, "lib")).scheduleDelete();
+      expectValidationError(lib);
+      run();
+    });
+
+    test('has an empty lib directory', () {
+      file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      expectValidationError(lib);
+      run();
+    });
+
+    test('has a lib directory containing only src', () {
+      file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      dir(appPath, [
+        dir("lib", [
+          dir("src", [file("test_pkg.dart", "int i = 0;")])
+        ])
+      ]).scheduleCreate();
+      expectValidationError(lib);
       run();
     });
   });

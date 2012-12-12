@@ -470,6 +470,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "        throw new Exception();",
         "      case 4:",
         "        bar();",
+        "      default:",
+        "        bar();",
         "    }",
         "  }",
         "}",
@@ -477,7 +479,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.SWITCH_CASE_FALL_THROUGH, 14, 9, 6));
+        errEx(ResolverErrorCode.SWITCH_CASE_FALL_THROUGH, 14, 9, 6),
+        errEx(ResolverErrorCode.SWITCH_CASE_FALL_THROUGH, 16, 9, 6));
   }
 
   /**
@@ -1146,14 +1149,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  assert('message');", // not 'bool'
         "  assert('null');", // not 'bool'
         "  assert(0);", // not 'bool'
-        "  assert(f() {});", // OK, dynamic
-        "  assert(bool f() {});", // OK, '() -> bool'
-        "  assert(Object f() {});", // OK, 'Object' compatible with 'bool'
-        "  assert(String f() {});", // not '() -> bool', return type
-        "  assert(bool f(x) {});", // not '() -> bool', parameter
+        "  assert(f1);", // OK, dynamic
+        "  assert(f2);", // OK, '() -> bool'
+        "  assert(f3);", // OK, 'Object' compatible with 'bool'
+        "  assert(f4);", // not '() -> bool', return type
+        "  assert(f5);", // not '() -> bool', parameter
         "  assert(true, false);", // not single argument
         "  assert;", // incomplete
         "}",
+        "f1() {}",
+        "bool f2() {}",
+        "Object f3() {}",
+        "String f4() {}",
+        "bool f5(x) {}",
         "");
     assertErrors(
         libraryResult.getErrors(),
@@ -1162,8 +1170,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.ASSERT_BOOL, 5, 10, 9),
         errEx(TypeErrorCode.ASSERT_BOOL, 6, 10, 6),
         errEx(TypeErrorCode.ASSERT_BOOL, 7, 10, 1),
-        errEx(TypeErrorCode.ASSERT_BOOL, 11, 10, 13),
-        errEx(TypeErrorCode.ASSERT_BOOL, 12, 10, 12));
+        errEx(TypeErrorCode.ASSERT_BOOL, 11, 10, 2),
+        errEx(TypeErrorCode.ASSERT_BOOL, 12, 10, 2));
   }
 
   /**
@@ -3358,6 +3366,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  switch (true) {",
         "    default:",
         "      int v = foo;",
+        "      break;",
         "  }",
         "}",
         "");
@@ -3885,42 +3894,43 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_assignMethod() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class C {" +
+        "class C {",
         "  method() { }",
         "}",
         "main () {",
-        "  new C().method = _() {};",
-        "}");
-    assertErrors(
-        libraryResult.getErrors(),
-        errEx(TypeErrorCode.CANNOT_ASSIGN_TO, 5, 3, 14));
+        "  new C().method = f;",
+        "}",
+        "f() {}",
+        "");
+    assertErrors(libraryResult.getErrors(), errEx(TypeErrorCode.CANNOT_ASSIGN_TO, 6, 3, 14));
   }
 
   public void test_assignSetter() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class C {" +
+        "class C {",
         "  set method(arg) { }",
         "}",
         "main () {",
-        "  new C().method = _() {};",
-        "}");
-    assertErrors(
-        libraryResult.getErrors());
+        "  new C().method = f;",
+        "}",
+        "f() {}",
+        "");
+    assertErrors(libraryResult.getErrors());
   }
 
   public void test_assignGetter() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class C {" +
+        "class C {",
         "  get method { }",
         "}",
         "main () {",
-        "  new C().method = _() {};",
-        "}");
-    assertErrors(
-        libraryResult.getErrors(),
-        errEx(TypeErrorCode.FIELD_HAS_NO_SETTER, 5, 11, 6));
+        "  new C().method = f;",
+        "}",
+        "f() {}",
+        "");
+    assertErrors(libraryResult.getErrors(), errEx(TypeErrorCode.FIELD_HAS_NO_SETTER, 6, 11, 6));
   }
 
   /**
@@ -4590,7 +4600,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertNotNull(access.getElement());
     }
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4315
@@ -4617,6 +4627,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       DartMethodInvocation invocation = findNode(DartMethodInvocation.class, "..m(2)");
       assertNotNull(invocation.getElement());
     }
+  }
+
+  /**
+   * Test that we already support cascaded calls in initializers. No implementation was changed.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6955
+   */
+  public void test_cascade_inInitializer() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "  A() : f = ''..length;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
   }
 
   /**
@@ -5041,7 +5067,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_CYCLE, 6, 11, 7),
         errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_CYCLE, 9, 11, 7));
   }
-  
+
   public void test_redirectingFactoryConstructor_notConst_fromConst() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5056,6 +5082,78 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_CONST, 7, 29, 5));
+  }
+
+  public void test_redirectingFactoryConstructor_shouldBeSubType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "  A.named(p0) {}",
+        "}",
+        "",
+        "class B {",
+        "  factory B.foo(p0) = A;",
+        "  factory B.bar() = A.named;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_SUBTYPE, 8, 23, 1),
+        errEx(TypeErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_SUBTYPE, 9, 23, 5));
+  }
+
+  public void test_redirectingFactoryConstructor_shouldBeSubType2() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> {",
+        "  A.named(T t) {}",
+        "}",
+        "",
+        "class B<T> {",
+        "  factory B.foo(T t) = A<T>.named;",
+        "}",
+        "class B2<T, V> {",
+        "  factory B2.foo(V v) = A<V>.named;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
+  public void test_redirectingFactoryConstructor_shouldBeSubType3() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> {",
+        "  A(A<T> p) {}",
+        "}",
+        "",
+        "class B<T> {",
+        "  factory B.foo(A<T> p) = A;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
+  public void test_redirectingFactoryConstructor_notSubType_typeParameterBounds() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A1<T extends String> {",
+        "  A1() {}",
+        "}",
+        "class A2<T> {",
+        "  A2() {}",
+        "}",
+        "",
+        "class B {",
+        "  factory B.name1() = A1<String>;",
+        "  factory B.name2() = A1<int>;",
+        "  factory B.name3() = A2<String>;",
+        "  factory B.name4() = A2<int>;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 11, 26, 3));
   }
 
   /**
@@ -5831,11 +5929,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  var x;",
-        "  B() : x = (foo() { }) {}",
+        "  B() : x = 0 {}",
         "}",
         "");
     assertErrors(result.getErrors(),
-        errEx(ResolverErrorCode.INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR, 4, 9, 15));
+        errEx(ResolverErrorCode.INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR, 4, 9, 5));
   }
   
   public void test_variableReferencesItselfInInitializer() throws Exception {

@@ -413,6 +413,11 @@ class ResolverTask extends CompilerTask {
     }));
   }
 
+  // TODO(johnniwinther): Remove this queue when resolution has been split into
+  // syntax and semantic resolution.
+  ClassElement currentlyResolvedClass;
+  Queue<ClassElement> pendingClassesToBeResolved = new Queue<ClassElement>();
+
   /**
    * Resolve the class [element].
    *
@@ -425,6 +430,26 @@ class ResolverTask extends CompilerTask {
    * [:element.ensureResolved(compiler):].
    */
   void resolveClass(ClassElement element) {
+    ClassElement previousResolvedClass = currentlyResolvedClass;
+    currentlyResolvedClass = element;
+    resolveClassInternal(element);
+    if (previousResolvedClass == null) {
+      while (!pendingClassesToBeResolved.isEmpty) {
+        pendingClassesToBeResolved.removeFirst().ensureResolved(compiler);
+      }
+    }
+    currentlyResolvedClass = previousResolvedClass;
+  }
+
+  void _ensureClassWillBeResolved(ClassElement element) {
+    if (currentlyResolvedClass == null) {
+      element.ensureResolved(compiler);
+    } else {
+      pendingClassesToBeResolved.add(element);
+    }
+  }
+
+  void resolveClassInternal(ClassElement element) {
     if (!element.isPatch) {
       compiler.withCurrentElement(element, () => measure(() {
         assert(element.resolutionState == STATE_NOT_STARTED);
@@ -492,10 +517,40 @@ class ResolverTask extends CompilerTask {
             MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS.error([mismatchedFlags]),
             Diagnostic.ERROR);
         }
+        checkConstructorNameHack(holder, member);
       }
       checkAbstractField(member);
       checkValidOverride(member, cls.lookupSuperMember(member.name));
     });
+  }
+
+  // TODO(ahe): Remove this method.  It is only needed while we store
+  // constructor names as ClassName$id.  Once we start storing
+  // constructors as just id, this will be caught by the general
+  // mechanism for duplicate members.
+  /// Check that a constructor name does not conflict with a member.
+  void checkConstructorNameHack(ClassElement holder, FunctionElement member) {
+    // If the name of the constructor is the same as the name of the
+    // class, there cannot be a problem.
+    if (member.name == holder.name) return;
+
+    SourceString name =
+      Elements.deconstructConstructorName(member.name, holder);
+
+    // If the name could not be deconstructed, this is is from a
+    // factory method from a deprecated interface implementation.
+    if (name == null) return;
+
+    Element otherMember = holder.lookupLocalMember(name);
+    if (otherMember != null) {
+      if (compiler.onDeprecatedFeature(member, 'conflicting constructor')) {
+        compiler.reportMessage(
+            compiler.spanFromElement(otherMember),
+            MessageKind.GENERIC.error(['This member conflicts with a'
+                                       ' constructor.']),
+            Diagnostic.INFO);
+      }
+    }
   }
 
   void checkAbstractField(Element member) {
@@ -1153,7 +1208,8 @@ class TypeResolver {
         type = checkNoTypeArguments(element.computeType(compiler));
       } else if (element.isClass()) {
         ClassElement cls = element;
-        cls.ensureResolved(compiler);
+        compiler.resolver._ensureClassWillBeResolved(cls);
+        element.computeType(compiler);
         var arguments = new LinkBuilder<DartType>();
         bool hashTypeArgumentMismatch = resolveTypeArguments(
             node, cls.typeVariables, enclosingElement,
@@ -2070,7 +2126,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         new VariableDefinitionsVisitor(compiler, node, this,
                                        ElementKind.VARIABLE);
     // Ensure that we set the type of the [VariableListElement] since it depends
-    // the current scope. If the current scope is a [MethodScope] or
+    // on the current scope. If the current scope is a [MethodScope] or
     // [BlockScope] it will not be available for the
     // [VariableListElement.computeType] method.
     if (node.type != null) {
@@ -2538,8 +2594,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
       TypeVariableElement variableElement = typeVariable.element;
       if (typeNode.bound != null) {
         DartType boundType = typeResolver.resolveTypeAnnotation(
-            typeNode.bound, scope, element,
-            onFailure: warning);
+            typeNode.bound, scope, element, onFailure: warning);
         if (boundType != null && boundType.element == variableElement) {
           // TODO(johnniwinther): Check for more general cycles, like
           // [: <A extends B, B extends C, C extends B> :].
@@ -2612,14 +2667,22 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     resolveTypeVariableBounds(node.typeParameters);
 
     // Find super type.
-    DartType supertype = visit(node.superclass);
-    if (supertype != null && supertype.element.isExtendable()) {
-      element.supertype = supertype;
-      if (isBlackListed(supertype)) {
+    DartType supertype = null;
+    if (node.superclass != null) {
+      supertype = typeResolver.resolveTypeAnnotation(node.superclass, scope,
+          element, onFailure: error);
+    }
+    if (supertype != null) {
+      if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
+        // Error has already been reported.
+      } else if (!identical(supertype.kind, TypeKind.INTERFACE)) {
+        // TODO(johnniwinther): Handle dynamic.
+        error(node.superclass.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
+      } else if (isBlackListed(supertype)) {
         error(node.superclass, MessageKind.CANNOT_EXTEND, [supertype]);
+      } else {
+        element.supertype = supertype;
       }
-    } else if (supertype != null) {
-      error(node.superclass, MessageKind.TYPE_NAME_EXPECTED);
     }
     final objectElement = compiler.objectClass;
     if (!identical(element, objectElement) && element.supertype == null) {
@@ -2636,14 +2699,21 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     for (Link<Node> link = node.interfaces.nodes;
          !link.isEmpty;
          link = link.tail) {
-      DartType interfaceType = visit(link.head);
-      if (interfaceType != null && interfaceType.element.isExtendable()) {
-        interfaces = interfaces.prepend(interfaceType);
-        if (isBlackListed(interfaceType)) {
-          error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);
+      DartType interfaceType = typeResolver.resolveTypeAnnotation(
+          link.head, scope, element, onFailure: error);
+      if (interfaceType != null) {
+        if (identical(interfaceType.kind, TypeKind.MALFORMED_TYPE)) {
+          // Error has already been reported.
+        } else if (!identical(interfaceType.kind, TypeKind.INTERFACE)) {
+          // TODO(johnniwinther): Handle dynamic.
+          TypeAnnotation typeAnnotation = link.head;
+          error(typeAnnotation.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
+        } else {
+          interfaces = interfaces.prepend(interfaceType);
+          if (isBlackListed(interfaceType)) {
+            error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);
+          }
         }
-      } else {
-        error(link.head, MessageKind.TYPE_NAME_EXPECTED);
       }
     }
     element.interfaces = interfaces;
@@ -2656,10 +2726,12 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return element.computeType(compiler);
   }
 
+  // TODO(johnniwinther): Remove when default class is no longer supported.
   DartType visitTypeAnnotation(TypeAnnotation node) {
     return visit(node.typeName);
   }
 
+  // TODO(johnniwinther): Remove when default class is no longer supported.
   DartType visitIdentifier(Identifier node) {
     Element element = scope.lookup(node.source);
     if (element == null) {
@@ -2682,6 +2754,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return null;
   }
 
+  // TODO(johnniwinther): Remove when default class is no longer supported.
   DartType visitSend(Send node) {
     Identifier prefix = node.receiver.asIdentifier();
     if (prefix == null) {
@@ -2704,29 +2777,42 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   }
 
   void calculateAllSupertypes(ClassElement cls) {
-    // TODO(karlklose): substitute type variables.
     // TODO(karlklose): check if type arguments match, if a classelement occurs
     //                  more than once in the supertypes.
     if (cls.allSupertypes != null) return;
     final DartType supertype = cls.supertype;
     if (supertype != null) {
-      ClassElement superElement = supertype.element;
-      Link<DartType> superSupertypes = superElement.allSupertypes;
-      assert(superSupertypes != null);
-      Link<DartType> supertypes = superSupertypes.prepend(supertype);
+      var allSupertypes = new LinkBuilder<DartType>();
+      addAllSupertypes(allSupertypes, supertype);
       for (Link<DartType> interfaces = cls.interfaces;
            !interfaces.isEmpty;
            interfaces = interfaces.tail) {
-        ClassElement element = interfaces.head.element;
-        Link<DartType> interfaceSupertypes = element.allSupertypes;
-        assert(interfaceSupertypes != null);
-        supertypes = supertypes.reversePrependAll(interfaceSupertypes);
-        supertypes = supertypes.prepend(interfaces.head);
+        addAllSupertypes(allSupertypes, interfaces.head);
       }
-      cls.allSupertypes = supertypes;
+      cls.allSupertypes = allSupertypes.toLink();
     } else {
       assert(identical(cls, compiler.objectClass));
       cls.allSupertypes = const Link<DartType>();
+    }
+ }
+
+  /**
+   * Adds [type] and all supertypes of [type] to [builder] while substituting
+   * type variables.
+   */
+  void addAllSupertypes(LinkBuilder<DartType> builder, InterfaceType type) {
+    builder.addLast(type);
+    Link<DartType> typeArguments = type.typeArguments;
+    ClassElement classElement = type.element;
+    Link<DartType> typeVariables = classElement.typeVariables;
+    Link<DartType> supertypes = classElement.allSupertypes;
+    assert(invariant(element, supertypes != null,
+        message: "Supertypes not computed on $classElement "
+                 "during resolution of $element"));
+    while (!supertypes.isEmpty) {
+      DartType supertype = supertypes.head;
+      builder.addLast(supertype.subst(typeArguments, typeVariables));
+      supertypes = supertypes.tail;
     }
   }
 
@@ -2811,7 +2897,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
       } else {
         compiler.reportMessage(
           compiler.spanFromNode(node),
-          MessageKind.TYPE_NAME_EXPECTED.error([]),
+          MessageKind.CLASS_NAME_EXPECTED.error([]),
           Diagnostic.ERROR);
       }
     }

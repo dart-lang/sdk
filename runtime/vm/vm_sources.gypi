@@ -197,6 +197,8 @@
     'longjump.cc',
     'longjump.h',
     'longjump_test.cc',
+    'megamorphic_cache_table.cc',
+    'megamorphic_cache_table.h',
     'memory_region.cc',
     'memory_region.h',
     'memory_region_test.cc',

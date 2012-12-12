@@ -56,6 +56,7 @@ string_base_vm_test: Fail, OK # VM specific test.
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $runtime == safari ]
+null_nosuchmethod_test: Fail # TODO(ahe): Please triage this failure.
 core_runtime_types_test: Fail
 
 [ $compiler == dart2js && $runtime == ie9 ]

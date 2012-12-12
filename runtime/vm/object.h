@@ -210,6 +210,8 @@ class Object {
     return VMHandles::IsZoneHandle(reinterpret_cast<uword>(this));
   }
 
+  bool IsNotTemporaryScopedHandle() const;
+
   static RawObject* Clone(const Object& src, Heap::Space space = Heap::kNew);
 
   static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {
@@ -294,6 +296,9 @@ class Object {
   }
   static RawClass* unwind_error_class() { return unwind_error_class_; }
   static RawClass* icdata_class() { return icdata_class_; }
+  static RawClass* megamorphic_cache_class() {
+    return megamorphic_cache_class_;
+  }
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
   static RawError* Init(Isolate* isolate);
@@ -428,6 +433,7 @@ class Object {
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
   static RawClass* icdata_class_;  // Class of ICData.
+  static RawClass* megamorphic_cache_class_;  // Class of MegamorphiCache.
   static RawClass* subtypetestcache_class_;  // Class of SubtypeTestCache.
   static RawClass* api_error_class_;  // Class of ApiError.
   static RawClass* language_error_class_;  // Class of LanguageError.
@@ -2932,6 +2938,59 @@ class ICData : public Object {
 };
 
 
+class MegamorphicCache : public Object {
+ public:
+  static const int kInitialCapacity = 16;
+  static const double kLoadFactor;
+
+  RawArray* buckets() const;
+  void set_buckets(const Array& buckets) const;
+
+  intptr_t mask() const;
+  void set_mask(intptr_t mask) const;
+
+  intptr_t filled_entry_count() const;
+  void set_filled_entry_count(intptr_t num) const;
+
+  static intptr_t buckets_offset() {
+    return OFFSET_OF(RawMegamorphicCache, buckets_);
+  }
+  static intptr_t mask_offset() {
+    return OFFSET_OF(RawMegamorphicCache, mask_);
+  }
+
+  static RawMegamorphicCache* New();
+
+  void EnsureCapacity() const;
+
+  void Insert(const Smi& class_id, const Function& target) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawMegamorphicCache));
+  }
+
+ private:
+  friend class Class;
+
+  enum {
+    kClassIdIndex,
+    kTargetFunctionIndex,
+    kEntryLength,
+  };
+
+  static inline void SetEntry(const Array& array,
+                              intptr_t index,
+                              const Smi& class_id,
+                              const Function& target);
+
+  static inline RawObject* GetClassId(const Array& array, intptr_t index);
+  static inline RawObject* GetTargetFunction(const Array& array,
+                                             intptr_t index);
+
+  HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache, Object);
+};
+
+
 class SubtypeTestCache : public Object {
  public:
   enum Entries {
@@ -4433,14 +4492,12 @@ class GrowableObjectArray : public Instance {
   void SetAt(intptr_t index, const Object& value) const {
     ASSERT(!IsNull());
     ASSERT(index < Length());
-    const Array& arr = Array::Handle(data());
-    arr.SetAt(index, value);
+
+    // TODO(iposva): Add storing NoGCScope.
+    DataStorePointer(ObjectAddr(index), value.raw());
   }
 
   void Add(const Object& value, Heap::Space space = Heap::kNew) const;
-  void Add(Isolate* isolate,
-           const Object& value,
-           Heap::Space space = Heap::kNew) const;
 
   void Grow(intptr_t new_capacity, Heap::Space space = Heap::kNew) const;
   RawObject* RemoveLast() const;
@@ -4488,6 +4545,22 @@ class GrowableObjectArray : public Instance {
   RawObject** ObjectAddr(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
     return &(DataArray()->data()[index]);
+  }
+  bool DataContains(uword addr) const {
+    intptr_t data_size = data()->Size();
+    uword data_addr = RawObject::ToAddr(data());
+    return (addr >= data_addr) && (addr < (data_addr + data_size));
+  }
+  void DataStorePointer(RawObject** addr, RawObject* value) const {
+    // Ensure that the backing array object contains the addr.
+    ASSERT(DataContains(reinterpret_cast<uword>(addr)));
+    *addr = value;
+    // Filter stores based on source and target.
+    if (!value->IsHeapObject()) return;
+    if (value->IsNewObject() && data()->IsOldObject()) {
+      uword ptr = reinterpret_cast<uword>(addr);
+      Isolate::Current()->store_buffer()->AddPointer(ptr);
+    }
   }
 
   static const int kDefaultInitialCapacity = 4;
@@ -6066,6 +6139,26 @@ bool String::Equals(const String& str,
     }
   }
   return true;
+}
+
+
+void MegamorphicCache::SetEntry(const Array& array,
+                                intptr_t index,
+                                const Smi& class_id,
+                                const Function& target) {
+  array.SetAt((index * kEntryLength) + kClassIdIndex, class_id);
+  array.SetAt((index * kEntryLength) + kTargetFunctionIndex, target);
+}
+
+
+RawObject* MegamorphicCache::GetClassId(const Array& array, intptr_t index) {
+  return array.At((index * kEntryLength) + kClassIdIndex);
+}
+
+
+RawObject* MegamorphicCache::GetTargetFunction(const Array& array,
+                                               intptr_t index) {
+  return array.At((index * kEntryLength) + kTargetFunctionIndex);
 }
 
 }  // namespace dart

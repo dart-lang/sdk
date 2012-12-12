@@ -4,6 +4,8 @@
 
 #include "vm/symbols.h"
 
+#include "vm/handles.h"
+#include "vm/handles_impl.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -16,6 +18,13 @@ namespace dart {
 
 RawString* Symbols::predefined_[Symbols::kMaxId];
 
+Symbols::ReadOnlyHandles* Symbols::predefined_handles_ = NULL;
+
+#define DEFINE_SYMBOL_HANDLE(symbol)                                           \
+  String* Symbols::symbol##_handle_ = NULL;
+PREDEFINED_SYMBOL_HANDLES_LIST(DEFINE_SYMBOL_HANDLE)
+#undef DEFINE_SYMBOL_HANDLE
+
 static const char* names[] = {
   NULL,
 
@@ -24,6 +33,11 @@ static const char* names[] = {
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 #undef DEFINE_SYMBOL_LITERAL
 };
+
+intptr_t Symbols::num_of_grows_;
+intptr_t Symbols::collision_count_[kMaxCollisionBuckets];
+
+DEFINE_FLAG(bool, dump_symbol_stats, false, "Dump symbol table statistics");
 
 
 const char* Symbols::Name(SymbolId symbol) {
@@ -35,6 +49,13 @@ const char* Symbols::Name(SymbolId symbol) {
 void Symbols::InitOnce(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
+
+  if (FLAG_dump_symbol_stats) {
+    num_of_grows_ = 0;
+    for (intptr_t i = 0; i < kMaxCollisionBuckets; i++) {
+      collision_count_[i] = 0;
+    }
+  }
 
   // Create and setup a symbol table in the vm isolate.
   SetupSymbolTable(isolate);
@@ -59,6 +80,14 @@ void Symbols::InitOnce(Isolate* isolate) {
     ASSERT(kMaxPredefinedId + c < kMaxId);
     predefined_[kMaxPredefinedId + c] = FromUTF32(&c, 1);
   }
+
+  predefined_handles_ = new ReadOnlyHandles();
+#define INITIALIZE_SYMBOL_HANDLE(symbol)                                       \
+  symbol##_handle_ = reinterpret_cast<String*>(                                \
+      predefined_handles_->AllocateHandle());                                  \
+  *symbol##_handle_ = symbol();
+PREDEFINED_SYMBOL_HANDLES_LIST(INITIALIZE_SYMBOL_HANDLE)
+#undef INITIALIZE_SYMBOL_HANDLE
 }
 
 
@@ -248,8 +277,46 @@ RawString* Symbols::FromCharCode(int32_t char_code) {
 }
 
 
+bool Symbols::IsPredefinedHandle(uword address) {
+  return predefined_handles_->IsValidHandle(address);
+}
+
+
+void Symbols::DumpStats() {
+  if (FLAG_dump_symbol_stats) {
+    intptr_t table_size = 0;
+    dart::Smi& used = Smi::Handle();
+    Array& symbol_table = Array::Handle(Array::null());
+
+    // First dump VM symbol table stats.
+    symbol_table = Dart::vm_isolate()->object_store()->symbol_table();
+    table_size = symbol_table.Length() - 1;
+    used ^= symbol_table.At(table_size);
+    OS::Print("VM Isolate: Number of symbols : %"Pd"\n", used.Value());
+    OS::Print("VM Isolate: Symbol table capacity : %"Pd"\n", table_size);
+
+    // Now dump regular isolate symbol table stats.
+    symbol_table = Isolate::Current()->object_store()->symbol_table();
+    table_size = symbol_table.Length() - 1;
+    used ^= symbol_table.At(table_size);
+    OS::Print("Isolate: Number of symbols : %"Pd"\n", used.Value());
+    OS::Print("Isolate: Symbol table capacity : %"Pd"\n", table_size);
+
+    // Dump overall collision and growth counts.
+    OS::Print("Number of symbol table grows = %"Pd"\n", num_of_grows_);
+    OS::Print("Collision counts on add and lookup :\n");
+    intptr_t i = 0;
+    for (i = 0; i < (kMaxCollisionBuckets - 1); i++) {
+      OS::Print("  %"Pd" collisions => %"Pd"\n", i, collision_count_[i]);
+    }
+    OS::Print("  > %"Pd" collisions => %"Pd"\n", i, collision_count_[i]);
+  }
+}
+
+
 void Symbols::GrowSymbolTable(const Array& symbol_table) {
   // TODO(iposva): Avoid exponential growth.
+  num_of_grows_ += 1;
   intptr_t table_size = symbol_table.Length() - 1;
   intptr_t new_table_size = table_size * 2;
   Array& new_symbol_table = Array::Handle(Array::New(new_table_size + 1));
@@ -263,9 +330,17 @@ void Symbols::GrowSymbolTable(const Array& symbol_table) {
       intptr_t hash = element.Hash();
       intptr_t index = hash % new_table_size;
       new_element = new_symbol_table.At(index);
+      intptr_t num_collisions = 0;
       while (!new_element.IsNull()) {
         index = (index + 1) % new_table_size;  // Move to next element.
         new_element = new_symbol_table.At(index);
+        num_collisions += 1;
+      }
+      if (FLAG_dump_symbol_stats) {
+        if (num_collisions >= kMaxCollisionBuckets) {
+          num_collisions = (kMaxCollisionBuckets - 1);
+        }
+        collision_count_[num_collisions] += 1;
       }
       new_symbol_table.SetAt(index, element);
     }
@@ -305,12 +380,20 @@ intptr_t Symbols::FindIndex(const Array& symbol_table,
   // Last element of the array is the number of used elements.
   intptr_t table_size = symbol_table.Length() - 1;
   intptr_t index = hash % table_size;
+  intptr_t num_collisions = 0;
 
   String& symbol = String::Handle();
   symbol ^= symbol_table.At(index);
   while (!symbol.IsNull() && !symbol.Equals(characters, len)) {
     index = (index + 1) % table_size;  // Move to next element.
     symbol ^= symbol_table.At(index);
+    num_collisions += 1;
+  }
+  if (FLAG_dump_symbol_stats) {
+    if (num_collisions >= kMaxCollisionBuckets) {
+      num_collisions = (kMaxCollisionBuckets - 1);
+    }
+    collision_count_[num_collisions] += 1;
   }
   return index;  // Index of symbol if found or slot into which to add symbol.
 }
@@ -338,12 +421,20 @@ intptr_t Symbols::FindIndex(const Array& symbol_table,
   // Last element of the array is the number of used elements.
   intptr_t table_size = symbol_table.Length() - 1;
   intptr_t index = hash % table_size;
+  intptr_t num_collisions = 0;
 
   String& symbol = String::Handle();
   symbol ^= symbol_table.At(index);
   while (!symbol.IsNull() && !symbol.Equals(str, begin_index, len)) {
     index = (index + 1) % table_size;  // Move to next element.
     symbol ^= symbol_table.At(index);
+    num_collisions += 1;
+  }
+  if (FLAG_dump_symbol_stats) {
+    if (num_collisions >= kMaxCollisionBuckets) {
+      num_collisions = (kMaxCollisionBuckets - 1);
+    }
+    collision_count_[num_collisions] += 1;
   }
   return index;  // Index of symbol if found or slot into which to add symbol.
 }

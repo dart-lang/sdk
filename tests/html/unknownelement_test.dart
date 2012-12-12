@@ -54,7 +54,7 @@ main() {
             switch (name) {
               case 'get:y':
                 return map['y'];
-              case 'set:y':
+              case 'set:y=':
                 map['y'] = args[0];
                 return;
             }

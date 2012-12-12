@@ -343,8 +343,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   __ pushq(RCX);  // Closure object.
   __ pushq(R10);  // Arguments descriptor.
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R13);
-  __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
+  __ SmiUntag(R13);  // Arguments array length, including the original receiver.
   PushArgumentsArray(assembler, (kWordSize * 6));
   // Stack layout explaining "(kWordSize * 6)" offset.
   // TOS + 0: Argument array.
@@ -370,7 +369,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
 
   __ Bind(&function_not_found);
   // The target function was not found, so invoke method
-  // "void noSuchMethod(function_name, args_array)".
+  // "dynamic noSuchMethod(InvocationMirror invocation)".
   //   RAX: receiver.
   //   RBX: ic-data.
   //   R10: arguments descriptor array.
@@ -380,8 +379,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   __ pushq(RBX);  // IC-data array.
   __ pushq(R10);  // Arguments descriptor array.
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R13);
-  __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
+  __ SmiUntag(R13);  // Arguments array length, including the original receiver.
   // See stack layout below explaining "wordSize * 7" offset.
   PushArgumentsArray(assembler, (kWordSize * 7));
 
@@ -529,6 +527,44 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
+  AssemblerMacros::EnterStubFrame(assembler);
+  // Load the receiver into RAX.  The argument count in the arguments
+  // descriptor in R10 is a smi.
+  __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  // Two words (return addres, saved fp) in the stack above the last argument.
+  __ movq(RAX, Address(RSP, RAX, TIMES_4, 2 * kWordSize));
+  // Preserve IC data and arguments descriptor.
+  __ pushq(RBX);
+  __ pushq(R10);
+
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Instructions::null()));
+  __ pushq(raw_null);  // Space for the result of the runtime call.
+  __ pushq(RAX);  // Receiver.
+  __ pushq(RBX);  // IC data.
+  __ pushq(R10);  // Arguments descriptor.
+  __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry);
+  // Discard arguments.
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);  // Return value from the runtime call (instructions).
+  __ popq(R10);  // Restore arguments descriptor.
+  __ popq(RBX);  // Restore IC data.
+  __ LeaveFrame();
+
+  Label lookup;
+  __ cmpq(RAX, raw_null);
+  __ j(EQUAL, &lookup, Assembler::kNearJump);
+  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RAX);
+
+  __ Bind(&lookup);
+  __ jmp(&StubCode::InstanceFunctionLookupLabel());
+}
+
+
 // Called for inline allocation of arrays.
 // Input parameters:
 //   R10 : Array length as Smi.
@@ -623,6 +659,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // Initialize all array elements to raw_null.
     // RAX: new object start as a tagged pointer.
     // R12: new object end address.
+    // R10: Array length as Smi.
     __ leaq(RBX, FieldAddress(RAX, Array::data_offset()));
     // RBX: iterator which initially points to the start of the variable
     // data area to be initialized.
@@ -631,6 +668,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ Bind(&init_loop);
     __ cmpq(RBX, R12);
     __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+    // TODO(cshapiro): StoreIntoObjectNoBarrier
     __ movq(Address(RBX, 0), raw_null);
     __ addq(RBX, Immediate(kWordSize));
     __ jmp(&init_loop, Assembler::kNearJump);
@@ -645,6 +683,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Unable to allocate the array using the fast inline code, just call
   // into the runtime.
   __ Bind(&slow_case);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(R10);  // Array length as Smi.
@@ -724,8 +764,10 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ jmp(RBX);
 
   __ Bind(&not_closure);
-  // Call runtime to report that a closure call was attempted on a non-closure
-  // object, passing the non-closure object and its arguments array.
+  // Call runtime to attempt to resolve and invoke a call method on a
+  // non-closure object, passing the non-closure object and its arguments array,
+  // returning here.
+  // If no call method exists, throw a NoSuchMethodError.
   // R13: non-closure object.
   // R10: arguments descriptor array.
 
@@ -733,26 +775,35 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // calling into the runtime.
   AssemblerMacros::EnterStubFrame(assembler);
 
-  __ pushq(raw_null);  // Setup space on stack for result from error reporting.
+  __ pushq(raw_null);  // Setup space on stack for result from call.
   __ pushq(R13);  // Non-closure object.
+  __ pushq(R10);  // Arguments descriptor.
   // Load num_args.
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R13);
-  __ subq(R13, Immediate(1));  // Arguments array length, minus the closure.
-  // See stack layout below explaining "wordSize * 5" offset.
-  PushArgumentsArray(assembler, (kWordSize * 5));
+  __ SmiUntag(R13);  // Arguments array length, including the non-closure.
+  // See stack layout below explaining "wordSize * 6" offset.
+  PushArgumentsArray(assembler, (kWordSize * 6));
 
   // Stack:
   // TOS + 0: Argument array.
-  // TOS + 1: Non-closure object.
-  // TOS + 2: Place for result from reporting the error.
-  // TOS + 3: PC marker => RawInstruction object.
-  // TOS + 4: Saved RBP of previous frame. <== RBP
-  // TOS + 5: Dart code return address
-  // TOS + 6: Last argument of caller.
+  // TOS + 1: Arguments descriptor array.
+  // TOS + 2: Non-closure object.
+  // TOS + 3: Place for result from the call.
+  // TOS + 4: PC marker => RawInstruction object.
+  // TOS + 5: Saved RBP of previous frame. <== RBP
+  // TOS + 6: Dart code return address
+  // TOS + 7: Last argument of caller.
   // ....
-  __ CallRuntime(kReportObjectNotClosureRuntimeEntry);
-  __ Stop("runtime call throws an exception");
+  __ CallRuntime(kInvokeNonClosureRuntimeEntry);
+  // Remove arguments.
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);  // Get result into RAX.
+
+  // Remove the stub frame as we are about to return.
+  __ LeaveFrame();
+  __ ret();
 }
 
 
@@ -1390,14 +1441,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 //   R10 : arguments descriptor array.
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // The target function was not found, so invoke method
-  // "void noSuchMethod(function_name, Array arguments)".
-  // TODO(regis): For now, we simply pass the actual arguments, both positional
-  // and named, as the argument array. This is not correct if out-of-order
-  // named arguments were passed.
-  // The signature of the "noSuchMethod" method has to change from
-  // noSuchMethod(String name, Array arguments) to something like
-  // noSuchMethod(InvocationMirror call).
-  // Also, the class NoSuchMethodError has to be modified accordingly.
+  // "dynamic noSuchMethod(InvocationMirror invocation)".
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
@@ -1411,7 +1455,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // IC data array.
   __ pushq(R10);  // Arguments descriptor array.
-  __ subq(R13, Immediate(1));  // Arguments array length, minus the receiver.
+  // R13: Arguments array length, including the receiver.
   // See stack layout below explaining "wordSize * 10" offset.
   PushArgumentsArray(assembler, (kWordSize * 10));
 
@@ -2031,13 +2075,12 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ Bind(&update_ic_data);
 
   // RCX: ICData
-  const String& equal_name = String::ZoneHandle(Symbols::New("=="));
   __ movq(RAX, Address(RSP, 1 * kWordSize));
   __ movq(R13, Address(RSP, 2 * kWordSize));
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R13);  // arg 0
   __ pushq(RAX);  // arg 1
-  __ PushObject(equal_name);  // Target's name.
+  __ PushObject(Symbols::EqualOperatorHandle());  // Target's name.
   __ pushq(RBX);  // ICData
   __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry);
   __ Drop(4);

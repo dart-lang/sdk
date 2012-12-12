@@ -15,7 +15,7 @@ import '../../pub/io.dart';
 import '../../pub/utils.dart';
 
 main() {
-  setUp(() => dir(appPath, [libPubspec("test_pkg", "1.0.0")]).scheduleCreate());
+  setUp(() => normalPackage.scheduleCreate());
 
   test('with no credentials.json, authenticates and saves credentials.json',
       () {
@@ -27,7 +27,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer access token'));
 
-      return closeHttpResponse(request, response);
+      response.outputStream.close();
     });
 
     pub.kill();
@@ -46,7 +46,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer access token'));
 
-      return closeHttpResponse(request, response);
+      response.outputStream.close();
     });
 
     pub.kill();
@@ -83,7 +83,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer new access token'));
 
-      return closeHttpResponse(request, response);
+      response.outputStream.close();
     });
 
     pub.shouldExit();
@@ -111,7 +111,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer new access token'));
 
-      return closeHttpResponse(request, response);
+      response.outputStream.close();
     });
 
     pub.kill();
@@ -135,7 +135,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer new access token'));
 
-      return closeHttpResponse(request, response);
+      response.outputStream.close();
     });
 
     pub.kill();

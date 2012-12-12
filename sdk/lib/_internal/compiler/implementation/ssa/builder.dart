@@ -1054,10 +1054,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (node.hasEmptyBody()) return null;
     ClassElement classElement = constructor.getEnclosingClass();
     ConstructorBodyElement bodyElement;
-    for (Link<Element> backendMembers = classElement.backendMembers;
-         !backendMembers.isEmpty;
-         backendMembers = backendMembers.tail) {
-      Element backendMember = backendMembers.head;
+    for (Element backendMember in classElement.backendMembers) {
       if (backendMember.isGenerativeConstructorBody()) {
         ConstructorBodyElement body = backendMember;
         if (body.constructor == constructor) {
@@ -2633,6 +2630,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(result);
   }
 
+  void pushInvokeHelper5(Element helper, HInstruction a0, HInstruction a1,
+                         HInstruction a2, HInstruction a3, HInstruction a4) {
+    HInstruction reference = new HStatic(helper);
+    add(reference);
+    List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2, a3, a4];
+    HInstruction result = new HInvokeStatic(inputs);
+    push(result);
+  }
+
   HForeign createForeign(String code, String type, List<HInstruction> inputs) {
     return new HForeign(new LiteralDartString(code),
                         new LiteralDartString(type),
@@ -2740,8 +2746,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       HInstruction instruction;
-      if (RuntimeTypeInformation.hasTypeArguments(type) ||
-          type.element.isTypeVariable()) {
+      if (type.element.isTypeVariable() ||
+          RuntimeTypeInformation.hasTypeArguments(type)) {
         HInstruction typeInfo = getRuntimeTypeInfo(expression);
         // TODO(karlklose): make isSubtype a HInstruction to enable
         // optimizations?
@@ -3021,7 +3027,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
       // Leg's isolate.
-      Element element = compiler.isolateLibrary.find(
+      Element element = compiler.isolateHelperLibrary.find(
           const SourceString('_currentIsolate'));
       if (element == null) {
         compiler.cancel(
@@ -3041,7 +3047,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       push(new HInvokeClosure(selector, <HInstruction>[pop()]));
     } else {
       // Call a helper method from the isolate library.
-      Element element = compiler.isolateLibrary.find(
+      Element element = compiler.isolateHelperLibrary.find(
           const SourceString('_callInIsolate'));
       if (element == null) {
         compiler.cancel(
@@ -3108,21 +3114,58 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   generateSuperNoSuchMethodSend(Send node) {
+    Selector selector = elements.getSelector(node);
+    SourceString name = selector.name;
+
     ClassElement cls = work.element.getEnclosingClass();
     Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
+    if (element.enclosingElement.declaration != compiler.objectClass) {
+      // Register the call as dynamic if [:noSuchMethod:] on the super class
+      // is _not_ the default implementation from [:Object:].
+      compiler.enqueuer.codegen.registerDynamicInvocation(name, selector);
+    }
     HStatic target = new HStatic(element);
     add(target);
     HInstruction self = localsHandler.readThis();
-    Identifier identifier = node.selector.asIdentifier();
-    String name = identifier.source.slowToString();
-    // TODO(ahe): Add the arguments to this list.
-    push(new HLiteralList([]));
-    Constant nameConstant =
-        constantSystem.createString(new DartString.literal(name), node);
+    Constant nameConstant = constantSystem.createString(
+        new DartString.literal(name.slowToString()), node);
+
+    String internalName = backend.namer.instanceMethodInvocationName(
+        currentLibrary, name, selector);
+    Constant internalNameConstant =
+        constantSystem.createString(new DartString.literal(internalName), node);
+
+    Element createInvocationMirror =
+        compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);
+
+    var arguments = new List<HInstruction>();
+    addGenericSendArgumentsToList(node.arguments, arguments);
+    var argumentsInstruction = new HLiteralList(arguments);
+    add(argumentsInstruction);
+
+    var argumentNames = new List<HInstruction>();
+    for (SourceString argumentName in selector.namedArguments) {
+      Constant argumentNameConstant =
+          constantSystem.createString(new DartString.literal(
+              argumentName.slowToString()), node);
+      argumentNames.add(graph.addConstant(argumentNameConstant));
+    }
+    var argumentNamesInstruction = new HLiteralList(argumentNames);
+    add(argumentNamesInstruction);
+
+    Constant kindConstant =
+        constantSystem.createInt(selector.invocationMirrorKind);
+
+    pushInvokeHelper5(createInvocationMirror,
+                      graph.addConstant(nameConstant),
+                      graph.addConstant(internalNameConstant),
+                      graph.addConstant(kindConstant),
+                      argumentsInstruction,
+                      argumentNamesInstruction);
+
     var inputs = <HInstruction>[
         target,
         self,
-        graph.addConstant(nameConstant),
         pop()];
     push(new HInvokeSuper(inputs));
   }
@@ -3370,8 +3413,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return;
       }
 
-      // TODO(kasperl): Try to use the general inlining infrastructure for
-      // inlining the identical function.
       if (identical(element, compiler.identicalFunction)) {
         pushWithPosition(new HIdentity(target, inputs[1], inputs[2]), node);
         return;

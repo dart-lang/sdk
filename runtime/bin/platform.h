@@ -20,10 +20,6 @@ class Platform {
   // deallocated by the caller.
   static const char* OperatingSystem();
 
-  // Returns a string representation of an error code. The returned
-  // string must be deallocated by the caller.
-  static char* StrError(int error_code);
-
   // Extracts the local hostname.
   static bool LocalHostname(char* buffer, intptr_t buffer_length);
 

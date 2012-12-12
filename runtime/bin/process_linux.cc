@@ -259,16 +259,8 @@ bool ExitCodeHandler::thread_terminated_ = false;
 dart::Monitor ExitCodeHandler::thread_terminate_monitor_;
 
 
-static char* SafeStrNCpy(char* dest, const char* src, size_t n) {
-  strncpy(dest, src, n);
-  dest[n - 1] = '\0';
-  return dest;
-}
-
-
-static void SetChildOsErrorMessage(char* os_error_message,
-                                   int os_error_message_len) {
-  SafeStrNCpy(os_error_message, strerror(errno), os_error_message_len);
+static void SetChildOsErrorMessage(char** os_error_message) {
+  *os_error_message = strdup(strerror(errno));
 }
 
 
@@ -316,8 +308,7 @@ int Process::Start(const char* path,
                    intptr_t* err,
                    intptr_t* id,
                    intptr_t* exit_event,
-                   char* os_error_message,
-                   int os_error_message_len) {
+                   char** os_error_message) {
   pid_t pid;
   int read_in[2];  // Pipe for stdout to child process.
   int read_err[2];  // Pipe for stderr to child process.
@@ -327,50 +318,50 @@ int Process::Start(const char* path,
 
   bool initialized = ExitCodeHandler::EnsureInitialized();
   if (!initialized) {
-    SetChildOsErrorMessage(os_error_message, os_error_message_len);
+    SetChildOsErrorMessage(os_error_message);
     Log::PrintErr(
             "Error initializing exit code handler: %s\n",
-            os_error_message);
+            *os_error_message);
     return errno;
   }
 
   result = TEMP_FAILURE_RETRY(pipe(read_in));
   if (result < 0) {
-    SetChildOsErrorMessage(os_error_message, os_error_message_len);
-    Log::PrintErr("Error pipe creation failed: %s\n", os_error_message);
+    SetChildOsErrorMessage(os_error_message);
+    Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
 
   result = TEMP_FAILURE_RETRY(pipe(read_err));
   if (result < 0) {
-    SetChildOsErrorMessage(os_error_message, os_error_message_len);
+    SetChildOsErrorMessage(os_error_message);
     TEMP_FAILURE_RETRY(close(read_in[0]));
     TEMP_FAILURE_RETRY(close(read_in[1]));
-    Log::PrintErr("Error pipe creation failed: %s\n", os_error_message);
+    Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
 
   result = TEMP_FAILURE_RETRY(pipe(write_out));
   if (result < 0) {
-    SetChildOsErrorMessage(os_error_message, os_error_message_len);
+    SetChildOsErrorMessage(os_error_message);
     TEMP_FAILURE_RETRY(close(read_in[0]));
     TEMP_FAILURE_RETRY(close(read_in[1]));
     TEMP_FAILURE_RETRY(close(read_err[0]));
     TEMP_FAILURE_RETRY(close(read_err[1]));
-    Log::PrintErr("Error pipe creation failed: %s\n", os_error_message);
+    Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
 
   result = TEMP_FAILURE_RETRY(pipe(exec_control));
   if (result < 0) {
-    SetChildOsErrorMessage(os_error_message, os_error_message_len);
+    SetChildOsErrorMessage(os_error_message);
     TEMP_FAILURE_RETRY(close(read_in[0]));
     TEMP_FAILURE_RETRY(close(read_in[1]));
     TEMP_FAILURE_RETRY(close(read_err[0]));
     TEMP_FAILURE_RETRY(close(read_err[1]));
     TEMP_FAILURE_RETRY(close(write_out[0]));
     TEMP_FAILURE_RETRY(close(write_out[1]));
-    Log::PrintErr("Error pipe creation failed: %s\n", os_error_message);
+    Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
 
@@ -380,7 +371,7 @@ int Process::Start(const char* path,
             F_SETFD,
             TEMP_FAILURE_RETRY(fcntl(exec_control[1], F_GETFD)) | FD_CLOEXEC));
   if (result < 0) {
-    SetChildOsErrorMessage(os_error_message, os_error_message_len);
+    SetChildOsErrorMessage(os_error_message);
     TEMP_FAILURE_RETRY(close(read_in[0]));
     TEMP_FAILURE_RETRY(close(read_in[1]));
     TEMP_FAILURE_RETRY(close(read_err[0]));
@@ -389,7 +380,7 @@ int Process::Start(const char* path,
     TEMP_FAILURE_RETRY(close(write_out[1]));
     TEMP_FAILURE_RETRY(close(exec_control[0]));
     TEMP_FAILURE_RETRY(close(exec_control[1]));
-    Log::PrintErr("fcntl failed: %s\n", os_error_message);
+    Log::PrintErr("fcntl failed: %s\n", *os_error_message);
     return errno;
   }
 
@@ -418,7 +409,7 @@ int Process::Start(const char* path,
   }
   pid = TEMP_FAILURE_RETRY(fork());
   if (pid < 0) {
-    SetChildOsErrorMessage(os_error_message, os_error_message_len);
+    SetChildOsErrorMessage(os_error_message);
     delete[] program_arguments;
     TEMP_FAILURE_RETRY(close(read_in[0]));
     TEMP_FAILURE_RETRY(close(read_in[1]));
@@ -481,14 +472,14 @@ int Process::Start(const char* path,
   int event_fds[2];
   result = TEMP_FAILURE_RETRY(pipe(event_fds));
   if (result < 0) {
-    SetChildOsErrorMessage(os_error_message, os_error_message_len);
+    SetChildOsErrorMessage(os_error_message);
     TEMP_FAILURE_RETRY(close(read_in[0]));
     TEMP_FAILURE_RETRY(close(read_in[1]));
     TEMP_FAILURE_RETRY(close(read_err[0]));
     TEMP_FAILURE_RETRY(close(read_err[1]));
     TEMP_FAILURE_RETRY(close(write_out[0]));
     TEMP_FAILURE_RETRY(close(write_out[1]));
-    Log::PrintErr("Error pipe creation failed: %s\n", os_error_message);
+    Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
 
@@ -514,10 +505,13 @@ int Process::Start(const char* path,
       FDUtils::ReadFromBlocking(
           exec_control[0], &child_errno, sizeof(child_errno));
   if (bytes_read == sizeof(child_errno)) {
-      bytes_read = FDUtils::ReadFromBlocking(exec_control[0],
-                                             os_error_message,
-                                             os_error_message_len);
-      os_error_message[os_error_message_len - 1] = '\0';
+    static const int kMaxMessageSize = 256;
+    char* message = static_cast<char*>(malloc(kMaxMessageSize));
+    bytes_read = FDUtils::ReadFromBlocking(exec_control[0],
+                                           message,
+                                           kMaxMessageSize);
+    message[kMaxMessageSize - 1] = '\0';
+    *os_error_message = message;
   }
   TEMP_FAILURE_RETRY(close(exec_control[0]));
 

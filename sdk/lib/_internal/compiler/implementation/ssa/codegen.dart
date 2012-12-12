@@ -1764,8 +1764,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         node);
   }
 
-  String _fieldPropertyName(Element element) => element.isNative()
-      ? element.nativeName()
+  String _fieldPropertyName(Element element) => element.hasFixedBackendName()
+      ? element.fixedBackendName()
       : backend.namer.getName(element);
 
   visitLocalGet(HLocalGet node) {
@@ -1777,13 +1777,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assignVariable(variableNames.getName(node.receiver), pop());
   }
 
+  // TODO(sra): We could be more picky about when to inhibit renaming of locals
+  // - most JS strings don't contain free variables, or contain safe ones like
+  // 'Object'.  JS strings like "#.length" and "#[#]" are perfectly safe for
+  // variable renaming.  For now, be shy of any potential identifiers.
+  static final RegExp safeCodeRegExp = new RegExp(r'^[^_$a-zA-Z]*$');
+
   visitForeign(HForeign node) {
-    // TODO(sra): We could be a lot more picky about when to inhibit renaming of
-    // locals - most JS strings don't contain free variables, or contain safe
-    // ones like 'Object'.  JS strings like "#.length" and "#[#]" are perfectly
-    // safe for variable renaming.
-    inhibitVariableMinification = true;
     String code = node.code.slowToString();
+    if (!safeCodeRegExp.hasMatch(code)) {
+      inhibitVariableMinification = true;
+    }
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement(types)) {
       if (!inputs.isEmpty) {
@@ -1841,6 +1845,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(isGenerateAtUseSite(node));
     generateConstant(node.constant);
     DartType type = node.constant.computeType(compiler);
+    if (node.constant is ConstructedConstant) {
+      ConstantHandler handler = compiler.constantHandler;
+      handler.registerCompileTimeConstant(node.constant);
+    }
     world.registerInstantiatedClass(type.element);
   }
 
@@ -2347,15 +2355,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
       compiler.unimplemented("visitIs for type variables",
                              instruction: node.expression);
-    } else if (identical(element.kind, ElementKind.TYPEDEF)) {
-      compiler.unimplemented("visitIs for typedefs",
-                             instruction: node.expression);
     }
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
 
-    if (identical(element, objectClass) || identical(element, compiler.dynamicClass)) {
+    if (identical(element, objectClass) ||
+        identical(element, compiler.dynamicClass)) {
       // The constant folder also does this optimization, but we make
       // it safe by assuming it may have not run.
       push(newLiteralBool(true), node);

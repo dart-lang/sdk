@@ -6,6 +6,7 @@
 
 {
   'sources': [
+    'bool_patch.dart',
     'date.cc',
     'date_patch.dart',
     'array.cc',
@@ -22,6 +23,7 @@
     'function_patch.dart',
     'growable_array.cc',
     'growable_array.dart',
+    'identical_patch.dart',
     'immutable_map.dart',
     'integers.cc',
     'integers.dart',
