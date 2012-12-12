@@ -6,6 +6,7 @@
 
 {
   'sources': [
+    'bool_patch.dart',
     'date.cc',
     'date_patch.dart',
     'array.cc',
