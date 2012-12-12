@@ -1162,8 +1162,8 @@ public class ResolverTest extends ResolverTestCase {
   public void testUndercoreInNamedParameterFunctionDefinition() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "var f = func({_foo}) {};"),
-        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 15, 4));
+        "func({_foo}) {}"),
+        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 7, 4));
   }
 
   public void testUndercoreInNamedParameterFunctionAlias() {

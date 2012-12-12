@@ -3570,6 +3570,11 @@ public class DartParser extends CompletionHooksParserBase {
       rollback();
       return null;
     }
+    if (function != null && function.getReturnTypeNode() != null) {
+      reportError(function.getReturnTypeNode(), ParserErrorCode.DEPRECATED_FUNCTION_LITERAL);
+    } else if (namePtr[0] != null) {
+      reportError(namePtr[0], ParserErrorCode.DEPRECATED_FUNCTION_LITERAL);
+    }
     return done(new DartFunctionExpression(namePtr[0], doneWithoutConsuming(function), false));
   }
 

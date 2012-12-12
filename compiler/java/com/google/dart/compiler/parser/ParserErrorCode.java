@@ -34,6 +34,7 @@ public enum ParserErrorCode implements ErrorCode {
   DEPRECATED_CATCH("This style of catch clause has been deprecated. Please use the 'on' <type> " +
       "'catch' '(' <identifier> (',' <identifier>)? ')' form."),
   DEPRECATED_ABSTRACT_METHOD(ErrorSeverity.WARNING, "Modifier 'abstract' is deprecated for methods without body. Remove it."),
+  DEPRECATED_FUNCTION_LITERAL("Deprecated function literal syntax, remove return type and name"),
   DEPRECATED_GETTER("The presence of parentheses after the name of the getter "
       + "has been deprecated and will soon be disallowed. Please remove the parentheses."),
   DEPRECATED_INTERFACE("Deprecated declaration of the 'interface', use abstract 'class' instead"),

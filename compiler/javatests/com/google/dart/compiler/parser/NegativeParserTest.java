@@ -59,6 +59,19 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.REDIRECTING_CONSTRUCTOR_ITSELF, 1, 30, 7));
   }
   
+  public void test_deprecatedFunctionLiteral() {
+    parseExpectWarnings(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  var x = f() => 42;",
+            "  var y = int g() => 87;",
+            "}",
+            ""),
+        errEx(ParserErrorCode.DEPRECATED_FUNCTION_LITERAL, 3, 11, 1),
+        errEx(ParserErrorCode.DEPRECATED_FUNCTION_LITERAL, 4, 11, 3));
+  }
+  
   public void testFieldInitializerInRedirectionConstructor2() {
     parseExpectErrors(
         "class A { A(x) { } A.foo() : y = 5, this(5); var y; }",
@@ -533,28 +546,6 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.NO_SPACE_AFTER_PLUS, 7, 9, 1));
   }
 
-  /**
-   * Separate test for invocation of function literal which has both return type and name.
-   */
-  public void test_invokeFunctionLiteral_returnType_name() {
-    DartParserRunner parserRunner =
-        parseExpectErrors(Joiner.on("\n").join(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "topLevelFunctionWithVeryLongNameToForceLineWrapping() {",
-            "  int f(p){}(0);", // invocation of function literal in statement, has type and name
-            "}",
-            ""));
-    assertEquals(
-        makeCode(
-            "// unit " + getName(),
-            "",
-            "topLevelFunctionWithVeryLongNameToForceLineWrapping() {",
-            "  int f(p) {",
-            "  }(0);",
-            "}"),
-        parserRunner.getDartUnit().toSource());
-  }
-
   public void test_formalParameters_const() throws Exception {
     parseExpectErrors(
         Joiner.on("\n").join(
@@ -576,7 +567,6 @@ public class NegativeParserTest extends CompilerTestCase {
             "  int f1(p){}", // declaration of function as statement, has type
             "  var res = (p){}(1);", // invocation of function literal in assignment
             "  (p){}(2);", // invocation of function literal in statement, no name
-            "  f2(p){}(3);", // invocation of function literal in statement, has name
             "  f3(p) => 4;", // function with => arrow ends with ';'
             "  (5);", // this is separate statement, not invocation of previous function
             "  join(promises, (p) => 6);", // function with => arrow as argument
@@ -596,8 +586,6 @@ public class NegativeParserTest extends CompilerTestCase {
             "  }(1);",
             "  (p) {",
             "  }(2);",
-            "  f2(p) {",
-            "  }(3);",
             "  f3(p) {",
             "    return 4;",
             "  };",

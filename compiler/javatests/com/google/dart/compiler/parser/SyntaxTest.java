@@ -1010,12 +1010,12 @@ public class SyntaxTest extends AbstractParserTest {
             "      }",
             "    }",
             "    L: switch(1) {",
-            "     case 1: var result = f() { continue L; };", // bad
+            "     case 1: var result = () { continue L; };", // bad
             "    }",
             "  }",
             "}"),
             ParserErrorCode.CONTINUE_IN_CASE_MUST_HAVE_LABEL, 4, 23,
-            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 12, 42);
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 12, 41);
   }
 
   public void testRedundantAbruptlyTermainatedCaseStatement() throws Exception {

@@ -418,16 +418,9 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testFunctionObjectLiterals() {
-    analyze("{ bool b = foo() {}(); }");
-    analyze("{ int i = foo() {}(); }");
-    analyze("{ bool b = bool foo() { return null; }(); }");
-    analyze("{ int i = int foo() { return null; }(); }");
-    analyzeFail("{ int i = bool foo() { return null; }(); }",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("{ int i = Object _(Object x) { return x; }('fisk'); }");
-    analyzeFail("{ int i = String _(Object x) { return x; }(1); }",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("Function f = foo() {};");
+    analyze("{ bool b = () {}(); }");
+    analyze("{ int i = () {}(); }");
+    analyze("Function f = () {};");
   }
 
   public void testFunctionTypeAlias() {
@@ -473,8 +466,8 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
     analyzeIn(foo, "voidFunction = stringFunction", 0);
     analyzeIn(foo, "stringFunction = intToStringFunction", 1);
-    analyzeIn(foo, "stringFunction = String foo() { return ''; }", 0);
-    analyzeIn(foo, "intToStringFunction = String foo() { return ''; }", 1);
+    analyzeIn(foo, "stringFunction = () { return ''; }", 0);
+    analyzeIn(foo, "intToStringFunction = () { return ''; }", 1);
   }
 
   public void testFunctionTypes() {
@@ -746,7 +739,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
   public void testNamedFunctionTypeAlias() {
     loadFile("named_function_type_alias.dart");
-    analyze("VoidFunction f = foo() {};");
+    analyze("VoidFunction f = () {};");
   }
 
   public void testOddStuff() {
@@ -976,13 +969,13 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeIn(cls, "tField = ''", 1);
     analyzeIn(cls, "tField = true", 1);
 
-    analyzeIn(cls, "foo() { A a = null; T t = a; }()", 0);
-    analyzeIn(cls, "foo() { B b = null; T t = b; }()", 0);
-    analyzeIn(cls, "foo() { T t = null; A a = t; }()", 0);
-    analyzeIn(cls, "foo() { T t = null; B b = t; }()", 0);
-    analyzeIn(cls, "foo() { T t = 1; }()", 1);
-    analyzeIn(cls, "foo() { T t = ''; }()", 1);
-    analyzeIn(cls, "foo() { T t = true; }()", 1);
+    analyzeIn(cls, "() { A a = null; T t = a; }()", 0);
+    analyzeIn(cls, "() { B b = null; T t = b; }()", 0);
+    analyzeIn(cls, "() { T t = null; A a = t; }()", 0);
+    analyzeIn(cls, "() { T t = null; B b = t; }()", 0);
+    analyzeIn(cls, "() { T t = 1; }()", 1);
+    analyzeIn(cls, "() { T t = ''; }()", 1);
+    analyzeIn(cls, "() { T t = true; }()", 1);
   }
 
   public void testUnaryOperators() {
@@ -1083,11 +1076,11 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     checkAssignIn(element, "int", "intField('x')", 1);
     checkAssignIn(element, "String", "intField(2.2)", 1);
 
-    analyzeIn(element, "f(x) { x(); }", 0);
-    analyzeIn(element, "f(int x) { x(); }", 1);
-    analyzeIn(element, "f(int x()) { int i = x(); }", 0);
-    analyzeIn(element, "f(int x(String s)) { int i = x(1); }", 1);
-    analyzeIn(element, "f(int x(String s)) { int i = x(''); }", 0);
+    analyzeIn(element, "(x) { x(); }", 0);
+    analyzeIn(element, "(int x) { x(); }", 1);
+    analyzeIn(element, "(int x()) { int i = x(); }", 0);
+    analyzeIn(element, "(int x(String s)) { int i = x(1); }", 1);
+    analyzeIn(element, "(int x(String s)) { int i = x(''); }", 0);
   }
 
   public void testUnqualifiedGeneric() {

@@ -211,7 +211,7 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
   }
 
   private String assign(String type, String expression) {
-    return String.format("void foo() { %s x = %s; }", type, expression);
+    return String.format("() { %s x = %s; }", type, expression);
   }
 
   protected Type checkAssignIn(ClassElement element, String type, String expression, int errorCount) {
