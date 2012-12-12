@@ -158,6 +158,44 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * If a type I includes a method named call(), and the type of call() is the function type F, then
+   * I is considered to be a subtype of F.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7271
+   */
+  public void test_classWithCallMethod_isFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class X {",
+        "  call() => 42;",
+        "}",
+        "",
+        "class Y {",
+        "  call(int x) => 87;",
+        "}",
+        "",
+        "typedef F(int x);",
+        "typedef G(String y);",
+        "",
+        "main() {",
+        "  X x = new X();",
+        "  Y y = new Y();",
+        "  Function f = x;", // OK
+        "  Function g = y;", // OK
+        "  F f0 = x;", // WARN
+        "  F f1 = y;", // OK
+        "  G g0 = x;", // WARN
+        "  G g1 = y;", // WARN
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 18, 10, 1),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 20, 10, 1),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 21, 10, 1));
+  }
+
+  /**
    * It is a compile-time error if a typedef refers to itself via a chain of references that does
    * not include a class or interface type.
    * <p>

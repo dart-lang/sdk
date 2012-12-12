@@ -24,6 +24,7 @@ import com.google.dart.compiler.resolver.FunctionAliasElement;
 import com.google.dart.compiler.resolver.ResolutionErrorListener;
 import com.google.dart.compiler.resolver.TypeVariableElement;
 import com.google.dart.compiler.resolver.VariableElement;
+import com.google.dart.compiler.type.InterfaceType.Member;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -309,8 +310,14 @@ public class Types {
       }
       return true;
     }
-    if (t.getKind().equals(TypeKind.FUNCTION_ALIAS)) {
+    if (t.getKind() == TypeKind.FUNCTION_ALIAS) {
       return isSubtypeOfFunction(asFunctionType((FunctionAliasType) t), asFunctionType(s));
+    }
+    // class has method call()
+    if (t.getKind() == TypeKind.INTERFACE) {
+      InterfaceType ti = (InterfaceType) t;
+      Member callMember = ti.lookupMember("call");
+      return callMember != null && isSubtype(callMember.getType(), asFunctionType(s));
     }
     return false;
   }
@@ -349,9 +356,18 @@ public class Types {
       return false;
     }
 
+    // class "t" implements call() and "s" is Function
+    if (TypeKind.of(t) == TypeKind.INTERFACE && typeProvider != null
+        && s == typeProvider.getFunctionType()) {
+      InterfaceType ti = (InterfaceType) t;
+      if (ti.lookupMember("call") != null) {
+        return true;
+      }
+    }
+
     // Try to cast "t" to "s".
     final Type sup = asInstanceOf(t, s.getElement());
-    if (TypeKind.of(sup).equals(TypeKind.INTERFACE)) {
+    if (TypeKind.of(sup) == TypeKind.INTERFACE) {
       InterfaceType ti = (InterfaceType) sup;
       assert ti.getElement().equals(s.getElement());
       if (ti.isRaw() || s.isRaw()) {
@@ -520,6 +536,7 @@ public class Types {
         InterfaceType ti = (InterfaceType) t;
         ClassElement tElement = ti.getElement();
         InterfaceType supertype = tElement.getSupertype();
+        // super type
         if (supertype != null) {
           InterfaceType result = checkedAsInstanceOf(asSupertype(ti, supertype), element,
                                                      variablesReferenced, checkedTypes);
@@ -527,6 +544,7 @@ public class Types {
             return result;
           }
         }
+        // interfaces
         for (InterfaceType intrface : tElement.getInterfaces()) {
           InterfaceType result = checkedAsInstanceOf(asSupertype(ti, intrface), element,
                                                      variablesReferenced, checkedTypes);
@@ -534,6 +552,7 @@ public class Types {
             return result;
           }
         }
+        // no
         return null;
       }
       case FUNCTION: {
