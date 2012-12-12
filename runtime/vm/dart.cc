@@ -31,6 +31,7 @@ DECLARE_FLAG(bool, trace_isolates);
 
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
+void* Dart::perf_events_file_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 
 // An object visitor which will mark all visited objects. This is used to

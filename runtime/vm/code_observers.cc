@@ -16,8 +16,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
-DEFINE_FLAG(bool, generate_perf_events_symbols, false,
-    "Generate events symbols for profiling with perf");
 
 intptr_t CodeObservers::observers_length_ = 0;
 CodeObserver** CodeObservers::observers_ = NULL;
@@ -58,34 +56,8 @@ bool CodeObservers::AreActive() {
 
 class PerfCodeObserver : public CodeObserver {
  public:
-  PerfCodeObserver() {
-    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-    if (file_open == NULL) {
-      return;
-    }
-// TODO(7321): Move OS-specific code for perf profiling to the OS abstraction
-#if defined(TARGET_OS_LINUX)
-    const char* format = "/tmp/perf-%ld.map";
-    intptr_t pid = getpid();
-    intptr_t len = OS::SNPrint(NULL, 0, format, pid);
-    char* filename = new char[len + 1];
-    OS::SNPrint(filename, len + 1, format, pid);
-    out_file_ = (*file_open)(filename);
-#endif
-  }
-
-  // Not currently being called
-  ~PerfCodeObserver() {
-    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-    if (file_close == NULL) {
-      return;
-    }
-    ASSERT(out_file_ != NULL);
-    (*file_close)(out_file_);
-  }
-
   virtual bool IsActive() const {
-    return FLAG_generate_perf_events_symbols;
+    return Dart::perf_events_file() != NULL;
   }
 
   virtual void Notify(const char* name,
@@ -93,19 +65,17 @@ class PerfCodeObserver : public CodeObserver {
                       uword prologue_offset,
                       uword size,
                       bool optimized) {
-    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-    ASSERT(file_write != NULL);
     const char* format = "%"Px" %"Px" %s%s\n";
     const char* marker = optimized ? "*" : "";
     intptr_t len = OS::SNPrint(NULL, 0, format, base, size, marker, name);
     char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(buffer, len + 1, format, base, size, marker, name);
-    ASSERT(out_file_ != NULL);
-    (*file_write)(buffer, len, out_file_);
+    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+    ASSERT(file_write != NULL);
+    void* file = Dart::perf_events_file();
+    ASSERT(file != NULL);
+    (*file_write)(buffer, len, file);
   }
-
- private:
-  void* out_file_;
 };
 
 
@@ -161,10 +131,7 @@ class GdbCodeObserver : public CodeObserver {
 
 
 void CodeObservers::InitOnce() {
-// TODO(7321): Move flag registration to the OS abstraction
-  if (FLAG_generate_perf_events_symbols) {
-    Register(new PerfCodeObserver);
-  }
+  Register(new PerfCodeObserver);
   Register(new PprofCodeObserver);
   Register(new GdbCodeObserver);
 #if defined(DART_VTUNE_SUPPORT)
