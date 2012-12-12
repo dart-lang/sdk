@@ -611,6 +611,9 @@ class Class : public Object {
   // Check if this class represents the 'Object' class.
   bool IsObjectClass() const { return id() == kInstanceCid; }
 
+  // Check if this class represents the 'Function' class.
+  bool IsFunctionClass() const;
+
   // Check if this class represents the 'List' class.
   bool IsListClass() const;
 
