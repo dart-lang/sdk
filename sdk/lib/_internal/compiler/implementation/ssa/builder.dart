@@ -2702,13 +2702,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     Operator op = node.selector;
     if (const SourceString("[]") == op.source) {
-      HStatic target = new HStatic(interceptors.getIndexInterceptor());
-      add(target);
-      visit(node.receiver);
-      HInstruction receiver = pop();
-      visit(node.argumentsNode);
-      HInstruction index = pop();
-      push(new HIndex(target, receiver, index));
+      visitDynamicSend(node);
     } else if (const SourceString("&&") == op.source ||
                const SourceString("||") == op.source) {
       visitLogicalAndOr(node, op);
@@ -3592,6 +3586,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  HInvokeDynamicMethod buildInvokeDynamicWithOneArgument(
+      Node node, Selector selector, HInstruction receiver, HInstruction arg0) {
+    Set<ClassElement> interceptedClasses =
+        getInterceptedClassesOn(node, selector);
+    List<HInstruction> inputs = <HInstruction>[];
+    if (interceptedClasses != null) {
+      inputs.add(invokeInterceptor(interceptedClasses, receiver, node));
+    }
+    inputs.add(receiver);
+    inputs.add(arg0);
+    return new HInvokeDynamicMethod(selector, inputs);
+  }
+
   visitSendSet(SendSet node) {
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType()) {
@@ -3643,9 +3650,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             index = pop();
             value = graph.addConstantInt(1, constantSystem);
           }
-          HStatic indexMethod = new HStatic(interceptors.getIndexInterceptor());
-          add(indexMethod);
-          HInstruction left = new HIndex(indexMethod, receiver, index);
+
+          HInvokeDynamicMethod left = buildInvokeDynamicWithOneArgument(
+              node, new Selector.index(), receiver, index);
           add(left);
           Element opElement = elements[op];
           visitBinary(left, op, value);

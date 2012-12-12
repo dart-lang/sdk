@@ -163,4 +163,10 @@ class JSString implements String {
   Type get runtimeType => String;
 
   int get length => JS('int', r'#.length', this);
+
+  String operator [](int index) {
+    if (index is !int) throw new ArgumentError(index);
+    if (index >= length || index < 0) throw new RangeError.value(index);
+    return JS('String', '#[#]', this, index);
+  }
 }

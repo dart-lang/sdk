@@ -527,6 +527,8 @@ Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # Checks that it i
 Language/12_Statements/03_Variable_Declaration_A04_t01: Fail # Checks that if the variable declaration is prefixed with the const modifier, then variable must be initialized to a constant expression.
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t15: Fail # http://dartbug.com/7149
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t16: Fail # http://dartbug.com/7149
 
 #
 # Unexpected compile-time errors.

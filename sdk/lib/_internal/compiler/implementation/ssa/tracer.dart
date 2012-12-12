@@ -306,7 +306,12 @@ class HInstructionStringifier implements HVisitor<String> {
     return "$invokeType: $functionName($argumentsString)";
   }
 
-  String visitIndex(HIndex node) => visitInvokeStatic(node);
+  String visitIndex(HIndex node) {
+    String receiver = temporaryId(node.receiver);
+    String index = temporaryId(node.index);
+    return "Index: $receiver[$index]";
+  }
+
   String visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
 
   String visitIntegerCheck(HIntegerCheck node) {
