@@ -193,10 +193,10 @@ void FreeList::PrintLarge() const {
   }
   for (it = sorted.begin(); it != sorted.end(); ++it) {
     intptr_t size = it->first;
-    int list_length = it->second;
+    intptr_t list_length = it->second;
     intptr_t list_bytes = list_length * size;
     large_bytes += list_bytes;
-    OS::Print("large %3d [%8d bytes] : "
+    OS::Print("large %3"Pd" [%8"Pd" bytes] : "
               "%8"Pd" objs; %8.1f KB; %8.1f cum KB\n",
               size / kObjectAlignment,
               size,
