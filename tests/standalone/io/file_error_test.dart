@@ -16,18 +16,8 @@ bool checkNonExistentFileException(e, str) {
   Expect.isTrue(e is FileIOException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf(str) != -1);
-  if (Platform.operatingSystem == "linux") {
-    Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
-  } else if (Platform.operatingSystem == "macos") {
-    Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
-  } else if (Platform.operatingSystem == "windows") {
-    Expect.isTrue(
-        e.toString().indexOf(
-            "The system cannot find the file specified") != -1);
-  }
   // File not not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
-
   return true;
 }
 
@@ -121,15 +111,10 @@ bool checkCreateInNonExistentDirectoryException(e) {
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Cannot create file") != -1);
   if (Platform.operatingSystem == "linux") {
-    Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
     Expect.equals(2, e.osError.errorCode);
   } else if (Platform.operatingSystem == "macos") {
-    Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
     Expect.equals(2, e.osError.errorCode);
   } else if (Platform.operatingSystem == "windows") {
-    Expect.isTrue(
-        e.toString().indexOf(
-            "The system cannot find the path specified") != -1);
     Expect.equals(3, e.osError.errorCode);
   }
 
@@ -162,15 +147,6 @@ bool checkFullPathOnNonExistentDirectoryException(e) {
   Expect.isTrue(e is FileIOException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Cannot retrieve full path") != -1);
-  if (Platform.operatingSystem == "linux") {
-    Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
-  } else if (Platform.operatingSystem == "macos") {
-    Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
-  } else if (Platform.operatingSystem == "windows") {
-    Expect.isTrue(
-        e.toString().indexOf(
-            "The system cannot find the file specified") != -1);
-  }
   // File not not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
 
@@ -204,15 +180,6 @@ bool checkDirectoryInNonExistentDirectoryException(e) {
   Expect.isTrue(e.osError != null);
   Expect.isTrue(
       e.toString().indexOf("Cannot retrieve directory for file") != -1);
-  if (Platform.operatingSystem == "linux") {
-    Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
-  } else if (Platform.operatingSystem == "macos") {
-    Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
-  } else if (Platform.operatingSystem == "windows") {
-    Expect.isTrue(
-        e.toString().indexOf(
-            "The system cannot find the file specified") != -1);
-  }
   // File not not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
 
