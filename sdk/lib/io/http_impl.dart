@@ -2286,7 +2286,7 @@ class _HttpClientDigestCredentials implements HttpClientDigestCredentials {
 
   void authorize(_Credentials credentials, HttpClientRequest request) {
     // TODO(sgjesse): Implement!!!
-    throw new UnsupportedOperationException();
+    throw new UnsupportedError("Digest authentication not yet supported");
   }
 
   String username;

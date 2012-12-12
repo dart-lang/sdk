@@ -369,7 +369,7 @@ abstract class Int8List implements List<int>, ByteArrayViewable {
    * not specified, it defaults to null, which indicates that the view extends
    * to the end of the byte array.
    */
-  external factory Int8List.view(ByteArray array, [int start, int length]);
+  external factory Int8List.view(ByteArray array, [int start = 0, int length]);
 }
 
 
@@ -393,7 +393,7 @@ abstract class Uint8List implements List<int>, ByteArrayViewable {
    * not specified, it defaults to null, which indicates that the view extends
    * to the end of the byte array.
    */
-  external factory Uint8List.view(ByteArray array, [int start, int length]);
+  external factory Uint8List.view(ByteArray array, [int start = 0, int length]);
 }
 
 
@@ -419,7 +419,7 @@ abstract class Uint8ClampedList implements List<int>, ByteArrayViewable {
    * extends to the end of the byte array.
    */
   external factory Uint8ClampedList.view(ByteArray array,
-                                         [int start, int length]);
+                                         [int start = 0, int length]);
 }
 
 
@@ -453,7 +453,7 @@ abstract class Int16List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "int16s," or if it
    * is not "int16-aligned."
    */
-  external factory Int16List.view(ByteArray array, [int start, int length]);
+  external factory Int16List.view(ByteArray array, [int start = 0, int length]);
 }
 
 
@@ -487,7 +487,8 @@ abstract class Uint16List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "uint16s," or if it
    * is not "uint16-aligned."
    */
-  external factory Uint16List.view(ByteArray array, [int start, int length]);
+  external factory Uint16List.view(ByteArray array,
+                                   [int start = 0, int length]);
 }
 
 
@@ -521,7 +522,7 @@ abstract class Int32List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "int32s," or if it
    * is not "int32-aligned."
    */
-  external factory Int32List.view(ByteArray array, [int start, int length]);
+  external factory Int32List.view(ByteArray array, [int start = 0, int length]);
 }
 
 
@@ -555,7 +556,8 @@ abstract class Uint32List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "uint32s," or if it
    * is not "uint32-aligned."
    */
-  external factory Uint32List.view(ByteArray array, [int start, int length]);
+  external factory Uint32List.view(ByteArray array,
+                                   [int start = 0, int length]);
 }
 
 
@@ -589,7 +591,7 @@ abstract class Int64List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "int64s," or if it
    * is not "int64-aligned."
    */
-  external factory Int64List.view(ByteArray array, [int start, int length]);
+  external factory Int64List.view(ByteArray array, [int start = 0, int length]);
 }
 
 
@@ -623,7 +625,8 @@ abstract class Uint64List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "uint64s," or if it
    * is not "uint64-aligned."
    */
-  external factory Uint64List.view(ByteArray array, [int start, int length]);
+  external factory Uint64List.view(ByteArray array,
+                                   [int start = 0, int length]);
 }
 
 
@@ -658,7 +661,8 @@ abstract class Float32List implements List<double>, ByteArrayViewable {
    * region does not contain an integral number of "float32s," or if it
    * is not "float32-aligned."
    */
-  external factory Float32List.view(ByteArray array, [int start, int length]);
+  external factory Float32List.view(ByteArray array,
+                                    [int start = 0, int length]);
 }
 
 
@@ -693,5 +697,6 @@ abstract class Float64List implements List<double>, ByteArrayViewable {
    * region does not contain an integral number of "float64s," or if it
    * is not "float64-aligned."
    */
-  external factory Float64List.view(ByteArray array, [int start, int length]);
+  external factory Float64List.view(ByteArray array,
+                                    [int start = 0, int length]);
 }

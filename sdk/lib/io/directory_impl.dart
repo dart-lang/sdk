@@ -66,7 +66,7 @@ class _Directory implements Directory {
       }
     }
     if (future == null) {
-      return new Future.immedidate(-1);
+      return new Future.immediate(-1);
     } else {
       return future;
     }

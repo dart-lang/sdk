@@ -59,7 +59,8 @@ patch class Int16List {
     return new _Int16Array.transferable(length);
   }
 
-  /* patch */ factory Int16List.view(ByteArray array, [int start = 0, int length]) {
+  /* patch */ factory Int16List.view(ByteArray array,
+                                     [int start = 0, int length]) {
     return new _Int16ArrayView(array, start, length);
   }
 }
@@ -74,7 +75,8 @@ patch class Uint16List {
     return new _Uint16Array.transferable(length);
   }
 
-  /* patch */ factory Uint16List.view(ByteArray array, [int start = 0, int length]) {
+  /* patch */ factory Uint16List.view(ByteArray array,
+                                      [int start = 0, int length]) {
     return new _Uint16ArrayView(array, start, length);
   }
 }
@@ -89,7 +91,8 @@ patch class Int32List {
     return new _Int32Array.transferable(length);
   }
 
-  /* patch */ factory Int32List.view(ByteArray array, [int start = 0, int length]) {
+  /* patch */ factory Int32List.view(ByteArray array,
+                                     [int start = 0, int length]) {
     return new _Int32ArrayView(array, start, length);
   }
 }
@@ -104,7 +107,8 @@ patch class Uint32List {
     return new _Uint32Array.transferable(length);
   }
 
-  /* patch */ factory Uint32List.view(ByteArray array, [int start = 0, int length]) {
+  /* patch */ factory Uint32List.view(ByteArray array,
+                                      [int start = 0, int length]) {
     return new _Uint32ArrayView(array, start, length);
   }
 }
@@ -119,7 +123,8 @@ patch class Int64List {
     return new _Int64Array.transferable(length);
   }
 
-  /* patch */ factory Int64List.view(ByteArray array, [int start = 0, int length]) {
+  /* patch */ factory Int64List.view(ByteArray array,
+                                     [int start = 0, int length]) {
     return new _Int64ArrayView(array, start, length);
   }
 }
@@ -134,7 +139,8 @@ patch class Uint64List {
     return new _Uint64Array.transferable(length);
   }
 
-  /* patch */ factory Uint64List.view(ByteArray array, [int start = 0, int length]) {
+  /* patch */ factory Uint64List.view(ByteArray array,
+                                      [int start = 0, int length]) {
     return new _Uint64ArrayView(array, start, length);
   }
 }
@@ -149,7 +155,8 @@ patch class Float32List {
     return new _Float32Array.transferable(length);
   }
 
-  /* patch */ factory Float32List.view(ByteArray array, [int start = 0, int length]) {
+  /* patch */ factory Float32List.view(ByteArray array,
+                                       [int start = 0, int length]) {
     return new _Float32ArrayView(array, start, length);
   }
 }
@@ -164,7 +171,8 @@ patch class Float64List {
     return new _Float64Array.transferable(length);
   }
 
-  /* patch */ factory Float64List.view(ByteArray array, [int start = 0, int length]) {
+  /* patch */ factory Float64List.view(ByteArray array,
+                                       [int start = 0, int length]) {
     return new _Float64ArrayView(array, start, length);
   }
 }

@@ -700,7 +700,6 @@ class _WebSocketClientConnection
     if (!_isWebSocketUpgrade(response)) {
       _conn.detachSocket().socket.close();
       throw new WebSocketException("Protocol upgrade failed");
-      return;
     }
 
     // Connection upgrade successful.

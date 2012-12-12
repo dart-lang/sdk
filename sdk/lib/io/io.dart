@@ -29,6 +29,7 @@
 #source('file.dart');
 #source('file_impl.dart');
 #source('http.dart');
+#source('http_headers.dart');
 #source('http_impl.dart');
 #source('http_parser.dart');
 #source('http_session.dart');
