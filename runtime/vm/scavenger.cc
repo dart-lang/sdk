@@ -655,14 +655,23 @@ void Scavenger::Scavenge(bool invoke_api_callbacks, const char* gc_reason) {
 
   if (FLAG_verbose_gc) {
     const intptr_t KB2 = KB / 2;
+    double survival = ((in_use() + visitor.bytes_promoted()) /
+                       static_cast<double>(in_use_before)) * 100.0;
+    double promoted = (visitor.bytes_promoted() /
+                       static_cast<double>(in_use() + visitor.bytes_promoted()))
+                      * 100.0;
     OS::PrintErr("Scavenge[%d]: %"Pd64"us (%"Pd"K -> %"Pd"K, %"Pd"K)\n"
-                 "Promoted %"Pd"K\n",
+                 "Surviving %"Pd"K %.1f%%\n"
+                 "Promoted survivors %"Pd"K %.1f%%\n",
                  count_,
                  timer.TotalElapsedTime(),
                  (in_use_before + KB2) / KB,
                  (in_use() + KB2) / KB,
                  (capacity() + KB2) / KB,
-                 (visitor.bytes_promoted() + KB2) / KB);
+                 (in_use() + visitor.bytes_promoted() + KB2) / KB,
+                 survival,
+                 (visitor.bytes_promoted() + KB2) / KB,
+                 promoted);
   }
 
   if (FLAG_verify_after_gc) {

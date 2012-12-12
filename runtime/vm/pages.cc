@@ -404,9 +404,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
   NoHandleScope no_handles(isolate);
 
   if (FLAG_print_free_list_before_gc) {
-    OS::Print("Data Freelist:\n");
+    OS::Print("Data Freelist (before GC):\n");
     freelist_[HeapPage::kData].Print();
-    OS::Print("Executable Freelist:\n");
+    OS::Print("Executable Freelist (before GC):\n");
     freelist_[HeapPage::kExecutable].Print();
   }
 
@@ -486,9 +486,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
   }
 
   if (FLAG_print_free_list_after_gc) {
-    OS::Print("Data Freelist:\n");
+    OS::Print("Data Freelist (after GC):\n");
     freelist_[HeapPage::kData].Print();
-    OS::Print("Executable Freelist:\n");
+    OS::Print("Executable Freelist (after GC):\n");
     freelist_[HeapPage::kExecutable].Print();
   }
 

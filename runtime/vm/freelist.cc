@@ -4,6 +4,9 @@
 
 #include "vm/freelist.h"
 
+#include <map>
+#include <utility>
+
 #include "vm/bit_set.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -147,26 +150,66 @@ intptr_t FreeList::Length(int index) const {
 }
 
 
-void FreeList::Print() const {
-  OS::Print("%*s %*s %*s\n", 10, "Class", 10, "Length", 10, "Size");
-  OS::Print("--------------------------------\n");
-  int total_index = 0;
-  int total_length = 0;
-  int total_size = 0;
+void FreeList::PrintSmall() const {
+  int small_sizes = 0;
+  int small_objects = 0;
+  intptr_t small_bytes = 0;
   for (int i = 0; i < kNumLists; ++i) {
     if (free_lists_[i] == NULL) {
       continue;
     }
-    total_index += 1;
-    intptr_t length = Length(i);
-    total_length += length;
-    intptr_t size = length * i * kObjectAlignment;
-    total_size += size;
-    OS::Print("%*d %*"Pd" %*"Pd"\n",
-              10, i * kObjectAlignment, 10, length, 10, size);
+    small_sizes += 1;
+    intptr_t list_length = Length(i);
+    small_objects += list_length;
+    intptr_t list_bytes = list_length * i * kObjectAlignment;
+    small_bytes += list_bytes;
+    OS::Print("small %3d [%8d bytes] : "
+              "%8"Pd" objs; %8.1f KB; %8.1f cum KB\n",
+              i,
+              i * kObjectAlignment,
+              list_length,
+              list_bytes / static_cast<double>(KB),
+              small_bytes / static_cast<double>(KB));
   }
-  OS::Print("--------------------------------\n");
-  OS::Print("%*d %*d %*d\n", 10, total_index, 10, total_length, 10, total_size);
+}
+
+
+void FreeList::PrintLarge() const {
+  int large_sizes = 0;
+  int large_objects = 0;
+  intptr_t large_bytes = 0;
+  std::map<intptr_t, intptr_t> sorted;
+  std::map<intptr_t, intptr_t>::iterator it;
+  FreeListElement* node;
+  for (node = free_lists_[kNumLists]; node != NULL; node = node->next()) {
+    it = sorted.find(node->Size());
+    if (it != sorted.end()) {
+      it->second += 1;
+    } else {
+      large_sizes += 1;
+      sorted.insert(std::make_pair(node->Size(), 1));
+    }
+    large_objects += 1;
+  }
+  for (it = sorted.begin(); it != sorted.end(); ++it) {
+    intptr_t size = it->first;
+    int list_length = it->second;
+    intptr_t list_bytes = list_length * size;
+    large_bytes += list_bytes;
+    OS::Print("large %3d [%8d bytes] : "
+              "%8"Pd" objs; %8.1f KB; %8.1f cum KB\n",
+              size / kObjectAlignment,
+              size,
+              list_length,
+              list_bytes / static_cast<double>(KB),
+              large_bytes / static_cast<double>(KB));
+  }
+}
+
+
+void FreeList::Print() const {
+  PrintSmall();
+  PrintLarge();
 }
 
 
