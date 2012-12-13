@@ -226,17 +226,15 @@ static void CloseFile(void* stream) {
 // Returns true if the arguments are converted. In that case
 // each of the arguments need to be deallocated using free.
 static bool Utf8ConvertArgv(int argc, char** argv) {
-  bool result = false;
-  for (int i = 0; i < argc; i++) {
-    char* arg = argv[i];
-    argv[i] = StringUtils::ConsoleStringToUtf8(arg);
-    if (i == 0) {
-      result = argv[i] != arg;
-    } else {
-      ASSERT(result == (argv[i] != arg));
-    }
+  int unicode_argc = 0;
+  wchar_t** unicode_argv = ShellUtils::GetUnicodeArgv(&unicode_argc);
+  if (unicode_argv == NULL) return false;
+  for (int i = 0; i < unicode_argc; i++) {
+    wchar_t* arg = unicode_argv[i];
+    argv[i] = StringUtils::WideToUtf8(arg);
   }
-  return result;
+  ShellUtils::FreeUnicodeArgv(unicode_argv);
+  return true;
 }
 
 

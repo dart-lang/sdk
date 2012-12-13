@@ -62,3 +62,10 @@ const char* StringUtils::WideToUtf8(const wchar_t* str) {
   UNIMPLEMENTED();
   return NULL;
 }
+
+wchar_t** ShellUtils::GetUnicodeArgv(int* argc) {
+  return NULL;
+}
+
+void ShellUtils::FreeUnicodeArgv(wchar_t** argv) {
+}

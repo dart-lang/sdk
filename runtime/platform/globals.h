@@ -24,6 +24,7 @@
 #include <windows.h>
 #include <winsock2.h>
 #include <Rpc.h>
+#include <shellapi.h>
 #endif
 
 #if !defined(_WIN32)

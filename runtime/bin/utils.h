@@ -69,4 +69,13 @@ class StringUtils {
   static const wchar_t* Utf8ToWide(const char* utf8);
 };
 
+class ShellUtils {
+ public:
+  // Get the arguments passed to the program as unicode strings.
+  // If GetUnicodeArgv returns a pointer that pointer has to be
+  // deallocated with a call to FreeUnicodeArgv.
+  static wchar_t** GetUnicodeArgv(int* argc);
+  static void FreeUnicodeArgv(wchar_t** argv);
+};
+
 #endif  // BIN_UTILS_H_
