@@ -50,7 +50,7 @@ import 'path.dart' as path;
 ///         |-- absolute_test.dart
 ///         |-- all_test.dart
 ///         |-- basename_test.dart
-///         |   (7 more...)
+///         | (7 more...)
 ///         |-- path_windows_test.dart
 ///         |-- relative_test.dart
 ///         '-- split_test.dart
@@ -109,7 +109,7 @@ void _draw(StringBuffer buffer, String prefix, bool isLast,
     _draw(buffer, '$prefix$childPrefix', isLastChild, child, children[child]);
   }
 
-  if (childNames.length <= 10) {
+  if (name == null || childNames.length <= 10) {
     // Not too many, so show all the children.
     for (var i = 0; i < childNames.length; i++) {
       _drawChild(i == childNames.length - 1, childNames[i]);
@@ -123,7 +123,7 @@ void _draw(StringBuffer buffer, String prefix, bool isLast,
     // Elide the middle ones.
     buffer.add(prefix);
     buffer.add(_getPrefix(name == null, isLast));
-    buffer.add('|   (${childNames.length - 6} more...)\n');
+    buffer.add('| (${childNames.length - 6} more...)\n');
 
     // Show the last few.
     _drawChild(false, childNames[childNames.length - 3]);

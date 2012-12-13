@@ -14,32 +14,59 @@ main() {
 
   test('up to ten files in one directory are shown', () {
     var files = [
-      "a.dart",
-      "b.dart",
-      "c.dart",
-      "d.dart",
-      "e.dart",
-      "f.dart",
-      "g.dart",
-      "h.dart",
-      "i.dart",
-      "j.dart"
+      "dir/a.dart",
+      "dir/b.dart",
+      "dir/c.dart",
+      "dir/d.dart",
+      "dir/e.dart",
+      "dir/f.dart",
+      "dir/g.dart",
+      "dir/h.dart",
+      "dir/i.dart",
+      "dir/j.dart"
     ];
     expect(generateTree(files), equals("""
-|-- a.dart
-|-- b.dart
-|-- c.dart
-|-- d.dart
-|-- e.dart
-|-- f.dart
-|-- g.dart
-|-- h.dart
-|-- i.dart
-'-- j.dart
+'-- dir
+    |-- a.dart
+    |-- b.dart
+    |-- c.dart
+    |-- d.dart
+    |-- e.dart
+    |-- f.dart
+    |-- g.dart
+    |-- h.dart
+    |-- i.dart
+    '-- j.dart
 """));
   });
 
   test('files are elided if there are more than ten', () {
+    var files = [
+      "dir/a.dart",
+      "dir/b.dart",
+      "dir/c.dart",
+      "dir/d.dart",
+      "dir/e.dart",
+      "dir/f.dart",
+      "dir/g.dart",
+      "dir/h.dart",
+      "dir/i.dart",
+      "dir/j.dart",
+      "dir/k.dart"
+    ];
+    expect(generateTree(files), equals("""
+'-- dir
+    |-- a.dart
+    |-- b.dart
+    |-- c.dart
+    | (5 more...)
+    |-- i.dart
+    |-- j.dart
+    '-- k.dart
+"""));
+  });
+
+  test('files are not elided at the top level', () {
     var files = [
       "a.dart",
       "b.dart",
@@ -57,7 +84,11 @@ main() {
 |-- a.dart
 |-- b.dart
 |-- c.dart
-|   (5 more...)
+|-- d.dart
+|-- e.dart
+|-- f.dart
+|-- g.dart
+|-- h.dart
 |-- i.dart
 |-- j.dart
 '-- k.dart
@@ -105,7 +136,7 @@ main() {
     |-- absolute_test.dart
     |-- all_test.dart
     |-- basename_test.dart
-    |   (7 more...)
+    | (7 more...)
     |-- path_windows_test.dart
     |-- relative_test.dart
     '-- split_test.dart
