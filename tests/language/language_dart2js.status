@@ -32,6 +32,7 @@ class_literal_test/29: Fail # Class literals are expression now; delete this tes
 *vm_negative_test: Skip
 
 [ $compiler == dart2js && $checked ]
+prefix16_test: Fail # dartbug.com/7354
 default_factory2_test/01: Pass # For the wrong reasons.
 type_variable_scope_test/none: Fail
 factory_implementation_test/00: Fail
