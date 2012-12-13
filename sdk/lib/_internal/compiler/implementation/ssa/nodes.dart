@@ -180,6 +180,9 @@ class HGraph {
       result = new HConstant.internal(constant, type);
       entry.addAtExit(result);
       constants[constant] = result;
+    } else if (result.block == null) {
+      // The constant was not used anymore.
+      entry.addAtExit(result);
     }
     return result;
   }

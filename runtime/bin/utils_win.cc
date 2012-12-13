@@ -104,3 +104,12 @@ const char* StringUtils::WideToUtf8(const wchar_t* wide) {
 const wchar_t* StringUtils::Utf8ToWide(const char* utf8) {
   return const_cast<const wchar_t*>(Utf8ToWide(const_cast<char*>(utf8)));
 }
+
+wchar_t** ShellUtils::GetUnicodeArgv(int* argc) {
+  wchar_t* command_line = GetCommandLineW();
+  return CommandLineToArgvW(command_line, argc);
+}
+
+void ShellUtils::FreeUnicodeArgv(wchar_t** argv) {
+  LocalFree(argv);
+}

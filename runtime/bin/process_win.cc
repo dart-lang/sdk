@@ -391,7 +391,7 @@ int Process::Start(const char* path,
   }
 
   // Setup info structures.
-  STARTUPINFOEX startup_info;
+  STARTUPINFOEXW startup_info;
   ZeroMemory(&startup_info, sizeof(startup_info));
   startup_info.StartupInfo.cb = sizeof(startup_info);
   startup_info.StartupInfo.hStdInput = stdin_handles[kReadHandle];
@@ -446,15 +446,16 @@ int Process::Start(const char* path,
   ZeroMemory(&process_info, sizeof(process_info));
 
   // Transform input strings to system format.
-  path = StringUtils::Utf8ToConsoleString(path);
+  const wchar_t* system_path = StringUtils::Utf8ToWide(path);
+  wchar_t** system_arguments = new wchar_t*[arguments_length];
   for (int i = 0; i < arguments_length; i++) {
-     arguments[i] = StringUtils::Utf8ToConsoleString(arguments[i]);
+     system_arguments[i] = StringUtils::Utf8ToWide(arguments[i]);
   }
 
   // Compute command-line length.
-  int command_line_length = strlen(path);
+  int command_line_length = wcslen(system_path);
   for (int i = 0; i < arguments_length; i++) {
-    command_line_length += strlen(arguments[i]);
+    command_line_length += wcslen(system_arguments[i]);
   }
   // Account for null termination and one space per argument.
   command_line_length += arguments_length + 1;
@@ -463,52 +464,56 @@ int Process::Start(const char* path,
     int error_code = SetOsErrorMessage(os_error_message);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    free(const_cast<char*>(path));
-    for (int i = 0; i < arguments_length; i++) free(arguments[i]);
+    free(const_cast<wchar_t*>(system_path));
+    for (int i = 0; i < arguments_length; i++) free(system_arguments[i]);
+    delete[] system_arguments;
     DeleteProcThreadAttributeList(attribute_list);
     free(attribute_list);
     return error_code;
   }
 
   // Put together command-line string.
-  char* command_line = new char[command_line_length];
+  wchar_t* command_line = new wchar_t[command_line_length];
   int len = 0;
   int remaining = command_line_length;
-  int written = snprintf(command_line + len, remaining, "%s", path);
+  int written = _snwprintf(command_line + len, remaining, L"%s", system_path);
   len += written;
   remaining -= written;
   ASSERT(remaining >= 0);
   for (int i = 0; i < arguments_length; i++) {
-    written = snprintf(command_line + len, remaining, " %s", arguments[i]);
+    written =
+        _snwprintf(command_line + len, remaining, L" %s", system_arguments[i]);
     len += written;
     remaining -= written;
     ASSERT(remaining >= 0);
   }
-  free(const_cast<char*>(path));
-  for (int i = 0; i < arguments_length; i++) free(arguments[i]);
+  free(const_cast<wchar_t*>(system_path));
+  for (int i = 0; i < arguments_length; i++) free(system_arguments[i]);
+  delete[] system_arguments;
 
   // Create environment block if an environment is supplied.
-  char* environment_block = NULL;
+  wchar_t* environment_block = NULL;
   if (environment != NULL) {
+    wchar_t** system_environment = new wchar_t*[environment_length];
     // Convert environment strings to system strings.
     for (intptr_t i = 0; i < environment_length; i++) {
-      environment[i] = StringUtils::Utf8ToConsoleString(environment[i]);
+      system_environment[i] = StringUtils::Utf8ToWide(environment[i]);
     }
 
     // An environment block is a sequence of zero-terminated strings
     // followed by a block-terminating zero char.
     intptr_t block_size = 1;
     for (intptr_t i = 0; i < environment_length; i++) {
-      block_size += strlen(environment[i]) + 1;
+      block_size += wcslen(system_environment[i]) + 1;
     }
-    environment_block = new char[block_size];
+    environment_block = new wchar_t[block_size];
     intptr_t block_index = 0;
     for (intptr_t i = 0; i < environment_length; i++) {
-      intptr_t len = strlen(environment[i]);
-      intptr_t result = snprintf(environment_block + block_index,
-                                 len,
-                                 "%s",
-                                 environment[i]);
+      intptr_t len = wcslen(system_environment[i]);
+      intptr_t result = _snwprintf(environment_block + block_index,
+                                   len,
+                                   L"%s",
+                                   system_environment[i]);
       ASSERT(result == len);
       block_index += len;
       environment_block[block_index++] = '\0';
@@ -516,30 +521,36 @@ int Process::Start(const char* path,
     // Block-terminating zero char.
     environment_block[block_index++] = '\0';
     ASSERT(block_index == block_size);
-    for (intptr_t i = 0; i < environment_length; i++) free(environment[i]);
+    for (intptr_t i = 0; i < environment_length; i++) {
+      free(system_environment[i]);
+    }
+    delete[] system_environment;
   }
 
+  const wchar_t* system_working_directory = NULL;
   if (working_directory != NULL) {
-    working_directory = StringUtils::Utf8ToConsoleString(working_directory);
+    system_working_directory = StringUtils::Utf8ToWide(working_directory);
   }
 
   // Create process.
-  BOOL result = CreateProcess(NULL,   // ApplicationName
-                              command_line,
-                              NULL,   // ProcessAttributes
-                              NULL,   // ThreadAttributes
-                              TRUE,   // InheritHandles
-                              EXTENDED_STARTUPINFO_PRESENT,
-                              environment_block,
-                              working_directory,
-                              reinterpret_cast<STARTUPINFO*>(&startup_info),
-                              &process_info);
+  DWORD creation_flags =
+      EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT;
+  BOOL result = CreateProcessW(NULL,   // ApplicationName
+                               command_line,
+                               NULL,   // ProcessAttributes
+                               NULL,   // ThreadAttributes
+                               TRUE,   // InheritHandles
+                               creation_flags,
+                               environment_block,
+                               system_working_directory,
+                               reinterpret_cast<STARTUPINFOW*>(&startup_info),
+                               &process_info);
 
   // Deallocate command-line and environment block strings.
   delete[] command_line;
   delete[] environment_block;
-  if (working_directory != NULL) {
-    free(const_cast<char*>(working_directory));
+  if (system_working_directory != NULL) {
+    free(const_cast<wchar_t*>(system_working_directory));
   }
 
   DeleteProcThreadAttributeList(attribute_list);
