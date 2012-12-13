@@ -5432,6 +5432,18 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertClassMembers(superElements, "method A.foo");
   }
 
+  public void test_getOverridden_methodAbstract() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo();",
+        "}",
+        "");
+    DartMethodDefinition node = findNode(DartMethodDefinition.class, "foo();");
+    Set<Element> superElements = node.getElement().getOverridden();
+    assertTrue(superElements.isEmpty());
+  }
+
   public void test_getOverridden_field_withGetterSetter() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",

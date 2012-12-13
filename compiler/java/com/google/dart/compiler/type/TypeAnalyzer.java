@@ -3163,7 +3163,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
         // cull out duplicate elements in the supertype list - inheriting more than one interface
         // of the same type is valid.
         Set<ClassElement> typesForAbstractMembers = Sets.newHashSet();
-        typesForAbstractMembers.add(currentClass.getElement());
         for (InterfaceType supertype : supertypes) {
           typesForAbstractMembers.add(supertype.getElement());
         }
@@ -3350,7 +3349,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
                   case FIELD:
                     typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_FIELD, superElement.getName(),
                         superElement.getEnclosingElement().getName());
-
                     break;
 
                   default:
