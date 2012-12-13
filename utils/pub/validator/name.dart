@@ -26,18 +26,35 @@ class NameValidator extends Validator {
   Future validate() {
     _checkName(entrypoint.root.name, 'Package name "${entrypoint.root.name}"');
 
+    return _libraries.transform((libraries) {
+      for (var library in libraries) {
+        var libName = path.basenameWithoutExtension(library);
+        _checkName(libName, 'The name of "$library", "$libName",');
+      }
+
+      if (libraries.length == 1) {
+        var libName = path.basenameWithoutExtension(libraries[0]);
+        if (libName == entrypoint.root.name) return;
+        warnings.add('The name of "$libraries[0]", "$libName", should match '
+            'the name of the package, "${entrypoint.root.name}".\n'
+            'This helps users know what library to import.');
+      }
+    });
+  }
+
+  /// Returns a list of all libraries in the current package as paths relative
+  /// to the package's root directory.
+  Future<List<String>> get _libraries {
     var libDir = join(entrypoint.root.dir, "lib");
     return dirExists(libDir).chain((libDirExists) {
       if (!libDirExists) return new Future.immediate([]);
       return listDir(libDir, recursive: true);
     }).transform((files) {
-      for (var file in files) {
-        file = relativeTo(file, libDir);
-        if (splitPath(file).contains("src")) continue;
-        if (path.extension(file) != '.dart') continue;
-        var libName = path.basenameWithoutExtension(file);
-        _checkName(libName, 'The name of "$file", "$libName",');
-      }
+      return files.map((file) => relativeTo(file, dirname(libDir)))
+          .filter((file) {
+        return !splitPath(file).contains("src") &&
+            path.extension(file) == '.dart';
+      });
     });
   }
 

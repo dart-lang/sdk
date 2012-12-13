@@ -210,7 +210,7 @@ main() {
       run();
     });
 
-    test('has a package name that is a Dart identifier', () {
+    test('has a package name that is a Dart reserved word', () {
       dir(appPath, [libPubspec("operator", "1.0.0")]).scheduleCreate();
       expectValidationError(name);
       run();
@@ -243,12 +243,21 @@ main() {
       run();
     });
 
-    test('has a library name that is a Dart identifier', () {
+    test('has a library name that is a Dart reserved word', () {
       dir(appPath, [
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [file("operator.dart", "int i = 0;")])
       ]).scheduleCreate();
       expectValidationError(name);
+      run();
+    });
+
+    test('has a single library named differently than the package', () {
+      file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      dir(appPath, [
+        dir("lib", [file("best_pkg.dart", "int i = 0;")])
+      ]).scheduleCreate();
+      expectValidationWarning(name);
       run();
     });
 
