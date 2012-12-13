@@ -202,7 +202,7 @@ enum NamedPipeType {
 // NOTE: If this function returns false the handles might have been allocated
 // and the caller should make sure to close them in case of an error.
 static bool CreateProcessPipe(HANDLE handles[2],
-                              wchar_t* pipe_name,
+                              char* pipe_name,
                               NamedPipeType type) {
   // Security attributes describing an inheritable handle.
   SECURITY_ATTRIBUTES inherit_handle;
@@ -212,14 +212,14 @@ static bool CreateProcessPipe(HANDLE handles[2],
 
   if (type == kInheritRead) {
     handles[kWriteHandle] =
-        CreateNamedPipeW(pipe_name,
-                         PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED,
-                         PIPE_TYPE_BYTE | PIPE_WAIT,
-                         1,             // Number of pipes
-                         1024,          // Out buffer size
-                         1024,          // In buffer size
-                         0,             // Timeout in ms
-                         NULL);
+        CreateNamedPipe(pipe_name,
+                        PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED,
+                        PIPE_TYPE_BYTE | PIPE_WAIT,
+                        1,             // Number of pipes
+                        1024,          // Out buffer size
+                        1024,          // In buffer size
+                        0,             // Timeout in ms
+                        NULL);
 
     if (handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
       Log::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
@@ -227,13 +227,13 @@ static bool CreateProcessPipe(HANDLE handles[2],
     }
 
     handles[kReadHandle] =
-        CreateFileW(pipe_name,
-                    GENERIC_READ,
-                    0,
-                    &inherit_handle,
-                    OPEN_EXISTING,
-                    FILE_READ_ATTRIBUTES | FILE_FLAG_OVERLAPPED,
-                    NULL);
+        CreateFile(pipe_name,
+                   GENERIC_READ,
+                   0,
+                   &inherit_handle,
+                   OPEN_EXISTING,
+                   FILE_READ_ATTRIBUTES | FILE_FLAG_OVERLAPPED,
+                   NULL);
     if (handles[kReadHandle] == INVALID_HANDLE_VALUE) {
       Log::PrintErr("CreateFile failed %d\n", GetLastError());
       return false;
@@ -241,14 +241,14 @@ static bool CreateProcessPipe(HANDLE handles[2],
   } else {
     ASSERT(type == kInheritWrite || type == kInheritNone);
     handles[kReadHandle] =
-        CreateNamedPipeW(pipe_name,
-                         PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
-                         PIPE_TYPE_BYTE | PIPE_WAIT,
-                         1,             // Number of pipes
-                         1024,          // Out buffer size
-                         1024,          // In buffer size
-                         0,             // Timeout in ms
-                         NULL);
+        CreateNamedPipe(pipe_name,
+                        PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
+                        PIPE_TYPE_BYTE | PIPE_WAIT,
+                        1,             // Number of pipes
+                        1024,          // Out buffer size
+                        1024,          // In buffer size
+                        0,             // Timeout in ms
+                        NULL);
 
     if (handles[kReadHandle] == INVALID_HANDLE_VALUE) {
       Log::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
@@ -256,13 +256,13 @@ static bool CreateProcessPipe(HANDLE handles[2],
     }
 
     handles[kWriteHandle] =
-        CreateFileW(pipe_name,
-                    GENERIC_WRITE,
-                    0,
-                    (type == kInheritWrite) ? &inherit_handle : NULL,
-                    OPEN_EXISTING,
-                    FILE_WRITE_ATTRIBUTES | FILE_FLAG_OVERLAPPED,
-                    NULL);
+        CreateFile(pipe_name,
+                   GENERIC_WRITE,
+                   0,
+                   (type == kInheritWrite) ? &inherit_handle : NULL,
+                   OPEN_EXISTING,
+                   FILE_WRITE_ATTRIBUTES | FILE_FLAG_OVERLAPPED,
+                   NULL);
     if (handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
       Log::PrintErr("CreateFile failed %d\n", GetLastError());
       return false;
@@ -337,8 +337,7 @@ int Process::Start(const char* path,
   HANDLE exit_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
 
   // Generate unique pipe names for the four named pipes needed.
-  static const int kMaxPipeNameSize = 80;
-  wchar_t pipe_names[4][kMaxPipeNameSize];
+  char pipe_names[4][80];
   UUID uuid;
   RPC_STATUS status = UuidCreateSequential(&uuid);
   if (status != RPC_S_OK && status != RPC_S_UUID_LOCAL_ONLY) {
@@ -346,20 +345,20 @@ int Process::Start(const char* path,
     Log::PrintErr("UuidCreateSequential failed %d\n", status);
     return status;
   }
-  RPC_WSTR uuid_string;
-  status = UuidToStringW(&uuid, &uuid_string);
+  RPC_CSTR uuid_string;
+  status = UuidToString(&uuid, &uuid_string);
   if (status != RPC_S_OK) {
     SetOsErrorMessage(os_error_message);
     Log::PrintErr("UuidToString failed %d\n", status);
     return status;
   }
   for (int i = 0; i < 4; i++) {
-    static const wchar_t* prefix = L"\\\\.\\Pipe\\dart";
-    _snwprintf(pipe_names[i],
-               kMaxPipeNameSize,
-               L"%s_%s_%d", prefix, uuid_string, i + 1);
+    static const char* prefix = "\\\\.\\Pipe\\dart";
+    snprintf(pipe_names[i],
+             sizeof(pipe_names[i]),
+             "%s_%s_%d", prefix, uuid_string, i + 1);
   }
-  status = RpcStringFreeW(&uuid_string);
+  status = RpcStringFree(&uuid_string);
   if (status != RPC_S_OK) {
     SetOsErrorMessage(os_error_message);
     Log::PrintErr("RpcStringFree failed %d\n", status);
