@@ -50,7 +50,12 @@ crypto/*: Skip # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
 
 [ $compiler == dartc ]
-package/*: Skip
+
+# package test issue 7392
+package/package1_test: Fail
+package/package_isolate_test: Fail
+package/package_test: Fail
+
 
 # The dart:io library is created at build time from separate files, and
 # there is no language-spec compatible way to run unit tests on the private
