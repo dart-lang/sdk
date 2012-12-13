@@ -149,9 +149,10 @@ class LishCommand extends PubCommand {
       git.isInstalled
     ]).chain((results) {
       if (results[0] && results[1]) {
-        // List all files that aren't gitignored, including those not checked in
-        // to Git.
-        return git.run(["ls-files", "--cached", "--others"]);
+        // List all files that aren't gitignored, including those not checked
+        // in to Git.
+        return git.run(["ls-files", "--cached", "--others",
+                        "--exclude-standard"]);
       }
 
       return listDir(rootDir, recursive: true).chain((entries) {
