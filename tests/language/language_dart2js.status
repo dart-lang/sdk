@@ -278,7 +278,6 @@ map_literal2_negative_test: Fail # Negative language test.
 non_const_super_negative_test: Fail # Negative language test.
 number_identifier_negative_test: Fail # Negative language test.
 operator1_negative_test: Fail # Negative language test.
-prefix16_test: Fail
 prefix23_negative_test: Fail # Negative language test.
 pseudo_kw_illegal_test/03: Fail # Negative language test.
 pseudo_kw_illegal_test/14: Fail # Negative language test.

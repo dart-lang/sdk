@@ -1084,6 +1084,10 @@ $lazyInitializerLogic
     if (checkedClasses.contains(compiler.functionClass) ||
         !checkedTypedefs.isEmpty) {
       FunctionElement call = cls.lookupLocalMember(Compiler.CALL_OPERATOR_NAME);
+      if (call == null) {
+        // If [cls] is a closure, it has a synthetic call operator method.
+        call = cls.lookupBackendMember(Compiler.CALL_OPERATOR_NAME);
+      }
       if (call != null) {
         generateInterfacesIsTests(compiler.functionClass,
                                   emitIsTest,

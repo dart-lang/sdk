@@ -1489,6 +1489,15 @@ abstract class ClassElement extends ScopeContainerElement
     return result;
   }
 
+  /// Lookup a synthetic element created by the backend.
+  Element lookupBackendMember(SourceString memberName) {
+    for (Element element in backendMembers) {
+      if (element.name == memberName) {
+        return element;
+      }
+    }
+  }
+
   /**
    * Lookup super members for the class. This will ignore constructors.
    */
