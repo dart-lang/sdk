@@ -557,7 +557,7 @@ class Primitives {
       if (end <= kMaxApply) {
         subarray = array;
       } else {
-        subarray = JS('=List', r'array.slice(#, #)',
+        subarray = JS('=List', r'#.slice(#, #)', array,
                       i, i + kMaxApply < end ? i + kMaxApply : end);
       }
       result = JS('String', '# + String.fromCharCode.apply(#, #)',

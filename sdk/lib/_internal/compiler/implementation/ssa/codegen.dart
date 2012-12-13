@@ -1777,15 +1777,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assignVariable(variableNames.getName(node.receiver), pop());
   }
 
-  // TODO(sra): We could be more picky about when to inhibit renaming of locals
-  // - most JS strings don't contain free variables, or contain safe ones like
-  // 'Object'.  JS strings like "#.length" and "#[#]" are perfectly safe for
-  // variable renaming.  For now, be shy of any potential identifiers.
-  static final RegExp safeCodeRegExp = new RegExp(r'^[^_$a-zA-Z]*$');
-
   visitForeign(HForeign node) {
     String code = node.code.slowToString();
-    if (!safeCodeRegExp.hasMatch(code)) {
+    if (!isSafeForMinification(code)) {
       inhibitVariableMinification = true;
     }
     List<HInstruction> inputs = node.inputs;
@@ -1808,6 +1802,33 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       world.registerInstantiatedClass(type.element);
     }
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
+  }
+
+  // Recognizes string with no identifiers.
+  static final RegExp safeCodeRegExp = new RegExp(r'^[^_$a-zA-Z]*$');
+
+  // Property access chains starting at known safe expressions are safe
+  // subexpressions.  Examples: `String`, `#.length`
+  // `Object.prototype.hasOwnProperty`.
+  static final RegExp safeRootedPathRegExp = new RegExp(
+      r'(\bObject|\bString|\Array|\bMath|\bDate|#)(\.[_$a-zA-Z][_$a-zA-Z0-9]*)*');
+
+  /// Recognizes if the JavaScript code fragment cannot capture local names, so
+  /// is safe to occur in a function with local renaming (minification).
+  bool isSafeForMinification(String code) {
+    // Repeatedly remove safe subexpressions. What remains is either safe or
+    // unsafe.  Example: "#.constructor == Array" is safe.  This determines
+    // about 75% of the JS strings to be safe.  To do significantly better will
+    // require parsing the code.
+    for (;;) {
+      if (safeCodeRegExp.hasMatch(code)) return true;
+      Match match = safeRootedPathRegExp.firstMatch(code);
+      if (match != null) {
+        code = code.substring(0, match.start).concat(code.substring(match.end));
+        continue;
+      }
+      return false;
+    }
   }
 
   visitForeignNew(HForeignNew node) {
