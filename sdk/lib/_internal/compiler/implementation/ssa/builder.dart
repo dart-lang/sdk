@@ -2944,6 +2944,26 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     pushWithPosition(new HInvokeClosure(selector, inputs), node);
   }
 
+  void registerForeignTypes(String specString) {
+    Enqueuer enqueuer = compiler.enqueuer.codegen;
+    for (final typeString in specString.split('|')) {
+      if (typeString == '=List') {
+        enqueuer.registerInstantiatedClass(compiler.listClass);
+      } else if (typeString == 'int') {
+        enqueuer.registerInstantiatedClass(compiler.intClass);
+      } else if (typeString == 'double') {
+        enqueuer.registerInstantiatedClass(compiler.doubleClass);
+      } else if (typeString == 'num') {
+        enqueuer.registerInstantiatedClass(compiler.intClass);
+        enqueuer.registerInstantiatedClass(compiler.doubleClass);
+      } else if (typeString == 'Null') {
+        enqueuer.registerInstantiatedClass(compiler.nullClass);
+      } else if (typeString == 'String') {
+        enqueuer.registerInstantiatedClass(compiler.stringClass);
+      }
+    }
+  }
+
   void handleForeignJs(Send node) {
     Link<Node> link = node.arguments;
     // If the invoke is on foreign code, don't visit the first
@@ -2964,6 +2984,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                       node: type);
     }
     LiteralString typeString = type;
+    // TODO(ngeoffray): This should be registered in codegen, not here.
+    // Also, we should share the type parsing with the native
+    // enqueuer.
+    registerForeignTypes(typeString.dartString.slowToString());
 
     if (code is StringNode) {
       StringNode codeString = code;
