@@ -1043,7 +1043,6 @@ $lazyInitializerLogic
         parameters.add(new js.Parameter('value'));
         arguments.add(new js.VariableUse('value'));
       } else {
-        assert(selector.isCall() || selector.isOperator());
         name = backend.namer.instanceMethodInvocationName(
             selector.library, selector.name, selector);
         for (int i = 0; i < selector.argumentCount; i++) {

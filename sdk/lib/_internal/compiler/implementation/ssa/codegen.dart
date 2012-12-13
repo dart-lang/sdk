@@ -2166,14 +2166,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitIndex(HIndex node) {
-    if (node.isBuiltin(types)) {
-      use(node.inputs[1]);
-      js.Expression receiver = pop();
-      use(node.inputs[2]);
-      push(new js.PropertyAccess(receiver, pop()), node);
-    } else {
-      visitInvokeStatic(node);
-    }
+    use(node.receiver);
+    js.Expression receiver = pop();
+    use(node.index);
+    push(new js.PropertyAccess(receiver, pop()), node);
   }
 
   void visitIndexAssign(HIndexAssign node) {
