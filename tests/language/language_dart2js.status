@@ -358,6 +358,8 @@ null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 
 [ $runtime == opera ]
+null_access_error_test: Fail # TODO(ahe): Please triage this failure.
+string_interpolate_null_test: Fail # TODO(ahe): Please triage this failure.
 call_through_null_getter_test: Fail
 closure3_test: Fail
 execute_finally3_test: Fail

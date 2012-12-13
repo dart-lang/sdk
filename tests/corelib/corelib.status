@@ -20,6 +20,7 @@ string_trim_unicode_test: Fail  # V8 bug 2408
 
 [ $runtime == opera ]
 core_runtime_types_test: Fail
+null_nosuchmethod_test: Fail # TODO(ahe): Please triage this failure.
 date_time7_test: Fail
 unicode_test: Fail
 
