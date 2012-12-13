@@ -89,13 +89,24 @@ def main(argv):
     p.terminate()
     sys.exit(0)
 
-  # SIGINT is Ctrl-C.
-  signal.signal(signal.SIGINT, signal_handler)
-  # SIGTERM is sent by test.dart when a process times out.
-  signal.signal(signal.SIGTERM, signal_handler)
-  output, error = p.communicate()
-  signal.signal(signal.SIGINT, signal.SIG_DFL)
-  signal.signal(signal.SIGTERM, signal.SIG_DFL)
+  def windows_exit_handler(signal):
+    p.terminate()
+    sys.exit(0)
+
+  if os.name == 'nt'
+    try:
+      import win32api
+      win32api.SetConsoleCtrlHandler(windows_exit_handler, True)
+    except ImportError:
+      raise Exception("pywin32 not installed")
+  else:
+    # SIGINT is Ctrl-C.
+    signal.signal(signal.SIGINT, signal_handler)
+    # SIGTERM is sent by test.dart when a process times out.
+    signal.signal(signal.SIGTERM, signal_handler)
+    output, error = p.communicate()
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
   if p.returncode != 0:
     raise Exception('Failed to run command. return code=%s' % p.returncode)
