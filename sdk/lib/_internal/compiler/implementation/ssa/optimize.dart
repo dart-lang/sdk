@@ -26,6 +26,7 @@ class SsaOptimizerTask extends CompilerTask {
   void runPhase(HGraph graph, OptimizationPhase phase) {
     phase.visitGraph(graph);
     compiler.tracer.traceGraph(phase.name, graph);
+    assert(graph.isValid());
   }
 
   void optimize(WorkItem work, HGraph graph, bool speculative) {
