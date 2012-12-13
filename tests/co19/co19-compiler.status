@@ -118,6 +118,10 @@ LibTest/isolate/SendPort/send_A01_t01: Fail
 Language/07_Classes/6_Constructors/2_Factories_A01_t02: Fail
 
 
+# testing framework or VM issue 7388 (dies on Turkish character)
+Language/11_Expressions/30_Identifier_Reference_A01_t08: Skip
+
+
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
 
 Language/03_Overview/1_Scoping_A02_t28: Fail # language change 1031

@@ -223,6 +223,7 @@ public class ResolutionContext implements ResolutionErrorListener {
       }
       case CLASS:
       case FUNCTION_TYPE_ALIAS:
+      case DYNAMIC:
         return instantiateParameterizedType(
             (ClassElement) element,
             diagnosticNode,
@@ -243,13 +244,9 @@ public class ResolutionContext implements ResolutionErrorListener {
         onError(identifier, duplicateErrorCode, element.getName(), locations.size(), locations);
         return typeProvider.getDynamicType();
       }
+      case VOID:
+        return typeProvider.getVoidType();
       case NONE:
-        if (Elements.isIdentifierName(identifier, "void")) {
-          return typeProvider.getVoidType();
-        }
-        if (Elements.isIdentifierName(identifier, "dynamic")) {
-          return typeProvider.getDynamicType();
-        }
         onError(identifier, errorCode, identifier);
         return typeProvider.getDynamicType();
       default:
@@ -315,6 +312,12 @@ public class ResolutionContext implements ResolutionErrorListener {
    * Interpret this node as a name reference,
    */
   Element resolveName(DartNode node) {
+    if (Elements.isIdentifierName(node, "void")) {
+      return typeProvider.getVoidType().getElement();
+    }
+    if (Elements.isIdentifierName(node, "dynamic")) {
+      return typeProvider.getDynamicType().getElement();
+    }
     return node.accept(new Selector());
   }
 

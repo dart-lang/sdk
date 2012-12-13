@@ -117,7 +117,7 @@ public enum ResolverErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test (reachable code?)
   EXPECTED_STATIC_FIELD("expected a static field, but got %s"),
   // TODO(zundel): error message needs JUnit test, (reachable code?)
-  EXTRA_TYPE_ARGUMENT("Type variables may not have type arguments"),
+  EXTRA_TYPE_ARGUMENT(ErrorSeverity.WARNING, "Type variables may not have type arguments"),
   FACTORY_CANNOT_BE_CONST("A factory cannot be const"),
   FIELD_DOES_NOT_HAVE_A_GETTER(ErrorSeverity.WARNING, "Field does not have a getter"),
   FIELD_DOES_NOT_HAVE_A_SETTER(ErrorSeverity.WARNING, "Field does not have a setter"),
