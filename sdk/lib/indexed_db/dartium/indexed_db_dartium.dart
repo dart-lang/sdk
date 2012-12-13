@@ -43,14 +43,6 @@ class _KeyRangeFactoryProvider {
 class Cursor extends NativeFieldWrapperClass1 {
   Cursor.internal();
 
-  static const int NEXT = 0;
-
-  static const int NEXT_NO_DUPLICATE = 1;
-
-  static const int PREV = 2;
-
-  static const int PREV_NO_DUPLICATE = 3;
-
 
   /** @domName IDBCursor.direction */
   String get direction native "IDBCursor_direction_Getter";
@@ -882,10 +874,6 @@ class Transaction extends EventTarget {
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TransactionEvents get on =>
     new TransactionEvents(this);
-
-  static const int READ_ONLY = 0;
-
-  static const int READ_WRITE = 1;
 
   static const int VERSION_CHANGE = 2;
 

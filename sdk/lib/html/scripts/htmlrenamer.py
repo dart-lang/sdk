@@ -271,6 +271,12 @@ _removed_html_members = set([
     "HTMLFrameSetElement.*",
     "HtmlElement.version",
     "HtmlElement.manifest",
+    "Cursor.PREV",
+    "Cursor.PREV_NO_DUPLICATE",
+    "Cursor.NEXT",
+    "Cursor.NEXT_NO_DUPLICATE",
+    "Transaction.READ_ONLY",
+    "Transaction.READ_WRITE",
     "Document.version",
     "Document.manifest",
     "HTMLIsIndexElement.*",
@@ -339,7 +345,8 @@ class HtmlRenamer(object):
     return self.DartifyTypeName(interface.id)
 
 
-  def RenameMember(self, interface_name, member_node, member, member_prefix=''):
+  def RenameMember(self, interface_name, member_node, member, member_prefix='',
+      dartify_name=True):
     """
     Returns the name of the member in the HTML library or None if the member is
     suppressed in the HTML library
@@ -360,7 +367,8 @@ class HtmlRenamer(object):
       if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
         target_name = '$dom_' + target_name
 
-    target_name = self._DartifyMemberName(target_name)
+    if dartify_name:
+      target_name = self._DartifyMemberName(target_name)
     return target_name
 
   def _FindMatch(self, interface, member, member_prefix, candidates):

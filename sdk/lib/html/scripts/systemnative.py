@@ -470,13 +470,6 @@ class DartiumBackend(HtmlDartGenerator):
     else:
       self._GenerateDispatcher(info.operations, dart_declaration, [info.name for info in info.param_infos])
 
-  def AddConstant(self, constant):
-    type = TypeOrNothing(self._DartType(constant.type.id), constant.type.id)
-    self._members_emitter.Emit('\n  static const $TYPE$NAME = $VALUE;\n',
-        NAME=constant.id,
-        TYPE=type,
-        VALUE=constant.value)
-
   def _GenerateDispatcher(self, operations, dart_declaration, argument_names):
 
     body = self._members_emitter.Emit(

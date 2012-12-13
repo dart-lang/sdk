@@ -8,7 +8,7 @@ dart:html APIs from the IDL database."""
 
 from generator import AnalyzeOperation, ConstantOutputOrder, \
     DartDomNameOfAttribute, FindMatchingAttribute, IsDartCollectionType, \
-    IsPureInterface
+    IsPureInterface, TypeOrNothing
 
 # Types that are accessible cross-frame in a limited fashion.
 # In these cases, the base type (e.g., Window) provides restricted access
@@ -117,6 +117,17 @@ class HtmlDartGenerator(object):
           info = AnalyzeOperation(interface, operations)
           self.SecondaryContext(parent_interface)
           self.AddOperation(info)
+
+  def AddConstant(self, constant):
+    const_name = self._renamer.RenameMember(
+        self._interface.id, constant, constant.id, dartify_name=False)
+    if not const_name:
+      return
+    type = TypeOrNothing(self._DartType(constant.type.id), constant.type.id)
+    self._members_emitter.Emit('\n  static const $TYPE$NAME = $VALUE;\n',
+        NAME=const_name,
+        TYPE=type,
+        VALUE=constant.value)
 
   def AddAttribute(self, attribute, declare_only=False):
     """ Adds an attribute to the generated class.

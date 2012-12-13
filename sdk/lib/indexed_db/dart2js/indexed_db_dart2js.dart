@@ -135,14 +135,6 @@ const _annotation_Returns_IDBKey = const Returns(_idbKey);
 /// @domName IDBCursor; @docsEditable true
 class Cursor native "*IDBCursor" {
 
-  static const int NEXT = 0;
-
-  static const int NEXT_NO_DUPLICATE = 1;
-
-  static const int PREV = 2;
-
-  static const int PREV_NO_DUPLICATE = 3;
-
   /// @domName IDBCursor.direction; @docsEditable true
   final String direction;
 
@@ -955,10 +947,6 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TransactionEvents get on =>
     new TransactionEvents(this);
-
-  static const int READ_ONLY = 0;
-
-  static const int READ_WRITE = 1;
 
   static const int VERSION_CHANGE = 2;
 

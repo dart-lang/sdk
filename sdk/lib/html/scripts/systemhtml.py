@@ -856,13 +856,6 @@ class Dart2JSBackend(HtmlDartGenerator):
         NAME=info.name,
         PARAMS=info.ParametersDeclaration(self._NarrowInputType))
 
-  def AddConstant(self, constant):
-    type = TypeOrNothing(self._DartType(constant.type.id), constant.type.id)
-    self._members_emitter.Emit('\n  static const $TYPE$NAME = $VALUE;\n',
-        NAME=constant.id,
-        TYPE=type,
-        VALUE=constant.value)
-
   def _IsOptional(self, operation, argument):
     return IsOptional(argument)
 
