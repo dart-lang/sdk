@@ -76,6 +76,9 @@ class BitVector: public ZoneAllocated {
   // Add all elements that are in the bitvector from.
   bool AddAll(const BitVector* from);
 
+  // Remove all elements that are in the bitvector from.
+  bool RemoveAll(const BitVector* from);
+
   // From the bitvector gen add those elements that are not in the
   // bitvector kill.
   bool KillAndAdd(BitVector* kill, BitVector* gen);

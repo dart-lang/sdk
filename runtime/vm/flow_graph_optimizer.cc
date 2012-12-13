@@ -2881,201 +2881,440 @@ static intptr_t NumberLoadExpressions(
 }
 
 
-static void ComputeAvailableLoads(
-    FlowGraph* graph,
-    intptr_t max_expr_id,
-    const GrowableArray<BitVector*>& avail_in,
-    const GrowableArray<BitVector*>& kill_by_offs) {
-  // Initialize gen-, kill-, out-sets.
-  intptr_t num_blocks = graph->preorder().length();
-  GrowableArray<BitVector*> avail_out(num_blocks);
-  GrowableArray<BitVector*> avail_gen(num_blocks);
-  GrowableArray<BitVector*> avail_kill(num_blocks);
-  for (intptr_t i = 0; i < num_blocks; i++) {
-    avail_out.Add(new BitVector(max_expr_id));
-    avail_gen.Add(new BitVector(max_expr_id));
-    avail_kill.Add(new BitVector(max_expr_id));
-  }
+class LoadOptimizer : public ValueObject {
+ public:
+  LoadOptimizer(FlowGraph* graph,
+                intptr_t max_expr_id,
+                const GrowableArray<BitVector*>& kill_by_offset)
+      : graph_(graph),
+        max_expr_id_(max_expr_id),
+        kill_by_offset_(kill_by_offset),
+        in_(graph_->preorder().length()),
+        out_(graph_->preorder().length()),
+        gen_(graph_->preorder().length()),
+        kill_(graph_->preorder().length()),
+        exposed_values_(graph_->preorder().length()),
+        out_values_(graph_->preorder().length()),
+        phis_(5),
+        worklist_(5),
+        in_worklist_(NULL) {
+    const intptr_t num_blocks = graph_->preorder().length();
+    for (intptr_t i = 0; i < num_blocks; i++) {
+      out_.Add(new BitVector(max_expr_id_));
+      gen_.Add(new BitVector(max_expr_id_));
+      kill_.Add(new BitVector(max_expr_id_));
+      in_.Add(new BitVector(max_expr_id_));
 
-  for (BlockIterator block_it = graph->reverse_postorder_iterator();
-       !block_it.Done();
-       block_it.Advance()) {
-    BlockEntryInstr* block = block_it.Current();
-    intptr_t preorder_number = block->preorder_number();
-    for (BackwardInstructionIterator instr_it(block);
-         !instr_it.Done();
-         instr_it.Advance()) {
-      Instruction* instr = instr_it.Current();
-
-      intptr_t offset_in_words = 0;
-      if (IsInterferingStore(instr, &offset_in_words)) {
-        if ((offset_in_words < kill_by_offs.length()) &&
-            (kill_by_offs[offset_in_words] != NULL)) {
-          avail_kill[preorder_number]->AddAll(kill_by_offs[offset_in_words]);
-        }
-        ASSERT(instr->IsDefinition() &&
-               !IsLoadEliminationCandidate(instr->AsDefinition()));
-        continue;
-      } else if (instr->HasSideEffect()) {
-        avail_kill[preorder_number]->SetAll();
-        break;
-      }
-      Definition* defn = instr->AsDefinition();
-      if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
-        continue;
-      }
-
-      const intptr_t expr_id = defn->expr_id();
-      if (!avail_kill[preorder_number]->Contains(expr_id)) {
-        avail_gen[preorder_number]->Add(expr_id);
-      }
+      exposed_values_.Add(NULL);
+      out_values_.Add(NULL);
     }
-    avail_out[preorder_number]->CopyFrom(avail_gen[preorder_number]);
   }
 
-  BitVector* temp = new BitVector(avail_in[0]->length());
+  void Optimize() {
+    ComputeInitialSets();
+    ComputeOutValues();
+    ForwardLoads();
+    EmitPhis();
+  }
 
-  bool changed = true;
-  while (changed) {
-    changed = false;
-
-    for (BlockIterator block_it = graph->reverse_postorder_iterator();
+ private:
+  // Compute sets of loads generated and killed by each block.
+  // Additionally compute upwards exposed and generated loads for each block.
+  // Exposed loads are those that can be replaced if a corresponding
+  // reaching load will be found.
+  // Loads that are locally redundant will be replaced as we go through
+  // instructions.
+  void ComputeInitialSets() {
+    for (BlockIterator block_it = graph_->reverse_postorder_iterator();
          !block_it.Done();
          block_it.Advance()) {
       BlockEntryInstr* block = block_it.Current();
-      BitVector* block_in = avail_in[block->preorder_number()];
-      BitVector* block_out = avail_out[block->preorder_number()];
-      BitVector* block_kill = avail_kill[block->preorder_number()];
-      BitVector* block_gen = avail_gen[block->preorder_number()];
+      const intptr_t preorder_number = block->preorder_number();
 
-      if (FLAG_trace_optimization) {
-        OS::Print("B%"Pd"", block->block_id());
-        block_in->Print();
-        block_out->Print();
-        OS::Print("\n");
+      BitVector* kill = kill_[preorder_number];
+      BitVector* gen = gen_[preorder_number];
+
+      ZoneGrowableArray<Definition*>* exposed_values = NULL;
+      ZoneGrowableArray<Definition*>* out_values = NULL;
+
+      for (ForwardInstructionIterator instr_it(block);
+           !instr_it.Done();
+           instr_it.Advance()) {
+        Instruction* instr = instr_it.Current();
+
+        intptr_t offset_in_words = 0;
+        if (IsInterferingStore(instr, &offset_in_words)) {
+          // Interfering stores kill only loads from the same offset.
+          if ((offset_in_words < kill_by_offset_.length()) &&
+              (kill_by_offset_[offset_in_words] != NULL)) {
+            kill->AddAll(kill_by_offset_[offset_in_words]);
+            // There is no need to clear out_values when clearing GEN set
+            // because only those values that are in the GEN set
+            // will ever be used.
+            gen->RemoveAll(kill_by_offset_[offset_in_words]);
+          }
+          ASSERT(instr->IsDefinition() &&
+                 !IsLoadEliminationCandidate(instr->AsDefinition()));
+          continue;
+        }
+
+        // Other instructions with side effects kill all loads.
+        if (instr->HasSideEffect()) {
+          kill->SetAll();
+          // There is no need to clear out_values when clearing GEN set
+          // because only those values that are in the GEN set
+          // will ever be used.
+          gen->Clear();
+          continue;
+        }
+
+        Definition* defn = instr->AsDefinition();
+        if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
+          continue;
+        }
+
+        const intptr_t expr_id = defn->expr_id();
+        if (gen->Contains(expr_id)) {
+          // This is a locally redundant load.
+          ASSERT((out_values != NULL) && ((*out_values)[expr_id] != NULL));
+
+          if (FLAG_trace_optimization) {
+            OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
+                      defn->ssa_temp_index(),
+                      (*out_values)[expr_id]->ssa_temp_index());
+          }
+
+          defn->ReplaceUsesWith((*out_values)[expr_id]);
+          instr_it.RemoveCurrentFromGraph();
+          continue;
+        } else if (!kill->Contains(expr_id)) {
+          // This is an exposed load: it is the first representative of a
+          // given expression id and it is not killed on the path from
+          // the block entry.
+          if (exposed_values == NULL) {
+            static const intptr_t kMaxExposedValuesInitialSize = 5;
+            exposed_values = new ZoneGrowableArray<Definition*>(
+                Utils::Minimum(kMaxExposedValuesInitialSize, max_expr_id_));
+          }
+
+          exposed_values->Add(defn);
+        }
+
+        gen->Add(expr_id);
+
+        if (out_values == NULL) out_values = CreateBlockOutValues();
+        (*out_values)[expr_id] = defn;
       }
 
-      // Compute block_in as the intersection of all out(p) where p
-      // is a predecessor of the current block.
-      if (block->IsGraphEntry()) {
-        temp->Clear();
-      } else {
-        temp->SetAll();
-        ASSERT(block->PredecessorCount() > 0);
-        for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
-          BlockEntryInstr* pred = block->PredecessorAt(i);
-          BitVector* pred_out = avail_out[pred->preorder_number()];
-          temp->Intersect(*pred_out);
+      out_[preorder_number]->CopyFrom(gen);
+      exposed_values_[preorder_number] = exposed_values;
+      out_values_[preorder_number] = out_values;
+    }
+  }
+
+  // Compute OUT sets and corresponding out_values mappings by propagating them
+  // iteratively until fix point is reached.
+  // No replacement is done at this point and thus any out_value[expr_id] is
+  // changed at most once: from NULL to an actual value.
+  // When merging incoming loads we might need to create a phi.
+  // These phis are not inserted at the graph immediately because some of them
+  // might become redundant after load forwarding is done.
+  void ComputeOutValues() {
+    BitVector* temp = new BitVector(max_expr_id_);
+
+    bool changed = true;
+    while (changed) {
+      changed = false;
+
+      for (BlockIterator block_it = graph_->reverse_postorder_iterator();
+           !block_it.Done();
+           block_it.Advance()) {
+        BlockEntryInstr* block = block_it.Current();
+
+        const intptr_t preorder_number = block->preorder_number();
+
+        BitVector* block_in = in_[preorder_number];
+        BitVector* block_out = out_[preorder_number];
+        BitVector* block_kill = kill_[preorder_number];
+        BitVector* block_gen = gen_[preorder_number];
+
+        if (FLAG_trace_optimization) {
+          OS::Print("B%"Pd"", block->block_id());
+          block_in->Print();
+          block_out->Print();
+          block_kill->Print();
+          block_gen->Print();
+          OS::Print("\n");
+        }
+
+        ZoneGrowableArray<Definition*>* block_out_values =
+            out_values_[preorder_number];
+
+        // Compute block_in as the intersection of all out(p) where p
+        // is a predecessor of the current block.
+        if (block->IsGraphEntry()) {
+          temp->Clear();
+        } else {
+          // TODO(vegorov): this can be optimized for the case of a single
+          // predecessor.
+          // TODO(vegorov): this can be reordered to reduce amount of operations
+          // temp->CopyFrom(first_predecessor)
+          temp->SetAll();
+          ASSERT(block->PredecessorCount() > 0);
+          for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+            BlockEntryInstr* pred = block->PredecessorAt(i);
+            BitVector* pred_out = out_[pred->preorder_number()];
+            temp->Intersect(*pred_out);
+          }
+        }
+
+        if (!temp->Equals(*block_in)) {
+          // If IN set has changed propagate the change to OUT set.
+          block_in->CopyFrom(temp);
+          if (block_out->KillAndAdd(block_kill, block_in)) {
+            // If OUT set has changed then we have new values available out of
+            // the block. Compute these values creating phi where necessary.
+            for (BitVector::Iterator it(block_out);
+                 !it.Done();
+                 it.Advance()) {
+              const intptr_t expr_id = it.Current();
+
+              if (block_out_values == NULL) {
+                out_values_[preorder_number] = block_out_values =
+                    CreateBlockOutValues();
+              }
+
+              if ((*block_out_values)[expr_id] == NULL) {
+                ASSERT(block->PredecessorCount() > 0);
+                (*block_out_values)[expr_id] =
+                    MergeIncomingValues(block, expr_id);
+              }
+            }
+            changed = true;
+          }
+        }
+
+        if (FLAG_trace_optimization) {
+          OS::Print("after B%"Pd"", block->block_id());
+          block_in->Print();
+          block_out->Print();
+          block_kill->Print();
+          block_gen->Print();
+          OS::Print("\n");
         }
       }
-      if (!temp->Equals(*block_in)) {
-        block_in->CopyFrom(temp);
-        if (block_out->KillAndAdd(block_kill, block_gen)) changed = true;
+    }
+  }
+
+  // Compute incoming value for the given expression id.
+  // Will create a phi if different values are incoming from multiple
+  // predecessors.
+  Definition* MergeIncomingValues(BlockEntryInstr* block, intptr_t expr_id) {
+    // First check if the same value is coming in from all predecessors.
+    Definition* incoming = NULL;
+    for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+      BlockEntryInstr* pred = block->PredecessorAt(i);
+      ZoneGrowableArray<Definition*>* pred_out_values =
+          out_values_[pred->preorder_number()];
+      if (incoming == NULL) {
+        incoming = (*pred_out_values)[expr_id];
+      } else if (incoming != (*pred_out_values)[expr_id]) {
+        incoming = NULL;
+        break;
       }
     }
-  }
-}
 
-
-static bool OptimizeLoads(
-    BlockEntryInstr* block,
-    GrowableArray<Definition*>* definitions,
-    const GrowableArray<BitVector*>& avail_in,
-    const GrowableArray<BitVector*>& kill_by_offs) {
-  // TODO(fschneider): Factor out code shared with the existing CSE pass.
-
-  // Delete loads that are killed (not available) at the entry.
-  intptr_t pre_num = block->preorder_number();
-  ASSERT(avail_in[pre_num]->length() == definitions->length());
-  for (intptr_t i = 0; i < avail_in[pre_num]->length(); i++) {
-    if (!avail_in[pre_num]->Contains(i)) {
-      (*definitions)[i] = NULL;
+    if (incoming != NULL) {
+      return incoming;
     }
+
+    // Incoming values are different. Phi is required to merge.
+    PhiInstr* phi = new PhiInstr(
+        block->AsJoinEntry(), block->PredecessorCount());
+
+    for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+      BlockEntryInstr* pred = block->PredecessorAt(i);
+      ZoneGrowableArray<Definition*>* pred_out_values =
+          out_values_[pred->preorder_number()];
+      ASSERT((*pred_out_values)[expr_id] != NULL);
+
+      // Sets of outgoing values are not linked into use lists so
+      // they might contain values that were replaced and removed
+      // from the graph by this iteration.
+      // To prevent using them we additionally mark definitions themselves
+      // as replaced and store a pointer to the replacement.
+      Value* input = new Value((*pred_out_values)[expr_id]->Replacement());
+      phi->SetInputAt(i, input);
+
+      // TODO(vegorov): add a helper function to handle input insertion.
+      input->set_instruction(phi);
+      input->set_use_index(i);
+      input->AddToInputUseList();
+    }
+
+    phi->set_ssa_temp_index(graph_->alloc_ssa_temp_index());
+    phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
+
+    return phi;
   }
 
-  bool changed = false;
-  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-    Instruction* instr = it.Current();
+  // Iterate over basic blocks and replace exposed loads with incoming
+  // values.
+  void ForwardLoads() {
+    for (BlockIterator block_it = graph_->reverse_postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      BlockEntryInstr* block = block_it.Current();
 
-    intptr_t offset_in_words = 0;
-    if (IsInterferingStore(instr, &offset_in_words)) {
-      if ((offset_in_words < kill_by_offs.length()) &&
-          (kill_by_offs[offset_in_words] != NULL)) {
-        for (BitVector::Iterator it(kill_by_offs[offset_in_words]);
-             !it.Done();
-             it.Advance()) {
-          (*definitions)[it.Current()] = NULL;
+      ZoneGrowableArray<Definition*>* loads =
+          exposed_values_[block->preorder_number()];
+      if (loads == NULL) continue;  // No exposed loads.
+
+      BitVector* in = in_[block->preorder_number()];
+
+      for (intptr_t i = 0; i < loads->length(); i++) {
+        Definition* load = (*loads)[i];
+        if (!in->Contains(load->expr_id())) continue;  // No incoming value.
+
+        Definition* replacement = MergeIncomingValues(block, load->expr_id());
+
+        // Sets of outgoing values are not linked into use lists so
+        // they might contain values that were replace and removed
+        // from the graph by this iteration.
+        // To prevent using them we additionally mark definitions themselves
+        // as replaced and store a pointer to the replacement.
+        replacement = replacement->Replacement();
+
+        if (load != replacement) {
+          if (FLAG_trace_optimization) {
+            OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
+                      load->ssa_temp_index(),
+                      replacement->ssa_temp_index());
+          }
+
+          load->ReplaceUsesWith(replacement);
+          load->RemoveFromGraph();
+          load->SetReplacement(replacement);
         }
       }
-      ASSERT(instr->IsDefinition() &&
-             !IsLoadEliminationCandidate(instr->AsDefinition()));
-      continue;
-    } else if (instr->HasSideEffect()) {
-      // Handle local side effects by clearing current definitions.
-      for (intptr_t i = 0; i < definitions->length(); i++) {
-        (*definitions)[i] = NULL;
-      }
-      continue;
-    }
-    Definition* defn = instr->AsDefinition();
-    if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
-      continue;
-    }
-    Definition* result = (*definitions)[defn->expr_id()];
-    if (result == NULL) {
-      (*definitions)[defn->expr_id()] = defn;
-      continue;
-    }
-
-    // Replace current with lookup result.
-    defn->ReplaceUsesWith(result);
-    it.RemoveCurrentFromGraph();
-    changed = true;
-    if (FLAG_trace_optimization) {
-      OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
-                defn->ssa_temp_index(),
-                result->ssa_temp_index());
     }
   }
 
-  // Process children in the dominator tree recursively.
-  intptr_t num_children = block->dominated_blocks().length();
-  for (intptr_t i = 0; i < num_children; ++i) {
-    BlockEntryInstr* child = block->dominated_blocks()[i];
-    if (i  < num_children - 1) {
-      GrowableArray<Definition*> child_defs(definitions->length());
-      child_defs.AddArray(*definitions);
-      changed = OptimizeLoads(child, &child_defs, avail_in, kill_by_offs) ||
-                changed;
+  // Check if the given phi take the same value on all code paths.
+  // Eliminate it as redundant if this is the case.
+  // When analyzing phi operands assumes that only generated during
+  // this load phase can be redundant. They can be distinguished because
+  // they are not marked alive.
+  // TODO(vegorov): move this into a separate phase over all phis.
+  bool EliminateRedundantPhi(PhiInstr* phi) {
+    Definition* value = NULL;  // Possible value of this phi.
+
+    worklist_.Clear();
+    if (in_worklist_ == NULL) {
+      in_worklist_ = new BitVector(graph_->current_ssa_temp_index());
     } else {
-      changed = OptimizeLoads(child, definitions, avail_in, kill_by_offs) ||
-                changed;
+      in_worklist_->Clear();
+    }
+
+    worklist_.Add(phi);
+    in_worklist_->Add(phi->ssa_temp_index());
+
+    for (intptr_t i = 0; i < worklist_.length(); i++) {
+      PhiInstr* phi = worklist_[i];
+
+      for (intptr_t i = 0; i < phi->InputCount(); i++) {
+        Definition* input = phi->InputAt(i)->definition();
+        if (input == phi) continue;
+
+        PhiInstr* phi_input = input->AsPhi();
+        if ((phi_input != NULL) && !phi_input->is_alive()) {
+          if (!in_worklist_->Contains(phi_input->ssa_temp_index())) {
+            worklist_.Add(phi_input);
+            in_worklist_->Add(phi_input->ssa_temp_index());
+          }
+          continue;
+        }
+
+        if (value == NULL) {
+          value = input;
+        } else if (value != input) {
+          return false;  // This phi is not redundant.
+        }
+      }
+    }
+
+    // All phis in the worklist are redundant and have the same computed
+    // value on all code paths.
+    ASSERT(value != NULL);
+    for (intptr_t i = 0; i < worklist_.length(); i++) {
+      worklist_[i]->ReplaceUsesWith(value);
+    }
+
+    return true;
+  }
+
+  // Emit non-redundant phis created during ComputeOutValues and ForwardLoads.
+  void EmitPhis() {
+    for (intptr_t i = 0; i < phis_.length(); i++) {
+      PhiInstr* phi = phis_[i];
+      if ((phi->input_use_list() != NULL) && !EliminateRedundantPhi(phi)) {
+        phi->mark_alive();
+        phi->block()->InsertPhi(phi);
+      }
     }
   }
-  return changed;
-}
+
+  ZoneGrowableArray<Definition*>* CreateBlockOutValues() {
+    ZoneGrowableArray<Definition*>* out =
+        new ZoneGrowableArray<Definition*>(max_expr_id_);
+    for (intptr_t i = 0; i < max_expr_id_; i++) {
+      out->Add(NULL);
+    }
+    return out;
+  }
+
+  FlowGraph* graph_;
+  const intptr_t max_expr_id_;
+
+  // Mapping between field offsets in words and expression ids of loads from
+  // that offset.
+  const GrowableArray<BitVector*>& kill_by_offset_;
+
+  // Per block sets of expression ids for loads that are: incoming (available
+  // on the entry), outgoing (available on the exit), generated and killed.
+  GrowableArray<BitVector*> in_;
+  GrowableArray<BitVector*> out_;
+  GrowableArray<BitVector*> gen_;
+  GrowableArray<BitVector*> kill_;
+
+  // Per block list of upwards exposed loads.
+  GrowableArray<ZoneGrowableArray<Definition*>*> exposed_values_;
+
+  // Per block mappings between expression ids and outgoing definitions that
+  // represent those ids.
+  GrowableArray<ZoneGrowableArray<Definition*>*> out_values_;
+
+  // List of phis generated during ComputeOutValues and ForwardLoads.
+  // Some of these phis might be redundant and thus a separate pass is
+  // needed to emit only non-redundant ones.
+  GrowableArray<PhiInstr*> phis_;
+
+  // Auxiliary worklist used by redundant phi elimination.
+  GrowableArray<PhiInstr*> worklist_;
+  BitVector* in_worklist_;
+
+  DISALLOW_COPY_AND_ASSIGN(LoadOptimizer);
+};
 
 
 bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
   bool changed = false;
   if (FLAG_load_cse) {
     GrowableArray<BitVector*> kill_by_offs(10);
-    intptr_t max_expr_id = NumberLoadExpressions(graph, &kill_by_offs);
+    const intptr_t max_expr_id = NumberLoadExpressions(graph, &kill_by_offs);
     if (max_expr_id > 0) {
-      intptr_t num_blocks = graph->preorder().length();
-      GrowableArray<BitVector*> avail_in(num_blocks);
-      for (intptr_t i = 0; i < num_blocks; i++) {
-        avail_in.Add(new BitVector(max_expr_id));
-      }
-
-      ComputeAvailableLoads(graph, max_expr_id, avail_in, kill_by_offs);
-
-      GrowableArray<Definition*> definitions(max_expr_id);
-      for (intptr_t j = 0; j < max_expr_id ; j++) {
-        definitions.Add(NULL);
-      }
-      changed = OptimizeLoads(
-          graph->graph_entry(), &definitions, avail_in, kill_by_offs);
+      LoadOptimizer load_optimizer(graph, max_expr_id, kill_by_offs);
+      load_optimizer.Optimize();
     }
   }
 

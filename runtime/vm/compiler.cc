@@ -52,6 +52,7 @@ DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 DECLARE_FLAG(bool, print_flow_graph);
+DECLARE_FLAG(bool, print_flow_graph_optimized);
 
 
 // Compile a function. Should call only if the function has not been compiled.
@@ -160,7 +161,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       flow_graph->ComputeSSA(0, NULL);
     }
 
-    if (FLAG_print_flow_graph) {
+    if (FLAG_print_flow_graph ||
+        (optimized && FLAG_print_flow_graph_optimized)) {
       OS::Print("Before Optimizations\n");
       FlowGraphPrinter printer(*flow_graph);
       printer.PrintBlocks();
@@ -246,7 +248,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       FlowGraphAllocator allocator(*flow_graph);
       allocator.AllocateRegisters();
 
-      if (FLAG_print_flow_graph) {
+      if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
         OS::Print("After Optimizations:\n");
         FlowGraphPrinter printer(*flow_graph);
         printer.PrintBlocks();

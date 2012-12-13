@@ -867,6 +867,16 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
 }
 
 
+void JoinEntryInstr::InsertPhi(PhiInstr* phi) {
+  // Lazily initialize the array of phis.
+  if (phis_ == NULL) {
+    phis_ = new ZoneGrowableArray<PhiInstr*>(1);
+  }
+  phis_->Add(phi);
+  phi_count_++;
+}
+
+
 void JoinEntryInstr::RemoveDeadPhis() {
   if (phis_ == NULL) return;
 

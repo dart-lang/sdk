@@ -942,6 +942,8 @@ class JoinEntryInstr : public BlockEntryInstr {
   void InsertPhi(intptr_t var_index, intptr_t var_count);
   void RemoveDeadPhis();
 
+  void InsertPhi(PhiInstr* phi);
+
   intptr_t phi_count() const { return phi_count_; }
 
   virtual void PrintTo(BufferFormatter* f) const;
@@ -1138,6 +1140,22 @@ class Definition : public Instruction {
   // this check statically we override base Canonicalize with a Canonicalize
   // returning Definition (return type is covariant).
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+
+  static const intptr_t kReplacementMarker = -2;
+
+  Definition* Replacement() {
+    if (ssa_temp_index_ == kReplacementMarker) {
+      return reinterpret_cast<Definition*>(temp_index_);
+    }
+    return this;
+  }
+
+  void SetReplacement(Definition* other) {
+    ASSERT(ssa_temp_index_ >= 0);
+    ASSERT(WasEliminated());
+    ssa_temp_index_ = kReplacementMarker;
+    temp_index_ = reinterpret_cast<intptr_t>(other);
+  }
 
  protected:
   friend class RangeAnalysis;
