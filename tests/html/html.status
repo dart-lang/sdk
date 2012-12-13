@@ -179,11 +179,7 @@ xhr_cross_origin_test: Fail # Issue 6016.
 # TODO(ahe, efortuna): These tests need to be retriaged now that we're testing
 # with Safari 6.
 audiocontext_test: Crash, Fail # TODO(ahe): Please triage this failure.
-svgelement_test/innerHtml: Crash, Fail, Pass # TODO(ahe): Please triage this failure.
-svgelement_test/outerHtml: Crash, Fail, Pass # TODO(ahe): Please triage this failure.
 element_test/elements: Crash, Fail # TODO(ahe): Please triage this failure.
-element_test/children: Crash, Fail, Pass # TODO(ahe): Please triage this failure.
-element_test/attributes: Pass, Crash, Fail # TODO(ahe): Please triage this failure.
 performance_api_test: Fail # window.performance.timing not in Safari 6.
 indexeddb_1_test: Fail # indexedDB not in Safari 6.
 indexeddb_2_test: Fail # indexedDB not in Safari 6.
@@ -203,12 +199,8 @@ contentelement_test: Fail # Safari 6 does not support content element.
 # failing (They are expected to pass in Safari 6).
 # TODO(efortuna): Make our test framework able to separate tests out by browser
 # version.
-datalistelement_test: Pass,Fail
+datalistelement_test: Fail
 node_test: Skip # Issue 6457
-svgelement_test/elementset: Crash, Pass
-svgelement_test/elementget: Crash, Pass
-svgelement_test/css: Crash, Pass
-element_test/eventListening: Crash, Pass
 
 [ $runtime == opera && $system == windows ]
 htmlelement_test: Fail, Pass
