@@ -213,6 +213,6 @@ patch class RegExp {
 }
 
 // Patch for 'identical' function.
-patch bool identical(Object a, Object b) {
-  throw new Error('Should not reach the body of identical');
-}
+// This is very magical: the compiler knows how to optimize a call to
+// identical, so we can just express identical in terms of itself.
+patch bool identical(Object a, Object b) => identical(a, b);

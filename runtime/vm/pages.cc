@@ -220,7 +220,10 @@ uword PageSpace::TryAllocate(intptr_t size,
       result = page->object_start();
       // Enqueue the remainder in the free list.
       uword free_start = result + size;
-      freelist_[type].Free(free_start, page->object_end() - free_start);
+      intptr_t free_size = page->object_end() - free_start;
+      if (free_size > 0) {
+        freelist_[type].Free(free_start, free_size);
+      }
     }
   } else {
     // Large page allocation.
