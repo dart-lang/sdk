@@ -26,12 +26,6 @@
 // it is initialized to NULL.
 extern const uint8_t* snapshot_buffer;
 
-
-// Global state that indicates whether perf_events symbol information
-// is to be generated or not.
-static File* perf_events_symbols_file = NULL;
-
-
 // Global state that indicates whether pprof symbol information is
 // to be generated or not.
 static const char* generate_pprof_symbols_filename = NULL;
@@ -153,27 +147,6 @@ static bool ProcessDebugOption(const char* port) {
   return true;
 }
 
-
-static bool ProcessPerfEventsOption(const char* option) {
-  ASSERT(option != NULL);
-  if (perf_events_symbols_file == NULL) {
-    // TODO(cshapiro): eliminate the #ifdef by moving this code to a
-    // Linux specific source file.
-#if defined(TARGET_OS_LINUX)
-    const char* format = "/tmp/perf-%ld.map";
-    intptr_t pid = Process::CurrentProcessId();
-    intptr_t len = snprintf(NULL, 0, format, pid);
-    char* filename = new char[len + 1];
-    snprintf(filename, len + 1, format, pid);
-    perf_events_symbols_file = File::Open(filename, File::kWriteTruncate);
-    ASSERT(perf_events_symbols_file != NULL);
-    delete[] filename;
-#endif
-  }
-  return true;
-}
-
-
 static bool ProcessPprofOption(const char* filename) {
   ASSERT(filename != NULL);
   generate_pprof_symbols_filename = filename;
@@ -206,7 +179,6 @@ static struct {
   { "--break_at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
   { "--debug", ProcessDebugOption },
-  { "--generate_perf_events_symbols", ProcessPerfEventsOption },
   { "--generate_pprof_symbols=", ProcessPprofOption },
   { "--use_script_snapshot=", ProcessScriptSnapshotOption },
   { NULL, NULL }
@@ -304,10 +276,6 @@ static int ParseArguments(int argc,
       vm_options->AddArgument(argv[i]);
       i++;
     }
-  }
-
-  if (perf_events_symbols_file != NULL) {
-    Dart_InitPerfEventsSupport(perf_events_symbols_file);
   }
 
   if (generate_pprof_symbols_filename != NULL) {

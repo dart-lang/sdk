@@ -34,13 +34,6 @@ class Dart : public AllStatic {
   static Isolate* vm_isolate() { return vm_isolate_; }
   static ThreadPool* thread_pool() { return thread_pool_; }
 
-  static void set_perf_events_file(void* file) {
-    perf_events_file_ = file;
-  }
-  static void* perf_events_file() {
-    return perf_events_file_;
-  }
-
   static void set_pprof_symbol_generator(DebugInfo* value) {
     pprof_symbol_generator_ = value;
   }
@@ -49,7 +42,6 @@ class Dart : public AllStatic {
  private:
   static Isolate* vm_isolate_;
   static ThreadPool* thread_pool_;
-  static void* perf_events_file_;
   static DebugInfo* pprof_symbol_generator_;
 };
 
