@@ -13,7 +13,7 @@ String getFilename(String path) =>
 void main() {
   var a = const [0];
   var b = const [0];
-  Expect.isTrue(a === b);
+  Expect.identical(a, b);
 
   String filename = getFilename("bin/file_test.cc");
   File file = new File(filename);

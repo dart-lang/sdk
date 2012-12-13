@@ -6,7 +6,7 @@
 
 library ProcessWorkingDirectoryTest;
 import "dart:io";
-part "process_test_util.dart";
+import "process_test_util.dart";
 
 class ProcessWorkingDirectoryTest {
   static String get fullTestFilePath {

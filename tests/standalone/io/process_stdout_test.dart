@@ -12,7 +12,7 @@
 import "dart:io";
 import "dart:math";
 
-part "process_test_util.dart";
+import "process_test_util.dart";
 
 void test(Future<Process> future, int expectedExitCode) {
   future.then((process) {

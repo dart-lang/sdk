@@ -6,7 +6,7 @@
 // non-interactive processes started with Process.run.
 
 import "dart:io";
-part "process_test_util.dart";
+import "process_test_util.dart";
 
 checkOutput(encoding, output) {
   if (encoding == 'ascii') {

@@ -11,7 +11,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 import "dart:io";
-part "process_test_util.dart";
+import "process_test_util.dart";
 
 void checkFileEmpty(String fileName) {
   RandomAccessFile pipeOut  = new File(fileName).openSync();

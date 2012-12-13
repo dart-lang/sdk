@@ -3,18 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Process test program to test that compilation errors in the process
-// exit handler is reported correctly.
+// exit handler are reported correctly.
 
 import "dart:io";
-part "process_test_util.dart";
+import "process_test_util.dart";
 
 void main() {
-  Process p = Process.start(getProcessTestFileName(),
+  Future<Process> fp = Process.start(getProcessTestFileName(),
                             const ["0", "0", "0", "0"]);
-  p.onExit = (int s) {
-    print(a.toString());  // Should cause a compilation error here.
-  };
-  // Drain stdout and stderr.
-  p.stdout.onData = p.stdout.read;
-  p.stderr.onData = p.stderr.read;
+  fp.then((p) {
+    p.onExit = (int s) {
+      print(a.toString());  // Should cause a compilation error here.
+    };
+    // Drain stdout and stderr.
+    p.stdout.onData = p.stdout.read;
+    p.stderr.onData = p.stderr.read;
+  });
 }

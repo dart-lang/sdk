@@ -50,7 +50,25 @@ crypto/*: Skip # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
 
 [ $compiler == dartc ]
-*: Skip
+package/*: Skip
+
+# The dart:io library is created at build time from separate files, and
+# there is no language-spec compatible way to run unit tests on the private
+# members and methods of dart:io.
+# Dartc spots the misuse of 'part' directives in these unit tests.
+crypto/*: Skip  # dartc cannot parse dart:io unit tests.
+io/mime_multipart_parser_test: Skip  # dartc cannot parse dart:io unit tests.
+io/http_headers_test: Skip  # dartc cannot parse dart:io unit tests.
+io/http_date_test: Skip  # dartc cannot parse dart:io unit tests.
+io/url_encoding_test: Skip  # dartc cannot parse dart:io unit tests.
+io/http_parser_test: Skip  # dartc cannot parse dart:io unit tests.
+io/web_socket_protocol_processor_test: Skip  # dart:io unit test.
+
+io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
+
+io/status_file_parser_test: Skip  # test.dart uses old syntax.  Issue 7387.
+status_expression_test: Skip  # test.dart uses old syntax.  Issue 7387.
+io/test_runner_test: Skip  # test.dart uses old syntax.  Issue 7387.
 
 [ $compiler == frog ]
 *: Skip

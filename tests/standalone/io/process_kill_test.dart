@@ -6,7 +6,7 @@
 
 library ProcessKillTest;
 import "dart:io";
-part "process_test_util.dart";
+import "process_test_util.dart";
 
 testKill() {
   // Start a process that will hang waiting for input until killed.

@@ -4,7 +4,7 @@
 
 import "dart:io";
 import "dart:isolate";
-part "process_test_util.dart";
+import "process_test_util.dart";
 
 runEnvironmentProcess(Map environment, name, callback) {
   var dartExecutable = new Options().executable;

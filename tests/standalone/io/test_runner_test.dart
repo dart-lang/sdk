@@ -7,7 +7,7 @@ import "dart:isolate";
 import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/status_file_parser.dart";
 import "../../../tools/testing/dart/test_options.dart";
-part "process_test_util.dart";
+import "process_test_util.dart";
 
 class TestController {
   static const int numTests = 4;

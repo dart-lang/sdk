@@ -6,7 +6,7 @@
 
 library ProcessExitTest;
 import "dart:io";
-part "process_test_util.dart";
+import "process_test_util.dart";
 
 testExit() {
   var future = Process.start(getProcessTestFileName(),

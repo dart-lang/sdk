@@ -6,7 +6,7 @@
 
 import "dart:io";
 
-part "process_test_util.dart";
+import "process_test_util.dart";
 
 main() {
   // Running dart without arguments makes it close right away.
