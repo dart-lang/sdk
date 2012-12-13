@@ -10196,7 +10196,8 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * 
    * is the (more verbose) equivalent of
    * 
-   *     var request = new HttpRequest.get('http://dartlang.org', (event) => print('Request complete'));
+   *     var request = new HttpRequest.get('http://dartlang.org',
+   *         (event) => print('Request complete'));
    */
   ///@docsEditable true
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
@@ -10220,7 +10221,38 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   static const int UNSENT = 0;
 
-  /** @domName XMLHttpRequest.readyState */
+  /**
+   * Indicator of the current state of the request:
+   *
+   * <table>
+   *   <tr>
+   *     <td>Value</td>
+   *     <td>State</td>
+   *     <td>Meaning</td>
+   *   </tr>
+   *   <tr>
+   *     <td>0</td>
+   *     <td>unsent</td>
+   *     <td><code>open()</code> has not yet been called</td>
+   *   </tr>
+   *   <tr>
+   *     <td>1</td>
+   *     <td>opened</td>
+   *     <td><code>send()</code> has not yet been called</td>
+   *   </tr>
+   *   <tr>
+   *     <td>2</td>
+   *     <td>headers received</td>
+   *     <td><code>sent()</code> has been called; response headers and <code>status</code> are available</td>
+   *   </tr>
+   *   <tr>
+   *     <td>3</td> <td>loading</td> <td><code>responseText</code> holds some data</td>
+   *   </tr>
+   *   <tr>
+   *     <td>4</td> <td>done</td> <td>request is complete</td>
+   *   </tr>
+   * </table>
+   */
   /// @domName XMLHttpRequest.readyState; @docsEditable true
   final int readyState;
 
@@ -10236,7 +10268,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   final Object response;
 
   /**
-   * The response in string form or `null` on failure.
+   * The response in string form or null on failure.
    */
   /// @domName XMLHttpRequest.responseText; @docsEditable true
   final String responseText;
@@ -10254,6 +10286,13 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /// @domName XMLHttpRequest.responseType; @docsEditable true
   String responseType;
 
+  /**
+   * The request response, or null on failure.
+   * 
+   * The response is processed as
+   * `text/xml` stream, unless responseType = 'document' and the request is
+   * synchronous.
+   */
   /// @domName XMLHttpRequest.responseXML; @docsEditable true
   @JSName('responseXML')
   final Document responseXml;

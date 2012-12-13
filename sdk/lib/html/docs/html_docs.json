@@ -642,13 +642,21 @@
   },
 "Document.dart":
   {
-  "  @JSName('querySelectorAll')":
+  "  @JSName('body')":
     [
-      "  /// Deprecated: use query(\"#$elementId\") instead."
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('caretRangeFromPoint')":
+    [
+      "  /// Use the [Range] constructor instead."
     ],
   "  @JSName('createElement')":
     [
       "  /// Deprecated: use new Element.tag(tagName) instead."
+    ],
+  "  @JSName('createTouchList')":
+    [
+      "  /// Use the [TouchList] constructor isntead."
     ],
   "  @JSName('elementFromPoint')":
     [
@@ -658,19 +666,23 @@
     [
       "  /// Deprecated: use query(\"#$elementId\") instead."
     ],
+  "  @JSName('head')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('lastModified')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
   "  @JSName('querySelector')":
     [
       "  /// Deprecated: renamed to the shorter name [query]."
     ],
-  "  @JSName('webkitFullscreenElement')":
+  "  @JSName('querySelectorAll')":
     [
-      "  /// Moved to [HtmlDocument]."
+      "  /// Deprecated: use query(\"#$elementId\") instead."
     ],
-  "  @JSName('webkitPointerLockElement')":
-    [
-      "  /// Moved to [HtmlDocument]."
-    ],
-  "  @JSName('head')":
+  "  @JSName('referrer')":
     [
       "  /// Moved to [HtmlDocument]."
     ],
@@ -678,43 +690,7 @@
     [
       "  /// Moved to [HtmlDocument]."
     ],
-  "  @JSName('caretRangeFromPoint')":
-    [
-      "  /// Use the [Range] constructor instead."
-    ],
-  "  @JSName('lastModified')":
-    [
-      "  /// Moved to [HtmlDocument]."
-    ],
-  "  @JSName('referrer')":
-    [
-      "  /// Moved to [HtmlDocument]."
-    ],
   "  @JSName('title')":
-    [
-      "  /// Moved to [HtmlDocument]."
-    ],
-  "  @JSName('webkitVisibilityState')":
-    [
-      "  /// Moved to [HtmlDocument]."
-    ],
-  "  @JSName('createTouchList')":
-    [
-      "  /// Use the [TouchList] constructor isntead."
-    ],
-  "  Window get window => _convertNativeToDart_Window(this._window);":
-    [
-      "  /// Returns the [Window] associated with the document."
-    ],
-  "  @JSName('webkitFullscreenEnabled')":
-    [
-      "  /// Moved to [HtmlDocument]."
-    ],
-  "  @JSName('webkitHidden')":
-    [
-      "  /// Moved to [HtmlDocument]."
-    ],
-  "  @JSName('webkitIsFullScreen')":
     [
       "  /// Moved to [HtmlDocument]."
     ],
@@ -730,13 +706,33 @@
     [
       "  /// Moved to [HtmlDocument]."
     ],
-  "  @JSName('body')":
+  "  @JSName('webkitFullscreenElement')":
     [
       "  /// Moved to [HtmlDocument]."
     ],
-  "  @JSName('title')":
+  "  @JSName('webkitFullscreenEnabled')":
     [
       "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitHidden')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitIsFullScreen')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitPointerLockElement')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitVisibilityState')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  Window get window => _convertNativeToDart_Window(this._window);":
+    [
+      "  /// Returns the [Window] associated with the document."
     ]
   },
 "DocumentFragment.dart":
@@ -1039,6 +1035,16 @@
       "   * [String]). `null` indicates request failure.",
       "   */"
     ],
+  "  @JSName('responseXML')":
+    [
+      "  /**",
+      "   * The request response, or null on failure.",
+      "   * ",
+      "   * The response is processed as",
+      "   * `text/xml` stream, unless responseType = 'document' and the request is",
+      "   * synchronous.",
+      "   */"
+    ],
   "  EventListenerList get abort => this['abort'];":
     [
       "  /**",
@@ -1156,7 +1162,8 @@
       "   * ",
       "   * is the (more verbose) equivalent of",
       "   * ",
-      "   *     var request = new HttpRequest.get('http://dartlang.org', (event) => print('Request complete'));",
+      "   *     var request = new HttpRequest.get('http://dartlang.org',",
+      "   *         (event) => print('Request complete'));",
       "   */"
     ],
   "  final HttpRequestUpload upload;":
@@ -1169,7 +1176,7 @@
   "  final String responseText;":
     [
       "  /**",
-      "   * The response in string form or `null` on failure.",
+      "   * The response in string form or null on failure.",
       "   */"
     ],
   "  final String statusText;":
@@ -1181,7 +1188,38 @@
     ],
   "  final int readyState;":
     [
-      "  /** @domName XMLHttpRequest.readyState */"
+      "  /**",
+      "   * Indicator of the current state of the request:",
+      "   *",
+      "   * <table>",
+      "   *   <tr>",
+      "   *     <td>Value</td>",
+      "   *     <td>State</td>",
+      "   *     <td>Meaning</td>",
+      "   *   </tr>",
+      "   *   <tr>",
+      "   *     <td>0</td>",
+      "   *     <td>unsent</td>",
+      "   *     <td><code>open()</code> has not yet been called</td>",
+      "   *   </tr>",
+      "   *   <tr>",
+      "   *     <td>1</td>",
+      "   *     <td>opened</td>",
+      "   *     <td><code>send()</code> has not yet been called</td>",
+      "   *   </tr>",
+      "   *   <tr>",
+      "   *     <td>2</td>",
+      "   *     <td>headers received</td>",
+      "   *     <td><code>sent()</code> has been called; response headers and <code>status</code> are available</td>",
+      "   *   </tr>",
+      "   *   <tr>",
+      "   *     <td>3</td> <td>loading</td> <td><code>responseText</code> holds some data</td>",
+      "   *   </tr>",
+      "   *   <tr>",
+      "   *     <td>4</td> <td>done</td> <td>request is complete</td>",
+      "   *   </tr>",
+      "   * </table>",
+      "   */"
     ],
   "  final int status;":
     [
