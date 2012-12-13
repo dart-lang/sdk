@@ -67,11 +67,11 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
   // includes the port in the formatted string.
   socket_address.sin_port = 0;
   DWORD len = INET_ADDRSTRLEN;
-  int err = WSAAddressToString(reinterpret_cast<LPSOCKADDR>(&socket_address),
-                               sizeof(socket_address),
-                               NULL,
-                               host,
-                               &len);
+  int err = WSAAddressToStringA(reinterpret_cast<LPSOCKADDR>(&socket_address),
+                                sizeof(socket_address),
+                                NULL,
+                                host,
+                                &len);
   if (err != 0) {
     Log::PrintErr("Error WSAAddressToString: %d\n", WSAGetLastError());
     return false;
@@ -196,11 +196,11 @@ const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
   // Clear the port before calling WSAAddressToString as WSAAddressToString
   // includes the port in the formatted string.
   DWORD len = INET_ADDRSTRLEN;
-  int err = WSAAddressToString(reinterpret_cast<LPSOCKADDR>(sockaddr),
-                               sizeof(sockaddr_in),
-                               NULL,
-                               buffer,
-                               &len);
+  int err = WSAAddressToStringA(reinterpret_cast<LPSOCKADDR>(sockaddr),
+                                sizeof(sockaddr_in),
+                                NULL,
+                                buffer,
+                                &len);
   if (err != 0) {
     free(buffer);
     return NULL;

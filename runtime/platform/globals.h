@@ -20,7 +20,8 @@
 #define NOSERVICE
 #define NOSOUND
 #define NOMCX
-
+#define _UNICODE
+#define UNICODE
 #include <windows.h>
 #include <winsock2.h>
 #include <Rpc.h>
