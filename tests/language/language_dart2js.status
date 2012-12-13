@@ -219,7 +219,6 @@ external_test/31: Fail
 
 
 # Implementation errors (library or generated code).
-generic_deep_test: Fail # Expect.isTrue(false) fails.
 generic_inheritance_test: Fail # Expect.isTrue(false) fails.
 generic_parameterized_extends_test: Fail # Expect.isTrue(false) fails.
 instanceof2_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.

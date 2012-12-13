@@ -1632,23 +1632,22 @@ String getClassName(var object) {
 }
 
 String getTypeArgumentAsString(List runtimeType) {
-  String className = runtimeTypeToString(runtimeType[0]);
+  String className = getConstructorName(runtimeType[0]);
   if (runtimeType.length == 1) return className;
   return '$className<${joinArguments(runtimeType, 1)}>';
 }
 
+String getConstructorName(type) => JS('String', r'#.builtin$cls', type);
+
 String runtimeTypeToString(type) {
   if (type == null) {
     return 'dynamic';
-  } else if (type is String) {
-    // A native class.  The string is the unique name.
-    return type;
   } else if (isJsArray(type)) {
     // A list representing a type with arguments.
     return getTypeArgumentAsString(type);
   } else {
     // A reference to the constructor.
-    return JS('String', r'#.builtin$cls', type);
+    return getConstructorName(type);
   }
 }
 
@@ -1674,13 +1673,37 @@ String getRuntimeTypeString(var object) {
   return "$className<${joinArguments(typeInfo, 0)}>";
 }
 
+/**
+ * Check whether the type represented by [s] is a subtype of the type
+ * represented by [t].
+ *
+ * Type representations can be:
+ *  1) a JavaScript constructor for a class C: the represented type is the raw
+ *     type C.
+ *  2) a JavaScript object: this represents a class for which there is no
+ *     JavaScript constructor, because it is only used in type arguments or it
+ *     is native. The represented type is the raw type of this class.
+ *  3) a JavaScript array: the first entry is of type 1 or 2 and identifies the
+ *     class of the type and the rest of the array are the type arguments.
+ *  4) [:null:]: the dynamic type.
+ */
 bool isSubtype(var s, var t) {
+  // If either type is dynamic, [s] is a subtype of [t].
   if (s == null || t == null) return true;
-  if (!isJsArray(s)) return s == t;
-  // TODO(karlklose): support subtyping: if s[0] != t[0], check if there is
-  // a function is$s[0] on t[0] and call it with substitutes type arguments.
-  if (s[0] != t[0]) return false;
+  // Subtyping is reflexive.
+  if (s == t) return true;
+  // Get the object describing the class and check for the subtyping flag
+  // constructed from the type of [t].
+  var typeOfS = isJsArray(s) ? s[0] : s;
+  var typeOfT = isJsArray(t) ? t[0] : t;
+  var test = 'is\$${runtimeTypeToString(typeOfT)}';
+  if (JS('var', r'#[#]', typeOfS, test) == null) return false;
+  // The class of [s] is a subclass of the class of [t]. If either of the types
+  // is raw, [s] is a subtype of [t].
+  if (!isJsArray(s) || !isJsArray(t)) return true;
+  // Recursively check the type arguments.
   int len = s.length;
+  if (len != t.length) return false;
   for (int i = 1; i < len; i++) {
     if (!isSubtype(s[i], t[i])) {
       return false;

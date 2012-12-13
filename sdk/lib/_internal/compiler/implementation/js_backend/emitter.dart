@@ -44,6 +44,9 @@ class CodeEmitterTask extends CompilerTask {
       well as in the generated code. */
   String isolateProperties;
   String classesCollector;
+  Set<ClassElement> neededClasses;
+  // TODO(ngeoffray): remove this field.
+  Set<ClassElement> instantiatedClasses;
 
   String get _ => compiler.enableMinification ? "" : " ";
   String get n => compiler.enableMinification ? "" : "\n";
@@ -757,6 +760,49 @@ $lazyInitializerLogic
     }
   }
 
+  void emitRuntimeClassesAndTests(CodeBuffer buffer) {
+    JavaScriptBackend backend = compiler.backend;
+    RuntimeTypeInformation rti = backend.rti;
+
+    TypeChecks typeChecks = rti.computeRequiredChecks();
+
+    bool needsHolder(ClassElement cls) {
+      return !neededClasses.contains(cls) || cls.isNative() ||
+          rti.isJsNative(cls);
+    }
+
+    void maybeGenerateHolder(ClassElement cls) {
+      if (!needsHolder(cls)) return;
+
+      String holder = namer.isolateAccess(cls);
+      String name = namer.getName(cls);
+      buffer.add("$holder$_=$_{builtin\$cls:$_'$name'");
+      for (ClassElement check in typeChecks[cls]) {
+        buffer.add(',$_${namer.operatorIs(check)}:${_}true');
+      };
+      buffer.add('}$N');
+    }
+
+    // Create representation objects for classes that we do not have a class
+    // definition for (because they are uninstantiated or native).
+    for (ClassElement cls in rti.allArguments) {
+      maybeGenerateHolder(cls);
+    }
+
+    // Add checks to the constructors of instantiated classes.
+    for (ClassElement cls in typeChecks) {
+      if (needsHolder(cls)) {
+        // We already emitted the is-checks in the object definition for this
+        // class.
+        continue;
+      }
+      String holder = namer.isolateAccess(cls);
+      for (ClassElement check in typeChecks[cls]) {
+        buffer.add('$holder.${namer.operatorIs(check)}$_=${_}true$N');
+      };
+    }
+  }
+
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -1181,21 +1227,6 @@ $lazyInitializerLogic
     // Compute the required type checks to know which classes need a
     // 'is$' method.
     computeRequiredTypeChecks();
-
-    Set<ClassElement> instantiatedClasses =
-        compiler.codegenWorld.instantiatedClasses.filter(computeClassFilter());
-
-    Set<ClassElement> neededClasses =
-        new Set<ClassElement>.from(instantiatedClasses);
-
-    for (ClassElement element in instantiatedClasses) {
-      for (ClassElement superclass = element.superclass;
-           superclass != null;
-           superclass = superclass.superclass) {
-        if (neededClasses.contains(superclass)) break;
-        neededClasses.add(superclass);
-      }
-    }
     List<ClassElement> sortedClasses =
         new List<ClassElement>.from(neededClasses);
     sortedClasses.sort((ClassElement class1, ClassElement class2) {
@@ -1939,8 +1970,24 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
         });
   }
 
+  void computeNeededClasses() {
+    instantiatedClasses =
+        compiler.codegenWorld.instantiatedClasses.filter(computeClassFilter());
+    neededClasses = new Set<ClassElement>.from(instantiatedClasses);
+    for (ClassElement element in instantiatedClasses) {
+      for (ClassElement superclass = element.superclass;
+          superclass != null;
+          superclass = superclass.superclass) {
+        if (neededClasses.contains(superclass)) break;
+        neededClasses.add(superclass);
+      }
+    }
+  }
+
   String assembleProgram() {
     measure(() {
+      computeNeededClasses();
+
       mainBuffer.add(GENERATED_BY);
       if (!compiler.enableMinification) mainBuffer.add(HOOKS_API_USAGE);
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
@@ -1961,6 +2008,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       // We need to finish the classes before we construct compile time
       // constants.
       emitFinishClassesInvocationIfNecessary(mainBuffer);
+      emitRuntimeClassesAndTests(mainBuffer);
       emitCompileTimeConstants(mainBuffer);
       // Static field initializations require the classes and compile-time
       // constants to be set up.

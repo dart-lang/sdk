@@ -34,7 +34,9 @@ class Universe {
    *
    * Invariant: Elements are declaration elements.
    */
+  // TODO(karlklose): these sets should be merged.
   final Set<ClassElement> instantiatedClasses;
+  final Set<DartType> instantiatedTypes;
 
   /**
    * Documentation wanted -- johnniwinther
@@ -52,6 +54,7 @@ class Universe {
   Universe() : generatedCode = new Map<Element, CodeBuffer>(),
                generatedBailoutCode = new Map<Element, CodeBuffer>(),
                instantiatedClasses = new Set<ClassElement>(),
+               instantiatedTypes = new Set<DartType>(),
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
                invokedNames = new Map<SourceString, Set<Selector>>(),
                invokedGetters = new Map<SourceString, Set<Selector>>(),

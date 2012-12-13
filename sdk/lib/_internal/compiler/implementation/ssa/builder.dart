@@ -3605,6 +3605,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // on type arguments.
         generateRuntimeError(node, '$type is malformed: $reasons');
       } else {
+        // TODO(karlklose): move this type registration to the codegen.
+        compiler.codegenWorld.instantiatedTypes.add(type);
         visitNewSend(node.send, type);
       }
     }
