@@ -2829,10 +2829,105 @@ static bool IsInterferingStore(Instruction* instr,
 }
 
 
+static Definition* GetStoredValue(Instruction* instr) {
+  if (instr->IsStoreIndexed()) {
+    return instr->AsStoreIndexed()->value()->definition();
+  }
+
+  StoreInstanceFieldInstr* store_instance_field = instr->AsStoreInstanceField();
+  if (store_instance_field != NULL) {
+    return store_instance_field->value()->definition();
+  }
+
+  StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
+  if (store_vm_field != NULL) {
+    return store_vm_field->value()->definition();
+  }
+
+  UNREACHABLE();  // Should only be called for supported store instructions.
+  return NULL;
+}
+
+
+// KeyValueTrait used for numbering of loads. Allows to lookup loads
+// corresponding to stores.
+class LoadKeyValueTrait {
+ public:
+  typedef Definition* Value;
+  typedef Definition* Key;
+  typedef Definition* Pair;
+
+  static Key KeyOf(Pair kv) {
+    return kv;
+  }
+
+  static Value ValueOf(Pair kv) {
+    return kv;
+  }
+
+  static inline intptr_t Hashcode(Key key) {
+    intptr_t object = 0;
+    intptr_t location = 0;
+
+    if (key->IsLoadIndexed()) {
+      LoadIndexedInstr* load_indexed = key->AsLoadIndexed();
+      object = load_indexed->array()->definition()->ssa_temp_index();
+      location = load_indexed->index()->definition()->ssa_temp_index();
+    } else if (key->IsStoreIndexed()) {
+      StoreIndexedInstr* store_indexed = key->AsStoreIndexed();
+      object = store_indexed->array()->definition()->ssa_temp_index();
+      location = store_indexed->index()->definition()->ssa_temp_index();
+    } else if (key->IsLoadField()) {
+      LoadFieldInstr* load_field = key->AsLoadField();
+      object = load_field->value()->definition()->ssa_temp_index();
+      location = load_field->offset_in_bytes();
+    } else if (key->IsStoreInstanceField()) {
+      StoreInstanceFieldInstr* store_field = key->AsStoreInstanceField();
+      object = store_field->instance()->definition()->ssa_temp_index();
+      location = store_field->field().Offset();
+    } else if (key->IsStoreVMField()) {
+      StoreVMFieldInstr* store_field = key->AsStoreVMField();
+      object = store_field->dest()->definition()->ssa_temp_index();
+      location = store_field->offset_in_bytes();
+    }
+
+    return object * 31 + location;
+  }
+
+  static inline bool IsKeyEqual(Pair kv, Key key) {
+    if (kv->Equals(key)) return true;
+
+    if (kv->IsLoadIndexed()) {
+      if (key->IsStoreIndexed()) {
+        LoadIndexedInstr* load_indexed = kv->AsLoadIndexed();
+        StoreIndexedInstr* store_indexed = key->AsStoreIndexed();
+        return load_indexed->array()->Equals(store_indexed->array()) &&
+               load_indexed->index()->Equals(store_indexed->index());
+      }
+      return false;
+    }
+
+    ASSERT(kv->IsLoadField());
+    LoadFieldInstr* load_field = kv->AsLoadField();
+    if (key->IsStoreVMField()) {
+      StoreVMFieldInstr* store_field = key->AsStoreVMField();
+      return load_field->value()->Equals(store_field->dest()) &&
+             (load_field->offset_in_bytes() == store_field->offset_in_bytes());
+    } else if (key->IsStoreInstanceField()) {
+      StoreInstanceFieldInstr* store_field = key->AsStoreInstanceField();
+      return load_field->value()->Equals(store_field->instance()) &&
+             (load_field->offset_in_bytes() == store_field->field().Offset());
+    }
+
+    return false;
+  }
+};
+
+
 static intptr_t NumberLoadExpressions(
     FlowGraph* graph,
+    DirectChainedHashMap<LoadKeyValueTrait>* map,
     GrowableArray<BitVector*>* kill_by_offs) {
-  DirectChainedHashMap<PointerKeyValueTrait<Definition> > map;
   intptr_t expr_id = 0;
 
   // Loads representing different expression ids will be collected and
@@ -2850,9 +2945,9 @@ static intptr_t NumberLoadExpressions(
       if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
         continue;
       }
-      Definition* result = map.Lookup(defn);
+      Definition* result = map->Lookup(defn);
       if (result == NULL) {
-        map.Insert(defn);
+        map->Insert(defn);
         defn->set_expr_id(expr_id++);
         loads.Add(defn);
       } else {
@@ -2876,7 +2971,6 @@ static intptr_t NumberLoadExpressions(
     (*kill_by_offs)[offset_in_words]->Add(defn->expr_id());
   }
 
-
   return expr_id;
 }
 
@@ -2885,8 +2979,10 @@ class LoadOptimizer : public ValueObject {
  public:
   LoadOptimizer(FlowGraph* graph,
                 intptr_t max_expr_id,
+                DirectChainedHashMap<LoadKeyValueTrait>* map,
                 const GrowableArray<BitVector*>& kill_by_offset)
       : graph_(graph),
+        map_(map),
         max_expr_id_(max_expr_id),
         kill_by_offset_(kill_by_offset),
         in_(graph_->preorder().length()),
@@ -2952,6 +3048,15 @@ class LoadOptimizer : public ValueObject {
             // because only those values that are in the GEN set
             // will ever be used.
             gen->RemoveAll(kill_by_offset_[offset_in_words]);
+
+            Definition* load = map_->Lookup(instr->AsDefinition());
+            if (load != NULL) {
+              // Store has a corresponding numbered load. Try forwarding
+              // stored value to it.
+              gen->Add(load->expr_id());
+              if (out_values == NULL) out_values = CreateBlockOutValues();
+              (*out_values)[load->expr_id()] = GetStoredValue(instr);
+            }
           }
           ASSERT(instr->IsDefinition() &&
                  !IsLoadEliminationCandidate(instr->AsDefinition()));
@@ -3274,6 +3379,7 @@ class LoadOptimizer : public ValueObject {
   }
 
   FlowGraph* graph_;
+  DirectChainedHashMap<LoadKeyValueTrait>* map_;
   const intptr_t max_expr_id_;
 
   // Mapping between field offsets in words and expression ids of loads from
@@ -3311,9 +3417,11 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
   bool changed = false;
   if (FLAG_load_cse) {
     GrowableArray<BitVector*> kill_by_offs(10);
-    const intptr_t max_expr_id = NumberLoadExpressions(graph, &kill_by_offs);
+    DirectChainedHashMap<LoadKeyValueTrait> map;
+    const intptr_t max_expr_id =
+        NumberLoadExpressions(graph, &map, &kill_by_offs);
     if (max_expr_id > 0) {
-      LoadOptimizer load_optimizer(graph, max_expr_id, kill_by_offs);
+      LoadOptimizer load_optimizer(graph, max_expr_id, &map, kill_by_offs);
       load_optimizer.Optimize();
     }
   }
