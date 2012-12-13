@@ -63,15 +63,16 @@ abstract class HttpServer {
    * [port]. If a [port] of 0 is specified the server will choose an
    * ephemeral port. The optional argument [backlog] can be used to
    * specify the listen backlog for the underlying OS listen.
-   * The optional argument [certificate_name] is used by the HttpsServer
-   * class, which shares the same interface.
+   * The optional arguments [certificate_name] and [requestClientCertificate]
+   * are used by the HttpsServer class, which shares the same interface.
    * See [addRequestHandler] and [defaultRequestHandler] for
    * information on how incoming HTTP requests are handled.
    */
   void listen(String host,
               int port,
               {int backlog: 128,
-              String certificate_name});
+               String certificate_name,
+               bool requestClientCertificate: false});
 
   /**
    * Attach the HTTP server to an existing [:ServerSocket:]. If the
@@ -637,6 +638,14 @@ abstract class HttpRequest {
   List<Cookie> get cookies;
 
   /**
+   * Returns the client certificate of the client making the request.
+   * Returns null if the connection is not a secure TLS or SSL connection,
+   * or if the server does not request a client certificate, or if the client
+   * does not provide one.
+   */
+  X509Certificate get certificate;
+
+  /**
    * Returns, or initialize, a session for the given request. If the session is
    * being initialized by this call, [init] will be called with the
    * newly create session. Here the [:HttpSession.data:] field can be set, if
@@ -819,6 +828,23 @@ abstract class HttpClient {
    * Add credentials to be used for authorizing HTTP requests.
    */
   void addCredentials(Uri url, String realm, HttpClientCredentials credentials);
+
+  /**
+   * If [sendClientCertificate] is set to true, authenticate with a client
+   * certificate when connecting with an HTTPS server that requests one.
+   * Select the certificate from the certificate database that matches
+   * the authorities listed by the HTTPS server as valid.
+   * If [clientCertificate] is set, send the certificate with that nickname
+   * instead.
+   */
+  set sendClientCertificate(bool send);
+
+  /**
+   * If [clientCertificate] is non-null and [sendClientCertificate] is true,
+   * use [clientCertificate] to select the certificate to send from the
+   * certificate database, looking it up by its nickname.
+   */
+  set clientCertificate(String nickname);
 
   /**
    * Sets the function used to resolve the proxy server to be used for
@@ -1034,6 +1060,12 @@ abstract class HttpClientResponse {
    * Cookies set by the server (from the Set-Cookie header).
    */
   List<Cookie> get cookies;
+
+  /**
+   * Returns the certificate of the HTTPS server providing the response.
+   * Returns null if the connection is not a secure TLS or SSL connection.
+   */
+  X509Certificate get certificate;
 
   /**
    * Returns the input stream for the response. This is used to read

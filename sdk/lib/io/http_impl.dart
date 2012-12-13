@@ -100,6 +100,11 @@ class _HttpRequestResponseBase {
     }
   }
 
+  X509Certificate get certificate {
+    var socket = _httpConnection._socket as SecureSocket;
+    return socket == null ? socket : socket.peerCertificate;
+  }
+
   void set persistentConnection(bool persistentConnection) {
     if (_outputStream != null) throw new HttpException("Header already sent");
 
@@ -1000,9 +1005,15 @@ class _HttpServer implements HttpServer, HttpsServer {
   void listen(String host,
               int port,
               {int backlog: 128,
-              String certificate_name}) {
+               String certificate_name,
+               bool requestClientCertificate: false}) {
     if (_secure) {
-      listenOn(new SecureServerSocket(host, port, backlog, certificate_name));
+      listenOn(new SecureServerSocket(
+          host,
+          port,
+          backlog,
+          certificate_name,
+          requestClientCertificate: requestClientCertificate));
     } else {
       listenOn(new ServerSocket(host, port, backlog));
     }
@@ -1750,7 +1761,7 @@ class _SocketConnection {
     _httpClientConnection = null;
   }
 
-  void _markRetreived() {
+  void _markRetrieved() {
     _socket.onData = null;
     _socket.onClosed = null;
     _socket.onError = null;
@@ -1899,6 +1910,10 @@ class _HttpClient implements HttpClient {
     credentials.add(new _Credentials(url, realm, cr));
   }
 
+  set sendClientCertificate(bool send) => _sendClientCertificate = send;
+
+  set clientCertificate(String nickname) => _clientCertificate = nickname;
+
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
   void shutdown({bool force: false}) {
@@ -1992,15 +2007,26 @@ class _HttpClient implements HttpClient {
       Queue socketConnections = _openSockets[key];
       // Remove active connections that are not valid any more or of
       // the wrong type (HTTP or HTTPS).
-      while (socketConnections != null &&
-             !socketConnections.isEmpty &&
-             (!socketConnections.first._valid ||
-              secure != (socketConnections.first._socket is SecureSocket))) {
-        socketConnections.removeFirst()._close();
+      if (socketConnections != null) {
+        while (!socketConnections.isEmpty) {
+          if (socketConnections.first._valid) {
+            // If socket has the same properties, exit loop with found socket.
+            var socket = socketConnections.first._socket;
+            if (!secure && socket is! SecureSocket) break;
+            if (secure && socket is SecureSocket &&
+                 _sendClientCertificate == socket.sendClientCertificate &&
+                 _clientCertificate == socket.certificateName) break;
+          }
+          socketConnections.removeFirst()._close();
+        }
       }
       if (socketConnections == null || socketConnections.isEmpty) {
-        Socket socket = secure ? new SecureSocket(connectHost, connectPort) :
-                                 new Socket(connectHost, connectPort);
+        Socket socket = secure ?
+            new SecureSocket(connectHost,
+                             connectPort,
+                             sendClientCertificate: _sendClientCertificate,
+                             certificateName: _clientCertificate) :
+            new Socket(connectHost, connectPort);
         // Until the connection is established handle connection errors
         // here as the HttpClientConnection object is not yet associated
         // with the socket.
@@ -2029,7 +2055,7 @@ class _HttpClient implements HttpClient {
         };
       } else {
         _SocketConnection socketConn = socketConnections.removeFirst();
-        socketConn._markRetreived();
+        socketConn._markRetrieved();
         _activeSockets.add(socketConn);
         new Timer(0, (ignored) =>
                   _connectionOpened(socketConn, connection, !proxy.isDirect));
@@ -2172,6 +2198,8 @@ class _HttpClient implements HttpClient {
   Timer _evictionTimer;
   Function _findProxy;
   Function _authenticate;
+  bool _sendClientCertificate = false;
+  String _clientCertificate;
   bool _shutdown;  // Has this HTTP client been shutdown?
 }
 

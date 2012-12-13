@@ -412,6 +412,10 @@ void SSLFilter::Connect(const char* host_name,
     ThrowException("Connect called while already in handshake state.");
   }
 
+  if (!is_server && certificate_name != NULL) {
+    client_certificate_name_ = strdup(certificate_name);
+  }
+
   filter_ = SSL_ImportFD(NULL, filter_);
   if (filter_ == NULL) {
     ThrowPRException("Failed SSL_ImportFD call");
@@ -481,7 +485,7 @@ void SSLFilter::Connect(const char* host_name,
       status = SSL_GetClientAuthDataHook(
           filter_,
           NSS_GetClientAuthData,
-          static_cast<void*>(const_cast<char*>(certificate_name)));
+          static_cast<void*>(client_certificate_name_));
       if (status != SECSuccess) {
         ThrowPRException("Failed SSL_GetClientAuthDataHook call");
       }
@@ -552,6 +556,7 @@ void SSLFilter::Destroy() {
   if (bad_certificate_callback_ != NULL) {
     Dart_DeletePersistentHandle(bad_certificate_callback_);
   }
+  free(client_certificate_name_);
 
   PR_Close(filter_);
 }
