@@ -1585,8 +1585,10 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3531
+   * <p>
+   * Revised 2012-12-12 - specification has no rule about import prefix and built-in identifier.
    */
-  public void test_builtInIdentifier_asTypeAnnotation() throws Exception {
+  public void test_builtInIdentifier_asImportPrefix() throws Exception {
     appSource.setContent(
         "A.dart",
         makeCode(
@@ -1619,12 +1621,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             ""));
     // do compile, no errors expected
     compile();
-    {
-      assertEquals(15, errors.size());
-      for (DartCompilationError error : errors) {
-        assertEquals(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX, error.getErrorCode());
-      }
-    }
+    assertEquals(0, errors.size());
   }
   
   public void test_implicitlyImportCore() throws Exception {

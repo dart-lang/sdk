@@ -114,6 +114,9 @@ LibTest/core/StringBuffer/clear_A02_t01: Fail
 LibTest/isolate/SendPort/send_A01_t01: Fail
 
 
+# co19 issue 354
+Language/07_Classes/6_Constructors/2_Factories_A01_t02: Fail
+
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
 

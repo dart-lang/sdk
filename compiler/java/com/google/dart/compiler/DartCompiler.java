@@ -607,18 +607,12 @@ public class DartCompiler {
         boolean hasHTML = false;
         for (LibraryNode importNode : lib.getImportPaths()) {
           String libSpec = importNode.getText();
-          String prefix = importNode.getPrefix();
           hasIO |= "dart:io".equals(libSpec);
           hasHTML |= "dart:html".equals(libSpec);
           // "dart:mirrors" are not done yet
           if ("dart:mirrors".equals(libSpec)) {
             context.onError(new DartCompilationError(importNode,
                 DartCompilerErrorCode.MIRRORS_NOT_FULLY_IMPLEMENTED));
-          }
-          // validate import prefix
-          if (DartParser.PSEUDO_KEYWORDS_SET.contains(prefix)) {
-            context.onError(new DartCompilationError(importNode.getSourceInfo(),
-                ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX, prefix));
           }
           // validate console/web mix
           if (hasIO && hasHTML) {
