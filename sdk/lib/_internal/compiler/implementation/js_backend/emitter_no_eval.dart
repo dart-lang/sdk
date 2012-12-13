@@ -21,6 +21,7 @@ function() {
     return """
 function(cls, constructor, prototype) {
   constructor.prototype = prototype;
+  constructor.builtin\$cls = cls;
   return constructor;
 }""";
   }
