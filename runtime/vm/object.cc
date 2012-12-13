@@ -573,8 +573,11 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_type_arguments_field_offset(
       GrowableObjectArray::type_arguments_offset());
 
-  // canonical_type_arguments_ are NULL terminated.
-  array = Array::New(4);
+  // canonical_type_arguments_ are Smi terminated.
+  // Last element contains the count of used slots.
+  const intptr_t kInitialCanonicalTypeArgumentsSize = 4;
+  array = Array::New(kInitialCanonicalTypeArgumentsSize + 1);
+  array.SetAt(kInitialCanonicalTypeArgumentsSize, Smi::Handle(Smi::New(0)));
   object_store->set_canonical_type_arguments(array);
 
   // Setup type class early in the process.
@@ -2538,6 +2541,29 @@ bool AbstractTypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
+static intptr_t FinalizeHash(uword hash) {
+  hash += hash << 3;
+  hash ^= hash >> 11;
+  hash += hash << 15;
+  return hash;
+}
+
+
+intptr_t AbstractTypeArguments::Hash() const {
+  if (IsNull()) return 0;
+  uword result = 0;
+  intptr_t num_types = Length();
+  AbstractType& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    result += type.Hash();
+    result += result << 10;
+    result ^= result >> 6;
+  }
+  return FinalizeHash(result);
+}
+
+
 RawString* AbstractTypeArguments::SubvectorName(
     intptr_t from_index,
     intptr_t len,
@@ -2871,36 +2897,108 @@ void TypeArguments::SetLength(intptr_t value) const {
 }
 
 
+static void GrowCanonicalTypeArguments(Isolate* isolate, const Array& table) {
+  // Last element of the array is the number of used elements.
+  intptr_t table_size = table.Length() - 1;
+  intptr_t new_table_size = table_size * 2;
+  Array& new_table = Array::Handle(isolate, Array::New(new_table_size + 1));
+  // Copy all elements from the original table to the newly allocated
+  // array.
+  TypeArguments& element = TypeArguments::Handle(isolate);
+  Object& new_element = Object::Handle(isolate);
+  for (intptr_t i = 0; i < table_size; i++) {
+    element ^= table.At(i);
+    if (!element.IsNull()) {
+      intptr_t hash = element.Hash();
+      ASSERT(Utils::IsPowerOfTwo(new_table_size));
+      intptr_t index = hash & (new_table_size - 1);
+      new_element = new_table.At(index);
+      while (!new_element.IsNull()) {
+        index = (index + 1) & (new_table_size - 1);  // Move to next element.
+        new_element = new_table.At(index);
+      }
+      new_table.SetAt(index, element);
+    }
+  }
+  // Copy used count.
+  new_element = table.At(table_size);
+  new_table.SetAt(new_table_size, new_element);
+  // Remember the new table now.
+  isolate->object_store()->set_canonical_type_arguments(new_table);
+}
+
+
+static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
+                                             const Array& table,
+                                             const TypeArguments& arguments,
+                                             intptr_t index) {
+  arguments.SetCanonical();  // Mark object as being canonical.
+  table.SetAt(index, arguments);  // Remember the new element.
+  // Update used count.
+  // Last element of the array is the number of used elements.
+  intptr_t table_size = table.Length() - 1;
+  Smi& used = Smi::Handle(isolate);
+  used ^= table.At(table_size);
+  intptr_t used_elements = used.Value() + 1;
+  used = Smi::New(used_elements);
+  table.SetAt(table_size, used);
+
+  // Rehash if table is 75% full.
+  if (used_elements > ((table_size / 4) * 3)) {
+    GrowCanonicalTypeArguments(isolate, table);
+  }
+}
+
+
+static intptr_t FindIndexInCanonicalTypeArguments(
+    Isolate* isolate,
+    const Array& table,
+    const TypeArguments& arguments,
+    intptr_t hash) {
+  // Last element of the array is the number of used elements.
+  intptr_t table_size = table.Length() - 1;
+  ASSERT(Utils::IsPowerOfTwo(table_size));
+  intptr_t index = hash & (table_size - 1);
+
+  TypeArguments& current = TypeArguments::Handle(isolate);
+  current ^= table.At(index);
+  while (!current.IsNull() && !current.Equals(arguments)) {
+    index = (index + 1) & (table_size - 1);  // Move to next element.
+    current ^= table.At(index);
+  }
+  return index;  // Index of element if found or slot into which to add it.
+}
+
+
 RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
   if (IsNull() || IsCanonical()) {
     ASSERT(IsOld());
     return this->raw();
   }
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  // 'table' must be null terminated.
-  Array& table = Array::Handle(object_store->canonical_type_arguments());
+  Isolate* isolate = Isolate::Current();
+  ObjectStore* object_store = isolate->object_store();
+  const Array& table = Array::Handle(isolate,
+                                     object_store->canonical_type_arguments());
   ASSERT(table.Length() > 0);
-  intptr_t index = 0;
-  TypeArguments& result = TypeArguments::Handle();
+  intptr_t index = FindIndexInCanonicalTypeArguments(isolate,
+                                                     table,
+                                                     *this,
+                                                     Hash());
+  TypeArguments& result = TypeArguments::Handle(isolate);
   result ^= table.At(index);
-  while (!result.IsNull()) {
-    if (this->Equals(result)) {
-      return result.raw();
+  if (result.IsNull()) {
+    // Make sure we have an old space object and add it to the table.
+    if (this->IsNew()) {
+      result ^= Object::Clone(*this, Heap::kOld);
+    } else {
+      result ^= this->raw();
     }
-    result ^= table.At(++index);
+    ASSERT(result.IsOld());
+    InsertIntoCanonicalTypeArguments(isolate, table, result, index);
   }
-  // Not found. Add 'this' to table.
-  result ^= this->raw();
-  if (result.IsNew()) {
-    result ^= Object::Clone(result, Heap::kOld);
-  }
-  ASSERT(result.IsOld());
-  if (index == table.Length() - 1) {
-    table = Array::Grow(table, table.Length() + 4, Heap::kOld);
-    object_store->set_canonical_type_arguments(table);
-  }
-  table.SetAt(index, result);
-  result.SetCanonical();
+  ASSERT(result.Equals(*this));
+  ASSERT(!result.IsNull());
+  ASSERT(result.IsTypeArguments());
   return result.raw();
 }
 
@@ -8751,6 +8849,13 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
 }
 
 
+intptr_t AbstractType::Hash() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return 0;
+}
+
+
 const char* AbstractType::ToCString() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -9025,6 +9130,16 @@ RawAbstractType* Type::Canonicalize() const {
 }
 
 
+intptr_t Type::Hash() const {
+  ASSERT(IsFinalized());
+  uword result = 1;
+  if (IsMalformed()) return result;
+  result += Class::Handle(type_class()).id();
+  result += AbstractTypeArguments::Handle(arguments()).Hash();
+  return FinalizeHash(result);
+}
+
+
 void Type::set_type_class(const Object& value) const {
   ASSERT(!value.IsNull() && (value.IsClass() || value.IsUnresolvedClass()));
   StorePointer(&raw_ptr()->type_class_, value.raw());
@@ -9128,9 +9243,7 @@ bool TypeParameter::Equals(const Instance& other) const {
   if (index() != other_type_param.index()) {
     return false;
   }
-  const String& type_param_name = String::Handle(name());
-  const String& other_type_param_name = String::Handle(other_type_param.name());
-  return type_param_name.Equals(other_type_param_name);
+  return true;
 }
 
 
@@ -9163,6 +9276,15 @@ RawAbstractType* TypeParameter::InstantiateFrom(
     return Type::DynamicType();
   }
   return instantiator_type_arguments.TypeAt(index());
+}
+
+
+intptr_t TypeParameter::Hash() const {
+  ASSERT(IsFinalized());
+  uword result = 0;
+  result += Class::Handle(parameterized_class()).id();
+  result <<= index();
+  return FinalizeHash(result);
 }
 
 

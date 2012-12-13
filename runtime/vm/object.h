@@ -924,6 +924,8 @@ class AbstractTypeArguments : public Object {
   virtual bool IsInstantiated() const;
   virtual bool IsUninstantiatedIdentity() const;
 
+  virtual intptr_t Hash() const;
+
  private:
   // Check if this type argument vector consists solely of DynamicType,
   // considering only a prefix of length 'len'.
@@ -3254,6 +3256,8 @@ class AbstractType : public Instance {
     return BuildName(kUserVisibleName);
   }
 
+  virtual intptr_t Hash() const;
+
   // The name of this type's class, i.e. without the type argument names of this
   // type.
   RawString* ClassName() const;
@@ -3366,6 +3370,8 @@ class Type : public AbstractType {
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const;
 
+  virtual intptr_t Hash() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawType));
   }
@@ -3463,6 +3469,8 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
+
+  virtual intptr_t Hash() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypeParameter));
