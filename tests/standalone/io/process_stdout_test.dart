@@ -9,10 +9,10 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-#import("dart:io");
-#import("dart:math");
+import "dart:io";
+import "dart:math";
 
-#source("process_test_util.dart");
+part "process_test_util.dart";
 
 void test(Future<Process> future, int expectedExitCode) {
   future.then((process) {

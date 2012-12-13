@@ -5,8 +5,8 @@
 // Process test program to test that compilation errors in the process
 // exit handler is reported correctly.
 
-#import("dart:io");
-#source("process_test_util.dart");
+import "dart:io";
+part "process_test_util.dart";
 
 void main() {
   Process p = Process.start(getProcessTestFileName(),

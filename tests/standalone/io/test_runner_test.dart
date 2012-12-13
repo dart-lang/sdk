@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:io");
-#import("dart:isolate");
-#import("../../../tools/testing/dart/test_runner.dart");
-#import("../../../tools/testing/dart/status_file_parser.dart");
-#import("../../../tools/testing/dart/test_options.dart");
-#source("process_test_util.dart");
+import "dart:io";
+import "dart:isolate";
+import "../../../tools/testing/dart/test_runner.dart";
+import "../../../tools/testing/dart/status_file_parser.dart";
+import "../../../tools/testing/dart/test_options.dart";
+part "process_test_util.dart";
 
 class TestController {
   static const int numTests = 4;

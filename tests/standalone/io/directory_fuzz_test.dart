@@ -5,10 +5,10 @@
 // 'fuzz' test the directory APIs by providing unexpected type
 // arguments. The test passes if the VM does not crash.
 
-#import('dart:io');
-#import('dart:isolate');
+import "dart:io";
+import "dart:isolate";
 
-#import('fuzz_support.dart');
+import "fuzz_support.dart";
 
 fuzzSyncMethods() {
   typeMapping.forEach((k, v) {
@@ -27,7 +27,7 @@ fuzzSyncMethods() {
       });
       typeMapping.forEach((k2, v2) {
         doItSync(() => d.renameSync(v2));
-        doItSync(() => d.list(v2).onError = (e) => null);
+        doItSync(() => d.list(recursive: v2).onError = (e) => null);
       });
     });
   });

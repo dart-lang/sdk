@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#import("dart:isolate");
-#import("dart:io");
+import "dart:isolate";
+import "dart:io";
 
 void test(int totalConnections, [String body]) {
   HttpServer server = new HttpServer();
   server.onError = (e) => Expect.fail("Unexpected error $e");
-  server.listen("127.0.0.1", 0, totalConnections);
+  server.listen("127.0.0.1", 0, backlog: totalConnections);
   server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
     // Cannot mutate request headers.
     Expect.throws(() => request.headers.add("X-Request-Header", "value"),

@@ -4,8 +4,8 @@
 //
 // Dart test program for testing error handling in file I/O.
 
-#import("dart:io");
-#import("dart:isolate");
+import "dart:io";
+import "dart:isolate";
 
 Directory tempDir() {
   return new Directory('').createTempSync();

@@ -5,7 +5,7 @@
 // Regression test for missing immutability check in the ListSet
 // methods in the API. This allowed overwriting const Lists.
 
-#import("dart:io");
+import "dart:io";
 
 String getFilename(String path) =>
     new File(path).existsSync() ? path : 'runtime/$path';

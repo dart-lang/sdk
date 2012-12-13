@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:isolate");
-#import("dart:crypto");
-#import("dart:io");
-#import("dart:uri");
-#import("dart:utf");
+import "dart:isolate";
+import "dart:crypto";
+import "dart:io";
+import "dart:uri";
+import "dart:utf";
 
 class Server {
   HttpServer server;

@@ -4,8 +4,8 @@
 //
 // Tests socket exceptions.
 
-#import("dart:isolate");
-#import("dart:io");
+import "dart:isolate";
+import "dart:io";
 
 class SocketExceptionTest {
 

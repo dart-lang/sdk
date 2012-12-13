@@ -5,9 +5,9 @@
 // Dart test program for testing native int arrays.
 
 // Library tag to be able to run in html test framework.
-#library("IntArrayTest.dart");
+library IntArrayTest;
 
-#import('dart:scalarlist');
+import 'dart:scalarlist';
 
 void testInt32ToSmi() {
   Int32List intArray;

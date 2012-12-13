@@ -4,5 +4,5 @@
 
 // PackageRoot=none
 
-#library('package1_test.dart');
-#import('package:package1.dart');
+library package1_test;
+import 'package:package1.dart';

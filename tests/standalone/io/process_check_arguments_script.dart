@@ -4,7 +4,7 @@
 //
 // Utility script to check that arguments are correctly passed from
 // one dart process to another using the dart:io process interface.
-#import('dart:math');
+import "dart:math";
 
 main() {
   var options = new Options();

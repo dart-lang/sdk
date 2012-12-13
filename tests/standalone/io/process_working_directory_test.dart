@@ -4,9 +4,9 @@
 //
 // Process working directory test.
 
-#library("ProcessWorkingDirectoryTest");
-#import("dart:io");
-#source("process_test_util.dart");
+library ProcessWorkingDirectoryTest;
+import "dart:io";
+part "process_test_util.dart";
 
 class ProcessWorkingDirectoryTest {
   static String get fullTestFilePath {
@@ -34,7 +34,7 @@ class ProcessWorkingDirectoryTest {
     });
     processFuture.handleException((error) {
       directory.deleteSync();
-      Expect.fails("Couldn't start process");
+      Expect.fail("Couldn't start process");
     });
   }
 

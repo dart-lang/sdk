@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:io");
-#import("dart:isolate");
+import "dart:io";
+import "dart:isolate";
 
 void test1() {
   void testWithChunkSize(var data, int chunkSize, Function testDone) {

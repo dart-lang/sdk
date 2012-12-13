@@ -4,7 +4,7 @@
 //
 // Process test program to errors during startup of the process.
 
-#import("dart:io");
+import "dart:io";
 
 testStartError() {
   Future<Process> processFuture =

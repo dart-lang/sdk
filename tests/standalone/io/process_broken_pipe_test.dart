@@ -4,9 +4,9 @@
 //
 // Process test program to test closed stdin from child process.
 
-#import('dart:io');
+import "dart:io";
 
-#source("process_test_util.dart");
+part "process_test_util.dart";
 
 main() {
   // Running dart without arguments makes it close right away.

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#import("dart:io");
-#import("dart:scalarlist");
+import "dart:io";
+import "dart:scalarlist";
 
 void testRequestResponseClientCloses(
     int totalConnections, int closeStatus, String closeReason) {

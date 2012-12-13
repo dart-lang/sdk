@@ -5,8 +5,8 @@
 // Test script for testing that output is handled correctly for
 // non-interactive processes started with Process.run.
 
-#import("dart:io");
-#source("process_test_util.dart");
+import "dart:io";
+part "process_test_util.dart";
 
 checkOutput(encoding, output) {
   if (encoding == 'ascii') {

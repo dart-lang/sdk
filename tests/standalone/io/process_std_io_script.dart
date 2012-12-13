@@ -4,7 +4,7 @@
 //
 // Utility script to echo stdin to stdout or stderr or both.
 
-#import("dart:io");
+import "dart:io";
 
 main() {
   var options = new Options();

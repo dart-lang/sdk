@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:io");
-#source("process_test_util.dart");
+import "dart:io";
+part "process_test_util.dart";
 
 test(args) {
   var future = Process.start(new Options().executable, args);

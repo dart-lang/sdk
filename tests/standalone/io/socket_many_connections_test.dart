@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Test creating a large number of socket connections.
+library ServerTest;
 
-#import("dart:io");
-#import("dart:isolate");
-#source("testing_server.dart");
+import "dart:io";
+import "dart:isolate";
+part "testing_server.dart";
 
 const CONNECTIONS = 200;
 

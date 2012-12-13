@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('dart:io');
-#import('dart:isolate');
-#source('process_test_util.dart');
+import "dart:io";
+import "dart:isolate";
+part "process_test_util.dart";
 
 runEnvironmentProcess(Map environment, name, callback) {
   var dartExecutable = new Options().executable;

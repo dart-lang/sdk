@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class TestingServer {
+part of ServerTest;
+
+abstract class TestingServer {
 
   static const HOST = "127.0.0.1";
   static const INIT = 0;
@@ -30,7 +32,7 @@ class TestingServer {
   ServerSocket _server;
 }
 
-class TestingServerTest {
+abstract class TestingServerTest {
 
   TestingServerTest.start(SendPort port)
       : _receivePort = new ReceivePort(),

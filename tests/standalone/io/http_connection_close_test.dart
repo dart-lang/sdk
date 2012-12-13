@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#import("dart:isolate");
-#import("dart:io");
-#import("dart:uri");
+import "dart:isolate";
+import "dart:io";
+import "dart:uri";
 
 void testHttp10Close(bool closeRequest) {
   HttpServer server = new HttpServer();

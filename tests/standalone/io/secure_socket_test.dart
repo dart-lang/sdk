@@ -8,8 +8,8 @@
 // www.google.dk.  Add this to the test when we have secure server sockets.
 // See TODO below.
 
-#import("dart:isolate");
-#import("dart:io");
+import "dart:isolate";
+import "dart:io";
 
 void WriteAndClose(Socket socket, String message) {
   var data = message.charCodes;

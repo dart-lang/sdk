@@ -7,6 +7,6 @@
 //
 // VMOptions=--compile_all
 
-#import("dart:io");
+import "dart:io";
 
 main() => null;
