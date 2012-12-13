@@ -3,12 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/extensions.h"
+#include "bin/utils.h"
 
 void* Extensions::LoadExtensionLibrary(const char* library_path,
                                        const char* extension_name) {
   const char* strings[] = { library_path, "/", extension_name, ".dll", NULL };
   char* library_file = Concatenate(strings);
-  void* lib_handle = LoadLibrary(library_file);
+  wchar_t* unicode_library_file = StringUtils::Utf8ToWide(library_file);
+  void* lib_handle = LoadLibraryW(unicode_library_file);
+  delete(unicode_library_file);
   free(library_file);
   return lib_handle;
 }
