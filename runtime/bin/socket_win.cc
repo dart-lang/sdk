@@ -184,9 +184,9 @@ const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
   int status = getaddrinfo(host, 0, &hints, &info);
   if (status != 0) {
     ASSERT(*os_error == NULL);
-    *os_error = new OSError(status,
-                            gai_strerror(status),
-                            OSError::kGetAddressInfo);
+    DWORD error_code = WSAGetLastError();
+    SetLastError(error_code);
+    *os_error = new OSError();
     return NULL;
   }
   // Convert the address into IPv4 dotted decimal notation.
