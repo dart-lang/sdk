@@ -20,7 +20,6 @@ DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
 DEFINE_FLAG(bool, heap_profile_out_of_memory, false,
             "Writes a heap profile on unhandled out-of-memory exceptions.");
-DECLARE_FLAG(bool, heap_profile_out_of_memory);
 
 
 const char* Exceptions::kCastErrorDstName = "type cast";
