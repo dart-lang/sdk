@@ -229,7 +229,6 @@ LibTest/core/AssertionError/column_A01_t02: Fail # TODO(ahe): Please triage this
 LibTest/core/AssertionError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/line_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/List/operator_subscript_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Map/putIfAbsent_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Queue/iterator_hasNext_A01_t01: Fail # TODO(ahe): Please triage this failure.
