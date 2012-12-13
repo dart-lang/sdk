@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// We assign the closure to a global to avoid potential optimizations.
 var myIdentical = identical;
 
 main() {
