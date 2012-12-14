@@ -1603,7 +1603,7 @@ public class DartParser extends CompletionHooksParserBase {
         redirectedConstructorName = parseIdentifier();
       }
       expect(Token.SEMICOLON);
-      DartFunction function = doneWithoutConsuming(new DartFunction(formals.val,
+      DartFunction function = doneWithoutConsuming(new DartFunction(formals.val, formals.openParen,
           formals.optionalOpenOffset, formals.optionalCloseOffset, parametersCloseParen, null, null));
       return DartMethodDefinition.create(name, function, modifiers, redirectedTypeName, 
                                          redirectedConstructorName);
@@ -1613,11 +1613,12 @@ public class DartParser extends CompletionHooksParserBase {
     if (peekPseudoKeyword(0, NATIVE_KEYWORD)) {
       modifiers = modifiers.makeNative();
       function = new DartFunction(formals.val, formals.optionalOpenOffset,
-          formals.optionalCloseOffset, parametersCloseParen, parseNativeBlock(modifiers), null);
+          formals.optionalOpenOffset, formals.optionalCloseOffset, parametersCloseParen,
+          parseNativeBlock(modifiers), null);
     } else {
       function = new DartFunction(formals.val, formals.optionalOpenOffset,
-          formals.optionalCloseOffset, parametersCloseParen, parseFunctionStatementBody(
-              !modifiers.isExternal(), true), null);
+          formals.optionalOpenOffset, formals.optionalCloseOffset, parametersCloseParen,
+          parseFunctionStatementBody(!modifiers.isExternal(), true), null);
     }
     doneWithoutConsuming(function);
     return DartMethodDefinition.create(name, function, modifiers, null);
@@ -1737,7 +1738,7 @@ public class DartParser extends CompletionHooksParserBase {
     // Parse the parameters definitions.
     FormalParameters parametersInfo;
     if (modifiers.isGetter()) {
-      parametersInfo = new FormalParameters(new ArrayList<DartParameter>(), -1, -1);
+      parametersInfo = new FormalParameters(new ArrayList<DartParameter>(), -1, -1, -1);
       if (peek(0) == Token.LPAREN) {
         reportError(position(), ParserErrorCode.DEPRECATED_GETTER);
         parametersInfo = parseFormalParameterList();
@@ -1790,8 +1791,8 @@ public class DartParser extends CompletionHooksParserBase {
       }
       expect(Token.SEMICOLON);
       DartFunction function = doneWithoutConsuming(new DartFunction(parameters,
-          parametersInfo.optionalOpenOffset, parametersInfo.optionalCloseOffset,
-          parametersCloseParen, null, returnType));
+          parametersInfo.openParen, parametersInfo.optionalOpenOffset,
+          parametersInfo.optionalCloseOffset, parametersCloseParen, null, returnType));
       return DartMethodDefinition.create(name, function, modifiers, redirectedTypeName, 
                                          redirectedConstructorName);
     }
@@ -1821,8 +1822,8 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     DartFunction function = doneWithoutConsuming(new DartFunction(parameters,
-        parametersInfo.optionalOpenOffset, parametersInfo.optionalCloseOffset,
-        parametersCloseParen, body, returnType));
+        parametersInfo.openParen, parametersInfo.optionalOpenOffset,
+        parametersInfo.optionalCloseOffset, parametersCloseParen, body, returnType));
     return DartMethodDefinition.create(name, function, modifiers, initializers);
   }
 
@@ -2065,11 +2066,13 @@ public class DartParser extends CompletionHooksParserBase {
   
   private static class FormalParameters {
     private final List<DartParameter> val;
+    private final int openParen;
     private final int optionalOpenOffset;
     private final int optionalCloseOffset;
-    public FormalParameters(List<DartParameter> parameters, int optionalOpenOffset,
+    public FormalParameters(List<DartParameter> parameters, int openParen, int optionalOpenOffset,
         int optionalCloseOffset) {
       this.val = parameters;
+      this.openParen = openParen;
       this.optionalOpenOffset = optionalOpenOffset;
       this.optionalCloseOffset = optionalCloseOffset;
     }
@@ -2109,6 +2112,7 @@ public class DartParser extends CompletionHooksParserBase {
     int optionalCloseOffset = -1;
     expect(Token.LPAREN);
     boolean done = optional(Token.RPAREN);
+    int openParen = ctx.getTokenLocation().getBegin();
     boolean isOptional = false;
     boolean isNamed = false;
     while (!done) {
@@ -2156,7 +2160,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
 
-    return new FormalParameters(done(params), optionalOpenOffset, optionalCloseOffset);
+    return new FormalParameters(done(params), openParen, optionalOpenOffset, optionalCloseOffset);
   }
 
   /**
@@ -3671,8 +3675,9 @@ public class DartParser extends CompletionHooksParserBase {
     FormalParameters params = parseFormalParameterList();
     int parametersCloseParen = ctx.getTokenLocation().getBegin();
     DartBlock body = parseFunctionStatementBody(true, isDeclaration);
-    DartFunction function = new DartFunction(params.val, params.optionalOpenOffset,
-        params.optionalCloseOffset, parametersCloseParen, body, returnType);
+    DartFunction function = new DartFunction(params.val, params.openParen,
+        params.optionalOpenOffset, params.optionalCloseOffset, parametersCloseParen, body,
+        returnType);
     doneWithoutConsuming(function);
     return function;
   }
