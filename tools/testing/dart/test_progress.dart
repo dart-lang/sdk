@@ -53,6 +53,10 @@ class ProgressIndicator {
       }
       _appendToFlakyFile(buf.toString());
     }
+    for (var commandOutput in test.commandOutputs.values) {
+      if (commandOutput.compilationSkipped)
+        _skippedCompilations++;
+    }
 
     if (test.lastCommandOutput.unexpectedOutput) {
       _failedTests++;
@@ -69,6 +73,13 @@ class ProgressIndicator {
   void allTestsKnown() {
     if (!_allTestsKnown) SummaryReport.printReport();
     _allTestsKnown = true;
+  }
+
+  void _printSkippedCompilationInfo() {
+    if (_skippedCompilations > 0) {
+      print('\n$_skippedCompilations compilations were skipped because '
+            'the previous output was already up to date\n');
+    }
   }
 
   void _printTimingInformation() {
@@ -93,6 +104,7 @@ class ProgressIndicator {
   void allDone() {
     _printFailureSummary();
     _printStatus();
+    _printSkippedCompilationInfo();
     _printTimingInformation();
     stdout.close();
     stderr.close();
@@ -225,6 +237,7 @@ class ProgressIndicator {
   int _foundTests = 0;
   int _passedTests = 0;
   int _failedTests = 0;
+  int _skippedCompilations = 0;
   bool _allTestsKnown = false;
   Date _startTime;
   bool _printTiming;
@@ -252,6 +265,7 @@ abstract class CompactIndicator extends ProgressIndicator {
   void allDone() {
     stdout.write('\n'.charCodes);
     _printFailureSummary();
+    _printSkippedCompilationInfo();
     _printTimingInformation();
     if (_failedTests > 0) {
       // We may have printed many failure logs, so reprint the summary data.
