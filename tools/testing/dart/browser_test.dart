@@ -25,7 +25,8 @@ String getHtmlContents(String title,
 <body>
   <h1> Running $title </h1>
   <script type="text/javascript" src="$controllerScript"></script>
-  <script type="$scriptType" src="$sourceScript"></script>
+  <script type="$scriptType" src="$sourceScript" onerror="externalError(null)">
+  </script>
   <script type="text/javascript" src="$dartJsScript"></script>
 </body>
 </html>
