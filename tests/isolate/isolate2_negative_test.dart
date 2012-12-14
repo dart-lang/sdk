@@ -14,4 +14,9 @@ void entry() {
 
 main() {
   SendPort port = spawnFunction(entry);
+  // TODO(ngeoffray): Remove this code and update dart2js to wait for
+  // all ports to be closed.
+  // Make sure the main thread stays alive so that the spawned isolate
+  // can run.
+  port.receive((msg) {});
 }

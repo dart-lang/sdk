@@ -3111,6 +3111,29 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                       inputs));
   }
 
+  void handleForeignSetCurrentIsolate(Send node) {
+    if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
+      compiler.cancel('Exactly one argument required',
+                      node: node.argumentsNode);
+    }
+    visit(node.arguments.head);
+    String isolateName = backend.namer.CURRENT_ISOLATE;
+    push(new HForeign(new DartString.literal("$isolateName = #"),
+                      const LiteralDartString('void'),
+                      <HInstruction>[pop()]));
+  }
+
+  void handleForeignCreateIsolate(Send node) {
+    if (!node.arguments.isEmpty) {
+      compiler.cancel('Too many arguments',
+                      node: node.argumentsNode);
+    }
+    String constructorName = backend.namer.isolateName;
+    push(new HForeign(new DartString.literal("new $constructorName"),
+                      const LiteralDartString('var'),
+                      <HInstruction>[]));
+  }
+
   visitForeignSend(Send node) {
     Selector selector = elements.getSelector(node);
     SourceString name = selector.name;
@@ -3126,6 +3149,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       handleForeignJsCallInIsolate(node);
     } else if (name == const SourceString('DART_CLOSURE_TO_JS')) {
       handleForeignDartClosureToJs(node);
+    } else if (name == const SourceString('JS_SET_CURRENT_ISOLATE')) {
+      handleForeignSetCurrentIsolate(node);
+    } else if (name == const SourceString('JS_CREATE_ISOLATE')) {
+      handleForeignCreateIsolate(node);
     } else {
       throw "Unknown foreign: ${selector}";
     }

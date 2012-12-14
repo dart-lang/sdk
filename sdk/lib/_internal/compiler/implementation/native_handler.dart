@@ -34,7 +34,6 @@ class SpecialType {
 class NativeEnqueuer {
   /// Initial entry point to native enqueuer.
   void processNativeClasses(Collection<LibraryElement> libraries) {}
-  void processNativeClassesInLibrary(LibraryElement library) {}
 
   /// Notification of a main Enqueuer worklist element.  For methods, adds
   /// information from metadata attributes, and computes types instantiated due
@@ -104,6 +103,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   void processNativeClasses(Collection<LibraryElement> libraries) {
     libraries.forEach(processNativeClassesInLibrary);
+    processNativeClassesInLibrary(compiler.isolateHelperLibrary);
     if (!enableLiveTypeAnalysis) {
       nativeClasses.forEach((c) => enqueueClass(c, 'forced'));
       flushQueue();
