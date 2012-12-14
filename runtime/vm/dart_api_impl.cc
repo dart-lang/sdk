@@ -1702,6 +1702,34 @@ DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
 }
 
 
+DART_EXPORT Dart_Handle Dart_StringToLatin1(Dart_Handle str,
+                                            uint8_t* latin1_array,
+                                            intptr_t* length) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (latin1_array == NULL) {
+    RETURN_NULL_ERROR(latin1_array);
+  }
+  if (length == NULL) {
+    RETURN_NULL_ERROR(length);
+  }
+  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  if (str_obj.IsNull() || !Dart_IsStringLatin1(str)) {
+    RETURN_TYPE_ERROR(isolate, str, String);
+  }
+  intptr_t str_len = str_obj.Length();
+  intptr_t copy_len = (str_len > *length) ? *length : str_len;
+
+  // We have already asserted that the string object is a Latin-1 string
+  // so we can copy the characters over using a simple loop.
+  for (intptr_t i = 0; i < copy_len; i++) {
+    latin1_array[i] = str_obj.CharAt(i);
+  }
+  *length = copy_len;
+  return Api::Success(isolate);
+}
+
+
 DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
                                            uint16_t* utf16_array,
                                            intptr_t* length) {
@@ -1754,16 +1782,35 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
   if (array == NULL) {
     RETURN_NULL_ERROR(array);
   }
-  if (str_obj.IsCanonical()) {
-    return Api::NewError("Dart_MakeExternalString "
-                         "cannot externalize a read-only string.");
-  }
   intptr_t str_size = (str_obj.Length() * str_obj.CharSize());
   if ((length < str_size) || (length > String::kMaxElements)) {
     return Api::NewError("Dart_MakeExternalString "
                          "expects argument length to be in the range"
                          "[%"Pd"..%"Pd"].",
                          str_size, String::kMaxElements);
+  }
+  if (str_obj.IsCanonical()) {
+    // Since the string object is read only we do not externalize
+    // the string but instead copy the contents of the string into the
+    // specified buffer and return a Null object.
+    // This ensures that the embedder does not have to call again
+    // to get at the contents.
+    intptr_t copy_len = str_obj.Length();
+    if (str_obj.IsOneByteString()) {
+      ASSERT(length >= copy_len);
+      uint8_t* latin1_array = reinterpret_cast<uint8_t*>(array);
+      for (intptr_t i = 0; i < copy_len; i++) {
+        latin1_array[i] = static_cast<uint8_t>(str_obj.CharAt(i));
+      }
+    } else {
+      ASSERT(str_obj.IsTwoByteString());
+      ASSERT(length >= (copy_len * sizeof(uint16_t)));
+      uint16_t* utf16_array = reinterpret_cast<uint16_t*>(array);
+      for (intptr_t i = 0; i < copy_len; i++) {
+        utf16_array[i] = static_cast<uint16_t>(str_obj.CharAt(i));
+      }
+    }
+    return Api::Null(isolate);
   }
   return Api::NewHandle(isolate,
                         str_obj.MakeExternal(array, length, peer, cback));

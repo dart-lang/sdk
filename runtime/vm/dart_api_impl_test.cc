@@ -532,6 +532,16 @@ TEST_CASE(IsString) {
   EXPECT(Dart_IsStringLatin1(str8));
   EXPECT(!Dart_IsExternalString(str8));
 
+  uint8_t latin1_array[] = {0, 0, 0, 0, 0};
+  len = 5;
+  Dart_Handle result = Dart_StringToLatin1(str8, latin1_array, &len);
+  EXPECT_VALID(result);
+  EXPECT_EQ(4, len);
+  EXPECT(latin1_array != NULL);
+  for (intptr_t i = 0; i < len; i++) {
+    EXPECT_EQ(data8[i], latin1_array[i]);
+  }
+
   Dart_Handle ext8 = Dart_NewExternalLatin1String(data8, ARRAY_SIZE(data8),
                                                   NULL, NULL);
   EXPECT_VALID(ext8);
@@ -7312,6 +7322,34 @@ TEST_CASE(MakeExternalString) {
   Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
   EXPECT_EQ(80, peer8);
   EXPECT_EQ(82, peer16);
+}
+
+
+TEST_CASE(ExternalizeConstantStrings) {
+  const char* kScriptChars =
+      "void testMain() {\n"
+      "  return 'constant string';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle result = Dart_Invoke(lib,
+                                      NewString("testMain"),
+                                      0,
+                                      NULL);
+  const char* expected_str = "constant string";
+  const intptr_t kExpectedLen = 15;
+  int peer = 40;
+  uint8_t ext_str[kExpectedLen];
+  Dart_Handle str = Dart_MakeExternalString(result,
+                                            ext_str,
+                                            kExpectedLen,
+                                            &peer,
+                                            MakeExternalCback);
+
+  EXPECT(Dart_IsNull(str));
+  for (intptr_t i = 0; i < kExpectedLen; i++) {
+    EXPECT_EQ(expected_str[i], ext_str[i]);
+  }
 }
 
 
