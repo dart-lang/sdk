@@ -8507,6 +8507,37 @@ bool Instance::IsClosure() const {
 }
 
 
+bool Instance::IsCallable(Function* function, Context* context) const {
+  Class& cls = Class::Handle(clazz());
+  if (cls.IsSignatureClass()) {
+    if (function != NULL) {
+      *function = Closure::function(*this);
+    }
+    if (context != NULL) {
+      *context = Closure::context(*this);
+    }
+    return true;
+  }
+  // Try to resolve a "call" method.
+  const String& call_symbol = String::Handle(Symbols::Call());
+  Function& call_function = Function::Handle();
+  do {
+    call_function = cls.LookupDynamicFunction(call_symbol);
+    if (!call_function.IsNull()) {
+      if (function != NULL) {
+        *function = call_function.raw();
+      }
+      if (context != NULL) {
+        *context = Isolate::Current()->object_store()->empty_context();
+      }
+      return true;
+    }
+    cls = cls.SuperClass();
+  } while (!cls.IsNull());
+  return false;
+}
+
+
 RawInstance* Instance::New(const Class& cls, Heap::Space space) {
   Instance& result = Instance::Handle();
   {

@@ -1041,9 +1041,10 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   Instructions& instructions = Instructions::Handle();
   if (!target.IsNull()) {
     if (!target.HasCode()) {
-      const Error& error =
-          Error::Handle(Compiler::CompileFunction(target));
-      if (!error.IsNull()) Exceptions::PropagateError(error);
+      const Error& error = Error::Handle(Compiler::CompileFunction(target));
+      if (!error.IsNull()) {
+        Exceptions::PropagateError(error);
+      }
     }
     ASSERT(target.HasCode());
     instructions = Code::Handle(target.CurrentCode()).instructions();
@@ -1128,7 +1129,6 @@ static RawInstructions* EnsureCompiled(const Function& function) {
     const Error& error = Error::Handle(Compiler::CompileFunction(function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
-      UNREACHABLE();
     }
   }
   const Code& code = Code::Handle(function.CurrentCode());
@@ -1216,7 +1216,7 @@ static RawObject* InvokeNonClosure(const Instance& receiver,
   dart_arguments.Add(&receiver);
   dart_arguments.Add(&call_symbol);
   dart_arguments.Add(&arguments);
-  dart_arguments.Add(&null_object);
+  dart_arguments.Add(&null_object);  // TODO(regis): Provide names.
   // If a function "call" with different arguments exists, it will have been
   // invoked above, so no need to handle this case here.
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
@@ -1261,7 +1261,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   // 4. If there was some other error, propagate it.
   if (value.IsError()) {
     Exceptions::PropagateError(Error::Cast(value));
-    UNREACHABLE();
   }
 
   // 5. If the value is a closure, invoke it and return the result.  If it

@@ -81,16 +81,37 @@ RawObject* DartEntry::InvokeStatic(
 }
 
 
+// TODO(regis): Pass arguments as an Array including the receiver.
 RawObject* DartEntry::InvokeClosure(
-    const Instance& closure,
+    const Instance& instance,
     const GrowableArray<const Object*>& arguments,
     const Array& optional_arguments_names) {
-  // Get the entrypoint corresponding to the closure specified, this
-  // will result in a compilation of the closure if it is not already
-  // compiled.
-  ASSERT(Class::Handle(closure.clazz()).signature_function() != Object::null());
-  const Function& function = Function::Handle(Closure::function(closure));
-  const Context& context = Context::Handle(Closure::context(closure));
+  // Get the entrypoint corresponding to the closure function or to the call
+  // method of the instance. This will result in a compilation of the function
+  // if it is not already compiled.
+  Function& function = Function::Handle();
+  Context& context = Context::Handle();
+  if (!instance.IsCallable(&function, &context)) {
+    // Set up arguments to include the receiver as the first argument.
+    const int num_arguments = arguments.length() + 1;
+    const Array& args = Array::Handle(Array::New(num_arguments));
+    args.SetAt(0, instance);
+    for (int i = 1; i < num_arguments; i++) {
+      args.SetAt(i, *arguments[i - 1]);
+    }
+    const String& call_symbol = String::Handle(Symbols::Call());
+    const Object& null_object = Object::Handle();
+    GrowableArray<const Object*> dart_arguments(5);
+    dart_arguments.Add(&instance);
+    dart_arguments.Add(&call_symbol);
+    dart_arguments.Add(&args);  // Including instance.
+    dart_arguments.Add(&null_object);  // TODO(regis): Provide names.
+    // If a function "call" with different arguments exists, it will have been
+    // invoked above, so no need to handle this case here.
+    Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
+    UNREACHABLE();
+    return Object::null();
+  }
   ASSERT(!function.IsNull());
   if (!function.HasCode()) {
     const Error& error = Error::Handle(Compiler::CompileFunction(function));
@@ -98,10 +119,10 @@ RawObject* DartEntry::InvokeClosure(
       return error.raw();
     }
   }
-  // Set up arguments to include the closure as the first argument.
+  // Set up arguments to include the receiver as the first argument.
   const int num_arguments = arguments.length() + 1;
   GrowableArray<const Object*> args(num_arguments);
-  const Object& arg0 = Object::ZoneHandle(closure.raw());
+  const Object& arg0 = Object::ZoneHandle(instance.raw());
   args.Add(&arg0);
   for (int i = 1; i < num_arguments; i++) {
     args.Add(arguments[i - 1]);

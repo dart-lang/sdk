@@ -20,6 +20,7 @@
     'errors_patch.dart',
     'error.h',
     'expando_patch.dart',
+    'function.cc',
     'function_patch.dart',
     'growable_array.cc',
     'growable_array.dart',

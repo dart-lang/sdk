@@ -3190,6 +3190,12 @@ class Instance : public Object {
   // Returns true if the instance is a closure object.
   bool IsClosure() const;
 
+  // If the instance is a callable object, i.e. a closure or the instance of a
+  // class implementing a 'call' method, return true and set the function
+  // (if not NULL) to call and the context (if not NULL) to pass to the
+  // function.
+  bool IsCallable(Function* function, Context* context) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
   }

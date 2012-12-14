@@ -899,7 +899,7 @@ void FlowGraphCompiler::CompileGraph() {
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional parameters.
   // No such checking code is generated if only fixed parameters are declared,
-  // unless we are debug mode or unless we are compiling a closure.
+  // unless we are in debug mode or unless we are compiling a closure.
   LocalVariable* saved_args_desc_var =
       parsed_function().GetSavedArgumentsDescriptorVar();
   if (num_copied_params == 0) {
@@ -911,11 +911,17 @@ void FlowGraphCompiler::CompileGraph() {
 #endif
     if (check_arguments) {
       __ Comment("Check argument count");
-      // Check that num_fixed <= argc <= num_params.
-      Label argc_in_range;
+      // Check that exactly num_fixed arguments are passed in.
+      Label correct_num_arguments, wrong_num_arguments;
       __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
       __ cmpl(EAX, Immediate(Smi::RawValue(num_fixed_params)));
-      __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
+      __ j(NOT_EQUAL, &wrong_num_arguments, Assembler::kNearJump);
+      __ cmpl(EAX,
+              FieldAddress(EDX,
+                           ArgumentsDescriptor::positional_count_offset()));
+      __ j(EQUAL, &correct_num_arguments, Assembler::kNearJump);
+
+      __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction()) {
         if (StackSize() != 0) {
           // We need to unwind the space we reserved for locals and copied
@@ -952,7 +958,7 @@ void FlowGraphCompiler::CompileGraph() {
       } else {
         __ Stop("Wrong number of arguments");
       }
-      __ Bind(&argc_in_range);
+      __ Bind(&correct_num_arguments);
     }
     // The arguments descriptor is never saved in the absence of optional
     // parameters, since any argument definition test would always yield true.

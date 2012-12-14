@@ -33,7 +33,7 @@ class _ObjectArray<E> implements List<E> {
     if (length < 0) {
       throw new ArgumentError("negative length $length");
     }
-      if (from is _ObjectArray) {
+    if (from is _ObjectArray) {
       _copyFromObjectArray(from, startFrom, start, length);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
