@@ -1112,16 +1112,6 @@ $lazyInitializerLogic
     }
   }
 
-  void emitTypedefChecksOn(DartType type, void emitTest(Element element)) {
-    for (TypedefElement typedef in checkedTypedefs) {
-      FunctionType typedefType =
-          typedef.computeType(compiler).unalias(compiler);
-      if (compiler.types.isSubtype(type, typedefType)) {
-        emitTest(typedef);
-      }
-    }
-  }
-
   /**
    * Generate "is tests" for [cls]: itself, and the "is tests" for the
    * classes it implements. We don't need to add the "is tests" of the
@@ -1147,7 +1137,14 @@ $lazyInitializerLogic
         generateInterfacesIsTests(compiler.functionClass,
                                   emitIsTest,
                                   generated);
-        emitTypedefChecksOn(call.computeType(compiler), emitIsTest);
+        FunctionType callType = call.computeType(compiler);
+        for (TypedefElement typedef in checkedTypedefs) {
+          FunctionType typedefType =
+              typedef.computeType(compiler).unalias(compiler);
+          if (compiler.types.isSubtype(callType, typedefType)) {
+            emitIsTest(typedef);
+          }
+        }
       }
     }
     for (DartType interfaceType in cls.interfaces) {
@@ -1285,7 +1282,6 @@ $lazyInitializerLogic
     buffer.add(functionBuffer);
     buffer.add('$N$n');
   }
-
   void emitStaticFunctionsWithNamer(CodeBuffer buffer,
                                     Map<Element, CodeBuffer> generatedCode,
                                     String functionNamer(Element element)) {
@@ -1328,10 +1324,6 @@ $lazyInitializerLogic
       // in case it is used in spawnFunction.
       String fieldName = namer.STATIC_CLOSURE_NAME_NAME;
       buffer.add('$fieldAccess.$fieldName$_=$_"$staticName"$N');
-      emitTypedefChecksOn(element.computeType(compiler), (Element typedef) {
-        String operator = namer.operatorIs(typedef);
-        buffer.add('$fieldAccess.$operator$_=${_}true$N');
-      });
     }
   }
 
@@ -1445,12 +1437,6 @@ $lazyInitializerLogic
       addParameterStubs(callElement, (String stubName, CodeBuffer memberValue) {
         boundClosureBuffer.add(',\n$_$stubName:$_$memberValue');
       });
-
-      emitTypedefChecksOn(member.computeType(compiler), (Element typedef) {
-        String operator = namer.operatorIs(typedef);
-        boundClosureBuffer.add(',\n$_$operator$_:${_}true');
-      });
-
       boundClosureBuffer.add("$n}$N");
 
       closureClass = namer.isolateAccess(closureClassElement);

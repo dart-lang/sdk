@@ -1101,7 +1101,7 @@ class JavaScriptBackend extends Backend {
       return const SourceString('numTypeCheck');
     } else if (element == compiler.boolClass) {
       return const SourceString('boolTypeCheck');
-    } else if (element == compiler.functionClass) {
+    } else if (element == compiler.functionClass || element.isTypedef()) {
       return const SourceString('functionTypeCheck');
     } else if (element == compiler.intClass) {
       return const SourceString('intTypeCheck');

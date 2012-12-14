@@ -54,8 +54,7 @@ function_type_test: Fail # does not detect type error in checked mode.
 factory1_test/00: Fail
 factory1_test/01: Fail
 type_annotation_test/09: Fail # Named constructors interpreted as a type.
-prefix15_test: Fail # Issue 5022
-local_function2_test: Fail # Issue 5022
+callable_test/0*: Fail # Issue 7354
 
 [ $compiler == dart2js && $unchecked ]
 default_factory2_test/01: Fail # type arguments on redirecting factory not implemented

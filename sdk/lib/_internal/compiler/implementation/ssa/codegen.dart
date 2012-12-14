@@ -2291,11 +2291,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary('==', pop(), new js.LiteralNull()));
   }
 
-  void checkNonNull(HInstruction input) {
-    use(input);
-    push(new js.Binary('!=', pop(), new js.LiteralNull()));
-  }
-
   void checkFunction(HInstruction input, DartType type) {
     checkTypeOf(input, '===', 'function');
     js.Expression functionTest = pop();
@@ -2419,12 +2414,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else if (identical(element, compiler.listClass)
                || Elements.isListSupertype(element, compiler)) {
       handleListOrSupertypeCheck(input, type);
-      attachLocationToLast(node);
-    } else if (element.isTypedef()) {
-      checkNonNull(input);
-      js.Expression nullTest = pop();
-      checkType(input, type);
-      push(new js.Binary('&&', nullTest, pop()));
       attachLocationToLast(node);
     } else if (types[input].canBePrimitive() || types[input].canBeNull()) {
       checkObject(input, '===');
