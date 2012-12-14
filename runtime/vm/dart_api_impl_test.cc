@@ -7327,7 +7327,7 @@ TEST_CASE(MakeExternalString) {
 
 TEST_CASE(ExternalizeConstantStrings) {
   const char* kScriptChars =
-      "void testMain() {\n"
+      "String testMain() {\n"
       "  return 'constant string';\n"
       "}\n";
 

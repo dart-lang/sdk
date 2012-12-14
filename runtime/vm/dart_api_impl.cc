@@ -1714,7 +1714,7 @@ DART_EXPORT Dart_Handle Dart_StringToLatin1(Dart_Handle str,
     RETURN_NULL_ERROR(length);
   }
   const String& str_obj = Api::UnwrapStringHandle(isolate, str);
-  if (str_obj.IsNull() || !Dart_IsStringLatin1(str)) {
+  if (str_obj.IsNull() || !str_obj.IsOneByteString()) {
     RETURN_TYPE_ERROR(isolate, str, String);
   }
   intptr_t str_len = str_obj.Length();
