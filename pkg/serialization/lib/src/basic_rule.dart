@@ -170,7 +170,7 @@ class BasicRule extends SerializationRule {
   checkForEssentialLists(index, value) {
     if (value is List && fields.contents[index].isEssential) {
       return new DesignatedRuleForObject(value,
-          (index) => index is ListRuleEssential);
+          (SerializationRule rule) => rule is ListRuleEssential);
     } else {
       return value;
     }
@@ -206,7 +206,7 @@ class BasicRule extends SerializationRule {
    * this is true if the type mirrors are the same.
    */
   // TODO(alanknight): This seems likely to be slow. Verify. Other options?
-  bool appliesTo(object) => reflect(object).type == type;
+  bool appliesTo(object, Writer w) => reflect(object).type == type;
 
   /**
    * Given the various field lists provided by the user, construct the list
@@ -492,7 +492,7 @@ class _FieldList implements Iterable {
  *  Provide a typedef for the setWith argument to specialTreatmentFor. It would
  * be nice if we could put this closer to the definition.
  */
-typedef SetWithFunction(InstanceMirror m, Object o);
+typedef SetWithFunction(InstanceMirror m, object);
 
 /**
  * This represents a constructor that is to be used when re-creating a

@@ -37,8 +37,8 @@ class Writer {
    * once and stored here for each object. This provides some space-saving,
    * but also serves to record which objects we have already seen.
    */
-  final Map<Object, Reference> references =
-      new IdentityMapPlus<Object, Reference>();
+  final Map<dynamic, Reference> references =
+      new IdentityMapPlus<dynamic, Reference>();
 
   /**
    * The state of objects that need to be serialized is stored here.
@@ -51,7 +51,7 @@ class Writer {
   final List<List> states = new List<List>();
 
   /** Return the list of rules we use. */
-  List<SerializationRule> get rules => serialization.rules;
+  List<SerializationRule> get rules => serialization._rules;
 
   /**
    * Creates a new [Writer] that uses the rules from its parent
@@ -147,7 +147,7 @@ class Writer {
    */
   void _process(object, Trace trace) {
     var real = (object is DesignatedRuleForObject) ? object.target : object;
-    for (var eachRule in serialization.rulesFor(object)) {
+    for (var eachRule in serialization.rulesFor(object, this)) {
       _record(real, eachRule);
     }
   }
@@ -160,7 +160,7 @@ class Writer {
    * Note that at this point the states are just the same as the fields of the
    * object, and haven't been flattened.
    */
-  void _record(Object object, SerializationRule rule) {
+  void _record(object, SerializationRule rule) {
     if (rule.shouldUseReferenceFor(object, this)) {
       references.putIfAbsent(object, () =>
           new Reference(this, rule.number, _nextObjectNumberFor(rule)));
@@ -177,7 +177,7 @@ class Writer {
   bool shouldUseReferencesForPrimitives = false;
 
   /** Record a [state] entry for a particular rule. */
-  void _addStateForRule(eachRule, Object state) {
+  void _addStateForRule(eachRule, state) {
     _growStates(eachRule);
     states[eachRule.number].add(state);
   }
@@ -206,7 +206,7 @@ class Writer {
    * isn't, it's possible to apply a rule for String, or even for Strings larger
    * than x, which gives them references.
    */
-  bool _hasIndexFor(Object object) {
+  bool _hasIndexFor(object) {
     return _objectNumberFor(object) != -1;
   }
 
@@ -216,7 +216,7 @@ class Writer {
    * this will return the one for the primary rule, defined as the one that
    * is listed in its canonical reference.
    */
-  int _objectNumberFor(Object object) {
+  int _objectNumberFor(object) {
     var reference = references[object];
     return (reference == null) ? -1 : reference.objectNumber;
   }
@@ -247,7 +247,7 @@ class Writer {
       var meta = serialization._ruleSerialization();
       var writer = new Writer(meta);
       writer.selfDescribing = false;
-      savedRules = writer.write(serialization.rules);
+      savedRules = writer.write(serialization._rules);
     }
     result["rules"] = savedRules;
     result["data"] = states;
@@ -268,13 +268,23 @@ class Writer {
    * objects that should have a reference (roughly speaking, non-primitives)
    * can be relied on to have a reference.
    */
-  _referenceFor(Object o) {
-    return references[o];
-  }
+  _referenceFor(object) => references[object];
+
+  /**
+   * Return true if the [namedObjects] collection has a reference to [object].
+   */
+  // TODO(alanknight): Should the writer also have its own namedObjects
+  // collection specific to the particular write, or is that just adding
+  // complexity for little value?
+  hasNameFor(object) => serialization._hasNameFor(object);
+
+  /**
+   * Return the name we have for this object in the [namedObjects] collection.
+   */
+  nameFor(object) => serialization._nameFor(object);
 
   // For debugging/testing purposes. Find what state a reference points to.
-  stateForReference(Reference r) =>
-      states[r.ruleNumber][r.objectNumber];
+  stateForReference(Reference r) => states[r.ruleNumber][r.objectNumber];
 }
 
 /**
@@ -331,15 +341,15 @@ class Reader {
    * look things up can be provided as an argument to read, but we can also
    * provide a map here, and objects will be looked up in both places.
    */
-  Map externalObjects;
+  Map namedObjects;
 
   /**
    * Look up the reference to an external object. This can be held either in
    * the reader-specific list of externals or in the serializer's
    */
-  externalObjectNamed(key) {
-    var map = (externalObjects.containsKey(key))
-        ? externalObjects : serialization.externalObjects;
+  objectNamed(key) {
+    var map = (namedObjects.containsKey(key))
+        ? namedObjects : serialization.namedObjects;
     if (!map.containsKey(key)) {
       throw 'Cannot find named object to link to: $key';
     }
@@ -350,7 +360,7 @@ class Reader {
    * Return the list of rules to be used when writing. These come from the
    * [serialization].
    */
-  List<SerializationRule> get rules => serialization.rules;
+  List<SerializationRule> get rules => serialization._rules;
 
   /**
    * Internal use only, for testing purposes. Set the data for this reader
@@ -365,17 +375,17 @@ class Reader {
   /**
    * This is the primary method for a [Reader]. It takes the input data,
    * currently hard-coded to expect our custom JSON format, and returns
-   * the root objects.
+   * the root object.
    */
   read(String input, [Map externals = const {}]) {
-    externalObjects = externals;
+    namedObjects = externals;
     var topLevel = JSON.parse(input);
     var ruleString = topLevel["rules"];
     readRules(ruleString, externals);
     data = topLevel["data"];
     rules.forEach(inflateForRule);
     var roots = topLevel["roots"];
-    return roots.map(inflateReference);
+    return inflateReference(roots.first);
   }
 
   /**
@@ -385,7 +395,7 @@ class Reader {
   void readRules(String newRules, Map externals) {
     // TODO(alanknight): Replacing the serialization is kind of confusing.
     List rulesWeRead = (newRules == null) ?
-        null : serialization._ruleSerialization().readOne(newRules, externals);
+        null : serialization._ruleSerialization().read(newRules, externals);
     if (rulesWeRead != null && !rulesWeRead.isEmpty) {
       serialization = new Serialization.blank();
       rulesWeRead.forEach(serialization.addRule);
@@ -400,7 +410,7 @@ class Reader {
   readFlat(List input, [Map externals = const {}]) {
     // TODO(alanknight): Way too much code duplication with read. Numerous
     // code smells.
-    externalObjects = externals;
+    namedObjects = externals;
     var topLevel = input;
     var ruleString = topLevel[0];
     readRules(ruleString, externals);
@@ -421,23 +431,8 @@ class Reader {
       roots.add(new Reference(this, rootStream.next(), rootStream.next()));
     }
     var x = inflateReference(roots[0]);
-    return roots.map((x) => inflateReference(x));
+    return inflateReference(roots.first);
   }
-
-
-  /**
-   * A convenient alternative to [read] when you know there is only
-   * one object.
-   */
-  readOne(String input, [Map externals = const {}]) =>
-      read(input, externals).first;
-
-  /**
-   * A convenient alternative to [readFlat] when you know there is only
-   * one object.
-   */
-  readOneFlat(List input, [Map externals = const {}]) =>
-      readFlat(input, externals).first;
 
   /**
    * Inflate all of the objects for [rule]. Does the essential state for all
@@ -461,7 +456,7 @@ class Reader {
    * follow references and recursively inflate them, leaving Sentinel objects
    * to detect cycles.
    */
-  Object inflateOne(SerializationRule rule, position, state) {
+  inflateOne(SerializationRule rule, position, state) {
     var existing = allObjectsForRule(rule)[position];
     // We may already be in progress and hitting this in a cycle.
     if (existing is _Sentinel) {
@@ -482,7 +477,7 @@ class Reader {
    * return it. If it is, then inflate the target of the reference and return
    * the resulting object.
    */
-  Object inflateReference(possibleReference) {
+  inflateReference(possibleReference) {
     // If this is a primitive, return it directly.
     // TODO This seems too complicated.
     return asReference(possibleReference,
@@ -498,19 +493,19 @@ class Reader {
    * Given [reference], return what we have stored as an object for it. Note
    * that, depending on the current state, this might be null or a Sentinel.
    */
-  Object _objectFor(Reference reference) =>
+  _objectFor(Reference reference) =>
       objects[reference.ruleNumber][reference.objectNumber];
 
   /** Given [rule], return the storage for its objects. */
   allObjectsForRule(SerializationRule rule) => objects[rule.number];
 
   /** Given [reference], return the the state we have stored for it. */
-  Object _stateFor(Reference reference) =>
+  _stateFor(Reference reference) =>
       _data[reference.ruleNumber][reference.objectNumber];
 
   /** Given a reference, return the rule it references. */
   SerializationRule ruleFor(Reference reference) =>
-      serialization.rules[reference.ruleNumber];
+      serialization._rules[reference.ruleNumber];
 
   /**
    * Given a possible reference [anObject], call either [ifReference] or
@@ -568,8 +563,8 @@ class Trace {
   }
 
   /** A convenience method to add a single root and trace it in one step. */
-  trace(Object o) {
-    addRoot(o);
+  trace(object) {
+    addRoot(object);
     traceAll();
   }
 
@@ -594,7 +589,7 @@ class Trace {
   }
 
   /** Note that we've seen [value], and add it to the queue to be processed. */
-  note(Object value) {
+  note(value) {
     if (value != null) {
       queue.add(value);
     }
@@ -653,4 +648,3 @@ class DesignatedRuleForObject {
 
   possibleRules(List rules) => rules.filter(rulePredicate);
 }
-

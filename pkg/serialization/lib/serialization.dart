@@ -166,7 +166,13 @@ class Serialization {
    * The serialization is controlled by the list of Serialization rules. These
    * are most commonly added via [addRuleFor].
    */
-  List rules = [];
+  List _rules = [];
+
+  /**
+   * The serialization is controlled by the list of Serialization rules. These
+   * are most commonly added via [addRuleFor].
+   */
+  List get rules => _rules;
 
   /**
    * When reading, we may need to resolve references to existing objects in
@@ -177,13 +183,34 @@ class Serialization {
    * the account. Instead we should just connect the de-serialized message
    * object to the account object that already exists there.
    */
-  Map<String, dynamic> externalObjects = {};
+  Map<String, dynamic> namedObjects = {};
 
   /**
    * When we write out data using this serialization, should we also write
-   * out a description of the rules.
+   * out a description of the rules. This is on by default unless using
+   * CustomRule subclasses, in which case it requires additional setup and
+   * is off by default.
    */
-  bool selfDescribing = true;
+  bool _selfDescribing;
+
+  /**
+   * When we write out data using this serialization, should we also write
+   * out a description of the rules. This is on by default unless using
+   * CustomRule subclasses, in which case it requires additional setup and
+   * is off by default.
+   */
+  bool get selfDescribing {
+    if (_selfDescribing != null) return _selfDescribing;
+    return !_rules.some((x) => x is CustomRule);
+  }
+
+  /**
+   * When we write out data using this serialization, should we also write
+   * out a description of the rules. This is on by default unless using
+   * CustomRule subclasses, in which case it requires additional setup and
+   * is off by default.
+   */
+  set selfDescribing(x) => _selfDescribing = x;
 
   /**
    * Creates a new serialization with a default set of rules for primitives
@@ -256,8 +283,8 @@ class Serialization {
    * method.
    */
   void addRule(SerializationRule rule) {
-    rule.number = rules.length;
-    rules.add(rule);
+    rule.number = _rules.length;
+    _rules.add(rule);
   }
 
   /**
@@ -286,26 +313,16 @@ class Serialization {
   }
 
   /**
-   * Read the serialized data from [input] and return a List of the root
-   * objects from the result. If there are objects that need to be resolved
+   * Read the serialized data from [input] and return the root object
+   * from the result. If there are objects that need to be resolved
    * in the current context, they should be provided in [externals] as a
    * Map from names to values. In particular, in the current implementation
    * any class mirrors needed should be provided in [externals] using the
    * class name as a key. In addition to the [externals] map provided here,
    * values will be looked up in the [externalObjects] map.
    */
-  List read(String input, [Map externals = const {}]) {
+  read(String input, [Map externals = const {}]) {
     return newReader().read(input, externals);
-  }
-
-  /**
-   * In the most common case there is only a single root object to be read,
-   * and this method can be used to return just one object rather than
-   * a List. The [input] and [externals] parameters are the same as for the
-   * general [read] method.
-   */
-  Object readOne(String input, [Map externals = const {}]) {
-    return newReader().readOne(input, externals);
   }
 
   /**
@@ -319,7 +336,7 @@ class Serialization {
    * Return the list of SerializationRule that apply to [object]. For
    * internal use, but public because it's used in testing.
    */
-  List<SerializationRule> rulesFor(object) {
+  List<SerializationRule> rulesFor(object, Writer w) {
     // This has a couple of edge cases.
     // 1) The owning object may have indicated we should use a different
     // rule than the default.
@@ -338,12 +355,13 @@ class Serialization {
     var target, candidateRules;
     if (object is DesignatedRuleForObject) {
       target = object.target;
-      candidateRules = object.possibleRules(rules);
+      candidateRules = object.possibleRules(_rules);
     } else {
       target = object;
-      candidateRules = rules;
+      candidateRules = _rules;
     }
-    List applicable = candidateRules.filter((each) => each.appliesTo(target));
+    List applicable = candidateRules.filter(
+        (each) => each.appliesTo(target, w));
 
     if (applicable.isEmpty) {
       return [addRuleFor(target)];
@@ -374,8 +392,7 @@ class Serialization {
 
     // Make some bogus rule instances so we have something to feed rule creation
     // and get their types. If only we had class literals implemented...
-    var closureRule = new ClosureToMapRule.stub([].runtimeType);
-    var basicRule = new BasicRule(reflect(null).type, '', [], [], []);
+   var basicRule = new BasicRule(reflect(null).type, '', [], [], []);
 
     var meta = new Serialization()
       ..selfDescribing = false
@@ -387,9 +404,27 @@ class Serialization {
             'constructorName',
             'constructorFields', 'regularFields', []],
           fields: [])
-      ..addRule(new ClassMirrorRule());
-    meta.externalObjects = externalObjects;
+      ..addRule(new NamedObjectRule())
+      ..addRule(new MirrorRule());
+    meta.namedObjects = namedObjects;
     return meta;
+  }
+
+  /** Return true if our [namedObjects] collection has an entry for [object].*/
+  bool _hasNameFor(object) {
+    var sentinel = const _Sentinel();
+    return _nameFor(object, () => sentinel) != sentinel;
+  }
+
+  /**
+   * Return the name we have for [object] in our [namedObjects] collection or
+   * the result of evaluating [ifAbsent] if there is no entry.
+   */
+  _nameFor(object, [ifAbsent]) {
+    for (var key in namedObjects.keys) {
+      if (identical(namedObjects[key], object)) return key;
+    }
+    return ifAbsent == null ? null : ifAbsent();
   }
 }
 

@@ -201,5 +201,3 @@ class IdentityMapPlus<K, V> extends IdentityMap {
    */
   get keys => super.keys.map((x) => unwrap(x));
 }
-
-
