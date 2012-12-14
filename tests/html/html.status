@@ -210,12 +210,12 @@ html/element_test/constructors: Fail
 
 
 [ $runtime == opera ]
-document_test/getCssCanvasContext: Fail # TODO(ahe): Please triage this failure.
-form_data_test: Fail # TODO(ahe): Please triage this failure.
-keyboard_event_test: Fail # TODO(ahe): Please triage this failure.
-xmldocument_2_test: Fail # TODO(ahe): Please triage this failure.
-element_test/eventListening: Fail # TODO(ahe): Please triage this failure.
-element_test/children: Fail # TODO(ahe): Please triage this failure.
+document_test/getCssCanvasContext: Fail # Issue: 7413
+form_data_test: Fail # Issue: 7413
+keyboard_event_test: Fail # Issue: 7413
+xmldocument_2_test: Fail # Issue: 7413
+element_test/eventListening: Fail # Issue: 7413
+element_test/children: Fail # Issue: 7413
 audiobuffersourcenode_test: Fail
 cache_test: Fail
 canvas_test: Pass,Fail
