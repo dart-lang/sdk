@@ -1117,18 +1117,13 @@ convertDartClosureToJS(closure, int arity) {
   if (closure == null) return null;
   var function = JS('var', r'#.$identity', closure);
   if (JS('bool', r'!!#', function)) return function;
-  // Fetch the current isolate in a local variable to prevent the
-  // compiler from inlining its use in the following JS expression:
-  // the current isolate may have changed so if we read it from the JS
-  // closure, it leads to the wrong isolate.
-  var currentIsolate = JS_CURRENT_ISOLATE();
 
   function = JS("var", r"""function() {
     return #(#, #, #, arguments[0], arguments[1]);
   }""",
   DART_CLOSURE_TO_JS(invokeClosure),
   closure,
-  currentIsolate,
+  JS_CURRENT_ISOLATE(),
   arity);
 
   JS('void', r'#.$identity = #', closure, function);

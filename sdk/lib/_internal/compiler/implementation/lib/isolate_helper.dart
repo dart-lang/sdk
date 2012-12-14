@@ -5,8 +5,7 @@
 library _isolate_helper;
 
 import 'dart:isolate';
-
-ReceivePort lazyPort;
+import 'dart:uri';
 
 /**
  * Called by the compiler to support switching
@@ -22,6 +21,10 @@ void _callInIsolate(_IsolateContext isolate, Function function) {
  */
 _IsolateContext _currentIsolate() => _globalState.currentContext;
 
+/********************************************************
+  Inserted from lib/isolate/dart2js/compiler_hooks.dart
+ ********************************************************/
+
 /**
  * Wrapper that takes the dart entry point and runs it within an isolate. The
  * dart2js compiler will inject a call of the form
@@ -36,6 +39,7 @@ void startRootIsolate(entry) {
   if (_globalState.isWorker) return;
   final rootContext = new _IsolateContext();
   _globalState.rootContext = rootContext;
+  _fillStatics(rootContext);
 
   // BUG(5151491): Setting currentContext should not be necessary, but
   // because closures passed to the DOM as event handlers do not bind their
@@ -78,12 +82,18 @@ void startRootIsolate(entry) {
  */
 // TODO(eub, sigmund): move the "manager" to be entirely in JS.
 // Running any Dart code outside the context of an isolate gives it
-// the chance to break the isolate abstraction.
+// the change to break the isolate abstraction.
 _Manager get _globalState => JS("_Manager", r"$globalState");
-
 set _globalState(_Manager val) {
   JS("void", r"$globalState = #", val);
 }
+
+void _fillStatics(context) {
+  JS("void", r"$globals = #.isolateStatics", context);
+  JS("void", r"$static_init()");
+}
+
+ReceivePort lazyPort;
 
 /** State associated with the current manager. See [globalState]. */
 // TODO(sigmund): split in multiple classes: global, thread, main-worker states?
@@ -157,27 +167,22 @@ class _Manager {
   }
 
   void _nativeDetectEnvironment() {
-    bool isWindowDefined = globalWindow != null;
-    bool isWorkerDefined = globalWorker != null;
-
-    isWorker = !isWindowDefined && globalPostMessageDefined;
-    supportsWorkers = isWorker
-        || (isWorkerDefined && IsolateNatives.thisScript != null);
-    fromCommandLine = !isWindowDefined && !isWorker;
+    isWorker = JS("bool", r"$isWorker");
+    supportsWorkers = JS("bool", r"$supportsWorkers");
+    fromCommandLine = JS("bool", r"typeof(window) == 'undefined'");
   }
 
   void _nativeInitWorkerMessageHandler() {
-    var function = JS('',
-                      "function (e) { #(#, e); }",
-                      DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage),
-                      mainManager);
-    JS("void", r"#.onmessage = #", globalThis, function);
-    // We define dartPrint so that the implementation of the Dart
-    // print method knows what to call.
-    // TODO(ngeoffray): Should we forward to the main isolate? What if
-    // it exited?
-    JS('void', r'#.dartPrint = function (object) {}', globalThis);
+    JS("void", r"""
+$globalThis.onmessage = function (e) {
+  IsolateNatives._processWorkerMessage(this.mainManager, e);
+}""");
   }
+  /*: TODO: check that _processWorkerMessage is not discarded while treeshaking.
+  """ {
+    IsolateNatives._processWorkerMessage(null, null);
+  }
+  */
 
 
   /** Close the worker running this code if all isolates are done. */
@@ -202,8 +207,11 @@ class _IsolateContext {
   _IsolateContext() {
     id = _globalState.nextIsolateId++;
     ports = new Map<int, ReceivePort>();
-    isolateStatics = JS_CREATE_ISOLATE();
+    initGlobals();
   }
+
+  // these are filled lazily the first time the isolate starts running.
+  void initGlobals() { JS("void", r'$initGlobals(#)', this); }
 
   /**
    * Run [code] in the context of the isolate represented by [this]. Note this
@@ -223,9 +231,7 @@ class _IsolateContext {
     return result;
   }
 
-  void _setGlobals() {
-    JS_SET_CURRENT_ISOLATE(isolateStatics);
-  }
+  void _setGlobals() { JS("void", r'$setGlobals(#)', this); }
 
   /** Lookup a port registered for this isolate. */
   ReceivePort lookup(int portId) => ports[portId];
@@ -294,11 +300,11 @@ class _EventLoop {
    * run asynchronously.
    */
   void _runHelper() {
-    if (globalWindow != null) {
+    if (hasWindow()) {
       // Run each iteration from the browser's top event loop.
       void next() {
         if (!runIteration()) return;
-        JS('void', 'window.setTimeout(#, 0)', convertDartClosureToJS(next, 0));
+        _window.setTimeout(next, 0);
       }
       next();
     } else {
@@ -354,9 +360,7 @@ class _MainManagerStub implements _ManagerStub {
   void set onmessage(f) {
     throw new Exception("onmessage should not be set on MainManagerStub");
   }
-  void postMessage(msg) {
-    JS("void", r"#.postMessage(#)", globalThis, msg);
-  }
+  void postMessage(msg) { JS("void", r"$globalThis.postMessage(#)", msg); }
   void terminate() {}  // Nothing useful to do here.
 }
 
@@ -368,47 +372,23 @@ class _MainManagerStub implements _ManagerStub {
  */
 // @Native("*Worker");
 class _WorkerStub implements _ManagerStub {
-  get id => JS("", "#.id", this);
+  get id => JS("var", "#.id", this);
   void set id(i) { JS("void", "#.id = #", this, i); }
   void set onmessage(f) { JS("void", "#.onmessage = #", this, f); }
-  void postMessage(msg) { JS("void", "#.postMessage(#)", this, msg); }
-  void terminate() { JS("void", "#.terminate()", this); }
+  void postMessage(msg) => JS("void", "#.postMessage(#)", this, msg);
+  // terminate() is implemented by Worker.
+  void terminate();
 }
 
 const String _SPAWNED_SIGNAL = "spawned";
 
-var globalThis = IsolateNatives.computeGlobalThis();
-var globalWindow = JS('', "#['window']", globalThis);
-var globalWorker = JS('', "#['Worker']", globalThis);
-bool globalPostMessageDefined =
-    JS('', "#['postMessage'] !== (void 0)", globalThis);
-
 class IsolateNatives {
-
-  static String thisScript = computeThisScript();
 
   /**
    * The src url for the script tag that loaded this code. Used to create
    * JavaScript workers.
    */
-  static String computeThisScript() {
-    // TODO(7369): Find a cross-platform non-brittle way of getting the
-    // currently running script.
-    var scripts = JS('=List', r"document.getElementsByTagName('script')");
-    // The scripts variable only contains the scripts that have already been
-    // executed. The last one is the currently running script.
-    for (var script in scripts) {
-      var src = JS('String|Null', '# && #.src', script, script);
-      if (src != null
-          && !src.endsWith('test_controller.js')
-          && !new RegExp('client.dart\.js').hasMatch(src)) {
-        return src;
-      }
-    }
-    return null;
-  }
-
-  static computeGlobalThis() => JS('', 'function() { return this; }()');
+  static String get _thisScript => JS("String", r"$thisScriptUrl");
 
   /** Starts a new worker with the given URL. */
   static _WorkerStub _newWorker(url) => JS("_WorkerStub", r"new Worker(#)", url);
@@ -418,6 +398,7 @@ class IsolateNatives {
    * We don't import the dom explicitly so, when workers are disabled, this
    * library can also run on top of nodejs.
    */
+  //static _getEventData(e) => JS("Object", "#.data", e);
   static _getEventData(e) => JS("", "#.data", e);
 
   /**
@@ -440,11 +421,7 @@ class IsolateNatives {
         _spawnWorker(msg['functionName'], msg['uri'], msg['replyPort']);
         break;
       case 'message':
-        SendPort port = msg['port'];
-        // If the port has been closed, we ignore the message.
-        if (port != null) {
-          msg['port'].send(msg['msg'], msg['replyTo']);
-        }
+        msg['port'].send(msg['msg'], msg['replyTo']);
         _globalState.topEventLoop.run();
         break;
       case 'close':
@@ -484,7 +461,7 @@ class IsolateNatives {
   }
 
   static void _consoleLog(msg) {
-    JS("void", r"#.console.log(#)", globalThis, msg);
+    JS("void", r"$globalThis.console.log(#)", msg);
   }
 
   /**
@@ -492,7 +469,7 @@ class IsolateNatives {
    * isolate.
    */
   static dynamic _getJSConstructor(Isolate runnable) {
-    return JS("", "#.constructor", runnable);
+    return JS("Object", "#.constructor", runnable);
   }
 
   /** Extract the constructor name of a runnable */
@@ -500,16 +477,16 @@ class IsolateNatives {
   // TODO(floitsch): is this function still used? If yes, should we use
   // Primitives.objectTypeName instead?
   static dynamic _getJSConstructorName(Isolate runnable) {
-    return JS("", "#.constructor.name", runnable);
+    return JS("Object", "#.constructor.name", runnable);
   }
 
   /** Find a constructor given its name. */
   static dynamic _getJSConstructorFromName(String factoryName) {
-    return JS("", r"$[#]", factoryName);
+    return JS("Object", r"$globalThis[#]", factoryName);
   }
 
   static dynamic _getJSFunctionFromName(String functionName) {
-    return JS("", r"$[#]", functionName);
+    return JS("Object", r"$globalThis[#]", functionName);
   }
 
   /**
@@ -518,12 +495,12 @@ class IsolateNatives {
    * but you should probably not count on this.
    */
   static String _getJSFunctionName(Function f) {
-    return JS("String|Null", r"(#.$name || #)", f, null);
+    return JS("Object", r"(#.$name || #)", f, null);
   }
 
   /** Create a new JavaScript object instance given its constructor. */
   static dynamic _allocate(var ctor) {
-    return JS("", "new #()", ctor);
+    return JS("Object", "new #()", ctor);
   }
 
   static SendPort spawnFunction(void topLevelFunction()) {
@@ -535,18 +512,9 @@ class IsolateNatives {
     return spawn(name, null, false);
   }
 
-  static SendPort spawnDomFunction(void topLevelFunction()) {
-    final name = _getJSFunctionName(topLevelFunction);
-    if (name == null) {
-      throw new UnsupportedError(
-          "only top-level functions can be spawned.");
-    }
-    return spawn(name, null, true);
-  }
-
   // TODO(sigmund): clean up above, after we make the new API the default:
 
-  static spawn(String functionName, String uri, bool isLight) {
+  static SendPort spawn(String functionName, String uri, bool isLight) {
     Completer<SendPort> completer = new Completer<SendPort>();
     ReceivePort port = new ReceivePort();
     port.receive((msg, SendPort replyPort) {
@@ -591,8 +559,10 @@ class IsolateNatives {
   }
 
   static void _startIsolate(Function topLevel, SendPort replyTo) {
+    _fillStatics(_globalState.currentContext);
     lazyPort = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
+
     topLevel();
   }
 
@@ -602,12 +572,15 @@ class IsolateNatives {
    */
   static void _spawnWorker(functionName, uri, replyPort) {
     if (functionName == null) functionName = 'main';
-    if (uri == null) uri = thisScript;
+    if (uri == null) uri = _thisScript;
+    if (!(new Uri.fromString(uri).isAbsolute())) {
+      // The constructor of dom workers requires an absolute URL. If we use a
+      // relative path we will get a DOM exception.
+      String prefix = _thisScript.substring(0, _thisScript.lastIndexOf('/'));
+      uri = "$prefix/$uri";
+    }
     final worker = _newWorker(uri);
-    worker.onmessage = JS('',
-                          'function(e) { #(#, e); }',
-                          DART_CLOSURE_TO_JS(_processWorkerMessage),
-                          worker);
+    worker.onmessage = (e) { _processWorkerMessage(worker, e); };
     var workerId = _globalState.nextManagerId++;
     // We also store the id on the worker itself so that we can unregister it.
     worker.id = workerId;
@@ -973,7 +946,6 @@ class _JsDeserializer extends _Deserializer {
       var isolate = _globalState.isolates[isolateId];
       if (isolate == null) return null; // Isolate has been closed.
       var receivePort = isolate.lookup(receivePortId);
-      if (receivePort == null) return null; // Port has been closed.
       return new _NativeJsSendPort(receivePort, isolateId);
     } else {
       return new _WorkerSendPort(managerId, isolateId, receivePortId);
@@ -1245,33 +1217,67 @@ class _Deserializer {
   }
 }
 
+/********************************************************
+  Inserted from lib/isolate/dart2js/timer_provider.dart
+ ********************************************************/
+
+// We don't want to import the DOM library just because of window.setTimeout,
+// so we reconstruct the Window class here. The only conflict that could happen
+// with the other DOMWindow class would be because of subclasses.
+// Currently, none of the two Dart classes have subclasses.
+typedef void _TimeoutHandler();
+
+// @Native("*DOMWindow");
+class _Window {
+  int setTimeout(_TimeoutHandler handler, int timeout) {
+    return JS('int',
+              '#.setTimeout(#, #)',
+              this,
+              convertDartClosureToJS(handler, 0),
+              timeout);
+  }
+
+  int setInterval(_TimeoutHandler handler, int timeout) {
+    return JS('int',
+              '#.setInterval(#, #)',
+              this,
+              convertDartClosureToJS(handler, 0),
+              timeout);
+  }
+
+  void clearTimeout(int handle) {
+    JS('void', '#.clearTimeout(#)', this, handle);
+  }
+
+  void clearInterval(int handle) {
+    JS('void', '#.clearInterval(#)', this, handle);
+  }
+}
+
+_Window get _window =>
+  JS('bool', 'typeof window != "undefined"') ? JS('_Window', 'window') : null;
+
+bool hasWindow() => _window != null;
+
 class TimerImpl implements Timer {
   final bool _once;
   int _handle;
 
   TimerImpl(int milliseconds, void callback(Timer timer))
       : _once = true {
-    _handle = JS('int', '#.setTimeout(#, #)',
-                 globalThis,
-                 convertDartClosureToJS(() => callback(this), 0),
-                 milliseconds);
+    _handle = _window.setTimeout(() => callback(this), milliseconds);
   }
 
   TimerImpl.repeating(int milliseconds, void callback(Timer timer))
       : _once = false {
-    _handle = JS('int', '#.setInterval(#, #)',
-                 globalThis,
-                 convertDartClosureToJS(() => callback(this), 0),
-                 milliseconds);
+    _handle = _window.setInterval(() => callback(this), milliseconds);
   }
 
   void cancel() {
     if (_once) {
-      JS('void', '#.clearTimeout(#)', globalThis, _handle);
+      _window.clearTimeout(_handle);
     } else {
-      JS('void', '#.clearInterval(#)', globalThis, _handle);
+      _window.clearInterval(_handle);
     }
   }
 }
-
-bool hasTimer() => JS('', '#.setTimeout', globalThis) != null;

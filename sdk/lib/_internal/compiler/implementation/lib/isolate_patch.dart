@@ -29,7 +29,7 @@ patch class ReceivePort {
 
 patch class Timer {
   patch factory Timer(int milliseconds, void callback(Timer timer)) {
-    if (!hasTimer()) {
+    if (!hasWindow()) {
       throw new UnsupportedError("Timer interface not supported.");
     }
     return new TimerImpl(milliseconds, callback);
@@ -40,7 +40,7 @@ patch class Timer {
    * [milliseconds] millisecond until cancelled.
    */
   patch factory Timer.repeating(int milliseconds, void callback(Timer timer)) {
-    if (!hasTimer()) {
+    if (!hasWindow()) {
       throw new UnsupportedError("Timer interface not supported.");
     }
     return new TimerImpl.repeating(milliseconds, callback);

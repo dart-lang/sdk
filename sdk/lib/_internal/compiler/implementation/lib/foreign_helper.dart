@@ -8,7 +8,7 @@ dynamic JS(String typeDescription, String code,
     [var arg0, var arg1, var arg2]) {}
 
 /**
- * Invokes a method without the compiler trying to intercept it.
+ * Invoke a method without the compiler trying to intercept it.
  */
 dynamic UNINTERCEPTED(var expression) {}
 
@@ -23,21 +23,11 @@ bool JS_HAS_EQUALS(var object) {}
 dynamic JS_CURRENT_ISOLATE() {}
 
 /**
- * Invokes [function] in the context of [isolate].
+ * Invoke [function] in the context of [isolate].
  */
 dynamic JS_CALL_IN_ISOLATE(var isolate, Function function) {}
 
 /**
- * Converts the Dart closure [function] into a JavaScript closure.
+ * Convers the Dart closure [function] into a JavaScript closure.
  */
 dynamic DART_CLOSURE_TO_JS(Function function) {}
-
-/**
- * Sets the current isolate to [isolate].
- */
-void JS_SET_CURRENT_ISOLATE(var isolate) {}
-
-/**
- * Creates an isolate and returns it.
- */
-dynamic JS_CREATE_ISOLATE() {}
