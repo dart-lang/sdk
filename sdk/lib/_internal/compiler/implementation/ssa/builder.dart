@@ -3431,7 +3431,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return;
       }
 
-      if (element.declaration == compiler.identicalFunction) {
+      if (identical(element, compiler.identicalFunction)) {
         pushWithPosition(new HIdentity(target, inputs[1], inputs[2]), node);
         return;
       }
