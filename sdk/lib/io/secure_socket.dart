@@ -304,7 +304,8 @@ class _SecureSocket implements SecureSocket {
         toRead = len;
       }
     }
-    List<int> result = buffer.data.getRange(buffer.start, toRead);
+    List<int> result = (toRead == 0) ? null :
+        buffer.data.getRange(buffer.start, toRead);
     buffer.advanceStart(toRead);
     _setHandlersAfterRead();
     return result;
