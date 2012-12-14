@@ -139,7 +139,7 @@ Future _saveCredentials(SystemCache cache, Credentials credentials) {
   _credentials = credentials;
   var path = _credentialsFile(cache);
   return ensureDir(dirname(path)).chain((_) =>
-      writeTextFile(path, credentials.toJson()));
+      writeTextFile(path, credentials.toJson(), dontLogContents: true));
 }
 
 /// The path to the file in which the user's OAuth2 credentials are stored.

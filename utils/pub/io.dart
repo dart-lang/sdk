@@ -104,14 +104,16 @@ Future<String> readTextFile(file) {
 /**
  * Creates [file] (which can either be a [String] or a [File]), and writes
  * [contents] to it. Completes when the file is written and closed.
+ *
+ * If [dontLogContents] is true, the contents of the file will never be logged.
  */
-Future<File> writeTextFile(file, String contents) {
+Future<File> writeTextFile(file, String contents, {dontLogContents: false}) {
   var path = _getPath(file);
   file = new File(path);
 
   // Sanity check: don't spew a huge file.
   log.io("Writing ${contents.length} characters to text file $path.");
-  if (contents.length < 1024 * 1024) {
+  if (!dontLogContents && contents.length < 1024 * 1024) {
     log.fine("Contents:\n$contents");
   }
 
@@ -517,7 +519,8 @@ class PubHttpClient extends http.BaseClient {
 
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     log.io("Sending HTTP request $request.");
-    // TODO(rnystrom): Log request body when it's available and plaintext.
+    // TODO(rnystrom): Log request body when it's available and plaintext, but
+    // not when it contains OAuth2 credentials.
 
     // TODO(nweiz): remove this when issue 4061 is fixed.
     var stackTrace;
