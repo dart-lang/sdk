@@ -6066,4 +6066,43 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(),
         errEx(TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE, 7, 17, 1));
   }
+
+  public void test_builtInIdentifier_asType() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  abstract v_abstract;",
+        "}",
+        "");
+    assertErrors(result.getErrors(),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 3, 3, 8));
+  }
+
+  public void test_builtInIdentifier_asParameterizedType() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  abstract<int> v_01;",
+        "  as<int> v_02;",
+        "  export<int> v_03;",
+        "  external<int> v_04;",
+        "  factory<int> v_05;",
+        "  get<int> v_06;",
+        "  implements<int> v_07;",
+        "  import<int> v_08;",
+        "  library<int> v_09;",
+        "  operator<int> v_q0;",
+        "  part<int> v_11;",
+        "  set<int> v_12;",
+        "  static<int> v_13;",
+        "  typedef<int> v_14;",
+        "}",
+        "");
+    List<DartCompilationError> errors = result.getErrors();
+    assertEquals(14, errors.size());
+    for (DartCompilationError error : errors) {
+      assertSame(TypeErrorCode.NO_SUCH_TYPE, error.getErrorCode());
+      assertEquals(3, error.getColumnNumber());
+    }
+  }
 }
