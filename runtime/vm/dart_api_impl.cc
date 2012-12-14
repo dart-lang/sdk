@@ -1804,7 +1804,7 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
       }
     } else {
       ASSERT(str_obj.IsTwoByteString());
-      ASSERT(length >= (copy_len * sizeof(uint16_t)));
+      ASSERT(length >= (copy_len * str_obj.CharSize()));
       uint16_t* utf16_array = reinterpret_cast<uint16_t*>(array);
       for (intptr_t i = 0; i < copy_len; i++) {
         utf16_array[i] = static_cast<uint16_t>(str_obj.CharAt(i));
