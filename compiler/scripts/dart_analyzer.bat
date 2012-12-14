@@ -13,7 +13,7 @@ set SCRIPT_DIR=%~dp0
 if %SCRIPT_DIR:~-1%==\ set SCRIPT_DIR=%SCRIPT_DIR:~0,-1%
 
 rem DART_ANALYZER_HOME=$(dirname $SCRIPT_DIR)
-for /f %%i in ('echo %SCRIPT_DIR%') do set DART_ANALYZER_HOME=%%~dpi
+for %%A in ("%SCRIPT_DIR\..") do set "DART_ANALYZER_HOME=%%~fA"
 if %DART_ANALYZER_HOME:~-1%==\ set DART_ANALYZER_HOME=%DART_ANALYZER_HOME:~0,-1%
 
 set FOUND_BATCH=0
