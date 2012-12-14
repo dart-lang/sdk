@@ -9,14 +9,14 @@
  * - Managing parallel execution of tests, including timeout checks.
  * - Evaluating the output of each test as pass/fail/crash/timeout.
  */
-#library("test_runner");
+library test_runner;
 
-#import("dart:io");
-#import("dart:isolate");
-#import("dart:uri");
-#import("status_file_parser.dart");
-#import("test_progress.dart");
-#import("test_suite.dart");
+import "dart:io";
+import "dart:isolate";
+import "dart:uri";
+import "status_file_parser.dart";
+import "test_progress.dart";
+import "test_suite.dart";
 
 const int NO_TIMEOUT = 0;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;

@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("test_options_parser");
+library test_options_parser;
 
-#import("dart:io");
-#import("dart:math");
-#import("drt_updater.dart");
-#import("test_suite.dart");
+import "dart:io";
+import "dart:math";
+import "drt_updater.dart";
+import "test_suite.dart";
 
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',

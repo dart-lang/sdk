@@ -12,17 +12,17 @@
  * - Preparing tests, including copying files and frameworks to temporary
  *   directories, and computing the command line and arguments to be run.
  */
-#library("test_suite");
+library test_suite;
 
-#import("dart:io");
-#import("dart:isolate");
-#import("status_file_parser.dart");
-#import("test_runner.dart");
-#import("multitest.dart");
-#import("drt_updater.dart");
-#import("dart:uri");
+import "dart:io";
+import "dart:isolate";
+import "status_file_parser.dart";
+import "test_runner.dart";
+import "multitest.dart";
+import "drt_updater.dart";
+import "dart:uri";
 
-#source("browser_test.dart");
+part "browser_test.dart";
 
 
 // TODO(rnystrom): Add to dart:core?

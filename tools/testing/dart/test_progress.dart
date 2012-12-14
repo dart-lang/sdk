@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("test_progress");
+library test_progress;
 
-#import("dart:io");
-#import("test_runner.dart");
-#import("test_suite.dart");
-#import("status_file_parser.dart");
+import "dart:io";
+import "test_runner.dart";
+import "test_suite.dart";
+import "status_file_parser.dart";
 
 class ProgressIndicator {
   ProgressIndicator(this._startTime, this._printTiming)
