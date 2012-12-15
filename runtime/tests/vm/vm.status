@@ -32,6 +32,7 @@ dart/isolate_mirror_local_test: Skip
 [ $compiler == dart2js || $compiler == dartc ]
 dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays
+dart/isolate_unhandled*: Skip
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
