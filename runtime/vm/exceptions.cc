@@ -440,6 +440,10 @@ RawObject* Exceptions::Create(
       library = Library::IsolateLibrary();
       class_name = Symbols::New("IsolateSpawnException");
       break;
+    case kIsolateUnhandledException:
+      library = Library::IsolateLibrary();
+      class_name = Symbols::New("IsolateUnhandledException");
+      break;
   }
 
   return DartLibraryCalls::ExceptionCreate(library, class_name, arguments);

@@ -123,7 +123,9 @@ patch ReceivePort get port {
   return _portInternal;
 }
 
-patch spawnFunction(void topLevelFunction()) native "isolate_spawnFunction";
+patch spawnFunction(void topLevelFunction(),
+    [bool UnhandledExceptionCallback(IsolateUnhandledException e)]) 
+    native "isolate_spawnFunction";
 
 patch spawnUri(String uri) native "isolate_spawnUri";
 

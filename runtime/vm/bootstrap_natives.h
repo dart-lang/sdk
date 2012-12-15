@@ -193,7 +193,7 @@ namespace dart {
   V(ExternalFloat64Array_getIndexed, 2)                                        \
   V(ExternalFloat64Array_setIndexed, 3)                                        \
   V(isolate_getPortInternal, 0)                                                \
-  V(isolate_spawnFunction, 1)                                                  \
+  V(isolate_spawnFunction, 2)                                                  \
   V(isolate_spawnUri, 1)                                                       \
   V(Mirrors_isLocalPort, 1)                                                    \
   V(Mirrors_makeLocalInstanceMirror, 1)                                        \

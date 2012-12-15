@@ -435,6 +435,13 @@ class ObjectStore {
   }
   void clear_sticky_error() { sticky_error_ = Error::null(); }
 
+  RawString* unhandled_exception_handler() const {
+    return unhandled_exception_handler_;
+  }
+  void set_unhandled_exception_handler(const String& value) {
+    unhandled_exception_handler_ = value.raw();
+  }
+
   RawBool* true_value() const { return true_value_; }
   void set_true_value(const Bool& value) { true_value_ = value.raw(); }
 
@@ -548,6 +555,7 @@ class ObjectStore {
   RawGrowableObjectArray* libraries_;
   RawGrowableObjectArray* pending_classes_;
   RawError* sticky_error_;
+  RawString* unhandled_exception_handler_;
   RawContext* empty_context_;
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;

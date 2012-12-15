@@ -11,7 +11,8 @@ patch ReceivePort get port {
   return lazyPort;
 }
 
-patch SendPort spawnFunction(void topLevelFunction()) {
+patch SendPort spawnFunction(void topLevelFunction(),
+    [bool UnhandledExceptionCallback(IsolateUnhandledException e)]) {
   return IsolateNatives.spawnFunction(topLevelFunction);
 }
 

@@ -32,8 +32,8 @@ external ReceivePort get port;
  * See comments at the top of this library for more details.
  */
 // Note this feature is not yet available in the dartvm.
-external SendPort spawnFunction(void topLevelFunction());
-
+external SendPort spawnFunction(void topLevelFunction(),
+    [bool UnhandledExceptionCallback(IsolateUnhandledException e)]);
 /**
  * Creates and spawns an isolate whose code is available at [uri].  Like with
  * [spawnFunction], the child isolate will have a default [ReceivePort], and a
@@ -141,4 +141,30 @@ abstract class SendPortSync {
 
   callSync(var message);
 
+}
+
+/**
+ * Wraps unhandled exceptions thrown during isolate execution. It is
+ * used to show both the error message and the stack trace for unhandled
+ * exceptions.
+ */
+class IsolateUnhandledException implements Exception {
+  /** Message being handled when exception occurred. */
+  final message;
+
+  /** Wrapped exception. */
+  final source;
+
+  /** Trace for the wrapped exception. */
+  final Object stackTrace;
+
+  const IsolateUnhandledException(this.message, this.source, this.stackTrace);
+
+  String toString() {
+    return 'IsolateUnhandledException: exception while handling message: '
+        '${message} \n  '
+        '${source.toString().replaceAll("\n", "\n  ")}\n'
+        'original stack trace:\n  '
+        '${stackTrace.toString().replaceAll("\n","\n  ")}';
+  }
 }

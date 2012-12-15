@@ -202,11 +202,12 @@ static bool CanonicalizeUri(Isolate* isolate,
 
 class SpawnState {
  public:
-  explicit SpawnState(const Function& func)
+  SpawnState(const Function& func, const Function& callback_func)
       : isolate_(NULL),
         script_url_(NULL),
         library_url_(NULL),
-        function_name_(NULL) {
+        function_name_(NULL),
+        exception_callback_name_(NULL) {
     script_url_ = strdup(GetRootScriptUri(Isolate::Current()));
     const Class& cls = Class::Handle(func.Owner());
     ASSERT(cls.IsTopLevel());
@@ -216,21 +217,30 @@ class SpawnState {
 
     const String& func_name = String::Handle(func.name());
     function_name_ = strdup(func_name.ToCString());
+    if (!callback_func.IsNull()) {
+      const String& callback_name = String::Handle(callback_func.name());
+      exception_callback_name_ = strdup(callback_name.ToCString());
+    } else {
+      exception_callback_name_ = strdup("_unhandledExceptionCallback");
+    }
   }
 
   explicit SpawnState(const char* script_url)
       : isolate_(NULL),
         library_url_(NULL),
-        function_name_(NULL) {
+        function_name_(NULL),
+        exception_callback_name_(NULL) {
     script_url_ = strdup(script_url);
     library_url_ = NULL;
     function_name_ = strdup("main");
+    exception_callback_name_ = strdup("_unhandledExceptionCallback");
   }
 
   ~SpawnState() {
     free(script_url_);
     free(library_url_);
     free(function_name_);
+    free(exception_callback_name_);
   }
 
   Isolate* isolate() const { return isolate_; }
@@ -238,6 +248,7 @@ class SpawnState {
   char* script_url() const { return script_url_; }
   char* library_url() const { return library_url_; }
   char* function_name() const { return function_name_; }
+  char* exception_callback_name() const { return exception_callback_name_; }
 
   RawObject* ResolveFunction() {
     // Resolve the library.
@@ -278,6 +289,7 @@ class SpawnState {
   char* script_url_;
   char* library_url_;
   char* function_name_;
+  char* exception_callback_name_;
 };
 
 
@@ -319,6 +331,12 @@ static bool CreateIsolate(SpawnState* state, char** error) {
       errobj ^= result.raw();
       *error = strdup(errobj.ToErrorCString());
       resolve_error = true;
+    } else {
+      const String& callback_name =
+          String::Handle(child_isolate,
+                         String::New(state->exception_callback_name()));
+      child_isolate->object_store()->
+          set_unhandled_exception_handler(callback_name);
     }
   }
   if (resolve_error) {
@@ -344,8 +362,8 @@ static bool RunIsolate(uword parameter) {
       // Error is in sticky error already.
       return false;
     }
-    Object& result = Object::Handle();
 
+    Object& result = Object::Handle();
     result = state->ResolveFunction();
     delete state;
     state = NULL;
@@ -397,7 +415,7 @@ static RawObject* Spawn(NativeArguments* arguments, SpawnState* state) {
 }
 
 
-DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
+DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
   bool throw_exception = false;
   Function& func = Function::Handle();
@@ -417,12 +435,36 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
     ThrowIllegalArgException(msg);
   }
 
+  GET_NATIVE_ARGUMENT(Instance, callback, arguments->NativeArgAt(1));
+  Function& callback_func = Function::Handle();
+  if (callback.IsClosure()) {
+    callback_func ^= Closure::function(callback);
+    const Class& cls = Class::Handle(callback_func.Owner());
+    if (!callback_func.IsClosureFunction() || !callback_func.is_static() ||
+        !cls.IsTopLevel()) {
+      throw_exception = true;
+    }
+  } else if (!callback.IsNull()) {
+    throw_exception = true;
+  }
+  if (throw_exception) {
+    const String& msg = String::Handle(String::New(
+        "spawnFunction expects to be passed either a unhandled exception "
+        "callback to a top-level static function, or null"));
+    ThrowIllegalArgException(msg);
+  }
+
 #if defined(DEBUG)
-  const Context& ctx = Context::Handle(Closure::context(closure));
+  Context& ctx = Context::Handle();
+  ctx = Closure::context(closure);
   ASSERT(ctx.num_variables() == 0);
+  if (!callback.IsNull()) {
+    ctx = Closure::context(callback);
+    ASSERT(ctx.num_variables() == 0);
+  }
 #endif
 
-  return Spawn(arguments, new SpawnState(func));
+  return Spawn(arguments, new SpawnState(func, callback_func));
 }
 
 

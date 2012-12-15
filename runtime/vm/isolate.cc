@@ -48,10 +48,12 @@ class IsolateMessageHandler : public MessageHandler {
 #endif
   bool IsCurrentIsolate() const;
   virtual Isolate* GetIsolate() const { return isolate_; }
+  bool UnhandledExceptionCallbackHandler(const Object& message,
+                                         const UnhandledException& error);
 
  private:
-  bool ProcessUnhandledException(const Object& result);
-
+  bool ProcessUnhandledException(const Object& message, const Error& result);
+  RawFunction* ResolveCallbackFunction();
   Isolate* isolate_;
 };
 
@@ -93,7 +95,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   const Object& msg_obj = Object::Handle(reader.ReadObject());
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
-    return ProcessUnhandledException(msg_obj);
+    return ProcessUnhandledException(Instance::Handle(), Error::Cast(msg_obj));
   }
   if (!msg_obj.IsNull() && !msg_obj.IsInstance()) {
     // TODO(turnidge): We need to decide what an isolate does with
@@ -107,23 +109,91 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   Instance& msg = Instance::Handle();
   msg ^= msg_obj.raw();  // Can't use Instance::Cast because may be null.
 
+  bool success = true;
   if (message->IsOOB()) {
     // For now the only OOB messages are Mirrors messages.
     HandleMirrorsMessage(isolate_, message->reply_port(), msg);
-    delete message;
   } else {
     const Object& result = Object::Handle(
         DartLibraryCalls::HandleMessage(
             message->dest_port(), message->reply_port(), msg));
-    delete message;
     if (result.IsError()) {
-      return ProcessUnhandledException(result);
+      success = ProcessUnhandledException(msg, Error::Cast(result));
+    } else {
+      ASSERT(result.IsNull());
     }
-    ASSERT(result.IsNull());
   }
-  return true;
+  delete message;
+  return success;
 }
 
+RawFunction* IsolateMessageHandler::ResolveCallbackFunction() {
+  ASSERT(isolate_->object_store()->unhandled_exception_handler() != NULL);
+  String& callback_name = String::Handle(isolate_);
+  if (isolate_->object_store()->unhandled_exception_handler() !=
+      String::null()) {
+    callback_name = isolate_->object_store()->unhandled_exception_handler();
+  } else {
+    callback_name = String::New("_unhandledExceptionCallback");
+  }
+  Library& lib =
+      Library::Handle(isolate_, isolate_->object_store()->isolate_library());
+  Function& func =
+      Function::Handle(isolate_, lib.LookupLocalFunction(callback_name));
+  if (func.IsNull()) {
+    lib = isolate_->object_store()->root_library();
+    func = lib.LookupLocalFunction(callback_name);
+  }
+  return func.raw();
+}
+
+
+bool IsolateMessageHandler::UnhandledExceptionCallbackHandler(
+    const Object& message, const UnhandledException& error) {
+  const Instance& cause = Instance::Handle(isolate_, error.exception());
+  const Instance& stacktrace =
+      Instance::Handle(isolate_, error.stacktrace());
+
+  // Wrap these args into an IsolateUncaughtException object.
+  GrowableArray<const Object*> exception_args(3);
+  exception_args.Add(&message);
+  exception_args.Add(&cause);
+  exception_args.Add(&stacktrace);
+  const Object& exception =
+      Object::Handle(isolate_,
+                     Exceptions::Create(Exceptions::kIsolateUnhandledException,
+                                        exception_args));
+  if (exception.IsError()) {
+    return false;
+  }
+  ASSERT(exception.IsInstance());
+
+  // Invoke script's callback function.
+  GrowableArray<const Object*> callback_args(0);
+  callback_args.Add(&exception);
+  const Array& kNoArgumentNames = Array::Handle(isolate_);
+  Object& function = Object::Handle(isolate_, ResolveCallbackFunction());
+  if (function.IsNull() || function.IsError()) {
+    return false;
+  }
+  const Object& result =
+      Object::Handle(DartEntry::InvokeStatic(Function::Cast(function),
+                                             callback_args,
+                                             kNoArgumentNames));
+  if (result.IsError()) {
+    const Error& err = Error::Cast(result);
+    OS::PrintErr("failed calling unhandled exception callback: %s\n",
+                 err.ToErrorCString());
+    return false;
+  }
+
+  ASSERT(result.IsBool());
+  bool continue_from_exception = Bool::Cast(result).value();
+  if (continue_from_exception) {
+    isolate_->object_store()->clear_sticky_error();
+  }
+  return continue_from_exception;
+}
 
 #if defined(DEBUG)
 void IsolateMessageHandler::CheckAccess() {
@@ -137,15 +207,29 @@ bool IsolateMessageHandler::IsCurrentIsolate() const {
 }
 
 
-bool IsolateMessageHandler::ProcessUnhandledException(const Object& result) {
-  isolate_->object_store()->set_sticky_error(Error::Cast(result));
-  // Invoke the dart unhandled exception callback if there is one.
+bool IsolateMessageHandler::ProcessUnhandledException(
+    const Object& message, const Error& result) {
+  if (result.IsUnhandledException()) {
+    // Invoke the isolate's uncaught exception handler, if it exists.
+    const UnhandledException& error = UnhandledException::Cast(result);
+    RawInstance* exception = error.exception();
+    if ((exception != isolate_->object_store()->out_of_memory()) &&
+        (exception != isolate_->object_store()->stack_overflow())) {
+      if (UnhandledExceptionCallbackHandler(message, error)) {
+        return true;
+      }
+    }
+  }
+
+  // Invoke the isolate's unhandled exception callback if there is one.
   if (Isolate::UnhandledExceptionCallback() != NULL) {
     Dart_EnterScope();
     Dart_Handle error = Api::NewHandle(isolate_, result.raw());
     (Isolate::UnhandledExceptionCallback())(error);
     Dart_ExitScope();
   }
+
+  isolate_->object_store()->set_sticky_error(result);
   return false;
 }
 
