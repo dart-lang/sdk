@@ -1239,7 +1239,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   const String& getter_name = String::Handle(Field::GetterName(target_name));
   const int kNumArguments = 1;
   const int kNumNamedArguments = 0;
-  const Function& getter = Function::ZoneHandle(
+  const Function& getter = Function::Handle(
       Resolver::ResolveDynamicForReceiverClass(receiver_class,
                                                getter_name,
                                                kNumArguments,
@@ -1295,7 +1295,7 @@ static RawObject* InvokeNoSuchMethod(const Instance& receiver,
   ASSERT(!invocation_mirror_class.IsNull());
   const String& allocation_function_name =
       String::Handle(Symbols::AllocateInvocationMirror());
-  const Function& allocation_function = Function::ZoneHandle(
+  const Function& allocation_function = Function::Handle(
       Resolver::ResolveStaticByName(invocation_mirror_class,
                                     allocation_function_name,
                                     Resolver::kIsQualified));
@@ -1313,11 +1313,11 @@ static RawObject* InvokeNoSuchMethod(const Instance& receiver,
   const String& function_name = String::Handle(Symbols::NoSuchMethod());
   const int kNumArguments = 2;
   const int kNumNamedArguments = 0;
-  const Function& function =
-      Function::ZoneHandle(Resolver::ResolveDynamic(receiver,
-                                                    function_name,
-                                                    kNumArguments,
-                                                    kNumNamedArguments));
+  const Function& function = Function::Handle(
+      Resolver::ResolveDynamic(receiver,
+                               function_name,
+                               kNumArguments,
+                               kNumNamedArguments));
   ASSERT(!function.IsNull());
   GrowableArray<const Object*> invoke_arguments(1);
   invoke_arguments.Add(&invocation_mirror);

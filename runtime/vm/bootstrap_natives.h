@@ -17,6 +17,7 @@ namespace dart {
   V(Object_noSuchMethod, 5)                                                    \
   V(Object_runtimeType, 1)                                                     \
   V(Function_apply, 2)                                                         \
+  V(InvocationMirror_invoke, 4)                                                \
   V(AbstractType_toString, 1)                                                  \
   V(Integer_bitAndFromInteger, 2)                                              \
   V(Integer_bitOrFromInteger, 2)                                               \
