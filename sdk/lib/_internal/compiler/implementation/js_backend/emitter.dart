@@ -1282,24 +1282,41 @@ $lazyInitializerLogic
     buffer.add(functionBuffer);
     buffer.add('$N$n');
   }
-  void emitStaticFunctionsWithNamer(CodeBuffer buffer,
-                                    Map<Element, CodeBuffer> generatedCode,
-                                    String functionNamer(Element element)) {
-    generatedCode.forEach((Element element, CodeBuffer functionBuffer) {
-      if (!element.isInstanceMember() && !element.isField()) {
-        emitStaticFunctionWithNamer(
-            buffer, element, functionBuffer,functionNamer);
-      }
-    });
-  }
 
   void emitStaticFunctions(CodeBuffer buffer) {
-    emitStaticFunctionsWithNamer(buffer,
-                                 compiler.codegenWorld.generatedCode,
-                                 namer.getName);
-    emitStaticFunctionsWithNamer(buffer,
-                                 compiler.codegenWorld.generatedBailoutCode,
-                                 namer.getBailoutName);
+    bool isStaticFunction(Element element) =>
+        !element.isInstanceMember() && !element.isField();
+
+    Collection<Element> elements =
+        compiler.codegenWorld.generatedCode.keys.filter(isStaticFunction);
+    Set<Element> pendingElementsWithBailouts =
+        new Set<Element>.from(
+            compiler.codegenWorld.generatedBailoutCode.keys.filter(
+                isStaticFunction));
+
+    for (Element element in sortedByPosition(elements)) {
+      CodeBuffer code = compiler.codegenWorld.generatedCode[element];
+      emitStaticFunctionWithNamer(buffer, element, code, namer.getName);
+      CodeBuffer bailoutCode =
+          compiler.codegenWorld.generatedBailoutCode[element];
+      if (bailoutCode != null) {
+        pendingElementsWithBailouts.remove(element);
+        emitStaticFunctionWithNamer(
+            buffer, element, bailoutCode, namer.getBailoutName);
+      }
+    }
+
+    // Is it possible the primary function was inlined but the bailout was not?
+    for (Element element in sortedByPosition(pendingElementsWithBailouts)) {
+      CodeBuffer bailoutCode =
+          compiler.codegenWorld.generatedBailoutCode[element];
+      emitStaticFunctionWithNamer(
+          buffer, element, bailoutCode, namer.getBailoutName);
+    }
+  }
+
+  static List<Element> sortedByPosition(Collection<Element> elements) {
+    return new List<Element>.from(elements)..sort(Elements.compareByPosition);
   }
 
   void emitStaticFunctionGetters(CodeBuffer buffer) {

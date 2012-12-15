@@ -2019,6 +2019,26 @@ class Elements {
     return (element == coreLibrary.find(const SourceString('Collection')))
         || (element == coreLibrary.find(const SourceString('Iterable')));
   }
+
+  /// A `compareTo` function that places [Element]s in a consistent order based
+  /// on the source code order.
+  static int compareByPosition(Element a, Element b) {
+    CompilationUnitElement unitA = a.getCompilationUnit();
+    CompilationUnitElement unitB = b.getCompilationUnit();
+    if (!identical(unitA, unitB)) {
+      int r = unitA.script.uri.path.compareTo(unitB.script.uri.path);
+      if (r != 0) return r;
+    }
+    Token positionA = a.position();
+    Token positionB = b.position();
+    int r = positionA.charOffset.compareTo(positionB.charOffset);
+    if (r != 0) return r;
+    r = a.name.slowToString().compareTo(b.name.slowToString());
+    if (r != 0) return r;
+    // Same file, position and name.  If this happens, we should find out why
+    // and make the order total and independent of hashCode.
+    return a.hashCode.compareTo(b.hashCode);
+  }
 }
 
 class LabelElement extends Element {
