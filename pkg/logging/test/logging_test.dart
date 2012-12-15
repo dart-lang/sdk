@@ -6,7 +6,7 @@
 library logging_test;
 
 import 'package:logging/logging.dart';
-import 'package:/unittest/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   test('level comparison is a valid comparator', () {
