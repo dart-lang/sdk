@@ -5,7 +5,6 @@
 library isolate_unhandled_exception_uri_helper;
 
 import 'dart:isolate';
-import 'dart:io';
 
 // Tests that isolate code in another script keeps message handling working
 // after throwing an unhandled exception, if it has a function called
@@ -20,23 +19,13 @@ void main() {
   // Send a message that will cause an ignorable exception to be thrown.
   Future f = isolate_port.call('throw exception');
   f.onComplete((future) {
-    if (future.exception != null) {
-      // Exception wasn't ignored as it was supposed to be.
-      print('failed handling exception');
-      exit(1);
-    }
+    Expect.equals(null, future.exception);
   });
 
   // Verify that isolate can still handle messages.
   isolate_port.call('hi').onComplete((future) {
-    if (future.exception != null) {
-      print('unhandled exception: ${future.exception}');
-      exit(1);
-    }
-    if (future.value != 'hello') {
-      print('unexpected response: ${future.value}');
-      exit(1);
-    }
-    exit(0);
+    Expect.equals(null, future.exception);
+    Expect.equals('hello', future.value);
   });
+
 }

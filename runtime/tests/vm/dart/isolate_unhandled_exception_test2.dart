@@ -5,7 +5,6 @@
 library isolate_unhandled_exception_test2;
 
 import 'dart:isolate';
-import 'dart:io';
 
 // Tests that an isolate's keeps message handling working after
 // throwing an unhandled exception, if there is a top level callback
@@ -19,6 +18,7 @@ import 'dart:io';
 void entry() {
   port.receive((message, replyTo) {
     if (message == 'throw exception') {
+      replyTo.call('throwing exception');
       throw new RuntimeError('ignore this exception');
     }
     replyTo.call('hello');
@@ -37,20 +37,13 @@ void main() {
   Future f = isolate_port.call('throw exception');
   f.onComplete((future) {
     // Exception wasn't ignored as it was supposed to be.
-    print('failed handling exception');
-    exit(1);
+    Expect.equals(null, future.exception);
   });
 
   // Verify that isolate can still handle messages.
   isolate_port.call('hi').onComplete((future) {
-    if (future.exception != null) {
-      print('unhandled exception: ${future.exception}');
-      exit(1);
-    }
-    if (future.value != 'hello') {
-      print('unexpected response: ${future.value}');
-      exit(1);
-    }
-    exit(0);
+    Expect.equals(null, future.exception);
+    Expect.equals('hello', future.value);
   });
+
 }
