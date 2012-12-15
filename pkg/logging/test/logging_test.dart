@@ -5,9 +5,8 @@
 
 library logging_test;
 
-// TODO(rnystrom): Use "package:" import when test.dart supports it (#4968).
-import '../lib/logging.dart';
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:logging/logging.dart';
+import 'package:/unittest/unittest.dart';
 
 main() {
   test('level comparison is a valid comparator', () {
