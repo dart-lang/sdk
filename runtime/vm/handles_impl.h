@@ -5,6 +5,8 @@
 #ifndef VM_HANDLES_IMPL_H_
 #define VM_HANDLES_IMPL_H_
 
+#include "vm/heap.h"
+#include "vm/heap_trace.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -24,11 +26,37 @@ void Handles<kHandleSizeInWords,
   }
 
   // Visit all scoped handles.
-  block = &first_scoped_block_;
+  VisitScopedHandles(visitor);
+}
+
+
+template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
+void Handles<kHandleSizeInWords,
+             kHandlesPerChunk,
+             kOffsetOfRawPtr>::VisitScopedHandles(
+    ObjectPointerVisitor* visitor) {
+  HandlesBlock* block = &first_scoped_block_;
   do {
     block->VisitObjectPointers(visitor);
     block = block->next_block();
   } while (block != NULL);
+}
+
+
+template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
+void Handles<kHandleSizeInWords,
+             kHandlesPerChunk,
+             kOffsetOfRawPtr>::VisitUnvisitedScopedHandles(
+    ObjectPointerVisitor* visitor) {
+  HandlesBlock* block = &first_scoped_block_;
+  while (block != NULL && block != last_visited_block_) {
+    block->VisitUnvisitedObjectPointers(visitor);
+    block = block->next_block();
+  }
+  // We want this to point to first_scoped_block.next,
+  // Because pointers are still being added to first_scoped_block
+  // So it may be "partially new", and require a partial scan.
+  last_visited_block_ = first_scoped_block_.next_block();
 }
 
 
@@ -83,7 +111,12 @@ uword Handles<kHandleSizeInWords,
   ASSERT(isolate->no_handle_scope_depth() == 0);
   Handles* handles = isolate->current_zone()->handles();
   ASSERT(handles != NULL);
-  return handles->AllocateHandleInZone();
+  uword address = handles->AllocateHandleInZone();
+  if (HeapTrace::is_enabled()) {
+    uword zone_addr = reinterpret_cast<uword>(isolate->current_zone());
+    isolate->heap()->trace()->TraceAllocateZoneHandle(address, zone_addr);
+  }
+  return address;
 }
 
 
@@ -109,10 +142,20 @@ void Handles<kHandleSizeInWords,
              kHandlesPerChunk,
              kOffsetOfRawPtr>::DeleteAll() {
   // Delete all the zone allocated handle blocks.
+  // GCTrace does not need to trace this call to DeleteHandleBlocks,
+  // since the individual zone deletions will be caught
+  // by instrumentation in the BaseZone destructor.
   DeleteHandleBlocks(zone_blocks_);
   zone_blocks_ = NULL;
 
   // Delete all the scoped handle blocks.
+  // Do not trace if there is no  current isolate. This can happen during
+  // isolate shutdown.
+  if (HeapTrace::is_enabled() && Isolate::Current() != NULL) {
+    Isolate::Current()->heap()->trace()->TraceDeleteScopedHandles();
+  }
+
+
   scoped_blocks_ = first_scoped_block_.next_block();
   DeleteHandleBlocks(scoped_blocks_);
   first_scoped_block_.ReInit();
@@ -295,6 +338,24 @@ void Handles<kHandleSizeInWords,
   for (intptr_t i = 0; i < next_handle_slot_; i += kHandleSizeInWords) {
     visitor->VisitPointer(
         reinterpret_cast<RawObject**>(&data_[i + kOffsetOfRawPtr/kWordSize]));
+  }
+}
+
+
+template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
+void Handles<kHandleSizeInWords,
+             kHandlesPerChunk,
+             kOffsetOfRawPtr>::HandlesBlock::VisitUnvisitedObjectPointers(
+                 ObjectPointerVisitor* visitor) {
+  ASSERT(visitor != NULL);
+
+  // last_visited_handle_ picks up where we were last time,
+  // so there is nothing in the intialization position of this for loop.
+
+  while (last_visited_handle_ < next_handle_slot_) {
+    last_visited_handle_ += kHandleSizeInWords;
+    uword* addr = &data_[last_visited_handle_ + kOffsetOfRawPtr / kWordSize];
+    visitor->VisitPointer(reinterpret_cast<RawObject**>(addr));
   }
 }
 

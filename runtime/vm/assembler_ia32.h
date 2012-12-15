@@ -554,6 +554,10 @@ class Assembler : public ValueObject {
                                 const FieldAddress& dest,
                                 const Object& value);
 
+  void TraceStoreIntoObject(Register object,
+                            const FieldAddress& dest,
+                            Register value);
+
   void DoubleNegate(XmmRegister d);
   void FloatNegate(XmmRegister f);
 

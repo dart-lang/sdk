@@ -8,11 +8,13 @@
 #include "platform/utils.h"
 #include "vm/flags.h"
 #include "vm/heap_profiler.h"
+#include "vm/heap_trace.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_set.h"
 #include "vm/os.h"
 #include "vm/pages.h"
+#include "vm/raw_object.h"
 #include "vm/scavenger.h"
 #include "vm/stack_frame.h"
 #include "vm/verifier.h"
@@ -37,6 +39,7 @@ Heap::Heap() : read_only_(false) {
                              (FLAG_new_gen_heap_size * MB),
                              kNewObjectAlignmentOffset);
   old_space_ = new PageSpace(this, (FLAG_old_gen_heap_size * MB));
+  heap_trace_ = new HeapTrace;
 }
 
 
@@ -49,15 +52,17 @@ Heap::~Heap() {
 uword Heap::AllocateNew(intptr_t size) {
   ASSERT(Isolate::Current()->no_gc_scope_depth() == 0);
   uword addr = new_space_->TryAllocate(size);
-  if (addr != 0) {
-    return addr;
+  if (addr == 0) {
+    CollectGarbage(kNew);
+    addr = new_space_->TryAllocate(size);
+    if (addr == 0) {
+      return AllocateOld(size, HeapPage::kData);
+    }
   }
-  CollectGarbage(kNew);
-  addr = new_space_->TryAllocate(size);
-  if (addr != 0) {
-    return addr;
+  if (HeapTrace::is_enabled()) {
+    heap_trace_->TraceAllocation(addr, size);
   }
-  return AllocateOld(size, HeapPage::kData);
+  return addr;
 }
 
 
@@ -70,7 +75,11 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
     if (addr == 0) {
       OS::PrintErr("Exhausted heap space, trying to allocate %"Pd" bytes.\n",
                    size);
+      return 0;
     }
+  }
+  if (HeapTrace::is_enabled()) {
+    heap_trace_->TraceAllocation(addr, size);
   }
   return addr;
 }

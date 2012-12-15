@@ -5,23 +5,35 @@
 #ifndef VM_OBJECT_SET_H_
 #define VM_OBJECT_SET_H_
 
+#include "platform/utils.h"
 #include "vm/globals.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
 class ObjectSet {
  public:
-  ObjectSet(uword start, uword end) : start_(start), end_(end) {
+  ObjectSet() {
+    Init(0, 0);
+  }
+
+  ObjectSet(uword start, uword end) {
+    Init(start, end);
+  }
+
+  ~ObjectSet() {
+    delete[] allocation_;
+  }
+
+  void Init(uword start, uword end) {
+    start_ = start;
+    end_ = end;
     ASSERT(start_ <= end_);
     size_ = SizeFor((end_ - start_) >> kWordSizeLog2);
     allocation_ = new uword[size_];
     data_ = &allocation_[-((start >> kWordSizeLog2) / kBitsPerWord)];
     ASSERT(allocation_ == &data_[(start >> kWordSizeLog2) / kBitsPerWord]);
     Clear();
-  }
-
-  ~ObjectSet() {
-    delete[] allocation_;
   }
 
   bool Contains(RawObject* raw_obj) const {
@@ -39,10 +51,30 @@ class ObjectSet {
     ASSERT(raw_addr < end_);
     uword i = raw_addr >> kWordSizeLog2;
     data_[i / kBitsPerWord] |= (static_cast<uword>(1) << (i % kBitsPerWord));
+    min_ = Utils::Minimum(raw_addr, min_);
+    max_ = Utils::Maximum(raw_addr, max_);
+  }
+
+  void Resize(uword start, uword end) {
+    if (start_ != start || end_ != end) {
+      delete[] allocation_;
+      Init(start, end);
+    }
   }
 
   void Clear() {
     memset(allocation_, 0, (size_ * sizeof(allocation_[0])));
+    min_ = end_;
+    max_ = start_;
+  }
+
+  void FastClear() {
+    uword i = min_ >> kWordSizeLog2;
+    memset(&data_[i / kBitsPerWord],
+           0,
+           sizeof(uword) * SizeFor((max_ + 1  - min_) >> kWordSizeLog2));
+    min_ = end_;
+    max_ = start_;
   }
 
  private:
@@ -66,7 +98,15 @@ class ObjectSet {
   // Highest possible heap address, exclusive.
   uword end_;
 
-  DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectSet);
+  // The inclusive minimum address set in this ObjectMap.
+  // Used by FastClear
+  uword min_;
+
+  // The inclusive maximum address in this ObjectMap.
+  // Used by FastClear
+  uword max_;
+
+  DISALLOW_COPY_AND_ASSIGN(ObjectSet);
 };
 
 }  // namespace dart

@@ -75,7 +75,8 @@ class Handles {
   Handles()
       : zone_blocks_(NULL),
         first_scoped_block_(NULL),
-        scoped_blocks_(&first_scoped_block_) {
+        scoped_blocks_(&first_scoped_block_),
+        last_visited_block_(NULL) {
   }
   ~Handles() {
     DeleteAll();
@@ -83,6 +84,16 @@ class Handles {
 
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  // Visit all the scoped handles.
+  void VisitScopedHandles(ObjectPointerVisitor* visitor);
+
+  // Visit all blocks that have been added since the last time
+  // this method was called.
+  // Be careful with this, since multiple users of this method could
+  // interfere with eachother.
+  // Currently only used by GC trace facility.
+  void VisitUnvisitedScopedHandles(ObjectPointerVisitor* visitor);
 
   // Visit all of the various handles.
   void Visit(HandleVisitor* visitor);
@@ -126,7 +137,8 @@ class Handles {
   class HandlesBlock {
    public:
     explicit HandlesBlock(HandlesBlock* next)
-        : next_handle_slot_(0),
+        : last_visited_handle_(0),
+          next_handle_slot_(0),
           next_block_(next) { }
     ~HandlesBlock();
 
@@ -156,6 +168,10 @@ class Handles {
     // Visit all object pointers in the handle block.
     void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
+    // Visit all the object pointers in the block since the last time this
+    // method was called.
+    void VisitUnvisitedObjectPointers(ObjectPointerVisitor* visitor);
+
     // Visit all of the handles in the handle block.
     void Visit(HandleVisitor* visitor);
 
@@ -176,6 +192,10 @@ class Handles {
     void set_next_block(HandlesBlock* next) { next_block_ = next; }
 
    private:
+    // Last handle visited by VisitUnvisitedObjectPointers.  Handles
+    // at, or beyond this index are new.
+    intptr_t last_visited_handle_;
+
     uword data_[kHandleSizeInWords * kHandlesPerChunk];  // Handles area.
     intptr_t next_handle_slot_;  // Next slot for allocation in current block.
     HandlesBlock* next_block_;  // Link to next block of handles.
@@ -212,6 +232,8 @@ class Handles {
   HandlesBlock* zone_blocks_;  // List of zone handles.
   HandlesBlock first_scoped_block_;  // First block of scoped handles.
   HandlesBlock* scoped_blocks_;  // List of scoped handles.
+  // Last block visited by VisitUnvisitedHandles.
+  HandlesBlock* last_visited_block_;
 
   friend class HandleScope;
   friend class Symbols;

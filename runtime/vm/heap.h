@@ -15,6 +15,7 @@
 namespace dart {
 
 // Forward declarations.
+class HeapTrace;
 class Isolate;
 class ObjectPointerVisitor;
 class ObjectSet;
@@ -148,6 +149,10 @@ class Heap {
   // Verify that all pointers in the heap point to the heap.
   bool Verify() const;
 
+  // Accessor function to get the HeapTrace used for tracing.  There
+  // should only ever be one of these per isolate
+  HeapTrace* trace() const { return heap_trace_; }
+
   // Print heap sizes.
   void PrintSizes() const;
 
@@ -182,6 +187,9 @@ class Heap {
   // The different spaces used for allocation.
   Scavenger* new_space_;
   PageSpace* old_space_;
+
+  // The active heap trace.
+  HeapTrace* heap_trace_;
 
   // This heap is in read-only mode: No allocation is allowed.
   bool read_only_;

@@ -6,6 +6,8 @@
 
 #include "vm/freelist.h"
 #include "vm/globals.h"
+#include "vm/heap.h"
+#include "vm/heap_trace.h"
 #include "vm/pages.h"
 
 namespace dart {
@@ -28,7 +30,7 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
 
   while (current < end) {
     intptr_t obj_size;
-    if (in_use_swept == in_use) {
+    if (in_use_swept == in_use && !HeapTrace::is_enabled()) {
       // No more marked objects will be found on this page.
       obj_size = end - current;
       freelist->Free(current, obj_size);
@@ -42,11 +44,17 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
       in_use_swept += obj_size;
     } else {
       uword free_end = current + raw_obj->Size();
+      if (HeapTrace::is_enabled()) {
+        heap_->trace()->TraceSweep(current);
+      }
       while (free_end < end) {
         RawObject* next_obj = RawObject::FromAddr(free_end);
         if (next_obj->IsMarked()) {
           // Reached the end of the free block.
           break;
+        }
+        if (HeapTrace::is_enabled()) {
+          heap_->trace()->TraceSweep(free_end);
         }
         // Expand the free block by the size of this object.
         free_end += next_obj->Size();
@@ -67,6 +75,9 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
 intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
   RawObject* raw_obj = RawObject::FromAddr(page->object_start());
   if (!raw_obj->IsMarked()) {
+    if (HeapTrace::is_enabled()) {
+      heap_->trace()->TraceSweep(page->object_start());
+    }
     // The large object was not marked. Used size is zero, which also tells the
     // calling code that the large object page can be recycled.
     return 0;
