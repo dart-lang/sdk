@@ -6,8 +6,6 @@
  * Patch library for dart:mirrors.
  */
 
-import 'dart:isolate';
-
 /**
  * Stub class for the mirror system.
  */
