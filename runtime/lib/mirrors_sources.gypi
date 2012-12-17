@@ -6,9 +6,9 @@
 
 {
   'sources': [
+    '../../sdk/lib/mirrors/mirrors.dart',
     'mirrors.cc',
     'mirrors.h',
-    'mirrors_patch.dart',
     'mirrors_impl.dart',
   ],
 }

@@ -534,6 +534,7 @@ abstract class Compiler implements DiagnosticListener {
     bool nativeTest = library.entryCompilationUnit.script.name.contains(
         'dart/tests/compiler/dart2js_native');
     if (nativeTest
+        || libraryName == 'dart:mirrors'
         || libraryName == 'dart:math'
         || libraryName == 'dart:html'
         || libraryName == 'dart:html_common'
@@ -544,7 +545,8 @@ abstract class Compiler implements DiagnosticListener {
           || libraryName == 'dart:html'
           || libraryName == 'dart:html_common'
           || libraryName == 'dart:indexed_db'
-          || libraryName == 'dart:svg') {
+          || libraryName == 'dart:svg'
+          || libraryName == 'dart:mirrors') {
         // dart:html and dart:svg need access to convertDartClosureToJS and
         // annotation classes.
         // dart:mirrors needs access to the Primitives class.
