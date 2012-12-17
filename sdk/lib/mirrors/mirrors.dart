@@ -14,6 +14,8 @@
 // 'myField='.  This allows us to assign unique names to getters and
 // setters for the purposes of member lookup.
 
-#library("mirrors");
+library mirrors;
 
-#source("mirrors_impl.dart");
+import 'dart:isolate';
+
+part 'mirrors_impl.dart';
