@@ -1139,6 +1139,55 @@ static RawInstructions* EnsureCompiled(const Function& function) {
 }
 
 
+static RawObject* InvokeNoSuchMethod(const Instance& receiver,
+                                     const String& target_name,
+                                     const Array& arguments_descriptor,
+                                     const Array& arguments) {
+  // Allocate an InvocationMirror object.
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const String& invocation_mirror_name =
+      String::Handle(Symbols::InvocationMirror());
+  Class& invocation_mirror_class =
+      Class::Handle(core_lib.LookupClassAllowPrivate(invocation_mirror_name));
+  ASSERT(!invocation_mirror_class.IsNull());
+  const String& allocation_function_name =
+      String::Handle(Symbols::AllocateInvocationMirror());
+  const Function& allocation_function = Function::Handle(
+      Resolver::ResolveStaticByName(invocation_mirror_class,
+                                    allocation_function_name,
+                                    Resolver::kIsQualified));
+  ASSERT(!allocation_function.IsNull());
+  GrowableArray<const Object*> allocation_arguments(3);
+  allocation_arguments.Add(&target_name);
+  allocation_arguments.Add(&arguments_descriptor);
+  allocation_arguments.Add(&arguments);
+  const Array& kNoArgumentNames = Array::Handle();
+  const Object& invocation_mirror =
+      Object::Handle(DartEntry::InvokeStatic(allocation_function,
+                                             allocation_arguments,
+                                             kNoArgumentNames));
+
+  const String& function_name = String::Handle(Symbols::NoSuchMethod());
+  const int kNumArguments = 2;
+  const int kNumNamedArguments = 0;
+  const Function& function = Function::Handle(
+      Resolver::ResolveDynamic(receiver,
+                               function_name,
+                               kNumArguments,
+                               kNumNamedArguments));
+  ASSERT(!function.IsNull());
+  GrowableArray<const Object*> invoke_arguments(1);
+  invoke_arguments.Add(&invocation_mirror);
+  const Object& result =
+      Object::Handle(DartEntry::InvokeDynamic(receiver,
+                                              function,
+                                              invoke_arguments,
+                                              kNoArgumentNames));
+  CheckResultError(result);
+  return result.raw();
+}
+
+
 static RawObject* InvokeClosure(const Instance& closure,
                                 const Array& arguments_descriptor,
                                 const Array& arguments) {
@@ -1211,17 +1260,11 @@ static RawObject* InvokeNonClosure(const Instance& receiver,
     current_class = current_class.SuperClass();
   } while (!current_class.IsNull());
 
-  const Object& null_object = Object::Handle();
-  GrowableArray<const Object*> dart_arguments(5);
-  dart_arguments.Add(&receiver);
-  dart_arguments.Add(&call_symbol);
-  dart_arguments.Add(&arguments);
-  dart_arguments.Add(&null_object);  // TODO(regis): Provide names.
-  // If a function "call" with different arguments exists, it will have been
-  // invoked above, so no need to handle this case here.
-  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
-  UNREACHABLE();
-  return Object::null();
+  // There is no 'call' method, so invoke noSuchMethod.
+  return InvokeNoSuchMethod(receiver,
+                            call_symbol,
+                            arguments_descriptor,
+                            arguments);
 }
 
 
@@ -1279,55 +1322,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                arguments);
   }
   return true;
-}
-
-
-static RawObject* InvokeNoSuchMethod(const Instance& receiver,
-                                     const String& target_name,
-                                     const Array& arguments_descriptor,
-                                     const Array& arguments) {
-  // Allocate an InvocationMirror object.
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const String& invocation_mirror_name =
-      String::Handle(Symbols::InvocationMirror());
-  Class& invocation_mirror_class =
-      Class::Handle(core_lib.LookupClassAllowPrivate(invocation_mirror_name));
-  ASSERT(!invocation_mirror_class.IsNull());
-  const String& allocation_function_name =
-      String::Handle(Symbols::AllocateInvocationMirror());
-  const Function& allocation_function = Function::Handle(
-      Resolver::ResolveStaticByName(invocation_mirror_class,
-                                    allocation_function_name,
-                                    Resolver::kIsQualified));
-  ASSERT(!allocation_function.IsNull());
-  GrowableArray<const Object*> allocation_arguments(3);
-  allocation_arguments.Add(&target_name);
-  allocation_arguments.Add(&arguments_descriptor);
-  allocation_arguments.Add(&arguments);
-  const Array& kNoArgumentNames = Array::Handle();
-  const Object& invocation_mirror =
-      Object::Handle(DartEntry::InvokeStatic(allocation_function,
-                                             allocation_arguments,
-                                             kNoArgumentNames));
-
-  const String& function_name = String::Handle(Symbols::NoSuchMethod());
-  const int kNumArguments = 2;
-  const int kNumNamedArguments = 0;
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamic(receiver,
-                               function_name,
-                               kNumArguments,
-                               kNumNamedArguments));
-  ASSERT(!function.IsNull());
-  GrowableArray<const Object*> invoke_arguments(1);
-  invoke_arguments.Add(&invocation_mirror);
-  const Object& result =
-      Object::Handle(DartEntry::InvokeDynamic(receiver,
-                                              function,
-                                              invoke_arguments,
-                                              kNoArgumentNames));
-  CheckResultError(result);
-  return result.raw();
 }
 
 

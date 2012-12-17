@@ -303,11 +303,6 @@ LibTest/isolate/isolate_api/spawnUri_A01_t03: Crash
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Crash
 
 
-# class '?' overrides function '?' of super class '?' with incompatible parameters
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail
-
-
 # parameter name or type expected
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail
 

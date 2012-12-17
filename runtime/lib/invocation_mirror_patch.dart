@@ -64,28 +64,28 @@ class _InvocationMirror implements InvocationMirror {
   }
 
   bool get isMethod {
-    if (_memberName == null) {
+    if (_type == null) {
       _setMemberNameAndType();
     }
     return _type == _METHOD;
   }
 
   bool get isAccessor {
-    if (_memberName == null) {
+    if (_type == null) {
       _setMemberNameAndType();
     }
     return _type != _METHOD;
   }
 
   bool get isGetter {
-    if (_memberName == null) {
+    if (_type == null) {
       _setMemberNameAndType();
     }
     return _type == _GETTER;
   }
 
   bool get isSetter {
-    if (_memberName == null) {
+    if (_type == null) {
       _setMemberNameAndType();
     }
     return _type == _SETTER;
