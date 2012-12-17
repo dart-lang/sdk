@@ -156,7 +156,7 @@ runner.TestCase makeTestCase(String testName,
   var arguments = [createFileScript, fileUtils.scriptOutputPath.toNativePath()];
   var bootstrapDeps = [
       new Uri("file://${fileUtils.testSnapshotFilePath}")];
-  var commands = [new runner.Dart2JsCommand(
+  var commands = [new runner.CompilationCommand(
       fileUtils.testJsFilePath.toNativePath(),
       false,
       bootstrapDeps,

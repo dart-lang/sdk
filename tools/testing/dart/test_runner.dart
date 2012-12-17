@@ -51,16 +51,16 @@ class Command {
   Future<bool> get outputIsUpToDate => new Future.immediate(false);
 }
 
-class Dart2JsCommand extends Command {
-  String _jsOutputFile;
+class CompilationCommand extends Command {
+  String _outputFile;
   bool _neverSkipCompilation;
   List<Uri> _bootstrapDependencies;
 
-  Dart2JsCommand(this._jsOutputFile,
-                 this._neverSkipCompilation,
-                 this._bootstrapDependencies,
-                 String executable,
-                 List<String> arguments)
+  CompilationCommand(this._outputFile,
+                     this._neverSkipCompilation,
+                     this._bootstrapDependencies,
+                     String executable,
+                     List<String> arguments)
       : super(executable, arguments);
 
   Future<bool> get outputIsUpToDate {
@@ -83,11 +83,11 @@ class Dart2JsCommand extends Command {
       });
     }
 
-    return readDepsFile("$_jsOutputFile.deps").transform((dependencies) {
+    return readDepsFile("$_outputFile.deps").transform((dependencies) {
       if (dependencies != null) {
         dependencies.addAll(_bootstrapDependencies);
         var jsOutputLastModified = TestUtils.lastModifiedCache.getLastModified(
-            new Uri.fromComponents(scheme: 'file', path: _jsOutputFile));
+            new Uri.fromComponents(scheme: 'file', path: _outputFile));
         if (jsOutputLastModified != null) {
           for (var dependency in dependencies) {
             var dependencyLastModified =

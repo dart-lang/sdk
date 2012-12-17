@@ -705,11 +705,11 @@ class StandardTestSuite extends TestSuite {
       args.add('--out=$tempDir/out.js');
 
        List<Command> commands = 
-           <Command>[new Dart2JsCommand("$tempDir/out.js",
-                                        !useDart2JsFromSdk,
-                                        dart2JsBootstrapDependencies,
-                                        compilerPath,
-                                        args)];
+           <Command>[new CompilationCommand("$tempDir/out.js",
+                                            !useDart2JsFromSdk,
+                                            dart2JsBootstrapDependencies,
+                                            compilerPath,
+                                            args)];
       if (info.hasCompileError) {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
@@ -721,12 +721,17 @@ class StandardTestSuite extends TestSuite {
       return commands;
 
     case 'dart2dart':
-      var compilerArguments = new List.from(args);
-      compilerArguments.add('--output-type=dart');
+      args = new List.from(args);
+      args.add('--output-type=dart');
       String tempDir = createOutputDirectory(info.filePath, '');
-      compilerArguments.add('--out=$tempDir/out.dart');
+      args.add('--out=$tempDir/out.dart');
+
       List<Command> commands =
-          <Command>[new Command(compilerPath, compilerArguments)];
+          <Command>[new CompilationCommand("$tempDir/out.dart",
+                                           !useDart2JsFromSdk,
+                                           dart2JsBootstrapDependencies,
+                                           compilerPath,
+                                           args)];
       if (info.hasCompileError) {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
@@ -1018,12 +1023,12 @@ class StandardTestSuite extends TestSuite {
       args.insertRange(0, 1, executable);
       executable = dartShellFileName;
     }
-    if (configuration['compiler'] == 'dart2js') {
-      return new Dart2JsCommand(outputFile,
-                                !useDart2JsFromSdk,
-                                dart2JsBootstrapDependencies,
-                                compilerPath,
-                                args);
+    if (['dart2js', 'dart2dart'].contains(configuration['compiler'])) {
+      return new CompilationCommand(outputFile,
+                                   !useDart2JsFromSdk,
+                                   dart2JsBootstrapDependencies,
+                                   compilerPath,
+                                   args);
     }
     return new Command(executable, args);
   }
