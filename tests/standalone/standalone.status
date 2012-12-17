@@ -71,10 +71,6 @@ io/web_socket_protocol_processor_test: Skip  # dart:io unit test.
 
 io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
 
-io/status_file_parser_test: Skip  # test.dart uses old syntax.  Issue 7387.
-status_expression_test: Skip  # test.dart uses old syntax.  Issue 7387.
-io/test_runner_test: Skip  # test.dart uses old syntax.  Issue 7387.
-
 [ $compiler == frog ]
 *: Skip
 

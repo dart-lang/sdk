@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js || $compiler == dartc ]
+[ $compiler == dart2js ]
 math/*: Skip
 mirrors/*: Skip
 
@@ -16,6 +16,6 @@ crypto/sha1_test: Slow, Pass
 
 [ $compiler == dartc ]
 # lib issue 6322
-crypto/hmac_sha1_test: Fail, OK
-crypto/hmac_sha256_test: Fail, OK
+crypto/hmac_sha1_test: Fail
+crypto/hmac_sha256_test: Fail
 

@@ -9,7 +9,6 @@
 *: Skip
 
 [ $compiler == dartc ]
-*: Skip
 
 [ $runtime == vm ]
 *: Skip

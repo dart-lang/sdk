@@ -13,7 +13,7 @@ fixnum/test/int_64_vm_test: Skip
 *: Skip
 
 # Don't compile tests that use dart:io to JS
-[ $compiler == dart2js || $compiler == dart2dart || $compiler == dartc ]
+[ $compiler == dart2js || $compiler == dart2dart ]
 http/test/*: Skip
 oauth2/test/*: Skip
 
@@ -50,7 +50,14 @@ serialization/test/serialization_test: Skip
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
-[ $compiler == dart2js || $compiler == dartc ]
+# pkg/http issue 7458
+http/test/client_test: Fail
+http/test/mock_client_test: Fail
+http/test/request_test: Fail
+http/test/multipart_test: Fail
+
+
+[ $compiler == dart2js ]
 unittest/test/instance_test: Skip
 
 [ $compiler == none && $runtime == drt ]
