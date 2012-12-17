@@ -13,7 +13,7 @@ set SCRIPT_DIR=%~dp0
 if %SCRIPT_DIR:~-1%==\ set SCRIPT_DIR=%SCRIPT_DIR:~0,-1%
 
 rem DART_ANALYZER_HOME=$(dirname $SCRIPT_DIR)
-for %%A in ("%SCRIPT_DIR\..") do set "DART_ANALYZER_HOME=%%~fA"
+for %%I in ("%SCRIPT_DIR%\..") do set "DART_ANALYZER_HOME=%%~fI"
 if %DART_ANALYZER_HOME:~-1%==\ set DART_ANALYZER_HOME=%DART_ANALYZER_HOME:~0,-1%
 
 set FOUND_BATCH=0
@@ -45,7 +45,7 @@ setlocal EnableDelayedExpansion
 set DART_SDK=""
 if [%FOUND_SDK%] == [0] (
   if exist "%DART_ANALYZER_HOME%\lib\core\core.dart" (
-    set DART_SDK=--dart-sdk %DART_ANALYZER_HOME%
+    set DART_SDK=--dart-sdk "%DART_ANALYZER_HOME%"
   ) else (
     for /f %%i in ('echo %DART_ANALYZER_HOME%') do set DART_SDK_HOME=%%~dpi\dart-sdk
     if exist "!DART_SDK_HOME!" (
