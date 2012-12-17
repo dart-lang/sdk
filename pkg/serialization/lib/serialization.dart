@@ -148,7 +148,6 @@ library serialization;
 
 import 'src/mirrors_helpers.dart';
 import 'src/serialization_helpers.dart';
-import 'src/polyfill_identity_set.dart';
 import 'dart:json' show JSON;
 
 part 'src/reader_writer.dart';
@@ -400,7 +399,7 @@ class Serialization {
       ..addRuleFor(new PrimitiveRule())
       ..addRuleFor(new ListRuleEssential())
       ..addRuleFor(basicRule,
-          constructorFields: ['typeWrapped',
+          constructorFields: ['type',
             'constructorName',
             'constructorFields', 'regularFields', []],
           fields: [])

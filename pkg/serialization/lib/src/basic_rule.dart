@@ -99,9 +99,6 @@ class BasicRule extends SerializationRule {
     field.specialTreatment = setter;
   }
 
-  // TODO(alanknight): Polyfill for the non-hashability of mirrors. Issue 6880.
-  get typeWrapped => new ClassMirrorWrapper(type);
-
   /** Return the name of the constructor used to create new instances on read.*/
   String get constructorName => constructor.name;
 

@@ -58,16 +58,3 @@ List<MethodMirror> publicGettersWithMatchingSetters(ClassMirror mirror) {
  * ClassMirror from that. Given a horrible name as an extra reminder to fix it.
  */
 ClassMirror turnInstanceIntoSomethingWeCanUse(x) => reflect(x).type;
-
-/**
- * This is polyfill because we can't hash ClassMirror right now. We
- * don't bother implementing most of its methods because we don't need them.
- */
-// TODO(alanknight): Remove this when you can hash mirrors directly
-class ClassMirrorWrapper implements ClassMirror {
-  ClassMirror mirror;
-  ClassMirrorWrapper(this.mirror);
-  get simpleName => mirror.simpleName;
-  get hashCode => simpleName.hashCode;
-  operator ==(x) => x is ClassMirror && simpleName == x.simpleName;
-}

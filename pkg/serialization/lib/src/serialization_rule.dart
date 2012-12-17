@@ -329,11 +329,6 @@ class PrimitiveRule extends SerializationRule {
   }
 }
 
-/** Helper function for PrimitiveRule to tell which objects it applies to. */
-bool isPrimitive(object) {
-  return object is num || object is String || object is bool;
-}
-
 /** Typedef for the object construction closure used in ClosureRule. */
 typedef ConstructType(Map m);
 

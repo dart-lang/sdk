@@ -11,7 +11,7 @@
 library identity_set_test;
 
 import '../../unittest/lib/unittest.dart';
-import '../lib/src/polyfill_identity_set.dart';
+import '../lib/src/serialization_helpers.dart';
 
 class Foo {
   var x;
@@ -35,5 +35,14 @@ main() {
     for (var each in identityMap.values) {
       expect(each, one);
     }
+  });
+
+  test('uniquing primitives', () {
+    var map = new IdentityMap();
+    var one = 'one';
+    var two = new String.fromCharCodes(one.charCodes);
+    map[one] = 1;
+    expect(map[two], 1);
+    expect(map[one], 1);
   });
 }

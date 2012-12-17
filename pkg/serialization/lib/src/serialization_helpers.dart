@@ -8,7 +8,6 @@
  * available in the core library.
  */
 library serialization_helpers;
-import 'polyfill_identity_set.dart';
 
 /**
  * A named function of one argument that just returns it. Useful for using
@@ -37,6 +36,12 @@ List sorted(aCollection) {
   var result = new List.from(aCollection);
   result.sort();
   return result;
+}
+
+/** Helper function for PrimitiveRule to tell which objects it applies to. */
+bool isPrimitive(object) {
+  return identical(object, null) || object is num || object is String ||
+      identical(object, true) || identical(object, false);
 }
 
 /**
@@ -167,37 +172,75 @@ class _Sentinel {
 }
 
 /**
- * This provides an identity map which allows true, false, and null as
- * valid keys. It does this by special casing them and using some other
- * known object as the key instead.
+ * This provides an identity map which also allows true, false, and null
+ * as valid keys. In the interests of avoiding duplicating map code, and
+ * because hashCode for arbitrary objects is currently very slow on the VM,
+ * just do a linear lookup.
  */
-class IdentityMapPlus<K, V> extends IdentityMap {
-  final trueish = const _Sentinel(true);
-  final falseish = const _Sentinel(false);
-  final nullish = const _Sentinel(null);
+class IdentityMap<K, V> implements Map<K, V> {
 
-  wrap(x) {
-    if (x == true) return trueish;
-    if (x == false) return falseish;
-    if (x == null) return nullish;
-    return x;
+  final List<K> keys = <K>[];
+  final List<V> values = <V>[];
+
+  V operator [](K key) {
+    var index =  _indexOf(key);
+    return (index == -1) ? null : values[index];
   }
 
-  unwrap(x) {
-    if (x is _Sentinel) return x._wrappedObject;
-    return x;
+  void operator []=(K key, V value) {
+    var index = _indexOf(key);
+    if (index == -1) {
+      keys.add(key);
+      values.add(value);
+    } else {
+      values[index] = value;
+    }
   }
 
-  operator [](key) => super[wrap(key)];
-  operator []=(key, value) => super[wrap(key)] = value;
+  putIfAbsent(K key, Function ifAbsent) {
+    var index = _indexOf(key);
+    if (index == -1) {
+      keys.add(key);
+      values.add(ifAbsent());
+      return values.last;
+    } else {
+      return values[index];
+    }
+  }
 
-  putIfAbsent(key, ifAbsent) => super.putIfAbsent(wrap(key), ifAbsent);
+  _indexOf(K key) {
+    // Go backwards on the guess that we are most likely to access the most
+    // recently added.
+    // Make strings and primitives unique
+    var compareEquality = isPrimitive(key);
+    for (var i = keys.length - 1; i >= 0; i--) {
+      var equal = compareEquality ? key == keys[i] : identical(key, keys[i]);
+      if (equal) return i;
+    }
+    return -1;
+  }
 
-  containsKey(key) => super.containsKey(wrap(key));
-  forEach(f) => super.forEach((key, value) => f(unwrap(key), value));
-  remove(key) => super.remove(unwrap(key));
-  /**
-   * Note that keys is a very inefficient operation for this type. Don't do it.
-   */
-  get keys => super.keys.map((x) => unwrap(x));
+  bool containsKey(K key) => _indexOf(key) != -1;
+  void forEach(f(K key, V value)) {
+    for (var i = 0; i < keys.length; i++) {
+      f(keys[i], values[i]);
+    }
+  }
+
+  V remove(K key) {
+    var index = _indexOf(key);
+    if (index == -1) return null;
+    keys.removeAt(index);
+    return values.removeAt(index);
+  }
+
+  int get length => keys.length;
+  void clear() {
+    keys.clear();
+    values.clear();
+  }
+  bool get isEmpty => keys.isEmpty;
+
+  // Note that this is doing an equality comparison.
+  bool containsValue(x) => values.contains(x);
 }

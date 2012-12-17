@@ -322,7 +322,7 @@ Serialization metaSerialization() {
     // TODO(alanknight): Handle CustomRule as well.
     // Note that we're passing in a constant for one of the fields.
     ..addRuleFor(basicRule,
-        constructorFields: ['typeWrapped',
+        constructorFields: ['type',
           'constructorName',
           'constructorFields', 'regularFields', []],
         fields: [])
