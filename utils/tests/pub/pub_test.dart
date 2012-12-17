@@ -27,11 +27,12 @@ final USAGE_STRING = """
     -v, --verbose         Shortcut for "--verbosity=all"
 
     Available commands:
-      help      Display help information for Pub.
-      install   Install the current package's dependencies.
-      publish   Publish the current package to pub.dartlang.org.
-      update    Update the current package's dependencies to the latest versions.
-      version   Print pub version.
+      help       Display help information for Pub.
+      install    Install the current package's dependencies.
+      publish    Publish the current package to pub.dartlang.org.
+      update     Update the current package's dependencies to the latest versions.
+      uploader   Manage uploaders for a package on pub.dartlang.org.
+      version    Print pub version.
 
     Use "pub help [command]" for more information about a command.
     """;

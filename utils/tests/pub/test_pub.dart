@@ -566,7 +566,7 @@ String get testDirectory {
  * Schedules a call to the Pub command-line utility. Runs Pub with [args] and
  * validates that its results match [output], [error], and [exitCode].
  */
-void schedulePub({List<String> args, Pattern output, Pattern error,
+void schedulePub({List args, Pattern output, Pattern error,
     Future<Uri> tokenEndpoint, int exitCode: 0}) {
   _schedule((sandboxDir) {
     return _doPub(runProcess, sandboxDir, args, tokenEndpoint)
@@ -596,37 +596,36 @@ void schedulePub({List<String> args, Pattern output, Pattern error,
   });
 }
 
-/**
- * A shorthand for [schedulePub] and [run] when no validation needs to be done
- * after Pub has been run.
- */
-void runPub({List<String> args, Pattern output, Pattern error,
-    int exitCode: 0}) {
+/// A shorthand for [schedulePub] and [run] when no validation needs to be done
+/// after Pub has been run.
+///
+/// Any futures in [args] will be resolved before the process is started.
+void runPub({List args, Pattern output, Pattern error, int exitCode: 0}) {
   schedulePub(args: args, output: output, error: error, exitCode: exitCode);
   run();
 }
 
 /// Starts a Pub process and returns a [ScheduledProcess] that supports
 /// interaction with that process.
-ScheduledProcess startPub({List<String> args}) {
+///
+/// Any futures in [args] will be resolved before the process is started.
+ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   var process = _scheduleValue((sandboxDir) =>
-      _doPub(startProcess, sandboxDir, args));
+      _doPub(startProcess, sandboxDir, args, tokenEndpoint));
   return new ScheduledProcess("pub", process);
 }
 
 /// Like [startPub], but runs `pub lish` in particular with [server] used both
 /// as the OAuth2 server (with "/token" as the token endpoint) and as the
 /// package server.
-ScheduledProcess startPubLish(ScheduledServer server, {List<String> args}) {
-  var process = _scheduleValue((sandboxDir) {
-    return server.url.chain((url) {
-      var tokenEndpoint = url.resolve('/token');
-      if (args == null) args = [];
-      args = flatten(['lish', '--server', url.toString(), args]);
-      return _doPub(startProcess, sandboxDir, args, tokenEndpoint);
-    });
-  });
-  return new ScheduledProcess("pub lish", process);
+///
+/// Any futures in [args] will be resolved before the process is started.
+ScheduledProcess startPubLish(ScheduledServer server, {List args}) {
+  var tokenEndpoint = server.url.transform((url) =>
+      url.resolve('/token').toString());
+  if (args == null) args = [];
+  args = flatten(['lish', '--server', tokenEndpoint, args]);
+  return startPub(args: args, tokenEndpoint: tokenEndpoint);
 }
 
 /// Handles the beginning confirmation process for uploading a packages.
@@ -649,10 +648,16 @@ void confirmPublish(ScheduledProcess pub) {
 /// Calls [fn] with appropriately modified arguments to run a pub process. [fn]
 /// should have the same signature as [startProcess], except that the returned
 /// [Future] may have a type other than [Process].
-Future _doPub(Function fn, sandboxDir, List<String> args, Uri tokenEndpoint) {
+Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
   String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
 
-  return ensureDir(pathInSandbox(appPath)).chain((_) {
+  return Futures.wait([
+    ensureDir(pathInSandbox(appPath)),
+    _awaitObject(args),
+    tokenEndpoint == null ? new Future.immediate(null) : tokenEndpoint
+  ]).chain((results) {
+    var args = results[1];
+    var tokenEndpoint = results[2];
     // Find a Dart executable we can use to spawn. Use the same one that was
     // used to run this script itself.
     var dartBin = new Options().executable;
@@ -1559,7 +1564,8 @@ class ScheduledServer {
       var requestCompleteCompleter = new Completer();
       handlerCompleter.complete((request, response) {
         expect(request.method, equals(method));
-        expect(request.path, equals(path));
+        // TODO(nweiz): Use request.path once issue 7464 is fixed.
+        expect(new Uri.fromString(request.uri).path, equals(path));
 
         var future = handler(request, response);
         if (future == null) future = new Future.immediate(null);

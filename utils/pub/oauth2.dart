@@ -9,6 +9,7 @@ import 'dart:uri';
 
 // TODO(nweiz): Make this a "package:" URL, or something nicer than this.
 import '../../pkg/oauth2/lib/oauth2.dart';
+import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
 import 'system_cache.dart';
@@ -62,7 +63,8 @@ Future clearCredentials(SystemCache cache) {
 /// the [Future] returned by [fn] completes.
 ///
 /// This takes care of loading and saving the client's credentials, as well as
-/// prompting the user for their authorization.
+/// prompting the user for their authorization. It will also re-authorize and
+/// re-run [fn] if a recoverable authorization error is detected.
 Future withClient(SystemCache cache, Future fn(Client client)) {
   return _getClient(cache).chain((client) {
     var completer = new Completer();
@@ -82,6 +84,19 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
       }
     });
     return completer.future;
+  }).transformException((e) {
+    if (e is ExpirationException) {
+      log.error("Pub's authorization to upload packages has expired and "
+          "can't be automatically refreshed.");
+      return withClient(cache, fn);
+    } else if (e is AuthorizationException) {
+      var message = "OAuth2 authorization failed";
+      if (e.description != null) message = "$message (${e.description})";
+      log.error("$message.");
+      return clearCredentials(cache).chain((_) => withClient(cache, fn));
+    } else {
+      throw e;
+    }
   });
 }
 

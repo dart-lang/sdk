@@ -10,6 +10,7 @@ import 'dart:uri';
 
 // TODO(nweiz): Make this import better.
 import '../../pkg/http/lib/http.dart' as http;
+import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
 import 'package.dart';

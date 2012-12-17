@@ -9,11 +9,9 @@ library io;
 
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:json';
 import 'dart:uri';
 
-// TODO(nweiz): Make this import better.
-import '../../pkg/http/lib/http.dart' as http;
-import 'curl_client.dart';
 import 'log.dart' as log;
 import 'path.dart' as path;
 import 'utils.dart';
@@ -502,69 +500,6 @@ Future<String> readLine([StringInputStream stream]) {
   return completer.future;
 }
 
-// TODO(nweiz): make this configurable
-/**
- * The amount of time in milliseconds to allow HTTP requests before assuming
- * they've failed.
- */
-final HTTP_TIMEOUT = 30 * 1000;
-
-/// An HTTP client that transforms 40* errors and socket exceptions into more
-/// user-friendly error messages.
-class PubHttpClient extends http.BaseClient {
-  final http.Client _inner;
-
-  PubHttpClient([http.Client inner])
-    : _inner = inner == null ? new http.Client() : inner;
-
-  Future<http.StreamedResponse> send(http.BaseRequest request) {
-    log.io("Sending HTTP request $request.");
-    // TODO(rnystrom): Log request body when it's available and plaintext, but
-    // not when it contains OAuth2 credentials.
-
-    // TODO(nweiz): remove this when issue 4061 is fixed.
-    var stackTrace;
-    try {
-      throw null;
-    } catch (_, localStackTrace) {
-      stackTrace = localStackTrace;
-    }
-
-    // TODO(nweiz): Ideally the timeout would extend to reading from the
-    // response input stream, but until issue 3657 is fixed that's not feasible.
-    return timeout(_inner.send(request).chain((streamedResponse) {
-      log.fine("Got response ${streamedResponse.statusCode} "
-               "${streamedResponse.reasonPhrase}.");
-
-      var status = streamedResponse.statusCode;
-      // 401 responses should be handled by the OAuth2 client. It's very
-      // unlikely that they'll be returned by non-OAuth2 requests.
-      if (status < 400 || status == 401) {
-        return new Future.immediate(streamedResponse);
-      }
-
-      return http.Response.fromStream(streamedResponse).transform((response) {
-        throw new PubHttpException(response);
-      });
-    }).transformException((e) {
-      if (e is SocketIOException &&
-          e.osError != null &&
-          (e.osError.errorCode == 8 ||
-           e.osError.errorCode == -2 ||
-           e.osError.errorCode == -5 ||
-           e.osError.errorCode == 11004)) {
-        throw 'Could not resolve URL "${request.url.origin}".';
-      }
-      throw e;
-    }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
-  }
-}
-
-/// The HTTP client to use for all HTTP requests.
-final httpClient = new PubHttpClient();
-
-final curlClient = new PubHttpClient(new CurlClient());
-
 /**
  * Takes all input from [source] and writes it to [sink].
  *
@@ -1011,18 +946,6 @@ InputStream createTarGz(List contents, {baseDir}) {
     });
   });
   return stream;
-}
-
-/**
- * Exception thrown when an HTTP operation fails.
- */
-class PubHttpException implements Exception {
-  final http.Response response;
-
-  const PubHttpException(this.response);
-
-  String toString() => 'HTTP error ${response.statusCode}: '
-      '${response.reasonPhrase}';
 }
 
 /**

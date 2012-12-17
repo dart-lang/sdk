@@ -79,35 +79,6 @@ main() {
   // TODO(nweiz): Once a multipart/form-data parser in Dart exists, we should
   // test that "pub lish" chooses the correct files to publish.
 
-  test('credentials are invalid', () {
-    var server = new ScheduledServer();
-    credentialsFile(server, 'access token').scheduleCreate();
-    var pub = startPubLish(server);
-
-    confirmPublish(pub);
-
-    server.handle('GET', '/packages/versions/new.json', (request, response) {
-      response.statusCode = 401;
-      response.headers.set('www-authenticate', 'Bearer error="invalid_token",'
-          ' error_description="your token sucks"');
-      response.outputStream.writeString(JSON.stringify({
-        'error': {'message': 'your token sucks'}
-      }));
-      response.outputStream.close();
-    });
-
-    expectLater(pub.nextErrLine(), equals('OAuth2 authorization failed (your '
-        'token sucks).'));
-    // TODO(rnystrom): The confirm line is run together with this one because
-    // in normal usage, the user will have entered a newline on stdin which
-    // gets echoed to the terminal. Do something better here?
-    expectLater(pub.nextLine(), equals(
-        'Looks great! Are you ready to upload your package (y/n)? '
-        'Pub needs your authorization to upload packages on your behalf.'));
-    pub.kill();
-    run();
-  });
-
   test('package validation has an error', () {
     var package = package("test_pkg", "1.0.0");
     package.remove("homepage");

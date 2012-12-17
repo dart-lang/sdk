@@ -10,11 +10,13 @@ library pub;
 import '../../pkg/args/lib/args.dart';
 import 'dart:io';
 import 'dart:math';
+import 'http.dart';
 import 'io.dart';
 import 'command_help.dart';
 import 'command_install.dart';
 import 'command_lish.dart';
 import 'command_update.dart';
+import 'command_uploader.dart';
 import 'command_version.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
@@ -39,6 +41,7 @@ Map<String, PubCommand> get pubCommands {
     'install': new InstallCommand(),
     'publish': new LishCommand(),
     'update': new UpdateCommand(),
+    'uploader': new UploaderCommand(),
     'version': new VersionCommand()
   };
   for (var command in commands.values) {
