@@ -25,55 +25,6 @@ typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
 typedef void EnqueueMoreWork(ProcessQueue queue);
 
-
-/**
- * [areByteArraysEqual] compares a range of bytes from [buffer1] with a
- * range of bytes from [buffer2].
- *
- * Returns [true] if the [count] bytes in [buffer1] (starting at
- * [offset1]) match the [count] bytes in [buffer2] (starting at
- * [offset2]).
- * Otherwise [false] is returned.
- */
-bool areByteArraysEqual(List<int> buffer1, int offset1,
-                        List<int> buffer2, int offset2,
-                        int count) {
-  if ((offset1 + count) > buffer1.length ||
-      (offset2 + count) > buffer2.length) {
-    return false;
-  }
-
-  for (var i = 0; i < count; i++) {
-    if (buffer1[offset1 + i] != buffer2[offset2 + i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
- * [findBytes] searches for [pattern] in [data] beginning at [startPos].
- *
- * Returns [true] if [pattern] was found in [data].
- * Otherwise [false] is returned.
- */
-int findBytes(List<int> data, List<int> pattern, [int startPos=0]) {
-  // TODO(kustermann): Use one of the fast string-matching algorithms!
-  for (int i=startPos; i < (data.length-pattern.length); i++) {
-    bool found = true;
-    for (int j=0; j<pattern.length; j++) {
-      if (data[i+j] != pattern[j]) {
-        found = false;
-      }
-    }
-    if (found) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-
 /** A command executed as a step in a test case. */
 class Command {
   /** Path to the executable of this command. */
@@ -81,14 +32,11 @@ class Command {
 
   /** Command line arguments to the executable. */
   List<String> arguments;
-  
-  /** Environment for the command */
-  Map<String,String> environment;
 
   /** The actual command line that will be executed. */
   String commandLine;
 
-  Command(this.executable, this.arguments, [this.environment = null]) {
+  Command(this.executable, this.arguments) {
     if (Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
       // with the slashes going the other direction.
@@ -101,8 +49,6 @@ class Command {
   String toString() => commandLine;
 
   Future<bool> get outputIsUpToDate => new Future.immediate(false);
-  Path get expectedOutputFile => null;
-  bool get isPixelTest => false;
 }
 
 class CompilationCommand extends Command {
@@ -158,55 +104,6 @@ class CompilationCommand extends Command {
     });
   }
 }
-
-class DumpRenderTreeCommand extends Command {
-  /**
-   * If [expectedOutputPath] is set, the output of DumpRenderTree is compared
-   * with the content of [expectedOutputPath].
-   * This is used for example for pixel tests, where [expectedOutputPath] points
-   * to a *png file.
-   */
-  Path expectedOutputPath;
-
-  DumpRenderTreeCommand(String executable,
-                        String htmlFile,
-                        List<String> options,
-                        List<String> dartFlags,
-                        Uri packageRootUri,
-                        Path this.expectedOutputPath)
-      : super(executable,
-              _getArguments(options, htmlFile),
-              _getEnvironment(dartFlags, packageRootUri));
-
-  static Map _getEnvironment(List<String> dartFlags, Uri packageRootUri) {
-    var needDartFlags = dartFlags != null && dartFlags.length > 0;
-    var needDartPackageRoot = packageRootUri != null;
-
-    var env = null;
-    if (needDartFlags || needDartPackageRoot) {
-      var env = new Map.from(Platform.environment);
-      if (needDartFlags) {
-        env['DART_FLAGS'] = Strings.join(dartFlags, " ");
-      }
-      if (needDartPackageRoot) {
-        env['DART_PACKAGE_ROOT'] = packageRootUri.toString();
-      }
-    }
-
-    return env;
-  }
-
-  static List<String> _getArguments(List<String> options, String htmlFile) {
-    var arguments = new List.from(options);
-    arguments.add(htmlFile);
-    return arguments;
-  }
-  
-  Path get expectedOutputFile => expectedOutputPath;
-  bool get isPixelTest => (expectedOutputFile != null &&
-                           expectedOutputFile.filename.endsWith(".png"));
-}
-
 
 /**
  * TestCase contains all the information needed to run a test and evaluate
@@ -420,8 +317,8 @@ abstract class CommandOutput {
                                  int exitCode,
                                  bool incomplete,
                                  bool timedOut,
-                                 List<int> stdout,
-                                 List<int> stderr,
+                                 List<String> stdout,
+                                 List<String> stderr,
                                  Duration time,
                                  bool compilationSkipped) {
     return new CommandOutputImpl.fromCase(testCase,
@@ -434,8 +331,6 @@ abstract class CommandOutput {
                                           time,
                                           compilationSkipped);
   }
-
-  Command get command;
 
   bool get incomplete;
 
@@ -455,9 +350,9 @@ abstract class CommandOutput {
 
   int get exitCode;
 
-  List<int> get stdout;
+  List<String> get stdout;
 
-  List<int> get stderr;
+  List<String> get stderr;
 
   List<String> get diagnostics;
 
@@ -465,7 +360,6 @@ abstract class CommandOutput {
 }
 
 class CommandOutputImpl implements CommandOutput {
-  Command command;
   TestCase testCase;
   int exitCode;
 
@@ -474,8 +368,8 @@ class CommandOutputImpl implements CommandOutput {
 
   bool timedOut;
   bool failed = false;
-  List<int> stdout;
-  List<int> stderr;
+  List<String> stdout;
+  List<String> stderr;
   Duration time;
   List<String> diagnostics;
   bool compilationSkipped;
@@ -495,12 +389,12 @@ class CommandOutputImpl implements CommandOutput {
   // Don't call this constructor, call CommandOutput.fromCase() to
   // get a new TestOutput instance.
   CommandOutputImpl(TestCase this.testCase,
-                    Command this.command,
+                    Command command,
                     int this.exitCode,
                     bool this.incomplete,
                     bool this.timedOut,
-                    List<int> this.stdout,
-                    List<int> this.stderr,
+                    List<String> this.stdout,
+                    List<String> this.stderr,
                     Duration this.time,
                     bool this.compilationSkipped) {
     testCase.commandOutputs[command] = this;
@@ -511,8 +405,8 @@ class CommandOutputImpl implements CommandOutput {
                                      int exitCode,
                                      bool incomplete,
                                      bool timedOut,
-                                     List<int> stdout,
-                                     List<int> stderr,
+                                     List<String> stdout,
+                                     List<String> stderr,
                                      Duration time,
                                      bool compilationSkipped) {
     if (testCase is BrowserTestCase) {
@@ -605,27 +499,14 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
           compilationSkipped);
 
   bool get didFail {
-    if (_failedBecauseOfMissingXDisplay) {
-      return true;
-    }
-
-    if (command.expectedOutputFile != null) {
-      // We are either doing a pixel test or a layout test with DumpRenderTree
-      return _failedBecauseOfUnexpectedDRTOutput;
-    }
-    return _browserTestFailure;
-  }
-
-  bool get _failedBecauseOfMissingXDisplay {
     // Browser case:
     // If the browser test failed, it may have been because DumpRenderTree
     // and the virtual framebuffer X server didn't hook up, or DRT crashed with
     // a core dump. Sometimes DRT crashes after it has set the stdout to PASS,
     // so we have to do this check first.
-    var stderrLines = new String.fromCharCodes(super.stderr).split("\n");
-    for (String line in stderrLines) {
+    for (String line in super.stderr) {
       if (line.contains('Gtk-WARNING **: cannot open display: :99') ||
-          line.contains('Failed to run command. return code=1')) {
+        line.contains('Failed to run command. return code=1')) {
         // If we get the X server error, or DRT crashes with a core dump, retry
         // the test.
         if ((testCase as BrowserTestCase).numRetries > 0) {
@@ -634,72 +515,16 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
         return true;
       }
     }
-    return false;
-  }
 
-  bool get _failedBecauseOfUnexpectedDRTOutput {
-    /*
-     * The output of DumpRenderTree is different for pixel tests than for
-     * layout tests.
-     *
-     * On a pixel test, the DRT output has the following format
-     *     ......
-     *     ......
-     *     Content-Length: ...\n
-     *     <*png data>
-     *     #EOF\n
-     * So we need to get the byte-range of the png data first, before
-     * comparing it with the content of the expected output file.
-     *
-     * On a layout tests, the DRT output is directly compared with the
-     * content of the expected output.
-     */
-    var stdout = testCase.commandOutputs[command].stdout;
-    var file = new File.fromPath(command.expectedOutputFile);
-    if (file.existsSync()) {
-      var bytesContentLength = "Content-Length:".charCodes;
-      var bytesNewLine = "\n".charCodes;
-      var bytesEOF = "#EOF\n".charCodes;
-
-      var expectedContent = file.readAsBytesSync();
-      if (command.isPixelTest) {
-        var startOfContentLength = findBytes(stdout, bytesContentLength);
-        if (startOfContentLength >= 0) {
-          var newLineAfterContentLength = findBytes(stdout,
-                                                    bytesNewLine,
-                                                    startOfContentLength);
-          if (newLineAfterContentLength > 0) {
-            var startPosition = newLineAfterContentLength +
-                bytesNewLine.length;
-            var endPosition = stdout.length - bytesEOF.length;
-
-            return !areByteArraysEqual(expectedContent,
-                                       0,
-                                       stdout,
-                                       startPosition,
-                                       endPosition - startPosition);
-          }
-        }
-        return true;
-      } else {
-        return !areByteArraysEqual(expectedContent, 0,
-                                   stdout, 0,
-                                   stdout.length);
-      }
-    }
-    return true;
-  }
-  
-  bool get _browserTestFailure {
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain' followed by 'PASS'.
     bool has_content_type = false;
-    var stdoutLines = new String.fromCharCodes(super.stdout).split("\n");
-    for (String line in stdoutLines) {
+    for (String line in super.stdout) {
       switch (line) {
         case 'Content-Type: text/plain':
           has_content_type = true;
           break;
+
         case 'PASS':
           if (has_content_type) {
             return (exitCode != 0 && !hasCrashed);
@@ -757,8 +582,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     List<String> staticWarnings = [];
 
     // Read the returned list of errors and stuff them away.
-    var stderrLines = new String.fromCharCodes(super.stderr).split("\n");
-    for (String line in stderrLines) {
+    for (String line in super.stderr) {
       if (line.length == 0) continue;
       List<String> fields = splitMachineError(line);
       if (fields[ERROR_LEVEL] == 'ERROR') {
@@ -907,9 +731,8 @@ class RunningProcess {
   bool timedOut = false;
   Date startTime;
   Timer timeoutTimer;
-  List<int> stdout;
-  List<int> stderr;
-  List<String> notifications;
+  List<String> stdout;
+  List<String> stderr;
   bool compilationSkipped;
   bool allowRetries;
 
@@ -923,8 +746,6 @@ class RunningProcess {
    * Called when all commands are executed.
    */
   void testComplete(CommandOutput lastCommandOutput) {
-    var command = lastCommandOutput.command;
-
     if (timeoutTimer != null) {
       timeoutTimer.cancel();
     }
@@ -932,22 +753,8 @@ class RunningProcess {
         && testCase.configuration['verbose'] != null
         && testCase.configuration['verbose']) {
       print(testCase.displayName);
-
-      print(new String.fromCharCodes(lastCommandOutput.stderr));
-      if (!lastCommandOutput.command.isPixelTest) {
-        print(new String.fromCharCodes(lastCommandOutput.stdout));
-      } else {
-        print("DRT pixel test failed! stdout is not printed because it "
-              "contains binary data!");
-      }
-      print('');
-      if (notifications.length > 0) {
-        print("Notifications:");
-        for (var line in notifications) {
-          print(notifications);
-        }
-        print('');
-      }
+      for (var line in lastCommandOutput.stderr) print(line);
+      for (var line in lastCommandOutput.stdout) print(line);
     }
     if (allowRetries && testCase.usesWebDriver
         && lastCommandOutput.unexpectedOutput
@@ -989,14 +796,14 @@ class RunningProcess {
       testComplete(createCommandOutput(command, exitCode, false));
     } else if (exitCode != 0) {
       // One of the steps failed.
-      notifications.add('test.dart: Compilation failed$suffix, '
-                        'exit code $exitCode\n');
+      stderr.add('test.dart: Compilation failed$suffix, exit code $exitCode\n');
       testComplete(createCommandOutput(command, exitCode, true));
     } else {
       createCommandOutput(command, exitCode, true);
       // One compilation step successfully completed, move on to the
       // next step.
-      notifications.add('test.dart: Compilation finished $suffix\n\n');
+      stderr.add('test.dart: Compilation finished $suffix\n');
+      stdout.add('test.dart: Compilation finished $suffix\n');
       if (currentStep == totalSteps - 1 && testCase.usesWebDriver &&
           !testCase.configuration['noBatch']) {
         // Note: processQueue will always be non-null for runtime == ie9, ie10,
@@ -1034,25 +841,22 @@ class RunningProcess {
   }
 
   void resetLocalOutputInformation() {
-    stdout = new List<int>();
-    stderr = new List<int>();
-    notifications = new List<String>();
+    stdout = new List<String>();
+    stderr = new List<String>();
     compilationSkipped = false;
   }
 
-  void drainStream(InputStream source, List<int> destination) {
-    void onDataHandler () {
-      if (source.closed) {
-        return;  // TODO(whesse): Remove when bug is fixed.
-      }
-      var data = source.read();
-      while (data != null) {
-        destination.addAll(data);
-        data = source.read();
+  VoidFunction makeReadHandler(StringInputStream source,
+                               List<String> destination) {
+    void handler () {
+      if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
+      var line = source.readLine();
+      while (null != line) {
+        destination.add(line);
+        line = source.readLine();
       }
     }
-    source.onData = onDataHandler;
-    source.onClosed = onDataHandler;
+    return handler;
   }
 
   void start() {
@@ -1070,20 +874,14 @@ class RunningProcess {
 
     command.outputIsUpToDate.then((bool isUpToDate) {
       if (isUpToDate) {
-        notifications.add("Skipped compilation because the old output is "
-                          "still up to date!");
+        stdout.add("Skipped compilation because the old output is "
+                   "still up to date!");
         compilationSkipped = true;
         commandComplete(command, 0);
       } else {
         ProcessOptions options = new ProcessOptions();
-        if (command.environment != null) {
-          options.environment =
-              new Map<String, String>.from(command.environment);
-        } else {
-          options.environment =
-              new Map<String, String>.from(Platform.environment);
-        }
-
+        options.environment =
+            new Map<String, String>.from(Platform.environment);
         options.environment['DART_CONFIGURATION'] =
             TestUtils.configurationDir(testCase.configuration);
         Future processFuture = Process.start(command.executable,
@@ -1092,8 +890,12 @@ class RunningProcess {
         processFuture.then((Process p) {
           process = p;
           process.onExit = processExitHandler;
-          drainStream(process.stdout, stdout);
-          drainStream(process.stderr, stderr);
+          var stdoutStringStream = new StringInputStream(process.stdout);
+          var stderrStringStream = new StringInputStream(process.stderr);
+          stdoutStringStream.onLine =
+              makeReadHandler(stdoutStringStream, stdout);
+          stderrStringStream.onLine =
+              makeReadHandler(stderrStringStream, stderr);
           if (timeoutTimer == null) {
             // Create one timeout timer when starting test case, remove it at
             // the end.
@@ -1149,8 +951,8 @@ class BatchRunnerProcess {
   StringInputStream _stderrStream;
 
   TestCase _currentTest;
-  List<int> _testStdout;
-  List<int> _testStderr;
+  List<String> _testStdout;
+  List<String> _testStderr;
   String _status;
   bool _stdoutDrained = false;
   bool _stderrDrained = false;
@@ -1227,15 +1029,9 @@ class BatchRunnerProcess {
     _stdoutDrained = false;
     _stderrDrained = false;
     _ignoreStreams = new MutableValue<bool>(false);  // Captured by closures.
-    _readStdout(_stdoutStream, _testStdout);
-    _readStderr(_stderrStream, _testStderr);
+    _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
+    _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
     _timer = new Timer(testCase.timeout * 1000, _timeoutHandler);
-
-    if (testCase.commands.last.environment != null) {
-      print("Warning: command.environment != null, but we don't support custom "
-            "environments for batch runner tests!");
-    }
-
     var line = _createArgumentsLine(testCase.batchTestArguments);
     _process.stdin.onError = (err) {
       print('Error on batch runner input stream stdin');
@@ -1285,9 +1081,9 @@ class BatchRunnerProcess {
     if (_stderrDrained) _reportResult();
   }
 
-  void _readStdout(StringInputStream stream, List<int> buffer) {
+  VoidFunction _readStdout(StringInputStream stream, List<String> buffer) {
     var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
-    void onLineHandler() {
+    void reader() {
       if (ignoreStreams.value) {
          while (stream.readLine() != null) {
           // Do nothing.
@@ -1304,7 +1100,7 @@ class BatchRunnerProcess {
         } else if (line.startsWith('>>> ')) {
           throw new Exception('Unexpected command from dartc batch runner.');
         } else {
-          buffer.addAll("$line\n".charCodes);
+          buffer.add(line);
         }
         line = stream.readLine();
       }
@@ -1313,12 +1109,12 @@ class BatchRunnerProcess {
         _stdoutDone();
       }
     }
-    stream.onLine = onLineHandler;
+    return reader;
   }
 
-  void _readStderr(StringInputStream stream, List<int> buffer) {
+  VoidFunction _readStderr(StringInputStream stream, List<String> buffer) {
     var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
-    void onLineHandler() {
+    void reader() {
       if (ignoreStreams.value) {
         while (stream.readLine() != null) {
           // Do nothing.
@@ -1331,12 +1127,12 @@ class BatchRunnerProcess {
         if (line.startsWith('>>> EOF STDERR')) {
           _stderrDone();
         } else {
-          buffer.addAll("$line\n".charCodes);
+          buffer.add(line);
         }
         line = stream.readLine();
       }
     }
-    stream.onLine = onLineHandler;
+    return reader;
   }
 
   ExitCodeEvent makeExitHandler(String status) {

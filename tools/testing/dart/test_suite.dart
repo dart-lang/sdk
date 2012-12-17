@@ -794,7 +794,6 @@ class StandardTestSuite extends TestSuite {
                           String testName,
                           Object expectations,
                           bool isWrappingRequired) {
-    // TODO(kustermann/ricow): This method should be refactored.
     Map optionsFromFile = info.optionsFromFile;
     Path filePath = info.filePath;
     String filename = filePath.toString();
@@ -920,14 +919,6 @@ class StandardTestSuite extends TestSuite {
       int subtestIndex = 0;
       // Construct the command that executes the browser test
       do {
-        List<Command> commandSet = new List<Command>.from(commands);
-        if (subtestIndex != 0) {
-          // NOTE: The first time we enter this loop, all the compilation 
-          // commands will be executed. On subsequent loop iterations, we 
-          // don't need to do any compilations. Thus we set "commandSet = []".
-          commandSet = [];
-        }
-
         List<String> args = <String>[];
         String fullHtmlPath = htmlPath.startsWith('http:') ? htmlPath :
             (htmlPath.startsWith('/') ?
@@ -937,7 +928,6 @@ class StandardTestSuite extends TestSuite {
             && subtestNames.length > 0) {
           fullHtmlPath = '${fullHtmlPath}#${subtestNames[subtestIndex]}';
         }
-
         if (TestUtils.usesWebDriver(runtime)) {
           args = [
               dartDir.append('tools/testing/run_selenium.py').toNativePath(),
@@ -947,52 +937,40 @@ class StandardTestSuite extends TestSuite {
           if (runtime == 'dartium') {
             args.add('--executable=$dartiumFilename');
           }
-          if (subtestIndex != 0) {
-            args.add('--force-refresh');
-          }
-          commandSet.add(new Command('python', args));
         } else {
-          Expect.isTrue(runtime == "drt");
-
-          var dartFlags = [];
-          var dumpRenderTreeOptions = [];
-          var packageRootUri;
-
-          dumpRenderTreeOptions.add('--no-timeout');
-
-          if (compiler == 'none' || compiler == 'dart2dart') {
-            dartFlags.add('--ignore-unrecognized-flags');
+          args = [
+              dartDir.append('tools/testing/drt-trampoline.py').toNativePath(),
+              dumpRenderTreeFilename,
+              '--no-timeout'
+          ];
+          if (compiler == 'none') {
+            String packageRoot =
+                packageRootArgument(optionsFromFile['packageRoot']);
+            if (packageRoot != null) {
+              args.add(packageRoot);
+            }
+          }
+          if (runtime == 'drt' &&
+              (compiler == 'none' || compiler == 'dart2dart')) {
+            var dartFlags = ['--ignore-unrecognized-flags'];
             if (configuration["checked"]) {
               dartFlags.add('--enable_asserts');
               dartFlags.add("--enable_type_checks");
             }
             dartFlags.addAll(vmOptions);
+            args.add('--dart-flags=${Strings.join(dartFlags, " ")}');
           }
-          if (compiler == 'none') {
-            var packageRoot = packageRootArgument(
-                optionsFromFile['packageRoot']);
-            if (packageRoot != null) {
-              var absolutePath = TestUtils.absolutePath(new Path(packageRoot));
-              packageRootUri = new Uri.fromComponents(
-                  scheme: 'file',
-                  path: absolutePath.toString());
-            }
-          }
-
+          args.add(fullHtmlPath);
           if (expectedOutput != null) {
-            if (expectedOutput.toNativePath().endsWith('.png')) {
-              // pixel tests are specified by running DRT "foo.html'-p"
-              dumpRenderTreeOptions.add('--notree');
-              fullHtmlPath = "${fullHtmlPath}'-p";
-            }
+            args.add('--out-expectation=${expectedOutput.toNativePath()}');
           }
-          commandSet.add(new DumpRenderTreeCommand(dumpRenderTreeFilename,
-                                                   fullHtmlPath,
-                                                   dumpRenderTreeOptions,
-                                                   dartFlags,
-                                                   packageRootUri,
-                                                   expectedOutput));
         }
+        List<Command> commandSet = new List<Command>.from(commands);
+        if (subtestIndex != 0) {
+         commandSet = [];
+         if(TestUtils.usesWebDriver(runtime)) args.add('--force-refresh');
+        }
+        commandSet.add(new Command('python', args));
 
         // Create BrowserTestCase and queue it.
         String testDisplayName = '$suiteName/$testName';

@@ -148,7 +148,7 @@ class ProgressIndicator {
     }
     _failureSummary.addAll(failureOutput);
   }
-
+  
   List<String> _buildFailureOutput(TestCase test) {
     List<String> output = new List<String>();
     output.add('');
@@ -183,17 +183,16 @@ class ProgressIndicator {
     if (!test.lastCommandOutput.stdout.isEmpty) {
       output.add('');
       output.add('stdout:');
-      if (test.lastCommandOutput.command.isPixelTest) {
-        output.add('DRT pixel test failed! stdout is not printed because it '
-                   'contains binary data!');
-      } else {
-        output.add(new String.fromCharCodes(test.lastCommandOutput.stdout));
+      for (var s in test.lastCommandOutput.stdout) {
+        output.add(s);
       }
     }
     if (!test.lastCommandOutput.stderr.isEmpty) {
       output.add('');
       output.add('stderr:');
-      output.add(new String.fromCharCodes(test.lastCommandOutput.stderr));
+      for (var s in test.lastCommandOutput.stderr) {
+        output.add(s);
+      }
     }
     for (Command c in test.commands) {
       output.add('');
