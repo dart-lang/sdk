@@ -3157,7 +3157,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);
 
     var arguments = new List<HInstruction>();
-    addGenericSendArgumentsToList(node.arguments, arguments);
+    if (node.argumentsNode != null) {
+      addGenericSendArgumentsToList(node.arguments, arguments);
+    }
     var argumentsInstruction = new HLiteralList(arguments);
     add(argumentsInstruction);
 
