@@ -2,30 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart_mirrors;
+/**
+ * Patch library for dart:mirrors.
+ */
 
 import 'dart:isolate';
-
-part '../../../../mirrors/mirrors.dart';
 
 /**
  * Stub class for the mirror system.
  */
-class _Mirrors {
-  static MirrorSystem currentMirrorSystem() {
-    _ensureEnabled();
-    throw new UnsupportedError("MirrorSystem not implemented");
-  }
+patch MirrorSystem currentMirrorSystem() {
+  _ensureEnabled();
+  throw new UnsupportedError("MirrorSystem not implemented");
+}
 
-  static Future<MirrorSystem> mirrorSystemOf(SendPort port) {
-    _ensureEnabled();
-    throw new UnsupportedError("MirrorSystem not implemented");
-  }
+patch Future<MirrorSystem> mirrorSystemOf(SendPort port) {
+  _ensureEnabled();
+  throw new UnsupportedError("MirrorSystem not implemented");
+}
 
-  static InstanceMirror reflect(Object reflectee) {
-    _ensureEnabled();
-    return new _InstanceMirror(reflectee);
-  }
+patch InstanceMirror reflect(Object reflectee) {
+  _ensureEnabled();
+  return new _InstanceMirror(reflectee);
 }
 
 class _InstanceMirror extends InstanceMirror {

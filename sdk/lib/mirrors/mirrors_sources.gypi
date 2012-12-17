@@ -4,6 +4,6 @@
 
 {
   'sources': [
-    '../../../runtime/lib/empty_source.dart',
+    'mirrors_impl.dart',
   ],
 }
