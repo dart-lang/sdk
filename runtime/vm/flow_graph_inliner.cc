@@ -353,6 +353,24 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
+    const intptr_t loop_depth = call->GetBlock()->loop_depth();
+    const intptr_t constant_arguments = CountConstants(*arguments);
+    if (!ShouldWeInline(loop_depth,
+                        function.optimized_instruction_count(),
+                        function.optimized_call_site_count(),
+                        constant_arguments)) {
+      TRACE_INLINING(OS::Print("     Bailout: early heuristics with "
+                               "loop depth: %"Pd", "
+                               "code size:  %"Pd", "
+                               "call sites: %"Pd", "
+                               "const args: %"Pd"\n",
+                               loop_depth,
+                               function.optimized_instruction_count(),
+                               function.optimized_call_site_count(),
+                               constant_arguments));
+      return false;
+    }
+
     // Abort if this is a recursive occurrence.
     if (IsCallRecursive(function, call)) {
       function.set_is_inlinable(false);
@@ -397,7 +415,6 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Build the callee graph.
-      const intptr_t loop_depth = call->GetBlock()->loop_depth();
       FlowGraphBuilder builder(*parsed_function);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
@@ -482,6 +499,10 @@ class CallSiteInliner : public ValueObject {
       GraphInfoCollector info;
       info.Collect(*callee_graph);
       const intptr_t size = info.instruction_count();
+
+      function.set_optimized_instruction_count(size);
+      function.set_optimized_call_site_count(info.call_site_count());
+
       // Use heuristics do decide if this call should be inlined.
       if (!ShouldWeInline(loop_depth,
                           size,
@@ -578,6 +599,14 @@ class CallSiteInliner : public ValueObject {
       TRACE_INLINING(OS::Print("     Bailout: %s\n", error.ToErrorCString()));
       return false;
     }
+  }
+
+  static intptr_t CountConstants(const GrowableArray<Value*>& arguments) {
+    intptr_t count = 0;
+    for (intptr_t i = 0; i < arguments.length(); i++) {
+      if (arguments[i]->BindsToConstant()) count++;
+    }
+    return count;
   }
 
   // Parse a function reusing the cache if possible.
@@ -769,7 +798,22 @@ class CallSiteInliner : public ValueObject {
 };
 
 
+void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph) {
+  GraphInfoCollector info;
+  info.Collect(*flow_graph);
+  const Function& function = flow_graph->parsed_function().function();
+  function.set_optimized_instruction_count(
+    static_cast<uint16_t>(info.instruction_count()));
+  function.set_optimized_call_site_count(
+    static_cast<uint16_t>(info.call_site_count()));
+}
+
+
 void FlowGraphInliner::Inline() {
+  // Collect graph info and store it on the function.
+  // We might later use it for an early bailout from the inlining.
+  CollectGraphInfo(flow_graph_);
+
   if ((FLAG_inlining_filter != NULL) &&
       (strstr(flow_graph_->
               parsed_function().function().ToFullyQualifiedCString(),

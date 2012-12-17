@@ -1288,6 +1288,29 @@ class Function : public Object {
     raw_ptr()->deoptimization_counter_ = value;
   }
 
+  static const intptr_t kMaxInstructionCount = (1 << 16) - 1;
+  intptr_t optimized_instruction_count() const {
+    return raw_ptr()->optimized_instruction_count_;
+  }
+  void set_optimized_instruction_count(intptr_t value) const {
+    ASSERT(value >= 0);
+    if (value > kMaxInstructionCount) {
+      value = kMaxInstructionCount;
+    }
+    raw_ptr()->optimized_instruction_count_ = static_cast<uint16_t>(value);
+  }
+
+  intptr_t optimized_call_site_count() const {
+    return raw_ptr()->optimized_call_site_count_;
+  }
+  void set_optimized_call_site_count(intptr_t value) const {
+    ASSERT(value >= 0);
+    if (value > kMaxInstructionCount) {
+      value = kMaxInstructionCount;
+    }
+    raw_ptr()->optimized_call_site_count_ = static_cast<uint16_t>(value);
+  }
+
   bool is_optimizable() const;
   void set_is_optimizable(bool value) const;
 

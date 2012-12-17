@@ -3956,6 +3956,8 @@ RawFunction* Function::New(const String& name,
   result.set_num_optional_parameters(0);
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
+  result.set_optimized_instruction_count(0);
+  result.set_optimized_call_site_count(0);
   result.set_is_optimizable(true);
   result.set_has_finally(false);
   result.set_is_native(false);

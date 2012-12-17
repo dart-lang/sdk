@@ -593,6 +593,8 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_num_optional_parameters(reader->ReadIntptrValue());
   func.set_deoptimization_counter(reader->ReadIntptrValue());
   func.set_kind_tag(reader->Read<uint16_t>());
+  func.set_optimized_instruction_count(reader->Read<uint16_t>());
+  func.set_optimized_call_site_count(reader->Read<uint16_t>());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -628,6 +630,8 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->num_optional_parameters_);
   writer->WriteIntptrValue(ptr()->deoptimization_counter_);
   writer->Write<uint16_t>(ptr()->kind_tag_);
+  writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
+  writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
