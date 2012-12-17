@@ -81,13 +81,10 @@ class CommentMap {
             lastComment = '$lastComment\n$line';
           }
         }
-      } else if (token.kind == dart2js.HASH_TOKEN) {
+      } else if (token.stringValue == 'library' && lastComment != null) {
         // Look for `library` to find the library comment.
-        final next = token.next;
-        if ((lastComment != null) && (next.stringValue == 'library')) {
-          _libraryComments[source.sourceUri.toString()] = lastComment;
-          lastComment = null;
-        }
+        _libraryComments[source.sourceUri.toString()] = lastComment;
+        lastComment = null;
       } else if (lastComment != null) {
         if (!lastComment.trim().isEmpty) {
           // We haven't attached the last doc comment to something yet, so stick
