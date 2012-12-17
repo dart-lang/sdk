@@ -27,6 +27,13 @@ main() {
       -webkit-transform: translate3d(250px, 100px, 0px) perspective(500px) rotateX(30deg);
       ''';
     document.body.nodes.add(element);
+
+    Point point = new Point(5, 2);
+    checkPoint(5, 2, point);
+    checkPoint(256, 110, window.webkitConvertPointFromNodeToPage(element, point));
+    point.y = 100;
+    checkPoint(5, 100, point);
+    checkPoint(254, 196, window.webkitConvertPointFromNodeToPage(element, point));
   });
 }
 

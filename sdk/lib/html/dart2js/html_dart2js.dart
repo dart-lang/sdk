@@ -10623,6 +10623,14 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+
+typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IceCandidate; @docsEditable true
 class IceCandidate native "*IceCandidate" {
@@ -12578,6 +12586,12 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /// @domName Window.stop; @docsEditable true
   void stop() native;
+
+  /// @domName Window.webkitConvertPointFromNodeToPage; @docsEditable true
+  Point webkitConvertPointFromNodeToPage(Node node, Point p) native;
+
+  /// @domName Window.webkitConvertPointFromPageToNode; @docsEditable true
+  Point webkitConvertPointFromPageToNode(Node node, Point p) native;
 
   /// @domName DOMWindow.webkitRequestFileSystem; @docsEditable true
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
@@ -15233,6 +15247,173 @@ class ParamElement extends Element native "*HTMLParamElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName PeerConnection00; @docsEditable true
+class PeerConnection00 extends EventTarget native "*PeerConnection00" {
+
+  ///@docsEditable true
+  factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
+
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  PeerConnection00Events get on =>
+    new PeerConnection00Events(this);
+
+  static const int ACTIVE = 2;
+
+  static const int CLOSED = 3;
+
+  static const int ICE_CHECKING = 0x300;
+
+  static const int ICE_CLOSED = 0x700;
+
+  static const int ICE_COMPLETED = 0x500;
+
+  static const int ICE_CONNECTED = 0x400;
+
+  static const int ICE_FAILED = 0x600;
+
+  static const int ICE_GATHERING = 0x100;
+
+  static const int ICE_WAITING = 0x200;
+
+  static const int NEW = 0;
+
+  static const int OPENING = 1;
+
+  static const int SDP_ANSWER = 0x300;
+
+  static const int SDP_OFFER = 0x100;
+
+  static const int SDP_PRANSWER = 0x200;
+
+  /// @domName PeerConnection00.iceState; @docsEditable true
+  final int iceState;
+
+  /// @domName PeerConnection00.localDescription; @docsEditable true
+  final SessionDescription localDescription;
+
+  /// @domName PeerConnection00.localStreams; @docsEditable true
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
+  final List<MediaStream> localStreams;
+
+  /// @domName PeerConnection00.readyState; @docsEditable true
+  final int readyState;
+
+  /// @domName PeerConnection00.remoteDescription; @docsEditable true
+  final SessionDescription remoteDescription;
+
+  /// @domName PeerConnection00.remoteStreams; @docsEditable true
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
+  final List<MediaStream> remoteStreams;
+
+  /// @domName PeerConnection00.addEventListener; @docsEditable true
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  /// @domName PeerConnection00.addStream; @docsEditable true
+  void addStream(MediaStream stream, [Map mediaStreamHints]) {
+    if (?mediaStreamHints) {
+      var mediaStreamHints_1 = convertDartToNative_Dictionary(mediaStreamHints);
+      _addStream_1(stream, mediaStreamHints_1);
+      return;
+    }
+    _addStream_2(stream);
+    return;
+  }
+  @JSName('addStream')
+  void _addStream_1(MediaStream stream, mediaStreamHints) native;
+  @JSName('addStream')
+  void _addStream_2(MediaStream stream) native;
+
+  /// @domName PeerConnection00.close; @docsEditable true
+  void close() native;
+
+  /// @domName PeerConnection00.createAnswer; @docsEditable true
+  SessionDescription createAnswer(String offer, [Map mediaHints]) {
+    if (?mediaHints) {
+      var mediaHints_1 = convertDartToNative_Dictionary(mediaHints);
+      return _createAnswer_1(offer, mediaHints_1);
+    }
+    return _createAnswer_2(offer);
+  }
+  @JSName('createAnswer')
+  SessionDescription _createAnswer_1(offer, mediaHints) native;
+  @JSName('createAnswer')
+  SessionDescription _createAnswer_2(offer) native;
+
+  /// @domName PeerConnection00.createOffer; @docsEditable true
+  SessionDescription createOffer([Map mediaHints]) {
+    if (?mediaHints) {
+      var mediaHints_1 = convertDartToNative_Dictionary(mediaHints);
+      return _createOffer_1(mediaHints_1);
+    }
+    return _createOffer_2();
+  }
+  @JSName('createOffer')
+  SessionDescription _createOffer_1(mediaHints) native;
+  @JSName('createOffer')
+  SessionDescription _createOffer_2() native;
+
+  /// @domName PeerConnection00.dispatchEvent; @docsEditable true
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
+
+  /// @domName PeerConnection00.processIceMessage; @docsEditable true
+  void processIceMessage(IceCandidate candidate) native;
+
+  /// @domName PeerConnection00.removeEventListener; @docsEditable true
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  /// @domName PeerConnection00.removeStream; @docsEditable true
+  void removeStream(MediaStream stream) native;
+
+  /// @domName PeerConnection00.setLocalDescription; @docsEditable true
+  void setLocalDescription(int action, SessionDescription desc) native;
+
+  /// @domName PeerConnection00.setRemoteDescription; @docsEditable true
+  void setRemoteDescription(int action, SessionDescription desc) native;
+
+  /// @domName PeerConnection00.startIce; @docsEditable true
+  void startIce([Map iceOptions]) {
+    if (?iceOptions) {
+      var iceOptions_1 = convertDartToNative_Dictionary(iceOptions);
+      _startIce_1(iceOptions_1);
+      return;
+    }
+    _startIce_2();
+    return;
+  }
+  @JSName('startIce')
+  void _startIce_1(iceOptions) native;
+  @JSName('startIce')
+  void _startIce_2() native;
+}
+
+/// @docsEditable true
+class PeerConnection00Events extends Events {
+  /// @docsEditable true
+  PeerConnection00Events(EventTarget _ptr) : super(_ptr);
+
+  /// @docsEditable true
+  EventListenerList get addStream => this['addstream'];
+
+  /// @docsEditable true
+  EventListenerList get connecting => this['connecting'];
+
+  /// @docsEditable true
+  EventListenerList get open => this['open'];
+
+  /// @docsEditable true
+  EventListenerList get removeStream => this['removestream'];
+
+  /// @docsEditable true
+  EventListenerList get stateChange => this['statechange'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName Performance; @docsEditable true
 class Performance extends EventTarget native "*Performance" {
 
@@ -15340,6 +15521,24 @@ class PerformanceTiming native "*PerformanceTiming" {
 
   /// @domName PerformanceTiming.unloadEventStart; @docsEditable true
   final int unloadEventStart;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName WebKitPoint
+class Point native "*WebKitPoint" {
+  factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
+
+  /// @domName WebKitPoint.x; @docsEditable true
+  num x;
+
+  /// @domName WebKitPoint.y; @docsEditable true
+  num y;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22049,6 +22248,15 @@ class _OptionElementFactoryProvider {
     return JS('OptionElement', 'new Option(#,#,#,#)',
               data, value, defaultSelected, selected);
   }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class _PeerConnection00FactoryProvider {
+  static PeerConnection00 createPeerConnection00(String serverConfiguration, IceCallback iceCallback) =>
+      JS('PeerConnection00', 'new PeerConnection00(#,#)', serverConfiguration, iceCallback);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
