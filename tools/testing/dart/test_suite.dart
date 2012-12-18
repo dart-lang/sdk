@@ -969,9 +969,10 @@ class StandardTestSuite extends TestSuite {
             dartFlags.addAll(vmOptions);
           }
           if (compiler == 'none') {
-            var packageRoot = packageRoot(optionsFromFile['packageRoot']);
-            if (packageRoot != null) {
-              var absolutePath = TestUtils.absolutePath(new Path(packageRoot));
+            var packageRootPath = packageRoot(optionsFromFile['packageRoot']);
+            if (packageRootPath != null) {
+              var absolutePath = 
+                  TestUtils.absolutePath(new Path(packageRootPath));
               packageRootUri = new Uri.fromComponents(
                   scheme: 'file',
                   path: absolutePath.toString());
@@ -1197,11 +1198,11 @@ class StandardTestSuite extends TestSuite {
   }
 
   String packageRootArgument(String packageRootFromFile) {
-    var packageRoot = packageRoot(packageRootFromFile);
-    if (packageRoot == null) {
+    var packageRootPath = packageRoot(packageRootFromFile);
+    if (packageRootPath == null) {
       return null;
     }
-    return "--package-root=$packageRoot";
+    return "--package-root=$packageRootPath";
   }
 
   /**
