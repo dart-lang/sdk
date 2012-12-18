@@ -5,15 +5,15 @@
 abstract class Timer {
   /**
    * Creates a new timer. The [callback] callback is invoked after
-   * [milliseconds] milliseconds.
+   * [milliSeconds] milliseconds.
    */
-  external factory Timer(int milliseconds, void callback(Timer timer));
+  external factory Timer(int milliSeconds, void callback(Timer timer));
 
   /**
    * Creates a new repeating timer. The [callback] is invoked every
-   * [milliseconds] millisecond until cancelled.
+   * [milliSeconds] millisecond until cancelled.
    */
-  external factory Timer.repeating(int milliseconds,
+  external factory Timer.repeating(int milliSeconds,
                                    void callback(Timer timer));
 
   /**
