@@ -109,7 +109,7 @@ class _SocketOutputStream
   }
 
   void destroy() {
-    _socket._onWrite = null;
+    _socket.onWrite = null;
     _pendingWrites.clear();
     _socket.close();
     _closed = true;
@@ -191,12 +191,12 @@ class _SocketOutputStream
   }
 
   bool _onSocketError(e) {
-    destroy();
+    close();
     if (_onError != null) {
       _onError(e);
       return true;
     } else {
-      throw e;
+      return false;
     }
   }
 
