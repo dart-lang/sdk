@@ -245,50 +245,74 @@ Future<Directory> deleteDir(dir) {
       dir.delete(recursive: true)));
 }
 
-/**
- * Asynchronously lists the contents of [dir], which can be a [String] directory
- * path or a [Directory]. If [recursive] is `true`, lists subdirectory contents
- * (defaults to `false`). If [includeHiddenFiles] is `true`, includes files and
- * directories beginning with `.` (defaults to `false`).
- */
+/// Asynchronously lists the contents of [dir], which can be a [String]
+/// directory path or a [Directory]. If [recursive] is `true`, lists
+/// subdirectory contents (defaults to `false`). If [includeHiddenFiles] is
+/// `true`, includes files and directories beginning with `.` (defaults to
+/// `false`).
+///
+/// If [dir] is a string, the returned paths are guaranteed to begin with it.
 Future<List<String>> listDir(dir,
     {bool recursive: false, bool includeHiddenFiles: false}) {
-  final completer = new Completer<List<String>>();
-  final contents = <String>[];
+  Future<List<String>> doList(Directory dir, Set<String> listedDirectories) {
+    var contents = <String>[];
+    var completer = new Completer<List<String>>();
 
-  dir = _getDirectory(dir);
-  log.io("Listing directory ${dir.path}.");
-  var lister = dir.list(recursive: recursive);
-
-  lister.onDone = (done) {
-    // TODO(rnystrom): May need to sort here if it turns out onDir and onFile
-    // aren't guaranteed to be called in a certain order. So far, they seem to.
-    if (done) {
-      log.fine("Listed directory ${dir.path}:\n"
-                "${Strings.join(contents, '\n')}");
-      completer.complete(contents);
+    // Avoid recursive symlinks.
+    var resolvedPath = new File(dir.path).fullPathSync();
+    if (listedDirectories.contains(resolvedPath)) {
+      return new Future.immediate([]);
     }
-  };
+    listedDirectories = new Set<String>.from(listedDirectories);
+    listedDirectories.add(resolvedPath);
 
-  // TODO(nweiz): remove this when issue 4061 is fixed.
-  var stackTrace;
-  try {
-    throw "";
-  } catch (_, localStackTrace) {
-    stackTrace = localStackTrace;
+    log.io("Listing directory ${dir.path}.");
+    var lister = dir.list();
+
+    lister.onDone = (done) {
+      // TODO(rnystrom): May need to sort here if it turns out onDir and onFile
+      // aren't guaranteed to be called in a certain order. So far, they seem to.
+      if (done) {
+        log.fine("Listed directory ${dir.path}:\n"
+                  "${Strings.join(contents, '\n')}");
+        completer.complete(contents);
+      }
+    };
+
+    // TODO(nweiz): remove this when issue 4061 is fixed.
+    var stackTrace;
+    try {
+      throw "";
+    } catch (_, localStackTrace) {
+      stackTrace = localStackTrace;
+    }
+
+    var children = [];
+    lister.onError = (error) => completer.completeException(error, stackTrace);
+    lister.onDir = (file) {
+      if (!includeHiddenFiles && basename(file).startsWith('.')) return;
+      file = join(dir, basename(file));
+      contents.add(file);
+
+      // TODO(nweiz): don't manually recurse once issue 7358 is fixed.
+      if (recursive) {
+        children.add(doList(new Directory(file), listedDirectories));
+      }
+    };
+    lister.onFile = (file) {
+      if (!includeHiddenFiles && basename(file).startsWith('.')) return;
+      contents.add(join(dir, basename(file)));
+    };
+
+    return completer.future.chain((contents) {
+      return Futures.wait(children).transform((childContents) {
+        contents.addAll(flatten(childContents));
+        return contents;
+      });
+    });
   }
 
-  lister.onError = (error) => completer.completeException(error, stackTrace);
-  lister.onDir = (file) {
-    if (!includeHiddenFiles && basename(file).startsWith('.')) return;
-    contents.add(file);
-  };
-  lister.onFile = (file) {
-    if (!includeHiddenFiles && basename(file).startsWith('.')) return;
-    contents.add(file);
-  };
-
-  return completer.future;
+  return doList(_getDirectory(dir), new Set<String>());
 }
 
 /**

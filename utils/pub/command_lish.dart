@@ -114,13 +114,6 @@ class LishCommand extends PubCommand {
   Future<List<String>> get _filesToPublish {
     var rootDir = entrypoint.root.dir;
 
-    // TODO(rnystrom): listDir() returns real file paths after symlinks are
-    // resolved. This means if libDir contains a symlink, the resulting paths
-    // won't appear to be within it, which confuses relativeTo(). Work around
-    // that here by making sure we have the real path to libDir. Remove this
-    // when #7346 is fixed.
-    rootDir = new File(rootDir).fullPathSync();
-
     return Futures.wait([
       dirExists(join(rootDir, '.git')),
       git.isInstalled
@@ -143,20 +136,7 @@ class LishCommand extends PubCommand {
             // Should instead only make these relative right before generating
             // the tree display (which is what really needs them to be).
             // Make it relative to the package root.
-            entry = relativeTo(entry, rootDir);
-
-            // TODO(rnystrom): dir.list() will include paths with resolved
-            // symlinks. In particular, we'll get paths to symlinked files from
-            // "packages" that reach outside of this package. Since the path
-            // has already been resolved, we don't even see "packages" in that
-            // path anymore.
-            // These should not be included in the archive. As a hack, ignore
-            // any file whose relative path is backing out of the root
-            // directory. Should do something cleaner.
-            var parts = path.split(entry);
-            if (!parts.isEmpty && parts[0] == '..') return null;
-
-            return entry;
+            return relativeTo(entry, rootDir);
           });
         }));
       });
