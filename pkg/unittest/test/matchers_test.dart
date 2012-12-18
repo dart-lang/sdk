@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library unittestTests;
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 part 'test_utils.dart';
 
 doesNotThrow() {}
