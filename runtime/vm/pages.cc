@@ -233,7 +233,9 @@ uword PageSpace::TryAllocate(intptr_t size,
       // On overflow we fail to allocate.
       return 0;
     }
-    if (CanIncreaseCapacity(page_size)) {
+    if ((page_space_controller_.CanGrowPageSpace(size) ||
+         growth_policy == kForceGrowth) &&
+        CanIncreaseCapacity(page_size)) {
       HeapPage* page = AllocateLargePage(size, type);
       if (page != NULL) {
         result = page->object_start();
@@ -584,16 +586,12 @@ void PageSpaceController::EvaluateGarbageCollection(
       }
       OS::PrintErr("\n");
     }
-    if (!enough_free_space) {
-      intptr_t growth_target = static_cast<intptr_t>(in_use_after /
-                                                     desired_utilization_);
-      intptr_t growth_in_bytes = Utils::RoundUp(growth_target - in_use_after,
-                                                PageSpace::kPageSize);
-      int growth_in_pages = growth_in_bytes / PageSpace::kPageSize;
-      grow_heap_ = Utils::Maximum(growth_in_pages, heap_growth_rate_);
-    } else {
-      grow_heap_ = heap_growth_rate_;
-    }
+    intptr_t growth_target = static_cast<intptr_t>(in_use_after /
+                                                   desired_utilization_);
+    intptr_t growth_in_bytes = Utils::RoundUp(growth_target - in_use_after,
+                                              PageSpace::kPageSize);
+    int growth_in_pages = growth_in_bytes / PageSpace::kPageSize;
+    grow_heap_ = Utils::Maximum(growth_in_pages, heap_growth_rate_);
   }
 }
 

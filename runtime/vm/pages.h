@@ -135,7 +135,7 @@ class PageSpaceController {
   bool is_enabled_;
 
   // Heap growth control variable.
-  uword grow_heap_;
+  intptr_t grow_heap_;
 
   // If the garbage collector was not able to free more than heap_growth_ratio_
   // memory, then the heap is grown. Otherwise garbage collection is performed.
