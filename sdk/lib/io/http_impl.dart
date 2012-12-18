@@ -32,7 +32,7 @@ class _CloseQueue {
     connection._state |= _HttpConnectionBase.CLOSING;
     _q.add(connection);
 
-    // If output stream is not closed for writing close it now and
+    // If the output stream is not closed for writing, close it now and
     // wait for callback when closed.
     if (!connection._isWriteClosed) {
       connection._socket.outputStream.close();
@@ -938,6 +938,7 @@ class _HttpConnection extends _HttpConnectionBase {
       _request = null;
       _response = null;
       if (close) {
+        _httpParser.cancel();
         _server._closeQueue.add(this);
       } else {
         _state = _HttpConnectionBase.IDLE;
@@ -949,7 +950,7 @@ class _HttpConnection extends _HttpConnectionBase {
       // not care to read the request body) this is send.
       assert(!_isRequestDone);
       _writeBufferedResponse();
-      _close();
+      _httpParser.cancel();
       _server._closeQueue.add(this);
     }
   }
