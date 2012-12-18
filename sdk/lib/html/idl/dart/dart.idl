@@ -89,6 +89,15 @@ module html {
                                 [Optional] in boolean cancelableArg,
                                 [Optional] in DOMString statusMessageArg);
   };
+
+  [Suppressed]
+  interface IceCallback {};
+
+  [Suppressed]
+  interface PeerConnection00 {};
+
+  [Suppressed]
+  interface WebKitPoint {};
 };
 
 module html {

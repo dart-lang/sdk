@@ -12544,14 +12544,6 @@ class IFrameElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName IceCandidate
 class IceCandidate extends NativeFieldWrapperClass1 {
 
@@ -15096,14 +15088,6 @@ class LocalWindow extends EventTarget implements Window {
 
   /** @domName DOMWindow.webkitCancelAnimationFrame */
   void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
-
-
-  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
-  Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
-
-
-  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
-  Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
 
 
   /** @domName DOMWindow.webkitRequestAnimationFrame */
@@ -18563,146 +18547,6 @@ class ParamElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName PeerConnection00
-class PeerConnection00 extends EventTarget {
-
-  ///@docsEditable true
-  factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
-  PeerConnection00.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  PeerConnection00Events get on =>
-    new PeerConnection00Events(this);
-
-  static const int ACTIVE = 2;
-
-  static const int CLOSED = 3;
-
-  static const int ICE_CHECKING = 0x300;
-
-  static const int ICE_CLOSED = 0x700;
-
-  static const int ICE_COMPLETED = 0x500;
-
-  static const int ICE_CONNECTED = 0x400;
-
-  static const int ICE_FAILED = 0x600;
-
-  static const int ICE_GATHERING = 0x100;
-
-  static const int ICE_WAITING = 0x200;
-
-  static const int NEW = 0;
-
-  static const int OPENING = 1;
-
-  static const int SDP_ANSWER = 0x300;
-
-  static const int SDP_OFFER = 0x100;
-
-  static const int SDP_PRANSWER = 0x200;
-
-
-  /** @domName PeerConnection00.iceState */
-  int get iceState native "PeerConnection00_iceState_Getter";
-
-
-  /** @domName PeerConnection00.localDescription */
-  SessionDescription get localDescription native "PeerConnection00_localDescription_Getter";
-
-
-  /** @domName PeerConnection00.localStreams */
-  List<MediaStream> get localStreams native "PeerConnection00_localStreams_Getter";
-
-
-  /** @domName PeerConnection00.readyState */
-  int get readyState native "PeerConnection00_readyState_Getter";
-
-
-  /** @domName PeerConnection00.remoteDescription */
-  SessionDescription get remoteDescription native "PeerConnection00_remoteDescription_Getter";
-
-
-  /** @domName PeerConnection00.remoteStreams */
-  List<MediaStream> get remoteStreams native "PeerConnection00_remoteStreams_Getter";
-
-
-  /** @domName PeerConnection00.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_addEventListener_Callback";
-
-
-  /** @domName PeerConnection00.addStream */
-  void addStream(MediaStream stream, [Map mediaStreamHints]) native "PeerConnection00_addStream_Callback";
-
-
-  /** @domName PeerConnection00.close */
-  void close() native "PeerConnection00_close_Callback";
-
-
-  /** @domName PeerConnection00.createAnswer */
-  SessionDescription createAnswer(String offer, [Map mediaHints]) native "PeerConnection00_createAnswer_Callback";
-
-
-  /** @domName PeerConnection00.createOffer */
-  SessionDescription createOffer([Map mediaHints]) native "PeerConnection00_createOffer_Callback";
-
-
-  /** @domName PeerConnection00.dispatchEvent */
-  bool $dom_dispatchEvent(Event event) native "PeerConnection00_dispatchEvent_Callback";
-
-
-  /** @domName PeerConnection00.processIceMessage */
-  void processIceMessage(IceCandidate candidate) native "PeerConnection00_processIceMessage_Callback";
-
-
-  /** @domName PeerConnection00.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_removeEventListener_Callback";
-
-
-  /** @domName PeerConnection00.removeStream */
-  void removeStream(MediaStream stream) native "PeerConnection00_removeStream_Callback";
-
-
-  /** @domName PeerConnection00.setLocalDescription */
-  void setLocalDescription(int action, SessionDescription desc) native "PeerConnection00_setLocalDescription_Callback";
-
-
-  /** @domName PeerConnection00.setRemoteDescription */
-  void setRemoteDescription(int action, SessionDescription desc) native "PeerConnection00_setRemoteDescription_Callback";
-
-
-  /** @domName PeerConnection00.startIce */
-  void startIce([Map iceOptions]) native "PeerConnection00_startIce_Callback";
-
-}
-
-/// @docsEditable true
-class PeerConnection00Events extends Events {
-  /// @docsEditable true
-  PeerConnection00Events(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get addStream => this['addstream'];
-
-  /// @docsEditable true
-  EventListenerList get connecting => this['connecting'];
-
-  /// @docsEditable true
-  EventListenerList get open => this['open'];
-
-  /// @docsEditable true
-  EventListenerList get removeStream => this['removestream'];
-
-  /// @docsEditable true
-  EventListenerList get stateChange => this['statechange'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName Performance
 class Performance extends EventTarget {
   Performance.internal(): super.internal();
@@ -18846,35 +18690,6 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 
   /** @domName PerformanceTiming.unloadEventStart */
   int get unloadEventStart native "PerformanceTiming_unloadEventStart_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName WebKitPoint
-class Point extends NativeFieldWrapperClass1 {
-  factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
-  Point.internal();
-
-
-  /** @domName WebKitPoint.x */
-  num get x native "WebKitPoint_x_Getter";
-
-
-  /** @domName WebKitPoint.x */
-  void set x(num value) native "WebKitPoint_x_Setter";
-
-
-  /** @domName WebKitPoint.y */
-  num get y native "WebKitPoint_y_Getter";
-
-
-  /** @domName WebKitPoint.y */
-  void set y(num value) native "WebKitPoint_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27384,14 +27199,6 @@ class _NotificationFactoryProvider {
 
 class _OptionElementFactoryProvider {
   static OptionElement createOptionElement([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _PeerConnection00FactoryProvider {
-  static PeerConnection00 createPeerConnection00(String serverConfiguration, IceCallback iceCallback) native "PeerConnection00_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
