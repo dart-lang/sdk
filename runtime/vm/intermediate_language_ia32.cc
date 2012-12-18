@@ -2321,7 +2321,7 @@ LocationSummary* DoubleToSmiInstr::MakeLocationSummary() const {
   LocationSummary* result = new LocationSummary(
       kNumInputs, kNumTemps, LocationSummary::kNoCall);
   result->set_in(0, Location::RequiresXmmRegister());
-  result->set_out(Location:: Location::RequiresRegister());
+  result->set_out(Location::RequiresRegister());
   return result;
 }
 
