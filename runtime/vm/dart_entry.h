@@ -53,6 +53,10 @@ class ArgumentsDescriptor : public ValueObject {
   static RawArray* New(intptr_t count,
                        const Array& optional_arguments_names);
 
+  // Allocate and return an arguments descriptor that has no optional
+  // arguments. All arguments are positional.
+  static RawArray* New(intptr_t count);
+
  private:
   // Absolute indexes into the array.
   enum {
@@ -86,30 +90,47 @@ class DartEntry : public AllStatic {
   // On success, returns a RawInstance.  On failure, a RawError.
   typedef RawObject* (*invokestub)(uword entry_point,
                                    const Array& arguments_descriptor,
-                                   const Object** arguments,
+                                   const Array& arguments,
                                    const Context& context);
 
   // Invokes the specified instance function on the receiver.
   // On success, returns a RawInstance.  On failure, a RawError.
+  // This is used when there are no named arguments in the call.
+  static RawObject* InvokeDynamic(const Function& function,
+                                  const Array& arguments);
+
+  // Invokes the specified instance function on the receiver.
+  // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* InvokeDynamic(
-      const Instance& receiver,
       const Function& function,
-      const GrowableArray<const Object*>& arguments,
-      const Array& optional_arguments_names);
+      const Array& arguments,
+      const Array& arguments_descriptor);
+
+  // Invoke the specified static function.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  // This is used when there are no named arguments in the call.
+  static RawObject* InvokeStatic(const Function& function,
+                                 const Array& arguments);
 
   // Invoke the specified static function.
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* InvokeStatic(
       const Function& function,
-      const GrowableArray<const Object*>& arguments,
-      const Array& optional_arguments_names);
+      const Array& arguments,
+      const Array& arguments_descriptor);
+
+  // Invoke the specified closure object.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  // This is used when there are no named arguments in the call.
+  static RawObject* InvokeClosure(const Instance& closure,
+                                  const Array& arguments);
 
   // Invoke the specified closure object.
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* InvokeClosure(
       const Instance& closure,
-      const GrowableArray<const Object*>& arguments,
-      const Array& optional_arguments_names);
+      const Array& arguments,
+      const Array& arguments_descriptor);
 };
 
 

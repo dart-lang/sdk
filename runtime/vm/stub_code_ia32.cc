@@ -714,7 +714,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 //   ESP : points to return address.
 //   ESP + 4 : entrypoint of the dart function to call.
 //   ESP + 8 : arguments descriptor array.
-//   ESP + 12 : pointer to the argument array.
+//   ESP + 12 : arguments array.
 //   ESP + 16 : new context containing the current isolate pointer.
 // Uses EAX, EDX, ECX, EDI as temporary registers.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
@@ -774,10 +774,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ testl(EBX, EBX);  // check if there are arguments.
   __ j(ZERO, &done_push_arguments, Assembler::kNearJump);
   __ movl(EAX, Immediate(0));
-  __ movl(EDI, Address(EBP, kArgumentsOffset));  // start of arguments.
+
+  // Compute address of 'arguments array' data area into EDI.
+  __ movl(EDI, Address(EBP, kArgumentsOffset));
+  __ movl(EDI, Address(EDI, VMHandles::kOffsetOfRawPtrInHandle));
+  __ leal(EDI, FieldAddress(EDI, Array::data_offset()));
+
   __ Bind(&push_arguments);
   __ movl(ECX, Address(EDI, EAX, TIMES_4, 0));
-  __ movl(ECX, Address(ECX, VMHandles::kOffsetOfRawPtrInHandle));
   __ pushl(ECX);
   __ incl(EAX);
   __ cmpl(EAX, EBX);

@@ -33,32 +33,29 @@ static RawObject* InvokeNoSuchMethod(const Instance& receiver,
                                     allocation_function_name,
                                     Resolver::kIsQualified));
   ASSERT(!allocation_function.IsNull());
-  GrowableArray<const Object*> allocation_arguments(3);
-  allocation_arguments.Add(&target_name);
-  allocation_arguments.Add(&arguments_descriptor);
-  allocation_arguments.Add(&arguments);
-  const Array& kNoArgumentNames = Array::Handle();
+  const int kNumAllocationArgs = 3;
+  const Array& allocation_args = Array::Handle(Array::New(kNumAllocationArgs));
+  allocation_args.SetAt(0, target_name);
+  allocation_args.SetAt(1, arguments_descriptor);
+  allocation_args.SetAt(2, arguments);
   const Object& invocation_mirror =
       Object::Handle(DartEntry::InvokeStatic(allocation_function,
-                                             allocation_arguments,
-                                             kNoArgumentNames));
+                                             allocation_args));
 
   const String& function_name = String::Handle(Symbols::NoSuchMethod());
-  const int kNumArguments = 2;
-  const int kNumNamedArguments = 0;
+  const int kNumInvokeArgs = 2;
+  const int kNumNamedInvokeArgs = 0;
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver,
                                function_name,
-                               kNumArguments,
-                               kNumNamedArguments));
+                               kNumInvokeArgs,
+                               kNumNamedInvokeArgs));
   ASSERT(!function.IsNull());
-  GrowableArray<const Object*> invoke_arguments(1);
-  invoke_arguments.Add(&invocation_mirror);
+  const Array& invoke_arguments = Array::Handle(Array::New(kNumInvokeArgs));
+  invoke_arguments.SetAt(0, receiver);
+  invoke_arguments.SetAt(1, invocation_mirror);
   const Object& result =
-      Object::Handle(DartEntry::InvokeDynamic(receiver,
-                                              function,
-                                              invoke_arguments,
-                                              kNoArgumentNames));
+      Object::Handle(DartEntry::InvokeDynamic(function, invoke_arguments));
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
   }
@@ -95,31 +92,11 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_invoke, 4) {
                               fun_args_desc,
                               invoke_arguments);
   }
-  // TODO(regis): Simply call DartEntry::InvokeDynamic once it is modified to
-  // take an arguments descriptor array and an arguments array.
-  // Get the entrypoint corresponding to the instance function. This will
-  // result in a compilation of the function if it is not already compiled.
   ASSERT(!function.IsNull());
-  if (!function.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(function));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
-  }
-  // Set up arguments as GrowableArray.
-  GrowableArray<const Object*> args(num_arguments);
-  for (int i = 0; i < num_arguments; i++) {
-    args.Add(&Object::ZoneHandle(invoke_arguments.At(i)));
-  }
-  // Now call the invoke stub which will invoke the function.
-  DartEntry::invokestub entrypoint = reinterpret_cast<DartEntry::invokestub>(
-      StubCode::InvokeDartCodeEntryPoint());
-  const Code& code = Code::Handle(function.CurrentCode());
-  ASSERT(!code.IsNull());
-  const Context& context = Context::ZoneHandle(
-      Isolate::Current()->object_store()->empty_context());
-  const Object& result = Object::Handle(
-      entrypoint(code.EntryPoint(), fun_args_desc, args.data(), context));
+  const Object& result =
+      Object::Handle(DartEntry::InvokeDynamic(function,
+                                              invoke_arguments,
+                                              fun_args_desc));
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
   }

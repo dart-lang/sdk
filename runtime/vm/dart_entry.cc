@@ -13,11 +13,17 @@
 
 namespace dart {
 
-RawObject* DartEntry::InvokeDynamic(
-    const Instance& receiver,
-    const Function& function,
-    const GrowableArray<const Object*>& arguments,
-    const Array& optional_arguments_names) {
+RawObject* DartEntry::InvokeDynamic(const Function& function,
+                                    const Array& arguments) {
+  const Array& arg_desc =
+      Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
+  return InvokeDynamic(function, arguments, arg_desc);
+}
+
+
+RawObject* DartEntry::InvokeDynamic(const Function& function,
+                                    const Array& arguments,
+                                    const Array& arg_descriptor) {
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.
@@ -28,14 +34,6 @@ RawObject* DartEntry::InvokeDynamic(
     }
   }
 
-  // Set up arguments to include the receiver as the first argument.
-  const int num_arguments = arguments.length() + 1;
-  GrowableArray<const Object*> args(num_arguments);
-  const Object& arg0 = Object::ZoneHandle(receiver.raw());
-  args.Add(&arg0);
-  for (int i = 1; i < num_arguments; i++) {
-    args.Add(arguments[i - 1]);
-  }
   // Now Call the invoke stub which will invoke the dart function.
   invokestub entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
@@ -44,17 +42,21 @@ RawObject* DartEntry::InvokeDynamic(
   ASSERT(context.isolate() == Isolate::Current());
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
-  const Array& arg_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(num_arguments,
-                                             optional_arguments_names));
-  return entrypoint(code.EntryPoint(), arg_descriptor, args.data(), context);
+  return entrypoint(code.EntryPoint(), arg_descriptor, arguments, context);
 }
 
 
-RawObject* DartEntry::InvokeStatic(
-    const Function& function,
-    const GrowableArray<const Object*>& arguments,
-    const Array& optional_arguments_names) {
+RawObject* DartEntry::InvokeStatic(const Function& function,
+                                   const Array& arguments) {
+  const Array& arg_desc =
+      Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
+  return InvokeStatic(function, arguments, arg_desc);
+}
+
+
+RawObject* DartEntry::InvokeStatic(const Function& function,
+                                   const Array& arguments,
+                                   const Array& arg_descriptor) {
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.
@@ -73,19 +75,22 @@ RawObject* DartEntry::InvokeStatic(
   ASSERT(context.isolate() == Isolate::Current());
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
-  const Array& arg_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(arguments.length(),
-                                             optional_arguments_names));
-  return entrypoint(code.EntryPoint(), arg_descriptor, arguments.data(),
-                    context);
+  return entrypoint(code.EntryPoint(), arg_descriptor, arguments, context);
 }
 
 
-// TODO(regis): Pass arguments as an Array including the receiver.
-RawObject* DartEntry::InvokeClosure(
-    const Instance& instance,
-    const GrowableArray<const Object*>& arguments,
-    const Array& optional_arguments_names) {
+RawObject* DartEntry::InvokeClosure(const Instance& closure,
+                                    const Array& arguments) {
+  const Array& arg_desc =
+      Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
+  return InvokeClosure(closure, arguments, arg_desc);
+}
+
+
+RawObject* DartEntry::InvokeClosure(const Instance& instance,
+                                    const Array& arguments,
+                                    const Array& arg_descriptor) {
+  ASSERT(instance.raw() == arguments.At(0));
   // Get the entrypoint corresponding to the closure function or to the call
   // method of the instance. This will result in a compilation of the function
   // if it is not already compiled.
@@ -93,18 +98,12 @@ RawObject* DartEntry::InvokeClosure(
   Context& context = Context::Handle();
   if (!instance.IsCallable(&function, &context)) {
     // Set up arguments to include the receiver as the first argument.
-    const int num_arguments = arguments.length() + 1;
-    const Array& args = Array::Handle(Array::New(num_arguments));
-    args.SetAt(0, instance);
-    for (int i = 1; i < num_arguments; i++) {
-      args.SetAt(i, *arguments[i - 1]);
-    }
     const String& call_symbol = String::Handle(Symbols::Call());
     const Object& null_object = Object::Handle();
     GrowableArray<const Object*> dart_arguments(5);
     dart_arguments.Add(&instance);
     dart_arguments.Add(&call_symbol);
-    dart_arguments.Add(&args);  // Including instance.
+    dart_arguments.Add(&arguments);  // Includes instance.
     dart_arguments.Add(&null_object);  // TODO(regis): Provide names.
     // If a function "call" with different arguments exists, it will have been
     // invoked above, so no need to handle this case here.
@@ -119,24 +118,13 @@ RawObject* DartEntry::InvokeClosure(
       return error.raw();
     }
   }
-  // Set up arguments to include the receiver as the first argument.
-  const int num_arguments = arguments.length() + 1;
-  GrowableArray<const Object*> args(num_arguments);
-  const Object& arg0 = Object::ZoneHandle(instance.raw());
-  args.Add(&arg0);
-  for (int i = 1; i < num_arguments; i++) {
-    args.Add(arguments[i - 1]);
-  }
   // Now call the invoke stub which will invoke the closure.
   invokestub entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
   ASSERT(context.isolate() == Isolate::Current());
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
-  const Array& arg_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(num_arguments,
-                                             optional_arguments_names));
-  return entrypoint(code.EntryPoint(), arg_descriptor, args.data(), context);
+  return entrypoint(code.EntryPoint(), arg_descriptor, arguments, context);
 }
 
 
@@ -231,6 +219,30 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
 }
 
 
+RawArray* ArgumentsDescriptor::New(intptr_t num_arguments) {
+  // Build the arguments descriptor array, which consists of the total
+  // argument count; the positional argument count; and
+  // a terminating null to simplify iterating in generated code.
+  const intptr_t descriptor_len = LengthFor(0);
+  Array& descriptor = Array::Handle(Array::New(descriptor_len, Heap::kOld));
+  const Smi& arg_count = Smi::Handle(Smi::New(num_arguments));
+
+  // Set total number of passed arguments.
+  descriptor.SetAt(kCountIndex, arg_count);
+
+  // Set number of positional arguments.
+  descriptor.SetAt(kPositionalCountIndex, arg_count);
+
+  // Set terminating null.
+  descriptor.SetAt((descriptor_len - 1), Object::Handle());
+
+  // Share the immutable descriptor when possible by canonicalizing it.
+  descriptor.MakeImmutable();
+  descriptor ^= descriptor.Canonicalize();
+  return descriptor.raw();
+}
+
+
 RawObject* DartLibraryCalls::ExceptionCreate(
     const Library& lib,
     const String& class_name,
@@ -238,21 +250,24 @@ RawObject* DartLibraryCalls::ExceptionCreate(
   const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   // For now, we only support a non-parameterized or raw type.
+  const int kNumExtraArgs = 2;  // implicit rcvr and construction phase args.
   const Instance& exception_object = Instance::Handle(Instance::New(cls));
-  GrowableArray<const Object*> constructor_arguments(arguments.length() + 2);
-  constructor_arguments.Add(&exception_object);
-  constructor_arguments.Add(&Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
-  constructor_arguments.AddArray(arguments);
+  const Array& constructor_arguments =
+    Array::Handle(Array::New(arguments.length() + kNumExtraArgs));
+  constructor_arguments.SetAt(0, exception_object);
+  constructor_arguments.SetAt(
+      1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
+  for (intptr_t i = 0; i < arguments.length(); i++) {
+    constructor_arguments.SetAt((i + kNumExtraArgs), *(arguments[i]));
+  }
 
   String& constructor_name = String::Handle(
       String::Concat(class_name, Symbols::DotHandle()));
   Function& constructor =
       Function::Handle(cls.LookupConstructor(constructor_name));
   ASSERT(!constructor.IsNull());
-  const Array& kNoArgumentNames = Array::Handle();
-  const Object& retval = Object::Handle(
-      DartEntry::InvokeStatic(constructor, constructor_arguments,
-                              kNoArgumentNames));
+  const Object& retval =
+    Object::Handle(DartEntry::InvokeStatic(constructor, constructor_arguments));
   ASSERT(retval.IsNull() || retval.IsError());
   if (retval.IsError()) {
     return retval.raw();
@@ -264,21 +279,18 @@ RawObject* DartLibraryCalls::ExceptionCreate(
 RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
   const String& function_name =
       String::Handle(Symbols::New("toString"));
-  GrowableArray<const Object*> arguments;
   const int kNumArguments = 1;  // Receiver.
   const int kNumNamedArguments = 0;  // None.
-  const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver,
                                function_name,
                                kNumArguments,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());
-  const Object& result = Object::Handle(
-      DartEntry::InvokeDynamic(receiver,
-                               function,
-                               arguments,
-                               kNoArgumentNames));
+  const Array& args = Array::Handle(Array::New(kNumArguments));
+  args.SetAt(0, receiver);
+  const Object& result = Object::Handle(DartEntry::InvokeDynamic(function,
+                                                                 args));
   ASSERT(result.IsInstance() || result.IsError());
   return result.raw();
 }
@@ -286,19 +298,20 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
 
 RawObject* DartLibraryCalls::Equals(const Instance& left,
                                     const Instance& right) {
-  GrowableArray<const Object*> arguments;
-  arguments.Add(&right);
   const int kNumArguments = 2;
   const int kNumNamedArguments = 0;
-  const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(left,
                                Symbols::EqualOperatorHandle(),
                                kNumArguments,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());
-  const Object& result = Object::Handle(
-      DartEntry::InvokeDynamic(left, function, arguments, kNoArgumentNames));
+
+  const Array& args = Array::Handle(Array::New(kNumArguments));
+  args.SetAt(0, left);
+  args.SetAt(1, right);
+  const Object& result = Object::Handle(DartEntry::InvokeDynamic(function,
+                                                                 args));
   ASSERT(result.IsInstance() || result.IsError());
   return result.raw();
 }
@@ -324,12 +337,12 @@ RawObject* DartLibraryCalls::HandleMessage(Dart_Port dest_port_id,
                               kNumArguments,
                               kNoArgumentNames,
                               Resolver::kIsQualified));
-  GrowableArray<const Object*> arguments(kNumArguments);
-  arguments.Add(&Integer::Handle(Integer::New(dest_port_id)));
-  arguments.Add(&Integer::Handle(Integer::New(reply_port_id)));
-  arguments.Add(&message);
-  const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
+  const Array& args = Array::Handle(Array::New(kNumArguments));
+  args.SetAt(0, Integer::Handle(Integer::New(dest_port_id)));
+  args.SetAt(1, Integer::Handle(Integer::New(reply_port_id)));
+  args.SetAt(2, message);
+  const Object& result = Object::Handle(DartEntry::InvokeStatic(function,
+                                                                args));
   ASSERT(result.IsNull() || result.IsError());
   return result.raw();
 }
@@ -352,9 +365,9 @@ RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
                               kNumArguments,
                               kNoArgumentNames,
                               Resolver::kIsQualified));
-  GrowableArray<const Object*> arguments(kNumArguments);
-  arguments.Add(&Integer::Handle(Integer::New(port_id)));
-  return DartEntry::InvokeStatic(function, arguments, kNoArgumentNames);
+  const Array& args = Array::Handle(Array::New(kNumArguments));
+  args.SetAt(0, Integer::Handle(Integer::New(port_id)));
+  return DartEntry::InvokeStatic(function, args);
 }
 
 
@@ -362,15 +375,16 @@ RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
                                       const Instance& key,
                                       const Instance& value) {
   String& name = String::Handle(Symbols::AssignIndexToken());
+  const int kNumArguments = 3;
   const Function& function = Function::Handle(
-      Resolver::ResolveDynamic(map, name, 3, 0));
+      Resolver::ResolveDynamic(map, name, kNumArguments, 0));
   ASSERT(!function.IsNull());
-  GrowableArray<const Object*> args(2);
-  args.Add(&key);
-  args.Add(&value);
-  const Array& kNoArgumentNames = Array::Handle();
-  const Object& result = Object::Handle(
-      DartEntry::InvokeDynamic(map, function, args, kNoArgumentNames));
+  const Array& args = Array::Handle(Array::New(kNumArguments));
+  args.SetAt(0, map);
+  args.SetAt(1, key);
+  args.SetAt(2, value);
+  const Object& result = Object::Handle(DartEntry::InvokeDynamic(function,
+                                                                 args));
   return result.raw();
 }
 
@@ -381,9 +395,9 @@ RawObject* DartLibraryCalls::PortGetId(const Instance& port) {
   const String& func_name = String::Handle(Field::GetterName(field_name));
   const Function& func = Function::Handle(cls.LookupDynamicFunction(func_name));
   ASSERT(!func.IsNull());
-  GrowableArray<const Object*> arguments;
-  const Array& kNoArgumentNames = Array::Handle();
-  return DartEntry::InvokeDynamic(port, func, arguments, kNoArgumentNames);
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, port);
+  return DartEntry::InvokeDynamic(func, args);
 }
 
 

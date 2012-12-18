@@ -1127,10 +1127,9 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
   bool saved_ignore_flag = ignore_breakpoints_;
   ignore_breakpoints_ = true;
   if (setjmp(*jump.Set()) == 0) {
-    GrowableArray<const Object*> noArguments;
-    const Array& noArgumentNames = Array::Handle();
-    result = DartEntry::InvokeDynamic(object, getter_func,
-                                      noArguments, noArgumentNames);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, object);
+    result = DartEntry::InvokeDynamic(getter_func, args);
   } else {
     result = isolate_->object_store()->sticky_error();
   }
@@ -1167,9 +1166,8 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   bool saved_ignore_flag = ignore_breakpoints_;
   ignore_breakpoints_ = true;
   if (setjmp(*jump.Set()) == 0) {
-    GrowableArray<const Object*> noArguments;
-    const Array& noArgumentNames = Array::Handle();
-    result = DartEntry::InvokeStatic(getter_func, noArguments, noArgumentNames);
+    const Array& args = Array::Handle(Object::empty_array());
+    result = DartEntry::InvokeStatic(getter_func, args);
   } else {
     result = isolate_->object_store()->sticky_error();
   }

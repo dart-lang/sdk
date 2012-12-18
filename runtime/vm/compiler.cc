@@ -625,17 +625,13 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // Non-optimized code generator.
     CompileParsedFunctionHelper(*parsed_function, false);
 
-    GrowableArray<const Object*> arguments;  // no arguments.
-    const Array& kNoArgumentNames = Array::Handle();
-    Object& result = Object::Handle();
-    result = DartEntry::InvokeStatic(func,
-                                     arguments,
-                                     kNoArgumentNames);
+    const Array& args = Array::Handle(Object::empty_array());
+    const Object& result = Object::Handle(DartEntry::InvokeStatic(func, args));
     isolate->set_long_jump_base(base);
     return result.raw();
   } else {
-    Object& result = Object::Handle();
-    result = isolate->object_store()->sticky_error();
+    const Object& result =
+      Object::Handle(isolate->object_store()->sticky_error());
     isolate->object_store()->clear_sticky_error();
     isolate->set_long_jump_base(base);
     return result.raw();

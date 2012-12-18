@@ -169,17 +169,15 @@ bool IsolateMessageHandler::UnhandledExceptionCallbackHandler(
   ASSERT(exception.IsInstance());
 
   // Invoke script's callback function.
-  GrowableArray<const Object*> callback_args(0);
-  callback_args.Add(&exception);
-  const Array& kNoArgumentNames = Array::Handle(isolate_);
   Object& function = Object::Handle(isolate_, ResolveCallbackFunction());
   if (function.IsNull() || function.IsError()) {
     return false;
   }
+  const Array& callback_args = Array::Handle(Array::New(1));
+  callback_args.SetAt(0, exception);
   const Object& result =
       Object::Handle(DartEntry::InvokeStatic(Function::Cast(function),
-                                             callback_args,
-                                             kNoArgumentNames));
+                                             callback_args));
   if (result.IsError()) {
     const Error& err = Error::Cast(result);
     OS::PrintErr("failed calling unhandled exception callback: %s\n",

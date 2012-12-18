@@ -62,17 +62,16 @@ RawObject* ReceivePortCreate(intptr_t port_id) {
       String::Handle(Symbols::New("_get_or_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
-  const Function& function = Function::Handle(
+  const Function& func = Function::Handle(
       Resolver::ResolveStatic(isolate_lib,
                               class_name,
                               function_name,
                               kNumArguments,
                               kNoArgumentNames,
                               Resolver::kIsQualified));
-  GrowableArray<const Object*> arguments(kNumArguments);
-  arguments.Add(&Integer::Handle(Integer::New(port_id)));
-  const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
+  const Array& args = Array::Handle(Array::New(kNumArguments));
+  args.SetAt(0, Integer::Handle(Integer::New(port_id)));
+  const Object& result = Object::Handle(DartEntry::InvokeStatic(func, args));
   if (!result.IsError()) {
     PortMap::SetLive(port_id);
   }
@@ -374,9 +373,8 @@ static bool RunIsolate(uword parameter) {
     ASSERT(result.IsFunction());
     Function& func = Function::Handle(isolate);
     func ^= result.raw();
-    GrowableArray<const Object*> args(0);
-    const Array& kNoArgNames = Array::Handle();
-    result = DartEntry::InvokeStatic(func, args, kNoArgNames);
+    const Array& args = Array::Handle(Object::empty_array());
+    result = DartEntry::InvokeStatic(func, args);
     if (result.IsError()) {
       StoreError(isolate, result);
       return false;

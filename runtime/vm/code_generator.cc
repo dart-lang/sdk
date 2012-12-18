@@ -1124,21 +1124,6 @@ static RawInstance* ResolveImplicitClosure(const Instance& receiver,
 }
 
 
-static RawInstructions* EnsureCompiled(const Function& function) {
-  if (!function.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(function));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
-  }
-  const Code& code = Code::Handle(function.CurrentCode());
-  ASSERT(!code.IsNull());
-  const Instructions& instrs = Instructions::Handle(code.instructions());
-  ASSERT(!instrs.IsNull());
-  return instrs.raw();
-}
-
-
 static RawObject* InvokeNoSuchMethod(const Instance& receiver,
                                      const String& target_name,
                                      const Array& arguments_descriptor,
@@ -1157,16 +1142,16 @@ static RawObject* InvokeNoSuchMethod(const Instance& receiver,
                                     allocation_function_name,
                                     Resolver::kIsQualified));
   ASSERT(!allocation_function.IsNull());
-  GrowableArray<const Object*> allocation_arguments(3);
-  allocation_arguments.Add(&target_name);
-  allocation_arguments.Add(&arguments_descriptor);
-  allocation_arguments.Add(&arguments);
-  const Array& kNoArgumentNames = Array::Handle();
+  const int kNumAllocationArgs = 3;
+  const Array& allocation_args = Array::Handle(Array::New(kNumAllocationArgs));
+  allocation_args.SetAt(0, target_name);
+  allocation_args.SetAt(1, arguments_descriptor);
+  allocation_args.SetAt(2, arguments);
   const Object& invocation_mirror =
       Object::Handle(DartEntry::InvokeStatic(allocation_function,
-                                             allocation_arguments,
-                                             kNoArgumentNames));
+                                             allocation_args));
 
+  // Now use the invocation mirror object and invoke NoSuchMethod.
   const String& function_name = String::Handle(Symbols::NoSuchMethod());
   const int kNumArguments = 2;
   const int kNumNamedArguments = 0;
@@ -1176,44 +1161,11 @@ static RawObject* InvokeNoSuchMethod(const Instance& receiver,
                                kNumArguments,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());
-  GrowableArray<const Object*> invoke_arguments(1);
-  invoke_arguments.Add(&invocation_mirror);
-  const Object& result =
-      Object::Handle(DartEntry::InvokeDynamic(receiver,
-                                              function,
-                                              invoke_arguments,
-                                              kNoArgumentNames));
-  CheckResultError(result);
-  return result.raw();
-}
-
-
-static RawObject* InvokeClosure(const Instance& closure,
-                                const Array& arguments_descriptor,
-                                const Array& arguments) {
-  const Function& function = Function::Handle(Closure::function(closure));
-  ASSERT(!function.IsNull());
-  const Instructions& instrs = Instructions::Handle(EnsureCompiled(function));
-  const Context& context = Context::Handle(Closure::context(closure));
-
-  // The closure object is passed as implicit first argument to closure
-  // functions, since it may be needed to throw a NoSuchMethodError, in case
-  // the wrong number of arguments is passed.
-  // Replace the original receiver in the arguments array by the closure.
-  GrowableArray<const Object*> invoke_arguments(arguments.Length());
-  invoke_arguments.Add(&closure);
-  for (intptr_t i = 1; i < arguments.Length(); i++) {
-    const Object& value = Object::Handle(arguments.At(i));
-    invoke_arguments.Add(&value);
-  }
-  // Now call the invoke stub which will invoke the closure.
-  DartEntry::invokestub entrypoint = reinterpret_cast<DartEntry::invokestub>(
-      StubCode::InvokeDartCodeEntryPoint());
-  ASSERT(context.isolate() == Isolate::Current());
-  const Object& result = Object::Handle(entrypoint(instrs.EntryPoint(),
-                                                   arguments_descriptor,
-                                                   invoke_arguments.data(),
-                                                   context));
+  const Array& args = Array::Handle(Array::New(kNumArguments));
+  args.SetAt(0, receiver);
+  args.SetAt(1, invocation_mirror);
+  const Object& result = Object::Handle(DartEntry::InvokeDynamic(function,
+                                                                 args));
   CheckResultError(result);
   return result.raw();
 }
@@ -1232,27 +1184,14 @@ static RawObject* InvokeNonClosure(const Instance& receiver,
     call_function = current_class.LookupDynamicFunction(call_symbol);
 
     if (!call_function.IsNull()) {
-      const Instructions& instrs =
-          Instructions::Handle(EnsureCompiled(call_function));
       // The non-closure object is passed as implicit first argument
       // (receiver).  It is already included in the arguments array.
-      GrowableArray<const Object*> invoke_arguments(arguments.Length());
-      for (intptr_t i = 0; i < arguments.Length(); i++) {
-        const Object& value = Object::Handle(arguments.At(i));
-        invoke_arguments.Add(&value);
-      }
 
       // Now call the invoke stub which will invoke the call method.
-      DartEntry::invokestub entrypoint =
-          reinterpret_cast<DartEntry::invokestub>(
-              StubCode::InvokeDartCodeEntryPoint());
-      const Context& context = Context::ZoneHandle(
-          Isolate::Current()->object_store()->empty_context());
       const Object& result =
-          Object::Handle(entrypoint(instrs.EntryPoint(),
-                                    arguments_descriptor,
-                                    invoke_arguments.data(),
-                                    context));
+          Object::Handle(DartEntry::InvokeDynamic(call_function,
+                                                  arguments,
+                                                  arguments_descriptor));
       CheckResultError(result);
       return result.raw();
     }
@@ -1290,13 +1229,9 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   if (getter.IsNull()) return false;
 
   // 2. Invoke the getter.
-  GrowableArray<const Object*> invoke_arguments(0);
-  const Array& kNoArgumentNames = Array::Handle();
-  const Object& value =
-      Object::Handle(DartEntry::InvokeDynamic(receiver,
-                                              getter,
-                                              invoke_arguments,
-                                              kNoArgumentNames));
+  const Array& args = Array::Handle(Array::New(kNumArguments));
+  args.SetAt(0, receiver);
+  const Object& value = Object::Handle(DartEntry::InvokeDynamic(getter, args));
 
   // 3. If the getter threw an exception, treat it as no such method.
   if (value.IsUnhandledException()) return false;
@@ -1314,7 +1249,15 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   ASSERT(!instance_class.IsNull());
   // An object is a closure iff. its class has a non-null signature function.
   if (instance_class.signature_function() != Function::null()) {
-    *result = InvokeClosure(instance, arguments_descriptor, arguments);
+    // The closure object is passed as implicit first argument to closure
+    // functions, since it may be needed to throw a NoSuchMethodError, in case
+    // the wrong number of arguments is passed.
+    // Replace the original receiver in the arguments array by the closure.
+    arguments.SetAt(0, instance);
+    *result = DartEntry::InvokeClosure(instance,
+                                       arguments,
+                                       arguments_descriptor);
+    CheckResultError(*result);
   } else {
     *result = InvokeNonClosure(instance,
                                instance_class,

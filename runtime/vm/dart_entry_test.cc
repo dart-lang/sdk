@@ -39,12 +39,9 @@ TEST_CASE(DartEntry) {
 
   EXPECT(CompilerTest::TestCompileFunction(function));
   EXPECT(function.HasCode());
-  GrowableArray<const Object*> arguments;
-  const Array& kNoArgumentNames = Array::Handle();
+  const Array& args = Array::Handle(Object::empty_array());
   const Smi& retval = Smi::Handle(
-      reinterpret_cast<RawSmi*>(DartEntry::InvokeStatic(function,
-                                                        arguments,
-                                                        kNoArgumentNames)));
+      reinterpret_cast<RawSmi*>(DartEntry::InvokeStatic(function, args)));
   EXPECT_EQ(Smi::New(42), retval.raw());
 }
 
@@ -69,9 +66,9 @@ TEST_CASE(InvokeStatic_CompileError) {
   Function& function = Function::Handle(cls.LookupStaticFunction(name));
   EXPECT(!function.IsNull());
   GrowableArray<const Object*> arguments;
-  const Array& kNoArgumentNames = Array::Handle();
-  const Object& retval = Object::Handle(
-      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
+  const Array& args = Array::Handle(Object::empty_array());
+  const Object& retval = Object::Handle(DartEntry::InvokeStatic(function,
+                                                                args));
   EXPECT(retval.IsError());
   EXPECT_SUBSTRING("++++", Error::Cast(retval).ToErrorCString());
 }
@@ -96,24 +93,24 @@ TEST_CASE(InvokeDynamic_CompileError) {
 
   // Invoke the constructor.
   const Instance& instance = Instance::Handle(Instance::New(cls));
-  GrowableArray<const Object*> constructor_arguments(2);
-  constructor_arguments.Add(&instance);
-  constructor_arguments.Add(&Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
+  const Array& constructor_arguments = Array::Handle(Array::New(2));
+  constructor_arguments.SetAt(0, instance);
+  constructor_arguments.SetAt(
+      1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   String& constructor_name = String::Handle(Symbols::New("A."));
   Function& constructor =
-      Function::Handle(cls.LookupConstructor(constructor_name));
+    Function::Handle(cls.LookupConstructor(constructor_name));
   ASSERT(!constructor.IsNull());
-  const Array& kNoArgumentNames = Array::Handle();
-  DartEntry::InvokeStatic(constructor, constructor_arguments, kNoArgumentNames);
+  DartEntry::InvokeStatic(constructor, constructor_arguments);
 
   // Call foo.
   String& name = String::Handle(String::New("foo"));
   Function& function = Function::Handle(cls.LookupDynamicFunction(name));
   EXPECT(!function.IsNull());
-  GrowableArray<const Object*> arguments;
-  const Object& retval = Object::Handle(
-      DartEntry::InvokeDynamic(
-          instance, function, arguments, kNoArgumentNames));
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, instance);
+  const Object& retval = Object::Handle(DartEntry::InvokeDynamic(function,
+                                                                 args));
   EXPECT(retval.IsError());
   EXPECT_SUBSTRING("++++", Error::Cast(retval).ToErrorCString());
 }

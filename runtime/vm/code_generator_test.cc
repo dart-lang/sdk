@@ -547,10 +547,9 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
 
 
 CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
-  GrowableArray<const Object*> arguments;
-  const Array& kNoArgumentNames = Array::Handle();
-  Object& result = Object::Handle();
-  result = DartEntry::InvokeStatic(function, arguments, kNoArgumentNames);
+  const Array& args = Array::Handle(Object::empty_array());
+  const Object& result = Object::Handle(DartEntry::InvokeStatic(function,
+                                                                args));
   EXPECT(!result.IsError());
   const GrowableObjectArray& libs =  GrowableObjectArray::Handle(
       Isolate::Current()->object_store()->libraries());

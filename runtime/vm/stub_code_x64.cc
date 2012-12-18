@@ -703,7 +703,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 //   RSP : points to return address.
 //   RDI : entrypoint of the Dart function to call.
 //   RSI : arguments descriptor array.
-//   RDX : pointer to the argument array.
+//   RDX : arguments array.
 //   RCX : new context containing the current isolate pointer.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
@@ -757,6 +757,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(RBX);
 
+  // Compute address of 'arguments array' data area into RDX.
+  __ movq(RDX, Address(RDX, VMHandles::kOffsetOfRawPtrInHandle));
+  __ leaq(RDX, FieldAddress(RDX, Array::data_offset()));
+
   // Set up arguments for the Dart call.
   Label push_arguments;
   Label done_push_arguments;
@@ -765,7 +769,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(RAX, Immediate(0));
   __ Bind(&push_arguments);
   __ movq(RCX, Address(RDX, RAX, TIMES_8, 0));  // RDX is start of arguments.
-  __ movq(RCX, Address(RCX, VMHandles::kOffsetOfRawPtrInHandle));
   __ pushq(RCX);
   __ incq(RAX);
   __ cmpq(RAX, RBX);

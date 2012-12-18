@@ -7844,7 +7844,6 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       const String& getter_name =
           String::Handle(Field::GetterName(field_name));
       const Class& cls = Class::Handle(field.owner());
-      GrowableArray<const Object*> arguments;  // no arguments.
       const int kNumArguments = 0;  // no arguments.
       const Array& kNoArgumentNames = Array::Handle();
       const Function& func =
@@ -7855,8 +7854,8 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
                                                    Resolver::kIsQualified));
       ASSERT(!func.IsNull());
       ASSERT(func.kind() == RawFunction::kConstImplicitGetter);
-      Object& const_value = Object::Handle(
-          DartEntry::InvokeStatic(func, arguments, kNoArgumentNames));
+      const Array& args = Array::Handle(Object::empty_array());
+      Object& const_value = Object::Handle(DartEntry::InvokeStatic(func, args));
       if (const_value.IsError()) {
         const Error& error = Error::Cast(const_value);
         if (error.IsUnhandledException()) {
@@ -7894,8 +7893,9 @@ RawObject* Parser::EvaluateConstConstructorCall(
     const AbstractTypeArguments& type_arguments,
     const Function& constructor,
     ArgumentListNode* arguments) {
-  // +2 for implicit receiver and construction phase arguments.
-  GrowableArray<const Object*> arg_values(arguments->length() + 2);
+  const int kNumExtraArgs = 2;  // implicit rcvr and construction phase args.
+  const int num_arguments = arguments->length() + kNumExtraArgs;
+  const Array& arg_values = Array::Handle(Array::New(num_arguments));
   Instance& instance = Instance::Handle();
   ASSERT(!constructor.IsFactory());
   instance = Instance::New(type_class, Heap::kOld);
@@ -7906,17 +7906,21 @@ RawObject* Parser::EvaluateConstConstructorCall(
     instance.SetTypeArguments(
         AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
   }
-  arg_values.Add(&instance);
-  arg_values.Add(&Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
+  arg_values.SetAt(0, instance);
+  arg_values.SetAt(1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   for (int i = 0; i < arguments->length(); i++) {
     AstNode* arg = arguments->NodeAt(i);
     // Arguments have been evaluated to a literal value already.
     ASSERT(arg->IsLiteralNode());
-    arg_values.Add(&arg->AsLiteralNode()->literal());
+    arg_values.SetAt((i + kNumExtraArgs), arg->AsLiteralNode()->literal());
   }
-  const Array& opt_arg_names = arguments->names();
-  const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(constructor, arg_values, opt_arg_names));
+  const Array& arg_descriptor =
+      Array::Handle(ArgumentsDescriptor::New(num_arguments,
+                                             arguments->names()));
+  const Object& result =
+      Object::Handle(DartEntry::InvokeStatic(constructor,
+                                             arg_values,
+                                             arg_descriptor));
   if (result.IsError()) {
       if (result.IsUnhandledException()) {
         return result.raw();
@@ -9116,15 +9120,12 @@ String& Parser::Interpolate(ArrayNode* values) {
   }
 
   // Build argument array to pass to the interpolation function.
-  GrowableArray<const Object*> interpolate_arg;
-  interpolate_arg.Add(&value_arr);
-  const Array& kNoArgumentNames = Array::Handle();
+  const Array& interpolate_arg = Array::Handle(Array::New(1));
+  interpolate_arg.SetAt(0, value_arr);
 
   // Call interpolation function.
   String& concatenated = String::ZoneHandle();
-  concatenated ^= DartEntry::InvokeStatic(func,
-                                          interpolate_arg,
-                                          kNoArgumentNames);
+  concatenated ^= DartEntry::InvokeStatic(func, interpolate_arg);
   if (concatenated.IsUnhandledException()) {
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }
