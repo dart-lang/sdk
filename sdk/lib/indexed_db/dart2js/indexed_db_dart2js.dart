@@ -205,39 +205,14 @@ class Database extends EventTarget native "*IDBDatabase" {
     // TODO(sra): Ensure storeName_OR_storeNames is a string or List<String>,
     // and copy to JavaScript array if necessary.
 
-    if (_transaction_fn != null) {
-      return _transaction_fn(this, storeName_OR_storeNames, mode);
-    }
-
     // Try and create a transaction with a string mode.  Browsers that expect a
     // numeric mode tend to convert the string into a number.  This fails
     // silently, resulting in zero ('readonly').
-    var txn = _transaction(storeName_OR_storeNames, mode);
-    if (_hasNumericMode(txn)) {
-      _transaction_fn = _transaction_numeric_mode;
-      txn = _transaction_fn(this, storeName_OR_storeNames, mode);
-    } else {
-      _transaction_fn = _transaction_string_mode;
-    }
-    return txn;
-  }
-
-  static Transaction _transaction_string_mode(Database db, stores, mode) {
-    return db._transaction(stores, mode);
-  }
-
-  static Transaction _transaction_numeric_mode(Database db, stores, mode) {
-    int intMode;
-    if (mode == 'readonly') intMode = Transaction.READ_ONLY;
-    if (mode == 'readwrite') intMode = Transaction.READ_WRITE;
-    return db._transaction(stores, intMode);
+    return _transaction(storeName_OR_storeNames, mode);
   }
 
   @JSName('transaction')
   Transaction _transaction(stores, mode) native;
-
-  static bool _hasNumericMode(txn) =>
-      JS('bool', 'typeof(#.mode) === "number"', txn);
 
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -288,10 +263,6 @@ class Database extends EventTarget native "*IDBDatabase" {
   /// @domName IDBDatabase.setVersion; @docsEditable true
   VersionChangeRequest setVersion(String version) native;
 }
-
-// TODO(sra): This should be a static member of IDBTransaction but dart2js
-// can't handle that.  Move it back after dart2js is completely done.
-var _transaction_fn;  // Assigned one of the static methods.
 
 /// @docsEditable true
 class DatabaseEvents extends Events {
