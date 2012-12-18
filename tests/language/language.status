@@ -87,6 +87,7 @@ compile_time_constant_checked3_test/06: Fail, OK
 default_factory2_test/01: Fail # Issue 7075.
 
 [ $compiler == dartc ]
+class_cycle_test/03: Fail # Issue 7469.
 library_juxtaposition_test: Fail # Issue 6881
 new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
 redirecting_factory_infinite_steps_test/01: Fail # http://dartbug.com/6560
@@ -322,6 +323,8 @@ call_test: Fail # Issue 1604
 *: Skip
 
 [ $compiler == dart2dart ]
+class_cycle_test/02: Fail # Issue 7468 inherited from dart2js.
+class_cycle_test/03: Fail # Issue 7468 inherited from dart2js.
 built_in_identifier_prefix_test: Fail # Inherited from dart2js.
 const_factory_redirection_test: Fail # http://dartbug.com/6894
 compile_time_constant_h_test: Fail

@@ -95,13 +95,12 @@ class ClassFinalizer : public AllStatic {
   static void CheckForLegalConstClass(const Class& cls);
   static RawClass* ResolveClass(const Class& cls,
                                 const UnresolvedClass& unresolved_class);
-  static void ResolveSuperType(const Class& cls);
   static void ResolveRedirectingFactoryTarget(
       const Class& cls,
       const Function& factory,
       const GrowableObjectArray& visited_factories);
-  static void ResolveInterfaces(const Class& cls,
-                                GrowableArray<intptr_t>* visited);
+  static void ResolveSuperTypeAndInterfaces(const Class& cls,
+                                            GrowableArray<intptr_t>* visited);
   static void FinalizeTypeParameters(const Class& cls);
   static void FinalizeTypeArguments(const Class& cls,
                                     const AbstractTypeArguments& arguments,

@@ -138,9 +138,8 @@ bool ClassFinalizer::FinalizePendingClasses() {
       if (FLAG_trace_class_finalization) {
         OS::Print("Resolving super and interfaces: %s\n", cls.ToCString());
       }
-      ResolveSuperType(cls);
       GrowableArray<intptr_t> visited_interfaces;
-      ResolveInterfaces(cls, &visited_interfaces);
+      ResolveSuperTypeAndInterfaces(cls, &visited_interfaces);
     }
     // Finalize all classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
@@ -306,88 +305,6 @@ RawClass* ClassFinalizer::ResolveClass(
     resolved_class = lib_prefix.LookupLocalClass(class_name);
   }
   return resolved_class.raw();
-}
-
-
-// Resolve unresolved supertype (String -> Class).
-void ClassFinalizer::ResolveSuperType(const Class& cls) {
-  if (cls.is_finalized()) {
-    return;
-  }
-  Type& super_type = Type::Handle(cls.super_type());
-  if (super_type.IsNull()) {
-    return;
-  }
-  // Resolve failures lead to a longjmp.
-  ResolveType(cls, super_type, kCanonicalizeWellFormed);
-  const Class& super_class = Class::Handle(super_type.type_class());
-  // If cls belongs to core lib or to core lib's implementation, restrictions
-  // about allowed interfaces are lifted.
-  if (cls.library() != Library::CoreLibrary()) {
-    // Prevent extending core implementation classes.
-    bool is_error = false;
-    switch (super_class.id()) {
-      case kNumberCid:
-      case kIntegerCid:
-      case kSmiCid:
-      case kMintCid:
-      case kBigintCid:
-      case kDoubleCid:
-      case kOneByteStringCid:
-      case kTwoByteStringCid:
-      case kExternalOneByteStringCid:
-      case kExternalTwoByteStringCid:
-      case kBoolCid:
-      case kArrayCid:
-      case kImmutableArrayCid:
-      case kGrowableObjectArrayCid:
-      case kInt8ArrayCid:
-      case kExternalInt8ArrayCid:
-      case kUint8ArrayCid:
-      case kUint8ClampedArrayCid:
-      case kExternalUint8ArrayCid:
-      case kExternalUint8ClampedArrayCid:
-      case kInt16ArrayCid:
-      case kExternalInt16ArrayCid:
-      case kUint16ArrayCid:
-      case kExternalUint16ArrayCid:
-      case kInt32ArrayCid:
-      case kExternalInt32ArrayCid:
-      case kUint32ArrayCid:
-      case kExternalUint32ArrayCid:
-      case kInt64ArrayCid:
-      case kExternalInt64ArrayCid:
-      case kUint64ArrayCid:
-      case kExternalUint64ArrayCid:
-      case kFloat32ArrayCid:
-      case kExternalFloat32ArrayCid:
-      case kFloat64ArrayCid:
-      case kExternalFloat64ArrayCid:
-      case kDartFunctionCid:
-      case kWeakPropertyCid:
-        is_error = true;
-        break;
-      default: {
-        // Special case: classes for which we don't have a known class id.
-        // TODO(regis): Why isn't comparing to kIntegerCid enough?
-        if (Type::Handle(Type::Double()).type_class() == super_class.raw() ||
-            Type::Handle(Type::IntType()).type_class() == super_class.raw() ||
-            Type::Handle(
-                Type::StringType()).type_class() == super_class.raw()) {
-          is_error = true;
-        }
-        break;
-      }
-    }
-    if (is_error) {
-      const Script& script = Script::Handle(cls.script());
-      ReportError(script, cls.token_pos(),
-                  "'%s' is not allowed to extend '%s'",
-                  String::Handle(cls.Name()).ToCString(),
-                  String::Handle(super_class.Name()).ToCString());
-    }
-  }
-  return;
 }
 
 
@@ -1326,31 +1243,33 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
 }
 
 
-// Walks the graph of explicitly declared interfaces of classes and
-// interfaces recursively. Resolves unresolved interfaces.
-// Returns false if there is an interface reference that cannot be
+// Recursively walks the graph of explicitly declared super type and
+// interfaces, resolving unresolved super types and interfaces.
+// Reports an error if there is an interface reference that cannot be
 // resolved, or if there is a cycle in the graph. We detect cycles by
 // remembering interfaces we've visited in each path through the
 // graph. If we visit an interface a second time on a given path,
 // we found a loop.
-void ClassFinalizer::ResolveInterfaces(const Class& cls,
-                                       GrowableArray<intptr_t>* visited) {
+void ClassFinalizer::ResolveSuperTypeAndInterfaces(
+    const Class& cls, GrowableArray<intptr_t>* visited) {
   ASSERT(visited != NULL);
   const intptr_t cls_index = cls.id();
   for (int i = 0; i < visited->length(); i++) {
     if ((*visited)[i] == cls_index) {
-      // We have already visited interface class 'cls'. We found a cycle.
-      const String& interface_name = String::Handle(cls.Name());
+      // We have already visited class 'cls'. We found a cycle.
+      const String& class_name = String::Handle(cls.Name());
       const Script& script = Script::Handle(cls.script());
       ReportError(script, cls.token_pos(),
-                  "cyclic reference found for interface '%s'",
-                  interface_name.ToCString());
+                  "cyclic reference found for class '%s'",
+                  class_name.ToCString());
     }
   }
 
-  // If the class/interface has no explicit interfaces, we are done.
+  // If the class/interface has no explicit super class/interfaces, we are done.
+  Type& super_type = Type::Handle(cls.super_type());
   Array& super_interfaces = Array::Handle(cls.interfaces());
-  if (super_interfaces.Length() == 0) {
+  if ((super_type.IsNull() || super_type.IsObjectType()) &&
+      (super_interfaces.Length() == 0)) {
     return;
   }
 
@@ -1358,10 +1277,84 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
   // about allowed interfaces are lifted.
   const bool cls_belongs_to_core_lib = cls.library() == Library::CoreLibrary();
 
-  // Resolve and check the interfaces of cls.
+  // Resolve and check the super type and interfaces of cls.
   visited->Add(cls_index);
   AbstractType& interface = AbstractType::Handle();
   Class& interface_class = Class::Handle();
+
+  // Resolve super type. Failures lead to a longjmp.
+  ResolveType(cls, super_type, kCanonicalizeWellFormed);
+
+  // If cls belongs to core lib or to core lib's implementation, restrictions
+  interface_class = super_type.type_class();
+  // If cls belongs to core lib or to core lib's implementation, restrictions
+  // about allowed interfaces are lifted.
+  if (!cls_belongs_to_core_lib) {
+    // Prevent extending core implementation classes.
+    bool is_error = false;
+    switch (interface_class.id()) {
+      case kNumberCid:
+      case kIntegerCid:  // Class Integer, not int.
+      case kSmiCid:
+      case kMintCid:
+      case kBigintCid:
+      case kDoubleCid:  // Class Double, not double.
+      case kOneByteStringCid:
+      case kTwoByteStringCid:
+      case kExternalOneByteStringCid:
+      case kExternalTwoByteStringCid:
+      case kBoolCid:
+      case kArrayCid:
+      case kImmutableArrayCid:
+      case kGrowableObjectArrayCid:
+      case kInt8ArrayCid:
+      case kExternalInt8ArrayCid:
+      case kUint8ArrayCid:
+      case kUint8ClampedArrayCid:
+      case kExternalUint8ArrayCid:
+      case kExternalUint8ClampedArrayCid:
+      case kInt16ArrayCid:
+      case kExternalInt16ArrayCid:
+      case kUint16ArrayCid:
+      case kExternalUint16ArrayCid:
+      case kInt32ArrayCid:
+      case kExternalInt32ArrayCid:
+      case kUint32ArrayCid:
+      case kExternalUint32ArrayCid:
+      case kInt64ArrayCid:
+      case kExternalInt64ArrayCid:
+      case kUint64ArrayCid:
+      case kExternalUint64ArrayCid:
+      case kFloat32ArrayCid:
+      case kExternalFloat32ArrayCid:
+      case kFloat64ArrayCid:
+      case kExternalFloat64ArrayCid:
+      case kDartFunctionCid:
+      case kWeakPropertyCid:
+        is_error = true;
+        break;
+      default: {
+        // Special case: classes for which we don't have a known class id.
+        if (super_type.IsDoubleType() ||
+            super_type.IsIntType() ||
+            super_type.IsStringType()) {
+          is_error = true;
+        }
+        break;
+      }
+    }
+    if (is_error) {
+      const Script& script = Script::Handle(cls.script());
+      ReportError(script, cls.token_pos(),
+                  "'%s' is not allowed to extend '%s'",
+                  String::Handle(cls.Name()).ToCString(),
+                  String::Handle(interface_class.Name()).ToCString());
+    }
+  }
+  // Now resolve the super interfaces of the super type.
+  ResolveSuperTypeAndInterfaces(interface_class, visited);
+
+  // Resolve interfaces. Failures lead to a longjmp.
   for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
     interface ^= super_interfaces.At(i);
     ResolveType(cls, interface, kCanonicalizeWellFormed);
@@ -1399,7 +1392,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     }
     interface_class.set_is_implemented();
     // Now resolve the super interfaces.
-    ResolveInterfaces(interface_class, visited);
+    ResolveSuperTypeAndInterfaces(interface_class, visited);
   }
   visited->RemoveLast();
 }

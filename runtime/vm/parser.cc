@@ -3140,7 +3140,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   if (CurrentToken() == Token::kIMPLEMENTS) {
     Array& interfaces = Array::Handle();
     const intptr_t interfaces_pos = TokenPos();
-    interfaces = ParseInterfaceList();
+    interfaces = ParseInterfaceList(super_type);
     AddInterfaces(interfaces_pos, cls, interfaces);
   }
 
@@ -3566,7 +3566,7 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
 
 
 // Parse and return an array of interface types.
-RawArray* Parser::ParseInterfaceList() {
+RawArray* Parser::ParseInterfaceList(const Type& super_type) {
   TRACE_PARSER("ParseInterfaceList");
   ASSERT((CurrentToken() == Token::kIMPLEMENTS) ||
          (CurrentToken() == Token::kEXTENDS));
@@ -3576,14 +3576,19 @@ RawArray* Parser::ParseInterfaceList() {
   AbstractType& interface = AbstractType::Handle();
   String& other_name = String::Handle();
   AbstractType& other_interface = AbstractType::Handle();
+  const String& super_type_name = String::Handle(super_type.Name());
   do {
     ConsumeToken();
     intptr_t interface_pos = TokenPos();
     interface = ParseType(ClassFinalizer::kTryResolve);
     interface_name = interface.UserVisibleName();
+    if (interface_name.Equals(super_type_name)) {
+      ErrorMsg(interface_pos, "class may not extend and implement '%s'",
+               interface_name.ToCString());
+    }
     for (int i = 0; i < interfaces.Length(); i++) {
       other_interface ^= interfaces.At(i);
-      other_name = other_interface.UserVisibleName();
+      other_name = other_interface.Name();
       if (interface_name.Equals(other_name)) {
         ErrorMsg(interface_pos, "duplicate interface '%s'",
                  interface_name.ToCString());
@@ -3597,30 +3602,18 @@ RawArray* Parser::ParseInterfaceList() {
 
 // Add 'interface' to 'interface_list' if it is not already in the list.
 // An error is reported if the interface conflicts with an interface already in
-// the list with the same class, but different type arguments.
-// Non-conflicting duplicates are ignored without error.
+// the list with the same class and same type arguments.
 void Parser::AddInterfaceIfUnique(intptr_t interfaces_pos,
                                   const GrowableObjectArray& interface_list,
                                   const AbstractType& interface) {
-  String& interface_class_name = String::Handle(interface.ClassName());
-  String& existing_interface_class_name = String::Handle();
-  String& interface_name = String::Handle();
+  String& interface_name = String::Handle(interface.Name());
   String& existing_interface_name = String::Handle();
   AbstractType& other_interface = AbstractType::Handle();
   for (intptr_t i = 0; i < interface_list.Length(); i++) {
     other_interface ^= interface_list.At(i);
-    existing_interface_class_name = other_interface.ClassName();
-    if (interface_class_name.Equals(existing_interface_class_name)) {
-      // Same interface class name, now check names of type arguments.
-      interface_name = interface.Name();
-      existing_interface_name = other_interface.Name();
-      // TODO(regis): Revisit depending on the outcome of issue 4905685.
-      if (!interface_name.Equals(existing_interface_name)) {
-        ErrorMsg(interfaces_pos,
-                 "interface '%s' conflicts with interface '%s'",
-                 String::Handle(interface.UserVisibleName()).ToCString(),
-                 String::Handle(other_interface.UserVisibleName()).ToCString());
-      }
+    existing_interface_name = other_interface.Name();
+    if (interface_name.Equals(existing_interface_name)) {
+      return;
     }
   }
   interface_list.Add(interface);
