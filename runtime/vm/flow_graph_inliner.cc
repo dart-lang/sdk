@@ -36,6 +36,9 @@ DEFINE_FLAG(int, inlining_constant_arguments_count, 1,
 DEFINE_FLAG(int, inlining_constant_arguments_size_threshold, 60,
     "Inline function calls with sufficient constant arguments "
     "and up to the increased threshold on instructions");
+DEFINE_FLAG(int, inlining_hotness, 10,
+    "Inline only hotter calls, in percents (0 .. 100); "
+    "default 10%: calls above-equal 10% of max-count are inlined.");
 
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
@@ -185,16 +188,23 @@ class CallSites : public FlowGraphVisitor {
         instance_calls_(),
         skip_static_call_deopt_ids_() { }
 
-  GrowableArray<StaticCallInstr*>* static_calls() {
-    return &static_calls_;
+  const GrowableArray<StaticCallInstr*>& static_calls() const {
+    return static_calls_;
   }
 
-  GrowableArray<ClosureCallInstr*>* closure_calls() {
-    return &closure_calls_;
+  const GrowableArray<ClosureCallInstr*>& closure_calls() const {
+    return closure_calls_;
   }
 
-  GrowableArray<PolymorphicInstanceCallInstr*>* instance_calls() {
-    return &instance_calls_;
+  struct InstanceCallInfo {
+    PolymorphicInstanceCallInstr* call;
+    double ratio;
+    explicit InstanceCallInfo(PolymorphicInstanceCallInstr* call_arg)
+        : call(call_arg), ratio(0.0) {}
+  };
+
+  const GrowableArray<InstanceCallInfo>& instance_calls() const {
+    return instance_calls_;
   }
 
   bool HasCalls() const {
@@ -215,8 +225,11 @@ class CallSites : public FlowGraphVisitor {
     const Function& function = graph->parsed_function().function();
     ASSERT(function.HasCode());
     const Code& code = Code::Handle(function.unoptimized_code());
+
     skip_static_call_deopt_ids_.Clear();
     code.ExtractUncalledStaticCallDeoptIds(&skip_static_call_deopt_ids_);
+
+    const intptr_t instance_call_start_ix = instance_calls_.length();
     for (BlockIterator block_it = graph->postorder_iterator();
          !block_it.Done();
          block_it.Advance()) {
@@ -226,6 +239,24 @@ class CallSites : public FlowGraphVisitor {
         it.Current()->Accept(this);
       }
     }
+    // Compute instance call site ratio.
+    const intptr_t num_instance_calls =
+        instance_calls_.length() - instance_call_start_ix;
+    intptr_t max_count = 0;
+    GrowableArray<intptr_t> call_counts(num_instance_calls);
+    for (intptr_t i = 0; i < num_instance_calls; ++i) {
+      const intptr_t aggregate_count =
+          instance_calls_[i + instance_call_start_ix].
+              call->ic_data().AggregateCount();
+      call_counts.Add(aggregate_count);
+      if (aggregate_count > max_count) max_count = aggregate_count;
+    }
+
+
+    for (intptr_t i = 0; i < num_instance_calls; ++i) {
+      const double ratio = static_cast<double>(call_counts[i]) / max_count;
+      instance_calls_[i + instance_call_start_ix].ratio = ratio;
+    }
   }
 
   void VisitClosureCall(ClosureCallInstr* call) {
@@ -233,7 +264,7 @@ class CallSites : public FlowGraphVisitor {
   }
 
   void VisitPolymorphicInstanceCall(PolymorphicInstanceCallInstr* call) {
-    instance_calls_.Add(call);
+    instance_calls_.Add(InstanceCallInfo(call));
   }
 
   void VisitStaticCall(StaticCallInstr* call) {
@@ -251,7 +282,7 @@ class CallSites : public FlowGraphVisitor {
  private:
   GrowableArray<StaticCallInstr*> static_calls_;
   GrowableArray<ClosureCallInstr*> closure_calls_;
-  GrowableArray<PolymorphicInstanceCallInstr*> instance_calls_;
+  GrowableArray<InstanceCallInfo> instance_calls_;
   GrowableArray<intptr_t> skip_static_call_deopt_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSites);
@@ -630,7 +661,7 @@ class CallSiteInliner : public ValueObject {
 
   void InlineStaticCalls() {
     const GrowableArray<StaticCallInstr*>& calls =
-        *inlining_call_sites_->static_calls();
+        inlining_call_sites_->static_calls();
     TRACE_INLINING(OS::Print("  Static Calls (%d)\n", calls.length()));
     for (intptr_t i = 0; i < calls.length(); ++i) {
       StaticCallInstr* call = calls[i];
@@ -644,7 +675,7 @@ class CallSiteInliner : public ValueObject {
 
   void InlineClosureCalls() {
     const GrowableArray<ClosureCallInstr*>& calls =
-        *inlining_call_sites_->closure_calls();
+        inlining_call_sites_->closure_calls();
     TRACE_INLINING(OS::Print("  Closure Calls (%d)\n", calls.length()));
     for (intptr_t i = 0; i < calls.length(); ++i) {
       ClosureCallInstr* call = calls[i];
@@ -668,25 +699,33 @@ class CallSiteInliner : public ValueObject {
   }
 
   void InlineInstanceCalls() {
-    const GrowableArray<PolymorphicInstanceCallInstr*>& calls =
-        *inlining_call_sites_->instance_calls();
+    const GrowableArray<CallSites::InstanceCallInfo>& call_info =
+        inlining_call_sites_->instance_calls();
     TRACE_INLINING(OS::Print("  Polymorphic Instance Calls (%d)\n",
-                             calls.length()));
-    for (intptr_t i = 0; i < calls.length(); ++i) {
-      PolymorphicInstanceCallInstr* instr = calls[i];
+                             call_info.length()));
+    for (intptr_t i = 0; i < call_info.length(); ++i) {
+      PolymorphicInstanceCallInstr* instr = call_info[i].call;
       const ICData& ic_data = instr->ic_data();
       const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
       if (instr->with_checks()) {
         TRACE_INLINING(OS::Print(
-          "  => %s (deopt count %d)\n     Bailout: %"Pd" checks\n",
-          target.ToCString(),
-          target.deoptimization_counter(),
-          ic_data.NumberOfChecks()));
+            "  => %s (deopt count %d)\n     Bailout: %"Pd" checks\n",
+            target.ToCString(),
+            target.deoptimization_counter(),
+            ic_data.NumberOfChecks()));
+        continue;
+      }
+      if ((call_info[i].ratio * 100) < FLAG_inlining_hotness) {
+        TRACE_INLINING(OS::Print(
+            "  => %s (deopt count %d)\n     Bailout: cold %f\n",
+            target.ToCString(),
+            target.deoptimization_counter(),
+            call_info[i].ratio));
         continue;
       }
       GrowableArray<Value*> arguments(instr->ArgumentCount());
-      for (int i = 0; i < instr->ArgumentCount(); ++i) {
-        arguments.Add(instr->ArgumentAt(i)->value());
+      for (int arg_i = 0; arg_i < instr->ArgumentCount(); ++arg_i) {
+        arguments.Add(instr->ArgumentAt(arg_i)->value());
       }
       TryInlining(target,
                   instr->instance_call()->argument_names(),

@@ -2915,6 +2915,7 @@ class ICData : public Object {
   RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
 
   intptr_t GetCountAt(intptr_t index) const;
+  intptr_t AggregateCount() const;
 
   // Returns this->raw() if num_args_tested == 1 and arg_nr == 1, otherwise
   // returns a new ICData object containing only unique arg_nr checks.
