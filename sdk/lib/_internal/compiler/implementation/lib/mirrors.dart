@@ -6,7 +6,7 @@ library dart_mirrors;
 
 import 'dart:isolate';
 
-part '../../../../mirrors/mirror_classes.dart';
+part '../../../../mirrors/mirrors.dart';
 
 /**
  * Stub class for the mirror system.
