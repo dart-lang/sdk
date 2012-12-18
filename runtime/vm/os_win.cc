@@ -233,13 +233,6 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
 }
 
 
-void OS::RegisterCodeObservers() {
-#if defined(DART_VTUNE_SUPPORT)
-  Register(new VTuneCodeObserver);
-#endif
-}
-
-
 void OS::PrintErr(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -270,7 +263,6 @@ void OS::Abort() {
 
 
 void OS::Exit(int code) {
-  CodeObservers::DeleteAll();
   exit(code);
 }
 
