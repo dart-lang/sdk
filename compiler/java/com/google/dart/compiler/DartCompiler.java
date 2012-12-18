@@ -1380,7 +1380,11 @@ public class DartCompiler {
   }
 
   public static LibraryUnit getCoreLib(LibraryUnit libraryUnit) {
-    return findLibrary(libraryUnit, "dart:core", new HashSet<LibraryElement>());
+    LibraryUnit coreLib = findLibrary(libraryUnit, "dart.core", new HashSet<LibraryElement>());
+    if (coreLib == null) {
+      coreLib = findLibrary(libraryUnit, "dart:core", new HashSet<LibraryElement>());
+    }
+    return coreLib;
   }
 
   private static void showVersion(CompilerOptions options) {
