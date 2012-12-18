@@ -113,8 +113,6 @@
     'debuginfo.h',
     'debuginfo_android.cc',
     'debuginfo_linux.cc',
-    'debuginfo_macos.cc',
-    'debuginfo_win.cc',
     'double_conversion.cc',
     'double_conversion.h',
     'exceptions.cc',
