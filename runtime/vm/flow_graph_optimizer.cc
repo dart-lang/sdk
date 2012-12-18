@@ -192,7 +192,17 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     ASSERT((deopt_target != NULL) || (def->GetPropagatedCid() == kDoubleCid));
-    converted = new UnboxDoubleInstr(new Value(def), deopt_id);
+    if (def->IsConstant() && def->AsConstant()->value().IsSmi()) {
+      const double dbl_val =
+          Smi::Cast(def->AsConstant()->value()).AsDoubleValue();
+      const Double& dbl_obj =
+          Double::ZoneHandle(Double::New(dbl_val, Heap::kOld));
+      ConstantInstr* double_const = new ConstantInstr(dbl_obj);
+      InsertBefore(instr, double_const, NULL, Definition::kValue);
+      converted = new UnboxDoubleInstr(new Value(double_const), deopt_id);
+    } else {
+      converted = new UnboxDoubleInstr(new Value(def), deopt_id);
+    }
   }
   ASSERT(converted != NULL);
   InsertBefore(instr, converted, use->instruction()->env(),
