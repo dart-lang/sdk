@@ -5333,6 +5333,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
   
   /**
+   * It is a compile-time error if the superclass of a class C appears in the implements clause of C.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7469
+   */
+  public void test_superClass_imImplementsClause() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B extends A implements A {}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.SUPER_CLASS_IN_IMPLEMENTS, 3, 30, 1));
+  }
+  
+  /**
    * We should report only "no such type", but not duplicate.
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=5084

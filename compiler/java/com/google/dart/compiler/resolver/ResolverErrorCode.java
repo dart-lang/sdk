@@ -197,6 +197,7 @@ public enum ResolverErrorCode implements ErrorCode {
   RETHROW_NOT_IN_CATCH("Re-throw not in a catch block"),
   STATIC_FINAL_REQUIRES_VALUE("Static final fields must have an initial value"),
   STATIC_METHOD_MUST_HAVE_BODY("Static method must have a body"),
+  SUPER_CLASS_IN_IMPLEMENTS("Superclass in implements clause"),
   SUPER_IN_FACTORY_CONSTRUCTOR("Cannot use 'super' in a factory constructor"),
   SUPER_IN_STATIC_METHOD("Cannot use 'super' in a static method"),
   SUPER_OUTSIDE_OF_METHOD("Cannot use 'super' outside of a method"),
