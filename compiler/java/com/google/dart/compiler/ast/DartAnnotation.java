@@ -16,7 +16,7 @@ import java.util.List;
  *     annotation*
  * 
  * annotation ::=
- *     '@' qualified (‘.’ identifier)? arguments?
+ *     '@' qualified ('.' identifier)? arguments?
  * </pre>
  */
 public class DartAnnotation extends DartNode {
