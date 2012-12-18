@@ -1203,9 +1203,17 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   if ((recognized_kind == MethodRecognizer::kDoubleToInteger) &&
       (class_ids[0] == kDoubleCid)) {
     AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-    DoubleToIntegerInstr* d2int_instr =
-        new DoubleToIntegerInstr(call->ArgumentAt(0)->value(), call);
-    call->ReplaceWith(d2int_instr, current_iterator());
+    ASSERT(call->HasICData());
+    const ICData& ic_data = *call->ic_data();
+    Definition* d2i_instr = NULL;
+    if (ic_data.deopt_reason() == kDeoptDoubleToSmi) {
+      // Do not repeatedly deoptimize because result didn't fit into Smi.
+      d2i_instr = new DoubleToIntegerInstr(call->ArgumentAt(0)->value(), call);
+    } else {
+      // Optimistically assume result fits into Smi.
+      d2i_instr = new DoubleToSmiInstr(call->ArgumentAt(0)->value(), call);
+    }
+    call->ReplaceWith(d2i_instr, current_iterator());
     RemovePushArguments(call);
     return true;
   }
@@ -4042,6 +4050,12 @@ void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
 
 
 void ConstantPropagator::VisitDoubleToInteger(DoubleToIntegerInstr* instr) {
+  // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitDoubleToSmi(DoubleToSmiInstr* instr) {
   // TODO(kmillikin): Handle conversion.
   SetValue(instr, non_constant_);
 }

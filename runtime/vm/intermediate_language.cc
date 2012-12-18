@@ -1456,6 +1456,11 @@ RawAbstractType* DoubleToIntegerInstr::CompileType() const {
 }
 
 
+RawAbstractType* DoubleToSmiInstr::CompileType() const {
+  return Type::SmiType();
+}
+
+
 RawAbstractType* CheckClassInstr::CompileType() const {
   return AbstractType::null();
 }

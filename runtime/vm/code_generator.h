@@ -72,6 +72,7 @@ DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
   V(CheckSmi)                                                                  \
   V(CheckArrayBound)                                                           \
   V(AtCall)                                                                    \
+  V(DoubleToSmi)                                                               \
   V(NumReasons)                                                                \
 
 enum DeoptReasonId {

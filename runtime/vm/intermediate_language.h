@@ -253,6 +253,7 @@ class EmbeddedArray<T, 0> {
   M(CheckStackOverflow)                                                        \
   M(SmiToDouble)                                                               \
   M(DoubleToInteger)                                                           \
+  M(DoubleToSmi)                                                               \
   M(CheckClass)                                                                \
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
@@ -534,6 +535,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class CheckEitherNonSmiInstr;
   friend class StringCharCodeAtInstr;
   friend class LICM;
+  friend class DoubleToSmiInstr;
 
   intptr_t deopt_id_;
   intptr_t lifetime_position_;  // Position used by register allocator.
@@ -3975,7 +3977,7 @@ class SmiToDoubleInstr : public TemplateDefinition<0> {
 
 class DoubleToIntegerInstr : public TemplateDefinition<1> {
  public:
-  explicit DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
+  DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
       : instance_call_(instance_call) {
     ASSERT(value != NULL);
     inputs_[0] = value;
@@ -4000,6 +4002,39 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
   InstanceCallInstr* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(DoubleToIntegerInstr);
+};
+
+
+// Similar to 'DoubleToIntegerInstr' but expects unboxed double as input
+// and creates a Smi.
+class DoubleToSmiInstr : public TemplateDefinition<1> {
+ public:
+  DoubleToSmiInstr(Value* value, InstanceCallInstr* instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(DoubleToSmi)
+  virtual RawAbstractType* CompileType() const;
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kSmiCid; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DoubleToSmiInstr);
 };
 
 

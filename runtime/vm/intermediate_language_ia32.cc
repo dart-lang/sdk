@@ -2315,6 +2315,31 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* DoubleToSmiInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result = new LocationSummary(
+      kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresXmmRegister());
+  result->set_out(Location:: Location::RequiresRegister());
+  return result;
+}
+
+
+void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptDoubleToSmi);
+  Register result = locs()->out().reg();
+  XmmRegister value = locs()->in(0).xmm_reg();
+  __ cvttsd2si(result, value);
+  // Overflow is signalled with minint.
+  Label do_call, done;
+  // Check for overflow and that it fits into Smi.
+  __ cmpl(result, Immediate(0xC0000000));
+  __ j(NEGATIVE, deopt);
+  __ SmiTag(result);
+}
+
+
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
   return MakeCallSummary();
 }

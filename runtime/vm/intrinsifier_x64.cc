@@ -1392,8 +1392,9 @@ bool Intrinsifier::Double_toInt(Assembler* assembler) {
   // Overflow is signalled with minint.
   Label fall_through;
   // Check for overflow and that it fits into Smi.
-  __ cmpq(RAX, Immediate(0xC000000000000000));
-  __ j(NEGATIVE, &fall_through, Assembler::kNearJump);
+  __ movq(RCX, RAX);
+  __ shlq(RCX, Immediate(1));
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
   __ SmiTag(RAX);
   __ ret();
   __ Bind(&fall_through);
