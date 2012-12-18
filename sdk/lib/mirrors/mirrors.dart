@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// The dart:mirrors library provides reflective access for Dart program.
-//
 // For the purposes of the mirrors library, we adopt a naming
 // convention with respect to getters and setters.  Specifically, for
 // some variable or field...
@@ -14,7 +12,7 @@
 // 'myField='.  This allows us to assign unique names to getters and
 // setters for the purposes of member lookup.
 
-// #library("mirrors");
+// library dart.mirrors;
 
 /**
  * A [MirrorSystem] is the main interface used to reflect on a set of
