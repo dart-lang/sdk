@@ -20,10 +20,15 @@ main() {
   var greenbox = _colorBox('green', 60, 10);
 
   // assemble DOM
-  var sRoot = new ShadowRoot(div);
-  sRoot.nodes.add(new Element.html('<content select=".foo"></content>'));
-  sRoot.nodes.add(redbox);
-  sRoot.nodes.add(new Element.tag('content'));
+  try {
+    var sRoot = new ShadowRoot(div);
+    sRoot.nodes.add(new Element.html('<content select=".foo"></content>'));
+    sRoot.nodes.add(redbox);
+    sRoot.nodes.add(new Element.tag('content'));
+  catch () {
+    // Shadow Root may not be supported and throw an exception.
+    // Catch and continue to fail the test rather than hang.
+  }
 
   div.nodes.add(bluebox);
   div.nodes.add(greenbox);

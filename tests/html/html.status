@@ -54,8 +54,6 @@ documentfragment_test: Pass, Timeout
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
 htmloptionscollection_test: Fail # Issue 3813.
-shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
-shadow_dom_layout_test: Skip
 unknownelement_test: Fail # Issue 4189
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == opera ]
@@ -92,6 +90,7 @@ measurement_test: Fail, Pass
 messageevent_test: Fail
 mutationobserver_test: Fail
 serialized_script_value_test: Fail
+shadow_dom_layout_test: Fail             # IE10 does not support shadow root.
 storage_test: Fail, Pass
 svgelement_test/additionalConstructors: Fail
 svgelement_test/elementset: Fail
@@ -157,8 +156,7 @@ messageevent_test: Fail
 mutationobserver_test: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
-shadow_dom_layout_test: Fail
-shadow_dom_test: Fail
+shadow_dom_layout_test: Fail             # IE9 does not support shadow root.
 storage_test: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
@@ -176,6 +174,8 @@ xhr_test: Skip              # BUG(4016)
 xhr_cross_origin_test: Fail # Issue 6016.
 
 [ $runtime == safari ]
+# TODO(efortuna): Make our test framework able to separate tests out by browser
+# version.
 # TODO(ahe, efortuna): These tests need to be retriaged now that we're testing
 # with Safari 6.
 audiocontext_test: Crash, Fail # Issue: 7414
@@ -195,10 +195,8 @@ input_element_test/week: Fail, Crash     # Safari does not support this input ty
 fileapi_test: Fail # requestFileSystem not supported in Safari 6.
 datalistelement_test: Fail # HTMLDataListElement not yet supported in Safari.
 contentelement_test: Fail # Safari 6 does not support content element.
-# TODO(efortuna): Make our test framework able to separate tests out by browser
-# version.
-datalistelement_test: Fail # Issue: 7414
 node_test: Skip # Issue 6457
+shadow_dom_layout_test: Fail             # Safari does not support shadow root.
 
 [ $runtime == opera && $system == windows ]
 htmlelement_test: Fail, Pass
@@ -239,6 +237,7 @@ indexeddb_4_test: Fail
 mutationobserver_test: Fail
 performance_api_test: Fail
 serialized_script_value_test: Fail
+shadow_dom_layout_test: Fail             # Opera does not support shadow root.
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
@@ -277,6 +276,7 @@ input_element_test/month: Fail           # FF does not support this input type.
 input_element_test/time: Fail            # FF does not support this input type.
 input_element_test/week: Fail            # FF does not support this input type.
 input_element_test/range: Fail           # FF does not support this input type.
+shadow_dom_layout_test: Fail             # FF does not support shadow root.
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail

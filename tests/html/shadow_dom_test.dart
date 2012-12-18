@@ -14,7 +14,7 @@ main() {
 
     var div1, div2, shadowRoot, paragraph1, paragraph2;
 
-    setUp(() {
+    void init() {
       paragraph1 = new ParagraphElement();
       paragraph2 = new ParagraphElement();
       [paragraph1, paragraph2].forEach((p) { p.classes.add('foo');});
@@ -29,14 +29,24 @@ main() {
       div2.nodes.add(paragraph2);
       document.body.nodes.add(div1);
       document.body.nodes.add(div2);
-    });
+    }
+
+    var expectation = ShadowRoot.supported ? returnsNormally : throws;
 
     test("Shadowed nodes aren't visible to queries from outside ShadowDOM", () {
-      expect(queryAll('.foo'), equals([div1, paragraph2]));
+      expect(() {
+        init();
+
+        expect(queryAll('.foo'), equals([div1, paragraph2]));
+      }, expectation);
     });
 
     test('Parent node of a shadow root must be null.', () {
-      expect(shadowRoot.parent, isNull);
+      expect(() {
+        init();
+
+        expect(shadowRoot.parent, isNull);
+      }, expectation);
     });
 
 
@@ -46,7 +56,11 @@ main() {
     // rendering tests.
 
     test('Querying in shadowed fragment respects the shadow boundary.', () {
-      expect(shadowRoot.queryAll('.foo'), equals([paragraph1]));
+      expect(() {
+        init();
+
+        expect(shadowRoot.queryAll('.foo'), equals([paragraph1]));
+      }, expectation);
     });
   });
 }
