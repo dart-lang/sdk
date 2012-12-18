@@ -31,8 +31,8 @@ class Namer implements ClosureNamer {
   final Map<String, LibraryElement> shortPrivateNameOwners;
   final Set<String> usedGlobalNames;
   final Set<String> usedInstanceNames;
-  final Map<String, String> instanceNameMap;
   final Map<String, String> globalNameMap;
+  final Map<String, String> instanceNameMap;
   final Map<String, int> popularNameCounters;
 
   /**
@@ -235,7 +235,7 @@ class Namer implements ClosureNamer {
     // Check for following situation: Native field ${fieldElement.name} has
     // fixed JSName ${fieldElement.nativeName()}, but a subclass shadows this
     // name.  We normally handle that by renaming the superclass field, but we
-    // can't do that because native fields have fixed JSNames.  In practice
+    // can't do that because native fields have fixed JsNames.  In practice
     // this can't happen because we can't inherit from native classes.
     assert (!fieldElement.hasFixedBackendName());
 
