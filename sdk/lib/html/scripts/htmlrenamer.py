@@ -32,6 +32,7 @@ html_interface_renames = {
     'WebKitCSSTransformValue': 'CssTransformValue',
     'WebKitFlags': 'Flags',
     'WebKitLoseContext': 'LoseContext',
+    'WebKitPoint': 'Point',
     'WebKitTransitionEvent': 'TransitionEvent',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestException': 'HttpRequestException',
