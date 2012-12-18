@@ -314,7 +314,7 @@ class _NonInteractiveProcess {
 
     processFuture.then((Process p) {
       // Make sure the process stdin is closed.
-      p.stdin.close;
+      p.stdin.close();
 
       // Setup process exit handling.
       p.onExit = (exitCode) {
