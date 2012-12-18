@@ -62,12 +62,10 @@ class Exceptions : AllStatic {
     kIsolateUnhandledException
   };
 
-  static void ThrowByType(ExceptionType type,
-                          const GrowableArray<const Object*>& arguments);
+  static void ThrowByType(ExceptionType type, const Array& arguments);
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.
-  static RawObject* Create(ExceptionType type,
-                           const GrowableArray<const Object*>& arguments);
+  static RawObject* Create(ExceptionType type, const Array& arguments);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Exceptions);

@@ -202,8 +202,8 @@ DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
     return Integer::New(temp);
   }
 
-  GrowableArray<const Object*> args;
-  args.Add(&value);
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, value);
   Exceptions::ThrowByType(Exceptions::kFormat, args);
   return Object::null();
 }
@@ -213,8 +213,8 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
                                         const Integer& value,
                                         const Smi& amount) {
   if (amount.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&amount);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, amount);
     Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   if (value.IsSmi()) {

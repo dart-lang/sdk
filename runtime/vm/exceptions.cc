@@ -143,7 +143,7 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
                                  const Instance& existing_stacktrace) {
   Instance& exception = Instance::Handle(incoming_exception.raw());
   if (exception.IsNull()) {
-    GrowableArray<const Object*> arguments;
+    const Array& arguments = Array::Handle(Object::empty_array());
     exception ^= Exceptions::Create(Exceptions::kNullThrown, arguments);
   }
   uword handler_pc = 0;
@@ -378,8 +378,7 @@ void Exceptions::PropagateError(const Error& error) {
 }
 
 
-void Exceptions::ThrowByType(
-    ExceptionType type, const GrowableArray<const Object*>& arguments) {
+void Exceptions::ThrowByType(ExceptionType type, const Array& arguments) {
   const Object& result = Object::Handle(Create(type, arguments));
   if (result.IsError()) {
     // We got an error while constructing the exception object.
@@ -392,8 +391,7 @@ void Exceptions::ThrowByType(
 }
 
 
-RawObject* Exceptions::Create(
-    ExceptionType type, const GrowableArray<const Object*>& arguments) {
+RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
   String& class_name = String::Handle();
   switch (type) {

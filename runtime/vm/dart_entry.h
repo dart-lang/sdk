@@ -101,10 +101,9 @@ class DartEntry : public AllStatic {
 
   // Invokes the specified instance function on the receiver.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeDynamic(
-      const Function& function,
-      const Array& arguments,
-      const Array& arguments_descriptor);
+  static RawObject* InvokeDynamic(const Function& function,
+                                  const Array& arguments,
+                                  const Array& arguments_descriptor);
 
   // Invoke the specified static function.
   // On success, returns a RawInstance.  On failure, a RawError.
@@ -114,10 +113,9 @@ class DartEntry : public AllStatic {
 
   // Invoke the specified static function.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeStatic(
-      const Function& function,
-      const Array& arguments,
-      const Array& arguments_descriptor);
+  static RawObject* InvokeStatic(const Function& function,
+                                 const Array& arguments,
+                                 const Array& arguments_descriptor);
 
   // Invoke the specified closure object.
   // On success, returns a RawInstance.  On failure, a RawError.
@@ -127,10 +125,9 @@ class DartEntry : public AllStatic {
 
   // Invoke the specified closure object.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeClosure(
-      const Instance& closure,
-      const Array& arguments,
-      const Array& arguments_descriptor);
+  static RawObject* InvokeClosure(const Instance& closure,
+                                  const Array& arguments,
+                                  const Array& arguments_descriptor);
 };
 
 
@@ -139,10 +136,9 @@ class DartEntry : public AllStatic {
 class DartLibraryCalls : public AllStatic {
  public:
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* ExceptionCreate(
-      const Library& library,
-      const String& exception_name,
-      const GrowableArray<const Object*>& arguments);
+  static RawObject* ExceptionCreate(const Library& library,
+                                    const String& exception_name,
+                                    const Array& arguments);
 
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* ToString(const Instance& receiver);

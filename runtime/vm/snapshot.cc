@@ -1251,8 +1251,8 @@ void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
   Isolate::Current()->object_store()->clear_sticky_error();
   UnmarkAll();
   const String& msg_obj = String::Handle(String::New(msg));
-  GrowableArray<const Object*> args(1);
-  args.Add(&msg_obj);
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, msg_obj);
   Exceptions::ThrowByType(type, args);
   UNREACHABLE();
 }

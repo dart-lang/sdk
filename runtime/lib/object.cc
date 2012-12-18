@@ -24,11 +24,11 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, func_args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(
       Instance, func_named_args, arguments->NativeArgAt(4));
-  GrowableArray<const Object*> dart_arguments(5);
-  dart_arguments.Add(&instance);
-  dart_arguments.Add(&member_name);
-  dart_arguments.Add(&func_args);
-  dart_arguments.Add(&func_named_args);
+  const Array& dart_arguments = Array::Handle(Array::New(5));
+  dart_arguments.SetAt(0, instance);
+  dart_arguments.SetAt(1, member_name);
+  dart_arguments.SetAt(2, func_args);
+  dart_arguments.SetAt(3, func_named_args);
 
   if (is_method.value()) {
     // Report if a function with same name (but different arguments) has been
@@ -48,7 +48,7 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 5) {
       for (int i = 1; i < total_num_parameters; i++) {
         array.SetAt(i - 1, String::Handle(function.ParameterNameAt(i)));
       }
-      dart_arguments.Add(&array);
+      dart_arguments.SetAt(4, array);
     }
   }
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);

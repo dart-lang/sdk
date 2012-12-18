@@ -100,11 +100,11 @@ RawObject* DartEntry::InvokeClosure(const Instance& instance,
     // Set up arguments to include the receiver as the first argument.
     const String& call_symbol = String::Handle(Symbols::Call());
     const Object& null_object = Object::Handle();
-    GrowableArray<const Object*> dart_arguments(5);
-    dart_arguments.Add(&instance);
-    dart_arguments.Add(&call_symbol);
-    dart_arguments.Add(&arguments);  // Includes instance.
-    dart_arguments.Add(&null_object);  // TODO(regis): Provide names.
+    const Array& dart_arguments = Array::Handle(Array::New(4));
+    dart_arguments.SetAt(0, instance);
+    dart_arguments.SetAt(1, call_symbol);
+    dart_arguments.SetAt(2, arguments);  // Includes instance.
+    dart_arguments.SetAt(3, null_object);  // TODO(regis): Provide names.
     // If a function "call" with different arguments exists, it will have been
     // invoked above, so no need to handle this case here.
     Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
@@ -243,22 +243,23 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments) {
 }
 
 
-RawObject* DartLibraryCalls::ExceptionCreate(
-    const Library& lib,
-    const String& class_name,
-    const GrowableArray<const Object*>& arguments) {
+RawObject* DartLibraryCalls::ExceptionCreate(const Library& lib,
+                                             const String& class_name,
+                                             const Array& arguments) {
   const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   // For now, we only support a non-parameterized or raw type.
   const int kNumExtraArgs = 2;  // implicit rcvr and construction phase args.
   const Instance& exception_object = Instance::Handle(Instance::New(cls));
   const Array& constructor_arguments =
-    Array::Handle(Array::New(arguments.length() + kNumExtraArgs));
+    Array::Handle(Array::New(arguments.Length() + kNumExtraArgs));
   constructor_arguments.SetAt(0, exception_object);
   constructor_arguments.SetAt(
       1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
-  for (intptr_t i = 0; i < arguments.length(); i++) {
-    constructor_arguments.SetAt((i + kNumExtraArgs), *(arguments[i]));
+  Object& obj = Object::Handle();
+  for (intptr_t i = 0; i < arguments.Length(); i++) {
+    obj = arguments.At(i);
+    constructor_arguments.SetAt((i + kNumExtraArgs), obj);
   }
 
   String& constructor_name = String::Handle(

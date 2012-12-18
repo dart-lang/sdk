@@ -20,8 +20,8 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_allocate, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
   if ((data.Length() <= 0)) {
     const Integer& index = Integer::Handle(Integer::New(data.Length()));
-    GrowableArray<const Object*> args;
-    args.Add(&index);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, index);
     Exceptions::ThrowByType(Exceptions::kRange, args);
   }
   const GrowableObjectArray& new_array =
@@ -36,8 +36,8 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_getIndexed, 2) {
       GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
-    GrowableArray<const Object*> args;
-    args.Add(&index);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, index);
     Exceptions::ThrowByType(Exceptions::kRange, args);
   }
   const Instance& obj = Instance::CheckedHandle(array.At(index.Value()));
@@ -50,8 +50,8 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_setIndexed, 3) {
       GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
-    GrowableArray<const Object*> args;
-    args.Add(&index);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, index);
     Exceptions::ThrowByType(Exceptions::kRange, args);
   }
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(2));
@@ -79,8 +79,8 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_setLength, 2) {
       GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));
   if ((length.Value() < 0) || (length.Value() > array.Capacity())) {
-    GrowableArray<const Object*> args;
-    args.Add(&length);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, length);
     Exceptions::ThrowByType(Exceptions::kRange, args);
   }
   array.SetLength(length.Value());

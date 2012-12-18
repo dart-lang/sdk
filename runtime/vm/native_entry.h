@@ -57,8 +57,8 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
   const Instance& __##name##_instance__ =                                      \
       Instance::CheckedHandle(isolate, value);                                 \
   if (!__##name##_instance__.Is##type()) {                                     \
-    GrowableArray<const Object*> __args__;                                     \
-    __args__.Add(&__##name##_instance__);                                      \
+    const Array& __args__ = Array::Handle(Array::New(1));                      \
+    __args__.SetAt(0, __##name##_instance__);                                  \
     Exceptions::ThrowByType(Exceptions::kArgument, __args__);                  \
   }                                                                            \
   const type& name = type::Cast(__##name##_instance__);
@@ -72,8 +72,8 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
   type& name = type::Handle(isolate);                                          \
   if (!__##name##_instance__.IsNull()) {                                       \
     if (!__##name##_instance__.Is##type()) {                                   \
-      GrowableArray<const Object*> __args__;                                   \
-      __args__.Add(&__##name##_instance__);                                    \
+      const Array& __args__ = Array::Handle(Array::New(1));                    \
+      __args__.SetAt(0, __##name##_instance__);                                \
       Exceptions::ThrowByType(Exceptions::kArgument, __args__);                \
     }                                                                          \
   }                                                                            \

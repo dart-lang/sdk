@@ -149,15 +149,15 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 3) {
 
 
 static void ThrowIllegalArgException(const String& message) {
-  GrowableArray<const Object*> args(1);
-  args.Add(&message);
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
   Exceptions::ThrowByType(Exceptions::kArgument, args);
 }
 
 
 static void ThrowIsolateSpawnException(const String& message) {
-  GrowableArray<const Object*> args(1);
-  args.Add(&message);
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
   Exceptions::ThrowByType(Exceptions::kIsolateSpawn, args);
 }
 

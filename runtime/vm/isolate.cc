@@ -155,10 +155,10 @@ bool IsolateMessageHandler::UnhandledExceptionCallbackHandler(
       Instance::Handle(isolate_, error.stacktrace());
 
   // Wrap these args into an IsolateUncaughtException object.
-  GrowableArray<const Object*> exception_args(3);
-  exception_args.Add(&message);
-  exception_args.Add(&cause);
-  exception_args.Add(&stacktrace);
+  const Array& exception_args = Array::Handle(Array::New(3));
+  exception_args.SetAt(0, message);
+  exception_args.SetAt(1, cause);
+  exception_args.SetAt(2, stacktrace);
   const Object& exception =
       Object::Handle(isolate_,
                      Exceptions::Create(Exceptions::kIsolateUnhandledException,

@@ -56,9 +56,9 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
   const String& pattern = String::Handle(regexp.pattern());
   const String& errmsg =
       String::Handle(String::New("Regular expression is not initialized yet"));
-  GrowableArray<const Object*> args;
-  args.Add(&pattern);
-  args.Add(&errmsg);
+  const Array& args = Array::Handle(Array::New(2));
+  args.SetAt(0, pattern);
+  args.SetAt(1, errmsg);
   Exceptions::ThrowByType(Exceptions::kIllegalJSRegExp, args);
   return Object::null();
 }

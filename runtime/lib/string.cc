@@ -26,13 +26,13 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   for (intptr_t i = 0; i < array_len; i++) {
     index_object = a.At(i);
     if (!index_object.IsSmi()) {
-      GrowableArray<const Object*> args;
-      args.Add(&index_object);
+      const Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, index_object);
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     }
     intptr_t value = Smi::Cast(index_object).Value();
     if (Utf::IsOutOfRange(value)) {
-      GrowableArray<const Object*> args;
+      const Array& args = Array::Handle(Object::empty_array());
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     } else {
       if (!Utf::IsLatin1(value)) {
@@ -128,16 +128,16 @@ static int32_t StringValueAt(const String& str, const Integer& index) {
     smi ^= index.raw();
     int32_t index = smi.Value();
     if ((index < 0) || (index >= str.Length())) {
-      GrowableArray<const Object*> arguments;
-      arguments.Add(&smi);
-      Exceptions::ThrowByType(Exceptions::kRange, arguments);
+      const Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, smi);
+      Exceptions::ThrowByType(Exceptions::kRange, args);
     }
     return str.CharAt(index);
   } else {
     // An index larger than Smi is always illegal.
-    GrowableArray<const Object*> arguments;
-    arguments.Add(&index);
-    Exceptions::ThrowByType(Exceptions::kRange, arguments);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, index);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
     return 0;
   }
 }
@@ -191,8 +191,8 @@ DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
   for (intptr_t i = 0; i < strings.Length(); i++) {
     elem ^= strings.At(i);
     if (!elem.IsString()) {
-      GrowableArray<const Object*> args;
-      args.Add(&elem);
+      const Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, elem);
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     }
   }

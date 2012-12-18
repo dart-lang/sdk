@@ -207,9 +207,9 @@ RawBigint* BigintOperations::NewFromDouble(double d, Heap::Space space) {
   }
   DoubleInternals internals = DoubleInternals(d);
   if (internals.IsSpecial()) {
-    GrowableArray<const Object*> exception_arguments;
-    exception_arguments.Add(
-        &Object::ZoneHandle(String::New("BigintOperations::NewFromDouble")));
+    const Array& exception_arguments = Array::Handle(Array::New(1));
+    exception_arguments.SetAt(
+        0, Object::Handle(String::New("BigintOperations::NewFromDouble")));
     Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
   }
   uint64_t significand = internals.Significand();

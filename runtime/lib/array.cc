@@ -23,8 +23,8 @@ DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
     const String& error = String::Handle(String::NewFormatted(
         "length (%"Pd") must be in the range [0..%"Pd"]",
         len, Array::kMaxElements));
-    GrowableArray<const Object*> args;
-    args.Add(&error);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, error);
     Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   const Array& new_array = Array::Handle(Array::New(length.Value()));
@@ -37,9 +37,9 @@ DEFINE_NATIVE_ENTRY(ObjectArray_getIndexed, 2) {
   const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
-    GrowableArray<const Object*> arguments;
-    arguments.Add(&index);
-    Exceptions::ThrowByType(Exceptions::kRange, arguments);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, index);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
   }
   return array.At(index.Value());
 }
@@ -50,9 +50,9 @@ DEFINE_NATIVE_ENTRY(ObjectArray_setIndexed, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   const Instance& value = Instance::CheckedHandle(arguments->NativeArgAt(2));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
-    GrowableArray<const Object*> arguments;
-    arguments.Add(&index);
-    Exceptions::ThrowByType(Exceptions::kRange, arguments);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, index);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
   }
   array.SetAt(index.Value(), value);
   return Object::null();
@@ -74,7 +74,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_copyFromObjectArray, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(4));
   intptr_t icount = count.Value();
   if (icount < 0) {
-    GrowableArray<const Object*> args;
+    const Array& args = Array::Handle(Object::empty_array());
     Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   if (icount == 0) {
@@ -83,14 +83,14 @@ DEFINE_NATIVE_ENTRY(ObjectArray_copyFromObjectArray, 5) {
   intptr_t isrc_start = src_start.Value();
   intptr_t idst_start = dst_start.Value();
   if ((isrc_start < 0) || ((isrc_start + icount) > source.Length())) {
-    GrowableArray<const Object*> arguments;
-    arguments.Add(&src_start);
-    Exceptions::ThrowByType(Exceptions::kRange, arguments);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, src_start);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
   }
   if ((idst_start < 0) || ((idst_start + icount) > dest.Length())) {
-    GrowableArray<const Object*> arguments;
-    arguments.Add(&dst_start);
-    Exceptions::ThrowByType(Exceptions::kRange, arguments);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, dst_start);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
   }
 
   Object& src_obj = Object::Handle();

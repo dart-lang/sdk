@@ -114,7 +114,7 @@ bool ObjectStore::PreallocateObjects() {
   }
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
-  GrowableArray<const Object*> args;
+  const Array& args = Array::Handle(Object::empty_array());
   Object& result = Object::Handle();
 
   result = Exceptions::Create(Exceptions::kStackOverflow, args);
