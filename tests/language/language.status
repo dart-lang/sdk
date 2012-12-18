@@ -481,7 +481,7 @@ syntax_test/47: Fail
 constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
-gc_test: Fail
+gc_test: Pass,Fail
 super_first_constructor_test: Fail
 # VM specific tests.
 disable_privacy_test: Pass, Fail, Ok
