@@ -35,7 +35,7 @@ class NameValidator extends Validator {
       if (libraries.length == 1) {
         var libName = path.basenameWithoutExtension(libraries[0]);
         if (libName == entrypoint.root.name) return;
-        warnings.add('The name of "$libraries[0]", "$libName", should match '
+        warnings.add('The name of "${libraries[0]}", "$libName", should match '
             'the name of the package, "${entrypoint.root.name}".\n'
             'This helps users know what library to import.');
       }
