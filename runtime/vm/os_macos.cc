@@ -174,6 +174,10 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
 }
 
 
+void OS::RegisterCodeObservers() {
+}
+
+
 void OS::PrintErr(const char* format, ...) {
   va_list args;
   va_start(args, format);
