@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library mock_stepwise_negative_test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/mock.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../pkg/unittest/lib/mock.dart';
 
 main() {
   test('Mocking: stepwiseValidate', () {
