@@ -319,6 +319,44 @@ static int SetOsErrorMessage(char** os_error_message) {
 }
 
 
+typedef BOOL (WINAPI *InitProcThreadAttrListFn)(
+    LPPROC_THREAD_ATTRIBUTE_LIST, DWORD, DWORD, PSIZE_T);
+
+typedef BOOL (WINAPI *UpdateProcThreadAttrFn)(
+    LPPROC_THREAD_ATTRIBUTE_LIST, DWORD, DWORD_PTR,
+    PVOID, SIZE_T, PVOID, PSIZE_T);
+
+typedef VOID (WINAPI *DeleteProcThreadAttrListFn)(
+     LPPROC_THREAD_ATTRIBUTE_LIST);
+
+
+static InitProcThreadAttrListFn init_proc_thread_attr_list = NULL;
+static UpdateProcThreadAttrFn update_proc_thread_attr = NULL;
+static DeleteProcThreadAttrListFn delete_proc_thread_attr_list = NULL;
+
+
+static bool EnsureInitialized() {
+  static bool load_attempted = false;
+  static dart::Mutex mutex;
+  HMODULE kernel32_module = GetModuleHandle(L"kernel32.dll");
+  if (!load_attempted) {
+    MutexLocker locker(&mutex);
+    if (load_attempted) return delete_proc_thread_attr_list != NULL;
+    init_proc_thread_attr_list = reinterpret_cast<InitProcThreadAttrListFn>(
+        GetProcAddress(kernel32_module, "InitializeProcThreadAttributeList"));
+    update_proc_thread_attr =
+        reinterpret_cast<UpdateProcThreadAttrFn>(
+            GetProcAddress(kernel32_module, "UpdateProcThreadAttribute"));
+    delete_proc_thread_attr_list = reinterpret_cast<DeleteProcThreadAttrListFn>(
+        reinterpret_cast<DeleteProcThreadAttrListFn>(
+            GetProcAddress(kernel32_module, "DeleteProcThreadAttributeList")));
+    load_attempted = true;
+    return delete_proc_thread_attr_list != NULL;
+  }
+  return delete_proc_thread_attr_list != NULL;
+}
+
+
 int Process::Start(const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
@@ -400,48 +438,53 @@ int Process::Start(const char* path,
   startup_info.StartupInfo.hStdError = stderr_handles[kWriteHandle];
   startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
 
-  // Setup the handles to inherit. We only want to inherit the three handles
-  // for stdin, stdout and stderr.
-  SIZE_T size = 0;
-  // The call to determine the size of an attribute list always fails with
-  // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
-  if (!InitializeProcThreadAttributeList(NULL, 1, 0, &size) &&
-      GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-    int error_code = SetOsErrorMessage(os_error_message);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    return error_code;
-  }
-  LPPROC_THREAD_ATTRIBUTE_LIST attribute_list =
-      reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
-  ZeroMemory(attribute_list, size);
-  if (!InitializeProcThreadAttributeList(attribute_list, 1, 0, &size)) {
-    int error_code = SetOsErrorMessage(os_error_message);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    free(attribute_list);
-    return error_code;
-  }
-  static const int kNumInheritedHandles = 3;
-  HANDLE inherited_handles[kNumInheritedHandles] =
-      { stdin_handles[kReadHandle],
-        stdout_handles[kWriteHandle],
-        stderr_handles[kWriteHandle] };
-  if (!UpdateProcThreadAttribute(attribute_list,
+  LPPROC_THREAD_ATTRIBUTE_LIST attribute_list = NULL;
+
+  bool supports_proc_thread_attr_lists = EnsureInitialized();
+  if (supports_proc_thread_attr_lists) {
+    // Setup the handles to inherit. We only want to inherit the three handles
+    // for stdin, stdout and stderr.
+    SIZE_T size = 0;
+    // The call to determine the size of an attribute list always fails with
+    // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
+    if (!init_proc_thread_attr_list(NULL, 1, 0, &size) &&
+        GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+      int error_code = SetOsErrorMessage(os_error_message);
+      CloseProcessPipes(
+          stdin_handles, stdout_handles, stderr_handles, exit_handles);
+      return error_code;
+    }
+    attribute_list =
+        reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
+    ZeroMemory(attribute_list, size);
+    if (!init_proc_thread_attr_list(attribute_list, 1, 0, &size)) {
+      int error_code = SetOsErrorMessage(os_error_message);
+      CloseProcessPipes(
+          stdin_handles, stdout_handles, stderr_handles, exit_handles);
+      free(attribute_list);
+      return error_code;
+    }
+    static const int kNumInheritedHandles = 3;
+    HANDLE inherited_handles[kNumInheritedHandles] =
+        { stdin_handles[kReadHandle],
+          stdout_handles[kWriteHandle],
+          stderr_handles[kWriteHandle] };
+    if (!update_proc_thread_attr(attribute_list,
                                  0,
                                  PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
                                  inherited_handles,
                                  kNumInheritedHandles * sizeof(HANDLE),
                                  NULL,
                                  NULL)) {
-    DeleteProcThreadAttributeList(attribute_list);
-    int error_code = SetOsErrorMessage(os_error_message);
-    CloseProcessPipes(
-        stdin_handles, stdout_handles, stderr_handles, exit_handles);
-    free(attribute_list);
-    return error_code;
+      delete_proc_thread_attr_list(attribute_list);
+      int error_code = SetOsErrorMessage(os_error_message);
+      CloseProcessPipes(
+          stdin_handles, stdout_handles, stderr_handles, exit_handles);
+      free(attribute_list);
+      return error_code;
+    }
+    startup_info.lpAttributeList = attribute_list;
   }
-  startup_info.lpAttributeList = attribute_list;
 
   PROCESS_INFORMATION process_info;
   ZeroMemory(&process_info, sizeof(process_info));
@@ -468,8 +511,10 @@ int Process::Start(const char* path,
     free(const_cast<wchar_t*>(system_path));
     for (int i = 0; i < arguments_length; i++) free(system_arguments[i]);
     delete[] system_arguments;
-    DeleteProcThreadAttributeList(attribute_list);
-    free(attribute_list);
+    if (supports_proc_thread_attr_lists) {
+      delete_proc_thread_attr_list(attribute_list);
+      free(attribute_list);
+    }
     return error_code;
   }
 
@@ -554,8 +599,10 @@ int Process::Start(const char* path,
     free(const_cast<wchar_t*>(system_working_directory));
   }
 
-  DeleteProcThreadAttributeList(attribute_list);
-  free(attribute_list);
+  if (supports_proc_thread_attr_lists) {
+    delete_proc_thread_attr_list(attribute_list);
+    free(attribute_list);
+  }
 
   if (result == 0) {
     int error_code = SetOsErrorMessage(os_error_message);
