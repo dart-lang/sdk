@@ -8176,7 +8176,7 @@ abstract class ElementTraversal {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLEmbedElement
+/// @domName HTMLEmbedElement; @docsEditable true
 class EmbedElement extends Element native "*HTMLEmbedElement" {
 
   ///@docsEditable true
@@ -8199,22 +8199,6 @@ class EmbedElement extends Element native "*HTMLEmbedElement" {
 
   /// @domName HTMLEmbedElement.width; @docsEditable true
   String width;
-
-
-  /**
-   * Invokes a custom method exposed by an embed tag.
-   *
-   * There is no conversion run on params, in most cases it should be
-   * a standard list of strings
-   *
-   * embed.invoke('postMessage', ['custom message']);
-   */
-  @Creates('String|bool|num')
-  @Returns('String|bool|num')
-  Object invoke(String methodName, List<Object> params) {
-    return JS('String|bool|num', '#[#].apply(#, #)',
-        this, methodName, this, params);
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14938,7 +14922,7 @@ class OListElement extends Element native "*HTMLOListElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLObjectElement
+/// @domName HTMLObjectElement; @docsEditable true
 class ObjectElement extends Element native "*HTMLObjectElement" {
 
   ///@docsEditable true
@@ -15009,22 +14993,6 @@ class ObjectElement extends Element native "*HTMLObjectElement" {
 
   /// @domName HTMLObjectElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
-
-
-  /**
-   * Invokes a custom method exposed by an object tag.
-   *
-   * There is no conversion run on params, in most cases it should be
-   * a standard list of strings
-   *
-   * object.invoke('postMessage', ['custom message']);
-   */
-  @Creates('String|bool|num')
-  @Returns('String|bool|num')
-  Object invoke(String methodName, List<Object> params) {
-    return JS('String|bool|num', '#[#].apply(#, #)',
-        this, methodName, this, params);
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
