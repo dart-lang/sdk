@@ -2036,10 +2036,6 @@ class Elements {
     // and make the order total and independent of hashCode.
     return a.hashCode.compareTo(b.hashCode);
   }
-
-  static List<Element> sortedByPosition(Collection<Element> elements) {
-    return new List<Element>.from(elements)..sort(compareByPosition);
-  }
 }
 
 class LabelElement extends Element {
