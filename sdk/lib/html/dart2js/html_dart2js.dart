@@ -16475,7 +16475,7 @@ class SelectElement extends Element native "*HTMLSelectElement" {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    return this.elements.filter((e) => e is OptionElement);
+    return this.children.filter((e) => e is OptionElement);
   }
 
   List<OptionElement> get selectedOptions {
