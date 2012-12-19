@@ -12,8 +12,8 @@ import 'dart:isolate';
 import 'dart:json';
 import 'dart:uri';
 
+import '../../pkg/path/lib/path.dart' as path;
 import 'log.dart' as log;
-import 'path.dart' as path;
 import 'utils.dart';
 
 bool _isGitInstalledCache;

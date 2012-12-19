@@ -17,13 +17,13 @@ import 'dart:math';
 import 'dart:uri';
 
 import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
+import '../../../pkg/path/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../lib/file_system.dart' as fs;
 import '../../pub/entrypoint.dart';
 import '../../pub/git_source.dart';
 import '../../pub/hosted_source.dart';
 import '../../pub/io.dart';
-import '../../pub/path.dart' as path;
 import '../../pub/sdk_source.dart';
 import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';

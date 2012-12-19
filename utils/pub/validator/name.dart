@@ -6,9 +6,9 @@ library name_validator;
 
 import 'dart:io';
 
+import '../../../pkg/path/lib/path.dart' as path;
 import '../entrypoint.dart';
 import '../io.dart';
-import '../path.dart' as path;
 import '../validator.dart';
 
 /// Dart reserved words, from the Dart spec.

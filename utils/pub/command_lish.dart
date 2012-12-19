@@ -10,13 +10,13 @@ import 'dart:uri';
 
 import '../../pkg/args/lib/args.dart';
 import '../../pkg/http/lib/http.dart' as http;
+import '../../pkg/path/lib/path.dart' as path;
 import 'directory_tree.dart';
 import 'git.dart' as git;
 import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
-import 'path.dart' as path;
 import 'pub.dart';
 import 'validator.dart';
 

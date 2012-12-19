@@ -8,13 +8,13 @@ import 'dart:io';
 import 'dart:uri';
 
 import '../../pkg/args/lib/args.dart';
+import '../../pkg/path/lib/path.dart' as path;
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
-import 'path.dart' as path;
 import 'pub.dart';
 
 /// Handles the `uploader` pub command.

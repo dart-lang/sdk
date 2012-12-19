@@ -217,7 +217,7 @@ def Main(argv):
   #
 
   for library in ['args', 'http', 'intl', 'logging',
-                  'meta', 'oauth2', 'serialization', 'unittest']:
+                  'meta', 'oauth2', 'path', 'serialization', 'unittest']:
 
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',

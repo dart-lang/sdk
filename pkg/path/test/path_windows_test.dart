@@ -6,8 +6,9 @@ library path_test;
 
 import 'dart:io' as io;
 
-import '../../../../pkg/unittest/lib/unittest.dart';
-import '../../../pub/path.dart' as path;
+// TODO(rnystrom): Use "package:" path when #7491 is fixed.
+import '../../unittest/lib/unittest.dart';
+import '../lib/path.dart' as path;
 
 main() {
   var builder = new path.Builder(style: path.Style.windows,
