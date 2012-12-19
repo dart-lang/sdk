@@ -37,7 +37,7 @@ class FlowGraphOptimizer;
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
   V(_ByteArrayBase, get:length, ByteArrayBaseLength, 1828280001)               \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
-  V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity, 725548050)      \
+  V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 583130725)                    \
   V(_StringBase, charCodeAt, StringBaseCharCodeAt, 984449525)                  \

@@ -93,10 +93,10 @@ class _GrowableObjectArray<T> implements List<T> {
 
   int get length native "GrowableObjectArray_getLength";
 
-  int get capacity native "GrowableObjectArray_getCapacity";
+  int get _capacity native "GrowableObjectArray_getCapacity";
 
   void set length(int new_length) {
-    if (new_length > capacity) {
+    if (new_length > _capacity) {
       _grow(new_length);
     } else {
       for (int i = new_length; i < length; i++) {
@@ -120,7 +120,7 @@ class _GrowableObjectArray<T> implements List<T> {
   // doubling its size.
   void add(T value) {
     var len = length;
-    if (len == capacity) {
+    if (len == _capacity) {
       _grow(len * 2);
     }
     _setLength(len + 1);
