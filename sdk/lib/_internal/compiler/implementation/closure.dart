@@ -108,6 +108,10 @@ class ThisElement extends Element {
       : super(const SourceString('this'), ElementKind.PARAMETER, enclosing);
 
   bool isAssignable() => false;
+
+  // Since there is no declaration corresponding to 'this', use the position of
+  // the enclosing method.
+  Token position() => enclosingElement.position();
 }
 
 // The box-element for a scope, and the captured variables that need to be
@@ -273,10 +277,12 @@ class ClosureTranslator extends Visitor {
         freeVariableMapping[element] = fieldElement;
       }
       // Add the box elements first so we get the same ordering.
+      // TODO(sra): What is the canonical order of multiple boxes?
       for (Element capturedElement in boxes) {
         addElement(capturedElement, capturedElement.name);
       }
-      for (Element capturedElement in fieldCaptures) {
+      for (Element capturedElement in
+               Elements.sortedByPosition(fieldCaptures)) {
         int id = closureFieldCounter++;
         SourceString name =
             namer.getClosureVariableName(capturedElement.name, id);
@@ -597,8 +603,7 @@ class ClosureTranslator extends Visitor {
     currentElement = oldFunctionElement;
 
     // Mark all free variables as captured and use them in the outer function.
-    List<Element> freeVariables =
-        savedClosureData.freeVariableMapping.keys;
+    List<Element> freeVariables = savedClosureData.freeVariableMapping.keys;
     assert(freeVariables.isEmpty || savedInsideClosure);
     for (Element freeElement in freeVariables) {
       if (capturedVariableMapping[freeElement] != null &&
