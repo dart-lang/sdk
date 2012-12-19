@@ -42,11 +42,13 @@ io/secure_server_stream_test: Pass, Crash, Timeout  # Issue 6893
 io/secure_server_test: Pass, Crash, Fail, Timeout  # Issue 6893
 io/secure_no_builtin_roots_test: Pass, Crash  # Issue 7157
 io/secure_socket_bad_certificate_test: Pass, Crash, Fail, Timeout  # Issue 7157
+debugger/*: Skip # Debugger support not yet implemented for Windows. Issue 4118.
 
 [ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser
 crypto/*: Skip # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
+debugger/*: Skip # Do not run standalone debugger tests in browser.
 
 [ $compiler == dartc ]
 
@@ -88,6 +90,7 @@ int_array_test: Skip  # This is a VM test
 medium_integer_test: Fail, OK # Test fails with JS number semantics: issue 1533.
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
+debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
 
 [ $compiler == dart2js && $jscl ]
 assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
