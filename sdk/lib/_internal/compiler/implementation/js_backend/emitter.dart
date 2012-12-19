@@ -1112,6 +1112,14 @@ $lazyInitializerLogic
     }
   }
 
+  Iterable<Element> getTypedefChecksOn(DartType type) {
+    return checkedTypedefs.filter((TypedefElement typedef) {
+      FunctionType typedefType =
+          typedef.computeType(compiler).unalias(compiler);
+      return compiler.types.isSubtype(type, typedefType);
+    });
+  }
+
   /**
    * Generate "is tests" for [cls]: itself, and the "is tests" for the
    * classes it implements. We don't need to add the "is tests" of the
@@ -1137,14 +1145,7 @@ $lazyInitializerLogic
         generateInterfacesIsTests(compiler.functionClass,
                                   emitIsTest,
                                   generated);
-        FunctionType callType = call.computeType(compiler);
-        for (TypedefElement typedef in checkedTypedefs) {
-          FunctionType typedefType =
-              typedef.computeType(compiler).unalias(compiler);
-          if (compiler.types.isSubtype(callType, typedefType)) {
-            emitIsTest(typedef);
-          }
-        }
+        getTypedefChecksOn(call.computeType(compiler)).forEach(emitIsTest);
       }
     }
     for (DartType interfaceType in cls.interfaces) {
@@ -1341,6 +1342,12 @@ $lazyInitializerLogic
       // in case it is used in spawnFunction.
       String fieldName = namer.STATIC_CLOSURE_NAME_NAME;
       buffer.add('$fieldAccess.$fieldName$_=$_"$staticName"$N');
+      getTypedefChecksOn(element.computeType(compiler)).forEach(
+        (Element typedef) {
+          String operator = namer.operatorIs(typedef);
+          buffer.add('$fieldAccess.$operator$_=${_}true$N');
+        }
+      );
     }
   }
 
@@ -1402,7 +1409,13 @@ $lazyInitializerLogic
         : inInterceptor ? const ['self', 'target', 'receiver']
                         : const ['self', 'target'];
 
-    String closureClass = hasOptionalParameters ? null : cache[parameterCount];
+    Iterable<Element> typedefChecks =
+        getTypedefChecksOn(member.computeType(compiler));
+    bool hasTypedefChecks = typedefChecks.iterator().hasNext;
+
+    bool canBeShared = !hasOptionalParameters && !hasTypedefChecks;
+
+    String closureClass = canBeShared ? cache[parameterCount] : null;
     if (closureClass == null) {
       // Either the class was not cached yet, or there are optional parameters.
       // Create a new closure class.
@@ -1454,12 +1467,18 @@ $lazyInitializerLogic
       addParameterStubs(callElement, (String stubName, CodeBuffer memberValue) {
         boundClosureBuffer.add(',\n$_$stubName:$_$memberValue');
       });
+
+      typedefChecks.forEach((Element typedef) {
+        String operator = namer.operatorIs(typedef);
+        boundClosureBuffer.add(',\n$_$operator$_:${_}true');
+      });
+
       boundClosureBuffer.add("$n}$N");
 
       closureClass = namer.isolateAccess(closureClassElement);
 
       // Cache it.
-      if (!hasOptionalParameters) {
+      if (canBeShared) {
         cache[parameterCount] = closureClass;
       }
     }

@@ -54,7 +54,8 @@ function_type_test: Fail # does not detect type error in checked mode.
 factory1_test/00: Fail
 factory1_test/01: Fail
 type_annotation_test/09: Fail # Named constructors interpreted as a type.
-callable_test/0*: Fail # Issue 7354
+prefix15_test: Fail # Issue 5022
+local_function2_test: Fail # Issue 5022
 
 [ $compiler == dart2js && $unchecked ]
 default_factory2_test/01: Fail # type arguments on redirecting factory not implemented
@@ -141,10 +142,6 @@ named_parameters_type_test: Fail
 positional_parameters_type_test: Fail
 named_parameters_with_object_property_names_test: Fail
 
-# Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
-# Crash infinite loop on Mac and dart2js checked mode on linux.
-function_type_alias6_test: Crash, Fail
-
 
 # Compilation errors.
 default_factory3_test: Fail # type arguments on redirecting factory not implemented
@@ -164,7 +161,6 @@ function_type_alias4_test: Fail # cannot resolve type F
 function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
-function_type_alias6_test: Fail # visitIs for typedefs not implemented.
 function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
 function_type_alias_test: Fail # cannot resolve type Fun
 function_type_parameter2_test: Fail # Internal Error: expected optional parameters
