@@ -338,7 +338,7 @@ static DeleteProcThreadAttrListFn delete_proc_thread_attr_list = NULL;
 static bool EnsureInitialized() {
   static bool load_attempted = false;
   static dart::Mutex mutex;
-  HMODULE kernel32_module = GetModuleHandle(L"kernel32.dll");
+  HMODULE kernel32_module = GetModuleHandleW(L"kernel32.dll");
   if (!load_attempted) {
     MutexLocker locker(&mutex);
     if (load_attempted) return delete_proc_thread_attr_list != NULL;
