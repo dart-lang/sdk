@@ -524,8 +524,7 @@ abstract class Compiler implements DiagnosticListener {
           || libraryName == 'dart:html'
           || libraryName == 'dart:html_common'
           || libraryName == 'dart:indexed_db'
-          || libraryName == 'dart:svg'
-          || libraryName == 'dart:mirrors') {
+          || libraryName == 'dart:svg') {
         // dart:html and dart:svg need access to convertDartClosureToJS and
         // annotation classes.
         // dart:mirrors needs access to the Primitives class.
