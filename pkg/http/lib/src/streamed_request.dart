@@ -23,10 +23,7 @@ class StreamedRequest extends BaseRequest {
   /// buffered.
   ///
   /// Closing this signals the end of the request.
-  OutputStream get stream => _outputStream;
-
-  /// [stream], stored as a [ListOutputStream].
-  final ListOutputStream _outputStream;
+  final OutputStream stream;
 
   /// The stream from which the [BaseClient] will read the data in [stream] once
   /// the request has been finalized.
@@ -35,12 +32,13 @@ class StreamedRequest extends BaseRequest {
   /// Creates a new streaming request.
   StreamedRequest(String method, Uri url)
     : super(method, url),
-      _outputStream = new ListOutputStream(),
+      stream = new ListOutputStream(),
       _inputStream = new ListInputStream() {
+    ListOutputStream outputStream = stream;
     // TODO(nweiz): pipe errors from the output stream to the input stream once
     // issue 3657 is fixed
-    _outputStream.onData = () => _inputStream.write(_outputStream.read());
-    _outputStream.onClosed = _inputStream.markEndOfStream;
+    outputStream.onData = () => _inputStream.write(outputStream.read());
+    outputStream.onClosed = _inputStream.markEndOfStream;
   }
 
   /// Freezes all mutable fields other than [stream] and returns an [InputStream]
