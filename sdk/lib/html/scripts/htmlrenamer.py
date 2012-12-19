@@ -271,6 +271,8 @@ _removed_html_members = set([
     "HTMLFrameSetElement.*",
     "HtmlElement.version",
     "HtmlElement.manifest",
+    'SelectElement.options',
+    'SelectElement.selectedOptions',
     "Cursor.PREV",
     "Cursor.PREV_NO_DUPLICATE",
     "Cursor.NEXT",

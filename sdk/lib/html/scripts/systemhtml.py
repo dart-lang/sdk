@@ -44,8 +44,6 @@ _js_custom_members = set([
     'Element.remove',
     'ElementEvents.mouseWheel',
     'HTMLCanvasElement.getContext',
-    'HTMLSelectElement.options',
-    'HTMLSelectElement.selectedOptions',
     'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
     'KeyboardEvent.initKeyboardEvent',

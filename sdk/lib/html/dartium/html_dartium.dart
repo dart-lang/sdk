@@ -19993,8 +19993,6 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 /// @domName HTMLSelectElement
 class SelectElement extends _Element_Merged {
@@ -20052,10 +20050,6 @@ class SelectElement extends _Element_Merged {
   void set name(String value) native "HTMLSelectElement_name_Setter";
 
 
-  /** @domName HTMLSelectElement.options */
-  HtmlOptionsCollection get options native "HTMLSelectElement_options_Getter";
-
-
   /** @domName HTMLSelectElement.required */
   bool get required native "HTMLSelectElement_required_Getter";
 
@@ -20070,10 +20064,6 @@ class SelectElement extends _Element_Merged {
 
   /** @domName HTMLSelectElement.selectedIndex */
   void set selectedIndex(int value) native "HTMLSelectElement_selectedIndex_Setter";
-
-
-  /** @domName HTMLSelectElement.selectedOptions */
-  HtmlCollection get selectedOptions native "HTMLSelectElement_selectedOptions_Getter";
 
 
   /** @domName HTMLSelectElement.size */
@@ -20123,6 +20113,21 @@ class SelectElement extends _Element_Merged {
   /** @domName HTMLSelectElement.setCustomValidity */
   void setCustomValidity(String error) native "HTMLSelectElement_setCustomValidity_Callback";
 
+
+  // Override default options, since IE returns SelectElement itself and it
+  // does not operate as a List.
+  List<OptionElement> get options {
+    return this.elements.filter((e) => e is OptionElement);
+  }
+
+  List<OptionElement> get selectedOptions {
+    // IE does not change the selected flag for single-selection items.
+    if (this.multiple) {
+      return this.options.filter((o) => o.selected);
+    } else {
+      return [this.options[this.selectedIndex]];
+    }
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
