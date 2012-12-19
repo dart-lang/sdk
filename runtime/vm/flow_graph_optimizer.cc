@@ -984,7 +984,8 @@ void FlowGraphOptimizer::InlineArrayLengthGetter(InstanceCallInstr* call,
 }
 
 
-void FlowGraphOptimizer::InlineGArrayCapacityGetter(InstanceCallInstr* call) {
+void FlowGraphOptimizer::InlineGrowableArrayCapacityGetter(
+    InstanceCallInstr* call) {
   // Check receiver class.
   AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
@@ -1050,6 +1051,22 @@ void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
 }
 
 
+static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
+  switch (kind) {
+    case MethodRecognizer::kObjectArrayLength:
+    case MethodRecognizer::kImmutableArrayLength:
+      return Array::length_offset();
+    case MethodRecognizer::kByteArrayBaseLength:
+      return ByteArray::length_offset();
+    case MethodRecognizer::kGrowableArrayLength:
+      return GrowableObjectArray::length_offset();
+    default:
+      UNREACHABLE();
+      return 0;
+  }
+}
+
+
 // Only unique implicit instance getters can be currently handled.
 bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -1073,56 +1090,43 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       MethodRecognizer::RecognizeKind(target);
 
   // VM objects length getter.
-  if ((recognized_kind == MethodRecognizer::kObjectArrayLength) ||
-      (recognized_kind == MethodRecognizer::kImmutableArrayLength) ||
-      (recognized_kind == MethodRecognizer::kGrowableArrayLength)) {
-    if (!ic_data.HasOneTarget()) {
-      // TODO(srdjan): Implement for mutiple targets.
-      return false;
+  switch (recognized_kind) {
+    case MethodRecognizer::kObjectArrayLength:
+    case MethodRecognizer::kImmutableArrayLength:
+    case MethodRecognizer::kByteArrayBaseLength:
+    case MethodRecognizer::kGrowableArrayLength: {
+      if (!ic_data.HasOneTarget()) {
+        // TODO(srdjan): Implement for mutiple targets.
+        return false;
+      }
+      const bool is_immutable =
+          (recognized_kind != MethodRecognizer::kGrowableArrayLength);
+      InlineArrayLengthGetter(call,
+                              OffsetForLengthGetter(recognized_kind),
+                              is_immutable,
+                              recognized_kind);
+      return true;
     }
-    switch (recognized_kind) {
-      case MethodRecognizer::kObjectArrayLength:
-      case MethodRecognizer::kImmutableArrayLength:
-        InlineArrayLengthGetter(call,
-                                Array::length_offset(),
-                                true,
-                                recognized_kind);
-        break;
-      case MethodRecognizer::kGrowableArrayLength:
-        InlineArrayLengthGetter(call,
-                                GrowableObjectArray::length_offset(),
-                                false,
-                                recognized_kind);
-        break;
-      default:
-        UNREACHABLE();
-    }
-    return true;
+    case MethodRecognizer::kGrowableArrayCapacity:
+      InlineGrowableArrayCapacityGetter(call);
+      return true;
+    case MethodRecognizer::kStringBaseLength:
+      if (!ic_data.HasOneTarget()) {
+        // Target is not only StringBase_get_length.
+        return false;
+      }
+      InlineStringLengthGetter(call);
+      return true;
+    case MethodRecognizer::kStringBaseIsEmpty:
+      if (!ic_data.HasOneTarget()) {
+        // Target is not only StringBase_get_isEmpty.
+        return false;
+      }
+      InlineStringIsEmptyGetter(call);
+      return true;
+    default:
+      ASSERT(recognized_kind == MethodRecognizer::kUnknown);
   }
-
-  if (recognized_kind == MethodRecognizer::kGrowableArrayCapacity) {
-    InlineGArrayCapacityGetter(call);
-    return true;
-  }
-
-  if (recognized_kind == MethodRecognizer::kStringBaseLength) {
-    if (!ic_data.HasOneTarget()) {
-      // Target is not only StringBase_get_length.
-      return false;
-    }
-    InlineStringLengthGetter(call);
-    return true;
-  }
-
-  if (recognized_kind == MethodRecognizer::kStringBaseIsEmpty) {
-    if (!ic_data.HasOneTarget()) {
-      // Target is not only StringBase_get_isEmpty.
-      return false;
-    }
-    InlineStringIsEmptyGetter(call);
-    return true;
-  }
-
   return false;
 }
 

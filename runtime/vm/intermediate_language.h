@@ -29,13 +29,13 @@ class Range;
 class FlowGraphOptimizer;
 
 
-// TODO(srdjan): Add _ByteArrayBase, get:length.
 // TODO(srdjan): Unify with INTRINSIC_LIST.
 // (class-name, function-name, recognized enum, fingerprint).
 // See intrinsifier for fingerprint computation.
 #define RECOGNIZED_LIST(V)                                                     \
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
+  V(_ByteArrayBase, get:length, ByteArrayBaseLength, 1828280001)               \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity, 725548050)      \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \

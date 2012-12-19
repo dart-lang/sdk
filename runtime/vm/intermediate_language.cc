@@ -229,17 +229,21 @@ static bool CompareNames(const Library& lib,
 }
 
 
+static bool IsRecognizedLibrary(const Library& library) {
+  // List of libraries where methods can be recognized.
+  return (library.raw() == Library::CoreLibrary())
+      || (library.raw() == Library::MathLibrary())
+      || (library.raw() == Library::ScalarlistLibrary());
+}
+
 MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {
-  // Only core and math library methods can be recognized.
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
   const Class& function_class = Class::Handle(function.Owner());
-  if ((function_class.library() != core_lib.raw()) &&
-      (function_class.library() != math_lib.raw())) {
+  const Library& lib = Library::Handle(function_class.library());
+  if (!IsRecognizedLibrary(lib)) {
     return kUnknown;
   }
-  const Library& lib = Library::Handle(function_class.library());
+
   const String& function_name = String::Handle(function.name());
   const String& class_name = String::Handle(function_class.Name());
 
