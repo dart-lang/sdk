@@ -115,6 +115,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(fooClass, fooClass.originalDeclaration);
 
   Expect.isTrue(fooClass.isClass, "Class is not class");
+  Expect.isFalse(fooClass.isAbstract);
   Expect.isFalse(fooClass.isInterface, "Class is interface");
   Expect.isFalse(fooClass.isPrivate, "Class is private");
 
@@ -165,63 +166,64 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(fooClass.variables);
 }
 
-// Testing interface Bar:
+// Testing abstract class Bar:
 //
-// interface Bar<E> {
+// abstract class Bar<E> {
 //
 // }
 void testBar(MirrorSystem system, LibraryMirror helperLibrary,
              Map<String,TypeMirror> classes) {
-  var barInterface = classes["Bar"];
-  Expect.isNotNull(barInterface, "Type 'Bar' not found");
-  Expect.isTrue(barInterface is ClassMirror,
+  var barClass = classes["Bar"];
+  Expect.isNotNull(barClass, "Type 'Bar' not found");
+  Expect.isTrue(barClass is ClassMirror,
                "Unexpected mirror type returned");
-  Expect.stringEquals("Bar", barInterface.simpleName,
+  Expect.stringEquals("Bar", barClass.simpleName,
                       "Unexpected type simple name");
-  Expect.stringEquals("mirrors_helper.Bar", barInterface.qualifiedName,
+  Expect.stringEquals("mirrors_helper.Bar", barClass.qualifiedName,
                       "Unexpected type qualified name");
 
-  Expect.equals(helperLibrary, barInterface.library,
+  Expect.equals(helperLibrary, barClass.library,
                 "Unexpected library returned from type");
 
-  Expect.isFalse(barInterface.isObject, "Interface is Object");
-  Expect.isFalse(barInterface.isDynamic, "Interface is Dynamic");
-  Expect.isFalse(barInterface.isVoid, "Interface is void");
-  Expect.isFalse(barInterface.isTypeVariable, "Interface is a type variable");
-  Expect.isFalse(barInterface.isTypedef, "Interface is a typedef");
-  Expect.isFalse(barInterface.isFunction, "Interface is a function");
+  Expect.isFalse(barClass.isObject, "Interface is Object");
+  Expect.isFalse(barClass.isDynamic, "Interface is Dynamic");
+  Expect.isFalse(barClass.isVoid, "Interface is void");
+  Expect.isFalse(barClass.isTypeVariable, "Interface is a type variable");
+  Expect.isFalse(barClass.isTypedef, "Interface is a typedef");
+  Expect.isFalse(barClass.isFunction, "Interface is a function");
 
-  Expect.isTrue(barInterface.isOriginalDeclaration);
-  Expect.equals(barInterface, barInterface.originalDeclaration);
+  Expect.isTrue(barClass.isOriginalDeclaration);
+  Expect.equals(barClass, barClass.originalDeclaration);
 
-  Expect.isFalse(barInterface.isClass, "Interface is class");
-  Expect.isTrue(barInterface.isInterface, "Interface is not interface");
-  Expect.isFalse(barInterface.isPrivate, "Interface is private");
+  Expect.isTrue(barClass.isClass);
+  Expect.isTrue(barClass.isAbstract);
+  Expect.isFalse(barClass.isInterface);
+  Expect.isFalse(barClass.isPrivate, "Interface is private");
 
-  var objectType = barInterface.superclass;
+  var objectType = barClass.superclass;
   Expect.isNotNull(objectType, "Superclass is null");
   Expect.isTrue(objectType.isObject, "Object is not Object");
   Expect.isFalse(objectType.isOriginalDeclaration);
-  Expect.isTrue(containsType(barInterface,
+  Expect.isTrue(containsType(barClass,
                              computeSubdeclarations(objectType)),
                 "Class is not subclass of superclass");
 
-  var barInterfaces = barInterface.superinterfaces;
+  var barInterfaces = barClass.superinterfaces;
   Expect.isNotNull(barInterfaces, "Interfaces map is null");
   Expect.isTrue(barInterfaces.isEmpty, "Interfaces map is not empty");
 
-  var barSubdeclarations = computeSubdeclarations(barInterface);
+  var barSubdeclarations = computeSubdeclarations(barClass);
   Expect.equals(1, count(barSubdeclarations), "Unexpected subtype count");
   for (var barSubdeclaration in barSubdeclarations) {
-    Expect.isTrue(containsType(barInterface,
+    Expect.isTrue(containsType(barClass,
                                barSubdeclaration.superinterfaces),
                   "Interface is not superinterface of subclass");
   }
 
-  Expect.throws(() => barInterface.typeArguments,
+  Expect.throws(() => barClass.typeArguments,
               (exception) => true,
               "Interface has type arguments");
-  var barInterfaceTypeVariables = barInterface.typeVariables;
+  var barInterfaceTypeVariables = barClass.typeVariables;
   Expect.isNotNull(barInterfaceTypeVariables, "Type variable list is null");
   Expect.isFalse(barInterfaceTypeVariables.isEmpty,
                  "Type variable list is empty");
@@ -232,14 +234,14 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(barE, "Type variable is null");
   Expect.isTrue(barE.isTypeVariable, "Type variable is not type variable");
 
-  Expect.isNull(barInterface.defaultFactory);
+  Expect.isNull(barClass.defaultFactory);
 
-  var barInterfaceMembers = barInterface.members;
+  var barInterfaceMembers = barClass.members;
   Expect.isNotNull(barInterfaceMembers, "Declared members map is null");
   Expect.isTrue(barInterfaceMembers.isEmpty,
                 "Declared members map is unempty");
 
-  var barInterfaceConstructors = barInterface.constructors;
+  var barInterfaceConstructors = barClass.constructors;
   Expect.isNotNull(barInterfaceConstructors, "Constructors map is null");
   Expect.isTrue(barInterfaceConstructors.isEmpty,
                 "Constructors map is unempty");
@@ -284,6 +286,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(bazClass, bazClass.originalDeclaration);
 
   Expect.isTrue(bazClass.isClass, "Class is not class");
+  Expect.isFalse(bazClass.isAbstract);
   Expect.isFalse(bazClass.isInterface, "Class is interface");
   Expect.isFalse(bazClass.isPrivate, "Class is private");
 
@@ -737,6 +740,7 @@ void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(privateClass);
   Expect.isTrue(privateClass is ClassMirror);
   Expect.isTrue(privateClass.isClass);
+  Expect.isFalse(privateClass.isAbstract);
   Expect.isTrue(privateClass.isPrivate);
 
   var privateField = privateClass.members['_privateField'];

@@ -18,7 +18,7 @@ class Foo {
 
 }
 
-interface Bar<E> {
+abstract class Bar<E> {
 
 }
 
