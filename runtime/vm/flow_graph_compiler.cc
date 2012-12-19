@@ -1020,6 +1020,8 @@ bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
   if (!FLAG_use_cha || !is_optimizing()) return false;
   if (!type.IsInstantiated()) return false;
   const Class& type_class = Class::Handle(type.type_class());
+  // Signature classes have different type checking rules.
+  if (type_class.IsSignatureClass()) return false;
   // Could be an interface check?
   if (type_class.is_implemented()) return false;
   const intptr_t type_cid = type_class.id();
