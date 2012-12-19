@@ -12219,8 +12219,8 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   _LocationWrapper _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
-  Location get _location => JS('Location', '#.location', this);
-  void set _location(Location value) {
+  dynamic get _location => JS('Location|=Object', '#.location', this);
+  void set _location(value) {
     JS('void', '#.location = #', this, value);
   }
   // Prevent compiled from thinking 'location' property is available for a Dart
@@ -12313,7 +12313,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
   }
-  
+
   /// @domName Window.console; @docsEditable true
   Console get console => Console.safeConsole;
 
