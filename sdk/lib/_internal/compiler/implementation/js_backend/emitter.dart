@@ -1112,7 +1112,7 @@ $lazyInitializerLogic
     }
   }
 
-  Iterable<Element> getTypedefChecksOn(DartType type) {
+  Collection<Element> getTypedefChecksOn(DartType type) {
     return checkedTypedefs.filter((TypedefElement typedef) {
       FunctionType typedefType =
           typedef.computeType(compiler).unalias(compiler);
@@ -1409,9 +1409,9 @@ $lazyInitializerLogic
         : inInterceptor ? const ['self', 'target', 'receiver']
                         : const ['self', 'target'];
 
-    Iterable<Element> typedefChecks =
+    Collection<Element> typedefChecks =
         getTypedefChecksOn(member.computeType(compiler));
-    bool hasTypedefChecks = typedefChecks.iterator().hasNext;
+    bool hasTypedefChecks = !typedefChecks.isEmpty;
 
     bool canBeShared = !hasOptionalParameters && !hasTypedefChecks;
 
