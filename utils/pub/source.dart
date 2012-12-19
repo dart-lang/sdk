@@ -143,8 +143,10 @@ abstract class Source {
    * This doesn't need to be implemented if [shouldCache] is false, or if
    * [installToSystemCache] is implemented.
    */
-  String systemCacheDirectory(PackageId id) =>
-    join(systemCacheRoot, packageName(id.description));
+  String systemCacheDirectory(PackageId id) {
+    throw 'Source.systemCacheDirectory must be implemented if shouldCache is '
+        'true and installToSystemCache is not implemented.';
+  }
 
   /**
    * When a [Pubspec] or [LockFile] is parsed, it reads in the description for

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of yaml;
+
 // This file contains the node classes for the internal representations of YAML
 // documents. These nodes are used for both the serialization tree and the
 // representation graph.

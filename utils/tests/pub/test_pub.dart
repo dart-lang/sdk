@@ -1424,7 +1424,8 @@ class ScheduledProcess {
   /// Reads the next line of stdout from the process.
   Future<String> nextLine() {
     return _scheduleValue((_) {
-      return timeout(_stdout.chain(readLine), _SCHEDULE_TIMEOUT,
+      return timeout(_stdout.chain((stream) => readLine(stream)),
+          _SCHEDULE_TIMEOUT,
           "waiting for the next stdout line from process $name");
     });
   }
@@ -1432,7 +1433,8 @@ class ScheduledProcess {
   /// Reads the next line of stderr from the process.
   Future<String> nextErrLine() {
     return _scheduleValue((_) {
-      return timeout(_stderr.chain(readLine), _SCHEDULE_TIMEOUT,
+      return timeout(_stderr.chain((stream) => readLine(stream)),
+          _SCHEDULE_TIMEOUT,
           "waiting for the next stderr line from process $name");
     });
   }

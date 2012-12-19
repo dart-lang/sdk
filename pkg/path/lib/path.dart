@@ -294,7 +294,7 @@ class Builder {
         buffer.clear();
         buffer.add(part);
       } else {
-        if (part.length > 0 && style.separatorPattern.hasMatch(part[0])) {
+        if (part.length > 0 && part[0].contains(style.separatorPattern)) {
           // The part starts with a separator, so we don't need to add one.
         } else if (needsSeparator) {
           buffer.add(separator);
@@ -306,7 +306,7 @@ class Builder {
       // Unless this part ends with a separator, we'll need to add one before
       // the next part.
       needsSeparator = part.length > 0 &&
-          !style.separatorPattern.hasMatch(part[part.length - 1]);
+          !part[part.length - 1].contains(style.separatorPattern);
     }
 
     return buffer.toString();
@@ -517,9 +517,10 @@ class Style {
   /// "\" is the canonical one.
   final Pattern separatorPattern;
 
-  /// The [Pattern] that can be used to match the root prefix of an absolute
+  // TODO(nweiz): make this a Pattern when issue 7080 is fixed.
+  /// The [RegExp] that can be used to match the root prefix of an absolute
   /// path in this style.
-  final Pattern _rootPattern;
+  final RegExp _rootPattern;
 
   /// Gets the root prefix of [path] if path is absolute. If [path] is relative,
   /// returns `null`.

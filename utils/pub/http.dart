@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Helpers for dealing with HTTP.
-library http;
+library pub.http;
 
 import 'dart:io';
 import 'dart:json';

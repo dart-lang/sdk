@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of yaml;
+
 /**
  * Translates a string of characters into a YAML serialization tree.
  *
@@ -1805,10 +1807,10 @@ class _Parser {
   _Node s_l_blockScalar(int indent, int ctx) => transaction(() {
     if (!truth(s_separate(indent + 1, ctx))) return null;
     var props = transaction(() {
-      var props = c_ns_properties(indent + 1, ctx);
-      if (!truth(props)) return null;
+      var innerProps = c_ns_properties(indent + 1, ctx);
+      if (!truth(innerProps)) return null;
       if (!truth(s_separate(indent + 1, ctx))) return null;
-      return props;
+      return innerProps;
     });
 
     var node = or([() => c_l_literal(indent), () => c_l_folded(indent)]);
