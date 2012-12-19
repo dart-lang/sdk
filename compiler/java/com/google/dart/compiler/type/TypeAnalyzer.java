@@ -125,6 +125,7 @@ import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.util.apache.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -3229,7 +3230,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
 
         // All remaining methods are unimplemented.
-        for (String name : superMembers.keys()) {
+        List<String> keys = new ArrayList<String>(superMembers.keys());
+        for (int i = 0; i < keys.size(); i++) {
+          String name = keys.get(i);
           Collection<Element> elements = superMembers.removeAll(name);
           for (Element element : elements) {
             if (!element.getModifiers().isStatic()) {
