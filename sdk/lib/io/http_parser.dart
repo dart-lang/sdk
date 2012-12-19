@@ -98,7 +98,7 @@ class _MessageType {
 
 /**
  * HTTP parser which parses the HTTP stream as data is supplied
- * through the [:writeList:] and [:connectionClosed:] methods. As the
+ * through the [:streamData:] and [:streamDone:] methods. As the
  * data is parsed the following callbacks are called:
  *
  *   [:requestStart:]
@@ -109,7 +109,7 @@ class _MessageType {
  *   [:error:]
  *
  * If an HTTP parser error occours it is possible to get an exception
- * thrown from the [:writeList:] and [:connectionClosed:] methods if
+ * thrown from the [:streamData:] and [:streamDone:] methods if
  * the error callback is not set.
  *
  * The connection upgrades (e.g. switching from HTTP/1.1 to the

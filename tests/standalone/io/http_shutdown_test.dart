@@ -34,7 +34,7 @@ void test1(int totalConnections) {
 }
 
 
-void test2(int totalConnections) {
+void test2(int totalConnections, int outputStreamWrites) {
   // Server which responds without waiting for request body.
   HttpServer server = new HttpServer();
   server.listen("127.0.0.1", 0, backlog: totalConnections);
@@ -49,7 +49,8 @@ void test2(int totalConnections) {
     HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
     conn.onRequest = (HttpClientRequest request) {
       request.contentLength = -1;
-      request.outputStream.writeString("Hello, world!");
+      for (int i = 0; i < outputStreamWrites; i++)
+        request.outputStream.writeString("Hello, world!");
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse response) {
@@ -61,6 +62,13 @@ void test2(int totalConnections) {
           server.close();
         }
       };
+    };
+    conn.onError = (e) {
+      count++;
+      if (count == totalConnections) {
+        client.shutdown();
+        server.close();
+      }
     };
   }
 }
@@ -168,8 +176,9 @@ void test5(int totalConnections) {
 void main() {
   test1(1);
   test1(10);
-  test2(1);
-  test2(10);
+  test2(1, 10);
+  test2(10, 10);
+  test2(10, 1000);
   test3(1);
   test3(10);
   test4();

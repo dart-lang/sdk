@@ -34,7 +34,7 @@ class _CloseQueue {
     connection._state |= _HttpConnectionBase.CLOSING;
     _q.add(connection);
 
-    // If output stream is not closed for writing close it now and
+    // If the output stream is not closed for writing, close it now and
     // wait for callback when closed.
     if (!connection._isWriteClosed) {
       connection._socket.outputStream.close();
@@ -46,14 +46,15 @@ class _CloseQueue {
       connection._socket.outputStream.onClosed = () { assert(false); };
     }
 
-    // If socket is not closed for reading wait for callback.
+    // If the request is not already fully read wait for the socket to close.
+    // As the _isReadClosed state from the HTTP request processing indicate
+    // that the response has been parsed this does not necesarily mean tha
+    // the socket is closed.
     if (!connection._isReadClosed) {
       connection._socket.onClosed = () {
         connection._state |= _HttpConnectionBase.READ_CLOSED;
         closeIfDone();
       };
-    } else {
-      connection._socket.onClosed = () { assert(false); };
     }
 
     // Ignore any data on a socket in the close queue.
@@ -940,6 +941,7 @@ class _HttpConnection extends _HttpConnectionBase {
       _request = null;
       _response = null;
       if (close) {
+        _httpParser.cancel();
         _server._closeQueue.add(this);
       } else {
         _state = _HttpConnectionBase.IDLE;
@@ -951,7 +953,7 @@ class _HttpConnection extends _HttpConnectionBase {
       // not care to read the request body) this is send.
       assert(!_isRequestDone);
       _writeBufferedResponse();
-      _close();
+      _httpParser.cancel();
       _server._closeQueue.add(this);
     }
   }

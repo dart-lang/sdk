@@ -66,8 +66,10 @@ class _SocketBase extends NativeFieldWrapperClass1 {
 
         var eventHandler = _handlerMap[i];
         if (eventHandler != null || i == _ERROR_EVENT) {
-          // Unregister the out handler before executing it.
-          if (i == _OUT_EVENT) _setHandler(i, null);
+          // Unregister the out handler before executing it. There is
+          // no need to notify the eventhandler as handlers are
+          // disabled while the event is handled.
+          if (i == _OUT_EVENT) _setHandler(i, null, notifyEventhandler: false);
 
           // Don't call the in handler if there is no data available
           // after all.
@@ -87,7 +89,9 @@ class _SocketBase extends NativeFieldWrapperClass1 {
     _activateHandlers();
   }
 
-  void _setHandler(int event, Function callback) {
+  void _setHandler(int event,
+                   Function callback,
+                   {bool notifyEventhandler: true}) {
     if (callback == null) {
       _handlerMask &= ~(1 << event);
     } else {
@@ -103,7 +107,7 @@ class _SocketBase extends NativeFieldWrapperClass1 {
       _handler.close();
       _handler = null;
     } else {
-      _activateHandlers();
+      if (notifyEventhandler) _activateHandlers();
     }
   }
 
