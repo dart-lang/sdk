@@ -3798,14 +3798,38 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
 }
 
 
+static bool CompareIntegers(Token::Kind kind,
+                            const Integer& left,
+                            const Integer& right) {
+  const int result = left.CompareWith(right);
+  switch (kind) {
+    case Token::kEQ: return (result == 0);
+    case Token::kNE: return (result != 0);
+    case Token::kLT: return (result < 0);
+    case Token::kGT: return (result > 0);
+    case Token::kLTE: return (result <= 0);
+    case Token::kGTE: return (result >= 0);
+    default:
+      UNREACHABLE();
+      return false;
+  }
+}
+
+
 void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
-    // TODO(kmillikin): Handle equality comparison of constants.
-    SetValue(instr, non_constant_);
+    if (left.IsInteger() && right.IsInteger()) {
+      const bool result = CompareIntegers(instr->kind(),
+                                          Integer::Cast(left),
+                                          Integer::Cast(right));
+      SetValue(instr, Bool::ZoneHandle(Bool::Get(result)));
+    } else {
+      SetValue(instr, non_constant_);
+    }
   }
 }
 
@@ -3816,8 +3840,14 @@ void ConstantPropagator::VisitRelationalOp(RelationalOpInstr* instr) {
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
-    // TODO(kmillikin): Handle relational comparison of constants.
-    SetValue(instr, non_constant_);
+    if (left.IsInteger() && right.IsInteger()) {
+      const bool result = CompareIntegers(instr->kind(),
+                                          Integer::Cast(left),
+                                          Integer::Cast(right));
+      SetValue(instr, Bool::ZoneHandle(Bool::Get(result)));
+    } else {
+      SetValue(instr, non_constant_);
+    }
   }
 }
 
@@ -3908,7 +3938,15 @@ void ConstantPropagator::VisitAllocateObjectWithBoundsCheck(
 
 
 void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
-  SetValue(instr, non_constant_);
+  if ((instr->recognized_kind() == MethodRecognizer::kObjectArrayLength) &&
+      (instr->value()->definition()->IsCreateArray())) {
+    const intptr_t length =
+        instr->value()->definition()->AsCreateArray()->ArgumentCount();
+    const Object& result = Smi::ZoneHandle(Smi::New(length));
+    SetValue(instr, result);
+  } else {
+    SetValue(instr, non_constant_);
+  }
 }
 
 
@@ -4249,7 +4287,6 @@ void ConstantPropagator::Transform() {
 
       if (!reachable_->Contains(if_true->preorder_number())) {
         ASSERT(reachable_->Contains(if_false->preorder_number()));
-        ASSERT(branch->comparison()->IsStrictCompare());
         ASSERT(if_false->parallel_move() == NULL);
         ASSERT(if_false->loop_info() == NULL);
         join = new JoinEntryInstr(if_false->block_id(),
@@ -4257,7 +4294,6 @@ void ConstantPropagator::Transform() {
                                   if_false->loop_depth());
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
-        ASSERT(branch->comparison()->IsStrictCompare());
         ASSERT(if_true->parallel_move() == NULL);
         ASSERT(if_true->loop_info() == NULL);
         join = new JoinEntryInstr(if_true->block_id(),

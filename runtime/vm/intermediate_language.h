@@ -3033,7 +3033,7 @@ class CreateArrayInstr : public TemplateDefinition<1> {
 
   virtual bool HasSideEffect() const { return true; }
 
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
+  virtual intptr_t ResultCid() const { return kArrayCid; }
 
  private:
   const intptr_t token_pos_;
