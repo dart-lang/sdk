@@ -1091,6 +1091,51 @@ DEFINE_RUNTIME_ENTRY(UpdateICDataTwoArgs, 4) {
 }
 
 
+// Invoke appropriate noSuchMethod function.
+// Arg0: receiver.
+// Arg1: ic-data.
+// Arg2: arguments descriptor array.
+// Arg3: arguments array.
+DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
+  ASSERT(arguments.ArgCount() ==
+         kInvokeNoSuchMethodFunctionRuntimeEntry.argument_count());
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
+  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
+
+  const String& original_function_name = String::Handle(ic_data.target_name());
+  const Object& result = Object::Handle(
+      DartEntry::InvokeNoSuchMethod(receiver,
+                                    original_function_name,
+                                    orig_arguments,
+                                    orig_arguments_desc));
+  CheckResultError(result);
+  arguments.SetReturn(result);
+}
+
+
+// A non-closure object was invoked as a closure, so call the "call" method
+// on it.
+// Arg0: non-closure object.
+// Arg1: arguments descriptor.
+// Arg2: arguments array, including non-closure object.
+DEFINE_RUNTIME_ENTRY(InvokeNonClosure, 3) {
+  ASSERT(arguments.ArgCount() ==
+         kInvokeNonClosureRuntimeEntry.argument_count());
+  const Instance& instance = Instance::CheckedHandle(arguments.ArgAt(0));
+  const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(1));
+  const Array& function_args = Array::CheckedHandle(arguments.ArgAt(2));
+
+  const Object& result = Object::Handle(
+      DartEntry::InvokeClosure(instance,
+                               function_args,
+                               args_descriptor));
+  CheckResultError(result);
+  arguments.SetReturn(result);
+}
+
+
 // An instance call could not be resolved by an IC miss handler.  Check if
 // it was a getter call and if there is an instance function with the same
 // name.  If so, create and return an implicit closure from the function.
@@ -1124,89 +1169,6 @@ static RawInstance* ResolveImplicitClosure(const Instance& receiver,
 }
 
 
-static RawObject* InvokeNoSuchMethod(const Instance& receiver,
-                                     const String& target_name,
-                                     const Array& arguments_descriptor,
-                                     const Array& arguments) {
-  // Allocate an InvocationMirror object.
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const String& invocation_mirror_name =
-      String::Handle(Symbols::InvocationMirror());
-  Class& invocation_mirror_class =
-      Class::Handle(core_lib.LookupClassAllowPrivate(invocation_mirror_name));
-  ASSERT(!invocation_mirror_class.IsNull());
-  const String& allocation_function_name =
-      String::Handle(Symbols::AllocateInvocationMirror());
-  const Function& allocation_function = Function::Handle(
-      Resolver::ResolveStaticByName(invocation_mirror_class,
-                                    allocation_function_name,
-                                    Resolver::kIsQualified));
-  ASSERT(!allocation_function.IsNull());
-  const int kNumAllocationArgs = 3;
-  const Array& allocation_args = Array::Handle(Array::New(kNumAllocationArgs));
-  allocation_args.SetAt(0, target_name);
-  allocation_args.SetAt(1, arguments_descriptor);
-  allocation_args.SetAt(2, arguments);
-  const Object& invocation_mirror =
-      Object::Handle(DartEntry::InvokeStatic(allocation_function,
-                                             allocation_args));
-
-  // Now use the invocation mirror object and invoke NoSuchMethod.
-  const String& function_name = String::Handle(Symbols::NoSuchMethod());
-  const int kNumArguments = 2;
-  const int kNumNamedArguments = 0;
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamic(receiver,
-                               function_name,
-                               kNumArguments,
-                               kNumNamedArguments));
-  ASSERT(!function.IsNull());
-  const Array& args = Array::Handle(Array::New(kNumArguments));
-  args.SetAt(0, receiver);
-  args.SetAt(1, invocation_mirror);
-  const Object& result = Object::Handle(DartEntry::InvokeDynamic(function,
-                                                                 args));
-  CheckResultError(result);
-  return result.raw();
-}
-
-
-static RawObject* InvokeNonClosure(const Instance& receiver,
-                                   const Class& receiver_class,
-                                   const Array& arguments_descriptor,
-                                   const Array& arguments) {
-  // Resolve and invoke the "call" method if it exists.
-  const String& call_symbol = String::Handle(Symbols::Call());
-
-  Class& current_class = Class::Handle(receiver_class.raw());
-  Function& call_function = Function::Handle();
-  do {
-    call_function = current_class.LookupDynamicFunction(call_symbol);
-
-    if (!call_function.IsNull()) {
-      // The non-closure object is passed as implicit first argument
-      // (receiver).  It is already included in the arguments array.
-
-      // Now call the invoke stub which will invoke the call method.
-      const Object& result =
-          Object::Handle(DartEntry::InvokeDynamic(call_function,
-                                                  arguments,
-                                                  arguments_descriptor));
-      CheckResultError(result);
-      return result.raw();
-    }
-
-    current_class = current_class.SuperClass();
-  } while (!current_class.IsNull());
-
-  // There is no 'call' method, so invoke noSuchMethod.
-  return InvokeNoSuchMethod(receiver,
-                            call_symbol,
-                            arguments_descriptor,
-                            arguments);
-}
-
-
 // An instance call of the form o.f(...) could not be resolved.  Check if
 // there is a getter with the same name.  If so, invoke it.  If the value is
 // a closure, invoke it with the given arguments.  If the value is a
@@ -1237,78 +1199,17 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   if (value.IsUnhandledException()) return false;
 
   // 4. If there was some other error, propagate it.
-  if (value.IsError()) {
-    Exceptions::PropagateError(Error::Cast(value));
-  }
+  CheckResultError(value);
 
-  // 5. If the value is a closure, invoke it and return the result.  If it
-  // is a non-closure, invoke "call" on it and return the result.
+  // 5. Invoke the value as a closure.
   Instance& instance = Instance::Handle();
   instance ^= value.raw();
-  const Class& instance_class = Class::Handle(instance.clazz());
-  ASSERT(!instance_class.IsNull());
-  // An object is a closure iff. its class has a non-null signature function.
-  if (instance_class.signature_function() != Function::null()) {
-    // The closure object is passed as implicit first argument to closure
-    // functions, since it may be needed to throw a NoSuchMethodError, in case
-    // the wrong number of arguments is passed.
-    // Replace the original receiver in the arguments array by the closure.
-    arguments.SetAt(0, instance);
-    *result = DartEntry::InvokeClosure(instance,
-                                       arguments,
-                                       arguments_descriptor);
-    CheckResultError(*result);
-  } else {
-    *result = InvokeNonClosure(instance,
-                               instance_class,
-                               arguments_descriptor,
-                               arguments);
-  }
+  arguments.SetAt(0, instance);
+  *result = DartEntry::InvokeClosure(instance,
+                                     arguments,
+                                     arguments_descriptor);
+  CheckResultError(*result);
   return true;
-}
-
-
-// Invoke appropriate noSuchMethod function.
-// Arg0: receiver.
-// Arg1: ic-data.
-// Arg2: arguments descriptor array.
-// Arg3: arguments array.
-DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
-  ASSERT(arguments.ArgCount() ==
-         kInvokeNoSuchMethodFunctionRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
-  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
-  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
-
-  const String& original_function_name = String::Handle(ic_data.target_name());
-  const Object& result =
-      Object::Handle(InvokeNoSuchMethod(receiver,
-                                        original_function_name,
-                                        orig_arguments_desc,
-                                        orig_arguments));
-  arguments.SetReturn(result);
-}
-
-
-// A non-closure object was invoked as a closure, so call the "call" method
-// on it.
-// Arg0: non-closure object.
-// Arg1: arguments descriptor.
-// Arg2: arguments array, including non-closure object.
-DEFINE_RUNTIME_ENTRY(InvokeNonClosure, 3) {
-  ASSERT(arguments.ArgCount() ==
-         kInvokeNonClosureRuntimeEntry.argument_count());
-  const Instance& instance = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(1));
-  const Array& function_args = Array::CheckedHandle(arguments.ArgAt(2));
-
-  const Class& instance_class = Class::Handle(instance.clazz());
-  const Object& result = Object::Handle(InvokeNonClosure(instance,
-                                                         instance_class,
-                                                         args_descriptor,
-                                                         function_args));
-  arguments.SetReturn(result);
 }
 
 
@@ -1354,8 +1255,12 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
                                 args_descriptor,
                                 args,
                                 &result)) {
-    result = InvokeNoSuchMethod(receiver, target_name, args_descriptor, args);
+    result = DartEntry::InvokeNoSuchMethod(receiver,
+                                           target_name,
+                                           args,
+                                           args_descriptor);
   }
+  CheckResultError(result);
   arguments.SetReturn(result);
 }
 

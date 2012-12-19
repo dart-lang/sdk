@@ -128,6 +128,13 @@ class DartEntry : public AllStatic {
   static RawObject* InvokeClosure(const Instance& closure,
                                   const Array& arguments,
                                   const Array& arguments_descriptor);
+
+  // Invoke the noSuchMethod instance function on the receiver.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeNoSuchMethod(const Instance& receiver,
+                                       const String& target_name,
+                                       const Array& arguments,
+                                       const Array& arguments_descriptor);
 };
 
 

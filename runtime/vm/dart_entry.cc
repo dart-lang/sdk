@@ -23,7 +23,7 @@ RawObject* DartEntry::InvokeDynamic(const Function& function,
 
 RawObject* DartEntry::InvokeDynamic(const Function& function,
                                     const Array& arguments,
-                                    const Array& arg_descriptor) {
+                                    const Array& arguments_descriptor) {
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.
@@ -42,21 +42,24 @@ RawObject* DartEntry::InvokeDynamic(const Function& function,
   ASSERT(context.isolate() == Isolate::Current());
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
-  return entrypoint(code.EntryPoint(), arg_descriptor, arguments, context);
+  return entrypoint(code.EntryPoint(),
+                    arguments_descriptor,
+                    arguments,
+                    context);
 }
 
 
 RawObject* DartEntry::InvokeStatic(const Function& function,
                                    const Array& arguments) {
-  const Array& arg_desc =
+  const Array& arguments_descriptor =
       Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
-  return InvokeStatic(function, arguments, arg_desc);
+  return InvokeStatic(function, arguments, arguments_descriptor);
 }
 
 
 RawObject* DartEntry::InvokeStatic(const Function& function,
                                    const Array& arguments,
-                                   const Array& arg_descriptor) {
+                                   const Array& arguments_descriptor) {
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.
@@ -75,56 +78,106 @@ RawObject* DartEntry::InvokeStatic(const Function& function,
   ASSERT(context.isolate() == Isolate::Current());
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
-  return entrypoint(code.EntryPoint(), arg_descriptor, arguments, context);
+  return entrypoint(code.EntryPoint(),
+                    arguments_descriptor,
+                    arguments,
+                    context);
 }
 
 
 RawObject* DartEntry::InvokeClosure(const Instance& closure,
                                     const Array& arguments) {
-  const Array& arg_desc =
+  const Array& arguments_descriptor =
       Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
-  return InvokeClosure(closure, arguments, arg_desc);
+  return InvokeClosure(closure, arguments, arguments_descriptor);
 }
 
 
 RawObject* DartEntry::InvokeClosure(const Instance& instance,
                                     const Array& arguments,
-                                    const Array& arg_descriptor) {
+                                    const Array& arguments_descriptor) {
   ASSERT(instance.raw() == arguments.At(0));
   // Get the entrypoint corresponding to the closure function or to the call
   // method of the instance. This will result in a compilation of the function
   // if it is not already compiled.
   Function& function = Function::Handle();
   Context& context = Context::Handle();
-  if (!instance.IsCallable(&function, &context)) {
-    // Set up arguments to include the receiver as the first argument.
-    const String& call_symbol = String::Handle(Symbols::Call());
-    const Object& null_object = Object::Handle();
-    const Array& dart_arguments = Array::Handle(Array::New(4));
-    dart_arguments.SetAt(0, instance);
-    dart_arguments.SetAt(1, call_symbol);
-    dart_arguments.SetAt(2, arguments);  // Includes instance.
-    dart_arguments.SetAt(3, null_object);  // TODO(regis): Provide names.
-    // If a function "call" with different arguments exists, it will have been
-    // invoked above, so no need to handle this case here.
-    Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
-    UNREACHABLE();
-    return Object::null();
-  }
-  ASSERT(!function.IsNull());
-  if (!function.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(function));
-    if (!error.IsNull()) {
-      return error.raw();
+  if (instance.IsCallable(&function, &context)) {
+    // Only invoke the function if its arguments are compatible.
+    const ArgumentsDescriptor args_desc(arguments_descriptor);
+    if (function.AreValidArgumentCounts(args_desc.Count(),
+                                        args_desc.NamedCount(),
+                                        NULL)) {
+      if (!function.HasCode()) {
+        const Error& error = Error::Handle(Compiler::CompileFunction(function));
+        if (!error.IsNull()) {
+          return error.raw();
+        }
+      }
+      // Now call the invoke stub which will invoke the closure function or
+      // 'call' function.
+      // The closure or non-closure object (receiver) is passed as implicit
+      // first argument. It is already included in the arguments array.
+      invokestub entrypoint = reinterpret_cast<invokestub>(
+          StubCode::InvokeDartCodeEntryPoint());
+      ASSERT(context.isolate() == Isolate::Current());
+      const Code& code = Code::Handle(function.CurrentCode());
+      ASSERT(!code.IsNull());
+      return entrypoint(code.EntryPoint(),
+                        arguments_descriptor,
+                        arguments,
+                        context);
     }
   }
-  // Now call the invoke stub which will invoke the closure.
-  invokestub entrypoint = reinterpret_cast<invokestub>(
-      StubCode::InvokeDartCodeEntryPoint());
-  ASSERT(context.isolate() == Isolate::Current());
-  const Code& code = Code::Handle(function.CurrentCode());
-  ASSERT(!code.IsNull());
-  return entrypoint(code.EntryPoint(), arg_descriptor, arguments, context);
+  // There is no compatible 'call' method, so invoke noSuchMethod.
+  return InvokeNoSuchMethod(instance,
+                            String::Handle(Symbols::Call()),
+                            arguments,
+                            arguments_descriptor);
+}
+
+
+RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
+                                         const String& target_name,
+                                         const Array& arguments,
+                                         const Array& arguments_descriptor) {
+  ASSERT(receiver.raw() == arguments.At(0));
+  // Allocate an InvocationMirror object.
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const String& invocation_mirror_name =
+      String::Handle(Symbols::InvocationMirror());
+  Class& invocation_mirror_class =
+      Class::Handle(core_lib.LookupClassAllowPrivate(invocation_mirror_name));
+  ASSERT(!invocation_mirror_class.IsNull());
+  const String& allocation_function_name =
+      String::Handle(Symbols::AllocateInvocationMirror());
+  const Function& allocation_function = Function::Handle(
+      Resolver::ResolveStaticByName(invocation_mirror_class,
+                                    allocation_function_name,
+                                    Resolver::kIsQualified));
+  ASSERT(!allocation_function.IsNull());
+  const int kNumAllocationArgs = 3;
+  const Array& allocation_args = Array::Handle(Array::New(kNumAllocationArgs));
+  allocation_args.SetAt(0, target_name);
+  allocation_args.SetAt(1, arguments_descriptor);
+  allocation_args.SetAt(2, arguments);
+  const Object& invocation_mirror = Object::Handle(
+      InvokeStatic(allocation_function, allocation_args));
+
+  // Now use the invocation mirror object and invoke NoSuchMethod.
+  const String& function_name = String::Handle(Symbols::NoSuchMethod());
+  const int kNumArguments = 2;
+  const int kNumNamedArguments = 0;
+  const Function& function = Function::Handle(
+      Resolver::ResolveDynamic(receiver,
+                               function_name,
+                               kNumArguments,
+                               kNumNamedArguments));
+  ASSERT(!function.IsNull());
+  const Array& args = Array::Handle(Array::New(kNumArguments));
+  args.SetAt(0, receiver);
+  args.SetAt(1, invocation_mirror);
+  return InvokeDynamic(function, args);
 }
 
 

@@ -14,55 +14,6 @@
 
 namespace dart {
 
-// TODO(regis): Factorize this static helper copied from code_generator.cc.
-static RawObject* InvokeNoSuchMethod(const Instance& receiver,
-                                     const String& target_name,
-                                     const Array& arguments_descriptor,
-                                     const Array& arguments) {
-  // Allocate an InvocationMirror object.
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const String& invocation_mirror_name =
-      String::Handle(Symbols::InvocationMirror());
-  Class& invocation_mirror_class =
-      Class::Handle(core_lib.LookupClassAllowPrivate(invocation_mirror_name));
-  ASSERT(!invocation_mirror_class.IsNull());
-  const String& allocation_function_name =
-      String::Handle(Symbols::AllocateInvocationMirror());
-  const Function& allocation_function = Function::Handle(
-      Resolver::ResolveStaticByName(invocation_mirror_class,
-                                    allocation_function_name,
-                                    Resolver::kIsQualified));
-  ASSERT(!allocation_function.IsNull());
-  const int kNumAllocationArgs = 3;
-  const Array& allocation_args = Array::Handle(Array::New(kNumAllocationArgs));
-  allocation_args.SetAt(0, target_name);
-  allocation_args.SetAt(1, arguments_descriptor);
-  allocation_args.SetAt(2, arguments);
-  const Object& invocation_mirror =
-      Object::Handle(DartEntry::InvokeStatic(allocation_function,
-                                             allocation_args));
-
-  const String& function_name = String::Handle(Symbols::NoSuchMethod());
-  const int kNumInvokeArgs = 2;
-  const int kNumNamedInvokeArgs = 0;
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamic(receiver,
-                               function_name,
-                               kNumInvokeArgs,
-                               kNumNamedInvokeArgs));
-  ASSERT(!function.IsNull());
-  const Array& invoke_arguments = Array::Handle(Array::New(kNumInvokeArgs));
-  invoke_arguments.SetAt(0, receiver);
-  invoke_arguments.SetAt(1, invocation_mirror);
-  const Object& result =
-      Object::Handle(DartEntry::InvokeDynamic(function, invoke_arguments));
-  if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-  }
-  return result.raw();
-}
-
-
 DEFINE_NATIVE_ENTRY(InvocationMirror_invoke, 4) {
   const Instance& receiver = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const String& fun_name = String::CheckedHandle(arguments->NativeArgAt(1));
@@ -86,17 +37,17 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_invoke, 4) {
                                fun_name,
                                args_desc.Count(),
                                args_desc.NamedCount()));
+  Object& result = Object::Handle();
   if (function.IsNull()) {
-    return InvokeNoSuchMethod(receiver,
-                              fun_name,
-                              fun_args_desc,
-                              invoke_arguments);
+    result = DartEntry::InvokeNoSuchMethod(receiver,
+                                           fun_name,
+                                           invoke_arguments,
+                                           fun_args_desc);
+  } else {
+    result = DartEntry::InvokeDynamic(function,
+                                      invoke_arguments,
+                                      fun_args_desc);
   }
-  ASSERT(!function.IsNull());
-  const Object& result =
-      Object::Handle(DartEntry::InvokeDynamic(function,
-                                              invoke_arguments,
-                                              fun_args_desc));
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
   }
