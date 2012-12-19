@@ -11,4 +11,4 @@
 *: Skip
 
 [ $system == windows ]
-pub/io_test: Fail, Pass # Issue 7505
+io_test: Fail, Pass # Issue 7505
