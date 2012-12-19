@@ -21,9 +21,9 @@ void main() {
       expect(response.statusCode, equals(200));
       return consumeInputStream(response.stream);
     }).transform((bytes) => new String.fromCharCodes(bytes));
-    future.onComplete((_) {
+    future.onComplete(expectAsync1((_) {
       stopServer();
-    });
+    }));
 
     expect(future, completion(parse(equals({
       'method': 'POST',
@@ -196,11 +196,11 @@ void main() {
       print("#followRedirects test response received");
       expect(response.statusCode, equals(302));
     });
-    future.onComplete((_) {
+    future.onComplete(expectAsync1((_) {
       print("#followRedirects test stopping server...");
       stopServer();
       print("#followRedirects test server stopped");
-    });
+    }));
 
     expect(future, completes);
     print("#followRedirects test started");
@@ -220,11 +220,11 @@ void main() {
       expect(e, isRedirectLimitExceededException);
       expect(e.redirects.length, equals(2));
     });
-    future.onComplete((_) {
+    future.onComplete(expectAsync1((_) {
       print("#maxRedirects test stopping server...");
       stopServer();
       print("#maxRedirects test server stopped");
-    });
+    }));
 
     expect(future, completes);
     print("#maxRedirects test started");
