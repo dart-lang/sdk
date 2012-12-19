@@ -173,7 +173,7 @@ main() {
     print('No arguments provided.');
     print(USAGE);
     print(argParser.getUsage());
-    return;
+    exit(1);
   }
 
   final entrypoints = <Path>[];
@@ -199,13 +199,13 @@ main() {
     print(e.message);
     print(USAGE);
     print(argParser.getUsage());
-    return;
+    exit(1);
   }
 
   if (entrypoints.isEmpty) {
     print('No entrypoints provided.');
     print(argParser.getUsage());
-    return;
+    exit(1);
   }
   
   if (pkgPath == null) {
