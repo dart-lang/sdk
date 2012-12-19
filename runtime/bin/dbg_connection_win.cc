@@ -4,7 +4,38 @@
 
 #include "bin/dbg_connection.h"
 
-void DebuggerConnectionImpl::StartHandler(int port_number) {
-  FATAL("Debugger wire protocol not yet implemented on Linux\n");
+#include "bin/eventhandler.h"
+
+void DebuggerConnectionImpl::ThreadEntry(uword args) {
+  ListenSocket* listen_socket =
+      reinterpret_cast<ListenSocket*>(DebuggerConnectionHandler::listener_fd_);
+  SOCKET client_socket = accept(listen_socket->socket(), NULL, NULL);
+  if (client_socket == INVALID_SOCKET) {
+    FATAL("Accepting new debugger connection failed.\n");
+  }
+  ClientSocket* socket = new ClientSocket(client_socket);
+  DebuggerConnectionHandler::AcceptDbgConnection(reinterpret_cast<int>(socket));
 }
 
+
+void DebuggerConnectionImpl::StartHandler(int port_number) {
+  ASSERT(DebuggerConnectionHandler::listener_fd_ != -1);
+  int result = dart::Thread::Start(&DebuggerConnectionImpl::ThreadEntry, 0);
+  if (result != 0) {
+    FATAL1("Failed to start debugger connection handler thread: %d\n", result);
+  }
+}
+
+
+intptr_t DebuggerConnectionImpl::Send(intptr_t socket,
+                                      const char* buf,
+                                      int len) {
+  ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(socket);
+  return send(client_socket->socket(), buf, len, 0);
+}
+
+
+intptr_t DebuggerConnectionImpl::Receive(intptr_t socket, char* buf, int len) {
+  ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(socket);
+  return recv(client_socket->socket(), buf, len, 0);
+}

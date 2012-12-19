@@ -108,7 +108,8 @@ void MessageBuffer::ReadData() {
   }
   // TODO(hausner): Handle error conditions returned by Read. We may
   // want to close the debugger connection if we get any errors.
-  int bytes_read = Socket::Read(fd_, buf_ + data_length_, max_read);
+  int bytes_read =
+      DebuggerConnectionImpl::Receive(fd_, buf_ + data_length_, max_read);
   if (bytes_read == 0) {
     connection_is_alive_ = false;
     return;
@@ -284,6 +285,11 @@ void DebuggerConnectionHandler::StartHandler(const char* address,
   // First setup breakpoint, exception and delayed breakpoint handlers.
   DbgMsgQueueList::Initialize();
 
+  // Initialize the socket implementation.
+  if (!Socket::Initialize()) {
+    FATAL("Failed initializing socket implementation.");
+  }
+
   // Now setup a listener socket and start a thread which will
   // listen, accept connections from debuggers, read and handle/dispatch
   // debugger commands received on these connections.
@@ -335,7 +341,7 @@ void DebuggerConnectionHandler::SendMsgHelper(int debug_fd,
         piece_len = max_piece_len;
       }
       intptr_t written =
-        Socket::Write(debug_fd, msg->buf() + sent, piece_len);
+          DebuggerConnectionImpl::Send(debug_fd, msg->buf() + sent, piece_len);
       ASSERT(written == piece_len);
       sent += written;
       remaining -= written;
@@ -347,7 +353,8 @@ void DebuggerConnectionHandler::SendMsgHelper(int debug_fd,
     }
     return;
   }
-  intptr_t bytes_written = Socket::Write(debug_fd, msg->buf(), msg->length());
+  intptr_t bytes_written =
+      DebuggerConnectionImpl::Send(debug_fd, msg->buf(), msg->length());
   ASSERT(msg->length() == bytes_written);
   // TODO(hausner): Error checking. Probably just shut down the debugger
   // session if we there is an error while writing.

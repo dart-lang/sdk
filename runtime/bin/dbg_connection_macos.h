@@ -13,6 +13,8 @@
 class DebuggerConnectionImpl {
  public:
   static void StartHandler(int port_number);
+  static intptr_t Send(intptr_t socket, const char* buf, int len);
+  static intptr_t Receive(intptr_t socket, char* buf, int len);
 
  private:
   enum MessageType {

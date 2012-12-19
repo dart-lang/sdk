@@ -103,3 +103,15 @@ void DebuggerConnectionImpl::StartHandler(int port_number) {
     FATAL1("Failed to start debugger connection handler thread: %d\n", result);
   }
 }
+
+
+intptr_t DebuggerConnectionImpl::Send(intptr_t socket,
+                                      const char* buf,
+                                      int len) {
+  return TEMP_FAILURE_RETRY(write(socket, buf, len));
+}
+
+
+intptr_t DebuggerConnectionImpl::Receive(intptr_t socket, char* buf, int len) {
+  return TEMP_FAILURE_RETRY(read(socket, buf, len));
+}
