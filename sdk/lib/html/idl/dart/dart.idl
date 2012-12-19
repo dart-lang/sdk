@@ -89,6 +89,16 @@ module html {
                                 [Optional] in boolean cancelableArg,
                                 [Optional] in DOMString statusMessageArg);
   };
+
+  [Supplemental]
+  interface HTMLEmbedElement {
+    [Custom] any invoke(in DOMString methodName, in any[] params);
+  };
+
+  [Supplemental]
+  interface HTMLObjectElement {
+    [Custom] any invoke(in DOMString methodName, in any[] params);
+  };
 };
 
 module html {

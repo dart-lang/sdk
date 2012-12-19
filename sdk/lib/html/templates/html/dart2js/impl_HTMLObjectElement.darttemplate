@@ -1,0 +1,25 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+/// @domName $DOMNAME
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$!MEMBERS
+
+  /**
+   * Invokes a custom method exposed by an object tag.
+   *
+   * There is no conversion run on params, in most cases it should be
+   * a standard list of strings
+   *
+   * object.invoke('postMessage', ['custom message']);
+   */
+  @Creates('String|bool|num')
+  @Returns('String|bool|num')
+  Object invoke(String methodName, List<Object> params) {
+    return JS('String|bool|num', '#[#].apply(#, #)',
+        this, methodName, this, params);
+  }
+}

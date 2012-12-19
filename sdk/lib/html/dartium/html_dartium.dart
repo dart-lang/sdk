@@ -9683,6 +9683,10 @@ class EmbedElement extends _Element_Merged {
   /** @domName HTMLEmbedElement.width */
   void set width(String value) native "HTMLEmbedElement_width_Setter";
 
+
+  /** @domName HTMLEmbedElement.invoke */
+  Object invoke(String methodName, List<Object> params) native "HTMLEmbedElement_invoke_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18159,6 +18163,10 @@ class ObjectElement extends _Element_Merged {
 
   /** @domName HTMLObjectElement.checkValidity */
   bool checkValidity() native "HTMLObjectElement_checkValidity_Callback";
+
+
+  /** @domName HTMLObjectElement.invoke */
+  Object invoke(String methodName, List<Object> params) native "HTMLObjectElement_invoke_Callback";
 
 
   /** @domName HTMLObjectElement.setCustomValidity */
