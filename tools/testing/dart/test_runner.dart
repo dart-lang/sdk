@@ -631,6 +631,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
         if ((testCase as BrowserTestCase).numRetries > 0) {
           requestRetry = true;
         }
+        printDebug("Failed because of missing XDisplay");
         return true;
       }
     }
@@ -673,23 +674,36 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
                 bytesNewLine.length;
             var endPosition = stdout.length - bytesEOF.length;
 
-            return !areByteArraysEqual(expectedContent,
-                                       0,
-                                       stdout,
-                                       startPosition,
-                                       endPosition - startPosition);
+            var _failed = !areByteArraysEqual(expectedContent,
+                                              0,
+                                              stdout,
+                                              startPosition,
+                                              endPosition - startPosition);
+            if (_failed) {
+              printDebug("Failed because command.expectedOutputFile doesn't "
+                         "match stdout of DRT");
+            }
+            return _failed;
           }
         }
+        printDebug("Failed because we didn't find 'Content-Length' in the DRT "
+                   "output");
         return true;
       } else {
-        return !areByteArraysEqual(expectedContent, 0,
-                                   stdout, 0,
-                                   stdout.length);
+        var _failed = !areByteArraysEqual(expectedContent, 0,
+                                          stdout, 0,
+                                          stdout.length);
+        if (_failed) {
+          printDebug("Failed because command.expectedOutputFile doesn't match "
+                     "stdout of DRT");
+        }
+        return _failed;
       }
     }
+    printDebug("Failed because command.expectedOutputFile doesn't exist");
     return true;
   }
-  
+
   bool get _browserTestFailure {
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain' followed by 'PASS'.
@@ -702,12 +716,27 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
           break;
         case 'PASS':
           if (has_content_type) {
-            return (exitCode != 0 && !hasCrashed);
+            var _failed = (exitCode != 0 && !hasCrashed);
+            if (_failed) {
+              printDebug("Failed because '(exitCode != 0 && !hasCrashed) was "
+                         "true");
+            }
+            return _failed;
           }
           break;
       }
     }
+    printDebug("Failed because content-type: text/plain + PASS was not found");
     return true;
+  }
+
+  void printDebug(String msg) {
+    print("");
+    print("DEBUG(infrastructure): $msg");
+    print("DEBUG(infrastructure): cmd.executable:  '${command.executable}'");
+    print("DEBUG(infrastructure): cmd.arguments:   '${command.arguments}'");
+    print("DEBUG(infrastructure): cmd.environment: '${command.environment}'");
+    print("");
   }
 }
 
