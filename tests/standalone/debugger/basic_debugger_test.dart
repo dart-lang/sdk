@@ -34,7 +34,7 @@ var testScript = [
   MatchFrame(0, "main"),  // Top frame in trace is function "main".
   Step(),
   Breakpoint(function: "main"),
-  SetBreakpoint(8),  // Set breakpoint a line 15, in function bar.
+  SetBreakpoint(15),  // Set breakpoint a line 15, in function bar.
   Resume(),
   Breakpoint(function: "bar"),
   MatchFrames(["bar", "foo", "main"]),

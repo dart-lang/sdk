@@ -42,13 +42,15 @@ class JsonBuffer {
       msg = buffer;
       buffer = null;
     } else {
+      assert(msgLen < buffer.length);
       msg = buffer.substring(0, msgLen);
       buffer = buffer.substring(msgLen);
     }
     return msg;
   }
 
-  // Skip past a JSON object value.
+  // Returns the character length of the newxt json message in the
+  // buffer, or 0 if there is only a partial message in the buffer.
   // The object value must start with '{' and continues to the
   // matching '}'. No attempt is made to otherwise validate the contents
   // as JSON. If it is invalid, a later JSON.parse() will fail.
@@ -76,14 +78,14 @@ class JsonBuffer {
     index = skipWhitespace(index);
     // Bail out if the first non-whitespace character isn't '{'.
     if (index == buffer.length || buffer[index] != '{') return 0;
-    int nexting = 0;
+    int nesting = 0;
     while (index < buffer.length) {
       String char = buffer[index++];
       if (char == '{') {
-        nexting++;
+        nesting++;
       } else if (char == '}') {
-        nexting--;
-        if (nexting == 0) return index;
+        nesting--;
+        if (nesting == 0) return index;
       } else if (char == '"') {
         // Strings can contain braces. Skip their content.
         index = skipString(index);
@@ -114,7 +116,7 @@ getJsonValue(Map jsonMsg, String path) {
       }
       property = property.substring(0, bracketPos);
     }
-	if (node is Map) {
+    if (node is Map) {
       node = node[property];
     } else {
       return null;
@@ -162,7 +164,9 @@ class BreakpointEvent {
 
   void match(Debugger debugger) {
     var msg = debugger.currentMessage;
-    if (!matchMaps(template, msg)) debugger.error("message does not match $template");
+    if (!matchMaps(template, msg)) {
+      debugger.error("message does not match $template");
+    }
     var name = getJsonValue(msg, "params:callFrames[0]:functionName");
     if (name == "main") {
       // Extract script url of debugged script.
@@ -198,7 +202,8 @@ class FrameMatcher extends Matcher {
     List frames = getJsonValue(msg, "params:callFrames");
     assert(frames != null);
     if (frames.length < functionNames.length) {
-      debugger.error("stack trace not long enough to match ${functionNames.length} frames");
+      debugger.error("stack trace not long enough "
+                     "to match ${functionNames.length} frames");
       return;
     }
     for (int i = 0; i < functionNames.length; i++) {
@@ -239,7 +244,8 @@ class Command {
   }
   Map makeMsg(int cmdId, int isolateId) {
     template["id"] = cmdId;
-    if ((template["params"] != null) && (template["params"]["isolateId"] != null)) {
+    if ((template["params"] != null)
+        && (template["params"]["isolateId"] != null)) {
       template["params"]["isolateId"] = isolateId;
     }
     return template;
@@ -348,6 +354,9 @@ class Debugger {
       } else if (msg["params"]["reason"] == "shutdown") {
         print("Debuggee isolate id ${msg["params"]["id"]} shut down.");
         shutdownEventSeen = true;
+        if (script.currentEntry != null) {
+          error("Premature isolate shutdown event seen.");
+        }
       }
       return true;
     } else if (msg["event"] == "breakpointResolved") {
@@ -507,6 +516,8 @@ bool RunScript(List script) {
   Process.start(options.executable, targetOpts).then((Process process) {
     print("Debug target process started");
     process.stdin.close();
+    process.stdout.onData = process.stdout.read;
+    process.stderr.onData = process.stderr.read;
     process.onExit = (int exitCode) {
       print("Debug target process exited with exit code $exitCode");
     };
