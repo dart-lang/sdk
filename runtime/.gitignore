@@ -1,5 +1,6 @@
 /Makefile
 /out
+/pkg
 /runtime
 /xcodebuild
 /*.Makefile
