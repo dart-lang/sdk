@@ -374,29 +374,35 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
 RawObject* DartLibraryCalls::HandleMessage(Dart_Port dest_port_id,
                                            Dart_Port reply_port_id,
                                            const Instance& message) {
-  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  ASSERT(!isolate_lib.IsNull());
-  const String& public_class_name =
-      String::Handle(Symbols::New("_ReceivePortImpl"));
-  const String& class_name =
-      String::Handle(isolate_lib.PrivateName(public_class_name));
-  const String& function_name =
-      String::Handle(Symbols::New("_handleMessage"));
+  Isolate* isolate = Isolate::Current();
+  Function& function =
+      Function::Handle(isolate,
+                       isolate->object_store()->handle_message_function());
   const int kNumArguments = 3;
-  const Array& kNoArgumentNames = Array::Handle();
-  const Function& function = Function::Handle(
-      Resolver::ResolveStatic(isolate_lib,
-                              class_name,
-                              function_name,
-                              kNumArguments,
-                              kNoArgumentNames,
-                              Resolver::kIsQualified));
-  const Array& args = Array::Handle(Array::New(kNumArguments));
-  args.SetAt(0, Integer::Handle(Integer::New(dest_port_id)));
-  args.SetAt(1, Integer::Handle(Integer::New(reply_port_id)));
+  if (function.IsNull()) {
+    Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+    ASSERT(!isolate_lib.IsNull());
+    const String& public_class_name =
+        String::Handle(Symbols::New("_ReceivePortImpl"));
+    const String& class_name =
+        String::Handle(isolate_lib.PrivateName(public_class_name));
+    const String& function_name =
+        String::Handle(Symbols::New("_handleMessage"));
+    const Array& kNoArgumentNames = Array::Handle();
+    function = Resolver::ResolveStatic(isolate_lib,
+                                       class_name,
+                                       function_name,
+                                       kNumArguments,
+                                       kNoArgumentNames,
+                                       Resolver::kIsQualified);
+    isolate->object_store()->set_handle_message_function(function);
+  }
+  const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
+  args.SetAt(0, Integer::Handle(isolate, Integer::New(dest_port_id)));
+  args.SetAt(1, Integer::Handle(isolate, Integer::New(reply_port_id)));
   args.SetAt(2, message);
-  const Object& result = Object::Handle(DartEntry::InvokeStatic(function,
-                                                                args));
+  const Object& result =
+      Object::Handle(isolate, DartEntry::InvokeStatic(function, args));
   ASSERT(result.IsNull() || result.IsError());
   return result.raw();
 }

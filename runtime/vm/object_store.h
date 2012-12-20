@@ -469,6 +469,20 @@ class ObjectStore {
   }
   void InitKeywordTable();
 
+  RawFunction* receive_port_create_function() const {
+    return receive_port_create_function_;
+  }
+  void set_receive_port_create_function(const Function& function) {
+    receive_port_create_function_ = function.raw();
+  }
+
+  RawFunction* handle_message_function() const {
+    return handle_message_function_;
+  }
+  void set_handle_message_function(const Function& function) {
+    handle_message_function_ = function.raw();
+  }
+
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -560,6 +574,8 @@ class ObjectStore {
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;
   RawArray* keyword_symbols_;
+  RawFunction* receive_port_create_function_;
+  RawFunction* handle_message_function_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&keyword_symbols_); }
 
   friend class SnapshotReader;

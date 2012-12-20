@@ -51,27 +51,34 @@ static void StoreError(Isolate* isolate, const Object& obj) {
 
 
 // TODO(turnidge): Move to DartLibraryCalls.
-RawObject* ReceivePortCreate(intptr_t port_id) {
-  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  ASSERT(!isolate_lib.IsNull());
-  const String& public_class_name =
-      String::Handle(Symbols::New("_ReceivePortImpl"));
-  const String& class_name =
-      String::Handle(isolate_lib.PrivateName(public_class_name));
-  const String& function_name =
-      String::Handle(Symbols::New("_get_or_create"));
+static RawObject* ReceivePortCreate(intptr_t port_id) {
+  Isolate* isolate = Isolate::Current();
+  Function& func =
+      Function::Handle(isolate,
+                       isolate->object_store()->receive_port_create_function());
   const int kNumArguments = 1;
-  const Array& kNoArgumentNames = Array::Handle();
-  const Function& func = Function::Handle(
-      Resolver::ResolveStatic(isolate_lib,
-                              class_name,
-                              function_name,
-                              kNumArguments,
-                              kNoArgumentNames,
-                              Resolver::kIsQualified));
-  const Array& args = Array::Handle(Array::New(kNumArguments));
-  args.SetAt(0, Integer::Handle(Integer::New(port_id)));
-  const Object& result = Object::Handle(DartEntry::InvokeStatic(func, args));
+  if (func.IsNull()) {
+    Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+    ASSERT(!isolate_lib.IsNull());
+    const String& public_class_name =
+        String::Handle(Symbols::New("_ReceivePortImpl"));
+    const String& class_name =
+        String::Handle(isolate_lib.PrivateName(public_class_name));
+    const String& function_name =
+        String::Handle(Symbols::New("_get_or_create"));
+    const Array& kNoArgumentNames = Array::Handle();
+    func = Resolver::ResolveStatic(isolate_lib,
+                                   class_name,
+                                   function_name,
+                                   kNumArguments,
+                                   kNoArgumentNames,
+                                   Resolver::kIsQualified);
+    isolate->object_store()->set_receive_port_create_function(func);
+  }
+  const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
+  args.SetAt(0, Integer::Handle(isolate, Integer::New(port_id)));
+  const Object& result =
+      Object::Handle(isolate, DartEntry::InvokeStatic(func, args));
   if (!result.IsError()) {
     PortMap::SetLive(port_id);
   }

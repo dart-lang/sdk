@@ -84,7 +84,9 @@ ObjectStore::ObjectStore()
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),
-    keyword_symbols_(Array::null()) {
+    keyword_symbols_(Array::null()),
+    receive_port_create_function_(Function::null()),
+    handle_message_function_(Function::null()) {
 }
 
 
