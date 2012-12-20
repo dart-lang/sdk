@@ -4333,6 +4333,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 11, 3, 9));
   }
   
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3223
+   */
+  public void test_invokeNonFunction_inferred() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "method() {",
+        "  var v = 1;",
+        "  v();",
+        "}");
+    assertErrors(libraryResult.getErrors());
+  }
+  
   public void test_invokeNonFunction_getter() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",

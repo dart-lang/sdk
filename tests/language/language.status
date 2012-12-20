@@ -277,6 +277,9 @@ typed_equality_test: Fail
 prefix12_negative_test: Fail
 prefix2_negative_test: Fail
 
+# test issue 7523 (const declared without type, so not-a-function warning should not be reported)
+call_through_getter_test: Fail
+
 
 
 #

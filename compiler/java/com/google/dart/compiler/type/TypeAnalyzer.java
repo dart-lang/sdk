@@ -1017,8 +1017,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         setVariableElementType(variable, mergedType, mergedTypeQuality);
       }
     }
-
-    private boolean checkAssignable(DartNode node, Type t, Type s) {
+    
+    private boolean isAssignable(Type t, Type s) {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
       // ignore inferred types, treat them as Dynamic
@@ -1027,15 +1027,18 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return true;
         }
       }
-      // do check and report error
-      if (!types.isAssignable(t, s)) {
+      // do check
+      return types.isAssignable(t, s);
+    }
+
+    private boolean checkAssignable(DartNode node, Type t, Type s) {
+      if (!isAssignable(t, s)) {
         TypeErrorCode errorCode = TypeQuality.isInferred(t) || TypeQuality.isInferred(s)
             ? TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE_INFERRED
-            : TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE;
+                : TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE;
         typeError(node, errorCode, s, t);
         return false;
       }
-      // OK
       return true;
     }
 
@@ -2810,7 +2813,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           case DYNAMIC:
             return type;
           default:
-            if (types.isAssignable(functionType, type)) {
+            if (isAssignable(functionType, type)) {
               // A subtype of interface Function.
               return dynamicType;
             } else if (name == null || currentClass == null) {
