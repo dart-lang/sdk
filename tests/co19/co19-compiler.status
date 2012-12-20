@@ -109,8 +109,6 @@ LibTest/core/StringBuffer/add_A02_t01: Fail
 LibTest/core/StringBuffer/addAll_A02_t01: Fail
 LibTest/core/StringBuffer/clear_A02_t01: Fail
 
-LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355
-
 # co19 issue 352 (use function expression with return type and name)
 LibTest/isolate/SendPort/send_A01_t01: Fail
 
