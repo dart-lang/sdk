@@ -1016,7 +1016,8 @@ unwrapException(ex) {
     if (message is String) {
       if (message.endsWith('is null') ||
           message.endsWith('is undefined') ||
-          message.endsWith('is null or undefined')) {
+          message.endsWith('is null or undefined') ||
+          message.endsWith('of null')) {
         return new NoSuchMethodError(null, '<unknown>', [], {});
       } else if (contains(message, ' has no method ') ||
                  contains(message, ' is not a function') ||
