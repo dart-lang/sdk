@@ -89,6 +89,21 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   StackZone zone(isolate_);
   HandleScope handle_scope(isolate_);
 
+  // If the message is in band we lookup the receive port to dispatch to.  If
+  // the receive port is closed, we drop the message without deserializing it.
+  Object& receive_port = Object::Handle();
+  if (!message->IsOOB()) {
+    receive_port = DartLibraryCalls::LookupReceivePort(message->dest_port());
+    if (receive_port.IsError()) {
+      return ProcessUnhandledException(Instance::Handle(),
+                                       Error::Cast(receive_port));
+    }
+    if (receive_port.IsNull()) {
+      delete message;
+      return true;
+    }
+  }
+
   // Parse the message.
   SnapshotReader reader(message->data(), message->len(),
                         Snapshot::kMessage, Isolate::Current());
@@ -116,7 +131,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   } else {
     const Object& result = Object::Handle(
         DartLibraryCalls::HandleMessage(
-            message->dest_port(), message->reply_port(), msg));
+            receive_port, message->reply_port(), msg));
     if (result.IsError()) {
       success = ProcessUnhandledException(msg, Error::Cast(result));
     } else {

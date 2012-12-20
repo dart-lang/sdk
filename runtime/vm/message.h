@@ -76,8 +76,8 @@ class MessageQueue {
   // message is available.  This function will not block.
   Message* Dequeue();
 
-  void Flush(Dart_Port port);
-  void FlushAll();
+  // Clear all messages from the message queue.
+  void Clear();
 
  private:
   friend class MessageQueueTestPeer;
