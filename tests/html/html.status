@@ -69,7 +69,7 @@ contentelement_test: Fail
 css_test: Fail
 document_test/getCssCanvasContext: Fail # IE does not support this.
 element_test/additionalConstructors: Fail
-element_test/clickEvent: Fail            # IE does not support firing this event.
+element_test/click: Fail                # IE does not support firing this event.
 element_webkit_test: Fail
 exceptions_test: Fail
 fileapi_test: Fail
@@ -106,6 +106,7 @@ xsltprocessor_test: Fail
 [ $runtime == ie9 ]
 contentelement_test: Fail   # ie9 does not support content element.
 document_test/getCssCanvasContext: Fail # IE does not support this.
+element_test/click: Fail                # IE does not support firing this event.
 form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
 inner_frame_test: Skip # Issue 5727 (timeout)
