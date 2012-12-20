@@ -24,7 +24,6 @@
     'function_patch.dart',
     'growable_array.cc',
     'growable_array.dart',
-    'identical.cc',
     'identical_patch.dart',
     'immutable_map.dart',
     'integers.cc',
