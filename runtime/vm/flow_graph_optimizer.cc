@@ -117,14 +117,26 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
 }
 
 
+static void EnsureSSATempIndex(FlowGraph* graph,
+                               Definition* defn,
+                               Definition* replacement) {
+  if ((replacement->ssa_temp_index() == -1) &&
+      (defn->ssa_temp_index() != -1)) {
+    replacement->set_ssa_temp_index(graph->alloc_ssa_temp_index());
+  }
+}
+
+
 static void ReplaceCurrentInstruction(ForwardInstructionIterator* it,
                                       Instruction* current,
-                                      Instruction* replacement) {
+                                      Instruction* replacement,
+                                      FlowGraph* graph) {
   if ((replacement != NULL) && current->IsDefinition()) {
     Definition* current_defn = current->AsDefinition();
     Definition* replacement_defn = replacement->AsDefinition();
     ASSERT(replacement_defn != NULL);
     current_defn->ReplaceUsesWith(replacement_defn);
+    EnsureSSATempIndex(graph, current_defn, replacement_defn);
 
     if (FLAG_trace_optimization) {
       OS::Print("Replacing v%"Pd" with v%"Pd"\n",
@@ -157,7 +169,7 @@ void FlowGraphOptimizer::OptimizeComputations() {
         // For non-definitions Canonicalize should return either NULL or
         // this.
         ASSERT((replacement == NULL) || current->IsDefinition());
-        ReplaceCurrentInstruction(&it, current, replacement);
+        ReplaceCurrentInstruction(&it, current, replacement, flow_graph_);
       }
     }
   }
@@ -3105,13 +3117,15 @@ class LoadOptimizer : public ValueObject {
           // This is a locally redundant load.
           ASSERT((out_values != NULL) && ((*out_values)[expr_id] != NULL));
 
+          Definition* replacement = (*out_values)[expr_id];
+          EnsureSSATempIndex(graph_, defn, replacement);
           if (FLAG_trace_optimization) {
             OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
                       defn->ssa_temp_index(),
-                      (*out_values)[expr_id]->ssa_temp_index());
+                      replacement->ssa_temp_index());
           }
 
-          defn->ReplaceUsesWith((*out_values)[expr_id]);
+          defn->ReplaceUsesWith(replacement);
           instr_it.RemoveCurrentFromGraph();
           continue;
         } else if (!kill->Contains(expr_id)) {
@@ -3313,6 +3327,8 @@ class LoadOptimizer : public ValueObject {
         replacement = replacement->Replacement();
 
         if (load != replacement) {
+          EnsureSSATempIndex(graph_, load, replacement);
+
           if (FLAG_trace_optimization) {
             OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
                       load->ssa_temp_index(),
@@ -3449,13 +3465,14 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
   }
 
   DirectChainedHashMap<PointerKeyValueTrait<Instruction> > map;
-  changed = OptimizeRecursive(graph->graph_entry(), &map) || changed;
+  changed = OptimizeRecursive(graph, graph->graph_entry(), &map) || changed;
 
   return changed;
 }
 
 
 bool DominatorBasedCSE::OptimizeRecursive(
+    FlowGraph* graph,
     BlockEntryInstr* block,
     DirectChainedHashMap<PointerKeyValueTrait<Instruction> >* map) {
   bool changed = false;
@@ -3468,7 +3485,7 @@ bool DominatorBasedCSE::OptimizeRecursive(
       continue;
     }
     // Replace current with lookup result.
-    ReplaceCurrentInstruction(&it, current, replacement);
+    ReplaceCurrentInstruction(&it, current, replacement, graph);
     changed = true;
   }
 
@@ -3479,10 +3496,10 @@ bool DominatorBasedCSE::OptimizeRecursive(
     if (i  < num_children - 1) {
       // Copy map.
       DirectChainedHashMap<PointerKeyValueTrait<Instruction> > child_map(*map);
-      changed = OptimizeRecursive(child, &child_map) || changed;
+      changed = OptimizeRecursive(graph, child, &child_map) || changed;
     } else {
       // Reuse map for the last child.
-      changed = OptimizeRecursive(child, map) || changed;
+      changed = OptimizeRecursive(graph, child, map) || changed;
     }
   }
   return changed;

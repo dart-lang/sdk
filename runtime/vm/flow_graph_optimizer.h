@@ -168,6 +168,7 @@ class DominatorBasedCSE : public AllStatic {
 
  private:
   static bool OptimizeRecursive(
+      FlowGraph* graph,
       BlockEntryInstr* entry,
       DirectChainedHashMap<PointerKeyValueTrait<Instruction> >* map);
 };
