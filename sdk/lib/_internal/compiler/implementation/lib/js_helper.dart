@@ -1018,7 +1018,8 @@ unwrapException(ex) {
           message.endsWith('is undefined') ||
           message.endsWith('is null or undefined')) {
         return new NoSuchMethodError(null, '<unknown>', [], {});
-      } else if (contains(message, ' is not a function') ||
+      } else if (contains(message, ' has no method ') ||
+                 contains(message, ' is not a function') ||
                  (ieErrorCode == 438 && ieFacilityNumber == 10)) {
         // Examples:
         //  x.foo is not a function
