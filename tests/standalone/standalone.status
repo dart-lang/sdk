@@ -4,6 +4,9 @@
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
+[ $runtime == vm ]
+package/package_isolate_test: Fail # Issue 7520.
+
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK

@@ -10,33 +10,35 @@ import 'dart:isolate';
 import '../../../pkg/unittest/lib/unittest.dart';
 
 expectResponse() {
-  port.receive(expectAsync2((msg, r) {
+  var receivePort = new ReceivePort();
+  receivePort.receive(expectAsync2((msg, r) {
     expect('isolate', msg);
     expect('main', shared.output);
-    port.close();
+    receivePort.close();
   }));
+  return receivePort;
 }
 
 void main() {
   test("package in spawnFunction()", () {
-    expectResponse();
+    var replyPort = expectResponse().toSendPort();
     shared.output = 'main';
     var sendPort = spawnFunction(isolate_main);
-    sendPort.send("sendPort", port.toSendPort());
+    sendPort.send("sendPort", replyPort);
   });
   
   test("package in spawnUri() of sibling file", () {
-    expectResponse();
+    var replyPort = expectResponse().toSendPort();
     shared.output = 'main';
     var sendPort = spawnUri('sibling_isolate.dart');
-    sendPort.send('sendPort', port.toSendPort());
+    sendPort.send('sendPort', replyPort);
   });
 
   test("package in spawnUri() of file in folder", () {
-    expectResponse();
+    var replyPort = expectResponse().toSendPort();
     shared.output = 'main';
     var sendPort = spawnUri('test_folder/folder_isolate.dart');
-    sendPort.send('sendPort', port.toSendPort());
+    sendPort.send('sendPort', replyPort);
   });
 }
 
