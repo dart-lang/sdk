@@ -101,12 +101,14 @@ class MockCompiler extends Compiler {
                 bool enableTypeAssertions: false,
                 bool enableMinification: false,
                 bool enableConcreteTypeInference: false,
+                int maxConcreteTypeSize: 5,
                 bool analyzeAll: false})
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
               enableConcreteTypeInference: enableConcreteTypeInference,
+              maxConcreteTypeSize: maxConcreteTypeSize,
               analyzeAll: analyzeAll) {
     coreLibrary = createLibrary("core", coreSource);
     // We need to set the assert method to avoid calls with a 'null'

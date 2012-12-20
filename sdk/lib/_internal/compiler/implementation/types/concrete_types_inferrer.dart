@@ -75,24 +75,28 @@ class NullBaseType implements BaseType {
  * concrete type.
  */
 abstract class ConcreteType {
-  factory ConcreteType.empty() => new UnionType(new Set<BaseType>());
+  factory ConcreteType.empty() {
+    return new UnionType(new Set<BaseType>());
+  }
 
   /**
    * The singleton constituted of the unknown base type is the unknown concrete
    * type.
    */
-  factory ConcreteType.singleton(BaseType baseType) {
-    if (baseType.isUnknown()) {
-      return const UnknownConcreteType();
+  factory ConcreteType.singleton(int maxConcreteTypeSize, BaseType baseType) {
+    if (baseType.isUnknown() || maxConcreteTypeSize < 1) {
+      return new UnknownConcreteType();
     }
     Set<BaseType> singletonSet = new Set<BaseType>();
     singletonSet.add(baseType);
     return new UnionType(singletonSet);
   }
 
-  factory ConcreteType.unknown() => const UnknownConcreteType();
+  factory ConcreteType.unknown() {
+    return const UnknownConcreteType();
+  }
 
-  ConcreteType union(ConcreteType other);
+  ConcreteType union(int maxConcreteTypeSize, ConcreteType other);
   bool isUnkown();
   bool isEmpty();
   Set<BaseType> get baseTypes;
@@ -115,7 +119,7 @@ class UnknownConcreteType implements ConcreteType {
   Set<BaseType> get baseTypes =>
       new Set<BaseType>.from([const UnknownBaseType()]);
   int get hashCode => 0;
-  ConcreteType union(ConcreteType other) => this;
+  ConcreteType union(int maxConcreteTypeSize, ConcreteType other) => this;
   ClassElement getUniqueType() => null;
   toString() => "unknown";
 }
@@ -153,14 +157,16 @@ class UnionType implements ConcreteType {
   // {int, double,...} into {num, ...} as an optimization. It will require
   // UnionType to know about these class elements, which is cumbersome because
   // there are no nested classes. We need factory methods instead.
-  ConcreteType union(ConcreteType other) {
+  ConcreteType union(int maxConcreteTypeSize, ConcreteType other) {
     if (other.isUnkown()) {
       return const UnknownConcreteType();
     }
     UnionType otherUnion = other;  // cast
     Set<BaseType> newBaseTypes = new Set<BaseType>.from(baseTypes);
     newBaseTypes.addAll(otherUnion.baseTypes);
-    return new UnionType(newBaseTypes);
+    return newBaseTypes.length > maxConcreteTypeSize
+        ? const UnknownConcreteType()
+        : new UnionType(newBaseTypes);
   }
 
   ClassElement getUniqueType() {
@@ -185,12 +191,15 @@ class UnionType implements ConcreteType {
  */
 class ConcreteTypeCartesianProduct
     implements Iterable<ConcreteTypesEnvironment> {
+  final ConcreteTypesInferrer inferrer;
   final BaseType baseTypeOfThis;
   final Map<Element, ConcreteType> concreteTypes;
-  ConcreteTypeCartesianProduct(this.baseTypeOfThis, this.concreteTypes);
+  ConcreteTypeCartesianProduct(this.inferrer, this.baseTypeOfThis,
+                               this.concreteTypes);
   Iterator iterator() => concreteTypes.isEmpty
-      ? [new ConcreteTypesEnvironment(baseTypeOfThis)].iterator()
-      : new ConcreteTypeCartesianProductIterator(baseTypeOfThis, concreteTypes);
+      ? [new ConcreteTypesEnvironment(inferrer, baseTypeOfThis)].iterator()
+      : new ConcreteTypeCartesianProductIterator(inferrer, baseTypeOfThis,
+                                                 concreteTypes);
   String toString() {
     List<ConcreteTypesEnvironment> cartesianProduct =
         new List<ConcreteTypesEnvironment>.from(this);
@@ -202,6 +211,7 @@ class ConcreteTypeCartesianProduct
  * An helper class for [ConcreteTypeCartesianProduct].
  */
 class ConcreteTypeCartesianProductIterator implements Iterator {
+  final ConcreteTypesInferrer inferrer;
   final BaseType baseTypeOfThis;
   final Map<Element, ConcreteType> concreteTypes;
   final Map<Element, BaseType> nextValues;
@@ -209,11 +219,11 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
   int size = 1;
   int counter = 0;
 
-  ConcreteTypeCartesianProductIterator(this.baseTypeOfThis,
-      Map<Element, ConcreteType> concreteTypes) :
-    this.concreteTypes = concreteTypes,
-    nextValues = new Map<Element, BaseType>(),
-    state = new Map<Element, Iterator>() {
+  ConcreteTypeCartesianProductIterator(this.inferrer, this.baseTypeOfThis,
+      Map<Element, ConcreteType> concreteTypes)
+      : this.concreteTypes = concreteTypes,
+        nextValues = new Map<Element, BaseType>(),
+        state = new Map<Element, Iterator>() {
     if (concreteTypes.isEmpty) {
       size = 0;
       return;
@@ -230,8 +240,10 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
 
   ConcreteTypesEnvironment takeSnapshot() {
     Map<Element, ConcreteType> result = new Map<Element, ConcreteType>();
-    nextValues.forEach((k, v) { result[k] = new ConcreteType.singleton(v); });
-    return new ConcreteTypesEnvironment.of(result, baseTypeOfThis);
+    nextValues.forEach((k, v) {
+      result[k] = inferrer.singletonConcreteType(v);
+    });
+    return new ConcreteTypesEnvironment.of(inferrer, result, baseTypeOfThis);
   }
 
   ConcreteTypesEnvironment next() {
@@ -283,24 +295,26 @@ class BaseTypes {
  * [ConcreteTypes]. Each visitor owns one.
  */
 class ConcreteTypesEnvironment {
+  final ConcreteTypesInferrer inferrer;
   final Map<Element, ConcreteType> environment;
   final BaseType typeOfThis;
-  ConcreteTypesEnvironment([this.typeOfThis]) :
+
+  ConcreteTypesEnvironment(this.inferrer, [this.typeOfThis]) :
     this.environment = new Map<Element, ConcreteType>();
-  ConcreteTypesEnvironment.of(this.environment, this.typeOfThis);
+  ConcreteTypesEnvironment.of(this.inferrer, this.environment, this.typeOfThis);
 
   ConcreteType lookupType(Element element) => environment[element];
   ConcreteType lookupTypeOfThis() {
     return (typeOfThis == null)
         ? null
-        : new ConcreteType.singleton(typeOfThis);
+        : inferrer.singletonConcreteType(typeOfThis);
   }
 
   ConcreteTypesEnvironment put(Element element, ConcreteType type) {
     Map<Element, ConcreteType> newMap =
         new Map<Element, ConcreteType>.from(environment);
     newMap[element] = type;
-    return new ConcreteTypesEnvironment.of(newMap, typeOfThis);
+    return new ConcreteTypesEnvironment.of(inferrer, newMap, typeOfThis);
   }
 
   ConcreteTypesEnvironment join(ConcreteTypesEnvironment other) {
@@ -314,10 +328,10 @@ class ConcreteTypesEnvironment {
       if (element == null) {
         newMap[element] = type;
       } else {
-        newMap[element] = currentType.union(type);
+        newMap[element] = inferrer.union(currentType, type);
       }
     });
-    return new ConcreteTypesEnvironment.of(newMap, typeOfThis);
+    return new ConcreteTypesEnvironment.of(inferrer, newMap, typeOfThis);
   }
 
   bool operator ==(ConcreteTypesEnvironment other) {
@@ -422,7 +436,10 @@ class ConcreteTypesInferrer {
         inferredParameterTypes = new Map<VariableElement, ConcreteType>(),
         workQueue = new Queue<InferenceWorkItem>(),
         callers = new Map<FunctionElement, Set<FunctionElement>>(),
-        readers = new Map<Element, Set<FunctionElement>>();
+        readers = new Map<Element, Set<FunctionElement>>() {
+    unknownConcreteType = new ConcreteType.unknown();
+    emptyConcreteType = new ConcreteType.empty();
+  }
 
   /**
    * Populates [cache] with ad hoc rules like:
@@ -440,11 +457,11 @@ class ConcreteTypesInferrer {
                                              FunctionElement method,
                                              BaseType argumentType) {
       ArgumentsTypes argumentsTypes = new ArgumentsTypes(
-          [new ConcreteType.singleton(argumentType)],
+          [singletonConcreteType(argumentType)],
           new Map());
       Map<Element, ConcreteType> argumentMap =
           associateArguments(method, argumentsTypes);
-      return new ConcreteTypesEnvironment.of(argumentMap, receiverType);
+      return new ConcreteTypesEnvironment.of(this, argumentMap, receiverType);
     }
 
     // Adds the rule {receiverType}.method({argumentType}) -> {returnType}
@@ -462,7 +479,7 @@ class ConcreteTypesInferrer {
           cache.containsKey(methodElement)
               ? cache[methodElement]
               : new Map<ConcreteTypesEnvironment, ConcreteType>();
-      map[environment] = new ConcreteType.singleton(returnType);
+      map[environment] = singletonConcreteType(returnType);
       cache[methodElement] = map;
     }
 
@@ -487,6 +504,22 @@ class ConcreteTypesInferrer {
 
   // --- utility methods ---
 
+  /** The unknown concrete type */
+  ConcreteType unknownConcreteType;
+
+  /** The empty concrete type */
+  ConcreteType emptyConcreteType;
+
+  /** Creates a singleton concrete type containing [baseType]. */
+  ConcreteType singletonConcreteType(BaseType baseType) {
+    return new ConcreteType.singleton(compiler.maxConcreteTypeSize, baseType);
+  }
+
+  /** Returns the union of its two arguments */
+  ConcreteType union(ConcreteType concreteType1, ConcreteType concreteType2) {
+    return concreteType1.union(compiler.maxConcreteTypeSize, concreteType2);
+  }
+
   /**
    * Returns all the members with name [methodName].
    */
@@ -510,7 +543,7 @@ class ConcreteTypesInferrer {
     ConcreteType currentType = inferredTypes[node];
     inferredTypes[node] = (currentType == null)
         ? type
-        : currentType.union(type);
+        : union(currentType, type);
   }
 
   /**
@@ -518,7 +551,7 @@ class ConcreteTypesInferrer {
    */
   ConcreteType getFieldType(Element field) {
     ConcreteType result = inferredFieldTypes[field];
-    return (result == null) ? new ConcreteType.empty() : result;
+    return (result == null) ? emptyConcreteType : result;
   }
 
   /**
@@ -528,7 +561,7 @@ class ConcreteTypesInferrer {
   void augmentFieldType(Element field, ConcreteType type) {
     ConcreteType oldType = inferredFieldTypes[field];
     ConcreteType newType = (oldType != null)
-        ? oldType.union(type)
+        ? union(oldType, type)
         : type;
     if (oldType != newType) {
       inferredFieldTypes[field] = newType;
@@ -553,7 +586,7 @@ class ConcreteTypesInferrer {
   void augmentParameterType(VariableElement parameter, ConcreteType type) {
     ConcreteType oldType = inferredParameterTypes[parameter];
     inferredParameterTypes[parameter] =
-        (oldType == null) ? type : oldType.union(type);
+        (oldType == null) ? type : union(oldType, type);
   }
 
   /**
@@ -609,19 +642,19 @@ class ConcreteTypesInferrer {
   ConcreteType getSendReturnType(FunctionElement function,
                                  BaseType receiverType,
                                  ArgumentsTypes argumentsTypes) {
-    ConcreteType result = new ConcreteType.empty();
+    ConcreteType result = emptyConcreteType;
     Map<Element, ConcreteType> argumentMap =
         associateArguments(function, argumentsTypes);
     // if the association failed, this send will never occur or will fail
     if (argumentMap == null) {
-      return new ConcreteType.empty();
+      return emptyConcreteType;
     }
     argumentMap.forEach(augmentParameterType);
     ConcreteTypeCartesianProduct product =
-        new ConcreteTypeCartesianProduct(receiverType, argumentMap);
+        new ConcreteTypeCartesianProduct(this, receiverType, argumentMap);
     for (ConcreteTypesEnvironment environment in product) {
-      result = result.union(
-          getMonomorphicSendReturnType(function, environment));
+      result = union(result,
+                     getMonomorphicSendReturnType(function, environment));
     }
     return result;
   }
@@ -689,7 +722,7 @@ class ConcreteTypesInferrer {
     //     in order to handle "?parameter" tests
     leftOverNamedParameters.forEach((_, Element namedParameter) {
       result[namedParameter] =
-          new ConcreteType.singleton(const NullBaseType());
+          singletonConcreteType(const NullBaseType());
     });
     return result;
   }
@@ -710,7 +743,7 @@ class ConcreteTypesInferrer {
       workQueue.addLast(
         new InferenceWorkItem(function, environment));
       // in case of a constructor, optimize by returning the class
-      return new ConcreteType.empty();
+      return emptyConcreteType;
     }
   }
 
@@ -727,7 +760,7 @@ class ConcreteTypesInferrer {
     // This should never happen since we only deal with concrete types, except
     // for external methods whose typing rules have not been hardcoded yet.
     if (!tree.hasBody()) {
-      return new ConcreteType.unknown();
+      return unknownConcreteType;
     }
     TreeElements elements =
         compiler.enqueuer.resolution.resolvedElements[element];
@@ -773,7 +806,7 @@ class ConcreteTypesInferrer {
       if (enclosingClass != compiler.objectClass) {
         FunctionElement target = superClass.lookupConstructor(
           new Selector.callDefaultConstructor(enclosingClass.getLibrary()));
-        final superClassConcreteType = new ConcreteType.singleton(
+        final superClassConcreteType = singletonConcreteType(
             new ClassBaseType(enclosingClass));
         getSendReturnType(target, new ClassBaseType(enclosingClass),
             new ArgumentsTypes(new List(), new Map()));
@@ -781,7 +814,7 @@ class ConcreteTypesInferrer {
     }
 
     tree.accept(visitor);
-    return new ConcreteType.singleton(new ClassBaseType(enclosingClass));
+    return singletonConcreteType(new ClassBaseType(enclosingClass));
   }
 
   void analyzeMain(Element element) {
@@ -790,7 +823,7 @@ class ConcreteTypesInferrer {
     populateCacheWithBuiltinRules();
     try {
       workQueue.addLast(
-          new InferenceWorkItem(element, new ConcreteTypesEnvironment()));
+          new InferenceWorkItem(element, new ConcreteTypesEnvironment(this)));
       while (!workQueue.isEmpty) {
         InferenceWorkItem item = workQueue.removeFirst();
         ConcreteType concreteType = analyze(item.method, item.environment);
@@ -943,7 +976,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitExpressionStatement(ExpressionStatement node) {
     analyze(node.expression);
-    return new ConcreteType.empty();
+    return inferrer.emptyConcreteType;
   }
 
   ConcreteType visitFor(For node) {
@@ -951,7 +984,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       analyze(node.initializer);
     }
     analyze(node.conditionStatement);
-    ConcreteType result = new ConcreteType.empty();
+    ConcreteType result = inferrer.emptyConcreteType;
     ConcreteTypesEnvironment oldEnvironment;
     do {
       oldEnvironment = environment;
@@ -990,9 +1023,9 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     ConcreteType thenType = analyze(node.thenPart);
     ConcreteTypesEnvironment snapshot = environment;
     ConcreteType elseType = node.hasElsePart ? analyze(node.elsePart)
-                                             : new ConcreteType.empty();
+                                             : inferrer.emptyConcreteType;
     environment = environment.join(snapshot);
-    return thenType.union(elseType);
+    return inferrer.union(thenType, elseType);
   }
 
   ConcreteType visitLoop(Loop node) {
@@ -1100,7 +1133,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       if (operatorName.stringValue == '++'
           || operatorName.stringValue == '--') {
         List<ConcreteType> positionalArguments = <ConcreteType>[
-            new ConcreteType.singleton(inferrer.baseTypes.intBaseType)];
+            inferrer.singletonConcreteType(inferrer.baseTypes.intBaseType)];
         argumentsTypes = new ArgumentsTypes(positionalArguments, new Map());
       } else {
         argumentsTypes = analyzeArguments(node.arguments);
@@ -1122,15 +1155,15 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitLiteralInt(LiteralInt node) {
-    return new ConcreteType.singleton(inferrer.baseTypes.intBaseType);
+    return inferrer.singletonConcreteType(inferrer.baseTypes.intBaseType);
   }
 
   ConcreteType visitLiteralDouble(LiteralDouble node) {
-    return new ConcreteType.singleton(inferrer.baseTypes.doubleBaseType);
+    return inferrer.singletonConcreteType(inferrer.baseTypes.doubleBaseType);
   }
 
   ConcreteType visitLiteralBool(LiteralBool node) {
-    return new ConcreteType.singleton(inferrer.baseTypes.boolBaseType);
+    return inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
   }
 
   ConcreteType visitLiteralString(LiteralString node) {
@@ -1138,19 +1171,19 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     // the unknown type.
     if (inferrer.testMode
         && node.dartString.slowToString() == "__dynamic_for_test") {
-      return new ConcreteType.unknown();
+      return inferrer.unknownConcreteType;
     }
-    return new ConcreteType.singleton(inferrer.baseTypes.stringBaseType);
+    return inferrer.singletonConcreteType(inferrer.baseTypes.stringBaseType);
   }
 
   ConcreteType visitStringJuxtaposition(StringJuxtaposition node) {
     analyze(node.first);
     analyze(node.second);
-    return new ConcreteType.singleton(inferrer.baseTypes.stringBaseType);
+    return inferrer.singletonConcreteType(inferrer.baseTypes.stringBaseType);
   }
 
   ConcreteType visitLiteralNull(LiteralNull node) {
-    return new ConcreteType.singleton(const NullBaseType());
+    return inferrer.singletonConcreteType(const NullBaseType());
   }
 
   ConcreteType visitNewExpression(NewExpression node) {
@@ -1163,15 +1196,15 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitLiteralList(LiteralList node) {
     visitNodeList(node.elements);
-    return new ConcreteType.singleton(inferrer.baseTypes.listBaseType);
+    return inferrer.singletonConcreteType(inferrer.baseTypes.listBaseType);
   }
 
   ConcreteType visitNodeList(NodeList node) {
-    ConcreteType type = new ConcreteType.empty();
+    ConcreteType type = inferrer.emptyConcreteType;
     // The concrete type of a sequence of statements is the union of the
     // statement's types.
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
-      type = type.union(analyze(link.head));
+      type = inferrer.union(type, analyze(link.head));
     }
     return type;
   }
@@ -1183,13 +1216,13 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   ConcreteType visitReturn(Return node) {
     final expression = node.expression;
     return (expression == null)
-        ? new ConcreteType.singleton(const NullBaseType())
+        ? inferrer.singletonConcreteType(const NullBaseType())
         : analyze(expression);
   }
 
   ConcreteType visitThrow(Throw node) {
     if (node.expression != null) analyze(node.expression);
-    return new ConcreteType.empty();
+    return inferrer.emptyConcreteType;
   }
 
   ConcreteType visitTypeAnnotation(TypeAnnotation node) {
@@ -1205,12 +1238,12 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
          link = link.tail) {
       analyze(link.head);
     }
-    return new ConcreteType.empty();
+    return inferrer.emptyConcreteType;
   }
 
   ConcreteType visitWhile(While node) {
     analyze(node.condition);
-    ConcreteType result = new ConcreteType.empty();
+    ConcreteType result = inferrer.emptyConcreteType;
     ConcreteTypesEnvironment oldEnvironment;
     do {
       oldEnvironment = environment;
@@ -1229,7 +1262,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     analyze(node.condition);
     ConcreteType thenType = analyze(node.thenExpression);
     ConcreteType elseType = analyze(node.elseExpression);
-    return thenType.union(elseType);
+    return inferrer.union(thenType, elseType);
   }
 
   ConcreteType visitModifiers(Modifiers node) {
@@ -1238,25 +1271,25 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitStringInterpolation(StringInterpolation node) {
     node.visitChildren(this);
-    return new ConcreteType.singleton(inferrer.baseTypes.stringBaseType);
+    return inferrer.singletonConcreteType(inferrer.baseTypes.stringBaseType);
   }
 
   ConcreteType visitStringInterpolationPart(StringInterpolationPart node) {
     node.visitChildren(this);
-    return new ConcreteType.singleton(inferrer.baseTypes.stringBaseType);
+    return inferrer.singletonConcreteType(inferrer.baseTypes.stringBaseType);
   }
 
   ConcreteType visitEmptyStatement(EmptyStatement node) {
-    return new ConcreteType.empty();
+    return inferrer.emptyConcreteType;
   }
 
   ConcreteType visitBreakStatement(BreakStatement node) {
-    return new ConcreteType.empty();
+    return inferrer.emptyConcreteType;
   }
 
   ConcreteType visitContinueStatement(ContinueStatement node) {
     // TODO(polux): we can be more precise
-    return new ConcreteType.empty();
+    return inferrer.emptyConcreteType;
   }
 
   ConcreteType visitForIn(ForIn node) {
@@ -1273,7 +1306,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitLiteralMap(LiteralMap node) {
     visitNodeList(node.entries);
-    return new ConcreteType.singleton(inferrer.baseTypes.mapBaseType);
+    return inferrer.singletonConcreteType(inferrer.baseTypes.mapBaseType);
   }
 
   ConcreteType visitLiteralMapEntry(LiteralMapEntry node) {
@@ -1357,15 +1390,16 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       // node is a field of not(this)
       assert(node.receiver != null);
 
-      ConcreteType result = new ConcreteType.empty();
+      ConcreteType result = inferrer.emptyConcreteType;
       void augmentResult(BaseType baseReceiverType, Element member) {
         if (member.isField()) {
-          result = result.union(analyzeFieldRead(member));
+          result = inferrer.union(result, analyzeFieldRead(member));
         } else if (member.isAbstractField()){
           // call to a getter
           AbstractFieldElement abstractField = member;
-          result = result.union(analyzeGetterSend(baseReceiverType,
-                                                  abstractField.getter));
+          result = inferrer.union(
+              result,
+              analyzeGetterSend(baseReceiverType, abstractField.getter));
         }
         // since this is a get we ignore non-fields
       }
@@ -1403,7 +1437,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   ConcreteType analyzeDynamicSend(ConcreteType receiverType,
                                   SourceString canonicalizedMethodName,
                                   ArgumentsTypes argumentsTypes) {
-    ConcreteType result = new ConcreteType.empty();
+    ConcreteType result = inferrer.emptyConcreteType;
 
     if (receiverType.isUnkown()) {
       List<Element> methods =
@@ -1416,8 +1450,10 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         inferrer.addCaller(method, currentMethod);
         Element classElem = method.enclosingElement;
         ClassBaseType baseReceiverType = new ClassBaseType(classElem);
-        result = result.union(
-          inferrer.getSendReturnType(method, baseReceiverType, argumentsTypes));
+        result = inferrer.union(
+            result,
+            inferrer.getSendReturnType(method,baseReceiverType,
+                                       argumentsTypes));
       }
 
     } else {
@@ -1428,8 +1464,10 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
               canonicalizedMethodName);
           if (method != null) {
             inferrer.addCaller(method, currentMethod);
-            result = result.union(inferrer.getSendReturnType(method,
-                baseReceiverType, argumentsTypes));
+            result = inferrer.union(
+                result,
+                inferrer.getSendReturnType(method, baseReceiverType,
+                                           argumentsTypes));
           }
         }
       }
@@ -1448,7 +1486,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   ConcreteType visitDynamicSend(Send node) {
     ConcreteType receiverType = (node.receiver != null)
         ? analyze(node.receiver)
-        : new ConcreteType.singleton(
+        : inferrer.singletonConcreteType(
             new ClassBaseType(currentMethod.getEnclosingClass()));
     SourceString name =
         canonicalizeMethodName(node.selector.asIdentifier().source);
@@ -1459,7 +1497,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
                                                    argumentsTypes);
       return returnType.isEmpty()
           ? returnType
-          : new ConcreteType.singleton(inferrer.baseTypes.boolBaseType);
+          : inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
     } else {
       return analyzeDynamicSend(receiverType, name, argumentsTypes);
     }
@@ -1481,6 +1519,6 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitTypeReferenceSend(Send) {
-    return new ConcreteType.singleton(inferrer.baseTypes.typeBaseType);
+    return inferrer.singletonConcreteType(inferrer.baseTypes.typeBaseType);
   }
 }

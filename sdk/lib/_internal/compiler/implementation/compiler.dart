@@ -115,6 +115,11 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
   final bool enableConcreteTypeInference;
+  /**
+   * The maximum size of a concrete type before it widens to dynamic during
+   * concrete type inference.
+   */
+  final int maxConcreteTypeSize;
   final bool analyzeAll;
   final bool enableNativeLiveTypeAnalysis;
   final bool rejectDeprecatedFeatures;
@@ -232,6 +237,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableTypeAssertions: false,
             this.enableUserAssertions: false,
             this.enableConcreteTypeInference: false,
+            this.maxConcreteTypeSize: 5,
             this.enableMinification: false,
             this.enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
@@ -270,7 +276,7 @@ abstract class Compiler implements DiagnosticListener {
       resolver = new ResolverTask(this),
       closureToClassMapper = new closureMapping.ClosureTask(this, closureNamer),
       checker = new TypeCheckerTask(this),
-      typesTask = new ti.TypesTask(this, enableConcreteTypeInference),
+      typesTask = new ti.TypesTask(this),
       constantHandler = new ConstantHandler(this, backend.constantSystem),
       enqueuer = new EnqueueTask(this)];
 

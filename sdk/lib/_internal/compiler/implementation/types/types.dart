@@ -21,10 +21,10 @@ class TypesTask extends CompilerTask {
   final Map<Element, Link<Element>> typedSends;
   final ConcreteTypesInferrer concreteTypesInferrer;
 
-  TypesTask(Compiler compiler, bool enableConcreteTypeInference)
+  TypesTask(Compiler compiler)
     : untypedElements = new Set<Element>(),
       typedSends = new Map<Element, Link<Element>>(),
-      concreteTypesInferrer = enableConcreteTypeInference
+      concreteTypesInferrer = compiler.enableConcreteTypeInference
           ? new ConcreteTypesInferrer(compiler) : null,
       super(compiler);
 
@@ -70,7 +70,8 @@ class TypesTask extends CompilerTask {
       for (Element parameter in signature.requiredParameters) {
         if (types.isEmpty) return null;
         if (element == parameter) {
-          return new ConcreteType.singleton(new ClassBaseType(types.head));
+          return new ConcreteType.singleton(compiler.maxConcreteTypeSize,
+                                            new ClassBaseType(types.head));
         }
         types = types.tail;
       }
