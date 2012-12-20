@@ -58,7 +58,7 @@ void InitializeSSL() {
 }
 
 void main() {
-  InitializeSSL();
   testGoogleUrl();
   testBadHostName();
+  Expect.throws(InitializeSSL);
 }

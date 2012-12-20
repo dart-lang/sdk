@@ -86,7 +86,8 @@ class SSLFilter {
   Dart_Handle bad_certificate_callback() { return bad_certificate_callback_; }
   static void InitializeLibrary(const char* certificate_database,
                                 const char* password,
-                                bool use_builtin_root_certificates);
+                                bool use_builtin_root_certificates,
+                                bool report_duplicate_initialization = true);
   intptr_t ProcessBuffer(int bufferIndex);
   Dart_Handle PeerCertificate();
 

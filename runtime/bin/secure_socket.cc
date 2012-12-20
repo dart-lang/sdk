@@ -264,6 +264,9 @@ static Dart_Handle X509FromCertificate(CERTCertificate* certificate) {
 
 
 void SSLFilter::Init(Dart_Handle dart_this) {
+  if (!library_initialized_) {
+    InitializeLibrary(NULL, "", true, false);
+  }
   string_start_ = ThrowIfError(
       Dart_NewPersistentHandle(DartUtils::NewString("start")));
   string_length_ = ThrowIfError(
@@ -320,7 +323,8 @@ void SSLFilter::RegisterBadCertificateCallback(Dart_Handle callback) {
 
 void SSLFilter::InitializeLibrary(const char* certificate_database,
                                   const char* password,
-                                  bool use_builtin_root_certificates) {
+                                  bool use_builtin_root_certificates,
+                                  bool report_duplicate_initialization) {
   MutexLocker locker(&mutex_);
   if (!library_initialized_) {
     library_initialized_ = true;
@@ -362,7 +366,8 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
       ThrowPRException("Failed SSL_ConfigServerSessionIDCache call.");
     }
 
-  } else {
+  } else if (report_duplicate_initialization) {
+    mutex_.Unlock();  // MutexLocker destructor not called when throwing.
     ThrowException("Called SSLFilter::InitializeLibrary more than once");
   }
 }
