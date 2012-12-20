@@ -4,21 +4,19 @@
 
 part of yaml;
 
-/**
- * Translates a string of characters into a YAML serialization tree.
- *
- * This parser is designed to closely follow the spec. All productions in the
- * spec are numbered, and the corresponding methods in the parser have the same
- * numbers. This is certainly not the most efficient way of parsing YAML, but it
- * is the easiest to write and read in the context of the spec.
- *
- * Methods corresponding to productions are also named as in the spec,
- * translating the name of the method (although not the annotation characters)
- * into camel-case for dart style.. For example, the spec has a production named
- * `nb-ns-plain-in-line`, and the method implementing it is named
- * `nb_ns_plainInLine`. The exception to that rule is methods that just
- * recognize character classes; these are named `is*`.
- */
+/// Translates a string of characters into a YAML serialization tree.
+///
+/// This parser is designed to closely follow the spec. All productions in the
+/// spec are numbered, and the corresponding methods in the parser have the same
+/// numbers. This is certainly not the most efficient way of parsing YAML, but
+/// it is the easiest to write and read in the context of the spec.
+///
+/// Methods corresponding to productions are also named as in the spec,
+/// translating the name of the method (although not the annotation characters)
+/// into camel-case for dart style.. For example, the spec has a production
+/// named `nb-ns-plain-in-line`, and the method implementing it is named
+/// `nb_ns_plainInLine`. The exception to that rule is methods that just
+/// recognize character classes; these are named `is*`.
 class _Parser {
   static const TAB = 0x9;
   static const LF = 0xA;
@@ -112,73 +110,56 @@ class _Parser {
   static const CHOMPING_KEEP = 1;
   static const CHOMPING_CLIP = 2;
 
-  /** The source string being parsed. */
+  /// The source string being parsed.
   final String s;
 
-  /** The current position in the source string. */
+  /// The current position in the source string.
   int pos = 0;
 
-  /** The length of the string being parsed. */
+  /// The length of the string being parsed.
   final int len;
 
-  /** The current (0-based) line in the source string. */
+  /// The current (0-based) line in the source string.
   int line = 0;
 
-  /** The current (0-based) column in the source string. */
+  /// The current (0-based) column in the source string.
   int column = 0;
 
-  /**
-   * Whether we're parsing a bare document (that is, one that doesn't begin with
-   * `---`). Bare documents don't allow `%` immediately following newlines.
-   */
+  /// Whether we're parsing a bare document (that is, one that doesn't begin
+  /// with `---`). Bare documents don't allow `%` immediately following
+  /// newlines.
   bool inBareDocument = false;
 
-  /**
-   * The line number of the farthest position that has been parsed successfully
-   * before backtracking. Used for error reporting.
-   */
+  /// The line number of the farthest position that has been parsed successfully
+  /// before backtracking. Used for error reporting.
   int farthestLine = 0;
 
-  /**
-   * The column number of the farthest position that has been parsed
-   * successfully before backtracking. Used for error reporting.
-   */
+  /// The column number of the farthest position that has been parsed
+  /// successfully before backtracking. Used for error reporting.
   int farthestColumn = 0;
 
-  /**
-   * The farthest position in the source string that has been parsed
-   * successfully before backtracking. Used for error reporting.
-   */
+  /// The farthest position in the source string that has been parsed
+  /// successfully before backtracking. Used for error reporting.
   int farthestPos = 0;
 
-  /**
-   * The name of the context of the farthest position that has been parsed
-   * successfully before backtracking. Used for error reporting.
-   */
+  /// The name of the context of the farthest position that has been parsed
+  /// successfully before backtracking. Used for error reporting.
   String farthestContext = "document";
 
-  /** A stack of the names of parse contexts. Used for error reporting. */
+  /// A stack of the names of parse contexts. Used for error reporting.
   List<String> contextStack;
 
-  /**
-   * Annotations attached to ranges of the source string that add extra
-   * information to any errors that occur in the annotated range.
-   */
+  /// Annotations attached to ranges of the source string that add extra
+  /// information to any errors that occur in the annotated range.
   _RangeMap<String> errorAnnotations;
 
-  /**
-   * The buffer containing the string currently being captured.
-   */
+  /// The buffer containing the string currently being captured.
   StringBuffer capturedString;
 
-  /**
-   * The beginning of the current section of the captured string.
-   */
+  /// The beginning of the current section of the captured string.
   int captureStart;
 
-  /**
-   * Whether the current string capture is being overridden.
-   */
+  /// Whether the current string capture is being overridden.
   bool capturingAs = false;
 
   _Parser(String s)
@@ -187,10 +168,8 @@ class _Parser {
       contextStack = <String>["document"],
       errorAnnotations = new _RangeMap();
 
-  /**
-   * Return the character at the current position, then move that position
-   * forward one character. Also updates the current line and column numbers.
-   */
+  /// Return the character at the current position, then move that position
+  /// forward one character. Also updates the current line and column numbers.
   int next() {
     if (pos == len) return -1;
     var char = s.charCodeAt(pos++);
@@ -214,28 +193,22 @@ class _Parser {
     return char;
   }
 
-  /**
-   * Returns the character at the current position, or the character [i]
-   * characters after the current position.
-   *
-   * Returns -1 if this would return a character after the end or before the
-   * beginning of the input string.
-   */
+  /// Returns the character at the current position, or the character [i]
+  /// characters after the current position.
+  ///
+  /// Returns -1 if this would return a character after the end or before the
+  /// beginning of the input string.
   int peek([int i = 0]) {
     var peekPos = pos + i;
     return (peekPos >= len || peekPos < 0) ? -1 : s.charCodeAt(peekPos);
   }
 
-  /**
-   * The truthiness operator. Returns `false` if [obj] is `null` or `false`,
-   * `true` otherwise.
-   */
+  /// The truthiness operator. Returns `false` if [obj] is `null` or `false`,
+  /// `true` otherwise.
   bool truth(obj) => obj != null && obj != false;
 
-  /**
-   * Consumes the current character if it matches [matcher]. Returns the result
-   * of [matcher].
-   */
+  /// Consumes the current character if it matches [matcher]. Returns the result
+  /// of [matcher].
   bool consume(bool matcher(int)) {
     if (matcher(peek())) {
       next();
@@ -244,17 +217,13 @@ class _Parser {
     return false;
   }
 
-  /**
-   * Consumes the current character if it equals [char].
-   */
+  /// Consumes the current character if it equals [char].
   bool consumeChar(int char) => consume((c) => c == char);
 
-  /**
-   * Calls [consumer] until it returns a falsey value. Returns a list of all
-   * truthy return values of [consumer], or null if it didn't consume anything.
-   *
-   * Conceptually, repeats a production one or more times.
-   */
+  /// Calls [consumer] until it returns a falsey value. Returns a list of all
+  /// truthy return values of [consumer], or null if it didn't consume anything.
+  ///
+  /// Conceptually, repeats a production one or more times.
   List oneOrMore(consumer()) {
     var first = consumer();
     if (!truth(first)) return null;
@@ -267,13 +236,11 @@ class _Parser {
     return null; // Unreachable.
   }
 
-  /**
-   * Calls [consumer] until it returns a falsey value. Returns a list of all
-   * truthy return values of [consumer], or the empty list if it didn't consume
-   * anything.
-   *
-   * Conceptually, repeats a production any number of times.
-   */
+  /// Calls [consumer] until it returns a falsey value. Returns a list of all
+  /// truthy return values of [consumer], or the empty list if it didn't consume
+  /// anything.
+  ///
+  /// Conceptually, repeats a production any number of times.
   List zeroOrMore(consumer()) {
     var out = [];
     var oldPos = pos;
@@ -286,16 +253,12 @@ class _Parser {
     return null; // Unreachable.
   }
 
-  /**
-   * Just calls [consumer] and returns its result. Used to make it explicit that
-   * a production is intended to be optional.
-   */
+  /// Just calls [consumer] and returns its result. Used to make it explicit
+  /// that a production is intended to be optional.
   zeroOrOne(consumer()) => consumer();
 
-  /**
-   * Calls each function in [consumers] until one returns a truthy value, then
-   * returns that.
-   */
+  /// Calls each function in [consumers] until one returns a truthy value, then
+  /// returns that.
   or(List<Function> consumers) {
     for (var c in consumers) {
       var res = c();
@@ -304,10 +267,8 @@ class _Parser {
     return null;
   }
 
-  /**
-   * Calls [consumer] and returns its result, but rolls back the parser state if
-   * [consumer] returns a falsey value.
-   */
+  /// Calls [consumer] and returns its result, but rolls back the parser state
+  /// if [consumer] returns a falsey value.
   transaction(consumer()) {
     var oldPos = pos;
     var oldLine = line;
@@ -327,13 +288,11 @@ class _Parser {
     return res;
   }
 
-  /**
-   * Consumes [n] characters matching [matcher], or none if there isn't a
-   * complete match. The first argument to [matcher] is the character code, the
-   * second is the index (from 0 to [n] - 1).
-   *
-   * Returns whether or not the characters were consumed.
-   */
+  /// Consumes [n] characters matching [matcher], or none if there isn't a
+  /// complete match. The first argument to [matcher] is the character code, the
+  /// second is the index (from 0 to [n] - 1).
+  ///
+  /// Returns whether or not the characters were consumed.
   bool nAtOnce(int n, bool matcher(int c, int i)) => transaction(() {
     for (int i = 0; i < n; i++) {
       if (!consume((c) => matcher(c, i))) return false;
@@ -341,26 +300,20 @@ class _Parser {
     return true;
   });
 
-  /**
-   * Consumes the exact characters in [str], or nothing.
-   *
-   * Returns whether or not the string was consumed.
-   */
+  /// Consumes the exact characters in [str], or nothing.
+  ///
+  /// Returns whether or not the string was consumed.
   bool rawString(String str) =>
     nAtOnce(str.length, (c, i) => str.charCodeAt(i) == c);
 
-  /**
-   * Consumes and returns a string of characters matching [matcher], or null if
-   * there are no such characters.
-   */
+  /// Consumes and returns a string of characters matching [matcher], or null if
+  /// there are no such characters.
   String stringOf(bool matcher(int)) =>
     captureString(() => oneOrMore(() => consume(matcher)));
 
-  /**
-   * Calls [consumer] and returns the string that was consumed while doing so,
-   * or null if [consumer] returned a falsey value. Automatically wraps
-   * [consumer] in `transaction`.
-   */
+  /// Calls [consumer] and returns the string that was consumed while doing so,
+  /// or null if [consumer] returned a falsey value. Automatically wraps
+  /// [consumer] in `transaction`.
   String captureString(consumer()) {
     // captureString calls may not be nested
     assert(capturedString == null);
@@ -404,9 +357,7 @@ class _Parser {
     captureStart = pos;
   }
 
-  /**
-   * Adds a tag and an anchor to [node], if they're defined.
-   */
+  /// Adds a tag and an anchor to [node], if they're defined.
   _Node addProps(_Node node, _Pair<_Tag, String> props) {
     if (props == null || node == null) return node;
     if (truth(props.first)) node.tag = props.first;
@@ -414,14 +365,14 @@ class _Parser {
     return node;
   }
 
-  /** Creates a MappingNode from [pairs]. */
+  /// Creates a MappingNode from [pairs].
   _MappingNode map(List<_Pair<_Node, _Node>> pairs) {
     var content = new Map<_Node, _Node>();
     pairs.forEach((pair) => content[pair.first] = pair.last);
     return new _MappingNode("?", content);
   }
 
-  /** Runs [fn] in a context named [name]. Used for error reporting. */
+  /// Runs [fn] in a context named [name]. Used for error reporting.
   context(String name, fn()) {
     try {
       contextStack.add(name);
@@ -432,11 +383,9 @@ class _Parser {
     }
   }
 
-  /**
-   * Adds [message] as extra information to any errors that occur between the
-   * current position and the position of the cursor after running [fn]. The
-   * cursor is reset after [fn] is run.
-   */
+  /// Adds [message] as extra information to any errors that occur between the
+  /// current position and the position of the cursor after running [fn]. The
+  /// cursor is reset after [fn] is run.
   annotateError(String message, fn()) {
     var start = pos;
     var end;
@@ -448,26 +397,22 @@ class _Parser {
     errorAnnotations[new _Range(start, end)] = message;
   }
 
-  /** Throws an error with additional context information. */
+  /// Throws an error with additional context information.
   error(String message) {
     // Line and column should be one-based.
     throw new SyntaxError(line + 1, column + 1,
         "$message (in $farthestContext)");
   }
 
-  /**
-   * If [result] is falsey, throws an error saying that [expected] was
-   * expected.
-   */
+  /// If [result] is falsey, throws an error saying that [expected] was
+  /// expected.
   expect(result, String expected) {
     if (truth(result)) return result;
     error("expected $expected");
   }
 
-  /**
-   * Throws an error saying that the parse failed. Uses [farthestLine],
-   * [farthestColumn], and [farthestContext] to provide additional information.
-   */
+  /// Throws an error saying that the parse failed. Uses [farthestLine],
+  /// [farthestColumn], and [farthestContext] to provide additional information.
   parseFailed() {
     var message = "invalid YAML in $farthestContext";
     var extraError = errorAnnotations[farthestPos];
@@ -475,14 +420,14 @@ class _Parser {
     throw new SyntaxError(farthestLine + 1, farthestColumn + 1, message);
   }
 
-  /** Returns the number of spaces after the current position. */
+  /// Returns the number of spaces after the current position.
   int countIndentation() {
     var i = 0;
     while (peek(i) == SP) i++;
     return i;
   }
 
-  /** Returns the indentation for a block scalar. */
+  /// Returns the indentation for a block scalar.
   int blockScalarAdditionalIndentation(_BlockHeader header, int indent) {
     if (!header.autoDetectIndent) return header.additionalIndent;
 
@@ -516,16 +461,14 @@ class _Parser {
     return spaces - indent;
   }
 
-  /** Returns whether the current position is at the beginning of a line. */
+  /// Returns whether the current position is at the beginning of a line.
   bool get atStartOfLine => column == 0;
 
-  /** Returns whether the current position is at the end of the input. */
+  /// Returns whether the current position is at the end of the input.
   bool get atEndOfFile => pos == len;
 
-  /**
-   * Given an indicator character, returns the type of that indicator (or null
-   * if the indicator isn't found.
-   */
+  /// Given an indicator character, returns the type of that indicator (or null
+  /// if the indicator isn't found.
   int indicatorType(int char) {
     switch (char) {
     case HYPHEN: return C_SEQUENCE_ENTRY;
@@ -1933,7 +1876,7 @@ class SyntaxError extends YamlException {
   String toString() => "Syntax error on line $line, column $column: $msg";
 }
 
-/** A pair of values. */
+/// A pair of values.
 class _Pair<E, F> {
   E first;
   F last;
@@ -1943,7 +1886,7 @@ class _Pair<E, F> {
   String toString() => '($first, $last)';
 }
 
-/** The information in the header for a block scalar. */
+/// The information in the header for a block scalar.
 class _BlockHeader {
   final int additionalIndent;
   final int chomping;
@@ -1953,38 +1896,33 @@ class _BlockHeader {
   bool get autoDetectIndent => additionalIndent == null;
 }
 
-/**
- * A range of characters in the YAML document, from [start] to [end] (inclusive).
- */
+/// A range of characters in the YAML document, from [start] to [end]
+/// (inclusive).
 class _Range {
-  /** The first character in the range. */
+  /// The first character in the range.
   final int start;
 
-  /** The last character in the range. */
+  /// The last character in the range.
   final int end;
 
   _Range(this.start, this.end);
 
-  /** Returns whether or not [pos] lies within this range. */
+  /// Returns whether or not [pos] lies within this range.
   bool contains(int pos) => pos >= start && pos <= end;
 }
 
-/**
- * A map that associates [E] values with [_Range]s. It's efficient to create new
- * associations, but finding the value associated with a position is more
- * expensive.
- */
+/// A map that associates [E] values with [_Range]s. It's efficient to create
+/// new associations, but finding the value associated with a position is more
+/// expensive.
 class _RangeMap<E> {
-  /** The ranges and their associated elements. */
+  /// The ranges and their associated elements.
   final List<_Pair<_Range, E>> contents;
 
   _RangeMap() : this.contents = <_Pair<_Range, E>>[];
 
-  /**
-   * Returns the value associated with the range in which [pos] lies, or null if
-   * there is no such range. If there's more than one such range, the most
-   * recently set one is used.
-   */
+  /// Returns the value associated with the range in which [pos] lies, or null
+  /// if there is no such range. If there's more than one such range, the most
+  /// recently set one is used.
   E operator[](int pos) {
     // Iterate backwards through contents so the more recent range takes
     // precedence. TODO(nweiz): clean this up when issue 2804 is fixed.
@@ -1995,7 +1933,7 @@ class _RangeMap<E> {
     return null;
   }
 
-  /** Associates [value] with [range]. */
+  /// Associates [value] with [range].
   operator[]=(_Range range, E value) =>
     contents.add(new _Pair<_Range, E>(range, value));
 }

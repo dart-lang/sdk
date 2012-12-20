@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * The main entrypoint for the pub command line application.
- */
+/// The main entrypoint for the pub command line application.
 library pub;
 
 import '../../pkg/args/lib/args.dart';
@@ -32,9 +30,7 @@ import 'version.dart';
 
 Version get pubVersion => new Version(0, 0, 0);
 
-/**
- * The commands that Pub understands.
- */
+/// The commands that Pub understands.
 Map<String, PubCommand> get pubCommands {
   var commands = {
     'help': new HelpCommand(),
@@ -52,10 +48,8 @@ Map<String, PubCommand> get pubCommands {
   return commands;
 }
 
-/**
- * The parser for arguments that are global to Pub rather than specific to a
- * single command.
- */
+/// The parser for arguments that are global to Pub rather than specific to a
+/// single command.
 ArgParser get pubArgParser {
   var parser = new ArgParser();
   parser.addFlag('help', abbr: 'h', negatable: false,
@@ -144,7 +138,7 @@ main() {
   command.run(cache, globalOptions, commandArgs);
 }
 
-/** Displays usage information for the app. */
+/// Displays usage information for the app. 
 void printUsage([String description = 'Pub is a package manager for Dart.']) {
   // Build up a buffer so it shows up as a single log entry.
   var buffer = new StringBuffer();
@@ -190,14 +184,10 @@ abstract class PubCommand {
 
   Entrypoint entrypoint;
 
-  /**
-   * A one-line description of this command.
-   */
+  /// A one-line description of this command.
   String get description;
 
-  /**
-   * How to invoke this command (e.g. `"pub install [package]"`).
-   */
+  /// How to invoke this command (e.g. `"pub install [package]"`).
   String get usage;
 
   /// Whether or not this command requires [entrypoint] to be defined. If false,
@@ -209,10 +199,8 @@ abstract class PubCommand {
   /// documentation, but they will work when invoked on the command line.
   final aliases = const <String>[];
 
-  /**
-   * Override this to define command-specific options. The results will be made
-   * available in [commandOptions].
-   */
+  /// Override this to define command-specific options. The results will be made
+  /// available in [commandOptions].
   ArgParser get commandParser => new ArgParser();
 
   void run(SystemCache cache_, ArgResults globalOptions_,
@@ -288,14 +276,12 @@ abstract class PubCommand {
     future.then((_) => exit(0));
   }
 
-  /**
-   * Override this to perform the specific command. Return a future that
-   * completes when the command is done or fails if the command fails. If the
-   * command is synchronous, it may return `null`.
-   */
+  /// Override this to perform the specific command. Return a future that
+  /// completes when the command is done or fails if the command fails. If the
+  /// command is synchronous, it may return `null`.
   Future onRun();
 
-  /** Displays usage information for this command. */
+  /// Displays usage information for this command. 
   void printUsage([String description]) {
     if (description == null) description = this.description;
 

@@ -20,23 +20,17 @@ import 'source_registry.dart';
 import 'utils.dart';
 import 'version.dart';
 
-/**
- * A package source that installs packages from a package hosting site that
- * uses the same API as pub.dartlang.org.
- */
+/// A package source that installs packages from a package hosting site that
+/// uses the same API as pub.dartlang.org.
 class HostedSource extends Source {
   final name = "hosted";
   final shouldCache = true;
 
-  /**
-   * The URL of the default package repository.
-   */
+  /// The URL of the default package repository.
   static final defaultUrl = "http://pub.dartlang.org";
 
-  /**
-   * Downloads a list of all versions of a package that are available from the
-   * site.
-   */
+  /// Downloads a list of all versions of a package that are available from the
+  /// site.
   Future<List<Version>> getVersions(String name, description) {
     var parsed = _parseDescription(description);
     var fullUrl = "${parsed.last}/packages/${parsed.first}.json";
@@ -49,10 +43,8 @@ class HostedSource extends Source {
     });
   }
 
-  /**
-   * Downloads and parses the pubspec for a specific version of a package that
-   * is available from the site.
-   */
+  /// Downloads and parses the pubspec for a specific version of a package that
+  /// is available from the site.
   Future<Pubspec> describe(PackageId id) {
     var parsed = _parseDescription(id.description);
     var fullUrl = "${parsed.last}/packages/${parsed.first}/versions/"
@@ -65,9 +57,7 @@ class HostedSource extends Source {
     });
   }
 
-  /**
-   * Downloads a package from the site and unpacks it.
-   */
+  /// Downloads a package from the site and unpacks it.
   Future<bool> install(PackageId id, String destPath) {
     var parsedDescription = _parseDescription(id.description);
     var name = parsedDescription.first;
@@ -95,12 +85,10 @@ class HostedSource extends Source {
     }).transform((_) => true);
   }
 
-  /**
-   * The system cache directory for the hosted source contains subdirectories
-   * for each separate repository URL that's used on the system. Each of these
-   * subdirectories then contains a subdirectory for each package installed
-   * from that site.
-   */
+  /// The system cache directory for the hosted source contains subdirectories
+  /// for each separate repository URL that's used on the system. Each of these
+  /// subdirectories then contains a subdirectory for each package installed
+  /// from that site.
   String systemCacheDirectory(PackageId id) {
     var parsed = _parseDescription(id.description);
     var url = parsed.last.replaceAll(new RegExp(r"^https?://"), "");
@@ -115,13 +103,11 @@ class HostedSource extends Source {
   bool descriptionsEqual(description1, description2) =>
       _parseDescription(description1) == _parseDescription(description2);
 
-  /**
-   * Ensures that [description] is a valid hosted package description.
-   *
-   * There are two valid formats. A plain string refers to a package with the
-   * given name from the default host, while a map with keys "name" and "url"
-   * refers to a package with the given name from the host at the given URL.
-   */
+  /// Ensures that [description] is a valid hosted package description.
+  ///
+  /// There are two valid formats. A plain string refers to a package with the
+  /// given name from the default host, while a map with keys "name" and "url"
+  /// refers to a package with the given name from the host at the given URL.
   void validateDescription(description, {bool fromLockFile: false}) {
     _parseDescription(description);
   }
@@ -147,12 +133,10 @@ class HostedSource extends Source {
     throw ex;
   }
 
-  /**
-   * Parses the description for a package.
-   *
-   * If the package parses correctly, this returns a (name, url) pair. If not,
-   * this throws a descriptive FormatException.
-   */
+  /// Parses the description for a package.
+  ///
+  /// If the package parses correctly, this returns a (name, url) pair. If not,
+  /// this throws a descriptive FormatException.
   Pair<String, String> _parseDescription(description) {
     if (description is String) {
       return new Pair<String, String>(description, defaultUrl);

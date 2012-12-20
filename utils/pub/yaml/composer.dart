@@ -4,35 +4,29 @@
 
 part of yaml;
 
-/**
- * Takes a parsed YAML document (what the spec calls the "serialization tree")
- * and resolves aliases, resolves tags, and parses scalars to produce the
- * "representation graph".
- */
+/// Takes a parsed YAML document (what the spec calls the "serialization tree")
+/// and resolves aliases, resolves tags, and parses scalars to produce the
+/// "representation graph".
 class _Composer extends _Visitor {
-  /** The root node of the serialization tree. */
+  /// The root node of the serialization tree.
   _Node root;
 
-  /**
-   * Map from anchor names to the most recent representation graph node with
-   * that anchor.
-   */
+  /// Map from anchor names to the most recent representation graph node with
+  /// that anchor.
   Map<String, _Node> anchors;
 
-  /**
-   * The next id to use for the represenation graph's anchors. The spec doesn't
-   * use anchors in the representation graph, but we do so that the constructor
-   * can ensure that the same node in the representation graph produces the same
-   * native object.
-   */
+  /// The next id to use for the represenation graph's anchors. The spec doesn't
+  /// use anchors in the representation graph, but we do so that the constructor
+  /// can ensure that the same node in the representation graph produces the
+  /// same native object.
   int idCounter;
 
   _Composer(this.root) : this.anchors = <String, _Node>{}, this.idCounter = 0;
 
-  /** Runs the Composer to produce a representation graph. */
+  /// Runs the Composer to produce a representation graph.
   _Node compose() => root.visit(this);
 
-  /** Returns the anchor to which an alias node refers. */
+  /// Returns the anchor to which an alias node refers.
   _Node visitAlias(_AliasNode alias) {
     if (!anchors.containsKey(alias.anchor)) {
       throw new YamlException("no anchor for alias ${alias.anchor}");
@@ -40,10 +34,8 @@ class _Composer extends _Visitor {
     return anchors[alias.anchor];
   }
 
-  /**
-   * Parses a scalar node according to its tag, or auto-detects the type if no
-   * tag exists. Currently this only supports the YAML core type schema.
-   */
+  /// Parses a scalar node according to its tag, or auto-detects the type if no
+  /// tag exists. Currently this only supports the YAML core type schema.
   _Node visitScalar(_ScalarNode scalar) {
     if (scalar.tag.name == "!") {
       return setAnchor(scalar, parseString(scalar.content));
@@ -71,7 +63,7 @@ class _Composer extends _Visitor {
     throw new YamlException('undefined tag: "${scalar.tag.name}"');
   }
 
-  /** Assigns a tag to the sequence and recursively composes its contents. */
+  /// Assigns a tag to the sequence and recursively composes its contents.
   _Node visitSequence(_SequenceNode seq) {
     var tagName = seq.tag.name;
     if (tagName != "!" && tagName != "?" && tagName != _Tag.yaml("seq")) {
@@ -83,7 +75,7 @@ class _Composer extends _Visitor {
     return result;
   }
 
-  /** Assigns a tag to the mapping and recursively composes its contents. */
+  /// Assigns a tag to the mapping and recursively composes its contents.
   _Node visitMapping(_MappingNode map) {
     var tagName = map.tag.name;
     if (tagName != "!" && tagName != "?" && tagName != _Tag.yaml("map")) {
@@ -95,10 +87,8 @@ class _Composer extends _Visitor {
     return result;
   }
 
-  /**
-   * If the serialization tree node [anchored] has an anchor, records that
-   * that anchor is pointing to the representation graph node [result].
-   */
+  /// If the serialization tree node [anchored] has an anchor, records that
+  /// that anchor is pointing to the representation graph node [result].
   _Node setAnchor(_Node anchored, _Node result) {
     if (anchored.anchor == null) return result;
     result.anchor = '${idCounter++}';
@@ -106,13 +96,13 @@ class _Composer extends _Visitor {
     return result;
   }
 
-  /** Parses a null scalar. */
+  /// Parses a null scalar.
   _ScalarNode parseNull(String content) {
     if (!new RegExp("^(null|Null|NULL|~|)\$").hasMatch(content)) return null;
     return new _ScalarNode(_Tag.yaml("null"), value: null);
   }
 
-  /** Parses a boolean scalar. */
+  /// Parses a boolean scalar.
   _ScalarNode parseBool(String content) {
     var match = new RegExp("^(?:(true|True|TRUE)|(false|False|FALSE))\$").
       firstMatch(content);
@@ -120,7 +110,7 @@ class _Composer extends _Visitor {
     return new _ScalarNode(_Tag.yaml("bool"), value: match.group(1) != null);
   }
 
-  /** Parses an integer scalar. */
+  /// Parses an integer scalar.
   _ScalarNode parseInt(String content) {
     var match = new RegExp("^[-+]?[0-9]+\$").firstMatch(content);
     if (match != null) {
@@ -148,7 +138,7 @@ class _Composer extends _Visitor {
     return null;
   }
 
-  /** Parses a floating-point scalar. */
+  /// Parses a floating-point scalar.
   _ScalarNode parseFloat(String content) {
     var match = new RegExp(
         "^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?\$").
@@ -177,7 +167,7 @@ class _Composer extends _Visitor {
     return null;
   }
 
-  /** Parses a string scalar. */
+  /// Parses a string scalar.
   _ScalarNode parseString(String content) =>
     new _ScalarNode(_Tag.yaml("str"), value: content);
 }

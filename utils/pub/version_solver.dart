@@ -2,39 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Attempts to resolve a set of version constraints for a package dependency
- * graph and select an appropriate set of best specific versions for all
- * dependent packages. It works iteratively and tries to reach a stable
- * solution where the constraints of all dependencies are met. If it fails to
- * reach a solution after a certain number of iterations, it assumes the
- * dependency graph is unstable and reports and error.
- *
- * There are two fundamental operations in the process of iterating over the
- * graph:
- *
- * 1.  Changing the selected concrete version of some package. (This includes
- *     adding and removing a package too, which is considering changing the
- *     version to or from "none".) In other words, a node has changed.
- * 2.  Changing the version constraint that one package places on another. In
- *     other words, and edge has changed.
- *
- * Both of these events have a corresponding (potentional) async operation and
- * roughly cycle back and forth between each other. When we change the version
- * of package changes, we asynchronously load the pubspec for the new version.
- * When that's done, we compare the dependencies of the new version versus the
- * old one. For everything that differs, we change those constraints between
- * this package and that dependency.
- *
- * When a constraint on a package changes, we re-calculate the overall
- * constraint on that package. I.e. with a shared dependency, we intersect all
- * of the constraints that its depending packages place on it. If that overall
- * constraint changes (say from "<3.0.0" to "<2.5.0"), then the currently
- * picked version for that package may fall outside of the new constraint. If
- * that happens, we find the new best version that meets the updated constraint
- * and then the change the package to use that version. That cycles back up to
- * the beginning again.
- */
+/// Attempts to resolve a set of version constraints for a package dependency
+/// graph and select an appropriate set of best specific versions for all
+/// dependent packages. It works iteratively and tries to reach a stable
+/// solution where the constraints of all dependencies are met. If it fails to
+/// reach a solution after a certain number of iterations, it assumes the
+/// dependency graph is unstable and reports and error.
+///
+/// There are two fundamental operations in the process of iterating over the
+/// graph:
+///
+/// 1.  Changing the selected concrete version of some package. (This includes
+///     adding and removing a package too, which is considering changing the
+///     version to or from "none".) In other words, a node has changed.
+/// 2.  Changing the version constraint that one package places on another. In
+///     other words, and edge has changed.
+///
+/// Both of these events have a corresponding (potentional) async operation and
+/// roughly cycle back and forth between each other. When we change the version
+/// of package changes, we asynchronously load the pubspec for the new version.
+/// When that's done, we compare the dependencies of the new version versus the
+/// old one. For everything that differs, we change those constraints between
+/// this package and that dependency.
+///
+/// When a constraint on a package changes, we re-calculate the overall
+/// constraint on that package. I.e. with a shared dependency, we intersect all
+/// of the constraints that its depending packages place on it. If that overall
+/// constraint changes (say from "<3.0.0" to "<2.5.0"), then the currently
+/// picked version for that package may fall outside of the new constraint. If
+/// that happens, we find the new best version that meets the updated constraint
+/// and then the change the package to use that version. That cycles back up to
+/// the beginning again.
 library version_solver;
 
 import 'dart:json';
@@ -49,15 +47,13 @@ import 'source_registry.dart';
 import 'utils.dart';
 import 'version.dart';
 
-/**
- * Attempts to select the best concrete versions for all of the transitive
- * dependencies of [root] taking into account all of the [VersionConstraint]s
- * that those dependencies place on each other and the requirements imposed by
- * [lockFile]. If successful, completes to a [Map] that maps package names to
- * the selected version for that package. If it fails, the future will complete
- * with a [NoVersionException], [DisjointConstraintException], or
- * [CouldNotSolveException].
- */
+/// Attempts to select the best concrete versions for all of the transitive
+/// dependencies of [root] taking into account all of the [VersionConstraint]s
+/// that those dependencies place on each other and the requirements imposed by
+/// [lockFile]. If successful, completes to a [Map] that maps package names to
+/// the selected version for that package. If it fails, the future will complete
+/// with a [NoVersionException], [DisjointConstraintException], or
+/// [CouldNotSolveException].
 Future<List<PackageId>> resolveVersions(SourceRegistry sources, Package root,
     LockFile lockFile) {
   log.message('Resolving dependencies...');
@@ -79,12 +75,10 @@ class VersionSolver {
         _packages = <String, Dependency>{},
         _work = new Queue<WorkItem>();
 
-  /**
-   * Tell the version solver to use the most recent version of [package] that
-   * exists in whatever source it's installed from. If that version violates
-   * constraints imposed by other dependencies, an error will be raised when
-   * solving the versions, even if an earlier compatible version exists.
-   */
+  /// Tell the version solver to use the most recent version of [package] that
+  /// exists in whatever source it's installed from. If that version violates
+  /// constraints imposed by other dependencies, an error will be raised when
+  /// solving the versions, even if an earlier compatible version exists.
   void useLatestVersion(String package) {
     // TODO(nweiz): How do we want to detect and handle unknown dependencies
     // here?
@@ -141,17 +135,13 @@ class VersionSolver {
     return _packages[package];
   }
 
-  /**
-   * Sets the best selected version of [package] to [version].
-   */
+  /// Sets the best selected version of [package] to [version].
   void setVersion(String package, Version version) {
     _packages[package].version = version;
   }
 
-  /**
-   * Returns the most recent version of [dependency] that satisfies all of its
-   * version constraints.
-   */
+  /// Returns the most recent version of [dependency] that satisfies all of its
+  /// version constraints.
   Future<Version> getBestVersion(Dependency dependency) {
     return dependency.getVersions().transform((versions) {
       var best = null;
@@ -177,15 +167,13 @@ class VersionSolver {
     });
   }
 
-  /**
-   * Looks for a package that depends (transitively) on [dependency] and has its
-   * version locked in the lockfile. If one is found, enqueues an
-   * [UnlockPackage] work item for it and returns true. Otherwise, returns
-   * false.
-   *
-   * This does a breadth-first search; immediate dependers will be unlocked
-   * first, followed by transitive dependers.
-   */
+  /// Looks for a package that depends (transitively) on [dependency] and has
+  /// its version locked in the lockfile. If one is found, enqueues an
+  /// [UnlockPackage] work item for it and returns true. Otherwise, returns
+  /// false.
+  ///
+  /// This does a breadth-first search; immediate dependers will be unlocked
+  /// first, followed by transitive dependers.
   bool tryUnlockDepender(Dependency dependency, [Set<String> seen]) {
     if (seen == null) seen = new Set();
     // Avoid an infinite loop if there are circular dependencies.
@@ -224,43 +212,31 @@ class VersionSolver {
   }
 }
 
-/**
- * The constraint solver works by iteratively processing a queue of work items.
- * Each item is a single atomic change to the dependency graph. Handling them
- * in a queue lets us handle asynchrony (resolving versions requires information
- * from servers) as well as avoid deeply nested recursion.
-*/
+/// The constraint solver works by iteratively processing a queue of work items.
+/// Each item is a single atomic change to the dependency graph. Handling them
+/// in a queue lets us handle asynchrony (resolving versions requires
+/// information from servers) as well as avoid deeply nested recursion.
 abstract class WorkItem {
-  /**
-   * Processes this work item. Returns a future that completes when the work is
-   * done. If `null` is returned, that means the work has completed
-   * synchronously and the next item can be started immediately.
-   */
+  /// Processes this work item. Returns a future that completes when the work is
+  /// done. If `null` is returned, that means the work has completed
+  /// synchronously and the next item can be started immediately.
   Future process(VersionSolver solver);
 }
 
-/**
- * The best selected version for a package has changed to [version]. If the
- * previous version of the package is `null`, that means the package is being
- * added to the graph. If [version] is `null`, it is being removed.
- */
+/// The best selected version for a package has changed to [version]. If the
+/// previous version of the package is `null`, that means the package is being
+/// added to the graph. If [version] is `null`, it is being removed.
 class ChangeVersion implements WorkItem {
   /// The name of the package whose version is being changed.
   final String package;
 
-  /**
-   * The source of the package whose version is changing.
-   */
+  /// The source of the package whose version is changing.
   final Source source;
 
-  /**
-   * The description identifying the package whose version is changing.
-   */
+  /// The description identifying the package whose version is changing.
   final description;
 
-  /**
-   * The new selected version.
-   */
+  /// The new selected version.
   final Version version;
 
   ChangeVersion(this.package, this.source, this.description, this.version) {
@@ -303,9 +279,7 @@ class ChangeVersion implements WorkItem {
     });
   }
 
-  /**
-   * Get the dependencies at [version] of the package being changed.
-   */
+  /// Get the dependencies at [version] of the package being changed.
   Future<Map<String, PackageRef>> getDependencyRefs(VersionSolver solver,
       Version version) {
     // If there is no version, it means no package, so no dependencies.
@@ -325,14 +299,12 @@ class ChangeVersion implements WorkItem {
   }
 }
 
-/**
- * A constraint that a depending package places on a dependent package has
- * changed.
- *
- * This is an abstract class that contains logic for updating the dependency
- * graph once a dependency has changed. Changing the dependency is the
- * responsibility of subclasses.
- */
+/// A constraint that a depending package places on a dependent package has
+/// changed.
+///
+/// This is an abstract class that contains logic for updating the dependency
+/// graph once a dependency has changed. Changing the dependency is the
+/// responsibility of subclasses.
 abstract class ChangeConstraint implements WorkItem {
   Future process(VersionSolver solver);
 
@@ -402,20 +374,14 @@ abstract class ChangeConstraint implements WorkItem {
   }
 }
 
-/**
- * The constraint given by [ref] is being placed by [depender].
- */
+/// The constraint given by [ref] is being placed by [depender].
 class AddConstraint extends ChangeConstraint {
-  /**
-   * The package that has the dependency.
-   */
+  /// The package that has the dependency.
   final String depender;
 
-  /**
-   * The package being depended on and the constraints being placed on it. The
-   * source, version, and description in this ref are all considered constraints
-   * on the dependent package.
-   */
+  /// The package being depended on and the constraints being placed on it. The
+  /// source, version, and description in this ref are all considered
+  /// constraints on the dependent package.
   final PackageRef ref;
 
   AddConstraint(this.depender, this.ref);
@@ -434,21 +400,15 @@ class AddConstraint extends ChangeConstraint {
   }
 }
 
-/**
- * [depender] is no longer placing a constraint on [dependent].
- */
+/// [depender] is no longer placing a constraint on [dependent].
 class RemoveConstraint extends ChangeConstraint {
-  /**
-   * The package that was placing a constraint on [dependent].
-   */
+  /// The package that was placing a constraint on [dependent].
   String depender;
 
-  /**
-   * The package that was being depended on.
-   */
+  /// The package that was being depended on.
   String dependent;
 
-  /** The constraint that was removed. */
+  /// The constraint that was removed.
   PackageRef _removed;
 
   RemoveConstraint(this.depender, this.dependent);
@@ -467,9 +427,9 @@ class RemoveConstraint extends ChangeConstraint {
   }
 }
 
-/** [package]'s version is no longer constrained by the lockfile. */
+/// [package]'s version is no longer constrained by the lockfile.
 class UnlockPackage implements WorkItem {
-  /** The package being unlocked. */
+  /// The package being unlocked.
   Dependency package;
 
   UnlockPackage(this.package);
@@ -489,10 +449,8 @@ class UnlockPackage implements WorkItem {
 // TODO(rnystrom): Instead of always pulling from the source (which will mean
 // hitting a server), we should consider caching pubspecs of uninstalled
 // packages in the system cache.
-/**
- * Maintains a cache of previously-loaded pubspecs. Used to avoid requesting
- * the same pubspec from the server repeatedly.
- */
+/// Maintains a cache of previously-loaded pubspecs. Used to avoid requesting
+/// the same pubspec from the server repeatedly.
 class PubspecCache {
   final SourceRegistry _sources;
   final Map<PackageId, Pubspec> _pubspecs;
@@ -500,16 +458,12 @@ class PubspecCache {
   PubspecCache(this._sources)
       : _pubspecs = new Map<PackageId, Pubspec>();
 
-  /**
-   * Caches [pubspec] as the [Pubspec] for the package identified by [id].
-   */
+  /// Caches [pubspec] as the [Pubspec] for the package identified by [id].
   void cache(PackageId id, Pubspec pubspec) {
     _pubspecs[id] = pubspec;
   }
 
-  /**
-   * Loads the pubspec for the package identified by [id].
-   */
+  /// Loads the pubspec for the package identified by [id].
   Future<Pubspec> load(PackageId id) {
     // Complete immediately if it's already cached.
     if (_pubspecs.containsKey(id)) {
@@ -524,47 +478,33 @@ class PubspecCache {
   }
 }
 
-/**
- * Describes one [Package] in the [DependencyGraph] and keeps track of which
- * packages depend on it and what constraints they place on it.
- */
+/// Describes one [Package] in the [DependencyGraph] and keeps track of which
+/// packages depend on it and what constraints they place on it.
 class Dependency {
-  /**
-   * The name of the this dependency's package.
-   */
+  /// The name of the this dependency's package.
   final String name;
 
-  /**
-   * The [PackageRefs] that represent constraints that depending packages have
-   * placed on this one.
-   */
+  /// The [PackageRefs] that represent constraints that depending packages have
+  /// placed on this one.
   final Map<String, PackageRef> _refs;
 
-  /**
-   * The currently-selected best version for this dependency.
-   */
+  /// The currently-selected best version for this dependency.
   Version version;
 
-  /**
-   * Whether this dependency should always select the latest version.
-   */
+  /// Whether this dependency should always select the latest version.
   bool useLatestVersion = false;
 
-  /**
-   * Gets whether or not any other packages are currently depending on this
-   * one. If `false`, then it means this package is not part of the dependency
-   * graph and should be omitted.
-   */
+  /// Gets whether or not any other packages are currently depending on this
+  /// one. If `false`, then it means this package is not part of the dependency
+  /// graph and should be omitted.
   bool get isDependedOn => !_refs.isEmpty;
 
-  /** The names of all the packages that depend on this dependency. */
+  /// The names of all the packages that depend on this dependency.
   Collection<String> get dependers => _refs.keys;
 
-  /**
-   * Gets the overall constraint that all packages are placing on this one.
-   * If no packages have a constraint on this one (which can happen when this
-   * package is in the process of being added to the graph), returns `null`.
-   */
+  /// Gets the overall constraint that all packages are placing on this one.
+  /// If no packages have a constraint on this one (which can happen when this
+  /// package is in the process of being added to the graph), returns `null`.
   VersionConstraint get constraint {
     if (_refs.isEmpty) return null;
     return new VersionConstraint.intersection(
@@ -606,15 +546,13 @@ class Dependency {
         version = other.version,
         _refs = new Map<String, PackageRef>.from(other._refs);
 
-  /** Creates a copy of this dependency. */
+  /// Creates a copy of this dependency.
   Dependency clone() => new Dependency._clone(this);
 
   /// Return a list of available versions for this dependency.
   Future<List<Version>> getVersions() => source.getVersions(name, description);
 
-  /**
-   * Places [ref] as a constraint from [package] onto this.
-   */
+  /// Places [ref] as a constraint from [package] onto this.
   void placeConstraint(String package, PackageRef ref) {
     var requiredDepender = _requiredDepender();
     if (requiredDepender != null) {
@@ -648,17 +586,13 @@ class Dependency {
     return dependers[1];
   }
 
-  /**
-   * Removes the constraint from [package] onto this.
-   */
+  /// Removes the constraint from [package] onto this.
   PackageRef removeConstraint(String package) => _refs.remove(package);
 }
 
-/**
- * Exception thrown when the [VersionConstraint] used to match a package is
- * valid (i.e. non-empty), but there are no released versions of the package
- * that fit that constraint.
- */
+/// Exception thrown when the [VersionConstraint] used to match a package is
+/// valid (i.e. non-empty), but there are no released versions of the package
+/// that fit that constraint.
 class NoVersionException implements Exception {
   final String package;
   final VersionConstraint constraint;
@@ -684,10 +618,8 @@ class NoVersionException implements Exception {
 }
 
 // TODO(rnystrom): Report the list of depending packages and their constraints.
-/**
- * Exception thrown when the most recent version of [package] must be selected,
- * but doesn't match the [VersionConstraint] imposed on the package.
- */
+/// Exception thrown when the most recent version of [package] must be selected,
+/// but doesn't match the [VersionConstraint] imposed on the package.
 class CouldNotUpdateException implements Exception {
   final String package;
   final VersionConstraint constraint;
@@ -699,11 +631,9 @@ class CouldNotUpdateException implements Exception {
       "The latest version of '$package', $best, does not match $constraint.";
 }
 
-/**
- * Exception thrown when the [VersionConstraint] used to match a package is
- * the empty set: in other words, multiple packages depend on it and have
- * conflicting constraints that have no overlap.
- */
+/// Exception thrown when the [VersionConstraint] used to match a package is
+/// the empty set: in other words, multiple packages depend on it and have
+/// conflicting constraints that have no overlap.
 class DisjointConstraintException implements Exception {
   final String package;
   final Map<String, PackageRef> _dependencies;
@@ -726,10 +656,8 @@ class DisjointConstraintException implements Exception {
   }
 }
 
-/**
- * Exception thrown when the [VersionSolver] fails to find a solution after a
- * certain number of iterations.
- */
+/// Exception thrown when the [VersionSolver] fails to find a solution after a
+/// certain number of iterations.
 class CouldNotSolveException implements Exception {
   CouldNotSolveException();
 
@@ -737,10 +665,8 @@ class CouldNotSolveException implements Exception {
       "Could not find a solution that met all version constraints.";
 }
 
-/**
- * Exception thrown when two packages with the same name but different sources
- * are depended upon.
- */
+/// Exception thrown when two packages with the same name but different sources
+/// are depended upon.
 class SourceMismatchException implements Exception {
   final String package;
   final String depender1;
@@ -758,10 +684,8 @@ class SourceMismatchException implements Exception {
   }
 }
 
-/**
- * Exception thrown when two packages with the same name and source but
- * different descriptions are depended upon.
- */
+/// Exception thrown when two packages with the same name and source but
+/// different descriptions are depended upon.
 class DescriptionMismatchException implements Exception {
   final String package;
   final String depender1;

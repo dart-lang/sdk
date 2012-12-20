@@ -11,23 +11,15 @@ import 'utils.dart';
 import 'version.dart';
 import 'yaml/yaml.dart';
 
-/**
- * The parsed and validated contents of a pubspec file.
- */
+/// The parsed and validated contents of a pubspec file.
 class Pubspec {
-  /**
-   * This package's name.
-   */
+  /// This package's name.
   final String name;
 
-  /**
-   * This package's version.
-   */
+  /// This package's version.
   final Version version;
 
-  /**
-   * The packages this package depends on.
-   */
+  /// The packages this package depends on.
   final List<PackageRef> dependencies;
 
   /// All pubspec fields. This includes the fields from which other properties
@@ -44,14 +36,12 @@ class Pubspec {
       dependencies = <PackageRef>[],
       fields = {};
 
-  /** Whether or not the pubspec has no contents. */
+  /// Whether or not the pubspec has no contents. 
   bool get isEmpty =>
     name == null && version == Version.none && dependencies.isEmpty;
 
-  /**
-   * Parses the pubspec whose text is [contents]. If the pubspec doesn't define
-   * version for itself, it defaults to [Version.none].
-   */
+  /// Parses the pubspec whose text is [contents]. If the pubspec doesn't define
+  /// version for itself, it defaults to [Version.none].
   factory Pubspec.parse(String contents, SourceRegistry sources) {
     var name = null;
     var version = Version.none;

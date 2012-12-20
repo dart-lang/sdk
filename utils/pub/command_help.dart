@@ -10,7 +10,7 @@ import 'io.dart';
 import 'log.dart' as log;
 import 'pub.dart';
 
-/** Handles the `help` pub command. */
+/// Handles the `help` pub command. 
 class HelpCommand extends PubCommand {
   String get description => "Display help information for Pub.";
   String get usage => 'pub help [command]';

@@ -4,18 +4,18 @@
 
 part of yaml;
 
-/** The visitor pattern for YAML documents. */
+/// The visitor pattern for YAML documents.
 class _Visitor {
-  /** Returns [alias]. */
+  /// Returns [alias].
   visitAlias(_AliasNode alias) => alias;
 
-  /** Returns [scalar]. */
+  /// Returns [scalar].
   visitScalar(_ScalarNode scalar) => scalar;
 
-  /** Visits each node in [seq] and returns a list of the results. */
+  /// Visits each node in [seq] and returns a list of the results.
   visitSequence(_SequenceNode seq) => seq.content.map((e) => e.visit(this));
 
-  /** Visits each key and value in [map] and returns a map of the results. */
+  /// Visits each key and value in [map] and returns a map of the results.
   visitMapping(_MappingNode map) {
     var out = new YamlMap();
     for (var key in map.content.keys) {

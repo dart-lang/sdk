@@ -15,10 +15,8 @@ import 'io.dart';
 import 'log.dart' as log;
 
 // TODO(nweiz): make this configurable
-/**
- * The amount of time in milliseconds to allow HTTP requests before assuming
- * they've failed.
- */
+/// The amount of time in milliseconds to allow HTTP requests before assuming
+/// they've failed.
 final HTTP_TIMEOUT = 30 * 1000;
 
 /// An HTTP client that transforms 40* errors and socket exceptions into more
@@ -125,9 +123,7 @@ void invalidServerResponse(http.Response response) {
   throw 'Invalid server response:\n${response.body}';
 }
 
-/**
- * Exception thrown when an HTTP operation fails.
- */
+/// Exception thrown when an HTTP operation fails.
 class PubHttpException implements Exception {
   final http.Response response;
 

@@ -8,7 +8,7 @@ part of yaml;
 // documents. These nodes are used for both the serialization tree and the
 // representation graph.
 
-/** A tag that indicates the type of a YAML node. */
+/// A tag that indicates the type of a YAML node.
 class _Tag {
   // TODO(nweiz): it would better match the semantics of the spec if there were
   // a singleton instance of this class for each tag.
@@ -19,10 +19,10 @@ class _Tag {
 
   static const String YAML_URI_PREFIX = 'tag:yaml.org,2002:';
 
-  /** The name of the tag, either a URI or a local tag beginning with "!". */
+  /// The name of the tag, either a URI or a local tag beginning with "!".
   final String name;
 
-  /** The kind of the tag: SCALAR_KIND, SEQUENCE_KIND, or MAPPING_KIND. */
+  /// The kind of the tag: SCALAR_KIND, SEQUENCE_KIND, or MAPPING_KIND.
   final int kind;
 
   _Tag(this.name, this.kind);
@@ -31,10 +31,10 @@ class _Tag {
   _Tag.sequence(String name) : this(name, SEQUENCE_KIND);
   _Tag.mapping(String name) : this(name, MAPPING_KIND);
 
-  /** Returns the standard YAML tag URI for [type]. */
+  /// Returns the standard YAML tag URI for [type].
   static String yaml(String type) => "tag:yaml.org,2002:$type";
 
-  /** Two tags are equal if their URIs are equal. */
+  /// Two tags are equal if their URIs are equal.
   operator ==(other) {
     if (other is! _Tag) return false;
     return name == other.name;
@@ -51,12 +51,12 @@ class _Tag {
   int get hashCode => name.hashCode;
 }
 
-/** The abstract class for YAML nodes. */
+/// The abstract class for YAML nodes.
 abstract class _Node {
-  /** Every YAML node has a tag that describes its type. */
+  /// Every YAML node has a tag that describes its type.
   _Tag tag;
 
-  /** Any YAML node can have an anchor associated with it. */
+  /// Any YAML node can have an anchor associated with it.
   String anchor;
 
   _Node(this.tag, [this.anchor]);
@@ -71,15 +71,15 @@ abstract class _Node {
   visit(_Visitor v);
 }
 
-/** A sequence node represents an ordered list of nodes. */
+/// A sequence node represents an ordered list of nodes.
 class _SequenceNode extends _Node {
-  /** The nodes in the sequence. */
+  /// The nodes in the sequence.
   List<_Node> content;
 
   _SequenceNode(String tagName, this.content)
     : super(new _Tag.sequence(tagName));
 
-  /** Two sequences are equal if their tags and contents are equal. */
+  /// Two sequences are equal if their tags and contents are equal.
   bool operator ==(other) {
     // Should be super != other; bug 2554
     if (!(super == other) || other is! _SequenceNode) return false;
@@ -97,50 +97,44 @@ class _SequenceNode extends _Node {
   visit(_Visitor v) => v.visitSequence(this);
 }
 
-/** An alias node is a reference to an anchor. */
+/// An alias node is a reference to an anchor.
 class _AliasNode extends _Node {
   _AliasNode(String anchor) : super(new _Tag.scalar(_Tag.yaml("str")), anchor);
 
   visit(_Visitor v) => v.visitAlias(this);
 }
 
-/** A scalar node represents all YAML nodes that have a single value. */
+/// A scalar node represents all YAML nodes that have a single value.
 class _ScalarNode extends _Node {
-  /** The string value of the scalar node, if it was created by the parser. */
+  /// The string value of the scalar node, if it was created by the parser.
   final String _content;
 
-  /** The Dart value of the scalar node, if it was created by the composer. */
+  /// The Dart value of the scalar node, if it was created by the composer.
   final value;
 
-  /**
-   * Creates a new Scalar node.
-   *
-   * Exactly one of [content] and [value] should be specified. Content should be
-   * specified for a newly-parsed scalar that hasn't yet been composed. Value
-   * should be specified for a composed scalar, although `null` is a valid
-   * value.
-   */
+  /// Creates a new Scalar node.
+  ///
+  /// Exactly one of [content] and [value] should be specified. Content should
+  /// be specified for a newly-parsed scalar that hasn't yet been composed.
+  /// Value should be specified for a composed scalar, although `null` is a
+  /// valid value.
   _ScalarNode(String tagName, {String content, this.value})
    : _content = content,
      super(new _Tag.scalar(tagName));
 
-  /** Two scalars are equal if their string representations are equal. */
+  /// Two scalars are equal if their string representations are equal.
   bool operator ==(other) {
     // Should be super != other; bug 2554
     if (!(super == other) || other is! _ScalarNode) return false;
     return content == other.content;
   }
 
-  /**
-   * Returns the string representation of the scalar. After composition, this is
-   * equal to the canonical serialization of the value of the scalar.
-   */
+  /// Returns the string representation of the scalar. After composition, this
+  /// is equal to the canonical serialization of the value of the scalar.
   String get content => _content != null ? _content : canonicalContent;
 
-  /**
-   * Returns the canonical serialization of the value of the scalar. If the
-   * value isn't given, the result of this will be "null".
-   */
+  /// Returns the canonical serialization of the value of the scalar. If the
+  /// value isn't given, the result of this will be "null".
   String get canonicalContent {
     if (value == null || value is bool || value is int) return '$value';
 
@@ -192,10 +186,8 @@ class _ScalarNode extends _Node {
 
   String toString() => '$tag "$content"';
 
-  /**
-   * Left-pads [str] with zeros so that it's at least [length] characters
-   * long.
-   */
+  /// Left-pads [str] with zeros so that it's at least [length] characters
+  /// long.
   String zeroPad(String str, int length) {
     assert(length >= str.length);
     var prefix = [];
@@ -208,15 +200,15 @@ class _ScalarNode extends _Node {
   visit(_Visitor v) => v.visitScalar(this);
 }
 
-/** A mapping node represents an unordered map of nodes to nodes. */
+/// A mapping node represents an unordered map of nodes to nodes.
 class _MappingNode extends _Node {
-  /** The node map. */
+  /// The node map.
   Map<_Node, _Node> content;
 
   _MappingNode(String tagName, this.content)
     : super(new _Tag.mapping(tagName));
 
-  /** Two mappings are equal if their tags and contents are equal. */
+  /// Two mappings are equal if their tags and contents are equal.
   bool operator ==(other) {
     // Should be super != other; bug 2554
     if (!(super == other) || other is! _MappingNode) return false;
