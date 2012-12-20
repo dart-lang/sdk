@@ -184,8 +184,12 @@ class AudioBufferSourceNode extends AudioSourceNode {
       _start_1(when);
       return;
     }
+    if ((when is num || when == null) && (grainOffset is num || grainOffset == null) && !?grainDuration) {
+      _start_2(when, grainOffset);
+      return;
+    }
     if ((when is num || when == null) && (grainOffset is num || grainOffset == null) && (grainDuration is num || grainDuration == null)) {
-      _start_2(when, grainOffset, grainDuration);
+      _start_3(when, grainOffset, grainDuration);
       return;
     }
     throw "Incorrect number or type of arguments";
@@ -197,7 +201,11 @@ class AudioBufferSourceNode extends AudioSourceNode {
 
 
   /** @domName AudioBufferSourceNode.start_2 */
-  void _start_2(when, grainOffset, grainDuration) native "AudioBufferSourceNode_start_2_Callback";
+  void _start_2(when, grainOffset) native "AudioBufferSourceNode_start_2_Callback";
+
+
+  /** @domName AudioBufferSourceNode.start_3 */
+  void _start_3(when, grainOffset, grainDuration) native "AudioBufferSourceNode_start_3_Callback";
 
 
   /** @domName AudioBufferSourceNode.stop */
@@ -334,6 +342,10 @@ class AudioContext extends EventTarget {
 
   /** @domName AudioContext.createMediaElementSource */
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native "AudioContext_createMediaElementSource_Callback";
+
+
+  /** @domName AudioContext.createMediaStreamDestination */
+  MediaStreamAudioDestinationNode createMediaStreamDestination() native "AudioContext_createMediaStreamDestination_Callback";
 
 
   /** @domName AudioContext.createMediaStreamSource */
@@ -639,6 +651,10 @@ class BiquadFilterNode extends AudioNode {
   AudioParam get Q native "BiquadFilterNode_Q_Getter";
 
 
+  /** @domName BiquadFilterNode.detune */
+  AudioParam get detune native "BiquadFilterNode_detune_Getter";
+
+
   /** @domName BiquadFilterNode.frequency */
   AudioParam get frequency native "BiquadFilterNode_frequency_Getter";
 
@@ -802,6 +818,22 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName MediaStreamAudioDestinationNode
+class MediaStreamAudioDestinationNode extends AudioSourceNode {
+  MediaStreamAudioDestinationNode.internal(): super.internal();
+
+
+  /** @domName MediaStreamAudioDestinationNode.stream */
+  MediaStream get stream native "MediaStreamAudioDestinationNode_stream_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName MediaStreamAudioSourceNode
 class MediaStreamAudioSourceNode extends AudioSourceNode {
   MediaStreamAudioSourceNode.internal(): super.internal();
@@ -913,10 +945,6 @@ class PannerNode extends AudioNode {
   static const int SOUNDFIELD = 2;
 
 
-  /** @domName PannerNode.coneGain */
-  AudioGain get coneGain native "PannerNode_coneGain_Getter";
-
-
   /** @domName PannerNode.coneInnerAngle */
   num get coneInnerAngle native "PannerNode_coneInnerAngle_Getter";
 
@@ -939,10 +967,6 @@ class PannerNode extends AudioNode {
 
   /** @domName PannerNode.coneOuterGain */
   void set coneOuterGain(num value) native "PannerNode_coneOuterGain_Setter";
-
-
-  /** @domName PannerNode.distanceGain */
-  AudioGain get distanceGain native "PannerNode_distanceGain_Getter";
 
 
   /** @domName PannerNode.distanceModel */
@@ -1008,23 +1032,10 @@ class PannerNode extends AudioNode {
 class ScriptProcessorNode extends AudioNode implements EventTarget {
   ScriptProcessorNode.internal(): super.internal();
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  ScriptProcessorNodeEvents get on =>
-    new ScriptProcessorNodeEvents(this);
-
 
   /** @domName ScriptProcessorNode.bufferSize */
   int get bufferSize native "ScriptProcessorNode_bufferSize_Getter";
 
-}
-
-/// @docsEditable true
-class ScriptProcessorNodeEvents extends Events {
-  /// @docsEditable true
-  ScriptProcessorNodeEvents(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get audioProcess => this['audioprocess'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

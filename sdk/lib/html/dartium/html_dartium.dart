@@ -2248,6 +2248,10 @@ class Console extends NativeFieldWrapperClass1 {
   void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
 
 
+  /** @domName Console.clear */
+  void clear(Object arg) native "Console_clear_Callback";
+
+
   /** @domName Console.count */
   void count(Object arg) native "Console_count_Callback";
 
@@ -2289,7 +2293,7 @@ class Console extends NativeFieldWrapperClass1 {
 
 
   /** @domName Console.markTimeline */
-  void markTimeline(Object arg) native "Console_markTimeline_Callback";
+  void markTimeline() native "Console_markTimeline_Callback";
 
 
   /** @domName Console.profile */
@@ -2305,11 +2309,11 @@ class Console extends NativeFieldWrapperClass1 {
 
 
   /** @domName Console.timeEnd */
-  void timeEnd(String title, Object arg) native "Console_timeEnd_Callback";
+  void timeEnd(String title) native "Console_timeEnd_Callback";
 
 
   /** @domName Console.timeStamp */
-  void timeStamp(Object arg) native "Console_timeStamp_Callback";
+  void timeStamp() native "Console_timeStamp_Callback";
 
 
   /** @domName Console.trace */
@@ -9239,6 +9243,14 @@ abstract class Element extends Node implements ElementTraversal {
   Element get previousElementSibling native "Element_previousElementSibling_Getter";
 
 
+  /** @domName Element.pseudo */
+  String get pseudo native "Element_pseudo_Getter";
+
+
+  /** @domName Element.pseudo */
+  void set pseudo(String value) native "Element_pseudo_Setter";
+
+
   /** @domName Element.scrollHeight */
   int get scrollHeight native "Element_scrollHeight_Getter";
 
@@ -9361,6 +9373,10 @@ abstract class Element extends Node implements ElementTraversal {
 
   /** @domName Element.setAttributeNS */
   void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
+
+
+  /** @domName Element.webkitCreateShadowRoot */
+  ShadowRoot webkitCreateShadowRoot() native "Element_webkitCreateShadowRoot_Callback";
 
 
   /** @domName Element.webkitMatchesSelector */
@@ -12102,6 +12118,22 @@ class HtmlElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName HTMLFormControlsCollection
+class HtmlFormControlsCollection extends HtmlCollection {
+  HtmlFormControlsCollection.internal(): super.internal();
+
+
+  /** @domName HTMLFormControlsCollection.namedItem */
+  Node namedItem(String name) native "HTMLFormControlsCollection_namedItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName HTMLOptionsCollection
 class HtmlOptionsCollection extends HtmlCollection {
   HtmlOptionsCollection.internal(): super.internal();
@@ -12125,6 +12157,10 @@ class HtmlOptionsCollection extends HtmlCollection {
 
   /** @domName HTMLOptionsCollection.numericIndexSetter */
   void operator[]=(int index, Node value) native "HTMLOptionsCollection_numericIndexSetter_Callback";
+
+
+  /** @domName HTMLOptionsCollection.namedItem */
+  Node namedItem(String name) native "HTMLOptionsCollection_namedItem_Callback";
 
 
   /** @domName HTMLOptionsCollection.remove */
@@ -12535,37 +12571,6 @@ class IFrameElement extends _Element_Merged {
 
   /** @domName HTMLIFrameElement.width */
   void set width(String value) native "HTMLIFrameElement_width_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IceCandidate
-class IceCandidate extends NativeFieldWrapperClass1 {
-
-  ///@docsEditable true
-  factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
-  IceCandidate.internal();
-
-
-  /** @domName IceCandidate.label */
-  String get label native "IceCandidate_label_Getter";
-
-
-  /** @domName IceCandidate.toSdp */
-  String toSdp() native "IceCandidate_toSdp_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15537,6 +15542,10 @@ class MediaController extends EventTarget {
   void set playbackRate(num value) native "MediaController_playbackRate_Setter";
 
 
+  /** @domName MediaController.playbackState */
+  String get playbackState native "MediaController_playbackState_Getter";
+
+
   /** @domName MediaController.played */
   TimeRanges get played native "MediaController_played_Getter";
 
@@ -15571,6 +15580,10 @@ class MediaController extends EventTarget {
 
   /** @domName MediaController.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_removeEventListener_Callback";
+
+
+  /** @domName MediaController.unpause */
+  void unpause() native "MediaController_unpause_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18462,6 +18475,10 @@ class PagePopupController extends NativeFieldWrapperClass1 {
   PagePopupController.internal();
 
 
+  /** @domName PagePopupController.formatMonth */
+  String formatMonth(int year, int zeroBaseMonth) native "PagePopupController_formatMonth_Callback";
+
+
   /** @domName PagePopupController.localizeNumberString */
   String localizeNumberString(String numberString) native "PagePopupController_localizeNumberString_Callback";
 
@@ -18555,146 +18572,6 @@ class ParamElement extends _Element_Merged {
   /** @domName HTMLParamElement.valueType */
   void set valueType(String value) native "HTMLParamElement_valueType_Setter";
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName PeerConnection00
-class PeerConnection00 extends EventTarget {
-
-  ///@docsEditable true
-  factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
-  PeerConnection00.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  PeerConnection00Events get on =>
-    new PeerConnection00Events(this);
-
-  static const int ACTIVE = 2;
-
-  static const int CLOSED = 3;
-
-  static const int ICE_CHECKING = 0x300;
-
-  static const int ICE_CLOSED = 0x700;
-
-  static const int ICE_COMPLETED = 0x500;
-
-  static const int ICE_CONNECTED = 0x400;
-
-  static const int ICE_FAILED = 0x600;
-
-  static const int ICE_GATHERING = 0x100;
-
-  static const int ICE_WAITING = 0x200;
-
-  static const int NEW = 0;
-
-  static const int OPENING = 1;
-
-  static const int SDP_ANSWER = 0x300;
-
-  static const int SDP_OFFER = 0x100;
-
-  static const int SDP_PRANSWER = 0x200;
-
-
-  /** @domName PeerConnection00.iceState */
-  int get iceState native "PeerConnection00_iceState_Getter";
-
-
-  /** @domName PeerConnection00.localDescription */
-  SessionDescription get localDescription native "PeerConnection00_localDescription_Getter";
-
-
-  /** @domName PeerConnection00.localStreams */
-  List<MediaStream> get localStreams native "PeerConnection00_localStreams_Getter";
-
-
-  /** @domName PeerConnection00.readyState */
-  int get readyState native "PeerConnection00_readyState_Getter";
-
-
-  /** @domName PeerConnection00.remoteDescription */
-  SessionDescription get remoteDescription native "PeerConnection00_remoteDescription_Getter";
-
-
-  /** @domName PeerConnection00.remoteStreams */
-  List<MediaStream> get remoteStreams native "PeerConnection00_remoteStreams_Getter";
-
-
-  /** @domName PeerConnection00.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_addEventListener_Callback";
-
-
-  /** @domName PeerConnection00.addStream */
-  void addStream(MediaStream stream, [Map mediaStreamHints]) native "PeerConnection00_addStream_Callback";
-
-
-  /** @domName PeerConnection00.close */
-  void close() native "PeerConnection00_close_Callback";
-
-
-  /** @domName PeerConnection00.createAnswer */
-  SessionDescription createAnswer(String offer, [Map mediaHints]) native "PeerConnection00_createAnswer_Callback";
-
-
-  /** @domName PeerConnection00.createOffer */
-  SessionDescription createOffer([Map mediaHints]) native "PeerConnection00_createOffer_Callback";
-
-
-  /** @domName PeerConnection00.dispatchEvent */
-  bool $dom_dispatchEvent(Event event) native "PeerConnection00_dispatchEvent_Callback";
-
-
-  /** @domName PeerConnection00.processIceMessage */
-  void processIceMessage(IceCandidate candidate) native "PeerConnection00_processIceMessage_Callback";
-
-
-  /** @domName PeerConnection00.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_removeEventListener_Callback";
-
-
-  /** @domName PeerConnection00.removeStream */
-  void removeStream(MediaStream stream) native "PeerConnection00_removeStream_Callback";
-
-
-  /** @domName PeerConnection00.setLocalDescription */
-  void setLocalDescription(int action, SessionDescription desc) native "PeerConnection00_setLocalDescription_Callback";
-
-
-  /** @domName PeerConnection00.setRemoteDescription */
-  void setRemoteDescription(int action, SessionDescription desc) native "PeerConnection00_setRemoteDescription_Callback";
-
-
-  /** @domName PeerConnection00.startIce */
-  void startIce([Map iceOptions]) native "PeerConnection00_startIce_Callback";
-
-}
-
-/// @docsEditable true
-class PeerConnection00Events extends Events {
-  /// @docsEditable true
-  PeerConnection00Events(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get addStream => this['addstream'];
-
-  /// @docsEditable true
-  EventListenerList get connecting => this['connecting'];
-
-  /// @docsEditable true
-  EventListenerList get open => this['open'];
-
-  /// @docsEditable true
-  EventListenerList get removeStream => this['removestream'];
-
-  /// @docsEditable true
-  EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19560,6 +19437,10 @@ class RtcPeerConnection extends EventTarget {
     new RtcPeerConnectionEvents(this);
 
 
+  /** @domName RTCPeerConnection.iceGatheringState */
+  String get iceGatheringState native "RTCPeerConnection_iceGatheringState_Getter";
+
+
   /** @domName RTCPeerConnection.iceState */
   String get iceState native "RTCPeerConnection_iceState_Getter";
 
@@ -19712,6 +19593,10 @@ class RtcStatsElement extends NativeFieldWrapperClass1 {
 
   /** @domName RTCStatsElement.timestamp */
   Date get timestamp native "RTCStatsElement_timestamp_Getter";
+
+
+  /** @domName RTCStatsElement.names */
+  List<String> names() native "RTCStatsElement_names_Callback";
 
 
   /** @domName RTCStatsElement.stat */
@@ -20128,29 +20013,6 @@ class SelectElement extends _Element_Merged {
       return [this.options[this.selectedIndex]];
     }
   }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName SessionDescription
-class SessionDescription extends NativeFieldWrapperClass1 {
-
-  ///@docsEditable true
-  factory SessionDescription(String sdp) => _SessionDescriptionFactoryProvider.createSessionDescription(sdp);
-  SessionDescription.internal();
-
-
-  /** @domName SessionDescription.addCandidate */
-  void addCandidate(IceCandidate candidate) native "SessionDescription_addCandidate_Callback";
-
-
-  /** @domName SessionDescription.toSdp */
-  String toSdp() native "SessionDescription_toSdp_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20932,6 +20794,10 @@ class SpeechRecognitionEvent extends Event {
   /** @domName SpeechRecognitionEvent.resultIndex */
   int get resultIndex native "SpeechRecognitionEvent_resultIndex_Getter";
 
+
+  /** @domName SpeechRecognitionEvent.results */
+  List<SpeechRecognitionResult> get results native "SpeechRecognitionEvent_results_Getter";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20945,12 +20811,8 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
   SpeechRecognitionResult.internal();
 
 
-  /** @domName SpeechRecognitionResult.emma */
-  Document get emma native "SpeechRecognitionResult_emma_Getter";
-
-
-  /** @domName SpeechRecognitionResult.final */
-  bool get finalValue native "SpeechRecognitionResult_final_Getter";
+  /** @domName SpeechRecognitionResult.isFinal */
+  bool get isFinal native "SpeechRecognitionResult_isFinal_Getter";
 
 
   /** @domName SpeechRecognitionResult.length */
@@ -23859,6 +23721,10 @@ class ValidityState extends NativeFieldWrapperClass1 {
   ValidityState.internal();
 
 
+  /** @domName ValidityState.badInput */
+  bool get badInput native "ValidityState_badInput_Getter";
+
+
   /** @domName ValidityState.customError */
   bool get customError native "ValidityState_customError_Getter";
 
@@ -25613,6 +25479,18 @@ class WebKitCssFilterValue extends _CssValueList {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName WebKitCSSMixFunctionValue
+class WebKitCssMixFunctionValue extends _CssValueList {
+  WebKitCssMixFunctionValue.internal(): super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName WebKitNamedFlow
 class WebKitNamedFlow extends EventTarget {
   WebKitNamedFlow.internal(): super.internal();
@@ -25663,6 +25541,8 @@ class WebKitNamedFlow extends EventTarget {
 
 /// @domName WebSocket
 class WebSocket extends EventTarget {
+
+  ///@docsEditable true
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
   WebSocket.internal(): super.internal();
 
@@ -25746,9 +25626,62 @@ class WebSocket extends EventTarget {
   /** @domName WebSocket.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
+  bool send(data) {
+    if ((data is ArrayBuffer || data == null)) {
+      return _send_1(data);
+    }
+    if ((data is ArrayBufferView || data == null)) {
+      return _send_2(data);
+    }
+    if ((data is Blob || data == null)) {
+      return _send_3(data);
+    }
+    if ((data is String || data == null)) {
+      _send_4(data);
+      return;
+    }
+    if ((data is ArrayBufferView || data == null)) {
+      _send_5(data);
+      return;
+    }
+    if ((data is Blob || data == null)) {
+      _send_6(data);
+      return;
+    }
+    if ((data is ArrayBuffer || data == null)) {
+      _send_7(data);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
 
-  /** @domName WebSocket.send */
-  void send(data) native "WebSocket_send_Callback";
+
+  /** @domName WebSocket.send_1 */
+  bool _send_1(data) native "WebSocket_send_1_Callback";
+
+
+  /** @domName WebSocket.send_2 */
+  bool _send_2(data) native "WebSocket_send_2_Callback";
+
+
+  /** @domName WebSocket.send_3 */
+  bool _send_3(data) native "WebSocket_send_3_Callback";
+
+
+  /** @domName WebSocket.send_4 */
+  void _send_4(data) native "WebSocket_send_4_Callback";
+
+
+  /** @domName WebSocket.send_5 */
+  void _send_5(data) native "WebSocket_send_5_Callback";
+
+
+  /** @domName WebSocket.send_6 */
+  void _send_6(data) native "WebSocket_send_6_Callback";
+
+
+  /** @domName WebSocket.send_7 */
+  void _send_7(data) native "WebSocket_send_7_Callback";
 
 }
 
@@ -27211,14 +27144,6 @@ class _HttpRequestFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _IceCandidateFactoryProvider {
-  static IceCandidate createIceCandidate(String label, String candidateLine) native "IceCandidate_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 class _MediaControllerFactoryProvider {
   static MediaController createMediaController() native "MediaController_constructor_Callback";
 }
@@ -27395,14 +27320,6 @@ class _OptionElementFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _PeerConnection00FactoryProvider {
-  static PeerConnection00 createPeerConnection00(String serverConfiguration, IceCallback iceCallback) native "PeerConnection00_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 class _RtcIceCandidateFactoryProvider {
   static RtcIceCandidate createRtcIceCandidate(Map dictionary) native "RTCIceCandidate_constructor_Callback";
 }
@@ -27421,14 +27338,6 @@ class _RtcPeerConnectionFactoryProvider {
 
 class _RtcSessionDescriptionFactoryProvider {
   static RtcSessionDescription createRtcSessionDescription(Map dictionary) native "RTCSessionDescription_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _SessionDescriptionFactoryProvider {
-  static SessionDescription createSessionDescription(String sdp) native "SessionDescription_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27957,6 +27866,14 @@ class _WebKitAnimationList extends NativeFieldWrapperClass1 implements List<Anim
   /** @domName WebKitAnimationList.item */
   Animation item(int index) native "WebKitAnimationList_item_Callback";
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class _WebSocketFactoryProvider {
+  static WebSocket createWebSocket(String url) native "WebSocket_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30009,11 +29926,6 @@ class _TypedArrayFactoryProvider {
 class _PointFactoryProvider {
   static Point createPoint(num x, num y) => _createWebKitPoint(x, y);
   static _createWebKitPoint(num x, num y) native "WebKitPoint_constructor_Callback";
-}
-
-class _WebSocketFactoryProvider {
-  static WebSocket createWebSocket(String url) => _createWebSocket(url);
-  static _createWebSocket(String url) native "WebSocket_constructor_Callback";
 }
 
 class _TextFactoryProvider {

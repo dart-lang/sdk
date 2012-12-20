@@ -259,9 +259,6 @@ class Database extends EventTarget native "*IDBDatabase" {
   /// @domName IDBDatabase.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName IDBDatabase.setVersion; @docsEditable true
-  VersionChangeRequest setVersion(String version) native;
 }
 
 /// @docsEditable true
@@ -698,28 +695,26 @@ class ObjectStore native "*IDBObjectStore" {
   Index createIndex(String name, keyPath, [Map options]) {
     if ((?keyPath && (keyPath is List<String> || keyPath == null)) &&
         !?options) {
-      List keyPath_1 = convertDartToNative_StringArray(keyPath);
-      return _createIndex_1(name, keyPath_1);
+      return _createIndex_1(name, keyPath);
     }
     if ((?keyPath && (keyPath is List<String> || keyPath == null))) {
-      List keyPath_2 = convertDartToNative_StringArray(keyPath);
-      var options_3 = convertDartToNative_Dictionary(options);
-      return _createIndex_2(name, keyPath_2, options_3);
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _createIndex_2(name, keyPath, options_1);
     }
     if ((?keyPath && (keyPath is String || keyPath == null)) &&
         !?options) {
       return _createIndex_3(name, keyPath);
     }
     if ((?keyPath && (keyPath is String || keyPath == null))) {
-      var options_4 = convertDartToNative_Dictionary(options);
-      return _createIndex_4(name, keyPath, options_4);
+      var options_2 = convertDartToNative_Dictionary(options);
+      return _createIndex_4(name, keyPath, options_2);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createIndex')
-  Index _createIndex_1(name, List keyPath) native;
+  Index _createIndex_1(name, List<String> keyPath) native;
   @JSName('createIndex')
-  Index _createIndex_2(name, List keyPath, options) native;
+  Index _createIndex_2(name, List<String> keyPath, options) native;
   @JSName('createIndex')
   Index _createIndex_3(name, String keyPath) native;
   @JSName('createIndex')
@@ -861,9 +856,6 @@ class Request extends EventTarget native "*IDBRequest" {
   /// @domName IDBRequest.error; @docsEditable true
   final DomError error;
 
-  /// @domName IDBRequest.errorCode; @docsEditable true
-  final int errorCode;
-
   /// @domName IDBRequest.readyState; @docsEditable true
   final String readyState;
 
@@ -918,8 +910,6 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TransactionEvents get on =>
     new TransactionEvents(this);
-
-  static const int VERSION_CHANGE = 2;
 
   /// @domName IDBTransaction.db; @docsEditable true
   final Database db;

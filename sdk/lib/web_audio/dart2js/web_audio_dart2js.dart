@@ -201,6 +201,9 @@ class AudioContext extends EventTarget native "*AudioContext" {
   /// @domName AudioContext.createMediaElementSource; @docsEditable true
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native;
 
+  /// @domName AudioContext.createMediaStreamDestination; @docsEditable true
+  MediaStreamAudioDestinationNode createMediaStreamDestination() native;
+
   /// @domName AudioContext.createMediaStreamSource; @docsEditable true
   MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native;
 
@@ -413,6 +416,9 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
   /// @domName BiquadFilterNode.Q; @docsEditable true
   final AudioParam Q;
 
+  /// @domName BiquadFilterNode.detune; @docsEditable true
+  final AudioParam detune;
+
   /// @domName BiquadFilterNode.frequency; @docsEditable true
   final AudioParam frequency;
 
@@ -519,6 +525,17 @@ class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementA
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName MediaStreamAudioDestinationNode; @docsEditable true
+class MediaStreamAudioDestinationNode extends AudioSourceNode native "*MediaStreamAudioDestinationNode" {
+
+  /// @domName MediaStreamAudioDestinationNode.stream; @docsEditable true
+  final MediaStream stream;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName MediaStreamAudioSourceNode; @docsEditable true
 class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAudioSourceNode" {
 
@@ -603,9 +620,6 @@ class PannerNode extends AudioNode native "*PannerNode" {
 
   static const int SOUNDFIELD = 2;
 
-  /// @domName PannerNode.coneGain; @docsEditable true
-  final AudioGain coneGain;
-
   /// @domName PannerNode.coneInnerAngle; @docsEditable true
   num coneInnerAngle;
 
@@ -614,9 +628,6 @@ class PannerNode extends AudioNode native "*PannerNode" {
 
   /// @domName PannerNode.coneOuterGain; @docsEditable true
   num coneOuterGain;
-
-  /// @domName PannerNode.distanceGain; @docsEditable true
-  final AudioGain distanceGain;
 
   /// @domName PannerNode.distanceModel; @docsEditable true
   int distanceModel;
@@ -650,21 +661,8 @@ class PannerNode extends AudioNode native "*PannerNode" {
 /// @domName ScriptProcessorNode; @docsEditable true
 class ScriptProcessorNode extends AudioNode implements EventTarget native "*ScriptProcessorNode" {
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  ScriptProcessorNodeEvents get on =>
-    new ScriptProcessorNodeEvents(this);
-
   /// @domName ScriptProcessorNode.bufferSize; @docsEditable true
   final int bufferSize;
-}
-
-/// @docsEditable true
-class ScriptProcessorNodeEvents extends Events {
-  /// @docsEditable true
-  ScriptProcessorNodeEvents(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get audioProcess => this['audioprocess'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

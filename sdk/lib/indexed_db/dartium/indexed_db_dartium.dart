@@ -155,10 +155,6 @@ class Database extends EventTarget {
   /** @domName IDBDatabase.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_removeEventListener_Callback";
 
-
-  /** @domName IDBDatabase.setVersion */
-  VersionChangeRequest setVersion(String version) native "IDBDatabase_setVersion_Callback";
-
   Transaction transaction(storeName_OR_storeNames, /*DOMString*/ mode) {
     if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
       return _transaction_1(storeName_OR_storeNames, mode);
@@ -812,10 +808,6 @@ class Request extends EventTarget {
   DomError get error native "IDBRequest_error_Getter";
 
 
-  /** @domName IDBRequest.errorCode */
-  int get errorCode native "IDBRequest_errorCode_Getter";
-
-
   /** @domName IDBRequest.readyState */
   String get readyState native "IDBRequest_readyState_Getter";
 
@@ -874,8 +866,6 @@ class Transaction extends EventTarget {
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TransactionEvents get on =>
     new TransactionEvents(this);
-
-  static const int VERSION_CHANGE = 2;
 
 
   /** @domName IDBTransaction.db */

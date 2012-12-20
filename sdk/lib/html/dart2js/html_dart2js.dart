@@ -785,54 +785,12 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
     return e;
   }
 
-  /// The height of this canvas element in CSS pixels.
   /// @domName HTMLCanvasElement.height; @docsEditable true
   int height;
 
-  /// The width of this canvas element in CSS pixels.
   /// @domName HTMLCanvasElement.width; @docsEditable true
   int width;
 
-  /**
-   * Returns a data URI containing a representation of the image in the 
-   * format specified by type (defaults to 'image/png'). 
-   * 
-   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
-   * 
-   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
-   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
-   * value is used. Note: the default value varies by browser.
-   * 
-   * If the height or width of this canvas element is 0, then 'data:' is returned,
-   * representing no data.
-   * 
-   * If the type requested is not 'image/png', and the returned value is 
-   * 'data:image/png', then the requested type is not supported.
-   * 
-   * Example usage:
-   * 
-   *     CanvasElement canvas = new CanvasElement();
-   *     var ctx = canvas.context2d
-   *     ..fillStyle = "rgb(200,0,0)"
-   *     ..fillRect(10, 10, 55, 50);
-   *     var dataUrl = canvas.toDataURL("image/jpeg", 0.95);
-   *     // The Data Uri would look similar to
-   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
-   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
-   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
-   *     //Create a new image element from the data URI.
-   *     var img = new ImageElement();
-   *     img.src = dataUrl;
-   *     document.body.children.add(img);
-   *     
-   * See also:
-   * 
-   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
-   * 
-   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
-   * 
-   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
-   */
   /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
   @JSName('toDataURL')
   String toDataUrl(String type, [num quality]) native;
@@ -846,47 +804,9 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An opaque canvas object representing a gradient.
- *
- * Created by calling [createLinearGradient] or [createRadialGradient] on a
- * [CanvasRenderingContext2D] object.
- *
- * Example usage:
- *
- *     var canvas = new CanvasElement(width: 600, height: 600);
- *     var ctx = canvas.context2d;
- *     ctx.clearRect(0, 0, 600, 600);
- *     ctx.save();
- *     // Create radial gradient.
- *     CanvasGradient gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 600);
- *     gradient.addColorStop(0, '#000');
- *     gradient.addColorStop(1, 'rgb(255, 255, 255)');
- *     // Assign gradients to fill.
- *     ctx.fillStyle = gradient;
- *     // Draw a rectangle with a gradient fill.
- *     ctx.fillRect(0, 0, 600, 600);
- *     ctx.save();
- *     document.body.children.add(canvas);
- *
- * See also:
- *
- * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.
- * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.
- * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
- */
 /// @domName CanvasGradient; @docsEditable true
 class CanvasGradient native "*CanvasGradient" {
 
-  /**
-   * Adds a color stop to this gradient at the offset.
-   *
-   * The [offset] can range between 0.0 and 1.0.
-   *
-   * See also:
-   *
-   * * [Multiple Color Stops](https://developer.mozilla.org/en-US/docs/CSS/linear-gradient#Gradient_with_multiple_color_stops) from MDN.
-   */
   /// @domName CanvasGradient.addColorStop; @docsEditable true
   void addColorStop(num offset, String color) native;
 }
@@ -895,33 +815,6 @@ class CanvasGradient native "*CanvasGradient" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An opaque object representing a pattern of image, canvas, or video.
- *
- * Created by calling [createPattern] on a [CanvasRenderingContext2D] object.
- *
- * Example usage:
- *
- *     var canvas = new CanvasElement(width: 600, height: 600);
- *     var ctx = canvas.context2d;
- *     var img = new ImageElement();
- *     // Image src needs to be loaded before pattern is applied.
- *     img.on.load.add((event) {
- *       // When the image is loaded, create a pattern
- *       // from the ImageElement.
- *       CanvasPattern pattern = ctx.createPattern(img, 'repeat');
- *       ctx.rect(0, 0, canvas.width, canvas.height);
- *       ctx.fillStyle = pattern;
- *       ctx.fill();
- *     });
- *     img.src = "images/foo.jpg";
- *     document.body.children.add(canvas);
- *
- * See also:
- * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.
- * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.
- * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
- */
 /// @domName CanvasPattern; @docsEditable true
 class CanvasPattern native "*CanvasPattern" {
 }
@@ -930,16 +823,9 @@ class CanvasPattern native "*CanvasPattern" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * A rendering context for a canvas element.
- *
- * This context is extended by [CanvasRenderingContext2D] and
- * [WebGLRenderingContext].
- */
 /// @domName CanvasRenderingContext; @docsEditable true
 class CanvasRenderingContext native "*CanvasRenderingContext" {
 
-  /// Reference to the canvas element to which this context belongs.
   /// @domName CanvasRenderingContext.canvas; @docsEditable true
   final CanvasElement canvas;
 }
@@ -1476,6 +1362,9 @@ class Console {
   /// @domName Console.warn; @docsEditable true
   void warn(Object arg) => _isConsoleDefined ?
       JS('void', 'console.warn(#)', arg) : null;
+
+  /// @domName Console.clear; @docsEditable true
+  void clear(Object arg) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5699,27 +5588,6 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * Represents an HTML <div> element.
- *
- * The [DivElement] is a generic container for content and does not have any
- * special significance. It is functionally similar to [SpanElement].
- *
- * The [DivElement] is a block-level element, as opposed to [SpanElement],
- * which is an inline-level element.
- *
- * Example usage:
- *
- *     DivElement div = new DivElement();
- *     div.text = 'Here's my new DivElem
- *     document.body.elements.add(elem);
- *
- * See also:
- *
- * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
- * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
- * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
- */
 /// @domName HTMLDivElement; @docsEditable true
 class DivElement extends Element native "*HTMLDivElement" {
 
@@ -5749,7 +5617,6 @@ class Document extends Node  native "*Document"
   DocumentEvents get on =>
     new DocumentEvents(this);
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.body; @docsEditable true
   @JSName('body')
   Element $dom_body;
@@ -5760,7 +5627,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.cookie; @docsEditable true
   String cookie;
 
-  /// Returns the [Window] associated with the document.
   /// @domName Document.defaultView; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
   @JSName('defaultView')
@@ -5773,7 +5639,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.domain; @docsEditable true
   final String domain;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.head; @docsEditable true
   @JSName('head')
   final HeadElement $dom_head;
@@ -5781,7 +5646,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.implementation; @docsEditable true
   final DomImplementation implementation;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.lastModified; @docsEditable true
   @JSName('lastModified')
   final String $dom_lastModified;
@@ -5793,7 +5657,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.readyState; @docsEditable true
   final String readyState;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.referrer; @docsEditable true
   @JSName('referrer')
   final String $dom_referrer;
@@ -5802,48 +5665,39 @@ class Document extends Node  native "*Document"
   @JSName('selectedStylesheetSet')
   String $dom_selectedStylesheetSet;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.styleSheets; @docsEditable true
   @JSName('styleSheets')
   @Returns('_StyleSheetList') @Creates('_StyleSheetList')
   final List<StyleSheet> $dom_styleSheets;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.title; @docsEditable true
   @JSName('title')
   String $dom_title;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitFullscreenElement; @docsEditable true
   @JSName('webkitFullscreenElement')
   final Element $dom_webkitFullscreenElement;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitFullscreenEnabled; @docsEditable true
   @JSName('webkitFullscreenEnabled')
   final bool $dom_webkitFullscreenEnabled;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitHidden; @docsEditable true
   @JSName('webkitHidden')
   final bool $dom_webkitHidden;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitIsFullScreen; @docsEditable true
   @JSName('webkitIsFullScreen')
   final bool $dom_webkitIsFullScreen;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitPointerLockElement; @docsEditable true
   @JSName('webkitPointerLockElement')
   final Element $dom_webkitPointerLockElement;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitVisibilityState; @docsEditable true
   @JSName('webkitVisibilityState')
   final String $dom_webkitVisibilityState;
 
-  /// Use the [Range] constructor instead.
   /// @domName Document.caretRangeFromPoint; @docsEditable true
   @JSName('caretRangeFromPoint')
   Range $dom_caretRangeFromPoint(int x, int y) native;
@@ -5855,7 +5709,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.createDocumentFragment; @docsEditable true
   DocumentFragment createDocumentFragment() native;
 
-  /// Deprecated: use new Element.tag(tagName) instead.
   /// @domName Document.createElement; @docsEditable true
   @JSName('createElement')
   Element $dom_createElement(String tagName) native;
@@ -5884,12 +5737,10 @@ class Document extends Node  native "*Document"
   @JSName('createTouch')
   Touch _$dom_createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
-  /// Use the [TouchList] constructor isntead.
   /// @domName Document.createTouchList; @docsEditable true
   @JSName('createTouchList')
   TouchList $dom_createTouchList() native;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.elementFromPoint; @docsEditable true
   @JSName('elementFromPoint')
   Element $dom_elementFromPoint(int x, int y) native;
@@ -5901,7 +5752,6 @@ class Document extends Node  native "*Document"
   @JSName('getCSSCanvasContext')
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native;
 
-  /// Deprecated: use query("#$elementId") instead.
   /// @domName Document.getElementById; @docsEditable true
   @JSName('getElementById')
   Element $dom_getElementById(String elementId) native;
@@ -5936,28 +5786,23 @@ class Document extends Node  native "*Document"
   /// @domName Document.queryCommandValue; @docsEditable true
   String queryCommandValue(String command) native;
 
-  /// Deprecated: renamed to the shorter name [query].
   /// @domName Document.querySelector; @docsEditable true
   @JSName('querySelector')
   Element $dom_querySelector(String selectors) native;
 
-  /// Deprecated: use query("#$elementId") instead.
   /// @domName Document.querySelectorAll; @docsEditable true
   @JSName('querySelectorAll')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitCancelFullScreen; @docsEditable true
   @JSName('webkitCancelFullScreen')
   void $dom_webkitCancelFullScreen() native;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitExitFullscreen; @docsEditable true
   @JSName('webkitExitFullscreen')
   void $dom_webkitExitFullscreen() native;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitExitPointerLock; @docsEditable true
   @JSName('webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native;
@@ -7823,6 +7668,9 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   /// @domName Element.previousElementSibling; @docsEditable true
   final Element previousElementSibling;
 
+  /// @domName Element.pseudo; @docsEditable true
+  String pseudo;
+
   /// @domName Element.scrollHeight; @docsEditable true
   final int scrollHeight;
 
@@ -7914,6 +7762,9 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   /// @domName Element.setAttributeNS; @docsEditable true
   @JSName('setAttributeNS')
   void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native;
+
+  /// @domName Element.webkitCreateShadowRoot; @docsEditable true
+  ShadowRoot webkitCreateShadowRoot() native;
 
   /// @domName Element.webkitMatchesSelector; @docsEditable true
   @JSName('webkitMatchesSelector')
@@ -10110,6 +9961,17 @@ class HtmlElement extends Element native "*HTMLHtmlElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName HTMLFormControlsCollection; @docsEditable true
+class HtmlFormControlsCollection extends HtmlCollection native "*HTMLFormControlsCollection" {
+
+  /// @domName HTMLFormControlsCollection.namedItem; @docsEditable true
+  Node namedItem(String name) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName HTMLOptionsCollection; @docsEditable true
 class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollection" {
 
@@ -10124,6 +9986,9 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
 
   /// @domName HTMLOptionsCollection.selectedIndex; @docsEditable true
   int selectedIndex;
+
+  /// @domName HTMLOptionsCollection.namedItem; @docsEditable true
+  Node namedItem(String name) native;
 
   /// @domName HTMLOptionsCollection.remove; @docsEditable true
   void remove(int index) native;
@@ -10185,28 +10050,9 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
       onComplete);
 
 
-  /**
-   * General constructor for any type of request (GET, POST, etc).
-   *
-   * This call is used in conjunction with [open]:
-   * 
-   *     var request = new HttpRequest();
-   *     request.open('GET', 'http://dartlang.org')
-   *     request.on.load.add((event) => print('Request complete'));
-   * 
-   * is the (more verbose) equivalent of
-   * 
-   *     var request = new HttpRequest.get('http://dartlang.org',
-   *         (event) => print('Request complete'));
-   */
   ///@docsEditable true
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
 
-  /**
-   * Get the set of [HttpRequestEvents] that this request can respond to.
-   * Usually used when adding an EventListener, such as in
-   * `document.window.on.keyDown.add((e) => print('keydown happened'))`.
-   */
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
@@ -10221,119 +10067,35 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   static const int UNSENT = 0;
 
-  /**
-   * Indicator of the current state of the request:
-   *
-   * <table>
-   *   <tr>
-   *     <td>Value</td>
-   *     <td>State</td>
-   *     <td>Meaning</td>
-   *   </tr>
-   *   <tr>
-   *     <td>0</td>
-   *     <td>unsent</td>
-   *     <td><code>open()</code> has not yet been called</td>
-   *   </tr>
-   *   <tr>
-   *     <td>1</td>
-   *     <td>opened</td>
-   *     <td><code>send()</code> has not yet been called</td>
-   *   </tr>
-   *   <tr>
-   *     <td>2</td>
-   *     <td>headers received</td>
-   *     <td><code>sent()</code> has been called; response headers and <code>status</code> are available</td>
-   *   </tr>
-   *   <tr>
-   *     <td>3</td> <td>loading</td> <td><code>responseText</code> holds some data</td>
-   *   </tr>
-   *   <tr>
-   *     <td>4</td> <td>done</td> <td>request is complete</td>
-   *   </tr>
-   * </table>
-   */
   /// @domName XMLHttpRequest.readyState; @docsEditable true
   final int readyState;
 
-  /**
-   * The data received as a reponse from the request.
-   *
-   * The data could be in the
-   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a 
-   * [String]). `null` indicates request failure.
-   */
   /// @domName XMLHttpRequest.response; @docsEditable true
   @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
   final Object response;
 
-  /**
-   * The response in string form or null on failure.
-   */
   /// @domName XMLHttpRequest.responseText; @docsEditable true
   final String responseText;
 
-  /**
-   * [String] telling the server the desired response format. 
-   *
-   * Default is `String`.
-   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
-   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
-   * `responseType` is set while performing a synchronous request.
-   *
-   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
-   */
   /// @domName XMLHttpRequest.responseType; @docsEditable true
   String responseType;
 
-  /**
-   * The request response, or null on failure.
-   * 
-   * The response is processed as
-   * `text/xml` stream, unless responseType = 'document' and the request is
-   * synchronous.
-   */
   /// @domName XMLHttpRequest.responseXML; @docsEditable true
   @JSName('responseXML')
   final Document responseXml;
 
-  /**
-   * The http result code from the request (200, 404, etc).
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
-   */
   /// @domName XMLHttpRequest.status; @docsEditable true
   final int status;
 
-  /**
-   * The request response string (such as "200 OK").
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
-   */
   /// @domName XMLHttpRequest.statusText; @docsEditable true
   final String statusText;
 
-  /**
-   * [EventTarget] that can hold listeners to track the progress of the request.
-   * The events fired will be members of [HttpRequestUploadEvents].
-   */
   /// @domName XMLHttpRequest.upload; @docsEditable true
   final HttpRequestUpload upload;
 
-  /**
-   * True if cross-site requests should use credentials such as cookies
-   * or authorization headers; false otherwise. 
-   *
-   * This value is ignored for same-site requests.
-   */
   /// @domName XMLHttpRequest.withCredentials; @docsEditable true
   bool withCredentials;
 
-  /**
-   * Stop the current request.
-   *
-   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or 
-   * `LOADING`. If this method is not in the process of being sent, the method
-   * has no effect.
-   */
   /// @domName XMLHttpRequest.abort; @docsEditable true
   void abort() native;
 
@@ -10345,48 +10107,15 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @JSName('dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /**
-   * Retrieve all the response headers from a request.
-   * 
-   * `null` if no headers have been received. For multipart requests,
-   * `getAllResponseHeaders` will return the response headers for the current
-   * part of the request.
-   * 
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
-   * for a list of common response headers.
-   */
   /// @domName XMLHttpRequest.getAllResponseHeaders; @docsEditable true
   String getAllResponseHeaders() native;
 
-  /**
-   * Return the response header named `header`, or `null` if not found.
-   * 
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
-   * for a list of common response headers.
-   */
   /// @domName XMLHttpRequest.getResponseHeader; @docsEditable true
   String getResponseHeader(String header) native;
 
-  /**
-   * Specify the desired `url`, and `method` to use in making the request.
-   * 
-   * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
-   * synchronously.
-   * 
-   * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
-   */
   /// @domName XMLHttpRequest.open; @docsEditable true
   void open(String method, String url, [bool async, String user, String password]) native;
 
-  /**
-   * Specify a particular MIME type (such as `text/xml`) desired for the
-   * response.
-   * 
-   * This value must be set before the request has been sent. See also the list
-   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
-   */
   /// @domName XMLHttpRequest.overrideMimeType; @docsEditable true
   void overrideMimeType(String override) native;
 
@@ -10394,89 +10123,37 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /**
-   * Send the request with any given `data`.
-   *
-   * See also: 
-   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())
-   * from MDN.
-   */
   /// @domName XMLHttpRequest.send; @docsEditable true
   void send([data]) native;
 
-  /** Sets HTTP `header` to `value`. */
   /// @domName XMLHttpRequest.setRequestHeader; @docsEditable true
   void setRequestHeader(String header, String value) native;
 
 }
 
-/**
- * A class that supports listening for and dispatching events that can fire when
- * making an HTTP request. 
- *  
- * Here's an example of adding an event handler that executes once an HTTP
- * request has fully loaded:
- * 
- *     httpRequest.on.loadEnd.add((e) => myCustomLoadEndHandler(e));
- *
- * Each property of this class is a read-only pointer to an [EventListenerList].
- * That list holds all of the [EventListener]s that have registered for that
- * particular type of event that fires from an HttpRequest.
- */
 /// @docsEditable true
 class HttpRequestEvents extends Events {
   /// @docsEditable true
   HttpRequestEvents(EventTarget _ptr) : super(_ptr);
 
-  /**
-   * Event listeners to be notified when request has been aborted,
-   * generally due to calling `httpRequest.abort()`.
-   */
   /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
-  /**
-   * Event listeners to be notified when a request has failed, such as when a
-   * cross-domain error occurred or the file wasn't found on the server.
-   */
   /// @docsEditable true
   EventListenerList get error => this['error'];
 
-  /**
-   * Event listeners to be notified once the request has completed
-   * *successfully*.
-   */
   /// @docsEditable true
   EventListenerList get load => this['load'];
 
-  /**
-   * Event listeners to be notified once the request has completed (on
-   * either success or failure).
-   */
   /// @docsEditable true
   EventListenerList get loadEnd => this['loadend'];
 
-  /**
-   * Event listeners to be notified when the request starts, once
-   * `httpRequest.send()` has been called.
-   */
   /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
-  /**
-   * Event listeners to be notified when data for the request 
-   * is being sent or loaded.
-   *
-   * Progress events are fired every 50ms or for every byte transmitted,
-   * whichever is less frequent.
-   */
   /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
-  /**
-   * Event listeners to be notified every time the [HttpRequest]
-   * object's `readyState` changes values.
-   */
   /// @docsEditable true
   EventListenerList get readyStateChange => this['readystatechange'];
 }
@@ -10618,31 +10295,6 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
 
   /// @domName HTMLIFrameElement.width; @docsEditable true
   String width;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IceCandidate; @docsEditable true
-class IceCandidate native "*IceCandidate" {
-
-  ///@docsEditable true
-  factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
-
-  /// @domName IceCandidate.label; @docsEditable true
-  final String label;
-
-  /// @domName IceCandidate.toSdp; @docsEditable true
-  String toSdp() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12922,6 +12574,9 @@ class MediaController extends EventTarget native "*MediaController" {
   /// @domName MediaController.playbackRate; @docsEditable true
   num playbackRate;
 
+  /// @domName MediaController.playbackState; @docsEditable true
+  final String playbackState;
+
   /// @domName MediaController.played; @docsEditable true
   final TimeRanges played;
 
@@ -12948,6 +12603,9 @@ class MediaController extends EventTarget native "*MediaController" {
   /// @domName MediaController.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  /// @domName MediaController.unpause; @docsEditable true
+  void unpause() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13553,16 +13211,6 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An HTML <menu> element.
- *
- * A <menu> element represents an unordered list of menu commands.
- *
- * See also:
- *
- *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
- *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
- */
 /// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element native "*HTMLMenuElement" {
 
@@ -15188,6 +14836,9 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 /// @domName PagePopupController; @docsEditable true
 class PagePopupController native "*PagePopupController" {
 
+  /// @domName PagePopupController.formatMonth; @docsEditable true
+  String formatMonth(int year, int zeroBaseMonth) native;
+
   /// @domName PagePopupController.localizeNumberString; @docsEditable true
   String localizeNumberString(String numberString) native;
 
@@ -15241,173 +14892,6 @@ class ParamElement extends Element native "*HTMLParamElement" {
 
   /// @domName HTMLParamElement.valueType; @docsEditable true
   String valueType;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName PeerConnection00; @docsEditable true
-class PeerConnection00 extends EventTarget native "*PeerConnection00" {
-
-  ///@docsEditable true
-  factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  PeerConnection00Events get on =>
-    new PeerConnection00Events(this);
-
-  static const int ACTIVE = 2;
-
-  static const int CLOSED = 3;
-
-  static const int ICE_CHECKING = 0x300;
-
-  static const int ICE_CLOSED = 0x700;
-
-  static const int ICE_COMPLETED = 0x500;
-
-  static const int ICE_CONNECTED = 0x400;
-
-  static const int ICE_FAILED = 0x600;
-
-  static const int ICE_GATHERING = 0x100;
-
-  static const int ICE_WAITING = 0x200;
-
-  static const int NEW = 0;
-
-  static const int OPENING = 1;
-
-  static const int SDP_ANSWER = 0x300;
-
-  static const int SDP_OFFER = 0x100;
-
-  static const int SDP_PRANSWER = 0x200;
-
-  /// @domName PeerConnection00.iceState; @docsEditable true
-  final int iceState;
-
-  /// @domName PeerConnection00.localDescription; @docsEditable true
-  final SessionDescription localDescription;
-
-  /// @domName PeerConnection00.localStreams; @docsEditable true
-  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
-  final List<MediaStream> localStreams;
-
-  /// @domName PeerConnection00.readyState; @docsEditable true
-  final int readyState;
-
-  /// @domName PeerConnection00.remoteDescription; @docsEditable true
-  final SessionDescription remoteDescription;
-
-  /// @domName PeerConnection00.remoteStreams; @docsEditable true
-  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
-  final List<MediaStream> remoteStreams;
-
-  /// @domName PeerConnection00.addEventListener; @docsEditable true
-  @JSName('addEventListener')
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName PeerConnection00.addStream; @docsEditable true
-  void addStream(MediaStream stream, [Map mediaStreamHints]) {
-    if (?mediaStreamHints) {
-      var mediaStreamHints_1 = convertDartToNative_Dictionary(mediaStreamHints);
-      _addStream_1(stream, mediaStreamHints_1);
-      return;
-    }
-    _addStream_2(stream);
-    return;
-  }
-  @JSName('addStream')
-  void _addStream_1(MediaStream stream, mediaStreamHints) native;
-  @JSName('addStream')
-  void _addStream_2(MediaStream stream) native;
-
-  /// @domName PeerConnection00.close; @docsEditable true
-  void close() native;
-
-  /// @domName PeerConnection00.createAnswer; @docsEditable true
-  SessionDescription createAnswer(String offer, [Map mediaHints]) {
-    if (?mediaHints) {
-      var mediaHints_1 = convertDartToNative_Dictionary(mediaHints);
-      return _createAnswer_1(offer, mediaHints_1);
-    }
-    return _createAnswer_2(offer);
-  }
-  @JSName('createAnswer')
-  SessionDescription _createAnswer_1(offer, mediaHints) native;
-  @JSName('createAnswer')
-  SessionDescription _createAnswer_2(offer) native;
-
-  /// @domName PeerConnection00.createOffer; @docsEditable true
-  SessionDescription createOffer([Map mediaHints]) {
-    if (?mediaHints) {
-      var mediaHints_1 = convertDartToNative_Dictionary(mediaHints);
-      return _createOffer_1(mediaHints_1);
-    }
-    return _createOffer_2();
-  }
-  @JSName('createOffer')
-  SessionDescription _createOffer_1(mediaHints) native;
-  @JSName('createOffer')
-  SessionDescription _createOffer_2() native;
-
-  /// @domName PeerConnection00.dispatchEvent; @docsEditable true
-  @JSName('dispatchEvent')
-  bool $dom_dispatchEvent(Event event) native;
-
-  /// @domName PeerConnection00.processIceMessage; @docsEditable true
-  void processIceMessage(IceCandidate candidate) native;
-
-  /// @domName PeerConnection00.removeEventListener; @docsEditable true
-  @JSName('removeEventListener')
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName PeerConnection00.removeStream; @docsEditable true
-  void removeStream(MediaStream stream) native;
-
-  /// @domName PeerConnection00.setLocalDescription; @docsEditable true
-  void setLocalDescription(int action, SessionDescription desc) native;
-
-  /// @domName PeerConnection00.setRemoteDescription; @docsEditable true
-  void setRemoteDescription(int action, SessionDescription desc) native;
-
-  /// @domName PeerConnection00.startIce; @docsEditable true
-  void startIce([Map iceOptions]) {
-    if (?iceOptions) {
-      var iceOptions_1 = convertDartToNative_Dictionary(iceOptions);
-      _startIce_1(iceOptions_1);
-      return;
-    }
-    _startIce_2();
-    return;
-  }
-  @JSName('startIce')
-  void _startIce_1(iceOptions) native;
-  @JSName('startIce')
-  void _startIce_2() native;
-}
-
-/// @docsEditable true
-class PeerConnection00Events extends Events {
-  /// @docsEditable true
-  PeerConnection00Events(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get addStream => this['addstream'];
-
-  /// @docsEditable true
-  EventListenerList get connecting => this['connecting'];
-
-  /// @docsEditable true
-  EventListenerList get open => this['open'];
-
-  /// @docsEditable true
-  EventListenerList get removeStream => this['removestream'];
-
-  /// @docsEditable true
-  EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16028,6 +15512,9 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   RtcPeerConnectionEvents get on =>
     new RtcPeerConnectionEvents(this);
 
+  /// @domName RTCPeerConnection.iceGatheringState; @docsEditable true
+  final String iceGatheringState;
+
   /// @domName RTCPeerConnection.iceState; @docsEditable true
   final String iceState;
 
@@ -16213,6 +15700,9 @@ class RtcStatsElement native "*RTCStatsElement" {
 
   /// @domName RTCStatsElement.timestamp; @docsEditable true
   final Date timestamp;
+
+  /// @domName RTCStatsElement.names; @docsEditable true
+  List<String> names() native;
 
   /// @domName RTCStatsElement.stat; @docsEditable true
   String stat(String name) native;
@@ -16486,23 +15976,6 @@ class SelectElement extends Element native "*HTMLSelectElement" {
       return [this.options[this.selectedIndex]];
     }
   }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName SessionDescription; @docsEditable true
-class SessionDescription native "*SessionDescription" {
-
-  ///@docsEditable true
-  factory SessionDescription(String sdp) => _SessionDescriptionFactoryProvider.createSessionDescription(sdp);
-
-  /// @domName SessionDescription.addCandidate; @docsEditable true
-  void addCandidate(IceCandidate candidate) native;
-
-  /// @domName SessionDescription.toSdp; @docsEditable true
-  String toSdp() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17104,6 +16577,10 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 
   /// @domName SpeechRecognitionEvent.resultIndex; @docsEditable true
   final int resultIndex;
+
+  /// @domName SpeechRecognitionEvent.results; @docsEditable true
+  @Returns('_SpeechRecognitionResultList') @Creates('_SpeechRecognitionResultList')
+  final List<SpeechRecognitionResult> results;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17113,12 +16590,8 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 /// @domName SpeechRecognitionResult; @docsEditable true
 class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 
-  /// @domName SpeechRecognitionResult.emma; @docsEditable true
-  final Document emma;
-
-  /// @domName SpeechRecognitionResult.finalValue; @docsEditable true
-  @JSName('final')
-  final bool finalValue;
+  /// @domName SpeechRecognitionResult.isFinal; @docsEditable true
+  final bool isFinal;
 
   /// @domName SpeechRecognitionResult.length; @docsEditable true
   final int length;
@@ -19216,6 +18689,9 @@ class Url native "*URL" {
 /// @domName ValidityState; @docsEditable true
 class ValidityState native "*ValidityState" {
 
+  /// @domName ValidityState.badInput; @docsEditable true
+  final bool badInput;
+
   /// @domName ValidityState.customError; @docsEditable true
   final bool customError;
 
@@ -20640,6 +20116,14 @@ class WebKitCssFilterValue extends _CssValueList native "*WebKitCSSFilterValue" 
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName WebKitCSSMixFunctionValue; @docsEditable true
+class WebKitCssMixFunctionValue extends _CssValueList native "*WebKitCSSMixFunctionValue" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName WebKitNamedFlow; @docsEditable true
 class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
@@ -20685,6 +20169,8 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
 /// @domName WebSocket
 class WebSocket extends EventTarget native "*WebSocket" {
+
+  ///@docsEditable true
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -20737,7 +20223,7 @@ class WebSocket extends EventTarget native "*WebSocket" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName WebSocket.send; @docsEditable true
-  void send(data) native;
+  bool send(data) native;
 
 }
 
@@ -22035,15 +21521,6 @@ class _HttpRequestFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _IceCandidateFactoryProvider {
-  static IceCandidate createIceCandidate(String label, String candidateLine) =>
-      JS('IceCandidate', 'new IceCandidate(#,#)', label, candidateLine);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 class _MediaControllerFactoryProvider {
   static MediaController createMediaController() =>
       JS('MediaController', 'new MediaController()' );
@@ -22254,15 +21731,6 @@ class _OptionElementFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _PeerConnection00FactoryProvider {
-  static PeerConnection00 createPeerConnection00(String serverConfiguration, IceCallback iceCallback) =>
-      JS('PeerConnection00', 'new PeerConnection00(#,#)', serverConfiguration, iceCallback);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 class _RtcIceCandidateFactoryProvider {
   static RtcIceCandidate createRtcIceCandidate(Map dictionary) =>
       JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
@@ -22284,15 +21752,6 @@ class _RtcPeerConnectionFactoryProvider {
 class _RtcSessionDescriptionFactoryProvider {
   static RtcSessionDescription createRtcSessionDescription(Map dictionary) =>
       JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _SessionDescriptionFactoryProvider {
-  static SessionDescription createSessionDescription(String sdp) =>
-      JS('SessionDescription', 'new SessionDescription(#)', sdp);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22821,6 +22280,15 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
 
   /// @domName WebKitAnimationList.item; @docsEditable true
   Animation item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class _WebSocketFactoryProvider {
+  static WebSocket createWebSocket(String url) =>
+      JS('WebSocket', 'new WebSocket(#)', url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
