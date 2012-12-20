@@ -302,6 +302,10 @@ LibTest/isolate/ReceivePort/receive_A01_t02: Fail
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Crash
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Crash
 
+LibTest/core/StringBuffer/addAll_A02_t01:  Fail, OK # co19 issue 355
+LibTest/core/StringBuffer/add_A02_t01:  Fail, OK # co19 issue 355
+LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355
+LibTest/core/StringBuffer/clear_A02_t01: Fail, OK # co19 issue 355
 
 # parameter name or type expected
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail

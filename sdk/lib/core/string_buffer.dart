@@ -10,112 +10,73 @@ part of dart.core;
  * concatenated to a single String.
  */
 abstract class StringBuffer {
-  /**
-   * Creates the string buffer with an initial content.
-   */
-  factory StringBuffer([Object content = ""])
-    => new _StringBufferImpl(content);
 
-  /**
-   * Returns the length of the buffer.
-   */
+  /// Creates the string buffer with an initial content.
+  factory StringBuffer([Object content = ""]) => new _StringBufferImpl(content);
+
+  /// Returns the length of the buffer.
   int get length;
 
-  /**
-   * Returns whether the buffer is empty.
-   */
+  // Returns whether the buffer is empty.
   bool get isEmpty;
 
-  /**
-   * Converts [obj] to a string and adds it to the buffer. Returns [:this:].
-   */
-  StringBuffer add(Object obj);
+  /// Converts [obj] to a string and adds it to the buffer.
+  void add(Object obj);
 
-  /**
-   * Adds the string representation of [charCode] to the buffer.
-   * Returns [this].
-   */
-  StringBuffer addCharCode(int charCode);
+  /// Adds the string representation of [charCode] to the buffer.
+  void addCharCode(int charCode);
 
-  /**
-   * Adds all items in [objects] to the buffer. Returns [:this:].
-   */
-  StringBuffer addAll(Collection objects);
+  /// Adds all items in [objects] to the buffer.
+  void addAll(Collection objects);
 
-  /**
-   * Clears the string buffer. Returns [:this:].
-   */
-  StringBuffer clear();
+  /// Clears the string buffer.
+  void clear();
 
-  /**
-   * Returns the contents of buffer as a concatenated string.
-   */
+  /// Returns the contents of buffer as a concatenated string.
   String toString();
 }
 
 class _StringBufferImpl implements StringBuffer {
-  /**
-   * Creates the string buffer with an initial content.
-   */
+
+  List<String> _buffer;
+  int _length;
+
+  /// Creates the string buffer with an initial content.
   _StringBufferImpl(Object content) {
     clear();
     add(content);
   }
 
-  /**
-   * Returns the length of the buffer.
-   */
-  int get length {
-    return _length;
-  }
+  /// Returns the length of the buffer.
+  int get length => _length;
 
-  bool get isEmpty {
-    return _length == 0;
-  }
+  bool get isEmpty => _length == 0;
 
-  /**
-   * Adds [obj] to the buffer. Returns [this].
-   */
-  StringBuffer add(Object obj) {
+  /// Adds [obj] to the buffer.
+  void add(Object obj) {
     String str = obj.toString();
-    if (str == null || str.isEmpty) {
-      return this;
-    }
+    if (str == null || str.isEmpty) return;
     _buffer.add(str);
     _length += str.length;
-    return this;
   }
 
-  /**
-   * Adds all items in [objects] to the buffer. Returns [this].
-   */
-  StringBuffer addAll(Collection objects) {
-    for (Object obj in objects) {
-      add(obj);
-    }
-    return this;
+  /// Adds all items in [objects] to the buffer.
+  void addAll(Collection objects) {
+    for (Object obj in objects) add(obj);
   }
 
-  /**
-   * Adds the string representation of [charCode] to the buffer.
-   * Returns [this].
-   */
-  StringBuffer addCharCode(int charCode) {
-    return add(new String.fromCharCodes([charCode]));
+  /// Adds the string representation of [charCode] to the buffer.
+  void addCharCode(int charCode) {
+    add(new String.fromCharCodes([charCode]));
   }
 
-  /**
-   * Clears the string buffer. Returns [this].
-   */
-  StringBuffer clear() {
+  /// Clears the string buffer.
+  void clear() {
     _buffer = new List<String>();
     _length = 0;
-    return this;
   }
 
-  /**
-   * Returns the contents of buffer as a concatenated string.
-   */
+  /// Returns the contents of buffer as a concatenated string.
   String toString() {
     if (_buffer.length == 0) return "";
     if (_buffer.length == 1) return _buffer[0];
@@ -126,7 +87,4 @@ class _StringBufferImpl implements StringBuffer {
     // need to update it in this function.
     return result;
   }
-
-  List<String> _buffer;
-  int _length;
 }

@@ -63,8 +63,6 @@ class StringBufferTest {
       bf.add("");
     }
     Expect.equals("", bf.toString());
-
-    Expect.equals(bf, bf.add("foo"));
   }
 
   static testLength() {
@@ -95,8 +93,6 @@ class StringBufferTest {
 
     bf.addAll(["", "", ""]);
     Expect.equals("foobarabc", bf.toString());
-
-    Expect.equals(bf, bf.addAll(["foo"]));
   }
 
   static testClear() {
@@ -112,8 +108,6 @@ class StringBufferTest {
     bf.clear();
     Expect.equals("", bf.toString());
     Expect.equals(0, bf.length);
-
-    Expect.equals(bf, bf.clear());
   }
 
   static testToString() {
@@ -132,11 +126,11 @@ class StringBufferTest {
     StringBuffer bf = new StringBuffer("");
     StringBuffer bf2 = new StringBuffer("");
     bf2.add("bf2");
-    bf.add("foo")
-      .add("bar")
-      .add(bf2)
-      .add(bf2)
-      .add("toto");
+    bf..add("foo")
+      ..add("bar")
+      ..add(bf2)
+      ..add(bf2)
+      ..add("toto");
     Expect.equals("foobarbf2bf2toto", bf.toString());
   }
 

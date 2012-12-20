@@ -244,11 +244,11 @@ class Bidi {
       var startIndex = 0;
       Match match = new RegExp('<\\w+').firstMatch(html);
       if (match != null) {
-        buffer.add(html.substring(
-            startIndex, match.end)).add(' dir=$direction');
+        buffer..add(html.substring(startIndex, match.end))
+              ..add(' dir=$direction');
         startIndex = match.end;
       }
-      return buffer.add(html.substring(startIndex)).toString();
+      return (buffer..add(html.substring(startIndex))).toString();
     }
     // '\n' is important for FF so that it won't incorrectly merge span groups.
     return '\n<span dir=$direction>$html</span>';
@@ -298,11 +298,13 @@ class Bidi {
     var startIndex = 0;
     Iterable matches = regexp.allMatches(str);
     for (Match match in matches) {
-      buffer.add(str.substring(startIndex, match.start)).add(before);
-      buffer.add(str.substring(match.start, match.end)).add(after);
+      buffer..add(str.substring(startIndex, match.start))
+            ..add(before)
+            ..add(str.substring(match.start, match.end))
+            ..add(after);
       startIndex = match.end;
     }
-    return buffer.add(str.substring(startIndex)).toString();
+    return (buffer..add(str.substring(startIndex))).toString();
   }
 
   /**
