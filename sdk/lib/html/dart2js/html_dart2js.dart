@@ -25430,11 +25430,6 @@ class _PointFactoryProvider {
       JS('Point', 'new WebKitPoint(#, #)', x, y);
 }
 
-class _WebSocketFactoryProvider {
-  static WebSocket createWebSocket(String url) =>
-      JS('WebSocket', 'new WebSocket(#)', url);
-}
-
 class _TextFactoryProvider {
   static Text createText(String data) =>
       JS('Text', 'document.createTextNode(#)', data);
