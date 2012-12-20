@@ -28,12 +28,20 @@ String absolute(String path) => join(current, path);
 ///
 ///     path.basename('path/to/foo.dart'); // -> 'foo.dart'
 ///     path.basename('path/to');          // -> 'to'
+///
+/// Trailing separators are ignored.
+///
+///     builder.dirname('path/to/'); // -> 'to'
 String basename(String path) => _builder.basename(path);
 
 /// Gets the part of [path] after the last separator, and without any trailing
 /// file extension.
 ///
 ///     path.basenameWithoutExtension('path/to/foo.dart'); // -> 'foo'
+///
+/// Trailing separators are ignored.
+///
+///     builder.dirname('path/to/foo.dart/'); // -> 'foo'
 String basenameWithoutExtension(String path) =>
     _builder.basenameWithoutExtension(path);
 
@@ -41,6 +49,10 @@ String basenameWithoutExtension(String path) =>
 ///
 ///     path.dirname('path/to/foo.dart'); // -> 'path/to'
 ///     path.dirname('path/to');          // -> 'to'
+///
+/// Trailing separators are ignored.
+///
+///     builder.dirname('path/to/'); // -> 'path'
 String dirname(String path) => _builder.dirname(path);
 
 /// Gets the file extension of [path]: the portion of [basename] from the last
@@ -190,30 +202,41 @@ class Builder {
   ///
   ///     builder.basename('path/to/foo.dart'); // -> 'foo.dart'
   ///     builder.basename('path/to');          // -> 'to'
+  ///
+  /// Trailing separators are ignored.
+  ///
+  ///     builder.dirname('path/to/'); // -> 'to'
   String basename(String path) => _parse(path).basename;
 
   /// Gets the part of [path] after the last separator on the builder's
   /// platform, and without any trailing file extension.
   ///
   ///     builder.basenameWithoutExtension('path/to/foo.dart'); // -> 'foo'
+  ///
+  /// Trailing separators are ignored.
+  ///
+  ///     builder.dirname('path/to/foo.dart/'); // -> 'foo'
   String basenameWithoutExtension(String path) =>
-      _parse(path).basenameWithoutExtension;
+    _parse(path).basenameWithoutExtension;
 
   /// Gets the part of [path] before the last separator.
   ///
   ///     builder.dirname('path/to/foo.dart'); // -> 'path/to'
-  ///     builder.dirname('path/to');          // -> 'to'
+  ///     builder.dirname('path/to');          // -> 'path'
+  ///
+  /// Trailing separators are ignored.
+  ///
+  ///     builder.dirname('path/to/'); // -> 'path'
   String dirname(String path) {
     var parsed = _parse(path);
+    parsed.removeTrailingSeparators();
     if (parsed.parts.isEmpty) return parsed.root == null ? '.' : parsed.root;
-    if (!parsed.hasTrailingSeparator) {
-      if (parsed.parts.length == 1) {
-        return parsed.root == null ? '.' : parsed.root;
-      }
-      parsed.parts.removeLast();
-      parsed.separators.removeLast();
+    if (parsed.parts.length == 1) {
+      return parsed.root == null ? '.' : parsed.root;
     }
-    parsed.separators[parsed.separators.length - 1] = '';
+    parsed.parts.removeLast();
+    parsed.separators.removeLast();
+    parsed.removeTrailingSeparators();
     return parsed.toString();
   }
 
@@ -440,7 +463,7 @@ class Builder {
 
     // Make it relative.
     pathParsed.root = '';
-    pathParsed.removeTrailingSeparator();
+    pathParsed.removeTrailingSeparators();
 
     return pathParsed.toString();
   }
@@ -450,10 +473,12 @@ class Builder {
   ///     builder.withoutExtension('path/to/foo.dart'); // -> 'path/to/foo'
   String withoutExtension(String path) {
     var parsed = _parse(path);
-    if (parsed.hasTrailingSeparator) return parsed.toString();
 
-    if (!parsed.parts.isEmpty) {
-      parsed.parts[parsed.parts.length - 1] = parsed.basenameWithoutExtension;
+    for (var i = parsed.parts.length - 1; i >= 0; i--) {
+      if (!parsed.parts[i].isEmpty) {
+        parsed.parts[i] = parsed.basenameWithoutExtension;
+        break;
+      }
     }
 
     return parsed.toString();
@@ -555,29 +580,31 @@ class _ParsedPath {
   /// The file extension of the last part, or "" if it doesn't have one.
   String get extension => _splitExtension()[1];
 
-  /// `true` if the path ends with a trailing separator.
-  bool get hasTrailingSeparator {
-    if (separators.length == 0) return false;
-    return separators[separators.length - 1] != '';
-  }
-
   /// `true` if this is an absolute path.
   bool get isAbsolute => root != null;
 
   _ParsedPath(this.style, this.root, this.parts, this.separators);
 
   String get basename {
-    if (parts.length == 0) return extension;
-    if (hasTrailingSeparator) return '';
-    return parts.last;
+    var copy = this.clone();
+    copy.removeTrailingSeparators();
+    if (copy.parts.isEmpty) return root == null ? '' : root;
+    return copy.parts.last;
   }
 
-  String get basenameWithoutExtension => _splitExtension()[0];
+  String get basenameWithoutExtension {
+    var copy = this.clone();
+    copy.removeTrailingSeparators();
+    if (copy.parts.isEmpty) return root == null ? '' : root;
+    return copy._splitExtension()[0];
+  }
 
-  void removeTrailingSeparator() {
-    if (separators.length > 0) {
-      separators[separators.length - 1] = '';
+  void removeTrailingSeparators() {
+    while (!parts.isEmpty && parts.last == '') {
+      parts.removeLast();
+      separators.removeLast();
     }
+    if (separators.length > 0) separators[separators.length - 1] = '';
   }
 
   void normalize() {
@@ -617,7 +644,7 @@ class _ParsedPath {
     parts = newParts;
     separators = newSeparators;
 
-    removeTrailingSeparator();
+    removeTrailingSeparators();
   }
 
   String toString() {
@@ -636,7 +663,6 @@ class _ParsedPath {
   /// or "" if it has none.
   List<String> _splitExtension() {
     if (parts.isEmpty) return ['', ''];
-    if (hasTrailingSeparator) return ['', ''];
 
     var file = parts.last;
     if (file == '..') return ['..', ''];
@@ -649,4 +675,7 @@ class _ParsedPath {
 
     return [file.substring(0, lastDot), file.substring(lastDot)];
   }
+
+  _ParsedPath clone() => new _ParsedPath(
+      style, root, new List.from(parts), new List.from(separators));
 }

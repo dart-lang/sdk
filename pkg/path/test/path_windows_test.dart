@@ -54,15 +54,19 @@ main() {
     expect(builder.dirname(r'a\b'), 'a');
     expect(builder.dirname(r'a\b\c'), r'a\b');
     expect(builder.dirname(r'a\b.c'), 'a');
-    expect(builder.dirname(r'a\'), 'a');
-    expect(builder.dirname('a/'), 'a');
+    expect(builder.dirname(r'a\'), '.');
+    expect(builder.dirname('a/'), '.');
     expect(builder.dirname(r'a\.'), 'a');
     expect(builder.dirname(r'a\b/c'), r'a\b');
     expect(builder.dirname(r'C:\a'), r'C:\');
-    expect(builder.dirname('C:\\'), r'C:\');
-    expect(builder.dirname(r'a\b\'), r'a\b');
+    expect(builder.dirname(r'C:\\\a'), r'C:\');
+    expect(builder.dirname(r'C:\'), r'C:\');
+    expect(builder.dirname(r'C:\\\'), r'C:\');
+    expect(builder.dirname(r'a\b\'), r'a');
     expect(builder.dirname(r'a/b\c'), 'a/b');
-    expect(builder.dirname(r'a\\'), r'a\');
+    expect(builder.dirname(r'a\\'), r'.');
+    expect(builder.dirname(r'a\b\\'), 'a');
+    expect(builder.dirname(r'a\\b'), 'a');
   });
 
   test('basename', () {
@@ -71,16 +75,17 @@ main() {
     expect(builder.basename(r'a\b'), 'b');
     expect(builder.basename(r'a\b\c'), 'c');
     expect(builder.basename(r'a\b.c'), 'b.c');
-    expect(builder.basename(r'a\'), '');
-    expect(builder.basename(r'a/'), '');
+    expect(builder.basename(r'a\'), 'a');
+    expect(builder.basename(r'a/'), 'a');
     expect(builder.basename(r'a\.'), '.');
     expect(builder.basename(r'a\b/c'), r'c');
     expect(builder.basename(r'C:\a'), 'a');
-    // TODO(nweiz): this should actually return 'C:\'
-    expect(builder.basename(r'C:\'), '');
-    expect(builder.basename(r'a\b\'), '');
+    expect(builder.basename(r'C:\'), r'C:\');
+    expect(builder.basename(r'a\b\'), 'b');
     expect(builder.basename(r'a/b\c'), 'c');
-    expect(builder.basename(r'a\\'), '');
+    expect(builder.basename(r'a\\'), 'a');
+    expect(builder.basename(r'a\b\\'), 'b');
+    expect(builder.basename(r'a\\b'), 'b');
   });
 
   test('basenameWithoutExtension', () {
@@ -89,11 +94,16 @@ main() {
     expect(builder.basenameWithoutExtension(r'a\b'), 'b');
     expect(builder.basenameWithoutExtension(r'a\b\c'), 'c');
     expect(builder.basenameWithoutExtension(r'a\b.c'), 'b');
-    expect(builder.basenameWithoutExtension(r'a\'), '');
+    expect(builder.basenameWithoutExtension(r'a\'), 'a');
     expect(builder.basenameWithoutExtension(r'a\.'), '.');
     expect(builder.basenameWithoutExtension(r'a\b/c'), r'c');
     expect(builder.basenameWithoutExtension(r'a\.bashrc'), '.bashrc');
     expect(builder.basenameWithoutExtension(r'a\b\c.d.e'), 'c.d');
+    expect(builder.basenameWithoutExtension(r'a\\'), 'a');
+    expect(builder.basenameWithoutExtension(r'a\b\\'), 'b');
+    expect(builder.basenameWithoutExtension(r'a\\b'), 'b');
+    expect(builder.basenameWithoutExtension(r'a\b.c\'), 'b');
+    expect(builder.basenameWithoutExtension(r'a\b.c\\'), 'b');
   });
 
   test('isAbsolute', () {
@@ -392,5 +402,6 @@ main() {
     expect(builder.withoutExtension(r'a\b/c'), r'a\b/c');
     expect(builder.withoutExtension(r'a\b/c.d'), r'a\b/c');
     expect(builder.withoutExtension(r'a.b/c'), r'a.b/c');
+    expect(builder.withoutExtension(r'a\b.c\'), r'a\b\');
   });
 }
