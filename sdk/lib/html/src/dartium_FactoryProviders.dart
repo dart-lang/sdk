@@ -77,11 +77,6 @@ class _PointFactoryProvider {
   static _createWebKitPoint(num x, num y) native "WebKitPoint_constructor_Callback";
 }
 
-class _WebSocketFactoryProvider {
-  static WebSocket createWebSocket(String url) => _createWebSocket(url);
-  static _createWebSocket(String url) native "WebSocket_constructor_Callback";
-}
-
 class _TextFactoryProvider {
   static Text createText(String data) => document.$dom_createTextNode(data);
 }

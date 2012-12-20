@@ -7,6 +7,12 @@ module core {
     [Suppressed] DOMObject getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
     CanvasRenderingContext getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
   };
+
+  [Supplemental]
+  interface ScriptProcessorNode {
+    // FIXME(antonm): provide proper support.
+    [Suppressed] attribute EventListener onaudioprocess;
+};
 };
 
 module dom {
@@ -30,7 +36,7 @@ module html {
   [Supplemental]
   interface Console {
     [Suppressed] void assert(in boolean condition);
-    [CallWith=ScriptArguments|CallStack] void assertCondition(boolean condition);
+    [CallWith=ScriptArguments|ScriptState] void assertCondition(boolean condition);
   };
 
   interface HTMLCanvasElement {

@@ -570,15 +570,27 @@ class DartiumBackend(HtmlDartGenerator):
 
     cpp_arguments = []
     requires_v8_scope = \
-        any((self._TypeInfo(argument.type.id).requires_v8_scope() for argument in arguments))
+        any((self._TypeInfo(argument.type.id).requires_v8_scope() for argument in arguments)) or\
+        self._interface.id.startswith('IDB')
     runtime_check = None
     raises_exceptions = raises_dom_exception or arguments
 
-    requires_stack_info = ext_attrs.get('CallWith') == 'ScriptArguments|CallStack'
+    # TODO(antonm): unify with ScriptState below.
+    requires_stack_info = ext_attrs.get('CallWith') == 'ScriptArguments|ScriptState'
     if requires_stack_info:
       raises_exceptions = True
       requires_v8_scope = True
-      cpp_arguments = ['scriptArguments', 'scriptCallStack']
+      cpp_arguments = ['&state', 'scriptArguments.release()']
+      # WebKit uses scriptArguments to reconstruct last argument, so
+      # it's not needed and should be just removed.
+      arguments = arguments[:-1]
+
+    # TODO(antonm): unify with ScriptState below.
+    requires_script_arguments = ext_attrs.get('CallWith') == 'ScriptArguments'
+    if requires_script_arguments:
+      raises_exceptions = True
+      requires_v8_scope = True
+      cpp_arguments = ['scriptArguments.release()']
       # WebKit uses scriptArguments to reconstruct last argument, so
       # it's not needed and should be just removed.
       arguments = arguments[:-1]
@@ -587,6 +599,11 @@ class DartiumBackend(HtmlDartGenerator):
     if requires_script_execution_context:
       raises_exceptions = True
       cpp_arguments = ['context']
+
+    requires_script_state = ext_attrs.get('CallWith') == 'ScriptState'
+    if requires_script_state:
+      raises_exceptions = True
+      cpp_arguments = ['&state']
 
     requires_dom_window = 'NamedConstructor' in ext_attrs
     if requires_dom_window:
@@ -667,6 +684,15 @@ class DartiumBackend(HtmlDartGenerator):
           '            goto fail;\n'
           '        }\n\n')
 
+    if requires_script_state:
+      body_emitter.Emit(
+          '        ScriptState* currentState = ScriptState::current();\n'
+          '        if (!currentState) {\n'
+          '            exception = Dart_NewStringFromCString("Failed to retrieve a script state");\n'
+          '            goto fail;\n'
+          '        }\n'
+          '        ScriptState& state = *currentState;\n\n')
+
     if requires_dom_window:
       self._cpp_impl_includes.add('"DOMWindow.h"')
       body_emitter.Emit(
@@ -684,7 +710,26 @@ class DartiumBackend(HtmlDartGenerator):
 
     if requires_stack_info:
       self._cpp_impl_includes.add('"ScriptArguments.h"')
-      self._cpp_impl_includes.add('"ScriptCallStack.h"')
+      body_emitter.Emit(
+          '\n'
+          '        ScriptState* currentState = ScriptState::current();\n'
+          '        if (!currentState) {\n'
+          '            exception = Dart_NewStringFromCString("Failed to retrieve a script state");\n'
+          '            goto fail;\n'
+          '        }\n'
+          '        ScriptState& state = *currentState;\n'
+          '\n'
+          '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
+          '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
+          '        if (!scriptArguments)\n'
+          '            goto fail;\n'
+          '        RefPtr<ScriptCallStack> scriptCallStack(DartUtilities::createScriptCallStack());\n'
+          '        if (!scriptCallStack->size())\n'
+          '            return;\n',
+          INDEX=len(arguments) + 1)
+
+    if requires_script_arguments:
+      self._cpp_impl_includes.add('"ScriptArguments.h"')
       body_emitter.Emit(
           '\n'
           '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
