@@ -12,7 +12,7 @@ import subprocess
 import sys
 
 SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
-DART_PATH = os.path.abspath(os.path.join(SCRIPT_PATH, '..', '..', '..'))
+DART_PATH = os.path.abspath(os.path.join(SCRIPT_PATH, '..', '..', '..', '..'))
 
 # Path to install latest IDL.
 IDL_PATH = os.path.join(DART_PATH, 'third_party', 'WebCore')
@@ -91,7 +91,7 @@ def GenerateReadme(url, revision):
 See the attached LICENSE-* files in this directory.
 
 Please do not modify the files here.  They are periodically copied
-using the script: $DART_ROOT/lib/dom/scripts/%(script)s
+using the script: $DART_ROOT/sdk/lib/html/scripts/%(script)s
 
 The current version corresponds to:
 URL: %(url)s
