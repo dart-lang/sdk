@@ -1295,7 +1295,7 @@ $lazyInitializerLogic
             compiler.codegenWorld.generatedBailoutCode.keys.filter(
                 isStaticFunction));
 
-    for (Element element in sortedByPosition(elements)) {
+    for (Element element in Elements.sortedByPosition(elements)) {
       CodeBuffer code = compiler.codegenWorld.generatedCode[element];
       emitStaticFunctionWithNamer(buffer, element, code, namer.getName);
       CodeBuffer bailoutCode =
@@ -1308,16 +1308,13 @@ $lazyInitializerLogic
     }
 
     // Is it possible the primary function was inlined but the bailout was not?
-    for (Element element in sortedByPosition(pendingElementsWithBailouts)) {
+    for (Element element in
+             Elements.sortedByPosition(pendingElementsWithBailouts)) {
       CodeBuffer bailoutCode =
           compiler.codegenWorld.generatedBailoutCode[element];
       emitStaticFunctionWithNamer(
           buffer, element, bailoutCode, namer.getBailoutName);
     }
-  }
-
-  static List<Element> sortedByPosition(Collection<Element> elements) {
-    return new List<Element>.from(elements)..sort(Elements.compareByPosition);
   }
 
   void emitStaticFunctionGetters(CodeBuffer buffer) {
