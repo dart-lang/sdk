@@ -47,14 +47,18 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
   }
 }
 
-void testBody(int totalConnections) {
+void testBody(int totalConnections, bool useHeader) {
   HttpServer server = new HttpServer();
   server.onError = (e) => Expect.fail("Unexpected error $e");
   server.listen("127.0.0.1", 0, backlog: totalConnections);
   server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
     Expect.equals("2", request.headers.value('content-length'));
     Expect.equals(2, request.contentLength);
-    response.contentLength = 2;
+    if (useHeader) {
+      response.contentLength = 2;
+    } else {
+      response.headers.set("content-length", 2);
+    }
     OutputStream stream = response.outputStream;
     stream.writeString("x");
     Expect.throws(() => response.contentLength = 3, (e) => e is HttpException);
@@ -70,7 +74,12 @@ void testBody(int totalConnections) {
     HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
     conn.onError = (e) => Expect.fail("Unexpected error $e");
     conn.onRequest = (HttpClientRequest request) {
-      request.contentLength = 2;
+      if (useHeader) {
+        request.contentLength = 2;
+      } else {
+        request.headers.add(HttpHeaders.CONTENT_LENGTH, "7");
+        request.headers.add(HttpHeaders.CONTENT_LENGTH, "2");
+      }
       OutputStream stream = request.outputStream;
       stream.writeString("x");
       Expect.throws(() => request.contentLength = 3, (e) => e is HttpException);
@@ -122,6 +131,7 @@ void testHttp10() {
 void main() {
   testNoBody(5, false);
   testNoBody(5, true);
-  testBody(5);
+  testBody(5, false);
+  testBody(5, true);
   testHttp10();
 }
