@@ -971,7 +971,8 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   LoadFieldInstr* load = new LoadFieldInstr(
       call->ArgumentAt(0)->value(),
       field.Offset(),
-      AbstractType::ZoneHandle(field.type()));
+      AbstractType::ZoneHandle(field.type()),
+      field.is_final());
   call->ReplaceWith(load, current_iterator());
   RemovePushArguments(call);
 }
