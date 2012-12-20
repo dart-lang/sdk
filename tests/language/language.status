@@ -64,6 +64,7 @@ gc_test: Skip  # Issue 1487, flaky.
 
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
+issue7513_test: Crash # Issue 7513
 
 [ $compiler == none && $unchecked ]
 
