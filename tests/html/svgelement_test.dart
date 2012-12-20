@@ -154,8 +154,11 @@ main() {
       final el = new svg.SvgSvgElement();
       el.children.add(new svg.CircleElement());
       el.children.add(new svg.PathElement());
-      expect(el.outerHtml,
-          '<svg version="1.1"><circle></circle><path></path></svg>');
+      expect([
+        '<svg version="1.1"><circle></circle><path></path></svg>',
+        '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">'
+            '<circle /><path /></svg>',
+        ].contains(el.outerHtml), true);
     });
   });
 
@@ -164,7 +167,12 @@ main() {
       final el = new svg.SvgSvgElement();
       el.children.add(new svg.CircleElement());
       el.children.add(new svg.PathElement());
-      expect(el.innerHtml, '<circle></circle><path></path>');
+      // Allow for odd IE serialization.
+      expect([
+        '<circle></circle><path></path>',
+        '<circle xmlns="http://www.w3.org/2000/svg" />'
+            '<path xmlns="http://www.w3.org/2000/svg" />'
+        ].contains(el.innerHtml), true);
     });
 
     test('set', () {
@@ -206,7 +214,9 @@ main() {
     test('set', () {
       final el = new svg.SvgSvgElement();
       el.children = [new svg.SvgElement.tag("circle"), new svg.SvgElement.tag("path")];
-      expect(el.innerHtml, '<circle></circle><path></path>');
+      expect(el.nodes.length, 2);
+      expect(el.nodes[0] is svg.CircleElement, true);
+      expect(el.nodes[1] is svg.PathElement, true);
     });
   });
 

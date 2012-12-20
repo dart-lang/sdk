@@ -307,9 +307,6 @@ main() {
       testEventHelper(on.change, 'change',
           (listener) => Testing.addEventListener(
               element, 'change', listener, true));
-      testEventHelper(on.click, 'click',
-          (listener) => Testing.addEventListener(
-              element, 'click', listener, true));
       testEventHelper(on.contextMenu, 'contextmenu',
           (listener) => Testing.addEventListener(
               element, 'contextmenu', listener, true));
@@ -424,6 +421,19 @@ main() {
     });
   });
 
+  group('click', () {
+    test('clickEvent', () {
+      var e = new DivElement();
+      var firedEvent = false;
+      e.on.click.add((event) {
+        firedEvent = true;
+      });
+      expect(firedEvent, false);
+      e.click();
+      expect(firedEvent, true);
+    });
+  });
+
   group('attributes', () {
       test('coercion', () {
         final element = new Element.tag('div');
@@ -439,7 +449,7 @@ main() {
                </div>''');
         final attributes = element.attributes;
         expect(attributes['class'], 'foo');
-        expect(attributes['style'], 'overflow: hidden');
+        expect(attributes['style'], startsWith('overflow: hidden'));
         expect(attributes['data-foo'], 'bar');
         expect(attributes['data-foo2'], 'bar2');
         expect(attributes.length, 5);
