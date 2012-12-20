@@ -476,13 +476,6 @@ class ObjectStore {
     receive_port_create_function_ = function.raw();
   }
 
-  RawFunction* lookup_receive_port_function() const {
-    return lookup_receive_port_function_;
-  }
-  void set_lookup_receive_port_function(const Function& function) {
-    lookup_receive_port_function_ = function.raw();
-  }
-
   RawFunction* handle_message_function() const {
     return handle_message_function_;
   }
@@ -582,7 +575,6 @@ class ObjectStore {
   RawInstance* out_of_memory_;
   RawArray* keyword_symbols_;
   RawFunction* receive_port_create_function_;
-  RawFunction* lookup_receive_port_function_;
   RawFunction* handle_message_function_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&keyword_symbols_); }
 

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/message_handler.h"
-#include "vm/port.h"
 #include "vm/dart.h"
 
 namespace dart {
@@ -151,7 +150,9 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
     monitor_.Exit();
     Message::Priority saved_priority = message->priority();
     result = HandleMessage(message);
+    // ASSERT(Isolate::Current() == NULL);
     monitor_.Enter();
+
     if (!result) {
       // If we hit an error, we're done processing messages.
       break;
@@ -237,6 +238,8 @@ void MessageHandler::ClosePort(Dart_Port port) {
               "\tport:       %"Pd64"\n",
               name(), port);
   }
+  queue_->Flush(port);
+  oob_queue_->Flush(port);
 }
 
 
@@ -247,8 +250,8 @@ void MessageHandler::CloseAllPorts() {
               "\thandler:    %s\n",
               name());
   }
-  queue_->Clear();
-  oob_queue_->Clear();
+  queue_->FlushAll();
+  oob_queue_->FlushAll();
 }
 
 

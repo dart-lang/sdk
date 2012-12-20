@@ -153,12 +153,8 @@ class DartLibraryCalls : public AllStatic {
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* Equals(const Instance& left, const Instance& right);
 
-  // Returns the receive port if it is in the port map and null otherwise.
-  // On failure, a RawError.
-  static RawObject* LookupReceivePort(Dart_Port port_id);
-
   // Returns null on success, a RawError on failure.
-  static RawObject* HandleMessage(const Object& receive_port,
+  static RawObject* HandleMessage(Dart_Port dest_port_id,
                                   Dart_Port reply_port_id,
                                   const Instance& dart_message);
 

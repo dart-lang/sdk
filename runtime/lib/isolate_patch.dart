@@ -35,7 +35,6 @@ class _ReceivePortImpl implements ReceivePort {
     }
     return new _ReceivePortImpl._internal(id);
   }
-
   _ReceivePortImpl._internal(int id) : _id = id {
     if (_portMap == null) {
       _portMap = new Map();
@@ -43,15 +42,10 @@ class _ReceivePortImpl implements ReceivePort {
     _portMap[id] = this;
   }
 
-  // Called from the VM to retrieve the ReceivePort for a message.
-  static _ReceivePortImpl _lookupReceivePort(int id) {
-    assert(_portMap != null);
-    return _portMap[id];
-  }
-
   // Called from the VM to dispatch to the handler.
-  static void _handleMessage(_ReceivePortImpl port, int replyId, var message) {
-    assert(port != null);
+  static void _handleMessage(int id, int replyId, var message) {
+    assert(_portMap != null);
+    ReceivePort port = _portMap[id];
     SendPort replyTo = (replyId == 0) ? null : new _SendPortImpl(replyId);
     (port._onMessage)(message, replyTo);
   }

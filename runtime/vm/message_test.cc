@@ -73,7 +73,7 @@ TEST_CASE(MessageQueue_BasicOperations) {
 }
 
 
-TEST_CASE(MessageQueue_Clear) {
+TEST_CASE(MessageQueue_FlushAll) {
   MessageQueue queue;
   MessageQueueTestPeer queue_peer(&queue);
   Dart_Port port1 = 1;
@@ -93,10 +93,84 @@ TEST_CASE(MessageQueue_Clear) {
   queue.Enqueue(msg2);
 
   EXPECT(queue_peer.HasMessage());
-  queue.Clear();
+  queue.FlushAll();
   EXPECT(!queue_peer.HasMessage());
 
   // msg1 and msg2 already delete by FlushAll.
+}
+
+
+TEST_CASE(MessageQueue_Flush) {
+  MessageQueue queue;
+  MessageQueueTestPeer queue_peer(&queue);
+  Dart_Port port1 = 1;
+  Dart_Port port2 = 2;
+
+  const char* str1 = "msg1";
+  const char* str2 = "msg2";
+
+  // Add two messages on different ports.
+  Message* msg1 =
+      new Message(port1, 0, AllocMsg(str1), strlen(str1) + 1,
+                  Message::kNormalPriority);
+  queue.Enqueue(msg1);
+  Message* msg2 =
+      new Message(port2, 0, AllocMsg(str2), strlen(str2) + 1,
+                  Message::kNormalPriority);
+  queue.Enqueue(msg2);
+  EXPECT(queue_peer.HasMessage());
+
+  queue.Flush(port1);
+
+  // One message is left in the queue.
+  EXPECT(queue_peer.HasMessage());
+  Message* msg = queue.Dequeue();
+  EXPECT(msg != NULL);
+  EXPECT_STREQ(str2, reinterpret_cast<char*>(msg->data()));
+
+  EXPECT(!queue_peer.HasMessage());
+
+  // msg1 is already deleted by Flush.
+  delete msg2;
+}
+
+
+TEST_CASE(MessageQueue_Flush_MultipleMessages) {
+  MessageQueue queue;
+  MessageQueueTestPeer queue_peer(&queue);
+  Dart_Port port1 = 1;
+
+  const char* str1 = "msg1";
+  const char* str2 = "msg2";
+
+  Message* msg1 =
+      new Message(port1, 0, AllocMsg(str1), strlen(str1) + 1,
+                  Message::kNormalPriority);
+  queue.Enqueue(msg1);
+  Message* msg2 =
+      new Message(port1, 0, AllocMsg(str2), strlen(str2) + 1,
+                  Message::kNormalPriority);
+  queue.Enqueue(msg2);
+  EXPECT(queue_peer.HasMessage());
+
+  queue.Flush(port1);
+
+  // Queue is empty.
+  EXPECT(!queue_peer.HasMessage());
+  // msg1 and msg2 are already deleted by Flush.
+}
+
+
+TEST_CASE(MessageQueue_Flush_EmptyQueue) {
+  MessageQueue queue;
+  MessageQueueTestPeer queue_peer(&queue);
+  Dart_Port port1 = 1;
+
+  EXPECT(!queue_peer.HasMessage());
+  queue.Flush(port1);
+
+  // Queue is still empty.
+  EXPECT(!queue_peer.HasMessage());
 }
 
 }  // namespace dart

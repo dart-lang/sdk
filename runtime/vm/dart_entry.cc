@@ -371,39 +371,7 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
 }
 
 
-RawObject* DartLibraryCalls::LookupReceivePort(Dart_Port port_id) {
-  Isolate* isolate = Isolate::Current();
-  Function& function =
-      Function::Handle(isolate,
-                       isolate->object_store()->lookup_receive_port_function());
-  const int kNumArguments = 1;
-  if (function.IsNull()) {
-    Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-    ASSERT(!isolate_lib.IsNull());
-    const String& public_class_name =
-        String::Handle(Symbols::New("_ReceivePortImpl"));
-    const String& class_name =
-        String::Handle(isolate_lib.PrivateName(public_class_name));
-    const String& function_name =
-        String::Handle(Symbols::New("_lookupReceivePort"));
-    const Array& kNoArgumentNames = Array::Handle();
-    function = Resolver::ResolveStatic(isolate_lib,
-                                       class_name,
-                                       function_name,
-                                       kNumArguments,
-                                       kNoArgumentNames,
-                                       Resolver::kIsQualified);
-    isolate->object_store()->set_lookup_receive_port_function(function);
-  }
-  const Array& args = Array::Handle(Array::New(kNumArguments));
-  args.SetAt(0, Integer::Handle(Integer::New(port_id)));
-  const Object& result =
-      Object::Handle(DartEntry::InvokeStatic(function, args));
-  return result.raw();
-}
-
-
-RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
+RawObject* DartLibraryCalls::HandleMessage(Dart_Port dest_port_id,
                                            Dart_Port reply_port_id,
                                            const Instance& message) {
   Isolate* isolate = Isolate::Current();
@@ -430,7 +398,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
     isolate->object_store()->set_handle_message_function(function);
   }
   const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
-  args.SetAt(0, receive_port);
+  args.SetAt(0, Integer::Handle(isolate, Integer::New(dest_port_id)));
   args.SetAt(1, Integer::Handle(isolate, Integer::New(reply_port_id)));
   args.SetAt(2, message);
   const Object& result =

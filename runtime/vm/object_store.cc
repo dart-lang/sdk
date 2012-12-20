@@ -86,7 +86,6 @@ ObjectStore::ObjectStore()
     out_of_memory_(Instance::null()),
     keyword_symbols_(Array::null()),
     receive_port_create_function_(Function::null()),
-    lookup_receive_port_function_(Function::null()),
     handle_message_function_(Function::null()) {
 }
 

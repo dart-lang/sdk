@@ -14,8 +14,9 @@ MessageQueue::MessageQueue() {
 
 MessageQueue::~MessageQueue() {
   // Ensure that all pending messages have been released.
-  Clear();
+#if defined(DEBUG)
   ASSERT(head_ == NULL);
+#endif
 }
 
 
@@ -53,7 +54,31 @@ Message* MessageQueue::Dequeue() {
 }
 
 
-void MessageQueue::Clear() {
+void MessageQueue::Flush(Dart_Port port) {
+  Message* cur = head_;
+  Message* prev = NULL;
+  while (cur != NULL) {
+    Message* next = cur->next_;
+    // If the message matches, then remove it from the queue and delete it.
+    if (cur->dest_port() == port) {
+      if (prev != NULL) {
+        prev->next_ = next;
+      } else {
+        head_ = next;
+      }
+      delete cur;
+    } else {
+      // Move prev forward.
+      prev = cur;
+    }
+    // Advance to the next message in the queue.
+    cur = next;
+  }
+  tail_ = prev;
+}
+
+
+void MessageQueue::FlushAll() {
   Message* cur = head_;
   head_ = NULL;
   tail_ = NULL;
