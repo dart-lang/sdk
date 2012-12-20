@@ -11,7 +11,7 @@
 
 part of html;
 
-Window _convertNativeToDart_Window(win) {
+WindowBase _convertNativeToDart_Window(win) {
   return _DOMWindowCrossFrame._createSafe(win);
 }
 

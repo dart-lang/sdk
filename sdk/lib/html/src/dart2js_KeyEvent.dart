@@ -96,7 +96,7 @@ class KeyEvent implements KeyboardEvent {
   void stopImmediatePropagation() => _parent.stopImmediatePropagation();
   void stopPropagation() => _parent.stopPropagation();
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, int detail) {
+      Window view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
@@ -112,7 +112,7 @@ class KeyEvent implements KeyboardEvent {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey,
       bool altGraphKey) {
     throw new UnsupportedError(

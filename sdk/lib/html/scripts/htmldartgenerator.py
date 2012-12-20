@@ -11,13 +11,13 @@ from generator import AnalyzeOperation, ConstantOutputOrder, \
     IsPureInterface, TypeOrNothing
 
 # Types that are accessible cross-frame in a limited fashion.
-# In these cases, the base type (e.g., Window) provides restricted access
-# while the subtype (e.g., LocalWindow) provides full access to the
+# In these cases, the base type (e.g., WindowBase) provides restricted access
+# while the subtype (e.g., Window) provides full access to the
 # corresponding objects if there are from the same frame.
 _secure_base_types = {
-  'LocalWindow': 'Window',
-  'LocalLocation': 'Location',
-  'LocalHistory': 'History',
+  'Window': 'WindowBase',
+  'Location': 'LocationBase',
+  'History': 'HistoryBase',
 }
 
 class HtmlDartGenerator(object):
@@ -303,8 +303,8 @@ class HtmlDartGenerator(object):
       dart_name = self._DartType(type_name)
     # We only need to secure Window.  Only local History and Location are
     # returned in generated code.
-    assert(dart_name != 'History' and dart_name != 'Location')
-    if dart_name == 'LocalWindow':
+    assert(dart_name != 'HistoryBase' and dart_name != 'LocationBase')
+    if dart_name == 'Window':
       return _secure_base_types[dart_name]
     return dart_name
 

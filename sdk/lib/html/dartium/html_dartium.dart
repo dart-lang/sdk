@@ -22,9 +22,9 @@ import 'dart:web_audio' as web_audio;
 
 
 
-LocalWindow _window;
+Window _window;
 
-LocalWindow get window {
+Window get window {
   if (_window != null) {
     return _window;
   }
@@ -2221,7 +2221,7 @@ class CompositionEvent extends UIEvent {
 
 
   /** @domName CompositionEvent.initCompositionEvent */
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7119,7 +7119,7 @@ class Document extends Node
 
 
   /** @domName Document.defaultView */
-  Window get window native "Document_defaultView_Getter";
+  WindowBase get window native "Document_defaultView_Getter";
 
 
   /** @domName Document.documentElement */
@@ -7231,7 +7231,7 @@ class Document extends Node
 
 
   /** @domName Document.createTouch */
-  Touch $dom_createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
+  Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
 
   /** @domName Document.createTouchList */
@@ -11374,7 +11374,7 @@ class FrameElement extends _Element_Merged {
 
 
   /** @domName HTMLFrameElement.contentWindow */
-  Window get contentWindow native "HTMLFrameElement_contentWindow_Getter";
+  WindowBase get contentWindow native "HTMLFrameElement_contentWindow_Getter";
 
 
   /** @domName HTMLFrameElement.frameBorder */
@@ -11740,6 +11740,46 @@ class HeadingElement extends _Element_Merged {
 
   /** @domName HTMLHeadingElement.align */
   void set align(String value) native "HTMLHeadingElement_align_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName History
+class History extends NativeFieldWrapperClass1 implements HistoryBase {
+  History.internal();
+
+
+  /** @domName History.length */
+  int get length native "History_length_Getter";
+
+
+  /** @domName History.state */
+  dynamic get state native "History_state_Getter";
+
+
+  /** @domName History.back */
+  void back() native "History_back_Callback";
+
+
+  /** @domName History.forward */
+  void forward() native "History_forward_Callback";
+
+
+  /** @domName History.go */
+  void go(int distance) native "History_go_Callback";
+
+
+  /** @domName History.pushState */
+  void pushState(Object data, String title, [String url]) native "History_pushState_Callback";
+
+
+  /** @domName History.replaceState */
+  void replaceState(Object data, String title, [String url]) native "History_replaceState_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12482,7 +12522,7 @@ class IFrameElement extends _Element_Merged {
 
 
   /** @domName HTMLIFrameElement.contentWindow */
-  Window get contentWindow native "HTMLIFrameElement_contentWindow_Getter";
+  WindowBase get contentWindow native "HTMLIFrameElement_contentWindow_Getter";
 
 
   /** @domName HTMLIFrameElement.frameBorder */
@@ -14274,7 +14314,7 @@ class KeyboardEvent extends UIEvent {
 
 
   /** @domName KeyboardEvent.initKeyboardEvent */
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14559,37 +14599,13 @@ class LinkElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName History
-class LocalHistory extends NativeFieldWrapperClass1 implements History {
-  LocalHistory.internal();
+/// @domName LocalMediaStream
+class LocalMediaStream extends MediaStream implements EventTarget {
+  LocalMediaStream.internal(): super.internal();
 
 
-  /** @domName History.length */
-  int get length native "History_length_Getter";
-
-
-  /** @domName History.state */
-  dynamic get state native "History_state_Getter";
-
-
-  /** @domName History.back */
-  void back() native "History_back_Callback";
-
-
-  /** @domName History.forward */
-  void forward() native "History_forward_Callback";
-
-
-  /** @domName History.go */
-  void go(int distance) native "History_go_Callback";
-
-
-  /** @domName History.pushState */
-  void pushState(Object data, String title, [String url]) native "History_pushState_Callback";
-
-
-  /** @domName History.replaceState */
-  void replaceState(Object data, String title, [String url]) native "History_replaceState_Callback";
+  /** @domName LocalMediaStream.stop */
+  void stop() native "LocalMediaStream_stop_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14600,8 +14616,8 @@ class LocalHistory extends NativeFieldWrapperClass1 implements History {
 
 
 /// @domName Location
-class LocalLocation extends NativeFieldWrapperClass1 implements Location {
-  LocalLocation.internal();
+class Location extends NativeFieldWrapperClass1 implements LocationBase {
+  Location.internal();
 
 
   /** @domName Location.ancestorOrigins */
@@ -14691,662 +14707,6 @@ class LocalLocation extends NativeFieldWrapperClass1 implements Location {
   /** @domName Location.toString */
   String toString() native "Location_toString_Callback";
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName LocalMediaStream
-class LocalMediaStream extends MediaStream implements EventTarget {
-  LocalMediaStream.internal(): super.internal();
-
-
-  /** @domName LocalMediaStream.stop */
-  void stop() native "LocalMediaStream_stop_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Window
-class LocalWindow extends EventTarget implements Window {
-
-  /**
-   * Executes a [callback] after the next batch of browser layout measurements
-   * has completed or would have completed if any browser layout measurements
-   * had been scheduled.
-   */
-  void requestLayoutFrame(TimeoutHandler callback) {
-    _addMeasurementFrameCallback(callback);
-  }
-
-  /**
-   * Lookup a port by its [name].  Return null if no port is
-   * registered under [name].
-   */
-  lookupPort(String name) {
-    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
-    return _deserialize(port);
-  }
-
-  /**
-   * Register a [port] on this window under the given [name].  This
-   * port may be retrieved by any isolate (or JavaScript script)
-   * running in this window.
-   */
-  registerPort(String name, var port) {
-    var serialized = _serialize(port);
-    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
-  }
-
-  LocalWindow.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  LocalWindowEvents get on =>
-    new LocalWindowEvents(this);
-
-  static const int PERSISTENT = 1;
-
-  static const int TEMPORARY = 0;
-
-
-  /** @domName DOMWindow.applicationCache */
-  ApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
-
-
-  /** @domName DOMWindow.closed */
-  bool get closed native "DOMWindow_closed_Getter";
-
-
-  /** @domName DOMWindow.console */
-  Console get console native "DOMWindow_console_Getter";
-
-
-  /** @domName DOMWindow.crypto */
-  Crypto get crypto native "DOMWindow_crypto_Getter";
-
-
-  /** @domName DOMWindow.defaultStatus */
-  String get defaultStatus native "DOMWindow_defaultStatus_Getter";
-
-
-  /** @domName DOMWindow.defaultStatus */
-  void set defaultStatus(String value) native "DOMWindow_defaultStatus_Setter";
-
-
-  /** @domName DOMWindow.defaultstatus */
-  String get defaultstatus native "DOMWindow_defaultstatus_Getter";
-
-
-  /** @domName DOMWindow.defaultstatus */
-  void set defaultstatus(String value) native "DOMWindow_defaultstatus_Setter";
-
-
-  /** @domName DOMWindow.devicePixelRatio */
-  num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
-
-
-  /** @domName DOMWindow.document */
-  Document get document native "DOMWindow_document_Getter";
-
-
-  /** @domName DOMWindow.event */
-  Event get event native "DOMWindow_event_Getter";
-
-
-  /** @domName DOMWindow.history */
-  LocalHistory get history native "DOMWindow_history_Getter";
-
-
-  /** @domName DOMWindow.indexedDB */
-  IdbFactory get indexedDB native "DOMWindow_indexedDB_Getter";
-
-
-  /** @domName DOMWindow.innerHeight */
-  int get innerHeight native "DOMWindow_innerHeight_Getter";
-
-
-  /** @domName DOMWindow.innerWidth */
-  int get innerWidth native "DOMWindow_innerWidth_Getter";
-
-
-  /** @domName DOMWindow.localStorage */
-  Storage get localStorage native "DOMWindow_localStorage_Getter";
-
-
-  /** @domName DOMWindow.location */
-  LocalLocation get location native "DOMWindow_location_Getter";
-
-
-  /** @domName DOMWindow.location */
-  void set location(LocalLocation value) native "DOMWindow_location_Setter";
-
-
-  /** @domName DOMWindow.locationbar */
-  BarInfo get locationbar native "DOMWindow_locationbar_Getter";
-
-
-  /** @domName DOMWindow.menubar */
-  BarInfo get menubar native "DOMWindow_menubar_Getter";
-
-
-  /** @domName DOMWindow.name */
-  String get name native "DOMWindow_name_Getter";
-
-
-  /** @domName DOMWindow.name */
-  void set name(String value) native "DOMWindow_name_Setter";
-
-
-  /** @domName DOMWindow.navigator */
-  Navigator get navigator native "DOMWindow_navigator_Getter";
-
-
-  /** @domName DOMWindow.offscreenBuffering */
-  bool get offscreenBuffering native "DOMWindow_offscreenBuffering_Getter";
-
-
-  /** @domName DOMWindow.opener */
-  Window get opener native "DOMWindow_opener_Getter";
-
-
-  /** @domName DOMWindow.outerHeight */
-  int get outerHeight native "DOMWindow_outerHeight_Getter";
-
-
-  /** @domName DOMWindow.outerWidth */
-  int get outerWidth native "DOMWindow_outerWidth_Getter";
-
-
-  /** @domName DOMWindow.pagePopupController */
-  PagePopupController get pagePopupController native "DOMWindow_pagePopupController_Getter";
-
-
-  /** @domName DOMWindow.pageXOffset */
-  int get pageXOffset native "DOMWindow_pageXOffset_Getter";
-
-
-  /** @domName DOMWindow.pageYOffset */
-  int get pageYOffset native "DOMWindow_pageYOffset_Getter";
-
-
-  /** @domName DOMWindow.parent */
-  Window get parent native "DOMWindow_parent_Getter";
-
-
-  /** @domName DOMWindow.performance */
-  Performance get performance native "DOMWindow_performance_Getter";
-
-
-  /** @domName DOMWindow.personalbar */
-  BarInfo get personalbar native "DOMWindow_personalbar_Getter";
-
-
-  /** @domName DOMWindow.screen */
-  Screen get screen native "DOMWindow_screen_Getter";
-
-
-  /** @domName DOMWindow.screenLeft */
-  int get screenLeft native "DOMWindow_screenLeft_Getter";
-
-
-  /** @domName DOMWindow.screenTop */
-  int get screenTop native "DOMWindow_screenTop_Getter";
-
-
-  /** @domName DOMWindow.screenX */
-  int get screenX native "DOMWindow_screenX_Getter";
-
-
-  /** @domName DOMWindow.screenY */
-  int get screenY native "DOMWindow_screenY_Getter";
-
-
-  /** @domName DOMWindow.scrollX */
-  int get scrollX native "DOMWindow_scrollX_Getter";
-
-
-  /** @domName DOMWindow.scrollY */
-  int get scrollY native "DOMWindow_scrollY_Getter";
-
-
-  /** @domName DOMWindow.scrollbars */
-  BarInfo get scrollbars native "DOMWindow_scrollbars_Getter";
-
-
-  /** @domName DOMWindow.self */
-  Window get self native "DOMWindow_self_Getter";
-
-
-  /** @domName DOMWindow.sessionStorage */
-  Storage get sessionStorage native "DOMWindow_sessionStorage_Getter";
-
-
-  /** @domName DOMWindow.status */
-  String get status native "DOMWindow_status_Getter";
-
-
-  /** @domName DOMWindow.status */
-  void set status(String value) native "DOMWindow_status_Setter";
-
-
-  /** @domName DOMWindow.statusbar */
-  BarInfo get statusbar native "DOMWindow_statusbar_Getter";
-
-
-  /** @domName DOMWindow.styleMedia */
-  StyleMedia get styleMedia native "DOMWindow_styleMedia_Getter";
-
-
-  /** @domName DOMWindow.toolbar */
-  BarInfo get toolbar native "DOMWindow_toolbar_Getter";
-
-
-  /** @domName DOMWindow.top */
-  Window get top native "DOMWindow_top_Getter";
-
-
-  /** @domName DOMWindow.webkitNotifications */
-  NotificationCenter get webkitNotifications native "DOMWindow_webkitNotifications_Getter";
-
-
-  /** @domName DOMWindow.webkitStorageInfo */
-  StorageInfo get webkitStorageInfo native "DOMWindow_webkitStorageInfo_Getter";
-
-
-  /** @domName DOMWindow.window */
-  Window get window native "DOMWindow_window_Getter";
-
-
-  /** @domName DOMWindow.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_addEventListener_Callback";
-
-
-  /** @domName DOMWindow.alert */
-  void alert(String message) native "DOMWindow_alert_Callback";
-
-
-  /** @domName DOMWindow.atob */
-  String atob(String string) native "DOMWindow_atob_Callback";
-
-
-  /** @domName DOMWindow.btoa */
-  String btoa(String string) native "DOMWindow_btoa_Callback";
-
-
-  /** @domName DOMWindow.cancelAnimationFrame */
-  void cancelAnimationFrame(int id) native "DOMWindow_cancelAnimationFrame_Callback";
-
-
-  /** @domName DOMWindow.captureEvents */
-  void captureEvents() native "DOMWindow_captureEvents_Callback";
-
-
-  /** @domName DOMWindow.clearInterval */
-  void clearInterval(int handle) native "DOMWindow_clearInterval_Callback";
-
-
-  /** @domName DOMWindow.clearTimeout */
-  void clearTimeout(int handle) native "DOMWindow_clearTimeout_Callback";
-
-
-  /** @domName DOMWindow.close */
-  void close() native "DOMWindow_close_Callback";
-
-
-  /** @domName DOMWindow.confirm */
-  bool confirm(String message) native "DOMWindow_confirm_Callback";
-
-
-  /** @domName DOMWindow.dispatchEvent */
-  bool $dom_dispatchEvent(Event evt) native "DOMWindow_dispatchEvent_Callback";
-
-
-  /** @domName DOMWindow.find */
-  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
-
-
-  /** @domName DOMWindow.getComputedStyle */
-  CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
-
-
-  /** @domName DOMWindow.getMatchedCSSRules */
-  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
-
-
-  /** @domName DOMWindow.getSelection */
-  DomSelection getSelection() native "DOMWindow_getSelection_Callback";
-
-
-  /** @domName DOMWindow.matchMedia */
-  MediaQueryList matchMedia(String query) native "DOMWindow_matchMedia_Callback";
-
-
-  /** @domName DOMWindow.moveBy */
-  void moveBy(num x, num y) native "DOMWindow_moveBy_Callback";
-
-
-  /** @domName DOMWindow.moveTo */
-  void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
-
-
-  /** @domName DOMWindow.open */
-  Window open(String url, String name, [String options]) native "DOMWindow_open_Callback";
-
-
-  /** @domName DOMWindow.openDatabase */
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
-
-
-  /** @domName DOMWindow.postMessage */
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
-
-
-  /** @domName DOMWindow.print */
-  void print() native "DOMWindow_print_Callback";
-
-
-  /** @domName DOMWindow.releaseEvents */
-  void releaseEvents() native "DOMWindow_releaseEvents_Callback";
-
-
-  /** @domName DOMWindow.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_removeEventListener_Callback";
-
-
-  /** @domName DOMWindow.requestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_requestAnimationFrame_Callback";
-
-
-  /** @domName DOMWindow.resizeBy */
-  void resizeBy(num x, num y) native "DOMWindow_resizeBy_Callback";
-
-
-  /** @domName DOMWindow.resizeTo */
-  void resizeTo(num width, num height) native "DOMWindow_resizeTo_Callback";
-
-
-  /** @domName DOMWindow.scroll */
-  void scroll(int x, int y) native "DOMWindow_scroll_Callback";
-
-
-  /** @domName DOMWindow.scrollBy */
-  void scrollBy(int x, int y) native "DOMWindow_scrollBy_Callback";
-
-
-  /** @domName DOMWindow.scrollTo */
-  void scrollTo(int x, int y) native "DOMWindow_scrollTo_Callback";
-
-
-  /** @domName DOMWindow.setInterval */
-  int setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
-
-
-  /** @domName DOMWindow.setTimeout */
-  int setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
-
-
-  /** @domName DOMWindow.showModalDialog */
-  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native "DOMWindow_showModalDialog_Callback";
-
-
-  /** @domName DOMWindow.stop */
-  void stop() native "DOMWindow_stop_Callback";
-
-
-  /** @domName DOMWindow.webkitCancelAnimationFrame */
-  void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
-
-
-  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
-  Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
-
-
-  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
-  Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
-
-
-  /** @domName DOMWindow.webkitRequestAnimationFrame */
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
-
-
-  /** @domName DOMWindow.webkitRequestFileSystem */
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
-
-
-  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
-  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
-
-}
-
-/// @docsEditable true
-class LocalWindowEvents extends Events {
-  /// @docsEditable true
-  LocalWindowEvents(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get abort => this['abort'];
-
-  /// @docsEditable true
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  /// @docsEditable true
-  EventListenerList get blur => this['blur'];
-
-  /// @docsEditable true
-  EventListenerList get canPlay => this['canplay'];
-
-  /// @docsEditable true
-  EventListenerList get canPlayThrough => this['canplaythrough'];
-
-  /// @docsEditable true
-  EventListenerList get change => this['change'];
-
-  /// @docsEditable true
-  EventListenerList get click => this['click'];
-
-  /// @docsEditable true
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  /// @docsEditable true
-  EventListenerList get doubleClick => this['dblclick'];
-
-  /// @docsEditable true
-  EventListenerList get deviceMotion => this['devicemotion'];
-
-  /// @docsEditable true
-  EventListenerList get deviceOrientation => this['deviceorientation'];
-
-  /// @docsEditable true
-  EventListenerList get drag => this['drag'];
-
-  /// @docsEditable true
-  EventListenerList get dragEnd => this['dragend'];
-
-  /// @docsEditable true
-  EventListenerList get dragEnter => this['dragenter'];
-
-  /// @docsEditable true
-  EventListenerList get dragLeave => this['dragleave'];
-
-  /// @docsEditable true
-  EventListenerList get dragOver => this['dragover'];
-
-  /// @docsEditable true
-  EventListenerList get dragStart => this['dragstart'];
-
-  /// @docsEditable true
-  EventListenerList get drop => this['drop'];
-
-  /// @docsEditable true
-  EventListenerList get durationChange => this['durationchange'];
-
-  /// @docsEditable true
-  EventListenerList get emptied => this['emptied'];
-
-  /// @docsEditable true
-  EventListenerList get ended => this['ended'];
-
-  /// @docsEditable true
-  EventListenerList get error => this['error'];
-
-  /// @docsEditable true
-  EventListenerList get focus => this['focus'];
-
-  /// @docsEditable true
-  EventListenerList get hashChange => this['hashchange'];
-
-  /// @docsEditable true
-  EventListenerList get input => this['input'];
-
-  /// @docsEditable true
-  EventListenerList get invalid => this['invalid'];
-
-  /// @docsEditable true
-  EventListenerList get keyDown => this['keydown'];
-
-  /// @docsEditable true
-  EventListenerList get keyPress => this['keypress'];
-
-  /// @docsEditable true
-  EventListenerList get keyUp => this['keyup'];
-
-  /// @docsEditable true
-  EventListenerList get load => this['load'];
-
-  /// @docsEditable true
-  EventListenerList get loadedData => this['loadeddata'];
-
-  /// @docsEditable true
-  EventListenerList get loadedMetadata => this['loadedmetadata'];
-
-  /// @docsEditable true
-  EventListenerList get loadStart => this['loadstart'];
-
-  /// @docsEditable true
-  EventListenerList get message => this['message'];
-
-  /// @docsEditable true
-  EventListenerList get mouseDown => this['mousedown'];
-
-  /// @docsEditable true
-  EventListenerList get mouseMove => this['mousemove'];
-
-  /// @docsEditable true
-  EventListenerList get mouseOut => this['mouseout'];
-
-  /// @docsEditable true
-  EventListenerList get mouseOver => this['mouseover'];
-
-  /// @docsEditable true
-  EventListenerList get mouseUp => this['mouseup'];
-
-  /// @docsEditable true
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  /// @docsEditable true
-  EventListenerList get offline => this['offline'];
-
-  /// @docsEditable true
-  EventListenerList get online => this['online'];
-
-  /// @docsEditable true
-  EventListenerList get pageHide => this['pagehide'];
-
-  /// @docsEditable true
-  EventListenerList get pageShow => this['pageshow'];
-
-  /// @docsEditable true
-  EventListenerList get pause => this['pause'];
-
-  /// @docsEditable true
-  EventListenerList get play => this['play'];
-
-  /// @docsEditable true
-  EventListenerList get playing => this['playing'];
-
-  /// @docsEditable true
-  EventListenerList get popState => this['popstate'];
-
-  /// @docsEditable true
-  EventListenerList get progress => this['progress'];
-
-  /// @docsEditable true
-  EventListenerList get rateChange => this['ratechange'];
-
-  /// @docsEditable true
-  EventListenerList get reset => this['reset'];
-
-  /// @docsEditable true
-  EventListenerList get resize => this['resize'];
-
-  /// @docsEditable true
-  EventListenerList get scroll => this['scroll'];
-
-  /// @docsEditable true
-  EventListenerList get search => this['search'];
-
-  /// @docsEditable true
-  EventListenerList get seeked => this['seeked'];
-
-  /// @docsEditable true
-  EventListenerList get seeking => this['seeking'];
-
-  /// @docsEditable true
-  EventListenerList get select => this['select'];
-
-  /// @docsEditable true
-  EventListenerList get stalled => this['stalled'];
-
-  /// @docsEditable true
-  EventListenerList get storage => this['storage'];
-
-  /// @docsEditable true
-  EventListenerList get submit => this['submit'];
-
-  /// @docsEditable true
-  EventListenerList get suspend => this['suspend'];
-
-  /// @docsEditable true
-  EventListenerList get timeUpdate => this['timeupdate'];
-
-  /// @docsEditable true
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  /// @docsEditable true
-  EventListenerList get touchEnd => this['touchend'];
-
-  /// @docsEditable true
-  EventListenerList get touchMove => this['touchmove'];
-
-  /// @docsEditable true
-  EventListenerList get touchStart => this['touchstart'];
-
-  /// @docsEditable true
-  EventListenerList get unload => this['unload'];
-
-  /// @docsEditable true
-  EventListenerList get volumeChange => this['volumechange'];
-
-  /// @docsEditable true
-  EventListenerList get waiting => this['waiting'];
-
-  /// @docsEditable true
-  EventListenerList get animationEnd => this['webkitAnimationEnd'];
-
-  /// @docsEditable true
-  EventListenerList get animationIteration => this['webkitAnimationIteration'];
-
-  /// @docsEditable true
-  EventListenerList get animationStart => this['webkitAnimationStart'];
-
-  /// @docsEditable true
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16504,15 +15864,15 @@ class MessageEvent extends Event {
 
 
   /** @domName MessageEvent.source */
-  Window get source native "MessageEvent_source_Getter";
+  WindowBase get source native "MessageEvent_source_Getter";
 
 
   /** @domName MessageEvent.initMessageEvent */
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
 
 
   /** @domName MessageEvent.webkitInitMessageEvent */
-  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List transferables) native "MessageEvent_webkitInitMessageEvent_Callback";
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) native "MessageEvent_webkitInitMessageEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16830,7 +16190,7 @@ class MouseEvent extends UIEvent {
 
 
   /** @domName MouseEvent.initMouseEvent */
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22123,7 +21483,7 @@ class TextEvent extends UIEvent {
 
 
   /** @domName TextEvent.initTextEvent */
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
+  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22771,7 +22131,7 @@ class TouchEvent extends UIEvent {
 
 
   /** @domName TouchEvent.initTouchEvent */
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
+  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23118,7 +22478,7 @@ class UIEvent extends Event {
 
 
   /** @domName UIEvent.view */
-  Window get view native "UIEvent_view_Getter";
+  WindowBase get view native "UIEvent_view_Getter";
 
 
   /** @domName UIEvent.which */
@@ -23126,7 +22486,7 @@ class UIEvent extends Event {
 
 
   /** @domName UIEvent.initUIEvent */
-  void $dom_initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native "UIEvent_initUIEvent_Callback";
+  void $dom_initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25725,7 +25085,7 @@ class WheelEvent extends MouseEvent {
 
 
   /** @domName WheelEvent.initWebKitWheelEvent */
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
 
   /** @domName WheelEvent.deltaX */
@@ -25735,6 +25095,649 @@ class WheelEvent extends MouseEvent {
   /** @domName WheelEvent.deltaMode */
   int get deltaMode => 0;
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName Window
+class Window extends EventTarget implements WindowBase {
+
+  /**
+   * Executes a [callback] after the next batch of browser layout measurements
+   * has completed or would have completed if any browser layout measurements
+   * had been scheduled.
+   */
+  void requestLayoutFrame(TimeoutHandler callback) {
+    _addMeasurementFrameCallback(callback);
+  }
+
+  /**
+   * Lookup a port by its [name].  Return null if no port is
+   * registered under [name].
+   */
+  lookupPort(String name) {
+    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
+    return _deserialize(port);
+  }
+
+  /**
+   * Register a [port] on this window under the given [name].  This
+   * port may be retrieved by any isolate (or JavaScript script)
+   * running in this window.
+   */
+  registerPort(String name, var port) {
+    var serialized = _serialize(port);
+    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
+  }
+
+  Window.internal(): super.internal();
+
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  WindowEvents get on =>
+    new WindowEvents(this);
+
+  static const int PERSISTENT = 1;
+
+  static const int TEMPORARY = 0;
+
+
+  /** @domName DOMWindow.applicationCache */
+  ApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
+
+
+  /** @domName DOMWindow.closed */
+  bool get closed native "DOMWindow_closed_Getter";
+
+
+  /** @domName DOMWindow.console */
+  Console get console native "DOMWindow_console_Getter";
+
+
+  /** @domName DOMWindow.crypto */
+  Crypto get crypto native "DOMWindow_crypto_Getter";
+
+
+  /** @domName DOMWindow.defaultStatus */
+  String get defaultStatus native "DOMWindow_defaultStatus_Getter";
+
+
+  /** @domName DOMWindow.defaultStatus */
+  void set defaultStatus(String value) native "DOMWindow_defaultStatus_Setter";
+
+
+  /** @domName DOMWindow.defaultstatus */
+  String get defaultstatus native "DOMWindow_defaultstatus_Getter";
+
+
+  /** @domName DOMWindow.defaultstatus */
+  void set defaultstatus(String value) native "DOMWindow_defaultstatus_Setter";
+
+
+  /** @domName DOMWindow.devicePixelRatio */
+  num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
+
+
+  /** @domName DOMWindow.document */
+  Document get document native "DOMWindow_document_Getter";
+
+
+  /** @domName DOMWindow.event */
+  Event get event native "DOMWindow_event_Getter";
+
+
+  /** @domName DOMWindow.history */
+  History get history native "DOMWindow_history_Getter";
+
+
+  /** @domName DOMWindow.indexedDB */
+  IdbFactory get indexedDB native "DOMWindow_indexedDB_Getter";
+
+
+  /** @domName DOMWindow.innerHeight */
+  int get innerHeight native "DOMWindow_innerHeight_Getter";
+
+
+  /** @domName DOMWindow.innerWidth */
+  int get innerWidth native "DOMWindow_innerWidth_Getter";
+
+
+  /** @domName DOMWindow.localStorage */
+  Storage get localStorage native "DOMWindow_localStorage_Getter";
+
+
+  /** @domName DOMWindow.location */
+  Location get location native "DOMWindow_location_Getter";
+
+
+  /** @domName DOMWindow.location */
+  void set location(Location value) native "DOMWindow_location_Setter";
+
+
+  /** @domName DOMWindow.locationbar */
+  BarInfo get locationbar native "DOMWindow_locationbar_Getter";
+
+
+  /** @domName DOMWindow.menubar */
+  BarInfo get menubar native "DOMWindow_menubar_Getter";
+
+
+  /** @domName DOMWindow.name */
+  String get name native "DOMWindow_name_Getter";
+
+
+  /** @domName DOMWindow.name */
+  void set name(String value) native "DOMWindow_name_Setter";
+
+
+  /** @domName DOMWindow.navigator */
+  Navigator get navigator native "DOMWindow_navigator_Getter";
+
+
+  /** @domName DOMWindow.offscreenBuffering */
+  bool get offscreenBuffering native "DOMWindow_offscreenBuffering_Getter";
+
+
+  /** @domName DOMWindow.opener */
+  WindowBase get opener native "DOMWindow_opener_Getter";
+
+
+  /** @domName DOMWindow.outerHeight */
+  int get outerHeight native "DOMWindow_outerHeight_Getter";
+
+
+  /** @domName DOMWindow.outerWidth */
+  int get outerWidth native "DOMWindow_outerWidth_Getter";
+
+
+  /** @domName DOMWindow.pagePopupController */
+  PagePopupController get pagePopupController native "DOMWindow_pagePopupController_Getter";
+
+
+  /** @domName DOMWindow.pageXOffset */
+  int get pageXOffset native "DOMWindow_pageXOffset_Getter";
+
+
+  /** @domName DOMWindow.pageYOffset */
+  int get pageYOffset native "DOMWindow_pageYOffset_Getter";
+
+
+  /** @domName DOMWindow.parent */
+  WindowBase get parent native "DOMWindow_parent_Getter";
+
+
+  /** @domName DOMWindow.performance */
+  Performance get performance native "DOMWindow_performance_Getter";
+
+
+  /** @domName DOMWindow.personalbar */
+  BarInfo get personalbar native "DOMWindow_personalbar_Getter";
+
+
+  /** @domName DOMWindow.screen */
+  Screen get screen native "DOMWindow_screen_Getter";
+
+
+  /** @domName DOMWindow.screenLeft */
+  int get screenLeft native "DOMWindow_screenLeft_Getter";
+
+
+  /** @domName DOMWindow.screenTop */
+  int get screenTop native "DOMWindow_screenTop_Getter";
+
+
+  /** @domName DOMWindow.screenX */
+  int get screenX native "DOMWindow_screenX_Getter";
+
+
+  /** @domName DOMWindow.screenY */
+  int get screenY native "DOMWindow_screenY_Getter";
+
+
+  /** @domName DOMWindow.scrollX */
+  int get scrollX native "DOMWindow_scrollX_Getter";
+
+
+  /** @domName DOMWindow.scrollY */
+  int get scrollY native "DOMWindow_scrollY_Getter";
+
+
+  /** @domName DOMWindow.scrollbars */
+  BarInfo get scrollbars native "DOMWindow_scrollbars_Getter";
+
+
+  /** @domName DOMWindow.self */
+  WindowBase get self native "DOMWindow_self_Getter";
+
+
+  /** @domName DOMWindow.sessionStorage */
+  Storage get sessionStorage native "DOMWindow_sessionStorage_Getter";
+
+
+  /** @domName DOMWindow.status */
+  String get status native "DOMWindow_status_Getter";
+
+
+  /** @domName DOMWindow.status */
+  void set status(String value) native "DOMWindow_status_Setter";
+
+
+  /** @domName DOMWindow.statusbar */
+  BarInfo get statusbar native "DOMWindow_statusbar_Getter";
+
+
+  /** @domName DOMWindow.styleMedia */
+  StyleMedia get styleMedia native "DOMWindow_styleMedia_Getter";
+
+
+  /** @domName DOMWindow.toolbar */
+  BarInfo get toolbar native "DOMWindow_toolbar_Getter";
+
+
+  /** @domName DOMWindow.top */
+  WindowBase get top native "DOMWindow_top_Getter";
+
+
+  /** @domName DOMWindow.webkitNotifications */
+  NotificationCenter get webkitNotifications native "DOMWindow_webkitNotifications_Getter";
+
+
+  /** @domName DOMWindow.webkitStorageInfo */
+  StorageInfo get webkitStorageInfo native "DOMWindow_webkitStorageInfo_Getter";
+
+
+  /** @domName DOMWindow.window */
+  WindowBase get window native "DOMWindow_window_Getter";
+
+
+  /** @domName DOMWindow.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_addEventListener_Callback";
+
+
+  /** @domName DOMWindow.alert */
+  void alert(String message) native "DOMWindow_alert_Callback";
+
+
+  /** @domName DOMWindow.atob */
+  String atob(String string) native "DOMWindow_atob_Callback";
+
+
+  /** @domName DOMWindow.btoa */
+  String btoa(String string) native "DOMWindow_btoa_Callback";
+
+
+  /** @domName DOMWindow.cancelAnimationFrame */
+  void cancelAnimationFrame(int id) native "DOMWindow_cancelAnimationFrame_Callback";
+
+
+  /** @domName DOMWindow.captureEvents */
+  void captureEvents() native "DOMWindow_captureEvents_Callback";
+
+
+  /** @domName DOMWindow.clearInterval */
+  void clearInterval(int handle) native "DOMWindow_clearInterval_Callback";
+
+
+  /** @domName DOMWindow.clearTimeout */
+  void clearTimeout(int handle) native "DOMWindow_clearTimeout_Callback";
+
+
+  /** @domName DOMWindow.close */
+  void close() native "DOMWindow_close_Callback";
+
+
+  /** @domName DOMWindow.confirm */
+  bool confirm(String message) native "DOMWindow_confirm_Callback";
+
+
+  /** @domName DOMWindow.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt) native "DOMWindow_dispatchEvent_Callback";
+
+
+  /** @domName DOMWindow.find */
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
+
+
+  /** @domName DOMWindow.getComputedStyle */
+  CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
+
+
+  /** @domName DOMWindow.getMatchedCSSRules */
+  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
+
+
+  /** @domName DOMWindow.getSelection */
+  DomSelection getSelection() native "DOMWindow_getSelection_Callback";
+
+
+  /** @domName DOMWindow.matchMedia */
+  MediaQueryList matchMedia(String query) native "DOMWindow_matchMedia_Callback";
+
+
+  /** @domName DOMWindow.moveBy */
+  void moveBy(num x, num y) native "DOMWindow_moveBy_Callback";
+
+
+  /** @domName DOMWindow.moveTo */
+  void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
+
+
+  /** @domName DOMWindow.open */
+  WindowBase open(String url, String name, [String options]) native "DOMWindow_open_Callback";
+
+
+  /** @domName DOMWindow.openDatabase */
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
+
+
+  /** @domName DOMWindow.postMessage */
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
+
+
+  /** @domName DOMWindow.print */
+  void print() native "DOMWindow_print_Callback";
+
+
+  /** @domName DOMWindow.releaseEvents */
+  void releaseEvents() native "DOMWindow_releaseEvents_Callback";
+
+
+  /** @domName DOMWindow.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_removeEventListener_Callback";
+
+
+  /** @domName DOMWindow.requestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_requestAnimationFrame_Callback";
+
+
+  /** @domName DOMWindow.resizeBy */
+  void resizeBy(num x, num y) native "DOMWindow_resizeBy_Callback";
+
+
+  /** @domName DOMWindow.resizeTo */
+  void resizeTo(num width, num height) native "DOMWindow_resizeTo_Callback";
+
+
+  /** @domName DOMWindow.scroll */
+  void scroll(int x, int y) native "DOMWindow_scroll_Callback";
+
+
+  /** @domName DOMWindow.scrollBy */
+  void scrollBy(int x, int y) native "DOMWindow_scrollBy_Callback";
+
+
+  /** @domName DOMWindow.scrollTo */
+  void scrollTo(int x, int y) native "DOMWindow_scrollTo_Callback";
+
+
+  /** @domName DOMWindow.setInterval */
+  int setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
+
+
+  /** @domName DOMWindow.setTimeout */
+  int setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
+
+
+  /** @domName DOMWindow.showModalDialog */
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native "DOMWindow_showModalDialog_Callback";
+
+
+  /** @domName DOMWindow.stop */
+  void stop() native "DOMWindow_stop_Callback";
+
+
+  /** @domName DOMWindow.webkitCancelAnimationFrame */
+  void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
+
+
+  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
+  Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
+
+
+  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
+  Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
+
+
+  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
+
+
+  /** @domName DOMWindow.webkitRequestFileSystem */
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
+
+
+  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+
+}
+
+/// @docsEditable true
+class WindowEvents extends Events {
+  /// @docsEditable true
+  WindowEvents(EventTarget _ptr) : super(_ptr);
+
+  /// @docsEditable true
+  EventListenerList get contentLoaded => this['DOMContentLoaded'];
+
+  /// @docsEditable true
+  EventListenerList get abort => this['abort'];
+
+  /// @docsEditable true
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  /// @docsEditable true
+  EventListenerList get blur => this['blur'];
+
+  /// @docsEditable true
+  EventListenerList get canPlay => this['canplay'];
+
+  /// @docsEditable true
+  EventListenerList get canPlayThrough => this['canplaythrough'];
+
+  /// @docsEditable true
+  EventListenerList get change => this['change'];
+
+  /// @docsEditable true
+  EventListenerList get click => this['click'];
+
+  /// @docsEditable true
+  EventListenerList get contextMenu => this['contextmenu'];
+
+  /// @docsEditable true
+  EventListenerList get doubleClick => this['dblclick'];
+
+  /// @docsEditable true
+  EventListenerList get deviceMotion => this['devicemotion'];
+
+  /// @docsEditable true
+  EventListenerList get deviceOrientation => this['deviceorientation'];
+
+  /// @docsEditable true
+  EventListenerList get drag => this['drag'];
+
+  /// @docsEditable true
+  EventListenerList get dragEnd => this['dragend'];
+
+  /// @docsEditable true
+  EventListenerList get dragEnter => this['dragenter'];
+
+  /// @docsEditable true
+  EventListenerList get dragLeave => this['dragleave'];
+
+  /// @docsEditable true
+  EventListenerList get dragOver => this['dragover'];
+
+  /// @docsEditable true
+  EventListenerList get dragStart => this['dragstart'];
+
+  /// @docsEditable true
+  EventListenerList get drop => this['drop'];
+
+  /// @docsEditable true
+  EventListenerList get durationChange => this['durationchange'];
+
+  /// @docsEditable true
+  EventListenerList get emptied => this['emptied'];
+
+  /// @docsEditable true
+  EventListenerList get ended => this['ended'];
+
+  /// @docsEditable true
+  EventListenerList get error => this['error'];
+
+  /// @docsEditable true
+  EventListenerList get focus => this['focus'];
+
+  /// @docsEditable true
+  EventListenerList get hashChange => this['hashchange'];
+
+  /// @docsEditable true
+  EventListenerList get input => this['input'];
+
+  /// @docsEditable true
+  EventListenerList get invalid => this['invalid'];
+
+  /// @docsEditable true
+  EventListenerList get keyDown => this['keydown'];
+
+  /// @docsEditable true
+  EventListenerList get keyPress => this['keypress'];
+
+  /// @docsEditable true
+  EventListenerList get keyUp => this['keyup'];
+
+  /// @docsEditable true
+  EventListenerList get load => this['load'];
+
+  /// @docsEditable true
+  EventListenerList get loadedData => this['loadeddata'];
+
+  /// @docsEditable true
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
+
+  /// @docsEditable true
+  EventListenerList get loadStart => this['loadstart'];
+
+  /// @docsEditable true
+  EventListenerList get message => this['message'];
+
+  /// @docsEditable true
+  EventListenerList get mouseDown => this['mousedown'];
+
+  /// @docsEditable true
+  EventListenerList get mouseMove => this['mousemove'];
+
+  /// @docsEditable true
+  EventListenerList get mouseOut => this['mouseout'];
+
+  /// @docsEditable true
+  EventListenerList get mouseOver => this['mouseover'];
+
+  /// @docsEditable true
+  EventListenerList get mouseUp => this['mouseup'];
+
+  /// @docsEditable true
+  EventListenerList get mouseWheel => this['mousewheel'];
+
+  /// @docsEditable true
+  EventListenerList get offline => this['offline'];
+
+  /// @docsEditable true
+  EventListenerList get online => this['online'];
+
+  /// @docsEditable true
+  EventListenerList get pageHide => this['pagehide'];
+
+  /// @docsEditable true
+  EventListenerList get pageShow => this['pageshow'];
+
+  /// @docsEditable true
+  EventListenerList get pause => this['pause'];
+
+  /// @docsEditable true
+  EventListenerList get play => this['play'];
+
+  /// @docsEditable true
+  EventListenerList get playing => this['playing'];
+
+  /// @docsEditable true
+  EventListenerList get popState => this['popstate'];
+
+  /// @docsEditable true
+  EventListenerList get progress => this['progress'];
+
+  /// @docsEditable true
+  EventListenerList get rateChange => this['ratechange'];
+
+  /// @docsEditable true
+  EventListenerList get reset => this['reset'];
+
+  /// @docsEditable true
+  EventListenerList get resize => this['resize'];
+
+  /// @docsEditable true
+  EventListenerList get scroll => this['scroll'];
+
+  /// @docsEditable true
+  EventListenerList get search => this['search'];
+
+  /// @docsEditable true
+  EventListenerList get seeked => this['seeked'];
+
+  /// @docsEditable true
+  EventListenerList get seeking => this['seeking'];
+
+  /// @docsEditable true
+  EventListenerList get select => this['select'];
+
+  /// @docsEditable true
+  EventListenerList get stalled => this['stalled'];
+
+  /// @docsEditable true
+  EventListenerList get storage => this['storage'];
+
+  /// @docsEditable true
+  EventListenerList get submit => this['submit'];
+
+  /// @docsEditable true
+  EventListenerList get suspend => this['suspend'];
+
+  /// @docsEditable true
+  EventListenerList get timeUpdate => this['timeupdate'];
+
+  /// @docsEditable true
+  EventListenerList get touchCancel => this['touchcancel'];
+
+  /// @docsEditable true
+  EventListenerList get touchEnd => this['touchend'];
+
+  /// @docsEditable true
+  EventListenerList get touchMove => this['touchmove'];
+
+  /// @docsEditable true
+  EventListenerList get touchStart => this['touchstart'];
+
+  /// @docsEditable true
+  EventListenerList get unload => this['unload'];
+
+  /// @docsEditable true
+  EventListenerList get volumeChange => this['volumechange'];
+
+  /// @docsEditable true
+  EventListenerList get waiting => this['waiting'];
+
+  /// @docsEditable true
+  EventListenerList get animationEnd => this['webkitAnimationEnd'];
+
+  /// @docsEditable true
+  EventListenerList get animationIteration => this['webkitAnimationIteration'];
+
+  /// @docsEditable true
+  EventListenerList get animationStart => this['webkitAnimationStart'];
+
+  /// @docsEditable true
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28142,7 +28145,7 @@ class _DataAttributeMap implements Map<String, String> {
  * is the container that displays a [Document]'s content. All web scripting
  * happens within the context of a [Window] object.
  *
- * **Note:** This class represents any window, whereas [LocalWindow] is
+ * **Note:** This class represents any window, whereas [Window] is
  * used to access the properties and content of the current window.
  *
  * See also:
@@ -28150,7 +28153,7 @@ class _DataAttributeMap implements Map<String, String> {
  * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
  */
-abstract class Window {
+abstract class WindowBase {
   // Fields.
 
   /**
@@ -28159,8 +28162,8 @@ abstract class Window {
    *     Location currentLocation = window.location;
    *     print(currentLocation.href); // 'http://www.example.com:80/'
    */
-  Location get location;
-  History get history;
+  LocationBase get location;
+  HistoryBase get history;
 
   /**
    * Indicates whether this window has been closed.
@@ -28175,16 +28178,16 @@ abstract class Window {
    * A reference to the window that opened this one.
    *
    *     Window thisWindow = window;
-   *     Window otherWindow = thisWindow.open('http://www.example.com/', 'foo');
+   *     WindowBase otherWindow = thisWindow.open('http://www.example.com/', 'foo');
    *     print(otherWindow.opener == thisWindow); // 'true'
    */
-  Window get opener;
+  WindowBase get opener;
 
   /**
    * A reference to the parent of this window.
    *
-   * If this [Window] has no parent, [parent] will return a reference to
-   * the [Window] itself.
+   * If this [WindowBase] has no parent, [parent] will return a reference to
+   * the [WindowBase] itself.
    *
    *     IFrameElement myIFrame = new IFrameElement();
    *     window.document.body.elements.add(myIFrame);
@@ -28192,13 +28195,13 @@ abstract class Window {
    *
    *     print(window.parent == window) // 'true'
    */
-  Window get parent;
+  WindowBase get parent;
 
   /**
    * A reference to the topmost window in the window hierarchy.
    *
-   * If this [Window] is the topmost [Window], [top] will return a reference to
-   * the [Window] itself.
+   * If this [WindowBase] is the topmost [WindowBase], [top] will return a
+   * reference to the [WindowBase] itself.
    *
    *     // Add an IFrame to the current window.
    *     IFrameElement myIFrame = new IFrameElement();
@@ -28213,13 +28216,13 @@ abstract class Window {
    *
    *     print(window.top == window) // 'true'
    */
-  Window get top;
+  WindowBase get top;
 
   // Methods.
   /**
    * Closes the window.
    *
-   * This method should only succeed if the [Window] object is
+   * This method should only succeed if the [WindowBase] object is
    * **script-closeable** and the window calling [close] is allowed to navigate
    * the window.
    *
@@ -28248,11 +28251,11 @@ abstract class Window {
   void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
 
-abstract class Location {
+abstract class LocationBase {
   void set href(String val);
 }
 
-abstract class History {
+abstract class HistoryBase {
   void back();
   void forward();
   void go(int distance);
@@ -29827,7 +29830,7 @@ class KeyEvent implements KeyboardEvent {
   void stopImmediatePropagation() => _parent.stopImmediatePropagation();
   void stopPropagation() => _parent.stopPropagation();
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, int detail) {
+      Window view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
@@ -29843,7 +29846,7 @@ class KeyEvent implements KeyboardEvent {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey,
       bool altGraphKey) {
     throw new UnsupportedError(
@@ -30694,17 +30697,18 @@ class _NPObject extends NativeFieldWrapperClass1 {
   invoke(String methodName, [List args = null]) native "NPObject_invoke";
 }
 
-class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements Window {
+class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements
+    WindowBase {
   _DOMWindowCrossFrame.internal();
 
   // Fields.
-  History get history native "DOMWindow_history_cross_frame_Getter";
-  Location get location native "DOMWindow_location_cross_frame_Getter";
+  HistoryBase get history native "DOMWindow_history_cross_frame_Getter";
+  LocationBase get location native "DOMWindow_location_cross_frame_Getter";
   bool get closed native "DOMWindow_closed_Getter";
   int get length native "DOMWindow_length_Getter";
-  Window get opener native "DOMWindow_opener_Getter";
-  Window get parent native "DOMWindow_parent_Getter";
-  Window get top native "DOMWindow_top_Getter";
+  WindowBase get opener native "DOMWindow_opener_Getter";
+  WindowBase get parent native "DOMWindow_parent_Getter";
+  WindowBase get top native "DOMWindow_top_Getter";
 
   // Methods.
   void close() native "DOMWindow_close_Callback";
@@ -30714,7 +30718,7 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements Window {
   String get typeName => "DOMWindow";
 }
 
-class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements History {
+class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
@@ -30726,7 +30730,7 @@ class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements History {
   String get typeName => "History";
 }
 
-class _LocationCrossFrame extends NativeFieldWrapperClass1 implements Location {
+class _LocationCrossFrame extends NativeFieldWrapperClass1 implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.

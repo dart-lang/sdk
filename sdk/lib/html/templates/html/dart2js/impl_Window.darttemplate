@@ -9,12 +9,12 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
 
   Document get document => JS('Document', '#.document', this);
 
-  Window _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
+  WindowBase _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
 
-  Window _open3(url, name, options) =>
+  WindowBase _open3(url, name, options) =>
       JS('Window', '#.open(#,#,#)', this, url, name, options);
 
-  Window open(String url, String name, [String options]) {
+  WindowBase open(String url, String name, [String options]) {
     if (options == null) {
       return _DOMWindowCrossFrame._createSafe(_open2(url, name));
     } else {
@@ -25,7 +25,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into
   // _LocationWrapper.
-  LocalLocation get location {
+  Location get location {
     // Firefox work-around for Location.  The Firefox location object cannot be
     // made to behave like a Dart object so must be wrapped.
     var result = _location;

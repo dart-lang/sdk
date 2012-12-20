@@ -12,12 +12,10 @@ html_interface_renames = {
     'DOMFileSystemSync': 'FileSystemSync',
     'DOMFormData': 'FormData',
     'DOMURL': 'Url',
-    'DOMWindow': 'LocalWindow',
-    'History': 'LocalHistory',
+    'DOMWindow': 'Window',
     'HTMLDocument' : 'HtmlDocument',
     'IDBAny': '_Any', # Suppressed, but needs to exist for Dartium.
     'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
-    'Location': 'LocalLocation',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
@@ -110,7 +108,7 @@ _private_html_members = set([
   'EventTarget.removeEventListener',
   'KeyboardEvent.keyIdentifier',
   'KeyboardEvent.initKeyboardEvent',
-  'LocalWindow.getComputedStyle',
+  'Window.getComputedStyle',
   'MouseEvent.initMouseEvent',
   'Node.appendChild',
   'Node.attributes',
@@ -321,14 +319,14 @@ _removed_html_members = set([
     "Node.lookupPrefix",
     "Node.get:PROCESSING_INSTRUCTION_NODE",
     'ShadowRoot.getElementsByTagNameNS',
-    "LocalWindow.blur",
-    "LocalWindow.clientInformation",
-    "LocalWindow.get:frames",
-    "LocalWindow.get:length",
-    "LocalWindow.focus",
-    "LocalWindow.prompt",
-    "LocalWindow.webkitIndexedDB",
-    "LocalWindow.webkitCancelRequestAnimationFrame",
+    "Window.blur",
+    "Window.clientInformation",
+    "Window.get:frames",
+    "Window.get:length",
+    "Window.focus",
+    "Window.prompt",
+    "Window.webkitIndexedDB",
+    "Window.webkitCancelRequestAnimationFrame",
     "WheelEvent.wheelDelta",
     "WorkerContext.webkitIndexedDB",
     ])

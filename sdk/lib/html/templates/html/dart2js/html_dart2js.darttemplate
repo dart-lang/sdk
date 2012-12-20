@@ -45,7 +45,7 @@ part '$AUXILIARY_DIR/_Testing.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
 
 
-LocalWindow get window => JS('LocalWindow', 'window');
+Window get window => JS('Window', 'window');
 
 HtmlDocument get document => JS('Document', 'document');
 

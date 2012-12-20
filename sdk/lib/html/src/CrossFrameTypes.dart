@@ -12,7 +12,7 @@ part of html;
  * is the container that displays a [Document]'s content. All web scripting
  * happens within the context of a [Window] object.
  *
- * **Note:** This class represents any window, whereas [LocalWindow] is
+ * **Note:** This class represents any window, whereas [Window] is
  * used to access the properties and content of the current window.
  *
  * See also:
@@ -20,7 +20,7 @@ part of html;
  * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
  */
-abstract class Window {
+abstract class WindowBase {
   // Fields.
 
   /**
@@ -29,8 +29,8 @@ abstract class Window {
    *     Location currentLocation = window.location;
    *     print(currentLocation.href); // 'http://www.example.com:80/'
    */
-  Location get location;
-  History get history;
+  LocationBase get location;
+  HistoryBase get history;
 
   /**
    * Indicates whether this window has been closed.
@@ -45,16 +45,16 @@ abstract class Window {
    * A reference to the window that opened this one.
    *
    *     Window thisWindow = window;
-   *     Window otherWindow = thisWindow.open('http://www.example.com/', 'foo');
+   *     WindowBase otherWindow = thisWindow.open('http://www.example.com/', 'foo');
    *     print(otherWindow.opener == thisWindow); // 'true'
    */
-  Window get opener;
+  WindowBase get opener;
 
   /**
    * A reference to the parent of this window.
    *
-   * If this [Window] has no parent, [parent] will return a reference to
-   * the [Window] itself.
+   * If this [WindowBase] has no parent, [parent] will return a reference to
+   * the [WindowBase] itself.
    *
    *     IFrameElement myIFrame = new IFrameElement();
    *     window.document.body.elements.add(myIFrame);
@@ -62,13 +62,13 @@ abstract class Window {
    *
    *     print(window.parent == window) // 'true'
    */
-  Window get parent;
+  WindowBase get parent;
 
   /**
    * A reference to the topmost window in the window hierarchy.
    *
-   * If this [Window] is the topmost [Window], [top] will return a reference to
-   * the [Window] itself.
+   * If this [WindowBase] is the topmost [WindowBase], [top] will return a
+   * reference to the [WindowBase] itself.
    *
    *     // Add an IFrame to the current window.
    *     IFrameElement myIFrame = new IFrameElement();
@@ -83,13 +83,13 @@ abstract class Window {
    *
    *     print(window.top == window) // 'true'
    */
-  Window get top;
+  WindowBase get top;
 
   // Methods.
   /**
    * Closes the window.
    *
-   * This method should only succeed if the [Window] object is
+   * This method should only succeed if the [WindowBase] object is
    * **script-closeable** and the window calling [close] is allowed to navigate
    * the window.
    *
@@ -118,11 +118,11 @@ abstract class Window {
   void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
 
-abstract class Location {
+abstract class LocationBase {
   void set href(String val);
 }
 
-abstract class History {
+abstract class HistoryBase {
   void back();
   void forward();
   void go(int distance);

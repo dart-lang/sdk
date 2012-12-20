@@ -508,7 +508,7 @@ dart2js_conversions = {
     # as well.  Note, there are no functions that take a non-local Window
     # as a parameter / setter.
     'DOMWindow get':
-      Conversion('_convertNativeToDart_Window', 'dynamic', 'Window'),
+      Conversion('_convertNativeToDart_Window', 'dynamic', 'WindowBase'),
     'EventTarget get':
       Conversion('_convertNativeToDart_EventTarget', 'dynamic',
                  'EventTarget'),
@@ -619,7 +619,7 @@ dart2js_annotations = {
     # Methods returning Window can return a local window, or a cross-frame
     # window (=Object) that needs wrapping.
     'DOMWindow':
-      "@Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')",
+      "@Creates('Window|=Object') @Returns('Window|=Object')",
 
     'DOMWindow.openDatabase': "@Creates('Database') @Creates('DatabaseSync')",
 

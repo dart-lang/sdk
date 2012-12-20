@@ -47,17 +47,18 @@ class _NPObject extends NativeFieldWrapperClass1 {
   invoke(String methodName, [List args = null]) native "NPObject_invoke";
 }
 
-class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements Window {
+class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements
+    WindowBase {
   _DOMWindowCrossFrame.internal();
 
   // Fields.
-  History get history native "DOMWindow_history_cross_frame_Getter";
-  Location get location native "DOMWindow_location_cross_frame_Getter";
+  HistoryBase get history native "DOMWindow_history_cross_frame_Getter";
+  LocationBase get location native "DOMWindow_location_cross_frame_Getter";
   bool get closed native "DOMWindow_closed_Getter";
   int get length native "DOMWindow_length_Getter";
-  Window get opener native "DOMWindow_opener_Getter";
-  Window get parent native "DOMWindow_parent_Getter";
-  Window get top native "DOMWindow_top_Getter";
+  WindowBase get opener native "DOMWindow_opener_Getter";
+  WindowBase get parent native "DOMWindow_parent_Getter";
+  WindowBase get top native "DOMWindow_top_Getter";
 
   // Methods.
   void close() native "DOMWindow_close_Callback";
@@ -67,7 +68,7 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements Window {
   String get typeName => "DOMWindow";
 }
 
-class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements History {
+class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
@@ -79,7 +80,7 @@ class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements History {
   String get typeName => "History";
 }
 
-class _LocationCrossFrame extends NativeFieldWrapperClass1 implements Location {
+class _LocationCrossFrame extends NativeFieldWrapperClass1 implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.

@@ -5,27 +5,27 @@
 part of html;
 
 // TODO(vsm): Unify with Dartium version.
-class _DOMWindowCrossFrame implements Window {
+class _DOMWindowCrossFrame implements WindowBase {
   // Private window.  Note, this is a window in another frame, so it
   // cannot be typed as "Window" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
   var _window;
 
   // Fields.
-  History get history =>
-    _HistoryCrossFrame._createSafe(JS('History', '#.history', _window));
-  Location get location =>
-    _LocationCrossFrame._createSafe(JS('Location', '#.location', _window));
+  HistoryBase get history =>
+    _HistoryCrossFrame._createSafe(JS('HistoryBase', '#.history', _window));
+  LocationBase get location =>
+    _LocationCrossFrame._createSafe(JS('LocationBase', '#.location', _window));
 
   // TODO(vsm): Add frames to navigate subframes.  See 2312.
 
   bool get closed => JS('bool', '#.closed', _window);
 
-  Window get opener => _createSafe(JS('Window', '#.opener', _window));
+  WindowBase get opener => _createSafe(JS('WindowBase', '#.opener', _window));
 
-  Window get parent => _createSafe(JS('Window', '#.parent', _window));
+  WindowBase get parent => _createSafe(JS('WindowBase', '#.parent', _window));
 
-  Window get top => _createSafe(JS('Window', '#.top', _window));
+  WindowBase get top => _createSafe(JS('WindowBase', '#.top', _window));
 
   // Methods.
   void close() => JS('void', '#.close()', _window);
@@ -41,7 +41,7 @@ class _DOMWindowCrossFrame implements Window {
   // Implementation support.
   _DOMWindowCrossFrame(this._window);
 
-  static Window _createSafe(w) {
+  static WindowBase _createSafe(w) {
     if (identical(w, window)) {
       return w;
     } else {
@@ -51,7 +51,7 @@ class _DOMWindowCrossFrame implements Window {
   }
 }
 
-class _LocationCrossFrame implements Location {
+class _LocationCrossFrame implements LocationBase {
   // Private location.  Note, this is a location object in another frame, so it
   // cannot be typed as "Location" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
@@ -65,7 +65,7 @@ class _LocationCrossFrame implements Location {
   // Implementation support.
   _LocationCrossFrame(this._location);
 
-  static Location _createSafe(location) {
+  static LocationBase _createSafe(location) {
     if (identical(location, window.location)) {
       return location;
     } else {
@@ -75,7 +75,7 @@ class _LocationCrossFrame implements Location {
   }
 }
 
-class _HistoryCrossFrame implements History {
+class _HistoryCrossFrame implements HistoryBase {
   // Private history.  Note, this is a history object in another frame, so it
   // cannot be typed as "History" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
@@ -90,7 +90,7 @@ class _HistoryCrossFrame implements History {
   // Implementation support.
   _HistoryCrossFrame(this._history);
 
-  static History _createSafe(h) {
+  static HistoryBase _createSafe(h) {
     if (identical(h, window.history)) {
       return h;
     } else {

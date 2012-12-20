@@ -7,7 +7,7 @@
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   factory $CLASSNAME(String type, Window view,
-      [bool canBubble = true, bool cancelable = true, 
+      [bool canBubble = true, bool cancelable = true,
       String keyIdentifier = "", int keyLocation = 1, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       bool altGraphKey = false]) {
@@ -19,7 +19,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /** @domName KeyboardEvent.initKeyboardEvent */
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
     if (JS('bool', 'typeof(#.initKeyEvent) == "function"', this)) {
       // initKeyEvent is only in Firefox (instead of initKeyboardEvent). It has
@@ -27,7 +27,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       // charCode as the last two arguments, but we just set them as the default
       // since they can't be specified in other browsers.
       JS('void', '#.initKeyEvent(#, #, #, #, #, #, #, #, 0, 0)', this,
-          type, canBubble, cancelable, view, 
+          type, canBubble, cancelable, view,
           ctrlKey, altKey, shiftKey, metaKey);
     } else {
       // initKeyboardEvent is for all other browsers.

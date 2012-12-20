@@ -21,7 +21,7 @@ import 'dart:web_audio' as web_audio;
 
 
 
-LocalWindow get window => JS('LocalWindow', 'window');
+Window get window => JS('Window', 'window');
 
 HtmlDocument get document => JS('Document', 'document');
 
@@ -1379,7 +1379,7 @@ class CompositionEvent extends UIEvent native "*CompositionEvent" {
   final String data;
 
   /// @domName CompositionEvent.initCompositionEvent; @docsEditable true
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native;
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5763,11 +5763,10 @@ class Document extends Node  native "*Document"
   /// @domName Document.cookie; @docsEditable true
   String cookie;
 
-  /// Returns the [Window] associated with the document.
   /// @domName Document.defaultView; @docsEditable true
-  Window get window => _convertNativeToDart_Window(this._window);
+  WindowBase get window => _convertNativeToDart_Window(this._window);
   @JSName('defaultView')
-  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _window;
 
   /// @domName Document.documentElement; @docsEditable true
@@ -5880,12 +5879,12 @@ class Document extends Node  native "*Document"
   Text $dom_createTextNode(String data) native;
 
   /// @domName Document.createTouch; @docsEditable true
-  Touch $dom_createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
+  Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
     var target_1 = _convertDartToNative_EventTarget(target);
     return _$dom_createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
   }
   @JSName('createTouch')
-  Touch _$dom_createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
+  Touch _$dom_createTouch_1(Window window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
   /// Use the [TouchList] constructor isntead.
   /// @domName Document.createTouchList; @docsEditable true
@@ -9525,9 +9524,9 @@ class FormElement extends Element native "*HTMLFormElement" {
 class FrameElement extends Element native "*HTMLFrameElement" {
 
   /// @domName HTMLFrameElement.contentWindow; @docsEditable true
-  Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
+  WindowBase get contentWindow => _convertNativeToDart_Window(this._contentWindow);
   @JSName('contentWindow')
-  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _contentWindow;
 
   /// @domName HTMLFrameElement.frameBorder; @docsEditable true
@@ -9764,6 +9763,38 @@ class HeadingElement extends Element native "*HTMLHeadingElement" {
 
   /// @domName HTMLHeadingElement.align; @docsEditable true
   String align;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName History; @docsEditable true
+class History implements HistoryBase native "*History" {
+
+  /// @domName History.length; @docsEditable true
+  final int length;
+
+  /// @domName History.state; @docsEditable true
+  dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
+  @JSName('state')
+  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
+  final dynamic _state;
+
+  /// @domName History.back; @docsEditable true
+  void back() native;
+
+  /// @domName History.forward; @docsEditable true
+  void forward() native;
+
+  /// @domName History.go; @docsEditable true
+  void go(int distance) native;
+
+  /// @domName History.pushState; @docsEditable true
+  void pushState(Object data, String title, [String url]) native;
+
+  /// @domName History.replaceState; @docsEditable true
+  void replaceState(Object data, String title, [String url]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10604,9 +10635,9 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
   String align;
 
   /// @domName HTMLIFrameElement.contentWindow; @docsEditable true
-  Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
+  WindowBase get contentWindow => _convertNativeToDart_Window(this._contentWindow);
   @JSName('contentWindow')
-  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _contentWindow;
 
   /// @domName HTMLIFrameElement.frameBorder; @docsEditable true
@@ -11862,7 +11893,7 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
   factory KeyboardEvent(String type, Window view,
-      [bool canBubble = true, bool cancelable = true, 
+      [bool canBubble = true, bool cancelable = true,
       String keyIdentifier = "", int keyLocation = 1, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       bool altGraphKey = false]) {
@@ -11874,7 +11905,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
   /** @domName KeyboardEvent.initKeyboardEvent */
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
     if (JS('bool', 'typeof(#.initKeyEvent) == "function"', this)) {
       // initKeyEvent is only in Firefox (instead of initKeyboardEvent). It has
@@ -11882,7 +11913,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
       // charCode as the last two arguments, but we just set them as the default
       // since they can't be specified in other browsers.
       JS('void', '#.initKeyEvent(#, #, #, #, #, #, #, #, 0, 0)', this,
-          type, canBubble, cancelable, view, 
+          type, canBubble, cancelable, view,
           ctrlKey, altKey, shiftKey, metaKey);
     } else {
       // initKeyboardEvent is for all other browsers.
@@ -12075,32 +12106,11 @@ class LinkElement extends Element native "*HTMLLinkElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName History; @docsEditable true
-class LocalHistory implements History native "*History" {
+/// @domName LocalMediaStream; @docsEditable true
+class LocalMediaStream extends MediaStream implements EventTarget native "*LocalMediaStream" {
 
-  /// @domName History.length; @docsEditable true
-  final int length;
-
-  /// @domName History.state; @docsEditable true
-  dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
-  @JSName('state')
-  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
-  final dynamic _state;
-
-  /// @domName History.back; @docsEditable true
-  void back() native;
-
-  /// @domName History.forward; @docsEditable true
-  void forward() native;
-
-  /// @domName History.go; @docsEditable true
-  void go(int distance) native;
-
-  /// @domName History.pushState; @docsEditable true
-  void pushState(Object data, String title, [String url]) native;
-
-  /// @domName History.replaceState; @docsEditable true
-  void replaceState(Object data, String title, [String url]) native;
+  /// @domName LocalMediaStream.stop; @docsEditable true
+  void stop() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12108,7 +12118,7 @@ class LocalHistory implements History native "*History" {
 
 
 /// @domName Location; @docsEditable true
-class LocalLocation implements Location native "*Location" {
+class Location implements LocationBase native "*Location" {
 
   /// @domName Location.ancestorOrigins; @docsEditable true
   @Returns('DomStringList') @Creates('DomStringList')
@@ -12152,677 +12162,6 @@ class LocalLocation implements Location native "*Location" {
 
   /// @domName Location.toString; @docsEditable true
   String toString() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName LocalMediaStream; @docsEditable true
-class LocalMediaStream extends MediaStream implements EventTarget native "*LocalMediaStream" {
-
-  /// @domName LocalMediaStream.stop; @docsEditable true
-  void stop() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Window
-class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
-
-  Document get document => JS('Document', '#.document', this);
-
-  Window _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
-
-  Window _open3(url, name, options) =>
-      JS('Window', '#.open(#,#,#)', this, url, name, options);
-
-  Window open(String url, String name, [String options]) {
-    if (options == null) {
-      return _DOMWindowCrossFrame._createSafe(_open2(url, name));
-    } else {
-      return _DOMWindowCrossFrame._createSafe(_open3(url, name, options));
-    }
-  }
-
-  // API level getter and setter for Location.
-  // TODO: The cross domain safe wrapper can be inserted here or folded into
-  // _LocationWrapper.
-  LocalLocation get location {
-    // Firefox work-around for Location.  The Firefox location object cannot be
-    // made to behave like a Dart object so must be wrapped.
-    var result = _location;
-    if (_isDartLocation(result)) return result;  // e.g. on Chrome.
-    if (null == _location_wrapper) {
-      _location_wrapper = new _LocationWrapper(result);
-    }
-    return _location_wrapper;
-  }
-
-  // TODO: consider forcing users to do: window.location.assign('string').
-  /**
-   * Sets the window's location, which causes the browser to navigate to the new
-   * location. [value] may be a Location object or a string.
-   */
-  void set location(value) {
-    if (value is _LocationWrapper) {
-      _location = value._ptr;
-    } else {
-      _location = value;
-    }
-  }
-
-  _LocationWrapper _location_wrapper;  // Cached wrapped Location object.
-
-  // Native getter and setter to access raw Location object.
-  dynamic get _location => JS('Location|=Object', '#.location', this);
-  void set _location(value) {
-    JS('void', '#.location = #', this, value);
-  }
-  // Prevent compiled from thinking 'location' property is available for a Dart
-  // member.
-  @JSName('location')
-  _protect_location() native;
-
-  static _isDartLocation(thing) {
-    // On Firefox the code that implements 'is Location' fails to find the patch
-    // stub on Object.prototype and throws an exception.
-    try {
-      return thing is Location;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /**
-   * Executes a [callback] after the next batch of browser layout measurements
-   * has completed or would have completed if any browser layout measurements
-   * had been scheduled.
-   */
-  void requestLayoutFrame(TimeoutHandler callback) {
-    _addMeasurementFrameCallback(callback);
-  }
-
-  /** @domName DOMWindow.requestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
-    _ensureRequestAnimationFrame();
-    return _requestAnimationFrame(callback);
-  }
-
-  void cancelAnimationFrame(id) {
-    _ensureRequestAnimationFrame();
-    _cancelAnimationFrame(id);
-  }
-
-  @JSName('requestAnimationFrame')
-  int _requestAnimationFrame(RequestAnimationFrameCallback callback) native;
-
-  @JSName('cancelAnimationFrame')
-  void _cancelAnimationFrame(int id) native;
-
-  _ensureRequestAnimationFrame() {
-    if (JS('bool',
-           '!!(#.requestAnimationFrame && #.cancelAnimationFrame)', this, this))
-      return;
-
-    JS('void',
-       r"""
-  (function($this) {
-   var vendors = ['ms', 'moz', 'webkit', 'o'];
-   for (var i = 0; i < vendors.length && !$this.requestAnimationFrame; ++i) {
-     $this.requestAnimationFrame = $this[vendors[i] + 'RequestAnimationFrame'];
-     $this.cancelAnimationFrame =
-         $this[vendors[i]+'CancelAnimationFrame'] ||
-         $this[vendors[i]+'CancelRequestAnimationFrame'];
-   }
-   if ($this.requestAnimationFrame && $this.cancelAnimationFrame) return;
-   $this.requestAnimationFrame = function(callback) {
-      return window.setTimeout(function() {
-        callback(Date.now());
-      }, 16 /* 16ms ~= 60fps */);
-   };
-   $this.cancelAnimationFrame = function(id) { clearTimeout(id); }
-  })(#)""",
-       this);
-  }
-
-  IdbFactory get indexedDB =>
-      JS('IdbFactory',
-         '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
-         this, this, this);
-
-  /**
-   * Lookup a port by its [name].  Return null if no port is
-   * registered under [name].
-   */
-  SendPortSync lookupPort(String name) {
-    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
-    return _deserialize(port);
-  }
-
-  /**
-   * Register a [port] on this window under the given [name].  This
-   * port may be retrieved by any isolate (or JavaScript script)
-   * running in this window.
-   */
-  void registerPort(String name, var port) {
-    var serialized = _serialize(port);
-    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
-  }
-
-  /// @domName Window.console; @docsEditable true
-  Console get console => Console.safeConsole;
-
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  LocalWindowEvents get on =>
-    new LocalWindowEvents(this);
-
-  static const int PERSISTENT = 1;
-
-  static const int TEMPORARY = 0;
-
-  /// @domName Window.applicationCache; @docsEditable true
-  final ApplicationCache applicationCache;
-
-  /// @domName Window.closed; @docsEditable true
-  final bool closed;
-
-  /// @domName Window.crypto; @docsEditable true
-  final Crypto crypto;
-
-  /// @domName Window.defaultStatus; @docsEditable true
-  String defaultStatus;
-
-  /// @domName Window.defaultstatus; @docsEditable true
-  String defaultstatus;
-
-  /// @domName Window.devicePixelRatio; @docsEditable true
-  final num devicePixelRatio;
-
-  /// @domName Window.event; @docsEditable true
-  final Event event;
-
-  /// @domName Window.history; @docsEditable true
-  final LocalHistory history;
-
-  /// @domName Window.innerHeight; @docsEditable true
-  final int innerHeight;
-
-  /// @domName Window.innerWidth; @docsEditable true
-  final int innerWidth;
-
-  /// @domName Window.localStorage; @docsEditable true
-  final Storage localStorage;
-
-  /// @domName Window.locationbar; @docsEditable true
-  final BarInfo locationbar;
-
-  /// @domName Window.menubar; @docsEditable true
-  final BarInfo menubar;
-
-  /// @domName Window.name; @docsEditable true
-  String name;
-
-  /// @domName Window.navigator; @docsEditable true
-  final Navigator navigator;
-
-  /// @domName Window.offscreenBuffering; @docsEditable true
-  final bool offscreenBuffering;
-
-  /// @domName Window.opener; @docsEditable true
-  Window get opener => _convertNativeToDart_Window(this._opener);
-  @JSName('opener')
-  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
-  final dynamic _opener;
-
-  /// @domName Window.outerHeight; @docsEditable true
-  final int outerHeight;
-
-  /// @domName Window.outerWidth; @docsEditable true
-  final int outerWidth;
-
-  /// @domName DOMWindow.pagePopupController; @docsEditable true
-  final PagePopupController pagePopupController;
-
-  /// @domName Window.pageXOffset; @docsEditable true
-  final int pageXOffset;
-
-  /// @domName Window.pageYOffset; @docsEditable true
-  final int pageYOffset;
-
-  /// @domName Window.parent; @docsEditable true
-  Window get parent => _convertNativeToDart_Window(this._parent);
-  @JSName('parent')
-  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
-  final dynamic _parent;
-
-  /// @domName Window.performance; @docsEditable true
-  final Performance performance;
-
-  /// @domName Window.personalbar; @docsEditable true
-  final BarInfo personalbar;
-
-  /// @domName Window.screen; @docsEditable true
-  final Screen screen;
-
-  /// @domName Window.screenLeft; @docsEditable true
-  final int screenLeft;
-
-  /// @domName Window.screenTop; @docsEditable true
-  final int screenTop;
-
-  /// @domName Window.screenX; @docsEditable true
-  final int screenX;
-
-  /// @domName Window.screenY; @docsEditable true
-  final int screenY;
-
-  /// @domName Window.scrollX; @docsEditable true
-  final int scrollX;
-
-  /// @domName Window.scrollY; @docsEditable true
-  final int scrollY;
-
-  /// @domName Window.scrollbars; @docsEditable true
-  final BarInfo scrollbars;
-
-  /// @domName Window.self; @docsEditable true
-  Window get self => _convertNativeToDart_Window(this._self);
-  @JSName('self')
-  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
-  final dynamic _self;
-
-  /// @domName Window.sessionStorage; @docsEditable true
-  final Storage sessionStorage;
-
-  /// @domName Window.status; @docsEditable true
-  String status;
-
-  /// @domName Window.statusbar; @docsEditable true
-  final BarInfo statusbar;
-
-  /// @domName Window.styleMedia; @docsEditable true
-  final StyleMedia styleMedia;
-
-  /// @domName Window.toolbar; @docsEditable true
-  final BarInfo toolbar;
-
-  /// @domName Window.top; @docsEditable true
-  Window get top => _convertNativeToDart_Window(this._top);
-  @JSName('top')
-  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
-  final dynamic _top;
-
-  /// @domName DOMWindow.webkitNotifications; @docsEditable true
-  final NotificationCenter webkitNotifications;
-
-  /// @domName DOMWindow.webkitStorageInfo; @docsEditable true
-  final StorageInfo webkitStorageInfo;
-
-  /// @domName Window.window; @docsEditable true
-  Window get window => _convertNativeToDart_Window(this._window);
-  @JSName('window')
-  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
-  final dynamic _window;
-
-  /// @domName Window.addEventListener; @docsEditable true
-  @JSName('addEventListener')
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName Window.alert; @docsEditable true
-  void alert(String message) native;
-
-  /// @domName Window.atob; @docsEditable true
-  String atob(String string) native;
-
-  /// @domName Window.btoa; @docsEditable true
-  String btoa(String string) native;
-
-  /// @domName Window.captureEvents; @docsEditable true
-  void captureEvents() native;
-
-  /// @domName Window.clearInterval; @docsEditable true
-  void clearInterval(int handle) native;
-
-  /// @domName Window.clearTimeout; @docsEditable true
-  void clearTimeout(int handle) native;
-
-  /// @domName Window.close; @docsEditable true
-  void close() native;
-
-  /// @domName Window.confirm; @docsEditable true
-  bool confirm(String message) native;
-
-  /// @domName Window.dispatchEvent; @docsEditable true
-  @JSName('dispatchEvent')
-  bool $dom_dispatchEvent(Event evt) native;
-
-  /// @domName Window.find; @docsEditable true
-  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
-
-  /// @domName Window.getComputedStyle; @docsEditable true
-  @JSName('getComputedStyle')
-  CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native;
-
-  /// @domName Window.getMatchedCSSRules; @docsEditable true
-  @JSName('getMatchedCSSRules')
-  @Returns('_CssRuleList') @Creates('_CssRuleList')
-  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native;
-
-  /// @domName Window.getSelection; @docsEditable true
-  DomSelection getSelection() native;
-
-  /// @domName Window.matchMedia; @docsEditable true
-  MediaQueryList matchMedia(String query) native;
-
-  /// @domName Window.moveBy; @docsEditable true
-  void moveBy(num x, num y) native;
-
-  /// @domName Window.moveTo; @docsEditable true
-  void moveTo(num x, num y) native;
-
-  /// @domName DOMWindow.openDatabase; @docsEditable true
-  @Creates('Database') @Creates('DatabaseSync')
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
-
-  /// @domName Window.postMessage; @docsEditable true
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
-    if (?message &&
-        !?messagePorts) {
-      var message_1 = convertDartToNative_SerializedScriptValue(message);
-      _postMessage_1(message_1, targetOrigin);
-      return;
-    }
-    if (?message) {
-      var message_2 = convertDartToNative_SerializedScriptValue(message);
-      _postMessage_2(message_2, targetOrigin, messagePorts);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('postMessage')
-  void _postMessage_1(message, targetOrigin) native;
-  @JSName('postMessage')
-  void _postMessage_2(message, targetOrigin, List messagePorts) native;
-
-  /// @domName Window.print; @docsEditable true
-  void print() native;
-
-  /// @domName Window.releaseEvents; @docsEditable true
-  void releaseEvents() native;
-
-  /// @domName Window.removeEventListener; @docsEditable true
-  @JSName('removeEventListener')
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName Window.resizeBy; @docsEditable true
-  void resizeBy(num x, num y) native;
-
-  /// @domName Window.resizeTo; @docsEditable true
-  void resizeTo(num width, num height) native;
-
-  /// @domName Window.scroll; @docsEditable true
-  void scroll(int x, int y) native;
-
-  /// @domName Window.scrollBy; @docsEditable true
-  void scrollBy(int x, int y) native;
-
-  /// @domName Window.scrollTo; @docsEditable true
-  void scrollTo(int x, int y) native;
-
-  /// @domName Window.setInterval; @docsEditable true
-  int setInterval(TimeoutHandler handler, int timeout) native;
-
-  /// @domName Window.setTimeout; @docsEditable true
-  int setTimeout(TimeoutHandler handler, int timeout) native;
-
-  /// @domName Window.showModalDialog; @docsEditable true
-  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
-
-  /// @domName Window.stop; @docsEditable true
-  void stop() native;
-
-  /// @domName Window.webkitConvertPointFromNodeToPage; @docsEditable true
-  Point webkitConvertPointFromNodeToPage(Node node, Point p) native;
-
-  /// @domName Window.webkitConvertPointFromPageToNode; @docsEditable true
-  Point webkitConvertPointFromPageToNode(Node node, Point p) native;
-
-  /// @domName DOMWindow.webkitRequestFileSystem; @docsEditable true
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
-
-  /// @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true
-  @JSName('webkitResolveLocalFileSystemURL')
-  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
-
-}
-
-/// @docsEditable true
-class LocalWindowEvents extends Events {
-  /// @docsEditable true
-  LocalWindowEvents(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get abort => this['abort'];
-
-  /// @docsEditable true
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  /// @docsEditable true
-  EventListenerList get blur => this['blur'];
-
-  /// @docsEditable true
-  EventListenerList get canPlay => this['canplay'];
-
-  /// @docsEditable true
-  EventListenerList get canPlayThrough => this['canplaythrough'];
-
-  /// @docsEditable true
-  EventListenerList get change => this['change'];
-
-  /// @docsEditable true
-  EventListenerList get click => this['click'];
-
-  /// @docsEditable true
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  /// @docsEditable true
-  EventListenerList get doubleClick => this['dblclick'];
-
-  /// @docsEditable true
-  EventListenerList get deviceMotion => this['devicemotion'];
-
-  /// @docsEditable true
-  EventListenerList get deviceOrientation => this['deviceorientation'];
-
-  /// @docsEditable true
-  EventListenerList get drag => this['drag'];
-
-  /// @docsEditable true
-  EventListenerList get dragEnd => this['dragend'];
-
-  /// @docsEditable true
-  EventListenerList get dragEnter => this['dragenter'];
-
-  /// @docsEditable true
-  EventListenerList get dragLeave => this['dragleave'];
-
-  /// @docsEditable true
-  EventListenerList get dragOver => this['dragover'];
-
-  /// @docsEditable true
-  EventListenerList get dragStart => this['dragstart'];
-
-  /// @docsEditable true
-  EventListenerList get drop => this['drop'];
-
-  /// @docsEditable true
-  EventListenerList get durationChange => this['durationchange'];
-
-  /// @docsEditable true
-  EventListenerList get emptied => this['emptied'];
-
-  /// @docsEditable true
-  EventListenerList get ended => this['ended'];
-
-  /// @docsEditable true
-  EventListenerList get error => this['error'];
-
-  /// @docsEditable true
-  EventListenerList get focus => this['focus'];
-
-  /// @docsEditable true
-  EventListenerList get hashChange => this['hashchange'];
-
-  /// @docsEditable true
-  EventListenerList get input => this['input'];
-
-  /// @docsEditable true
-  EventListenerList get invalid => this['invalid'];
-
-  /// @docsEditable true
-  EventListenerList get keyDown => this['keydown'];
-
-  /// @docsEditable true
-  EventListenerList get keyPress => this['keypress'];
-
-  /// @docsEditable true
-  EventListenerList get keyUp => this['keyup'];
-
-  /// @docsEditable true
-  EventListenerList get load => this['load'];
-
-  /// @docsEditable true
-  EventListenerList get loadedData => this['loadeddata'];
-
-  /// @docsEditable true
-  EventListenerList get loadedMetadata => this['loadedmetadata'];
-
-  /// @docsEditable true
-  EventListenerList get loadStart => this['loadstart'];
-
-  /// @docsEditable true
-  EventListenerList get message => this['message'];
-
-  /// @docsEditable true
-  EventListenerList get mouseDown => this['mousedown'];
-
-  /// @docsEditable true
-  EventListenerList get mouseMove => this['mousemove'];
-
-  /// @docsEditable true
-  EventListenerList get mouseOut => this['mouseout'];
-
-  /// @docsEditable true
-  EventListenerList get mouseOver => this['mouseover'];
-
-  /// @docsEditable true
-  EventListenerList get mouseUp => this['mouseup'];
-
-  /// @docsEditable true
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  /// @docsEditable true
-  EventListenerList get offline => this['offline'];
-
-  /// @docsEditable true
-  EventListenerList get online => this['online'];
-
-  /// @docsEditable true
-  EventListenerList get pageHide => this['pagehide'];
-
-  /// @docsEditable true
-  EventListenerList get pageShow => this['pageshow'];
-
-  /// @docsEditable true
-  EventListenerList get pause => this['pause'];
-
-  /// @docsEditable true
-  EventListenerList get play => this['play'];
-
-  /// @docsEditable true
-  EventListenerList get playing => this['playing'];
-
-  /// @docsEditable true
-  EventListenerList get popState => this['popstate'];
-
-  /// @docsEditable true
-  EventListenerList get progress => this['progress'];
-
-  /// @docsEditable true
-  EventListenerList get rateChange => this['ratechange'];
-
-  /// @docsEditable true
-  EventListenerList get reset => this['reset'];
-
-  /// @docsEditable true
-  EventListenerList get resize => this['resize'];
-
-  /// @docsEditable true
-  EventListenerList get scroll => this['scroll'];
-
-  /// @docsEditable true
-  EventListenerList get search => this['search'];
-
-  /// @docsEditable true
-  EventListenerList get seeked => this['seeked'];
-
-  /// @docsEditable true
-  EventListenerList get seeking => this['seeking'];
-
-  /// @docsEditable true
-  EventListenerList get select => this['select'];
-
-  /// @docsEditable true
-  EventListenerList get stalled => this['stalled'];
-
-  /// @docsEditable true
-  EventListenerList get storage => this['storage'];
-
-  /// @docsEditable true
-  EventListenerList get submit => this['submit'];
-
-  /// @docsEditable true
-  EventListenerList get suspend => this['suspend'];
-
-  /// @docsEditable true
-  EventListenerList get timeUpdate => this['timeupdate'];
-
-  /// @docsEditable true
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  /// @docsEditable true
-  EventListenerList get touchEnd => this['touchend'];
-
-  /// @docsEditable true
-  EventListenerList get touchMove => this['touchmove'];
-
-  /// @docsEditable true
-  EventListenerList get touchStart => this['touchstart'];
-
-  /// @docsEditable true
-  EventListenerList get unload => this['unload'];
-
-  /// @docsEditable true
-  EventListenerList get volumeChange => this['volumechange'];
-
-  /// @docsEditable true
-  EventListenerList get waiting => this['waiting'];
-
-  /// @docsEditable true
-  EventListenerList get animationEnd => this['webkitAnimationEnd'];
-
-  /// @docsEditable true
-  EventListenerList get animationIteration => this['webkitAnimationIteration'];
-
-  /// @docsEditable true
-  EventListenerList get animationStart => this['webkitAnimationStart'];
-
-  /// @docsEditable true
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13615,16 +12954,16 @@ class MessageEvent extends Event native "*MessageEvent" {
   final List ports;
 
   /// @domName MessageEvent.source; @docsEditable true
-  Window get source => _convertNativeToDart_Window(this._source);
+  WindowBase get source => _convertNativeToDart_Window(this._source);
   @JSName('source')
-  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _source;
 
   /// @domName MessageEvent.initMessageEvent; @docsEditable true
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts) native;
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native;
 
   /// @domName MessageEvent.webkitInitMessageEvent; @docsEditable true
-  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List transferables) native;
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13843,13 +13182,13 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   final int y;
 
   /// @domName MouseEvent.initMouseEvent; @docsEditable true
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _$dom_initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
     return;
   }
   @JSName('initMouseEvent')
-  void _$dom_initMouseEvent_1(type, canBubble, cancelable, LocalWindow view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native;
+  void _$dom_initMouseEvent_1(type, canBubble, cancelable, Window view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native;
 
 
   int get offsetX {
@@ -17786,7 +17125,7 @@ class TextEvent extends UIEvent native "*TextEvent" {
   final String data;
 
   /// @domName TextEvent.initTextEvent; @docsEditable true
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native;
+  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18304,7 +17643,7 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
   final TouchList touches;
 
   /// @domName TouchEvent.initTouchEvent; @docsEditable true
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18576,9 +17915,9 @@ class UIEvent extends Event native "*UIEvent" {
   final int pageY;
 
   /// @domName UIEvent.view; @docsEditable true
-  Window get view => _convertNativeToDart_Window(this._view);
+  WindowBase get view => _convertNativeToDart_Window(this._view);
   @JSName('view')
-  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _view;
 
   /// @domName UIEvent.which; @docsEditable true
@@ -18586,7 +17925,7 @@ class UIEvent extends Event native "*UIEvent" {
 
   /// @domName UIEvent.initUIEvent; @docsEditable true
   @JSName('initUIEvent')
-  void $dom_initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native;
+  void $dom_initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20612,7 +19951,7 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   final bool webkitDirectionInvertedFromDevice;
 
   /// @domName WheelEvent.initWebKitWheelEvent; @docsEditable true
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 
 
   /** @domName WheelEvent.deltaY */
@@ -20687,6 +20026,669 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   num get _detail => JS('num', '#.detail', this);
   int get _deltaMode => JS('int', '#.deltaMode', this);
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName Window
+class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
+
+  Document get document => JS('Document', '#.document', this);
+
+  WindowBase _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
+
+  WindowBase _open3(url, name, options) =>
+      JS('Window', '#.open(#,#,#)', this, url, name, options);
+
+  WindowBase open(String url, String name, [String options]) {
+    if (options == null) {
+      return _DOMWindowCrossFrame._createSafe(_open2(url, name));
+    } else {
+      return _DOMWindowCrossFrame._createSafe(_open3(url, name, options));
+    }
+  }
+
+  // API level getter and setter for Location.
+  // TODO: The cross domain safe wrapper can be inserted here or folded into
+  // _LocationWrapper.
+  Location get location {
+    // Firefox work-around for Location.  The Firefox location object cannot be
+    // made to behave like a Dart object so must be wrapped.
+    var result = _location;
+    if (_isDartLocation(result)) return result;  // e.g. on Chrome.
+    if (null == _location_wrapper) {
+      _location_wrapper = new _LocationWrapper(result);
+    }
+    return _location_wrapper;
+  }
+
+  // TODO: consider forcing users to do: window.location.assign('string').
+  /**
+   * Sets the window's location, which causes the browser to navigate to the new
+   * location. [value] may be a Location object or a string.
+   */
+  void set location(value) {
+    if (value is _LocationWrapper) {
+      _location = value._ptr;
+    } else {
+      _location = value;
+    }
+  }
+
+  _LocationWrapper _location_wrapper;  // Cached wrapped Location object.
+
+  // Native getter and setter to access raw Location object.
+  dynamic get _location => JS('Location|=Object', '#.location', this);
+  void set _location(value) {
+    JS('void', '#.location = #', this, value);
+  }
+  // Prevent compiled from thinking 'location' property is available for a Dart
+  // member.
+  @JSName('location')
+  _protect_location() native;
+
+  static _isDartLocation(thing) {
+    // On Firefox the code that implements 'is Location' fails to find the patch
+    // stub on Object.prototype and throws an exception.
+    try {
+      return thing is Location;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Executes a [callback] after the next batch of browser layout measurements
+   * has completed or would have completed if any browser layout measurements
+   * had been scheduled.
+   */
+  void requestLayoutFrame(TimeoutHandler callback) {
+    _addMeasurementFrameCallback(callback);
+  }
+
+  /** @domName DOMWindow.requestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
+    _ensureRequestAnimationFrame();
+    return _requestAnimationFrame(callback);
+  }
+
+  void cancelAnimationFrame(id) {
+    _ensureRequestAnimationFrame();
+    _cancelAnimationFrame(id);
+  }
+
+  @JSName('requestAnimationFrame')
+  int _requestAnimationFrame(RequestAnimationFrameCallback callback) native;
+
+  @JSName('cancelAnimationFrame')
+  void _cancelAnimationFrame(int id) native;
+
+  _ensureRequestAnimationFrame() {
+    if (JS('bool',
+           '!!(#.requestAnimationFrame && #.cancelAnimationFrame)', this, this))
+      return;
+
+    JS('void',
+       r"""
+  (function($this) {
+   var vendors = ['ms', 'moz', 'webkit', 'o'];
+   for (var i = 0; i < vendors.length && !$this.requestAnimationFrame; ++i) {
+     $this.requestAnimationFrame = $this[vendors[i] + 'RequestAnimationFrame'];
+     $this.cancelAnimationFrame =
+         $this[vendors[i]+'CancelAnimationFrame'] ||
+         $this[vendors[i]+'CancelRequestAnimationFrame'];
+   }
+   if ($this.requestAnimationFrame && $this.cancelAnimationFrame) return;
+   $this.requestAnimationFrame = function(callback) {
+      return window.setTimeout(function() {
+        callback(Date.now());
+      }, 16 /* 16ms ~= 60fps */);
+   };
+   $this.cancelAnimationFrame = function(id) { clearTimeout(id); }
+  })(#)""",
+       this);
+  }
+
+  IdbFactory get indexedDB =>
+      JS('IdbFactory',
+         '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
+         this, this, this);
+
+  /**
+   * Lookup a port by its [name].  Return null if no port is
+   * registered under [name].
+   */
+  SendPortSync lookupPort(String name) {
+    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
+    return _deserialize(port);
+  }
+
+  /**
+   * Register a [port] on this window under the given [name].  This
+   * port may be retrieved by any isolate (or JavaScript script)
+   * running in this window.
+   */
+  void registerPort(String name, var port) {
+    var serialized = _serialize(port);
+    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
+  }
+
+  /// @domName Window.console; @docsEditable true
+  Console get console => Console.safeConsole;
+
+
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  WindowEvents get on =>
+    new WindowEvents(this);
+
+  static const int PERSISTENT = 1;
+
+  static const int TEMPORARY = 0;
+
+  /// @domName Window.applicationCache; @docsEditable true
+  final ApplicationCache applicationCache;
+
+  /// @domName Window.closed; @docsEditable true
+  final bool closed;
+
+  /// @domName Window.crypto; @docsEditable true
+  final Crypto crypto;
+
+  /// @domName Window.defaultStatus; @docsEditable true
+  String defaultStatus;
+
+  /// @domName Window.defaultstatus; @docsEditable true
+  String defaultstatus;
+
+  /// @domName Window.devicePixelRatio; @docsEditable true
+  final num devicePixelRatio;
+
+  /// @domName Window.event; @docsEditable true
+  final Event event;
+
+  /// @domName Window.history; @docsEditable true
+  final History history;
+
+  /// @domName Window.innerHeight; @docsEditable true
+  final int innerHeight;
+
+  /// @domName Window.innerWidth; @docsEditable true
+  final int innerWidth;
+
+  /// @domName Window.localStorage; @docsEditable true
+  final Storage localStorage;
+
+  /// @domName Window.locationbar; @docsEditable true
+  final BarInfo locationbar;
+
+  /// @domName Window.menubar; @docsEditable true
+  final BarInfo menubar;
+
+  /// @domName Window.name; @docsEditable true
+  String name;
+
+  /// @domName Window.navigator; @docsEditable true
+  final Navigator navigator;
+
+  /// @domName Window.offscreenBuffering; @docsEditable true
+  final bool offscreenBuffering;
+
+  /// @domName Window.opener; @docsEditable true
+  WindowBase get opener => _convertNativeToDart_Window(this._opener);
+  @JSName('opener')
+  @Creates('Window|=Object') @Returns('Window|=Object')
+  final dynamic _opener;
+
+  /// @domName Window.outerHeight; @docsEditable true
+  final int outerHeight;
+
+  /// @domName Window.outerWidth; @docsEditable true
+  final int outerWidth;
+
+  /// @domName DOMWindow.pagePopupController; @docsEditable true
+  final PagePopupController pagePopupController;
+
+  /// @domName Window.pageXOffset; @docsEditable true
+  final int pageXOffset;
+
+  /// @domName Window.pageYOffset; @docsEditable true
+  final int pageYOffset;
+
+  /// @domName Window.parent; @docsEditable true
+  WindowBase get parent => _convertNativeToDart_Window(this._parent);
+  @JSName('parent')
+  @Creates('Window|=Object') @Returns('Window|=Object')
+  final dynamic _parent;
+
+  /// @domName Window.performance; @docsEditable true
+  final Performance performance;
+
+  /// @domName Window.personalbar; @docsEditable true
+  final BarInfo personalbar;
+
+  /// @domName Window.screen; @docsEditable true
+  final Screen screen;
+
+  /// @domName Window.screenLeft; @docsEditable true
+  final int screenLeft;
+
+  /// @domName Window.screenTop; @docsEditable true
+  final int screenTop;
+
+  /// @domName Window.screenX; @docsEditable true
+  final int screenX;
+
+  /// @domName Window.screenY; @docsEditable true
+  final int screenY;
+
+  /// @domName Window.scrollX; @docsEditable true
+  final int scrollX;
+
+  /// @domName Window.scrollY; @docsEditable true
+  final int scrollY;
+
+  /// @domName Window.scrollbars; @docsEditable true
+  final BarInfo scrollbars;
+
+  /// @domName Window.self; @docsEditable true
+  WindowBase get self => _convertNativeToDart_Window(this._self);
+  @JSName('self')
+  @Creates('Window|=Object') @Returns('Window|=Object')
+  final dynamic _self;
+
+  /// @domName Window.sessionStorage; @docsEditable true
+  final Storage sessionStorage;
+
+  /// @domName Window.status; @docsEditable true
+  String status;
+
+  /// @domName Window.statusbar; @docsEditable true
+  final BarInfo statusbar;
+
+  /// @domName Window.styleMedia; @docsEditable true
+  final StyleMedia styleMedia;
+
+  /// @domName Window.toolbar; @docsEditable true
+  final BarInfo toolbar;
+
+  /// @domName Window.top; @docsEditable true
+  WindowBase get top => _convertNativeToDart_Window(this._top);
+  @JSName('top')
+  @Creates('Window|=Object') @Returns('Window|=Object')
+  final dynamic _top;
+
+  /// @domName DOMWindow.webkitNotifications; @docsEditable true
+  final NotificationCenter webkitNotifications;
+
+  /// @domName DOMWindow.webkitStorageInfo; @docsEditable true
+  final StorageInfo webkitStorageInfo;
+
+  /// @domName Window.window; @docsEditable true
+  WindowBase get window => _convertNativeToDart_Window(this._window);
+  @JSName('window')
+  @Creates('Window|=Object') @Returns('Window|=Object')
+  final dynamic _window;
+
+  /// @domName Window.addEventListener; @docsEditable true
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  /// @domName Window.alert; @docsEditable true
+  void alert(String message) native;
+
+  /// @domName Window.atob; @docsEditable true
+  String atob(String string) native;
+
+  /// @domName Window.btoa; @docsEditable true
+  String btoa(String string) native;
+
+  /// @domName Window.captureEvents; @docsEditable true
+  void captureEvents() native;
+
+  /// @domName Window.clearInterval; @docsEditable true
+  void clearInterval(int handle) native;
+
+  /// @domName Window.clearTimeout; @docsEditable true
+  void clearTimeout(int handle) native;
+
+  /// @domName Window.close; @docsEditable true
+  void close() native;
+
+  /// @domName Window.confirm; @docsEditable true
+  bool confirm(String message) native;
+
+  /// @domName Window.dispatchEvent; @docsEditable true
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
+
+  /// @domName Window.find; @docsEditable true
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
+
+  /// @domName Window.getComputedStyle; @docsEditable true
+  @JSName('getComputedStyle')
+  CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native;
+
+  /// @domName Window.getMatchedCSSRules; @docsEditable true
+  @JSName('getMatchedCSSRules')
+  @Returns('_CssRuleList') @Creates('_CssRuleList')
+  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native;
+
+  /// @domName Window.getSelection; @docsEditable true
+  DomSelection getSelection() native;
+
+  /// @domName Window.matchMedia; @docsEditable true
+  MediaQueryList matchMedia(String query) native;
+
+  /// @domName Window.moveBy; @docsEditable true
+  void moveBy(num x, num y) native;
+
+  /// @domName Window.moveTo; @docsEditable true
+  void moveTo(num x, num y) native;
+
+  /// @domName DOMWindow.openDatabase; @docsEditable true
+  @Creates('Database') @Creates('DatabaseSync')
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
+
+  /// @domName Window.postMessage; @docsEditable true
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
+    if (?message &&
+        !?messagePorts) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, targetOrigin);
+      return;
+    }
+    if (?message) {
+      var message_2 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_2(message_2, targetOrigin, messagePorts);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  @JSName('postMessage')
+  void _postMessage_1(message, targetOrigin) native;
+  @JSName('postMessage')
+  void _postMessage_2(message, targetOrigin, List messagePorts) native;
+
+  /// @domName Window.print; @docsEditable true
+  void print() native;
+
+  /// @domName Window.releaseEvents; @docsEditable true
+  void releaseEvents() native;
+
+  /// @domName Window.removeEventListener; @docsEditable true
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  /// @domName Window.resizeBy; @docsEditable true
+  void resizeBy(num x, num y) native;
+
+  /// @domName Window.resizeTo; @docsEditable true
+  void resizeTo(num width, num height) native;
+
+  /// @domName Window.scroll; @docsEditable true
+  void scroll(int x, int y) native;
+
+  /// @domName Window.scrollBy; @docsEditable true
+  void scrollBy(int x, int y) native;
+
+  /// @domName Window.scrollTo; @docsEditable true
+  void scrollTo(int x, int y) native;
+
+  /// @domName Window.setInterval; @docsEditable true
+  int setInterval(TimeoutHandler handler, int timeout) native;
+
+  /// @domName Window.setTimeout; @docsEditable true
+  int setTimeout(TimeoutHandler handler, int timeout) native;
+
+  /// @domName Window.showModalDialog; @docsEditable true
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
+
+  /// @domName Window.stop; @docsEditable true
+  void stop() native;
+
+  /// @domName Window.webkitConvertPointFromNodeToPage; @docsEditable true
+  Point webkitConvertPointFromNodeToPage(Node node, Point p) native;
+
+  /// @domName Window.webkitConvertPointFromPageToNode; @docsEditable true
+  Point webkitConvertPointFromPageToNode(Node node, Point p) native;
+
+  /// @domName DOMWindow.webkitRequestFileSystem; @docsEditable true
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
+
+  /// @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true
+  @JSName('webkitResolveLocalFileSystemURL')
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+
+}
+
+/// @docsEditable true
+class WindowEvents extends Events {
+  /// @docsEditable true
+  WindowEvents(EventTarget _ptr) : super(_ptr);
+
+  /// @docsEditable true
+  EventListenerList get contentLoaded => this['DOMContentLoaded'];
+
+  /// @docsEditable true
+  EventListenerList get abort => this['abort'];
+
+  /// @docsEditable true
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  /// @docsEditable true
+  EventListenerList get blur => this['blur'];
+
+  /// @docsEditable true
+  EventListenerList get canPlay => this['canplay'];
+
+  /// @docsEditable true
+  EventListenerList get canPlayThrough => this['canplaythrough'];
+
+  /// @docsEditable true
+  EventListenerList get change => this['change'];
+
+  /// @docsEditable true
+  EventListenerList get click => this['click'];
+
+  /// @docsEditable true
+  EventListenerList get contextMenu => this['contextmenu'];
+
+  /// @docsEditable true
+  EventListenerList get doubleClick => this['dblclick'];
+
+  /// @docsEditable true
+  EventListenerList get deviceMotion => this['devicemotion'];
+
+  /// @docsEditable true
+  EventListenerList get deviceOrientation => this['deviceorientation'];
+
+  /// @docsEditable true
+  EventListenerList get drag => this['drag'];
+
+  /// @docsEditable true
+  EventListenerList get dragEnd => this['dragend'];
+
+  /// @docsEditable true
+  EventListenerList get dragEnter => this['dragenter'];
+
+  /// @docsEditable true
+  EventListenerList get dragLeave => this['dragleave'];
+
+  /// @docsEditable true
+  EventListenerList get dragOver => this['dragover'];
+
+  /// @docsEditable true
+  EventListenerList get dragStart => this['dragstart'];
+
+  /// @docsEditable true
+  EventListenerList get drop => this['drop'];
+
+  /// @docsEditable true
+  EventListenerList get durationChange => this['durationchange'];
+
+  /// @docsEditable true
+  EventListenerList get emptied => this['emptied'];
+
+  /// @docsEditable true
+  EventListenerList get ended => this['ended'];
+
+  /// @docsEditable true
+  EventListenerList get error => this['error'];
+
+  /// @docsEditable true
+  EventListenerList get focus => this['focus'];
+
+  /// @docsEditable true
+  EventListenerList get hashChange => this['hashchange'];
+
+  /// @docsEditable true
+  EventListenerList get input => this['input'];
+
+  /// @docsEditable true
+  EventListenerList get invalid => this['invalid'];
+
+  /// @docsEditable true
+  EventListenerList get keyDown => this['keydown'];
+
+  /// @docsEditable true
+  EventListenerList get keyPress => this['keypress'];
+
+  /// @docsEditable true
+  EventListenerList get keyUp => this['keyup'];
+
+  /// @docsEditable true
+  EventListenerList get load => this['load'];
+
+  /// @docsEditable true
+  EventListenerList get loadedData => this['loadeddata'];
+
+  /// @docsEditable true
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
+
+  /// @docsEditable true
+  EventListenerList get loadStart => this['loadstart'];
+
+  /// @docsEditable true
+  EventListenerList get message => this['message'];
+
+  /// @docsEditable true
+  EventListenerList get mouseDown => this['mousedown'];
+
+  /// @docsEditable true
+  EventListenerList get mouseMove => this['mousemove'];
+
+  /// @docsEditable true
+  EventListenerList get mouseOut => this['mouseout'];
+
+  /// @docsEditable true
+  EventListenerList get mouseOver => this['mouseover'];
+
+  /// @docsEditable true
+  EventListenerList get mouseUp => this['mouseup'];
+
+  /// @docsEditable true
+  EventListenerList get mouseWheel => this['mousewheel'];
+
+  /// @docsEditable true
+  EventListenerList get offline => this['offline'];
+
+  /// @docsEditable true
+  EventListenerList get online => this['online'];
+
+  /// @docsEditable true
+  EventListenerList get pageHide => this['pagehide'];
+
+  /// @docsEditable true
+  EventListenerList get pageShow => this['pageshow'];
+
+  /// @docsEditable true
+  EventListenerList get pause => this['pause'];
+
+  /// @docsEditable true
+  EventListenerList get play => this['play'];
+
+  /// @docsEditable true
+  EventListenerList get playing => this['playing'];
+
+  /// @docsEditable true
+  EventListenerList get popState => this['popstate'];
+
+  /// @docsEditable true
+  EventListenerList get progress => this['progress'];
+
+  /// @docsEditable true
+  EventListenerList get rateChange => this['ratechange'];
+
+  /// @docsEditable true
+  EventListenerList get reset => this['reset'];
+
+  /// @docsEditable true
+  EventListenerList get resize => this['resize'];
+
+  /// @docsEditable true
+  EventListenerList get scroll => this['scroll'];
+
+  /// @docsEditable true
+  EventListenerList get search => this['search'];
+
+  /// @docsEditable true
+  EventListenerList get seeked => this['seeked'];
+
+  /// @docsEditable true
+  EventListenerList get seeking => this['seeking'];
+
+  /// @docsEditable true
+  EventListenerList get select => this['select'];
+
+  /// @docsEditable true
+  EventListenerList get stalled => this['stalled'];
+
+  /// @docsEditable true
+  EventListenerList get storage => this['storage'];
+
+  /// @docsEditable true
+  EventListenerList get submit => this['submit'];
+
+  /// @docsEditable true
+  EventListenerList get suspend => this['suspend'];
+
+  /// @docsEditable true
+  EventListenerList get timeUpdate => this['timeupdate'];
+
+  /// @docsEditable true
+  EventListenerList get touchCancel => this['touchcancel'];
+
+  /// @docsEditable true
+  EventListenerList get touchEnd => this['touchend'];
+
+  /// @docsEditable true
+  EventListenerList get touchMove => this['touchmove'];
+
+  /// @docsEditable true
+  EventListenerList get touchStart => this['touchstart'];
+
+  /// @docsEditable true
+  EventListenerList get unload => this['unload'];
+
+  /// @docsEditable true
+  EventListenerList get volumeChange => this['volumechange'];
+
+  /// @docsEditable true
+  EventListenerList get waiting => this['waiting'];
+
+  /// @docsEditable true
+  EventListenerList get animationEnd => this['webkitAnimationEnd'];
+
+  /// @docsEditable true
+  EventListenerList get animationIteration => this['webkitAnimationIteration'];
+
+  /// @docsEditable true
+  EventListenerList get animationStart => this['webkitAnimationStart'];
+
+  /// @docsEditable true
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22917,7 +22919,7 @@ class _DataAttributeMap implements Map<String, String> {
  * is the container that displays a [Document]'s content. All web scripting
  * happens within the context of a [Window] object.
  *
- * **Note:** This class represents any window, whereas [LocalWindow] is
+ * **Note:** This class represents any window, whereas [Window] is
  * used to access the properties and content of the current window.
  *
  * See also:
@@ -22925,7 +22927,7 @@ class _DataAttributeMap implements Map<String, String> {
  * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
  */
-abstract class Window {
+abstract class WindowBase {
   // Fields.
 
   /**
@@ -22934,8 +22936,8 @@ abstract class Window {
    *     Location currentLocation = window.location;
    *     print(currentLocation.href); // 'http://www.example.com:80/'
    */
-  Location get location;
-  History get history;
+  LocationBase get location;
+  HistoryBase get history;
 
   /**
    * Indicates whether this window has been closed.
@@ -22950,16 +22952,16 @@ abstract class Window {
    * A reference to the window that opened this one.
    *
    *     Window thisWindow = window;
-   *     Window otherWindow = thisWindow.open('http://www.example.com/', 'foo');
+   *     WindowBase otherWindow = thisWindow.open('http://www.example.com/', 'foo');
    *     print(otherWindow.opener == thisWindow); // 'true'
    */
-  Window get opener;
+  WindowBase get opener;
 
   /**
    * A reference to the parent of this window.
    *
-   * If this [Window] has no parent, [parent] will return a reference to
-   * the [Window] itself.
+   * If this [WindowBase] has no parent, [parent] will return a reference to
+   * the [WindowBase] itself.
    *
    *     IFrameElement myIFrame = new IFrameElement();
    *     window.document.body.elements.add(myIFrame);
@@ -22967,13 +22969,13 @@ abstract class Window {
    *
    *     print(window.parent == window) // 'true'
    */
-  Window get parent;
+  WindowBase get parent;
 
   /**
    * A reference to the topmost window in the window hierarchy.
    *
-   * If this [Window] is the topmost [Window], [top] will return a reference to
-   * the [Window] itself.
+   * If this [WindowBase] is the topmost [WindowBase], [top] will return a
+   * reference to the [WindowBase] itself.
    *
    *     // Add an IFrame to the current window.
    *     IFrameElement myIFrame = new IFrameElement();
@@ -22988,13 +22990,13 @@ abstract class Window {
    *
    *     print(window.top == window) // 'true'
    */
-  Window get top;
+  WindowBase get top;
 
   // Methods.
   /**
    * Closes the window.
    *
-   * This method should only succeed if the [Window] object is
+   * This method should only succeed if the [WindowBase] object is
    * **script-closeable** and the window calling [close] is allowed to navigate
    * the window.
    *
@@ -23023,11 +23025,11 @@ abstract class Window {
   void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
 
-abstract class Location {
+abstract class LocationBase {
   void set href(String val);
 }
 
-abstract class History {
+abstract class HistoryBase {
   void back();
   void forward();
   void go(int distance);
@@ -25135,7 +25137,7 @@ class _DocumentFragmentFactoryProvider {
 // window as a parameter.
 
 
-Window _convertNativeToDart_Window(win) {
+WindowBase _convertNativeToDart_Window(win) {
   return _DOMWindowCrossFrame._createSafe(win);
 }
 
@@ -25205,27 +25207,27 @@ _convertDartToNative_ImageData(ImageData imageData) {
 
 
 // TODO(vsm): Unify with Dartium version.
-class _DOMWindowCrossFrame implements Window {
+class _DOMWindowCrossFrame implements WindowBase {
   // Private window.  Note, this is a window in another frame, so it
   // cannot be typed as "Window" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
   var _window;
 
   // Fields.
-  History get history =>
-    _HistoryCrossFrame._createSafe(JS('History', '#.history', _window));
-  Location get location =>
-    _LocationCrossFrame._createSafe(JS('Location', '#.location', _window));
+  HistoryBase get history =>
+    _HistoryCrossFrame._createSafe(JS('HistoryBase', '#.history', _window));
+  LocationBase get location =>
+    _LocationCrossFrame._createSafe(JS('LocationBase', '#.location', _window));
 
   // TODO(vsm): Add frames to navigate subframes.  See 2312.
 
   bool get closed => JS('bool', '#.closed', _window);
 
-  Window get opener => _createSafe(JS('Window', '#.opener', _window));
+  WindowBase get opener => _createSafe(JS('WindowBase', '#.opener', _window));
 
-  Window get parent => _createSafe(JS('Window', '#.parent', _window));
+  WindowBase get parent => _createSafe(JS('WindowBase', '#.parent', _window));
 
-  Window get top => _createSafe(JS('Window', '#.top', _window));
+  WindowBase get top => _createSafe(JS('WindowBase', '#.top', _window));
 
   // Methods.
   void close() => JS('void', '#.close()', _window);
@@ -25241,7 +25243,7 @@ class _DOMWindowCrossFrame implements Window {
   // Implementation support.
   _DOMWindowCrossFrame(this._window);
 
-  static Window _createSafe(w) {
+  static WindowBase _createSafe(w) {
     if (identical(w, window)) {
       return w;
     } else {
@@ -25251,7 +25253,7 @@ class _DOMWindowCrossFrame implements Window {
   }
 }
 
-class _LocationCrossFrame implements Location {
+class _LocationCrossFrame implements LocationBase {
   // Private location.  Note, this is a location object in another frame, so it
   // cannot be typed as "Location" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
@@ -25265,7 +25267,7 @@ class _LocationCrossFrame implements Location {
   // Implementation support.
   _LocationCrossFrame(this._location);
 
-  static Location _createSafe(location) {
+  static LocationBase _createSafe(location) {
     if (identical(location, window.location)) {
       return location;
     } else {
@@ -25275,7 +25277,7 @@ class _LocationCrossFrame implements Location {
   }
 }
 
-class _HistoryCrossFrame implements History {
+class _HistoryCrossFrame implements HistoryBase {
   // Private history.  Note, this is a history object in another frame, so it
   // cannot be typed as "History" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
@@ -25290,7 +25292,7 @@ class _HistoryCrossFrame implements History {
   // Implementation support.
   _HistoryCrossFrame(this._history);
 
-  static History _createSafe(h) {
+  static HistoryBase _createSafe(h) {
     if (identical(h, window.history)) {
       return h;
     } else {
@@ -25397,7 +25399,7 @@ class KeyEvent implements KeyboardEvent {
   void stopImmediatePropagation() => _parent.stopImmediatePropagation();
   void stopPropagation() => _parent.stopPropagation();
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, int detail) {
+      Window view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
@@ -25413,7 +25415,7 @@ class KeyEvent implements KeyboardEvent {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey,
       bool altGraphKey) {
     throw new UnsupportedError(
@@ -25443,7 +25445,7 @@ class _TextFactoryProvider {
 // It can't be monkey-patched and seems immune to putting methods on
 // Object.prototype.  We are forced to wrap the object.
 
-class _LocationWrapper implements LocalLocation {
+class _LocationWrapper implements Location {
 
   final _ptr;  // Opaque reference to real location.
 

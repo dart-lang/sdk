@@ -8,7 +8,7 @@ part of html;
 // It can't be monkey-patched and seems immune to putting methods on
 // Object.prototype.  We are forced to wrap the object.
 
-class _LocationWrapper implements LocalLocation {
+class _LocationWrapper implements Location {
 
   final _ptr;  // Opaque reference to real location.
 

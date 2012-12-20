@@ -44,9 +44,9 @@ part '$AUXILIARY_DIR/_ListIterators.dart';
 part '$AUXILIARY_DIR/native_DOMPublic.dart';
 part '$AUXILIARY_DIR/native_DOMImplementation.dart';
 
-LocalWindow _window;
+Window _window;
 
-LocalWindow get window {
+Window get window {
   if (_window != null) {
     return _window;
   }
