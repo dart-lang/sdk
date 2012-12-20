@@ -387,11 +387,7 @@ class _HttpParser {
               String headerField = new String.fromCharCodes(_headerField);
               String headerValue = new String.fromCharCodes(_headerValue);
               bool reportHeader = true;
-              if (headerField == "content-length" && !_chunked) {
-                // Ignore the Content-Length header if Transfer-Encoding
-                // is chunked (RFC 2616 section 4.4)
-                _contentLength = parseInt(headerValue);
-              } else if (headerField == "connection") {
+              if (headerField == "connection") {
                 List<String> tokens = _tokenizeFieldValue(headerValue);
                 for (int i = 0; i < tokens.length; i++) {
                   String token = tokens[i].toLowerCase();
@@ -408,10 +404,7 @@ class _HttpParser {
                 reportHeader = false;
               } else if (headerField == "transfer-encoding" &&
                          headerValue.toLowerCase() == "chunked") {
-                // Ignore the Content-Length header if Transfer-Encoding
-                // is chunked (RFC 2616 section 4.4)
                 _chunked = true;
-                _contentLength = -1;
               }
               if (reportHeader) {
                 _headers.add(headerField, headerValue);
@@ -431,6 +424,12 @@ class _HttpParser {
 
           case _State.HEADER_ENDING:
             _expect(byte, _CharCode.LF);
+
+            _contentLength = _headers.contentLength;
+            // Ignore the Content-Length header if Transfer-Encoding
+            // is chunked (RFC 2616 section 4.4)
+            if (_chunked) _contentLength = -1;
+
             // If a request message has neither Content-Length nor
             // Transfer-Encoding the message must not have a body (RFC
             // 2616 section 4.3).

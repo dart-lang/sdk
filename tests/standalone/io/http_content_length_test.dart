@@ -10,7 +10,7 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
   server.onError = (e) => Expect.fail("Unexpected error $e");
   server.listen("127.0.0.1", 0, backlog: totalConnections);
   server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
-    Expect.isNull(request.headers.value('content-length'));
+    Expect.equals("0", request.headers.value('content-length'));
     Expect.equals(0, request.contentLength);
     response.contentLength = 0;
     OutputStream stream = response.outputStream;
@@ -99,7 +99,7 @@ void testHttp10() {
   server.listen("127.0.0.1", 0, backlog: 5);
   server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
     Expect.isNull(request.headers.value('content-length'));
-    Expect.equals(0, request.contentLength);
+    Expect.equals(-1, request.contentLength);
     response.contentLength = 0;
     OutputStream stream = response.outputStream;
     Expect.equals("1.0", request.protocolVersion);

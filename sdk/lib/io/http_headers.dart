@@ -65,6 +65,18 @@ class _HttpHeaders implements HttpHeaders {
     _noFoldingHeaders.add(name);
   }
 
+  int get contentLength => _contentLength;
+
+  void set contentLength(int contentLength) {
+    _checkMutable();
+    _contentLength = contentLength;
+    if (_contentLength >= 0) {
+      _set("content-length", contentLength.toString());
+    } else {
+      removeAll("content-length");
+    }
+  }
+
   String get host => _host;
 
   void set host(String host) {
@@ -155,7 +167,15 @@ class _HttpHeaders implements HttpHeaders {
   void _add(String name, Object value) {
     var lowerCaseName = name.toLowerCase();
     // TODO(sgjesse): Add immutable state throw HttpException is immutable.
-    if (lowerCaseName == "date") {
+    if (lowerCaseName == "content-length") {
+      if (value is int) {
+        contentLength = value;
+      } else if (value is String) {
+        contentLength = parseInt(value);
+      } else {
+        throw new HttpException("Unexpected type for header named $name");
+      }
+    } else if (lowerCaseName == "date") {
       if (value is Date) {
         date = value;
       } else if (value is String) {
@@ -323,6 +343,7 @@ class _HttpHeaders implements HttpHeaders {
   Map<String, List<String>> _headers;
   List<String> _noFoldingHeaders;
 
+  int _contentLength = -1;
   String _host;
   int _port;
 }

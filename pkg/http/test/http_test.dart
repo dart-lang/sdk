@@ -32,6 +32,7 @@ main() {
           'method': 'GET',
           'path': '/',
           'headers': {
+            'content-length': ['0'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           },
@@ -75,6 +76,7 @@ main() {
           'method': 'POST',
           'path': '/',
           'headers': {
+            'content-length': ['0'],
             'content-type': ['text/plain'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
@@ -119,6 +121,7 @@ main() {
           'method': 'PUT',
           'path': '/',
           'headers': {
+            'content-length': ['0'],
             'content-type': ['text/plain'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
@@ -137,6 +140,7 @@ main() {
           'method': 'DELETE',
           'path': '/',
           'headers': {
+            'content-length': ['0'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           }
@@ -152,6 +156,7 @@ main() {
         'method': 'GET',
         'path': '/',
         'headers': {
+          'content-length': ['0'],
           'x-random-header': ['Value'],
           'x-other-header': ['Other Value']
         },
@@ -172,6 +177,7 @@ main() {
         'method': 'GET',
         'path': '/',
         'headers': {
+          'content-length': ['0'],
           'x-random-header': ['Value'],
           'x-other-header': ['Other Value']
         },

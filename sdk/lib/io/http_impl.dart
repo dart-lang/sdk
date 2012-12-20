@@ -87,7 +87,7 @@ class _HttpRequestResponseBase {
   _HttpRequestResponseBase(_HttpConnectionBase this._httpConnection)
       : _state = START, _headResponse = false;
 
-  int get contentLength => _contentLength;
+  int get contentLength => _headers.contentLength;
   HttpHeaders get headers => _headers;
 
   bool get persistentConnection {
@@ -127,7 +127,7 @@ class _HttpRequestResponseBase {
     _ensureHeadersSent();
     bool allWritten = true;
     if (data.length > 0) {
-      if (_contentLength < 0) {
+      if (_headers.contentLength < 0) {
         // Write chunk size if transfer encoding is chunked.
         _writeHexString(data.length);
         _writeCRLF();
@@ -146,7 +146,7 @@ class _HttpRequestResponseBase {
     _ensureHeadersSent();
     bool allWritten = true;
     if (count > 0) {
-      if (_contentLength < 0) {
+      if (_headers.contentLength < 0) {
         // Write chunk size if transfer encoding is chunked.
         _writeHexString(count);
         _writeCRLF();
@@ -162,14 +162,14 @@ class _HttpRequestResponseBase {
 
   bool _writeDone() {
     bool allWritten = true;
-    if (_contentLength < 0) {
+    if (_headers.contentLength < 0) {
       // Terminate the content if transfer encoding is chunked.
       allWritten = _httpConnection._write(_Const.END_CHUNKED);
     } else {
-      if (!_headResponse && _bodyBytesWritten < _contentLength) {
+      if (!_headResponse && _bodyBytesWritten < _headers.contentLength) {
         throw new HttpException("Sending less than specified content length");
       }
-      assert(_headResponse || _bodyBytesWritten == _contentLength);
+      assert(_headResponse || _bodyBytesWritten == _headers.contentLength);
     }
     return allWritten;
   }
@@ -213,7 +213,7 @@ class _HttpRequestResponseBase {
   }
 
   void _updateContentLength(int bytes) {
-    if (_bodyBytesWritten + bytes > _contentLength) {
+    if (_bodyBytesWritten + bytes > _headers.contentLength) {
       throw new HttpException("Writing more than specified content length");
     }
     _bodyBytesWritten += bytes;
@@ -231,10 +231,6 @@ class _HttpRequestResponseBase {
   List<Cookie> _cookies;
   String _protocolVersion = "1.1";
 
-  // Length of the content body. If this is set to -1 (default value)
-  // when starting to send data chunked transfer encoding will be
-  // used.
-  int _contentLength = -1;
   // Number of body bytes written. This is only actual body data not
   // including headers or chunk information of using chinked transfer
   // encoding.
@@ -362,9 +358,6 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
       }
     }
 
-    // Get parsed content length.
-    _contentLength = _httpConnection._httpParser.contentLength;
-
     // Prepare for receiving data.
     _headers._mutable = false;
     _buffer = new _BufferList();
@@ -440,7 +433,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     if (_state >= _HttpRequestResponseBase.HEADER_SENT) {
       throw new HttpException("Header already sent");
     }
-    _contentLength = contentLength;
+    _headers.contentLength = contentLength;
   }
 
   int get statusCode => _statusCode;
@@ -600,9 +593,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     // Determine the value of the "Transfer-Encoding" header based on
     // whether the content length is known. HTTP/1.0 does not support
     // chunked.
-    if (_contentLength >= 0) {
-      _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
-    } else if (_contentLength < 0 && _protocolVersion == "1.1") {
+    if (_headers.contentLength < 0 && _protocolVersion == "1.1") {
       _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
 
@@ -937,7 +928,7 @@ class _HttpConnection extends _HttpConnectionBase {
       // body.
       bool close =
           !_response.persistentConnection ||
-          (_response._protocolVersion == "1.0" && _response._contentLength < 0);
+          (_response._protocolVersion == "1.0" && _response.contentLength < 0);
       _request = null;
       _response = null;
       if (close) {
@@ -1167,7 +1158,7 @@ class _HttpClientRequest
     _connection = connection;
     // Default GET and HEAD requests to have no content.
     if (_method == "GET" || _method == "HEAD") {
-      _contentLength = 0;
+      contentLength = 0;
     }
   }
 
@@ -1175,7 +1166,7 @@ class _HttpClientRequest
     if (_state >= _HttpRequestResponseBase.HEADER_SENT) {
       throw new HttpException("Header already sent");
     }
-    _contentLength = contentLength;
+    _headers.contentLength = contentLength;
   }
 
   List<Cookie> get cookies {
@@ -1263,9 +1254,7 @@ class _HttpClientRequest
     // Determine the value of the "Transfer-Encoding" header based on
     // whether the content length is known. If there is no content
     // neither "Content-Length" nor "Transfer-Encoding" is set.
-    if (_contentLength > 0) {
-      _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
-    } else if (_contentLength < 0) {
+    if (_headers.contentLength < 0) {
       _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
 
@@ -1345,8 +1334,6 @@ class _HttpClientResponse
     _statusCode = statusCode;
     _reasonPhrase = reasonPhrase;
     _headers = headers;
-    // Get parsed content length.
-    _contentLength = _httpConnection._httpParser.contentLength;
 
     // Prepare for receiving data.
     _headers._mutable = false;
