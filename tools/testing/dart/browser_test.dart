@@ -58,7 +58,12 @@ String dartTestWrapper(Path dartHome, Path library) {
   // Tests inside "pkg" import unittest using "package:". All others use a
   // relative path. The imports need to agree, so use a matching form here.
   var unitTest = dartHome.append("pkg/unittest/lib").toString();
-  if (library.relativeTo(dartHome).segments().contains("pkg")) {
+
+  // TODO(rnystrom): Looking in the entire path here is wrong. It should only
+  // consider the relative path within dartHome. Unfortunately,
+  // Path.relativeTo() does not handle cases where library is already a relative
+  // path, and Path.isAbsolute does not work on Windows.
+  if (library.segments().contains("pkg")) {
     unitTest = 'package:unittest';
   }
 
