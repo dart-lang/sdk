@@ -26,7 +26,6 @@ class_literal_test/26: Fail # Class literals are expression now; delete this tes
 class_literal_test/27: Fail # Class literals are expression now; delete this test.
 class_literal_test/28: Fail # Class literals are expression now; delete this test.
 class_literal_test/29: Fail # Class literals are expression now; delete this test.
-identical_closure_test: Fail # Fix for identical closure has not been implemented
 
 # VM specific tests that should not be run by dart2js.
 *vm_test: Skip
