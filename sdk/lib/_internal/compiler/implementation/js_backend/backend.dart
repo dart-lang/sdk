@@ -690,7 +690,7 @@ class JavaScriptBackend extends Backend {
   /**
    * Set of classes whose instances are intercepted. Implemented as a
    * [LinkedHashMap] to preserve the insertion order.
-   * TODO(ngeoffray): Use a BitSet instead.
+   * TODO(ngeoffray): No need to preserve order anymore.
    */
   final Map<ClassElement, ClassElement> interceptedClasses;
 

@@ -1954,32 +1954,129 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
   }
 
-  /**
-   * Emit the code for doing a type check on [cls]. [cls] must
-   * be an interceptor class.
-   */
-  void emitInterceptorCheck(ClassElement cls, CodeBuffer buffer) {
-    JavaScriptBackend backend = compiler.backend;
-    assert(backend.isInterceptorClass(cls));
-    if (cls == backend.jsBoolClass) {
-      buffer.add("if$_(typeof receiver$_==$_'boolean')");
-    } else if (cls == backend.jsIntClass) {
-      buffer.add("if$_(typeof receiver$_==$_'number'$_"
-                 "&&${_}Math.floor(receiver)$_==${_}receiver)");
-    } else if (cls == backend.jsDoubleClass || cls == backend.jsNumberClass) {
-      buffer.add("if$_(typeof receiver$_==$_'number')");
-    } else if (cls == backend.jsArrayClass) {
-      buffer.add("if$_(receiver$_!=${_}null$_&&$_"
-                 "receiver.constructor$_==${_}Array)");
-    } else if (cls == backend.jsStringClass) {
-      buffer.add("if$_(typeof receiver$_==$_'string')");
-    } else if (cls == backend.jsNullClass) {
-      buffer.add("if$_(receiver$_==${_}null)");
-    } else if (cls == backend.jsFunctionClass) {
-      buffer.add("if$_(typeof receiver$_==$_'function')");
+  void emitGetInterceptorMethod(CodeBuffer buffer,
+                                String objectName,
+                                String key,
+                                Collection<ClassElement> classes) {
+    js.Statement buildReturnInterceptor(ClassElement cls) {
+      return js.return_(js.fieldAccess(js.use(namer.isolateAccess(cls)),
+                                       'prototype'));
     }
-    buffer.add('${_}return ${namer.isolateAccess(cls)}.prototype');
-    if (!compiler.enableMinification) buffer.add(';');
+
+    js.VariableUse receiver = js.use('receiver');
+    JavaScriptBackend backend = compiler.backend;
+
+    /**
+     * Build a JavaScrit AST node for doing a type check on
+     * [cls]. [cls] must be an interceptor class.
+     */
+    js.Statement buildInterceptorCheck(ClassElement cls) {
+      js.Expression condition;
+      assert(backend.isInterceptorClass(cls));
+      if (cls == backend.jsBoolClass) {
+        condition = js.equals(js.typeOf(receiver), js.string('boolean'));
+      } else if (cls == backend.jsIntClass ||
+                 cls == backend.jsDoubleClass ||
+                 cls == backend.jsNumberClass) {
+        throw 'internal error';
+      } else if (cls == backend.jsArrayClass) {
+        condition = js.equals(js.fieldAccess(receiver, 'constructor'),
+                              js.use('Array'));
+      } else if (cls == backend.jsStringClass) {
+        condition = js.equals(js.typeOf(receiver), js.string('string'));
+      } else if (cls == backend.jsNullClass) {
+        condition = js.equals(receiver, new js.LiteralNull());
+      } else if (cls == backend.jsFunctionClass) {
+        condition = js.equals(js.typeOf(receiver), js.string('function'));
+      } else {
+        throw 'internal error';
+      }
+      return js.if_(condition, buildReturnInterceptor(cls));
+    }
+
+    bool hasArray = false;
+    bool hasBool = false;
+    bool hasDouble = false;
+    bool hasFunction = false;
+    bool hasInt = false;
+    bool hasNull = false;
+    bool hasNumber = false;
+    bool hasString = false;
+    for (ClassElement cls in classes) {
+      if (cls == backend.jsArrayClass) hasArray = true;
+      else if (cls == backend.jsBoolClass) hasBool = true;
+      else if (cls == backend.jsDoubleClass) hasDouble = true;
+      else if (cls == backend.jsFunctionClass) hasFunction = true;
+      else if (cls == backend.jsIntClass) hasInt = true;
+      else if (cls == backend.jsNullClass) hasNull = true;
+      else if (cls == backend.jsNumberClass) hasNumber = true;
+      else if (cls == backend.jsStringClass) hasString = true;
+      else throw 'Internal error: $cls';
+    }
+    if (hasDouble) {
+      assert(!hasNumber);
+      hasNumber = true;
+    }
+    if (hasInt) hasNumber = true;
+
+    js.Block block = new js.Block.empty();
+
+    if (hasNumber) {
+      js.Statement whenNumber;
+
+      /// Note: there are two number classes in play: Dart's [num],
+      /// and JavaScript's Number (typeof receiver == 'number').  This
+      /// is the fallback used when we have determined that receiver
+      /// is a JavaScript Number.
+      js.Return returnNumberClass = buildReturnInterceptor(
+          hasDouble ? backend.jsDoubleClass : backend.jsNumberClass);
+
+      if (hasInt) {
+        js.Expression isInt =
+            js.equals(js.call(js.fieldAccess(js.use('Math'), 'floor'),
+                              [receiver]),
+                      receiver);
+        (whenNumber = js.emptyBlock()).statements
+          ..add(js.if_(isInt, buildReturnInterceptor(backend.jsIntClass)))
+          ..add(returnNumberClass);
+      } else {
+        whenNumber = returnNumberClass;
+      }
+      block.statements.add(
+          js.if_(js.equals(js.typeOf(receiver), js.string('number')),
+                 whenNumber));
+    }
+
+    if (hasString) {
+      block.statements.add(buildInterceptorCheck(backend.jsStringClass));
+    }
+    if (hasNull) {
+      block.statements.add(buildInterceptorCheck(backend.jsNullClass));
+    } else {
+      // Returning "undefined" here will provoke a JavaScript
+      // TypeError which is later identified as a null-error by
+      // [unwrapException] in js_helper.dart.
+      block.statements.add(js.if_(js.equals(receiver, new js.LiteralNull()),
+                                  js.return_(js.undefined())));
+    }
+    if (hasFunction) {
+      block.statements.add(buildInterceptorCheck(backend.jsFunctionClass));
+    }
+    if (hasBool) {
+      block.statements.add(buildInterceptorCheck(backend.jsBoolClass));
+    }
+    // TODO(ahe): It might be faster to check for Array before
+    // function and bool.
+    if (hasArray) {
+      block.statements.add(buildInterceptorCheck(backend.jsArrayClass));
+    }
+    block.statements.add(js.return_(js.fieldAccess(js.use(objectName),
+                                                   'prototype')));
+
+    js.PropertyAccess name = js.fieldAccess(js.use(isolateProperties), key);
+    buffer.add(js.prettyPrint(js.assign(name, js.fun(['receiver'], block)),
+                              compiler));
+    buffer.add(N);
   }
 
   /**
@@ -1992,14 +2089,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     String objectName = namer.isolateAccess(backend.objectInterceptorClass);
     backend.specializedGetInterceptors.forEach(
         (String key, Collection<ClassElement> classes) {
-          buffer.add('$isolateProperties.$key$_=${_}function(receiver)$_{');
-          for (ClassElement cls in classes) {
-            if (compiler.codegenWorld.instantiatedClasses.contains(cls)) {
-              buffer.add('\n$_$_');
-              emitInterceptorCheck(cls, buffer);
-            }
-          }
-          buffer.add('\n$_${_}return $objectName.prototype;$n}$N');
+          emitGetInterceptorMethod(buffer, objectName, key, classes);
         });
   }
 
