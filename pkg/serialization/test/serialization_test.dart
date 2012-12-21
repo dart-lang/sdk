@@ -265,7 +265,7 @@ main() {
     n3.parent = n1;
     var s = new Serialization()
       ..addRuleFor(n1, constructorFields: ["name"]).
-          specialTreatmentFor("children", (parent, child) =>
+          setFieldWith("children", (parent, child) =>
               parent.reflectee.children = child);
     var w = new Writer(s);
     w.write(n1);
@@ -302,6 +302,21 @@ main() {
     expect(identical(m2.parent, m3.parent), isTrue);
   });
 
+  test("Constant values as fields", () {
+    var s = new Serialization()
+      ..selfDescribing = false
+      ..addRuleFor(a1,
+          constructor: 'with',
+          constructorFields: ["street", "Kirkland", "WA", "98103"],
+          fields: []);
+    var out = s.write(a1);
+    var newAddress = s.read(out);
+    expect(newAddress.street, a1.street);
+    expect(newAddress.city, "Kirkland");
+    expect(newAddress.state, "WA");
+    expect(newAddress.zip, "98103");
+  });
+
 }
 
 /******************************************************************************
@@ -326,7 +341,7 @@ Serialization metaSerialization() {
           'constructorName',
           'constructorFields', 'regularFields', []],
         fields: [])
-     ..addRuleFor(new Serialization()).specialTreatmentFor('rules',
+     ..addRuleFor(new Serialization()).setFieldWith('rules',
          (InstanceMirror s, List rules) {
              rules.forEach((x) => s.reflectee.addRule(x));
          })

@@ -86,17 +86,17 @@ class BasicRule extends SerializationRule {
    *
    * For example, to serialize a Serialization, we need its rules to be
    * individually added rather than just setting the rules field.
-   *      ..addRuleFor(new Serialization()).specialTreatmentFor('rules',
+   *      ..addRuleFor(new Serialization()).setFieldWith('rules',
    *          (InstanceMirror s, List rules) {
    *            rules.forEach((x) => s.reflectee.addRule(x));
    * Note that the function is passed the owning object as well as the field
    * value, but that it is passed as a mirror.
    */
-  specialTreatmentFor(String fieldName, SetWithFunction setWith) {
+  setFieldWith(String fieldName, SetWithFunction setWith) {
     fields.addAllByName([fieldName]);
-    _Field field = fields.named(fieldName);
+    _NamedField field = fields.named(fieldName);
     Function setter = (setWith == null) ? field.defaultSetter : setWith;
-    field.specialTreatment = setter;
+    field.customSetter = setter;
   }
 
   /** Return the name of the constructor used to create new instances on read.*/
@@ -223,21 +223,13 @@ class BasicRule extends SerializationRule {
    * Extract the value of the field [fieldName] from the object reflected
    * by [mirror].
    */
-  // TODO (alanknight): The "is String" mechanism here should be more tightly
-  // controlled to work on just constructor fields.
   // TODO(alanknight): The framework should be resilient if there are fields
   // it expects that are missing, either for the case of de-serializing to a
   // different definition, or for the case that tree-shaking has removed state.
   // TODO(alanknight): This, and other places, rely on synchronous access to
   // mirrors. Should be changed to use a synchronous API once one is available,
   // or to be async, but that would be extremely ugly.
-  _value(InstanceMirror mirror, _Field field) {
-    if (field.name is String) {
-      return mirror.getField(field.name).value.reflectee;
-    } else {
-      return field.name;
-    }
-  }
+  _value(InstanceMirror mirror, _Field field) => field.valueIn(mirror);
 
   /**
    * When reading from a flat format we are given [stream] and need to pull as
@@ -272,9 +264,7 @@ class BasicRule extends SerializationRule {
  * This represents a field in an object. It is intended to be used as part of
  * a [_FieldList].
  */
-class _Field implements Comparable {
-  /** The name of the field (or getter) */
-  final name;
+abstract class _Field implements Comparable {
 
   /** The FieldList that contains us. */
   final _FieldList fieldList;
@@ -288,17 +278,37 @@ class _Field implements Comparable {
   /** Is this field used in the constructor? */
   bool usedInConstructor = false;
 
-  /** The special way to set this value registered, if this has a value. */
-  Function specialTreatment;
+  /**
+   * Create a new [_Field] instance. This will be either a [_NamedField] or a
+   * [_ConstantField] depending on whether or not [value] corresponds to a
+   * field in the class which [fieldList] models.
+   */
+  factory _Field(value, _FieldList fieldList) {
+    if (_isReallyAField(value, fieldList)) {
+      return new _NamedField._internal(value, fieldList);
+    } else {
+      return new _ConstantField._internal(value, fieldList);
+    }
+  }
 
-  _Field(this.name, this.fieldList);
+  /**
+   * Determine if [value] represents a field or getter in the class that
+   * [fieldList] models.
+   */
+  static bool _isReallyAField(value, _FieldList fieldList) {
+    if (!(value is String)) return false;
+    return hasField(value, fieldList.mirror) ||
+        hasGetter(value, fieldList.mirror);
+  }
 
-  operator ==(x) => x is _Field && (name == x.name);
-  int get hashCode => name.hashCode;
+  /** Private constructor. */
+  _Field._internal(this.fieldList);
 
-  // Note that the field 'name' may be an arbitrary constant value, so we have
-  // to convert it to a string for sorting.
-  compareTo(x) => name.toString().compareTo(x.name.toString());
+  /**
+   * Extracts the value for the field that this represents from the instance
+   * mirrored by [mirror] and return it.
+   */
+  valueIn(InstanceMirror mirror);
 
   // TODO(alanknight): Is this the right name, or is it confusing that essential
   // is not the inverse of regular.
@@ -308,18 +318,53 @@ class _Field implements Comparable {
   /**
    * Return true if this field is treated as essential state, either because
    * it is used in the constructor, or because it's been designated
-   * using [specialTreatmentFor].
+   * using [setFieldWith].
    */
-  bool get isEssential => usedInConstructor || specialTreatment != null;
+  bool get isEssential => usedInConstructor;
+
+  /** Set the [value] of our field in the given mirrored [object]. */
+  void setValue(InstanceMirror object, value);
+
+  // Because [x] may not be a named field, we compare the toString. We don't
+  // care that much where constants come in the sort order as long as it's
+  // consistent.
+  compareTo(_Field x) => toString().compareTo(x.toString());
+}
+
+/**
+ * This represents a field in the object, either stored as a field or
+ * accessed via getter/setter/constructor parameter. It has a name and
+ * will attempt to access the state for that name using an [InstanceMirror].
+ */
+class _NamedField extends _Field {
+  /** The name of the field (or getter) */
+  final name;
+
+  /** The special way to set this value registered, if this has a value. */
+  Function customSetter;
+
+  _NamedField._internal(this.name, fieldList) : super._internal(fieldList);
+
+  operator ==(x) => x is _NamedField && (name == x.name);
+  int get hashCode => name.hashCode;
+
+  /**
+   * Return true if this field is treated as essential state, either because
+   * it is used in the constructor, or because it's been designated
+   * using [setFieldWith].
+   */
+  bool get isEssential => super.isEssential || customSetter != null;
 
   /** Set the [value] of our field in the given mirrored [object]. */
   void setValue(InstanceMirror object, value) {
     setter(object, value);
   }
 
+  valueIn(InstanceMirror mirror) => mirror.getField(name).value.reflectee;
+
   /** Return the function to use to set our value. */
   Function get setter =>
-      (specialTreatment != null) ? specialTreatment : defaultSetter;
+      (customSetter != null) ? customSetter : defaultSetter;
 
   /** Return a default setter function. */
   void defaultSetter(InstanceMirror object, value) {
@@ -327,6 +372,31 @@ class _Field implements Comparable {
   }
 
   String toString() => 'Field($name)';
+}
+
+/**
+ * This represents a constant value that will be passed as a constructor
+ * parameter. Rather than having a name it has a constant value.
+ */
+class _ConstantField extends _Field {
+
+  /** The value we always return.*/
+  final value;
+
+  _ConstantField._internal(this.value, fieldList) : super._internal(fieldList);
+
+  operator ==(x) => x is _ConstantField && (value == x.value);
+  int get hashCode => value.hashCode;
+  String toString() => 'ConstantField($value)';
+  valueIn(InstanceMirror mirror) => value;
+
+  /** We cannot be set, so setValue is a no-op. */
+  void setValue(InstanceMirror object, value) {}
+
+  /** There are places where the code expects us to have an identifier, so
+   * use the value for that.
+   */
+  get name => value;
 }
 
 /**
@@ -366,10 +436,10 @@ class _FieldList implements Iterable {
   _Field named(String name) => allFields[name];
 
   /** Set the fields to be used in the constructor. */
-  set constructorFields(List fields) {
-    if (fields == null || fields.isEmpty) return;
+  set constructorFields(List fieldNames) {
+    if (fieldNames == null || fieldNames.isEmpty) return;
     _constructorFields = [];
-    for (var each in fields) {
+    for (var each in fieldNames) {
       var field = new _Field(each, this)..usedInConstructor = true;
       allFields[each] = field;
       _constructorFields.add(field);
@@ -402,7 +472,7 @@ class _FieldList implements Iterable {
   void addAllNotExplicitlyExcluded(List<String> aCollection) {
     if (aCollection == null) return;
     var names = aCollection;
-    names = names.filter((x) => x is String && !_excludeFields.contains(x));
+    names = names.filter((x) => !_excludeFields.contains(x));
     addAllByName(names);
   }
 
@@ -486,7 +556,7 @@ class _FieldList implements Iterable {
 }
 
 /**
- *  Provide a typedef for the setWith argument to specialTreatmentFor. It would
+ *  Provide a typedef for the setWith argument to setFieldWith. It would
  * be nice if we could put this closer to the definition.
  */
 typedef SetWithFunction(InstanceMirror m, object);

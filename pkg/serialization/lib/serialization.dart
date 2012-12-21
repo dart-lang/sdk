@@ -85,9 +85,9 @@
  * access or a setter, but should be done by calling a method. For example, it
  * may not be possible to set a List field "foo", and you need to call an
  * addFoo() method for each entry in the list. In these cases, if you are using
- * a BasicRule for the object you can call the specialTreatmentFor() method.
+ * a BasicRule for the object you can call the setFieldWith() method.
  *
- *       s..addRuleFor(fooHolderInstance).specialTreatmentFor("foo",
+ *       s..addRuleFor(fooHolderInstance).setFieldWith("foo",
  *           (parent, value) => for (var each in value) parent.addFoo(value));
  *
  * Writing

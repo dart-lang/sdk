@@ -13,6 +13,8 @@ class Person {
 
 class Address {
   String street, city, state, zip;
+  Address();
+  Address.with(this.street, this.city, this.state, this.zip);
 }
 
 class Various {

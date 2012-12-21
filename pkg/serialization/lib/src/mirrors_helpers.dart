@@ -28,9 +28,19 @@ List<VariableMirror> publicFields(ClassMirror mirror) {
   }
 }
 
+/** Return true if the class has a field named [name]. Note that this
+ * includes private fields, but excludes statics. */
+bool hasField(String name, ClassMirror mirror) {
+  var field = mirror.variables[name];
+  if (field != null && !field.isStatic) return true;
+  var superclass = mirror.superclass;
+  if (superclass == mirror) return false;
+  return hasField(name, superclass);
+}
+
 /**
- * Return a list of all the public getters of a class, including inherited
- * getters.
+ * Return a list of all the getters of a class, including inherited
+ * getters. Note that this allows private getters, but excludes statics.
  */
 List<MethodMirror> publicGetters(ClassMirror mirror) {
   var mine = mirror.getters.values.filter((x) => !(x.isPrivate || x.isStatic));
@@ -40,6 +50,15 @@ List<MethodMirror> publicGetters(ClassMirror mirror) {
   } else {
     return mine;
   }
+}
+
+/** Return true if the class has a getter named [name] */
+bool hasGetter(String name, ClassMirror mirror) {
+  var getter = mirror.getters[name];
+  if (getter != null && !getter.isStatic) return true;
+  var superclass = mirror.superclass;
+  if (superclass == mirror) return false;
+  return hasField(name, superclass);
 }
 
 /**
