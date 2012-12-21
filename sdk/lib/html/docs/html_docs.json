@@ -1134,7 +1134,7 @@
       "   *",
       "   * Default is `String`.",
       "   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',",
-      "   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if",
+      "   * 'text'. Some newer browsers will throw `NS_ERROR_DOM_INVALID_ACCESS_ERR` if",
       "   * `responseType` is set while performing a synchronous request.",
       "   *",
       "   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)",

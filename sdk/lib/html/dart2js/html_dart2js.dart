@@ -10223,15 +10223,23 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
 
+  // 80 char issue for comments in lists: dartbug.com/7588.
   /**
    * Creates a URL GET request for the specified `url` with
    * credentials such a cookie (already) set in the header or
-   * (authorization headers)[http://tools.ietf.org/html/rfc1945#section-10.2].
+   * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2).
    * 
    * After completing the request, the object will call the user-provided 
    * [onComplete] callback.
+   *
+   * A few other details to keep in mind when using credentials:
+   *
+   * * Using credentials is only useful for cross-origin requests.
+   * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
+   * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
+   * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
    * 
-   * See also: (authorization headers)[http://en.wikipedia.org/wiki/Basic_access_authentication].
+   * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   factory HttpRequest.getWithCredentials(String url,
       onComplete(HttpRequest request)) =>
@@ -10332,7 +10340,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    *
    * Default is `String`.
    * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
-   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
+   * 'text'. Some newer browsers will throw `NS_ERROR_DOM_INVALID_ACCESS_ERR` if
    * `responseType` is set while performing a synchronous request.
    *
    * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
