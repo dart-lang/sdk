@@ -119,21 +119,10 @@ static int Main(int argc, const char** argv) {
   } else {
     // Last argument is the test name, the rest are vm flags.
     run_filter = argv[argc - 1];
-    const char* pprof_option = "--generate_pprof_symbols=";
-    int length = strlen(pprof_option);
-    if (strncmp(pprof_option, argv[1], length) == 0) {
-      pprof_filename = (argv[1] + length);
-      Dart_InitPprofSupport();
-      // Remove the first two values (executable, pprof flag) from the
-      // arguments and exclude the last argument which is the test name.
-      dart_argc = argc - 3;
-      dart_argv = &argv[2];
-    } else {
-      // Remove the first value (executable) from the arguments and
-      // exclude the last argument which is the test name.
-      dart_argc = argc - 2;
-      dart_argv = &argv[1];
-    }
+    // Remove the first value (executable) from the arguments and
+    // exclude the last argument which is the test name.
+    dart_argc = argc - 2;
+    dart_argv = &argv[1];
   }
   bool set_vm_flags_success = Flags::ProcessCommandLineFlags(dart_argc,
                                                              dart_argv);

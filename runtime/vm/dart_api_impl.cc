@@ -4429,38 +4429,6 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 }
 
 
-// --- Profiling support ----
-
-
-DART_EXPORT void Dart_InitPprofSupport() {
-  DebugInfo* pprof_symbol_generator = DebugInfo::NewGenerator();
-  ASSERT(pprof_symbol_generator != NULL);
-  Dart::set_pprof_symbol_generator(pprof_symbol_generator);
-}
-
-
-DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
-  Isolate* isolate = Isolate::Current();
-  DebugInfo* pprof_symbol_generator = Dart::pprof_symbol_generator();
-  if (pprof_symbol_generator != NULL) {
-    DebugInfo::ByteBuffer* debug_region = new DebugInfo::ByteBuffer();
-    ASSERT(debug_region != NULL);
-    pprof_symbol_generator->WriteToMemory(debug_region);
-    *buffer_size = debug_region->size();
-    if (*buffer_size != 0) {
-      Zone* zone = Api::TopScope(isolate)->zone();
-      *buffer = reinterpret_cast<void*>(zone->AllocUnsafe(*buffer_size));
-      memmove(*buffer, debug_region->data(), *buffer_size);
-    } else {
-      *buffer = NULL;
-    }
-    delete debug_region;
-  } else {
-    *buffer = NULL;
-    *buffer_size = 0;
-  }
-}
-
 // --- Peer support ---
 
 
