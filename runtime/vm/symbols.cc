@@ -74,9 +74,17 @@ void Symbols::InitOnce(Isolate* isolate) {
   }
   Object::RegisterSingletonClassNames();
 
-  for (int32_t c = 0; c <= kMaxOneCharCodeSymbol; c++) {
+  // Add Latin1 characters as Symbols, so that Symbols::FromCharCode is fast.
+  for (intptr_t c = 0; c <= kMaxOneCharCodeSymbol; c++) {
+    // The symbol_table needs to be reloaded as it might have grown in the
+    // previous iteration.
+    symbol_table = object_store->symbol_table();
     ASSERT(kMaxPredefinedId + c < kMaxId);
-    predefined_[kMaxPredefinedId + c] = FromUTF32(&c, 1);
+    ASSERT(Utf::IsLatin1(c));
+    uint8_t ch = static_cast<uint8_t>(c);
+    str = OneByteString::New(&ch, 1, Heap::kOld);
+    Add(symbol_table, str);
+    predefined_[kMaxPredefinedId + c] = str.raw();
   }
 
 #define INITIALIZE_SYMBOL_HANDLE(symbol)                                       \

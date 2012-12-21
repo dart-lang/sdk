@@ -16,8 +16,6 @@ class ObjectPointerVisitor;
 
 #define PREDEFINED_SYMBOLS_LIST(V)                                             \
   V(Empty, "")                                                                 \
-  V(Dot, ".")                                                                  \
-  V(Equals, "=")                                                               \
   V(EqualOperator, "==")                                                       \
   V(Identical, "identical")                                                    \
   V(Length, "length")                                                          \
@@ -177,6 +175,8 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   static RawString* symbol() { return predefined_[k##symbol]; }
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
 #undef DEFINE_SYMBOL_ACCESSOR
+  static RawString* Dot() { return predefined_[kNullCharId + '.']; }
+  static RawString* Equals() { return predefined_[kNullCharId + '=']; }
 
   // Access methods for symbol handles stored in the vm isolate.
 #define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol)                                  \
