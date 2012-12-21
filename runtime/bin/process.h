@@ -6,6 +6,7 @@
 #define BIN_PROCESS_H_
 
 #include "bin/builtin.h"
+#include "bin/thread.h"
 #include "platform/globals.h"
 
 
@@ -33,12 +34,26 @@ class Process {
   // the thread has terminated.
   static void TerminateExitCodeHandler();
 
+  static int GlobalExitCode() {
+    MutexLocker ml(&global_exit_code_mutex_);
+    return global_exit_code_;
+  }
+
+  static void SetGlobalExitCode(int exit_code) {
+    MutexLocker ml(&global_exit_code_mutex_);
+    global_exit_code_ = exit_code;
+  }
+
   static intptr_t CurrentProcessId();
 
   static Dart_Handle GetProcessIdNativeField(Dart_Handle process,
                                              intptr_t* pid);
   static Dart_Handle SetProcessIdNativeField(Dart_Handle process,
                                              intptr_t pid);
+
+ private:
+  static int global_exit_code_;
+  static dart::Mutex global_exit_code_mutex_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);

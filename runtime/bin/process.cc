@@ -12,6 +12,8 @@
 
 static const int kProcessIdNativeField = 0;
 
+int Process::global_exit_code_ = 0;
+dart::Mutex Process::global_exit_code_mutex_;
 
 // Extract an array of C strings from a list of Dart strings.
 static char** ExtractCStringList(Dart_Handle strings,
@@ -164,6 +166,26 @@ void FUNCTION_NAME(Process_Kill)(Dart_NativeArguments args) {
   int signal = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   bool success = Process::Kill(pid, signal);
   Dart_SetReturnValue(args, Dart_NewBoolean(success));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  int64_t status = 0;
+  // Ignore result if passing invalid argument and just exit 0.
+  DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
+  Dart_ExitScope();
+  exit(static_cast<int>(status));
+}
+
+
+void FUNCTION_NAME(Process_SetExitCode)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  int64_t status = 0;
+  // Ignore result if passing invalid argument and just set exit code to 0.
+  DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
+  Process::SetGlobalExitCode(status);
   Dart_ExitScope();
 }
 

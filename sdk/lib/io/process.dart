@@ -8,14 +8,34 @@ part of dart.io;
 // cannot patch a top-level at this point.
 class _ProcessUtils {
   external static _exit(int status);
+  external static _setExitCode(int status);
 }
 
-/** Exit the Dart VM process with the given [status] code. */
+/**
+ * Exit the Dart VM process immediately with the given [status] code.
+ *
+ * This does not wait for any asynchronous operations to terminate. Using
+ * [exit] is therefore very likely to lose data.
+ */
 void exit(int status) {
   if (status is !int) {
-    throw new ArgumentError("int status expected");
+    throw new ArgumentError("exit: int status expected");
   }
   _ProcessUtils._exit(status);
+}
+
+/**
+ * Global exit code for the Dart VM.
+ *
+ * The exit code is global for the Dart VM and the last assignment to
+ * exitCode from any isolate determines the exit code of the Dart VM
+ * on normal termination.
+ */
+set exitCode(int status) {
+  if (status is !int) {
+    throw new ArgumentError("setExitCode: int status expected");
+  }
+  _ProcessUtils._setExitCode(status);
 }
 
 /**

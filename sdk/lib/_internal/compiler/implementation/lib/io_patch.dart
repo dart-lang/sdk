@@ -144,6 +144,9 @@ patch class _ProcessUtils {
   patch static _exit(int status) {
     throw new UnsupportedError("ProcessUtils._exit");
   }
+  patch static _setExitCode(int status) {
+    throw new UnsupportedError("ProcessUtils._setExitCode");
+  }
 }
 
 patch class Process {
