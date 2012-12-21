@@ -6,7 +6,6 @@
 #define VM_CODE_OBSERVERS_H_
 
 #include "vm/globals.h"
-#include "vm/allocation.h"
 
 namespace dart {
 
@@ -14,8 +13,6 @@ namespace dart {
 // debuggers to map address ranges to function names.
 class CodeObserver {
  public:
-  CodeObserver() { }
-
   virtual ~CodeObserver() { }
 
   // Returns true if this observer is active and should be notified
@@ -29,13 +26,10 @@ class CodeObserver {
                       uword prologue_offset,
                       uword size,
                       bool optimized) = 0;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CodeObserver);
 };
 
 
-class CodeObservers : public AllStatic {
+class CodeObservers {
  public:
   static void InitOnce();
 
@@ -50,8 +44,6 @@ class CodeObservers : public AllStatic {
 
   // Returns true if there is at least one active code observer.
   static bool AreActive();
-
-  static void DeleteAll();
 
  private:
   static intptr_t observers_length_;

@@ -26,6 +26,10 @@
 // it is initialized to NULL.
 extern const uint8_t* snapshot_buffer;
 
+// Global state that indicates whether pprof symbol information is
+// to be generated or not.
+static const char* generate_pprof_symbols_filename = NULL;
+
 
 // Global state that stores a pointer to the application script snapshot.
 static bool use_script_snapshot = false;
@@ -143,6 +147,12 @@ static bool ProcessDebugOption(const char* port) {
   return true;
 }
 
+static bool ProcessPprofOption(const char* filename) {
+  ASSERT(filename != NULL);
+  generate_pprof_symbols_filename = filename;
+  return true;
+}
+
 
 static bool ProcessScriptSnapshotOption(const char* filename) {
   if (filename != NULL && strlen(filename) != 0) {
@@ -169,6 +179,7 @@ static struct {
   { "--break_at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
   { "--debug", ProcessDebugOption },
+  { "--generate_pprof_symbols=", ProcessPprofOption },
   { "--use_script_snapshot=", ProcessScriptSnapshotOption },
   { NULL, NULL }
 };
@@ -265,6 +276,9 @@ static int ParseArguments(int argc,
     }
   }
 
+  if (generate_pprof_symbols_filename != NULL) {
+    Dart_InitPprofSupport();
+  }
 
   // Get the script name.
   if (i < argc) {
@@ -356,6 +370,25 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
   }
 
   return Dart_SetField(runtime_options_class, native_name, dart_arguments);
+}
+
+
+static void DumpPprofSymbolInfo() {
+  if (generate_pprof_symbols_filename != NULL) {
+    Dart_EnterScope();
+    File* pprof_file =
+        File::Open(generate_pprof_symbols_filename, File::kWriteTruncate);
+    ASSERT(pprof_file != NULL);
+    void* buffer;
+    int buffer_size;
+    Dart_GetPprofSymbolInfo(&buffer, &buffer_size);
+    if (buffer_size > 0) {
+      ASSERT(buffer != NULL);
+      pprof_file->WriteFully(buffer, buffer_size);
+    }
+    delete pprof_file;  // Closes the file.
+    Dart_ExitScope();
+  }
 }
 
 
@@ -716,6 +749,8 @@ int main(int argc, char** argv) {
   }
 
   Dart_ExitScope();
+  // Dump symbol information for the profiler.
+  DumpPprofSymbolInfo();
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
   // Terminate process exit-code handler.

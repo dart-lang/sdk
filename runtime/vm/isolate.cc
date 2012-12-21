@@ -7,11 +7,11 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "lib/mirrors.h"
-#include "vm/code_observers.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/debuginfo.h"
 #include "vm/heap.h"
 #include "vm/message_handler.h"
 #include "vm/object_store.h"
@@ -30,6 +30,7 @@ DEFINE_FLAG(bool, report_usage_count, false,
             "Track function usage and report.");
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
+DECLARE_FLAG(bool, generate_gdb_symbols);
 
 
 class IsolateMessageHandler : public MessageHandler {
@@ -542,9 +543,9 @@ void Isolate::Shutdown() {
     PrintInvokedFunctions();
   }
   CompilerStats::Print();
-  // TODO(asiva): Move this code to Dart::Cleanup when we have that method
-  // as the cleanup for Dart::InitOnce
-  CodeObservers::DeleteAll();
+  if (FLAG_generate_gdb_symbols) {
+    DebugInfo::UnregisterAllSections();
+  }
   if (FLAG_trace_isolates) {
     StackZone zone(this);
     HandleScope handle_scope(this);
