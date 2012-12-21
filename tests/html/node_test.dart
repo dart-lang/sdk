@@ -41,8 +41,7 @@ main() {
   test('remove', () {
     final node = makeNodeWithChildren();
     final subnode = node.nodes[1];
-    final out = subnode.remove();
-    expect(out, isNull);
+    subnode.remove();
     expect(node.nodes.length, 2);
     expect(node.nodes[0], isText);
     expect(node.nodes[1], isComment);

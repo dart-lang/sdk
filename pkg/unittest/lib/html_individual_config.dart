@@ -12,7 +12,7 @@
  * start of your set sequence. Important constraint: your group descriptions
  * MUST NOT contain spaces.
  */
-library unittest;
+library unittest_html_individual_config;
 
 import 'dart:html';
 import 'unittest.dart' as unittest;
@@ -32,7 +32,6 @@ class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
       } catch (e) {
         print('tried to match "$testGroupName"');
         print('NO_SUCH_TEST');
-        exit(1);
       }
     }
     super.onStart();

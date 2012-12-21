@@ -286,27 +286,6 @@ xhr_test: Fail
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
-[ $compiler == dartc ]
-
-# pkg/unittest issue 7394
-document_test: Fail
-documentfragment_test: Fail
-element_add_test: Fail
-element_test: Fail
-htmlelement_test: Fail
-input_element_test: Fail
-node_test: Fail
-svgelement_test: Fail
-svgelement2_test: Fail
-
-# test issue 7065
-#documentfragment_test: Fail # test issue 7065
-#element_add_test: Fail      # test issue 7065
-#element_test: Fail          # test issue 7065
-#node_test: Fail             # test issue 7065
-#svgelement_test: Fail       # test issue 7065
-#svgelement2_test: Fail      # test issue 7065
-
 [ $runtime == vm ]
 *: Skip
 

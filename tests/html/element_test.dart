@@ -480,7 +480,7 @@ main() {
           '''<svg xmlns="http://www.w3.org/2000/svg"
                   xmlns:xlink="http://www.w3.org/1999/xlink">
             <image xlink:href="foo" data-foo="bar"/>
-          </svg>''').elements[0];
+          </svg>''').children[0];
 
         var attributes = element.attributes;
         expect(attributes.length, 1);
