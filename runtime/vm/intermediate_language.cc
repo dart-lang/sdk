@@ -149,8 +149,8 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   LoadStaticFieldInstr* other_load = other->AsLoadStaticField();
   ASSERT(other_load != NULL);
   // Assert that the field is initialized.
-  ASSERT(field().value() != Object::sentinel());
-  ASSERT(field().value() != Object::transition_sentinel());
+  ASSERT(field().value() != Object::sentinel().raw());
+  ASSERT(field().value() != Object::transition_sentinel().raw());
   return field().raw() == other_load->field().raw();
 }
 

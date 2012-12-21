@@ -11,14 +11,13 @@ namespace dart {
 
 
 static RawClass* CreateTestClass(const char* name) {
-  const Array& empty_array = Array::Handle(Object::empty_array());
   const String& class_name = String::Handle(Symbols::New(name));
   const Script& script = Script::Handle();
   const Class& cls =
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
-  cls.set_interfaces(empty_array);
-  cls.SetFunctions(empty_array);
-  cls.SetFields(empty_array);
+  cls.set_interfaces(Object::empty_array());
+  cls.SetFunctions(Object::empty_array());
+  cls.SetFields(Object::empty_array());
   return cls.raw();
 }
 

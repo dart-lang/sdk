@@ -625,8 +625,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // Non-optimized code generator.
     CompileParsedFunctionHelper(*parsed_function, false);
 
-    const Array& args = Array::Handle(Object::empty_array());
-    const Object& result = Object::Handle(DartEntry::InvokeStatic(func, args));
+    const Object& result = Object::Handle(
+        DartEntry::InvokeStatic(func, Object::empty_array()));
     isolate->set_long_jump_base(base);
     return result.raw();
   } else {

@@ -143,8 +143,8 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
                                  const Instance& existing_stacktrace) {
   Instance& exception = Instance::Handle(incoming_exception.raw());
   if (exception.IsNull()) {
-    const Array& arguments = Array::Handle(Object::empty_array());
-    exception ^= Exceptions::Create(Exceptions::kNullThrown, arguments);
+    exception ^= Exceptions::Create(Exceptions::kNullThrown,
+                                    Object::empty_array());
   }
   uword handler_pc = 0;
   uword handler_sp = 0;

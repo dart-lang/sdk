@@ -39,9 +39,8 @@ TEST_CASE(DartEntry) {
 
   EXPECT(CompilerTest::TestCompileFunction(function));
   EXPECT(function.HasCode());
-  const Array& args = Array::Handle(Object::empty_array());
-  const Smi& retval = Smi::Handle(
-      reinterpret_cast<RawSmi*>(DartEntry::InvokeStatic(function, args)));
+  const Smi& retval = Smi::Handle(reinterpret_cast<RawSmi*>(
+      DartEntry::InvokeStatic(function, Object::empty_array())));
   EXPECT_EQ(Smi::New(42), retval.raw());
 }
 
@@ -66,9 +65,8 @@ TEST_CASE(InvokeStatic_CompileError) {
   Function& function = Function::Handle(cls.LookupStaticFunction(name));
   EXPECT(!function.IsNull());
   GrowableArray<const Object*> arguments;
-  const Array& args = Array::Handle(Object::empty_array());
-  const Object& retval = Object::Handle(DartEntry::InvokeStatic(function,
-                                                                args));
+  const Object& retval = Object::Handle(
+      DartEntry::InvokeStatic(function, Object::empty_array()));
   EXPECT(retval.IsError());
   EXPECT_SUBSTRING("++++", Error::Cast(retval).ToErrorCString());
 }

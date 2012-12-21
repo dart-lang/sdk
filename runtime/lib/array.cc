@@ -74,8 +74,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_copyFromObjectArray, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(4));
   intptr_t icount = count.Value();
   if (icount < 0) {
-    const Array& args = Array::Handle(Object::empty_array());
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowByType(Exceptions::kArgument, Object::empty_array());
   }
   if (icount == 0) {
     return Object::null();

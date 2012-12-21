@@ -3577,8 +3577,8 @@ static bool FieldIsUninitialized(Isolate* isolate, const Field& fld) {
   // field object, since the value in the field object will not be
   // initialized until the first time the getter is invoked.
   const Instance& value = Instance::Handle(isolate, fld.value());
-  ASSERT(value.raw() != Object::transition_sentinel());
-  return value.raw() == Object::sentinel();
+  ASSERT(value.raw() != Object::transition_sentinel().raw());
+  return value.raw() == Object::sentinel().raw();
 }
 
 
@@ -3643,8 +3643,8 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
 
     if (!getter.IsNull()) {
       // Invoke the getter and return the result.
-      const Array& args = Array::Handle(isolate, Object::empty_array());
-      return Api::NewHandle(isolate, DartEntry::InvokeStatic(getter, args));
+      return Api::NewHandle(
+          isolate, DartEntry::InvokeStatic(getter, Object::empty_array()));
     } else if (!field.IsNull()) {
       return Api::NewHandle(isolate, field.value());
     } else {
@@ -3675,8 +3675,8 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
 
     if (!getter.IsNull()) {
       // Invoke the getter and return the result.
-      const Array& args = Array::Handle(isolate, Object::empty_array());
-      return Api::NewHandle(isolate, DartEntry::InvokeStatic(getter, args));
+      return Api::NewHandle(
+          isolate, DartEntry::InvokeStatic(getter, Object::empty_array()));
     } else if (!field.IsNull()) {
       return Api::NewHandle(isolate, field.value());
     } else {

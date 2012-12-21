@@ -33,6 +33,7 @@ DECLARE_FLAG(bool, trace_isolates);
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
+ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 
 // An object visitor which will mark all visited objects. This is used to
 // premark all objects in the vm_isolate_ heap.
@@ -46,6 +47,29 @@ class PremarkingVisitor : public ObjectVisitor {
       obj->SetMarkBit();
     }
   }
+};
+
+
+// Structure for managing read-only global handles allocation used for
+// creating global read-only handles that are pre created and initialized
+// for use across all isolates. Having these global pre created handles
+// stored in the vm isolate ensures that we don't constantly create and
+// destroy handles for read-only objects referred in the VM code
+// (e.g: symbols, null object, empty array etc.)
+// The ReadOnlyHandles C++ Wrapper around VMHandles which is a ValueObject is
+// to ensure that the handles area is not trashed by automatic running of C++
+// static destructors when 'exit()" is called by any isolate. There might be
+// other isolates running at the same time and trashing the handles area will
+// have unintended consequences.
+class ReadOnlyHandles {
+ public:
+  ReadOnlyHandles() { }
+
+ private:
+  VMHandles handles_;
+
+  friend class Dart;
+  DISALLOW_COPY_AND_ASSIGN(ReadOnlyHandles);
 };
 
 
@@ -69,6 +93,9 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   FreeListElement::InitOnce();
   Api::InitOnce();
   CodeObservers::InitOnce();
+  // Create the read-only handles area.
+  ASSERT(predefined_handles_ == NULL);
+  predefined_handles_ = new ReadOnlyHandles();
   // Create the VM isolate and finish the VM initialization.
   ASSERT(thread_pool_ == NULL);
   thread_pool_ = new ThreadPool();
@@ -209,5 +236,16 @@ void Dart::ShutdownIsolate() {
   }
 }
 
+
+uword Dart::AllocateReadOnlyHandle() {
+  ASSERT(predefined_handles_ != NULL);
+  return predefined_handles_->handles_.AllocateScopedHandle();
+}
+
+
+bool Dart::IsReadOnlyHandle(uword address) {
+  ASSERT(predefined_handles_ != NULL);
+  return predefined_handles_->handles_.IsValidScopedHandle(address);
+}
 
 }  // namespace dart

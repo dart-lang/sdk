@@ -224,8 +224,6 @@ PREDEFINED_SYMBOL_HANDLES_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
     return reinterpret_cast<RawString**>(&predefined_);
   }
 
-  static bool IsPredefinedHandle(uword address);
-
   static void DumpStats();
 
  private:
@@ -277,27 +275,6 @@ PREDEFINED_SYMBOL_HANDLES_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
   static const intptr_t kMaxCollisionBuckets = 10;
   static intptr_t num_of_grows_;
   static intptr_t collision_count_[kMaxCollisionBuckets];
-
-  // Structure for managing handles allocation for symbols that are
-  // stored in the vm isolate. We don't want these handles to be
-  // destroyed as part of the C++ static destructors and hence this
-  // object is dynamically allocated.
-  class ReadOnlyHandles {
-    public:
-      ReadOnlyHandles() { }
-      uword AllocateHandle() {
-        return handles_.AllocateScopedHandle();
-      }
-      bool IsValidHandle(uword address) {
-        return handles_.IsValidScopedHandle(address);
-      }
-
-    private:
-      VMHandles handles_;
-
-      DISALLOW_COPY_AND_ASSIGN(ReadOnlyHandles);
-  };
-  static ReadOnlyHandles* predefined_handles_;
 
 #define DECLARE_SYMBOL_HANDLE(symbol)                                          \
   static String* symbol##_handle_;

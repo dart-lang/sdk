@@ -277,9 +277,8 @@ TEST_CASE(StackmapGC) {
   // Now invoke 'A.moo' and it will trigger a GC when the native function
   // is called, this should then cause the stack map of function 'A.foo'
   // to be traversed and the appropriate objects visited.
-  const Array& args = Array::Handle(Object::empty_array());
-  const Object& result = Object::Handle(DartEntry::InvokeStatic(function_foo,
-                                                                args));
+  const Object& result = Object::Handle(
+      DartEntry::InvokeStatic(function_foo, Object::empty_array()));
   EXPECT(!result.IsError());
 }
 

@@ -848,8 +848,7 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
         TokenPos(),
         Token::kEQ_STRICT,
         new LoadStaticFieldNode(TokenPos(), field),
-        new LiteralNode(TokenPos(),
-                        Instance::ZoneHandle(Object::transition_sentinel())));
+        new LiteralNode(TokenPos(), Object::transition_sentinel()));
     // Set field to null prior to throwing exception, so that subsequent
     // accesses to the field do not throw again, since initializers should only
     // be executed once.
@@ -875,16 +874,14 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
         TokenPos(),
         Token::kEQ_STRICT,
         new LoadStaticFieldNode(TokenPos(), field),
-        new LiteralNode(TokenPos(),
-                        Instance::ZoneHandle(Object::sentinel())));
+        new LiteralNode(TokenPos(), Object::sentinel()));
     SequenceNode* initialize_field = new SequenceNode(TokenPos(), NULL);
     initialize_field->Add(
         new StoreStaticFieldNode(
             TokenPos(),
             field,
             new LiteralNode(
-                TokenPos(),
-                Instance::ZoneHandle(Object::transition_sentinel()))));
+                TokenPos(), Object::transition_sentinel())));
     // TODO(hausner): If evaluation of the field value throws an exception,
     // we leave the field value as 'transition_sentinel', which is wrong.
     // A second reference to the field later throws a circular dependency
@@ -2717,7 +2714,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     bool has_simple_literal = false;
     if (has_initializer) {
       ConsumeToken();
-      init_value = Object::sentinel();
+      init_value = Object::sentinel().raw();
       // For static const fields, the initialization expression
       // will be parsed through the kConstImplicitGetter method
       // invocation/compilation.
@@ -3105,7 +3102,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     } else {
       // Not patching a class, but it has been found. This must be one of the
       // pre-registered classes from object.cc or a duplicate definition.
-      if (cls.functions() != Object::empty_array()) {
+      if (cls.functions() != Object::empty_array().raw()) {
         ErrorMsg(classname_pos, "class '%s' is already defined",
                  class_name.ToCString());
       }
@@ -3114,7 +3111,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     }
   }
   ASSERT(!cls.IsNull());
-  ASSERT(cls.functions() == Object::empty_array());
+  ASSERT(cls.functions() == Object::empty_array().raw());
   set_current_class(cls);
   ParseTypeParameters(cls);
   Type& super_type = Type::Handle();
@@ -3691,7 +3688,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
     library_.AddObject(field, var_name);
     if (CurrentToken() == Token::kASSIGN) {
       ConsumeToken();
-      Instance& field_value = Instance::Handle(Object::sentinel());
+      Instance& field_value = Instance::Handle(Object::sentinel().raw());
       bool has_simple_literal = false;
       if (is_final && (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(type, &field_value);
@@ -7208,8 +7205,8 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
   }
   // The field is initialized.
   if (field.is_const()) {
-    ASSERT(field.value() != Object::sentinel());
-    ASSERT(field.value() != Object::transition_sentinel());
+    ASSERT(field.value() != Object::sentinel().raw());
+    ASSERT(field.value() != Object::transition_sentinel().raw());
     return new LiteralNode(ident_pos, Instance::ZoneHandle(field.value()));
   }
   // Access the field directly.
@@ -7822,7 +7819,7 @@ bool Parser::IsInstantiatorRequired() const {
 AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
   ASSERT(field.is_static());
   const Instance& value = Instance::Handle(field.value());
-  if (value.raw() == Object::transition_sentinel()) {
+  if (value.raw() == Object::transition_sentinel().raw()) {
     if (field.is_const()) {
       ErrorMsg("circular dependency while initializing static field '%s'",
                String::Handle(field.name()).ToCString());
@@ -7834,12 +7831,12 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
                                   Class::ZoneHandle(field.owner()),
                                   String::ZoneHandle(field.name()));
     }
-  } else if (value.raw() == Object::sentinel()) {
+  } else if (value.raw() == Object::sentinel().raw()) {
     // This field has not been referenced yet and thus the value has
     // not been evaluated. If the field is const, call the static getter method
     // to evaluate the expression and canonicalize the value.
     if (field.is_const()) {
-      field.set_value(Instance::Handle(Object::transition_sentinel()));
+      field.set_value(Object::transition_sentinel());
       const String& field_name = String::Handle(field.name());
       const String& getter_name =
           String::Handle(Field::GetterName(field_name));
@@ -7854,8 +7851,8 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
                                                    Resolver::kIsQualified));
       ASSERT(!func.IsNull());
       ASSERT(func.kind() == RawFunction::kConstImplicitGetter);
-      const Array& args = Array::Handle(Object::empty_array());
-      Object& const_value = Object::Handle(DartEntry::InvokeStatic(func, args));
+      Object& const_value = Object::Handle(
+          DartEntry::InvokeStatic(func, Object::empty_array()));
       if (const_value.IsError()) {
         const Error& error = Error::Cast(const_value);
         if (error.IsUnhandledException()) {

@@ -117,16 +117,16 @@ bool ObjectStore::PreallocateObjects() {
   }
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
-  const Array& args = Array::Handle(Object::empty_array());
   Object& result = Object::Handle();
 
-  result = Exceptions::Create(Exceptions::kStackOverflow, args);
+  result = Exceptions::Create(Exceptions::kStackOverflow,
+                              Object::empty_array());
   if (result.IsError()) {
     return false;
   }
   set_stack_overflow(Instance::Cast(result));
 
-  result = Exceptions::Create(Exceptions::kOutOfMemory, args);
+  result = Exceptions::Create(Exceptions::kOutOfMemory, Object::empty_array());
   if (result.IsError()) {
     return false;
   }

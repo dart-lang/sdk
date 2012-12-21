@@ -32,8 +32,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
     }
     intptr_t value = Smi::Cast(index_object).Value();
     if (Utf::IsOutOfRange(value)) {
-      const Array& args = Array::Handle(Object::empty_array());
-      Exceptions::ThrowByType(Exceptions::kArgument, args);
+      Exceptions::ThrowByType(Exceptions::kArgument, Object::empty_array());
     } else {
       if (!Utf::IsLatin1(value)) {
         is_one_byte_string = false;

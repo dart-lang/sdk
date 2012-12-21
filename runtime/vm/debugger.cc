@@ -1145,8 +1145,8 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   if (!fld.IsNull()) {
     // Return the value in the field if it has been initialized already.
     const Instance& value = Instance::Handle(fld.value());
-    ASSERT(value.raw() != Object::transition_sentinel());
-    if (value.raw() != Object::sentinel()) {
+    ASSERT(value.raw() != Object::transition_sentinel().raw());
+    if (value.raw() != Object::sentinel().raw()) {
       return value.raw();
     }
   }
@@ -1166,8 +1166,7 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   bool saved_ignore_flag = ignore_breakpoints_;
   ignore_breakpoints_ = true;
   if (setjmp(*jump.Set()) == 0) {
-    const Array& args = Array::Handle(Object::empty_array());
-    result = DartEntry::InvokeStatic(getter_func, args);
+    result = DartEntry::InvokeStatic(getter_func, Object::empty_array());
   } else {
     result = isolate_->object_store()->sticky_error();
   }

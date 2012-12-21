@@ -236,7 +236,7 @@ class Handles {
   HandlesBlock* last_visited_block_;
 
   friend class HandleScope;
-  friend class Symbols;
+  friend class Dart;
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Handles);
 };

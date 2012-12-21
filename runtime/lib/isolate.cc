@@ -380,8 +380,7 @@ static bool RunIsolate(uword parameter) {
     ASSERT(result.IsFunction());
     Function& func = Function::Handle(isolate);
     func ^= result.raw();
-    const Array& args = Array::Handle(Object::empty_array());
-    result = DartEntry::InvokeStatic(func, args);
+    result = DartEntry::InvokeStatic(func, Object::empty_array());
     if (result.IsError()) {
       StoreError(isolate, result);
       return false;

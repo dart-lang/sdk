@@ -22,8 +22,7 @@ TEST_CASE(Class) {
       Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // Class has no fields.
-  const Array& no_fields = Array::Handle(Object::empty_array());
-  cls.SetFields(no_fields);
+  cls.SetFields(Object::empty_array());
 
   // Create and populate the function arrays.
   const Array& functions = Array::Handle(Array::New(6));
@@ -168,8 +167,7 @@ TEST_CASE(InstanceClass) {
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // No functions and no super class for the EmptyClass.
-  const Array& no_fields = Array::Handle(Object::empty_array());
-  empty_class.SetFields(no_fields);
+  empty_class.SetFields(Object::empty_array());
   empty_class.Finalize();
   EXPECT_EQ(kObjectAlignment, empty_class.instance_size());
   Instance& instance = Instance::Handle(Instance::New(empty_class));
@@ -1654,7 +1652,7 @@ TEST_CASE(Array) {
   other_array.SetAt(2, array);
   EXPECT(!array.Equals(other_array));
 
-  EXPECT_EQ(0, Array::Handle(Object::empty_array()).Length());
+  EXPECT_EQ(0, Object::empty_array().Length());
 }
 
 

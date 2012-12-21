@@ -14,6 +14,7 @@ namespace dart {
 class DebugInfo;
 class Isolate;
 class RawError;
+class ReadOnlyHandles;
 class ThreadPool;
 
 class Dart : public AllStatic {
@@ -39,10 +40,14 @@ class Dart : public AllStatic {
   }
   static DebugInfo* pprof_symbol_generator() { return pprof_symbol_generator_; }
 
+  static uword AllocateReadOnlyHandle();
+  static bool IsReadOnlyHandle(uword address);
+
  private:
   static Isolate* vm_isolate_;
   static ThreadPool* thread_pool_;
   static DebugInfo* pprof_symbol_generator_;
+  static ReadOnlyHandles* predefined_handles_;
 };
 
 }  // namespace dart

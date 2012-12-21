@@ -210,6 +210,8 @@ class Object {
     return VMHandles::IsZoneHandle(reinterpret_cast<uword>(this));
   }
 
+  bool IsReadOnlyHandle() const;
+
   bool IsNotTemporaryScopedHandle() const;
 
   static RawObject* Clone(const Object& src, Heap::Space space = Heap::kNew);
@@ -248,15 +250,24 @@ class Object {
   }
 
   static RawObject* null() { return null_; }
-  static RawArray* empty_array() { return empty_array_; }
+  static const Array& empty_array() {
+    ASSERT(empty_array_ != NULL);
+    return *empty_array_;
+  }
 
   // The sentinel is a value that cannot be produced by Dart code.
   // It can be used to mark special values, for example to distinguish
   // "uninitialized" fields.
-  static RawInstance* sentinel() { return sentinel_; }
+  static const Instance& sentinel() {
+    ASSERT(sentinel_ != NULL);
+    return *sentinel_;
+  }
   // Value marking that we are transitioning from sentinel, e.g., computing
   // a field value. Used to detect circular initialization.
-  static RawInstance* transition_sentinel() { return transition_sentinel_; }
+  static const Instance& transition_sentinel() {
+    ASSERT(transition_sentinel_ != NULL);
+    return *transition_sentinel_;
+  }
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* null_class() { return null_class_; }
@@ -400,9 +411,6 @@ class Object {
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
   static RawObject* null_;
-  static RawArray* empty_array_;
-  static RawInstance* sentinel_;
-  static RawInstance* transition_sentinel_;
 
   static RawClass* class_class_;  // Class of the Class vm object.
   static RawClass* null_class_;  // Class of the null object.
@@ -439,6 +447,12 @@ class Object {
   static RawClass* language_error_class_;  // Class of LanguageError.
   static RawClass* unhandled_exception_class_;  // Class of UnhandledException.
   static RawClass* unwind_error_class_;  // Class of UnwindError.
+
+  // The static values below are read-only handle pointers for singleton
+  // objects that are shared between the different isolates.
+  static Array* empty_array_;
+  static Instance* sentinel_;
+  static Instance* transition_sentinel_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
@@ -2552,7 +2566,7 @@ class Code : public Object {
     const String& CommentAt(intptr_t idx) const;
 
    private:
-    explicit Comments(RawArray* comments);
+    explicit Comments(const Array& comments);
 
     // Layout of entries describing comments.
     enum {

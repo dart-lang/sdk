@@ -65,7 +65,7 @@ RawArray* StackmapTableBuilder::FinalizeStackmaps(const Code& code) {
   ASSERT(Verify());
   intptr_t num_entries = Length();
   if (num_entries == 0) {
-    return Object::empty_array();
+    return Object::empty_array().raw();
   }
   uword entry_point = code.EntryPoint();
   for (intptr_t i = 0; i < num_entries; i++) {

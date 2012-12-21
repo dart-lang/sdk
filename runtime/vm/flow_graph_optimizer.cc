@@ -3512,8 +3512,8 @@ ConstantPropagator::ConstantPropagator(
     const GrowableArray<BlockEntryInstr*>& ignored)
     : FlowGraphVisitor(ignored),
       graph_(graph),
-      unknown_(Object::ZoneHandle(Object::transition_sentinel())),
-      non_constant_(Object::ZoneHandle(Object::sentinel())),
+      unknown_(Object::transition_sentinel()),
+      non_constant_(Object::sentinel()),
       reachable_(new BitVector(graph->preorder().length())),
       definition_marks_(new BitVector(graph->max_virtual_register_number())),
       block_worklist_(),

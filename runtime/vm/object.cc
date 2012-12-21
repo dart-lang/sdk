@@ -59,11 +59,11 @@ cpp_vtable Smi::handle_vtable_ = 0;
 #error RAW_NULL should not be defined.
 #endif
 #define RAW_NULL kHeapObjectTag
-RawObject* Object::null_ = reinterpret_cast<RawInstance*>(RAW_NULL);
-RawArray* Object::empty_array_ = reinterpret_cast<RawArray*>(RAW_NULL);
-RawInstance* Object::sentinel_ = reinterpret_cast<RawInstance*>(RAW_NULL);
-RawInstance* Object::transition_sentinel_ =
-    reinterpret_cast<RawInstance*>(RAW_NULL);
+Array* Object::empty_array_ = NULL;
+Instance* Object::sentinel_ = NULL;
+Instance* Object::transition_sentinel_ = NULL;
+
+RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::null_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -240,6 +240,12 @@ void Object::InitOnce() {
     Smi::handle_vtable_ = fake_smi.vtable();
   }
 
+  // Allocate the read only object handles here.
+  empty_array_ = reinterpret_cast<Array*>(Dart::AllocateReadOnlyHandle());
+  sentinel_ = reinterpret_cast<Instance*>(Dart::AllocateReadOnlyHandle());
+  transition_sentinel_ =
+      reinterpret_cast<Instance*>(Dart::AllocateReadOnlyHandle());
+
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   // Allocate and initialize the null instance.
@@ -252,9 +258,9 @@ void Object::InitOnce() {
     InitializeObject(address, kNullCid, Instance::InstanceSize());
   }
 
-  // Initialize object_store empty array to null_ in order to be able to check
+  // Initialize the empty array handle to null_ in order to be able to check
   // if the empty array was allocated (RAW_NULL is not available).
-  empty_array_ = Array::null();
+  *empty_array_ = Array::null();
 
   Class& cls = Class::Handle();
 
@@ -294,15 +300,11 @@ void Object::InitOnce() {
 
   // Allocate and initialize the sentinel values of Null class.
   {
-    Instance& sentinel = Instance::Handle();
-    sentinel ^=
+    *sentinel_ ^=
         Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
-    sentinel_ = sentinel.raw();
 
-    Instance& transition_sentinel = Instance::Handle();
-    transition_sentinel ^=
+    *transition_sentinel_ ^=
         Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
-    transition_sentinel_ = transition_sentinel.raw();
   }
 
   cls = Class::New<Instance>(kDynamicCid);
@@ -420,9 +422,9 @@ void Object::InitOnce() {
   // Allocate and initialize the empty_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
-    empty_array_ = reinterpret_cast<RawArray*>(address + kHeapObjectTag);
+    *empty_array_ = reinterpret_cast<RawArray*>(address + kHeapObjectTag);
     InitializeObject(address, kArrayCid, Array::InstanceSize(0));
-    empty_array_->ptr()->length_ = Smi::New(0);
+    empty_array_->raw()->ptr()->length_ = Smi::New(0);
   }
 }
 
@@ -1253,9 +1255,13 @@ class StoreBufferObjectPointerVisitor : public ObjectPointerVisitor {
 };
 
 
+bool Object::IsReadOnlyHandle() const {
+  return Dart::IsReadOnlyHandle(reinterpret_cast<uword>(this));
+}
+
+
 bool Object::IsNotTemporaryScopedHandle() const {
-  return (IsZoneHandle() ||
-          Symbols::IsPredefinedHandle(reinterpret_cast<uword>(this)));
+  return (IsZoneHandle() || IsReadOnlyHandle());
 }
 
 
@@ -1418,15 +1424,15 @@ RawClass* Class::New() {
 
 // Initialize class fields of type Array with empty array.
 void Class::InitEmptyFields() {
-  if (Object::empty_array() == Array::null()) {
+  if (Object::empty_array().raw() == Array::null()) {
     // The empty array has not been initialized yet.
     return;
   }
-  StorePointer(&raw_ptr()->interfaces_, Object::empty_array());
-  StorePointer(&raw_ptr()->constants_, Object::empty_array());
-  StorePointer(&raw_ptr()->canonical_types_, Object::empty_array());
-  StorePointer(&raw_ptr()->functions_, Object::empty_array());
-  StorePointer(&raw_ptr()->fields_, Object::empty_array());
+  StorePointer(&raw_ptr()->interfaces_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->constants_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->canonical_types_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->fields_, Object::empty_array().raw());
 }
 
 
@@ -1840,15 +1846,14 @@ RawClass* Class::NewSignatureClass(const String& name,
   const intptr_t token_pos = signature_function.token_pos();
   Class& result = Class::Handle(New<Instance>(name, script, token_pos));
   const Type& super_type = Type::Handle(Type::ObjectType());
-  const Array& empty_array = Array::Handle(Object::empty_array());
   ASSERT(!super_type.IsNull());
   result.set_instance_size(Closure::InstanceSize());
   result.set_next_field_offset(Closure::InstanceSize());
   result.set_super_type(super_type);
   result.set_signature_function(signature_function);
   result.set_type_parameters(type_parameters);
-  result.SetFields(empty_array);
-  result.SetFunctions(empty_array);
+  result.SetFields(Object::empty_array());
+  result.SetFunctions(Object::empty_array());
   result.set_type_arguments_field_offset(
       Closure::type_arguments_offset());
   // Implements interface "Function".
@@ -1886,10 +1891,9 @@ RawClass* Class::NewNativeWrapper(const Library& library,
                                   int field_count) {
   Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
-    const Array& empty_array = Array::Handle(Object::empty_array());
     cls = New<Instance>(name, Script::Handle(), Scanner::kDummyTokenIndex);
-    cls.SetFields(empty_array);
-    cls.SetFunctions(empty_array);
+    cls.SetFields(Object::empty_array());
+    cls.SetFunctions(Object::empty_array());
     // Set super class to Object.
     cls.set_super_type(Type::Handle(Type::ObjectType()));
     // Compute instance size. First word contains a pointer to a properly
@@ -3939,9 +3943,8 @@ RawFunction* Function::New(const String& name,
   ASSERT(name.IsOneByteString());
   ASSERT(!owner.IsNull());
   const Function& result = Function::Handle(Function::New());
-  const Array& empty_array = Array::Handle(Object::empty_array());
-  result.set_parameter_types(empty_array);
-  result.set_parameter_names(empty_array);
+  result.set_parameter_types(Object::empty_array());
+  result.set_parameter_names(Object::empty_array());
   result.set_name(name);
   result.set_kind(kind);
   result.set_is_static(is_static);
@@ -5959,7 +5962,7 @@ void Library::AddImport(const Namespace& ns) const {
 // Convenience function to determine whether the export list is
 // non-empty.
 bool Library::HasExports() const {
-  return exports() != Object::empty_array();
+  return exports() != Object::empty_array().raw();
 }
 
 
@@ -6010,11 +6013,11 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.StorePointer(&result.raw_ptr()->name_, url.raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.raw_ptr()->private_key_ = Scanner::AllocatePrivateKey(result);
-  result.raw_ptr()->dictionary_ = Object::empty_array();
-  result.raw_ptr()->anonymous_classes_ = Object::empty_array();
+  result.raw_ptr()->dictionary_ = Object::empty_array().raw();
+  result.raw_ptr()->anonymous_classes_ = Object::empty_array().raw();
   result.raw_ptr()->num_anonymous_ = 0;
-  result.raw_ptr()->imports_ = Object::empty_array();
-  result.raw_ptr()->exports_ = Object::empty_array();
+  result.raw_ptr()->imports_ = Object::empty_array().raw();
+  result.raw_ptr()->exports_ = Object::empty_array().raw();
   result.raw_ptr()->loaded_scripts_ = Array::null();
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
@@ -7068,7 +7071,8 @@ Code::Comments& Code::Comments::New(intptr_t count) {
   if (count == 0) {
     comments = new Comments(Object::empty_array());
   } else {
-    comments = new Comments(Array::New(count * kNumberOfEntries));
+    const Array& data = Array::Handle(Array::New(count * kNumberOfEntries));
+    comments = new Comments(data);
   }
   return *comments;
 }
@@ -7105,8 +7109,8 @@ void Code::Comments::SetCommentAt(intptr_t idx, const String& comment) {
 }
 
 
-Code::Comments::Comments(RawArray* comments)
-    : comments_(Array::Handle(comments)) {
+Code::Comments::Comments(const Array& comments)
+    : comments_(comments) {
 }
 
 
@@ -7164,7 +7168,7 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
 
 
 const Code::Comments& Code::comments() const  {
-  Comments* comments = new Code::Comments(raw_ptr()->comments_);
+  Comments* comments = new Code::Comments(Array::Handle(raw_ptr()->comments_));
   return *comments;
 }
 
@@ -8418,8 +8422,8 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       // Object::transition_sentinel() if type checks were not eliminated at
       // compile time. Both sentinels are instances of the Null class, but they
       // are not the Object::null() instance.
-      ASSERT((raw() == Object::transition_sentinel()) ||
-             (raw() == Object::sentinel()));
+      ASSERT((raw() == Object::transition_sentinel().raw()) ||
+             (raw() == Object::sentinel().raw()));
       ASSERT(!FLAG_eliminate_type_checks);
       return true;  // We are doing an instance of test as part of a type check.
     }
@@ -8572,9 +8576,9 @@ bool Instance::IsValidFieldOffset(int offset) const {
 const char* Instance::ToCString() const {
   if (IsNull()) {
     return "null";
-  } else if (raw() == Object::sentinel()) {
+  } else if (raw() == Object::sentinel().raw()) {
     return "sentinel";
-  } else if (raw() == Object::transition_sentinel()) {
+  } else if (raw() == Object::transition_sentinel().raw()) {
     return "transition_sentinel";
   } else if (Isolate::Current()->no_gc_scope_depth() > 0) {
     // Can occur when running disassembler.
@@ -11473,7 +11477,6 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   intptr_t capacity_len = growable_array.Capacity();
   Isolate* isolate = Isolate::Current();
   const Array& array = Array::Handle(isolate, growable_array.data());
-  const Array& new_array = Array::Handle(isolate, Object::empty_array());
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
   NoGCScope no_gc;
@@ -11487,7 +11490,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
 
   // Null the GrowableObjectArray, we are removing it's backing array.
   growable_array.SetLength(0);
-  growable_array.SetData(new_array);
+  growable_array.SetData(Object::empty_array());
 
   // If there is any left over space fill it with either an Array object or
   // just a plain object (depending on the amount of left over space) so
