@@ -10,6 +10,7 @@ import 'dart:html';
 part 'conversions.dart';
 part 'filtered_element_list.dart';
 part 'lists.dart';
+part 'metadata.dart';
 
 // For annotating deprecated APIs.
 // TODO: remove once @deprecated is added to dart core.

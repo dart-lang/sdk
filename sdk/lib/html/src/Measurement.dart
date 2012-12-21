@@ -16,7 +16,6 @@ class _MeasurementRequest<T> {
 
 typedef void _MeasurementCallback();
 
-
 /**
  * This class attempts to invoke a callback as soon as the current event stack
  * unwinds, but before the browser repaints.
@@ -31,7 +30,7 @@ abstract class _MeasurementScheduler {
    * Creates the best possible measurement scheduler for the current platform.
    */
   factory _MeasurementScheduler.best(_MeasurementCallback callback) {
-    if (_isMutationObserverSupported()) {
+    if (MutationObserver.supported) {
       return new _MutationObserverScheduler(callback);
     }
     return new _PostMessageScheduler(callback);

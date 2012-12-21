@@ -39,7 +39,6 @@ part '$AUXILIARY_DIR/dart2js_DOMImplementation.dart';
 part '$AUXILIARY_DIR/dart2js_KeyEvent.dart';
 part '$AUXILIARY_DIR/dart2js_FactoryProviders.dart';
 part '$AUXILIARY_DIR/dart2js_LocationWrapper.dart';
-part '$AUXILIARY_DIR/dart2js_MutationObserverSupported.dart';
 part '$AUXILIARY_DIR/dart2js_TypedArrayFactoryProvider.dart';
 part '$AUXILIARY_DIR/_Testing.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';

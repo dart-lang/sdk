@@ -16249,6 +16249,10 @@ class MutationEvent extends Event {
 
 
 /// @domName MutationObserver
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class MutationObserver extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
@@ -16266,6 +16270,14 @@ class MutationObserver extends NativeFieldWrapperClass1 {
 
   /** @domName MutationObserver.takeRecords */
   List<MutationRecord> takeRecords() native "MutationObserver_takeRecords_Callback";
+
+  /**
+   * Checks to see if the mutation observer API is supported on the current
+   * platform.
+   */
+  static bool get supported {
+    return true;
+  }
 
   void observe(Node target,
                {Map options,
@@ -30191,7 +30203,6 @@ class _MeasurementRequest<T> {
 
 typedef void _MeasurementCallback();
 
-
 /**
  * This class attempts to invoke a callback as soon as the current event stack
  * unwinds, but before the browser repaints.
@@ -30206,7 +30217,7 @@ abstract class _MeasurementScheduler {
    * Creates the best possible measurement scheduler for the current platform.
    */
   factory _MeasurementScheduler.best(_MeasurementCallback callback) {
-    if (_isMutationObserverSupported()) {
+    if (MutationObserver.supported) {
       return new _MutationObserverScheduler(callback);
     }
     return new _PostMessageScheduler(callback);
@@ -30553,18 +30564,6 @@ abstract class _Deserializer {
   }
 }
 
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * Checks to see if the mutation observer API is supported on the current
- * platform.
- */
-bool _isMutationObserverSupported() {
-  return true;
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

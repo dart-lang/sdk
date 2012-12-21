@@ -13265,6 +13265,10 @@ class MutationEvent extends Event native "*MutationEvent" {
 
 
 /// @domName MutationObserver
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class MutationObserver native "*MutationObserver" {
 
   ///@docsEditable true
@@ -13284,6 +13288,15 @@ class MutationObserver native "*MutationObserver" {
 
   /// @domName MutationObserver.takeRecords; @docsEditable true
   List<MutationRecord> takeRecords() native;
+
+  /**
+   * Checks to see if the mutation observer API is supported on the current
+   * platform.
+   */
+  static bool get supported {
+    return JS('bool',
+        '!!(window.MutationObserver || window.WebKitMutationObserver)');
+  }
 
   void observe(Node target,
                {Map options,
@@ -24680,7 +24693,6 @@ class _MeasurementRequest<T> {
 
 typedef void _MeasurementCallback();
 
-
 /**
  * This class attempts to invoke a callback as soon as the current event stack
  * unwinds, but before the browser repaints.
@@ -24695,7 +24707,7 @@ abstract class _MeasurementScheduler {
    * Creates the best possible measurement scheduler for the current platform.
    */
   factory _MeasurementScheduler.best(_MeasurementCallback callback) {
-    if (_isMutationObserverSupported()) {
+    if (MutationObserver.supported) {
       return new _MutationObserverScheduler(callback);
     }
     return new _PostMessageScheduler(callback);
@@ -25519,17 +25531,6 @@ class _LocationWrapper implements Location {
   static _get(p, m) => JS('var', '#[#]', p, m);
   static _set(p, m, v) => JS('void', '#[#] = #', p, m, v);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * Checks to see if the mutation observer API is supported on the current
- * platform.
- */
-bool _isMutationObserverSupported() =>
-  JS('bool', '!!(window.MutationObserver || window.WebKitMutationObserver)');
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
