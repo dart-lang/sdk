@@ -126,11 +126,10 @@ static void FormatEncodedString(dart::TextBuffer* buf, Dart_Handle str) {
 
 
 static void FormatErrorMsg(dart::TextBuffer* buf, Dart_Handle err) {
-  // TODO(hausner): Turn message into Dart string and
-  // properly encode the message.
   ASSERT(Dart_IsError(err));
   const char* msg = Dart_GetError(err);
-  buf->Printf("\"%s\"", msg);
+  Dart_Handle str = Dart_NewStringFromCString(msg);
+  FormatEncodedString(buf, str);
 }
 
 
