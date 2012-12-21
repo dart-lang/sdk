@@ -140,6 +140,11 @@ abstract class Directory {
   DirectoryLister list({bool recursive: false});
 
   /**
+   * Returns a human readable string for this Directory instance.
+   */
+  String toString();
+
+  /**
    * Gets the path of this directory.
    */
   final String path;

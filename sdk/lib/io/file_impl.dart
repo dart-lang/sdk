@@ -704,6 +704,8 @@ class _File extends _FileBase implements File {
 
   String get name => _name;
 
+  String toString() => "File: '$name'";
+
   void _ensureFileService() {
     if (_fileService == null) {
       _fileService = _FileUtils._newServicePort();

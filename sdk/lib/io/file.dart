@@ -428,6 +428,11 @@ abstract class RandomAccessFile {
   void flushSync();
 
   /**
+   * Returns a human readable string for this File instance.
+   */
+  String toString();
+
+  /**
    * Get the name of the file.
    */
   String get name;

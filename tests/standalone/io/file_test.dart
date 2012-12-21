@@ -44,6 +44,7 @@ class FileTest {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
+    Expect.isTrue('$file'.contains(file.name));
     InputStream input = file.openInputStream();
     input.onData = () {
       List<int> buffer = new List<int>(42);

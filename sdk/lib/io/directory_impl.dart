@@ -226,7 +226,9 @@ class _Directory implements Directory {
     return new _DirectoryLister(_path, recursive);
   }
 
-  String get path { return _path; }
+  String get path => _path;
+
+  String toString() => "Directory: '$path'";
 
   bool _isErrorResponse(response) {
     return response is List && response[0] != _SUCCESS_RESPONSE;

@@ -14,6 +14,7 @@ class DirectoryTest {
 
     Directory directory = new Directory("").createTempSync();
     Directory subDirectory = new Directory("${directory.path}/subdir");
+    Expect.isTrue('$directory'.contains(directory.path));
     Expect.isFalse(subDirectory.existsSync());
     subDirectory.createSync();
     Expect.isTrue(subDirectory.existsSync());
