@@ -509,6 +509,10 @@ List<_ScheduledEvent> _scheduledOnException;
  */
 bool _abortScheduled = false;
 
+/// The time (in milliseconds) to wait for the entire scheduled test to
+/// complete.
+final _TIMEOUT = 30000;
+
 /**
  * Runs all the scheduled events for a test case. This should only be called
  * once per test case.
@@ -549,9 +553,9 @@ void run() {
     return true;
   });
 
-  future.chain((_) => cleanup()).then((_) {
-    asyncDone();
-  });
+  timeout(future, _TIMEOUT, 'waiting for a test to complete')
+      .chain((_) => cleanup())
+      .then((_) => asyncDone());
 }
 
 /// Get the path to the root "util/test/pub" directory containing the pub tests.
