@@ -379,31 +379,6 @@ class Instruction : public ZoneAllocated {
 
   void Goto(JoinEntryInstr* entry);
 
-  // Discover basic-block structure by performing a recursive depth first
-  // traversal of the instruction graph reachable from this instruction.  As
-  // a side effect, the block entry instructions in the graph are assigned
-  // numbers in both preorder and postorder.  The array 'preorder' maps
-  // preorder block numbers to the block entry instruction with that number
-  // and analogously for the array 'postorder'.  The depth first spanning
-  // tree is recorded in the array 'parent', which maps preorder block
-  // numbers to the preorder number of the block's spanning-tree parent.
-  // The array 'assigned_vars' maps preorder block numbers to the set of
-  // assigned frame-allocated local variables in the block.  As a side
-  // effect of this function, the set of basic block predecessors (e.g.,
-  // block entry instructions of predecessor blocks) and also the last
-  // instruction in the block is recorded in each entry instruction.
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count) {
-    // Never called for instructions except block entries and branches.
-    UNREACHABLE();
-  }
-
   // Mutate assigned_vars to add the local variable index for all
   // frame-allocated locals assigned to by the instruction.
   virtual void RecordAssignedVars(BitVector* assigned_vars,
@@ -727,8 +702,21 @@ class BlockEntryInstr : public Instruction {
     return parallel_move_;
   }
 
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
+  // Discover basic-block structure by performing a recursive depth first
+  // traversal of the instruction graph reachable from this instruction.  As
+  // a side effect, the block entry instructions in the graph are assigned
+  // numbers in both preorder and postorder.  The array 'preorder' maps
+  // preorder block numbers to the block entry instruction with that number
+  // and analogously for the array 'postorder'.  The depth first spanning
+  // tree is recorded in the array 'parent', which maps preorder block
+  // numbers to the preorder number of the block's spanning-tree parent.
+  // The array 'assigned_vars' maps preorder block numbers to the set of
+  // assigned frame-allocated local variables in the block.  As a side
+  // effect of this function, the set of basic block predecessors (e.g.,
+  // block entry instructions of predecessor blocks) and also the last
+  // instruction in the block is recorded in each entry instruction.
+  void DiscoverBlocks(
+      BlockEntryInstr* predecessor,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent,
@@ -816,7 +804,6 @@ class ForwardInstructionIterator : public ValueObject {
  public:
   explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
       : block_entry_(block_entry), current_(block_entry) {
-    ASSERT(block_entry_->last_instruction()->next() == NULL);
     Advance();
   }
 
@@ -878,15 +865,6 @@ class GraphEntryInstr : public BlockEntryInstr {
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count);
-
   void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
@@ -907,7 +885,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
-  virtual void ClearPredecessors() { UNREACHABLE(); }
+  virtual void ClearPredecessors() {}
   virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
 
   TargetEntryInstr* normal_entry_;
@@ -1505,16 +1483,6 @@ class ControlInstruction : public Instruction {
 
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count);
-
 
   void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                              Condition true_condition);
