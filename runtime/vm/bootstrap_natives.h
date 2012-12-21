@@ -19,6 +19,7 @@ namespace dart {
   V(Function_apply, 2)                                                         \
   V(InvocationMirror_invoke, 4)                                                \
   V(AbstractType_toString, 1)                                                  \
+  V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \
   V(Integer_bitOrFromInteger, 2)                                               \
   V(Integer_bitXorFromInteger, 2)                                              \
