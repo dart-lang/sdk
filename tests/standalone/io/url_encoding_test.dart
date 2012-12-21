@@ -17,9 +17,6 @@ void testParseEncodedString() {
   String encodedString = 'foo+bar%20foobar%25%26';
   Expect.equals(_HttpUtils.decodeUrlEncodedString(encodedString),
                 'foo bar foobar%&');
-  encodedString = 'A+%2B+B';
-  Expect.equals(_HttpUtils.decodeUrlEncodedString(encodedString),
-                'A + B');
 }
 
 void testParseQueryString() {

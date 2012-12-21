@@ -22,7 +22,7 @@ part of dart.uri;
  */
 String encodeUri(String uri) {
   return _uriEncode(
-    "-_.!~*'()#;,/?:@&=\$0123456789"
+    "-_.!~*'()#;,/?:@&=+\$0123456789"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", uri);
 }
 
@@ -82,8 +82,6 @@ String _uriEncode(String canonical, String text) {
   for (int i = 0; i < text.length; i++) {
     if (canonical.indexOf(text[i]) >= 0) {
       result.add(text[i]);
-    } else if (text[i] == " ") {
-      result.add("+");
     } else {
       int ch = text.charCodeAt(i);
       if (ch >= 0xD800 && ch < 0xDC00) {
@@ -139,11 +137,7 @@ String _uriDecode(String text) {
   for (int i = 0; i < text.length;) {
     String ch = text[i];
     if (ch != '%') {
-      if (ch == '+') {
-        result.add(" ");
-      } else {
-        result.add(ch);
-      }
+      result.add(ch);
       i++;
     } else {
       codepoints.clear();
