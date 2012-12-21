@@ -70,6 +70,20 @@ class Version implements Comparable, VersionConstraint {
     }
   }
 
+  /// Returns the primary version out of a list of candidates. This is the
+  /// highest-numbered stable (non-prerelease) version. If there are no stable
+  /// versions, it's just the highest-numbered version.
+  static Version primary(List<Version> versions) {
+    var primary;
+    for (var version in versions) {
+      if (primary == null || (!version.isPreRelease && primary.isPreRelease) ||
+          (version.isPreRelease == primary.isPreRelease && version > primary)) {
+        primary = version;
+      }
+    }
+    return primary;
+  }
+
   bool operator ==(other) {
     if (other is! Version) return false;
     return compareTo(other) == 0;
@@ -80,7 +94,11 @@ class Version implements Comparable, VersionConstraint {
   bool operator <=(Version other) => compareTo(other) <= 0;
   bool operator >=(Version other) => compareTo(other) >= 0;
 
+  bool get isAny => false;
   bool get isEmpty => false;
+
+  /// Whether or not this is a pre-release version.
+  bool get isPreRelease => preRelease != null;
 
   /// Tests if [other] matches this version exactly.
   bool allows(Version other) => this == other;
@@ -234,6 +252,9 @@ abstract class VersionConstraint {
   /// Returns `true` if this constraint allows no versions.
   bool get isEmpty;
 
+  /// Returns `true` if this constraint allows all versions.
+  bool get isAny;
+
   /// Returns `true` if this constraint allows [version].
   bool allows(Version version);
 
@@ -296,6 +317,8 @@ class VersionRange implements VersionConstraint {
   }
 
   bool get isEmpty => false;
+
+  bool get isAny => !includeMin && !includeMax;
 
   /// Tests if [other] matches falls within this version range.
   bool allows(Version other) {
@@ -391,6 +414,7 @@ class _EmptyVersion implements VersionConstraint {
   const _EmptyVersion();
 
   bool get isEmpty => true;
+  bool get isAny => false;
   bool allows(Version other) => false;
   VersionConstraint intersect(VersionConstraint other) => this;
   String toString() => '<empty>';

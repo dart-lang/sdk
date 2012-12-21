@@ -9,9 +9,12 @@ import 'dart:json';
 
 import 'test_pub.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../pkg/http/lib/http.dart' as http;
+import '../../../pkg/http/lib/testing.dart';
 import '../../pub/entrypoint.dart';
 import '../../pub/io.dart';
 import '../../pub/validator.dart';
+import '../../pub/validator/dependency.dart';
 import '../../pub/validator/lib.dart';
 import '../../pub/validator/license.dart';
 import '../../pub/validator/name.dart';
@@ -28,6 +31,9 @@ void expectValidationError(ValidatorCreator fn) {
 void expectValidationWarning(ValidatorCreator fn) {
   expectLater(schedulePackageValidation(fn), pairOf(isEmpty, isNot(isEmpty)));
 }
+
+Validator dependency(Entrypoint entrypoint) =>
+  new DependencyValidator(entrypoint);
 
 Validator lib(Entrypoint entrypoint) => new LibValidator(entrypoint);
 
@@ -46,7 +52,10 @@ main() {
 
     test('looks normal', () {
       dir(appPath, [libPubspec("test_pkg", "1.0.0")]).scheduleCreate();
+      expectNoValidationError(dependency);
+      expectNoValidationError(lib);
       expectNoValidationError(license);
+      expectNoValidationError(name);
       expectNoValidationError(pubspecField);
       run();
     });
@@ -100,6 +109,16 @@ main() {
         ])
       ]).scheduleCreate();
       expectNoValidationError(lib);
+      run();
+    });
+
+    test('has an unconstrained dependency on "unittest"', () {
+      dir(appPath, [
+        libPubspec("test_pkg", "1.0.0", [
+          {'hosted': 'unittest'}
+        ])
+      ]).scheduleCreate();
+      expectNoValidationError(dependency);
       run();
     });
   });
@@ -282,6 +301,235 @@ main() {
       ]).scheduleCreate();
       expectValidationError(lib);
       run();
+    });
+
+    group('has a dependency with a non-hosted source', () {
+      group('where a hosted version of that dependency exists', () {
+        test("and should suggest the hosted package's primary version", () {
+          useMockClient(new MockClient((request) {
+            expect(request.method, equals("GET"));
+            expect(request.url.path, equals("/packages/foo.json"));
+
+            return new Future.immediate(new http.Response(JSON.stringify({
+              "name": "foo",
+              "uploaders": ["nweiz@google.com"],
+              "versions": ["3.0.0-pre", "2.0.0", "1.0.0"]
+            }), 200));
+          }));
+
+          dir(appPath, [
+            libPubspec("test_pkg", "1.0.0", [
+              {'git': 'git://github.com/dart-lang/foo'}
+            ])
+          ]).scheduleCreate();
+
+          expectLater(schedulePackageValidation(dependency),
+              pairOf(isEmpty, someElement(contains(
+                  '  foo: ">=2.0.0 <3.0.0"'))));
+
+          run();
+        });
+
+        test("and should suggest the hosted package's prerelease version if "
+            "it's the only version available", () {
+          useMockClient(new MockClient((request) {
+            expect(request.method, equals("GET"));
+            expect(request.url.path, equals("/packages/foo.json"));
+
+            return new Future.immediate(new http.Response(JSON.stringify({
+              "name": "foo",
+              "uploaders": ["nweiz@google.com"],
+              "versions": ["3.0.0-pre", "2.0.0-pre"]
+            }), 200));
+          }));
+
+          dir(appPath, [
+            libPubspec("test_pkg", "1.0.0", [
+              {'git': 'git://github.com/dart-lang/foo'}
+            ])
+          ]).scheduleCreate();
+
+          expectLater(schedulePackageValidation(dependency),
+              pairOf(isEmpty, someElement(contains(
+                  '  foo: ">=3.0.0-pre <4.0.0"'))));
+
+          run();
+        });
+
+        test("and should suggest a tighter constraint if the primary version "
+            "is pre-1.0.0", () {
+          useMockClient(new MockClient((request) {
+            expect(request.method, equals("GET"));
+            expect(request.url.path, equals("/packages/foo.json"));
+
+            return new Future.immediate(new http.Response(JSON.stringify({
+              "name": "foo",
+              "uploaders": ["nweiz@google.com"],
+              "versions": ["0.0.1", "0.0.2"]
+            }), 200));
+          }));
+
+          dir(appPath, [
+            libPubspec("test_pkg", "1.0.0", [
+              {'git': 'git://github.com/dart-lang/foo'}
+            ])
+          ]).scheduleCreate();
+
+          expectLater(schedulePackageValidation(dependency),
+              pairOf(isEmpty, someElement(contains(
+                  '  foo: ">=0.0.2 <0.0.3"'))));
+
+          run();
+        });
+      });
+
+      group('where no hosted version of that dependency exists', () {
+        test("and should use the other source's version", () {
+          useMockClient(new MockClient((request) {
+            expect(request.method, equals("GET"));
+            expect(request.url.path, equals("/packages/foo.json"));
+
+            return new Future.immediate(new http.Response("not found", 404));
+          }));
+
+          dir(appPath, [
+            libPubspec("test_pkg", "1.0.0", [
+              {
+                'git': {'url': 'git://github.com/dart-lang/foo'},
+                'version': '>=1.0.0 <2.0.0'
+              }
+            ])
+          ]).scheduleCreate();
+
+          expectLater(schedulePackageValidation(dependency),
+              pairOf(isEmpty, someElement(contains(
+                  '  foo: ">=1.0.0 <2.0.0"'))));
+
+          run();
+        });
+
+        test("and should use the other source's unquoted version if it's "
+            "concrete", () {
+          useMockClient(new MockClient((request) {
+            expect(request.method, equals("GET"));
+            expect(request.url.path, equals("/packages/foo.json"));
+
+            return new Future.immediate(new http.Response("not found", 404));
+          }));
+
+          dir(appPath, [
+            libPubspec("test_pkg", "1.0.0", [
+              {
+                'git': {'url': 'git://github.com/dart-lang/foo'},
+                'version': '0.2.3'
+              }
+            ])
+          ]).scheduleCreate();
+
+          expectLater(schedulePackageValidation(dependency),
+              pairOf(isEmpty, someElement(contains('  foo: 0.2.3'))));
+
+          run();
+        });
+      });
+    });
+
+    group('has an unconstrained dependency', () {
+      group('and it should not suggest a version', () {
+        test("if there's no lockfile", () {
+          dir(appPath, [
+            libPubspec("test_pkg", "1.0.0", [
+              {'hosted': 'foo'}
+            ])
+          ]).scheduleCreate();
+
+          expectLater(schedulePackageValidation(dependency),
+              pairOf(isEmpty, everyElement(isNot(contains("\n  foo:")))));
+
+          run();
+        });
+
+        test("if the lockfile doesn't have an entry for the dependency", () {
+          dir(appPath, [
+            libPubspec("test_pkg", "1.0.0", [
+              {'hosted': 'foo'}
+            ]),
+            file("pubspec.lock", JSON.stringify({
+              'packages': {
+                'bar': {
+                  'version': '1.2.3',
+                  'source': 'hosted',
+                  'description': {
+                    'name': 'bar',
+                    'url': 'http://pub.dartlang.org'
+                  }
+                }
+              }
+            }))
+          ]).scheduleCreate();
+
+          expectLater(schedulePackageValidation(dependency),
+              pairOf(isEmpty, everyElement(isNot(contains("\n  foo:")))));
+
+          run();
+        });
+      });
+
+      group('with a lockfile', () {
+        test('and it should suggest a constraint based on the locked '
+            'version', () {
+          dir(appPath, [
+            libPubspec("test_pkg", "1.0.0", [
+              {'hosted': 'foo'}
+            ]),
+            file("pubspec.lock", JSON.stringify({
+              'packages': {
+                'foo': {
+                  'version': '1.2.3',
+                  'source': 'hosted',
+                  'description': {
+                    'name': 'foo',
+                    'url': 'http://pub.dartlang.org'
+                  }
+                }
+              }
+            }))
+          ]).scheduleCreate();
+
+          expectLater(schedulePackageValidation(dependency),
+              pairOf(isEmpty, someElement(contains(
+                  '  foo: ">=1.2.3 <2.0.0"'))));
+
+          run();
+        });
+
+        test('and it should suggest a concrete constraint if the locked '
+            'version is pre-1.0.0', () {
+          dir(appPath, [
+            libPubspec("test_pkg", "1.0.0", [
+              {'hosted': 'foo'}
+            ]),
+            file("pubspec.lock", JSON.stringify({
+              'packages': {
+                'foo': {
+                  'version': '0.1.2',
+                  'source': 'hosted',
+                  'description': {
+                    'name': 'foo',
+                    'url': 'http://pub.dartlang.org'
+                  }
+                }
+              }
+            }))
+          ]).scheduleCreate();
+
+          expectLater(schedulePackageValidation(dependency),
+              pairOf(isEmpty, someElement(contains(
+                  '  foo: ">=0.1.2 <0.1.3"'))));
+
+          run();
+        });
+      });
     });
   });
 }

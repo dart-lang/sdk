@@ -19,10 +19,12 @@ import 'dart:uri';
 import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
 import '../../../pkg/path/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../pkg/http/lib/testing.dart';
 import '../../lib/file_system.dart' as fs;
 import '../../pub/entrypoint.dart';
 import '../../pub/git_source.dart';
 import '../../pub/hosted_source.dart';
+import '../../pub/http.dart';
 import '../../pub/io.dart';
 import '../../pub/sdk_source.dart';
 import '../../pub/system_cache.dart';
@@ -709,6 +711,18 @@ void ensureGit() {
       }
       return null;
     });
+  });
+}
+
+/// Use [client] as the mock HTTP client for this test.
+///
+/// Note that this will only affect HTTP requests made via http.dart in the
+/// parent process.
+void useMockClient(MockClient client) {
+  var oldInnerClient = httpClient.inner;
+  httpClient.inner = client;
+  _scheduleCleanup((_) {
+    httpClient.inner = oldInnerClient;
   });
 }
 

@@ -100,7 +100,7 @@ class Entrypoint {
   /// directory, respecting the [LockFile] if present. Returns a [Future] that
   /// completes when all dependencies are installed.
   Future installDependencies() {
-    return _loadLockFile()
+    return loadLockFile()
       .chain((lockFile) => resolveVersions(cache.sources, root, lockFile))
       .chain(_installDependencies);
   }
@@ -117,7 +117,7 @@ class Entrypoint {
   /// other dependencies as specified by the [LockFile] if possible. Returns a
   /// [Future] that completes when all dependencies are installed.
   Future updateDependencies(List<String> dependencies) {
-    return _loadLockFile().chain((lockFile) {
+    return loadLockFile().chain((lockFile) {
       var versionSolver = new VersionSolver(cache.sources, root, lockFile);
       for (var dependency in dependencies) {
         versionSolver.useLatestVersion(dependency);
@@ -141,10 +141,7 @@ class Entrypoint {
 
   /// Loads the list of concrete package versions from the `pubspec.lock`, if it
   /// exists. If it doesn't, this completes to an empty [LockFile].
-  ///
-  /// If there's an error reading the `pubspec.lock` file, this will print a
-  /// warning message and act as though the file doesn't exist.
-  Future<LockFile> _loadLockFile() {
+  Future<LockFile> loadLockFile() {
     var lockFilePath = join(root.dir, 'pubspec.lock');
 
     log.fine("Loading lockfile.");

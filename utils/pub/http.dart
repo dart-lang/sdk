@@ -22,10 +22,10 @@ final HTTP_TIMEOUT = 30 * 1000;
 /// An HTTP client that transforms 40* errors and socket exceptions into more
 /// user-friendly error messages.
 class PubHttpClient extends http.BaseClient {
-  final http.Client _inner;
+  http.Client inner;
 
   PubHttpClient([http.Client inner])
-    : _inner = inner == null ? new http.Client() : inner;
+    : this.inner = inner == null ? new http.Client() : inner;
 
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     // TODO(rnystrom): Log request body when it's available and plaintext, but
@@ -41,7 +41,7 @@ class PubHttpClient extends http.BaseClient {
 
     // TODO(nweiz): Ideally the timeout would extend to reading from the
     // response input stream, but until issue 3657 is fixed that's not feasible.
-    return timeout(_inner.send(request).chain((streamedResponse) {
+    return timeout(inner.send(request).chain((streamedResponse) {
       log.fine("Got response ${streamedResponse.statusCode} "
                "${streamedResponse.reasonPhrase}.");
 
