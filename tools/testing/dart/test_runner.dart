@@ -707,7 +707,13 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
               print("Warning: All tests passed, but exitCode != 0 "
                     "(${testCase.displayName})");
             }
-            return (exitCode != 0 && !hasCrashed);
+            if (testCase.configuration['runtime'] == 'drt') {
+              // TODO(kustermann/ricow): Issue: 7563
+              // We should eventually get rid of this hack.
+              return false;
+            } else {
+              return (exitCode != 0 && !hasCrashed);
+            }
           }
           break;
       }
