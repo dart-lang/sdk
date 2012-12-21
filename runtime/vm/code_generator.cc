@@ -893,9 +893,6 @@ static RawFunction* InlineCacheMissHandler(
   const Function& target_function =
       Function::Handle(target_code.function());
   ASSERT(!target_function.IsNull());
-  DartFrameIterator iterator;
-  StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
   if (args.length() == 1) {
     ic_data.AddReceiverCheck(Class::Handle(args[0]->clazz()).id(),
                              target_function);
@@ -907,22 +904,27 @@ static RawFunction* InlineCacheMissHandler(
     }
     ic_data.AddCheck(class_ids, target_function);
   }
-  if (FLAG_trace_ic_miss_in_optimized) {
-    const Code& caller = Code::Handle(Code::LookupCode(caller_frame->pc()));
-    if (caller.is_optimized()) {
-      OS::Print("IC miss in optimized code; call %s -> %s\n",
-          Function::Handle(caller.function()).ToCString(),
+  if (FLAG_trace_ic_miss_in_optimized || FLAG_trace_ic) {
+    DartFrameIterator iterator;
+    StackFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL);
+    if (FLAG_trace_ic_miss_in_optimized) {
+      const Code& caller = Code::Handle(Code::LookupCode(caller_frame->pc()));
+      if (caller.is_optimized()) {
+        OS::Print("IC miss in optimized code; call %s -> %s\n",
+            Function::Handle(caller.function()).ToCString(),
+            target_function.ToCString());
+      }
+    }
+    if (FLAG_trace_ic) {
+      OS::Print("InlineCacheMissHandler %d call at %#"Px"' "
+                "adding <%s> id:%"Pd" -> <%s>\n",
+          args.length(),
+          caller_frame->pc(),
+          Class::Handle(receiver.clazz()).ToCString(),
+          Class::Handle(receiver.clazz()).id(),
           target_function.ToCString());
     }
-  }
-  if (FLAG_trace_ic) {
-    OS::Print("InlineCacheMissHandler %d call at %#"Px"' "
-              "adding <%s> id:%"Pd" -> <%s>\n",
-        args.length(),
-        caller_frame->pc(),
-        Class::Handle(receiver.clazz()).ToCString(),
-        Class::Handle(receiver.clazz()).id(),
-        target_function.ToCString());
   }
   return target_function.raw();
 }
