@@ -54,8 +54,13 @@ class _StringBufferImpl implements StringBuffer {
 
   /// Adds [obj] to the buffer.
   void add(Object obj) {
+    // TODO(srdjan): The following four lines could be replaced by
+    // '$obj', but apparently this is too slow on the Dart VM.
     String str = obj.toString();
-    if (str == null || str.isEmpty) return;
+    if (str is !String) {
+      throw new ArgumentError('toString() did not return a string');
+    }
+    if (str.isEmpty) return;
     _buffer.add(str);
     _length += str.length;
   }
