@@ -109,13 +109,22 @@ String _uriEncode(String canonical, String text) {
  */
 
 int _hexCharPairToByte(String s, int pos) {
-  // An alternative to calling [int.parse] twice would be to take a
-  // two character substring and call it once, but that may be less
-  // efficient.
-  // TODO(lrn): I fail to see how that could possibly be slower than this.
-  int d1 = int.parse("0x${s[pos]}");
-  int d2 = int.parse("0x${s[pos+1]}");
-  return d1 * 16 + d2;
+  int byte = 0;
+  for (int i = 0; i < 2; i++) {
+    var charCode = s.charCodeAt(pos + i);
+    if (0x30 <= charCode && charCode <= 0x39) {
+      byte = byte * 16 + charCode - 0x30;
+    } else {
+      // Check ranges A-F (0x41-0x46) and a-f (0x61-0x66).
+      charCode |= 0x20;
+      if (0x61 <= charCode && charCode <= 0x66) {
+        byte = byte * 16 + charCode - 0x57;
+      } else {
+        throw new ArgumentError("Invalid URL encoding");
+      }
+    }
+  }
+  return byte;
 }
 
 /**
