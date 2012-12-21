@@ -683,8 +683,8 @@ class _File extends _FileBase implements File {
   }
 
   Future<File> writeAsString(String contents,
-                             [FileMode mode = FileMode.WRITE,
-                              Encoding encoding = Encoding.UTF_8]) {
+                             {FileMode mode: FileMode.WRITE,
+                              Encoding encoding: Encoding.UTF_8}) {
     try {
       var data = _StringEncoders.encoder(encoding).encodeString(contents);
       return writeAsBytes(data, mode);
@@ -696,8 +696,8 @@ class _File extends _FileBase implements File {
   }
 
   void writeAsStringSync(String contents,
-                         [FileMode mode = FileMode.WRITE,
-                          Encoding encoding = Encoding.UTF_8]) {
+                         {FileMode mode: FileMode.WRITE,
+                          Encoding encoding: Encoding.UTF_8}) {
     var data = _StringEncoders.encoder(encoding).encodeString(contents);
     writeAsBytesSync(data, mode);
   }

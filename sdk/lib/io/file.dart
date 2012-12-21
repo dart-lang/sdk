@@ -250,8 +250,8 @@ abstract class File {
    * file pass [:FileMode.APPEND:] as the optional mode parameter.
    */
   Future<File> writeAsString(String contents,
-                             [Encoding encoding = Encoding.UTF_8,
-                              FileMode mode = FileMode.WRITE]);
+                             {FileMode mode: FileMode.WRITE,
+                              Encoding encoding: Encoding.UTF_8});
 
   /**
    * Synchronously write a string to a file.
@@ -265,8 +265,8 @@ abstract class File {
    * parameter.
    */
   void writeAsStringSync(String contents,
-                         [Encoding encoding = Encoding.UTF_8,
-                          FileMode mode = FileMode.WRITE]);
+                         {FileMode mode: FileMode.WRITE,
+                          Encoding encoding: Encoding.UTF_8});
 
   /**
    * Get the name of the file.
