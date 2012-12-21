@@ -50,7 +50,7 @@ void main() {
               '?response_type=code'
               '&client_id=identifier'
               '&redirect_uri=http%3A%2F%2Fexample.com%2Fredirect'
-              '&scope=scope%20other%2Fscope'));
+              '&scope=scope+other%2Fscope'));
     });
 
     test('builds the correct URL with state', () {

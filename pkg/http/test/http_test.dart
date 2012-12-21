@@ -56,11 +56,11 @@ main() {
             'content-type': [
               'application/x-www-form-urlencoded; charset=UTF-8'
             ],
-            'content-length': ['42'],
+            'content-length': ['40'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           },
-          'body': 'some-field=value&other-field=other%20value'
+          'body': 'some-field=value&other-field=other+value'
         })));
       }), completes);
     });
@@ -101,11 +101,11 @@ main() {
             'content-type': [
               'application/x-www-form-urlencoded; charset=UTF-8'
             ],
-            'content-length': ['42'],
+            'content-length': ['40'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           },
-          'body': 'some-field=value&other-field=other%20value'
+          'body': 'some-field=value&other-field=other+value'
         })));
       }), completes);
     });

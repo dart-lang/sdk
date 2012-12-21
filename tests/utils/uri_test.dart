@@ -192,6 +192,7 @@ main() {
 
   Expect.stringEquals("\u{10000}", s);
 
+  testEncodeDecode("A + B", "A+%2B+B");
   testEncodeDecode("\uFFFE", "%EF%BF%BE");
   testEncodeDecode("\uFFFF", "%EF%BF%BF");
   testEncodeDecode("\uFFFE", "%EF%BF%BE");
@@ -199,7 +200,7 @@ main() {
   testEncodeDecode("\x7f", "%7F");
   testEncodeDecode("\x80", "%C2%80");
   testEncodeDecode("\u0800", "%E0%A0%80");
-  testEncodeDecode(":/@',;?&=+\$", ":/@',;?&=+\$");
+  testEncodeDecode(":/@',;?&=+\$", ":/@',;?&=%2B\$");
   testEncodeDecode(s, "%F0%90%80%80");
   testEncodeDecodeComponent("\uFFFE", "%EF%BF%BE");
   testEncodeDecodeComponent("\uFFFF", "%EF%BF%BF");

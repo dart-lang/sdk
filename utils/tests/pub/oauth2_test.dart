@@ -71,7 +71,7 @@ main() {
       return consumeInputStream(request.inputStream).transform((bytes) {
         var body = new String.fromCharCodes(bytes);
         expect(body, matches(
-            new RegExp(r'(^|&)refresh_token=refresh%20token(&|$)')));
+            new RegExp(r'(^|&)refresh_token=refresh\+token(&|$)')));
 
         response.headers.contentType = new ContentType("application", "json");
         response.outputStream.writeString(JSON.stringify({
@@ -211,7 +211,7 @@ void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
   server.handle('POST', '/token', (request, response) {
     return consumeInputStream(request.inputStream).transform((bytes) {
       var body = new String.fromCharCodes(bytes);
-      expect(body, matches(new RegExp(r'(^|&)code=access%20code(&|$)')));
+      expect(body, matches(new RegExp(r'(^|&)code=access\+code(&|$)')));
 
       response.headers.contentType = new ContentType("application", "json");
       response.outputStream.writeString(JSON.stringify({
