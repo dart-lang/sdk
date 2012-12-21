@@ -127,7 +127,7 @@ class _HttpRequestResponseBase {
     _ensureHeadersSent();
     bool allWritten = true;
     if (data.length > 0) {
-      if (_headers.contentLength < 0) {
+      if (_headers.chunkedTransferEncoding) {
         // Write chunk size if transfer encoding is chunked.
         _writeHexString(data.length);
         _writeCRLF();
@@ -146,7 +146,7 @@ class _HttpRequestResponseBase {
     _ensureHeadersSent();
     bool allWritten = true;
     if (count > 0) {
-      if (_headers.contentLength < 0) {
+      if (_headers.chunkedTransferEncoding) {
         // Write chunk size if transfer encoding is chunked.
         _writeHexString(count);
         _writeCRLF();
@@ -162,7 +162,7 @@ class _HttpRequestResponseBase {
 
   bool _writeDone() {
     bool allWritten = true;
-    if (_headers.contentLength < 0) {
+    if (_headers.chunkedTransferEncoding) {
       // Terminate the content if transfer encoding is chunked.
       allWritten = _httpConnection._write(_Const.END_CHUNKED);
     } else {
@@ -175,7 +175,6 @@ class _HttpRequestResponseBase {
   }
 
   bool _writeHeaders() {
-    _headers._mutable = false;
     _headers._write(_httpConnection);
     // Terminate header.
     return _writeCRLF();
@@ -359,7 +358,6 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
     }
 
     // Prepare for receiving data.
-    _headers._mutable = false;
     _buffer = new _BufferList();
   }
 
@@ -590,13 +588,6 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     _httpConnection._write(data);
     _writeCRLF();
 
-    // Determine the value of the "Transfer-Encoding" header based on
-    // whether the content length is known. HTTP/1.0 does not support
-    // chunked.
-    if (_headers.contentLength < 0 && _protocolVersion == "1.1") {
-      _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
-    }
-
     var session = _httpConnection._request._session;
     if (session != null && !session._destroyed) {
       // Make sure we only send the current session id.
@@ -621,6 +612,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     }
 
     // Write headers.
+    _headers._finalize(_protocolVersion);
     bool allWritten = _writeHeaders();
     _state = _HttpRequestResponseBase.HEADER_SENT;
     return allWritten;
@@ -1251,13 +1243,6 @@ class _HttpClientRequest
     _httpConnection._write(_Const.HTTP11);
     _writeCRLF();
 
-    // Determine the value of the "Transfer-Encoding" header based on
-    // whether the content length is known. If there is no content
-    // neither "Content-Length" nor "Transfer-Encoding" is set.
-    if (_headers.contentLength < 0) {
-      _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
-    }
-
     // Add the cookies to the headers.
     if (_cookies != null) {
       StringBuffer sb = new StringBuffer();
@@ -1271,6 +1256,7 @@ class _HttpClientRequest
     }
 
     // Write headers.
+    _headers._finalize("1.1");
     _writeHeaders();
     _state = _HttpRequestResponseBase.HEADER_SENT;
   }
@@ -1336,7 +1322,6 @@ class _HttpClientResponse
     _headers = headers;
 
     // Prepare for receiving data.
-    _headers._mutable = false;
     _buffer = new _BufferList();
     if (isRedirect && _connection.followRedirects) {
       if (_connection._redirects == null ||

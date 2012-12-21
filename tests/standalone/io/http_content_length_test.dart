@@ -102,6 +102,66 @@ void testBody(int totalConnections, bool useHeader) {
   }
 }
 
+void testBodyChunked(int totalConnections, bool useHeader) {
+  HttpServer server = new HttpServer();
+  server.onError = (e) => Expect.fail("Unexpected error $e");
+  server.listen("127.0.0.1", 0, backlog: totalConnections);
+  server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
+    Expect.isNull(request.headers.value('content-length'));
+    Expect.equals(-1, request.contentLength);
+    if (useHeader) {
+      response.contentLength = 2;
+      response.headers.chunkedTransferEncoding = true;
+    } else {
+      response.headers.set("content-length", 2);
+      response.headers.set("transfer-encoding", "chunked");
+    }
+    OutputStream stream = response.outputStream;
+    stream.writeString("x");
+    Expect.throws(() => response.headers.chunkedTransferEncoding = false,
+                  (e) => e is HttpException);
+    stream.writeString("x");
+    stream.writeString("x");
+    stream.close();
+    Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
+  };
+
+  int count = 0;
+  HttpClient client = new HttpClient();
+  for (int i = 0; i < totalConnections; i++) {
+    HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
+    conn.onError = (e) => Expect.fail("Unexpected error $e");
+    conn.onRequest = (HttpClientRequest request) {
+      if (useHeader) {
+        request.contentLength = 2;
+        request.headers.chunkedTransferEncoding = true;
+      } else {
+        request.headers.add(HttpHeaders.CONTENT_LENGTH, "2");
+        request.headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+      }
+      OutputStream stream = request.outputStream;
+      stream.writeString("x");
+      Expect.throws(() => request.headers.chunkedTransferEncoding = false,
+                    (e) => e is HttpException);
+      stream.writeString("x");
+      stream.writeString("x");
+      stream.close();
+      Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
+    };
+    conn.onResponse = (HttpClientResponse response) {
+      Expect.isNull(response.headers.value('content-length'));
+      Expect.equals(-1, response.contentLength);
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () {
+        if (++count == totalConnections) {
+          client.shutdown();
+          server.close();
+        }
+      };
+    };
+  }
+}
+
 void testHttp10() {
   HttpServer server = new HttpServer();
   server.onError = (e) => Expect.fail("Unexpected error $e");
@@ -133,5 +193,7 @@ void main() {
   testNoBody(5, true);
   testBody(5, false);
   testBody(5, true);
+  testBodyChunked(5, false);
+  testBodyChunked(5, true);
   testHttp10();
 }

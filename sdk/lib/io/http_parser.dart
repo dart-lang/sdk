@@ -424,6 +424,7 @@ class _HttpParser {
 
           case _State.HEADER_ENDING:
             _expect(byte, _CharCode.LF);
+            _headers._mutable = false;
 
             _contentLength = _headers.contentLength;
             // Ignore the Content-Length header if Transfer-Encoding

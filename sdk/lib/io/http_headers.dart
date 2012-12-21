@@ -79,6 +79,21 @@ class _HttpHeaders implements HttpHeaders {
     }
   }
 
+  bool get chunkedTransferEncoding => _chunkedTransferEncoding;
+
+  void set chunkedTransferEncoding(bool chunkedTransferEncoding) {
+    _checkMutable();
+    _chunkedTransferEncoding = chunkedTransferEncoding;
+    List<String> values = _headers["transfer-encoding"];
+    if (values == null || values[values.length - 1] != "chunked") {
+      // Headers does not specify chunked encoding - add it if set.
+      if (chunkedTransferEncoding) _addValue("transfer-encoding", "chunked");
+    } else {
+      // Headers does specify chunked encoding - remove it if not set.
+      if (!chunkedTransferEncoding) remove("transfer-encoding", "chunked");
+    }
+  }
+
   String get host => _host;
 
   void set host(String host) {
@@ -177,6 +192,12 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
+    } else if (lowerCaseName == "transfer-encoding") {
+      if (value == "chunked") {
+        chunkedTransferEncoding = true;
+      } else {
+        _addValue(lowerCaseName, value);
+      }
     } else if (lowerCaseName == "date") {
       if (value is Date) {
         date = value;
@@ -226,17 +247,20 @@ class _HttpHeaders implements HttpHeaders {
     } else if (lowerCaseName == "content-type") {
       _set("content-type", value);
     } else {
-      name = lowerCaseName;
-      List<String> values = _headers[name];
-      if (values == null) {
-        values = new List<String>();
-        _headers[name] = values;
-      }
-      if (value is Date) {
-        values.add(_HttpUtils.formatDate(value));
-      } else {
-        values.add(value.toString());
-      }
+        _addValue(lowerCaseName, value);
+    }
+  }
+
+  void _addValue(String name, Object value) {
+    List<String> values = _headers[name];
+    if (values == null) {
+      values = new List<String>();
+      _headers[name] = values;
+    }
+    if (value is Date) {
+      values.add(_HttpUtils.formatDate(value));
+    } else {
+      values.add(value.toString());
     }
   }
 
@@ -264,6 +288,22 @@ class _HttpHeaders implements HttpHeaders {
       return false;
     }
     return true;
+  }
+
+  void _finalize(String protocolVersion) {
+    // If the content length is not known make sure chunked transfer
+    // encoding is used for HTTP 1.1.
+    if (contentLength < 0 && protocolVersion == "1.1") {
+      chunkedTransferEncoding = true;
+    }
+    // If a Transfer-Encoding header field is present the
+    // Content-Length header MUST NOT be sent (RFC 2616 section 4.4).
+    if (chunkedTransferEncoding &&
+        contentLength >= 0 &&
+        protocolVersion == "1.1") {
+      contentLength = -1;
+    }
+    _mutable = false;
   }
 
   _write(_HttpConnectionBase connection) {
@@ -346,6 +386,7 @@ class _HttpHeaders implements HttpHeaders {
   List<String> _noFoldingHeaders;
 
   int _contentLength = -1;
+  bool _chunkedTransferEncoding = false;
   String _host;
   int _port;
 }
