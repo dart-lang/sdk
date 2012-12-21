@@ -129,9 +129,9 @@ class Configuration {
       print('$passed PASSED, $failed FAILED, $errors ERRORS');
     }
 
+    _receivePort.close();
     if (success) {
       _postMessage('unittest-suite-success');
-      _receivePort.close();
     } else {
       throw new Exception('Some tests failed.');
     }
