@@ -852,7 +852,12 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
 
 
 void Debugger::SignalExceptionThrown(const Object& exc) {
+  // We ignore this exception event when the VM is executing code invoked
+  // by the debugger to evaluate variables values, when we see a nested
+  // breakpoint or exception event, or if the debugger is not
+  // interested in exception events.
   if (ignore_breakpoints_ ||
+      (stack_trace_ != NULL) ||
       (event_handler_ == NULL) ||
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
@@ -1332,7 +1337,10 @@ bool Debugger::IsDebuggable(const Function& func) {
 
 
 void Debugger::SignalBpReached() {
-  if (ignore_breakpoints_) {
+  // We ignore this breakpoint when the VM is executing code invoked
+  // by the debugger to evaluate variables values, or when we see a nested
+  // breakpoint or exception event.
+  if (ignore_breakpoints_ || (stack_trace_ != NULL)) {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
