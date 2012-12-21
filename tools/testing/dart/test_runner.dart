@@ -624,7 +624,9 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     // so we have to do this check first.
     var stderrLines = new String.fromCharCodes(super.stderr).split("\n");
     for (String line in stderrLines) {
-      if (line.contains('Gtk-WARNING **: cannot open display: :99') ||
+      // TODO(kustermann,ricow): Issue: 7564
+      // This seems to happen quite frequently, we need to figure out why.
+      if (line.contains('Gtk-WARNING **: cannot open display') ||
           line.contains('Failed to run command. return code=1')) {
         // If we get the X server error, or DRT crashes with a core dump, retry
         // the test.
