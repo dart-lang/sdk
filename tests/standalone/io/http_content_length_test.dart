@@ -193,7 +193,10 @@ void main() {
   testNoBody(5, true);
   testBody(5, false);
   testBody(5, true);
-  testBodyChunked(5, false);
-  testBodyChunked(5, true);
+  // These tests can fail or timeout on Windows, issue 7562.
+  if (Platform.operatingSystem != 'windows') {
+    testBodyChunked(5, false);
+    testBodyChunked(5, true);
+  }
   testHttp10();
 }
