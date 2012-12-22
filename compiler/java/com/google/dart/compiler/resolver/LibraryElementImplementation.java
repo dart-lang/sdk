@@ -18,7 +18,7 @@ class LibraryElementImplementation extends AbstractNodeElement implements Librar
   private final Map<String, Element> exportedElements = Maps.newHashMap();
   private LibraryUnit libraryUnit;
   private MethodElement entryPoint;
-  private DartObsoleteMetadata metadata;
+  private DartObsoleteMetadata metadata = DartObsoleteMetadata.EMPTY;
 
   public LibraryElementImplementation(LibraryUnit libraryUnit) {
     // TODO(ngeoffray): What should we pass the super? Should a LibraryUnit be a node?
