@@ -15,9 +15,169 @@
 #include <unistd.h>
 
 #include "platform/utils.h"
+#include "vm/code_observers.h"
+#include "vm/dart.h"
+#include "vm/debuginfo.h"
 #include "vm/isolate.h"
+#include "vm/zone.h"
+
 
 namespace dart {
+
+// Android CodeObservers.
+
+DEFINE_FLAG(bool, generate_gdb_symbols, false,
+    "Generate symbols of generated dart functions for debugging with GDB");
+DEFINE_FLAG(bool, generate_perf_events_symbols, false,
+    "Generate events symbols for profiling with perf");
+DEFINE_FLAG(charp, generate_pprof_symbols, false,
+    "Generate events symbols for profiling with pprof");
+
+class PerfCodeObserver : public CodeObserver {
+ public:
+  PerfCodeObserver() {
+    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
+    if (file_open == NULL) {
+      return;
+    }
+    const char* format = "/tmp/perf-%ld.map";
+    intptr_t pid = getpid();
+    intptr_t len = OS::SNPrint(NULL, 0, format, pid);
+    char* filename = new char[len + 1];
+    OS::SNPrint(filename, len + 1, format, pid);
+    out_file_ = (*file_open)(filename);
+  }
+
+  ~PerfCodeObserver() {
+    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+    if (file_close == NULL) {
+      return;
+    }
+    ASSERT(out_file_ != NULL);
+    (*file_close)(out_file_);
+  }
+
+  virtual bool IsActive() const {
+    return FLAG_generate_perf_events_symbols;
+  }
+
+  virtual void Notify(const char* name,
+                      uword base,
+                      uword prologue_offset,
+                      uword size,
+                      bool optimized) {
+    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+    ASSERT(file_write != NULL);
+    const char* format = "%"Px" %"Px" %s%s\n";
+    const char* marker = optimized ? "*" : "";
+    intptr_t len = OS::SNPrint(NULL, 0, format, base, size, marker, name);
+    char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(buffer, len + 1, format, base, size, marker, name);
+    ASSERT(out_file_ != NULL);
+    (*file_write)(buffer, len, out_file_);
+  }
+
+ private:
+  void* out_file_;
+
+  DISALLOW_COPY_AND_ASSIGN(PerfCodeObserver);
+};
+
+class PprofCodeObserver : public CodeObserver {
+ public:
+  PprofCodeObserver() {
+    pprof_symbol_generator_ = DebugInfo::NewGenerator();
+  }
+
+  ~PprofCodeObserver() {
+    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
+    if (file_open == NULL) {
+      return;
+    }
+    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+    if (file_close == NULL) {
+      return;
+    }
+    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+    if (file_write == NULL) {
+      return;
+    }
+    if (FLAG_generate_pprof_symbols == NULL) {
+      return;
+    }
+    const char* filename = FLAG_generate_pprof_symbols;
+    void* out_file = (*file_open)(filename);
+    ASSERT(out_file != NULL);
+    DebugInfo::ByteBuffer* debug_region = new DebugInfo::ByteBuffer();
+    ASSERT(debug_region != NULL);
+    pprof_symbol_generator_->WriteToMemory(debug_region);
+    int buffer_size = debug_region->size();
+    void* buffer = debug_region->data();
+    delete debug_region;
+    if (buffer_size > 0) {
+      ASSERT(buffer != NULL);
+      (*file_write)(buffer, buffer_size, out_file);
+    }
+    (*file_close)(out_file);
+    DebugInfo::UnregisterAllSections();
+  }
+
+  virtual bool IsActive() const {
+    return FLAG_generate_pprof_symbols != NULL;
+  }
+
+  virtual void Notify(const char* name,
+                      uword base,
+                      uword prologue_offset,
+                      uword size,
+                      bool optimized) {
+    ASSERT(pprof_symbol_generator_ != NULL);
+    pprof_symbol_generator_->AddCode(base, size);
+    pprof_symbol_generator_->AddCodeRegion(name, base, size);
+  }
+
+ private:
+  DebugInfo* pprof_symbol_generator_;
+
+  DISALLOW_COPY_AND_ASSIGN(PprofCodeObserver);
+};
+
+class GdbCodeObserver : public CodeObserver {
+ public:
+  GdbCodeObserver() { }
+
+  virtual bool IsActive() const {
+    return FLAG_generate_gdb_symbols;
+  }
+
+  virtual void Notify(const char* name,
+                      uword base,
+                      uword prologue_offset,
+                      uword size,
+                      bool optimized) {
+    if (prologue_offset > 0) {
+      // In order to ensure that gdb sees the first instruction of a function
+      // as the prologue sequence we register two symbols for the cases when
+      // the prologue sequence is not the first instruction:
+      // <name>_entry is used for code preceding the prologue sequence.
+      // <name> for rest of the code (first instruction is prologue sequence).
+      const char* kFormat = "%s_%s";
+      intptr_t len = OS::SNPrint(NULL, 0, kFormat, name, "entry");
+      char* pname = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+      OS::SNPrint(pname, (len + 1), kFormat, name, "entry");
+      DebugInfo::RegisterSection(pname, base, size);
+      DebugInfo::RegisterSection(name,
+                                 (base + prologue_offset),
+                                 (size - prologue_offset));
+    } else {
+      DebugInfo::RegisterSection(name, base, size);
+    }
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(GdbCodeObserver);
+};
+
 
 static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
@@ -199,6 +359,22 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   errno = 0;
   *value = strtoll(str, &endptr, base);
   return ((errno == 0) && (endptr != str) && (*endptr == 0));
+}
+
+
+void OS::RegisterCodeObservers() {
+  if (FLAG_generate_perf_events_symbols) {
+    CodeObservers::Register(new PerfCodeObserver);
+  }
+  if (FLAG_generate_gdb_symbols) {
+    CodeObservers::Register(new GdbCodeObserver);
+  }
+  if (FLAG_generate_pprof_symbols != NULL) {
+    CodeObservers::Register(new PprofCodeObserver);
+  }
+#if defined(DART_VTUNE_SUPPORT)
+  Register(new VTuneCodeObserver);
+#endif
 }
 
 
