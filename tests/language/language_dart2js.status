@@ -87,6 +87,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+identical_closure_test: Fail # Fix for identical closure has not been implemented in dart2js yet: https://chromiumcodereview.appspot.com/11612022/ 
 class_cycle_test/02: Fail # Issue 7468.
 class_cycle_test/03: Fail # Issue 7468.
 invocation_mirror_test: Fail
