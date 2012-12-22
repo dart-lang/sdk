@@ -2097,20 +2097,30 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
 
 void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   const String& getter_name =
-      String::Handle(Field::GetterName(node->field_name()));
+      String::ZoneHandle(Field::GetterSymbol(node->field_name()));
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>();
   Function& getter_function = Function::ZoneHandle();
   if (node->is_super_getter()) {
     // Statically resolved instance getter, i.e. "super getter".
-    getter_function =
-        Resolver::ResolveDynamicAnyArgs(node->cls(), getter_name);
-    ASSERT(!getter_function.IsNull());
     ASSERT(node->receiver() != NULL);
-    ValueGraphVisitor receiver_value(owner(), temp_index(), loop_depth());
-    node->receiver()->Visit(&receiver_value);
-    Append(receiver_value);
-    arguments->Add(PushArgument(receiver_value.value()));
+    getter_function = Resolver::ResolveDynamicAnyArgs(node->cls(), getter_name);
+    if (getter_function.IsNull()) {
+      // Resolve and call noSuchMethod.
+      ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->receiver());
+      StaticCallInstr* call = BuildStaticNoSuchMethodCall(node->cls(),
+                                                          node->receiver(),
+                                                          getter_name,
+                                                          arguments);
+      ReturnDefinition(call);
+      return;
+    } else {
+      ValueGraphVisitor receiver_value(owner(), temp_index(), loop_depth());
+      node->receiver()->Visit(&receiver_value);
+      Append(receiver_value);
+      arguments->Add(PushArgument(receiver_value.value()));
+    }
   } else {
     getter_function = node->cls().LookupStaticFunction(getter_name);
     if (getter_function.IsNull()) {
@@ -2160,41 +2170,79 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
 void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
                                            bool result_is_needed) {
   const String& setter_name =
-      String::Handle(Field::SetterName(node->field_name()));
+      String::ZoneHandle(Field::SetterSymbol(node->field_name()));
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(1);
   // A super setter is an instance setter whose setter function is
   // resolved at compile time (in the caller instance getter's super class).
   // Unlike a static getter, a super getter has a receiver parameter.
   const bool is_super_setter = (node->receiver() != NULL);
-  const Function& setter_function =
+  Function& setter_function =
       Function::ZoneHandle(is_super_setter
           ? Resolver::ResolveDynamicAnyArgs(node->cls(), setter_name)
           : node->cls().LookupStaticFunction(setter_name));
-  ASSERT(!setter_function.IsNull());
-
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new ZoneGrowableArray<PushArgumentInstr*>(1);
-  if (is_super_setter) {
-    // Add receiver of instance getter.
-    ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
-    node->receiver()->Visit(&for_receiver);
-    Append(for_receiver);
-    arguments->Add(PushArgument(for_receiver.value()));
-  }
-  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
-  node->value()->Visit(&for_value);
-  Append(for_value);
-  Value* value = NULL;
-  if (result_is_needed) {
-    value = Bind(BuildStoreExprTemp(for_value.value()));
+  StaticCallInstr* call;
+  if (setter_function.IsNull()) {
+    if (is_super_setter) {
+      ASSERT(node->receiver() != NULL);
+      // Resolve and call noSuchMethod.
+      ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->receiver());
+      arguments->Add(node->value());
+      call = BuildStaticNoSuchMethodCall(node->cls(),
+                                         node->receiver(),
+                                         setter_name,
+                                         arguments);
+    } else {
+      // Throw a NoSuchMethodError.
+      // Location argument.
+      Value* call_pos = Bind(
+          new ConstantInstr(Smi::ZoneHandle(Smi::New(node->token_pos()))));
+      arguments->Add(PushArgument(call_pos));
+      // Function name argument.
+      const String& method_name = String::ZoneHandle(Symbols::New(setter_name));
+      Value* method_name_value = Bind(new ConstantInstr(method_name));
+      arguments->Add(PushArgument(method_name_value));
+      const String& cls_name = String::Handle(Symbols::NoSuchMethodError());
+      const String& func_name = String::Handle(Symbols::ThrowNew());
+      const Class& cls = Class::Handle(
+          Library::Handle(Library::CoreLibrary()).LookupClass(cls_name));
+      ASSERT(!cls.IsNull());
+      setter_function = Resolver::ResolveStatic(cls,
+                                                func_name,
+                                                arguments->length(),
+                                                Array::ZoneHandle(),
+                                                Resolver::kIsQualified);
+      ASSERT(!setter_function.IsNull());
+      call = new StaticCallInstr(node->token_pos(),
+                                 setter_function,
+                                 Array::ZoneHandle(),  // No names.
+                                 arguments);
+    }
   } else {
-    value = for_value.value();
-  }
-  arguments->Add(PushArgument(value));
+    if (is_super_setter) {
+      // Add receiver of instance getter.
+      ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
+      node->receiver()->Visit(&for_receiver);
+      Append(for_receiver);
+      arguments->Add(PushArgument(for_receiver.value()));
+    }
+    ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
+    node->value()->Visit(&for_value);
+    Append(for_value);
+    Value* value = NULL;
+    if (result_is_needed) {
+      value = Bind(BuildStoreExprTemp(for_value.value()));
+    } else {
+      value = for_value.value();
+    }
+    arguments->Add(PushArgument(value));
 
-  StaticCallInstr* call = new StaticCallInstr(node->token_pos(),
-                                              setter_function,
-                                              Array::ZoneHandle(),  // No names.
-                                              arguments);
+    call = new StaticCallInstr(node->token_pos(),
+                               setter_function,
+                               Array::ZoneHandle(),  // No names.
+                               arguments);
+  }
   if (result_is_needed) {
     Do(call);
     ReturnDefinition(BuildLoadExprTemp());
@@ -2377,6 +2425,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
       ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->array());
       arguments->Add(node->index_expr());
       StaticCallInstr* call =
           BuildStaticNoSuchMethodCall(node->super_class(),
@@ -2441,6 +2490,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
         Bind(BuildStoreExprTemp(for_value.value()));
       }
       ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->array());
       arguments->Add(node->index_expr());
       arguments->Add(node->value());
       StaticCallInstr* call =

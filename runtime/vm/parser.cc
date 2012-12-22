@@ -1283,6 +1283,7 @@ String& Parser::ParseNativeDeclaration() {
 // set is_no_such_method to true..
 RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
                                       const String& name,
+                                      ArgumentListNode* arguments,
                                       bool resolve_getter,
                                       bool* is_no_such_method) {
   const Class& super_class = Class::Handle(current_class().SuperClass());
@@ -1290,9 +1291,14 @@ RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
     ErrorMsg(token_pos, "class '%s' does not have a superclass",
              String::Handle(current_class().Name()).ToCString());
   }
-  Function& super_func =
-      Function::Handle(Resolver::ResolveDynamicAnyArgs(super_class, name));
-  if (super_func.IsNull() && resolve_getter) {
+  Function& super_func = Function::Handle(
+      Resolver::ResolveDynamicAnyArgs(super_class, name));
+  if (!super_func.IsNull() &&
+      !super_func.AreValidArguments(arguments->length(),
+                                    arguments->names(),
+                                    NULL)) {
+    super_func = Function::null();
+  } else if (super_func.IsNull() && resolve_getter) {
     const String& getter_name = String::ZoneHandle(Field::GetterName(name));
     super_func = Resolver::ResolveDynamicAnyArgs(super_class, getter_name);
     ASSERT(super_func.IsNull() ||
@@ -1381,18 +1387,22 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
   ASSERT(CurrentToken() == Token::kLPAREN);
   const intptr_t supercall_pos = TokenPos();
 
+  // 'this' parameter is the first argument to super call.
+  ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
+  AstNode* receiver = LoadReceiver(supercall_pos);
+  arguments->Add(receiver);
+  ParseActualParameters(arguments, kAllowConst);
+
   const bool kResolveGetter = true;
   bool is_no_such_method = false;
   const Function& super_function = Function::ZoneHandle(
       GetSuperFunction(supercall_pos,
                        function_name,
+                       arguments,
                        kResolveGetter,
                        &is_no_such_method));
-  ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   if (super_function.IsGetterFunction() ||
       super_function.IsImplicitGetterFunction()) {
-    // 'this' is not passed as parameter to the closure.
-    ParseActualParameters(arguments, kAllowConst);
     const Class& super_class = Class::ZoneHandle(current_class().SuperClass());
     AstNode* closure = new StaticGetterNode(supercall_pos,
                                             LoadReceiver(supercall_pos),
@@ -1400,12 +1410,13 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
                                             super_class,
                                             function_name);
     EnsureExpressionTemp();
-    return new ClosureCallNode(supercall_pos, closure, arguments);
+    // 'this' is not passed as parameter to the closure.
+    ArgumentListNode* closure_arguments = new ArgumentListNode(supercall_pos);
+    for (int i = 1; i < arguments->length(); i++) {
+      closure_arguments->Add(arguments->NodeAt(i));
+    }
+    return new ClosureCallNode(supercall_pos, closure, closure_arguments);
   }
-  // 'this' parameter is the first argument to super call.
-  AstNode* receiver = LoadReceiver(supercall_pos);
-  arguments->Add(receiver);
-  ParseActualParameters(arguments, kAllowConst);
   if (is_no_such_method) {
     arguments = BuildNoSuchMethodArguments(
         supercall_pos, function_name, *arguments);
@@ -1435,16 +1446,17 @@ AstNode* Parser::BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super) {
     // Resolve the operator function in the superclass.
     const String& operator_function_name =
         String::ZoneHandle(Symbols::New(Token::Str(op)));
+    ArgumentListNode* op_arguments = new ArgumentListNode(super_pos);
+    AstNode* receiver = LoadReceiver(super_pos);
+    op_arguments->Add(receiver);
     const bool kResolveGetter = false;
     bool is_no_such_method = false;
     const Function& super_operator = Function::ZoneHandle(
         GetSuperFunction(super_pos,
                          operator_function_name,
+                         op_arguments,
                          kResolveGetter,
                          &is_no_such_method));
-    ArgumentListNode* op_arguments = new ArgumentListNode(super_pos);
-    AstNode* receiver = LoadReceiver(super_pos);
-    op_arguments->Add(receiver);
     if (is_no_such_method) {
       op_arguments = BuildNoSuchMethodArguments(
           super_pos, operator_function_name, *op_arguments);
@@ -1482,17 +1494,6 @@ AstNode* Parser::ParseSuperOperator() {
       negate_result = true;
     }
 
-    // Resolve the operator function in the superclass.
-    const String& operator_function_name =
-        String::Handle(Symbols::New(Token::Str(op)));
-    const bool kResolveGetter = false;
-    bool is_no_such_method = false;
-    const Function& super_operator = Function::ZoneHandle(
-        GetSuperFunction(operator_pos,
-                         operator_function_name,
-                         kResolveGetter,
-                         &is_no_such_method));
-
     ASSERT(Token::Precedence(op) >= Token::Precedence(Token::kBIT_OR));
     AstNode* other_operand = ParseBinaryExpr(Token::Precedence(op) + 1);
 
@@ -1501,6 +1502,17 @@ AstNode* Parser::ParseSuperOperator() {
     op_arguments->Add(receiver);
     op_arguments->Add(other_operand);
 
+    // Resolve the operator function in the superclass.
+    const String& operator_function_name =
+        String::ZoneHandle(Symbols::New(Token::Str(op)));
+    const bool kResolveGetter = false;
+    bool is_no_such_method = false;
+    const Function& super_operator = Function::ZoneHandle(
+        GetSuperFunction(operator_pos,
+                         operator_function_name,
+                         op_arguments,
+                         kResolveGetter,
+                         &is_no_such_method));
     if (is_no_such_method) {
       op_arguments = BuildNoSuchMethodArguments(
           operator_pos, operator_function_name, *op_arguments);
@@ -1524,7 +1536,8 @@ AstNode* Parser::CreateImplicitClosureNode(const Function& func,
     // parameterized class, make sure that the receiver is captured as
     // instantiator.
     if (current_block_->scope->function_level() > 0) {
-      const Class& signature_class = Class::Handle(func.signature_class());
+      const Class& signature_class = Class::Handle(
+          implicit_closure_function.signature_class());
       if (signature_class.NumTypeParameters() > 0) {
         CaptureInstantiator();
       }
@@ -1565,15 +1578,16 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
     // creating an implicit closure of the function and returning it.
     const Function& super_function = Function::ZoneHandle(
         Resolver::ResolveDynamicAnyArgs(super_class, field_name));
-    if (super_function.IsNull()) {
-      ErrorMsg(field_pos, "field or getter '%s' not found in superclass",
-               field_name.ToCString());
+    if (!super_function.IsNull()) {
+      // In case CreateAssignmentNode is called later on this
+      // CreateImplicitClosureNode, it will be replaced by a StaticSetterNode.
+      return CreateImplicitClosureNode(super_function,
+                                       field_pos,
+                                       implicit_argument);
     }
-    return CreateImplicitClosureNode(super_function,
-                                     field_pos,
-                                     implicit_argument);
+    // No function or field exists of the specified field_name.
+    // Emit a StaticGetterNode anyway, so that noSuchMethod gets called.
   }
-
   return new StaticGetterNode(
       field_pos, implicit_argument, true, super_class, field_name);
 }
@@ -6876,14 +6890,6 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
 // Ensure that the expression temp is allocated for nodes that may need it.
 AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
   AstNode* result = original->MakeAssignmentNode(rhs);
-  if ((result == NULL) && original->IsStaticGetterNode()) {
-    const String& setter_name = String::ZoneHandle(
-        Field::SetterSymbol(original->AsStaticGetterNode()->field_name()));
-    result = ThrowNoSuchMethodError(original->token_pos(), setter_name);
-  }
-  // TODO(hausner): if we decide to throw a no such method error on
-  // assignment to a final variable, we need to do the same as in the
-  // StaticGetterNode above.
   if ((result != NULL) &&
       (result->IsStoreIndexedNode() ||
        result->IsInstanceSetterNode() ||

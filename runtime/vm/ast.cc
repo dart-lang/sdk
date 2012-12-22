@@ -293,6 +293,21 @@ const Instance* ClosureNode::EvalConstExpr() const {
 }
 
 
+AstNode* ClosureNode::MakeAssignmentNode(AstNode* rhs) {
+  if (scope() == NULL) {
+    // This is an implicit closure node created because a static getter was not
+    // found. Change the getter into a setter. If it does not exist,
+    // noSuchMethod will be called.
+    return new StaticSetterNode(token_pos(),
+                                receiver(),
+                                Class::ZoneHandle(function().Owner()),
+                                String::ZoneHandle(function().name()),
+                                rhs);
+  }
+  return NULL;
+}
+
+
 const char* UnaryOpNode::Name() const {
   return Token::Str(kind_);
 }
@@ -345,60 +360,50 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   const String& setter_name = String::Handle(Field::SetterName(field_name()));
 
   if (is_super_getter_) {
-    // Resolve the (dynamic) setter method.
     ASSERT(receiver() != NULL);
-    const Function& super_setter = Function::ZoneHandle(
-        Resolver::ResolveDynamicAnyArgs(cls(), setter_name));
-    if (!super_setter.IsNull()) {
-      return new StaticSetterNode(token_pos(),
-                                  receiver(),
-                                  cls(),
-                                  field_name(),
-                                  rhs);
-    }
-    // If setter is found in the superclass, do not turn this into an
-    // instance setter resolved at runtime, since a super getter/setter
-    // explicitly refers to the static superclass of the enclosing function.
-    return NULL;
-  } else {
-    const Function& setter =
-        Function::ZoneHandle(cls().LookupStaticFunction(setter_name));
-    if (!setter.IsNull()) {
+    // If the static setter is not found in the superclass, noSuchMethod will be
+    // called at runtime.
+    return new StaticSetterNode(token_pos(),
+                                receiver(),
+                                cls(),
+                                field_name(),
+                                rhs);
+  }
+  const Function& setter =
+      Function::ZoneHandle(cls().LookupStaticFunction(setter_name));
+  if (!setter.IsNull()) {
+    return new StaticSetterNode(token_pos(), NULL, cls(), field_name(), rhs);
+  }
+  // Could not find a static setter. Look for a field.
+  // Access to a lazily initialized static field that has not yet been
+  // initialized is compiled to a static implicit getter.
+  // A setter may not exist for such a field.
+  const Field& field = Field::ZoneHandle(cls().LookupStaticField(field_name()));
+  if (!field.IsNull()) {
+    if (field.is_final()) {
+      // Attempting to assign to a final variable will cause a NoSuchMethodError
+      // to be thrown. Change static getter to non-existent static setter in
+      // order to trigger the throw at runtime.
       return new StaticSetterNode(token_pos(), NULL, cls(), field_name(), rhs);
     }
-    // Could not find a static setter. Look for a field.
-    // Access to a lazily initialized static field that has not yet been
-    // initialized is compiled to a static implicit getter.
-    // A setter may not exist for such a field.
-    const Field& field =
-        Field::ZoneHandle(cls().LookupStaticField(field_name()));
-    if (!field.IsNull()) {
-      if (field.is_final()) {
-        return NULL;
-      }
 #if defined(DEBUG)
-      const String& getter_name =
-          String::Handle(Field::GetterName(field_name()));
-      const Function& getter =
-          Function::ZoneHandle(cls().LookupStaticFunction(getter_name));
-      ASSERT(!getter.IsNull() &&
-             (getter.kind() == RawFunction::kConstImplicitGetter));
+    const String& getter_name = String::Handle(Field::GetterName(field_name()));
+    const Function& getter =
+        Function::Handle(cls().LookupStaticFunction(getter_name));
+    ASSERT(!getter.IsNull() &&
+           (getter.kind() == RawFunction::kConstImplicitGetter));
 #endif
-      return new StoreStaticFieldNode(token_pos(), field, rhs);
-    }
-    // Didn't find a static setter or a static field.
-    // If this static getter is in an instance function where
-    // a receiver is available, we turn this static getter
-    // into an instance setter (and will get an error at runtime if an
-    // instance setter cannot be found either).
-    if (receiver() != NULL) {
-      return new InstanceSetterNode(token_pos(),
-                                    receiver(),
-                                    field_name(),
-                                    rhs);
-    }
-    return NULL;
+    return new StoreStaticFieldNode(token_pos(), field, rhs);
   }
+  // Didn't find a static setter or a static field.
+  // If this static getter is in an instance function where
+  // a receiver is available, we turn this static getter
+  // into an instance setter (and will get an error at runtime if an
+  // instance setter cannot be found either).
+  if (receiver() != NULL) {
+    return new InstanceSetterNode(token_pos(), receiver(), field_name(), rhs);
+  }
+  return new StaticSetterNode(token_pos(), NULL, cls(), field_name(), rhs);
 }
 
 

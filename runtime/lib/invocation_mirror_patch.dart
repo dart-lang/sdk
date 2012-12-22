@@ -108,7 +108,7 @@ class _InvocationMirror implements InvocationMirror {
       native "InvocationMirror_invoke";
 
   invokeOn(Object receiver) {
-    _invoke(receiver, _functionName, _argumentsDescriptor, _arguments);
+    return _invoke(receiver, _functionName, _argumentsDescriptor, _arguments);
   }
 }
 

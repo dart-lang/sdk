@@ -418,6 +418,8 @@ class ClosureNode : public AstNode {
     }
   }
 
+  virtual AstNode* MakeAssignmentNode(AstNode* rhs);
+
   virtual const Instance* EvalConstExpr() const;
 
   DECLARE_COMMON_NODE_FUNCTIONS(ClosureNode);

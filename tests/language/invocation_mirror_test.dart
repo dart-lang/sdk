@@ -41,8 +41,8 @@ testInvocationMirror(InvocationMirror im, String name,
     if (positional == null) {
       Expect.isTrue(im.isGetter, "$name:isGetter");
       Expect.isFalse(im.isSetter, "$name:isSetter");
-      Expect.equals(null, im.positionalArguments, "$name:positional");
-      Expect.equals(null, im.namedArguments, "$name:named");
+      Expect.equals(0, im.positionalArguments.length, "$name:#positional");
+      Expect.equals(0, im.namedArguments.length, "$name:#named");
       return;
     }
     Expect.isTrue(im.isSetter, "$name:isSetter");
@@ -50,7 +50,7 @@ testInvocationMirror(InvocationMirror im, String name,
     Expect.equals(1, im.positionalArguments.length, "$name:#positional");
     Expect.equals(positional[0], im.positionalArguments[0],
                   "$name:positional[0]");
-    Expect.equals(null, im.namedArguments, "$name:named");
+    Expect.equals(0, im.namedArguments.length, "$name:#named");
     return;
   }
   Expect.isTrue(im.isMethod, "$name:isMethod");
@@ -166,7 +166,7 @@ class M extends N {
     testInvocationMirror(super - 4, '-', [4], {});
     testInvocationMirror(-super, 'unary-', [], {});
     testInvocationMirror(super[42], '[]', [42], {});
-    testInvocationMirror((super[37] = 42).last, '[]=', [37, 42], {});
+    testInvocationMirror((){super[37] = 42; return last;}(), '[]=', [37, 42], {});
 
     // Wrong arguments to existing function.
     testInvocationMirror(super.flif(), "flif", [], {});
@@ -234,7 +234,7 @@ testNoSuchMethodErrors() {
   test(() => o.toString(x: 37));
   test(() => o.hashCode = 42);
   test(() => o.hashCode());  // Thrown by int.noSuchMethod.
-  test(n.flif);  // Extracted method has no noSuchMethod.
+  test(() => (n.flif)());  // Extracted method has no noSuchMethod.
 }
 
 main() {
