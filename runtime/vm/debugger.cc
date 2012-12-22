@@ -1013,6 +1013,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     const Function& closure =
         Function::Handle(target_function.ImplicitClosureFunction());
     if (closure.HasCode()) {
+      EnsureFunctionIsDeoptimized(closure);
       CodeBreakpoint* closure_bpt =
           MakeCodeBreakpoint(closure, first_token_pos, last_token_pos);
       if ((closure_bpt != NULL) && (closure_bpt->src_bpt() == NULL)) {
