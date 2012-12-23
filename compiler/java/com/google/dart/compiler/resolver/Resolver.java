@@ -1233,8 +1233,15 @@ public class Resolver {
     @Override
     public Element visitSuperConstructorInvocation(DartSuperConstructorInvocation x) {
       visit(x.getArguments());
-      String name = x.getName() == null ? "" : x.getName().getName();
+      // check if correct place for super()
+      if (ElementKind.of(currentHolder) != ElementKind.CLASS || currentMethod == null
+          || !currentMethod.isConstructor()) {
+        onError(x, ResolverErrorCode.SUPER_OUTSIDE_OF_CONSTRUCTOR);
+        return recordElement(x, null);
+      }
       InterfaceType supertype = ((ClassElement) currentHolder).getSupertype();
+      // prepare ConstructorElement
+      String name = x.getName() == null ? "" : x.getName().getName();
       ConstructorElement element;
       if (supertype == null) {
         element = null;

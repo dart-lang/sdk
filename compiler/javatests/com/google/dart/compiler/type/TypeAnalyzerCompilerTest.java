@@ -6133,4 +6133,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertEquals(3, error.getColumnNumber());
     }
   }
+
+  public void test_superConstructorInvocation_wrongPlace() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "topLevelMethod() : super() {}",
+        "",
+        "class A {",
+        "  m() : super() {}",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.SUPER_OUTSIDE_OF_CONSTRUCTOR, 2, 20, 7),
+        errEx(ResolverErrorCode.SUPER_OUTSIDE_OF_CONSTRUCTOR, 5, 9, 7));
+  }
 }

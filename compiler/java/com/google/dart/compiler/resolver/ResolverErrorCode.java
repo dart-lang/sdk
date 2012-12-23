@@ -45,7 +45,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_METHOD_IN_LIBRARY("cannot resolve method '%s' in library '%s'"),
   // TODO(zundel): To exercise this requires simulating a corrupted SDK?
   CANNOT_RESOLVE_SDK_TYPE("cannot resolve SDK type %s"),
-  CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method '%s'"),
+  CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve super constructor '%s'"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
       "super type %s does not have a default constructor"),
   CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER(
@@ -200,6 +200,7 @@ public enum ResolverErrorCode implements ErrorCode {
   SUPER_CLASS_IN_IMPLEMENTS("Superclass in implements clause"),
   SUPER_IN_FACTORY_CONSTRUCTOR("Cannot use 'super' in a factory constructor"),
   SUPER_IN_STATIC_METHOD("Cannot use 'super' in a static method"),
+  SUPER_OUTSIDE_OF_CONSTRUCTOR("Cannot use 'super' constructor outside of a constructor"),
   SUPER_OUTSIDE_OF_METHOD("Cannot use 'super' outside of a method"),
   SUPER_ON_TOP_LEVEL("Cannot use 'super' in a top-level element"),
   SWITCH_CASE_FALL_THROUGH(ErrorSeverity.WARNING, "Switch case should end with break, continue, return or throw"),
