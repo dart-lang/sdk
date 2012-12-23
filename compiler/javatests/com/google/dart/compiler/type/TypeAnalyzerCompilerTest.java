@@ -31,12 +31,15 @@ import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.ConstructorElement;
+import com.google.dart.compiler.resolver.ConstructorNodeElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.EnclosingElement;
@@ -6147,5 +6150,25 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.SUPER_OUTSIDE_OF_CONSTRUCTOR, 2, 20, 7),
         errEx(ResolverErrorCode.SUPER_OUTSIDE_OF_CONSTRUCTOR, 5, 9, 7));
+  }
+
+  /**
+   * Test that we set {@link ConstructorElement} for {@link DartSuperConstructorInvocation}.
+   */
+  public void test_superConstructorInvocation_resolveElement() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  A.named() {}",
+        "}",
+        "abstract class B extends A {",
+        "  B() : super.named();",
+        "}",
+        "");
+    DartIdentifier nameInInvocation = findNode(DartIdentifier.class, "named();");
+    DartSuperConstructorInvocation invocation = (DartSuperConstructorInvocation) nameInInvocation.getParent();
+    ConstructorNodeElement expectedElement = invocation.getElement();
+    assertNotNull(expectedElement);
+    assertSame(nameInInvocation.getElement(), expectedElement);
   }
 }

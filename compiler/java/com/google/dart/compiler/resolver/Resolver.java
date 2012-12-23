@@ -1259,6 +1259,9 @@ public class Resolver {
       if (element == null) {
         onError(x, ResolverErrorCode.CANNOT_RESOLVE_SUPER_CONSTRUCTOR, name);
       }
+      if (x.getName() != null) {
+        recordElement(x.getName(), element);
+      }
       return recordElement(x, element);
     }
 
