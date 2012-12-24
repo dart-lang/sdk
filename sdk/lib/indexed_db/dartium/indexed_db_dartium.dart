@@ -203,60 +203,6 @@ class DatabaseEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName IDBDatabaseException
-class DatabaseException extends NativeFieldWrapperClass1 {
-  DatabaseException.internal();
-
-  static const int ABORT_ERR = 20;
-
-  static const int CONSTRAINT_ERR = 4;
-
-  static const int DATA_ERR = 5;
-
-  static const int NON_TRANSIENT_ERR = 2;
-
-  static const int NOT_ALLOWED_ERR = 6;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NO_ERR = 0;
-
-  static const int QUOTA_ERR = 22;
-
-  static const int READ_ONLY_ERR = 9;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TRANSACTION_INACTIVE_ERR = 7;
-
-  static const int UNKNOWN_ERR = 1;
-
-  static const int VER_ERR = 12;
-
-
-  /** @domName IDBDatabaseException.code */
-  int get code native "IDBDatabaseException_code_Getter";
-
-
-  /** @domName IDBDatabaseException.message */
-  String get message native "IDBDatabaseException_message_Getter";
-
-
-  /** @domName IDBDatabaseException.name */
-  String get name native "IDBDatabaseException_name_Getter";
-
-
-  /** @domName IDBDatabaseException.toString */
-  String toString() native "IDBDatabaseException_toString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName IDBFactory
 class IdbFactory extends NativeFieldWrapperClass1 {
   IdbFactory.internal();
@@ -878,6 +824,10 @@ class Transaction extends EventTarget {
 
   /** @domName IDBTransaction.mode */
   String get mode native "IDBTransaction_mode_Getter";
+
+
+  /** @domName IDBTransaction.webkitErrorMessage */
+  String get webkitErrorMessage native "IDBTransaction_webkitErrorMessage_Getter";
 
 
   /** @domName IDBTransaction.abort */

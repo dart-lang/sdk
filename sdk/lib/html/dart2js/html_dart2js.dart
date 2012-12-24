@@ -164,59 +164,6 @@ class AnchorElement extends Element native "*HTMLAnchorElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitAnimation; @docsEditable true
-class Animation native "*WebKitAnimation" {
-
-  static const int DIRECTION_ALTERNATE = 1;
-
-  static const int DIRECTION_NORMAL = 0;
-
-  static const int FILL_BACKWARDS = 1;
-
-  static const int FILL_BOTH = 3;
-
-  static const int FILL_FORWARDS = 2;
-
-  static const int FILL_NONE = 0;
-
-  /// @domName WebKitAnimation.delay; @docsEditable true
-  final num delay;
-
-  /// @domName WebKitAnimation.direction; @docsEditable true
-  final int direction;
-
-  /// @domName WebKitAnimation.duration; @docsEditable true
-  final num duration;
-
-  /// @domName WebKitAnimation.elapsedTime; @docsEditable true
-  num elapsedTime;
-
-  /// @domName WebKitAnimation.ended; @docsEditable true
-  final bool ended;
-
-  /// @domName WebKitAnimation.fillMode; @docsEditable true
-  final int fillMode;
-
-  /// @domName WebKitAnimation.iterationCount; @docsEditable true
-  final int iterationCount;
-
-  /// @domName WebKitAnimation.name; @docsEditable true
-  final String name;
-
-  /// @domName WebKitAnimation.paused; @docsEditable true
-  final bool paused;
-
-  /// @domName WebKitAnimation.pause; @docsEditable true
-  void pause() native;
-
-  /// @domName WebKitAnimation.play; @docsEditable true
-  void play() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName WebKitAnimationEvent; @docsEditable true
 class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 
@@ -7825,9 +7772,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   /// @domName Element.previousElementSibling; @docsEditable true
   final Element previousElementSibling;
 
-  /// @domName Element.pseudo; @docsEditable true
-  String pseudo;
-
   /// @domName Element.scrollHeight; @docsEditable true
   final int scrollHeight;
 
@@ -7845,6 +7789,12 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   /// @domName Element.tagName; @docsEditable true
   final String tagName;
+
+  /// @domName Element.webkitPseudo; @docsEditable true
+  String webkitPseudo;
+
+  /// @domName Element.webkitShadowRoot; @docsEditable true
+  final ShadowRoot webkitShadowRoot;
 
   /// @domName Element.blur; @docsEditable true
   void blur() native;
@@ -14555,6 +14505,9 @@ class PagePopupController native "*PagePopupController" {
   /// @domName PagePopupController.formatMonth; @docsEditable true
   String formatMonth(int year, int zeroBaseMonth) native;
 
+  /// @domName PagePopupController.histogramEnumeration; @docsEditable true
+  void histogramEnumeration(String name, int sample, int boundaryValue) native;
+
   /// @domName PagePopupController.localizeNumberString; @docsEditable true
   String localizeNumberString(String numberString) native;
 
@@ -15701,6 +15654,9 @@ class SelectElement extends Element native "*HTMLSelectElement" {
 /// @domName HTMLShadowElement; @docsEditable true
 class ShadowElement extends Element native "*HTMLShadowElement" {
 
+  /// @domName HTMLShadowElement.olderShadowRoot; @docsEditable true
+  final ShadowRoot olderShadowRoot;
+
   /// @domName HTMLShadowElement.resetStyleInheritance; @docsEditable true
   bool resetStyleInheritance;
 }
@@ -15713,9 +15669,6 @@ class ShadowElement extends Element native "*HTMLShadowElement" {
 
 /// @domName ShadowRoot
 class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
-
-  ///@docsEditable true
-  factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
 
   /// @domName ShadowRoot.activeElement; @docsEditable true
   final Element activeElement;
@@ -16252,26 +16205,8 @@ class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 /// @domName SpeechRecognitionError; @docsEditable true
 class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 
-  static const int ABORTED = 2;
-
-  static const int AUDIO_CAPTURE = 3;
-
-  static const int BAD_GRAMMAR = 7;
-
-  static const int LANGUAGE_NOT_SUPPORTED = 8;
-
-  static const int NETWORK = 4;
-
-  static const int NOT_ALLOWED = 5;
-
-  static const int NO_SPEECH = 1;
-
-  static const int OTHER = 0;
-
-  static const int SERVICE_NOT_ALLOWED = 6;
-
-  /// @domName SpeechRecognitionError.code; @docsEditable true
-  final int code;
+  /// @domName SpeechRecognitionError.error; @docsEditable true
+  final String error;
 
   /// @domName SpeechRecognitionError.message; @docsEditable true
   final String message;
@@ -22137,16 +22072,6 @@ class _RtcSessionDescriptionFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _ShadowRootFactoryProvider {
-  static ShadowRoot createShadowRoot(Element host) =>
-      JS('ShadowRoot',
-         'new (window.ShadowRoot || window.WebKitShadowRoot)(#)', host);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 class _SharedWorkerFactoryProvider {
   static SharedWorker createSharedWorker(String scriptURL, [String name]) {
     if (name == null) return JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
@@ -22545,120 +22470,6 @@ class _TextTrackCueFactoryProvider {
                   'new TextTrackCue(#,#,#,#,#)',
                   startTime, endTime, text, settings, pauseOnExit);
   }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName WebKitAnimationList; @docsEditable true
-class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation> native "*WebKitAnimationList" {
-
-  /// @domName WebKitAnimationList.length; @docsEditable true
-  int get length => JS("int", "#.length", this);
-
-  Animation operator[](int index) => JS("Animation", "#[#]", this, index);
-
-  void operator[]=(int index, Animation value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Animation> mixins.
-  // Animation is the element type.
-
-  // From Iterable<Animation>:
-
-  Iterator<Animation> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Animation>(this);
-  }
-
-  // From Collection<Animation>:
-
-  void add(Animation value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Animation value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<Animation> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Animation)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Animation element) => Collections.contains(this, element);
-
-  void forEach(void f(Animation element)) => Collections.forEach(this, f);
-
-  Collection map(f(Animation element)) => Collections.map(this, [], f);
-
-  Collection<Animation> filter(bool f(Animation element)) =>
-     Collections.filter(this, <Animation>[], f);
-
-  bool every(bool f(Animation element)) => Collections.every(this, f);
-
-  bool some(bool f(Animation element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<Animation>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  void sort([int compare(Animation a, Animation b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Animation element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Animation element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Animation get first => this[0];
-
-  Animation get last => this[length - 1];
-
-  Animation removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
-  }
-
-  Animation removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Animation> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Animation initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<Animation> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Animation>[]);
-
-  // -- end List<Animation> mixins.
-
-  /// @domName WebKitAnimationList.item; @docsEditable true
-  Animation item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

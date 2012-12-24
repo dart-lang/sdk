@@ -866,6 +866,21 @@ class OfflineAudioCompletionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName OfflineAudioContext
+class OfflineAudioContext extends AudioContext implements EventTarget {
+
+  ///@docsEditable true
+  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) => _OfflineAudioContextFactoryProvider.createOfflineAudioContext(numberOfChannels, numberOfFrames, sampleRate);
+  OfflineAudioContext.internal(): super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName OscillatorNode
 class OscillatorNode extends AudioSourceNode {
   OscillatorNode.internal(): super.internal();
@@ -1068,4 +1083,12 @@ class WaveShaperNode extends AudioNode {
 class WaveTable extends NativeFieldWrapperClass1 {
   WaveTable.internal();
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class _OfflineAudioContextFactoryProvider {
+  static OfflineAudioContext createOfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) native "OfflineAudioContext_constructor_Callback";
 }

@@ -280,52 +280,6 @@ class DatabaseEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBDatabaseException; @docsEditable true
-class DatabaseException native "*IDBDatabaseException" {
-
-  static const int ABORT_ERR = 20;
-
-  static const int CONSTRAINT_ERR = 4;
-
-  static const int DATA_ERR = 5;
-
-  static const int NON_TRANSIENT_ERR = 2;
-
-  static const int NOT_ALLOWED_ERR = 6;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NO_ERR = 0;
-
-  static const int QUOTA_ERR = 22;
-
-  static const int READ_ONLY_ERR = 9;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TRANSACTION_INACTIVE_ERR = 7;
-
-  static const int UNKNOWN_ERR = 1;
-
-  static const int VER_ERR = 12;
-
-  /// @domName IDBDatabaseException.code; @docsEditable true
-  final int code;
-
-  /// @domName IDBDatabaseException.message; @docsEditable true
-  final String message;
-
-  /// @domName IDBDatabaseException.name; @docsEditable true
-  final String name;
-
-  /// @domName IDBDatabaseException.toString; @docsEditable true
-  String toString() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName IDBFactory; @docsEditable true
 class IdbFactory native "*IDBFactory" {
 
@@ -919,6 +873,9 @@ class Transaction extends EventTarget native "*IDBTransaction" {
 
   /// @domName IDBTransaction.mode; @docsEditable true
   final String mode;
+
+  /// @domName IDBTransaction.webkitErrorMessage; @docsEditable true
+  final String webkitErrorMessage;
 
   /// @domName IDBTransaction.abort; @docsEditable true
   void abort() native;
