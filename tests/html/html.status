@@ -299,6 +299,7 @@ unknownelement_test: Fail # Issue 4189
 [ $compiler == dart2js && $runtime == chrome ]
 indexeddb_3_test: Fail # Current chrome still throws InDBDatabaseException.
 indexeddb_4_test: Fail # Current chrome still throws InDBDatabaseException.
+shadowroot_test: Fail # Exception is not thrown.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
