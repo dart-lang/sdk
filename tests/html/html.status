@@ -19,6 +19,7 @@ input_element_test/week: Fail            # Chrome stable does not support this i
 
 [ $runtime == chrome || $runtime == drt]
 audiobuffersourcenode_test: Pass, Fail  # AudiobufferSourceNode is flaky on Chrome and Dartium.
+audiocontext_test: Skip # Need to adjust to new API.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented

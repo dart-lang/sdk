@@ -22,8 +22,7 @@ class Test {
       // Nuke object store if it already exists.
       db.deleteObjectStore(STORE_NAME);
     }
-    on DatabaseException catch(e) { }  // Chrome
-    on DomException catch(e) { }          // Firefox
+    on DomException catch(e) { } // Chrome and Firefox
     db.createObjectStore(STORE_NAME);
   }
 

@@ -21,7 +21,7 @@ main() {
       div1 = new DivElement();
       div2 = new DivElement();
       div1.classes.add('foo');
-      shadowRoot = new ShadowRoot(div2);
+      shadowRoot = div2.webkitCreateShadowRoot();
       shadowRoot.nodes.add(paragraph1);
       // No constructor for ContentElement exists yet.
       // See http://code.google.com/p/dart/issues/detail?id=3870.
