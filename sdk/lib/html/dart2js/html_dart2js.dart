@@ -354,7 +354,9 @@ class AreaElement extends Element native "*HTMLAreaElement" {
 class ArrayBuffer native "*ArrayBuffer" {
 
   ///@docsEditable true
-  factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
+  factory ArrayBuffer(int length) => ArrayBuffer._create(length);
+  static ArrayBuffer _create(int length) =>
+      JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
 
   /// @domName ArrayBuffer.byteLength; @docsEditable true
   final int byteLength;
@@ -413,9 +415,13 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
   ///@docsEditable true
   factory AudioElement([String src]) {
     if (!?src) {
-      return _AudioElementFactoryProvider.createAudioElement();
+      return AudioElement._create();
     }
-    return _AudioElementFactoryProvider.createAudioElement(src);
+    return AudioElement._create(src);
+  }
+  static AudioElement _create([String src = null]) {
+    if (src == null) return JS('AudioElement', 'new Audio()');
+    return JS('AudioElement', 'new Audio(#)', src);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -553,13 +559,31 @@ class Blob native "*Blob" {
   ///@docsEditable true
   factory Blob(List blobParts, [String type, String endings]) {
     if (!?type) {
-      return _BlobFactoryProvider.createBlob(blobParts);
+      return Blob._create(blobParts);
     }
     if (!?endings) {
-      return _BlobFactoryProvider.createBlob(blobParts, type);
+      return Blob._create(blobParts, type);
     }
-    return _BlobFactoryProvider.createBlob(blobParts, type, endings);
+    return Blob._create(blobParts, type, endings);
   }
+  static Blob _create([List blobParts = null, String type, String endings]) {
+    // TODO: validate that blobParts is a JS Array and convert if not.
+    // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
+    // array to ArrayBuffer if it is a total view.
+    if (type == null && endings == null) {
+      return _create_1(blobParts);
+    }
+    var bag = _create_bag();
+    if (type != null) _bag_set(bag, 'type', type);
+    if (endings != null) _bag_set(bag, 'endings', endings);
+    return _create_2(blobParts, bag);
+  }
+
+  static _create_1(parts) => JS('Blob', 'new Blob(#)', parts);
+  static _create_2(parts, bag) => JS('Blob', 'new Blob(#, #)', parts, bag);
+
+  static _create_bag() => JS('var', '{}');
+  static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
 
   /// @domName Blob.size; @docsEditable true
   final int size;
@@ -1594,10 +1618,12 @@ class CssMatrix native "*WebKitCSSMatrix" {
   ///@docsEditable true
   factory CssMatrix([String cssValue]) {
     if (!?cssValue) {
-      return _CssMatrixFactoryProvider.createCssMatrix();
+      return CssMatrix._create();
     }
-    return _CssMatrixFactoryProvider.createCssMatrix(cssValue);
+    return CssMatrix._create(cssValue);
   }
+  static CssMatrix _create([String cssValue = '']) =>
+      JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);
 
   /// @domName WebKitCSSMatrix.a; @docsEditable true
   num a;
@@ -5316,12 +5342,21 @@ class DataView extends ArrayBufferView native "*DataView" {
   ///@docsEditable true
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
     if (!?byteOffset) {
-      return _DataViewFactoryProvider.createDataView(buffer);
+      return DataView._create(buffer);
     }
     if (!?byteLength) {
-      return _DataViewFactoryProvider.createDataView(buffer, byteOffset);
+      return DataView._create(buffer, byteOffset);
     }
-    return _DataViewFactoryProvider.createDataView(buffer, byteOffset, byteLength);
+    return DataView._create(buffer, byteOffset, byteLength);
+  }
+  static DataView _create(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) {
+    if (byteOffset == null) {
+      return JS('DataView', 'new DataView(#)', buffer);
+    }
+    if (byteLength == null) {
+      return JS('DataView', 'new DataView(#,#)', buffer, byteOffset);
+    }
+    return JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
   }
 
   /// @domName DataView.getFloat32; @docsEditable true
@@ -6555,7 +6590,9 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 class DomParser native "*DOMParser" {
 
   ///@docsEditable true
-  factory DomParser() => _DomParserFactoryProvider.createDomParser();
+  factory DomParser() => DomParser._create();
+  static DomParser _create() =>
+      JS('DomParser', 'new DOMParser()' );
 
   /// @domName DOMParser.parseFromString; @docsEditable true
   Document parseFromString(String str, String contentType) native;
@@ -8435,7 +8472,9 @@ class EventException native "*EventException" {
 class EventSource extends EventTarget native "*EventSource" {
 
   ///@docsEditable true
-  factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
+  factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
+  static EventSource _create(String scriptUrl) =>
+      JS('EventSource', 'new EventSource(#)', scriptUrl);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   EventSourceEvents get on =>
@@ -8884,7 +8923,9 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 class FileReader extends EventTarget native "*FileReader" {
 
   ///@docsEditable true
-  factory FileReader() => _FileReaderFactoryProvider.createFileReader();
+  factory FileReader() => FileReader._create();
+  static FileReader _create() =>
+      JS('FileReader', 'new FileReader()' );
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileReaderEvents get on =>
@@ -8967,7 +9008,9 @@ class FileReaderEvents extends Events {
 class FileReaderSync native "*FileReaderSync" {
 
   ///@docsEditable true
-  factory FileReaderSync() => _FileReaderSyncFactoryProvider.createFileReaderSync();
+  factory FileReaderSync() => FileReaderSync._create();
+  static FileReaderSync _create() =>
+      JS('FileReaderSync', 'new FileReaderSync()' );
 
   /// @domName FileReaderSync.readAsArrayBuffer; @docsEditable true
   ArrayBuffer readAsArrayBuffer(Blob blob) native;
@@ -9407,9 +9450,13 @@ class FormData native "*FormData" {
   ///@docsEditable true
   factory FormData([FormElement form]) {
     if (!?form) {
-      return _FormDataFactoryProvider.createFormData();
+      return FormData._create();
     }
-    return _FormDataFactoryProvider.createFormData(form);
+    return FormData._create(form);
+  }
+  static FormData _create([FormElement form = null]) {
+    if (form == null) return JS('FormData', 'new FormData()');
+    return JS('FormData', 'new FormData(#)', form);
   }
 
   /// @domName DOMFormData.append; @docsEditable true
@@ -10171,7 +10218,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * [onComplete] callback.
    */
   factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
+      _HttpRequestUtils.get(url, onComplete, false);
 
   // 80 char issue for comments in lists: dartbug.com/7588.
   /**
@@ -10193,26 +10240,13 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   factory HttpRequest.getWithCredentials(String url,
       onComplete(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url,
-      onComplete);
+      _HttpRequestUtils.get(url, onComplete, true);
 
 
-  /**
-   * General constructor for any type of request (GET, POST, etc).
-   *
-   * This call is used in conjunction with [open]:
-   * 
-   *     var request = new HttpRequest();
-   *     request.open('GET', 'http://dartlang.org')
-   *     request.on.load.add((event) => print('Request complete'));
-   * 
-   * is the (more verbose) equivalent of
-   * 
-   *     var request = new HttpRequest.get('http://dartlang.org',
-   *         (event) => print('Request complete'));
-   */
   ///@docsEditable true
-  factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
+  factory HttpRequest() => HttpRequest._create();
+  static HttpRequest _create() =>
+      JS('HttpRequest', 'new XMLHttpRequest()' );
 
   /**
    * Get the set of [HttpRequestEvents] that this request can respond to.
@@ -12194,7 +12228,9 @@ class MarqueeElement extends Element native "*HTMLMarqueeElement" {
 class MediaController extends EventTarget native "*MediaController" {
 
   ///@docsEditable true
-  factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
+  factory MediaController() => MediaController._create();
+  static MediaController _create() =>
+      JS('MediaController', 'new MediaController()' );
 
   /// @domName MediaController.buffered; @docsEditable true
   final TimeRanges buffered;
@@ -12618,7 +12654,9 @@ abstract class MediaQueryListListener {
 class MediaSource extends EventTarget native "*MediaSource" {
 
   ///@docsEditable true
-  factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
+  factory MediaSource() => MediaSource._create();
+  static MediaSource _create() =>
+      JS('MediaSource', 'new MediaSource()' );
 
   /// @domName MediaSource.activeSourceBuffers; @docsEditable true
   final SourceBufferList activeSourceBuffers;
@@ -12662,7 +12700,9 @@ class MediaSource extends EventTarget native "*MediaSource" {
 class MediaStream extends EventTarget native "*MediaStream" {
 
   ///@docsEditable true
-  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
+  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => MediaStream._create(audioTracks, videoTracks);
+  static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) =>
+      JS('MediaStream', 'new MediaStream(#,#)', audioTracks, videoTracks);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamEvents get on =>
@@ -12879,7 +12919,9 @@ class MenuElement extends Element native "*HTMLMenuElement" {
 class MessageChannel native "*MessageChannel" {
 
   ///@docsEditable true
-  factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
+  factory MessageChannel() => MessageChannel._create();
+  static MessageChannel _create() =>
+      JS('MessageChannel', 'new MessageChannel()' );
 
   /// @domName MessageChannel.port1; @docsEditable true
   final MessagePort port1;
@@ -13230,7 +13272,25 @@ class MutationEvent extends Event native "*MutationEvent" {
 class MutationObserver native "*MutationObserver" {
 
   ///@docsEditable true
-  factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
+  factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
+  @Creates('MutationObserver')
+  @Creates('MutationRecord')
+  static MutationObserver _create(MutationCallback callback) native '''
+    var constructor =
+        window.MutationObserver || window.WebKitMutationObserver ||
+        window.MozMutationObserver;
+    return new constructor(callback);
+  ''';
+
+  // TODO(sra): Dart2js inserts a conversion when a Dart function (i.e. an
+  // object with a call method) is passed to a native method.  This is so the
+  // native code sees a JavaScript function.
+  //
+  // This does not happen when a function is 'passed' to a JS-form so it is not
+  // possible to rewrite the above code to, e.g. (simplified):
+  //
+  // static createMutationObserver(MutationCallback callback) =>
+  //    JS('var', 'new (window.MutationObserver)(#)', callback);
 
   /// @domName MutationObserver.disconnect; @docsEditable true
   void disconnect() native;
@@ -14113,10 +14173,12 @@ class Notification extends EventTarget native "*Notification" {
   ///@docsEditable true
   factory Notification(String title, [Map options]) {
     if (!?options) {
-      return _NotificationFactoryProvider.createNotification(title);
+      return Notification._create(title);
     }
-    return _NotificationFactoryProvider.createNotification(title, options);
+    return Notification._create(title, options);
   }
+  static Notification _create(String title, [Map options]) =>
+      JS('Notification', 'new Notification(#,#)', title, options);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   NotificationEvents get on =>
@@ -14388,18 +14450,36 @@ class OptionElement extends Element native "*HTMLOptionElement" {
   ///@docsEditable true
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (!?data) {
-      return _OptionElementFactoryProvider.createOptionElement();
+      return OptionElement._create();
     }
     if (!?value) {
-      return _OptionElementFactoryProvider.createOptionElement(data);
+      return OptionElement._create(data);
     }
     if (!?defaultSelected) {
-      return _OptionElementFactoryProvider.createOptionElement(data, value);
+      return OptionElement._create(data, value);
     }
     if (!?selected) {
-      return _OptionElementFactoryProvider.createOptionElement(data, value, defaultSelected);
+      return OptionElement._create(data, value, defaultSelected);
     }
-    return _OptionElementFactoryProvider.createOptionElement(data, value, defaultSelected, selected);
+    return OptionElement._create(data, value, defaultSelected, selected);
+  }
+  static OptionElement _create(
+      [String data, String value, bool defaultSelected, bool selected]) {
+    if (data == null) {
+      return JS('OptionElement', 'new Option()');
+    }
+    if (value == null) {
+      return JS('OptionElement', 'new Option(#)', data);
+    }
+    if (defaultSelected == null) {
+      return JS('OptionElement', 'new Option(#,#)', data, value);
+    }
+    if (selected == null) {
+      return JS('OptionElement', 'new Option(#,#,#)',
+                data, value, defaultSelected);
+    }
+    return JS('OptionElement', 'new Option(#,#,#,#)',
+              data, value, defaultSelected, selected);
   }
 
   /// @domName HTMLOptionElement.defaultSelected; @docsEditable true
@@ -15139,7 +15219,9 @@ class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 class RtcIceCandidate native "*RTCIceCandidate" {
 
   ///@docsEditable true
-  factory RtcIceCandidate(Map dictionary) => _RtcIceCandidateFactoryProvider.createRtcIceCandidate(dictionary);
+  factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
+  static RtcIceCandidate _create(Map dictionary) =>
+      JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
 
   /// @domName RTCIceCandidate.candidate; @docsEditable true
   final String candidate;
@@ -15172,10 +15254,12 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   ///@docsEditable true
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     if (!?mediaConstraints) {
-      return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers);
+      return RtcPeerConnection._create(rtcIceServers);
     }
-    return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers, mediaConstraints);
+    return RtcPeerConnection._create(rtcIceServers, mediaConstraints);
   }
+  static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) =>
+      JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RtcPeerConnectionEvents get on =>
@@ -15351,7 +15435,9 @@ class RtcPeerConnectionEvents extends Events {
 class RtcSessionDescription native "*RTCSessionDescription" {
 
   ///@docsEditable true
-  factory RtcSessionDescription(Map dictionary) => _RtcSessionDescriptionFactoryProvider.createRtcSessionDescription(dictionary);
+  factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
+  static RtcSessionDescription _create(Map dictionary) =>
+      JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
 
   /// @domName RTCSessionDescription.sdp; @docsEditable true
   String sdp;
@@ -15718,9 +15804,13 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
   ///@docsEditable true
   factory SharedWorker(String scriptURL, [String name]) {
     if (!?name) {
-      return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL);
+      return SharedWorker._create(scriptURL);
     }
-    return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL, name);
+    return SharedWorker._create(scriptURL, name);
+  }
+  static SharedWorker _create(String scriptURL, [String name]) {
+    if (name == null) return JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
+    return JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
   }
 
   /// @domName SharedWorker.port; @docsEditable true
@@ -15936,7 +16026,9 @@ class SpanElement extends Element native "*HTMLSpanElement" {
 class SpeechGrammar native "*SpeechGrammar" {
 
   ///@docsEditable true
-  factory SpeechGrammar() => _SpeechGrammarFactoryProvider.createSpeechGrammar();
+  factory SpeechGrammar() => SpeechGrammar._create();
+  static SpeechGrammar _create() =>
+      JS('SpeechGrammar', 'new SpeechGrammar()' );
 
   /// @domName SpeechGrammar.src; @docsEditable true
   String src;
@@ -15953,7 +16045,9 @@ class SpeechGrammar native "*SpeechGrammar" {
 class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "*SpeechGrammarList" {
 
   ///@docsEditable true
-  factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
+  factory SpeechGrammarList() => SpeechGrammarList._create();
+  static SpeechGrammarList _create() =>
+      JS('SpeechGrammarList', 'new SpeechGrammarList()' );
 
   /// @domName SpeechGrammarList.length; @docsEditable true
   int get length => JS("int", "#.length", this);
@@ -16102,7 +16196,9 @@ class SpeechInputResult native "*SpeechInputResult" {
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
   ///@docsEditable true
-  factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
+  factory SpeechRecognition() => SpeechRecognition._create();
+  static SpeechRecognition _create() =>
+      JS('SpeechRecognition', 'new SpeechRecognition()' );
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SpeechRecognitionEvents get on =>
@@ -17160,7 +17256,24 @@ class TextTrackEvents extends Events {
 class TextTrackCue extends EventTarget native "*TextTrackCue" {
 
   ///@docsEditable true
-  factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
+  factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
+  static TextTrackCue _create(
+      num startTime, num endTime, String text,
+      [String settings, bool pauseOnExit]) {
+        if (settings == null) {
+          return JS('TextTrackCue',
+                    'new TextTrackCue(#,#,#)',
+                    startTime, endTime, text);
+        }
+        if (pauseOnExit == null) {
+          return JS('TextTrackCue',
+                    'new TextTrackCue(#,#,#,#)',
+                    startTime, endTime, text, settings);
+        }
+        return JS('TextTrackCue',
+                  'new TextTrackCue(#,#,#,#,#)',
+                  startTime, endTime, text, settings, pauseOnExit);
+  }
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackCueEvents get on =>
@@ -19820,7 +19933,9 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 class WebSocket extends EventTarget native "*WebSocket" {
 
   ///@docsEditable true
-  factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
+  factory WebSocket(String url) => WebSocket._create(url);
+  static WebSocket _create(String url) =>
+      JS('WebSocket', 'new WebSocket(#)', url);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WebSocketEvents get on =>
@@ -20652,7 +20767,9 @@ class WindowEvents extends Events {
 class Worker extends AbstractWorker native "*Worker" {
 
   ///@docsEditable true
-  factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
+  factory Worker(String scriptUrl) => Worker._create(scriptUrl);
+  static Worker _create(String scriptUrl) =>
+      JS('Worker', 'new Worker(#)', scriptUrl);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerEvents get on =>
@@ -20846,7 +20963,9 @@ class WorkerNavigator native "*WorkerNavigator" {
 class XPathEvaluator native "*XPathEvaluator" {
 
   ///@docsEditable true
-  factory XPathEvaluator() => _XPathEvaluatorFactoryProvider.createXPathEvaluator();
+  factory XPathEvaluator() => XPathEvaluator._create();
+  static XPathEvaluator _create() =>
+      JS('XPathEvaluator', 'new XPathEvaluator()' );
 
   /// @domName XPathEvaluator.createExpression; @docsEditable true
   XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
@@ -20968,7 +21087,9 @@ class XPathResult native "*XPathResult" {
 class XmlSerializer native "*XMLSerializer" {
 
   ///@docsEditable true
-  factory XmlSerializer() => _XmlSerializerFactoryProvider.createXmlSerializer();
+  factory XmlSerializer() => XmlSerializer._create();
+  static XmlSerializer _create() =>
+      JS('XmlSerializer', 'new XMLSerializer()' );
 
   /// @domName XMLSerializer.serializeToString; @docsEditable true
   String serializeToString(Node node) native;
@@ -20982,7 +21103,9 @@ class XmlSerializer native "*XMLSerializer" {
 class XsltProcessor native "*XSLTProcessor" {
 
   ///@docsEditable true
-  factory XsltProcessor() => _XsltProcessorFactoryProvider.createXsltProcessor();
+  factory XsltProcessor() => XsltProcessor._create();
+  static XsltProcessor _create() =>
+      JS('XsltProcessor', 'new XSLTProcessor()' );
 
   /// @domName XSLTProcessor.clearParameters; @docsEditable true
   void clearParameters() native;
@@ -21007,47 +21130,6 @@ class XsltProcessor native "*XSLTProcessor" {
 
   /// @domName XSLTProcessor.transformToFragment; @docsEditable true
   DocumentFragment transformToFragment(Node source, Document docVal) native;
-}
-
-class _ArrayBufferFactoryProvider {
-  static ArrayBuffer createArrayBuffer(int length) =>
-      JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _AudioElementFactoryProvider {
-  static AudioElement createAudioElement([String src = null]) {
-    if (src == null) return JS('AudioElement', 'new Audio()');
-    return JS('AudioElement', 'new Audio(#)', src);
-  }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _BlobFactoryProvider {
-  static Blob createBlob([List blobParts = null, String type, String endings]) {
-    // TODO: validate that blobParts is a JS Array and convert if not.
-    // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
-    // array to ArrayBuffer if it is a total view.
-    if (type == null && endings == null) {
-      return _create_1(blobParts);
-    }
-    var bag = _create_bag();
-    if (type != null) _bag_set(bag, 'type', type);
-    if (endings != null) _bag_set(bag, 'endings', endings);
-    return _create_2(blobParts, bag);
-  }
-
-  static _create_1(parts) => JS('Blob', 'new Blob(#)', parts);
-  static _create_2(parts, bag) => JS('Blob', 'new Blob(#, #)', parts, bag);
-
-  static _create_bag() => JS('var', '{}');
-  static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21162,15 +21244,6 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 
   /// @domName ClientRectList.item; @docsEditable true
   ClientRect item(int index) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _CssMatrixFactoryProvider {
-  static CssMatrix createCssMatrix([String cssValue = '']) =>
-      JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21405,28 +21478,6 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _DataViewFactoryProvider {
-  static DataView createDataView(
-      ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) {
-    if (byteOffset == null) {
-      return JS('DataView', 'new DataView(#)', buffer);
-    }
-    if (byteLength == null) {
-      return JS('DataView', 'new DataView(#,#)', buffer, byteOffset);
-    }
-    return JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
-  }
-}
-
-class _DomParserFactoryProvider {
-  static DomParser createDomParser() =>
-      JS('DomParser', 'new DOMParser()' );
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName EntryArray; @docsEditable true
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
 
@@ -21650,32 +21701,6 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
   /// @domName EntryArraySync.item; @docsEditable true
   EntrySync item(int index) native;
 }
-
-class _EventSourceFactoryProvider {
-  static EventSource createEventSource(String scriptUrl) =>
-      JS('EventSource', 'new EventSource(#)', scriptUrl);
-}
-
-class _FileReaderFactoryProvider {
-  static FileReader createFileReader() =>
-      JS('FileReader', 'new FileReader()' );
-}
-
-class _FileReaderSyncFactoryProvider {
-  static FileReaderSync createFileReaderSync() =>
-      JS('FileReaderSync', 'new FileReaderSync()' );
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _FormDataFactoryProvider {
-  static FormData createFormData([FormElement form = null]) {
-    if (form == null) return JS('FormData', 'new FormData()');
-    return JS('FormData', 'new FormData(#)', form);
-  }
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21795,38 +21820,6 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _HttpRequestFactoryProvider {
-  static HttpRequest createHttpRequest() =>
-      JS('HttpRequest', 'new XMLHttpRequest()');
-
-  static HttpRequest createHttpRequest_get(String url,
-      onComplete(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onComplete, false);
-
-  static HttpRequest createHttpRequest_getWithCredentials(String url,
-      onComplete(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onComplete, true);
-}
-
-class _MediaControllerFactoryProvider {
-  static MediaController createMediaController() =>
-      JS('MediaController', 'new MediaController()' );
-}
-
-class _MediaSourceFactoryProvider {
-  static MediaSource createMediaSource() =>
-      JS('MediaSource', 'new MediaSource()' );
-}
-
-class _MediaStreamFactoryProvider {
-  static MediaStream createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) =>
-      JS('MediaStream', 'new MediaStream(#,#)', audioTracks, videoTracks);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName MediaStreamList; @docsEditable true
 class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> native "*MediaStreamList" {
 
@@ -21935,103 +21928,6 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 
   /// @domName MediaStreamList.item; @docsEditable true
   MediaStream item(int index) native;
-}
-
-class _MessageChannelFactoryProvider {
-  static MessageChannel createMessageChannel() =>
-      JS('MessageChannel', 'new MessageChannel()' );
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _MutationObserverFactoryProvider {
-
-  @Creates('MutationObserver')
-  @Creates('MutationRecord')
-  static MutationObserver createMutationObserver(MutationCallback callback) native '''
-    var constructor =
-        window.MutationObserver || window.WebKitMutationObserver ||
-        window.MozMutationObserver;
-    return new constructor(callback);
-  ''';
-
-  // TODO(sra): Dart2js inserts a conversion when a Dart function (i.e. an
-  // object with a call method) is passed to a native method.  This is so the
-  // native code sees a JavaScript function.
-  //
-  // This does not happen when a function is 'passed' to a JS-form so it is not
-  // possible to rewrite the above code to, e.g. (simplified):
-  //
-  // static createMutationObserver(MutationCallback callback) =>
-  //    JS('var', 'new (window.MutationObserver)(#)', callback);
-}
-
-class _NotificationFactoryProvider {
-  static Notification createNotification(String title, [Map options]) =>
-      JS('Notification', 'new Notification(#,#)', title, options);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _OptionElementFactoryProvider {
-  static OptionElement createOptionElement(
-      [String data, String value, bool defaultSelected, bool selected]) {
-    if (data == null) {
-      return JS('OptionElement', 'new Option()');
-    }
-    if (value == null) {
-      return JS('OptionElement', 'new Option(#)', data);
-    }
-    if (defaultSelected == null) {
-      return JS('OptionElement', 'new Option(#,#)', data, value);
-    }
-    if (selected == null) {
-      return JS('OptionElement', 'new Option(#,#,#)',
-                data, value, defaultSelected);
-    }
-    return JS('OptionElement', 'new Option(#,#,#,#)',
-              data, value, defaultSelected, selected);
-  }
-}
-
-class _RtcIceCandidateFactoryProvider {
-  static RtcIceCandidate createRtcIceCandidate(Map dictionary) =>
-      JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
-}
-
-class _RtcPeerConnectionFactoryProvider {
-  static RtcPeerConnection createRtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) =>
-      JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
-}
-
-class _RtcSessionDescriptionFactoryProvider {
-  static RtcSessionDescription createRtcSessionDescription(Map dictionary) =>
-      JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _SharedWorkerFactoryProvider {
-  static SharedWorker createSharedWorker(String scriptURL, [String name]) {
-    if (name == null) return JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
-    return JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
-  }
-}
-
-class _SpeechGrammarFactoryProvider {
-  static SpeechGrammar createSpeechGrammar() =>
-      JS('SpeechGrammar', 'new SpeechGrammar()' );
-}
-
-class _SpeechGrammarListFactoryProvider {
-  static SpeechGrammarList createSpeechGrammarList() =>
-      JS('SpeechGrammarList', 'new SpeechGrammarList()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22146,11 +22042,6 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   /// @domName SpeechInputResultList.item; @docsEditable true
   SpeechInputResult item(int index) native;
-}
-
-class _SpeechRecognitionFactoryProvider {
-  static SpeechRecognition createSpeechRecognition() =>
-      JS('SpeechRecognition', 'new SpeechRecognition()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22379,55 +22270,6 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   /// @domName StyleSheetList.item; @docsEditable true
   StyleSheet item(int index) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _TextTrackCueFactoryProvider {
-  static TextTrackCue createTextTrackCue(
-      num startTime, num endTime, String text,
-      [String settings, bool pauseOnExit]) {
-        if (settings == null) {
-          return JS('TextTrackCue',
-                    'new TextTrackCue(#,#,#)',
-                    startTime, endTime, text);
-        }
-        if (pauseOnExit == null) {
-          return JS('TextTrackCue',
-                    'new TextTrackCue(#,#,#,#)',
-                    startTime, endTime, text, settings);
-        }
-        return JS('TextTrackCue',
-                  'new TextTrackCue(#,#,#,#,#)',
-                  startTime, endTime, text, settings, pauseOnExit);
-  }
-}
-
-class _WebSocketFactoryProvider {
-  static WebSocket createWebSocket(String url) =>
-      JS('WebSocket', 'new WebSocket(#)', url);
-}
-
-class _WorkerFactoryProvider {
-  static Worker createWorker(String scriptUrl) =>
-      JS('Worker', 'new Worker(#)', scriptUrl);
-}
-
-class _XPathEvaluatorFactoryProvider {
-  static XPathEvaluator createXPathEvaluator() =>
-      JS('XPathEvaluator', 'new XPathEvaluator()' );
-}
-
-class _XmlSerializerFactoryProvider {
-  static XmlSerializer createXmlSerializer() =>
-      JS('XmlSerializer', 'new XMLSerializer()' );
-}
-
-class _XsltProcessorFactoryProvider {
-  static XsltProcessor createXsltProcessor() =>
-      JS('XsltProcessor', 'new XSLTProcessor()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

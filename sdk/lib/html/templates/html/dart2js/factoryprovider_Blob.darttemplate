@@ -1,11 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-part of html;
-
-class $FACTORYPROVIDER {
-  static Blob createBlob([List blobParts = null, String type, String endings]) {
+  static Blob _create([List blobParts = null, String type, String endings]) {
     // TODO: validate that blobParts is a JS Array and convert if not.
     // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
     // array to ArrayBuffer if it is a total view.
@@ -23,4 +16,3 @@ class $FACTORYPROVIDER {
 
   static _create_bag() => JS('var', '{}');
   static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
-}

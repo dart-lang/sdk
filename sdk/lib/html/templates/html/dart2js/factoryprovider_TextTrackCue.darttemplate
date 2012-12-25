@@ -1,11 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-part of html;
-
-class $FACTORYPROVIDER {
-  static TextTrackCue createTextTrackCue(
+  static TextTrackCue _create(
       num startTime, num endTime, String text,
       [String settings, bool pauseOnExit]) {
         if (settings == null) {
@@ -22,4 +15,3 @@ class $FACTORYPROVIDER {
                   'new TextTrackCue(#,#,#,#,#)',
                   startTime, endTime, text, settings, pauseOnExit);
   }
-}

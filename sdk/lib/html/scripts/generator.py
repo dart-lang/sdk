@@ -358,16 +358,13 @@ class OperationInfo(object):
     else:
       return rename_type(self.type_name)
 
-  def ConstructorFactoryName(self, rename_type):
-    return 'create' + self._ConstructorFullName(rename_type).replace('.', '_')
-
   def GenerateFactoryInvocation(self, rename_type, emitter, factory_name,
       factory_constructor_name=None, factory_parameters=None):
     has_optional = any(param_info.is_optional
         for param_info in self.param_infos)
 
     if not factory_constructor_name:
-      factory_constructor_name = self.ConstructorFactoryName(rename_type)
+      factory_constructor_name = '_create'
       factory_parameters = self.ParametersAsArgumentList()
       has_factory_provider = True
     else:
@@ -397,12 +394,11 @@ class OperationInfo(object):
         '\n'
         '  factory $CTOR($PARAMS) {\n'
         '$!DISPATCHER'
-        '    return $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+        '    return $FACTORY._create($FACTORY_PARAMS);\n'
         '  }\n',
         CTOR=self._ConstructorFullName(rename_type),
         PARAMS=self.ParametersDeclaration(rename_type),
         FACTORY=factory_provider,
-        CTOR_FACTORY_NAME=self.ConstructorFactoryName(rename_type),
         FACTORY_PARAMS=self.ParametersAsArgumentList())
 
     # If we have optional parameters, check to see if they are set
@@ -410,11 +406,10 @@ class OperationInfo(object):
     def EmitOptionalParameterInvocation(index):
       dispatcher_emitter.Emit(
         '    if (!?$OPT_PARAM_NAME) {\n'
-        '      return $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+        '      return $FACTORY._create($FACTORY_PARAMS);\n'
         '    }\n',
         OPT_PARAM_NAME=self.param_infos[index].name,
         FACTORY=factory_provider,
-        CTOR_FACTORY_NAME=self.ConstructorFactoryName(rename_type),
         FACTORY_PARAMS=self.ParametersAsArgumentList(index))
 
     for index, param_info in enumerate(self.param_infos):

@@ -38,7 +38,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * [onComplete] callback.
    */
   factory $CLASSNAME.get(String url, onComplete($CLASSNAME request)) =>
-      _$(CLASSNAME)FactoryProvider.create$(CLASSNAME)_get(url, onComplete);
+      _HttpRequestUtils.get(url, onComplete, false);
 
   // 80 char issue for comments in lists: dartbug.com/7588.
   /**
@@ -60,8 +60,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    */
   factory $CLASSNAME.getWithCredentials(String url,
       onComplete($CLASSNAME request)) =>
-      _$(CLASSNAME)FactoryProvider.create$(CLASSNAME)_getWithCredentials(url,
-      onComplete);
+      _HttpRequestUtils.get(url, onComplete, true);
 
 $!MEMBERS
 }

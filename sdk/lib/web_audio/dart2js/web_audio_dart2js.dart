@@ -562,7 +562,9 @@ class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionE
 class OfflineAudioContext extends AudioContext implements EventTarget native "*OfflineAudioContext" {
 
   ///@docsEditable true
-  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) => _OfflineAudioContextFactoryProvider.createOfflineAudioContext(numberOfChannels, numberOfFrames, sampleRate);
+  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) => OfflineAudioContext._create(numberOfChannels, numberOfFrames, sampleRate);
+  static OfflineAudioContext _create(int numberOfChannels, int numberOfFrames, num sampleRate) =>
+      JS('OfflineAudioContext', 'new OfflineAudioContext(#,#,#)', numberOfChannels, numberOfFrames, sampleRate);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -693,9 +695,4 @@ class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 
 /// @domName WaveTable; @docsEditable true
 class WaveTable native "*WaveTable" {
-}
-
-class _OfflineAudioContextFactoryProvider {
-  static OfflineAudioContext createOfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) =>
-      JS('OfflineAudioContext', 'new OfflineAudioContext(#,#,#)', numberOfChannels, numberOfFrames, sampleRate);
 }

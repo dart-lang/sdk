@@ -319,31 +319,8 @@ class HtmlDartInterfaceGenerator(object):
       constructor_info = AnalyzeConstructor(self._interface)
     if constructor_info:
       constructors.append(constructor_info)
-      factory_provider = '_' + interface_name + 'FactoryProvider'
-      factory_provider_emitter = self._library_emitter.FileEmitter(
-          '_%sFactoryProvider' % interface_name, self._library_name)
-
-      template_file = (
-          'factoryprovider_%s.darttemplate' % self._interface.doc_js_name)
-      template = self._template_loader.TryLoad(template_file)
-      if template:
-        # There is a class specific factory provider, use it.
-        factory_provider_emitter.Emit(
-            template,
-            FACTORYPROVIDER=factory_provider)
-      else:
-        body_emitter = factory_provider_emitter.Emit(
-            'part of html;\n'
-            '\n'
-            'class $FACTORYPROVIDER {\n'
-            '$!BODY'
-            '}\n',
-            FACTORYPROVIDER=factory_provider)
-        body_emitter.Emit(
-            '  static $INTERFACE create$(INTERFACE)($PARAMETERS) $BODY\n',
-            INTERFACE=interface_name,
-            PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
-            BODY=self._backend.FactoryProviderMethodBody(constructor_info))
+      # TODO(antonm): consider removing it later.
+      factory_provider = interface_name
 
     # HTML Elements and SVG Elements have convenience constructors.
     infos = ElementConstructorInfos(interface_name,
@@ -406,6 +383,24 @@ class HtmlDartInterfaceGenerator(object):
     self._backend.AddConstructors(constructors, factory_provider,
         self._interface_type_info.implementation_name(),
         base_class, factory_constructor_name=factory_constructor_name)
+
+    # TODO(antonm): move into .AddConstructors.
+    if constructor_info:
+      template_file = (
+          'factoryprovider_%s.darttemplate' % self._interface.doc_js_name)
+      template = self._template_loader.TryLoad(template_file)
+      if template:
+        # There is a class specific factorirs.
+        # TODO(antonm): should move into the class template.
+        self._implementation_members_emitter.Emit(
+            template,
+            FACTORYPROVIDER=factory_provider)
+      else:
+        self._implementation_members_emitter.Emit(
+            '  static $INTERFACE _create($PARAMETERS) $BODY\n',
+            INTERFACE=interface_name,
+            PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
+            BODY=self._backend.FactoryProviderMethodBody(constructor_info))
 
     events_class_name = self._event_generator.ProcessInterface(
         self._interface, interface_name,

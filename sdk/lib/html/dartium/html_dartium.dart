@@ -596,8 +596,9 @@ class AreaElement extends _Element_Merged {
 class ArrayBuffer extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
-  factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
+  factory ArrayBuffer(int length) => ArrayBuffer._create(length);
   ArrayBuffer.internal();
+  static ArrayBuffer _create(int length) native "ArrayBuffer_constructor_Callback";
 
 
   /** @domName ArrayBuffer.byteLength */
@@ -692,11 +693,12 @@ class AudioElement extends MediaElement {
   ///@docsEditable true
   factory AudioElement([String src]) {
     if (!?src) {
-      return _AudioElementFactoryProvider.createAudioElement();
+      return AudioElement._create();
     }
-    return _AudioElementFactoryProvider.createAudioElement(src);
+    return AudioElement._create(src);
   }
   AudioElement.internal(): super.internal();
+  static AudioElement _create([String src]) native "HTMLAudioElement_constructor_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -896,14 +898,15 @@ class Blob extends NativeFieldWrapperClass1 {
   ///@docsEditable true
   factory Blob(List blobParts, [String type, String endings]) {
     if (!?type) {
-      return _BlobFactoryProvider.createBlob(blobParts);
+      return Blob._create(blobParts);
     }
     if (!?endings) {
-      return _BlobFactoryProvider.createBlob(blobParts, type);
+      return Blob._create(blobParts, type);
     }
-    return _BlobFactoryProvider.createBlob(blobParts, type, endings);
+    return Blob._create(blobParts, type, endings);
   }
   Blob.internal();
+  static Blob _create(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
 
 
   /** @domName Blob.size */
@@ -2500,11 +2503,12 @@ class CssMatrix extends NativeFieldWrapperClass1 {
   ///@docsEditable true
   factory CssMatrix([String cssValue]) {
     if (!?cssValue) {
-      return _CssMatrixFactoryProvider.createCssMatrix();
+      return CssMatrix._create();
     }
-    return _CssMatrixFactoryProvider.createCssMatrix(cssValue);
+    return CssMatrix._create(cssValue);
   }
   CssMatrix.internal();
+  static CssMatrix _create([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
 
 
   /** @domName WebKitCSSMatrix.a */
@@ -6494,14 +6498,15 @@ class DataView extends ArrayBufferView {
   ///@docsEditable true
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
     if (!?byteOffset) {
-      return _DataViewFactoryProvider.createDataView(buffer);
+      return DataView._create(buffer);
     }
     if (!?byteLength) {
-      return _DataViewFactoryProvider.createDataView(buffer, byteOffset);
+      return DataView._create(buffer, byteOffset);
     }
-    return _DataViewFactoryProvider.createDataView(buffer, byteOffset, byteLength);
+    return DataView._create(buffer, byteOffset, byteLength);
   }
   DataView.internal(): super.internal();
+  static DataView _create(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
 
   num getFloat32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
@@ -7922,8 +7927,9 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 class DomParser extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
-  factory DomParser() => _DomParserFactoryProvider.createDomParser();
+  factory DomParser() => DomParser._create();
   DomParser.internal();
+  static DomParser _create() native "DOMParser_constructor_Callback";
 
 
   /** @domName DOMParser.parseFromString */
@@ -9999,8 +10005,9 @@ class EventException extends NativeFieldWrapperClass1 {
 class EventSource extends EventTarget {
 
   ///@docsEditable true
-  factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
+  factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
   EventSource.internal(): super.internal();
+  static EventSource _create(String scriptUrl) native "EventSource_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   EventSourceEvents get on =>
@@ -10520,8 +10527,9 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 class FileReader extends EventTarget {
 
   ///@docsEditable true
-  factory FileReader() => _FileReaderFactoryProvider.createFileReader();
+  factory FileReader() => FileReader._create();
   FileReader.internal(): super.internal();
+  static FileReader _create() native "FileReader_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileReaderEvents get on =>
@@ -10625,8 +10633,9 @@ class FileReaderEvents extends Events {
 class FileReaderSync extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
-  factory FileReaderSync() => _FileReaderSyncFactoryProvider.createFileReaderSync();
+  factory FileReaderSync() => FileReaderSync._create();
   FileReaderSync.internal();
+  static FileReaderSync _create() native "FileReaderSync_constructor_Callback";
 
 
   /** @domName FileReaderSync.readAsArrayBuffer */
@@ -11179,11 +11188,12 @@ class FormData extends NativeFieldWrapperClass1 {
   ///@docsEditable true
   factory FormData([FormElement form]) {
     if (!?form) {
-      return _FormDataFactoryProvider.createFormData();
+      return FormData._create();
     }
-    return _FormDataFactoryProvider.createFormData(form);
+    return FormData._create(form);
   }
   FormData.internal();
+  static FormData _create([FormElement form]) native "DOMFormData_constructor_Callback";
 
 
   /** @domName DOMFormData.append */
@@ -12178,7 +12188,7 @@ class HttpRequest extends EventTarget {
    * [onComplete] callback.
    */
   factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
+      _HttpRequestUtils.get(url, onComplete, false);
 
   // 80 char issue for comments in lists: dartbug.com/7588.
   /**
@@ -12200,13 +12210,13 @@ class HttpRequest extends EventTarget {
    */
   factory HttpRequest.getWithCredentials(String url,
       onComplete(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url,
-      onComplete);
+      _HttpRequestUtils.get(url, onComplete, true);
 
 
   ///@docsEditable true
-  factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
+  factory HttpRequest() => HttpRequest._create();
   HttpRequest.internal(): super.internal();
+  static HttpRequest _create() native "XMLHttpRequest_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestEvents get on =>
@@ -14794,8 +14804,9 @@ class MarqueeElement extends _Element_Merged {
 class MediaController extends EventTarget {
 
   ///@docsEditable true
-  factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
+  factory MediaController() => MediaController._create();
   MediaController.internal(): super.internal();
+  static MediaController _create() native "MediaController_constructor_Callback";
 
 
   /** @domName MediaController.buffered */
@@ -15448,8 +15459,9 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 class MediaSource extends EventTarget {
 
   ///@docsEditable true
-  factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
+  factory MediaSource() => MediaSource._create();
   MediaSource.internal(): super.internal();
+  static MediaSource _create() native "MediaSource_constructor_Callback";
 
 
   /** @domName MediaSource.activeSourceBuffers */
@@ -15507,8 +15519,9 @@ class MediaSource extends EventTarget {
 class MediaStream extends EventTarget {
 
   ///@docsEditable true
-  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
+  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => MediaStream._create(audioTracks, videoTracks);
   MediaStream.internal(): super.internal();
+  static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native "MediaStream_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamEvents get on =>
@@ -15763,8 +15776,9 @@ class MenuElement extends _Element_Merged {
 class MessageChannel extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
-  factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
+  factory MessageChannel() => MessageChannel._create();
   MessageChannel.internal();
+  static MessageChannel _create() native "MessageChannel_constructor_Callback";
 
 
   /** @domName MessageChannel.port1 */
@@ -16196,8 +16210,9 @@ class MutationEvent extends Event {
 class MutationObserver extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
-  factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
+  factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
   MutationObserver.internal();
+  static MutationObserver _create(MutationCallback callback) native "MutationObserver_constructor_Callback";
 
 
   /** @domName MutationObserver.disconnect */
@@ -17152,11 +17167,12 @@ class Notification extends EventTarget {
   ///@docsEditable true
   factory Notification(String title, [Map options]) {
     if (!?options) {
-      return _NotificationFactoryProvider.createNotification(title);
+      return Notification._create(title);
     }
-    return _NotificationFactoryProvider.createNotification(title, options);
+    return Notification._create(title, options);
   }
   Notification.internal(): super.internal();
+  static Notification _create(String title, [Map options]) native "Notification_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   NotificationEvents get on =>
@@ -17602,20 +17618,21 @@ class OptionElement extends _Element_Merged {
   ///@docsEditable true
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (!?data) {
-      return _OptionElementFactoryProvider.createOptionElement();
+      return OptionElement._create();
     }
     if (!?value) {
-      return _OptionElementFactoryProvider.createOptionElement(data);
+      return OptionElement._create(data);
     }
     if (!?defaultSelected) {
-      return _OptionElementFactoryProvider.createOptionElement(data, value);
+      return OptionElement._create(data, value);
     }
     if (!?selected) {
-      return _OptionElementFactoryProvider.createOptionElement(data, value, defaultSelected);
+      return OptionElement._create(data, value, defaultSelected);
     }
-    return _OptionElementFactoryProvider.createOptionElement(data, value, defaultSelected, selected);
+    return OptionElement._create(data, value, defaultSelected, selected);
   }
   OptionElement.internal(): super.internal();
+  static OptionElement _create([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
 
 
   /** @domName HTMLOptionElement.defaultSelected */
@@ -18697,8 +18714,9 @@ class RtcDataChannelEvent extends Event {
 class RtcIceCandidate extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
-  factory RtcIceCandidate(Map dictionary) => _RtcIceCandidateFactoryProvider.createRtcIceCandidate(dictionary);
+  factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
   RtcIceCandidate.internal();
+  static RtcIceCandidate _create(Map dictionary) native "RTCIceCandidate_constructor_Callback";
 
 
   /** @domName RTCIceCandidate.candidate */
@@ -18742,11 +18760,12 @@ class RtcPeerConnection extends EventTarget {
   ///@docsEditable true
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     if (!?mediaConstraints) {
-      return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers);
+      return RtcPeerConnection._create(rtcIceServers);
     }
-    return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers, mediaConstraints);
+    return RtcPeerConnection._create(rtcIceServers, mediaConstraints);
   }
   RtcPeerConnection.internal(): super.internal();
+  static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RtcPeerConnectionEvents get on =>
@@ -18875,8 +18894,9 @@ class RtcPeerConnectionEvents extends Events {
 class RtcSessionDescription extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
-  factory RtcSessionDescription(Map dictionary) => _RtcSessionDescriptionFactoryProvider.createRtcSessionDescription(dictionary);
+  factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
   RtcSessionDescription.internal();
+  static RtcSessionDescription _create(Map dictionary) native "RTCSessionDescription_constructor_Callback";
 
 
   /** @domName RTCSessionDescription.sdp */
@@ -19428,11 +19448,12 @@ class SharedWorker extends AbstractWorker {
   ///@docsEditable true
   factory SharedWorker(String scriptURL, [String name]) {
     if (!?name) {
-      return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL);
+      return SharedWorker._create(scriptURL);
     }
-    return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL, name);
+    return SharedWorker._create(scriptURL, name);
   }
   SharedWorker.internal(): super.internal();
+  static SharedWorker _create(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
 
 
   /** @domName SharedWorker.port */
@@ -19697,8 +19718,9 @@ class SpanElement extends _Element_Merged {
 class SpeechGrammar extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
-  factory SpeechGrammar() => _SpeechGrammarFactoryProvider.createSpeechGrammar();
+  factory SpeechGrammar() => SpeechGrammar._create();
   SpeechGrammar.internal();
+  static SpeechGrammar _create() native "SpeechGrammar_constructor_Callback";
 
 
   /** @domName SpeechGrammar.src */
@@ -19728,8 +19750,9 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechGrammar> {
 
   ///@docsEditable true
-  factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
+  factory SpeechGrammarList() => SpeechGrammarList._create();
   SpeechGrammarList.internal();
+  static SpeechGrammarList _create() native "SpeechGrammarList_constructor_Callback";
 
 
   /** @domName SpeechGrammarList.length */
@@ -19919,8 +19942,9 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 class SpeechRecognition extends EventTarget {
 
   ///@docsEditable true
-  factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
+  factory SpeechRecognition() => SpeechRecognition._create();
   SpeechRecognition.internal(): super.internal();
+  static SpeechRecognition _create() native "SpeechRecognition_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SpeechRecognitionEvents get on =>
@@ -21525,8 +21549,9 @@ class TextTrackEvents extends Events {
 class TextTrackCue extends EventTarget {
 
   ///@docsEditable true
-  factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
+  factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
   TextTrackCue.internal(): super.internal();
+  static TextTrackCue _create(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackCueEvents get on =>
@@ -24842,8 +24867,9 @@ class WebKitNamedFlow extends EventTarget {
 class WebSocket extends EventTarget {
 
   ///@docsEditable true
-  factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
+  factory WebSocket(String url) => WebSocket._create(url);
   WebSocket.internal(): super.internal();
+  static WebSocket _create(String url) native "WebSocket_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WebSocketEvents get on =>
@@ -25689,8 +25715,9 @@ class WindowEvents extends Events {
 class Worker extends AbstractWorker {
 
   ///@docsEditable true
-  factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
+  factory Worker(String scriptUrl) => Worker._create(scriptUrl);
   Worker.internal(): super.internal();
+  static Worker _create(String scriptUrl) native "Worker_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerEvents get on =>
@@ -25914,8 +25941,9 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
 class XPathEvaluator extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
-  factory XPathEvaluator() => _XPathEvaluatorFactoryProvider.createXPathEvaluator();
+  factory XPathEvaluator() => XPathEvaluator._create();
   XPathEvaluator.internal();
+  static XPathEvaluator _create() native "XPathEvaluator_constructor_Callback";
 
 
   /** @domName XPathEvaluator.createExpression */
@@ -26073,8 +26101,9 @@ class XPathResult extends NativeFieldWrapperClass1 {
 class XmlSerializer extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
-  factory XmlSerializer() => _XmlSerializerFactoryProvider.createXmlSerializer();
+  factory XmlSerializer() => XmlSerializer._create();
   XmlSerializer.internal();
+  static XmlSerializer _create() native "XMLSerializer_constructor_Callback";
 
 
   /** @domName XMLSerializer.serializeToString */
@@ -26092,8 +26121,9 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
 class XsltProcessor extends NativeFieldWrapperClass1 {
 
   ///@docsEditable true
-  factory XsltProcessor() => _XsltProcessorFactoryProvider.createXsltProcessor();
+  factory XsltProcessor() => XsltProcessor._create();
   XsltProcessor.internal();
+  static XsltProcessor _create() native "XSLTProcessor_constructor_Callback";
 
 
   /** @domName XSLTProcessor.clearParameters */
@@ -26127,18 +26157,6 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
   /** @domName XSLTProcessor.transformToFragment */
   DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
 
-}
-
-class _ArrayBufferFactoryProvider {
-  static ArrayBuffer createArrayBuffer(int length) native "ArrayBuffer_constructor_Callback";
-}
-
-class _AudioElementFactoryProvider {
-  static AudioElement createAudioElement([String src]) native "HTMLAudioElement_constructor_Callback";
-}
-
-class _BlobFactoryProvider {
-  static Blob createBlob(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26259,10 +26277,6 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
   /** @domName ClientRectList.item */
   ClientRect item(int index) native "ClientRectList_item_Callback";
 
-}
-
-class _CssMatrixFactoryProvider {
-  static CssMatrix createCssMatrix([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26503,14 +26517,6 @@ class _CssValueList extends CssValue implements List<CssValue> {
   /** @domName CSSValueList.item */
   CssValue item(int index) native "CSSValueList_item_Callback";
 
-}
-
-class _DataViewFactoryProvider {
-  static DataView createDataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
-}
-
-class _DomParserFactoryProvider {
-  static DomParser createDomParser() native "DOMParser_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26888,22 +26894,6 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   EntrySync item(int index) native "EntryArraySync_item_Callback";
 
 }
-
-class _EventSourceFactoryProvider {
-  static EventSource createEventSource(String scriptUrl) native "EventSource_constructor_Callback";
-}
-
-class _FileReaderFactoryProvider {
-  static FileReader createFileReader() native "FileReader_constructor_Callback";
-}
-
-class _FileReaderSyncFactoryProvider {
-  static FileReaderSync createFileReaderSync() native "FileReaderSync_constructor_Callback";
-}
-
-class _FormDataFactoryProvider {
-  static FormData createFormData([FormElement form]) native "DOMFormData_constructor_Callback";
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -27028,34 +27018,6 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-class _HttpRequestFactoryProvider {
-  static HttpRequest createHttpRequest() native "XMLHttpRequest_constructor_Callback";
-
-  static HttpRequest createHttpRequest_get(String url,
-                                     onSuccess(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onSuccess, false);
-
-  static HttpRequest createHttpRequest_getWithCredentials(String url,
-                                     onSuccess(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onSuccess, true);
-}
-
-class _MediaControllerFactoryProvider {
-  static MediaController createMediaController() native "MediaController_constructor_Callback";
-}
-
-class _MediaSourceFactoryProvider {
-  static MediaSource createMediaSource() native "MediaSource_constructor_Callback";
-}
-
-class _MediaStreamFactoryProvider {
-  static MediaStream createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native "MediaStream_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
 
@@ -27171,46 +27133,6 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
   /** @domName MediaStreamList.item */
   MediaStream item(int index) native "MediaStreamList_item_Callback";
 
-}
-
-class _MessageChannelFactoryProvider {
-  static MessageChannel createMessageChannel() native "MessageChannel_constructor_Callback";
-}
-
-class _MutationObserverFactoryProvider {
-  static MutationObserver createMutationObserver(MutationCallback callback) native "MutationObserver_constructor_Callback";
-}
-
-class _NotificationFactoryProvider {
-  static Notification createNotification(String title, [Map options]) native "Notification_constructor_Callback";
-}
-
-class _OptionElementFactoryProvider {
-  static OptionElement createOptionElement([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
-}
-
-class _RtcIceCandidateFactoryProvider {
-  static RtcIceCandidate createRtcIceCandidate(Map dictionary) native "RTCIceCandidate_constructor_Callback";
-}
-
-class _RtcPeerConnectionFactoryProvider {
-  static RtcPeerConnection createRtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
-}
-
-class _RtcSessionDescriptionFactoryProvider {
-  static RtcSessionDescription createRtcSessionDescription(Map dictionary) native "RTCSessionDescription_constructor_Callback";
-}
-
-class _SharedWorkerFactoryProvider {
-  static SharedWorker createSharedWorker(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
-}
-
-class _SpeechGrammarFactoryProvider {
-  static SpeechGrammar createSpeechGrammar() native "SpeechGrammar_constructor_Callback";
-}
-
-class _SpeechGrammarListFactoryProvider {
-  static SpeechGrammarList createSpeechGrammarList() native "SpeechGrammarList_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27331,10 +27253,6 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   /** @domName SpeechInputResultList.item */
   SpeechInputResult item(int index) native "SpeechInputResultList_item_Callback";
 
-}
-
-class _SpeechRecognitionFactoryProvider {
-  static SpeechRecognition createSpeechRecognition() native "SpeechRecognition_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27575,30 +27493,6 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   /** @domName StyleSheetList.item */
   StyleSheet item(int index) native "StyleSheetList_item_Callback";
 
-}
-
-class _TextTrackCueFactoryProvider {
-  static TextTrackCue createTextTrackCue(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
-}
-
-class _WebSocketFactoryProvider {
-  static WebSocket createWebSocket(String url) native "WebSocket_constructor_Callback";
-}
-
-class _WorkerFactoryProvider {
-  static Worker createWorker(String scriptUrl) native "Worker_constructor_Callback";
-}
-
-class _XPathEvaluatorFactoryProvider {
-  static XPathEvaluator createXPathEvaluator() native "XPathEvaluator_constructor_Callback";
-}
-
-class _XmlSerializerFactoryProvider {
-  static XmlSerializer createXmlSerializer() native "XMLSerializer_constructor_Callback";
-}
-
-class _XsltProcessorFactoryProvider {
-  static XsltProcessor createXsltProcessor() native "XSLTProcessor_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

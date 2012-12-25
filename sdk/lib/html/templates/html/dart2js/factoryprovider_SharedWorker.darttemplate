@@ -1,12 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-part of html;
-
-class $FACTORYPROVIDER {
-  static SharedWorker createSharedWorker(String scriptURL, [String name]) {
+  static SharedWorker _create(String scriptURL, [String name]) {
     if (name == null) return JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
     return JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
   }
-}
