@@ -197,22 +197,10 @@ class DartiumBackend(HtmlDartGenerator):
 
     return False
 
-  def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
-    interface_name = self._interface_type_info.interface_name()
-    template_file = ('factoryprovider_%s.darttemplate' %
-                     self._interface.doc_js_name)
-    template = self._template_loader.TryLoad(template_file)
-    if not template:
-      template = self._template_loader.Load('factoryprovider.darttemplate')
-
-    native_binding = '%s_constructor_Callback' % self._interface.id
-    emitter.Emit(
-        template,
-        FACTORYPROVIDER=factory_provider,
-        INTERFACE=interface_name,
-        PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
-        ARGUMENTS=constructor_info.ParametersAsArgumentList(),
-        NATIVE_NAME=native_binding)
+  def FactoryProviderTemplateArguments(self, constructor_info):
+    return {
+        'NATIVE_NAME': '%s_constructor_Callback' % self._interface.id,
+    }
 
   def AddConstructors(self, constructors, factory_name, class_name,
       base_class, factory_constructor_name=None):

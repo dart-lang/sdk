@@ -322,8 +322,17 @@ class HtmlDartInterfaceGenerator(object):
       factory_provider = '_' + interface_name + 'FactoryProvider'
       factory_provider_emitter = self._library_emitter.FileEmitter(
           '_%sFactoryProvider' % interface_name, self._library_name)
-      self._backend.EmitFactoryProvider(
-          constructor_info, factory_provider, factory_provider_emitter)
+
+      template_file = (
+          'factoryprovider_%s.darttemplate' % self._interface.doc_js_name)
+      factory_provider_emitter.Emit(
+          self._template_loader.TryLoad(template_file) or
+              self._template_loader.Load('factoryprovider.darttemplate'),
+          FACTORYPROVIDER=factory_provider,
+          INTERFACE=interface_name,
+          PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
+          ARGUMENTS=constructor_info.ParametersAsArgumentList(),
+          **self._backend.FactoryProviderTemplateArguments(constructor_info))
 
     # HTML Elements and SVG Elements have convenience constructors.
     infos = ElementConstructorInfos(interface_name,
@@ -466,25 +475,12 @@ class Dart2JSBackend(HtmlDartGenerator):
   def FinishInterface(self):
     pass
 
-  def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
-    template_file = ('factoryprovider_%s.darttemplate' %
-                     self._interface.doc_js_name)
-    template = self._template_loader.TryLoad(template_file)
-    if not template:
-      template = self._template_loader.Load('factoryprovider.darttemplate')
-
-    interface_name = self._interface_type_info.interface_name()
-    arguments = constructor_info.ParametersAsArgumentList()
-    comma = ',' if arguments else ''
-    emitter.Emit(
-        template,
-        FACTORYPROVIDER=factory_provider,
-        CONSTRUCTOR=interface_name,
-        PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
-        NAMED_CONSTRUCTOR=constructor_info.name or self._interface.doc_js_name,
-        ARGUMENTS=arguments,
-        PRE_ARGUMENTS_COMMA=comma,
-        ARGUMENTS_PATTERN=','.join(['#'] * len(constructor_info.param_infos)))
+  def FactoryProviderTemplateArguments(self, constructor_info):
+    return {
+        'NAMED_CONSTRUCTOR': constructor_info.name or self._interface.doc_js_name,
+        'PRE_ARGUMENTS_COMMA': ',' if constructor_info.param_infos else '',
+        'ARGUMENTS_PATTERN': ','.join(['#'] * len(constructor_info.param_infos))
+    }
 
   def SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:

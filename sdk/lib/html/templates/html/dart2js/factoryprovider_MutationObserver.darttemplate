@@ -8,7 +8,7 @@ class $FACTORYPROVIDER {
 
   @Creates('MutationObserver')
   @Creates('MutationRecord')
-  static $CONSTRUCTOR create$(CONSTRUCTOR)(MutationCallback callback) native '''
+  static $INTERFACE create$(INTERFACE)(MutationCallback callback) native '''
     var constructor =
         window.MutationObserver || window.WebKitMutationObserver ||
         window.MozMutationObserver;
