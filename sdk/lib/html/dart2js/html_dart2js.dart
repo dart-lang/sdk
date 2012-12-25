@@ -19815,10 +19815,8 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-/// @domName WebSocket
+/// @domName WebSocket; @docsEditable true
 class WebSocket extends EventTarget native "*WebSocket" {
 
   ///@docsEditable true
@@ -19875,7 +19873,6 @@ class WebSocket extends EventTarget native "*WebSocket" {
 
   /// @domName WebSocket.send; @docsEditable true
   bool send(data) native;
-
 }
 
 /// @docsEditable true
