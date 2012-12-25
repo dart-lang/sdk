@@ -15705,7 +15705,7 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
   DomSelection getSelection() native;
 
   static bool get supported =>
-      JS('bool', '!!(window.ShadowRoot || window.WebKitShadowRoot)');
+      JS('bool', '!!(window.ShadowRoot || window.WebKitShadowRoot || Element.prototype.webkitCreateShadowRoot)');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

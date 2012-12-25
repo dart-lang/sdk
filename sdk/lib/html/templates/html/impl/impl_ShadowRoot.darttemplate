@@ -11,7 +11,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 $if DART2JS
   static bool get supported =>
-      JS('bool', '!!(window.ShadowRoot || window.WebKitShadowRoot)');
+      JS('bool', '!!(window.ShadowRoot || window.WebKitShadowRoot || Element.prototype.webkitCreateShadowRoot)');
 $else
   static bool get supported => _Utils.shadowRootSupported(window.document);
 $endif
