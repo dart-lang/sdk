@@ -295,7 +295,6 @@ xhr_test: Fail
 [ $compiler == dart2js && $runtime == drt ]
 # Unknown error - should investigate.
 unknownelement_test: Fail # Issue 4189
-shadowroot_test: Fail # Exception is not thrown.
 
 [ $compiler == dart2js && $runtime == chrome ]
 indexeddb_3_test: Fail # Current chrome still throws InDBDatabaseException.
