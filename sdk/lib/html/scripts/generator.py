@@ -445,9 +445,7 @@ class OperationInfo(object):
 
 def ConstantOutputOrder(a, b):
   """Canonical output ordering for constants."""
-  if a.id < b.id: return -1
-  if a.id > b.id: return 1
-  return 0
+  return cmp(a.id, b.id)
 
 
 def _FormatNameList(names):
