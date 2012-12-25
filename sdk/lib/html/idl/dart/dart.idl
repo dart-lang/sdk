@@ -1,360 +1,327 @@
-
 // This file introduces / supplements and forces Dart declarations.
 
-module core {
-  [Supplemental]
-  interface Document {
-    [Suppressed] DOMObject getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
-    CanvasRenderingContext getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
-  };
-
-  [Supplemental]
-  interface ScriptProcessorNode {
-    // FIXME(antonm): provide proper support.
-    [Suppressed] attribute EventListener onaudioprocess;
-};
+[Supplemental]
+interface Document {
+  [Suppressed] DOMObject getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
+  CanvasRenderingContext getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
 };
 
-module dom {
-  // Force ElementTraversal. WebKit defines these directly.
-  interface ElementTraversal {
-    readonly attribute unsigned long childElementCount;
-    readonly attribute Element firstElementChild;
-    readonly attribute Element lastElementChild;
-    readonly attribute Element nextElementSibling;
-    readonly attribute Element previousElementSibling;
-  };
-  Element implements ElementTraversal;
-
-  [Callback]
-  interface TimeoutHandler {
-    void handleEvent();
-  };
+[Supplemental]
+interface ScriptProcessorNode {
+  // FIXME(antonm): provide proper support.
+  [Suppressed] attribute EventListener onaudioprocess;
 };
 
-module html {
-  [Supplemental]
-  interface Console {
-    [Suppressed] void assert(in boolean condition);
-    [CallWith=ScriptArguments|ScriptState] void assertCondition(boolean condition);
-  };
+// Force ElementTraversal. WebKit defines these directly.
+interface ElementTraversal {
+  readonly attribute unsigned long childElementCount;
+  readonly attribute Element firstElementChild;
+  readonly attribute Element lastElementChild;
+  readonly attribute Element nextElementSibling;
+  readonly attribute Element previousElementSibling;
+};
+Element implements ElementTraversal;
 
-  interface HTMLCanvasElement {
-    [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type) raises(DOMException);
-    [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality) raises(DOMException);
-  };
-
-  [Supplemental]
-  interface HTMLOptionsCollection {
-    [Suppressed] void add([Optional] in HTMLOptionElement element, [Optional] in long before);
-  };
-
-  [Supplemental]
-  interface HTMLSelectElement {
-    [Suppressed] void add([Optional=DefaultIsUndefined] in HTMLElement element, [Optional=DefaultIsUndefined] in HTMLElement before);
-    [Suppressed, Custom] void remove();
-    [Custom] void remove(in long index);
-    [Custom] void remove(in HTMLOptionElement option);
-  };
-
-  [Supplemental]
-  interface ImageData {
-    readonly attribute Uint8ClampedArray data;
-  };
-
-  [Supplemental]
-  interface HTMLMediaElement {
-    // Adding media events.
-    attribute EventListener oncanplay;
-    attribute EventListener oncanplaythrough;
-    attribute EventListener ondurationchange;
-    attribute EventListener onemptied;
-    attribute EventListener onended;
-    attribute EventListener onloadeddata;
-    attribute EventListener onloadedmetadata;
-    attribute EventListener onloadstart;
-    attribute EventListener onpause;
-    attribute EventListener onplay;
-    attribute EventListener onplaying;
-    attribute EventListener onprogress;
-    attribute EventListener onratechange;
-    attribute EventListener onseeked;
-    attribute EventListener onseeking;
-    attribute EventListener onshow;
-    attribute EventListener onstalled;
-    attribute EventListener onsuspend;
-    attribute EventListener ontimeupdate;
-    attribute EventListener onvolumechange;
-    attribute EventListener onwaiting;
-  };
-
-  [Supplemental]
-  interface WebGLContextEvent {
-    [Suppressed] void initEvent([Optional] in DOMString eventTypeArg,
-                                [Optional] in boolean canBubbleArg,
-                                [Optional] in boolean cancelableArg,
-                                [Optional] in DOMString statusMessageArg);
-  };
+[Callback]
+interface TimeoutHandler {
+  void handleEvent();
 };
 
-module html {
-  [Supplemental]
-  interface WebGLRenderingContext {
-
-    //void         compressedTexImage2D(in unsigned long target, in long level, in unsigned long internalformat, in unsigned long width, in unsigned long height, in long border, in unsigned long imageSize, const void* data);
-    //void         compressedTexSubImage2D(in unsigned long target, in long level, in long xoffset, in long yoffset, in unsigned long width, in unsigned long height, in unsigned long format, in unsigned long imageSize, const void* data);
-
-    [Custom] any getBufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
-    [Suppressed, StrictTypeChecking, Custom] void getBufferParameter();
-
-    [Custom] any getFramebufferAttachmentParameter(in unsigned long target, in unsigned long attachment, in unsigned long pname) raises(DOMException);
-    [Suppressed, StrictTypeChecking, Custom] void getFramebufferAttachmentParameter();
-
-    [Custom] any getParameter(in unsigned long pname) raises(DOMException);
-    [Suppressed, StrictTypeChecking, Custom] void getParameter();
-
-    [Custom] any getProgramParameter(in WebGLProgram program, in unsigned long pname) raises(DOMException);
-    [Suppressed, StrictTypeChecking, Custom] void getProgramParameter();
-
-    [Custom] any getRenderbufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
-    [Suppressed, StrictTypeChecking, Custom] void getRenderbufferParameter();
-
-    [Custom] any getShaderParameter(in WebGLShader shader, in unsigned long pname) raises(DOMException);
-    [Suppressed, StrictTypeChecking, Custom] void getShaderParameter() raises(DOMException);
-
-    // TBD
-    // void glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision);
-
-    [Custom] any getExtension(DOMString name);
-    [Suppressed, StrictTypeChecking, Custom] void getExtension(DOMString name);
-    [Custom] DOMString[] getSupportedExtensions();
-    [Suppressed, StrictTypeChecking, Custom] void getSupportedExtensions();
-
-    [Custom] any getTexParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
-    [Suppressed, StrictTypeChecking, Custom] void getTexParameter();
-
-    [Custom] any getUniform(in WebGLProgram program, in WebGLUniformLocation location) raises(DOMException);
-    [Suppressed, StrictTypeChecking, Custom] void getUniform();
-
-    [Custom] any getVertexAttrib(in unsigned long index, in unsigned long pname) raises(DOMException);
-    [Suppressed, StrictTypeChecking, Custom] void getVertexAttrib();
-  };
-}
-
-module css {
-  [Supplemental]
-  interface CSSStyleDeclaration {
-    void setProperty(in DOMString propertyName, in DOMString value, [Optional] in DOMString priority);
-    [DartName=_getPropertyValue] DOMString getPropertyValue(in DOMString propertyName);
-  };
+[Supplemental]
+interface Console {
+  [Suppressed] void assert(in boolean condition);
+  [CallWith=ScriptArguments|ScriptState] void assertCondition(boolean condition);
 };
 
-module canvas {
-  [Supplemental,
-   Constructor(in long length)]  // Add constructor signature.
-  interface ArrayBuffer {
-  };
-  [Supplemental]
-  interface Float32Array {
-    [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-  };
-  [Supplemental]
-  interface Float64Array {
-    [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-  };
-  [Supplemental]
-  interface Int16Array {
-    [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-  };
-  [Supplemental]
-  interface Int32Array {
-    [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-  };
-  [Supplemental]
-  interface Int8Array {
-    [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-  };
-  [Supplemental]
-  interface Uint16Array {
-    [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-  };
-  [Supplemental]
-  interface Uint32Array {
-    [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-  };
-  [Supplemental]
-  interface Uint8Array {
-    [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-  };
-
-  [Supplemental]
-  interface Uint8ClampedArray {
-    // Avoid 'overriding static member BYTES_PER_ELEMENT'.
-    [Suppressed] const long BYTES_PER_ELEMENT = 1;
-
-    [Suppressed] void set();
-    [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-  };
-
-  [Supplemental,
-   Constructor(in ArrayBuffer buffer,
-               [Optional] in unsigned long byteOffset,
-               [Optional] in unsigned long byteLength)
-   ]
-  interface DataView {
-    // Undo this:
-    // We have to use custom code because our code generator does not support int8_t type.
-    // int8_t getInt8(in unsigned long byteOffset);
-    // uint8_t getUint8(in unsigned long byteOffset);
-    [Suppressed] DOMObject getInt8();
-    [Suppressed] DOMObject getUint8();
-    byte getInt8(in unsigned long byteOffset)
-        raises (DOMException);
-    octet getUint8(in unsigned long byteOffset)
-        raises (DOMException);
-
-    // We have to use custom code because our code generator does not support uint8_t type.
-    // void setInt8(in unsigned long byteOffset, in int8_t value);
-    // void setUint8(in unsigned long byteOffset, in uint8_t value);
-    [Suppressed] void setInt8();
-    [Suppressed] void setUint8();
-    void setInt8(in unsigned long byteOffset, in byte value)
-        raises (DOMException);
-    void setUint8(in unsigned long byteOffset, in octet value)
-        raises (DOMException);
-  };
+interface HTMLCanvasElement {
+  [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type) raises(DOMException);
+  [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality) raises(DOMException);
 };
 
-module storage {
-  // TODO(vsm): Define new names for these (see b/4436830).
-  [Supplemental]
-  interface IDBCursor {
-    [DartName=continueFunction] void continue([Optional] in IDBKey key);
-  };
-  [Supplemental]
-  interface IDBDatabase {
-    // These variants are slated for removal from WebKit.  Suppress to bring our
-    // API in line with the most recent spec.
-    [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMStringList storeNames, in unsigned short mode)
-        raises (IDBDatabaseException);
-    [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString[] storeNames, in unsigned short mode)
-        raises (IDBDatabaseException);
-    [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString storeName, in unsigned short mode)
-        raises (IDBDatabaseException);
-  };
-  [Supplemental]
-  interface IDBIndex {
-    [DartName=getObject] IDBRequest get(in IDBKey key);
-  };
-  [Supplemental]
-  interface IDBObjectStore {
-    [DartName=getObject] IDBRequest get(in IDBKey key);
-    [DartName=getObject] IDBRequest get(in IDBKeyRange key);
-  };
-
-  [Supplemental]
-  interface IDBKeyRange {
-    [DartName=only_] static IDBKeyRange only(in IDBKey value) raises (IDBDatabaseException);
-    [DartName=lowerBound_] static IDBKeyRange lowerBound(in IDBKey bound, [Optional] in boolean open) raises (IDBDatabaseException);
-    [DartName=upperBound_] static IDBKeyRange upperBound(in IDBKey bound, [Optional] in boolean open) raises (IDBDatabaseException);
-    [DartName=bound_] static IDBKeyRange bound(in IDBKey lower, in IDBKey upper, [Optional] in boolean lowerOpen, [Optional] in boolean upperOpen) raises (IDBDatabaseException);
-  };
-
-  interface EntrySync {
-    // Native implementation is declared to return EntrySync.
-    [Suppressed] DirectoryEntrySync getParent();
-    EntrySync getParent();
-  };
+[Supplemental]
+interface HTMLOptionsCollection {
+  [Suppressed] void add([Optional] in HTMLOptionElement element, [Optional] in long before);
 };
 
-
-module html {
-  [Supplemental,
-   CustomConstructor,
-   Constructor(in Array blobParts,
-               [Optional] in DOMString type, [Optional] in DOMString endings)
-   ]
-  interface Blob {
-  };
+[Supplemental]
+interface HTMLSelectElement {
+  [Suppressed] void add([Optional=DefaultIsUndefined] in HTMLElement element, [Optional=DefaultIsUndefined] in HTMLElement before);
+  [Suppressed, Custom] void remove();
+  [Custom] void remove(in long index);
+  [Custom] void remove(in HTMLOptionElement option);
 };
 
-module html {
-  [Supplemental,
-   Constructor(float x, float y)
+[Supplemental]
+interface ImageData {
+  readonly attribute Uint8ClampedArray data;
+};
+
+[Supplemental]
+interface HTMLMediaElement {
+  // Adding media events.
+  attribute EventListener oncanplay;
+  attribute EventListener oncanplaythrough;
+  attribute EventListener ondurationchange;
+  attribute EventListener onemptied;
+  attribute EventListener onended;
+  attribute EventListener onloadeddata;
+  attribute EventListener onloadedmetadata;
+  attribute EventListener onloadstart;
+  attribute EventListener onpause;
+  attribute EventListener onplay;
+  attribute EventListener onplaying;
+  attribute EventListener onprogress;
+  attribute EventListener onratechange;
+  attribute EventListener onseeked;
+  attribute EventListener onseeking;
+  attribute EventListener onshow;
+  attribute EventListener onstalled;
+  attribute EventListener onsuspend;
+  attribute EventListener ontimeupdate;
+  attribute EventListener onvolumechange;
+  attribute EventListener onwaiting;
+};
+
+[Supplemental]
+interface WebGLContextEvent {
+  [Suppressed] void initEvent([Optional] in DOMString eventTypeArg,
+                              [Optional] in boolean canBubbleArg,
+                              [Optional] in boolean cancelableArg,
+                              [Optional] in DOMString statusMessageArg);
+};
+
+[Supplemental]
+interface WebGLRenderingContext {
+
+  //void         compressedTexImage2D(in unsigned long target, in long level, in unsigned long internalformat, in unsigned long width, in unsigned long height, in long border, in unsigned long imageSize, const void* data);
+  //void         compressedTexSubImage2D(in unsigned long target, in long level, in long xoffset, in long yoffset, in unsigned long width, in unsigned long height, in unsigned long format, in unsigned long imageSize, const void* data);
+
+  [Custom] any getBufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
+  [Suppressed, StrictTypeChecking, Custom] void getBufferParameter();
+
+  [Custom] any getFramebufferAttachmentParameter(in unsigned long target, in unsigned long attachment, in unsigned long pname) raises(DOMException);
+  [Suppressed, StrictTypeChecking, Custom] void getFramebufferAttachmentParameter();
+
+  [Custom] any getParameter(in unsigned long pname) raises(DOMException);
+  [Suppressed, StrictTypeChecking, Custom] void getParameter();
+
+  [Custom] any getProgramParameter(in WebGLProgram program, in unsigned long pname) raises(DOMException);
+  [Suppressed, StrictTypeChecking, Custom] void getProgramParameter();
+
+  [Custom] any getRenderbufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
+  [Suppressed, StrictTypeChecking, Custom] void getRenderbufferParameter();
+
+  [Custom] any getShaderParameter(in WebGLShader shader, in unsigned long pname) raises(DOMException);
+  [Suppressed, StrictTypeChecking, Custom] void getShaderParameter() raises(DOMException);
+
+  // TBD
+  // void glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision);
+
+  [Custom] any getExtension(DOMString name);
+  [Suppressed, StrictTypeChecking, Custom] void getExtension(DOMString name);
+  [Custom] DOMString[] getSupportedExtensions();
+  [Suppressed, StrictTypeChecking, Custom] void getSupportedExtensions();
+
+  [Custom] any getTexParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
+  [Suppressed, StrictTypeChecking, Custom] void getTexParameter();
+
+  [Custom] any getUniform(in WebGLProgram program, in WebGLUniformLocation location) raises(DOMException);
+  [Suppressed, StrictTypeChecking, Custom] void getUniform();
+
+  [Custom] any getVertexAttrib(in unsigned long index, in unsigned long pname) raises(DOMException);
+  [Suppressed, StrictTypeChecking, Custom] void getVertexAttrib();
+};
+
+[Supplemental]
+interface CSSStyleDeclaration {
+  void setProperty(in DOMString propertyName, in DOMString value, [Optional] in DOMString priority);
+  [DartName=_getPropertyValue] DOMString getPropertyValue(in DOMString propertyName);
+};
+
+[Supplemental,
+  Constructor(in long length)]  // Add constructor signature.
+interface ArrayBuffer {
+};
+[Supplemental]
+interface Float32Array {
+  [Suppressed] void set();
+  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+};
+[Supplemental]
+interface Float64Array {
+  [Suppressed] void set();
+  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+};
+[Supplemental]
+interface Int16Array {
+  [Suppressed] void set();
+  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+};
+[Supplemental]
+interface Int32Array {
+  [Suppressed] void set();
+  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+};
+[Supplemental]
+interface Int8Array {
+  [Suppressed] void set();
+  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+};
+[Supplemental]
+interface Uint16Array {
+  [Suppressed] void set();
+  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+};
+[Supplemental]
+interface Uint32Array {
+  [Suppressed] void set();
+  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+};
+[Supplemental]
+interface Uint8Array {
+  [Suppressed] void set();
+  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+};
+
+[Supplemental]
+interface Uint8ClampedArray {
+  // Avoid 'overriding static member BYTES_PER_ELEMENT'.
+  [Suppressed] const long BYTES_PER_ELEMENT = 1;
+
+  [Suppressed] void set();
+  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+};
+
+[Supplemental,
+  Constructor(in ArrayBuffer buffer,
+              [Optional] in unsigned long byteOffset,
+              [Optional] in unsigned long byteLength)
   ]
-  interface WebKitPoint {
-  };
+interface DataView {
+  // Undo this:
+  // We have to use custom code because our code generator does not support int8_t type.
+  // int8_t getInt8(in unsigned long byteOffset);
+  // uint8_t getUint8(in unsigned long byteOffset);
+  [Suppressed] DOMObject getInt8();
+  [Suppressed] DOMObject getUint8();
+  byte getInt8(in unsigned long byteOffset)
+      raises (DOMException);
+  octet getUint8(in unsigned long byteOffset)
+      raises (DOMException);
+
+  // We have to use custom code because our code generator does not support uint8_t type.
+  // void setInt8(in unsigned long byteOffset, in int8_t value);
+  // void setUint8(in unsigned long byteOffset, in uint8_t value);
+  [Suppressed] void setInt8();
+  [Suppressed] void setUint8();
+  void setInt8(in unsigned long byteOffset, in byte value)
+      raises (DOMException);
+  void setUint8(in unsigned long byteOffset, in octet value)
+      raises (DOMException);
 };
 
-module html {
-  [Supplemental, Callback] // Add missing Callback attribute.
-  interface VoidCallback {
-  };
+// TODO(vsm): Define new names for these (see b/4436830).
+[Supplemental]
+interface IDBCursor {
+  [DartName=continueFunction] void continue([Optional] in IDBKey key);
+};
+[Supplemental]
+interface IDBDatabase {
+  // These variants are slated for removal from WebKit.  Suppress to bring our
+  // API in line with the most recent spec.
+  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMStringList storeNames, in unsigned short mode)
+      raises (IDBDatabaseException);
+  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString[] storeNames, in unsigned short mode)
+      raises (IDBDatabaseException);
+  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString storeName, in unsigned short mode)
+      raises (IDBDatabaseException);
+};
+[Supplemental]
+interface IDBIndex {
+  [DartName=getObject] IDBRequest get(in IDBKey key);
+};
+[Supplemental]
+interface IDBObjectStore {
+  [DartName=getObject] IDBRequest get(in IDBKey key);
+  [DartName=getObject] IDBRequest get(in IDBKeyRange key);
 };
 
-module svg {
-  interface SVGNumber {
-    [StrictTypeChecking, Custom] attribute float value;
-  };
-}
+[Supplemental]
+interface IDBKeyRange {
+  [DartName=only_] static IDBKeyRange only(in IDBKey value) raises (IDBDatabaseException);
+  [DartName=lowerBound_] static IDBKeyRange lowerBound(in IDBKey bound, [Optional] in boolean open) raises (IDBDatabaseException);
+  [DartName=upperBound_] static IDBKeyRange upperBound(in IDBKey bound, [Optional] in boolean open) raises (IDBDatabaseException);
+  [DartName=bound_] static IDBKeyRange bound(in IDBKey lower, in IDBKey upper, [Optional] in boolean lowerOpen, [Optional] in boolean upperOpen) raises (IDBDatabaseException);
+};
 
-module core {
+interface EntrySync {
+  // Native implementation is declared to return EntrySync.
+  [Suppressed] DirectoryEntrySync getParent();
+  EntrySync getParent();
+};
+
+
+[Supplemental,
+  CustomConstructor,
+  Constructor(in Array blobParts,
+              [Optional] in DOMString type, [Optional] in DOMString endings)
+  ]
+interface Blob {
+};
+
+[Supplemental,
+  Constructor(float x, float y)
+]
+interface WebKitPoint {
+};
+
+[Supplemental, Callback] // Add missing Callback attribute.
+interface VoidCallback {
+};
+
+interface SVGNumber {
+  [StrictTypeChecking, Custom] attribute float value;
+};
+
+[Supplemental,
+  CustomConstructor,
+  // Provide missing constructor signature.
+  Constructor(MutationCallback callback)]
+interface MutationObserver {
+  // Rename 'observe' so we can define a new 'observe' API that calls the
+  // original.
+  [DartName=_observe] void observe(in Node target, in Dictionary options)
+      raises(DOMException);
+};
+
   [Supplemental,
-   CustomConstructor,
-   // Provide missing constructor signature.
-   Constructor(MutationCallback callback)]
-  interface MutationObserver {
-    // Rename 'observe' so we can define a new 'observe' API that calls the
-    // original.
-    [DartName=_observe] void observe(in Node target, in Dictionary options)
-        raises(DOMException);
+    CustomConstructor,
+    // Provide missing constructor signature.
+    Constructor([Optional] in HTMLFormElement form)]
+  interface DOMFormData {
+    [Suppressed] void append(in DOMString name, in DOMString value, in DOMString filename);
+    [Custom] void append(in DOMString name, in DOMString value);
+    [Custom] void append(in DOMString name, in Blob value, [Optional] in DOMString filename);
   };
-}
 
-module html {
-    [Supplemental,
-     CustomConstructor,
-     // Provide missing constructor signature.
-     Constructor([Optional] in HTMLFormElement form)]
-    interface DOMFormData {
-      [Suppressed] void append(in DOMString name, in DOMString value, in DOMString filename);
-      [Custom] void append(in DOMString name, in DOMString value);
-      [Custom] void append(in DOMString name, in Blob value, [Optional] in DOMString filename);
-    };
-}
+[Supplemental]
+interface SQLResultSetRowList {
+  // Change the return type to Dictionary so that rows are exposed in the Dart
+  // API as a Maps, with the appropriate conversion in JavaScript.
+  [Suppressed] DOMObject item(in unsigned long index);
+  [Custom] Dictionary item(in unsigned long index);
+};
 
-module storage {
-  [Supplemental]
-  interface SQLResultSetRowList {
-    // Change the return type to Dictionary so that rows are exposed in the Dart
-    // API as a Maps, with the appropriate conversion in JavaScript.
-    [Suppressed] DOMObject item(in unsigned long index);
-    [Custom] Dictionary item(in unsigned long index);
-  };
-}
+[Supplemental]
+interface WebSocket {
+  // Suppress the default since it has non-standard return type and add
+  // overrides.
+  [Suppressed] boolean send(in DOMString data) raises(DOMException);
+  [Custom] void send(DOMString data) raises(DOMException);
+  [Custom] void send(Blob data) raises(DOMException);
+  [Custom] void send(ArrayBuffer data) raises(DOMException);
+  [Custom] void send(ArrayBufferView data) raises(DOMException);
+};
 
-module websockets {
-  [Supplemental]
-  interface WebSocket {
-    // Suppress the default since it has non-standard return type and add
-    // overrides.
-    [Suppressed] boolean send(in DOMString data) raises(DOMException);
-    [Custom] void send(DOMString data) raises(DOMException);
-    [Custom] void send(Blob data) raises(DOMException);
-    [Custom] void send(ArrayBuffer data) raises(DOMException);
-    [Custom] void send(ArrayBufferView data) raises(DOMException);
-  };
-}
-
-module core {
-  [Suppressed]
-  interface Entity {};
-}
+[Suppressed]
+interface Entity {};
