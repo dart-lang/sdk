@@ -72,11 +72,6 @@ class _TypedArrayFactoryProvider {
   static ensureNative(List list) => list;  // TODO: make sure.
 }
 
-class _PointFactoryProvider {
-  static Point createPoint(num x, num y) => _createWebKitPoint(x, y);
-  static _createWebKitPoint(num x, num y) native "WebKitPoint_constructor_Callback";
-}
-
 class _TextFactoryProvider {
   static Text createText(String data) => document.$dom_createTextNode(data);
 }

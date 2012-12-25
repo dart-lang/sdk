@@ -18067,8 +18067,11 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 
 /// @domName WebKitPoint
 class Point extends NativeFieldWrapperClass1 {
-  factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
+
+  ///@docsEditable true
+  factory Point(num x, num y) => Point._create(x, y);
   Point.internal();
+  static Point _create(num x, num y) native "WebKitPoint_constructor_Callback";
 
 
   /** @domName WebKitPoint.x */
@@ -29508,11 +29511,6 @@ class _TypedArrayFactoryProvider {
   static _U8C(arg0, [arg1, arg2]) native "Uint8ClampedArray_constructor_Callback";
 
   static ensureNative(List list) => list;  // TODO: make sure.
-}
-
-class _PointFactoryProvider {
-  static Point createPoint(num x, num y) => _createWebKitPoint(x, y);
-  static _createWebKitPoint(num x, num y) native "WebKitPoint_constructor_Callback";
 }
 
 class _TextFactoryProvider {

@@ -14759,19 +14759,20 @@ class PerformanceTiming native "*PerformanceTiming" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-/// @domName WebKitPoint
+/// @domName WebKitPoint; @docsEditable true
 class Point native "*WebKitPoint" {
-  factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
+
+  ///@docsEditable true
+  factory Point(num x, num y) => Point._create(x, y);
+  static Point _create(num x, num y) =>
+      JS('Point', 'new WebKitPoint(#,#)', x, y);
 
   /// @domName WebKitPoint.x; @docsEditable true
   num x;
 
   /// @domName WebKitPoint.y; @docsEditable true
   num y;
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25012,11 +25013,6 @@ class KeyEvent implements KeyboardEvent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-class _PointFactoryProvider {
-  static Point createPoint(num x, num y) =>
-      JS('Point', 'new WebKitPoint(#, #)', x, y);
-}
 
 class _TextFactoryProvider {
   static Text createText(String data) =>

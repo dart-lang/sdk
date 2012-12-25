@@ -4,11 +4,6 @@
 
 part of html;
 
-class _PointFactoryProvider {
-  static Point createPoint(num x, num y) =>
-      JS('Point', 'new WebKitPoint(#, #)', x, y);
-}
-
 class _TextFactoryProvider {
   static Text createText(String data) =>
       JS('Text', 'document.createTextNode(#)', data);

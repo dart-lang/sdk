@@ -287,6 +287,14 @@ module html {
 };
 
 module html {
+  [Supplemental,
+   Constructor(float x, float y)
+  ]
+  interface WebKitPoint {
+  };
+};
+
+module html {
   [Supplemental, Callback] // Add missing Callback attribute.
   interface VoidCallback {
   };
