@@ -21008,10 +21008,6 @@ class XsltProcessor native "*XSLTProcessor" {
   /// @domName XSLTProcessor.transformToFragment; @docsEditable true
   DocumentFragment transformToFragment(Node source, Document docVal) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _ArrayBufferFactoryProvider {
   static ArrayBuffer createArrayBuffer(int length) =>
@@ -21421,10 +21417,6 @@ class _DataViewFactoryProvider {
     return JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _DomParserFactoryProvider {
   static DomParser createDomParser() =>
@@ -21658,28 +21650,16 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
   /// @domName EntryArraySync.item; @docsEditable true
   EntrySync item(int index) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _EventSourceFactoryProvider {
   static EventSource createEventSource(String scriptUrl) =>
       JS('EventSource', 'new EventSource(#)', scriptUrl);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _FileReaderFactoryProvider {
   static FileReader createFileReader() =>
       JS('FileReader', 'new FileReader()' );
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _FileReaderSyncFactoryProvider {
   static FileReaderSync createFileReaderSync() =>
@@ -21827,28 +21807,16 @@ class _HttpRequestFactoryProvider {
       onComplete(HttpRequest request)) =>
       _HttpRequestUtils.get(url, onComplete, true);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _MediaControllerFactoryProvider {
   static MediaController createMediaController() =>
       JS('MediaController', 'new MediaController()' );
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _MediaSourceFactoryProvider {
   static MediaSource createMediaSource() =>
       JS('MediaSource', 'new MediaSource()' );
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _MediaStreamFactoryProvider {
   static MediaStream createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) =>
@@ -21968,10 +21936,6 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
   /// @domName MediaStreamList.item; @docsEditable true
   MediaStream item(int index) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _MessageChannelFactoryProvider {
   static MessageChannel createMessageChannel() =>
@@ -22003,10 +21967,6 @@ class _MutationObserverFactoryProvider {
   // static createMutationObserver(MutationCallback callback) =>
   //    JS('var', 'new (window.MutationObserver)(#)', callback);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _NotificationFactoryProvider {
   static Notification createNotification(String title, [Map options]) =>
@@ -22037,28 +21997,16 @@ class _OptionElementFactoryProvider {
               data, value, defaultSelected, selected);
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _RtcIceCandidateFactoryProvider {
   static RtcIceCandidate createRtcIceCandidate(Map dictionary) =>
       JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _RtcPeerConnectionFactoryProvider {
   static RtcPeerConnection createRtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) =>
       JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _RtcSessionDescriptionFactoryProvider {
   static RtcSessionDescription createRtcSessionDescription(Map dictionary) =>
@@ -22075,19 +22023,11 @@ class _SharedWorkerFactoryProvider {
     return JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _SpeechGrammarFactoryProvider {
   static SpeechGrammar createSpeechGrammar() =>
       JS('SpeechGrammar', 'new SpeechGrammar()' );
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _SpeechGrammarListFactoryProvider {
   static SpeechGrammarList createSpeechGrammarList() =>
@@ -22207,10 +22147,6 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
   /// @domName SpeechInputResultList.item; @docsEditable true
   SpeechInputResult item(int index) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _SpeechRecognitionFactoryProvider {
   static SpeechRecognition createSpeechRecognition() =>
@@ -22468,46 +22404,26 @@ class _TextTrackCueFactoryProvider {
                   startTime, endTime, text, settings, pauseOnExit);
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _WebSocketFactoryProvider {
   static WebSocket createWebSocket(String url) =>
       JS('WebSocket', 'new WebSocket(#)', url);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _WorkerFactoryProvider {
   static Worker createWorker(String scriptUrl) =>
       JS('Worker', 'new Worker(#)', scriptUrl);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _XPathEvaluatorFactoryProvider {
   static XPathEvaluator createXPathEvaluator() =>
       JS('XPathEvaluator', 'new XPathEvaluator()' );
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _XmlSerializerFactoryProvider {
   static XmlSerializer createXmlSerializer() =>
       JS('XmlSerializer', 'new XMLSerializer()' );
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _XsltProcessorFactoryProvider {
   static XsltProcessor createXsltProcessor() =>

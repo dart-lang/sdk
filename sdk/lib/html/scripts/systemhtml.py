@@ -325,14 +325,25 @@ class HtmlDartInterfaceGenerator(object):
 
       template_file = (
           'factoryprovider_%s.darttemplate' % self._interface.doc_js_name)
-      factory_provider_emitter.Emit(
-          self._template_loader.TryLoad(template_file) or
-              self._template_loader.Load('factoryprovider.darttemplate'),
-          FACTORYPROVIDER=factory_provider,
-          INTERFACE=interface_name,
-          PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
-          ARGUMENTS=constructor_info.ParametersAsArgumentList(),
-          **self._backend.FactoryProviderTemplateArguments(constructor_info))
+      template = self._template_loader.TryLoad(template_file)
+      if template:
+        # There is a class specific factory provider, use it.
+        factory_provider_emitter.Emit(
+            template,
+            FACTORYPROVIDER=factory_provider)
+      else:
+        body_emitter = factory_provider_emitter.Emit(
+            'part of html;\n'
+            '\n'
+            'class $FACTORYPROVIDER {\n'
+            '$!BODY'
+            '}\n',
+            FACTORYPROVIDER=factory_provider)
+        body_emitter.Emit(
+            '  static $INTERFACE create$(INTERFACE)($PARAMETERS) $BODY\n',
+            INTERFACE=interface_name,
+            PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
+            BODY=self._backend.FactoryProviderMethodBody(constructor_info))
 
     # HTML Elements and SVG Elements have convenience constructors.
     infos = ElementConstructorInfos(interface_name,
@@ -475,12 +486,17 @@ class Dart2JSBackend(HtmlDartGenerator):
   def FinishInterface(self):
     pass
 
-  def FactoryProviderTemplateArguments(self, constructor_info):
-    return {
-        'NAMED_CONSTRUCTOR': constructor_info.name or self._interface.doc_js_name,
-        'PRE_ARGUMENTS_COMMA': ',' if constructor_info.param_infos else '',
-        'ARGUMENTS_PATTERN': ','.join(['#'] * len(constructor_info.param_infos))
-    }
+  def FactoryProviderMethodBody(self, constructor_info):
+    interface_name = self._interface_type_info.interface_name()
+    constructor_name = constructor_info.name or self._interface.doc_js_name
+    arguments = constructor_info.ParametersAsArgumentList()
+    if arguments:
+      arguments = ', ' + arguments
+    else: # TODO(antonm): kept to minize diff, to be removed in next commit.
+      arguments = arguments + ' '
+    arguments_pattern = ','.join(['#'] * len(constructor_info.param_infos))
+    return "=>\n      JS('%s', 'new %s(%s)'%s);" % (
+        interface_name, constructor_name, arguments_pattern, arguments)
 
   def SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:

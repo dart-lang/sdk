@@ -26128,26 +26128,14 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
   DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _ArrayBufferFactoryProvider {
   static ArrayBuffer createArrayBuffer(int length) native "ArrayBuffer_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _AudioElementFactoryProvider {
   static AudioElement createAudioElement([String src]) native "HTMLAudioElement_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _BlobFactoryProvider {
   static Blob createBlob(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
@@ -26272,10 +26260,6 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
   ClientRect item(int index) native "ClientRectList_item_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _CssMatrixFactoryProvider {
   static CssMatrix createCssMatrix([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
@@ -26520,18 +26504,10 @@ class _CssValueList extends CssValue implements List<CssValue> {
   CssValue item(int index) native "CSSValueList_item_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _DataViewFactoryProvider {
   static DataView createDataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _DomParserFactoryProvider {
   static DomParser createDomParser() native "DOMParser_constructor_Callback";
@@ -26912,34 +26888,18 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   EntrySync item(int index) native "EntryArraySync_item_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _EventSourceFactoryProvider {
   static EventSource createEventSource(String scriptUrl) native "EventSource_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _FileReaderFactoryProvider {
   static FileReader createFileReader() native "FileReader_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _FileReaderSyncFactoryProvider {
   static FileReaderSync createFileReaderSync() native "FileReaderSync_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _FormDataFactoryProvider {
   static FormData createFormData([FormElement form]) native "DOMFormData_constructor_Callback";
@@ -27080,26 +27040,14 @@ class _HttpRequestFactoryProvider {
                                      onSuccess(HttpRequest request)) =>
       _HttpRequestUtils.get(url, onSuccess, true);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _MediaControllerFactoryProvider {
   static MediaController createMediaController() native "MediaController_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _MediaSourceFactoryProvider {
   static MediaSource createMediaSource() native "MediaSource_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _MediaStreamFactoryProvider {
   static MediaStream createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native "MediaStream_constructor_Callback";
@@ -27224,82 +27172,42 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
   MediaStream item(int index) native "MediaStreamList_item_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _MessageChannelFactoryProvider {
   static MessageChannel createMessageChannel() native "MessageChannel_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _MutationObserverFactoryProvider {
   static MutationObserver createMutationObserver(MutationCallback callback) native "MutationObserver_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _NotificationFactoryProvider {
   static Notification createNotification(String title, [Map options]) native "Notification_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _OptionElementFactoryProvider {
   static OptionElement createOptionElement([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _RtcIceCandidateFactoryProvider {
   static RtcIceCandidate createRtcIceCandidate(Map dictionary) native "RTCIceCandidate_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _RtcPeerConnectionFactoryProvider {
   static RtcPeerConnection createRtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _RtcSessionDescriptionFactoryProvider {
   static RtcSessionDescription createRtcSessionDescription(Map dictionary) native "RTCSessionDescription_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _SharedWorkerFactoryProvider {
   static SharedWorker createSharedWorker(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _SpeechGrammarFactoryProvider {
   static SpeechGrammar createSpeechGrammar() native "SpeechGrammar_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _SpeechGrammarListFactoryProvider {
   static SpeechGrammarList createSpeechGrammarList() native "SpeechGrammarList_constructor_Callback";
@@ -27424,10 +27332,6 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   SpeechInputResult item(int index) native "SpeechInputResultList_item_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _SpeechRecognitionFactoryProvider {
   static SpeechRecognition createSpeechRecognition() native "SpeechRecognition_constructor_Callback";
@@ -27672,50 +27576,26 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   StyleSheet item(int index) native "StyleSheetList_item_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _TextTrackCueFactoryProvider {
   static TextTrackCue createTextTrackCue(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _WebSocketFactoryProvider {
   static WebSocket createWebSocket(String url) native "WebSocket_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _WorkerFactoryProvider {
   static Worker createWorker(String scriptUrl) native "Worker_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _XPathEvaluatorFactoryProvider {
   static XPathEvaluator createXPathEvaluator() native "XPathEvaluator_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _XmlSerializerFactoryProvider {
   static XmlSerializer createXmlSerializer() native "XMLSerializer_constructor_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _XsltProcessorFactoryProvider {
   static XsltProcessor createXsltProcessor() native "XSLTProcessor_constructor_Callback";

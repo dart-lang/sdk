@@ -694,10 +694,6 @@ class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 /// @domName WaveTable; @docsEditable true
 class WaveTable native "*WaveTable" {
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 class _OfflineAudioContextFactoryProvider {
   static OfflineAudioContext createOfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) =>

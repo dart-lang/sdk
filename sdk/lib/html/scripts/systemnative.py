@@ -197,10 +197,8 @@ class DartiumBackend(HtmlDartGenerator):
 
     return False
 
-  def FactoryProviderTemplateArguments(self, constructor_info):
-    return {
-        'NATIVE_NAME': '%s_constructor_Callback' % self._interface.id,
-    }
+  def FactoryProviderMethodBody(self, constructor_info):
+    return 'native "%s_constructor_Callback";' % self._interface.id
 
   def AddConstructors(self, constructors, factory_name, class_name,
       base_class, factory_constructor_name=None):
