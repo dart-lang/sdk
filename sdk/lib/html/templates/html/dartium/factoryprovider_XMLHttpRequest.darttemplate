@@ -5,8 +5,7 @@
 part of html;
 
 class $FACTORYPROVIDER {
-  static $INTERFACE create$INTERFACE($PARAMETERS) => _create$INTERFACE($ARGUMENTS);
-  static $INTERFACE _create$INTERFACE($PARAMETERS) native "$NATIVE_NAME";
+  static $INTERFACE create$INTERFACE($PARAMETERS) native "$NATIVE_NAME";
 
   static HttpRequest createHttpRequest_get(String url,
                                      onSuccess(HttpRequest request)) =>

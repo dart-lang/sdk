@@ -27070,8 +27070,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
 
 class _HttpRequestFactoryProvider {
-  static HttpRequest createHttpRequest() => _createHttpRequest();
-  static HttpRequest _createHttpRequest() native "XMLHttpRequest_constructor_Callback";
+  static HttpRequest createHttpRequest() native "XMLHttpRequest_constructor_Callback";
 
   static HttpRequest createHttpRequest_get(String url,
                                      onSuccess(HttpRequest request)) =>
