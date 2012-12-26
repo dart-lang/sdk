@@ -355,8 +355,7 @@ class ArrayBuffer native "*ArrayBuffer" {
 
   ///@docsEditable true
   factory ArrayBuffer(int length) => ArrayBuffer._create(length);
-  static ArrayBuffer _create(int length) =>
-      JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
+  static ArrayBuffer _create(int length) => JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
 
   /// @domName ArrayBuffer.byteLength; @docsEditable true
   final int byteLength;
@@ -6591,8 +6590,7 @@ class DomParser native "*DOMParser" {
 
   ///@docsEditable true
   factory DomParser() => DomParser._create();
-  static DomParser _create() =>
-      JS('DomParser', 'new DOMParser()' );
+  static DomParser _create() => JS('DomParser', 'new DOMParser()');
 
   /// @domName DOMParser.parseFromString; @docsEditable true
   Document parseFromString(String str, String contentType) native;
@@ -8473,8 +8471,7 @@ class EventSource extends EventTarget native "*EventSource" {
 
   ///@docsEditable true
   factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
-  static EventSource _create(String scriptUrl) =>
-      JS('EventSource', 'new EventSource(#)', scriptUrl);
+  static EventSource _create(String scriptUrl) => JS('EventSource', 'new EventSource(#)', scriptUrl);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   EventSourceEvents get on =>
@@ -8924,8 +8921,7 @@ class FileReader extends EventTarget native "*FileReader" {
 
   ///@docsEditable true
   factory FileReader() => FileReader._create();
-  static FileReader _create() =>
-      JS('FileReader', 'new FileReader()' );
+  static FileReader _create() => JS('FileReader', 'new FileReader()');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileReaderEvents get on =>
@@ -9009,8 +9005,7 @@ class FileReaderSync native "*FileReaderSync" {
 
   ///@docsEditable true
   factory FileReaderSync() => FileReaderSync._create();
-  static FileReaderSync _create() =>
-      JS('FileReaderSync', 'new FileReaderSync()' );
+  static FileReaderSync _create() => JS('FileReaderSync', 'new FileReaderSync()');
 
   /// @domName FileReaderSync.readAsArrayBuffer; @docsEditable true
   ArrayBuffer readAsArrayBuffer(Blob blob) native;
@@ -10245,8 +10240,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   ///@docsEditable true
   factory HttpRequest() => HttpRequest._create();
-  static HttpRequest _create() =>
-      JS('HttpRequest', 'new XMLHttpRequest()' );
+  static HttpRequest _create() => JS('HttpRequest', 'new XMLHttpRequest()');
 
   /**
    * Get the set of [HttpRequestEvents] that this request can respond to.
@@ -12229,8 +12223,7 @@ class MediaController extends EventTarget native "*MediaController" {
 
   ///@docsEditable true
   factory MediaController() => MediaController._create();
-  static MediaController _create() =>
-      JS('MediaController', 'new MediaController()' );
+  static MediaController _create() => JS('MediaController', 'new MediaController()');
 
   /// @domName MediaController.buffered; @docsEditable true
   final TimeRanges buffered;
@@ -12655,8 +12648,7 @@ class MediaSource extends EventTarget native "*MediaSource" {
 
   ///@docsEditable true
   factory MediaSource() => MediaSource._create();
-  static MediaSource _create() =>
-      JS('MediaSource', 'new MediaSource()' );
+  static MediaSource _create() => JS('MediaSource', 'new MediaSource()');
 
   /// @domName MediaSource.activeSourceBuffers; @docsEditable true
   final SourceBufferList activeSourceBuffers;
@@ -12701,8 +12693,7 @@ class MediaStream extends EventTarget native "*MediaStream" {
 
   ///@docsEditable true
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => MediaStream._create(audioTracks, videoTracks);
-  static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) =>
-      JS('MediaStream', 'new MediaStream(#,#)', audioTracks, videoTracks);
+  static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => JS('MediaStream', 'new MediaStream(#,#)', audioTracks, videoTracks);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamEvents get on =>
@@ -12920,8 +12911,7 @@ class MessageChannel native "*MessageChannel" {
 
   ///@docsEditable true
   factory MessageChannel() => MessageChannel._create();
-  static MessageChannel _create() =>
-      JS('MessageChannel', 'new MessageChannel()' );
+  static MessageChannel _create() => JS('MessageChannel', 'new MessageChannel()');
 
   /// @domName MessageChannel.port1; @docsEditable true
   final MessagePort port1;
@@ -14177,8 +14167,7 @@ class Notification extends EventTarget native "*Notification" {
     }
     return Notification._create(title, options);
   }
-  static Notification _create(String title, [Map options]) =>
-      JS('Notification', 'new Notification(#,#)', title, options);
+  static Notification _create(String title, [Map options]) => JS('Notification', 'new Notification(#,#)', title, options);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   NotificationEvents get on =>
@@ -14765,8 +14754,7 @@ class Point native "*WebKitPoint" {
 
   ///@docsEditable true
   factory Point(num x, num y) => Point._create(x, y);
-  static Point _create(num x, num y) =>
-      JS('Point', 'new WebKitPoint(#,#)', x, y);
+  static Point _create(num x, num y) => JS('Point', 'new WebKitPoint(#,#)', x, y);
 
   /// @domName WebKitPoint.x; @docsEditable true
   num x;
@@ -15221,8 +15209,7 @@ class RtcIceCandidate native "*RTCIceCandidate" {
 
   ///@docsEditable true
   factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
-  static RtcIceCandidate _create(Map dictionary) =>
-      JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
+  static RtcIceCandidate _create(Map dictionary) => JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
 
   /// @domName RTCIceCandidate.candidate; @docsEditable true
   final String candidate;
@@ -15259,8 +15246,7 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     }
     return RtcPeerConnection._create(rtcIceServers, mediaConstraints);
   }
-  static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) =>
-      JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
+  static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) => JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RtcPeerConnectionEvents get on =>
@@ -15437,8 +15423,7 @@ class RtcSessionDescription native "*RTCSessionDescription" {
 
   ///@docsEditable true
   factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
-  static RtcSessionDescription _create(Map dictionary) =>
-      JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
+  static RtcSessionDescription _create(Map dictionary) => JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
 
   /// @domName RTCSessionDescription.sdp; @docsEditable true
   String sdp;
@@ -16028,8 +16013,7 @@ class SpeechGrammar native "*SpeechGrammar" {
 
   ///@docsEditable true
   factory SpeechGrammar() => SpeechGrammar._create();
-  static SpeechGrammar _create() =>
-      JS('SpeechGrammar', 'new SpeechGrammar()' );
+  static SpeechGrammar _create() => JS('SpeechGrammar', 'new SpeechGrammar()');
 
   /// @domName SpeechGrammar.src; @docsEditable true
   String src;
@@ -16047,8 +16031,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   ///@docsEditable true
   factory SpeechGrammarList() => SpeechGrammarList._create();
-  static SpeechGrammarList _create() =>
-      JS('SpeechGrammarList', 'new SpeechGrammarList()' );
+  static SpeechGrammarList _create() => JS('SpeechGrammarList', 'new SpeechGrammarList()');
 
   /// @domName SpeechGrammarList.length; @docsEditable true
   int get length => JS("int", "#.length", this);
@@ -16198,8 +16181,7 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
   ///@docsEditable true
   factory SpeechRecognition() => SpeechRecognition._create();
-  static SpeechRecognition _create() =>
-      JS('SpeechRecognition', 'new SpeechRecognition()' );
+  static SpeechRecognition _create() => JS('SpeechRecognition', 'new SpeechRecognition()');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SpeechRecognitionEvents get on =>
@@ -19935,8 +19917,7 @@ class WebSocket extends EventTarget native "*WebSocket" {
 
   ///@docsEditable true
   factory WebSocket(String url) => WebSocket._create(url);
-  static WebSocket _create(String url) =>
-      JS('WebSocket', 'new WebSocket(#)', url);
+  static WebSocket _create(String url) => JS('WebSocket', 'new WebSocket(#)', url);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WebSocketEvents get on =>
@@ -20769,8 +20750,7 @@ class Worker extends AbstractWorker native "*Worker" {
 
   ///@docsEditable true
   factory Worker(String scriptUrl) => Worker._create(scriptUrl);
-  static Worker _create(String scriptUrl) =>
-      JS('Worker', 'new Worker(#)', scriptUrl);
+  static Worker _create(String scriptUrl) => JS('Worker', 'new Worker(#)', scriptUrl);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerEvents get on =>
@@ -20965,8 +20945,7 @@ class XPathEvaluator native "*XPathEvaluator" {
 
   ///@docsEditable true
   factory XPathEvaluator() => XPathEvaluator._create();
-  static XPathEvaluator _create() =>
-      JS('XPathEvaluator', 'new XPathEvaluator()' );
+  static XPathEvaluator _create() => JS('XPathEvaluator', 'new XPathEvaluator()');
 
   /// @domName XPathEvaluator.createExpression; @docsEditable true
   XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
@@ -21089,8 +21068,7 @@ class XmlSerializer native "*XMLSerializer" {
 
   ///@docsEditable true
   factory XmlSerializer() => XmlSerializer._create();
-  static XmlSerializer _create() =>
-      JS('XmlSerializer', 'new XMLSerializer()' );
+  static XmlSerializer _create() => JS('XmlSerializer', 'new XMLSerializer()');
 
   /// @domName XMLSerializer.serializeToString; @docsEditable true
   String serializeToString(Node node) native;
@@ -21105,8 +21083,7 @@ class XsltProcessor native "*XSLTProcessor" {
 
   ///@docsEditable true
   factory XsltProcessor() => XsltProcessor._create();
-  static XsltProcessor _create() =>
-      JS('XsltProcessor', 'new XSLTProcessor()' );
+  static XsltProcessor _create() => JS('XsltProcessor', 'new XSLTProcessor()');
 
   /// @domName XSLTProcessor.clearParameters; @docsEditable true
   void clearParameters() native;

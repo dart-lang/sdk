@@ -487,10 +487,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     arguments = constructor_info.ParametersAsArgumentList()
     if arguments:
       arguments = ', ' + arguments
-    else: # TODO(antonm): kept to minize diff, to be removed in next commit.
-      arguments = arguments + ' '
     arguments_pattern = ','.join(['#'] * len(constructor_info.param_infos))
-    return "=>\n      JS('%s', 'new %s(%s)'%s);" % (
+    return "=> JS('%s', 'new %s(%s)'%s);" % (
         interface_name, constructor_name, arguments_pattern, arguments)
 
   def SecondaryContext(self, interface):
