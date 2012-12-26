@@ -219,14 +219,11 @@ class AudioBufferSourceNode extends AudioSourceNode {
 
 /// @domName AudioContext
 class AudioContext extends EventTarget {
-  factory AudioContext() => _createAudioContext();
 
-  static _createAudioContext([int numberOfChannels,
-                              int numberOfFrames,
-                              int sampleRate])
-      native "AudioContext_constructor_Callback";
-
+  ///@docsEditable true
+  factory AudioContext() => AudioContext._create();
   AudioContext.internal(): super.internal();
+  static AudioContext _create() native "AudioContext_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AudioContextEvents get on =>

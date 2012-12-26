@@ -148,9 +148,11 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 
 /// @domName AudioContext
 class AudioContext extends EventTarget native "*AudioContext" {
-  factory AudioContext() => JS('AudioContext',
-      'new (window.AudioContext || window.webkitAudioContext)()');
 
+  ///@docsEditable true
+  factory AudioContext() => AudioContext._create();
+  static AudioContext _create() => JS('AudioContext',
+      'new (window.AudioContext || window.webkitAudioContext)()');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AudioContextEvents get on =>

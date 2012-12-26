@@ -1,0 +1,2 @@
+  static AudioContext _create() => JS('AudioContext',
+      'new (window.AudioContext || window.webkitAudioContext)()');

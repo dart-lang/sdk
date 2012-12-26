@@ -1,5 +1,9 @@
 // This file introduces / supplements and forces Dart declarations.
 
+[Supplemental,
+ Constructor]
+interface AudioContext {};
+
 [Supplemental]
 interface Document {
   [Suppressed] DOMObject getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
