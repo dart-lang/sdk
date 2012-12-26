@@ -110,30 +110,6 @@ function(cls, desc) {
 }""";
   }
 
-  void generateNativeLiteral(ClassElement classElement) {
-    String quotedNative = classElement.nativeTagInfo.slowToString();
-    String nativeCode = quotedNative.substring(2, quotedNative.length - 1);
-    String className = backend.namer.getName(classElement);
-    nativeBuffer.add(className);
-    nativeBuffer.add('$_=$_');
-    nativeBuffer.add(nativeCode);
-    nativeBuffer.add('$N');
-
-    void defineInstanceMember(String name, CodeBuffer value) {
-      nativeBuffer.add("$className.$name$_=$_$value$N");
-    }
-
-    classElement.implementation.forEachMember((_, Element member) {
-      if (member.isInstanceMember()) {
-        emitter.addInstanceMember(member, defineInstanceMember);
-      }
-    });
-  }
-
-  bool isNativeLiteral(String quotedName) {
-    return identical(quotedName[1], '=');
-  }
-
   bool isNativeGlobal(String quotedName) {
     return identical(quotedName[1], '@');
   }
@@ -153,12 +129,6 @@ function(cls, desc) {
 
     assert(classElement.backendMembers.isEmpty);
     String quotedName = classElement.nativeTagInfo.slowToString();
-    if (isNativeLiteral(quotedName)) {
-      generateNativeLiteral(classElement);
-      // The native literal kind needs to be dealt with specially when
-      // generating code for it.
-      return;
-    }
 
     CodeBuffer fieldBuffer = new CodeBuffer();
     CodeBuffer getterSetterBuffer = new CodeBuffer();
@@ -279,7 +249,7 @@ function(cls, desc) {
         new js.Return(
             new js.VariableUse('this').dot(target).callWith(arguments)));
 
-    if (isNativeLiteral(nativeTagInfo) || !overriddenMethods.contains(member)) {
+    if (!overriddenMethods.contains(member)) {
       // Call the method directly.
       return statements;
     } else {
