@@ -527,6 +527,6 @@ type_error_test: Fail, OK # VM bug: http://dartbug.com/5280
 [ $compiler == dart2dart && $minified ]
 import_core_prefix_test: Pass
 prefix22_test: Pass
-invocation_mirror_test: Fail # Issue 7587
-invocation_mirror2_test: Fail # Issue 7587
-super_call4_test: Fail # Issue 7587
+invocation_mirror_test: Fail, OK # hardcoded names.
+invocation_mirror2_test: Fail, OK # hardcoded names.
+super_call4_test: Fail, OK # hardcoded names.
