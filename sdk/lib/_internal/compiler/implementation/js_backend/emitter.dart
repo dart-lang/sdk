@@ -879,17 +879,17 @@ $lazyInitializerLogic
   }
 
   void generateGetter(Element member, String fieldName, String accessorName,
-                      CodeBuffer buffer) {      
+                      CodeBuffer buffer) {
     String getterName = namer.getterNameFromAccessorName(accessorName);
-    buffer.add("$getterName: function() { return this.$fieldName; }");    
-  }       
-  
+    buffer.add("$getterName: function() { return this.$fieldName; }");
+  }
+
   void generateSetter(Element member, String fieldName, String accessorName,
-                      CodeBuffer buffer) {      
+                      CodeBuffer buffer) {
     String setterName = namer.setterNameFromAccessorName(accessorName);
-    buffer.add("$setterName: function(v) { this.$fieldName = v; }");      
-  }       
-  
+    buffer.add("$setterName: function(v) { this.$fieldName = v; }");
+  }
+
   bool canGenerateCheckedSetter(Element member) {
     DartType type = member.computeType(compiler);
     if (type.element.isTypeVariable()
@@ -1739,8 +1739,7 @@ $lazyInitializerLogic
           selector.getOrderedNamedArguments().map((SourceString name) =>
               new js.LiteralString('"${name.slowToString()}"'));
 
-      String internalName = namer.instanceMethodInvocationName(
-          selector.library, new SourceString(methodName), selector);
+      String internalName = namer.invocationMirrorInternalName(selector);
 
       String createInvocationMirror = namer.getName(
           compiler.createInvocationMirrorElement);

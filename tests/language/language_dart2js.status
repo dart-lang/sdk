@@ -91,7 +91,6 @@ identical_closure_test: Fail # Fix for identical closure has not been implemente
 class_cycle_test/02: Fail # Issue 7468.
 class_cycle_test/03: Fail # Issue 7468.
 invocation_mirror_test: Fail
-invocation_mirror_invoke_on_test: Fail # http://dartbug.com/7425
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6972
 number_identity2_test: Fail # identity of NaN
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
