@@ -136,27 +136,27 @@ patch spawnFunction(void topLevelFunction(),
 patch spawnUri(String uri) native "isolate_spawnUri";
 
 patch class Timer {
-  /* patch */ factory Timer(int milliSeconds, void callback(Timer timer)) {
+  /* patch */ factory Timer(int milliseconds, void callback(Timer timer)) {
     if (_TimerFactory._factory == null) {
       throw new UnsupportedError("Timer interface not supported.");
     }
-    return _TimerFactory._factory(milliSeconds, callback, false);
+    return _TimerFactory._factory(milliseconds, callback, false);
   }
 
   /**
    * Creates a new repeating timer. The [callback] is invoked every
-   * [milliSeconds] millisecond until cancelled.
+   * [milliseconds] millisecond until cancelled.
    */
-  /* patch */ factory Timer.repeating(int milliSeconds,
+  /* patch */ factory Timer.repeating(int milliseconds,
                                       void callback(Timer timer)) {
     if (_TimerFactory._factory == null) {
       throw new UnsupportedError("Timer interface not supported.");
     }
-    return _TimerFactory._factory(milliSeconds, callback, true);
+    return _TimerFactory._factory(milliseconds, callback, true);
   }
 }
 
-typedef Timer _TimerFactoryClosure(int milliSeconds,
+typedef Timer _TimerFactoryClosure(int milliseconds,
                                    void callback(Timer timer),
                                    bool repeating);
 

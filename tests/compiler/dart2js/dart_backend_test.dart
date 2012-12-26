@@ -61,6 +61,11 @@ const foreignLib = r'''
 var JS;
 ''';
 
+const isolateHelperLib = r'''
+class _WorkerStub {
+}
+''';
+
 testDart2Dart(String src, {void continuation(String s), bool minify: false,
     bool stripTypes: false}) {
   // If continuation is not provided, check that source string remains the same.
@@ -88,12 +93,20 @@ testDart2DartWithLibrary(
     if (uri.toString() == libUri.toString()) {
       return new Future.immediate(srcLibrary);
     }
-    if (uri.path.endsWith('/core.dart')) return new Future.immediate(coreLib);
-    if (uri.path.endsWith('/io.dart')) return new Future.immediate(ioLib);
-    if (uri.path.endsWith('/js_helper.dart')) return new Future.immediate(helperLib);
-    // TODO(smok): The file should change to html_dartium at some point.
-    if (uri.path.endsWith('/html_dart2js.dart')) return new Future.immediate(htmlLib);
-    if (uri.path.endsWith('/foreign_helper.dart')) return new Future.immediate(foreignLib);
+    if (uri.path.endsWith('/core.dart')) {
+      return new Future.immediate(coreLib);
+    } else  if (uri.path.endsWith('/io.dart')) {
+      return new Future.immediate(ioLib);
+    } else if (uri.path.endsWith('/js_helper.dart')) {
+      return new Future.immediate(helperLib);
+    } else if (uri.path.endsWith('/html_dart2js.dart')) {
+      // TODO(smok): The file should change to html_dartium at some point.
+      return new Future.immediate(htmlLib);
+    } else if (uri.path.endsWith('/foreign_helper.dart')) {
+      return new Future.immediate(foreignLib);
+    } else if (uri.path.endsWith('/isolate_helper.dart')) {
+      return new Future.immediate(isolateHelperLib);
+    }
     return new Future.immediate('');
   }
 

@@ -7,15 +7,15 @@ part of dart.isolate;
 abstract class Timer {
   /**
    * Creates a new timer. The [callback] callback is invoked after
-   * [milliSeconds] milliseconds.
+   * [milliseconds] milliseconds.
    */
-  external factory Timer(int milliSeconds, void callback(Timer timer));
+  external factory Timer(int milliseconds, void callback(Timer timer));
 
   /**
    * Creates a new repeating timer. The [callback] is invoked every
-   * [milliSeconds] millisecond until cancelled.
+   * [milliseconds] millisecond until cancelled.
    */
-  external factory Timer.repeating(int milliSeconds,
+  external factory Timer.repeating(int milliseconds,
                                    void callback(Timer timer));
 
   /**

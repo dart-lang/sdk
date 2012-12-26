@@ -1770,6 +1770,9 @@ abstract class ClassElement extends ScopeContainerElement
 
   bool isInterface() => false;
   bool isNative() => nativeTagInfo != null;
+  void setNative(String name) {
+    nativeTagInfo = new SourceString(name);
+  }
   int get hashCode => id;
 
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);

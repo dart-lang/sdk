@@ -89,6 +89,9 @@ const String DEFAULT_CORELIB = r'''
   class Dynamic_ {}
   bool identical(Object a, Object b) {}''';
 
+const String DEFAULT_ISOLATE_HELPERLIB = r'''
+  class _WorkerBase {}''';
+
 class MockCompiler extends Compiler {
   List<WarningMessage> warnings;
   List<WarningMessage> errors;
@@ -98,6 +101,7 @@ class MockCompiler extends Compiler {
   MockCompiler({String coreSource: DEFAULT_CORELIB,
                 String helperSource: DEFAULT_HELPERLIB,
                 String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
+                String isolateHelperSource: DEFAULT_ISOLATE_HELPERLIB,
                 bool enableTypeAssertions: false,
                 bool enableMinification: false,
                 bool enableConcreteTypeInference: false,
@@ -119,6 +123,7 @@ class MockCompiler extends Compiler {
 
     assertMethod = jsHelperLibrary.find(buildSourceString('assert'));
     interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
+    isolateHelperLibrary = createLibrary("isolate_helper", isolateHelperSource);
 
     mainApp = mockLibrary(this, "");
     initializeSpecialClasses();

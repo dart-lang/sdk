@@ -49,6 +49,8 @@ Future<String> provider(Uri uri) {
                   var getInterceptor;""";
     } else if (uri.path.endsWith('js_helper.dart')) {
       source = 'library jshelper; class JSInvocationMirror {}';
+    } else if (uri.path.endsWith('isolate_helper.dart')) {
+      source = 'library isolatehelper; class _WorkerStub {}';
     } else {
       source = "library lib;";
     }
