@@ -370,6 +370,38 @@ void main() {
            three</code></pre>
         ''');
 
+    validate('code blocks separated by newlines form one block', '''
+            zero
+            one
+
+            two
+
+            three
+        ''', '''
+        <pre><code>zero
+         one
+
+         two
+
+         three</code></pre>
+        ''');
+
+    validate('code blocks separated by two newlines form multiple blocks', '''
+            zero
+            one
+
+
+            two
+
+
+            three
+        ''', '''
+        <pre><code>zero
+         one</code></pre>
+        <pre><code>two</code></pre>
+        <pre><code>three</code></pre>
+        ''');
+
     validate('escape HTML characters', '''
             <&>
         ''', '''

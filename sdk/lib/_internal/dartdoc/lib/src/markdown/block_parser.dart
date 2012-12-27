@@ -201,6 +201,32 @@ class BlockquoteSyntax extends BlockSyntax {
 class CodeBlockSyntax extends BlockSyntax {
   RegExp get pattern => _RE_INDENT;
 
+  List<String> parseChildLines(BlockParser parser) {
+    final childLines = <String>[];
+
+    while (!parser.isDone) {
+      var match = pattern.firstMatch(parser.current);
+      if (match != null) {
+        childLines.add(match[1]);
+        parser.advance();
+      } else {
+        // If there's a codeblock, then a newline, then a codeblock, keep the
+        // code blocks together.
+        var nextMatch = parser.next != null ?
+            pattern.firstMatch(parser.next) : null;
+        if (parser.current.trim() == '' && nextMatch != null) {
+          childLines.add('');
+          childLines.add(nextMatch[1]);
+          parser.advance();
+          parser.advance();
+        } else {
+          break;
+        }
+      }
+    }
+    return childLines;
+  }
+
   Node parse(BlockParser parser) {
     final childLines = parseChildLines(parser);
 
