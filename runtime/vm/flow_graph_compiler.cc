@@ -628,6 +628,47 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 }
 
 
+struct CidTarget {
+  intptr_t cid;
+  Function* target;
+  intptr_t count;
+  CidTarget(intptr_t cid_arg,
+            Function* target_arg,
+            intptr_t count_arg)
+      : cid(cid_arg), target(target_arg), count(count_arg) {}
+};
+
+
+// Returns 'sorted' array in decreasing count order.
+// The expected number of elements to sort is less than 10.
+static void SortICDataByCount(const ICData& ic_data,
+                              GrowableArray<CidTarget>* sorted) {
+  ASSERT(ic_data.num_args_tested() == 1);
+  const intptr_t len = ic_data.NumberOfChecks();
+  sorted->Clear();
+
+  for (int i = 0; i < len; i++) {
+    sorted->Add(CidTarget(ic_data.GetReceiverClassIdAt(i),
+                          &Function::ZoneHandle(ic_data.GetTargetAt(i)),
+                          ic_data.GetCountAt(i)));
+  }
+  for (int i = 0; i < len; i++) {
+    intptr_t largest_ix = i;
+    for (int k = i + 1; k < len; k++) {
+      if ((*sorted)[largest_ix].count < (*sorted)[k].count) {
+        largest_ix = k;
+      }
+    }
+    if (i != largest_ix) {
+      // Swap.
+      CidTarget temp = (*sorted)[i];
+      (*sorted)[i] = (*sorted)[largest_ix];
+      (*sorted)[largest_ix] = temp;
+    }
+  }
+}
+
+
 void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Register class_id_reg,
                                         intptr_t arg_count,
@@ -639,19 +680,20 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Label match_found;
   const intptr_t len = ic_data.NumberOfChecks();
+  GrowableArray<CidTarget> sorted(len);
+  SortICDataByCount(ic_data, &sorted);
   for (intptr_t i = 0; i < len; i++) {
     const bool is_last_check = (i == (len - 1));
     Label next_test;
-    assembler()->cmpl(class_id_reg, Immediate(ic_data.GetReceiverClassIdAt(i)));
+    assembler()->cmpl(class_id_reg, Immediate(sorted[i].cid));
     if (is_last_check) {
       assembler()->j(NOT_EQUAL, deopt);
     } else {
       assembler()->j(NOT_EQUAL, &next_test);
     }
-    const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
     GenerateStaticCall(deopt_id,
                        token_index,
-                       target,
+                       *sorted[i].target,
                        arg_count,
                        arg_names,
                        locs);
