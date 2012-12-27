@@ -998,9 +998,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   /// @domName CanvasRenderingContext2D.clearRect; @docsEditable true
   void clearRect(num x, num y, num width, num height) native;
 
-  /// @domName CanvasRenderingContext2D.clearShadow; @docsEditable true
-  void clearShadow() native;
-
   /// @domName CanvasRenderingContext2D.clip; @docsEditable true
   void clip() native;
 
@@ -1037,9 +1034,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 
   /// @domName CanvasRenderingContext2D.drawImage; @docsEditable true
   void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
-
-  /// @domName CanvasRenderingContext2D.drawImageFromRect; @docsEditable true
-  void drawImageFromRect(ImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]) native;
 
   /// @domName CanvasRenderingContext2D.fill; @docsEditable true
   void fill() native;
@@ -1111,29 +1105,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   /// @domName CanvasRenderingContext2D.scale; @docsEditable true
   void scale(num sx, num sy) native;
 
-  /// @domName CanvasRenderingContext2D.setAlpha; @docsEditable true
-  void setAlpha(num alpha) native;
-
-  /// @domName CanvasRenderingContext2D.setCompositeOperation; @docsEditable true
-  void setCompositeOperation(String compositeOperation) native;
-
-  /// @domName CanvasRenderingContext2D.setLineCap; @docsEditable true
-  void setLineCap(String cap) native;
-
   /// @domName CanvasRenderingContext2D.setLineDash; @docsEditable true
   void setLineDash(List<num> dash) native;
-
-  /// @domName CanvasRenderingContext2D.setLineJoin; @docsEditable true
-  void setLineJoin(String join) native;
-
-  /// @domName CanvasRenderingContext2D.setLineWidth; @docsEditable true
-  void setLineWidth(num width) native;
-
-  /// @domName CanvasRenderingContext2D.setMiterLimit; @docsEditable true
-  void setMiterLimit(num limit) native;
-
-  /// @domName CanvasRenderingContext2D.setShadow; @docsEditable true
-  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
 
   /// @domName CanvasRenderingContext2D.setTransform; @docsEditable true
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;

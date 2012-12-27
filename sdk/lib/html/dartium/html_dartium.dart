@@ -1459,10 +1459,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void clearRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_clearRect_Callback";
 
 
-  /** @domName CanvasRenderingContext2D.clearShadow */
-  void clearShadow() native "CanvasRenderingContext2D_clearShadow_Callback";
-
-
   /** @domName CanvasRenderingContext2D.clip */
   void clip() native "CanvasRenderingContext2D_clip_Callback";
 
@@ -1590,86 +1586,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.drawImage_9 */
   void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
 
-  void drawImageFromRect(/*HTMLImageElement*/ image, [/*float*/ sx, /*float*/ sy, /*float*/ sw, /*float*/ sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh, /*DOMString*/ compositeOperation]) {
-    if (?compositeOperation) {
-      _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
-      return;
-    }
-    if (?dh) {
-      _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw, dh);
-      return;
-    }
-    if (?dw) {
-      _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy, dw);
-      return;
-    }
-    if (?dy) {
-      _drawImageFromRect_4(image, sx, sy, sw, sh, dx, dy);
-      return;
-    }
-    if (?dx) {
-      _drawImageFromRect_5(image, sx, sy, sw, sh, dx);
-      return;
-    }
-    if (?sh) {
-      _drawImageFromRect_6(image, sx, sy, sw, sh);
-      return;
-    }
-    if (?sw) {
-      _drawImageFromRect_7(image, sx, sy, sw);
-      return;
-    }
-    if (?sy) {
-      _drawImageFromRect_8(image, sx, sy);
-      return;
-    }
-    if (?sx) {
-      _drawImageFromRect_9(image, sx);
-      return;
-    }
-    _drawImageFromRect_10(image);
-  }
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_1 */
-  void _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation) native "CanvasRenderingContext2D_drawImageFromRect_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_2 */
-  void _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImageFromRect_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_3 */
-  void _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy, dw) native "CanvasRenderingContext2D_drawImageFromRect_3_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_4 */
-  void _drawImageFromRect_4(image, sx, sy, sw, sh, dx, dy) native "CanvasRenderingContext2D_drawImageFromRect_4_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_5 */
-  void _drawImageFromRect_5(image, sx, sy, sw, sh, dx) native "CanvasRenderingContext2D_drawImageFromRect_5_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_6 */
-  void _drawImageFromRect_6(image, sx, sy, sw, sh) native "CanvasRenderingContext2D_drawImageFromRect_6_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_7 */
-  void _drawImageFromRect_7(image, sx, sy, sw) native "CanvasRenderingContext2D_drawImageFromRect_7_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_8 */
-  void _drawImageFromRect_8(image, sx, sy) native "CanvasRenderingContext2D_drawImageFromRect_8_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_9 */
-  void _drawImageFromRect_9(image, sx) native "CanvasRenderingContext2D_drawImageFromRect_9_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_10 */
-  void _drawImageFromRect_10(image) native "CanvasRenderingContext2D_drawImageFromRect_10_Callback";
-
 
   /** @domName CanvasRenderingContext2D.fill */
   void fill() native "CanvasRenderingContext2D_fill_Callback";
@@ -1763,92 +1679,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void scale(num sx, num sy) native "CanvasRenderingContext2D_scale_Callback";
 
 
-  /** @domName CanvasRenderingContext2D.setAlpha */
-  void setAlpha(num alpha) native "CanvasRenderingContext2D_setAlpha_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setCompositeOperation */
-  void setCompositeOperation(String compositeOperation) native "CanvasRenderingContext2D_setCompositeOperation_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setLineCap */
-  void setLineCap(String cap) native "CanvasRenderingContext2D_setLineCap_Callback";
-
-
   /** @domName CanvasRenderingContext2D.setLineDash */
   void setLineDash(List<num> dash) native "CanvasRenderingContext2D_setLineDash_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setLineJoin */
-  void setLineJoin(String join) native "CanvasRenderingContext2D_setLineJoin_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setLineWidth */
-  void setLineWidth(num width) native "CanvasRenderingContext2D_setLineWidth_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setMiterLimit */
-  void setMiterLimit(num limit) native "CanvasRenderingContext2D_setMiterLimit_Callback";
-
-  void setShadow(/*float*/ width, /*float*/ height, /*float*/ blur, [c_OR_color_OR_grayLevel_OR_r, /*float*/ alpha_OR_g_OR_m, /*float*/ b_OR_y, /*float*/ a_OR_k, /*float*/ a]) {
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && !?c_OR_color_OR_grayLevel_OR_r && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_1(width, height, blur);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r == null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_5(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && (b_OR_y is num || b_OR_y == null) && (a_OR_k is num || a_OR_k == null) && !?a) {
-      _setShadow_6(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && (b_OR_y is num || b_OR_y == null) && (a_OR_k is num || a_OR_k == null) && (a is num || a == null)) {
-      _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_1 */
-  void _setShadow_1(width, height, blur) native "CanvasRenderingContext2D_setShadow_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_2 */
-  void _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setShadow_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_3 */
-  void _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setShadow_3_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_4 */
-  void _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setShadow_4_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_5 */
-  void _setShadow_5(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setShadow_5_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_6 */
-  void _setShadow_6(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native "CanvasRenderingContext2D_setShadow_6_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_7 */
-  void _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setShadow_7_Callback";
 
 
   /** @domName CanvasRenderingContext2D.setTransform */
