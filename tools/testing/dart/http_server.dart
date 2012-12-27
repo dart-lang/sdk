@@ -42,6 +42,13 @@ void startHttpServer(String host, int port) {
     }
   };
 
+  // Echos back the contents of the request as the response data.
+  _httpServer.addRequestHandler((req) => req.path == "/echo", (request, resp) {
+    resp.headers.set("Access-Control-Allow-Origin", "*");
+
+    request.inputStream.pipe(resp.outputStream);
+  });
+
   _httpServer.listen(host, port);
 }
 
