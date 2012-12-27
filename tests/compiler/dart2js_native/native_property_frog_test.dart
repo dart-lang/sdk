@@ -7,8 +7,8 @@
 class A native "*A" {
 
   // Setters and getters should be similar to these methods:
-  int getX() native 'return this._x;';
-  void setX(int value) native 'this._x = value;';
+  int getX() => JS('int', '#._x', this);
+  void setX(int value) { JS('void', '#._x = #', this, value); }
 
   int get X() native;
   set X(int value) native;
@@ -16,8 +16,8 @@ class A native "*A" {
   int get Y() native;
   set Y(int value) native;
 
-  int get Z() native 'return this._z;';
-  set Z(int value) native 'this._z = value;';
+  int get Z => JS('int', '#._z', this);
+  set Z(int value) { JS('void', '#._z = #', this, value); }
 }
 
 A makeA() native { return new A(); }

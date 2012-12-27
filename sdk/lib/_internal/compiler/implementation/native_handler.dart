@@ -872,26 +872,11 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
         new HForeign(jsCode, const LiteralDartString('Object'), inputs));
     builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   } else {
-    // This is JS code written in a Dart file with the construct
-    // native """ ... """;. It does not work well with mangling,
-    // but there should currently be no clash between leg mangling
-    // and the library where this construct is being used. This
-    // mangling problem will go away once we switch these libraries
-    // to use Leg's 'JS' function.
-    parameters.forEachParameter((Element parameter) {
-      DartType type = parameter.computeType(compiler).unalias(compiler);
-      if (type is FunctionType) {
-        // The parameter type is a function type either directly or through
-        // typedef(s).
-        HInstruction jsClosure = convertDartClosure(parameter, type);
-        // Because the JS code references the argument name directly,
-        // we must keep the name and assign the JS closure to it.
-        builder.add(new HForeign(
-            new DartString.literal('${parameter.name.slowToString()} = #'),
-            const LiteralDartString('void'),
-            <HInstruction>[jsClosure]));
-      }
-    });
+    if (parameters.parameterCount != 0) {
+      compiler.cancel(
+          'native "..." syntax is restricted to functions with zero parameters',
+          node: nativeBody);
+    }
     LiteralString jsCode = nativeBody.asLiteralString();
     builder.push(new HForeign.statement(jsCode.dartString, <HInstruction>[]));
   }

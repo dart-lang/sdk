@@ -13263,24 +13263,14 @@ class MutationObserver native "*MutationObserver" {
 
   ///@docsEditable true
   factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
-  @Creates('MutationObserver')
-  @Creates('MutationRecord')
-  static MutationObserver _create(MutationCallback callback) native '''
-    var constructor =
-        window.MutationObserver || window.WebKitMutationObserver ||
-        window.MozMutationObserver;
-    return new constructor(callback);
-  ''';
-
-  // TODO(sra): Dart2js inserts a conversion when a Dart function (i.e. an
-  // object with a call method) is passed to a native method.  This is so the
-  // native code sees a JavaScript function.
-  //
-  // This does not happen when a function is 'passed' to a JS-form so it is not
-  // possible to rewrite the above code to, e.g. (simplified):
-  //
-  // static createMutationObserver(MutationCallback callback) =>
-  //    JS('var', 'new (window.MutationObserver)(#)', callback);
+  static MutationObserver _create(MutationCallback callback) {
+    // Dummy statement to mark types as instantiated.
+    JS('MutationObserver|MutationRecord', '0');
+    return JS('MutationObserver',
+        'new(window.MutationObserver||window.WebKitMutationObserver||'
+        'window.MozMutationObserver)(#)',
+        convertDartClosureToJS(callback, 2));
+  }
 
   /// @domName MutationObserver.disconnect; @docsEditable true
   void disconnect() native;
