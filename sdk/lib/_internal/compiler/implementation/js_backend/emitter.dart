@@ -1320,7 +1320,8 @@ $lazyInitializerLogic
   void emitStaticFunctionGetters(CodeBuffer buffer) {
     Set<FunctionElement> functionsNeedingGetter =
         compiler.codegenWorld.staticFunctionsNeedingGetter;
-    for (FunctionElement element in functionsNeedingGetter) {
+    for (FunctionElement element in
+             Elements.sortedByPosition(functionsNeedingGetter)) {
       // The static function does not have the correct name. Since
       // [addParameterStubs] use the name to create its stubs we simply
       // create a fake element with the correct name.
