@@ -200,21 +200,18 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   ASSERT(!type_class.HasTypeArguments());
 
   const Register kInstanceReg = EAX;
-  Label compare_classes;
   __ testl(kInstanceReg, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
-  // Instance is Smi, check directly.
+  // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(Smi::Class());
   if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
                             type_class,
                             TypeArguments::Handle(),
                             NULL)) {
-    __ jmp(is_instance_lbl);
+    __ j(ZERO, is_instance_lbl);
   } else {
-    __ jmp(is_not_instance_lbl);
+    __ j(ZERO, is_not_instance_lbl);
   }
   // Compare if the classes are equal.
-  __ Bind(&compare_classes);
   const Register kClassIdReg = ECX;
   __ LoadClassId(kClassIdReg, kInstanceReg);
   __ cmpl(kClassIdReg, Immediate(type_class.id()));
