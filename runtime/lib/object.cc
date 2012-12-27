@@ -66,7 +66,7 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
 DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
   const AbstractType& type =
       AbstractType::CheckedHandle(arguments->NativeArgAt(0));
-  return type.Name();
+  return type.UserVisibleName();
 }
 
 }  // namespace dart
