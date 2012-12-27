@@ -20,7 +20,6 @@ built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
 gc_test: Pass, Fail # Issue 1487
 pseudo_kw_illegal_test/14: Fail  # Issue 356
-first_class_types_constants_test: Fail # Issue 6282
 method_override2_test/00: Fail # Issue 7076.
 method_override2_test/02: Fail # Issue 7076.
 method_override2_test/03: Fail # Issue 7076.
@@ -54,6 +53,8 @@ duplicate_export_negative_test: Fail # issue 6134
 type_annotation_test/04: Fail # Issue 6970
 type_annotation_test/06: Fail # Issue 6973
 type_annotation_test/09: Fail # Issue 6973
+
+type_parameter_literal_test: Fail # Issue 7551
 
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.

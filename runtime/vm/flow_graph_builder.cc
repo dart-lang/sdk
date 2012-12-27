@@ -547,9 +547,17 @@ void ValueGraphVisitor::VisitLiteralNode(LiteralNode* node) {
 }
 
 
-// Type nodes only occur as the right-hand side of instanceof comparisons,
-// and they are handled specially in that context.
-void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
+// Type nodes are used when a type is referenced as a literal. Type nodes
+// can also be used for the right-hand side of instanceof comparisons,
+// but they are handled specially in that context, not here.
+void EffectGraphVisitor::VisitTypeNode(TypeNode* node) {
+  return;
+}
+
+
+void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
+  ReturnDefinition(new ConstantInstr(node->type()));
+}
 
 
 // Returns true if the type check can be skipped, for example, if the

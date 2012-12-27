@@ -345,6 +345,13 @@ class TypeNode : public AstNode {
 
   const AbstractType& type() const { return type_; }
 
+  virtual const Instance* EvalConstExpr() const {
+    if (!type_.IsInstantiated() || type_.IsMalformed()) {
+      return NULL;
+    }
+    return &type();
+  }
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
   DECLARE_COMMON_NODE_FUNCTIONS(TypeNode);

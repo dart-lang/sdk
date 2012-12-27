@@ -325,6 +325,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitClosureCallNode(ClosureCallNode* node);
   virtual void VisitStaticSetterNode(StaticSetterNode* node);
   virtual void VisitStoreStaticFieldNode(StoreStaticFieldNode* node);
+  virtual void VisitTypeNode(TypeNode* node);
 
   Value* value() const { return value_; }
 

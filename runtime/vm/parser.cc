@@ -6890,6 +6890,12 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
 // Ensure that the expression temp is allocated for nodes that may need it.
 AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
   AstNode* result = original->MakeAssignmentNode(rhs);
+  if ((result == NULL) && original->IsTypeNode()) {
+    const String& type_name = String::ZoneHandle(
+        original->AsTypeNode()->type().ClassName());
+    // TODO(tball): determine whether NoSuchMethod should be called instead.
+    result = ThrowNoSuchMethodError(original->token_pos(), type_name);
+  }
   if ((result != NULL) &&
       (result->IsStoreIndexedNode() ||
        result->IsInstanceSetterNode() ||
@@ -7482,13 +7488,14 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         if (primary->primary().IsFunction()) {
           // Treat as implicit closure.
           left = LoadClosure(primary);
-        } else if (left->AsPrimaryNode()->primary().IsClass()) {
-          Class& cls = Class::CheckedHandle(
-              left->AsPrimaryNode()->primary().raw());
-          String& cls_name = String::Handle(cls.Name());
-          ErrorMsg(left->token_pos(),
-                   "illegal use of class name '%s'",
-                   cls_name.ToCString());
+        } else if (primary->primary().IsClass()) {
+          const Class& type_class = Class::Cast(primary->primary());
+          Type& type = Type::ZoneHandle(
+              Type::New(type_class, TypeArguments::Handle(),
+                        primary->token_pos(), Heap::kOld));
+          type ^= ClassFinalizer::FinalizeType(
+              current_class(), type, ClassFinalizer::kCanonicalize);
+          left = new TypeNode(primary->token_pos(), type);
         } else if (primary->IsSuper()) {
           // Return "super" to handle unary super operator calls,
           // or to report illegal use of "super" otherwise.
