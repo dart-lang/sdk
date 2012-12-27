@@ -74,10 +74,7 @@ element_test/click: Fail                # IE does not support firing this event.
 element_webkit_test: Fail
 exceptions_test: Fail
 fileapi_test: Fail
-indexeddb_1_test: Fail
-indexeddb_2_test: Fail
-indexeddb_3_test: Fail
-indexeddb_4_test: Fail
+indexeddb_1_test/supported: Fail         # IE10 does not support from file://
 inner_frame_test: Skip
 input_element_test/date: Fail            # IE10 does not support this input type.
 input_element_test/datetime: Fail        # IE10 does not support this input type.
@@ -98,7 +95,7 @@ svg_3_test: Fail
 typed_arrays_1_test: Fail
 typed_arrays_arraybuffer_test: Fail
 typed_arrays_dataview_test: Fail
-url_test: Fail
+url_test: Fail                           # IE10 does not support from file://
 websql_test: Fail
 window_open_test: Skip
 xhr_test: Fail
@@ -136,10 +133,7 @@ element_test/additionalConstructors: Fail
 exceptions_test: Fail
 fileapi_test: Fail          # IE does not support filesystem APIs.
 history_test: Fail
-indexeddb_1_test: Fail
-indexeddb_2_test: Fail
-indexeddb_3_test: Fail
-indexeddb_4_test: Fail
+indexeddb_1_test/supported: Fail
 input_element_test/date: Fail            # IE9 does not support this input type.
 input_element_test/datetime: Fail        # IE9 does not support this input type.
 input_element_test/datetime-local: Fail  # IE9 does not support this input type.
@@ -172,10 +166,7 @@ xhr_cross_origin_test: Fail # Issue 6016.
 audiocontext_test: Crash, Fail # Issue: 7414
 element_test/elements: Crash, Fail # Issue: 7414
 performance_api_test: Fail # window.performance.timing not in Safari 6.
-indexeddb_1_test: Fail # indexedDB not in Safari 6.
-indexeddb_2_test: Fail # indexedDB not in Safari 6.
-indexeddb_3_test: Fail # indexedDB not in Safari 6.
-indexeddb_4_test: Fail # indexedDB not in Safari 6.
+indexeddb_1_test/supported: Fail
 input_element_test/date: Fail            # Safari does not support this input type.
 input_element_test/datetime: Fail        # Safari does not support this input type.
 input_element_test/datetime-local: Fail  # Safari does not support this input type.
@@ -223,10 +214,7 @@ element_test/eventListening: Crash
 element_test/queryAll: Fail
 element_webkit_test: Fail
 exceptions_test: Fail
-indexeddb_1_test: Fail
-indexeddb_2_test: Fail
-indexeddb_3_test: Fail
-indexeddb_4_test: Fail
+indexeddb_1_test/supported: Fail
 mutationobserver_test/supported: Fail
 performance_api_test: Fail
 serialized_script_value_test: Fail
@@ -255,10 +243,7 @@ documentfragment_test: Fail
 element_webkit_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
 fileapi_test: Fail         # FF does not support filesystem APIs.
-indexeddb_1_test: Fail     # FF disables indexedDB from file URLs.
-indexeddb_2_test: Fail     # FF disables indexedDB from file URLs.
-indexeddb_3_test: Fail     # FF disables indexedDB from file URLs.
-indexeddb_4_test: Fail     # FF disables indexedDB from file URLs.
+indexeddb_1_test/supported: Fail  # FF disables indexedDB from file URLs.
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
 input_element_test/date: Fail            # FF does not support this input type.
@@ -296,13 +281,6 @@ xhr_test: Fail
 # Unknown error - should investigate.
 unknownelement_test: Fail # Issue 4189
 
-[ $compiler == dart2js && $runtime == chrome ]
-indexeddb_3_test: Fail # Current chrome still throws InDBDatabaseException.
-indexeddb_4_test: Fail # Current chrome still throws InDBDatabaseException.
-
-[ $compiler == dart2js && $runtime == none ]
-*: Fail, Pass # TODO(ahe): Triage these tests.
-
 [ $compiler == dart2js ]
 transferables_test: Skip # until isInstance works in dart2js
 
@@ -312,9 +290,6 @@ request_animation_frame_test: Skip # Async test hangs.
 [ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff || $runtime == safari) ]
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
-
-[ $compiler == dart2js && $runtime == ff && $system == linux]
-indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
 
 [ $compiler == dart2js && $runtime == ff ]
 xhr_test: Skip # Timeout

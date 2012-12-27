@@ -122,13 +122,17 @@ main() {
       verifyGraph(cyclic_list, cyclic_list);
     });
 
-  go('test_simple', obj1);
-  go('test_DAG', obj2);
-  go('test_cycle', obj3);
-  go('test_simple_splay', obj4);
-  go('const_array_1', const [const [1], const [2]]);
-  go('const_array_dag', const [const [1], const [1]]);
-  go('array_deferred_copy', [1,2,3, obj3, obj3, 6]);
-  go('array_deferred_copy_2', [1,2,3, [4, 5, obj3], [obj3, 6]]);
-  go('cyclic_list', cyclic_list);
+  // Don't bother with these tests if it's unsupported.
+  // Support is tested in indexeddb_1_test
+  if (idb.IdbFactory.supported) {
+    go('test_simple', obj1);
+    go('test_DAG', obj2);
+    go('test_cycle', obj3);
+    go('test_simple_splay', obj4);
+    go('const_array_1', const [const [1], const [2]]);
+    go('const_array_dag', const [const [1], const [1]]);
+    go('array_deferred_copy', [1,2,3, obj3, obj3, 6]);
+    go('array_deferred_copy_2', [1,2,3, [4, 5, obj3], [obj3, 6]]);
+    go('cyclic_list', cyclic_list);
+  }
 }

@@ -25160,6 +25160,10 @@ class Window extends EventTarget implements WindowBase {
 
 
   /** @domName DOMWindow.indexedDB */
+  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
+  @SupportedBrowser(SupportedBrowser.IE, '10.0')
+  @Experimental()
   IdbFactory get indexedDB native "DOMWindow_indexedDB_Getter";
 
 
@@ -25765,6 +25769,10 @@ class WorkerContext extends EventTarget {
 
 
   /** @domName WorkerContext.indexedDB */
+  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
+  @SupportedBrowser(SupportedBrowser.IE, '10.0')
+  @Experimental()
   IdbFactory get indexedDB native "WorkerContext_indexedDB_Getter";
 
 

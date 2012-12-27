@@ -22,7 +22,7 @@ class Test {
       // Nuke object store if it already exists.
       db.deleteObjectStore(STORE_NAME);
     }
-    on DomException catch(e) { } // Chrome and Firefox
+    catch(e) { } // Chrome and Firefox
     db.createObjectStore(STORE_NAME);
   }
 
@@ -157,24 +157,28 @@ class Test {
 main() {
   useHtmlConfiguration();
 
-  var test_ = new Test();
-  test('prepare', test_.setupDb);
+  // Don't bother with these tests if it's unsupported.
+  // Support is tested in indexeddb_1_test
+  if (IdbFactory.supported) {
+    var test_ = new Test();
+    test('prepare', test_.setupDb);
 
-  test('only1', test_.only1);
-  test('only2', test_.only2);
-  test('only3', test_.only3);
+    test('only1', test_.only1);
+    test('only2', test_.only2);
+    test('only3', test_.only3);
 
-  test('lower1', test_.lower1);
-  test('lower2', test_.lower2);
-  test('lower3', test_.lower3);
+    test('lower1', test_.lower1);
+    test('lower2', test_.lower2);
+    test('lower3', test_.lower3);
 
-  test('upper1', test_.upper1);
-  test('upper2', test_.upper2);
-  test('upper3', test_.upper3);
+    test('upper1', test_.upper1);
+    test('upper2', test_.upper2);
+    test('upper3', test_.upper3);
 
-  test('bound1', test_.bound1);
-  test('bound2', test_.bound2);
-  test('bound3', test_.bound3);
-  test('bound4', test_.bound4);
-  test('bound5', test_.bound5);
+    test('bound1', test_.bound1);
+    test('bound2', test_.bound2);
+    test('bound3', test_.bound3);
+    test('bound4', test_.bound4);
+    test('bound5', test_.bound5);
+  }
 }

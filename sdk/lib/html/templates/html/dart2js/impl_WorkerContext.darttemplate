@@ -8,6 +8,16 @@ part of html;
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 
+  /**
+   * Gets an instance of the Indexed DB factory to being using Indexed DB.
+   *
+   * Use [IdbFactory.supported] to check if Indexed DB is supported on the
+   * current platform.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
+  @SupportedBrowser(SupportedBrowser.IE, '10.0')
+  @Experimental()
   IdbFactory get indexedDB =>
       JS('IdbFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',

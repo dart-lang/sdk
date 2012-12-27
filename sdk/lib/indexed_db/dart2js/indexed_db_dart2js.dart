@@ -280,8 +280,22 @@ class DatabaseEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBFactory; @docsEditable true
+/// @domName IDBFactory
+@SupportedBrowser(SupportedBrowser.CHROME, '23.0')
+@SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
+@SupportedBrowser(SupportedBrowser.IE, '10.0')
+@Experimental()
 class IdbFactory native "*IDBFactory" {
+  /**
+   * Checks to see if Indexed DB is supported on the current platform.
+   */
+  static bool get supported {
+    return JS('bool',
+        '!!(window.indexedDB || '
+        'window.webkitIndexedDB || '
+        'window.mozIndexedDB)');
+  }
+
 
   /// @domName IDBFactory.cmp; @docsEditable true
   int cmp(/*IDBKey*/ first, /*IDBKey*/ second) {
@@ -301,6 +315,7 @@ class IdbFactory native "*IDBFactory" {
 
   /// @domName IDBFactory.webkitGetDatabaseNames; @docsEditable true
   Request webkitGetDatabaseNames() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

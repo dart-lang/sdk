@@ -1,6 +1,6 @@
 library IndexedDB1Test;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html' as html;
 import 'dart:indexed_db' as idb;
 
@@ -175,8 +175,28 @@ tests_typed() {
 }
 
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
 
-  tests_dynamic();
-  tests_typed();
+  // Test that indexed_db is properly flagged as supported or not.
+  // Note that the rest of the indexed_db tests assume that this has been
+  // checked.
+  group('supported', () {
+    test('supported', () {
+      expect(idb.IdbFactory.supported, true);
+    });
+  });
+
+  test('throws when unsupported', () {
+    var expectation = idb.IdbFactory.supported ? returnsNormally : throws;
+
+    expect(() {
+      var db = window.indexedDB;
+    }, expectation);
+  });
+
+  // Don't bother with these tests if it's unsupported.
+  if (idb.IdbFactory.supported) {
+    tests_dynamic();
+    tests_typed();
+  }
 }

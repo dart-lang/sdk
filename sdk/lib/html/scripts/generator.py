@@ -695,7 +695,52 @@ dart2js_annotations = {
       "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
 }
 
-def FindAnnotations(idl_type, interface_name, member_name):
+_indexed_db_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME, '23.0')",
+  "@SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')",
+  "@SupportedBrowser(SupportedBrowser.IE, '10.0')",
+  "@Experimental()",
+]
+
+# Annotations to be placed on generated members.
+# The table is indexed as:
+#   INTERFACE:     annotations to be added to the interface declaration
+#   INTERFACE.MEMBER: annotation to be added to the member declaration
+dart_annotations = {
+  'DOMWindow.indexedDB': _indexed_db_annotations,
+  'IDBFactory': _indexed_db_annotations,
+  'IDBDatabase': _indexed_db_annotations,
+  'WorkerContext.indexedDB': _indexed_db_annotations,
+}
+
+def FindCommonAnnotations(interface_name, member_name=None):
+  """ Finds annotations common between dart2js and dartium.
+  """
+  if member_name:
+    return dart_annotations.get('%s.%s' % (interface_name, member_name))
+  else:
+    return dart_annotations.get(interface_name)
+
+def FindDart2JSAnnotations(idl_type, interface_name, member_name):
+  """ Finds all annotations for Dart2JS members- including annotations for
+  both dart2js and dartium.
+  """
+  annotations = FindCommonAnnotations(interface_name, member_name)
+  if annotations:
+    annotations = ' '.join(annotations)
+
+  ann2 = _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name)
+  if ann2:
+    if annotations:
+      annotations = annotations + ' ' + ann2
+    else:
+      annotations = ann2
+  return annotations
+
+def _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name):
+  """ Finds dart2js-specific annotations. This does not include ones shared with
+  dartium.
+  """
   ann1 = dart2js_annotations.get("%s.%s" % (interface_name, member_name))
   if ann1:
     ann2 = dart2js_annotations.get('+' + idl_type)

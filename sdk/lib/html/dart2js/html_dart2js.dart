@@ -20201,6 +20201,16 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
        this);
   }
 
+  /**
+   * Gets an instance of the Indexed DB factory to being using Indexed DB.
+   *
+   * Use [IdbFactory.supported] to check if Indexed DB is supported on the
+   * current platform.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
+  @SupportedBrowser(SupportedBrowser.IE, '10.0')
+  @Experimental()
   IdbFactory get indexedDB =>
       JS('IdbFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
@@ -20863,6 +20873,16 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
 
+  /**
+   * Gets an instance of the Indexed DB factory to being using Indexed DB.
+   *
+   * Use [IdbFactory.supported] to check if Indexed DB is supported on the
+   * current platform.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
+  @SupportedBrowser(SupportedBrowser.IE, '10.0')
+  @Experimental()
   IdbFactory get indexedDB =>
       JS('IdbFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',

@@ -200,11 +200,20 @@ class DatabaseEvents extends Events {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 /// @domName IDBFactory
+@SupportedBrowser(SupportedBrowser.CHROME, '23.0')
+@SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
+@SupportedBrowser(SupportedBrowser.IE, '10.0')
+@Experimental()
 class IdbFactory extends NativeFieldWrapperClass1 {
+  /**
+   * Checks to see if Indexed DB is supported on the current platform.
+   */
+  static bool get supported {
+    return true;
+  }
+
   IdbFactory.internal();
 
 
