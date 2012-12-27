@@ -11160,7 +11160,11 @@ abstract class RangeInputElementBase implements InputElementBase {
 /**
  * A date and time (year, month, day, hour, minute, second, fraction of a
  * second) with the time zone set to UTC.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 abstract class DateTimeInputElement implements RangeInputElementBase {
   factory DateTimeInputElement() => new InputElement(type: 'datetime');
 
@@ -11172,11 +11176,20 @@ abstract class DateTimeInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported() {
+    return (new InputElement(type: 'datetime')).type == 'datetime';
+  }
 }
 
 /**
  * A date (year, month, day) with no time zone.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
@@ -11188,11 +11201,20 @@ abstract class DateInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported() {
+    return (new InputElement(type: 'date')).type == 'date';
+  }
 }
 
 /**
  * A date consisting of a year and a month with no time zone.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
@@ -11204,11 +11226,20 @@ abstract class MonthInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported() {
+    return (new InputElement(type: 'month')).type == 'month';
+  }
 }
 
 /**
  * A date consisting of a week-year number and a week number with no time zone.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
@@ -11220,11 +11251,20 @@ abstract class WeekInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported() {
+    return (new InputElement(type: 'week')).type == 'week';
+  }
 }
 
 /**
  * A time (hour, minute, seconds, fractional seconds) with no time zone.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental()
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
@@ -11236,12 +11276,21 @@ abstract class TimeInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported() {
+    return (new InputElement(type: 'time')).type == 'time';
+  }
 }
 
 /**
  * A date and time (year, month, day, hour, minute, second, fraction of a
  * second) with no time zone.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
@@ -11251,11 +11300,20 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported() {
+    return (new InputElement(type: 'datetime-local')).type == 'datetime-local';
+  }
 }
 
 /**
  * A numeric editor control.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 abstract class NumberInputElement implements RangeInputElementBase {
   factory NumberInputElement() => new InputElement(type: 'number');
 
@@ -11267,14 +11325,29 @@ abstract class NumberInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported() {
+    return (new InputElement(type: 'number')).type == 'number';
+  }
 }
 
 /**
  * Similar to [NumberInputElement] but the browser may provide more optimal
  * styling (such as a slider control).
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@Experimental()
 abstract class RangeInputElement implements RangeInputElementBase {
   factory RangeInputElement() => new InputElement(type: 'range');
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported() {
+    return (new InputElement(type: 'range')).type == 'range';
+  }
 }
 
 /**
@@ -13239,6 +13312,7 @@ class MutationObserver native "*MutationObserver" {
   static MutationObserver _create(MutationCallback callback) {
     // Dummy statement to mark types as instantiated.
     JS('MutationObserver|MutationRecord', '0');
+
     return JS('MutationObserver',
         'new(window.MutationObserver||window.WebKitMutationObserver||'
         'window.MozMutationObserver)(#)',
