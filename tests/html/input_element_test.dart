@@ -3,155 +3,152 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
-void check(InputElement element, String type, [bool supported = true]) {
-  expect(element is InputElement, true);
-  if (supported) {
-    expect(element.type, type);
-  } else {
-    expect(element.type, 'text');
-  }
-}
-
 main() {
   useHtmlIndividualConfiguration();
 
-  group('supported_datetime', () {
-    test('supported', () {
-      expect(DateTimeInputElement.supported, true);
+  test('hidden', () {
+    var e = new HiddenInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'hidden');
+  });
+
+  test('search', () {
+    var e = new SearchInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'search');
+  });
+
+  test('text', () {
+    var e = new TextInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'text');
+  });
+
+  test('url', () {
+    var e = new UrlInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'url');
+  });
+
+  test('telephone', () {
+    var e = new TelephoneInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'tel');
+  });
+
+  test('email', () {
+    var e = new EmailInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'email');
+  });
+
+  test('password', () {
+    var e = new PasswordInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'password');
+  });
+
+  group('datetime', () {
+    test('constructor', () {
+      var e = new DateTimeInputElement();
+      expect(e is InputElement, true);
+      expect(e.type, 'datetime');
     });
   });
 
-  group('supported_date', () {
-    test('supported', () {
-      expect(DateInputElement.supported, true);
+  group('date', () {
+    test('constructor', () {
+      var e = new DateInputElement();
+      expect(e is InputElement, true);
+      expect(e.type, 'date');
     });
   });
 
-  group('supported_month', () {
-    test('supported', () {
-      expect(MonthInputElement.supported, true);
+  group('month', () {
+    test('constructor', () {
+      var e = new MonthInputElement();
+      expect(e is InputElement, true);
+      expect(e.type, 'month');
     });
   });
 
-  group('supported_week', () {
-    test('supported', () {
-      expect(WeekInputElement.supported, true);
+  group('week', () {
+    test('constructor', () {
+      var e = new WeekInputElement();
+      expect(e is InputElement, true);
+      expect(e.type, 'week');
     });
   });
 
-  group('supported_time', () {
-    test('supported', () {
-      expect(TimeInputElement.supported, true);
+  group('time', () {
+    test('constructor', () {
+      var e = new TimeInputElement();
+      expect(e is InputElement, true);
+      expect(e.type, 'time');
     });
   });
 
-  group('supported_datetime-local', () {
-    test('supported', () {
-      expect(LocalDateTimeInputElement.supported, true);
+  group('datetime-local', () {
+    test('constructor', () {
+      var e = new LocalDateTimeInputElement();
+      expect(e is InputElement, true);
+      expect(e.type, 'datetime-local');
     });
   });
 
-  group('supported_number', () {
-    test('supported', () {
-      expect(NumberInputElement.supported, true);
+  test('number', () {
+    var e = new NumberInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'number');
+  });
+
+  group('range', () {
+    test('constructor', () {
+      var e = new RangeInputElement();
+      expect(e is InputElement, true);
+      expect(e.type, 'range');
     });
   });
 
-  group('supported_range', () {
-    test('supported', () {
-      expect(RangeInputElement.supported, true);
-    });
+  test('checkbox', () {
+    var e = new CheckboxInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'checkbox');
   });
 
-  group('constructors', () {
-    test('hidden', () {
-      check(new HiddenInputElement(), 'hidden');
-    });
+  test('radio', () {
+    var e = new RadioButtonInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'radio');
+  });
 
-    test('search', () {
-      check(new SearchInputElement(), 'search');
-    });
+  test('file', () {
+    var e = new FileUploadInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'file');
+  });
 
-    test('text', () {
-      check(new TextInputElement(), 'text');
-    });
+  test('submit', () {
+    var e = new SubmitButtonInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'submit');
+  });
 
-    test('url', () {
-      check(new UrlInputElement(), 'url');
-    });
+  test('image', () {
+    var e = new ImageButtonInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'image');
+  });
 
-    test('telephone', () {
-      check(new TelephoneInputElement(), 'tel');
-    });
+  test('reset', () {
+    var e = new ResetButtonInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'reset');
+  });
 
-    test('email', () {
-      check(new EmailInputElement(), 'email');
-    });
-
-    test('password', () {
-      check(new PasswordInputElement(), 'password');
-    });
-
-    test('datetime', () {
-      check(new DateTimeInputElement(), 'datetime',
-          DateTimeInputElement.supported);
-    });
-
-    test('date', () {
-      check(new DateInputElement(), 'date', DateInputElement.supported);
-    });
-
-    test('month', () {
-      check(new MonthInputElement(), 'month', MonthInputElement.supported);
-    });
-
-    test('week', () {
-      check(new WeekInputElement(), 'week', WeekInputElement.supported);
-    });
-
-    test('time', () {
-      check(new TimeInputElement(), 'time', TimeInputElement.supported);
-    });
-
-    test('datetime-local', () {
-      check(new LocalDateTimeInputElement(), 'datetime-local',
-          LocalDateTimeInputElement.supported);
-    });
-
-    test('number', () {
-      check(new NumberInputElement(), 'number', NumberInputElement.supported);
-    });
-
-    test('range', () {
-      check(new RangeInputElement(), 'range', RangeInputElement.supported);
-    });
-
-    test('checkbox', () {
-      check(new CheckboxInputElement(), 'checkbox');
-    });
-
-    test('radio', () {
-      check(new RadioButtonInputElement(), 'radio');
-    });
-
-    test('file', () {
-      check(new FileUploadInputElement(), 'file');
-    });
-
-    test('submit', () {
-      check(new SubmitButtonInputElement(), 'submit');
-    });
-
-    test('image', () {
-      check(new ImageButtonInputElement(), 'image');
-    });
-
-    test('reset', () {
-      check(new ResetButtonInputElement(), 'reset');
-    });
-
-    test('button', () {
-      check(new ButtonInputElement(), 'button');
-    });
+  test('button', () {
+    var e = new ButtonInputElement();
+    expect(e is InputElement, true);
+    expect(e.type, 'button');
   });
 }
