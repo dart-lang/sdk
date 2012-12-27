@@ -66,7 +66,7 @@ class StoreBuffer {
  public:
   // Simple linked list element containing a HashSet of old->new pointers.
   class DedupSet {
-  public:
+   public:
     enum {
       kSetSize = 1024,
       kFillRatio = 75
@@ -81,7 +81,7 @@ class StoreBuffer {
     DedupSet* next() const { return next_; }
     HashSet* set() const { return set_; }
 
-  private:
+   private:
     DedupSet* next_;
     HashSet* set_;
 

@@ -84,7 +84,7 @@ class HashSet {
     return value & size_mask_;
   }
 
-  // Returns true if the given slot contains a value.
+  // Returns true if the given slot does not contain a value.
   bool SlotIsEmpty(intptr_t index) const {
     return keys_[index] == 0;
   }
