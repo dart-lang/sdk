@@ -238,6 +238,7 @@ def AnalyzeConstructor(interface):
   info.type_name = interface.id
   info.param_infos = args
   info.requires_named_arguments = False
+  info.pure_dart_constructor = False
   return info
 
 def IsDartListType(type):

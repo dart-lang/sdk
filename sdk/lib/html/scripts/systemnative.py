@@ -130,32 +130,14 @@ class DartiumBackend(HtmlDartGenerator):
     self._cpp_definitions_emitter = emitter.Emitter()
     self._cpp_resolver_emitter = emitter.Emitter()
 
-    self._GenerateConstructors()
+    # We need to revisit our treatment of typed arrays, right now
+    # it is full of hacks.
+    if self._interface.ext_attrs.get('ConstructorTemplate') == 'TypedArray':
+      self._cpp_resolver_emitter.Emit(
+          '    if (name == "$(INTERFACE_NAME)_constructor_Callback")\n'
+          '        return Dart$(INTERFACE_NAME)Internal::constructorCallback;\n',
+          INTERFACE_NAME=self._interface.id)
 
-  def _GenerateConstructors(self):
-    if not self._IsConstructable():
-      return
-
-    # TODO(antonm): currently we don't have information about number of arguments expected by
-    # the constructor, so name only dispatch.
-    self._cpp_resolver_emitter.Emit(
-        '    if (name == "$(INTERFACE_NAME)_constructor_Callback")\n'
-        '        return Dart$(INTERFACE_NAME)Internal::constructorCallback;\n',
-        INTERFACE_NAME=self._interface.id)
-
-
-    constructor_info = AnalyzeConstructor(self._interface)
-
-    ext_attrs = self._interface.ext_attrs
-
-    if 'CustomConstructor' in ext_attrs:
-      # We have a custom implementation for it.
-      self._cpp_declarations_emitter.Emit(
-          '\n'
-          'void constructorCallback(Dart_NativeArguments);\n')
-      return
-
-    if ext_attrs.get('ConstructorTemplate') == 'TypedArray':
       self._cpp_impl_includes.add('"DartArrayBufferViewCustom.h"');
       self._cpp_definitions_emitter.Emit(
         '\n'
@@ -164,6 +146,45 @@ class DartiumBackend(HtmlDartGenerator):
         '    WebCore::DartArrayBufferViewInternal::constructWebGLArray<Dart$(INTERFACE_NAME)>(args);\n'
         '}\n',
         INTERFACE_NAME=self._interface.id);
+
+  def EmitHelpers(self, base_class):
+    # Emit internal constructor which is necessary for Dartium bindings
+    # to construct wrappers from C++.  Eventually it should go away
+    # once it is possible to construct such an instance directly.
+    super_constructor = ''
+    if base_class and base_class != 'NativeFieldWrapperClass1':
+      super_constructor = ' : super.internal()'
+    self._members_emitter.Emit(
+        '  $CLASSNAME.internal()$SUPERCONSTRUCTOR;\n',
+        CLASSNAME=self._interface_type_info.implementation_name(),
+        SUPERCONSTRUCTOR=super_constructor)
+
+  def EmitStaticFactory(self, constructor_info):
+    constructor_callback_id = self._interface.id + '_constructor_Callback'
+
+    self._members_emitter.Emit(
+        '  static $INTERFACE_NAME _create($PARAMETERS_DECLARATION) '
+          'native "$CONSTRUCTOR_CALLBACK_ID";\n',
+        INTERFACE_NAME=self._interface_type_info.interface_name(),
+        PARAMETERS_DECLARATION=constructor_info.ParametersDeclaration(
+            self._DartType),
+        CONSTRUCTOR_CALLBACK_ID=constructor_callback_id)
+
+    # TODO(antonm): currently we don't have information about number of arguments expected by
+    # the constructor, so name only dispatch.
+    self._cpp_resolver_emitter.Emit(
+        '    if (name == "$CONSTRUCTOR_CALLBACK_ID")\n'
+        '        return Dart$(WEBKIT_INTERFACE_NAME)Internal::constructorCallback;\n',
+        CONSTRUCTOR_CALLBACK_ID=constructor_callback_id,
+        WEBKIT_INTERFACE_NAME=self._interface.id)
+
+    ext_attrs = self._interface.ext_attrs
+
+    if 'CustomConstructor' in ext_attrs:
+      # We have a custom implementation for it.
+      self._cpp_declarations_emitter.Emit(
+          '\n'
+          'void constructorCallback(Dart_NativeArguments);\n')
       return
 
     create_function = 'create'
@@ -178,41 +199,6 @@ class DartiumBackend(HtmlDartGenerator):
         constructor_info.idl_args,
         self._interface.id,
         'ConstructorRaisesException' in ext_attrs)
-
-  ATTRIBUTES_OF_CONSTRUCTABLE = set([
-    'CustomConstructor',
-    'V8CustomConstructor',
-    'Constructor',
-    'NamedConstructor'])
-
-  def _IsConstructable(self):
-    ext_attrs = self._interface.ext_attrs
-
-    if self.ATTRIBUTES_OF_CONSTRUCTABLE & set(ext_attrs):
-      return True
-
-    # FIXME: support other types of ConstructorTemplate.
-    if ext_attrs.get('ConstructorTemplate') == 'TypedArray':
-      return True
-
-    return False
-
-  def FactoryProviderMethodBody(self, constructor_info):
-    return 'native "%s_constructor_Callback";' % self._interface.id
-
-  def AddConstructors(self, constructors, factory_name, class_name,
-      base_class, factory_constructor_name=None):
-    super(DartiumBackend, self).AddConstructors(constructors, factory_name,
-        class_name, base_class, factory_constructor_name)
-
-    super_constructor = ''
-    if base_class and base_class != 'NativeFieldWrapperClass1':
-      super_constructor = ': super.internal()'
-
-    self._members_emitter.Emit(
-        '  $CLASSNAME.internal()$SUPERCONSTRUCTOR;\n',
-        CLASSNAME=class_name,
-        SUPERCONSTRUCTOR=super_constructor)
 
   def FinishInterface(self):
     self._GenerateCPPHeader()

@@ -73,7 +73,7 @@ _callPortSync(num id, var message) {
 
 /// @domName AbstractWorker
 class AbstractWorker extends EventTarget {
-  AbstractWorker.internal(): super.internal();
+  AbstractWorker.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AbstractWorkerEvents get on =>
@@ -110,6 +110,7 @@ class AbstractWorkerEvents extends Events {
 
 /// @domName HTMLAnchorElement
 class AnchorElement extends _Element_Merged {
+  AnchorElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AnchorElement({String href}) {
@@ -117,7 +118,6 @@ class AnchorElement extends _Element_Merged {
     if (href != null) e.href = href;
     return e;
   }
-  AnchorElement.internal(): super.internal();
 
 
   /** @domName HTMLAnchorElement.charset */
@@ -289,7 +289,7 @@ class AnchorElement extends _Element_Merged {
 
 /// @domName WebKitAnimationEvent
 class AnimationEvent extends Event {
-  AnimationEvent.internal(): super.internal();
+  AnimationEvent.internal() : super.internal();
 
 
   /** @domName WebKitAnimationEvent.animationName */
@@ -309,7 +309,7 @@ class AnimationEvent extends Event {
 
 /// @domName HTMLAppletElement
 class AppletElement extends _Element_Merged {
-  AppletElement.internal(): super.internal();
+  AppletElement.internal() : super.internal();
 
 
   /** @domName HTMLAppletElement.align */
@@ -409,7 +409,7 @@ class AppletElement extends _Element_Merged {
 
 /// @domName DOMApplicationCache
 class ApplicationCache extends EventTarget {
-  ApplicationCache.internal(): super.internal();
+  ApplicationCache.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ApplicationCacheEvents get on =>
@@ -495,10 +495,10 @@ class ApplicationCacheEvents extends Events {
 
 /// @domName HTMLAreaElement
 class AreaElement extends _Element_Merged {
+  AreaElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AreaElement() => document.$dom_createElement("area");
-  AreaElement.internal(): super.internal();
 
 
   /** @domName HTMLAreaElement.alt */
@@ -594,10 +594,10 @@ class AreaElement extends _Element_Merged {
 
 /// @domName ArrayBuffer
 class ArrayBuffer extends NativeFieldWrapperClass1 {
+  ArrayBuffer.internal();
 
   ///@docsEditable true
   factory ArrayBuffer(int length) => ArrayBuffer._create(length);
-  ArrayBuffer.internal();
   static ArrayBuffer _create(int length) native "ArrayBuffer_constructor_Callback";
 
 
@@ -653,7 +653,7 @@ class ArrayBufferView extends NativeFieldWrapperClass1 {
 
 /// @domName Attr
 class Attr extends Node {
-  Attr.internal(): super.internal();
+  Attr.internal() : super.internal();
 
 
   /** @domName Attr.isId */
@@ -689,6 +689,7 @@ class Attr extends Node {
 
 /// @domName HTMLAudioElement
 class AudioElement extends MediaElement {
+  AudioElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AudioElement([String src]) {
@@ -697,7 +698,6 @@ class AudioElement extends MediaElement {
     }
     return AudioElement._create(src);
   }
-  AudioElement.internal(): super.internal();
   static AudioElement _create([String src]) native "HTMLAudioElement_constructor_Callback";
 
 }
@@ -710,10 +710,10 @@ class AudioElement extends MediaElement {
 
 /// @domName HTMLBRElement
 class BRElement extends _Element_Merged {
+  BRElement.internal() : super.internal();
 
   ///@docsEditable true
   factory BRElement() => document.$dom_createElement("br");
-  BRElement.internal(): super.internal();
 
 
   /** @domName HTMLBRElement.clear */
@@ -749,10 +749,10 @@ class BarInfo extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLBaseElement
 class BaseElement extends _Element_Merged {
+  BaseElement.internal() : super.internal();
 
   ///@docsEditable true
   factory BaseElement() => document.$dom_createElement("base");
-  BaseElement.internal(): super.internal();
 
 
   /** @domName HTMLBaseElement.href */
@@ -780,7 +780,7 @@ class BaseElement extends _Element_Merged {
 
 /// @domName HTMLBaseFontElement
 class BaseFontElement extends _Element_Merged {
-  BaseFontElement.internal(): super.internal();
+  BaseFontElement.internal() : super.internal();
 
 
   /** @domName HTMLBaseFontElement.color */
@@ -816,7 +816,7 @@ class BaseFontElement extends _Element_Merged {
 
 /// @domName BatteryManager
 class BatteryManager extends EventTarget {
-  BatteryManager.internal(): super.internal();
+  BatteryManager.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BatteryManagerEvents get on =>
@@ -878,7 +878,7 @@ class BatteryManagerEvents extends Events {
 
 /// @domName BeforeLoadEvent
 class BeforeLoadEvent extends Event {
-  BeforeLoadEvent.internal(): super.internal();
+  BeforeLoadEvent.internal() : super.internal();
 
 
   /** @domName BeforeLoadEvent.url */
@@ -894,6 +894,7 @@ class BeforeLoadEvent extends Event {
 
 /// @domName Blob
 class Blob extends NativeFieldWrapperClass1 {
+  Blob.internal();
 
   ///@docsEditable true
   factory Blob(List blobParts, [String type, String endings]) {
@@ -905,7 +906,6 @@ class Blob extends NativeFieldWrapperClass1 {
     }
     return Blob._create(blobParts, type, endings);
   }
-  Blob.internal();
   static Blob _create(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
 
 
@@ -955,10 +955,10 @@ class Blob extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLBodyElement
 class BodyElement extends _Element_Merged {
+  BodyElement.internal() : super.internal();
 
   ///@docsEditable true
   factory BodyElement() => document.$dom_createElement("body");
-  BodyElement.internal(): super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BodyElementEvents get on =>
@@ -1059,10 +1059,10 @@ class BodyElementEvents extends ElementEvents {
 
 /// @domName HTMLButtonElement
 class ButtonElement extends _Element_Merged {
+  ButtonElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ButtonElement() => document.$dom_createElement("button");
-  ButtonElement.internal(): super.internal();
 
 
   /** @domName HTMLButtonElement.autofocus */
@@ -1182,7 +1182,7 @@ class ButtonElement extends _Element_Merged {
 
 /// @domName CDATASection
 class CDataSection extends Text {
-  CDataSection.internal(): super.internal();
+  CDataSection.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1192,6 +1192,7 @@ class CDataSection extends Text {
 
 /// @domName HTMLCanvasElement
 class CanvasElement extends _Element_Merged {
+  CanvasElement.internal() : super.internal();
 
   ///@docsEditable true
   factory CanvasElement({int width, int height}) {
@@ -1200,7 +1201,6 @@ class CanvasElement extends _Element_Merged {
     if (height != null) e.height = height;
     return e;
   }
-  CanvasElement.internal(): super.internal();
 
 
   /** @domName HTMLCanvasElement.height */
@@ -1280,7 +1280,7 @@ class CanvasRenderingContext extends NativeFieldWrapperClass1 {
 
 /// @domName CanvasRenderingContext2D
 class CanvasRenderingContext2D extends CanvasRenderingContext {
-  CanvasRenderingContext2D.internal(): super.internal();
+  CanvasRenderingContext2D.internal() : super.internal();
 
 
   /** @domName CanvasRenderingContext2D.fillStyle */
@@ -1968,7 +1968,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
 /// @domName CharacterData
 class CharacterData extends Node {
-  CharacterData.internal(): super.internal();
+  CharacterData.internal() : super.internal();
 
 
   /** @domName CharacterData.data */
@@ -2108,7 +2108,7 @@ class Clipboard extends NativeFieldWrapperClass1 {
 
 /// @domName CloseEvent
 class CloseEvent extends Event {
-  CloseEvent.internal(): super.internal();
+  CloseEvent.internal() : super.internal();
 
 
   /** @domName CloseEvent.code */
@@ -2132,7 +2132,7 @@ class CloseEvent extends Event {
 
 /// @domName Comment
 class Comment extends CharacterData {
-  Comment.internal(): super.internal();
+  Comment.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2144,7 +2144,7 @@ class Comment extends CharacterData {
 
 /// @domName CompositionEvent
 class CompositionEvent extends UIEvent {
-  CompositionEvent.internal(): super.internal();
+  CompositionEvent.internal() : super.internal();
 
 
   /** @domName CompositionEvent.data */
@@ -2264,10 +2264,10 @@ class Console extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLContentElement
 class ContentElement extends _Element_Merged {
+  ContentElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ContentElement() => document.$dom_createElement("content");
-  ContentElement.internal(): super.internal();
 
 
   /** @domName HTMLContentElement.resetStyleInheritance */
@@ -2379,7 +2379,7 @@ class Crypto extends NativeFieldWrapperClass1 {
 
 /// @domName CSSCharsetRule
 class CssCharsetRule extends CssRule {
-  CssCharsetRule.internal(): super.internal();
+  CssCharsetRule.internal() : super.internal();
 
 
   /** @domName CSSCharsetRule.encoding */
@@ -2399,7 +2399,7 @@ class CssCharsetRule extends CssRule {
 
 /// @domName CSSFontFaceRule
 class CssFontFaceRule extends CssRule {
-  CssFontFaceRule.internal(): super.internal();
+  CssFontFaceRule.internal() : super.internal();
 
 
   /** @domName CSSFontFaceRule.style */
@@ -2415,7 +2415,7 @@ class CssFontFaceRule extends CssRule {
 
 /// @domName CSSImportRule
 class CssImportRule extends CssRule {
-  CssImportRule.internal(): super.internal();
+  CssImportRule.internal() : super.internal();
 
 
   /** @domName CSSImportRule.href */
@@ -2439,7 +2439,7 @@ class CssImportRule extends CssRule {
 
 /// @domName WebKitCSSKeyframeRule
 class CssKeyframeRule extends CssRule {
-  CssKeyframeRule.internal(): super.internal();
+  CssKeyframeRule.internal() : super.internal();
 
 
   /** @domName WebKitCSSKeyframeRule.keyText */
@@ -2463,7 +2463,7 @@ class CssKeyframeRule extends CssRule {
 
 /// @domName WebKitCSSKeyframesRule
 class CssKeyframesRule extends CssRule {
-  CssKeyframesRule.internal(): super.internal();
+  CssKeyframesRule.internal() : super.internal();
 
 
   /** @domName WebKitCSSKeyframesRule.cssRules */
@@ -2499,6 +2499,7 @@ class CssKeyframesRule extends CssRule {
 
 /// @domName WebKitCSSMatrix
 class CssMatrix extends NativeFieldWrapperClass1 {
+  CssMatrix.internal();
 
   ///@docsEditable true
   factory CssMatrix([String cssValue]) {
@@ -2507,7 +2508,6 @@ class CssMatrix extends NativeFieldWrapperClass1 {
     }
     return CssMatrix._create(cssValue);
   }
-  CssMatrix.internal();
   static CssMatrix _create([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
 
 
@@ -2736,7 +2736,7 @@ class CssMatrix extends NativeFieldWrapperClass1 {
 
 /// @domName CSSMediaRule
 class CssMediaRule extends CssRule {
-  CssMediaRule.internal(): super.internal();
+  CssMediaRule.internal() : super.internal();
 
 
   /** @domName CSSMediaRule.cssRules */
@@ -2764,7 +2764,7 @@ class CssMediaRule extends CssRule {
 
 /// @domName CSSPageRule
 class CssPageRule extends CssRule {
-  CssPageRule.internal(): super.internal();
+  CssPageRule.internal() : super.internal();
 
 
   /** @domName CSSPageRule.selectorText */
@@ -2788,7 +2788,7 @@ class CssPageRule extends CssRule {
 
 /// @domName CSSPrimitiveValue
 class CssPrimitiveValue extends CssValue {
-  CssPrimitiveValue.internal(): super.internal();
+  CssPrimitiveValue.internal() : super.internal();
 
   static const int CSS_ATTR = 22;
 
@@ -6176,7 +6176,7 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
 /// @domName CSSStyleRule
 class CssStyleRule extends CssRule {
-  CssStyleRule.internal(): super.internal();
+  CssStyleRule.internal() : super.internal();
 
 
   /** @domName CSSStyleRule.selectorText */
@@ -6200,7 +6200,7 @@ class CssStyleRule extends CssRule {
 
 /// @domName CSSStyleSheet
 class CssStyleSheet extends StyleSheet {
-  CssStyleSheet.internal(): super.internal();
+  CssStyleSheet.internal() : super.internal();
 
 
   /** @domName CSSStyleSheet.cssRules */
@@ -6251,7 +6251,7 @@ class CssStyleSheet extends StyleSheet {
 
 /// @domName WebKitCSSTransformValue
 class CssTransformValue extends _CssValueList {
-  CssTransformValue.internal(): super.internal();
+  CssTransformValue.internal() : super.internal();
 
   static const int CSS_MATRIX = 11;
 
@@ -6309,7 +6309,7 @@ class CssTransformValue extends _CssValueList {
 
 /// @domName CSSUnknownRule
 class CssUnknownRule extends CssRule {
-  CssUnknownRule.internal(): super.internal();
+  CssUnknownRule.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6356,7 +6356,7 @@ class CustomEvent extends Event {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
       type, canBubble, cancelable, detail);
-  CustomEvent.internal(): super.internal();
+  CustomEvent.internal() : super.internal();
 
 
   /** @domName CustomEvent.detail */
@@ -6376,10 +6376,10 @@ class CustomEvent extends Event {
 
 /// @domName HTMLDListElement
 class DListElement extends _Element_Merged {
+  DListElement.internal() : super.internal();
 
   ///@docsEditable true
   factory DListElement() => document.$dom_createElement("dl");
-  DListElement.internal(): super.internal();
 
 
   /** @domName HTMLDListElement.compact */
@@ -6399,10 +6399,10 @@ class DListElement extends _Element_Merged {
 
 /// @domName HTMLDataListElement
 class DataListElement extends _Element_Merged {
+  DataListElement.internal() : super.internal();
 
   ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
-  DataListElement.internal(): super.internal();
 
 
   /** @domName HTMLDataListElement.options */
@@ -6494,6 +6494,7 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 
 /// @domName DataView
 class DataView extends ArrayBufferView {
+  DataView.internal() : super.internal();
 
   ///@docsEditable true
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
@@ -6505,7 +6506,6 @@ class DataView extends ArrayBufferView {
     }
     return DataView._create(buffer, byteOffset, byteLength);
   }
-  DataView.internal(): super.internal();
   static DataView _create(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
 
   num getFloat32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
@@ -6788,7 +6788,7 @@ class DatabaseSync extends NativeFieldWrapperClass1 {
 
 /// @domName DedicatedWorkerContext
 class DedicatedWorkerContext extends WorkerContext {
-  DedicatedWorkerContext.internal(): super.internal();
+  DedicatedWorkerContext.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DedicatedWorkerContextEvents get on =>
@@ -6817,10 +6817,10 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 
 /// @domName HTMLDetailsElement
 class DetailsElement extends _Element_Merged {
+  DetailsElement.internal() : super.internal();
 
   ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
-  DetailsElement.internal(): super.internal();
 
 
   /** @domName HTMLDetailsElement.open */
@@ -6840,7 +6840,7 @@ class DetailsElement extends _Element_Merged {
 
 /// @domName DeviceMotionEvent
 class DeviceMotionEvent extends Event {
-  DeviceMotionEvent.internal(): super.internal();
+  DeviceMotionEvent.internal() : super.internal();
 
 
   /** @domName DeviceMotionEvent.interval */
@@ -6856,7 +6856,7 @@ class DeviceMotionEvent extends Event {
 
 /// @domName DeviceOrientationEvent
 class DeviceOrientationEvent extends Event {
-  DeviceOrientationEvent.internal(): super.internal();
+  DeviceOrientationEvent.internal() : super.internal();
 
 
   /** @domName DeviceOrientationEvent.absolute */
@@ -6888,7 +6888,7 @@ class DeviceOrientationEvent extends Event {
 
 /// @domName HTMLDirectoryElement
 class DirectoryElement extends _Element_Merged {
-  DirectoryElement.internal(): super.internal();
+  DirectoryElement.internal() : super.internal();
 
 
   /** @domName HTMLDirectoryElement.compact */
@@ -6908,7 +6908,7 @@ class DirectoryElement extends _Element_Merged {
 
 /// @domName DirectoryEntry
 class DirectoryEntry extends Entry {
-  DirectoryEntry.internal(): super.internal();
+  DirectoryEntry.internal() : super.internal();
 
 
   /** @domName DirectoryEntry.createReader */
@@ -6936,7 +6936,7 @@ class DirectoryEntry extends Entry {
 
 /// @domName DirectoryEntrySync
 class DirectoryEntrySync extends EntrySync {
-  DirectoryEntrySync.internal(): super.internal();
+  DirectoryEntrySync.internal() : super.internal();
 
 
   /** @domName DirectoryEntrySync.createReader */
@@ -6996,10 +6996,10 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLDivElement
 class DivElement extends _Element_Merged {
+  DivElement.internal() : super.internal();
 
   ///@docsEditable true
   factory DivElement() => document.$dom_createElement("div");
-  DivElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7020,7 +7020,7 @@ class DivElement extends _Element_Merged {
 class Document extends Node 
 {
 
-  Document.internal(): super.internal();
+  Document.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DocumentEvents get on =>
@@ -7583,7 +7583,7 @@ class DocumentFragment extends Node {
       "WebKit region overflow can't be set for document fragments.");
   }
 
-  DocumentFragment.internal(): super.internal();
+  DocumentFragment.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
@@ -7607,7 +7607,7 @@ class DocumentFragment extends Node {
 
 /// @domName DocumentType
 class DocumentType extends Node {
-  DocumentType.internal(): super.internal();
+  DocumentType.internal() : super.internal();
 
 
   /** @domName DocumentType.entities */
@@ -7925,10 +7925,10 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 
 /// @domName DOMParser
 class DomParser extends NativeFieldWrapperClass1 {
+  DomParser.internal();
 
   ///@docsEditable true
   factory DomParser() => DomParser._create();
-  DomParser.internal();
   static DomParser _create() native "DOMParser_constructor_Callback";
 
 
@@ -8225,7 +8225,7 @@ class DomSelection extends NativeFieldWrapperClass1 {
 
 /// @domName DOMSettableTokenList
 class DomSettableTokenList extends DomTokenList {
-  DomSettableTokenList.internal(): super.internal();
+  DomSettableTokenList.internal() : super.internal();
 
 
   /** @domName DOMSettableTokenList.value */
@@ -9043,7 +9043,7 @@ abstract class Element extends Node implements ElementTraversal {
   }
 
 
-  Element.internal(): super.internal();
+  Element.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
@@ -9584,10 +9584,10 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLEmbedElement
 class EmbedElement extends _Element_Merged {
+  EmbedElement.internal() : super.internal();
 
   ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
-  EmbedElement.internal(): super.internal();
 
 
   /** @domName HTMLEmbedElement.align */
@@ -9647,7 +9647,7 @@ class EmbedElement extends _Element_Merged {
 
 /// @domName EntityReference
 class EntityReference extends Node {
-  EntityReference.internal(): super.internal();
+  EntityReference.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9819,7 +9819,7 @@ typedef void ErrorCallback(FileError error);
 
 /// @domName ErrorEvent
 class ErrorEvent extends Event {
-  ErrorEvent.internal(): super.internal();
+  ErrorEvent.internal() : super.internal();
 
 
   /** @domName ErrorEvent.filename */
@@ -10003,10 +10003,10 @@ class EventException extends NativeFieldWrapperClass1 {
 
 /// @domName EventSource
 class EventSource extends EventTarget {
+  EventSource.internal() : super.internal();
 
   ///@docsEditable true
   factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
-  EventSource.internal(): super.internal();
   static EventSource _create(String scriptUrl) native "EventSource_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -10178,10 +10178,10 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLFieldSetElement
 class FieldSetElement extends _Element_Merged {
+  FieldSetElement.internal() : super.internal();
 
   ///@docsEditable true
   factory FieldSetElement() => document.$dom_createElement("fieldset");
-  FieldSetElement.internal(): super.internal();
 
 
   /** @domName HTMLFieldSetElement.disabled */
@@ -10241,7 +10241,7 @@ class FieldSetElement extends _Element_Merged {
 
 /// @domName File
 class File extends Blob {
-  File.internal(): super.internal();
+  File.internal() : super.internal();
 
 
   /** @domName File.lastModifiedDate */
@@ -10273,7 +10273,7 @@ typedef void FileCallback(File file);
 
 /// @domName FileEntry
 class FileEntry extends Entry {
-  FileEntry.internal(): super.internal();
+  FileEntry.internal() : super.internal();
 
 
   /** @domName FileEntry.createWriter */
@@ -10293,7 +10293,7 @@ class FileEntry extends Entry {
 
 /// @domName FileEntrySync
 class FileEntrySync extends EntrySync {
-  FileEntrySync.internal(): super.internal();
+  FileEntrySync.internal() : super.internal();
 
 
   /** @domName FileEntrySync.createWriter */
@@ -10525,10 +10525,10 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 
 /// @domName FileReader
 class FileReader extends EventTarget {
+  FileReader.internal() : super.internal();
 
   ///@docsEditable true
   factory FileReader() => FileReader._create();
-  FileReader.internal(): super.internal();
   static FileReader _create() native "FileReader_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -10631,10 +10631,10 @@ class FileReaderEvents extends Events {
 
 /// @domName FileReaderSync
 class FileReaderSync extends NativeFieldWrapperClass1 {
+  FileReaderSync.internal();
 
   ///@docsEditable true
   factory FileReaderSync() => FileReaderSync._create();
-  FileReaderSync.internal();
   static FileReaderSync _create() native "FileReaderSync_constructor_Callback";
 
 
@@ -10722,7 +10722,7 @@ class FileSystemSync extends NativeFieldWrapperClass1 {
 
 /// @domName FileWriter
 class FileWriter extends EventTarget {
-  FileWriter.internal(): super.internal();
+  FileWriter.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileWriterEvents get on =>
@@ -10852,6 +10852,7 @@ class FileWriterSync extends NativeFieldWrapperClass1 {
 
 /// @domName Float32Array
 class Float32Array extends ArrayBufferView implements List<num> {
+  Float32Array.internal() : super.internal();
 
   factory Float32Array(int length) =>
     _TypedArrayFactoryProvider.createFloat32Array(length);
@@ -10861,7 +10862,6 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
-  Float32Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 4;
 
@@ -11000,6 +11000,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
 /// @domName Float64Array
 class Float64Array extends ArrayBufferView implements List<num> {
+  Float64Array.internal() : super.internal();
 
   factory Float64Array(int length) =>
     _TypedArrayFactoryProvider.createFloat64Array(length);
@@ -11009,7 +11010,6 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
-  Float64Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 8;
 
@@ -11148,7 +11148,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
 /// @domName HTMLFontElement
 class FontElement extends _Element_Merged {
-  FontElement.internal(): super.internal();
+  FontElement.internal() : super.internal();
 
 
   /** @domName HTMLFontElement.color */
@@ -11184,6 +11184,7 @@ class FontElement extends _Element_Merged {
 
 /// @domName FormData
 class FormData extends NativeFieldWrapperClass1 {
+  FormData.internal();
 
   ///@docsEditable true
   factory FormData([FormElement form]) {
@@ -11192,7 +11193,6 @@ class FormData extends NativeFieldWrapperClass1 {
     }
     return FormData._create(form);
   }
-  FormData.internal();
   static FormData _create([FormElement form]) native "DOMFormData_constructor_Callback";
 
 
@@ -11209,10 +11209,10 @@ class FormData extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLFormElement
 class FormElement extends _Element_Merged {
+  FormElement.internal() : super.internal();
 
   ///@docsEditable true
   factory FormElement() => document.$dom_createElement("form");
-  FormElement.internal(): super.internal();
 
 
   /** @domName HTMLFormElement.acceptCharset */
@@ -11312,7 +11312,7 @@ class FormElement extends _Element_Merged {
 
 /// @domName HTMLFrameElement
 class FrameElement extends _Element_Merged {
-  FrameElement.internal(): super.internal();
+  FrameElement.internal() : super.internal();
 
 
   /** @domName HTMLFrameElement.contentWindow */
@@ -11408,7 +11408,7 @@ class FrameElement extends _Element_Merged {
 
 /// @domName HTMLFrameSetElement
 class FrameSetElement extends _Element_Merged {
-  FrameSetElement.internal(): super.internal();
+  FrameSetElement.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FrameSetElementEvents get on =>
@@ -11561,10 +11561,10 @@ class Geoposition extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLHRElement
 class HRElement extends _Element_Merged {
+  HRElement.internal() : super.internal();
 
   ///@docsEditable true
   factory HRElement() => document.$dom_createElement("hr");
-  HRElement.internal(): super.internal();
 
 
   /** @domName HTMLHRElement.align */
@@ -11608,7 +11608,7 @@ class HRElement extends _Element_Merged {
 
 /// @domName HashChangeEvent
 class HashChangeEvent extends Event {
-  HashChangeEvent.internal(): super.internal();
+  HashChangeEvent.internal() : super.internal();
 
 
   /** @domName HashChangeEvent.newURL */
@@ -11632,10 +11632,10 @@ class HashChangeEvent extends Event {
 
 /// @domName HTMLHeadElement
 class HeadElement extends _Element_Merged {
+  HeadElement.internal() : super.internal();
 
   ///@docsEditable true
   factory HeadElement() => document.$dom_createElement("head");
-  HeadElement.internal(): super.internal();
 
 
   /** @domName HTMLHeadElement.profile */
@@ -11655,6 +11655,7 @@ class HeadElement extends _Element_Merged {
 
 /// @domName HTMLHeadingElement
 class HeadingElement extends _Element_Merged {
+  HeadingElement.internal() : super.internal();
 
   ///@docsEditable true
   factory HeadingElement.h1() => document.$dom_createElement("h1");
@@ -11673,7 +11674,6 @@ class HeadingElement extends _Element_Merged {
 
   ///@docsEditable true
   factory HeadingElement.h6() => document.$dom_createElement("h6");
-  HeadingElement.internal(): super.internal();
 
 
   /** @domName HTMLHeadingElement.align */
@@ -11985,7 +11985,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
 /// @domName HTMLDocument
 class HtmlDocument extends Document {
-  HtmlDocument.internal(): super.internal();
+  HtmlDocument.internal() : super.internal();
 
 
   /** @domName HTMLDocument.activeElement */
@@ -12087,10 +12087,10 @@ class HtmlDocument extends Document {
 
 /// @domName HTMLHtmlElement
 class HtmlElement extends _Element_Merged {
+  HtmlElement.internal() : super.internal();
 
   ///@docsEditable true
   factory HtmlElement() => document.$dom_createElement("html");
-  HtmlElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12102,7 +12102,7 @@ class HtmlElement extends _Element_Merged {
 
 /// @domName HTMLFormControlsCollection
 class HtmlFormControlsCollection extends HtmlCollection {
-  HtmlFormControlsCollection.internal(): super.internal();
+  HtmlFormControlsCollection.internal() : super.internal();
 
 
   /** @domName HTMLFormControlsCollection.namedItem */
@@ -12118,7 +12118,7 @@ class HtmlFormControlsCollection extends HtmlCollection {
 
 /// @domName HTMLOptionsCollection
 class HtmlOptionsCollection extends HtmlCollection {
-  HtmlOptionsCollection.internal(): super.internal();
+  HtmlOptionsCollection.internal() : super.internal();
 
 
   /** @domName HTMLOptionsCollection.length */
@@ -12212,10 +12212,10 @@ class HttpRequest extends EventTarget {
       onComplete(HttpRequest request)) =>
       _HttpRequestUtils.get(url, onComplete, true);
 
+  HttpRequest.internal() : super.internal();
 
   ///@docsEditable true
   factory HttpRequest() => HttpRequest._create();
-  HttpRequest.internal(): super.internal();
   static HttpRequest _create() native "XMLHttpRequest_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -12385,7 +12385,7 @@ class HttpRequestException extends NativeFieldWrapperClass1 {
 
 /// @domName XMLHttpRequestProgressEvent
 class HttpRequestProgressEvent extends ProgressEvent {
-  HttpRequestProgressEvent.internal(): super.internal();
+  HttpRequestProgressEvent.internal() : super.internal();
 
 
   /** @domName XMLHttpRequestProgressEvent.position */
@@ -12405,7 +12405,7 @@ class HttpRequestProgressEvent extends ProgressEvent {
 
 /// @domName XMLHttpRequestUpload
 class HttpRequestUpload extends EventTarget {
-  HttpRequestUpload.internal(): super.internal();
+  HttpRequestUpload.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestUploadEvents get on =>
@@ -12457,10 +12457,10 @@ class HttpRequestUploadEvents extends Events {
 
 /// @domName HTMLIFrameElement
 class IFrameElement extends _Element_Merged {
+  IFrameElement.internal() : super.internal();
 
   ///@docsEditable true
   factory IFrameElement() => document.$dom_createElement("iframe");
-  IFrameElement.internal(): super.internal();
 
 
   /** @domName HTMLIFrameElement.align */
@@ -12596,6 +12596,7 @@ class ImageData extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLImageElement
 class ImageElement extends _Element_Merged {
+  ImageElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ImageElement({String src, int width, int height}) {
@@ -12605,7 +12606,6 @@ class ImageElement extends _Element_Merged {
     if (height != null) e.height = height;
     return e;
   }
-  ImageElement.internal(): super.internal();
 
 
   /** @domName HTMLImageElement.align */
@@ -12770,6 +12770,7 @@ class InputElement extends _Element_Merged implements
     ResetButtonInputElement,
     ButtonInputElement
      {
+  InputElement.internal() : super.internal();
 
   ///@docsEditable true
   factory InputElement({String type}) {
@@ -12777,7 +12778,6 @@ class InputElement extends _Element_Merged implements
     if (type != null) e.type = type;
     return e;
   }
-  InputElement.internal(): super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   InputElementEvents get on =>
@@ -13707,6 +13707,7 @@ class InputElementEvents extends ElementEvents {
 
 /// @domName Int16Array
 class Int16Array extends ArrayBufferView implements List<int> {
+  Int16Array.internal() : super.internal();
 
   factory Int16Array(int length) =>
     _TypedArrayFactoryProvider.createInt16Array(length);
@@ -13716,7 +13717,6 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
-  Int16Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 2;
 
@@ -13855,6 +13855,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
 /// @domName Int32Array
 class Int32Array extends ArrayBufferView implements List<int> {
+  Int32Array.internal() : super.internal();
 
   factory Int32Array(int length) =>
     _TypedArrayFactoryProvider.createInt32Array(length);
@@ -13864,7 +13865,6 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
-  Int32Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 4;
 
@@ -14003,6 +14003,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
 /// @domName Int8Array
 class Int8Array extends ArrayBufferView implements List<int> {
+  Int8Array.internal() : super.internal();
 
   factory Int8Array(int length) =>
     _TypedArrayFactoryProvider.createInt8Array(length);
@@ -14012,7 +14013,6 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
-  Int8Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 1;
 
@@ -14232,7 +14232,7 @@ class KeyboardEvent extends UIEvent {
   
   /** @domName KeyboardEvent.charCode */
   int get charCode => $dom_charCode;
-  KeyboardEvent.internal(): super.internal();
+  KeyboardEvent.internal() : super.internal();
 
 
   /** @domName KeyboardEvent.altGraphKey */
@@ -14276,10 +14276,10 @@ class KeyboardEvent extends UIEvent {
 
 /// @domName HTMLKeygenElement
 class KeygenElement extends _Element_Merged {
+  KeygenElement.internal() : super.internal();
 
   ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
-  KeygenElement.internal(): super.internal();
 
 
   /** @domName HTMLKeygenElement.autofocus */
@@ -14363,10 +14363,10 @@ class KeygenElement extends _Element_Merged {
 
 /// @domName HTMLLIElement
 class LIElement extends _Element_Merged {
+  LIElement.internal() : super.internal();
 
   ///@docsEditable true
   factory LIElement() => document.$dom_createElement("li");
-  LIElement.internal(): super.internal();
 
 
   /** @domName HTMLLIElement.type */
@@ -14394,10 +14394,10 @@ class LIElement extends _Element_Merged {
 
 /// @domName HTMLLabelElement
 class LabelElement extends _Element_Merged {
+  LabelElement.internal() : super.internal();
 
   ///@docsEditable true
   factory LabelElement() => document.$dom_createElement("label");
-  LabelElement.internal(): super.internal();
 
 
   /** @domName HTMLLabelElement.control */
@@ -14425,10 +14425,10 @@ class LabelElement extends _Element_Merged {
 
 /// @domName HTMLLegendElement
 class LegendElement extends _Element_Merged {
+  LegendElement.internal() : super.internal();
 
   ///@docsEditable true
   factory LegendElement() => document.$dom_createElement("legend");
-  LegendElement.internal(): super.internal();
 
 
   /** @domName HTMLLegendElement.align */
@@ -14452,10 +14452,10 @@ class LegendElement extends _Element_Merged {
 
 /// @domName HTMLLinkElement
 class LinkElement extends _Element_Merged {
+  LinkElement.internal() : super.internal();
 
   ///@docsEditable true
   factory LinkElement() => document.$dom_createElement("link");
-  LinkElement.internal(): super.internal();
 
 
   /** @domName HTMLLinkElement.charset */
@@ -14551,7 +14551,7 @@ class LinkElement extends _Element_Merged {
 
 /// @domName LocalMediaStream
 class LocalMediaStream extends MediaStream implements EventTarget {
-  LocalMediaStream.internal(): super.internal();
+  LocalMediaStream.internal() : super.internal();
 
 
   /** @domName LocalMediaStream.stop */
@@ -14667,10 +14667,10 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
 
 /// @domName HTMLMapElement
 class MapElement extends _Element_Merged {
+  MapElement.internal() : super.internal();
 
   ///@docsEditable true
   factory MapElement() => document.$dom_createElement("map");
-  MapElement.internal(): super.internal();
 
 
   /** @domName HTMLMapElement.areas */
@@ -14694,7 +14694,7 @@ class MapElement extends _Element_Merged {
 
 /// @domName HTMLMarqueeElement
 class MarqueeElement extends _Element_Merged {
-  MarqueeElement.internal(): super.internal();
+  MarqueeElement.internal() : super.internal();
 
 
   /** @domName HTMLMarqueeElement.behavior */
@@ -14802,10 +14802,10 @@ class MarqueeElement extends _Element_Merged {
 
 /// @domName MediaController
 class MediaController extends EventTarget {
+  MediaController.internal() : super.internal();
 
   ///@docsEditable true
   factory MediaController() => MediaController._create();
-  MediaController.internal(): super.internal();
   static MediaController _create() native "MediaController_constructor_Callback";
 
 
@@ -14906,7 +14906,7 @@ class MediaController extends EventTarget {
 
 /// @domName HTMLMediaElement
 class MediaElement extends _Element_Merged {
-  MediaElement.internal(): super.internal();
+  MediaElement.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaElementEvents get on =>
@@ -15337,7 +15337,7 @@ class MediaKeyError extends NativeFieldWrapperClass1 {
 
 /// @domName MediaKeyEvent
 class MediaKeyEvent extends Event {
-  MediaKeyEvent.internal(): super.internal();
+  MediaKeyEvent.internal() : super.internal();
 
 
   /** @domName MediaKeyEvent.defaultURL */
@@ -15457,10 +15457,10 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 
 /// @domName MediaSource
 class MediaSource extends EventTarget {
+  MediaSource.internal() : super.internal();
 
   ///@docsEditable true
   factory MediaSource() => MediaSource._create();
-  MediaSource.internal(): super.internal();
   static MediaSource _create() native "MediaSource_constructor_Callback";
 
 
@@ -15517,10 +15517,10 @@ class MediaSource extends EventTarget {
 
 /// @domName MediaStream
 class MediaStream extends EventTarget {
+  MediaStream.internal() : super.internal();
 
   ///@docsEditable true
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => MediaStream._create(audioTracks, videoTracks);
-  MediaStream.internal(): super.internal();
   static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native "MediaStream_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -15578,7 +15578,7 @@ class MediaStreamEvents extends Events {
 
 /// @domName MediaStreamEvent
 class MediaStreamEvent extends Event {
-  MediaStreamEvent.internal(): super.internal();
+  MediaStreamEvent.internal() : super.internal();
 
 
   /** @domName MediaStreamEvent.stream */
@@ -15594,7 +15594,7 @@ class MediaStreamEvent extends Event {
 
 /// @domName MediaStreamTrack
 class MediaStreamTrack extends EventTarget {
-  MediaStreamTrack.internal(): super.internal();
+  MediaStreamTrack.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackEvents get on =>
@@ -15663,7 +15663,7 @@ class MediaStreamTrackEvents extends Events {
 
 /// @domName MediaStreamTrackEvent
 class MediaStreamTrackEvent extends Event {
-  MediaStreamTrackEvent.internal(): super.internal();
+  MediaStreamTrackEvent.internal() : super.internal();
 
 
   /** @domName MediaStreamTrackEvent.track */
@@ -15679,7 +15679,7 @@ class MediaStreamTrackEvent extends Event {
 
 /// @domName MediaStreamTrackList
 class MediaStreamTrackList extends EventTarget {
-  MediaStreamTrackList.internal(): super.internal();
+  MediaStreamTrackList.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackListEvents get on =>
@@ -15759,10 +15759,10 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLMenuElement
 class MenuElement extends _Element_Merged {
+  MenuElement.internal() : super.internal();
 
   ///@docsEditable true
   factory MenuElement() => document.$dom_createElement("menu");
-  MenuElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15774,10 +15774,10 @@ class MenuElement extends _Element_Merged {
 
 /// @domName MessageChannel
 class MessageChannel extends NativeFieldWrapperClass1 {
+  MessageChannel.internal();
 
   ///@docsEditable true
   factory MessageChannel() => MessageChannel._create();
-  MessageChannel.internal();
   static MessageChannel _create() native "MessageChannel_constructor_Callback";
 
 
@@ -15798,7 +15798,7 @@ class MessageChannel extends NativeFieldWrapperClass1 {
 
 /// @domName MessageEvent
 class MessageEvent extends Event {
-  MessageEvent.internal(): super.internal();
+  MessageEvent.internal() : super.internal();
 
 
   /** @domName MessageEvent.data */
@@ -15838,7 +15838,7 @@ class MessageEvent extends Event {
 
 /// @domName MessagePort
 class MessagePort extends EventTarget {
-  MessagePort.internal(): super.internal();
+  MessagePort.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MessagePortEvents get on =>
@@ -15887,7 +15887,7 @@ class MessagePortEvents extends Events {
 
 /// @domName HTMLMetaElement
 class MetaElement extends _Element_Merged {
-  MetaElement.internal(): super.internal();
+  MetaElement.internal() : super.internal();
 
 
   /** @domName HTMLMetaElement.content */
@@ -15959,10 +15959,10 @@ typedef void MetadataCallback(Metadata metadata);
 
 /// @domName HTMLMeterElement
 class MeterElement extends _Element_Merged {
+  MeterElement.internal() : super.internal();
 
   ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
-  MeterElement.internal(): super.internal();
 
 
   /** @domName HTMLMeterElement.high */
@@ -16026,7 +16026,7 @@ class MeterElement extends _Element_Merged {
 
 /// @domName HTMLModElement
 class ModElement extends _Element_Merged {
-  ModElement.internal(): super.internal();
+  ModElement.internal() : super.internal();
 
 
   /** @domName HTMLModElement.cite */
@@ -16064,7 +16064,7 @@ class MouseEvent extends UIEvent {
           clientX, clientY, button, canBubble, cancelable,
           ctrlKey, altKey, shiftKey, metaKey,
           relatedTarget);
-  MouseEvent.internal(): super.internal();
+  MouseEvent.internal() : super.internal();
 
 
   /** @domName MouseEvent.altKey */
@@ -16164,7 +16164,7 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 
 /// @domName MutationEvent
 class MutationEvent extends Event {
-  MutationEvent.internal(): super.internal();
+  MutationEvent.internal() : super.internal();
 
   static const int ADDITION = 2;
 
@@ -16208,10 +16208,10 @@ class MutationEvent extends Event {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 class MutationObserver extends NativeFieldWrapperClass1 {
+  MutationObserver.internal();
 
   ///@docsEditable true
   factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
-  MutationObserver.internal();
   static MutationObserver _create(MutationCallback callback) native "MutationObserver_constructor_Callback";
 
 
@@ -16783,7 +16783,7 @@ class Node extends EventTarget {
     return this;
   }
 
-  Node.internal(): super.internal();
+  Node.internal() : super.internal();
 
   static const int ATTRIBUTE_NODE = 2;
 
@@ -17143,7 +17143,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
 /// @domName Notation
 class Notation extends Node {
-  Notation.internal(): super.internal();
+  Notation.internal() : super.internal();
 
 
   /** @domName Notation.publicId */
@@ -17163,6 +17163,7 @@ class Notation extends Node {
 
 /// @domName Notification
 class Notification extends EventTarget {
+  Notification.internal() : super.internal();
 
   ///@docsEditable true
   factory Notification(String title, [Map options]) {
@@ -17171,7 +17172,6 @@ class Notification extends EventTarget {
     }
     return Notification._create(title, options);
   }
-  Notification.internal(): super.internal();
   static Notification _create(String title, [Map options]) native "Notification_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -17301,10 +17301,10 @@ typedef void NotificationPermissionCallback(String permission);
 
 /// @domName HTMLOListElement
 class OListElement extends _Element_Merged {
+  OListElement.internal() : super.internal();
 
   ///@docsEditable true
   factory OListElement() => document.$dom_createElement("ol");
-  OListElement.internal(): super.internal();
 
 
   /** @domName HTMLOListElement.compact */
@@ -17348,10 +17348,10 @@ class OListElement extends _Element_Merged {
 
 /// @domName HTMLObjectElement
 class ObjectElement extends _Element_Merged {
+  ObjectElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
-  ObjectElement.internal(): super.internal();
 
 
   /** @domName HTMLObjectElement.align */
@@ -17583,10 +17583,10 @@ class OesVertexArrayObject extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLOptGroupElement
 class OptGroupElement extends _Element_Merged {
+  OptGroupElement.internal() : super.internal();
 
   ///@docsEditable true
   factory OptGroupElement() => document.$dom_createElement("optgroup");
-  OptGroupElement.internal(): super.internal();
 
 
   /** @domName HTMLOptGroupElement.disabled */
@@ -17614,6 +17614,7 @@ class OptGroupElement extends _Element_Merged {
 
 /// @domName HTMLOptionElement
 class OptionElement extends _Element_Merged {
+  OptionElement.internal() : super.internal();
 
   ///@docsEditable true
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
@@ -17631,7 +17632,6 @@ class OptionElement extends _Element_Merged {
     }
     return OptionElement._create(data, value, defaultSelected, selected);
   }
-  OptionElement.internal(): super.internal();
   static OptionElement _create([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
 
 
@@ -17692,10 +17692,10 @@ class OptionElement extends _Element_Merged {
 
 /// @domName HTMLOutputElement
 class OutputElement extends _Element_Merged {
+  OutputElement.internal() : super.internal();
 
   ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
-  OutputElement.internal(): super.internal();
 
 
   /** @domName HTMLOutputElement.defaultValue */
@@ -17771,7 +17771,7 @@ class OutputElement extends _Element_Merged {
 
 /// @domName OverflowEvent
 class OverflowEvent extends Event {
-  OverflowEvent.internal(): super.internal();
+  OverflowEvent.internal() : super.internal();
 
   static const int BOTH = 2;
 
@@ -17829,7 +17829,7 @@ class PagePopupController extends NativeFieldWrapperClass1 {
 
 /// @domName PageTransitionEvent
 class PageTransitionEvent extends Event {
-  PageTransitionEvent.internal(): super.internal();
+  PageTransitionEvent.internal() : super.internal();
 
 
   /** @domName PageTransitionEvent.persisted */
@@ -17845,10 +17845,10 @@ class PageTransitionEvent extends Event {
 
 /// @domName HTMLParagraphElement
 class ParagraphElement extends _Element_Merged {
+  ParagraphElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ParagraphElement() => document.$dom_createElement("p");
-  ParagraphElement.internal(): super.internal();
 
 
   /** @domName HTMLParagraphElement.align */
@@ -17868,10 +17868,10 @@ class ParagraphElement extends _Element_Merged {
 
 /// @domName HTMLParamElement
 class ParamElement extends _Element_Merged {
+  ParamElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ParamElement() => document.$dom_createElement("param");
-  ParamElement.internal(): super.internal();
 
 
   /** @domName HTMLParamElement.name */
@@ -17915,7 +17915,7 @@ class ParamElement extends _Element_Merged {
 
 /// @domName Performance
 class Performance extends EventTarget {
-  Performance.internal(): super.internal();
+  Performance.internal() : super.internal();
 
 
   /** @domName Performance.memory */
@@ -18067,10 +18067,10 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 
 /// @domName WebKitPoint
 class Point extends NativeFieldWrapperClass1 {
+  Point.internal();
 
   ///@docsEditable true
   factory Point(num x, num y) => Point._create(x, y);
-  Point.internal();
   static Point _create(num x, num y) native "WebKitPoint_constructor_Callback";
 
 
@@ -18099,7 +18099,7 @@ class Point extends NativeFieldWrapperClass1 {
 
 /// @domName PopStateEvent
 class PopStateEvent extends Event {
-  PopStateEvent.internal(): super.internal();
+  PopStateEvent.internal() : super.internal();
 
 
   /** @domName PopStateEvent.state */
@@ -18157,10 +18157,10 @@ typedef void PositionErrorCallback(PositionError error);
 
 /// @domName HTMLPreElement
 class PreElement extends _Element_Merged {
+  PreElement.internal() : super.internal();
 
   ///@docsEditable true
   factory PreElement() => document.$dom_createElement("pre");
-  PreElement.internal(): super.internal();
 
 
   /** @domName HTMLPreElement.width */
@@ -18188,7 +18188,7 @@ class PreElement extends _Element_Merged {
 
 /// @domName ProcessingInstruction
 class ProcessingInstruction extends Node {
-  ProcessingInstruction.internal(): super.internal();
+  ProcessingInstruction.internal() : super.internal();
 
 
   /** @domName ProcessingInstruction.data */
@@ -18216,10 +18216,10 @@ class ProcessingInstruction extends Node {
 
 /// @domName HTMLProgressElement
 class ProgressElement extends _Element_Merged {
+  ProgressElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
-  ProgressElement.internal(): super.internal();
 
 
   /** @domName HTMLProgressElement.labels */
@@ -18255,7 +18255,7 @@ class ProgressElement extends _Element_Merged {
 
 /// @domName ProgressEvent
 class ProgressEvent extends Event {
-  ProgressEvent.internal(): super.internal();
+  ProgressEvent.internal() : super.internal();
 
 
   /** @domName ProgressEvent.lengthComputable */
@@ -18279,7 +18279,7 @@ class ProgressEvent extends Event {
 
 /// @domName HTMLQuoteElement
 class QuoteElement extends _Element_Merged {
-  QuoteElement.internal(): super.internal();
+  QuoteElement.internal() : super.internal();
 
 
   /** @domName HTMLQuoteElement.cite */
@@ -18323,7 +18323,7 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 
 /// @domName RadioNodeList
 class RadioNodeList extends NodeList {
-  RadioNodeList.internal(): super.internal();
+  RadioNodeList.internal() : super.internal();
 
 
   /** @domName RadioNodeList.value */
@@ -18589,7 +18589,7 @@ class RgbColor extends NativeFieldWrapperClass1 {
 
 /// @domName RTCDataChannel
 class RtcDataChannel extends EventTarget {
-  RtcDataChannel.internal(): super.internal();
+  RtcDataChannel.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RtcDataChannelEvents get on =>
@@ -18699,7 +18699,7 @@ class RtcDataChannelEvents extends Events {
 
 /// @domName RTCDataChannelEvent
 class RtcDataChannelEvent extends Event {
-  RtcDataChannelEvent.internal(): super.internal();
+  RtcDataChannelEvent.internal() : super.internal();
 
 
   /** @domName RTCDataChannelEvent.channel */
@@ -18715,10 +18715,10 @@ class RtcDataChannelEvent extends Event {
 
 /// @domName RTCIceCandidate
 class RtcIceCandidate extends NativeFieldWrapperClass1 {
+  RtcIceCandidate.internal();
 
   ///@docsEditable true
   factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
-  RtcIceCandidate.internal();
   static RtcIceCandidate _create(Map dictionary) native "RTCIceCandidate_constructor_Callback";
 
 
@@ -18743,7 +18743,7 @@ class RtcIceCandidate extends NativeFieldWrapperClass1 {
 
 /// @domName RTCIceCandidateEvent
 class RtcIceCandidateEvent extends Event {
-  RtcIceCandidateEvent.internal(): super.internal();
+  RtcIceCandidateEvent.internal() : super.internal();
 
 
   /** @domName RTCIceCandidateEvent.candidate */
@@ -18759,6 +18759,7 @@ class RtcIceCandidateEvent extends Event {
 
 /// @domName RTCPeerConnection
 class RtcPeerConnection extends EventTarget {
+  RtcPeerConnection.internal() : super.internal();
 
   ///@docsEditable true
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
@@ -18767,7 +18768,6 @@ class RtcPeerConnection extends EventTarget {
     }
     return RtcPeerConnection._create(rtcIceServers, mediaConstraints);
   }
-  RtcPeerConnection.internal(): super.internal();
   static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -18895,10 +18895,10 @@ class RtcPeerConnectionEvents extends Events {
 
 /// @domName RTCSessionDescription
 class RtcSessionDescription extends NativeFieldWrapperClass1 {
+  RtcSessionDescription.internal();
 
   ///@docsEditable true
   factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
-  RtcSessionDescription.internal();
   static RtcSessionDescription _create(Map dictionary) native "RTCSessionDescription_constructor_Callback";
 
 
@@ -19071,10 +19071,10 @@ class Screen extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLScriptElement
 class ScriptElement extends _Element_Merged {
+  ScriptElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ScriptElement() => document.$dom_createElement("script");
-  ScriptElement.internal(): super.internal();
 
 
   /** @domName HTMLScriptElement.async */
@@ -19220,10 +19220,10 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLSelectElement
 class SelectElement extends _Element_Merged {
+  SelectElement.internal() : super.internal();
 
   ///@docsEditable true
   factory SelectElement() => document.$dom_createElement("select");
-  SelectElement.internal(): super.internal();
 
 
   /** @domName HTMLSelectElement.autofocus */
@@ -19362,7 +19362,7 @@ class SelectElement extends _Element_Merged {
 
 /// @domName HTMLShadowElement
 class ShadowElement extends _Element_Merged {
-  ShadowElement.internal(): super.internal();
+  ShadowElement.internal() : super.internal();
 
 
   /** @domName HTMLShadowElement.olderShadowRoot */
@@ -19386,7 +19386,7 @@ class ShadowElement extends _Element_Merged {
 
 /// @domName ShadowRoot
 class ShadowRoot extends DocumentFragment {
-  ShadowRoot.internal(): super.internal();
+  ShadowRoot.internal() : super.internal();
 
 
   /** @domName ShadowRoot.activeElement */
@@ -19447,6 +19447,7 @@ class ShadowRoot extends DocumentFragment {
 
 /// @domName SharedWorker
 class SharedWorker extends AbstractWorker {
+  SharedWorker.internal() : super.internal();
 
   ///@docsEditable true
   factory SharedWorker(String scriptURL, [String name]) {
@@ -19455,7 +19456,6 @@ class SharedWorker extends AbstractWorker {
     }
     return SharedWorker._create(scriptURL, name);
   }
-  SharedWorker.internal(): super.internal();
   static SharedWorker _create(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
 
 
@@ -19472,7 +19472,7 @@ class SharedWorker extends AbstractWorker {
 
 /// @domName SharedWorkerContext
 class SharedWorkerContext extends WorkerContext {
-  SharedWorkerContext.internal(): super.internal();
+  SharedWorkerContext.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SharedWorkerContextEvents get on =>
@@ -19533,7 +19533,7 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 
 /// @domName SourceBufferList
 class SourceBufferList extends EventTarget implements List<SourceBuffer> {
-  SourceBufferList.internal(): super.internal();
+  SourceBufferList.internal() : super.internal();
 
 
   /** @domName SourceBufferList.length */
@@ -19665,10 +19665,10 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
 /// @domName HTMLSourceElement
 class SourceElement extends _Element_Merged {
+  SourceElement.internal() : super.internal();
 
   ///@docsEditable true
   factory SourceElement() => document.$dom_createElement("source");
-  SourceElement.internal(): super.internal();
 
 
   /** @domName HTMLSourceElement.media */
@@ -19704,10 +19704,10 @@ class SourceElement extends _Element_Merged {
 
 /// @domName HTMLSpanElement
 class SpanElement extends _Element_Merged {
+  SpanElement.internal() : super.internal();
 
   ///@docsEditable true
   factory SpanElement() => document.$dom_createElement("span");
-  SpanElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19719,10 +19719,10 @@ class SpanElement extends _Element_Merged {
 
 /// @domName SpeechGrammar
 class SpeechGrammar extends NativeFieldWrapperClass1 {
+  SpeechGrammar.internal();
 
   ///@docsEditable true
   factory SpeechGrammar() => SpeechGrammar._create();
-  SpeechGrammar.internal();
   static SpeechGrammar _create() native "SpeechGrammar_constructor_Callback";
 
 
@@ -19751,10 +19751,10 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 
 /// @domName SpeechGrammarList
 class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechGrammar> {
+  SpeechGrammarList.internal();
 
   ///@docsEditable true
   factory SpeechGrammarList() => SpeechGrammarList._create();
-  SpeechGrammarList.internal();
   static SpeechGrammarList _create() native "SpeechGrammarList_constructor_Callback";
 
 
@@ -19907,7 +19907,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
 /// @domName SpeechInputEvent
 class SpeechInputEvent extends Event {
-  SpeechInputEvent.internal(): super.internal();
+  SpeechInputEvent.internal() : super.internal();
 
 
   /** @domName SpeechInputEvent.results */
@@ -19943,10 +19943,10 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 
 /// @domName SpeechRecognition
 class SpeechRecognition extends EventTarget {
+  SpeechRecognition.internal() : super.internal();
 
   ///@docsEditable true
   factory SpeechRecognition() => SpeechRecognition._create();
-  SpeechRecognition.internal(): super.internal();
   static SpeechRecognition _create() native "SpeechRecognition_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -20086,7 +20086,7 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
 
 /// @domName SpeechRecognitionError
 class SpeechRecognitionError extends Event {
-  SpeechRecognitionError.internal(): super.internal();
+  SpeechRecognitionError.internal() : super.internal();
 
 
   /** @domName SpeechRecognitionError.error */
@@ -20106,7 +20106,7 @@ class SpeechRecognitionError extends Event {
 
 /// @domName SpeechRecognitionEvent
 class SpeechRecognitionEvent extends Event {
-  SpeechRecognitionEvent.internal(): super.internal();
+  SpeechRecognitionEvent.internal() : super.internal();
 
 
   /** @domName SpeechRecognitionEvent.result */
@@ -20487,7 +20487,7 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
 /// @domName StorageEvent
 class StorageEvent extends Event {
-  StorageEvent.internal(): super.internal();
+  StorageEvent.internal() : super.internal();
 
 
   /** @domName StorageEvent.key */
@@ -20579,10 +20579,10 @@ typedef void StringCallback(String data);
 
 /// @domName HTMLStyleElement
 class StyleElement extends _Element_Merged {
+  StyleElement.internal() : super.internal();
 
   ///@docsEditable true
   factory StyleElement() => document.$dom_createElement("style");
-  StyleElement.internal(): super.internal();
 
 
   /** @domName HTMLStyleElement.disabled */
@@ -20694,10 +20694,10 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLTableCaptionElement
 class TableCaptionElement extends _Element_Merged {
+  TableCaptionElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TableCaptionElement() => document.$dom_createElement("caption");
-  TableCaptionElement.internal(): super.internal();
 
 
   /** @domName HTMLTableCaptionElement.align */
@@ -20717,10 +20717,10 @@ class TableCaptionElement extends _Element_Merged {
 
 /// @domName HTMLTableCellElement
 class TableCellElement extends _Element_Merged {
+  TableCellElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TableCellElement() => document.$dom_createElement("td");
-  TableCellElement.internal(): super.internal();
 
 
   /** @domName HTMLTableCellElement.abbr */
@@ -20848,10 +20848,10 @@ class TableCellElement extends _Element_Merged {
 
 /// @domName HTMLTableColElement
 class TableColElement extends _Element_Merged {
+  TableColElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TableColElement() => document.$dom_createElement("col");
-  TableColElement.internal(): super.internal();
 
 
   /** @domName HTMLTableColElement.align */
@@ -20911,10 +20911,10 @@ class TableColElement extends _Element_Merged {
 
 /// @domName HTMLTableElement
 class TableElement extends _Element_Merged {
+  TableElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TableElement() => document.$dom_createElement("table");
-  TableElement.internal(): super.internal();
 
 
   /** @domName HTMLTableElement.align */
@@ -21066,10 +21066,10 @@ class TableElement extends _Element_Merged {
 
 /// @domName HTMLTableRowElement
 class TableRowElement extends _Element_Merged {
+  TableRowElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TableRowElement() => document.$dom_createElement("tr");
-  TableRowElement.internal(): super.internal();
 
 
   /** @domName HTMLTableRowElement.align */
@@ -21141,7 +21141,7 @@ class TableRowElement extends _Element_Merged {
 
 /// @domName HTMLTableSectionElement
 class TableSectionElement extends _Element_Merged {
-  TableSectionElement.internal(): super.internal();
+  TableSectionElement.internal() : super.internal();
 
 
   /** @domName HTMLTableSectionElement.align */
@@ -21198,7 +21198,7 @@ class TableSectionElement extends _Element_Merged {
 /// @domName Text
 class Text extends CharacterData {
   factory Text(String data) => _TextFactoryProvider.createText(data);
-  Text.internal(): super.internal();
+  Text.internal() : super.internal();
 
 
   /** @domName Text.wholeText */
@@ -21222,10 +21222,10 @@ class Text extends CharacterData {
 
 /// @domName HTMLTextAreaElement
 class TextAreaElement extends _Element_Merged {
+  TextAreaElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TextAreaElement() => document.$dom_createElement("textarea");
-  TextAreaElement.internal(): super.internal();
 
 
   /** @domName HTMLTextAreaElement.autofocus */
@@ -21441,7 +21441,7 @@ class TextAreaElement extends _Element_Merged {
 
 /// @domName TextEvent
 class TextEvent extends UIEvent {
-  TextEvent.internal(): super.internal();
+  TextEvent.internal() : super.internal();
 
 
   /** @domName TextEvent.data */
@@ -21477,7 +21477,7 @@ class TextMetrics extends NativeFieldWrapperClass1 {
 
 /// @domName TextTrack
 class TextTrack extends EventTarget {
-  TextTrack.internal(): super.internal();
+  TextTrack.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackEvents get on =>
@@ -21550,10 +21550,10 @@ class TextTrackEvents extends Events {
 
 /// @domName TextTrackCue
 class TextTrackCue extends EventTarget {
+  TextTrackCue.internal() : super.internal();
 
   ///@docsEditable true
   factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
-  TextTrackCue.internal(): super.internal();
   static TextTrackCue _create(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -21814,7 +21814,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 
 /// @domName TextTrackList
 class TextTrackList extends EventTarget implements List<TextTrack> {
-  TextTrackList.internal(): super.internal();
+  TextTrackList.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackListEvents get on =>
@@ -21991,10 +21991,10 @@ typedef void TimeoutHandler();
 
 /// @domName HTMLTitleElement
 class TitleElement extends _Element_Merged {
+  TitleElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TitleElement() => document.$dom_createElement("title");
-  TitleElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22066,7 +22066,7 @@ class Touch extends NativeFieldWrapperClass1 {
 
 /// @domName TouchEvent
 class TouchEvent extends UIEvent {
-  TouchEvent.internal(): super.internal();
+  TouchEvent.internal() : super.internal();
 
 
   /** @domName TouchEvent.altKey */
@@ -22230,10 +22230,10 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
 /// @domName HTMLTrackElement
 class TrackElement extends _Element_Merged {
+  TrackElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
-  TrackElement.internal(): super.internal();
 
   static const int ERROR = 3;
 
@@ -22301,7 +22301,7 @@ class TrackElement extends _Element_Merged {
 
 /// @domName TrackEvent
 class TrackEvent extends Event {
-  TrackEvent.internal(): super.internal();
+  TrackEvent.internal() : super.internal();
 
 
   /** @domName TrackEvent.track */
@@ -22317,7 +22317,7 @@ class TrackEvent extends Event {
 
 /// @domName WebKitTransitionEvent
 class TransitionEvent extends Event {
-  TransitionEvent.internal(): super.internal();
+  TransitionEvent.internal() : super.internal();
 
 
   /** @domName WebKitTransitionEvent.elapsedTime */
@@ -22413,7 +22413,7 @@ class UIEvent extends Event {
     e.$dom_initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
-  UIEvent.internal(): super.internal();
+  UIEvent.internal() : super.internal();
 
 
   /** @domName UIEvent.charCode */
@@ -22465,10 +22465,10 @@ class UIEvent extends Event {
 
 /// @domName HTMLUListElement
 class UListElement extends _Element_Merged {
+  UListElement.internal() : super.internal();
 
   ///@docsEditable true
   factory UListElement() => document.$dom_createElement("ul");
-  UListElement.internal(): super.internal();
 
 
   /** @domName HTMLUListElement.compact */
@@ -22496,6 +22496,7 @@ class UListElement extends _Element_Merged {
 
 /// @domName Uint16Array
 class Uint16Array extends ArrayBufferView implements List<int> {
+  Uint16Array.internal() : super.internal();
 
   factory Uint16Array(int length) =>
     _TypedArrayFactoryProvider.createUint16Array(length);
@@ -22505,7 +22506,6 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
-  Uint16Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 2;
 
@@ -22644,6 +22644,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
 /// @domName Uint32Array
 class Uint32Array extends ArrayBufferView implements List<int> {
+  Uint32Array.internal() : super.internal();
 
   factory Uint32Array(int length) =>
     _TypedArrayFactoryProvider.createUint32Array(length);
@@ -22653,7 +22654,6 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
-  Uint32Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 4;
 
@@ -22792,6 +22792,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
 /// @domName Uint8Array
 class Uint8Array extends ArrayBufferView implements List<int> {
+  Uint8Array.internal() : super.internal();
 
   factory Uint8Array(int length) =>
     _TypedArrayFactoryProvider.createUint8Array(length);
@@ -22801,7 +22802,6 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
-  Uint8Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 1;
 
@@ -22940,6 +22940,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
 /// @domName Uint8ClampedArray
 class Uint8ClampedArray extends Uint8Array {
+  Uint8ClampedArray.internal() : super.internal();
 
   factory Uint8ClampedArray(int length) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray(length);
@@ -22949,7 +22950,6 @@ class Uint8ClampedArray extends Uint8Array {
 
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
-  Uint8ClampedArray.internal(): super.internal();
 
 
   /** @domName Uint8ClampedArray.length */
@@ -22992,7 +22992,7 @@ class Uint8ClampedArray extends Uint8Array {
 
 /// @domName HTMLUnknownElement
 class UnknownElement extends _Element_Merged {
-  UnknownElement.internal(): super.internal();
+  UnknownElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23097,10 +23097,10 @@ class ValidityState extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLVideoElement
 class VideoElement extends MediaElement {
+  VideoElement.internal() : super.internal();
 
   ///@docsEditable true
   factory VideoElement() => document.$dom_createElement("video");
-  VideoElement.internal(): super.internal();
 
 
   /** @domName HTMLVideoElement.height */
@@ -23300,7 +23300,7 @@ class WebGLContextAttributes extends NativeFieldWrapperClass1 {
 
 /// @domName WebGLContextEvent
 class WebGLContextEvent extends Event {
-  WebGLContextEvent.internal(): super.internal();
+  WebGLContextEvent.internal() : super.internal();
 
 
   /** @domName WebGLContextEvent.statusMessage */
@@ -23418,7 +23418,7 @@ class WebGLRenderbuffer extends NativeFieldWrapperClass1 {
 
 /// @domName WebGLRenderingContext
 class WebGLRenderingContext extends CanvasRenderingContext {
-  WebGLRenderingContext.internal(): super.internal();
+  WebGLRenderingContext.internal() : super.internal();
 
   static const int ACTIVE_ATTRIBUTES = 0x8B89;
 
@@ -24768,7 +24768,7 @@ class WebGLVertexArrayObject extends NativeFieldWrapperClass1 {
 
 /// @domName WebKitCSSFilterValue
 class WebKitCssFilterValue extends _CssValueList {
-  WebKitCssFilterValue.internal(): super.internal();
+  WebKitCssFilterValue.internal() : super.internal();
 
   static const int CSS_FILTER_BLUR = 10;
 
@@ -24808,7 +24808,7 @@ class WebKitCssFilterValue extends _CssValueList {
 
 /// @domName WebKitCSSMixFunctionValue
 class WebKitCssMixFunctionValue extends _CssValueList {
-  WebKitCssMixFunctionValue.internal(): super.internal();
+  WebKitCssMixFunctionValue.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24820,7 +24820,7 @@ class WebKitCssMixFunctionValue extends _CssValueList {
 
 /// @domName WebKitNamedFlow
 class WebKitNamedFlow extends EventTarget {
-  WebKitNamedFlow.internal(): super.internal();
+  WebKitNamedFlow.internal() : super.internal();
 
 
   /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
@@ -24868,10 +24868,10 @@ class WebKitNamedFlow extends EventTarget {
 
 /// @domName WebSocket
 class WebSocket extends EventTarget {
+  WebSocket.internal() : super.internal();
 
   ///@docsEditable true
   factory WebSocket(String url) => WebSocket._create(url);
-  WebSocket.internal(): super.internal();
   static WebSocket _create(String url) native "WebSocket_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -25037,7 +25037,7 @@ class WebSocketEvents extends Events {
 
 /// @domName WheelEvent
 class WheelEvent extends MouseEvent {
-  WheelEvent.internal(): super.internal();
+  WheelEvent.internal() : super.internal();
 
 
   /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
@@ -25100,7 +25100,7 @@ class Window extends EventTarget implements WindowBase {
     document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
   }
 
-  Window.internal(): super.internal();
+  Window.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WindowEvents get on =>
@@ -25716,10 +25716,10 @@ class WindowEvents extends Events {
 
 /// @domName Worker
 class Worker extends AbstractWorker {
+  Worker.internal() : super.internal();
 
   ///@docsEditable true
   factory Worker(String scriptUrl) => Worker._create(scriptUrl);
-  Worker.internal(): super.internal();
   static Worker _create(String scriptUrl) native "Worker_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -25753,7 +25753,7 @@ class WorkerEvents extends AbstractWorkerEvents {
 
 /// @domName WorkerContext
 class WorkerContext extends EventTarget {
-  WorkerContext.internal(): super.internal();
+  WorkerContext.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerContextEvents get on =>
@@ -25942,10 +25942,10 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
 
 /// @domName XPathEvaluator
 class XPathEvaluator extends NativeFieldWrapperClass1 {
+  XPathEvaluator.internal();
 
   ///@docsEditable true
   factory XPathEvaluator() => XPathEvaluator._create();
-  XPathEvaluator.internal();
   static XPathEvaluator _create() native "XPathEvaluator_constructor_Callback";
 
 
@@ -26102,10 +26102,10 @@ class XPathResult extends NativeFieldWrapperClass1 {
 
 /// @domName XMLSerializer
 class XmlSerializer extends NativeFieldWrapperClass1 {
+  XmlSerializer.internal();
 
   ///@docsEditable true
   factory XmlSerializer() => XmlSerializer._create();
-  XmlSerializer.internal();
   static XmlSerializer _create() native "XMLSerializer_constructor_Callback";
 
 
@@ -26122,10 +26122,10 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
 
 /// @domName XSLTProcessor
 class XsltProcessor extends NativeFieldWrapperClass1 {
+  XsltProcessor.internal();
 
   ///@docsEditable true
   factory XsltProcessor() => XsltProcessor._create();
-  XsltProcessor.internal();
   static XsltProcessor _create() native "XSLTProcessor_constructor_Callback";
 
 
@@ -26410,7 +26410,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 
 /// @domName CSSValueList
 class _CssValueList extends CssValue implements List<CssValue> {
-  _CssValueList.internal(): super.internal();
+  _CssValueList.internal() : super.internal();
 
 
   /** @domName CSSValueList.length */
@@ -26530,7 +26530,7 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
 /// @domName HTMLElement
 class _Element_Merged extends Element {
-  _Element_Merged.internal(): super.internal();
+  _Element_Merged.internal() : super.internal();
 
 
   /** @domName HTMLElement.children */

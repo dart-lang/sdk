@@ -97,7 +97,7 @@ class Cursor extends NativeFieldWrapperClass1 {
 
 /// @domName IDBCursorWithValue
 class CursorWithValue extends Cursor {
-  CursorWithValue.internal(): super.internal();
+  CursorWithValue.internal() : super.internal();
 
 
   /** @domName IDBCursorWithValue.value */
@@ -113,7 +113,7 @@ class CursorWithValue extends Cursor {
 
 /// @domName IDBDatabase
 class Database extends EventTarget {
-  Database.internal(): super.internal();
+  Database.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DatabaseEvents get on =>
@@ -715,7 +715,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 
 /// @domName IDBOpenDBRequest
 class OpenDBRequest extends Request implements EventTarget {
-  OpenDBRequest.internal(): super.internal();
+  OpenDBRequest.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   OpenDBRequestEvents get on =>
@@ -743,7 +743,7 @@ class OpenDBRequestEvents extends RequestEvents {
 
 /// @domName IDBRequest
 class Request extends EventTarget {
-  Request.internal(): super.internal();
+  Request.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RequestEvents get on =>
@@ -807,7 +807,7 @@ class RequestEvents extends Events {
 
 /// @domName IDBTransaction
 class Transaction extends EventTarget {
-  Transaction.internal(): super.internal();
+  Transaction.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TransactionEvents get on =>
@@ -874,7 +874,7 @@ class TransactionEvents extends Events {
 
 /// @domName IDBVersionChangeEvent
 class UpgradeNeededEvent extends Event {
-  UpgradeNeededEvent.internal(): super.internal();
+  UpgradeNeededEvent.internal() : super.internal();
 
 
   /** @domName IDBUpgradeNeededEvent.newVersion */
@@ -894,7 +894,7 @@ class UpgradeNeededEvent extends Event {
 
 /// @domName IDBVersionChangeEvent
 class VersionChangeEvent extends Event {
-  VersionChangeEvent.internal(): super.internal();
+  VersionChangeEvent.internal() : super.internal();
 
 
   /** @domName IDBVersionChangeEvent.version */
@@ -910,7 +910,7 @@ class VersionChangeEvent extends Event {
 
 /// @domName IDBVersionChangeRequest
 class VersionChangeRequest extends Request implements EventTarget {
-  VersionChangeRequest.internal(): super.internal();
+  VersionChangeRequest.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   VersionChangeRequestEvents get on =>

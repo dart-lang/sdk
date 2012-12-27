@@ -100,6 +100,7 @@ class ElementConstructorInfo(object):
                            self.opt_params)
     info.requires_named_arguments = True
     info.factory_parameters = ['"%s"' % self.tag]
+    info.pure_dart_constructor = True
     return info
 
 _html_element_constructors = {
@@ -379,28 +380,9 @@ class HtmlDartInterfaceGenerator(object):
         DOMNAME=self._interface.doc_js_name,
         NATIVESPEC=self._backend.NativeSpec())
     self._backend.StartInterface(self._implementation_members_emitter)
-
-    self._backend.AddConstructors(constructors, factory_provider,
-        self._interface_type_info.implementation_name(),
-        base_class, factory_constructor_name=factory_constructor_name)
-
-    # TODO(antonm): move into .AddConstructors.
-    if constructor_info:
-      template_file = (
-          'factoryprovider_%s.darttemplate' % self._interface.doc_js_name)
-      template = self._template_loader.TryLoad(template_file)
-      if template:
-        # There is a class specific factorirs.
-        # TODO(antonm): should move into the class template.
-        self._implementation_members_emitter.Emit(
-            template,
-            FACTORYPROVIDER=factory_provider)
-      else:
-        self._implementation_members_emitter.Emit(
-            '  static $INTERFACE _create($PARAMETERS) $BODY\n',
-            INTERFACE=interface_name,
-            PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
-            BODY=self._backend.FactoryProviderMethodBody(constructor_info))
+    self._backend.EmitHelpers(base_class)
+    self._backend.AddConstructors(
+        constructors, factory_provider, factory_constructor_name)
 
     events_class_name = self._event_generator.ProcessInterface(
         self._interface, interface_name,
@@ -475,21 +457,26 @@ class Dart2JSBackend(HtmlDartGenerator):
     return (self._template_loader.TryLoad(template_file) or
             self._template_loader.Load('dart2js_impl.darttemplate'))
 
-  def StartInterface(self, emitter):
-    self._members_emitter = emitter
+  def StartInterface(self, members_emitter):
+    self._members_emitter = members_emitter
 
   def FinishInterface(self):
     pass
 
-  def FactoryProviderMethodBody(self, constructor_info):
-    interface_name = self._interface_type_info.interface_name()
-    constructor_name = constructor_info.name or self._interface.doc_js_name
+  def EmitStaticFactory(self, constructor_info):
     arguments = constructor_info.ParametersAsArgumentList()
     if arguments:
       arguments = ', ' + arguments
-    arguments_pattern = ','.join(['#'] * len(constructor_info.param_infos))
-    return "=> JS('%s', 'new %s(%s)'%s);" % (
-        interface_name, constructor_name, arguments_pattern, arguments)
+    self._members_emitter.Emit(
+        "  static $INTERFACE_NAME _create($PARAMETERS_DECLARATION) => JS("
+          "'$INTERFACE_NAME', "
+          "'new $CONSTRUCTOR_NAME($ARGUMENTS_PATTERN)'$ARGUMENTS);\n",
+        INTERFACE_NAME=self._interface_type_info.interface_name(),
+        PARAMETERS_DECLARATION=constructor_info.ParametersDeclaration(
+            self._DartType),
+        CONSTRUCTOR_NAME=constructor_info.name or self._interface.doc_js_name,
+        ARGUMENTS_PATTERN=','.join(['#'] * len(constructor_info.param_infos)),
+        ARGUMENTS=arguments)
 
   def SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:
