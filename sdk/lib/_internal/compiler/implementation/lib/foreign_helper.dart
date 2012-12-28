@@ -26,7 +26,7 @@ library _foreign_helper;
  * greater than zero.)
  *
  * The [typeDescription] is a [String] which contains a union of types separated
- * by vertcal bar `|` symbols, e.g.  `"num|String"` describes the union of
+ * by vertical bar `|` symbols, e.g.  `"num|String"` describes the union of
  * numbers and Strings.  There is no type in Dart that is this precise.  The
  * Dart alternative would be `Object` or `dynamic`, but these types imply that
  * the JS-code might also be creating instances of all the DOM types.  The
@@ -54,7 +54,7 @@ library _foreign_helper;
  *
  * Guidelines:
  *
- *  + Avoid using any parameter, local, method or field names in the
+ *  + Do not use any parameter, local, method or field names in the
  *    [codeTemplate].  These names are all subject to arbitrary renaming by the
  *    compiler.  Pass the values in via `#` substition, and test with the
  *    `--minify` dart2js command-line option.
@@ -81,7 +81,7 @@ library _foreign_helper;
  *
  * Additional notes.
  *
- * In future we may extend [typeDescription] to include other aspects of the
+ * In the future we may extend [typeDescription] to include other aspects of the
  * behavior, for example, separating the returned types from the instantiated
  * types, or including effects to allow the compiler to perform more
  * optimizations around the code.  This might be an extension of [JS] or a new
