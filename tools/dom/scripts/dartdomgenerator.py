@@ -23,6 +23,9 @@ from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
 from systemnative import CPPLibraryEmitter, DartiumBackend
 from templateloader import TemplateLoader
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+import utils
+
 _logger = logging.getLogger('dartdomgenerator')
 
 _libraries = ['html', 'indexed_db', 'svg', 'web_audio']
@@ -138,7 +141,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
 def GenerateSingleFile(library_path, output_dir, generated_output_dir=None):
   library_dir = os.path.dirname(library_path)
   library_filename = os.path.basename(library_path)
-  copy_dart_script = os.path.relpath('../../../../tools/copy_dart.py',
+  copy_dart_script = os.path.relpath('../../copy_dart.py',
       library_dir)
   output_dir = os.path.relpath(output_dir, library_dir)
   command = ' '.join(['cd', library_dir, ';',
@@ -173,7 +176,9 @@ def main():
   logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
   systems = options.systems.split(',')
 
-  output_dir = options.output_dir or os.path.join(current_dir, '../generated')
+  output_dir = options.output_dir or os.path.join(
+      current_dir, '..', '..', utils.GetBuildDir(utils.GuessOS(), None),
+      'generated')
 
   dart2js_output_dir = None
   if 'htmldart2js' in systems:
@@ -192,16 +197,19 @@ def main():
 
   _logger.info('Add documentation to generated classes.')
   html_to_json_script = os.path.relpath(
-      '../../../../tools/html_json_doc/bin/html_json_doc.dart',
+      '../../html_json_doc/bin/html_json_doc.dart',
       current_dir)
   html_output_dir = os.path.join(output_dir, 'dart2js/dart/html/')
   svg_output_dir = os.path.join(output_dir, 'dart2js/dart/svg/')
   html_json_path = os.path.relpath('../docs/html_docs.json')
   svg_json_path = os.path.relpath('../docs/svg_docs.json')
-  html_command = ' '.join(['dart', html_to_json_script, '--mode=json-to-html',
-                      html_output_dir, html_json_path])
-  svg_command = ' '.join(['dart', html_to_json_script, '--mode=json-to-html',
-                      svg_output_dir, svg_json_path])
+
+  path_to_dart = utils.DartBinary()
+  html_command = ' '.join([path_to_dart, html_to_json_script,
+                           '--mode=json-to-html', html_output_dir,
+                           html_json_path])
+  svg_command = ' '.join([path_to_dart, html_to_json_script,
+                          '--mode=json-to-html', svg_output_dir, svg_json_path])
   subprocess.call([html_command], shell=True)
   subprocess.call([svg_command], shell=True)
 
@@ -210,13 +218,13 @@ def main():
     for library_name in _libraries:
       GenerateSingleFile(
           os.path.join(dart2js_output_dir, '%s_dart2js.dart' % library_name),
-          '../../%s/dart2js' % library_name)
+          os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dart2js'))
   if 'htmldartium' in systems:
     _logger.info('Generating dartium single files.')
     for library_name in _libraries:
       GenerateSingleFile(
           os.path.join(dartium_output_dir, '%s_dartium.dart' % library_name),
-          '../../%s/dartium' % library_name)
+          os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dartium'))
 
 if __name__ == '__main__':
   sys.exit(main())
