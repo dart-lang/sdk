@@ -40,7 +40,6 @@ compute_this_script_browser_test: Pass
 
 [ $compiler == dart2js ]
 serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
-port_test: Fail # Issue 6608
 illegal_msg_test: Fail # Issue 6750
 
 [ $runtime == safari ]
