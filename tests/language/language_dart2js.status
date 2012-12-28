@@ -88,7 +88,7 @@ compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
 call_operator_test: Fail # Issue 7622.
-class_literal_test: Fail
+class_literal_test: Fail # Issue 7626.
 identical_closure_test: Fail # Fix for identical closure has not been implemented in dart2js yet: https://chromiumcodereview.appspot.com/11612022/
 class_cycle_test/02: Fail # Issue 7468.
 class_cycle_test/03: Fail # Issue 7468.

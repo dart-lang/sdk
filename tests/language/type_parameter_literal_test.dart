@@ -5,7 +5,7 @@
 // Test type parameter literal expressions.
 
 class D<T> {
-  T getT() {
+  Type getT() {
     return T;
   }
 }
