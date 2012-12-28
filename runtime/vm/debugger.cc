@@ -937,10 +937,11 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
     bpt = new CodeBreakpoint(func, best_fit_index);
     if (FLAG_verbose_debug) {
       OS::Print("Setting breakpoint in function '%s' "
-                "(%s:%"Pd") (PC %#"Px")\n",
+                "(%s:%"Pd") (Token %"Pd") (PC %#"Px")\n",
                 String::Handle(func.name()).ToCString(),
                 String::Handle(bpt->SourceUrl()).ToCString(),
                 bpt->LineNumber(),
+                bpt->token_pos(),
                 bpt->pc());
     }
     RegisterCodeBreakpoint(bpt);
@@ -1351,10 +1352,12 @@ void Debugger::SignalBpReached() {
   CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
   if (FLAG_verbose_debug) {
-    OS::Print(">>> hit %s breakpoint at %s:%"Pd" (Address %#"Px")\n",
+    OS::Print(">>> hit %s breakpoint at %s:%"Pd" "
+              "(token %"Pd") (address %#"Px")\n",
               bpt->IsInternal() ? "internal" : "user",
               String::Handle(bpt->SourceUrl()).ToCString(),
               bpt->LineNumber(),
+              bpt->token_pos(),
               top_frame->pc());
   }
 

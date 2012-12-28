@@ -971,20 +971,24 @@ TEST_CASE(Debug_LookupSourceLine) {
   const String& script_url = String::Handle(String::New(TestCase::url()));
   Function& func = Function::Handle();
 
-  // TODO(hausner): Looking up functions from source and line number
-  // needs to be refined. We currently dont find "main" on line 7.
-  for (int line = 8; line <= 9; line++) {
+  for (int line = 7; line <= 9; line++) {
     func = test_lib.LookupFunctionInSource(script_url, line);
     EXPECT(!func.IsNull());
     EXPECT_STREQ("main", String::Handle(func.name()).ToCString());
   }
 
-  func = test_lib.LookupFunctionInSource(script_url, 3);
-  EXPECT(!func.IsNull());
-  EXPECT_STREQ("foo", String::Handle(func.name()).ToCString());
+  for (int line = 2; line <= 4; line++) {
+    func = test_lib.LookupFunctionInSource(script_url, 3);
+    EXPECT(!func.IsNull());
+    EXPECT_STREQ("foo", String::Handle(func.name()).ToCString());
+  }
 
+  // The VM generates an implicit constructor for class A and
+  // locates it at the token position of the keyword 'class'.
   func = test_lib.LookupFunctionInSource(script_url, 1);
-  EXPECT(func.IsNull());
+  EXPECT(!func.IsNull());
+  EXPECT_STREQ("A.", String::Handle(func.name()).ToCString());
+
   func = test_lib.LookupFunctionInSource(script_url, 6);
   EXPECT(func.IsNull());
   func = test_lib.LookupFunctionInSource(script_url, 10);

@@ -2340,7 +2340,7 @@ RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
   for (intptr_t i = 0; i < len; i++) {
     func ^= funcs.At(i);
     if ((func.token_pos() <= token_pos) &&
-        (token_pos < func.end_token_pos())) {
+        (token_pos <= func.end_token_pos())) {
       return func.raw();
     }
   }
@@ -5667,7 +5667,14 @@ RawFunction* Library::LookupFunctionInSource(const String& script_url,
     // Script does not contain the given line number.
     return Function::null();
   }
-  return LookupFunctionInScript(script, first_token_pos);
+  Function& func = Function::Handle();
+  for (intptr_t pos = first_token_pos; pos <= last_token_pos; pos++) {
+    func = LookupFunctionInScript(script, pos);
+    if (!func.IsNull()) {
+      return func.raw();
+    }
+  }
+  return Function::null();
 }
 
 

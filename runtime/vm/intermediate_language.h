@@ -35,16 +35,16 @@ class FlowGraphOptimizer;
 #define RECOGNIZED_LIST(V)                                                     \
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
-  V(_ByteArrayBase, get:length, ByteArrayBaseLength, 1828280001)               \
+  V(_ByteArrayBase, get:length, ByteArrayBaseLength, 1098081765)               \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
-  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 583130725)                    \
+  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 711547329)                    \
   V(_StringBase, charCodeAt, StringBaseCharCodeAt, 984449525)                  \
   V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
-  V(_IntegerImplementation, toDouble, IntegerToDouble, 1252792570)             \
+  V(_IntegerImplementation, toDouble, IntegerToDouble, 733149324)              \
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
-  V(::, sqrt, MathSqrt, 2232519)                                               \
+  V(::, sqrt, MathSqrt, 1662640002)                                            \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable

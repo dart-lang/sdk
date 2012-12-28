@@ -759,7 +759,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 
   if (!HasReturnNode(node_sequence)) {
     // Add implicit return node.
-    node_sequence->Add(new ReturnNode(parser.TokenPos()));
+    node_sequence->Add(new ReturnNode(func.end_token_pos()));
   }
   if (parser.expression_temp_ != NULL) {
     parsed_function->set_expression_temp_var(parser.expression_temp_);
@@ -807,6 +807,7 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   OpenFunctionBlock(func);
   AddFormalParamsToScope(&params, current_block_->scope);
 
+  intptr_t ident_pos = TokenPos();
   const String& field_name = *ExpectIdentifier("field name expected");
   const Class& field_class = Class::Handle(func.Owner());
   const Field& field =
@@ -828,7 +829,7 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
     if (expr->EvalConstExpr() == NULL) {
       ErrorMsg(expr_pos, "initializer must be a compile-time constant");
     }
-    ReturnNode* return_node = new ReturnNode(TokenPos(), expr);
+    ReturnNode* return_node = new ReturnNode(ident_pos, expr);
     current_block_->statements->Add(return_node);
   } else {
     // This getter may be called each time the static field is accessed.
@@ -845,56 +846,55 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
 
     // Generate code checking for circular dependency in field initialization.
     AstNode* compare_circular = new ComparisonNode(
-        TokenPos(),
+        ident_pos,
         Token::kEQ_STRICT,
-        new LoadStaticFieldNode(TokenPos(), field),
-        new LiteralNode(TokenPos(), Object::transition_sentinel()));
+        new LoadStaticFieldNode(ident_pos, field),
+        new LiteralNode(ident_pos, Object::transition_sentinel()));
     // Set field to null prior to throwing exception, so that subsequent
     // accesses to the field do not throw again, since initializers should only
     // be executed once.
-    SequenceNode* report_circular = new SequenceNode(TokenPos(), NULL);
+    SequenceNode* report_circular = new SequenceNode(ident_pos, NULL);
     report_circular->Add(
         new StoreStaticFieldNode(
-            TokenPos(),
+            ident_pos,
             field,
-            new LiteralNode(TokenPos(), Instance::ZoneHandle())));
+            new LiteralNode(ident_pos, Instance::ZoneHandle())));
     // TODO(regis): Exception to throw is not specified by spec.
     const String& circular_error = String::ZoneHandle(
         Symbols::New("circular dependency in field initialization"));
     report_circular->Add(
-        new ThrowNode(TokenPos(),
-                      new LiteralNode(TokenPos(), circular_error),
+        new ThrowNode(ident_pos,
+                      new LiteralNode(ident_pos, circular_error),
                       NULL));
     AstNode* circular_check =
-        new IfNode(TokenPos(), compare_circular, report_circular, NULL);
+        new IfNode(ident_pos, compare_circular, report_circular, NULL);
     current_block_->statements->Add(circular_check);
 
     // Generate code checking for uninitialized field.
     AstNode* compare_uninitialized = new ComparisonNode(
-        TokenPos(),
+        ident_pos,
         Token::kEQ_STRICT,
-        new LoadStaticFieldNode(TokenPos(), field),
-        new LiteralNode(TokenPos(), Object::sentinel()));
-    SequenceNode* initialize_field = new SequenceNode(TokenPos(), NULL);
+        new LoadStaticFieldNode(ident_pos, field),
+        new LiteralNode(ident_pos, Object::sentinel()));
+    SequenceNode* initialize_field = new SequenceNode(ident_pos, NULL);
     initialize_field->Add(
         new StoreStaticFieldNode(
-            TokenPos(),
+            ident_pos,
             field,
-            new LiteralNode(
-                TokenPos(), Object::transition_sentinel())));
+            new LiteralNode(ident_pos, Object::transition_sentinel())));
     // TODO(hausner): If evaluation of the field value throws an exception,
     // we leave the field value as 'transition_sentinel', which is wrong.
     // A second reference to the field later throws a circular dependency
     // exception. The field should instead be set to null after an exception.
-    initialize_field->Add(new StoreStaticFieldNode(TokenPos(), field, expr));
+    initialize_field->Add(new StoreStaticFieldNode(ident_pos, field, expr));
     AstNode* uninitialized_check =
-        new IfNode(TokenPos(), compare_uninitialized, initialize_field, NULL);
+        new IfNode(ident_pos, compare_uninitialized, initialize_field, NULL);
     current_block_->statements->Add(uninitialized_check);
 
     // Generate code returning the field value.
     ReturnNode* return_node =
-        new ReturnNode(TokenPos(),
-                       new LoadStaticFieldNode(TokenPos(), field));
+        new ReturnNode(ident_pos,
+                       new LoadStaticFieldNode(ident_pos, field));
     current_block_->statements->Add(return_node);
   }
   return CloseBlock();
@@ -908,8 +908,10 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
 SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   TRACE_PARSER("ParseInstanceGetter");
   ParamList params;
+  // func.token_pos() points to the name of the field.
+  intptr_t ident_pos = func.token_pos();
   ASSERT(current_class().raw() == func.Owner());
-  params.AddReceiver(ReceiverType(TokenPos()));
+  params.AddReceiver(ReceiverType(ident_pos));
   ASSERT(func.num_fixed_parameters() == 1);  // receiver.
   ASSERT(!func.HasOptionalParameters());
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
@@ -920,9 +922,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
 
   // Receiver is local 0.
   LocalVariable* receiver = current_block_->scope->VariableAt(0);
-  LoadLocalNode* load_receiver = new LoadLocalNode(TokenPos(), receiver);
-  // TokenPos() returns the function's token position which points to the
-  // name of the field;
+  LoadLocalNode* load_receiver = new LoadLocalNode(ident_pos, receiver);
   ASSERT(IsIdentifier());
   const String& field_name = *CurrentLiteral();
   const Class& field_class = Class::Handle(func.Owner());
@@ -930,9 +930,9 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
       Field::ZoneHandle(field_class.LookupInstanceField(field_name));
 
   LoadInstanceFieldNode* load_field =
-      new LoadInstanceFieldNode(TokenPos(), load_receiver, field);
+      new LoadInstanceFieldNode(ident_pos, load_receiver, field);
 
-  ReturnNode* return_node = new ReturnNode(TokenPos(), load_field);
+  ReturnNode* return_node = new ReturnNode(ident_pos, load_field);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -945,8 +945,8 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
 //   ReturnNode (void);
 SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   TRACE_PARSER("ParseInstanceSetter");
-  // TokenPos() returns the function's token position which points to
-  // the name of the field; we can use it to form the field_name.
+  // func.token_pos() points to the name of the field.
+  intptr_t ident_pos = func.token_pos();
   const String& field_name = *CurrentLiteral();
   const Class& field_class = Class::ZoneHandle(func.Owner());
   const Field& field =
@@ -955,8 +955,8 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
 
   ParamList params;
   ASSERT(current_class().raw() == func.Owner());
-  params.AddReceiver(ReceiverType(TokenPos()));
-  params.AddFinalParameter(TokenPos(),
+  params.AddReceiver(ReceiverType(ident_pos));
+  params.AddFinalParameter(ident_pos,
                            &String::ZoneHandle(Symbols::Value()),
                            &field_type);
   ASSERT(func.num_fixed_parameters() == 2);  // receiver, value.
@@ -968,15 +968,15 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   AddFormalParamsToScope(&params, current_block_->scope);
 
   LoadLocalNode* receiver =
-      new LoadLocalNode(TokenPos(), current_block_->scope->VariableAt(0));
+      new LoadLocalNode(ident_pos, current_block_->scope->VariableAt(0));
   LoadLocalNode* value =
-      new LoadLocalNode(TokenPos(), current_block_->scope->VariableAt(1));
+      new LoadLocalNode(ident_pos, current_block_->scope->VariableAt(1));
 
   StoreInstanceFieldNode* store_field =
-      new StoreInstanceFieldNode(TokenPos(), receiver, field, value);
+      new StoreInstanceFieldNode(ident_pos, receiver, field, value);
 
   current_block_->statements->Add(store_field);
-  current_block_->statements->Add(new ReturnNode(TokenPos()));
+  current_block_->statements->Add(new ReturnNode(ident_pos));
   return CloseBlock();
 }
 
@@ -2601,7 +2601,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       SkipExpr();
       ExpectSemicolon();
     }
-    method_end_pos = TokenPos();
+    method_end_pos = TokenPos() - 1;
   } else if (IsLiteral("native")) {
     if (method->has_abstract) {
       ErrorMsg(method->name_pos,
@@ -3795,12 +3795,12 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
-    function_end_pos = TokenPos();
+    function_end_pos = TokenPos() - 1;
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
     ExpectSemicolon();
-    function_end_pos = TokenPos();
+    function_end_pos = TokenPos() - 1;
   } else if (IsLiteral("native")) {
     ParseNativeDeclaration();
   } else {
@@ -4832,8 +4832,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   Array& default_parameter_values = Array::Handle();
   SequenceNode* statements = Parser::ParseFunc(function,
                                                default_parameter_values);
-  ASSERT(is_new_closure || (function.end_token_pos() == TokenPos()));
-  function.set_end_token_pos(TokenPos());
+  ASSERT(is_new_closure || (function.end_token_pos() == (TokenPos() - 1)));
+  function.set_end_token_pos(TokenPos() - 1);
 
   // Now that the local function has formal parameters, lookup the signature
   // class in the current library (but not in its imports) and only create a new
