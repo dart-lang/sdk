@@ -1428,15 +1428,13 @@ class HInvokeStatic extends HInvoke {
 }
 
 class HInvokeSuper extends HInvokeStatic {
-  final bool isSendSet;
-  final bool isPropertyAccess;
-  HInvokeSuper(inputs, {this.isSendSet: false, this.isPropertyAccess: false})
-       : super(inputs);
+  final bool isSetter;
+  HInvokeSuper(inputs, {this.isSetter: false}) : super(inputs);
   toString() => 'invoke super: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
 
   HInstruction get value {
-    assert(isSendSet);
+    assert(isSetter);
     // Index 0: the element, index 1: 'this'.
     return inputs[2];
   }

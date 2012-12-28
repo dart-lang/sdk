@@ -1672,7 +1672,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeSuper(HInvokeSuper node) {
     Element superMethod = node.element;
     Element superClass = superMethod.getEnclosingClass();
-    if (superMethod.isField()) {
+    if (superMethod.kind == ElementKind.FIELD) {
       ClassElement currentClass = work.element.getEnclosingClass();
       if (currentClass.isClosure()) {
         ClosureClassElement closure = currentClass;
@@ -1689,45 +1689,32 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(node.inputs[1]);
       js.PropertyAccess access =
           new js.PropertyAccess.field(pop(), fieldName);
-      if (node.isSendSet) {
+      if (node.isSetter) {
         use(node.value);
         push(new js.Assignment(access, pop()), node);
       } else {
         push(access, node);
       }
     } else {
-      bool isPropertyAccess = false;
       String methodName;
-      if (superMethod.isGetter()) {
+      if (superMethod.kind == ElementKind.FUNCTION ||
+          superMethod.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+        methodName = backend.namer.instanceMethodName(superMethod);
+      } else if (superMethod.kind == ElementKind.GETTER) {
         methodName =
             backend.namer.getterName(currentLibrary, superMethod.name);
-      } else if (node.isSendSet || superMethod.isSetter()) {
+      } else {
+        assert(superMethod.kind == ElementKind.SETTER);
         methodName =
             backend.namer.setterName(currentLibrary, superMethod.name);
-      } else if (superMethod.isFunction() ||
-                 superMethod.isGenerativeConstructor()) {
-        if (node.isPropertyAccess) {
-          methodName =
-              backend.namer.getterName(currentLibrary, superMethod.name);
-          isPropertyAccess = true;
-        } else {
-          methodName = backend.namer.instanceMethodName(superMethod);
-        }
       }
       String className = backend.namer.isolateAccess(superClass);
       js.VariableUse classReference = new js.VariableUse(className);
       js.PropertyAccess prototype =
           new js.PropertyAccess.field(classReference, "prototype");
-      if (isPropertyAccess) {
-        // Property access of a function. Obtain the bound closure instead of
-        // invoking the function.
-        push(jsPropertyCall(prototype, methodName,
-                            visitArguments(node.inputs)), node);
-      } else {
-        js.PropertyAccess method =
-            new js.PropertyAccess.field(prototype, methodName);
-        push(jsPropertyCall(method, "call", visitArguments(node.inputs)), node);
-      }
+      js.PropertyAccess method =
+          new js.PropertyAccess.field(prototype, methodName);
+      push(jsPropertyCall(method, "call", visitArguments(node.inputs)), node);
     }
     world.registerStaticUse(superMethod);
   }

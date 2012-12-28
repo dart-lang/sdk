@@ -3133,26 +3133,23 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   generateSuperNoSuchMethodSend(Send node) {
     Selector selector = elements.getSelector(node);
-    String name = selector.invocationMirrorMemberName;
+    SourceString name = selector.name;
+
     ClassElement cls = work.element.getEnclosingClass();
-    if (cls is ClosureClassElement) {
-      ClosureClassElement closureClass = cls;
-      cls = closureClass.methodElement.getEnclosingClass();
-    }
     Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
     if (element.enclosingElement.declaration != compiler.objectClass) {
       // Register the call as dynamic if [:noSuchMethod:] on the super class
       // is _not_ the default implementation from [:Object:].
-      compiler.enqueuer.codegen.registerDynamicInvocation(selector.name,
-                                                          selector);
+      compiler.enqueuer.codegen.registerDynamicInvocation(name, selector);
     }
     HStatic target = new HStatic(element);
     add(target);
     HInstruction self = localsHandler.readThis();
     Constant nameConstant = constantSystem.createString(
-        new DartString.literal(name), node);
+        new DartString.literal(name.slowToString()), node);
 
-    String internalName = backend.namer.invocationMirrorInternalName(selector);
+    String internalName = backend.namer.instanceMethodInvocationName(
+        currentLibrary, name, selector);
     Constant internalNameConstant =
         constantSystem.createString(new DartString.literal(internalName), node);
 
@@ -3212,7 +3209,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     add(target);
     var inputs = <HInstruction>[target, context];
     if (node.isPropertyAccess) {
-      push(new HInvokeSuper(inputs, isPropertyAccess: true));
+      push(new HInvokeSuper(inputs));
     } else if (element.isFunction() || element.isGenerativeConstructor()) {
       // TODO(5347): Try to avoid the need for calling [implementation] before
       // calling [addStaticSendArgumentsToList].
@@ -3220,7 +3217,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
                                                     function, inputs);
       if (!succeeded) {
-        generateSuperNoSuchMethodSend(node);
+        generateWrongArgumentCountError(node, element, node.arguments);
       } else {
         push(new HInvokeSuper(inputs));
       }
@@ -3647,9 +3644,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
-      if (Elements.isUnresolved(element) || !Elements.isAssignable(element)) {
-        return generateSuperNoSuchMethodSend(node);
-      }
+      if (element == null) return generateSuperNoSuchMethodSend(node);
       HInstruction target = new HStatic(element);
       HInstruction context = localsHandler.readThis();
       add(target);
@@ -3659,7 +3654,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.unimplemented('complex super assignment',
                                node: node.assignmentOperator);
       }
-      push(new HInvokeSuper(inputs, isSendSet: true));
+      push(new HInvokeSuper(inputs, isSetter: true));
     } else if (node.isIndex) {
       if (!methodInterceptionEnabled) {
         assert(identical(op.source.stringValue, '='));

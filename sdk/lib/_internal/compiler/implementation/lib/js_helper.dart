@@ -380,7 +380,7 @@ class JSInvocationMirror implements InvocationMirror {
   bool get isAccessor => _kind != METHOD;
 
   List get positionalArguments {
-    if (isGetter) return const [];
+    if (isGetter) return null;
     var list = [];
     var argumentCount =
         _arguments.length - _namedArgumentNames.length;
@@ -391,7 +391,7 @@ class JSInvocationMirror implements InvocationMirror {
   }
 
   Map<String,dynamic> get namedArguments {
-    if (isAccessor) return const <String,dynamic>{};
+    if (isAccessor) return null;
     var map = <String,dynamic>{};
     int namedArgumentCount = _namedArgumentNames.length;
     int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;

@@ -92,6 +92,7 @@ class_literal_test: Fail # Issue 7626.
 identical_closure_test: Fail # Fix for identical closure has not been implemented in dart2js yet: https://chromiumcodereview.appspot.com/11612022/
 class_cycle_test/02: Fail # Issue 7468.
 class_cycle_test/03: Fail # Issue 7468.
+invocation_mirror_test: Fail
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6972
 number_identity2_test: Fail # identity of NaN
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
