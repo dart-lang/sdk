@@ -274,6 +274,22 @@ void main() {
         </ul>
         ''');
 
+    validate('can span newlines', '''
+        *   one
+            two
+        *   three
+        ''', '''
+        <ul>
+          <li>
+            <p>one
+            two</p>
+          </li>
+          <li>
+            three
+          </li>
+        </ul>
+        ''');
+
     // TODO(rnystrom): This is how most other markdown parsers handle
     // this but that seems like a nasty special case. For now, let's not
     // worry about it.
@@ -812,7 +828,8 @@ String cleanUpLiteral(String text) {
   return Strings.join(lines, '\n');
 }
 
-validate(String description, String markdown, String html) {
+validate(String description, String markdown, String html,
+         {bool verbose: false}) {
   test(description, () {
     markdown = cleanUpLiteral(markdown);
     html = cleanUpLiteral(html);
@@ -830,7 +847,7 @@ validate(String description, String markdown, String html) {
       print('');
     }
 
-    expect(passed, isTrue);
+    expect(passed, isTrue, verbose: verbose);
   });
 }
 
