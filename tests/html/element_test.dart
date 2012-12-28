@@ -239,6 +239,10 @@ main() {
       testEventHelper(on.touchStart, 'touchstart',
           (listener) => Testing.addEventListener(
               element, 'touchstart', listener, true));
+      testEventHelper(on.transitionEnd, 'webkitTransitionEnd');
+      testEventHelper(on.fullscreenChange, 'webkitfullscreenchange',
+          (listener) => Testing.addEventListener(element,
+             'webkitfullscreenchange', listener, true));
     });
   });
 
