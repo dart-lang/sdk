@@ -20,6 +20,7 @@ _secure_base_types = {
   'History': 'HistoryBase',
 }
 
+
 class HtmlDartGenerator(object):
   def __init__(self, interface, options):
     self._database = options.database
@@ -27,6 +28,16 @@ class HtmlDartGenerator(object):
     self._type_registry = options.type_registry
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._renamer = options.renamer
+
+  def EmitSupportCheck(self):
+    if self.HasSupportCheck():
+      support_check = self.GetSupportCheck()
+      self._members_emitter.Emit('\n'
+          '  /**\n'
+          '   * Checks if this type is supported on the current platform\n'
+          '   */\n'
+          '  static bool get supported => $SUPPORT_CHECK;\n',
+          SUPPORT_CHECK=support_check)
 
   def EmitAttributeDocumentation(self, attribute):
     """ Emits the MDN dartdoc comment for an attribute.

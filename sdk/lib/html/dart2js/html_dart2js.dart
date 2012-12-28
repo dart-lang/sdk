@@ -1430,10 +1430,17 @@ class Console {
 
 
 /// @domName HTMLContentElement; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class ContentElement extends Element native "*HTMLContentElement" {
 
   ///@docsEditable true
   factory ContentElement() => document.$dom_createElement("content");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('content');
 
   /// @domName HTMLContentElement.resetStyleInheritance; @docsEditable true
   bool resetStyleInheritance;
@@ -5252,10 +5259,19 @@ class DListElement extends Element native "*HTMLDListElement" {
 
 
 /// @domName HTMLDataListElement; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class DataListElement extends Element native "*HTMLDataListElement" {
 
   ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('datalist');
 
   /// @domName HTMLDataListElement.options; @docsEditable true
   final HtmlCollection options;
@@ -5473,10 +5489,18 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 
 
 /// @domName HTMLDetailsElement; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class DetailsElement extends Element native "*HTMLDetailsElement" {
 
   ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('details');
 
   /// @domName HTMLDetailsElement.open; @docsEditable true
   bool open;
@@ -7345,6 +7369,10 @@ abstract class Element extends Node implements ElementTraversal native "*Element
    *
    * For standard elements it is more preferable to use the type constructors:
    *     var element = new DivElement();
+   *
+   * See also:
+   *
+   * * [isTagSupported]
    */
   factory Element.tag(String tag) =>
       _ElementFactoryProvider.createElement_tag(tag);
@@ -7556,6 +7584,16 @@ abstract class Element extends Node implements ElementTraversal native "*Element
    */
   void appendHtml(String text) {
     this.insertAdjacentHtml('beforeend', text);
+  }
+
+  /**
+   * Checks to see if the tag name is supported by the current platform.
+   *
+   * The tag should be a valid HTML tag name.
+   */
+  static bool isTagSupported(String tag) {
+    var e = _ElementFactoryProvider.createElement_tag(tag);
+    return e is Element && !(e is UnknownElement);
   }
 
   // Hooks to support custom WebComponents.
@@ -7949,7 +7987,7 @@ class _ElementFactoryProvider {
   /** @domName Document.createElement */
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
-  static Element createElement_tag(String tag) =>
+  static dynamic createElement_tag(String tag) =>
       JS('Element', 'document.createElement(#)', tag);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8138,10 +8176,18 @@ abstract class ElementTraversal {
 
 
 /// @domName HTMLEmbedElement; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class EmbedElement extends Element native "*HTMLEmbedElement" {
 
   ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('embed');
 
   /// @domName HTMLEmbedElement.align; @docsEditable true
   String align;
@@ -12034,10 +12080,18 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
 
 /// @domName HTMLKeygenElement; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class KeygenElement extends Element native "*HTMLKeygenElement" {
 
   ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('keygen') && (new Element.tag('keygen') is KeygenElement);
 
   /// @domName HTMLKeygenElement.autofocus; @docsEditable true
   bool autofocus;
@@ -12263,6 +12317,11 @@ class MapElement extends Element native "*HTMLMapElement" {
 
 /// @domName HTMLMarqueeElement; @docsEditable true
 class MarqueeElement extends Element native "*HTMLMarqueeElement" {
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('marquee')&& (new Element.tag('marquee') is MarqueeElement);
 
   /// @domName HTMLMarqueeElement.behavior; @docsEditable true
   String behavior;
@@ -13148,10 +13207,18 @@ typedef void MetadataCallback(Metadata metadata);
 
 
 /// @domName HTMLMeterElement; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class MeterElement extends Element native "*HTMLMeterElement" {
 
   ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('meter');
 
   /// @domName HTMLMeterElement.high; @docsEditable true
   num high;
@@ -14369,10 +14436,18 @@ class OListElement extends Element native "*HTMLOListElement" {
 
 
 /// @domName HTMLObjectElement; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ObjectElement extends Element native "*HTMLObjectElement" {
 
   ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('object');
 
   /// @domName HTMLObjectElement.align; @docsEditable true
   String align;
@@ -14579,10 +14654,18 @@ class OptionElement extends Element native "*HTMLOptionElement" {
 
 
 /// @domName HTMLOutputElement; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class OutputElement extends Element native "*HTMLOutputElement" {
 
   ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('output');
 
   /// @domName HTMLOutputElement.defaultValue; @docsEditable true
   String defaultValue;
@@ -14933,10 +15016,19 @@ class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 
 
 /// @domName HTMLProgressElement; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ProgressElement extends Element native "*HTMLProgressElement" {
 
   ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('progress');
 
   /// @domName HTMLProgressElement.labels; @docsEditable true
   @Returns('NodeList') @Creates('NodeList')
@@ -17898,10 +17990,18 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
 
 /// @domName HTMLTrackElement; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class TrackElement extends Element native "*HTMLTrackElement" {
 
   ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('track');
 
   static const int ERROR = 3;
 

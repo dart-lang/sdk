@@ -10,6 +10,7 @@ import emitter
 import os
 from generator import *
 from htmldartgenerator import *
+from systemhtml import js_support_checks
 
 class DartiumBackend(HtmlDartGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
@@ -199,6 +200,14 @@ class DartiumBackend(HtmlDartGenerator):
         constructor_info.idl_args,
         self._interface.id,
         'ConstructorRaisesException' in ext_attrs)
+
+  def HasSupportCheck(self):
+    # Need to omit a support check if it is conditional in JS.
+    return self._interface.doc_js_name in js_support_checks
+
+  def GetSupportCheck(self):
+    # Assume that everything is supported on Dartium.
+    return 'true'
 
   def FinishInterface(self):
     self._GenerateCPPHeader()

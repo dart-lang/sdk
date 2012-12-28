@@ -2101,6 +2101,11 @@ class ContentElement extends _Element_Merged {
   ///@docsEditable true
   factory ContentElement() => document.$dom_createElement("content");
 
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
+
 
   /** @domName HTMLContentElement.resetStyleInheritance */
   bool get resetStyleInheritance native "HTMLContentElement_resetStyleInheritance_Getter";
@@ -6236,6 +6241,11 @@ class DataListElement extends _Element_Merged {
   ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
 
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
+
 
   /** @domName HTMLDataListElement.options */
   HtmlCollection get options native "HTMLDataListElement_options_Getter";
@@ -6653,6 +6663,11 @@ class DetailsElement extends _Element_Merged {
 
   ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLDetailsElement.open */
@@ -8633,6 +8648,10 @@ abstract class Element extends Node implements ElementTraversal {
    *
    * For standard elements it is more preferable to use the type constructors:
    *     var element = new DivElement();
+   *
+   * See also:
+   *
+   * * [isTagSupported]
    */
   factory Element.tag(String tag) =>
       _ElementFactoryProvider.createElement_tag(tag);
@@ -8844,6 +8863,16 @@ abstract class Element extends Node implements ElementTraversal {
    */
   void appendHtml(String text) {
     this.insertAdjacentHtml('beforeend', text);
+  }
+
+  /**
+   * Checks to see if the tag name is supported by the current platform.
+   *
+   * The tag should be a valid HTML tag name.
+   */
+  static bool isTagSupported(String tag) {
+    var e = _ElementFactoryProvider.createElement_tag(tag);
+    return e is Element && !(e is UnknownElement);
   }
 
   // Hooks to support custom WebComponents.
@@ -9402,6 +9431,11 @@ class EmbedElement extends _Element_Merged {
 
   ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLEmbedElement.align */
@@ -14217,6 +14251,11 @@ class KeygenElement extends _Element_Merged {
   ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
 
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
+
 
   /** @domName HTMLKeygenElement.autofocus */
   bool get autofocus native "HTMLKeygenElement_autofocus_Getter";
@@ -14631,6 +14670,11 @@ class MapElement extends _Element_Merged {
 /// @domName HTMLMarqueeElement
 class MarqueeElement extends _Element_Merged {
   MarqueeElement.internal() : super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLMarqueeElement.behavior */
@@ -15899,6 +15943,11 @@ class MeterElement extends _Element_Merged {
 
   ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLMeterElement.high */
@@ -17289,6 +17338,11 @@ class ObjectElement extends _Element_Merged {
   ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
 
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
+
 
   /** @domName HTMLObjectElement.align */
   String get align native "HTMLObjectElement_align_Getter";
@@ -17632,6 +17686,11 @@ class OutputElement extends _Element_Merged {
 
   ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLOutputElement.defaultValue */
@@ -18156,6 +18215,11 @@ class ProgressElement extends _Element_Merged {
 
   ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLProgressElement.labels */
@@ -22171,6 +22235,11 @@ class TrackElement extends _Element_Merged {
   ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
 
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
+
   static const int ERROR = 3;
 
   static const int LOADED = 2;
@@ -25096,9 +25165,9 @@ class Window extends EventTarget implements WindowBase {
 
 
   /** @domName DOMWindow.indexedDB */
-  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
-  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
-  @SupportedBrowser(SupportedBrowser.IE, '10.0')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
+  @SupportedBrowser(SupportedBrowser.IE, '10')
   @Experimental()
   IdbFactory get indexedDB native "DOMWindow_indexedDB_Getter";
 
@@ -25705,9 +25774,9 @@ class WorkerContext extends EventTarget {
 
 
   /** @domName WorkerContext.indexedDB */
-  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
-  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
-  @SupportedBrowser(SupportedBrowser.IE, '10.0')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
+  @SupportedBrowser(SupportedBrowser.IE, '10')
   @Experimental()
   IdbFactory get indexedDB native "WorkerContext_indexedDB_Getter";
 

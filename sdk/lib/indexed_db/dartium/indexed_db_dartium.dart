@@ -202,9 +202,9 @@ class DatabaseEvents extends Events {
 
 
 /// @domName IDBFactory
-@SupportedBrowser(SupportedBrowser.CHROME, '23.0')
-@SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
-@SupportedBrowser(SupportedBrowser.IE, '10.0')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX, '15')
+@SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental()
 class IdbFactory extends NativeFieldWrapperClass1 {
   /**

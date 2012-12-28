@@ -13,14 +13,6 @@ import 'dart:html';
 // Ideally all of these should be functional on all browsers and moved into
 // element_test.dart.
 
-void testConstructorHelper(String tag, String htmlSnippet,
-    String expectedText, Function isExpectedClass) {
-  expect(isExpectedClass(new Element.tag(tag)), true);
-  final elementFromSnippet = new Element.html(htmlSnippet);
-  expect(isExpectedClass(elementFromSnippet), true);
-  expect(expectedText, elementFromSnippet.text);
-}
-
 void testEventHelper(EventListenerList listenerList, type,
     [Function registerOnEventListener = null]) {
   bool firedWhenAddedToListenerList = false;
@@ -46,25 +38,6 @@ void testEventHelper(EventListenerList listenerList, type,
 main() {
   useHtmlConfiguration();
 
-  group('constructors', () {
-    test('details', () => testConstructorHelper('details',
-        '<details>foo</details>', 'foo',
-        (element) => element is DetailsElement));
-    test('embed', () => testConstructorHelper('embed',
-        '<embed>foo</embed>', '',
-        (element) => element is EmbedElement));
-    test('keygen', () => testConstructorHelper('keygen', '<keygen>', '',
-        (element) => element is KeygenElement));
-    test('marquee', () => testConstructorHelper('marquee',
-        '<marquee>foo</marquee>', 'foo',
-        (element) => element is MarqueeElement));
-    test('meter', () => testConstructorHelper('meter',
-        '<meter>foo</meter>', 'foo',
-        (element) => element is MeterElement));
-    test('object', () => testConstructorHelper('object',
-        '<object>foo</object>', 'foo',
-        (element) => element is ObjectElement));
-    });
 
   group('events', () {
     final element = new Element.tag('div');

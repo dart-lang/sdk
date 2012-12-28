@@ -616,9 +616,9 @@ dart2js_annotations = {
 }
 
 _indexed_db_annotations = [
-  "@SupportedBrowser(SupportedBrowser.CHROME, '23.0')",
-  "@SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')",
-  "@SupportedBrowser(SupportedBrowser.IE, '10.0')",
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.FIREFOX, '15')",
+  "@SupportedBrowser(SupportedBrowser.IE, '10')",
   "@Experimental()",
 ]
 
@@ -628,6 +628,57 @@ _indexed_db_annotations = [
 #   INTERFACE.MEMBER: annotation to be added to the member declaration
 dart_annotations = {
   'DOMWindow.indexedDB': _indexed_db_annotations,
+  'HTMLContentElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
+    "@Experimental()",
+  ],
+  'HTMLDataListElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.IE, '10')",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
+  'HTMLDetailsElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+    "@Experimental()",
+  ],
+  'HTMLEmbedElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.IE)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
+  'HTMLKeygenElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+    "@Experimental()",
+  ],
+  'HTMLMeterElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
+  'HTMLObjectElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
+  'HTMLOutputElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
+  'HTMLProgressElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.IE, '10')",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
+  'HTMLTrackElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.IE, '10')",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
   'IDBFactory': _indexed_db_annotations,
   'IDBDatabase': _indexed_db_annotations,
   'WorkerContext.indexedDB': _indexed_db_annotations,

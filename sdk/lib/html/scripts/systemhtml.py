@@ -66,6 +66,22 @@ _js_custom_members = set([
     'WorkerContext.indexedDB',
     ])
 
+js_support_checks = {
+  'HTMLContentElement': "Element.isTagSupported('content')",
+  'HTMLDataListElement': "Element.isTagSupported('datalist')",
+  'HTMLDetailsElement': "Element.isTagSupported('details')",
+  'HTMLEmbedElement': "Element.isTagSupported('embed')",
+  # IE creates keygen as Block elements
+  'HTMLKeygenElement': "Element.isTagSupported('keygen') "
+      "&& (new Element.tag('keygen') is KeygenElement)",
+  'HTMLMarqueeElement': "Element.isTagSupported('marquee')"
+      "&& (new Element.tag('marquee') is MarqueeElement)",
+  'HTMLMeterElement': "Element.isTagSupported('meter')",
+  'HTMLObjectElement': "Element.isTagSupported('object')",
+  'HTMLOutputElement': "Element.isTagSupported('output')",
+  'HTMLProgressElement': "Element.isTagSupported('progress')",
+  'HTMLTrackElement': "Element.isTagSupported('track')",
+}
 
 # Classes that offer only static methods, and therefore we should suppress
 # constructor creation.
@@ -388,6 +404,8 @@ class HtmlDartInterfaceGenerator(object):
     self._backend.AddConstructors(
         constructors, factory_provider, factory_constructor_name)
 
+    self._backend.EmitSupportCheck()
+
     events_class_name = self._event_generator.ProcessInterface(
         self._interface, interface_name,
         self._backend.CustomJSMembers(),
@@ -466,6 +484,12 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def FinishInterface(self):
     pass
+
+  def HasSupportCheck(self):
+    return self._interface.doc_js_name in js_support_checks
+
+  def GetSupportCheck(self):
+    return js_support_checks.get(self._interface.doc_js_name)
 
   def EmitStaticFactory(self, constructor_info):
     arguments = constructor_info.ParametersAsArgumentList()

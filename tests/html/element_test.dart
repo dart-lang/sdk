@@ -45,14 +45,6 @@ void testMultipleEventHelper(EventListenerList listenerList, List<String> types,
   }
 }
 
-void testConstructorHelper(String tag, String htmlSnippet,
-    String expectedText, Function isExpectedClass) {
-  expect(isExpectedClass(new Element.tag(tag)), isTrue);
-  final elementFromSnippet = new Element.html(htmlSnippet);
-  expect(isExpectedClass(elementFromSnippet), isTrue);
-  expect(elementFromSnippet.text, expectedText);
-}
-
 main() {
   useHtmlIndividualConfiguration();
 
@@ -104,52 +96,6 @@ main() {
     container.remove();
   });
 
-  group('additionalConstructors', () {
-    test('blockquote', () => testConstructorHelper('blockquote',
-        '<blockquote>foo</blockquote>', 'foo',
-        (element) => element is QuoteElement));
-    test('body', () => testConstructorHelper('body',
-        '<body><div>foo</div></body>', 'foo',
-        (element) => element is BodyElement));
-    test('head', () => testConstructorHelper('head',
-        '<head><script>foo;</script></head>', 'foo;',
-        (element) => element is HeadElement));
-    test('optgroup', () => testConstructorHelper('optgroup',
-        '<optgroup>foo</optgroup>', 'foo',
-        (element) => element is OptGroupElement));
-    test('option', () => testConstructorHelper('option',
-        '<option>foo</option>', 'foo',
-        (element) => element is OptionElement));
-    test('output', () => testConstructorHelper('output',
-        '<output>foo</output>', 'foo',
-        (element) => element is OutputElement));
-    test('progress', () => testConstructorHelper('progress',
-        '<progress>foo</progress>', 'foo',
-        (element) => element is ProgressElement));
-    test('caption', () => testConstructorHelper('caption',
-        '<caption>foo</caption>', 'foo',
-        (element) => element is TableCaptionElement));
-    test('td', () => testConstructorHelper('td', '<td>foo</td>', 'foo',
-        (element) => element is TableCellElement));
-    test('colgroup', () => testConstructorHelper('colgroup',
-        '<colgroup></colgroup>', '',
-        (element) => element is TableColElement));
-    test('col', () => testConstructorHelper('col', '<col></col>', '',
-        (element) => element is TableColElement));
-    test('tr', () => testConstructorHelper('tr',
-        '<tr><td>foo</td></tr>', 'foo',
-        (element) => element is TableRowElement));
-    test('tbody', () => testConstructorHelper('tbody',
-        '<tbody><tr><td>foo</td></tr></tbody>', 'foo',
-        (element) => element is TableSectionElement));
-    test('tfoot', () => testConstructorHelper('tfoot',
-        '<tfoot><tr><td>foo</td></tr></tfoot>', 'foo',
-        (element) => element is TableSectionElement));
-    test('thead', () => testConstructorHelper('thead',
-        '<thead><tr><td>foo</td></tr></thead>', 'foo',
-        (element) => element is TableSectionElement));
-  });
-
   group('constructors', () {
     test('error', () {
       expect(() => new Element.html('<br/><br/>'), throwsArgumentError);
@@ -157,131 +103,6 @@ main() {
 
     test('.html has no parent', () =>
         expect(new Element.html('<br/>').parent, isNull));
-
-    test('a', () => testConstructorHelper('a', '<a>foo</a>', 'foo',
-        (element) => element is AnchorElement));
-    test('area', () => testConstructorHelper('area', '<area>foo</area>', '',
-        (element) => element is AreaElement));
-    // TODO(jacobr): audio tags cause tests to segfault when using dartium.
-    // b/5522106.
-    // test('audio', () => testConstructorHelper('audio',
-    //     '<audio>foo</audio>', 'foo',
-    //     (element) => element is AudioElement));
-    test('br', () => testConstructorHelper('br', '<br>', '',
-        (element) => element is BRElement));
-    test('base', () => testConstructorHelper('base', '<base>foo</base>', '',
-        (element) => element is BaseElement));
-    test('button', () => testConstructorHelper('button',
-        '<button>foo</button>', 'foo',
-        (element) => element is ButtonElement));
-    test('canvas', () => testConstructorHelper('canvas',
-        '<canvas>foo</canvas>', 'foo',
-        (element) => element is CanvasElement));
-    test('dl', () => testConstructorHelper('dl', '<dl>foo</dl>', 'foo',
-        (element) => element is DListElement));
-    // TODO(jacobr): WebKit doesn't yet support the DataList class.
-    // test('datalist', () => testConstructorHelper('datalist',
-    //     '<datalist>foo</datalist>', 'foo',
-    //     (element) => element is DataListElement));
-    test('div', () => testConstructorHelper('div', '<div>foo</div>', 'foo',
-        (element) => element is DivElement));
-    test('fieldset', () => testConstructorHelper('fieldset',
-        '<fieldset>foo</fieldset>', 'foo',
-        (element) => element is FieldSetElement));
-    test('font', () => testConstructorHelper('font', '<font>foo</font>', 'foo',
-        (element) => element is FontElement));
-    test('form', () => testConstructorHelper('form', '<form>foo</form>', 'foo',
-        (element) => element is FormElement));
-    test('hr', () => testConstructorHelper('hr', '<hr>', '',
-        (element) => element is HRElement));
-    test('h1', () => testConstructorHelper('h1', '<h1>foo</h1>', 'foo',
-        (element) => element is HeadingElement));
-    test('h2', () => testConstructorHelper('h2', '<h2>foo</h2>', 'foo',
-        (element) => element is HeadingElement));
-    test('h3', () => testConstructorHelper('h3', '<h3>foo</h3>', 'foo',
-        (element) => element is HeadingElement));
-    test('h4', () => testConstructorHelper('h4', '<h4>foo</h4>', 'foo',
-        (element) => element is HeadingElement));
-    test('h5', () => testConstructorHelper('h5', '<h5>foo</h5>', 'foo',
-        (element) => element is HeadingElement));
-    test('h6', () => testConstructorHelper('h6', '<h6>foo</h6>', 'foo',
-        (element) => element is HeadingElement));
-    test('iframe', () => testConstructorHelper('iframe',
-        '<iframe>foo</iframe>', 'foo',
-        (element) => element is IFrameElement));
-    test('img', () => testConstructorHelper('img', '<img>', '',
-        (element) => element is ImageElement));
-    test('input', () => testConstructorHelper('input', '<input/>', '',
-        (element) => element is InputElement));
-    test('li', () => testConstructorHelper('li', '<li>foo</li>', 'foo',
-        (element) => element is LIElement));
-    test('label', () => testConstructorHelper('label',
-        '<label>foo</label>', 'foo',
-        (element) => element is LabelElement));
-    test('legend', () => testConstructorHelper('legend',
-        '<legend>foo</legend>', 'foo',
-        (element) => element is LegendElement));
-    test('link', () => testConstructorHelper('link', '<link>', '',
-        (element) => element is LinkElement));
-    test('map', () => testConstructorHelper('map', '<map>foo</map>', 'foo',
-        (element) => element is MapElement));
-    test('menu', () => testConstructorHelper('menu', '<menu>foo</menu>', 'foo',
-        (element) => element is MenuElement));
-    test('meta', () => testConstructorHelper('meta', '<meta>', '',
-        (element) => element is MetaElement));
-    test('del', () => testConstructorHelper('del', '<del>foo</del>', 'foo',
-        (element) => element is ModElement));
-    test('ins', () => testConstructorHelper('ins', '<ins>foo</ins>', 'foo',
-        (element) => element is ModElement));
-    test('ol', () => testConstructorHelper('ol', '<ol>foo</ol>', 'foo',
-        (element) => element is OListElement));
-    test('p', () => testConstructorHelper('p', '<p>foo</p>', 'foo',
-        (element) => element is ParagraphElement));
-    test('param', () => testConstructorHelper('param', '<param>', '',
-        (element) => element is ParamElement));
-    test('pre', () => testConstructorHelper('pre', '<pre>foo</pre>', 'foo',
-        (element) => element is PreElement));
-    test('q', () => testConstructorHelper('q', '<q>foo</q>', 'foo',
-        (element) => element is QuoteElement));
-    test('script', () => testConstructorHelper('script',
-        '<script>foo</script>', 'foo',
-        (element) => element is ScriptElement));
-    test('select', () => testConstructorHelper('select',
-        '<select>foo</select>', 'foo',
-        (element) => element is SelectElement));
-    // TODO(jacobr): audio tags cause tests to segfault when using dartium.
-    // b/5522106.
-    // test('source', () => testConstructorHelper('source', '<source>', '',
-    //                      (element) => element is SourceElement));
-    test('span', () => testConstructorHelper('span', '<span>foo</span>', 'foo',
-        (element) => element is SpanElement));
-    test('style', () => testConstructorHelper('style',
-        '<style>foo</style>', 'foo',
-        (element) => element is StyleElement));
-    test('table', () => testConstructorHelper('table',
-        '<table><caption>foo</caption></table>', 'foo',
-        (element) => element is TableElement));
-    test('textarea', () => testConstructorHelper('textarea',
-        '<textarea>foo</textarea>', 'foo',
-        (element) => element is TextAreaElement));
-    test('title', () => testConstructorHelper('title',
-        '<title>foo</title>', 'foo',
-        (element) => element is TitleElement));
-    // TODO(jacobr): audio tags cause tests to segfault when using dartium.
-    // b/5522106.
-    // test('track', () => testConstructorHelper('track', '<track>', '',
-    //                      (element) => element is TrackElement));
-    test('ul', () => testConstructorHelper('ul', '<ul>foo</ul>', 'foo',
-        (element) => element is UListElement));
-    // TODO(jacobr): video tags cause tests to segfault when using dartium.
-    // b/5522106.
-    // test('video', () => testConstructorHelper('video',
-    //     '<video>foo</video>', 'foo',
-    //     (element) => element is VideoElement));
-    // TODO(jacobr): this test is broken until Dartium fixes b/5521083
-    // test('someunknown', () => testConstructorHelper('someunknown',
-    //     '<someunknown>foo</someunknown>', 'foo',
-    //     (element) => element is UnknownElement));
   });
 
   group('eventListening', () {

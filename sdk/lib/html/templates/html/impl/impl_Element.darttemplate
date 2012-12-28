@@ -385,6 +385,10 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    *
    * For standard elements it is more preferable to use the type constructors:
    *     var element = new DivElement();
+   *
+   * See also:
+   *
+   * * [isTagSupported]
    */
   factory $CLASSNAME.tag(String tag) =>
       _$(CLASSNAME)FactoryProvider.createElement_tag(tag);
@@ -598,6 +602,16 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     this.insertAdjacentHtml('beforeend', text);
   }
 
+  /**
+   * Checks to see if the tag name is supported by the current platform.
+   *
+   * The tag should be a valid HTML tag name.
+   */
+  static bool isTagSupported(String tag) {
+    var e = _ElementFactoryProvider.createElement_tag(tag);
+    return e is Element && !(e is UnknownElement);
+  }
+
   // Hooks to support custom WebComponents.
   /**
    * Experimental support for [web components][wc]. This field stores a
@@ -772,7 +786,7 @@ class _ElementFactoryProvider {
 $if DART2JS
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
-  static Element createElement_tag(String tag) =>
+  static dynamic createElement_tag(String tag) =>
       JS('Element', 'document.createElement(#)', tag);
 $else
   static Element createElement_tag(String tag) =>
