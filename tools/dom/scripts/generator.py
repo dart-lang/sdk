@@ -622,12 +622,21 @@ _indexed_db_annotations = [
   "@Experimental()",
 ]
 
+_history_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+  "@SupportedBrowser(SupportedBrowser.IE, '10')",
+  "@SupportedBrowser(SupportedBrowser.SAFARI)",
+]
+
 # Annotations to be placed on generated members.
 # The table is indexed as:
 #   INTERFACE:     annotations to be added to the interface declaration
 #   INTERFACE.MEMBER: annotation to be added to the member declaration
 dart_annotations = {
   'DOMWindow.indexedDB': _indexed_db_annotations,
+  'History.pushState': _history_annotations,
+  'History.replaceState': _history_annotations,
   'HTMLContentElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",

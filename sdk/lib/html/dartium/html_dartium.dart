@@ -11536,11 +11536,20 @@ class HeadingElement extends _Element_Merged {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-/// @domName History
+/// @domName History; @docsEditable true
 class History extends NativeFieldWrapperClass1 implements HistoryBase {
+
+  /**
+   * Checks if the State APIs are supported on the current platform.
+   *
+   * See also:
+   *
+   * * [pushState]
+   * * [replaceState]
+   * * [state]
+   */
+  static bool get supportsState => true;
   History.internal();
 
 
@@ -11565,12 +11574,19 @@ class History extends NativeFieldWrapperClass1 implements HistoryBase {
 
 
   /** @domName History.pushState */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   void pushState(Object data, String title, [String url]) native "History_pushState_Callback";
 
 
   /** @domName History.replaceState */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   void replaceState(Object data, String title, [String url]) native "History_replaceState_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

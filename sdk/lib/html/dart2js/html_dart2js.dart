@@ -9778,6 +9778,17 @@ class HeadingElement extends Element native "*HTMLHeadingElement" {
 /// @domName History; @docsEditable true
 class History implements HistoryBase native "*History" {
 
+  /**
+   * Checks if the State APIs are supported on the current platform.
+   *
+   * See also:
+   *
+   * * [pushState]
+   * * [replaceState]
+   * * [state]
+   */
+  static bool get supportsState => JS('bool', '!!window.history.pushState');
+
   /// @domName History.length; @docsEditable true
   final int length;
 
@@ -9797,9 +9808,11 @@ class History implements HistoryBase native "*History" {
   void go(int distance) native;
 
   /// @domName History.pushState; @docsEditable true
+  @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.FIREFOX) @SupportedBrowser(SupportedBrowser.IE, '10') @SupportedBrowser(SupportedBrowser.SAFARI)
   void pushState(Object data, String title, [String url]) native;
 
   /// @domName History.replaceState; @docsEditable true
+  @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.FIREFOX) @SupportedBrowser(SupportedBrowser.IE, '10') @SupportedBrowser(SupportedBrowser.SAFARI)
   void replaceState(Object data, String title, [String url]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

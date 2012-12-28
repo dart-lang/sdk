@@ -57,9 +57,6 @@ documentfragment_test: Pass, Timeout
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
 
-[ $runtime == dartium || $runtime == chrome || $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == opera ]
-history_test: Fail
-
 [$runtime == ie10 ]
 # TODO(efortuna, blois): Triage.
 audiobuffersourcenode_test: Fail
@@ -141,7 +138,7 @@ dom_constructors_test: Fail
 element_test/additionalConstructors: Fail
 exceptions_test: Fail
 fileapi_test: Fail          # IE does not support filesystem APIs.
-history_test: Fail
+history_test/supported_state: Fail
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail

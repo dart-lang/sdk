@@ -1,18 +1,66 @@
 library HistoryTest;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
-  test('History', () {
-    window.history.pushState(null, document.title, '?foo=bar');
-    expect(window.history.length, equals(2));
-    window.history.back();
-    expect(window.location.href.endsWith('foo=bar'), isTrue);
+/// Waits for a callback once, then removes the event handler.
+void expectAsync1Once(EventListenerList list, void callback(arg)) {
+  var fn = null;
+  fn = expectAsync1((arg) {
+    list.remove(fn);
+    callback(arg);
+  });
+  list.add(fn);
+}
 
-    window.history.replaceState(null, document.title, '?foo=baz');
-    expect(window.history.length, equals(2));
-    expect(window.location.href.endsWith('foo=baz'), isTrue);
+main() {
+  useHtmlIndividualConfiguration();
+
+  group('supported_state', () {
+    test('supportsState', () {
+      expect(History.supportsState, true);
+    });
+  });
+
+  var expectation = History.supportsState ? returnsNormally : throws;
+
+  group('history', () {
+    test('pushState', () {
+      expect(() {
+        window.history.pushState(null, document.title, '?dummy');
+        var length = window.history.length;
+
+        window.history.pushState(null, document.title, '?foo=bar');
+        expect(window.history.length, length + 1);
+        expect(window.location.href.endsWith('foo=bar'), isTrue);
+      }, expectation);
+    });
+
+    test('back', () {
+      expect(() {
+        window.history.pushState(null, document.title, '?dummy1');
+        window.history.pushState(null, document.title, '?dummy2');
+        var length = window.history.length;
+
+        expect(window.location.href.endsWith('dummy2'), isTrue);
+
+        expectAsync1Once(window.on.popState, (_) {
+          expect(window.history.length, length);
+          expect(window.location.href.endsWith('dummy1'), isTrue);
+        });
+
+        window.history.back();
+      }, expectation);
+    });
+
+    test('replaceState', () {
+      expect(() {
+        var length = window.history.length;
+
+        window.history.replaceState(null, document.title, '?foo=baz');
+        expect(window.history.length, length);
+        expect(window.location.href.endsWith('foo=baz'), isTrue);
+      }, expectation);
+    });
   });
 }
