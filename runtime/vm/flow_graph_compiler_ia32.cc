@@ -232,8 +232,6 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ movl(EDI, FieldAddress(EDI, Class::signature_function_offset()));
     __ cmpl(EDI, raw_null);
     __ j(NOT_EQUAL, is_instance_lbl);
-    __ jmp(is_not_instance_lbl);
-    return false;
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
