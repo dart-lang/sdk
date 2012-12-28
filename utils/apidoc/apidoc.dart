@@ -99,7 +99,7 @@ void main() {
   final htmldoc = new Htmldoc();
   htmldoc.includeApi = true;
   htmldoc.documentLibraries(
-    <Path>[doc.scriptDir.append('../../sdk/lib/html/doc/html.dartdoc')],
+    <Path>[doc.scriptDir.append('../../tools/dom/doc/html.dartdoc')],
     libPath, pkgPath);
 
   // Process libraries.
