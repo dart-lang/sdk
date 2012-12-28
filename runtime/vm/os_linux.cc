@@ -29,7 +29,7 @@ DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
 DEFINE_FLAG(bool, generate_perf_events_symbols, false,
     "Generate events symbols for profiling with perf");
-DEFINE_FLAG(charp, generate_pprof_symbols, false,
+DEFINE_FLAG(charp, generate_pprof_symbols, NULL,
     "Generate events symbols for profiling with pprof");
 
 class PerfCodeObserver : public CodeObserver {
