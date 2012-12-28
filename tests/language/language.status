@@ -85,6 +85,12 @@ compile_time_constant_checked3_test/06: Fail, OK
 default_factory2_test/01: Fail # Issue 7075.
 
 [ $compiler == dartc ]
+# TODO(tball): Assign proper bug numbers.
+type_parameter_literal_test: Fail
+class_literal_test/02: Fail
+class_literal_test/14: Fail
+class_literal_test/07: Fail
+
 library_juxtaposition_test: Fail # Issue 6881
 new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
 redirecting_factory_infinite_steps_test/01: Fail # http://dartbug.com/6560

@@ -26,7 +26,6 @@ class_literal_test/26: Fail # Class literals are expression now; delete this tes
 class_literal_test/27: Fail # Class literals are expression now; delete this test.
 class_literal_test/28: Fail # Class literals are expression now; delete this test.
 class_literal_test/29: Fail # Class literals are expression now; delete this test.
-class_literal_test: Fail
 
 # VM specific tests that should not be run by dart2js.
 *vm_test: Skip
@@ -88,6 +87,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+class_literal_test: Fail
 identical_closure_test: Fail # Fix for identical closure has not been implemented in dart2js yet: https://chromiumcodereview.appspot.com/11612022/ 
 class_cycle_test/02: Fail # Issue 7468.
 class_cycle_test/03: Fail # Issue 7468.
