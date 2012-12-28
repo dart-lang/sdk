@@ -37,9 +37,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return result;
   }
 
-  CodeBuffer prettyPrint(js.Node node, {bool allowVariableMinification: true}) {
-    var code = js.prettyPrint(
-        node, compiler, allowVariableMinification: allowVariableMinification);
+  CodeBuffer prettyPrint(js.Node node) {
+    var code = js.prettyPrint(node, compiler, allowVariableMinification: true);
     return code;
   }
 
@@ -73,7 +72,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
       FunctionElement element = work.element;
       js.Block body;
       ClassElement enclosingClass = element.getEnclosingClass();
-      bool allowVariableMinification = !codegen.inhibitVariableMinification;
 
       if (element.isInstanceMember()
           && enclosingClass.isNative()
@@ -92,8 +90,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       }
 
       js.Fun fun = buildJavaScriptFunction(element, codegen.parameters, body);
-      return prettyPrint(fun,
-                         allowVariableMinification: allowVariableMinification);
+      return prettyPrint(fun);
     });
   }
 
@@ -162,8 +159,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * This includes declarations, which are generated as expressions.
    */
   bool isGeneratingExpression = false;
-
-  bool inhibitVariableMinification = false;
 
   final JavaScriptBackend backend;
   final WorkItem work;
@@ -1779,9 +1774,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitForeign(HForeign node) {
     String code = node.code.slowToString();
-    if (!isSafeForMinification(code)) {
-      inhibitVariableMinification = true;
-    }
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement(types)) {
       if (!inputs.isEmpty) {
@@ -1802,33 +1794,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       world.registerInstantiatedClass(type.element);
     }
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
-  }
-
-  // Recognizes string with no identifiers.
-  static final RegExp safeCodeRegExp = new RegExp(r'^[^_$a-zA-Z]*$');
-
-  // Property access chains starting at known safe expressions are safe
-  // subexpressions.  Examples: `String`, `#.length`
-  // `Object.prototype.hasOwnProperty`.
-  static final RegExp safeRootedPathRegExp = new RegExp(
-      r'(\bObject|\bString|\Array|\bMath|\bDate|#)(\.[_$a-zA-Z][_$a-zA-Z0-9]*)*');
-
-  /// Recognizes if the JavaScript code fragment cannot capture local names, so
-  /// is safe to occur in a function with local renaming (minification).
-  bool isSafeForMinification(String code) {
-    // Repeatedly remove safe subexpressions. What remains is either safe or
-    // unsafe.  Example: "#.constructor == Array" is safe.  This determines
-    // about 75% of the JS strings to be safe.  To do significantly better will
-    // require parsing the code.
-    for (;;) {
-      if (safeCodeRegExp.hasMatch(code)) return true;
-      Match match = safeRootedPathRegExp.firstMatch(code);
-      if (match != null) {
-        code = code.substring(0, match.start).concat(code.substring(match.end));
-        continue;
-      }
-      return false;
-    }
   }
 
   visitForeignNew(HForeignNew node) {
