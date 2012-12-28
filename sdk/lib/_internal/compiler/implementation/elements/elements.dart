@@ -1867,6 +1867,25 @@ class Elements {
     return isLocal(element);
   }
 
+  /**
+   * Returns [:true:] if [element] represents an entity that can be used as the
+   * left-hand side of an assignment. For example a non-final field, a setter,
+   * or an abstract field with a setter.
+   */
+  static bool isAssignable(Element element) {
+    if (element == null) return false;
+    if (element.isField()) {
+      return !element.modifiers.isFinalOrConst();
+    } else if (element.isAbstractField()) {
+      AbstractFieldElement abstractFieldElement = element;
+      return abstractFieldElement.setter != null;
+    } else if (element.isSetter()) {
+      return true;
+    }
+    return false;
+  }
+
+
   static SourceString constructConstructorName(SourceString receiver,
                                                SourceString selector) {
     String r = receiver.slowToString();
