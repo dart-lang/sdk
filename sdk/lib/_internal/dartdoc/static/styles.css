@@ -55,6 +55,10 @@ pre, code {
   overflow-y:hidden;
 }
 
+pre > code {
+  padding: 0;
+}
+
 a {
   color: #15c;
   text-decoration: none;
