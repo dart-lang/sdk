@@ -31,45 +31,4 @@ main() {
       expect(() => foo.field1, throwsNoSuchMethodError);
       expect(() { foo.field1 = 42; }, throwsNoSuchMethodError);
     });
-
-  test('dispatch', () {
-      dispatch(element, name, args) {
-        if (element.xtag == null) {
-          element.xtag = new Map();
-        }
-        var map = element.xtag;
-
-        // FIXME: Remove once VM and Dart2JS converge.
-        name = name.replaceFirst(' ', ':');
-        switch (element.tagName.toLowerCase()) {
-          case 'foo':
-            switch (name) {
-              case 'get:x':
-                return 42;
-              case 'baz':
-                return '${element.id} - ${args[0]}';
-            }
-            break;
-          case 'bar':
-            switch (name) {
-              case 'get:y':
-                return map['y'];
-              case 'set:y=':
-                map['y'] = args[0];
-                return;
-            }
-            break;
-        }
-        throw new NoSuchMethodError(element, name, args, {});
-      }
-      dynamicUnknownElementDispatcher = dispatch;
-
-      expect(foo.x, equals(42));
-      expect(() { foo.x = 7; }, throwsNoSuchMethodError);
-      expect(foo.id, equals('foo'));
-      expect(() => bar.x, throwsNoSuchMethodError);
-      bar.y = 11;
-      expect(bar.y, equals(11));
-      expect(foo.baz('hello'), equals('foo - hello'));
-    });
 }

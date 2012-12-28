@@ -8859,21 +8859,6 @@ abstract class Element extends Node implements ElementTraversal {
    */
   var xtag;
 
-  noSuchMethod(InvocationMirror invocation) {
-    if (dynamicUnknownElementDispatcher == null) {
-      throw new NoSuchMethodError(this, invocation.memberName,
-                                        invocation.positionalArguments,
-                                        invocation.namedArguments);
-    } else {
-      String hackedName = invocation.memberName;
-      if (invocation.isGetter) hackedName = "get:$hackedName";
-      if (invocation.isSetter) hackedName = "set:$hackedName";
-      return dynamicUnknownElementDispatcher(this,
-                                             hackedName,
-                                             invocation.positionalArguments);
-    }
-  }
-
 
   Element.internal() : super.internal();
 
@@ -9165,9 +9150,6 @@ abstract class Element extends Node implements ElementTraversal {
   void webkitRequestPointerLock() native "Element_webkitRequestPointerLock_Callback";
 
 }
-
-// Temporary dispatch hook to support WebComponents.
-Function dynamicUnknownElementDispatcher;
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {

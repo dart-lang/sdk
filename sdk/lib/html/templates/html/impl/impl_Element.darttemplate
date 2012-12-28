@@ -614,25 +614,6 @@ $if DART2JS
 $endif
   var xtag;
 
-$if DARTIUM
-  noSuchMethod(InvocationMirror invocation) {
-    if (dynamicUnknownElementDispatcher == null) {
-      throw new NoSuchMethodError(this, invocation.memberName,
-                                        invocation.positionalArguments,
-                                        invocation.namedArguments);
-    } else {
-      String hackedName = invocation.memberName;
-      if (invocation.isGetter) hackedName = "get:$hackedName";
-      if (invocation.isSetter) hackedName = "set:$hackedName";
-      return dynamicUnknownElementDispatcher(this,
-                                             hackedName,
-                                             invocation.positionalArguments);
-    }
-  }
-$else
-  // TODO(vsm): Implement noSuchMethod or similar for dart2js.
-$endif
-
 $if DART2JS
   /**
    * Creates a text node and inserts it into the DOM at the specified location.
@@ -734,9 +715,6 @@ $endif
 
 $!MEMBERS
 }
-
-// Temporary dispatch hook to support WebComponents.
-Function dynamicUnknownElementDispatcher;
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {

@@ -56,7 +56,6 @@ documentfragment_test: Pass, Timeout
 # TODO(vsm): Triage DOM tests.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
-unknownelement_test: Fail # Issue 4189
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
@@ -274,12 +273,6 @@ xhr_test: Fail
 # a browser environment.
 [ $runtime == vm ]
 *: Skip
-
-# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
-
-[ $compiler == dart2js && $runtime == drt ]
-# Unknown error - should investigate.
-unknownelement_test: Fail # Issue 4189
 
 [ $compiler == dart2js ]
 transferables_test: Skip # until isInstance works in dart2js

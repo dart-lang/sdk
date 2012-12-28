@@ -7572,8 +7572,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   var xtag;
 
-  // TODO(vsm): Implement noSuchMethod or similar for dart2js.
-
   /**
    * Creates a text node and inserts it into the DOM at the specified location.
    *
@@ -7895,9 +7893,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   void webkitRequestPointerLock() native;
 
 }
-
-// Temporary dispatch hook to support WebComponents.
-Function dynamicUnknownElementDispatcher;
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
