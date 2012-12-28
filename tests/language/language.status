@@ -86,10 +86,7 @@ default_factory2_test/01: Fail # Issue 7075.
 
 [ $compiler == dartc ]
 # TODO(tball): Assign proper bug numbers.
-type_parameter_literal_test: Fail
-class_literal_test/02: Fail
-class_literal_test/14: Fail
-class_literal_test/07: Fail
+class_literal_test/none : Fail
 
 library_juxtaposition_test: Fail # Issue 6881
 new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
@@ -138,7 +135,6 @@ class_literal_test/26 : Fail # language change 3368
 class_literal_test/27 : Fail # language change 3368
 class_literal_test/28 : Fail # language change 3368
 class_literal_test/29 : Fail # language change 3368
-class_literal_test : Fail
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 compile_time_constant10_test/none: Fail # issue 5215.
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -192,7 +188,6 @@ factory2_test: Fail
 default_implementation2_test: Fail
 default_factory2_test/none: Fail
 interface_static_non_final_fields_negative_test: Fail
-type_parameter_literal_test: Fail
 
 # test issue 5291
 type_parameter_test/01: Fail, OK
@@ -535,6 +530,9 @@ type_error_test: Fail, OK # VM bug: http://dartbug.com/5280
 type_parameter_literal_test: Fail
 
 [ $compiler == dart2dart && $minified ]
+# TODO(tball): Assign proper bug numbers.
+class_literal_test/none: Fail
+
 import_core_prefix_test: Pass
 prefix22_test: Pass
 invocation_mirror_test: Fail, OK # hardcoded names.
