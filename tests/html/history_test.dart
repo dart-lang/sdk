@@ -31,8 +31,16 @@ main() {
         var length = window.history.length;
 
         window.history.pushState(null, document.title, '?foo=bar');
-        expect(window.history.length, length + 1);
-        expect(window.location.href.endsWith('foo=bar'), isTrue);
+
+        // According to the spec popState should be called, although it does
+        // not appear to always be called.
+        // Also on some systems (Chrome, Windows?) this appears to be async
+        // rather than synchronous.
+        window.requestAnimationFrame(expectAsync1((_) {
+          expect(window.history.length, length + 1);
+          expect(window.location.href.endsWith('foo=bar'), isTrue);
+        }));
+
       }, expectation);
     });
 
