@@ -137,8 +137,6 @@ _html_element_constructors = {
     ElementConstructorInfo(tag='img',
                            opt_params=[('DOMString', 'src'),
                                        ('int', 'width'), ('int', 'height')]),
-  'InputElement':
-    ElementConstructorInfo(tag='input', opt_params=[('DOMString', 'type')]),
   'KeygenElement': 'keygen',
   'LIElement': 'li',
   'LabelElement': 'label',
