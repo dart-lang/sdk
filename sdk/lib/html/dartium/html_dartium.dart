@@ -13142,7 +13142,13 @@ abstract class TextInputElementBase implements InputElementBase {
 /**
  * Similar to [TextInputElement], but on platforms where search is styled
  * differently this will get the search style.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 abstract class SearchInputElement implements TextInputElementBase {
   factory SearchInputElement() => new InputElement(type: 'search');
 
@@ -13151,6 +13157,11 @@ abstract class SearchInputElement implements TextInputElementBase {
 
   /// @domName HTMLInputElement.list;
   Element get list;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'search')).type == 'search';
+  }
 }
 
 /**
@@ -13168,12 +13179,23 @@ abstract class TextInputElement implements TextInputElementBase {
 
 /**
  * A control for editing an absolute URL.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 abstract class UrlInputElement implements TextInputElementBase {
   factory UrlInputElement() => new InputElement(type: 'url');
 
   /// @domName HTMLInputElement.list;
   Element get list;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'url')).type == 'url';
+  }
 }
 
 /**
@@ -13181,17 +13203,34 @@ abstract class UrlInputElement implements TextInputElementBase {
  *
  * This provides a single line of text with minimal formatting help since
  * there is a wide variety of telephone numbers.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 abstract class TelephoneInputElement implements TextInputElementBase {
   factory TelephoneInputElement() => new InputElement(type: 'tel');
 
   /// @domName HTMLInputElement.list;
   Element get list;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'tel')).type == 'tel';
+  }
 }
 
 /**
  * An e-mail address or list of e-mail addresses.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 abstract class EmailInputElement implements TextInputElementBase {
   factory EmailInputElement() => new InputElement(type: 'email');
 
@@ -13224,6 +13263,11 @@ abstract class EmailInputElement implements TextInputElementBase {
 
   /// @domName HTMLInputElement.size
   int size;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'email')).type == 'email';
+  }
 }
 
 /**

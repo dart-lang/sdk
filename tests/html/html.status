@@ -134,11 +134,16 @@ fileapi_test: Fail          # IE does not support filesystem APIs.
 history_test: Fail
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
-input_element_test/supported_datetime: Fail
 input_element_test/supported_datetime-local: Fail
+input_element_test/supported_datetime: Fail
+input_element_test/supported_email: Fail
 input_element_test/supported_month: Fail
+input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail
+input_element_test/supported_search: Fail
+input_element_test/supported_tel: Fail
 input_element_test/supported_time: Fail
+input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail
 messageevent_test: Fail
 mutationobserver_test/supported: Fail

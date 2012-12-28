@@ -15,6 +15,30 @@ void check(InputElement element, String type, [bool supported = true]) {
 main() {
   useHtmlIndividualConfiguration();
 
+  group('supported_search', () {
+    test('supported', () {
+      expect(SearchInputElement.supported, true);
+    });
+  });
+
+  group('supported_url', () {
+    test('supported', () {
+      expect(UrlInputElement.supported, true);
+    });
+  });
+
+  group('supported_tel', () {
+    test('supported', () {
+      expect(TelephoneInputElement.supported, true);
+    });
+  });
+
+  group('supported_email', () {
+    test('supported', () {
+      expect(EmailInputElement.supported, true);
+    });
+  });
+
   group('supported_datetime', () {
     test('supported', () {
       expect(DateTimeInputElement.supported, true);
@@ -69,7 +93,7 @@ main() {
     });
 
     test('search', () {
-      check(new SearchInputElement(), 'search');
+      check(new SearchInputElement(), 'search', SearchInputElement.supported);
     });
 
     test('text', () {
@@ -77,15 +101,16 @@ main() {
     });
 
     test('url', () {
-      check(new UrlInputElement(), 'url');
+      check(new UrlInputElement(), 'url', UrlInputElement.supported);
     });
 
     test('telephone', () {
-      check(new TelephoneInputElement(), 'tel');
+      check(new TelephoneInputElement(), 'tel',
+          TelephoneInputElement.supported);
     });
 
     test('email', () {
-      check(new EmailInputElement(), 'email');
+      check(new EmailInputElement(), 'email', EmailInputElement.supported);
     });
 
     test('password', () {
