@@ -7,6 +7,14 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
 
+// Some rounding errors in the browsers.
+checkPixel(Uint8ClampedArray pixel, List<int> expected) {
+  expect(pixel[0], closeTo(expected[0], 1));
+  expect(pixel[1], closeTo(expected[1], 1));
+  expect(pixel[2], closeTo(expected[2], 1));
+  expect(pixel[3], closeTo(expected[3], 1));
+}
+
 main() {
   useHtmlConfiguration();
   var canvas = new CanvasElement();
@@ -41,12 +49,7 @@ main() {
   test('setFillColorHsl sat', () {
     context.setFillColorHsl(0, 0, 50);
     context.fillRect(0, 0, canvas.width, canvas.height);
-    var pixel = readPixel();
-    // Some rounding errors in the browsers.
-    expect(pixel[0], closeTo(127, 1));
-    expect(pixel[1], closeTo(127, 1));
-    expect(pixel[2], closeTo(127, 1));
-    expect(pixel[3], 255);
+    checkPixel(readPixel(), [127, 127, 127, 255]);
   });
 
   test('setStrokeColorRgb', () {
@@ -74,12 +77,7 @@ main() {
     context.setStrokeColorHsl(0, 0, 50);
     context.lineWidth = 10;
     context.strokeRect(0, 0, canvas.width, canvas.height);
-    var pixel = readPixel();
-    // Some rounding errors in the browsers.
-    expect(pixel[0], closeTo(127, 1));
-    expect(pixel[1], closeTo(127, 1));
-    expect(pixel[2], closeTo(127, 1));
-    expect(pixel[3], 255);
+    checkPixel(readPixel(), [127, 127, 127, 255]);
   });
 
   test('fillStyle', () {

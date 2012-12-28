@@ -64,7 +64,6 @@ history_test: Fail
 # TODO(efortuna, blois): Triage.
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
-canvasrenderingcontext2d_test: Fail, Pass
 css_test: Fail
 document_test/getCssCanvasContext: Fail # IE does not support this.
 element_test/additionalConstructors: Fail
