@@ -13239,6 +13239,7 @@ class MutationObserver native "*MutationObserver" {
   static MutationObserver _create(MutationCallback callback) {
     // Dummy statement to mark types as instantiated.
     JS('MutationObserver|MutationRecord', '0');
+
     return JS('MutationObserver',
         'new(window.MutationObserver||window.WebKitMutationObserver||'
         'window.MozMutationObserver)(#)',
