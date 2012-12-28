@@ -134,6 +134,7 @@ getter_declaration_negative_test: Fail # This will be fixed when dart2js reject 
 
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 canonical_const_test: Fail # We don't take the generic type into account yet.
+type_parameter_literal_test: Fail # Type parameters aren't supported as literals yet.
 
 # Support for optional parameters not conform to latest spec.
 function_type_alias_test: Fail

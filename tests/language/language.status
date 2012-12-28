@@ -185,6 +185,7 @@ factory2_test: Fail
 default_implementation2_test: Fail
 default_factory2_test/none: Fail
 interface_static_non_final_fields_negative_test: Fail
+type_parameter_literal_test: Fail
 
 # test issue 5291
 type_parameter_test/01: Fail, OK
