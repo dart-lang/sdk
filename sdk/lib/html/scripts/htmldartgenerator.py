@@ -205,8 +205,8 @@ class HtmlDartGenerator(object):
           if unspecified)
     """
     for constructor_info in constructors:
-      self._AddConstructor(constructor_info, factory_name,
-          factory_constructor_name, constructor_info.factory_parameters)
+      self._AddConstructor(
+          constructor_info, factory_name, factory_constructor_name)
 
     typed_array_type = None
     for interface in self._database.Hierarchy(self._interface):
@@ -230,13 +230,71 @@ class HtmlDartGenerator(object):
         TYPE=self._DartType(typed_array_type),
         FACTORY=factory_name)
 
-  def _AddConstructor(self, constructor_info, factory_name,
-      factory_constructor_name, factory_constructor_params):
+  def _AddConstructor(self,
+      constructor_info, factory_name, factory_constructor_name):
     self._members_emitter.Emit('\n  ///@docsEditable true');
-    constructor_info.GenerateFactoryInvocation(
-        self._DartType, self._members_emitter, factory_name,
-        factory_constructor_name=factory_constructor_name,
-        factory_parameters=factory_constructor_params)
+
+    if not factory_constructor_name:
+      factory_constructor_name = '_create'
+      factory_parameters = constructor_info.ParametersAsArgumentList()
+      has_factory_provider = True
+    else:
+      factory_parameters = ', '.join(constructor_info.factory_parameters)
+      has_factory_provider = False
+
+    has_optional = any(param_info.is_optional
+        for param_info in constructor_info.param_infos)
+
+    if not has_optional:
+      self._members_emitter.Emit(
+          '\n'
+          '  factory $CTOR($PARAMS) => '
+          '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
+          CTOR=constructor_info._ConstructorFullName(self._DartType),
+          PARAMS=constructor_info.ParametersDeclaration(self._DartType),
+          FACTORY=factory_name,
+          CTOR_FACTORY_NAME=factory_constructor_name,
+          FACTORY_PARAMS=factory_parameters)
+    else:
+      if has_factory_provider:
+        dispatcher_emitter = self._members_emitter.Emit(
+            '\n'
+            '  factory $CTOR($PARAMS) {\n'
+            '$!DISPATCHER'
+            '    return $FACTORY._create($FACTORY_PARAMS);\n'
+            '  }\n',
+            CTOR=constructor_info._ConstructorFullName(self._DartType),
+            PARAMS=constructor_info.ParametersDeclaration(self._DartType),
+            FACTORY=factory_name,
+            FACTORY_PARAMS=constructor_info.ParametersAsArgumentList())
+
+        for index, param_info in enumerate(constructor_info.param_infos):
+          if param_info.is_optional:
+            dispatcher_emitter.Emit(
+              '    if (!?$OPT_PARAM_NAME) {\n'
+              '      return $FACTORY._create($FACTORY_PARAMS);\n'
+              '    }\n',
+              OPT_PARAM_NAME=constructor_info.param_infos[index].name,
+              FACTORY=factory_name,
+              FACTORY_PARAMS=constructor_info.ParametersAsArgumentList(index))
+      else:
+        inits = self._members_emitter.Emit(
+            '\n'
+            '  factory $CONSTRUCTOR($PARAMS) {\n'
+            '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+            '$!INITS'
+            '    return e;\n'
+            '  }\n',
+            CONSTRUCTOR=constructor_info._ConstructorFullName(self._DartType),
+            FACTORY=factory_name,
+            CTOR_FACTORY_NAME=factory_constructor_name,
+            PARAMS=constructor_info.ParametersDeclaration(self._DartType),
+            FACTORY_PARAMS=factory_parameters)
+
+        for index, param_info in enumerate(constructor_info.param_infos):
+          if param_info.is_optional:
+            inits.Emit('    if ($E != null) e.$E = $E;\n',
+                E=constructor_info.param_infos[index].name)
 
     if not constructor_info.pure_dart_constructor:
       template_file = ('factoryprovider_%s.darttemplate' % self._interface.doc_js_name)
