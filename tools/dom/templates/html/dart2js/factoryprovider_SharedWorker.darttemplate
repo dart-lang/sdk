@@ -1,4 +1,0 @@
-  static SharedWorker _create(String scriptURL, [String name]) {
-    if (name == null) return JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
-    return JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
-  }

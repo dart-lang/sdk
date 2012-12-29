@@ -1,4 +1,0 @@
-  static AudioElement _create([String src = null]) {
-    if (src == null) return JS('AudioElement', 'new Audio()');
-    return JS('AudioElement', 'new Audio(#)', src);
-  }

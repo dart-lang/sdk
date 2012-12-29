@@ -285,7 +285,7 @@ class HtmlDartGenerator(object):
               '    if (!?$OPT_PARAM_NAME) {\n'
               '      return $FACTORY._create($FACTORY_PARAMS);\n'
               '    }\n',
-              OPT_PARAM_NAME=constructor_info.param_infos[index].name,
+              OPT_PARAM_NAME=param_info.name,
               FACTORY=factory_name,
               FACTORY_PARAMS=constructor_info.ParametersAsArgumentList(index))
       else:
@@ -304,8 +304,7 @@ class HtmlDartGenerator(object):
 
         for index, param_info in enumerate(constructor_info.param_infos):
           if param_info.is_optional:
-            inits.Emit('    if ($E != null) e.$E = $E;\n',
-                E=constructor_info.param_infos[index].name)
+            inits.Emit('    if ($E != null) e.$E = $E;\n', E=param_info.name)
 
     if not constructor_info.pure_dart_constructor:
       template_file = ('factoryprovider_%s.darttemplate' % self._interface.doc_js_name)

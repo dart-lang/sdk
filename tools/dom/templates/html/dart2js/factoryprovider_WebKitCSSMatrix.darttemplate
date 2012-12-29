@@ -1,2 +1,0 @@
-  static CssMatrix _create([String cssValue = '']) =>
-      JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);

@@ -492,19 +492,45 @@ class Dart2JSBackend(HtmlDartGenerator):
     return js_support_checks.get(self._interface.doc_js_name)
 
   def EmitStaticFactory(self, constructor_info):
-    arguments = constructor_info.ParametersAsArgumentList()
-    if arguments:
-      arguments = ', ' + arguments
-    self._members_emitter.Emit(
-        "  static $INTERFACE_NAME _create($PARAMETERS_DECLARATION) => JS("
-          "'$INTERFACE_NAME', "
-          "'new $CONSTRUCTOR_NAME($ARGUMENTS_PATTERN)'$ARGUMENTS);\n",
-        INTERFACE_NAME=self._interface_type_info.interface_name(),
-        PARAMETERS_DECLARATION=constructor_info.ParametersDeclaration(
-            self._DartType),
-        CONSTRUCTOR_NAME=constructor_info.name or self._interface.doc_js_name,
-        ARGUMENTS_PATTERN=','.join(['#'] * len(constructor_info.param_infos)),
-        ARGUMENTS=arguments)
+    has_optional = any(param_info.is_optional
+        for param_info in constructor_info.param_infos)
+
+    def FormatJS(index):
+      arguments = constructor_info.ParametersAsArgumentList(index)
+      if arguments:
+        arguments = ', ' + arguments
+      return "JS('%s', 'new %s(%s)'%s)" % (
+          self._interface_type_info.interface_name(),
+          constructor_info.name or self._interface.doc_js_name,
+          ','.join(['#'] * index),
+          arguments)
+
+    if not has_optional:
+      self._members_emitter.Emit(
+          "  static $INTERFACE_NAME _create($PARAMETERS_DECLARATION) => $JS;\n",
+          INTERFACE_NAME=self._interface_type_info.interface_name(),
+          PARAMETERS_DECLARATION=constructor_info.ParametersDeclaration(
+              self._DartType),
+          JS=FormatJS(len(constructor_info.param_infos)))
+    else:
+      dispatcher_emitter = self._members_emitter.Emit(
+          "  static $INTERFACE_NAME _create($PARAMETERS_DECLARATION) {\n"
+          "$!DISPATCHER"
+          "    return $JS;\n"
+          "  }\n",
+          INTERFACE_NAME=self._interface_type_info.interface_name(),
+          PARAMETERS_DECLARATION=constructor_info.ParametersDeclaration(
+              self._DartType),
+          JS=FormatJS(len(constructor_info.param_infos)))
+
+      for index, param_info in enumerate(constructor_info.param_infos):
+        if param_info.is_optional:
+          dispatcher_emitter.Emit(
+            "    if (!?$OPT_PARAM_NAME) {\n"
+            "      return $JS;\n"
+            "    }\n",
+            OPT_PARAM_NAME=constructor_info.param_infos[index].name,
+            JS=FormatJS(index))
 
   def SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:

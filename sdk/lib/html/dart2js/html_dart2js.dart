@@ -418,8 +418,10 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
     }
     return AudioElement._create(src);
   }
-  static AudioElement _create([String src = null]) {
-    if (src == null) return JS('AudioElement', 'new Audio()');
+  static AudioElement _create([String src]) {
+    if (!?src) {
+      return JS('AudioElement', 'new Audio()');
+    }
     return JS('AudioElement', 'new Audio(#)', src);
   }
 }
@@ -1601,8 +1603,12 @@ class CssMatrix native "*WebKitCSSMatrix" {
     }
     return CssMatrix._create(cssValue);
   }
-  static CssMatrix _create([String cssValue = '']) =>
-      JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);
+  static CssMatrix _create([String cssValue]) {
+    if (!?cssValue) {
+      return JS('CssMatrix', 'new WebKitCSSMatrix()');
+    }
+    return JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);
+  }
 
   /// @domName WebKitCSSMatrix.a; @docsEditable true
   num a;
@@ -5337,11 +5343,11 @@ class DataView extends ArrayBufferView native "*DataView" {
     }
     return DataView._create(buffer, byteOffset, byteLength);
   }
-  static DataView _create(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) {
-    if (byteOffset == null) {
+  static DataView _create(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
+    if (!?byteOffset) {
       return JS('DataView', 'new DataView(#)', buffer);
     }
-    if (byteLength == null) {
+    if (!?byteLength) {
       return JS('DataView', 'new DataView(#,#)', buffer, byteOffset);
     }
     return JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
@@ -9463,8 +9469,10 @@ class FormData native "*FormData" {
     }
     return FormData._create(form);
   }
-  static FormData _create([FormElement form = null]) {
-    if (form == null) return JS('FormData', 'new FormData()');
+  static FormData _create([FormElement form]) {
+    if (!?form) {
+      return JS('FormData', 'new FormData()');
+    }
     return JS('FormData', 'new FormData(#)', form);
   }
 
@@ -14328,7 +14336,12 @@ class Notification extends EventTarget native "*Notification" {
     }
     return Notification._create(title, options);
   }
-  static Notification _create(String title, [Map options]) => JS('Notification', 'new Notification(#,#)', title, options);
+  static Notification _create(String title, [Map options]) {
+    if (!?options) {
+      return JS('Notification', 'new Notification(#)', title);
+    }
+    return JS('Notification', 'new Notification(#,#)', title, options);
+  }
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   NotificationEvents get on =>
@@ -14621,23 +14634,20 @@ class OptionElement extends Element native "*HTMLOptionElement" {
     }
     return OptionElement._create(data, value, defaultSelected, selected);
   }
-  static OptionElement _create(
-      [String data, String value, bool defaultSelected, bool selected]) {
-    if (data == null) {
+  static OptionElement _create([String data, String value, bool defaultSelected, bool selected]) {
+    if (!?data) {
       return JS('OptionElement', 'new Option()');
     }
-    if (value == null) {
+    if (!?value) {
       return JS('OptionElement', 'new Option(#)', data);
     }
-    if (defaultSelected == null) {
+    if (!?defaultSelected) {
       return JS('OptionElement', 'new Option(#,#)', data, value);
     }
-    if (selected == null) {
-      return JS('OptionElement', 'new Option(#,#,#)',
-                data, value, defaultSelected);
+    if (!?selected) {
+      return JS('OptionElement', 'new Option(#,#,#)', data, value, defaultSelected);
     }
-    return JS('OptionElement', 'new Option(#,#,#,#)',
-              data, value, defaultSelected, selected);
+    return JS('OptionElement', 'new Option(#,#,#,#)', data, value, defaultSelected, selected);
   }
 
   /// @domName HTMLOptionElement.defaultSelected; @docsEditable true
@@ -15432,7 +15442,12 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     }
     return RtcPeerConnection._create(rtcIceServers, mediaConstraints);
   }
-  static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) => JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
+  static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) {
+    if (!?mediaConstraints) {
+      return JS('RtcPeerConnection', 'new RTCPeerConnection(#)', rtcIceServers);
+    }
+    return JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
+  }
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RtcPeerConnectionEvents get on =>
@@ -15981,7 +15996,9 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
     return SharedWorker._create(scriptURL, name);
   }
   static SharedWorker _create(String scriptURL, [String name]) {
-    if (name == null) return JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
+    if (!?name) {
+      return JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
+    }
     return JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
   }
 
@@ -17426,23 +17443,7 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
 
   ///@docsEditable true
   factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
-  static TextTrackCue _create(
-      num startTime, num endTime, String text,
-      [String settings, bool pauseOnExit]) {
-        if (settings == null) {
-          return JS('TextTrackCue',
-                    'new TextTrackCue(#,#,#)',
-                    startTime, endTime, text);
-        }
-        if (pauseOnExit == null) {
-          return JS('TextTrackCue',
-                    'new TextTrackCue(#,#,#,#)',
-                    startTime, endTime, text, settings);
-        }
-        return JS('TextTrackCue',
-                  'new TextTrackCue(#,#,#,#,#)',
-                  startTime, endTime, text, settings, pauseOnExit);
-  }
+  static TextTrackCue _create(num startTime, num endTime, String text) => JS('TextTrackCue', 'new TextTrackCue(#,#,#)', startTime, endTime, text);
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackCueEvents get on =>

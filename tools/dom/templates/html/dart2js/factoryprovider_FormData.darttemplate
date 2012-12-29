@@ -1,4 +1,0 @@
-  static FormData _create([FormElement form = null]) {
-    if (form == null) return JS('FormData', 'new FormData()');
-    return JS('FormData', 'new FormData(#)', form);
-  }

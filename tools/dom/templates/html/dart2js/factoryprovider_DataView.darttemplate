@@ -1,9 +1,0 @@
-  static DataView _create(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) {
-    if (byteOffset == null) {
-      return JS('DataView', 'new DataView(#)', buffer);
-    }
-    if (byteLength == null) {
-      return JS('DataView', 'new DataView(#,#)', buffer, byteOffset);
-    }
-    return JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
-  }
