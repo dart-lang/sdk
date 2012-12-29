@@ -49,3 +49,6 @@ packages
 
 # Vim temporary swap files.
 *.swp
+
+# Generated files.
+tools/out
