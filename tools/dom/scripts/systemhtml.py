@@ -856,21 +856,12 @@ class Dart2JSBackend(HtmlDartGenerator):
           PARAMS=', '.join(target_parameters))
 
     def GenerateChecksAndCall(operation, argument_count):
-      checks = []
-      for i in range(0, argument_count):
-        argument = operation.arguments[i]
-        parameter_name = parameter_names[i]
-        test_type = self._DartType(argument.type.id)
-        if test_type in ['dynamic', 'Object']:
-          checks.append('?%s' % parameter_name)
-        elif test_type != parameter_types[i]:
-          checks.append('(?%s && (%s is %s || %s == null))' % (
-              parameter_name, parameter_name, test_type, parameter_name))
-
-      checks.extend(['!?%s' % name for name in parameter_names[argument_count:]])
-      # There can be multiple presence checks.  We need them all since a later
-      # optional argument could have been passed by name, leaving 'holes'.
-      GenerateCall(operation, argument_count, checks)
+      GenerateCall(operation, argument_count,
+          self._OverloadChecks(
+            operation,
+            parameter_names,
+            argument_count,
+            can_omit_type_check=lambda type, pos: type == parameter_types[pos]))
 
     # TODO: Optimize the dispatch to avoid repeated checks.
     if len(operations) > 1:

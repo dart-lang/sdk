@@ -282,7 +282,9 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
-    return _count_3(key_OR_range);
+    if (?key_OR_range) {
+      return _count_3(key_OR_range);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -302,7 +304,9 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
-    return _get_2(key);
+    if (?key) {
+      return _get_2(key);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -318,7 +322,9 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key is KeyRange || key == null)) {
       return _getKey_1(key);
     }
-    return _getKey_2(key);
+    if (?key) {
+      return _getKey_2(key);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -340,10 +346,10 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if (!?direction) {
+    if (?key_OR_range && !?direction) {
       return _openCursor_4(key_OR_range);
     }
-    if ((direction is String || direction == null)) {
+    if (?key_OR_range && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -379,10 +385,10 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
-    if (!?direction) {
+    if (?key_OR_range && !?direction) {
       return _openKeyCursor_4(key_OR_range);
     }
-    if ((direction is String || direction == null)) {
+    if (?key_OR_range && (direction is String || direction == null)) {
       return _openKeyCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -586,7 +592,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
-    return _count_3(key_OR_range);
+    if (?key_OR_range) {
+      return _count_3(key_OR_range);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -624,7 +632,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((key_OR_keyRange is KeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }
-    return _delete_2(key_OR_keyRange);
+    if (?key_OR_keyRange) {
+      return _delete_2(key_OR_keyRange);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -644,7 +654,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
-    return _get_2(key);
+    if (?key) {
+      return _get_2(key);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -670,10 +682,10 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if (!?direction) {
+    if (?key_OR_range && !?direction) {
       return _openCursor_4(key_OR_range);
     }
-    if ((direction is String || direction == null)) {
+    if (?key_OR_range && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";

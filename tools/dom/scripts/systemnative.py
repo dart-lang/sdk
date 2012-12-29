@@ -451,7 +451,7 @@ class DartiumBackend(HtmlDartGenerator):
     else:
       self._GenerateDispatcher(info.operations, dart_declaration, [info.name for info in info.param_infos])
 
-  def _GenerateDispatcher(self, operations, dart_declaration, argument_names):
+  def _GenerateDispatcher(self, operations, dart_declaration, parameter_names):
 
     body = self._members_emitter.Emit(
         '\n'
@@ -475,7 +475,7 @@ class DartiumBackend(HtmlDartGenerator):
 
       overload_name = '%s_%s' % (operation.id, version[0])
       version[0] += 1
-      argument_list = ', '.join(argument_names[:argument_count])
+      argument_list = ', '.join(parameter_names[:argument_count])
       call = '_%s(%s)' % (overload_name, argument_list)
       body.Emit(template, CHECKS=' && '.join(checks), CALL=call)
 
@@ -489,15 +489,8 @@ class DartiumBackend(HtmlDartGenerator):
       self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
 
     def GenerateChecksAndCall(operation, argument_count):
-      checks = []
-      for i in range(0, argument_count):
-        argument = operation.arguments[i]
-        argument_name = argument_names[i]
-        type = self._DartType(argument.type.id)
-        if type not in ['dynamic', 'Object']:
-          checks.append('(%s is %s || %s == null)' % (argument_name, type, argument_name))
-      checks.extend(['!?%s' % name for name in argument_names[argument_count:]])
-      GenerateCall(operation, argument_count, checks)
+      GenerateCall(operation, argument_count,
+          self._OverloadChecks(operation, parameter_names, argument_count))
 
     # TODO: Optimize the dispatch to avoid repeated checks.
     if len(operations) > 1:
@@ -512,7 +505,7 @@ class DartiumBackend(HtmlDartGenerator):
       argument_count = len(operation.arguments)
       for position, argument in list(enumerate(operation.arguments))[::-1]:
         if self._IsArgumentOptionalInWebCore(operation, argument):
-          check = '?%s' % argument_names[position]
+          check = '?%s' % parameter_names[position]
           # argument_count instead of position + 1 is used here to cover one
           # complicated case with the effectively optional argument in the middle.
           # Consider foo(x, [Optional] y, [Optional=DefaultIsNullString] z)

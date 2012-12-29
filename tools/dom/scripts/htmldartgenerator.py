@@ -193,6 +193,26 @@ class HtmlDartGenerator(object):
     else:
       self.EmitOperation(info, method_name)
 
+  def _OverloadChecks(self,
+      operation,
+      parameter_names,
+      argument_count,
+      can_omit_type_check=lambda type, pos: False):
+    checks = []
+    for i in range(0, argument_count):
+      argument = operation.arguments[i]
+      parameter_name = parameter_names[i]
+      test_type = self._DartType(argument.type.id)
+      if test_type in ['dynamic', 'Object']:
+        checks.append('?%s' % parameter_name)
+      elif not can_omit_type_check(test_type, i):
+        checks.append('(%s is %s || %s == null)' % (
+            parameter_name, test_type, parameter_name))
+    # There can be multiple presence checks.  We need them all since a later
+    # optional argument could have been passed by name, leaving 'holes'.
+    checks.extend(['!?%s' % name for name in parameter_names[argument_count:]])
+    return checks
+
   def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.
     implements = []

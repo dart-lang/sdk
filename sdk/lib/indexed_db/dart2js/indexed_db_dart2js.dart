@@ -345,7 +345,7 @@ class Index native "*IDBIndex" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null))) {
+    if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -363,7 +363,7 @@ class Index native "*IDBIndex" {
 
   /// @domName IDBIndex.get; @docsEditable true
   Request get(key) {
-    if ((?key && (key is KeyRange || key == null))) {
+    if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
     if (?key) {
@@ -381,7 +381,7 @@ class Index native "*IDBIndex" {
 
   /// @domName IDBIndex.getKey; @docsEditable true
   Request getKey(key) {
-    if ((?key && (key is KeyRange || key == null))) {
+    if ((key is KeyRange || key == null)) {
       return _getKey_1(key);
     }
     if (?key) {
@@ -403,11 +403,11 @@ class Index native "*IDBIndex" {
         !?direction) {
       return _openCursor_1();
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null)) &&
+    if ((key_OR_range is KeyRange || key_OR_range == null) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null))) {
+    if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -443,11 +443,11 @@ class Index native "*IDBIndex" {
         !?direction) {
       return _openKeyCursor_1();
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null)) &&
+    if ((key_OR_range is KeyRange || key_OR_range == null) &&
         !?direction) {
       return _openKeyCursor_2(key_OR_range);
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null))) {
+    if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -644,7 +644,7 @@ class ObjectStore native "*IDBObjectStore" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null))) {
+    if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -662,19 +662,19 @@ class ObjectStore native "*IDBObjectStore" {
 
   /// @domName IDBObjectStore.createIndex; @docsEditable true
   Index createIndex(String name, keyPath, [Map options]) {
-    if ((?keyPath && (keyPath is List<String> || keyPath == null)) &&
+    if ((keyPath is List<String> || keyPath == null) &&
         !?options) {
       return _createIndex_1(name, keyPath);
     }
-    if ((?keyPath && (keyPath is List<String> || keyPath == null))) {
+    if ((keyPath is List<String> || keyPath == null)) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _createIndex_2(name, keyPath, options_1);
     }
-    if ((?keyPath && (keyPath is String || keyPath == null)) &&
+    if ((keyPath is String || keyPath == null) &&
         !?options) {
       return _createIndex_3(name, keyPath);
     }
-    if ((?keyPath && (keyPath is String || keyPath == null))) {
+    if ((keyPath is String || keyPath == null)) {
       var options_2 = convertDartToNative_Dictionary(options);
       return _createIndex_4(name, keyPath, options_2);
     }
@@ -691,7 +691,7 @@ class ObjectStore native "*IDBObjectStore" {
 
   /// @domName IDBObjectStore.delete; @docsEditable true
   Request delete(key_OR_keyRange) {
-    if ((?key_OR_keyRange && (key_OR_keyRange is KeyRange || key_OR_keyRange == null))) {
+    if ((key_OR_keyRange is KeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }
     if (?key_OR_keyRange) {
@@ -710,7 +710,7 @@ class ObjectStore native "*IDBObjectStore" {
 
   /// @domName IDBObjectStore.getObject; @docsEditable true
   Request getObject(key) {
-    if ((?key && (key is KeyRange || key == null))) {
+    if ((key is KeyRange || key == null)) {
       return _getObject_1(key);
     }
     if (?key) {
@@ -735,11 +735,11 @@ class ObjectStore native "*IDBObjectStore" {
         !?direction) {
       return _openCursor_1();
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null)) &&
+    if ((key_OR_range is KeyRange || key_OR_range == null) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null))) {
+    if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
