@@ -34,26 +34,36 @@ main() {
       document.body.nodes.removeLast();
     });
 
+  // Support is checked in element_types test.
+  var expectation = DataListElement.supported ? returnsNormally : throws;
 
   test('is', () {
+    expect(() {
       var list = document.query('#browsers');
       expect(list, isDataListElement);
+    }, expectation);
   });
 
   test('list', () {
+    expect(() {
       var list = document.query('#browsers');
       var input = document.query('#input');
       expect(input.list, list);
+    }, expectation);
   });
 
   test('options', () {
+    expect(() {
       var options = document.query('#browsers')
           .queryAll('option');  // Uses DataListElement.
       expect(options.length, 5);
+    }, expectation);
   });
 
   test('create', () {
+    expect(() {
       var list = new DataListElement();
       expect(list, isDataListElement);
-    });
+    }, expectation);
+  });
 }

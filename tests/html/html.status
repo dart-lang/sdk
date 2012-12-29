@@ -133,7 +133,6 @@ audiocontext_test: Fail
 blob_constructor_test: Fail
 cache_test: fail              # IE9 does not support ApplicationCache, but IE 10 does (and should work).
 css_test: Fail
-datalistelement_test: Fail    # ie9 does not have HTMLDataListElement
 dom_constructors_test: Fail
 element_test/additionalConstructors: Fail
 exceptions_test: Fail
@@ -186,10 +185,8 @@ input_element_test/supported_range: Fail, Crash    # TODO(efortuna): Please tria
 input_element_test/supported_time: Fail, Crash
 input_element_test/supported_week: Fail, Crash
 fileapi_test: Fail # requestFileSystem not supported in Safari 6.
-datalistelement_test: Fail # HTMLDataListElement not yet supported in Safari.
 # TODO(efortuna): Make our test framework able to separate tests out by browser
 # version.
-datalistelement_test: Fail # Issue: 7414
 node_test: Skip # Issue 6457
 
 [ $runtime == opera && $system == windows ]
