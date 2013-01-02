@@ -195,7 +195,7 @@ class _UTF8Decoder extends _StringDecoderBase {
     }
   }
 
-  void _reportError(error) {
+  bool _reportError(error) {
     if (onError != null) {
       onError(error);
       return false;
