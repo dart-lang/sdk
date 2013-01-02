@@ -9,7 +9,7 @@
 library date_time_format_file_test;
 
 import '../lib/intl.dart';
-import '../lib/date_symbol_data_file.dart';
+import '../lib/date_symbol_data_local.dart';
 import 'date_time_format_test_core.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
 
