@@ -45,7 +45,8 @@
  *            excludeFields: ["other", "stuff"]);
  *
  * We can also use a completely non-reflective rule to serialize and
- * de-serialize objects.
+ * de-serialize objects. This can be more cumbersome, but it does work in
+ * dart2js, where mirrors are not yet implemented.
  *
  *      addressToMap(a) => {"number" : a.number, "street" : a.street,
  *          "city" : a.city};
@@ -231,7 +232,9 @@ class Serialization {
    * [instanceOfType]. Optionally
    * allows specifying a [constructor] name, the list of [constructorFields],
    * and the list of [fields] not used in the constructor. Returns the new
-   * rule.
+   * rule. Note that [BasicRule] uses reflection, and so will not work with the
+   * current state of dartj2s. If you need to run there, consider using
+   * [CustomRule] instead.
    *
    * If the optional parameters aren't specified, the default constructor will
    * be used, and the list of fields will be computed. Alternatively, you can

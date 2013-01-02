@@ -55,7 +55,7 @@ class Writer {
 
   /**
    * Creates a new [Writer] that uses the rules from its parent
-   * [Serialization]. Serializations are do not keep any state
+   * [Serialization]. Serializations do not keep any state
    * related to a particular read/write, so the same one can be used
    * for multiple different Readers/Writers.
    */
