@@ -182,6 +182,18 @@ abstract class _StringDecoderBase implements _StringDecoder {
 // Utility class for decoding UTF-8 from data delivered as a stream of
 // bytes.
 class _UTF8Decoder extends _StringDecoderBase {
+  static const kMaxCodePoint = 0x10FFFF;
+  static const kReplacementCodePoint = 0x3f;
+
+  void _reportError(error) {
+    if (onError != null) {
+      onError(error);
+      return false;
+    } else {
+      throw error;
+    }
+  }
+
   // Process the next UTF-8 encoded character.
   bool _processNext() {
     // Peek the next byte to calculate the number of bytes required for
@@ -195,9 +207,17 @@ class _UTF8Decoder extends _StringDecoderBase {
       } else if ((value & 0xf0) == 0xe0) {  // 1110xxxx
         value = value & 0x0F;
         additionalBytes = 2;
-      } else {  // 11110xxx
+      } else if ((value & 0xf8) == 0xf0) {  // 11110xxx
         value = value & 0x07;
         additionalBytes = 3;
+      } else if ((value & 0xfc) == 0xf8) {  // 111110xx
+        value = value & 0x03;
+        additionalBytes = 4;
+      } else if ((value & 0xfe) == 0xfc) {  // 1111110x
+        value = value & 0x01;
+        additionalBytes = 5;
+      } else {
+        _reportError(new DecoderException("Illegal UTF-8"));
       }
       // Check if there are enough bytes to decode the character. Otherwise
       // return false.
@@ -208,13 +228,21 @@ class _UTF8Decoder extends _StringDecoderBase {
       _bufferList.next();
       for (int i = 0; i < additionalBytes; i++) {
         int byte = _bufferList.next();
+        if ((byte & 0xc0) != 0x80) {
+          _reportError(new DecoderException("Illegal UTF-8"));
+        }
         value = value << 6 | (byte & 0x3F);
       }
     } else {
       // Remove the value peeked from the buffer list.
       _bufferList.next();
     }
-    addChar(value);
+    print(value.toRadixString(16));
+    if (value > kMaxCodePoint) {
+      addChar(kReplacementCodePoint);
+    } else {
+      addChar(value);
+    }
     return true;
   }
 }
