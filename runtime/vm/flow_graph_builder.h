@@ -202,6 +202,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
       Value** instantiator,
       ZoneGrowableArray<PushArgumentInstr*>* call_arguments);
 
+  void BuildTypecheckPushArguments(
+      intptr_t token_pos,
+      PushArgumentInstr** push_instantiator,
+      PushArgumentInstr** push_instantiator_type_arguments);
   void BuildTypecheckArguments(intptr_t token_pos,
                                Value** instantiator,
                                Value** instantiator_type_arguments);

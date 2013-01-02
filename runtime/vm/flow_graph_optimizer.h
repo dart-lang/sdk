@@ -68,6 +68,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                const ICData& unary_ic_data);
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
+  void ReplaceWithInstanceOf(InstanceCallInstr* instr);
 
   StringCharCodeAtInstr* BuildStringCharCodeAt(InstanceCallInstr* call,
                                                intptr_t cid);

@@ -178,6 +178,24 @@ bool StackFrame::FindExceptionHandler(uword* handler_pc) const {
 }
 
 
+intptr_t StackFrame::GetTokenPos() const {
+  const Code& code = Code::Handle(LookupDartCode());
+  if (code.IsNull()) {
+    return -1;  // Stub frames do not have token_pos.
+  }
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  ASSERT(!descriptors.IsNull());
+  for (int i = 0; i < descriptors.Length(); i++) {
+    if (static_cast<uword>(descriptors.PC(i)) == pc()) {
+      return descriptors.TokenPos(i);
+    }
+  }
+  return -1;
+}
+
+
+
 bool StackFrame::IsValid() const {
   if (IsEntryFrame() || IsExitFrame() || IsStubFrame()) {
     return true;

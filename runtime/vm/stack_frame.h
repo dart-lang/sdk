@@ -57,6 +57,9 @@ class StackFrame : public ValueObject {
   RawFunction* LookupDartFunction() const;
   RawCode* LookupDartCode() const;
   bool FindExceptionHandler(uword* handler_pc) const;
+  // Returns token_pos of the pc(), or -1 if none exists.
+  intptr_t GetTokenPos() const;
+
 
  protected:
   StackFrame() : fp_(0), sp_(0) { }

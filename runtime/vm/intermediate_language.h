@@ -2052,6 +2052,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsPrefixOperator(token_kind) ||
            Token::IsIndexOperator(token_kind) ||
+           Token::IsTypeTestOperator(token_kind) ||
            token_kind == Token::kGET ||
            token_kind == Token::kSET ||
            token_kind == Token::kILLEGAL);

@@ -1249,11 +1249,40 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 }
 
 
+// TODO(srdjan): Use ICData to check if always true or false.
+void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
+  ASSERT(Token::IsTypeTestOperator(call->token_kind()));
+  Value* left_val = call->ArgumentAt(0)->value();
+  Value* instantiator_val = call->ArgumentAt(1)->value();
+  Value* type_args_val = call->ArgumentAt(2)->value();
+  const AbstractType& type =
+      AbstractType::Cast(call->ArgumentAt(3)->value()->BoundConstant());
+  const Bool& negate =
+      Bool::Cast(call->ArgumentAt(4)->value()->BoundConstant());
+  InstanceOfInstr* instance_of =
+      new InstanceOfInstr(call->token_pos(),
+                          left_val,
+                          instantiator_val,
+                          type_args_val,
+                          type,
+                          negate.value());
+  call->ReplaceWith(instance_of, current_iterator());
+  RemovePushArguments(call);
+}
+
+
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (!instr->HasICData() || (instr->ic_data()->NumberOfChecks() == 0)) {
     // An instance call without ICData will trigger deoptimization.
+    return;
+  }
+
+  const Token::Kind op_kind = instr->token_kind();
+  // Type test is special as it always gets converted into inlined code.
+  if (Token::IsTypeTestOperator(op_kind)) {
+    ReplaceWithInstanceOf(instr);
     return;
   }
 
@@ -1266,7 +1295,6 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  const Token::Kind op_kind = instr->token_kind();
   if ((op_kind == Token::kASSIGN_INDEX) &&
       TryReplaceWithStoreIndexed(instr)) {
     return;

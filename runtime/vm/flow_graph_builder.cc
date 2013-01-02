@@ -744,6 +744,34 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 }
 
 
+void EffectGraphVisitor::BuildTypecheckPushArguments(
+    intptr_t token_pos,
+    PushArgumentInstr** push_instantiator_result,
+    PushArgumentInstr** push_instantiator_type_arguments_result) {
+  const Class& instantiator_class = Class::Handle(
+      owner()->parsed_function().function().Owner());
+  // Since called only when type tested against is not instantiated.
+  ASSERT(instantiator_class.NumTypeParameters() > 0);
+  Value* instantiator_type_arguments = NULL;
+  Value* instantiator = BuildInstantiator();
+  if (instantiator == NULL) {
+    // No instantiator when inside factory.
+    *push_instantiator_result = PushArgument(BuildNullValue());
+    instantiator_type_arguments =
+        BuildInstantiatorTypeArguments(token_pos, NULL);
+  } else {
+    instantiator = Bind(BuildStoreExprTemp(instantiator));
+    *push_instantiator_result = PushArgument(instantiator);
+    Value* loaded = Bind(BuildLoadExprTemp());
+    instantiator_type_arguments =
+        BuildInstantiatorTypeArguments(token_pos, loaded);
+  }
+  *push_instantiator_type_arguments_result =
+      PushArgument(instantiator_type_arguments);
+}
+
+
+
 void EffectGraphVisitor::BuildTypecheckArguments(
     intptr_t token_pos,
     Value** instantiator_result,
@@ -884,24 +912,39 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ValueGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
-  Value* instantiator = NULL;
-  Value* instantiator_type_arguments = NULL;
+  PushArgumentInstr* push_left = PushArgument(for_left_value.value());
+  PushArgumentInstr* push_instantiator = NULL;
+  PushArgumentInstr* push_type_args = NULL;
   if (type.IsInstantiated()) {
-    instantiator = BuildNullValue();
-    instantiator_type_arguments = BuildNullValue();
+    push_instantiator = PushArgument(BuildNullValue());
+    push_type_args = PushArgument(BuildNullValue());
   } else {
-    BuildTypecheckArguments(node->token_pos(),
-                            &instantiator,
-                            &instantiator_type_arguments);
+    BuildTypecheckPushArguments(node->token_pos(),
+                                &push_instantiator,
+                                &push_type_args);
   }
-  InstanceOfInstr* instance_of =
-      new InstanceOfInstr(node->token_pos(),
-                          for_left_value.value(),
-                          instantiator,
-                          instantiator_type_arguments,
-                          node->right()->AsTypeNode()->type(),
-                          (node->kind() == Token::kISNOT));
-  ReturnDefinition(instance_of);
+  const String& name = String::ZoneHandle(Symbols::New("_instanceOf"));
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(5);
+  arguments->Add(push_left);
+  arguments->Add(push_instantiator);
+  arguments->Add(push_type_args);
+  ASSERT(!node->right()->AsTypeNode()->type().IsNull());
+  Value* type_arg = Bind(
+      new ConstantInstr(node->right()->AsTypeNode()->type()));
+  arguments->Add(PushArgument(type_arg));
+  const Bool& negate = Bool::ZoneHandle(node->kind() == Token::kISNOT ?
+      Bool::True() : Bool::False());
+  Value* negate_arg = Bind(new ConstantInstr(negate));
+  arguments->Add(PushArgument(negate_arg));
+  const intptr_t kNumArgsChecked = 1;
+  InstanceCallInstr* call = new InstanceCallInstr(node->token_pos(),
+                                                  name,
+                                                  node->kind(),
+                                                  arguments,
+                                                  Array::ZoneHandle(),
+                                                  kNumArgsChecked);
+  ReturnDefinition(call);
 }
 
 

@@ -30,7 +30,6 @@ namespace dart {
 DEFINE_FLAG(bool, deoptimize_alot, false,
     "Deoptimizes all live frames when we are about to return to Dart code from"
     " native entries.");
-DEFINE_FLAG(bool, inline_cache, true, "Enable inline caches");
 DEFINE_FLAG(bool, trace_deoptimization, false, "Trace deoptimization");
 DEFINE_FLAG(bool, trace_deoptimization_verbose, false,
     "Trace deoptimization verbose");
@@ -160,16 +159,7 @@ static intptr_t GetCallerLocation() {
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  const Code& code = Code::Handle(caller_frame->LookupDartCode());
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(code.pc_descriptors());
-  ASSERT(!descriptors.IsNull());
-  for (int i = 0; i < descriptors.Length(); i++) {
-    if (static_cast<uword>(descriptors.PC(i)) == caller_frame->pc()) {
-      return descriptors.TokenPos(i);
-    }
-  }
-  return -1;
+  return caller_frame->GetTokenPos();
 }
 
 

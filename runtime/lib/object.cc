@@ -7,6 +7,8 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/stack_frame.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -60,6 +62,43 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const Type& type = Type::Handle(instance.GetType());
   return type.Canonicalize();
+}
+
+
+
+DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
+  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  // Instantiator at position 1 is not used. It is passed along so that the call
+  // can be easily converted to an optimized implementation. Instantiator is
+  // used to populate the subtype cache.
+  const AbstractTypeArguments& instantiator_type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments->NativeArgAt(2));
+  const AbstractType& type =
+      AbstractType::CheckedHandle(arguments->NativeArgAt(3));
+  const Bool& negate = Bool::CheckedHandle(arguments->NativeArgAt(4));
+  ASSERT(type.IsFinalized());
+  Error& malformed_error = Error::Handle();
+  const bool is_instance_of = instance.IsInstanceOf(type,
+                                                    instantiator_type_arguments,
+                                                    &malformed_error);
+  if (!is_instance_of && !malformed_error.IsNull()) {
+    // Throw a dynamic type error only if the instanceof test fails.
+    DartFrameIterator iterator;
+    StackFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL);
+    const intptr_t location = caller_frame->GetTokenPos();
+    String& malformed_error_message =  String::Handle(
+        String::New(malformed_error.ToErrorCString()));
+    Exceptions::CreateAndThrowTypeError(
+        location, Symbols::Empty(), Symbols::Empty(),
+        Symbols::Empty(), malformed_error_message);
+    UNREACHABLE();
+  }
+  if (negate.value()) {
+    return is_instance_of ? Bool::False() : Bool::True();
+  } else {
+    return is_instance_of ? Bool::True() : Bool::False();
+  }
 }
 
 
