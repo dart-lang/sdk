@@ -227,11 +227,14 @@ runDateTests([List<String> subset]) {
   test('Test ALL the supported formats on representative locales', () {
     var aDate = new Date(2012, 1, 27, 20, 58, 59, 0);
     testLocale("en_US", English, aDate);
-    testLocale("de_DE", German, aDate);
-    testLocale("fr_FR", French, aDate);
-    testLocale("ja_JP", Japanese, aDate);
-    testLocale("el_GR", Greek, aDate);
-    testLocale("de_AT", Austrian, aDate);
+    if (subset.length > 1) {
+      // Don't run if we have just one locale, so some of these won't be there.
+      testLocale("de_DE", German, aDate);
+      testLocale("fr_FR", French, aDate);
+      testLocale("ja_JP", Japanese, aDate);
+      testLocale("el_GR", Greek, aDate);
+      testLocale("de_AT", Austrian, aDate);
+    }
   });
 
   test('Test round-trip parsing of dates', () {
@@ -251,6 +254,9 @@ runDateTests([List<String> subset]) {
   });
 
   test('Patterns and symbols have the same coverage',() {
+    // Don't run if we have just one locale, so checking coverage isn't
+    // very meaningful.
+    if (subset.length <= 1) return;
     var patterns = new List.from(dateTimePatterns.keys);
     var compare = (a, b) => a.compareTo(b);
     patterns.sort(compare);
@@ -265,6 +271,8 @@ runDateTests([List<String> subset]) {
   });
 
   test('Test malformed locales', () {
+    // Don't run if we have just one locale, which may not include these.
+    if (subset.length <= 1) return;
     var aDate = new Date(2012, 1, 27, 20, 58, 59, 0);
     // Austrian is a useful test locale here because it differs slightly
     // from the generic "de" locale so we can tell the difference between
@@ -275,6 +283,8 @@ runDateTests([List<String> subset]) {
   });
 
   test('Test format creation via Intl', () {
+    // Don't run if we have just one locale, which may not include these.
+    if (subset.length <= 1) return;
     var intl = new Intl('ja_JP');
     var instanceJP = intl.date('jms');
     var instanceUS = intl.date('jms', 'en_US');
@@ -286,6 +296,8 @@ runDateTests([List<String> subset]) {
   });
 
   test('Test explicit format string', () {
+    // Don't run if we have just one locale, which may not include these.
+    if (subset.length <= 1) return;
     var aDate = new Date(2012, 1, 27, 20, 58, 59, 0);
     // An explicit format that doesn't conform to any skeleton
     var us = new DateFormat(r'yy //// :D \\\\ dd:ss ^&@ M');

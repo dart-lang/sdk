@@ -4,18 +4,46 @@
 
 part of intl;
 
+// TODO(efortuna): Customized pattern system -- suggested by i18n needs
+// feedback on appropriateness.
 /**
  * DateFormat is for formatting and parsing dates in a locale-sensitive
  * manner.
  * It allows the user to choose from a set of standard date time formats as well
  * as specify a customized pattern under certain locales. Date elements that
  * vary across locales include month name, week name, field order, etc.
- * <!-- TODO(efortuna): Customized pattern system -- suggested by i18n needs
- * feedback on appropriateness. -->
  * We also allow the user to use any customized pattern to parse or format
  * date-time strings under certain locales. Date elements that vary across
  * locales include month name, weekname, field, order, etc.
  *
+ * The actual date for the locales must be obtained. This can currently be done
+ * in one of three ways, determined by which library you import. If you only
+ * want to use en_US formatting you can use it directly, as a copy of that
+ * locale is hard-coded into the formatter. In all other cases,
+ * the [initializeDateFormatting] method must be called and will return a future
+ * that is complete once the locale data is available. The result of the future
+ * isn't important, but the data for that locale is available to the date
+ * formatting and parsing once it completes.
+ *
+ * The easiest option is that the data may be available locally, imported in a
+ * library that contains data for all the locales.
+ *       import 'package:intl/date_symbol_data_local.dart';
+ *       initializeDateFormatting("en_US", null).then((_) => runMyCode());
+ *
+ * If we are running outside of a browser, we may want to read the data
+ * from files in the file system.
+ *       import 'package:intl/date_symbol_data_file.dart';
+ *       initializeDateFormatting("de_DE", null).then((_) => runMyCode());
+ *
+ * If we are running in a browser, we may want to read the data from the
+ * server using the XmlHttpRequest mechanism.
+ *       import 'package:intl/date_symbol_data_http_request.dart';
+ *       initializeDateFormatting("pt_BR", null).then((_) => runMyCode());
+ *
+ * The code in example/basic/basic_example.dart shows a full example of
+ * using this mechanism.
+ *
+ * Once we have the locale data, we need to specify the particular format.
  * This library uses the ICU/JDK date/time pattern specification both for
  * complete format specifications and also the abbreviated "skeleton" form
  * which can also adapt to different locales and is preferred where available.
