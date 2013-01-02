@@ -34,43 +34,49 @@ class Classification {
   static const STRING_INTERPOLATION = 'si';
 }
 
+/// Returns a marked up HTML string. If the code does not appear to be valid
+/// Dart code, returns the original [text].
 String classifySource(String text) {
-  var html = new StringBuffer();
-  var tokenizer = new StringScanner(text, includeComments: true);
+  try {
+    var html = new StringBuffer();
+    var tokenizer = new StringScanner(text, includeComments: true);
 
-  var whitespaceOffset = 0;
-  var token = tokenizer.tokenize();
-  var inString = false;
-  while (token.kind != EOF_TOKEN) {
-    html.add(text.substring(whitespaceOffset, token.charOffset));
-    whitespaceOffset = token.charOffset + token.slowCharCount;
+    var whitespaceOffset = 0;
+    var token = tokenizer.tokenize();
+    var inString = false;
+    while (token.kind != EOF_TOKEN) {
+      html.add(text.substring(whitespaceOffset, token.charOffset));
+      whitespaceOffset = token.charOffset + token.slowCharCount;
 
-    // Track whether or not we're in a string.
-    switch (token.kind) {
-      case STRING_TOKEN:
-      case STRING_INTERPOLATION_TOKEN:
-        inString = true;
-        break;
+      // Track whether or not we're in a string.
+      switch (token.kind) {
+        case STRING_TOKEN:
+        case STRING_INTERPOLATION_TOKEN:
+          inString = true;
+          break;
+      }
+
+      final kind = classify(token);
+      final escapedText = md.escapeHtml(token.slowToString());
+      if (kind != null) {
+        // Add a secondary class to tokens appearing within a string so that
+        // we can highlight tokens in an interpolation specially.
+        var stringClass = inString ? Classification.STRING_INTERPOLATION : '';
+        html.add('<span class="$kind $stringClass">$escapedText</span>');
+      } else {
+        html.add(escapedText);
+      }
+
+      // Track whether or not we're in a string.
+      if (token.kind == STRING_TOKEN) {
+        inString = false;
+      }
+      token = token.next;
     }
-
-    final kind = classify(token);
-    final escapedText = md.escapeHtml(token.slowToString());
-    if (kind != null) {
-      // Add a secondary class to tokens appearing within a string so that
-      // we can highlight tokens in an interpolation specially.
-      var stringClass = inString ? Classification.STRING_INTERPOLATION : '';
-      html.add('<span class="$kind $stringClass">$escapedText</span>');
-    } else {
-      html.add(escapedText);
-    }
-
-    // Track whether or not we're in a string.
-    if (token.kind == STRING_TOKEN) {
-      inString = false;
-    }
-    token = token.next;
+    return html.toString();
+  } catch (e) {
+    return text;
   }
-  return html.toString();
 }
 
 bool _looksLikeType(String name) {
