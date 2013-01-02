@@ -7,6 +7,8 @@ import "dart:io";
 main() {
   var scriptDir = Platform.environment['SCRIPTDIR'];
   Expect.isTrue(scriptDir.contains('å'));
+  scriptDir = Platform.environment['ScriptDir'];
+  Expect.isTrue(scriptDir.contains('å'));
   var str = new File('$scriptDir/funky.bat').readAsStringSync();
   Expect.isTrue(str.contains('%~dp0'));
 }

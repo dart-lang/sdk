@@ -37,7 +37,8 @@ class _Platform {
     if (env is OSError) {
       throw env;
     } else {
-      var result = new Map();
+      var isWindows = operatingSystem == 'windows';
+      var result = isWindows ? new _CaseInsensitiveStringMap() : new Map();
       for (var str in env) {
         // When running on Windows through cmd.exe there are strange
         // environment variables that are used to record the current
@@ -56,4 +57,36 @@ class _Platform {
       return result;
     }
   }
+}
+
+// Environment variables are case-insensitive on Windows. In order
+// to reflect that we use a case-insensitive string map on Windows.
+class _CaseInsensitiveStringMap<V> implements Map<String, V> {
+  _CaseInsensitiveStringMap() : _map = new Map<String, V>();
+
+  _CaseInsensitiveStringMap.from(Map<String, V> other)
+      : _map = new Map<String, V>() {
+    other.forEach((String key, V value) {
+      _map[key.toUpperCase()] = value;
+    });
+  }
+
+  bool containsKey(String key) => _map.containsKey(key.toUpperCase());
+  bool containsValue(V value) => _map.containsValue(value);
+  V operator [](String key) => _map[key.toUpperCase()];
+  void operator []=(String key, V value) {
+    _map[key.toUpperCase()] = value;
+  }
+  V putIfAbsent(String key, V ifAbsent()) {
+    _map.putIfAbsent(key.toUpperCase(), ifAbsent);
+  }
+  V remove(String key) => _map.remove(key.toUpperCase());
+  void clear() => _map.clear();
+  void forEach(void f(String key, V value)) => _map.forEach(f);
+  Collection<String> get keys => _map.keys;
+  Collection<V> get values => _map.values;
+  int get length => _map.length;
+  bool get isEmpty => _map.isEmpty;
+
+  Map<String, V> _map;
 }

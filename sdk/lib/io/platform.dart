@@ -33,6 +33,11 @@ class Platform {
 
   /**
    * Get the environment for this process.
+   *
+   * Environment variables on Windows are case-insensitive. The map
+   * returned on Windows is therefore case-insensitive and will convert
+   * all keys to upper case. On other platforms the returned map is
+   * a standard case-sensitive map.
    */
   static Map<String, String> get environment => _Platform.environment;
 }
