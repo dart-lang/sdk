@@ -140,42 +140,4 @@ DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
   return Object::null();
 }
 
-
-// TODO(regis): This helper is used to compile a throw when a call cannot be
-// resolved at compile time. The thrown instance of NoSuchMethodError is of a
-// different type than a NoSuchMethodError thrown at runtime. This should be
-// merged.
-//
-// Allocate and throw NoSuchMethodError.
-// Arg0: index of the call that was not resolved at compile time.
-// Arg1: name of the method that was not resolved at compile time.
-// Return value: none, throws an exception.
-DEFINE_NATIVE_ENTRY(NoSuchMethodError_throwNew, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(
-      String, function_name, arguments->NativeArgAt(1));
-  intptr_t call_pos = smi_pos.Value();
-  // Allocate a new instance of type NoSuchMethodError.
-  const Instance& error = Instance::Handle(
-      Exceptions::NewInstance("NoSuchMethodErrorImplementation"));
-  ASSERT(!error.IsNull());
-
-  // Initialize 'url', 'line', and 'column' fields.
-  DartFrameIterator iterator;
-  iterator.NextFrame();  // Skip native call.
-  const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
-  const Class& cls = Class::Handle(error.clazz());
-  Exceptions::SetLocationFields(error, cls, script, call_pos);
-  Exceptions::SetField(error, cls, "functionName", function_name);
-
-  intptr_t line, column;
-  script.GetTokenLocation(call_pos, &line, &column);
-  Exceptions::SetField(error, cls, "failedResolutionLine",
-                       String::Handle(script.GetLine(line)));
-
-  Exceptions::Throw(error);
-  UNREACHABLE();
-  return Object::null();
-}
-
 }  // namespace dart

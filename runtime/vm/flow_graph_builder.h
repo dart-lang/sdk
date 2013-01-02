@@ -262,6 +262,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
       const String& method_name,
       ArgumentListNode* method_arguments);
 
+  StaticCallInstr* BuildThrowNoSuchMethodError(intptr_t token_pos,
+                                               const Class& function_class,
+                                               const String& function_name);
+
   void BuildStaticSetter(StaticSetterNode* node, bool result_is_needed);
   Definition* BuildStoreStaticField(StoreStaticFieldNode* node,
                                     bool result_is_needed);

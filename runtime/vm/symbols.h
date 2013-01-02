@@ -39,7 +39,7 @@ class ObjectPointerVisitor;
   V(FallThroughError, "FallThroughErrorImplementation")                        \
   V(AbstractClassInstantiationError,                                           \
     "AbstractClassInstantiationErrorImplementation")                           \
-  V(NoSuchMethodError, "NoSuchMethodErrorImplementation")                      \
+  V(NoSuchMethodError, "NoSuchMethodError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(List, "List")                                                              \
   V(ListLiteralFactory, "List._fromLiteral")                                   \

@@ -2146,27 +2146,15 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
       // StaticGetterNode missing a getter function, so we throw a
       // NoSuchMethodError.
 
-      // Location argument.
-      Value* call_pos = Bind(
-          new ConstantInstr(Smi::ZoneHandle(Smi::New(node->token_pos()))));
-      arguments->Add(PushArgument(call_pos));
-      // Function name argument.
-      const String& method_name = String::ZoneHandle(Symbols::New(getter_name));
-      Value* method_name_value = Bind(new ConstantInstr(method_name));
-      arguments->Add(PushArgument(method_name_value));
-      const String& cls_name = String::Handle(Symbols::NoSuchMethodError());
-      const String& func_name = String::Handle(Symbols::ThrowNew());
-      const Class& cls = Class::Handle(
-          Library::Handle(Library::CoreLibrary()).LookupClass(cls_name));
-      ASSERT(!cls.IsNull());
-      getter_function = Resolver::ResolveStatic(cls,
-                                                func_name,
-                                                arguments->length(),
-                                                Array::ZoneHandle(),
-                                                Resolver::kIsQualified);
-      ASSERT(!getter_function.IsNull());
+      // Throw a NoSuchMethodError.
+      StaticCallInstr* call = BuildThrowNoSuchMethodError(node->token_pos(),
+                                                          node->cls(),
+                                                          getter_name);
+      ReturnDefinition(call);
+      return;
     }
   }
+  ASSERT(!getter_function.IsNull());
   StaticCallInstr* call = new StaticCallInstr(node->token_pos(),
                                               getter_function,
                                               Array::ZoneHandle(),  // No names.
@@ -2203,29 +2191,9 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
                                          arguments);
     } else {
       // Throw a NoSuchMethodError.
-      // Location argument.
-      Value* call_pos = Bind(
-          new ConstantInstr(Smi::ZoneHandle(Smi::New(node->token_pos()))));
-      arguments->Add(PushArgument(call_pos));
-      // Function name argument.
-      const String& method_name = String::ZoneHandle(Symbols::New(setter_name));
-      Value* method_name_value = Bind(new ConstantInstr(method_name));
-      arguments->Add(PushArgument(method_name_value));
-      const String& cls_name = String::Handle(Symbols::NoSuchMethodError());
-      const String& func_name = String::Handle(Symbols::ThrowNew());
-      const Class& cls = Class::Handle(
-          Library::Handle(Library::CoreLibrary()).LookupClass(cls_name));
-      ASSERT(!cls.IsNull());
-      setter_function = Resolver::ResolveStatic(cls,
-                                                func_name,
-                                                arguments->length(),
-                                                Array::ZoneHandle(),
-                                                Resolver::kIsQualified);
-      ASSERT(!setter_function.IsNull());
-      call = new StaticCallInstr(node->token_pos(),
-                                 setter_function,
-                                 Array::ZoneHandle(),  // No names.
-                                 arguments);
+      call = BuildThrowNoSuchMethodError(node->token_pos(),
+                                         node->cls(),
+                                         setter_name);
     }
   } else {
     if (is_super_setter) {
@@ -2901,6 +2869,59 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
                              no_such_method_func,
                              Array::ZoneHandle(),
                              args);
+}
+
+
+StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
+    intptr_t token_pos,
+    const Class& function_class,
+    const String& function_name) {
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>();
+  // Object receiver.
+  // TODO(regis): For now, we pass a class literal of the unresolved
+  // method's owner, but this is not specified and will probably change.
+  Type& type = Type::ZoneHandle(
+      Type::New(function_class,
+                TypeArguments::Handle(),
+                token_pos,
+                Heap::kOld));
+  type ^= ClassFinalizer::FinalizeType(
+      function_class, type, ClassFinalizer::kCanonicalize);
+  Value* receiver_value = Bind(new ConstantInstr(type));
+  arguments->Add(PushArgument(receiver_value));
+  // String memberName.
+  const String& member_name = String::ZoneHandle(Symbols::New(function_name));
+  Value* member_name_value = Bind(new ConstantInstr(member_name));
+  arguments->Add(PushArgument(member_name_value));
+  // List arguments.
+  Value* arguments_value = Bind(new ConstantInstr(Array::ZoneHandle()));
+  arguments->Add(PushArgument(arguments_value));
+  // List argumentNames.
+  Value* argument_names_value =
+      Bind(new ConstantInstr(Array::ZoneHandle()));
+  arguments->Add(PushArgument(argument_names_value));
+  // List existingArgumentNames.
+  Value* existing_argument_names_value =
+      Bind(new ConstantInstr(Array::ZoneHandle()));
+  arguments->Add(PushArgument(existing_argument_names_value));
+  // Resolve and call NoSuchMethodError._throwNew.
+  const String& cls_name = String::Handle(Symbols::NoSuchMethodError());
+  const String& func_name = String::Handle(Symbols::ThrowNew());
+  const Class& cls = Class::Handle(
+      Library::Handle(Library::CoreLibrary()).LookupClass(cls_name));
+  ASSERT(!cls.IsNull());
+  const Function& func = Function::ZoneHandle(
+      Resolver::ResolveStatic(cls,
+                              func_name,
+                              arguments->length(),
+                              Array::ZoneHandle(),
+                              Resolver::kIsQualified));
+  ASSERT(!func.IsNull());
+  return new StaticCallInstr(token_pos,
+                             func,
+                             Array::ZoneHandle(),  // No names.
+                             arguments);
 }
 
 

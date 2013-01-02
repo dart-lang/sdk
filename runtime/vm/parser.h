@@ -573,7 +573,9 @@ class Parser : public ValueObject {
   String& Interpolate(ArrayNode* values);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
   AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
-  AstNode* ThrowNoSuchMethodError(intptr_t call_pos, const String& name);
+  AstNode* ThrowNoSuchMethodError(intptr_t call_pos,
+                                  const Class& cls,
+                                  const String& function_name);
 
   void CheckOperatorArity(const MemberDesc& member);
 

@@ -2315,8 +2315,10 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   } else if (func.is_external()) {
     // Body of an external method contains a single throw.
     const String& function_name = String::ZoneHandle(func.name());
+    // TODO(regis): For an instance function, pass the receiver to
+    // NoSuchMethodError.
     current_block_->statements->Add(
-        ThrowNoSuchMethodError(TokenPos(), function_name));
+        ThrowNoSuchMethodError(TokenPos(), current_class(), function_name));
   } else {
     UnexpectedToken();
   }
@@ -6598,14 +6600,31 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
 }
 
 
-AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos, const String& name) {
+// TODO(regis): Providing the argument values is not always feasible, since
+// evaluating them could throw an error.
+// Should NoSuchMethodError reflect the argument count and names instead of
+// argument values? Or should the spec specify a different evaluation order?
+AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
+                                        const Class& cls,
+                                        const String& function_name) {
   ArgumentListNode* arguments = new ArgumentListNode(call_pos);
-  // Location argument.
+  // Object receiver.
+  // TODO(regis): For now, we pass a class literal of the unresolved
+  // method's owner, but this is not specified and will probably change.
+  Type& type = Type::ZoneHandle(
+      Type::New(cls, TypeArguments::Handle(), call_pos, Heap::kOld));
+  type ^= ClassFinalizer::FinalizeType(
+      current_class(), type, ClassFinalizer::kCanonicalize);
+  arguments->Add(new LiteralNode(call_pos, type));
+  // String memberName.
   arguments->Add(new LiteralNode(
-      call_pos, Integer::ZoneHandle(Integer::New(call_pos))));
-  // Function name argument.
-  arguments->Add(new LiteralNode(
-      call_pos, String::ZoneHandle(Symbols::New(name))));
+      call_pos, String::ZoneHandle(Symbols::New(function_name))));
+  // List arguments.
+  arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
+  // List argumentNames.
+  arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
+  // List existingArgumentNames.
+  arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
   const String& cls_name = String::Handle(Symbols::NoSuchMethodError());
   const String& func_name = String::Handle(Symbols::ThrowNew());
   return MakeStaticCall(cls_name, func_name, arguments);
@@ -6894,7 +6913,9 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
     const String& type_name = String::ZoneHandle(
         original->AsTypeNode()->type().ClassName());
     // TODO(tball): determine whether NoSuchMethod should be called instead.
-    result = ThrowNoSuchMethodError(original->token_pos(), type_name);
+    result = ThrowNoSuchMethodError(original->token_pos(),
+                                    current_class(),
+                                    type_name);
   }
   if ((result != NULL) &&
       (result->IsStoreIndexedNode() ||
@@ -7178,7 +7199,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
       return new ClosureCallNode(call_pos, closure, arguments);
     }
     // Could not resolve static method: throw a NoSuchMethodError.
-    return ThrowNoSuchMethodError(ident_pos, func_name);
+    return ThrowNoSuchMethodError(ident_pos, cls, func_name);
   }
   return new StaticCallNode(call_pos, func, arguments);
 }
@@ -7250,7 +7271,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
                                      Resolver::kIsQualified);
       if (func.IsNull()) {
         // No field or explicit setter function, throw a NoSuchMethodError.
-        return ThrowNoSuchMethodError(ident_pos, field_name);
+        return ThrowNoSuchMethodError(ident_pos, cls, field_name);
       }
 
       // Explicit setter function for the field found, field does not exist.
@@ -7291,7 +7312,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
         func = cls.LookupStaticFunction(field_name);
         if (func.IsNull()) {
           // No field or explicit getter function, throw a NoSuchMethodError.
-          return ThrowNoSuchMethodError(ident_pos, field_name);
+          return ThrowNoSuchMethodError(ident_pos, cls, field_name);
         }
         access = CreateImplicitClosureNode(func, call_pos, NULL);
       } else {
@@ -7326,7 +7347,9 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
     String& name = String::CheckedZoneHandle(primary->primary().raw());
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
-      return ThrowNoSuchMethodError(primary->token_pos(), name);
+      return ThrowNoSuchMethodError(primary->token_pos(),
+                                    current_class(),
+                                    name);
     } else {
       AstNode* receiver = LoadReceiver(primary->token_pos());
       return CallGetter(node->token_pos(), receiver, name);
@@ -7463,7 +7486,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           }
           String& name = String::CheckedZoneHandle(primary->primary().raw());
           if (current_function().is_static()) {
-            selector = ThrowNoSuchMethodError(primary->token_pos(), name);
+            selector = ThrowNoSuchMethodError(primary->token_pos(),
+                                              current_class(),
+                                              name);
           } else {
             // Treat as call to unresolved (instance) method.
             AstNode* receiver = LoadReceiver(primary->token_pos());
@@ -8368,7 +8393,7 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
       // the unresolved name to an instance field access, since a
       // subclass might define a field with this name.
       if (current_function().is_static()) {
-        resolved = ThrowNoSuchMethodError(ident_pos, ident);
+        resolved = ThrowNoSuchMethodError(ident_pos, current_class(), ident);
       } else {
         // Treat as call to unresolved instance field.
         resolved = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
@@ -8972,19 +8997,21 @@ AstNode* Parser::ParseNewOperator() {
           (named_constructor ? constructor_name : type_class_name);
       // Replace the type with a malformed type and compile a throw or report a
       // compile-time error if the constructor is const.
-      type = ClassFinalizer::NewFinalizedMalformedType(
-          Error::Handle(),  // No previous error.
-          current_class(),
-          call_pos,
-          ClassFinalizer::kTryResolve,  // No compile-time error.
-          "class '%s' has no constructor or factory named '%s'",
-          String::Handle(type_class.Name()).ToCString(),
-          external_constructor_name.ToCString());
       if (is_const) {
+        type = ClassFinalizer::NewFinalizedMalformedType(
+            Error::Handle(),  // No previous error.
+            current_class(),
+            call_pos,
+            ClassFinalizer::kTryResolve,  // No compile-time error.
+            "class '%s' has no constructor or factory named '%s'",
+            String::Handle(type_class.Name()).ToCString(),
+            external_constructor_name.ToCString());
         const Error& error = Error::Handle(type.malformed_error());
         ErrorMsg(error);
       }
-      return ThrowNoSuchMethodError(call_pos, external_constructor_name);
+      return ThrowNoSuchMethodError(call_pos,
+                                    type_class,
+                                    external_constructor_name);
     } else if (constructor.IsRedirectingFactory()) {
       Type& redirect_type = Type::Handle(constructor.RedirectionType());
       if (!redirect_type.IsMalformed() && !redirect_type.IsInstantiated()) {
@@ -9043,7 +9070,9 @@ AstNode* Parser::ParseNewOperator() {
                String::Handle(type_class.Name()).ToCString(),
                error_message.ToCString());
     }
-    return ThrowNoSuchMethodError(call_pos, external_constructor_name);
+    return ThrowNoSuchMethodError(call_pos,
+                                  type_class,
+                                  external_constructor_name);
   }
 
   // Return a throw in case of a malformed type or report a compile-time error

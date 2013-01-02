@@ -91,28 +91,6 @@ class InternalError {
 }
 
 
-// TODO(regis): This class should be removed and the corresponding class in the
-// core lib should be used.
-class NoSuchMethodErrorImplementation implements NoSuchMethodError {
-  factory NoSuchMethodErrorImplementation._uninstantiable() {
-    throw new UnsupportedError(
-        "NoSuchMethodError can only be allocated by the VM");
-  }
-
-  String toString() => "No such method: '$functionName', url '$url' line $line "
-      "pos $column\n$failedResolutionLine\n";
-
-  static _throwNew(int call_pos, String functionName)
-      native "NoSuchMethodError_throwNew";
-
-  final String functionName;
-  final String failedResolutionLine;
-  final String url;
-  final int line;
-  final int column;
-}
-
-
 class AbstractClassInstantiationErrorImplementation
     implements AbstractClassInstantiationError {
 
