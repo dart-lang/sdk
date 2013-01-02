@@ -11,6 +11,8 @@ abstract class _StringDecoder {
   // is transfered to the decoder and the caller most not modify it any more.
   int write(List<int> buffer);
 
+  void done();
+
   // Returns whether any decoded data is available.
   bool get isEmpty;
 
@@ -87,6 +89,8 @@ abstract class _StringDecoderBase implements _StringDecoder {
     }
     return buffer.length;
   }
+
+  void done() { }
 
   bool get isEmpty => _result.isEmpty;
 
@@ -185,6 +189,12 @@ class _UTF8Decoder extends _StringDecoderBase {
   static const kMaxCodePoint = 0x10FFFF;
   static const kReplacementCodePoint = 0x3f;
 
+  void done() {
+    if (!_bufferList.isEmpty) {
+      _reportError(new DecoderException("Illegal UTF-8"));
+    }
+  }
+
   void _reportError(error) {
     if (onError != null) {
       onError(error);
@@ -217,7 +227,7 @@ class _UTF8Decoder extends _StringDecoderBase {
         value = value & 0x01;
         additionalBytes = 5;
       } else {
-        _reportError(new DecoderException("Illegal UTF-8"));
+        return _reportError(new DecoderException("Illegal UTF-8"));
       }
       // Check if there are enough bytes to decode the character. Otherwise
       // return false.
@@ -229,7 +239,7 @@ class _UTF8Decoder extends _StringDecoderBase {
       for (int i = 0; i < additionalBytes; i++) {
         int byte = _bufferList.next();
         if ((byte & 0xc0) != 0x80) {
-          _reportError(new DecoderException("Illegal UTF-8"));
+          return _reportError(new DecoderException("Illegal UTF-8"));
         }
         value = value << 6 | (byte & 0x3F);
       }
@@ -477,6 +487,7 @@ class _StringInputStream implements StringInputStream {
 
   void _onClosed() {
     _inputClosed = true;
+    _decoder.done();
     if (_decoder.isEmpty && _clientCloseHandler !=  null) {
       _clientCloseHandler();
     } else {
