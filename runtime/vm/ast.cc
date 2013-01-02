@@ -413,10 +413,8 @@ AstNode* StaticCallNode::MakeAssignmentNode(AstNode* rhs) {
   const Class& cls = Class::Handle(function().Owner());
   const String& cls_name = String::Handle(cls.Name());
   const String& func_name = String::Handle(function().name());
-  const String& error_cls_name = String::Handle(Symbols::NoSuchMethodError());
-  const String& error_func_name = String::Handle(Symbols::ThrowNew());
-  if (cls_name.Equals(error_cls_name) &&
-      func_name.StartsWith(error_func_name)) {
+  if (cls_name.Equals(Symbols::NoSuchMethodError()) &&
+      func_name.StartsWith(Symbols::ThrowNew())) {
     return this;
   }
   return NULL;

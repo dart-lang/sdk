@@ -1974,7 +1974,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R13);  // arg 0
   __ pushq(RAX);  // arg 1
-  __ PushObject(Symbols::EqualOperatorHandle());  // Target's name.
+  __ PushObject(Symbols::EqualOperator());  // Target's name.
   __ pushq(RBX);  // ICData
   __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry);
   __ Drop(4);

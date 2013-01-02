@@ -354,7 +354,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   const Class& target_class = Class::Handle(type.type_class());
   String& target_class_name = String::Handle(target_class.Name());
   String& target_name = String::Handle(
-      String::Concat(target_class_name, Symbols::DotHandle()));
+      String::Concat(target_class_name, Symbols::Dot()));
   const String& identifier = String::Handle(factory.RedirectionIdentifier());
   if (!identifier.IsNull()) {
     target_name = String::Concat(target_name, identifier);
@@ -1530,9 +1530,10 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(
     const char* format, ...) {
   va_list args;
   va_start(args, format);
-  const String& no_name = String::Handle(Symbols::Empty());
   const UnresolvedClass& unresolved_class = UnresolvedClass::Handle(
-      UnresolvedClass::New(LibraryPrefix::Handle(), no_name, type_pos));
+      UnresolvedClass::New(LibraryPrefix::Handle(),
+                           Symbols::Empty(),
+                           type_pos));
   const Type& type = Type::Handle(
       Type::New(unresolved_class, TypeArguments::Handle(), type_pos));
   ReportMalformedType(prev_error, cls, type, finalization, format, args);

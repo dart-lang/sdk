@@ -1102,21 +1102,16 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
   DARTSCOPE(isolate);
   Library& isolate_lib = Library::Handle(isolate, Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
-  const String& public_class_name =
-      String::Handle(isolate, String::New("_ReceivePortImpl"));
-  const String& class_name =
-      String::Handle(isolate, isolate_lib.PrivateName(public_class_name));
-  const String& function_name =
-      String::Handle(isolate, Symbols::New("_get_or_create"));
+  const String& class_name = String::Handle(
+      isolate, isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
   const int kNumArguments = 1;
-  const Array& kNoArgNames = Array::Handle(isolate);
   const Function& function = Function::Handle(
       isolate,
       Resolver::ResolveStatic(isolate_lib,
                               class_name,
-                              function_name,
+                              Symbols::_get_or_create(),
                               kNumArguments,
-                              kNoArgNames,
+                              Object::empty_array(),
                               Resolver::kIsQualified));
   const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(isolate, Integer::New(port_id)));
@@ -1888,8 +1883,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   if (instance.IsNull()) {
     return Api::NewError("Object does not implement the List interface");
   }
-  String& name = String::Handle(isolate, Symbols::Length());
-  name = Field::GetterName(name);
+  const String& name = String::Handle(Field::GetterName(Symbols::Length()));
   const Function& function =
       Function::Handle(isolate, Resolver::ResolveDynamic(instance, name, 1, 0));
   if (function.IsNull()) {
@@ -1956,10 +1950,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
     if (!instance.IsNull()) {
       const Function& function = Function::Handle(
           isolate,
-          Resolver::ResolveDynamic(instance,
-                                   Symbols::IndexTokenHandle(),
-                                   2,
-                                   0));
+          Resolver::ResolveDynamic(instance, Symbols::IndexToken(), 2, 0));
       if (!function.IsNull()) {
         const int kNumArgs = 2;
         const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
@@ -2011,7 +2002,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
       const Function& function = Function::Handle(
           isolate,
           Resolver::ResolveDynamic(instance,
-                                   Symbols::AssignIndexTokenHandle(),
+                                   Symbols::AssignIndexToken(),
                                    3,
                                    0));
       if (!function.IsNull()) {
@@ -2096,10 +2087,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     if (!instance.IsNull()) {
       const Function& function = Function::Handle(
           isolate,
-          Resolver::ResolveDynamic(instance,
-                                   Symbols::IndexTokenHandle(),
-                                   2,
-                                   0));
+          Resolver::ResolveDynamic(instance, Symbols::IndexToken(), 2, 0));
       if (!function.IsNull()) {
         Object& result = Object::Handle(isolate);
         Integer& intobj = Integer::Handle(isolate);
@@ -2188,7 +2176,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
       const Function& function = Function::Handle(
           isolate,
           Resolver::ResolveDynamic(instance,
-                                   Symbols::AssignIndexTokenHandle(),
+                                   Symbols::AssignIndexToken(),
                                    3,
                                    0));
       if (!function.IsNull()) {
@@ -2799,7 +2787,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
     // Case 4.  Lookup the function with a . appended to find the
     // unnamed constructor.
     if (func.IsNull()) {
-      tmp_name = String::Concat(func_name, Symbols::DotHandle());
+      tmp_name = String::Concat(func_name, Symbols::Dot());
       func = cls.LookupFunction(tmp_name);
     }
   } else if (obj.IsLibrary()) {
@@ -3364,9 +3352,9 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   const Object& name_obj =
       Object::Handle(isolate, Api::UnwrapHandle(constructor_name));
   if (name_obj.IsNull()) {
-    dot_name = Symbols::Dot();
+    dot_name = Symbols::Dot().raw();
   } else if (name_obj.IsString()) {
-    dot_name = String::Concat(Symbols::DotHandle(), String::Cast(name_obj));
+    dot_name = String::Concat(Symbols::Dot(), String::Cast(name_obj));
   } else {
     RETURN_TYPE_ERROR(isolate, constructor_name, String);
   }
@@ -3510,7 +3498,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
         Resolver::ResolveStatic(cls,
                                 function_name,
                                 number_of_arguments,
-                                Array::Handle(isolate),
+                                Object::empty_array(),
                                 Resolver::kIsQualified));
     if (function.IsNull()) {
       const String& cls_name = String::Handle(isolate, cls.Name());
@@ -4340,7 +4328,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
   const Object& prefix_object =
       Object::Handle(isolate, Api::UnwrapHandle(prefix));
   const String& prefix_vm = prefix_object.IsNull()
-      ? String::Handle(isolate, Symbols::New(""))
+      ? Symbols::Empty()
       : String::Cast(prefix_object);
   if (prefix_vm.IsNull()) {
     RETURN_TYPE_ERROR(isolate, prefix, String);

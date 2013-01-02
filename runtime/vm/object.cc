@@ -187,8 +187,7 @@ static RawString* IdentifierPrettyName(const String& name) {
 
   if (is_setter) {
     // Setters need to end with '='.
-    const String& suffix = String::Handle(Symbols::Equals());
-    return String::Concat(result, suffix);
+    return String::Concat(result, Symbols::Equals());
   }
 
   return result.raw();
@@ -431,12 +430,10 @@ void Object::InitOnce() {
 
 #define SET_CLASS_NAME(class_name, name)                                       \
   cls = class_name##_class();                                                  \
-  str = Symbols::name();                                                       \
-  cls.set_name(str);                                                           \
+  cls.set_name(Symbols::name());                                               \
 
 void Object::RegisterSingletonClassNames() {
   Class& cls = Class::Handle();
-  String& str = String::Handle();
 
   // Set up names for all VM singleton classes.
   SET_CLASS_NAME(class, Class);
@@ -477,11 +474,9 @@ void Object::RegisterSingletonClassNames() {
   // Set up names for object array and one byte string class which are
   // pre-allocated in the vm isolate also.
   cls = Dart::vm_isolate()->object_store()->array_class();
-  str = Symbols::ObjectArray();
-  cls.set_name(str);
+  cls.set_name(Symbols::ObjectArray());
   cls = Dart::vm_isolate()->object_store()->one_byte_string_class();
-  str = Symbols::OneByteString();
-  cls.set_name(str);
+  cls.set_name(Symbols::OneByteString());
 }
 
 
@@ -623,13 +618,11 @@ RawError* Object::Init(Isolate* isolate) {
   String& name = String::Handle();
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
-  name = Symbols::Bool();
-  RegisterClass(cls, name, core_lib);
+  RegisterClass(cls, Symbols::Bool(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->array_class();  // Was allocated above.
-  name = Symbols::ObjectArray();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::ObjectArray(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
   type ^= Type::New(Object::Handle(cls.raw()),
@@ -640,51 +633,43 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_array_type(type);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
-  name = Symbols::GrowableObjectArray();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::GrowableObjectArray(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
-  name = Symbols::ImmutableArray();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::ImmutableArray(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
-  name = Symbols::OneByteString();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::OneByteString(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->two_byte_string_class();  // Was allocated above.
-  name = Symbols::TwoByteString();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::TwoByteString(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::NewStringClass(kExternalOneByteStringCid);
   object_store->set_external_one_byte_string_class(cls);
-  name = Symbols::ExternalOneByteString();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::ExternalOneByteString(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::NewStringClass(kExternalTwoByteStringCid);
   object_store->set_external_two_byte_string_class(cls);
-  name = Symbols::ExternalTwoByteString();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::ExternalTwoByteString(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
-  name = Symbols::Stacktrace();
-  RegisterClass(cls, name, core_lib);
+  RegisterClass(cls, Symbols::Stacktrace(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
-  name = Symbols::JSSyntaxRegExp();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::JSSyntaxRegExp(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
@@ -693,8 +678,7 @@ RawError* Object::Init(Isolate* isolate) {
   // Allocate and initialize the pre-allocated classes in the core library.
   cls = Class::New<Instance>(kInstanceCid);
   object_store->set_object_class(cls);
-  name = Symbols::Object();
-  cls.set_name(name);
+  cls.set_name(Symbols::Object());
   cls.set_script(script);
   cls.set_is_prefinalized();
   core_lib.AddClass(cls);
@@ -703,162 +687,134 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_object_type(type);
 
   cls = object_store->type_class();
-  name = Symbols::Type();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::Type(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->type_parameter_class();
-  name = Symbols::TypeParameter();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::TypeParameter(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
-  name = Symbols::IntegerImplementation();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::IntegerImplementation(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
-  name = Symbols::Smi();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::_Smi(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Mint>();
   object_store->set_mint_class(cls);
-  name = Symbols::Mint();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::_Mint(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bigint>();
   object_store->set_bigint_class(cls);
-  name = Symbols::Bigint();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::_Bigint(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Double>();
   object_store->set_double_class(cls);
-  name = Symbols::Double();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::_Double(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
-  name = Symbols::_WeakProperty();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
 
   Library::InitScalarlistLibrary(isolate);
   Library& scalarlist_lib = Library::Handle(Library::ScalarlistLibrary());
 
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);
-  name = Symbols::_Int8Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Int8Array(), scalarlist_lib);
 
   cls = Class::New<Uint8Array>();
   object_store->set_uint8_array_class(cls);
-  name = Symbols::_Uint8Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Uint8Array(), scalarlist_lib);
 
   cls = Class::New<Uint8ClampedArray>();
   object_store->set_uint8_clamped_array_class(cls);
-  name = Symbols::_Uint8ClampedArray();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Uint8ClampedArray(), scalarlist_lib);
 
   cls = Class::New<Int16Array>();
   object_store->set_int16_array_class(cls);
-  name = Symbols::_Int16Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Int16Array(), scalarlist_lib);
 
   cls = Class::New<Uint16Array>();
   object_store->set_uint16_array_class(cls);
-  name = Symbols::_Uint16Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Uint16Array(), scalarlist_lib);
 
   cls = Class::New<Int32Array>();
   object_store->set_int32_array_class(cls);
-  name = Symbols::_Int32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Int32Array(), scalarlist_lib);
 
   cls = Class::New<Uint32Array>();
   object_store->set_uint32_array_class(cls);
-  name = Symbols::_Uint32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Uint32Array(), scalarlist_lib);
 
   cls = Class::New<Int64Array>();
   object_store->set_int64_array_class(cls);
-  name = Symbols::_Int64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Int64Array(), scalarlist_lib);
 
   cls = Class::New<Uint64Array>();
   object_store->set_uint64_array_class(cls);
-  name = Symbols::_Uint64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Uint64Array(), scalarlist_lib);
 
   cls = Class::New<Float32Array>();
   object_store->set_float32_array_class(cls);
-  name = Symbols::_Float32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Float32Array(), scalarlist_lib);
 
   cls = Class::New<Float64Array>();
   object_store->set_float64_array_class(cls);
-  name = Symbols::_Float64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Float64Array(), scalarlist_lib);
 
   cls = Class::New<ExternalInt8Array>();
   object_store->set_external_int8_array_class(cls);
-  name = Symbols::_ExternalInt8Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalInt8Array(), scalarlist_lib);
 
   cls = Class::New<ExternalUint8Array>();
   object_store->set_external_uint8_array_class(cls);
-  name = Symbols::_ExternalUint8Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalUint8Array(), scalarlist_lib);
 
   cls = Class::New<ExternalUint8ClampedArray>();
   object_store->set_external_uint8_clamped_array_class(cls);
-  name = Symbols::_ExternalUint8ClampedArray();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls,
+                       Symbols::_ExternalUint8ClampedArray(),
+                       scalarlist_lib);
 
   cls = Class::New<ExternalInt16Array>();
   object_store->set_external_int16_array_class(cls);
-  name = Symbols::_ExternalInt16Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalInt16Array(), scalarlist_lib);
 
   cls = Class::New<ExternalUint16Array>();
   object_store->set_external_uint16_array_class(cls);
-  name = Symbols::_ExternalUint16Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalUint16Array(), scalarlist_lib);
 
   cls = Class::New<ExternalInt32Array>();
   object_store->set_external_int32_array_class(cls);
-  name = Symbols::_ExternalInt32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalInt32Array(), scalarlist_lib);
 
   cls = Class::New<ExternalUint32Array>();
   object_store->set_external_uint32_array_class(cls);
-  name = Symbols::_ExternalUint32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalUint32Array(), scalarlist_lib);
 
   cls = Class::New<ExternalInt64Array>();
   object_store->set_external_int64_array_class(cls);
-  name = Symbols::_ExternalInt64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalInt64Array(), scalarlist_lib);
 
   cls = Class::New<ExternalUint64Array>();
   object_store->set_external_uint64_array_class(cls);
-  name = Symbols::_ExternalUint64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalUint64Array(), scalarlist_lib);
 
   cls = Class::New<ExternalFloat32Array>();
   object_store->set_external_float32_array_class(cls);
-  name = Symbols::_ExternalFloat32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalFloat32Array(), scalarlist_lib);
 
   cls = Class::New<ExternalFloat64Array>();
   object_store->set_external_float64_array_class(cls);
-  name = Symbols::_ExternalFloat64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalFloat64Array(), scalarlist_lib);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -867,30 +823,28 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Note: The abstract class Function is represented by VM class
   // DartFunction, not VM class Function.
-  name = Symbols::Function();
   cls = Class::New<DartFunction>();
-  RegisterClass(cls, name, core_lib);
+  RegisterClass(cls, Symbols::Function(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_function_type(type);
 
   cls = Class::New<Number>();
-  name = Symbols::Number();
-  RegisterClass(cls, name, core_lib);
+  RegisterClass(cls, Symbols::Number(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_number_type(type);
 
-  name = Symbols::New("int");
-  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
-  RegisterClass(cls, name, core_lib);
+  cls = Class::New<Instance>(Symbols::Int(), script, Scanner::kDummyTokenIndex);
+  RegisterClass(cls, Symbols::Int(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int_type(type);
 
-  name = Symbols::New("double");
-  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
-  RegisterClass(cls, name, core_lib);
+  cls = Class::New<Instance>(Symbols::Double(),
+                             script,
+                             Scanner::kDummyTokenIndex);
+  RegisterClass(cls, Symbols::Double(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_double_type(type);
@@ -902,9 +856,10 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_type(type);
 
-  name = Symbols::New("List");
-  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
-  RegisterClass(cls, name, core_lib);
+  cls = Class::New<Instance>(Symbols::List(),
+                             script,
+                             Scanner::kDummyTokenIndex);
+  RegisterClass(cls, Symbols::List(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   object_store->set_list_class(cls);
 
@@ -1295,9 +1250,9 @@ RawString* Class::UserVisibleName() const {
     case kSmiCid:
     case kMintCid:
     case kBigintCid:
-      return Symbols::New("int");
+      return Symbols::Int().raw();
     case kDoubleCid:
-      return Symbols::New("double");
+      return Symbols::Double().raw();
     case kOneByteStringCid:
     case kTwoByteStringCid:
     case kExternalOneByteStringCid:
@@ -1306,40 +1261,40 @@ RawString* Class::UserVisibleName() const {
     case kArrayCid:
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
-      return Symbols::New("List");
+      return Symbols::List().raw();
     case kInt8ArrayCid:
     case kExternalInt8ArrayCid:
-      return Symbols::New("Int8List");
+      return Symbols::Int8List().raw();
     case kUint8ArrayCid:
     case kExternalUint8ArrayCid:
-      return Symbols::New("Uint8List");
+      return Symbols::Uint8List().raw();
     case kUint8ClampedArrayCid:
     case kExternalUint8ClampedArrayCid:
-      return Symbols::New("Uint8ClampedList");
+      return Symbols::Uint8ClampedList().raw();
     case kInt16ArrayCid:
     case kExternalInt16ArrayCid:
-      return Symbols::New("Int16List");
+      return Symbols::Int16List().raw();
     case kUint16ArrayCid:
     case kExternalUint16ArrayCid:
-      return Symbols::New("Uint16List");
+      return Symbols::Uint16List().raw();
     case kInt32ArrayCid:
     case kExternalInt32ArrayCid:
-      return Symbols::New("Int32List");
+      return Symbols::Int32List().raw();
     case kUint32ArrayCid:
     case kExternalUint32ArrayCid:
-      return Symbols::New("Uint32List");
+      return Symbols::Uint32List().raw();
     case kInt64ArrayCid:
     case kExternalInt64ArrayCid:
-      return Symbols::New("Int64List");
+      return Symbols::Int64List().raw();
     case kUint64ArrayCid:
     case kExternalUint64ArrayCid:
-      return Symbols::New("Uint64List");
+      return Symbols::Uint64List().raw();
     case kFloat32ArrayCid:
     case kExternalFloat32ArrayCid:
-      return Symbols::New("Float32List");
+      return Symbols::Float32List().raw();
     case kFloat64ArrayCid:
     case kExternalFloat64ArrayCid:
-      return Symbols::New("Float64List");
+      return Symbols::Float64List().raw();
     default:
       if (!IsSignatureClass()) {
         const String& name = String::Handle(Name());
@@ -2126,13 +2081,13 @@ bool Class::TypeTest(
                           malformed_error);
     }
     // Check if type S has a call() method of function type T.
-    const String& function_name = String::Handle(Symbols::Call());
-    Function& function = Function::Handle(LookupDynamicFunction(function_name));
+    Function& function =
+        Function::Handle(LookupDynamicFunction(Symbols::Call()));
     if (function.IsNull()) {
       // Walk up the super_class chain.
       Class& cls = Class::Handle(SuperClass());
       while (!cls.IsNull() && function.IsNull()) {
-        function = cls.LookupDynamicFunction(function_name);
+        function = cls.LookupDynamicFunction(Symbols::Call());
         cls = cls.SuperClass();
       }
     }
@@ -2480,11 +2435,9 @@ RawString* UnresolvedClass::Name() const {
   if (library_prefix() != LibraryPrefix::null()) {
     const LibraryPrefix& lib_prefix = LibraryPrefix::Handle(library_prefix());
     String& name = String::Handle();
-    String& str = String::Handle();
     name = lib_prefix.name();  // Qualifier.
-    str = Symbols::Dot();
-    name = String::Concat(name, str);
-    str = ident();
+    name = String::Concat(name, Symbols::Dot());
+    const String& str = String::Handle(ident());
     name = String::Concat(name, str);
     return name.raw();
   } else {
@@ -2577,18 +2530,17 @@ RawString* AbstractTypeArguments::SubvectorName(
   const intptr_t num_strings = 2*len + 1;  // "<""T"", ""T"">".
   const Array& strings = Array::Handle(Array::New(num_strings));
   intptr_t s = 0;
-  strings.SetAt(s++, String::Handle(Symbols::New("<")));
-  const String& kCommaSpace = String::Handle(Symbols::New(", "));
+  strings.SetAt(s++, Symbols::LAngleBracket());
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
     name = type.BuildName(name_visibility);
     strings.SetAt(s++, name);
     if (i < len - 1) {
-      strings.SetAt(s++, kCommaSpace);
+      strings.SetAt(s++, Symbols::CommaSpace());
     }
   }
-  strings.SetAt(s++, String::Handle(Symbols::New(">")));
+  strings.SetAt(s++, Symbols::RAngleBracket());
   ASSERT(s == num_strings);
   name = String::ConcatAll(strings);
   return Symbols::New(name);
@@ -3537,7 +3489,7 @@ bool Function::IsInlineable() const {
   // '==' call is handled specially.
   return InlinableBit::decode(raw_ptr()->kind_tag_) &&
          HasCode() &&
-         name() != Symbols::EqualOperator();
+         name() != Symbols::EqualOperator().raw();
 }
 
 
@@ -4038,8 +3990,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // Add implicit closure object parameter.
   param_type = Type::DynamicType();
   closure_function.SetParameterTypeAt(0, param_type);
-  param_name = Symbols::ClosureParameter();
-  closure_function.SetParameterNameAt(0, param_name);
+  closure_function.SetParameterNameAt(0, Symbols::ClosureParameter());
   for (int i = kClosure; i < num_params; i++) {
     param_type = ParameterTypeAt(has_receiver - kClosure + i);
     closure_function.SetParameterTypeAt(i, param_type);
@@ -4083,23 +4034,11 @@ RawString* Function::BuildSignature(
     const AbstractTypeArguments& instantiator) const {
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const String& kCommaSpace = String::Handle(Symbols::New(", "));
-  const String& kColonSpace = String::Handle(Symbols::New(": "));
-  const String& kLParen = String::Handle(Symbols::New("("));
-  const String& kRParenArrow = String::Handle(Symbols::New(") => "));
-  const String& kLBracket = String::Handle(Symbols::New("["));
-  const String& kRBracket = String::Handle(Symbols::New("]"));
-  const String& kLBrace = String::Handle(Symbols::New("{"));
-  const String& kRBrace = String::Handle(Symbols::New("}"));
   String& name = String::Handle();
   if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
     // Prefix the signature with its class and type parameters, if any (e.g.
     // "Map<K, V>(K) => bool").
     // The signature of static functions cannot be type parameterized.
-    const String& kSpaceExtendsSpace =
-        String::Handle(Symbols::New(" extends "));
-    const String& kLAngleBracket = String::Handle(Symbols::New("<"));
-    const String& kRAngleBracket = String::Handle(Symbols::New(">"));
     const Class& function_class = Class::Handle(Owner());
     ASSERT(!function_class.IsNull());
     const TypeArguments& type_parameters = TypeArguments::Handle(
@@ -4108,7 +4047,7 @@ RawString* Function::BuildSignature(
       const String& function_class_name = String::Handle(function_class.Name());
       pieces.Add(function_class_name);
       intptr_t num_type_parameters = type_parameters.Length();
-      pieces.Add(kLAngleBracket);
+      pieces.Add(Symbols::LAngleBracket());
       TypeParameter& type_parameter = TypeParameter::Handle();
       AbstractType& bound = AbstractType::Handle();
       for (intptr_t i = 0; i < num_type_parameters; i++) {
@@ -4117,15 +4056,15 @@ RawString* Function::BuildSignature(
         pieces.Add(name);
         bound = type_parameter.bound();
         if (!bound.IsNull() && !bound.IsObjectType()) {
-          pieces.Add(kSpaceExtendsSpace);
+          pieces.Add(Symbols::SpaceExtendsSpace());
           name = bound.BuildName(name_visibility);
           pieces.Add(name);
         }
         if (i < num_type_parameters - 1) {
-          pieces.Add(kCommaSpace);
+          pieces.Add(Symbols::CommaSpace());
         }
       }
-      pieces.Add(kRAngleBracket);
+      pieces.Add(Symbols::RAngleBracket());
     }
   }
   AbstractType& param_type = AbstractType::Handle();
@@ -4135,7 +4074,7 @@ RawString* Function::BuildSignature(
   const intptr_t num_opt_named_params = NumOptionalNamedParameters();
   const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
   ASSERT((num_fixed_params + num_opt_params) == num_params);
-  pieces.Add(kLParen);
+  pieces.Add(Symbols::LParen());
   intptr_t i = 0;
   if (name_visibility == kUserVisibleName) {
     // Hide implicit parameters.
@@ -4150,15 +4089,15 @@ RawString* Function::BuildSignature(
     name = param_type.BuildName(name_visibility);
     pieces.Add(name);
     if (i != (num_params - 1)) {
-      pieces.Add(kCommaSpace);
+      pieces.Add(Symbols::CommaSpace());
     }
     i++;
   }
   if (num_opt_params > 0) {
     if (num_opt_pos_params > 0) {
-      pieces.Add(kLBracket);
+      pieces.Add(Symbols::LBracket());
     } else {
-      pieces.Add(kLBrace);
+      pieces.Add(Symbols::LBrace());
     }
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
       // The parameter name of an optional positional parameter does not need
@@ -4166,7 +4105,7 @@ RawString* Function::BuildSignature(
       if (num_opt_named_params > 0) {
         name = ParameterNameAt(i);
         pieces.Add(name);
-        pieces.Add(kColonSpace);
+        pieces.Add(Symbols::ColonSpace());
       }
       param_type = ParameterTypeAt(i);
       if (instantiate && !param_type.IsInstantiated()) {
@@ -4176,16 +4115,16 @@ RawString* Function::BuildSignature(
       name = param_type.BuildName(name_visibility);
       pieces.Add(name);
       if (i != (num_params - 1)) {
-        pieces.Add(kCommaSpace);
+        pieces.Add(Symbols::CommaSpace());
       }
     }
     if (num_opt_pos_params > 0) {
-      pieces.Add(kRBracket);
+      pieces.Add(Symbols::RBracket());
     } else {
-      pieces.Add(kRBrace);
+      pieces.Add(Symbols::RBrace());
     }
   }
-  pieces.Add(kRParenArrow);
+  pieces.Add(Symbols::RParenArrow());
   AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {
     res_type = res_type.InstantiateFrom(instantiator);
@@ -4246,7 +4185,6 @@ RawString* Function::UserVisibleName() const {
 
 RawString* Function::QualifiedUserVisibleName() const {
   String& tmp = String::Handle();
-  String& suffix = String::Handle();
   const Class& cls = Class::Handle(Owner());
 
   if (IsClosureFunction()) {
@@ -4263,9 +4201,8 @@ RawString* Function::QualifiedUserVisibleName() const {
       tmp = cls.UserVisibleName();
     }
   }
-  suffix = Symbols::Dot();
-  tmp = String::Concat(tmp, suffix);
-  suffix = UserVisibleName();
+  tmp = String::Concat(tmp, Symbols::Dot());
+  const String& suffix = String::Handle(UserVisibleName());
   return String::Concat(tmp, suffix);
 }
 
@@ -4432,8 +4369,7 @@ RawString* Field::GetterName(const String& field_name) {
 
 
 RawString* Field::GetterSymbol(const String& field_name) {
-  String& str = String::Handle();
-  str = Field::GetterName(field_name);
+  const String& str = String::Handle(Field::GetterName(field_name));
   return Symbols::New(str);
 }
 
@@ -4447,8 +4383,7 @@ RawString* Field::SetterName(const String& field_name) {
 
 
 RawString* Field::SetterSymbol(const String& field_name) {
-  String& str = String::Handle();
-  str = Field::SetterName(field_name);
+  const String& str = String::Handle(Field::SetterName(field_name));
   return Symbols::New(str);
 }
 
@@ -4645,14 +4580,6 @@ RawString* TokenStream::GenerateSource() const {
   const String& private_key = String::Handle(PrivateKey());
   intptr_t private_len = private_key.Length();
 
-  String& blank = String::Handle(String::New(" "));
-  String& newline = String::Handle(String::New("\n"));
-  String& two_newlines = String::Handle(String::New("\n\n"));
-  String& double_quotes = String::Handle(String::New("\""));
-  String& dollar = String::Handle(String::New("$"));
-  String& two_spaces = String::Handle(String::New("  "));
-  String& raw_string = String::Handle(String::New("r"));
-
   Token::Kind curr = iterator.CurrentTokenKind();
   Token::Kind prev = Token::kILLEGAL;
   // Handles used in the loop.
@@ -4693,9 +4620,9 @@ RawString* TokenStream::GenerateSource() const {
       }
       if ((prev != Token::kINTERPOL_VAR) && (prev != Token::kINTERPOL_END)) {
         if (is_raw_string) {
-          literals.Add(raw_string);
+          literals.Add(Symbols::LowercaseR());
         }
-        literals.Add(double_quotes);
+        literals.Add(Symbols::DoubleQuotes());
       }
       if (escape_characters) {
         literal = String::EscapeSpecialCharacters(literal, is_raw_string);
@@ -4704,10 +4631,10 @@ RawString* TokenStream::GenerateSource() const {
         literals.Add(literal);
       }
       if ((next != Token::kINTERPOL_VAR) && (next != Token::kINTERPOL_START)) {
-        literals.Add(double_quotes);
+        literals.Add(Symbols::DoubleQuotes());
       }
     } else if (curr == Token::kINTERPOL_VAR) {
-      literals.Add(dollar);
+      literals.Add(Symbols::Dollar());
       if (literal.CharAt(0) == Scanner::kPrivateIdentifierStart) {
         literal = String::SubString(literal, 0, literal.Length() - private_len);
       }
@@ -4725,17 +4652,17 @@ RawString* TokenStream::GenerateSource() const {
     switch (curr) {
       case Token::kLBRACE:
         indent++;
-        separator = &newline;
+        separator = &Symbols::NewLine();
         break;
       case Token::kRBRACE:
         if (indent == 0) {
-          separator = &two_newlines;
+          separator = &Symbols::TwoNewlines();
         } else {
-          separator = &newline;
+          separator = &Symbols::NewLine();
         }
         break;
       case Token::kSEMICOLON:
-        separator = &newline;
+        separator = &Symbols::NewLine();
         break;
       case Token::kPERIOD:
       case Token::kLPAREN:
@@ -4746,7 +4673,7 @@ RawString* TokenStream::GenerateSource() const {
       case Token::kINTERPOL_END:
         break;
       default:
-        separator = &blank;
+        separator = &Symbols::Blank();
         break;
     }
     // Determine whether the separation text needs to be updated based on the
@@ -4768,7 +4695,7 @@ RawString* TokenStream::GenerateSource() const {
         separator = NULL;
         break;
       case Token::kELSE:
-        separator = &blank;
+        separator = &Symbols::Blank();
       default:
         // Do nothing.
         break;
@@ -4776,17 +4703,17 @@ RawString* TokenStream::GenerateSource() const {
     // Update the few cases where both tokens need to be taken into account.
     if (((curr == Token::kIF) || (curr == Token::kFOR)) &&
         (next == Token::kLPAREN)) {
-      separator = &blank;
+      separator = &Symbols::Blank();
     } else if ((curr == Token::kASSIGN) && (next == Token::kLPAREN)) {
-      separator = & blank;
+      separator = &Symbols::Blank();
     } else if ((curr == Token::kLBRACE) && (next == Token::kRBRACE)) {
       separator = NULL;
     }
     if (separator != NULL) {
       literals.Add(*separator);
-      if (separator == &newline) {
+      if (separator == &Symbols::NewLine()) {
         for (int i = 0; i < indent; i++) {
-          literals.Add(two_spaces);
+          literals.Add(Symbols::TwoSpaces());
         }
       }
     }
@@ -5219,10 +5146,9 @@ void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
   const String& src = String::Handle(Source());
-  const String& dummy_key = String::Handle(Symbols::Empty());
   const TokenStream& tkns = TokenStream::Handle(tokens());
   intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
-  Scanner scanner(src, dummy_key);
+  Scanner scanner(src, Symbols::Empty());
   scanner.ScanTo(src_pos);
   *line = scanner.CurrentPosition().line;
   *column = scanner.CurrentPosition().column;
@@ -5233,9 +5159,8 @@ void Script::TokenRangeAtLine(intptr_t line_number,
                               intptr_t* first_token_index,
                               intptr_t* last_token_index) const {
   const String& src = String::Handle(Source());
-  const String& dummy_key = String::Handle(Symbols::Empty());
   const TokenStream& tkns = TokenStream::Handle(tokens());
-  Scanner scanner(src, dummy_key);
+  Scanner scanner(src, Symbols::Empty());
   scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
   if (*first_token_index >= 0) {
     *first_token_index = tkns.ComputeTokenPosition(*first_token_index);
@@ -5268,11 +5193,13 @@ RawString* Script::GetLine(intptr_t line_number) const {
     }
   }
   // Guarantee that returned string is never NULL.
-  String& line = String::Handle(Symbols::Empty());
   if (line_start >= 0) {
-    line = String::SubString(src, line_start, last_char - line_start + 1);
+    const String& line = String::Handle(
+        String::SubString(src, line_start, last_char - line_start + 1));
+    return line.raw();
+  } else {
+    return Symbols::Empty().raw();
   }
-  return line.raw();
 }
 
 
@@ -8542,10 +8469,9 @@ bool Instance::IsCallable(Function* function, Context* context) const {
     return true;
   }
   // Try to resolve a "call" method.
-  const String& call_symbol = String::Handle(Symbols::Call());
   Function& call_function = Function::Handle();
   do {
-    call_function = cls.LookupDynamicFunction(call_symbol);
+    call_function = cls.LookupDynamicFunction(Symbols::Call());
     if (!call_function.IsNull()) {
       if (function != NULL) {
         *function = call_function.raw();
@@ -10690,7 +10616,7 @@ RawString* String::SubString(const String& str,
   ASSERT(begin_index >= 0);
   ASSERT(length >= 0);
   if (begin_index <= str.Length() && length == 0) {
-    return Symbols::Empty();
+    return Symbols::Empty().raw();
   }
   if (begin_index > str.Length()) {
     return String::null();
@@ -11103,7 +11029,7 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
   ASSERT(begin_index >= 0);
   ASSERT(length >= 0);
   if (begin_index <= str.Length() && length == 0) {
-    return OneByteString::raw(String::Handle(Symbols::Empty()));
+    return OneByteString::raw(Symbols::Empty());
   }
   ASSERT(begin_index < str.Length());
   RawOneByteString* result = OneByteString::New(length, space);

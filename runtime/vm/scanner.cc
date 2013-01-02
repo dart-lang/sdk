@@ -426,19 +426,16 @@ void Scanner::ScanLibraryTag() {
     SkipLine();
     return;
   }
-  const String& kLibrary = String::Handle(Symbols::Library());
-  const String& kImport = String::Handle(Symbols::Import());
-  const String& kSource = String::Handle(Symbols::Source());
   const String& ident = String::Handle(ConsumeIdentChars(false));
-  if (ident.Equals(kLibrary)) {
+  if (ident.Equals(Symbols::Library())) {
     current_token_.kind = Token::kLEGACY_LIBRARY;
     return;
   }
-  if (ident.Equals(kImport)) {
+  if (ident.Equals(Symbols::Import())) {
     current_token_.kind = Token::kLEGACY_IMPORT;
     return;
   }
-  if (ident.Equals(kSource)) {
+  if (ident.Equals(Symbols::Source())) {
     current_token_.kind = Token::kLEGACY_SOURCE;
     return;
   }

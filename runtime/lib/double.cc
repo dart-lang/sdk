@@ -206,8 +206,7 @@ DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
 
 DEFINE_NATIVE_ENTRY(Double_parse, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
-  const String& dummy_key = String::Handle(Symbols::Empty());
-  Scanner scanner(value, dummy_key);
+  Scanner scanner(value, Symbols::Empty());
   const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
   String* number_string;
   bool is_positive;

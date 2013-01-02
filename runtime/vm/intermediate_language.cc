@@ -1927,7 +1927,7 @@ LocationSummary* StaticCallInstr::MakeLocationSummary() const {
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label skip_call;
-  if (function().name() == Symbols::EqualOperator()) {
+  if (function().name() == Symbols::EqualOperator().raw()) {
     compiler->EmitSuperEqualityCallPrologue(locs()->out().reg(), &skip_call);
   }
   compiler->GenerateStaticCall(deopt_id(),

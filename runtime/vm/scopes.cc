@@ -259,7 +259,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.info.index = var->index();
         vars->Add(desc);
       } else if (var->name().Equals(
-            Symbols::Name(Symbols::kSavedEntryContextVar))) {
+            Symbols::Name(Symbols::kSavedEntryContextVarId))) {
         // This is the local variable in which the function saves the
         // caller's chain of closure contexts (caller's CTX register).
         VarDesc desc;
@@ -526,7 +526,7 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
 
   // Create a descriptor for 'this' variable.
   context_scope.SetTokenIndexAt(0, func.token_pos());
-  context_scope.SetNameAt(0, Symbols::ThisHandle());
+  context_scope.SetNameAt(0, Symbols::This());
   context_scope.SetIsFinalAt(0, true);
   context_scope.SetIsConstAt(0, false);
   const AbstractType& type = AbstractType::Handle(func.ParameterTypeAt(0));

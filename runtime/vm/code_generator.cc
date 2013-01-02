@@ -234,9 +234,9 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
       const intptr_t location = GetCallerLocation();
       String& malformed_error_message =  String::Handle(
           String::New(malformed_error.ToErrorCString()));
-      const String& no_name = String::Handle(Symbols::Empty());
       Exceptions::CreateAndThrowTypeError(
-          location, no_name, no_name, no_name, malformed_error_message);
+          location, Symbols::Empty(), Symbols::Empty(),
+          Symbols::Empty(), malformed_error_message);
       UNREACHABLE();
     }
   }
@@ -588,9 +588,9 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
     const intptr_t location = GetCallerLocation();
     String& malformed_error_message =  String::Handle(
         String::New(malformed_error.ToErrorCString()));
-    const String& no_name = String::Handle(Symbols::Empty());
     Exceptions::CreateAndThrowTypeError(
-        location, no_name, no_name, no_name, malformed_error_message);
+        location, Symbols::Empty(), Symbols::Empty(),
+        Symbols::Empty(), malformed_error_message);
     UNREACHABLE();
   }
   UpdateTypeTestCache(instance, type, instantiator,
@@ -707,10 +707,10 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
   const String& src_type_name = String::Handle(src_type.UserVisibleName());
   const String& bool_type_name =
       String::Handle(bool_interface.UserVisibleName());
-  const String& expr = String::Handle(Symbols::New("boolean expression"));
   const String& no_malformed_type_error = String::Handle();
   Exceptions::CreateAndThrowTypeError(location, src_type_name, bool_type_name,
-                                      expr, no_malformed_type_error);
+                                      Symbols::BooleanExpression(),
+                                      no_malformed_type_error);
   UNREACHABLE();
 }
 
@@ -727,11 +727,11 @@ DEFINE_RUNTIME_ENTRY(MalformedTypeError, 3) {
   const Instance& src_value = Instance::CheckedHandle(arguments.ArgAt(0));
   const String& dst_name = String::CheckedHandle(arguments.ArgAt(1));
   const String& malformed_error = String::CheckedHandle(arguments.ArgAt(2));
-  const String& dst_type_name = String::Handle(Symbols::New("malformed"));
   const AbstractType& src_type = AbstractType::Handle(src_value.GetType());
   const String& src_type_name = String::Handle(src_type.UserVisibleName());
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
-                                      dst_type_name, dst_name, malformed_error);
+                                      Symbols::Malformed(),
+                                      dst_name, malformed_error);
   UNREACHABLE();
 }
 

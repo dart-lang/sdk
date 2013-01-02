@@ -2009,7 +2009,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(EDI);  // arg 0
   __ pushl(EAX);  // arg 1
-  __ PushObject(Symbols::EqualOperatorHandle());  // Target's name.
+  __ PushObject(Symbols::EqualOperator());  // Target's name.
   __ pushl(ECX);  // ICData
   __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry);
   __ Drop(4);

@@ -510,11 +510,10 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
       const AbstractType& dst_type =
           AbstractType::ZoneHandle(
               owner()->parsed_function().function().result_type());
-      const String& dst_name = String::ZoneHandle(Symbols::FunctionResult());
       return_value = BuildAssignableValue(node->value()->token_pos(),
                                           return_value,
                                           dst_type,
-                                          dst_name);
+                                          Symbols::FunctionResult());
     }
   }
 
@@ -1608,7 +1607,7 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
-  if (node->function().name() == Symbols::Identical()) {
+  if (node->function().name() == Symbols::Identical().raw()) {
     // Attempt to replace top level defined 'identical' from the core
     // library with strict equal early on.
     // TODO(hausner): Evaluate if this can happen at AST building time.
@@ -1759,7 +1758,7 @@ static bool IsRecognizedConstructor(const Function& function,
 
   const String& function_name = String::Handle(function.name());
   const String& expected_function_name = String::Handle(
-      String::Concat(expected_class_name, Symbols::DotHandle()));
+      String::Concat(expected_class_name, Symbols::Dot()));
   return function_name.Equals(expected_function_name);
 }
 
@@ -1774,8 +1773,8 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
   }
 
   if (node->constructor().IsFactory()) {
-    if ((function_class.Name() == Symbols::List()) &&
-        (function.name() == Symbols::ListFactory())) {
+    if ((function_class.Name() == Symbols::List().raw()) &&
+        (function.name() == Symbols::ListFactory().raw())) {
       // If there are no arguments then the result is guaranteed to be a
       // GrowableObjectArray. However if there is an argument the result
       // is not guaranteed to be a fixed size array because the argument
@@ -1784,12 +1783,11 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
         return kGrowableObjectArrayCid;
       }
     } else {
-      if (IsRecognizedConstructor(function,
-                                  String::Handle(Symbols::ObjectArray())) &&
+      if (IsRecognizedConstructor(function, Symbols::ObjectArray()) &&
           (node->arguments()->length() == 1)) {
         return kArrayCid;
       } else if (IsRecognizedConstructor(function,
-                     String::Handle(Symbols::GrowableObjectArray())) &&
+                                         Symbols::GrowableObjectArray()) &&
                  (node->arguments()->length() == 0)) {
         return kGrowableObjectArrayCid;
       }
@@ -2396,7 +2394,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
     // Resolve the load indexed operator in the super class.
     super_function = &Function::ZoneHandle(
           Resolver::ResolveDynamicAnyArgs(node->super_class(),
-                                          Symbols::IndexTokenHandle()));
+                                          Symbols::IndexToken()));
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
@@ -2406,7 +2404,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
       StaticCallInstr* call =
           BuildStaticNoSuchMethodCall(node->super_class(),
                                       node->array(),
-                                      Symbols::IndexTokenHandle(),
+                                      Symbols::IndexToken(),
                                       arguments);
       ReturnDefinition(call);
       return;
@@ -2435,7 +2433,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
     // Generate dynamic call to index operator.
     const intptr_t checked_argument_count = 1;
     InstanceCallInstr* load = new InstanceCallInstr(node->token_pos(),
-                                                    Symbols::IndexTokenHandle(),
+                                                    Symbols::IndexToken(),
                                                     Token::kINDEX,
                                                     arguments,
                                                     Array::ZoneHandle(),
@@ -2453,7 +2451,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     // Resolve the store indexed operator in the super class.
     super_function = &Function::ZoneHandle(
         Resolver::ResolveDynamicAnyArgs(node->super_class(),
-                                        Symbols::AssignIndexTokenHandle()));
+                                        Symbols::AssignIndexToken()));
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
@@ -2472,7 +2470,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
       StaticCallInstr* call =
           BuildStaticNoSuchMethodCall(node->super_class(),
                                       node->array(),
-                                      Symbols::AssignIndexTokenHandle(),
+                                      Symbols::AssignIndexToken(),
                                       arguments);
       if (result_is_needed) {
         Do(call);
@@ -2806,16 +2804,13 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
     ArgumentListNode* method_arguments) {
   // Build the graph to allocate an InvocationMirror object by calling
   // the static allocation method.
-  const String& mirror_name = String::Handle(Symbols::InvocationMirror());
   const Library& corelib = Library::Handle(Library::CoreLibrary());
   const Class& mirror_class = Class::Handle(
-      corelib.LookupClassAllowPrivate(mirror_name));
+      corelib.LookupClassAllowPrivate(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
-  const String& function_name = String::Handle(
-      Symbols::AllocateInvocationMirror());
   const Function& allocation_function = Function::ZoneHandle(
       Resolver::ResolveStaticByName(mirror_class,
-                                    function_name,
+                                    Symbols::AllocateInvocationMirror(),
                                     Resolver::kIsQualified));
   ASSERT(!allocation_function.IsNull());
 
@@ -2855,10 +2850,8 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   Value* invocation_mirror = Bind(allocation);
   PushArgumentInstr* push_invocation_mirror = PushArgument(invocation_mirror);
   // Lookup noSuchMethod and call it with the receiver and the InvocationMirror.
-  const String& no_such_method_name =
-      String::ZoneHandle(Symbols::NoSuchMethod());
   const Function& no_such_method_func = Function::ZoneHandle(
-      Resolver::ResolveDynamicAnyArgs(target_class, no_such_method_name));
+      Resolver::ResolveDynamicAnyArgs(target_class, Symbols::NoSuchMethod()));
   // We are guaranteed to find noSuchMethod of class Object.
   ASSERT(!no_such_method_func.IsNull());
   ZoneGrowableArray<PushArgumentInstr*>* args =
@@ -2906,14 +2899,13 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
       Bind(new ConstantInstr(Array::ZoneHandle()));
   arguments->Add(PushArgument(existing_argument_names_value));
   // Resolve and call NoSuchMethodError._throwNew.
-  const String& cls_name = String::Handle(Symbols::NoSuchMethodError());
-  const String& func_name = String::Handle(Symbols::ThrowNew());
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::Handle(
-      Library::Handle(Library::CoreLibrary()).LookupClass(cls_name));
+      core_lib.LookupClass(Symbols::NoSuchMethodError()));
   ASSERT(!cls.IsNull());
   const Function& func = Function::ZoneHandle(
       Resolver::ResolveStatic(cls,
-                              func_name,
+                              Symbols::ThrowNew(),
                               arguments->length(),
                               Array::ZoneHandle(),
                               Resolver::kIsQualified));

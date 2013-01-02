@@ -131,7 +131,7 @@ RawObject* DartEntry::InvokeClosure(const Instance& instance,
   }
   // There is no compatible 'call' method, so invoke noSuchMethod.
   return InvokeNoSuchMethod(instance,
-                            String::Handle(Symbols::Call()),
+                            Symbols::Call(),
                             arguments,
                             arguments_descriptor);
 }
@@ -144,16 +144,12 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   ASSERT(receiver.raw() == arguments.At(0));
   // Allocate an InvocationMirror object.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const String& invocation_mirror_name =
-      String::Handle(Symbols::InvocationMirror());
-  Class& invocation_mirror_class =
-      Class::Handle(core_lib.LookupClassAllowPrivate(invocation_mirror_name));
+  Class& invocation_mirror_class = Class::Handle(
+      core_lib.LookupClassAllowPrivate(Symbols::InvocationMirror()));
   ASSERT(!invocation_mirror_class.IsNull());
-  const String& allocation_function_name =
-      String::Handle(Symbols::AllocateInvocationMirror());
   const Function& allocation_function = Function::Handle(
       Resolver::ResolveStaticByName(invocation_mirror_class,
-                                    allocation_function_name,
+                                    Symbols::AllocateInvocationMirror(),
                                     Resolver::kIsQualified));
   ASSERT(!allocation_function.IsNull());
   const int kNumAllocationArgs = 3;
@@ -165,12 +161,11 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
       InvokeStatic(allocation_function, allocation_args));
 
   // Now use the invocation mirror object and invoke NoSuchMethod.
-  const String& function_name = String::Handle(Symbols::NoSuchMethod());
   const int kNumArguments = 2;
   const int kNumNamedArguments = 0;
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver,
-                               function_name,
+                               Symbols::NoSuchMethod(),
                                kNumArguments,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());
@@ -316,7 +311,7 @@ RawObject* DartLibraryCalls::ExceptionCreate(const Library& lib,
   }
 
   String& constructor_name = String::Handle(
-      String::Concat(class_name, Symbols::DotHandle()));
+      String::Concat(class_name, Symbols::Dot()));
   Function& constructor =
       Function::Handle(cls.LookupConstructor(constructor_name));
   ASSERT(!constructor.IsNull());
@@ -331,13 +326,11 @@ RawObject* DartLibraryCalls::ExceptionCreate(const Library& lib,
 
 
 RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
-  const String& function_name =
-      String::Handle(Symbols::New("toString"));
   const int kNumArguments = 1;  // Receiver.
   const int kNumNamedArguments = 0;  // None.
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver,
-                               function_name,
+                               Symbols::toString(),
                                kNumArguments,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());
@@ -356,7 +349,7 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
   const int kNumNamedArguments = 0;
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(left,
-                               Symbols::EqualOperatorHandle(),
+                               Symbols::EqualOperator(),
                                kNumArguments,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());
@@ -380,18 +373,13 @@ RawObject* DartLibraryCalls::LookupReceivePort(Dart_Port port_id) {
   if (function.IsNull()) {
     Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
     ASSERT(!isolate_lib.IsNull());
-    const String& public_class_name =
-        String::Handle(Symbols::New("_ReceivePortImpl"));
     const String& class_name =
-        String::Handle(isolate_lib.PrivateName(public_class_name));
-    const String& function_name =
-        String::Handle(Symbols::New("_lookupReceivePort"));
-    const Array& kNoArgumentNames = Array::Handle();
+        String::Handle(isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
     function = Resolver::ResolveStatic(isolate_lib,
                                        class_name,
-                                       function_name,
+                                       Symbols::_lookupReceivePort(),
                                        kNumArguments,
-                                       kNoArgumentNames,
+                                       Object::empty_array(),
                                        Resolver::kIsQualified);
     isolate->object_store()->set_lookup_receive_port_function(function);
   }
@@ -414,18 +402,13 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
   if (function.IsNull()) {
     Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
     ASSERT(!isolate_lib.IsNull());
-    const String& public_class_name =
-        String::Handle(Symbols::New("_ReceivePortImpl"));
     const String& class_name =
-        String::Handle(isolate_lib.PrivateName(public_class_name));
-    const String& function_name =
-        String::Handle(Symbols::New("_handleMessage"));
-    const Array& kNoArgumentNames = Array::Handle();
+        String::Handle(isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
     function = Resolver::ResolveStatic(isolate_lib,
                                        class_name,
-                                       function_name,
+                                       Symbols::_handleMessage(),
                                        kNumArguments,
-                                       kNoArgumentNames,
+                                       Object::empty_array(),
                                        Resolver::kIsQualified);
     isolate->object_store()->set_handle_message_function(function);
   }
@@ -443,19 +426,15 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
 RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
-  const String& public_class_name =
-      String::Handle(String::New("_SendPortImpl"));
   const String& class_name =
-      String::Handle(isolate_lib.PrivateName(public_class_name));
-  const String& function_name = String::Handle(Symbols::New("_create"));
+      String::Handle(isolate_lib.PrivateName(Symbols::_SendPortImpl()));
   const int kNumArguments = 1;
-  const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
       Resolver::ResolveStatic(isolate_lib,
                               class_name,
-                              function_name,
+                              Symbols::_create(),
                               kNumArguments,
-                              kNoArgumentNames,
+                              Object::empty_array(),
                               Resolver::kIsQualified));
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(Integer::New(port_id)));
@@ -466,10 +445,12 @@ RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
 RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
                                       const Instance& key,
                                       const Instance& value) {
-  String& name = String::Handle(Symbols::AssignIndexToken());
   const int kNumArguments = 3;
   const Function& function = Function::Handle(
-      Resolver::ResolveDynamic(map, name, kNumArguments, 0));
+      Resolver::ResolveDynamic(map,
+                               Symbols::AssignIndexToken(),
+                               kNumArguments,
+                               0));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, map);
@@ -482,9 +463,8 @@ RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
 
 
 RawObject* DartLibraryCalls::PortGetId(const Instance& port) {
-  const String& field_name = String::Handle(Symbols::New("_id"));
   const Class& cls = Class::Handle(port.clazz());
-  const String& func_name = String::Handle(Field::GetterName(field_name));
+  const String& func_name = String::Handle(Field::GetterName(Symbols::_id()));
   const Function& func = Function::Handle(cls.LookupDynamicFunction(func_name));
   ASSERT(!func.IsNull());
   const Array& args = Array::Handle(Array::New(1));

@@ -148,7 +148,7 @@ class SourceLabel : public ZoneAllocated {
       return new SourceLabel(token_pos, *name, kind);
     } else {
       return new SourceLabel(token_pos,
-                             String::ZoneHandle(Symbols::DefaultLabel()),
+                             Symbols::DefaultLabel(),
                              kind);
     }
   }

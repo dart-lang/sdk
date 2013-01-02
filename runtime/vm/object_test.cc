@@ -3125,13 +3125,12 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   {
     // Weak property and value in new. Key in VM isolate.
     HANDLESCOPE(isolate);
-    String& key = String::Handle();
-    key ^= Symbols::Dot();
     String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kNew);
     weak ^= WeakProperty::New(Heap::kNew);
-    weak.set_key(key);
+    weak.set_key(Symbols::Dot());
     weak.set_value(value);
+    String& key = String::Handle();
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
@@ -3143,13 +3142,12 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   {
     // Weak property and value in old. Key in VM isolate.
     HANDLESCOPE(isolate);
-    String& key = String::Handle();
-    key ^= Symbols::Dot();
     String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kOld);
     weak ^= WeakProperty::New(Heap::kOld);
-    weak.set_key(key);
+    weak.set_key(Symbols::Dot());
     weak.set_value(value);
+    String& key = String::Handle();
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }

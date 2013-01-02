@@ -102,10 +102,10 @@ class ObjectPointerVisitor;
   V(UnwindError, "UnwindError")                                                \
   V(IntegerImplementation, "_IntegerImplementation")                           \
   V(Number, "num")                                                             \
-  V(Smi, "_Smi")                                                               \
-  V(Mint, "_Mint")                                                             \
-  V(Bigint, "_Bigint")                                                         \
-  V(Double, "_Double")                                                         \
+  V(_Smi, "_Smi")                                                              \
+  V(_Mint, "_Mint")                                                            \
+  V(_Bigint, "_Bigint")                                                        \
+  V(_Double, "_Double")                                                        \
   V(Bool, "bool")                                                              \
   V(ObjectArray, "_ObjectArray")                                               \
   V(GrowableObjectArray, "_GrowableObjectArray")                               \
@@ -117,6 +117,19 @@ class ObjectPointerVisitor;
   V(Stacktrace, "Stacktrace")                                                  \
   V(JSSyntaxRegExp, "_JSSyntaxRegExp")                                         \
   V(Object, "Object")                                                          \
+  V(Int, "int")                                                                \
+  V(Double, "double")                                                          \
+  V(Int8List, "Int8List")                                                      \
+  V(Uint8List, "Uint8List")                                                    \
+  V(Uint8ClampedList, "Uint8ClampedList")                                      \
+  V(Int16List, "Int16List")                                                    \
+  V(Uint16List, "Uint16List")                                                  \
+  V(Int32List, "Int32List")                                                    \
+  V(Uint32List, "Uint32List")                                                  \
+  V(Int64List, "Int64List")                                                    \
+  V(Uint64List, "Uint64List")                                                  \
+  V(Float32List, "Float32List")                                                \
+  V(Float64List, "Float64List")                                                \
   V(_Int8Array, "_Int8Array")                                                  \
   V(_Uint8Array, "_Uint8Array")                                                \
   V(_Uint8ClampedArray, "_Uint8ClampedArray")                                  \
@@ -142,13 +155,37 @@ class ObjectPointerVisitor;
   V(_WeakProperty, "_WeakProperty")                                            \
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
-
-#define PREDEFINED_SYMBOL_HANDLES_LIST(V)                                      \
-  V(Dot)                                                                       \
-  V(EqualOperator)                                                             \
-  V(IndexToken)                                                                \
-  V(AssignIndexToken)                                                          \
-  V(This)                                                                      \
+  V(toString, "toString")                                                      \
+  V(_ReceivePortImpl, "_ReceivePortImpl")                                      \
+  V(_lookupReceivePort, "_lookupReceivePort")                                  \
+  V(_handleMessage, "_handleMessage")                                          \
+  V(_SendPortImpl, "_SendPortImpl")                                            \
+  V(_create, "_create")                                                        \
+  V(_id, "_id")                                                                \
+  V(_get_or_create, "_get_or_create")                                          \
+  V(RangeError, "RangeError")                                                  \
+  V(ArgumentError, "ArgumentError")                                            \
+  V(FormatException, "FormatException")                                        \
+  V(StackOverflowError, "StackOverflowError")                                  \
+  V(OutOfMemoryError, "OutOfMemoryError")                                      \
+  V(InternalError, "InternalError")                                            \
+  V(NullThrownError, "NullThrownError")                                        \
+  V(IllegalJSRegExpException, "IllegalJSRegExpException")                      \
+  V(IsolateSpawnException, "IsolateSpawnException")                            \
+  V(IsolateUnhandledException, "IsolateUnhandledException")                    \
+  V(BooleanExpression, "boolean expression")                                   \
+  V(Malformed, "malformed")                                                    \
+  V(InstanceOf, "InstanceOf")                                                  \
+  V(MegamorphicMiss, "megamorphic_miss")                                       \
+  V(CommaSpace, ", ")                                                          \
+  V(ColonSpace, ": ")                                                          \
+  V(RParenArrow, ") => ")                                                      \
+  V(SpaceExtendsSpace, " extends ")                                            \
+  V(PatchSpace, "patch ")                                                      \
+  V(AliasOwner, ":alias_owner")                                                \
+  V(SwitchExpr, ":switch_expr")                                                \
+  V(TwoNewlines, "\n\n")                                                       \
+  V(TwoSpaces, "  ")                                                           \
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates
@@ -162,26 +199,75 @@ class Symbols : public AllStatic {
     kIllegal = 0,
 
 #define DEFINE_SYMBOL_INDEX(symbol, literal)                                   \
-    k##symbol,
+    k##symbol##Id,
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 #undef DEFINE_SYMBOL_INDEX
-    kMaxPredefinedId,
-    kNullCharId = kMaxPredefinedId,
-    kMaxId = kNullCharId + kMaxOneCharCodeSymbol + 1,
+
+    kNullCharId,  // One char code symbol starts here and takes up 256 entries.
+    kMaxPredefinedId = kNullCharId + kMaxOneCharCodeSymbol + 1,
   };
 
-  // Access methods for symbols stored in the vm isolate.
-#define DEFINE_SYMBOL_ACCESSOR(symbol, literal)                                \
-  static RawString* symbol() { return predefined_[k##symbol]; }
-PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
-#undef DEFINE_SYMBOL_ACCESSOR
-  static RawString* Dot() { return predefined_[kNullCharId + '.']; }
-  static RawString* Equals() { return predefined_[kNullCharId + '=']; }
+  // Number of one character symbols being predefined in the predefined_ array.
+  static const int kNumberOfOneCharCodeSymbols =
+      (kMaxPredefinedId - kNullCharId);
+
+  // Offset of Null character which is the predefined character symbol.
+  static const int kNullCharCodeSymbolOffset = 0;
+
+  // Access methods for one byte character symbols stored in the vm isolate.
+  static const String& Dot() {
+    return *(symbol_handles_[kNullCharId + '.']);
+  }
+  static const String& Equals() {
+    return *(symbol_handles_[kNullCharId + '=']);
+  }
+  static const String& LAngleBracket() {
+    return *(symbol_handles_[kNullCharId + '<']);
+  }
+  static const String& RAngleBracket() {
+    return *(symbol_handles_[kNullCharId + '>']);
+  }
+  static const String& LParen() {
+    return *(symbol_handles_[kNullCharId + '(']);
+  }
+  static const String& RParen() {
+    return *(symbol_handles_[kNullCharId + ')']);
+  }
+  static const String& LBracket() {
+    return *(symbol_handles_[kNullCharId + '[']);
+  }
+  static const String& RBracket() {
+    return *(symbol_handles_[kNullCharId + ']']);
+  }
+  static const String& LBrace() {
+    return *(symbol_handles_[kNullCharId + '{']);
+  }
+  static const String& RBrace() {
+    return *(symbol_handles_[kNullCharId + '}']);
+  }
+  static const String& Blank() {
+    return *(symbol_handles_[kNullCharId + ' ']);
+  }
+  static const String& Dollar() {
+    return *(symbol_handles_[kNullCharId + '$']);
+  }
+  static const String& NewLine() {
+    return *(symbol_handles_[kNullCharId + '\n']);
+  }
+  static const String& DoubleQuotes() {
+    return *(symbol_handles_[kNullCharId + '"']);
+  }
+  static const String& LowercaseR() {
+    return *(symbol_handles_[kNullCharId + 'r']);
+  }
+  static const String& Dash() {
+    return *(symbol_handles_[kNullCharId + '-']);
+  }
 
   // Access methods for symbol handles stored in the vm isolate.
-#define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol)                                  \
-  static const String& symbol##Handle() { return *symbol##_handle_; }
-PREDEFINED_SYMBOL_HANDLES_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
+#define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol, literal)                         \
+  static const String& symbol() { return *(symbol_handles_[k##symbol##Id]); }
+PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 #undef DEFINE_SYMBOL_HANDLE_ACCESSOR
 
   // Initialize frequently used symbols in the vm isolate.
@@ -265,21 +351,21 @@ PREDEFINED_SYMBOL_HANDLES_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
   static RawObject* GetVMSymbol(intptr_t object_id);
   static bool IsVMSymbolId(intptr_t object_id) {
     return (object_id >= kMaxPredefinedObjectIds &&
-            object_id < (kMaxPredefinedObjectIds + kMaxId));
+            object_id < (kMaxPredefinedObjectIds + kMaxPredefinedId));
   }
 
-  // List of symbols that are stored in the vm isolate for easy access.
-  static RawString* predefined_[kMaxId];
+  // List of Latin1 characters stored in the vm isolate as symbols
+  // in order to make Symbols::FromCharCode fast. This structure is
+  // used in generated dart code for direct access to these objects.
+  static RawString* predefined_[kNumberOfOneCharCodeSymbols];
+
+  // List of handles for predefined symbols.
+  static String* symbol_handles_[kMaxPredefinedId];
 
   // Statistics used to measure the efficiency of the symbol table.
   static const intptr_t kMaxCollisionBuckets = 10;
   static intptr_t num_of_grows_;
   static intptr_t collision_count_[kMaxCollisionBuckets];
-
-#define DECLARE_SYMBOL_HANDLE(symbol)                                          \
-  static String* symbol##_handle_;
-PREDEFINED_SYMBOL_HANDLES_LIST(DECLARE_SYMBOL_HANDLE)
-#undef DECLARE_SYMBOL_HANDLE
 
   friend class String;
   friend class SnapshotReader;

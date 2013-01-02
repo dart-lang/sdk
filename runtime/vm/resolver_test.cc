@@ -99,13 +99,12 @@ TEST_CASE(DartStaticResolve) {
   // Now try to resolve and invoke the static function in this class.
   {
     const int kNumArguments = 2;
-    const Array& kNoArgumentNames = Array::Handle();
     const Function& function = Function::Handle(
         Resolver::ResolveStatic(library,
                                 class_name,
                                 static_function_name,
                                 kNumArguments,
-                                kNoArgumentNames,
+                                Object::empty_array(),
                                 kResolveType));
     EXPECT(!function.IsNull());
     const Array& args = Array::Handle(Array::New(kNumArguments));
@@ -121,13 +120,12 @@ TEST_CASE(DartStaticResolve) {
   // Now try to resolve a static function with invalid argument count.
   {
     const int kNumArguments = 1;
-    const Array& kNoArgumentNames = Array::Handle();
     const Function& bad_function = Function::Handle(
         Resolver::ResolveStatic(library,
                                 class_name,
                                 static_function_name,
                                 kNumArguments,
-                                kNoArgumentNames,
+                                Object::empty_array(),
                                 kResolveType));
     EXPECT(bad_function.IsNull());
   }
@@ -138,13 +136,12 @@ TEST_CASE(DartStaticResolve) {
         String::Handle(String::New("statCall"));
     const String& super_class_name = String::Handle(String::New("Base"));
     const int kNumArguments = 0;
-    const Array& kNoArgumentNames = Array::Handle();
     const Function& super_function = Function::Handle(
         Resolver::ResolveStatic(library,
                                 super_class_name,
                                 super_static_function_name,
                                 kNumArguments,
-                                kNoArgumentNames,
+                                Object::empty_array(),
                                 kResolveType));
     EXPECT(!super_function.IsNull());
   }

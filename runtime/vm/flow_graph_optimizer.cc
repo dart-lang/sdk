@@ -612,7 +612,7 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
                                   instantiator,
                                   type_args,
                                   value_type,
-                                  String::ZoneHandle(Symbols::New("value")));
+                                  Symbols::Value());
     InsertBefore(call, assert_value, NULL, Definition::kValue);
   }
 
@@ -2520,12 +2520,11 @@ void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
     }
 
     if (FLAG_trace_type_check_elimination) {
-      const String& name = String::Handle(Symbols::New("boolean expression"));
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
                                        instr->token_pos(),
                                        instr->value(),
                                        Type::Handle(Type::BoolType()),
-                                       name,
+                                       Symbols::BooleanExpression(),
                                        instr->is_eliminated());
     }
   }
@@ -2554,12 +2553,11 @@ void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
     }
 
     if (FLAG_trace_type_check_elimination) {
-      const String& name = String::Handle(Symbols::New("InstanceOf"));
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
                                        instr->token_pos(),
                                        instr->value(),
                                        instr->type(),
-                                       name,
+                                       Symbols::InstanceOf(),
                                        /* eliminated = */ true);
     }
   }

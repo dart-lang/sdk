@@ -174,10 +174,9 @@ bool Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
 
 
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
-  const String& class_name = String::Handle(Symbols::New("_ObjectArray"));
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Class& cls =
-      Class::Handle(core_lib.LookupClassAllowPrivate(class_name));
+      Class::Handle(core_lib.LookupClassAllowPrivate(Symbols::ObjectArray()));
   ASSERT(!cls.IsNull());
   ASSERT(cls.HasTypeArguments());
   ASSERT(cls.NumTypeArguments() == 1);

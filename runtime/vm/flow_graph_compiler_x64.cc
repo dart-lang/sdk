@@ -797,7 +797,7 @@ void FlowGraphCompiler::CopyParameters() {
   // Invoke noSuchMethod function passing the original name of the function.
   // If the function is a closure function, use "call" as the original name.
   const String& name = String::Handle(
-      function.IsClosureFunction() ? Symbols::Call() : function.name());
+      function.IsClosureFunction() ? Symbols::Call().raw() : function.name());
   const int kNumArgsChecked = 1;
   const ICData& ic_data = ICData::ZoneHandle(
       ICData::New(function, name, Isolate::kNoDeoptId, kNumArgsChecked));
@@ -932,10 +932,10 @@ void FlowGraphCompiler::CompileGraph() {
         BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
 
         // Invoke noSuchMethod function passing "call" as the function name.
-        const String& name = String::Handle(Symbols::Call());
         const int kNumArgsChecked = 1;
         const ICData& ic_data = ICData::ZoneHandle(
-            ICData::New(function, name, Isolate::kNoDeoptId, kNumArgsChecked));
+            ICData::New(function, Symbols::Call(),
+                        Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(RBX, ic_data);
         // RBP - 8 : PC marker, for easy identification of RawInstruction obj.
         // RBP : points to previous frame pointer.

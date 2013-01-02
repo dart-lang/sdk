@@ -224,7 +224,8 @@ Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
     }
 
     if (vm_symbol_references_ == NULL) {
-      intptr_t size = sizeof(*vm_symbol_references_) * Symbols::kMaxId;
+      intptr_t size =
+          (sizeof(*vm_symbol_references_) * Symbols::kMaxPredefinedId);
       vm_symbol_references_ =
           reinterpret_cast<Dart_CObject**>(alloc_(NULL, 0, size));
       memset(vm_symbol_references_, 0, size);

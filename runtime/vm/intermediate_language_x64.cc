@@ -378,7 +378,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     }
   } else {
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
-                                   Symbols::EqualOperatorHandle(),
+                                   Symbols::EqualOperator(),
                                    deopt_id,
                                    kNumArgumentsChecked);
   }
@@ -1011,7 +1011,7 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movq(result, Address(result,
                           char_code,
                           TIMES_HALF_WORD_SIZE,  // Char code is a smi.
-                          Symbols::kNullCharId * kWordSize));
+                          Symbols::kNullCharCodeSymbolOffset * kWordSize));
 }
 
 

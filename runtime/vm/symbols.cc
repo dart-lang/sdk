@@ -16,12 +16,8 @@
 
 namespace dart {
 
-RawString* Symbols::predefined_[Symbols::kMaxId];
-
-#define DEFINE_SYMBOL_HANDLE(symbol)                                           \
-  String* Symbols::symbol##_handle_ = NULL;
-PREDEFINED_SYMBOL_HANDLES_LIST(DEFINE_SYMBOL_HANDLE)
-#undef DEFINE_SYMBOL_HANDLE
+RawString* Symbols::predefined_[Symbols::kNumberOfOneCharCodeSymbols];
+String* Symbols::symbol_handles_[Symbols::kMaxPredefinedId];
 
 static const char* names[] = {
   NULL,
@@ -39,7 +35,7 @@ DEFINE_FLAG(bool, dump_symbol_stats, false, "Dump symbol table statistics");
 
 
 const char* Symbols::Name(SymbolId symbol) {
-  ASSERT((symbol > kIllegal) && (symbol < kMaxPredefinedId));
+  ASSERT((symbol > kIllegal) && (symbol < kNullCharId));
   return names[symbol];
 }
 
@@ -59,40 +55,38 @@ void Symbols::InitOnce(Isolate* isolate) {
   SetupSymbolTable(isolate);
 
   // Create all predefined symbols.
-  ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kMaxPredefinedId);
+  ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kNullCharId);
   ObjectStore* object_store = isolate->object_store();
   Array& symbol_table = Array::Handle();
-  dart::String& str = String::Handle();
 
-  for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
+
+  // First set up all the predefined string symbols.
+  for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
     // The symbol_table needs to be reloaded as it might have grown in the
     // previous iteration.
     symbol_table = object_store->symbol_table();
-    str = OneByteString::New(names[i], Heap::kOld);
-    Add(symbol_table, str);
-    predefined_[i] = str.raw();
+    String* str = reinterpret_cast<String*>(Dart::AllocateReadOnlyHandle());
+    *str = OneByteString::New(names[i], Heap::kOld);
+    Add(symbol_table, *str);
+    symbol_handles_[i] = str;
   }
   Object::RegisterSingletonClassNames();
 
   // Add Latin1 characters as Symbols, so that Symbols::FromCharCode is fast.
-  for (intptr_t c = 0; c <= kMaxOneCharCodeSymbol; c++) {
+  for (intptr_t c = 0; c < kNumberOfOneCharCodeSymbols; c++) {
     // The symbol_table needs to be reloaded as it might have grown in the
     // previous iteration.
     symbol_table = object_store->symbol_table();
-    ASSERT(kMaxPredefinedId + c < kMaxId);
+    intptr_t idx = (kNullCharId + c);
+    ASSERT(idx < kMaxPredefinedId);
     ASSERT(Utf::IsLatin1(c));
     uint8_t ch = static_cast<uint8_t>(c);
-    str = OneByteString::New(&ch, 1, Heap::kOld);
-    Add(symbol_table, str);
-    predefined_[kMaxPredefinedId + c] = str.raw();
+    String* str = reinterpret_cast<String*>(Dart::AllocateReadOnlyHandle());
+    *str = OneByteString::New(&ch, 1, Heap::kOld);
+    Add(symbol_table, *str);
+    predefined_[c] = str->raw();
+    symbol_handles_[idx] = str;
   }
-
-#define INITIALIZE_SYMBOL_HANDLE(symbol)                                       \
-  symbol##_handle_ = reinterpret_cast<String*>(                                \
-      Dart::AllocateReadOnlyHandle());                                         \
-  *symbol##_handle_ = symbol();
-PREDEFINED_SYMBOL_HANDLES_LIST(INITIALIZE_SYMBOL_HANDLE)
-#undef INITIALIZE_SYMBOL_HANDLE
 }
 
 
@@ -278,7 +272,7 @@ RawString* Symbols::FromCharCode(int32_t char_code) {
   if (char_code > kMaxOneCharCodeSymbol) {
     return FromUTF32(&char_code, 1);
   }
-  return predefined_[kNullCharId + char_code];
+  return predefined_[char_code];
 }
 
 
@@ -441,8 +435,8 @@ intptr_t Symbols::FindIndex(const Array& symbol_table,
 
 
 intptr_t Symbols::LookupVMSymbol(RawObject* obj) {
-  for (intptr_t i = 1;  i < Symbols::kMaxId; i++) {
-    if (predefined_[i] == obj) {
+  for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
+    if (symbol_handles_[i]->raw() == obj) {
       return (i + kMaxPredefinedObjectIds);
     }
   }
@@ -453,7 +447,10 @@ intptr_t Symbols::LookupVMSymbol(RawObject* obj) {
 RawObject* Symbols::GetVMSymbol(intptr_t object_id) {
   ASSERT(IsVMSymbolId(object_id));
   intptr_t i = (object_id - kMaxPredefinedObjectIds);
-  return (i > 0 && i < Symbols::kMaxId) ? predefined_[i] : Object::null();
+  if ((i > kIllegal) && (i < Symbols::kMaxPredefinedId)) {
+    return symbol_handles_[i]->raw();
+  }
+  return Object::null();
 }
 
 }  // namespace dart
