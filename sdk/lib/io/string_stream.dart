@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -237,7 +237,6 @@ class _UTF8Decoder extends _StringDecoderBase {
       // Remove the value peeked from the buffer list.
       _bufferList.next();
     }
-    print(value.toRadixString(16));
     if (value > kMaxCodePoint) {
       addChar(kReplacementCodePoint);
     } else {
