@@ -97,28 +97,30 @@ int IOBuffer::GetRemainingLength() {
 
 Handle::Handle(HANDLE handle)
     : handle_(reinterpret_cast<HANDLE>(handle)),
-      flags_(0),
       port_(0),
+      mask_(0),
       completion_port_(INVALID_HANDLE_VALUE),
       event_handler_(NULL),
       data_ready_(NULL),
       pending_read_(NULL),
       pending_write_(NULL),
-      last_error_(NOERROR) {
+      last_error_(NOERROR),
+      flags_(0) {
   InitializeCriticalSection(&cs_);
 }
 
 
 Handle::Handle(HANDLE handle, Dart_Port port)
     : handle_(reinterpret_cast<HANDLE>(handle)),
-      flags_(0),
       port_(port),
+      mask_(0),
       completion_port_(INVALID_HANDLE_VALUE),
       event_handler_(NULL),
       data_ready_(NULL),
       pending_read_(NULL),
       pending_write_(NULL),
-      last_error_(NOERROR) {
+      last_error_(NOERROR),
+      flags_(0) {
   InitializeCriticalSection(&cs_);
 }
 
