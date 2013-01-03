@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21,9 +21,26 @@ part of dart.uri;
  * It returns the escaped URI.
  */
 String encodeUri(String uri) {
-  return _uriEncode(
-    "-_.!~*'()#;,/?:@&=\$0123456789"
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", uri);
+  // Bit vector of 128 bits where each bit indicate whether a
+  // character code on the 0-127 needs to be escaped or not.
+  const canonicalTable = const [
+                //             LSB            MSB
+                //              |              |
+      0x0000,   // 0x00 - 0x0f  0000000000000000
+      0x0000,   // 0x10 - 0x1f  0000000000000000
+                //               ! #$ &'()*+,-./
+      0xf7da,   // 0x20 - 0x2f  0101101111101111
+                //              0123456789:; = ?
+      0xafff,   // 0x30 - 0x3f  1111111111110101
+                //              @ABCDEFGHIJKLMNO
+      0xffff,   // 0x40 - 0x4f  1111111111111111
+                //              PQRSTUVWXYZ    _
+      0x87ff,   // 0x50 - 0x5f  1111111111100001
+                //               abcdefghijklmno
+      0xfffe,   // 0x60 - 0x6f  0111111111111111
+                //              pqrstuvwxyz   ~
+      0x47ff];  // 0x70 - 0x7f  1111111111100010
+  return _uriEncode(canonicalTable, uri);
 }
 
 /**
@@ -55,9 +72,26 @@ String decodeUri(String uri) {
  * It returns the escaped string.
  */
 String encodeUriComponent(String component) {
-  return _uriEncode(
-    "-_.!~*'()0123456789"
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", component);
+  // Bit vector of 128 bits where each bit indicate whether a
+  // character code on the 0-127 needs to be escaped or not.
+  const canonicalTable = const [
+                //             LSB            MSB
+                //              |              |
+      0x0000,   // 0x00 - 0x0f  0000000000000000
+      0x0000,   // 0x10 - 0x1f  0000000000000000
+                //               !     '()*  -.
+      0x6782,   // 0x20 - 0x2f  0100000111100110
+                //              0123456789
+      0x03ff,   // 0x30 - 0x3f  1111111111000000
+                //              @ABCDEFGHIJKLMNO
+      0xfffe,   // 0x40 - 0x4f  0111111111111111
+                //              PQRSTUVWXYZ    _
+      0x87ff,   // 0x50 - 0x5f  1111111111100001
+                //               abcdefghijklmno
+      0xfffe,   // 0x60 - 0x6f  0111111111111111
+                //              pqrstuvwxyz   ~
+      0x47ff];  // 0x70 - 0x7f  1111111111100010
+  return _uriEncode(canonicalTable, component);
 }
 
 /**
@@ -73,19 +107,19 @@ String decodeUriComponent(String encodedComponent) {
 /**
  * This is the internal implementation of JavaScript's encodeURI function.
  * It encodes all characters in the string [text] except for those
- * that appear in [canonical], and returns the escaped string.
+ * that appear in [canonicalTable], and returns the escaped string.
  */
-String _uriEncode(String canonical, String text) {
+String _uriEncode(List<int> canonicalTable, String text) {
   final String hex = '0123456789ABCDEF';
-  var byteToHex = (int v) => '%${hex[v >> 4]}${hex[v&0xf]}';
+  var byteToHex = (int v) => '%${hex[v >> 4]}${hex[v & 0x0f]}';
   StringBuffer result = new StringBuffer();
   for (int i = 0; i < text.length; i++) {
-    if (canonical.indexOf(text[i]) >= 0) {
+    int ch = text.charCodeAt(i);
+    if (ch < 128 && ((canonicalTable[ch >> 4] & (1 << (ch & 0x0f))) != 0)) {
       result.add(text[i]);
     } else if (text[i] == " ") {
       result.add("+");
     } else {
-      int ch = text.charCodeAt(i);
       if (ch >= 0xD800 && ch < 0xDC00) {
         // Low surrogate. We expect a next char high surrogate.
         ++i;
