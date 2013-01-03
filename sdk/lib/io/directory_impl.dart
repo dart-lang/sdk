@@ -52,22 +52,25 @@ class _Directory implements Directory {
     return (result == 1);
   }
 
+  // Compute the index of the first directory in the list that exists. If
+  // none of the directories exist dirsToCreate.length is returned.
   Future<int> _computeExistingIndex(List dirsToCreate) {
     var future;
+    var notFound = dirsToCreate.length;
     for (var i = 0; i < dirsToCreate.length; i++) {
       if (future == null) {
-        future = dirsToCreate[i].exists().transform((e) => e ? i : -1);
+        future = dirsToCreate[i].exists().transform((e) => e ? i : notFound);
       } else {
         future = future.chain((index) {
-          if (index != -1) {
+          if (index != notFound) {
             return new Future.immediate(index);
           }
-          return dirsToCreate[i].exists().transform((e) => e ? i : -1);
+          return dirsToCreate[i].exists().transform((e) => e ? i : notFound);
         });
       }
     }
     if (future == null) {
-      return new Future.immediate(-1);
+      return new Future.immediate(notFound);
     } else {
       return future;
     }
