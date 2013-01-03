@@ -15,19 +15,22 @@ void test(int totalConnections, [String body]) {
     Expect.throws(() => request.headers.add("X-Request-Header", "value"),
                   (e) => e is HttpException);
     Expect.equals("value", request.headers.value("X-Request-Header"));
-    OutputStream stream = response.outputStream;
-    // Can still mutate response headers as long as no data has been sent.
-    response.headers.add("X-Response-Header", "value");
-    if (body != null) {
-      stream.writeString(body);
+    request.inputStream.onData = request.inputStream.read;
+    request.inputStream.onClosed = () {
+      OutputStream stream = response.outputStream;
+      // Can still mutate response headers as long as no data has been sent.
+      response.headers.add("X-Response-Header", "value");
+      if (body != null) {
+        stream.writeString(body);
+        // Cannot mutate response headers when data has been sent.
+        Expect.throws(() => request.headers.add("X-Request-Header", "value2"),
+                      (e) => e is HttpException);
+      }
+      stream.close();
       // Cannot mutate response headers when data has been sent.
-      Expect.throws(() => request.headers.add("X-Request-Header", "value2"),
+      Expect.throws(() => request.headers.add("X-Request-Header", "value3"),
                     (e) => e is HttpException);
-    }
-    stream.close();
-    // Cannot mutate response headers when data has been sent.
-    Expect.throws(() => request.headers.add("X-Request-Header", "value3"),
-                  (e) => e is HttpException);
+    };
   };
 
   int count = 0;
@@ -58,11 +61,15 @@ void test(int totalConnections, [String body]) {
       Expect.throws(() => response.headers.add("X-Response-Header", "value"),
                    (e) => e is HttpException);
       Expect.equals("value", response.headers.value("X-Response-Header"));
-      count++;
-      if (count == totalConnections) {
-        client.shutdown();
-        server.close();
-      }
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () {
+        // Do not close the connections before we have read the full response
+        // bodies for all connections.
+        if (++count == totalConnections) {
+          client.shutdown();
+          server.close();
+        }
+      };
     };
   }
 }

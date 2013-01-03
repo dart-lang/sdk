@@ -1537,7 +1537,7 @@ class _HttpClientConnection
           _client._closedSocketConnection(_socketConn);
         };
         _client._closeQueue.add(this);
-      } else {
+      } else if (_socket != null) {
         _client._returnSocketConnection(_socketConn);
         _socket = null;
         _socketConn = null;

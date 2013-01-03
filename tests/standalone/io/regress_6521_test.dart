@@ -18,10 +18,6 @@ void main() {
       req.inputStream.read();
       rsp.outputStream.close();
     };
-    req.inputStream.onClosed = () {
-      client.shutdown();
-      server.close();
-    };
   };
 
   var connection = client.openUrl(
@@ -36,6 +32,8 @@ void main() {
     response.inputStream.onClosed = () {
       // Wait with closing the client request until the response is done.
       clientRequest.outputStream.close();
+      client.shutdown();
+      server.close();
     };
   };
 }
