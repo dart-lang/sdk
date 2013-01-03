@@ -120,22 +120,6 @@ class AnchorElement extends _Element_Merged {
   }
 
 
-  /** @domName HTMLAnchorElement.charset */
-  String get charset native "HTMLAnchorElement_charset_Getter";
-
-
-  /** @domName HTMLAnchorElement.charset */
-  void set charset(String value) native "HTMLAnchorElement_charset_Setter";
-
-
-  /** @domName HTMLAnchorElement.coords */
-  String get coords native "HTMLAnchorElement_coords_Getter";
-
-
-  /** @domName HTMLAnchorElement.coords */
-  void set coords(String value) native "HTMLAnchorElement_coords_Setter";
-
-
   /** @domName HTMLAnchorElement.download */
   String get download native "HTMLAnchorElement_download_Getter";
 
@@ -236,28 +220,12 @@ class AnchorElement extends _Element_Merged {
   void set rel(String value) native "HTMLAnchorElement_rel_Setter";
 
 
-  /** @domName HTMLAnchorElement.rev */
-  String get rev native "HTMLAnchorElement_rev_Getter";
-
-
-  /** @domName HTMLAnchorElement.rev */
-  void set rev(String value) native "HTMLAnchorElement_rev_Setter";
-
-
   /** @domName HTMLAnchorElement.search */
   String get search native "HTMLAnchorElement_search_Getter";
 
 
   /** @domName HTMLAnchorElement.search */
   void set search(String value) native "HTMLAnchorElement_search_Setter";
-
-
-  /** @domName HTMLAnchorElement.shape */
-  String get shape native "HTMLAnchorElement_shape_Getter";
-
-
-  /** @domName HTMLAnchorElement.shape */
-  void set shape(String value) native "HTMLAnchorElement_shape_Setter";
 
 
   /** @domName HTMLAnchorElement.target */
@@ -537,14 +505,6 @@ class AreaElement extends _Element_Merged {
   void set href(String value) native "HTMLAreaElement_href_Setter";
 
 
-  /** @domName HTMLAreaElement.noHref */
-  bool get noHref native "HTMLAreaElement_noHref_Getter";
-
-
-  /** @domName HTMLAreaElement.noHref */
-  void set noHref(bool value) native "HTMLAreaElement_noHref_Setter";
-
-
   /** @domName HTMLAreaElement.pathname */
   String get pathname native "HTMLAreaElement_pathname_Getter";
 
@@ -727,14 +687,6 @@ class BRElement extends _Element_Merged {
 
   ///@docsEditable true
   factory BRElement() => document.$dom_createElement("br");
-
-
-  /** @domName HTMLBRElement.clear */
-  String get clear native "HTMLBRElement_clear_Getter";
-
-
-  /** @domName HTMLBRElement.clear */
-  void set clear(String value) native "HTMLBRElement_clear_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -976,38 +928,6 @@ class BodyElement extends _Element_Merged {
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BodyElementEvents get on =>
     new BodyElementEvents(this);
-
-
-  /** @domName HTMLBodyElement.aLink */
-  String get aLink native "HTMLBodyElement_aLink_Getter";
-
-
-  /** @domName HTMLBodyElement.aLink */
-  void set aLink(String value) native "HTMLBodyElement_aLink_Setter";
-
-
-  /** @domName HTMLBodyElement.background */
-  String get background native "HTMLBodyElement_background_Getter";
-
-
-  /** @domName HTMLBodyElement.background */
-  void set background(String value) native "HTMLBodyElement_background_Setter";
-
-
-  /** @domName HTMLBodyElement.bgColor */
-  String get bgColor native "HTMLBodyElement_bgColor_Getter";
-
-
-  /** @domName HTMLBodyElement.bgColor */
-  void set bgColor(String value) native "HTMLBodyElement_bgColor_Setter";
-
-
-  /** @domName HTMLBodyElement.link */
-  String get link native "HTMLBodyElement_link_Getter";
-
-
-  /** @domName HTMLBodyElement.link */
-  void set link(String value) native "HTMLBodyElement_link_Setter";
 
 
   /** @domName HTMLBodyElement.vLink */
@@ -6233,14 +6153,6 @@ class DListElement extends _Element_Merged {
   ///@docsEditable true
   factory DListElement() => document.$dom_createElement("dl");
 
-
-  /** @domName HTMLDListElement.compact */
-  bool get compact native "HTMLDListElement_compact_Getter";
-
-
-  /** @domName HTMLDListElement.compact */
-  void set compact(bool value) native "HTMLDListElement_compact_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11441,38 +11353,6 @@ class HRElement extends _Element_Merged {
   ///@docsEditable true
   factory HRElement() => document.$dom_createElement("hr");
 
-
-  /** @domName HTMLHRElement.align */
-  String get align native "HTMLHRElement_align_Getter";
-
-
-  /** @domName HTMLHRElement.align */
-  void set align(String value) native "HTMLHRElement_align_Setter";
-
-
-  /** @domName HTMLHRElement.noShade */
-  bool get noShade native "HTMLHRElement_noShade_Getter";
-
-
-  /** @domName HTMLHRElement.noShade */
-  void set noShade(bool value) native "HTMLHRElement_noShade_Setter";
-
-
-  /** @domName HTMLHRElement.size */
-  String get size native "HTMLHRElement_size_Getter";
-
-
-  /** @domName HTMLHRElement.size */
-  void set size(String value) native "HTMLHRElement_size_Setter";
-
-
-  /** @domName HTMLHRElement.width */
-  String get width native "HTMLHRElement_width_Getter";
-
-
-  /** @domName HTMLHRElement.width */
-  void set width(String value) native "HTMLHRElement_width_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11512,14 +11392,6 @@ class HeadElement extends _Element_Merged {
   ///@docsEditable true
   factory HeadElement() => document.$dom_createElement("head");
 
-
-  /** @domName HTMLHeadElement.profile */
-  String get profile native "HTMLHeadElement_profile_Getter";
-
-
-  /** @domName HTMLHeadElement.profile */
-  void set profile(String value) native "HTMLHeadElement_profile_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11549,14 +11421,6 @@ class HeadingElement extends _Element_Merged {
 
   ///@docsEditable true
   factory HeadingElement.h6() => document.$dom_createElement("h6");
-
-
-  /** @domName HTMLHeadingElement.align */
-  String get align native "HTMLHeadingElement_align_Getter";
-
-
-  /** @domName HTMLHeadingElement.align */
-  void set align(String value) native "HTMLHeadingElement_align_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12354,24 +12218,8 @@ class IFrameElement extends _Element_Merged {
   factory IFrameElement() => document.$dom_createElement("iframe");
 
 
-  /** @domName HTMLIFrameElement.align */
-  String get align native "HTMLIFrameElement_align_Getter";
-
-
-  /** @domName HTMLIFrameElement.align */
-  void set align(String value) native "HTMLIFrameElement_align_Setter";
-
-
   /** @domName HTMLIFrameElement.contentWindow */
   WindowBase get contentWindow native "HTMLIFrameElement_contentWindow_Getter";
-
-
-  /** @domName HTMLIFrameElement.frameBorder */
-  String get frameBorder native "HTMLIFrameElement_frameBorder_Getter";
-
-
-  /** @domName HTMLIFrameElement.frameBorder */
-  void set frameBorder(String value) native "HTMLIFrameElement_frameBorder_Setter";
 
 
   /** @domName HTMLIFrameElement.height */
@@ -12380,30 +12228,6 @@ class IFrameElement extends _Element_Merged {
 
   /** @domName HTMLIFrameElement.height */
   void set height(String value) native "HTMLIFrameElement_height_Setter";
-
-
-  /** @domName HTMLIFrameElement.longDesc */
-  String get longDesc native "HTMLIFrameElement_longDesc_Getter";
-
-
-  /** @domName HTMLIFrameElement.longDesc */
-  void set longDesc(String value) native "HTMLIFrameElement_longDesc_Setter";
-
-
-  /** @domName HTMLIFrameElement.marginHeight */
-  String get marginHeight native "HTMLIFrameElement_marginHeight_Getter";
-
-
-  /** @domName HTMLIFrameElement.marginHeight */
-  void set marginHeight(String value) native "HTMLIFrameElement_marginHeight_Setter";
-
-
-  /** @domName HTMLIFrameElement.marginWidth */
-  String get marginWidth native "HTMLIFrameElement_marginWidth_Getter";
-
-
-  /** @domName HTMLIFrameElement.marginWidth */
-  void set marginWidth(String value) native "HTMLIFrameElement_marginWidth_Setter";
 
 
   /** @domName HTMLIFrameElement.name */
@@ -12420,14 +12244,6 @@ class IFrameElement extends _Element_Merged {
 
   /** @domName HTMLIFrameElement.sandbox */
   void set sandbox(String value) native "HTMLIFrameElement_sandbox_Setter";
-
-
-  /** @domName HTMLIFrameElement.scrolling */
-  String get scrolling native "HTMLIFrameElement_scrolling_Getter";
-
-
-  /** @domName HTMLIFrameElement.scrolling */
-  void set scrolling(String value) native "HTMLIFrameElement_scrolling_Setter";
 
 
   /** @domName HTMLIFrameElement.src */
@@ -12499,14 +12315,6 @@ class ImageElement extends _Element_Merged {
   }
 
 
-  /** @domName HTMLImageElement.align */
-  String get align native "HTMLImageElement_align_Getter";
-
-
-  /** @domName HTMLImageElement.align */
-  void set align(String value) native "HTMLImageElement_align_Setter";
-
-
   /** @domName HTMLImageElement.alt */
   String get alt native "HTMLImageElement_alt_Getter";
 
@@ -12543,14 +12351,6 @@ class ImageElement extends _Element_Merged {
   void set height(int value) native "HTMLImageElement_height_Setter";
 
 
-  /** @domName HTMLImageElement.hspace */
-  int get hspace native "HTMLImageElement_hspace_Getter";
-
-
-  /** @domName HTMLImageElement.hspace */
-  void set hspace(int value) native "HTMLImageElement_hspace_Setter";
-
-
   /** @domName HTMLImageElement.isMap */
   bool get isMap native "HTMLImageElement_isMap_Getter";
 
@@ -12559,28 +12359,12 @@ class ImageElement extends _Element_Merged {
   void set isMap(bool value) native "HTMLImageElement_isMap_Setter";
 
 
-  /** @domName HTMLImageElement.longDesc */
-  String get longDesc native "HTMLImageElement_longDesc_Getter";
-
-
-  /** @domName HTMLImageElement.longDesc */
-  void set longDesc(String value) native "HTMLImageElement_longDesc_Setter";
-
-
   /** @domName HTMLImageElement.lowsrc */
   String get lowsrc native "HTMLImageElement_lowsrc_Getter";
 
 
   /** @domName HTMLImageElement.lowsrc */
   void set lowsrc(String value) native "HTMLImageElement_lowsrc_Setter";
-
-
-  /** @domName HTMLImageElement.name */
-  String get name native "HTMLImageElement_name_Getter";
-
-
-  /** @domName HTMLImageElement.name */
-  void set name(String value) native "HTMLImageElement_name_Setter";
 
 
   /** @domName HTMLImageElement.naturalHeight */
@@ -12605,14 +12389,6 @@ class ImageElement extends _Element_Merged {
 
   /** @domName HTMLImageElement.useMap */
   void set useMap(String value) native "HTMLImageElement_useMap_Setter";
-
-
-  /** @domName HTMLImageElement.vspace */
-  int get vspace native "HTMLImageElement_vspace_Getter";
-
-
-  /** @domName HTMLImageElement.vspace */
-  void set vspace(int value) native "HTMLImageElement_vspace_Setter";
 
 
   /** @domName HTMLImageElement.width */
@@ -12686,14 +12462,6 @@ class InputElement extends _Element_Merged implements
 
   /** @domName HTMLInputElement.accept */
   void set accept(String value) native "HTMLInputElement_accept_Setter";
-
-
-  /** @domName HTMLInputElement.align */
-  String get align native "HTMLInputElement_align_Getter";
-
-
-  /** @domName HTMLInputElement.align */
-  void set align(String value) native "HTMLInputElement_align_Setter";
 
 
   /** @domName HTMLInputElement.alt */
@@ -14479,14 +14247,6 @@ class LinkElement extends _Element_Merged {
   factory LinkElement() => document.$dom_createElement("link");
 
 
-  /** @domName HTMLLinkElement.charset */
-  String get charset native "HTMLLinkElement_charset_Getter";
-
-
-  /** @domName HTMLLinkElement.charset */
-  void set charset(String value) native "HTMLLinkElement_charset_Setter";
-
-
   /** @domName HTMLLinkElement.disabled */
   bool get disabled native "HTMLLinkElement_disabled_Getter";
 
@@ -14527,14 +14287,6 @@ class LinkElement extends _Element_Merged {
   void set rel(String value) native "HTMLLinkElement_rel_Setter";
 
 
-  /** @domName HTMLLinkElement.rev */
-  String get rev native "HTMLLinkElement_rev_Getter";
-
-
-  /** @domName HTMLLinkElement.rev */
-  void set rev(String value) native "HTMLLinkElement_rev_Setter";
-
-
   /** @domName HTMLLinkElement.sheet */
   StyleSheet get sheet native "HTMLLinkElement_sheet_Getter";
 
@@ -14545,14 +14297,6 @@ class LinkElement extends _Element_Merged {
 
   /** @domName HTMLLinkElement.sizes */
   void set sizes(DomSettableTokenList value) native "HTMLLinkElement_sizes_Setter";
-
-
-  /** @domName HTMLLinkElement.target */
-  String get target native "HTMLLinkElement_target_Getter";
-
-
-  /** @domName HTMLLinkElement.target */
-  void set target(String value) native "HTMLLinkElement_target_Setter";
 
 
   /** @domName HTMLLinkElement.type */
@@ -15938,14 +15682,6 @@ class MetaElement extends _Element_Merged {
 
   /** @domName HTMLMetaElement.name */
   void set name(String value) native "HTMLMetaElement_name_Setter";
-
-
-  /** @domName HTMLMetaElement.scheme */
-  String get scheme native "HTMLMetaElement_scheme_Getter";
-
-
-  /** @domName HTMLMetaElement.scheme */
-  void set scheme(String value) native "HTMLMetaElement_scheme_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17341,14 +17077,6 @@ class OListElement extends _Element_Merged {
   factory OListElement() => document.$dom_createElement("ol");
 
 
-  /** @domName HTMLOListElement.compact */
-  bool get compact native "HTMLOListElement_compact_Getter";
-
-
-  /** @domName HTMLOListElement.compact */
-  void set compact(bool value) native "HTMLOListElement_compact_Setter";
-
-
   /** @domName HTMLOListElement.reversed */
   bool get reversed native "HTMLOListElement_reversed_Getter";
 
@@ -17396,30 +17124,6 @@ class ObjectElement extends _Element_Merged {
   static bool get supported => true;
 
 
-  /** @domName HTMLObjectElement.align */
-  String get align native "HTMLObjectElement_align_Getter";
-
-
-  /** @domName HTMLObjectElement.align */
-  void set align(String value) native "HTMLObjectElement_align_Setter";
-
-
-  /** @domName HTMLObjectElement.archive */
-  String get archive native "HTMLObjectElement_archive_Getter";
-
-
-  /** @domName HTMLObjectElement.archive */
-  void set archive(String value) native "HTMLObjectElement_archive_Setter";
-
-
-  /** @domName HTMLObjectElement.border */
-  String get border native "HTMLObjectElement_border_Getter";
-
-
-  /** @domName HTMLObjectElement.border */
-  void set border(String value) native "HTMLObjectElement_border_Setter";
-
-
   /** @domName HTMLObjectElement.code */
   String get code native "HTMLObjectElement_code_Getter";
 
@@ -17428,36 +17132,12 @@ class ObjectElement extends _Element_Merged {
   void set code(String value) native "HTMLObjectElement_code_Setter";
 
 
-  /** @domName HTMLObjectElement.codeBase */
-  String get codeBase native "HTMLObjectElement_codeBase_Getter";
-
-
-  /** @domName HTMLObjectElement.codeBase */
-  void set codeBase(String value) native "HTMLObjectElement_codeBase_Setter";
-
-
-  /** @domName HTMLObjectElement.codeType */
-  String get codeType native "HTMLObjectElement_codeType_Getter";
-
-
-  /** @domName HTMLObjectElement.codeType */
-  void set codeType(String value) native "HTMLObjectElement_codeType_Setter";
-
-
   /** @domName HTMLObjectElement.data */
   String get data native "HTMLObjectElement_data_Getter";
 
 
   /** @domName HTMLObjectElement.data */
   void set data(String value) native "HTMLObjectElement_data_Setter";
-
-
-  /** @domName HTMLObjectElement.declare */
-  bool get declare native "HTMLObjectElement_declare_Getter";
-
-
-  /** @domName HTMLObjectElement.declare */
-  void set declare(bool value) native "HTMLObjectElement_declare_Setter";
 
 
   /** @domName HTMLObjectElement.form */
@@ -17472,28 +17152,12 @@ class ObjectElement extends _Element_Merged {
   void set height(String value) native "HTMLObjectElement_height_Setter";
 
 
-  /** @domName HTMLObjectElement.hspace */
-  int get hspace native "HTMLObjectElement_hspace_Getter";
-
-
-  /** @domName HTMLObjectElement.hspace */
-  void set hspace(int value) native "HTMLObjectElement_hspace_Setter";
-
-
   /** @domName HTMLObjectElement.name */
   String get name native "HTMLObjectElement_name_Getter";
 
 
   /** @domName HTMLObjectElement.name */
   void set name(String value) native "HTMLObjectElement_name_Setter";
-
-
-  /** @domName HTMLObjectElement.standby */
-  String get standby native "HTMLObjectElement_standby_Getter";
-
-
-  /** @domName HTMLObjectElement.standby */
-  void set standby(String value) native "HTMLObjectElement_standby_Setter";
 
 
   /** @domName HTMLObjectElement.type */
@@ -17518,14 +17182,6 @@ class ObjectElement extends _Element_Merged {
 
   /** @domName HTMLObjectElement.validity */
   ValidityState get validity native "HTMLObjectElement_validity_Getter";
-
-
-  /** @domName HTMLObjectElement.vspace */
-  int get vspace native "HTMLObjectElement_vspace_Getter";
-
-
-  /** @domName HTMLObjectElement.vspace */
-  void set vspace(int value) native "HTMLObjectElement_vspace_Setter";
 
 
   /** @domName HTMLObjectElement.width */
@@ -17900,14 +17556,6 @@ class ParagraphElement extends _Element_Merged {
   ///@docsEditable true
   factory ParagraphElement() => document.$dom_createElement("p");
 
-
-  /** @domName HTMLParagraphElement.align */
-  String get align native "HTMLParagraphElement_align_Getter";
-
-
-  /** @domName HTMLParagraphElement.align */
-  void set align(String value) native "HTMLParagraphElement_align_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17932,28 +17580,12 @@ class ParamElement extends _Element_Merged {
   void set name(String value) native "HTMLParamElement_name_Setter";
 
 
-  /** @domName HTMLParamElement.type */
-  String get type native "HTMLParamElement_type_Getter";
-
-
-  /** @domName HTMLParamElement.type */
-  void set type(String value) native "HTMLParamElement_type_Setter";
-
-
   /** @domName HTMLParamElement.value */
   String get value native "HTMLParamElement_value_Getter";
 
 
   /** @domName HTMLParamElement.value */
   void set value(String value) native "HTMLParamElement_value_Setter";
-
-
-  /** @domName HTMLParamElement.valueType */
-  String get valueType native "HTMLParamElement_valueType_Getter";
-
-
-  /** @domName HTMLParamElement.valueType */
-  void set valueType(String value) native "HTMLParamElement_valueType_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18211,14 +17843,6 @@ class PreElement extends _Element_Merged {
 
   ///@docsEditable true
   factory PreElement() => document.$dom_createElement("pre");
-
-
-  /** @domName HTMLPreElement.width */
-  int get width native "HTMLPreElement_width_Getter";
-
-
-  /** @domName HTMLPreElement.width */
-  void set width(int value) native "HTMLPreElement_width_Setter";
 
 
   /** @domName HTMLPreElement.wrap */
@@ -20767,14 +20391,6 @@ class TableCaptionElement extends _Element_Merged {
   ///@docsEditable true
   factory TableCaptionElement() => document.$dom_createElement("caption");
 
-
-  /** @domName HTMLTableCaptionElement.align */
-  String get align native "HTMLTableCaptionElement_align_Getter";
-
-
-  /** @domName HTMLTableCaptionElement.align */
-  void set align(String value) native "HTMLTableCaptionElement_align_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20791,56 +20407,8 @@ class TableCellElement extends _Element_Merged {
   factory TableCellElement() => document.$dom_createElement("td");
 
 
-  /** @domName HTMLTableCellElement.abbr */
-  String get abbr native "HTMLTableCellElement_abbr_Getter";
-
-
-  /** @domName HTMLTableCellElement.abbr */
-  void set abbr(String value) native "HTMLTableCellElement_abbr_Setter";
-
-
-  /** @domName HTMLTableCellElement.align */
-  String get align native "HTMLTableCellElement_align_Getter";
-
-
-  /** @domName HTMLTableCellElement.align */
-  void set align(String value) native "HTMLTableCellElement_align_Setter";
-
-
-  /** @domName HTMLTableCellElement.axis */
-  String get axis native "HTMLTableCellElement_axis_Getter";
-
-
-  /** @domName HTMLTableCellElement.axis */
-  void set axis(String value) native "HTMLTableCellElement_axis_Setter";
-
-
-  /** @domName HTMLTableCellElement.bgColor */
-  String get bgColor native "HTMLTableCellElement_bgColor_Getter";
-
-
-  /** @domName HTMLTableCellElement.bgColor */
-  void set bgColor(String value) native "HTMLTableCellElement_bgColor_Setter";
-
-
   /** @domName HTMLTableCellElement.cellIndex */
   int get cellIndex native "HTMLTableCellElement_cellIndex_Getter";
-
-
-  /** @domName HTMLTableCellElement.ch */
-  String get ch native "HTMLTableCellElement_ch_Getter";
-
-
-  /** @domName HTMLTableCellElement.ch */
-  void set ch(String value) native "HTMLTableCellElement_ch_Setter";
-
-
-  /** @domName HTMLTableCellElement.chOff */
-  String get chOff native "HTMLTableCellElement_chOff_Getter";
-
-
-  /** @domName HTMLTableCellElement.chOff */
-  void set chOff(String value) native "HTMLTableCellElement_chOff_Setter";
 
 
   /** @domName HTMLTableCellElement.colSpan */
@@ -20859,52 +20427,12 @@ class TableCellElement extends _Element_Merged {
   void set headers(String value) native "HTMLTableCellElement_headers_Setter";
 
 
-  /** @domName HTMLTableCellElement.height */
-  String get height native "HTMLTableCellElement_height_Getter";
-
-
-  /** @domName HTMLTableCellElement.height */
-  void set height(String value) native "HTMLTableCellElement_height_Setter";
-
-
-  /** @domName HTMLTableCellElement.noWrap */
-  bool get noWrap native "HTMLTableCellElement_noWrap_Getter";
-
-
-  /** @domName HTMLTableCellElement.noWrap */
-  void set noWrap(bool value) native "HTMLTableCellElement_noWrap_Setter";
-
-
   /** @domName HTMLTableCellElement.rowSpan */
   int get rowSpan native "HTMLTableCellElement_rowSpan_Getter";
 
 
   /** @domName HTMLTableCellElement.rowSpan */
   void set rowSpan(int value) native "HTMLTableCellElement_rowSpan_Setter";
-
-
-  /** @domName HTMLTableCellElement.scope */
-  String get scope native "HTMLTableCellElement_scope_Getter";
-
-
-  /** @domName HTMLTableCellElement.scope */
-  void set scope(String value) native "HTMLTableCellElement_scope_Setter";
-
-
-  /** @domName HTMLTableCellElement.vAlign */
-  String get vAlign native "HTMLTableCellElement_vAlign_Getter";
-
-
-  /** @domName HTMLTableCellElement.vAlign */
-  void set vAlign(String value) native "HTMLTableCellElement_vAlign_Setter";
-
-
-  /** @domName HTMLTableCellElement.width */
-  String get width native "HTMLTableCellElement_width_Getter";
-
-
-  /** @domName HTMLTableCellElement.width */
-  void set width(String value) native "HTMLTableCellElement_width_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20922,52 +20450,12 @@ class TableColElement extends _Element_Merged {
   factory TableColElement() => document.$dom_createElement("col");
 
 
-  /** @domName HTMLTableColElement.align */
-  String get align native "HTMLTableColElement_align_Getter";
-
-
-  /** @domName HTMLTableColElement.align */
-  void set align(String value) native "HTMLTableColElement_align_Setter";
-
-
-  /** @domName HTMLTableColElement.ch */
-  String get ch native "HTMLTableColElement_ch_Getter";
-
-
-  /** @domName HTMLTableColElement.ch */
-  void set ch(String value) native "HTMLTableColElement_ch_Setter";
-
-
-  /** @domName HTMLTableColElement.chOff */
-  String get chOff native "HTMLTableColElement_chOff_Getter";
-
-
-  /** @domName HTMLTableColElement.chOff */
-  void set chOff(String value) native "HTMLTableColElement_chOff_Setter";
-
-
   /** @domName HTMLTableColElement.span */
   int get span native "HTMLTableColElement_span_Getter";
 
 
   /** @domName HTMLTableColElement.span */
   void set span(int value) native "HTMLTableColElement_span_Setter";
-
-
-  /** @domName HTMLTableColElement.vAlign */
-  String get vAlign native "HTMLTableColElement_vAlign_Getter";
-
-
-  /** @domName HTMLTableColElement.vAlign */
-  void set vAlign(String value) native "HTMLTableColElement_vAlign_Setter";
-
-
-  /** @domName HTMLTableColElement.width */
-  String get width native "HTMLTableColElement_width_Getter";
-
-
-  /** @domName HTMLTableColElement.width */
-  void set width(String value) native "HTMLTableColElement_width_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20983,22 +20471,6 @@ class TableElement extends _Element_Merged {
 
   ///@docsEditable true
   factory TableElement() => document.$dom_createElement("table");
-
-
-  /** @domName HTMLTableElement.align */
-  String get align native "HTMLTableElement_align_Getter";
-
-
-  /** @domName HTMLTableElement.align */
-  void set align(String value) native "HTMLTableElement_align_Setter";
-
-
-  /** @domName HTMLTableElement.bgColor */
-  String get bgColor native "HTMLTableElement_bgColor_Getter";
-
-
-  /** @domName HTMLTableElement.bgColor */
-  void set bgColor(String value) native "HTMLTableElement_bgColor_Setter";
 
 
   /** @domName HTMLTableElement.border */
@@ -21017,48 +20489,8 @@ class TableElement extends _Element_Merged {
   void set caption(TableCaptionElement value) native "HTMLTableElement_caption_Setter";
 
 
-  /** @domName HTMLTableElement.cellPadding */
-  String get cellPadding native "HTMLTableElement_cellPadding_Getter";
-
-
-  /** @domName HTMLTableElement.cellPadding */
-  void set cellPadding(String value) native "HTMLTableElement_cellPadding_Setter";
-
-
-  /** @domName HTMLTableElement.cellSpacing */
-  String get cellSpacing native "HTMLTableElement_cellSpacing_Getter";
-
-
-  /** @domName HTMLTableElement.cellSpacing */
-  void set cellSpacing(String value) native "HTMLTableElement_cellSpacing_Setter";
-
-
-  /** @domName HTMLTableElement.frame */
-  String get frame native "HTMLTableElement_frame_Getter";
-
-
-  /** @domName HTMLTableElement.frame */
-  void set frame(String value) native "HTMLTableElement_frame_Setter";
-
-
   /** @domName HTMLTableElement.rows */
   HtmlCollection get rows native "HTMLTableElement_rows_Getter";
-
-
-  /** @domName HTMLTableElement.rules */
-  String get rules native "HTMLTableElement_rules_Getter";
-
-
-  /** @domName HTMLTableElement.rules */
-  void set rules(String value) native "HTMLTableElement_rules_Setter";
-
-
-  /** @domName HTMLTableElement.summary */
-  String get summary native "HTMLTableElement_summary_Getter";
-
-
-  /** @domName HTMLTableElement.summary */
-  void set summary(String value) native "HTMLTableElement_summary_Setter";
 
 
   /** @domName HTMLTableElement.tBodies */
@@ -21079,14 +20511,6 @@ class TableElement extends _Element_Merged {
 
   /** @domName HTMLTableElement.tHead */
   void set tHead(TableSectionElement value) native "HTMLTableElement_tHead_Setter";
-
-
-  /** @domName HTMLTableElement.width */
-  String get width native "HTMLTableElement_width_Getter";
-
-
-  /** @domName HTMLTableElement.width */
-  void set width(String value) native "HTMLTableElement_width_Setter";
 
 
   /** @domName HTMLTableElement.createCaption */
@@ -21140,40 +20564,8 @@ class TableRowElement extends _Element_Merged {
   factory TableRowElement() => document.$dom_createElement("tr");
 
 
-  /** @domName HTMLTableRowElement.align */
-  String get align native "HTMLTableRowElement_align_Getter";
-
-
-  /** @domName HTMLTableRowElement.align */
-  void set align(String value) native "HTMLTableRowElement_align_Setter";
-
-
-  /** @domName HTMLTableRowElement.bgColor */
-  String get bgColor native "HTMLTableRowElement_bgColor_Getter";
-
-
-  /** @domName HTMLTableRowElement.bgColor */
-  void set bgColor(String value) native "HTMLTableRowElement_bgColor_Setter";
-
-
   /** @domName HTMLTableRowElement.cells */
   HtmlCollection get cells native "HTMLTableRowElement_cells_Getter";
-
-
-  /** @domName HTMLTableRowElement.ch */
-  String get ch native "HTMLTableRowElement_ch_Getter";
-
-
-  /** @domName HTMLTableRowElement.ch */
-  void set ch(String value) native "HTMLTableRowElement_ch_Setter";
-
-
-  /** @domName HTMLTableRowElement.chOff */
-  String get chOff native "HTMLTableRowElement_chOff_Getter";
-
-
-  /** @domName HTMLTableRowElement.chOff */
-  void set chOff(String value) native "HTMLTableRowElement_chOff_Setter";
 
 
   /** @domName HTMLTableRowElement.rowIndex */
@@ -21182,14 +20574,6 @@ class TableRowElement extends _Element_Merged {
 
   /** @domName HTMLTableRowElement.sectionRowIndex */
   int get sectionRowIndex native "HTMLTableRowElement_sectionRowIndex_Getter";
-
-
-  /** @domName HTMLTableRowElement.vAlign */
-  String get vAlign native "HTMLTableRowElement_vAlign_Getter";
-
-
-  /** @domName HTMLTableRowElement.vAlign */
-  void set vAlign(String value) native "HTMLTableRowElement_vAlign_Setter";
 
 
   /** @domName HTMLTableRowElement.deleteCell */
@@ -21212,22 +20596,6 @@ class TableSectionElement extends _Element_Merged {
   TableSectionElement.internal() : super.internal();
 
 
-  /** @domName HTMLTableSectionElement.align */
-  String get align native "HTMLTableSectionElement_align_Getter";
-
-
-  /** @domName HTMLTableSectionElement.align */
-  void set align(String value) native "HTMLTableSectionElement_align_Setter";
-
-
-  /** @domName HTMLTableSectionElement.ch */
-  String get ch native "HTMLTableSectionElement_ch_Getter";
-
-
-  /** @domName HTMLTableSectionElement.ch */
-  void set ch(String value) native "HTMLTableSectionElement_ch_Setter";
-
-
   /** @domName HTMLTableSectionElement.chOff */
   String get chOff native "HTMLTableSectionElement_chOff_Getter";
 
@@ -21238,14 +20606,6 @@ class TableSectionElement extends _Element_Merged {
 
   /** @domName HTMLTableSectionElement.rows */
   HtmlCollection get rows native "HTMLTableSectionElement_rows_Getter";
-
-
-  /** @domName HTMLTableSectionElement.vAlign */
-  String get vAlign native "HTMLTableSectionElement_vAlign_Getter";
-
-
-  /** @domName HTMLTableSectionElement.vAlign */
-  void set vAlign(String value) native "HTMLTableSectionElement_vAlign_Setter";
 
 
   /** @domName HTMLTableSectionElement.deleteRow */
@@ -22545,22 +21905,6 @@ class UListElement extends _Element_Merged {
 
   ///@docsEditable true
   factory UListElement() => document.$dom_createElement("ul");
-
-
-  /** @domName HTMLUListElement.compact */
-  bool get compact native "HTMLUListElement_compact_Getter";
-
-
-  /** @domName HTMLUListElement.compact */
-  void set compact(bool value) native "HTMLUListElement_compact_Setter";
-
-
-  /** @domName HTMLUListElement.type */
-  String get type native "HTMLUListElement_type_Getter";
-
-
-  /** @domName HTMLUListElement.type */
-  void set type(String value) native "HTMLUListElement_type_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -97,12 +97,6 @@ class AnchorElement extends Element native "*HTMLAnchorElement" {
     return e;
   }
 
-  /// @domName HTMLAnchorElement.charset; @docsEditable true
-  String charset;
-
-  /// @domName HTMLAnchorElement.coords; @docsEditable true
-  String coords;
-
   /// @domName HTMLAnchorElement.download; @docsEditable true
   String download;
 
@@ -142,14 +136,8 @@ class AnchorElement extends Element native "*HTMLAnchorElement" {
   /// @domName HTMLAnchorElement.rel; @docsEditable true
   String rel;
 
-  /// @domName HTMLAnchorElement.rev; @docsEditable true
-  String rev;
-
   /// @domName HTMLAnchorElement.search; @docsEditable true
   String search;
-
-  /// @domName HTMLAnchorElement.shape; @docsEditable true
-  String shape;
 
   /// @domName HTMLAnchorElement.target; @docsEditable true
   String target;
@@ -322,9 +310,6 @@ class AreaElement extends Element native "*HTMLAreaElement" {
   /// @domName HTMLAreaElement.href; @docsEditable true
   String href;
 
-  /// @domName HTMLAreaElement.noHref; @docsEditable true
-  bool noHref;
-
   /// @domName HTMLAreaElement.pathname; @docsEditable true
   final String pathname;
 
@@ -475,9 +460,6 @@ class BRElement extends Element native "*HTMLBRElement" {
 
   ///@docsEditable true
   factory BRElement() => document.$dom_createElement("br");
-
-  /// @domName HTMLBRElement.clear; @docsEditable true
-  String clear;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -649,18 +631,6 @@ class BodyElement extends Element native "*HTMLBodyElement" {
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BodyElementEvents get on =>
     new BodyElementEvents(this);
-
-  /// @domName HTMLBodyElement.aLink; @docsEditable true
-  String aLink;
-
-  /// @domName HTMLBodyElement.background; @docsEditable true
-  String background;
-
-  /// @domName HTMLBodyElement.bgColor; @docsEditable true
-  String bgColor;
-
-  /// @domName HTMLBodyElement.link; @docsEditable true
-  String link;
 
   /// @domName HTMLBodyElement.vLink; @docsEditable true
   String vLink;
@@ -5295,9 +5265,6 @@ class DListElement extends Element native "*HTMLDListElement" {
 
   ///@docsEditable true
   factory DListElement() => document.$dom_createElement("dl");
-
-  /// @domName HTMLDListElement.compact; @docsEditable true
-  bool compact;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9745,18 +9712,6 @@ class HRElement extends Element native "*HTMLHRElement" {
 
   ///@docsEditable true
   factory HRElement() => document.$dom_createElement("hr");
-
-  /// @domName HTMLHRElement.align; @docsEditable true
-  String align;
-
-  /// @domName HTMLHRElement.noShade; @docsEditable true
-  bool noShade;
-
-  /// @domName HTMLHRElement.size; @docsEditable true
-  String size;
-
-  /// @domName HTMLHRElement.width; @docsEditable true
-  String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9787,9 +9742,6 @@ class HeadElement extends Element native "*HTMLHeadElement" {
 
   ///@docsEditable true
   factory HeadElement() => document.$dom_createElement("head");
-
-  /// @domName HTMLHeadElement.profile; @docsEditable true
-  String profile;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9816,9 +9768,6 @@ class HeadingElement extends Element native "*HTMLHeadingElement" {
 
   ///@docsEditable true
   factory HeadingElement.h6() => document.$dom_createElement("h6");
-
-  /// @domName HTMLHeadingElement.align; @docsEditable true
-  String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10694,38 +10643,20 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
   ///@docsEditable true
   factory IFrameElement() => document.$dom_createElement("iframe");
 
-  /// @domName HTMLIFrameElement.align; @docsEditable true
-  String align;
-
   /// @domName HTMLIFrameElement.contentWindow; @docsEditable true
   WindowBase get contentWindow => _convertNativeToDart_Window(this._contentWindow);
   @JSName('contentWindow')
   @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _contentWindow;
 
-  /// @domName HTMLIFrameElement.frameBorder; @docsEditable true
-  String frameBorder;
-
   /// @domName HTMLIFrameElement.height; @docsEditable true
   String height;
-
-  /// @domName HTMLIFrameElement.longDesc; @docsEditable true
-  String longDesc;
-
-  /// @domName HTMLIFrameElement.marginHeight; @docsEditable true
-  String marginHeight;
-
-  /// @domName HTMLIFrameElement.marginWidth; @docsEditable true
-  String marginWidth;
 
   /// @domName HTMLIFrameElement.name; @docsEditable true
   String name;
 
   /// @domName HTMLIFrameElement.sandbox; @docsEditable true
   String sandbox;
-
-  /// @domName HTMLIFrameElement.scrolling; @docsEditable true
-  String scrolling;
 
   /// @domName HTMLIFrameElement.src; @docsEditable true
   String src;
@@ -10770,9 +10701,6 @@ class ImageElement extends Element native "*HTMLImageElement" {
     return e;
   }
 
-  /// @domName HTMLImageElement.align; @docsEditable true
-  String align;
-
   /// @domName HTMLImageElement.alt; @docsEditable true
   String alt;
 
@@ -10788,20 +10716,11 @@ class ImageElement extends Element native "*HTMLImageElement" {
   /// @domName HTMLImageElement.height; @docsEditable true
   int height;
 
-  /// @domName HTMLImageElement.hspace; @docsEditable true
-  int hspace;
-
   /// @domName HTMLImageElement.isMap; @docsEditable true
   bool isMap;
 
-  /// @domName HTMLImageElement.longDesc; @docsEditable true
-  String longDesc;
-
   /// @domName HTMLImageElement.lowsrc; @docsEditable true
   String lowsrc;
-
-  /// @domName HTMLImageElement.name; @docsEditable true
-  String name;
 
   /// @domName HTMLImageElement.naturalHeight; @docsEditable true
   final int naturalHeight;
@@ -10814,9 +10733,6 @@ class ImageElement extends Element native "*HTMLImageElement" {
 
   /// @domName HTMLImageElement.useMap; @docsEditable true
   String useMap;
-
-  /// @domName HTMLImageElement.vspace; @docsEditable true
-  int vspace;
 
   /// @domName HTMLImageElement.width; @docsEditable true
   int width;
@@ -10876,9 +10792,6 @@ class InputElement extends Element implements
 
   /// @domName HTMLInputElement.accept; @docsEditable true
   String accept;
-
-  /// @domName HTMLInputElement.align; @docsEditable true
-  String align;
 
   /// @domName HTMLInputElement.alt; @docsEditable true
   String alt;
@@ -12261,9 +12174,6 @@ class LinkElement extends Element native "*HTMLLinkElement" {
   ///@docsEditable true
   factory LinkElement() => document.$dom_createElement("link");
 
-  /// @domName HTMLLinkElement.charset; @docsEditable true
-  String charset;
-
   /// @domName HTMLLinkElement.disabled; @docsEditable true
   bool disabled;
 
@@ -12279,17 +12189,11 @@ class LinkElement extends Element native "*HTMLLinkElement" {
   /// @domName HTMLLinkElement.rel; @docsEditable true
   String rel;
 
-  /// @domName HTMLLinkElement.rev; @docsEditable true
-  String rev;
-
   /// @domName HTMLLinkElement.sheet; @docsEditable true
   final StyleSheet sheet;
 
   /// @domName HTMLLinkElement.sizes; @docsEditable true
   DomSettableTokenList sizes;
-
-  /// @domName HTMLLinkElement.target; @docsEditable true
-  String target;
 
   /// @domName HTMLLinkElement.type; @docsEditable true
   String type;
@@ -13238,9 +13142,6 @@ class MetaElement extends Element native "*HTMLMetaElement" {
 
   /// @domName HTMLMetaElement.name; @docsEditable true
   String name;
-
-  /// @domName HTMLMetaElement.scheme; @docsEditable true
-  String scheme;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14486,9 +14387,6 @@ class OListElement extends Element native "*HTMLOListElement" {
   ///@docsEditable true
   factory OListElement() => document.$dom_createElement("ol");
 
-  /// @domName HTMLOListElement.compact; @docsEditable true
-  bool compact;
-
   /// @domName HTMLOListElement.reversed; @docsEditable true
   bool reversed;
 
@@ -14517,29 +14415,11 @@ class ObjectElement extends Element native "*HTMLObjectElement" {
    */
   static bool get supported => Element.isTagSupported('object');
 
-  /// @domName HTMLObjectElement.align; @docsEditable true
-  String align;
-
-  /// @domName HTMLObjectElement.archive; @docsEditable true
-  String archive;
-
-  /// @domName HTMLObjectElement.border; @docsEditable true
-  String border;
-
   /// @domName HTMLObjectElement.code; @docsEditable true
   String code;
 
-  /// @domName HTMLObjectElement.codeBase; @docsEditable true
-  String codeBase;
-
-  /// @domName HTMLObjectElement.codeType; @docsEditable true
-  String codeType;
-
   /// @domName HTMLObjectElement.data; @docsEditable true
   String data;
-
-  /// @domName HTMLObjectElement.declare; @docsEditable true
-  bool declare;
 
   /// @domName HTMLObjectElement.form; @docsEditable true
   final FormElement form;
@@ -14547,14 +14427,8 @@ class ObjectElement extends Element native "*HTMLObjectElement" {
   /// @domName HTMLObjectElement.height; @docsEditable true
   String height;
 
-  /// @domName HTMLObjectElement.hspace; @docsEditable true
-  int hspace;
-
   /// @domName HTMLObjectElement.name; @docsEditable true
   String name;
-
-  /// @domName HTMLObjectElement.standby; @docsEditable true
-  String standby;
 
   /// @domName HTMLObjectElement.type; @docsEditable true
   String type;
@@ -14567,9 +14441,6 @@ class ObjectElement extends Element native "*HTMLObjectElement" {
 
   /// @domName HTMLObjectElement.validity; @docsEditable true
   final ValidityState validity;
-
-  /// @domName HTMLObjectElement.vspace; @docsEditable true
-  int vspace;
 
   /// @domName HTMLObjectElement.width; @docsEditable true
   String width;
@@ -14833,9 +14704,6 @@ class ParagraphElement extends Element native "*HTMLParagraphElement" {
 
   ///@docsEditable true
   factory ParagraphElement() => document.$dom_createElement("p");
-
-  /// @domName HTMLParagraphElement.align; @docsEditable true
-  String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14851,14 +14719,8 @@ class ParamElement extends Element native "*HTMLParamElement" {
   /// @domName HTMLParamElement.name; @docsEditable true
   String name;
 
-  /// @domName HTMLParamElement.type; @docsEditable true
-  String type;
-
   /// @domName HTMLParamElement.value; @docsEditable true
   String value;
-
-  /// @domName HTMLParamElement.valueType; @docsEditable true
-  String valueType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15051,9 +14913,6 @@ class PreElement extends Element native "*HTMLPreElement" {
 
   ///@docsEditable true
   factory PreElement() => document.$dom_createElement("pre");
-
-  /// @domName HTMLPreElement.width; @docsEditable true
-  int width;
 
   /// @domName HTMLPreElement.wrap; @docsEditable true
   bool wrap;
@@ -17036,9 +16895,6 @@ class TableCaptionElement extends Element native "*HTMLTableCaptionElement" {
 
   ///@docsEditable true
   factory TableCaptionElement() => document.$dom_createElement("caption");
-
-  /// @domName HTMLTableCaptionElement.align; @docsEditable true
-  String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17051,26 +16907,8 @@ class TableCellElement extends Element native "*HTMLTableCellElement" {
   ///@docsEditable true
   factory TableCellElement() => document.$dom_createElement("td");
 
-  /// @domName HTMLTableCellElement.abbr; @docsEditable true
-  String abbr;
-
-  /// @domName HTMLTableCellElement.align; @docsEditable true
-  String align;
-
-  /// @domName HTMLTableCellElement.axis; @docsEditable true
-  String axis;
-
-  /// @domName HTMLTableCellElement.bgColor; @docsEditable true
-  String bgColor;
-
   /// @domName HTMLTableCellElement.cellIndex; @docsEditable true
   final int cellIndex;
-
-  /// @domName HTMLTableCellElement.ch; @docsEditable true
-  String ch;
-
-  /// @domName HTMLTableCellElement.chOff; @docsEditable true
-  String chOff;
 
   /// @domName HTMLTableCellElement.colSpan; @docsEditable true
   int colSpan;
@@ -17078,23 +16916,8 @@ class TableCellElement extends Element native "*HTMLTableCellElement" {
   /// @domName HTMLTableCellElement.headers; @docsEditable true
   String headers;
 
-  /// @domName HTMLTableCellElement.height; @docsEditable true
-  String height;
-
-  /// @domName HTMLTableCellElement.noWrap; @docsEditable true
-  bool noWrap;
-
   /// @domName HTMLTableCellElement.rowSpan; @docsEditable true
   int rowSpan;
-
-  /// @domName HTMLTableCellElement.scope; @docsEditable true
-  String scope;
-
-  /// @domName HTMLTableCellElement.vAlign; @docsEditable true
-  String vAlign;
-
-  /// @domName HTMLTableCellElement.width; @docsEditable true
-  String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17107,23 +16930,8 @@ class TableColElement extends Element native "*HTMLTableColElement" {
   ///@docsEditable true
   factory TableColElement() => document.$dom_createElement("col");
 
-  /// @domName HTMLTableColElement.align; @docsEditable true
-  String align;
-
-  /// @domName HTMLTableColElement.ch; @docsEditable true
-  String ch;
-
-  /// @domName HTMLTableColElement.chOff; @docsEditable true
-  String chOff;
-
   /// @domName HTMLTableColElement.span; @docsEditable true
   int span;
-
-  /// @domName HTMLTableColElement.vAlign; @docsEditable true
-  String vAlign;
-
-  /// @domName HTMLTableColElement.width; @docsEditable true
-  String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17136,35 +16944,14 @@ class TableElement extends Element native "*HTMLTableElement" {
   ///@docsEditable true
   factory TableElement() => document.$dom_createElement("table");
 
-  /// @domName HTMLTableElement.align; @docsEditable true
-  String align;
-
-  /// @domName HTMLTableElement.bgColor; @docsEditable true
-  String bgColor;
-
   /// @domName HTMLTableElement.border; @docsEditable true
   String border;
 
   /// @domName HTMLTableElement.caption; @docsEditable true
   TableCaptionElement caption;
 
-  /// @domName HTMLTableElement.cellPadding; @docsEditable true
-  String cellPadding;
-
-  /// @domName HTMLTableElement.cellSpacing; @docsEditable true
-  String cellSpacing;
-
-  /// @domName HTMLTableElement.frame; @docsEditable true
-  String frame;
-
   /// @domName HTMLTableElement.rows; @docsEditable true
   final HtmlCollection rows;
-
-  /// @domName HTMLTableElement.rules; @docsEditable true
-  String rules;
-
-  /// @domName HTMLTableElement.summary; @docsEditable true
-  String summary;
 
   /// @domName HTMLTableElement.tBodies; @docsEditable true
   final HtmlCollection tBodies;
@@ -17174,9 +16961,6 @@ class TableElement extends Element native "*HTMLTableElement" {
 
   /// @domName HTMLTableElement.tHead; @docsEditable true
   TableSectionElement tHead;
-
-  /// @domName HTMLTableElement.width; @docsEditable true
-  String width;
 
   /// @domName HTMLTableElement.createCaption; @docsEditable true
   Element createCaption() native;
@@ -17226,29 +17010,14 @@ class TableRowElement extends Element native "*HTMLTableRowElement" {
   ///@docsEditable true
   factory TableRowElement() => document.$dom_createElement("tr");
 
-  /// @domName HTMLTableRowElement.align; @docsEditable true
-  String align;
-
-  /// @domName HTMLTableRowElement.bgColor; @docsEditable true
-  String bgColor;
-
   /// @domName HTMLTableRowElement.cells; @docsEditable true
   final HtmlCollection cells;
-
-  /// @domName HTMLTableRowElement.ch; @docsEditable true
-  String ch;
-
-  /// @domName HTMLTableRowElement.chOff; @docsEditable true
-  String chOff;
 
   /// @domName HTMLTableRowElement.rowIndex; @docsEditable true
   final int rowIndex;
 
   /// @domName HTMLTableRowElement.sectionRowIndex; @docsEditable true
   final int sectionRowIndex;
-
-  /// @domName HTMLTableRowElement.vAlign; @docsEditable true
-  String vAlign;
 
   /// @domName HTMLTableRowElement.deleteCell; @docsEditable true
   void deleteCell(int index) native;
@@ -17264,20 +17033,11 @@ class TableRowElement extends Element native "*HTMLTableRowElement" {
 /// @domName HTMLTableSectionElement; @docsEditable true
 class TableSectionElement extends Element native "*HTMLTableSectionElement" {
 
-  /// @domName HTMLTableSectionElement.align; @docsEditable true
-  String align;
-
-  /// @domName HTMLTableSectionElement.ch; @docsEditable true
-  String ch;
-
   /// @domName HTMLTableSectionElement.chOff; @docsEditable true
   String chOff;
 
   /// @domName HTMLTableSectionElement.rows; @docsEditable true
   final HtmlCollection rows;
-
-  /// @domName HTMLTableSectionElement.vAlign; @docsEditable true
-  String vAlign;
 
   /// @domName HTMLTableSectionElement.deleteRow; @docsEditable true
   void deleteRow(int index) native;
@@ -18236,12 +17996,6 @@ class UListElement extends Element native "*HTMLUListElement" {
 
   ///@docsEditable true
   factory UListElement() => document.$dom_createElement("ul");
-
-  /// @domName HTMLUListElement.compact; @docsEditable true
-  bool compact;
-
-  /// @domName HTMLUListElement.type; @docsEditable true
-  String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
