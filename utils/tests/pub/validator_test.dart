@@ -531,5 +531,17 @@ main() {
         });
       });
     });
+
+    test('has a hosted dependency on itself', () {
+      dir(appPath, [
+        libPubspec("test_pkg", "1.0.0", [
+          {'hosted': {'name': 'test_pkg', 'version': '>=1.0.0'}}
+        ])
+      ]).scheduleCreate();
+
+      expectValidationWarning(dependency);
+
+      run();
+    });
   });
 }

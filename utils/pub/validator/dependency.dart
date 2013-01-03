@@ -23,6 +23,14 @@ class DependencyValidator extends Validator {
         return _warnAboutSource(dependency);
       }
 
+      if (dependency.name == entrypoint.root.name) {
+        warnings.add('You don\'t need to explicitly depend on your own '
+                'package.\n'
+            'Pub enables "package:${entrypoint.root.name}" imports '
+                'implicitly.');
+        return new Future.immediate(null);
+      }
+
       if (dependency.constraint.isAny &&
           // TODO(nweiz): once we have development dependencies (issue 5358), we
           // should warn about unittest. Until then, it's reasonable not to put
