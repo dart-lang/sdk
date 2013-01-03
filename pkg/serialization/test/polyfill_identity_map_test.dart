@@ -10,8 +10,8 @@
 // Issue 4161.
 library identity_set_test;
 
-import '../../unittest/lib/unittest.dart';
-import '../lib/src/serialization_helpers.dart';
+import 'package:unittest/unittest.dart';
+import 'package:serialization/src/serialization_helpers.dart';
 
 class Foo {
   var x;

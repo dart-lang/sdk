@@ -4,10 +4,10 @@
 
 library serialization_test;
 
-import '../../unittest/lib/unittest.dart';
-import '../lib/serialization.dart';
-import '../lib/src/serialization_helpers.dart';
-import '../lib/src/mirrors_helpers.dart';
+import 'package:unittest/unittest.dart';
+import 'package:serialization/serialization.dart';
+import 'package:serialization/src/serialization_helpers.dart';
+import 'package:serialization/src/mirrors_helpers.dart';
 
 part 'test_models.dart';
 
