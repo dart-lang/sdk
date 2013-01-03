@@ -6,9 +6,8 @@ library all_test;
 
 import 'dart:io' as io;
 
-// TODO(rnystrom): Use "package:" path when #7491 is fixed.
-import '../../unittest/lib/unittest.dart';
-import '../lib/path.dart' as path;
+import 'package:unittest/unittest.dart';
+import 'package:path/path.dart' as path;
 
 main() {
   group('path.Style', () {
