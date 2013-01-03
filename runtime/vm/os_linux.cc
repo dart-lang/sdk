@@ -30,7 +30,7 @@ DEFINE_FLAG(bool, generate_gdb_symbols, false,
 DEFINE_FLAG(bool, generate_perf_events_symbols, false,
     "Generate events symbols for profiling with perf");
 DEFINE_FLAG(charp, generate_pprof_symbols, NULL,
-    "Generate events symbols for profiling with pprof");
+    "Writes pprof events symbols to the provided file");
 
 class PerfCodeObserver : public CodeObserver {
  public:
