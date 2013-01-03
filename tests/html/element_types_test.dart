@@ -64,6 +64,12 @@ main() {
     });
   });
 
+  group('supported_shadow', () {
+    test('supported', () {
+      expect(ShadowElement.supported, true);
+    });
+  });
+
   group('supported_track', () {
     test('supported', () {
       expect(TrackElement.supported, true);
@@ -249,6 +255,10 @@ main() {
     });
     test('select', () {
       expect((new SelectElement()) is SelectElement, true);
+    });
+    test('shadow', () {
+      expect((new Element.tag('shadow')) is ShadowElement,
+          ShadowElement.supported);
     });
     test('source', () {
       expect((new SourceElement()) is SourceElement, true);

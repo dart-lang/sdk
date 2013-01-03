@@ -18,10 +18,10 @@ main() {
 
     // If it's supported, then it should work. Otherwise should fail.
     if (isSupported) {
-      var shadowRoot = new DivElement().webkitCreateShadowRoot();
+      var shadowRoot = new DivElement().createShadowRoot();
       expect(shadowRoot, isShadowRoot);
     } else {
-      expect(() => new DivElement().webkitCreateShadowRoot(), throws);
+      expect(() => new DivElement().createShadowRoot(), throws);
     }
   });
 }

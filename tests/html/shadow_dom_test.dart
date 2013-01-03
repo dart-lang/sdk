@@ -4,39 +4,53 @@
 
 library ShadowDOMTest;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
+
+  group('supported', () {
+    test('supported', () {
+      expect(ShadowRoot.supported, true);
+    });
+  });
 
   group('ShadowDOM tests', () {
 
     var div1, div2, shadowRoot, paragraph1, paragraph2;
 
-    setUp(() {
+    init() {
       paragraph1 = new ParagraphElement();
       paragraph2 = new ParagraphElement();
       [paragraph1, paragraph2].forEach((p) { p.classes.add('foo');});
       div1 = new DivElement();
       div2 = new DivElement();
       div1.classes.add('foo');
-      shadowRoot = div2.webkitCreateShadowRoot();
+      shadowRoot = div2.createShadowRoot();
       shadowRoot.nodes.add(paragraph1);
-      // No constructor for ContentElement exists yet.
-      // See http://code.google.com/p/dart/issues/detail?id=3870.
-      shadowRoot.nodes.add(new Element.tag('content'));
+      shadowRoot.nodes.add(new ContentElement());
       div2.nodes.add(paragraph2);
       document.body.nodes.add(div1);
       document.body.nodes.add(div2);
-    });
+    }
+
+    var expectation = ShadowRoot.supported ? returnsNormally : throws;
 
     test("Shadowed nodes aren't visible to queries from outside ShadowDOM", () {
-      expect(queryAll('.foo'), equals([div1, paragraph2]));
+      expect(() {
+        init();
+
+        expect(queryAll('.foo'), equals([div1, paragraph2]));
+      }, expectation);
     });
 
     test('Parent node of a shadow root must be null.', () {
-      expect(shadowRoot.parent, isNull);
+      expect(() {
+        init();
+
+        expect(shadowRoot.parent, isNull);
+      }, expectation);
     });
 
 
@@ -46,7 +60,11 @@ main() {
     // rendering tests.
 
     test('Querying in shadowed fragment respects the shadow boundary.', () {
-      expect(shadowRoot.queryAll('.foo'), equals([paragraph1]));
+      expect(() {
+        init();
+
+        expect(shadowRoot.queryAll('.foo'), equals([paragraph1]));
+      }, expectation);
     });
   });
 }

@@ -6,12 +6,12 @@
 
 part of html;
 
-/// @domName $DOMNAME
+/// @domName $DOMNAME$ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 $if DART2JS
   static bool get supported =>
-      JS('bool', '!!(window.ShadowRoot || window.WebKitShadowRoot || Element.prototype.webkitCreateShadowRoot)');
+      JS('bool', '!!(Element.prototype.webkitCreateShadowRoot)');
 $else
   static bool get supported => _Utils.shadowRootSupported(window.document);
 $endif

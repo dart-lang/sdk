@@ -7961,7 +7961,9 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native;
 
   /// @domName Element.webkitCreateShadowRoot; @docsEditable true
-  ShadowRoot webkitCreateShadowRoot() native;
+  @JSName('webkitCreateShadowRoot')
+  @SupportedBrowser(SupportedBrowser.CHROME, '25') @Experimental()
+  ShadowRoot createShadowRoot() native;
 
   /// @domName Element.webkitMatchesSelector; @docsEditable true
   @JSName('webkitMatchesSelector')
@@ -15965,7 +15967,14 @@ class SelectElement extends Element native "*HTMLSelectElement" {
 
 
 /// @domName HTMLShadowElement; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class ShadowElement extends Element native "*HTMLShadowElement" {
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => Element.isTagSupported('shadow');
 
   /// @domName HTMLShadowElement.olderShadowRoot; @docsEditable true
   final ShadowRoot olderShadowRoot;
@@ -15981,6 +15990,8 @@ class ShadowElement extends Element native "*HTMLShadowElement" {
 
 
 /// @domName ShadowRoot
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
   /// @domName ShadowRoot.activeElement; @docsEditable true
@@ -16018,7 +16029,7 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
   DomSelection getSelection() native;
 
   static bool get supported =>
-      JS('bool', '!!(window.ShadowRoot || window.WebKitShadowRoot || Element.prototype.webkitCreateShadowRoot)');
+      JS('bool', '!!(Element.prototype.webkitCreateShadowRoot)');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

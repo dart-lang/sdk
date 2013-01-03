@@ -9,13 +9,19 @@ webgl_1_test: Skip  # Issue 1495
 xmldocument_test: Skip  # XML in dart:html is incomplete
 xmlelement_test: Skip  # XML in dart:html is incomplete
 
+# Layout tests are only supported on DRT.
+[ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
+*layout_test: Skip
+
 [ $runtime == chrome ]
 element_types_test/supported_content: Fail
+element_types_test/supported_shadow: Fail
 input_element_test/supported_date: Pass, Fail      # Chrome stable does not support this input type.
 input_element_test/supported_datetime: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
 input_element_test/supported_week: Fail
+shadow_dom_test/supported: Fail
 
 [ $runtime == chrome || $runtime == drt]
 audiobuffersourcenode_test: Pass, Fail  # AudiobufferSourceNode is flaky on Chrome and Dartium.
@@ -52,11 +58,6 @@ audiobuffersourcenode_test: Pass, Fail
 [ $compiler == none && $runtime == drt && $system == linux]
 documentfragment_test: Pass, Timeout
 
-[ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
-# TODO(vsm): Triage DOM tests.
-shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
-shadow_dom_layout_test: Skip
-
 [$runtime == ie10 ]
 # TODO(efortuna, blois): Triage.
 audiobuffersourcenode_test: Fail
@@ -71,6 +72,7 @@ element_types_test/supported_keygen: Fail
 element_types_test/supported_meter: Fail
 element_types_test/supported_object: Fail
 element_types_test/supported_output: Fail
+element_types_test/supported_shadow: Fail
 exceptions_test: Fail
 fileapi_test: Fail
 indexeddb_1_test/supported: Fail         # IE10 does not support from file://
@@ -87,6 +89,7 @@ measurement_test: Fail, Pass
 messageevent_test: Fail
 mutationobserver_test/supported: Fail
 serialized_script_value_test: Fail
+shadow_dom_test/supported: Fail
 storage_test: Fail, Pass
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
@@ -108,6 +111,7 @@ element_types_test/supported_meter: Fail
 element_types_test/supported_object: Fail
 element_types_test/supported_output: Fail
 element_types_test/supported_progress: Fail
+element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Fail
 form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
@@ -145,8 +149,7 @@ messageevent_test: Fail
 mutationobserver_test/supported: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
-shadow_dom_layout_test: Fail
-shadow_dom_test: Fail
+shadow_dom_test/supported: Fail
 storage_test: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
@@ -164,7 +167,9 @@ xhr_cross_origin_test: Fail # Issue 6016.
 # with Safari 6.
 audiocontext_test: Crash, Fail # Issue: 7414
 element_test/elements: Crash, Fail # Issue: 7414
+element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
+element_types_test/supported_shadow: Fail
 performance_api_test: Fail # window.performance.timing not in Safari 6.
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
@@ -175,9 +180,8 @@ input_element_test/supported_range: Fail, Crash    # TODO(efortuna): Please tria
 input_element_test/supported_time: Fail, Crash
 input_element_test/supported_week: Fail, Crash
 fileapi_test: Fail # requestFileSystem not supported in Safari 6.
-# TODO(efortuna): Make our test framework able to separate tests out by browser
-# version.
 node_test: Skip # Issue 6457
+shadow_dom_test/supported: Fail
 
 [ $runtime == opera && $system == windows ]
 htmlelement_test: Fail, Pass
@@ -237,8 +241,9 @@ documentfragment_test: Fail
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
 element_types_test/supported_embed: Fail
-element_types_test/supported_track: Fail
 element_types_test/supported_keygen: Fail
+element_types_test/supported_shadow: Fail
+element_types_test/supported_track: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
 fileapi_test: Fail         # FF does not support filesystem APIs.
 indexeddb_1_test/supported: Fail  # FF disables indexedDB from file URLs.
@@ -252,6 +257,7 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail
+shadow_dom_test/supported: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail

@@ -139,6 +139,7 @@ _private_html_members = set([
 _renamed_html_members = {
     'Document.createCDATASection': 'createCDataSection',
     'Document.defaultView': 'window',
+    'Element.webkitCreateShadowRoot': 'createShadowRoot',
     'Element.webkitMatchesSelector' : 'matchesSelector',
     'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
     'Node.cloneNode': 'clone',

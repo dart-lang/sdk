@@ -82,6 +82,7 @@ js_support_checks = {
   'HTMLObjectElement': "Element.isTagSupported('object')",
   'HTMLOutputElement': "Element.isTagSupported('output')",
   'HTMLProgressElement': "Element.isTagSupported('progress')",
+  'HTMLShadowElement': "Element.isTagSupported('shadow')",
   'HTMLTrackElement': "Element.isTagSupported('track')",
 }
 

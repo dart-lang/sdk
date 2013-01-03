@@ -647,6 +647,10 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
   'DOMWindow.indexedDB': _indexed_db_annotations,
+  'Element.webkitCreateShadowRoot': [
+    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
+    "@Experimental()",
+  ],
   'History.pushState': _history_annotations,
   'History.replaceState': _history_annotations,
   'HTMLContentElement': [
@@ -695,6 +699,10 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.IE, '10')",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
+  'HTMLShadowElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
+    "@Experimental()",
+  ],
   'HTMLTrackElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.IE, '10')",
@@ -702,6 +710,10 @@ dart_annotations = {
   ],
   'IDBFactory': _indexed_db_annotations,
   'IDBDatabase': _indexed_db_annotations,
+  'ShadowRoot': [
+    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
+    "@Experimental()",
+  ],
   'WorkerContext.indexedDB': _indexed_db_annotations,
 }
 

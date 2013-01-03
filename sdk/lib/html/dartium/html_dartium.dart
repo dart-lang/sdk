@@ -9182,7 +9182,9 @@ abstract class Element extends Node implements ElementTraversal {
 
 
   /** @domName Element.webkitCreateShadowRoot */
-  ShadowRoot webkitCreateShadowRoot() native "Element_webkitCreateShadowRoot_Callback";
+  @SupportedBrowser(SupportedBrowser.CHROME, '25')
+  @Experimental()
+  ShadowRoot createShadowRoot() native "Element_webkitCreateShadowRoot_Callback";
 
 
   /** @domName Element.webkitMatchesSelector */
@@ -19421,6 +19423,11 @@ class SelectElement extends _Element_Merged {
 class ShadowElement extends _Element_Merged {
   ShadowElement.internal() : super.internal();
 
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
+
 
   /** @domName HTMLShadowElement.olderShadowRoot */
   ShadowRoot get olderShadowRoot native "HTMLShadowElement_olderShadowRoot_Getter";
@@ -19442,6 +19449,8 @@ class ShadowElement extends _Element_Merged {
 
 
 /// @domName ShadowRoot
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class ShadowRoot extends DocumentFragment {
   ShadowRoot.internal() : super.internal();
 
