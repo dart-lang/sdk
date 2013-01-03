@@ -19420,6 +19420,8 @@ class SelectElement extends _Element_Merged {
 
 
 /// @domName HTMLShadowElement
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class ShadowElement extends _Element_Merged {
   ShadowElement.internal() : super.internal();
 
