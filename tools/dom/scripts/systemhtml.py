@@ -12,6 +12,7 @@ from generator import *
 from htmldartgenerator import *
 
 _js_custom_members = set([
+    'ArrayBuffer.slice',
     'AudioBufferSourceNode.start',
     'AudioBufferSourceNode.stop',
     'AudioContext.createGain',
@@ -67,6 +68,7 @@ _js_custom_members = set([
     ])
 
 js_support_checks = {
+  'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
   'HTMLContentElement': "Element.isTagSupported('content')",
   'HTMLDataListElement': "Element.isTagSupported('datalist')",
   'HTMLDetailsElement': "Element.isTagSupported('details')",

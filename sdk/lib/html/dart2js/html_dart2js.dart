@@ -5,6 +5,7 @@ import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json';
+import 'dart:math';
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -345,23 +346,58 @@ class AreaElement extends Element native "*HTMLAreaElement" {
   /// @domName HTMLAreaElement.target; @docsEditable true
   String target;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ArrayBuffer; @docsEditable true
+/// @domName ArrayBuffer
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBuffer native "*ArrayBuffer" {
 
   ///@docsEditable true
   factory ArrayBuffer(int length) => ArrayBuffer._create(length);
   static ArrayBuffer _create(int length) => JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
 
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => JS('bool', 'typeof window.ArrayBuffer != "undefined"');
+
   /// @domName ArrayBuffer.byteLength; @docsEditable true
   final int byteLength;
 
-  /// @domName ArrayBuffer.slice; @docsEditable true
-  ArrayBuffer slice(int begin, [int end]) native;
+  /// @domName ArrayBuffer.slice;
+  ArrayBuffer slice(int begin, [int end]) {
+    // IE10 supports ArrayBuffers but does not have the slice method.
+    if (JS('bool', '!!#.slice', this)) {
+      if (?end) {
+        return JS('ArrayBuffer', '#.slice(#, #)', this, begin, end);
+      }
+      return JS('ArrayBuffer', '#.slice(#)', this, begin);
+    } else {
+      var start = begin;
+      // Negative values go from end.
+      if (start < 0) {
+        start = this.byteLength + start;
+      }
+      var finish = ?end ? min(end, byteLength) : byteLength;
+      if (finish < 0) {
+        finish = this.byteLength + finish;
+      }
+      var length = max(finish - start, 0);
+
+      var clone = new Int8Array(length);
+      var source = new Int8Array.fromBuffer(this, start);
+      for (var i = 0; i < length; ++i) {
+        clone[i] = source[i];
+      }
+      return clone.buffer;
+    }
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -369,6 +405,10 @@ class ArrayBuffer native "*ArrayBuffer" {
 
 
 /// @domName ArrayBufferView; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBufferView native "*ArrayBufferView" {
 
   /// @domName ArrayBufferView.buffer; @docsEditable true

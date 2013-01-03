@@ -7,8 +7,14 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
 
+
 main() {
   useHtmlConfiguration();
+
+  // Only perform tests if ArrayBuffer is supported.
+  if (!ArrayBuffer.supported) {
+    return;
+  }
 
   test('fromBufferTest_dynamic', () {
       var a1 = new Uint8Array(1024);

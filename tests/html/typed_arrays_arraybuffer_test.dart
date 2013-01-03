@@ -10,6 +10,11 @@ import 'dart:html';
 main() {
   useHtmlConfiguration();
 
+  // Only perform tests if ArrayBuffer is supported.
+  if (!ArrayBuffer.supported) {
+    return;
+  }
+
   test('constructor', () {
       var a = new ArrayBuffer(100);
       expect(a.byteLength, 100);

@@ -112,6 +112,10 @@ class CursorWithValue extends Cursor {
 
 
 /// @domName IDBDatabase
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX, '15')
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@Experimental()
 class Database extends EventTarget {
   Database.internal() : super.internal();
 

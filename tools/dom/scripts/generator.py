@@ -634,6 +634,18 @@ _history_annotations = [
 #   INTERFACE:     annotations to be added to the interface declaration
 #   INTERFACE.MEMBER: annotation to be added to the member declaration
 dart_annotations = {
+  'ArrayBuffer': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.IE, '10')",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
+  'ArrayBufferView': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.IE, '10')",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
   'DOMWindow.indexedDB': _indexed_db_annotations,
   'History.pushState': _history_annotations,
   'History.replaceState': _history_annotations,

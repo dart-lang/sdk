@@ -10,6 +10,11 @@ import 'dart:html';
 main() {
   useHtmlConfiguration();
 
+  // Only perform tests if ArrayBuffer is supported.
+  if (!ArrayBuffer.supported) {
+    return;
+  }
+
   test('filter_dynamic', () {
       var a = new Float32Array(1024);
       for (int i = 0; i < a.length; i++) {

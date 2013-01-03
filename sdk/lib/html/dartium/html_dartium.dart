@@ -593,12 +593,21 @@ class AreaElement extends _Element_Merged {
 
 
 /// @domName ArrayBuffer
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBuffer extends NativeFieldWrapperClass1 {
   ArrayBuffer.internal();
 
   ///@docsEditable true
   factory ArrayBuffer(int length) => ArrayBuffer._create(length);
   static ArrayBuffer _create(int length) native "ArrayBuffer_constructor_Callback";
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName ArrayBuffer.byteLength */
@@ -628,6 +637,10 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
 
 
 /// @domName ArrayBufferView
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBufferView extends NativeFieldWrapperClass1 {
   ArrayBufferView.internal();
 
@@ -2095,6 +2108,8 @@ class Console extends NativeFieldWrapperClass1 {
 
 
 /// @domName HTMLContentElement
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class ContentElement extends _Element_Merged {
   ContentElement.internal() : super.internal();
 
@@ -6235,6 +6250,10 @@ class DListElement extends _Element_Merged {
 
 
 /// @domName HTMLDataListElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class DataListElement extends _Element_Merged {
   DataListElement.internal() : super.internal();
 
@@ -6658,6 +6677,9 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 
 
 /// @domName HTMLDetailsElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class DetailsElement extends _Element_Merged {
   DetailsElement.internal() : super.internal();
 
@@ -9426,6 +9448,9 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 
 
 /// @domName HTMLEmbedElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class EmbedElement extends _Element_Merged {
   EmbedElement.internal() : super.internal();
 
@@ -14261,6 +14286,9 @@ class KeyboardEvent extends UIEvent {
 
 
 /// @domName HTMLKeygenElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class KeygenElement extends _Element_Merged {
   KeygenElement.internal() : super.internal();
 
@@ -15954,6 +15982,9 @@ typedef void MetadataCallback(Metadata metadata);
 
 
 /// @domName HTMLMeterElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class MeterElement extends _Element_Merged {
   MeterElement.internal() : super.internal();
 
@@ -17348,6 +17379,9 @@ class OListElement extends _Element_Merged {
 
 
 /// @domName HTMLObjectElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ObjectElement extends _Element_Merged {
   ObjectElement.internal() : super.internal();
 
@@ -17697,6 +17731,9 @@ class OptionElement extends _Element_Merged {
 
 
 /// @domName HTMLOutputElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class OutputElement extends _Element_Merged {
   OutputElement.internal() : super.internal();
 
@@ -18226,6 +18263,10 @@ class ProcessingInstruction extends Node {
 
 
 /// @domName HTMLProgressElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ProgressElement extends _Element_Merged {
   ProgressElement.internal() : super.internal();
 
@@ -22245,6 +22286,9 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
 
 /// @domName HTMLTrackElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class TrackElement extends _Element_Merged {
   TrackElement.internal() : super.internal();
 

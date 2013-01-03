@@ -12,6 +12,7 @@ import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json';
+import 'dart:math';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;

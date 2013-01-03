@@ -10,6 +10,11 @@ import 'dart:html';
 main() {
   useHtmlConfiguration();
 
+  // Only perform tests if ArrayBuffer is supported.
+  if (!ArrayBuffer.supported) {
+    return;
+  }
+
   test('setElementsTest_dynamic', () {
       var a1 = new Int8Array(1024);
 
