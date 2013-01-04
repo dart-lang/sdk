@@ -202,6 +202,15 @@ class Object {
 
   bool IsNew() const { return raw()->IsNewObject(); }
   bool IsOld() const { return raw()->IsOldObject(); }
+  bool InVMHeap() const {
+#if defined(DEBUG)
+    if (raw()->IsVMHeapObject()) {
+      Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+      ASSERT(vm_isolate_heap->Contains(RawObject::ToAddr(raw())));
+    }
+#endif
+    return raw()->IsVMHeapObject();
+  }
 
   // Print the object on stdout for debugging.
   void Print() const;
@@ -6138,8 +6147,8 @@ void Object::SetRaw(RawObject* value) {
   if (FLAG_verify_handles) {
     Heap* isolate_heap = isolate->heap();
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-    ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
-           vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
+    ASSERT(isolate_heap->Contains(RawObject::ToAddr(raw_)) ||
+           vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
   }
   ASSERT(builtin_vtables_[cid] ==
          isolate->class_table()->At(cid)->ptr()->handle_vtable_);

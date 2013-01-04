@@ -1046,7 +1046,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
   // Now check if it is an object from the VM isolate (NOTE: premarked objects
   // are considered to be objects in the VM isolate). These objects are shared
   // by all isolates.
-  if (rawobj->IsMarked()) {
+  if (rawobj->IsVMHeapObject()) {
     HandleVMIsolateObject(rawobj);
     return true;
   }

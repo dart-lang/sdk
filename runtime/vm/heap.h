@@ -188,6 +188,8 @@ class Heap {
     stats_.data_[id] = value;
   }
 
+  bool gc_in_progress() const { return gc_in_progress_; }
+
  private:
   class GCStats : public ValueObject {
    public:
@@ -242,6 +244,9 @@ class Heap {
 
   // This heap is in read-only mode: No allocation is allowed.
   bool read_only_;
+
+  // GC on the heap is in progress.
+  bool gc_in_progress_;
 
   friend class GCTestHelper;
   DISALLOW_COPY_AND_ASSIGN(Heap);

@@ -1553,7 +1553,7 @@ void Assembler::Drop(intptr_t stack_elements) {
 
 
 void Assembler::LoadObject(Register dst, const Object& object) {
-  if (object.IsSmi() || object.IsNull()) {
+  if (object.IsSmi() || object.InVMHeap()) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsNotTemporaryScopedHandle());
@@ -1566,7 +1566,7 @@ void Assembler::LoadObject(Register dst, const Object& object) {
 
 
 void Assembler::PushObject(const Object& object) {
-  if (object.IsSmi() || object.IsNull()) {
+  if (object.IsSmi() || object.InVMHeap()) {
     pushl(Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsNotTemporaryScopedHandle());
@@ -1579,7 +1579,7 @@ void Assembler::PushObject(const Object& object) {
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
-  if (object.IsSmi() || object.IsNull()) {
+  if (object.IsSmi() || object.InVMHeap()) {
     cmpl(reg, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsNotTemporaryScopedHandle());
@@ -1655,7 +1655,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const FieldAddress& dest,
                                          const Object& value) {
-  if (value.IsSmi()) {
+  if (value.IsSmi() || value.InVMHeap()) {
     movl(dest, Immediate(reinterpret_cast<int32_t>(value.raw())));
   } else {
     // No heap trace for an old object store.

@@ -35,7 +35,7 @@ DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
             "old gen heap size in MB,"
             "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
 
-Heap::Heap() : read_only_(false) {
+Heap::Heap() : read_only_(false), gc_in_progress_(false) {
   new_space_ = new Scavenger(this,
                              (FLAG_new_gen_heap_size * MB),
                              kNewObjectAlignmentOffset);
@@ -367,6 +367,8 @@ int64_t Heap::PeerCount() const {
 
 
 void Heap::RecordBeforeGC(Space space, GCReason reason) {
+  ASSERT(!gc_in_progress_);
+  gc_in_progress_ = true;
   stats_.num_++;
   stats_.space_ = space;
   stats_.reason_ = reason;
@@ -392,6 +394,8 @@ void Heap::RecordAfterGC() {
   stats_.after_.new_capacity_ = new_space_->capacity();
   stats_.after_.old_used_ = old_space_->in_use();
   stats_.after_.old_capacity_ = old_space_->capacity();
+  ASSERT(gc_in_progress_);
+  gc_in_progress_ = false;
 }
 
 

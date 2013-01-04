@@ -260,6 +260,7 @@ class RawObject {
     uword addr = reinterpret_cast<uword>(this);
     return (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
   }
+  bool IsVMHeapObject() const;
 
   // Support for GC marking bit.
   bool IsMarked() const {
