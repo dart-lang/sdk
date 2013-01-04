@@ -215,35 +215,32 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
 
 
 Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
-  if (Symbols::IsVMSymbolId(object_id)) {
-    intptr_t symbol_id = object_id - kMaxPredefinedObjectIds;
-    Dart_CObject* object;
-    if (vm_symbol_references_ != NULL &&
-        (object = vm_symbol_references_[symbol_id]) != NULL) {
-      return object;
-    }
-
-    if (vm_symbol_references_ == NULL) {
-      intptr_t size =
-          (sizeof(*vm_symbol_references_) * Symbols::kMaxPredefinedId);
-      vm_symbol_references_ =
-          reinterpret_cast<Dart_CObject**>(alloc_(NULL, 0, size));
-      memset(vm_symbol_references_, 0, size);
-    }
-
-    RawOneByteString* str =
-        reinterpret_cast<RawOneByteString*>(Symbols::GetVMSymbol(object_id));
-    intptr_t len = Smi::Value(str->ptr()->length_);
-    object = AllocateDartCObjectString(len);
-    char* p = object->value.as_string;
-    memmove(p, str->ptr()->data_, len);
-    p[len] = '\0';
-    ASSERT(vm_symbol_references_[symbol_id] == NULL);
-    vm_symbol_references_[symbol_id] = object;
+  ASSERT(Symbols::IsVMSymbolId(object_id));
+  intptr_t symbol_id = object_id - kMaxPredefinedObjectIds;
+  Dart_CObject* object;
+  if (vm_symbol_references_ != NULL &&
+      (object = vm_symbol_references_[symbol_id]) != NULL) {
     return object;
   }
-  // No other VM isolate objects are supported.
-  return AllocateDartCObjectNull();
+
+  if (vm_symbol_references_ == NULL) {
+    intptr_t size =
+        (sizeof(*vm_symbol_references_) * Symbols::kMaxPredefinedId);
+    vm_symbol_references_ =
+        reinterpret_cast<Dart_CObject**>(alloc_(NULL, 0, size));
+    memset(vm_symbol_references_, 0, size);
+  }
+
+  RawOneByteString* str =
+      reinterpret_cast<RawOneByteString*>(Symbols::GetVMSymbol(object_id));
+  intptr_t len = Smi::Value(str->ptr()->length_);
+  object = AllocateDartCObjectString(len);
+  char* p = object->value.as_string;
+  memmove(p, str->ptr()->data_, len);
+  p[len] = '\0';
+  ASSERT(vm_symbol_references_[symbol_id] == NULL);
+  vm_symbol_references_[symbol_id] = object;
+  return object;
 }
 
 
@@ -259,11 +256,7 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
   }
   ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
   if (IsVMIsolateObject(value)) {
-    intptr_t object_id = GetVMIsolateObjectId(value);
-    if (object_id == kNullObject) {
-      return AllocateDartCObjectNull();
-    }
-    return ReadVMSymbol(object_id);
+    return ReadVMIsolateObject(value);
   }
   if (SerializedHeaderTag::decode(value) == kObjectId) {
     return ReadIndexedObject(SerializedHeaderData::decode(value));
@@ -291,6 +284,25 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
   USE(tags);
 
   return ReadInternalVMObject(class_id, object_id);
+}
+
+
+Dart_CObject* ApiMessageReader::ReadVMIsolateObject(intptr_t value) {
+  intptr_t object_id = GetVMIsolateObjectId(value);
+  if (object_id == kNullObject) {
+    return AllocateDartCObjectNull();
+  }
+  if (object_id == kTrueValue) {
+    return AllocateDartCObjectBool(true);
+  }
+  if (object_id == kFalseValue) {
+    return AllocateDartCObjectBool(false);
+  }
+  if (Symbols::IsVMSymbolId(object_id)) {
+    return ReadVMSymbol(object_id);
+  }
+  // No other VM isolate objects are supported.
+  return AllocateDartCObjectNull();
 }
 
 
@@ -460,12 +472,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
 
 
 Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
-  if (object_id == kTrueValue) {
-    return AllocateDartCObjectBool(true);
-  }
-  if (object_id == kFalseValue) {
-    return AllocateDartCObjectBool(false);
-  }
   if (object_id == kDynamicType ||
       object_id == kDoubleType ||
       object_id == kIntType ||
@@ -505,11 +511,7 @@ Dart_CObject* ApiMessageReader::ReadObjectImpl() {
   }
   ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
   if (IsVMIsolateObject(value)) {
-    intptr_t object_id = GetVMIsolateObjectId(value);
-    if (object_id == kNullObject) {
-      return AllocateDartCObjectNull();
-    }
-    return ReadVMSymbol(object_id);
+    return ReadVMIsolateObject(value);
   }
   if (SerializedHeaderTag::decode(value) == kObjectId) {
     return ReadIndexedObject(SerializedHeaderData::decode(value));
@@ -761,9 +763,9 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       break;
     case Dart_CObject::kBool:
       if (object->value.as_bool) {
-        WriteIndexedObject(kTrueValue);
+        WriteVMIsolateObject(kTrueValue);
       } else {
-        WriteIndexedObject(kFalseValue);
+        WriteVMIsolateObject(kFalseValue);
       }
       break;
     case Dart_CObject::kInt32:

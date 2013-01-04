@@ -61,7 +61,7 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   Label fall_through;
   __ cmpl(bool_register, raw_null);
   __ j(EQUAL, &fall_through, Assembler::kNearJump);
-  __ CompareObject(bool_register, bool_true());
+  __ CompareObject(bool_register, Bool::True());
   __ j(EQUAL, is_true);
   __ jmp(is_false);
   __ Bind(&fall_through);
@@ -496,21 +496,21 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ Drop(5);
     if (negate_result) {
       __ popl(EDX);
-      __ LoadObject(EAX, bool_true());
+      __ LoadObject(EAX, Bool::True());
       __ cmpl(EDX, EAX);
       __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-      __ LoadObject(EAX, bool_false());
+      __ LoadObject(EAX, Bool::False());
     } else {
       __ popl(EAX);
     }
     __ jmp(&done, Assembler::kNearJump);
   }
   __ Bind(&is_not_instance);
-  __ LoadObject(EAX, negate_result ? bool_true() : bool_false());
+  __ LoadObject(EAX, negate_result ? Bool::True() : Bool::False());
   __ jmp(&done, Assembler::kNearJump);
 
   __ Bind(&is_instance);
-  __ LoadObject(EAX, negate_result ? bool_false() : bool_true());
+  __ LoadObject(EAX, negate_result ? Bool::False() : Bool::True());
   __ Bind(&done);
   __ popl(EDX);  // Remove pushed instantiator type arguments.
   __ popl(ECX);  // Remove pushed instantiator.
@@ -1246,11 +1246,11 @@ void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
   __ cmpl(result, Address(ESP, 0 * kWordSize));
   Label is_false;
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
-  __ LoadObject(result, bool_true());
+  __ LoadObject(result, Bool::True());
   __ Drop(1);
   __ jmp(skip_call);
   __ Bind(&is_false);
-  __ LoadObject(result, bool_false());
+  __ LoadObject(result, Bool::False());
   __ Drop(1);
   __ jmp(skip_call);
   __ Bind(&fall_through);

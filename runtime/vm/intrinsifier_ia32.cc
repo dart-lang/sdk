@@ -1075,17 +1075,15 @@ static void Push64SmiOrMint(Assembler* assembler,
 
 static bool CompareIntegers(Assembler* assembler, Condition true_condition) {
   Label try_mint_smi, is_true, is_false, drop_two_fall_through, fall_through;
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   TestBothArgumentsSmis(assembler, &try_mint_smi);
   // EAX contains the right argument.
   __ cmpl(Address(ESP, + 2 * kWordSize), EAX);
   __ j(true_condition, &is_true, Assembler::kNearJump);
   __ Bind(&is_false);
-  __ LoadObject(EAX, bool_false);
+  __ LoadObject(EAX, Bool::False());
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(EAX, bool_true);
+  __ LoadObject(EAX, Bool::True());
   __ ret();
 
   // 64-bit comparison
@@ -1165,8 +1163,6 @@ bool Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
 // can be Smi, Mint, Bigint or double.
 bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   Label fall_through, true_label, check_for_mint;
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   // For integer receiver '===' check first.
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ cmpl(EAX, Address(ESP, + 2 * kWordSize));
@@ -1176,10 +1172,10 @@ bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &check_for_mint, Assembler::kNearJump);
   // Both arguments are smi, '===' is good enough.
-  __ LoadObject(EAX, bool_false);
+  __ LoadObject(EAX, Bool::False());
   __ ret();
   __ Bind(&true_label);
-  __ LoadObject(EAX, bool_true);
+  __ LoadObject(EAX, Bool::True());
   __ ret();
 
   // At least one of the arguments was not Smi.
@@ -1195,7 +1191,7 @@ bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Right argument.
   __ CompareClassId(EAX, kDoubleCid, EDI);
   __ j(EQUAL, &fall_through);
-  __ LoadObject(EAX, bool_false);  // Smi == Mint -> false.
+  __ LoadObject(EAX, Bool::False());  // Smi == Mint -> false.
   __ ret();
 
   __ Bind(&receiver_not_smi);
@@ -1206,7 +1202,7 @@ bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Right argument.
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
-  __ LoadObject(EAX, bool_false);
+  __ LoadObject(EAX, Bool::False());
   __ ret();
   // TODO(srdjan): Implement Mint == Mint comparison.
 
@@ -1277,8 +1273,6 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
 // returns false. Any non-double arg1 causes control flow to fall through to the
 // slow case (compiled method body).
 static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label fall_through, is_false, is_true, is_smi, double_op;
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in EAX.
@@ -1291,10 +1285,10 @@ static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ j(true_condition, &is_true, Assembler::kNearJump);
   // Fall through false.
   __ Bind(&is_false);
-  __ LoadObject(EAX, bool_false);
+  __ LoadObject(EAX, Bool::False());
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(EAX, bool_true);
+  __ LoadObject(EAX, Bool::True());
   __ ret();
   __ Bind(&is_smi);
   __ SmiUntag(EAX);
@@ -1435,25 +1429,21 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
 
 
 bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label is_true;
   __ movl(EAX, Address(ESP, +1 * kWordSize));
   __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
   __ comisd(XMM0, XMM0);
   __ j(PARITY_EVEN, &is_true, Assembler::kNearJump);  // NaN -> true;
-  __ LoadObject(EAX, bool_false);
+  __ LoadObject(EAX, Bool::False());
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(EAX, bool_true);
+  __ LoadObject(EAX, Bool::True());
   __ ret();
   return true;  // Method is complete, no slow case.
 }
 
 
 bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label is_false, is_true, is_zero;
   __ movl(EAX, Address(ESP, +1 * kWordSize));
   __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
@@ -1463,10 +1453,10 @@ bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   __ j(EQUAL, &is_zero, Assembler::kNearJump);  // Check for negative zero.
   __ j(ABOVE_EQUAL, &is_false, Assembler::kNearJump);  // >= 0 -> false.
   __ Bind(&is_true);
-  __ LoadObject(EAX, bool_true);
+  __ LoadObject(EAX, Bool::True());
   __ ret();
   __ Bind(&is_false);
-  __ LoadObject(EAX, bool_false);
+  __ LoadObject(EAX, Bool::False());
   __ ret();
   __ Bind(&is_zero);
   // Check for negative zero (get the sign bit).
@@ -1580,15 +1570,13 @@ bool Intrinsifier::Math_cos(Assembler* assembler) {
 // Identity comparison.
 bool Intrinsifier::Object_equal(Assembler* assembler) {
   Label is_true;
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ cmpl(EAX, Address(ESP, + 2 * kWordSize));
   __ j(EQUAL, &is_true, Assembler::kNearJump);
-  __ LoadObject(EAX, bool_false);
+  __ LoadObject(EAX, Bool::False());
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(EAX, bool_true);
+  __ LoadObject(EAX, Bool::True());
   __ ret();
   return true;
 }
@@ -1650,8 +1638,6 @@ bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
 //   }
 bool Intrinsifier::FixedSizeArrayIterator_getHasNext(Assembler* assembler) {
   Label fall_through, is_true;
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   intptr_t length_offset =
       GetOffsetForField(kFixedSizeArrayIteratorClassName, "_length");
   intptr_t pos_offset =
@@ -1665,10 +1651,10 @@ bool Intrinsifier::FixedSizeArrayIterator_getHasNext(Assembler* assembler) {
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi _length.
   __ cmpl(EBX, EAX);     // _length > _pos.
   __ j(GREATER, &is_true, Assembler::kNearJump);
-  __ LoadObject(EAX, bool_false);
+  __ LoadObject(EAX, Bool::False());
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(EAX, bool_true);
+  __ LoadObject(EAX, Bool::True());
   __ ret();
   __ Bind(&fall_through);
   return false;
@@ -1720,17 +1706,15 @@ bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
 
 bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   Label is_true;
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   // Get length.
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // String object.
   __ movl(EAX, FieldAddress(EAX, String::length_offset()));
   __ cmpl(EAX, Immediate(Smi::RawValue(0)));
   __ j(EQUAL, &is_true, Assembler::kNearJump);
-  __ LoadObject(EAX, bool_false);
+  __ LoadObject(EAX, Bool::False());
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(EAX, bool_true);
+  __ LoadObject(EAX, Bool::True());
   __ ret();
   return true;
 }

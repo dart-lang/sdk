@@ -64,8 +64,6 @@ ObjectStore::ObjectStore()
     stacktrace_class_(Class::null()),
     jsregexp_class_(Class::null()),
     weak_property_class_(Class::null()),
-    true_value_(Bool::null()),
-    false_value_(Bool::null()),
     symbol_table_(Array::null()),
     canonical_type_arguments_(Array::null()),
     core_library_(Library::null()),

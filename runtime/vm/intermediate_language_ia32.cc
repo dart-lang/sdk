@@ -206,9 +206,9 @@ static void EmitAssertBoolean(Register reg,
   // Call the runtime if the object is not bool::true or bool::false.
   ASSERT(locs->always_calls());
   Label done;
-  __ CompareObject(reg, compiler->bool_true());
+  __ CompareObject(reg, Bool::True());
   __ j(EQUAL, &done, Assembler::kNearJump);
-  __ CompareObject(reg, compiler->bool_false());
+  __ CompareObject(reg, Bool::False());
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ pushl(reg);  // Push the source object.
@@ -399,12 +399,10 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ popl(EDX);
     __ cmpl(EAX, EDX);
     __ j(EQUAL, &is_true);
-    __ LoadObject(EAX, (kind == Token::kEQ) ? compiler->bool_false()
-                                            : compiler->bool_true());
+    __ LoadObject(EAX, (kind == Token::kEQ) ? Bool::False() : Bool::True());
     __ jmp(&equality_done);
     __ Bind(&is_true);
-    __ LoadObject(EAX, (kind == Token::kEQ) ? compiler->bool_true()
-                                            : compiler->bool_false());
+    __ LoadObject(EAX, (kind == Token::kEQ) ? Bool::True() : Bool::False());
     if (kind == Token::kNE) {
       // Skip not-equal result conversion.
       __ jmp(&equality_done);
@@ -425,13 +423,13 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   if (kind == Token::kNE) {
     Label false_label, true_label, done;
     // Negate the condition: true label returns false and vice versa.
-    __ CompareObject(EAX, compiler->bool_true());
+    __ CompareObject(EAX, Bool::True());
     __ j(EQUAL, &true_label, Assembler::kNearJump);
     __ Bind(&false_label);
-    __ LoadObject(EAX, compiler->bool_true());
+    __ LoadObject(EAX, Bool::True());
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&true_label);
-    __ LoadObject(EAX, compiler->bool_false());
+    __ LoadObject(EAX, Bool::False());
     __ Bind(&done);
   }
   __ Bind(&equality_done);
@@ -488,10 +486,10 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
         Register result = locs->out().reg();
         Label load_true;
         __ j(cond, &load_true, Assembler::kNearJump);
-        __ LoadObject(result, compiler->bool_false());
+        __ LoadObject(result, Bool::False());
         __ jmp(&done);
         __ Bind(&load_true);
-        __ LoadObject(result, compiler->bool_true());
+        __ LoadObject(result, Bool::True());
       }
     } else {
       const int kNumberOfArguments = 2;
@@ -505,19 +503,19 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
       if (branch == NULL) {
         if (kind == Token::kNE) {
           Label false_label;
-          __ CompareObject(EAX, compiler->bool_true());
+          __ CompareObject(EAX, Bool::True());
           __ j(EQUAL, &false_label, Assembler::kNearJump);
-          __ LoadObject(EAX, compiler->bool_true());
+          __ LoadObject(EAX, Bool::True());
           __ jmp(&done);
           __ Bind(&false_label);
-          __ LoadObject(EAX, compiler->bool_false());
+          __ LoadObject(EAX, Bool::False());
           __ jmp(&done);
         }
       } else {
         if (branch->is_checked()) {
           EmitAssertBoolean(EAX, token_pos, locs, compiler);
         }
-        __ CompareObject(EAX, compiler->bool_true());
+        __ CompareObject(EAX, Bool::True());
         branch->EmitBranchOnCondition(compiler, cond);
       }
     }
@@ -570,12 +568,10 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
     Register result = locs.out().reg();
     __ j(EQUAL, &is_equal, Assembler::kNearJump);
     // Not equal.
-    __ LoadObject(result, (kind == Token::kEQ) ? compiler->bool_false()
-                                               : compiler->bool_true());
+    __ LoadObject(result, (kind == Token::kEQ) ? Bool::False() : Bool::True());
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&is_equal);
-    __ LoadObject(result, (kind == Token::kEQ) ? compiler->bool_true()
-                                               : compiler->bool_false());
+    __ LoadObject(result, (kind == Token::kEQ) ? Bool::True() : Bool::False());
     __ Bind(&done);
   } else {
     Condition cond = TokenKindToSmiCondition(kind);
@@ -615,10 +611,10 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
     Register result = locs->out().reg();
     Label load_true;
     __ j(cond, &load_true, Assembler::kNearJump);
-    __ LoadObject(result, compiler->bool_false());
+    __ LoadObject(result, Bool::False());
     __ jmp(&done);
     __ Bind(&load_true);
-    __ LoadObject(result, compiler->bool_true());
+    __ LoadObject(result, Bool::True());
   }
   __ jmp(&done);
   __ Bind(&non_null_compare);  // Receiver is not null.
@@ -655,10 +651,10 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     Register result = locs.out().reg();
     Label done, is_true;
     __ j(true_condition, &is_true);
-    __ LoadObject(result, compiler->bool_false());
+    __ LoadObject(result, Bool::False());
     __ jmp(&done);
     __ Bind(&is_true);
-    __ LoadObject(result, compiler->bool_true());
+    __ LoadObject(result, Bool::True());
     __ Bind(&done);
   }
 }
@@ -700,10 +696,10 @@ static void EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
     Register result = locs.out().reg();
     Label done, is_true;
     __ j(true_condition, &is_true);
-    __ LoadObject(result, compiler->bool_false());
+    __ LoadObject(result, Bool::False());
     __ jmp(&done);
     __ Bind(&is_true);
-    __ LoadObject(result, compiler->bool_true());
+    __ LoadObject(result, Bool::True());
     __ Bind(&done);
   }
 }
@@ -765,10 +761,10 @@ static void EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
     Label done;
     __ j(lo_cond, &is_true);
     __ Bind(&is_false);
-    __ LoadObject(result, compiler->bool_false());
+    __ LoadObject(result, Bool::False());
     __ jmp(&done);
     __ Bind(&is_true);
-    __ LoadObject(result, compiler->bool_true());
+    __ LoadObject(result, Bool::True());
     __ Bind(&done);
   }
 }
@@ -891,7 +887,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitAssertBoolean(EAX, token_pos(), locs(), compiler);
   }
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
-  __ CompareObject(EAX, compiler->bool_true());
+  __ CompareObject(EAX, Bool::True());
   branch->EmitBranchOnCondition(compiler, branch_condition);
 }
 
@@ -1031,7 +1027,7 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     return;
   }
   EmitNativeCode(compiler);
-  __ CompareObject(EAX, compiler->bool_true());
+  __ CompareObject(EAX, Bool::True());
   branch->EmitBranchOnCondition(compiler, EQUAL);
 }
 

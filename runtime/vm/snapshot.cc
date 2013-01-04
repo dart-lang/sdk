@@ -661,6 +661,12 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   if (object_id == kEmptyArrayObject) {
     return Object::empty_array().raw();
   }
+  if (object_id == kTrueValue) {
+    return Bool::True().raw();
+  }
+  if (object_id == kFalseValue) {
+    return Bool::False().raw();
+  }
   intptr_t class_id = ClassIdFromObjectId(object_id);
   if (IsSingletonClassId(class_id)) {
     return isolate()->class_table()->At(class_id);  // get singleton class.
@@ -674,12 +680,6 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
 
 
 RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
-  if (object_id == kTrueValue) {
-    return object_store()->true_value();
-  }
-  if (object_id == kFalseValue) {
-    return object_store()->false_value();
-  }
   intptr_t class_id = ClassIdFromObjectId(object_id);
   if (IsObjectStoreClassId(class_id)) {
     return isolate()->class_table()->At(class_id);  // get singleton class.
@@ -809,6 +809,18 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   // Check if it is a singleton empty array object.
   if (rawobj == Object::empty_array().raw()) {
     WriteVMIsolateObject(kEmptyArrayObject);
+    return;
+  }
+
+  // Check if it is a singleton boolean true object.
+  if (rawobj == Bool::True().raw()) {
+    WriteVMIsolateObject(kTrueValue);
+    return;
+  }
+
+  // Check if it is a singleton boolean false object.
+  if (rawobj == Bool::False().raw()) {
+    WriteVMIsolateObject(kFalseValue);
     return;
   }
 
@@ -1036,18 +1048,6 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
   // by all isolates.
   if (rawobj->IsMarked()) {
     HandleVMIsolateObject(rawobj);
-    return true;
-  }
-
-  // Check if it is a singleton boolean true value.
-  if (rawobj == object_store()->true_value()) {
-    WriteIndexedObject(kTrueValue);
-    return true;
-  }
-
-  // Check if it is a singleton boolean false value.
-  if (rawobj == object_store()->false_value()) {
-    WriteIndexedObject(kFalseValue);
     return true;
   }
 

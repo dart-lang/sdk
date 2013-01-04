@@ -1613,10 +1613,8 @@ TEST_CASE(SymbolUnicode) {
 
 
 TEST_CASE(Bool) {
-  const Bool& true_value = Bool::Handle(Bool::True());
-  EXPECT(true_value.value());
-  const Bool& false_value = Bool::Handle(Bool::False());
-  EXPECT(!false_value.value());
+  EXPECT(Bool::True().value());
+  EXPECT(!Bool::False().value());
 }
 
 
@@ -2543,8 +2541,8 @@ TEST_CASE(ObjectPrinting) {
   const Class& bool_class = Class::Handle(object_store->bool_class());
   EXPECT_STREQ("Library:'dart:core' Class: bool",
                bool_class.ToCString());
-  EXPECT_STREQ("true", Bool::Handle(Bool::True()).ToCString());
-  EXPECT_STREQ("false", Bool::Handle(Bool::False()).ToCString());
+  EXPECT_STREQ("true", Bool::True().ToCString());
+  EXPECT_STREQ("false", Bool::False().ToCString());
 
   // Strings.
   EXPECT_STREQ("Sugarbowl",
@@ -2846,7 +2844,7 @@ TEST_CASE(SubtypeTestCache) {
   EXPECT_EQ(0, cache.NumberOfChecks());
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
-  cache.AddCheck(empty_class.id(), targ_0, targ_1, Bool::Handle(Bool::True()));
+  cache.AddCheck(empty_class.id(), targ_0, targ_1, Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   intptr_t test_class_id = -1;
   AbstractTypeArguments& test_targ_0 = AbstractTypeArguments::Handle();
@@ -2856,7 +2854,7 @@ TEST_CASE(SubtypeTestCache) {
   EXPECT_EQ(empty_class.id(), test_class_id);
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
-  EXPECT_EQ(Bool::True(), test_result.raw());
+  EXPECT_EQ(Bool::True().raw(), test_result.raw());
 }
 
 

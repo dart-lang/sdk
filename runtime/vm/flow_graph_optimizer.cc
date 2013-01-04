@@ -2566,8 +2566,8 @@ void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       instr->value()->CanComputeIsNull(&is_null) &&
       (is_null ||
        instr->value()->CanComputeIsInstanceOf(instr->type(), &is_instance))) {
-    Definition* result = new ConstantInstr(Bool::ZoneHandle(Bool::Get(
-        instr->negate_result() ? !is_instance : is_instance)));
+    bool val = instr->negate_result() ? !is_instance : is_instance;
+    Definition* result = new ConstantInstr(val ? Bool::True() : Bool::False());
     result->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
     result->InsertBefore(instr);
     // Replace uses and remove the current instruction via the iterator.
@@ -3684,7 +3684,7 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
     if (IsNonConstant(value)) {
       SetReachable(instr->true_successor());
       SetReachable(instr->false_successor());
-    } else if (value.raw() == Bool::True()) {
+    } else if (value.raw() == Bool::True().raw()) {
       SetReachable(instr->true_successor());
     } else if (!IsUnknown(value)) {  // Any other constant.
       SetReachable(instr->false_successor());
@@ -3830,14 +3830,14 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
       bool result = left.IsNull() ? (instr->right()->ResultCid() == kNullCid)
                                   : (instr->left()->ResultCid() == kNullCid);
       if (instr->kind() == Token::kNE_STRICT) result = !result;
-      SetValue(instr, Bool::ZoneHandle(Bool::Get(result)));
+      SetValue(instr, result ? Bool::True() : Bool::False());
     } else {
       SetValue(instr, non_constant_);
     }
   } else if (IsConstant(left) && IsConstant(right)) {
     bool result = (left.raw() == right.raw());
     if (instr->kind() == Token::kNE_STRICT) result = !result;
-    SetValue(instr, Bool::ZoneHandle(Bool::Get(result)));
+    SetValue(instr, result ? Bool::True() : Bool::False());
   }
 }
 
@@ -3870,7 +3870,7 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
       const bool result = CompareIntegers(instr->kind(),
                                           Integer::Cast(left),
                                           Integer::Cast(right));
-      SetValue(instr, Bool::ZoneHandle(Bool::Get(result)));
+      SetValue(instr, result ? Bool::True() : Bool::False());
     } else {
       SetValue(instr, non_constant_);
     }
@@ -3888,7 +3888,7 @@ void ConstantPropagator::VisitRelationalOp(RelationalOpInstr* instr) {
       const bool result = CompareIntegers(instr->kind(),
                                           Integer::Cast(left),
                                           Integer::Cast(right));
-      SetValue(instr, Bool::ZoneHandle(Bool::Get(result)));
+      SetValue(instr, result ? Bool::True() : Bool::False());
     } else {
       SetValue(instr, non_constant_);
     }
@@ -3943,7 +3943,8 @@ void ConstantPropagator::VisitBooleanNegate(BooleanNegateInstr* instr) {
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(value)) {
-    SetValue(instr, Bool::ZoneHandle(Bool::Get(value.raw() != Bool::True())));
+    bool val = value.raw() != Bool::True().raw();
+    SetValue(instr, val ? Bool::True() : Bool::False());
   }
 }
 

@@ -4987,11 +4987,11 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
     return true;
   } else if ((CurrentToken() == Token::kTRUE) &&
       (no_check || type.IsBoolType())) {
-    *value = Bool::True();
+    *value = Bool::True().raw();
     return true;
   } else if ((CurrentToken() == Token::kFALSE) &&
       (no_check || type.IsBoolType())) {
-    *value = Bool::False();
+    *value = Bool::False().raw();
     return true;
   } else if (CurrentToken() == Token::kNULL) {
     *value = Instance::null();
@@ -9224,7 +9224,7 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
   if (param_index < owner_function.num_fixed_parameters()) {
     // The formal parameter is not optional, therefore the corresponding
     // argument is always passed and defined.
-    return new LiteralNode(test_pos, Bool::ZoneHandle(Bool::True()));
+    return new LiteralNode(test_pos, Bool::True());
   }
   char name[64];
   OS::SNPrint(name, 64, "%s_%"Pd"",
@@ -9318,10 +9318,10 @@ AstNode* Parser::ParsePrimary() {
     primary = new LiteralNode(TokenPos(), literal);
     ConsumeToken();
   } else if (CurrentToken() == Token::kTRUE) {
-    primary = new LiteralNode(TokenPos(), Bool::ZoneHandle(Bool::True()));
+    primary = new LiteralNode(TokenPos(), Bool::True());
     ConsumeToken();
   } else if (CurrentToken() == Token::kFALSE) {
-    primary = new LiteralNode(TokenPos(), Bool::ZoneHandle(Bool::False()));
+    primary = new LiteralNode(TokenPos(), Bool::False());
     ConsumeToken();
   } else if (CurrentToken() == Token::kNULL) {
     primary = new LiteralNode(TokenPos(), Instance::ZoneHandle());

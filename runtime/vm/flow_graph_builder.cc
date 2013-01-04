@@ -364,8 +364,7 @@ void TestGraphVisitor::ReturnValue(Value* value) {
   if (FLAG_enable_type_checks) {
     value = Bind(new AssertBooleanInstr(condition_token_pos(), value));
   }
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  Value* constant_true = Bind(new ConstantInstr(bool_true));
+  Value* constant_true = Bind(new ConstantInstr(Bool::True()));
   StrictCompareInstr* comp =
       new StrictCompareInstr(Token::kEQ_STRICT, value, constant_true);
   BranchInstr* branch = new BranchInstr(comp);
@@ -402,8 +401,7 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
 
 void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
   ASSERT(!FLAG_enable_type_checks);
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  Value* constant_true = Bind(new ConstantInstr(bool_true));
+  Value* constant_true = Bind(new ConstantInstr(Bool::True()));
   BranchInstr* branch = new BranchInstr(
       new StrictCompareInstr(Token::kNE_STRICT, neg->value(), constant_true));
   AddInstruction(branch);
@@ -701,8 +699,6 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     // of left is sufficient.
     // AND:  left ? right === true : false;
     // OR:   left ? true : right === true;
-    const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-    const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
     TestGraphVisitor for_test(owner(),
                               temp_index(),
@@ -718,7 +714,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
           for_right.Bind(new AssertBooleanInstr(node->right()->token_pos(),
                                                 right_value));
     }
-    Value* constant_true = for_right.Bind(new ConstantInstr(bool_true));
+    Value* constant_true = for_right.Bind(new ConstantInstr(Bool::True()));
     Value* compare =
         for_right.Bind(new StrictCompareInstr(Token::kEQ_STRICT,
                                               right_value,
@@ -727,13 +723,13 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 
     if (node->kind() == Token::kAND) {
       ValueGraphVisitor for_false(owner(), temp_index(), loop_depth());
-      Value* constant_false = for_false.Bind(new ConstantInstr(bool_false));
+      Value* constant_false = for_false.Bind(new ConstantInstr(Bool::False()));
       for_false.Do(BuildStoreExprTemp(constant_false));
       Join(for_test, for_right, for_false);
     } else {
       ASSERT(node->kind() == Token::kOR);
       ValueGraphVisitor for_true(owner(), temp_index(), loop_depth());
-      Value* constant_true = for_true.Bind(new ConstantInstr(bool_true));
+      Value* constant_true = for_true.Bind(new ConstantInstr(Bool::True()));
       for_true.Do(BuildStoreExprTemp(constant_true));
       Join(for_test, for_true, for_right);
     }
@@ -869,8 +865,6 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
 
 void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   const AbstractType& type = node->right()->AsTypeNode()->type();
   ASSERT(type.IsFinalized() && !type.IsMalformed());
   const bool negate_result = (node->kind() == Token::kISNOT);
@@ -881,7 +875,8 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     EffectGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
     node->left()->Visit(&for_left_value);
     Append(for_left_value);
-    ReturnDefinition(new ConstantInstr(negate_result ? bool_false : bool_true));
+    ReturnDefinition(new ConstantInstr(negate_result ?
+                                       Bool::False() : Bool::True()));
     return;
   }
 
@@ -897,12 +892,14 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       // already been checked above (if the type is instantiated). So we can
       // return false here if the instance is null (and if the type is
       // instantiated).
-      result = new ConstantInstr(negate_result ? bool_true : bool_false);
+      result = new ConstantInstr(negate_result ? Bool::True() : Bool::False());
     } else {
       if (literal_value.IsInstanceOf(type, TypeArguments::Handle(), NULL)) {
-        result = new ConstantInstr(negate_result ? bool_false : bool_true);
+        result = new ConstantInstr(negate_result ?
+                                   Bool::False() : Bool::True());
       } else {
-        result = new ConstantInstr(negate_result ? bool_true : bool_false);
+        result = new ConstantInstr(negate_result ?
+                                   Bool::True() : Bool::False());
       }
     }
     ReturnDefinition(result);
@@ -933,8 +930,8 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   Value* type_arg = Bind(
       new ConstantInstr(node->right()->AsTypeNode()->type()));
   arguments->Add(PushArgument(type_arg));
-  const Bool& negate = Bool::ZoneHandle(node->kind() == Token::kISNOT ?
-      Bool::True() : Bool::False());
+  const Bool& negate = (node->kind() == Token::kISNOT) ? Bool::True() :
+                                                         Bool::False();
   Value* negate_arg = Bind(new ConstantInstr(negate));
   arguments->Add(PushArgument(negate_arg));
   const intptr_t kNumArgsChecked = 1;

@@ -206,8 +206,6 @@ class FlowGraphCompiler : public ValueObject {
   void FinalizeComments(const Code& code);
   void FinalizeStaticCallTargetsTable(const Code& code);
 
-  const Bool& bool_true() const { return bool_true_; }
-  const Bool& bool_false() const { return bool_false_; }
   const Class& double_class() const { return double_class_; }
 
   void SaveLiveRegisters(LocationSummary* locs);
@@ -344,8 +342,6 @@ class FlowGraphCompiler : public ValueObject {
   // Set to true if optimized code has IC calls.
   bool may_reoptimize_;
 
-  const Bool& bool_true_;
-  const Bool& bool_false_;
   const Class& double_class_;
 
   ParallelMoveResolver parallel_move_resolver_;

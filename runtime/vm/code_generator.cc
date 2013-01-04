@@ -367,7 +367,7 @@ static void PrintTypeCheck(
               message,
               String::Handle(instance_type.Name()).ToCString(),
               Class::Handle(instance_type.type_class()).id(),
-              (result.raw() == Bool::True()) ? "is" : "is !",
+              (result.raw() == Bool::True().raw()) ? "is" : "is !",
               String::Handle(type.Name()).ToCString(),
               Class::Handle(type.type_class()).id(),
               caller_frame->pc());
@@ -378,7 +378,7 @@ static void PrintTypeCheck(
     OS::Print("%s: '%s' %s '%s' instantiated from '%s' (pc: %#"Px").\n",
               message,
               String::Handle(instance_type.Name()).ToCString(),
-              (result.raw() == Bool::True()) ? "is" : "is !",
+              (result.raw() == Bool::True().raw()) ? "is" : "is !",
               String::Handle(instantiated_type.Name()).ToCString(),
               String::Handle(type.Name()).ToCString(),
               caller_frame->pc());
@@ -564,11 +564,10 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
       SubtypeTestCache::CheckedHandle(arguments.ArgAt(4));
   ASSERT(type.IsFinalized());
   Error& malformed_error = Error::Handle();
-  const Bool& result = Bool::Handle(
+  const Bool& result =
       instance.IsInstanceOf(type,
                             instantiator_type_arguments,
-                            &malformed_error) ?
-      Bool::True() : Bool::False());
+                            &malformed_error) ? Bool::True() : Bool::False();
   if (FLAG_trace_type_checks) {
     PrintTypeCheck("InstanceOf",
         instance, type, instantiator_type_arguments, result);
@@ -620,8 +619,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
 
   if (FLAG_trace_type_checks) {
     PrintTypeCheck("TypeCheck",
-        src_instance, dst_type, instantiator_type_arguments,
-        Bool::Handle(is_instance_of ? Bool::True() : Bool::False()));
+                   src_instance, dst_type, instantiator_type_arguments,
+                   is_instance_of ? Bool::True() : Bool::False());
   }
   if (!is_instance_of) {
     // Throw a dynamic type error.
@@ -648,7 +647,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
   }
   UpdateTypeTestCache(src_instance, dst_type,
                       dst_instantiator, instantiator_type_arguments,
-                      Bool::ZoneHandle(Bool::True()), cache);
+                      Bool::True(), cache);
   arguments.SetReturn(src_instance);
 }
 
@@ -679,7 +678,7 @@ DEFINE_RUNTIME_ENTRY(ArgumentDefinitionTest, 3) {
       }
     }
   }
-  arguments.SetReturn(Bool::Handle(Bool::Get(is_defined)));
+  arguments.SetReturn(is_defined ? Bool::True() : Bool::False());
 }
 
 

@@ -237,6 +237,7 @@ class Handles {
 
   friend class HandleScope;
   friend class Dart;
+  friend class ObjectStore;
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Handles);
 };

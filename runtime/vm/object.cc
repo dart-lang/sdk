@@ -64,6 +64,8 @@ cpp_vtable Smi::handle_vtable_ = 0;
 Array* Object::empty_array_ = NULL;
 Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
+Bool* Object::bool_true_ = NULL;
+Bool* Object::bool_false_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -246,6 +248,8 @@ void Object::InitOnce() {
   sentinel_ = reinterpret_cast<Instance*>(Dart::AllocateReadOnlyHandle());
   transition_sentinel_ =
       reinterpret_cast<Instance*>(Dart::AllocateReadOnlyHandle());
+  bool_true_ = reinterpret_cast<Bool*>(Dart::AllocateReadOnlyHandle());
+  bool_false_ = reinterpret_cast<Bool*>(Dart::AllocateReadOnlyHandle());
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
@@ -427,6 +431,12 @@ void Object::InitOnce() {
     InitializeObject(address, kArrayCid, Array::InstanceSize(0));
     empty_array_->raw()->ptr()->length_ = Smi::New(0);
   }
+
+  // Allocate and initialize singleton true and false boolean objects.
+  cls = Class::New<Bool>();
+  isolate->object_store()->set_bool_class(cls);
+  *bool_true_ = Bool::New(true);
+  *bool_false_ = Bool::New(false);
 }
 
 
@@ -897,13 +907,6 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_dynamic_type(type);
 
-  // Allocate pre-initialized values.
-  Bool& bool_value = Bool::Handle();
-  bool_value = Bool::New(true);
-  object_store->set_true_value(bool_value);
-  bool_value = Bool::New(false);
-  object_store->set_false_value(bool_value);
-
   // Setup some default native field classes which can be extended for
   // specifying native fields in dart classes.
   Library::InitNativeWrappersLibrary(isolate);
@@ -1131,13 +1134,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
-
-  // Allocate pre-initialized values.
-  Bool& bool_value = Bool::Handle();
-  bool_value = Bool::New(true);
-  object_store->set_true_value(bool_value);
-  bool_value = Bool::New(false);
-  object_store->set_false_value(bool_value);
 }
 
 
@@ -11287,16 +11283,6 @@ void ExternalTwoByteString::Finalize(Dart_Handle handle, void* peer) {
 }
 
 
-RawBool* Bool::True() {
-  return Isolate::Current()->object_store()->true_value();
-}
-
-
-RawBool* Bool::False() {
-  return Isolate::Current()->object_store()->false_value();
-}
-
-
 RawBool* Bool::New(bool value) {
   ASSERT(Isolate::Current()->object_store()->bool_class() != Class::null());
   Bool& result = Bool::Handle();
@@ -11310,6 +11296,7 @@ RawBool* Bool::New(bool value) {
     result ^= raw;
   }
   result.set_value(value);
+  result.SetCanonical();
   return result.raw();
 }
 

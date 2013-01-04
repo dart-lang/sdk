@@ -132,7 +132,7 @@ const Instance* ComparisonNode::EvalConstExpr() const {
     case Token::kGTE:
       if ((left_val->IsNumber() || left_val->IsNull()) &&
           (right_val->IsNumber() || right_val->IsNull())) {
-        return &Bool::ZoneHandle(Bool::False());
+        return &Bool::False();
       }
       return NULL;
     case Token::kEQ:
@@ -149,7 +149,7 @@ const Instance* ComparisonNode::EvalConstExpr() const {
           right_val->IsString() ||
           right_val->IsBool() ||
           right_val->IsNull())) {
-        return &Bool::ZoneHandle(Bool::False());
+        return &Bool::False();
       }
       return NULL;
     default:

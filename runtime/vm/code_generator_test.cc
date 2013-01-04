@@ -160,24 +160,21 @@ CODEGEN_TEST_RUN(SmiBinaryOpCodegen, Smi::New(3))
 
 CODEGEN_TEST_GENERATE(BoolNotCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-  LiteralNode* b = new LiteralNode(kPos, bool_false);
+  LiteralNode* b = new LiteralNode(kPos, Bool::False());
   UnaryOpNode* not_node = new UnaryOpNode(kPos, Token::kNOT, b);
   node_seq->Add(new ReturnNode(kPos, not_node));
 }
-CODEGEN_TEST_RUN(BoolNotCodegen, Bool::True())
+CODEGEN_TEST_RUN(BoolNotCodegen, Bool::True().raw())
 
 
 CODEGEN_TEST_GENERATE(BoolAndCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-  LiteralNode* a = new LiteralNode(kPos, bool_true);
-  LiteralNode* b = new LiteralNode(kPos, bool_false);
+  LiteralNode* a = new LiteralNode(kPos, Bool::True());
+  LiteralNode* b = new LiteralNode(kPos, Bool::False());
   BinaryOpNode* and_node = new BinaryOpNode(kPos, Token::kAND, a, b);
   node_seq->Add(new ReturnNode(kPos, and_node));
 }
-CODEGEN_TEST_RUN(BoolAndCodegen, Bool::False())
+CODEGEN_TEST_RUN(BoolAndCodegen, Bool::False().raw())
 
 
 CODEGEN_TEST_GENERATE(BinaryOpCodegen, test) {

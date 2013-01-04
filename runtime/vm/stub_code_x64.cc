@@ -1947,10 +1947,10 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ movq(RAX, Address(RSP, 1 * kWordSize));
   __ cmpq(RAX, Address(RSP, 2 * kWordSize));
   __ j(EQUAL, &true_label, Assembler::kNearJump);
-  __ LoadObject(RAX, Bool::ZoneHandle(Bool::False()));
+  __ LoadObject(RAX, Bool::False());
   __ ret();
   __ Bind(&true_label);
-  __ LoadObject(RAX, Bool::ZoneHandle(Bool::True()));
+  __ LoadObject(RAX, Bool::True());
   __ ret();
 
   __ Bind(&get_class_id_as_smi);

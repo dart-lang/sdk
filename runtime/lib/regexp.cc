@@ -20,8 +20,8 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
       Instance, handle_multi_line, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(
       Instance, handle_ignore_case, arguments->NativeArgAt(3));
-  bool ignore_case = handle_ignore_case.raw() == Bool::True();
-  bool multi_line = handle_multi_line.raw() == Bool::True();
+  bool ignore_case = handle_ignore_case.raw() == Bool::True().raw();
+  bool multi_line = handle_multi_line.raw() == Bool::True().raw();
   return Jscre::Compile(pattern, multi_line, ignore_case);
 }
 

@@ -77,7 +77,7 @@ class LocalVariable : public ZoneAllocated {
   }
 
   void SetConstValue(const Instance& value) {
-    ASSERT(value.IsZoneHandle());
+    ASSERT(value.IsZoneHandle() || value.IsReadOnlyHandle());
     const_value_ = &value;
   }
 

@@ -150,8 +150,6 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           GrowableObjectArray::New())),
       is_optimizing_(is_optimizing),
       may_reoptimize_(false),
-      bool_true_(Bool::ZoneHandle(Bool::True())),
-      bool_false_(Bool::ZoneHandle(Bool::False())),
       double_class_(Class::ZoneHandle(
           Isolate::Current()->object_store()->double_class())),
       parallel_move_resolver_(this) {
@@ -729,10 +727,10 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
   assembler()->j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN false;
   assembler()->j(true_condition, &is_true, Assembler::kNearJump);
   assembler()->Bind(&is_false);
-  assembler()->LoadObject(result, bool_false());
+  assembler()->LoadObject(result, Bool::False());
   assembler()->jmp(&done);
   assembler()->Bind(&is_true);
-  assembler()->LoadObject(result, bool_true());
+  assembler()->LoadObject(result, Bool::True());
   assembler()->Bind(&done);
 }
 

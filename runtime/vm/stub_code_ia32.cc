@@ -1982,10 +1982,10 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ movl(EAX, Address(ESP, 1 * kWordSize));
   __ cmpl(EAX, Address(ESP, 2 * kWordSize));
   __ j(EQUAL, &true_label, Assembler::kNearJump);
-  __ LoadObject(EAX, Bool::ZoneHandle(Bool::False()));
+  __ LoadObject(EAX, Bool::False());
   __ ret();
   __ Bind(&true_label);
-  __ LoadObject(EAX, Bool::ZoneHandle(Bool::True()));
+  __ LoadObject(EAX, Bool::True());
   __ ret();
 
   __ Bind(&get_class_id_as_smi);

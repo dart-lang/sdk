@@ -269,6 +269,15 @@ class Object {
     return *transition_sentinel_;
   }
 
+  static const Bool& bool_true() {
+    ASSERT(bool_true_ != NULL);
+    return *bool_true_;
+  }
+  static const Bool& bool_false() {
+    ASSERT(bool_false_ != NULL);
+    return *bool_false_;
+  }
+
   static RawClass* class_class() { return class_class_; }
   static RawClass* null_class() { return null_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
@@ -453,6 +462,8 @@ class Object {
   static Array* empty_array_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;
+  static Bool* bool_true_;
+  static Bool* bool_false_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
@@ -4394,11 +4405,16 @@ class Bool : public Instance {
     return RoundedAllocationSize(sizeof(RawBool));
   }
 
-  static RawBool* True();
-  static RawBool* False();
+  static const Bool& True() {
+    return Object::bool_true();
+  }
+
+  static const Bool& False() {
+    return Object::bool_false();
+  }
 
   static RawBool* Get(bool value) {
-    return value ? Bool::True() : Bool::False();
+    return value ? Bool::True().raw() : Bool::False().raw();
   }
 
  private:

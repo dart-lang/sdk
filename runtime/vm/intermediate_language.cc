@@ -1491,7 +1491,7 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   // TODO(fschneider): Handle other cases: e === false and e !== true/false.
   // Handles e === true.
   if ((kind() == Token::kEQ_STRICT) &&
-      (right_constant.raw() == Bool::True()) &&
+      (right_constant.raw() == Bool::True().raw()) &&
       (left()->ResultCid() == kBoolCid)) {
     // Return left subexpression as the replacement for this instruction.
     return left_defn;
@@ -1791,8 +1791,7 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const bool result = (kind() == Token::kEQ_STRICT) ?
         left.constant().raw() == right.constant().raw() :
         left.constant().raw() != right.constant().raw();
-    __ LoadObject(locs()->out().reg(), result ? compiler->bool_true() :
-                                                compiler->bool_false());
+    __ LoadObject(locs()->out().reg(), result ? Bool::True() : Bool::False());
     return;
   }
   if (left.IsConstant()) {
@@ -1813,10 +1812,10 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label load_true, done;
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   __ j(true_condition, &load_true, Assembler::kNearJump);
-  __ LoadObject(result, compiler->bool_false());
+  __ LoadObject(result, Bool::False());
   __ jmp(&done, Assembler::kNearJump);
   __ Bind(&load_true);
-  __ LoadObject(result, compiler->bool_true());
+  __ LoadObject(result, Bool::True());
   __ Bind(&done);
 }
 
@@ -1963,10 +1962,10 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
 
   Label done;
-  __ LoadObject(result, compiler->bool_true());
+  __ LoadObject(result, Bool::True());
   __ CompareRegisters(result, value);
   __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-  __ LoadObject(result, compiler->bool_false());
+  __ LoadObject(result, Bool::False());
   __ Bind(&done);
 }
 

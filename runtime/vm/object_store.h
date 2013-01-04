@@ -442,12 +442,6 @@ class ObjectStore {
     unhandled_exception_handler_ = value.raw();
   }
 
-  RawBool* true_value() const { return true_value_; }
-  void set_true_value(const Bool& value) { true_value_ = value.raw(); }
-
-  RawBool* false_value() const { return false_value_; }
-  void set_false_value(const Bool& value) { false_value_ = value.raw(); }
-
   RawContext* empty_context() const { return empty_context_; }
   void set_empty_context(const Context& value) {
     empty_context_ = value.raw();
@@ -559,8 +553,6 @@ class ObjectStore {
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
   RawClass* weak_property_class_;
-  RawBool* true_value_;
-  RawBool* false_value_;
   RawArray* symbol_table_;
   RawArray* canonical_type_arguments_;
   RawLibrary* core_library_;
