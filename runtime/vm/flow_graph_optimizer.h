@@ -100,6 +100,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InlineStringLengthGetter(InstanceCallInstr* call);
   void InlineStringIsEmptyGetter(InstanceCallInstr* call);
 
+  RawBool* InstanceOfAsBool(const ICData& ic_data,
+                            const AbstractType& type) const;
+
+
   FlowGraph* flow_graph_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);

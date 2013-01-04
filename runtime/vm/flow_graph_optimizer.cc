@@ -1249,6 +1249,40 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 }
 
 
+// Returns a Boolean constant if all classes in ic_data yield the same type-test
+// result and the type tests do not depend on type arguments. Otherwise return
+// Bool::null().
+RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
+                                              const AbstractType& type) const {
+  ASSERT(ic_data.num_args_tested() == 1);  // Unary checks only.
+  if (!type.IsInstantiated() || type.IsMalformed()) return Bool::null();
+  const Class& type_class = Class::Handle(type.type_class());
+  if (type_class.HasTypeArguments()) return Bool::null();
+  const ClassTable& class_table = *Isolate::Current()->class_table();
+  Bool& prev = Bool::Handle();
+  Class& cls = Class::Handle();
+  for (int i = 0; i < ic_data.NumberOfChecks(); i++) {
+    cls = class_table.At(ic_data.GetReceiverClassIdAt(i));
+    if (cls.HasTypeArguments()) return Bool::null();
+    bool is_subtype = false;
+    if (cls.IsNullClass()) {
+      is_subtype = type_class.IsDynamicClass() || type_class.IsObjectClass();
+    } else {
+      is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
+                                   type_class,
+                                   TypeArguments::Handle(),
+                                   NULL);
+    }
+    if (prev.IsNull()) {
+      prev = is_subtype ? Bool::True().raw() : Bool::False().raw();
+    } else {
+      if (is_subtype != prev.value()) return Bool::null();
+    }
+  }
+  return prev.raw();
+}
+
+
 // TODO(srdjan): Use ICData to check if always true or false.
 void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
@@ -1257,15 +1291,30 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   Value* type_args_val = call->ArgumentAt(2)->value();
   const AbstractType& type =
       AbstractType::Cast(call->ArgumentAt(3)->value()->BoundConstant());
-  const Bool& negate =
-      Bool::Cast(call->ArgumentAt(4)->value()->BoundConstant());
+  const bool negate =
+      Bool::Cast(call->ArgumentAt(4)->value()->BoundConstant()).value();
+  const ICData& unary_checks =
+      ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
+  if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
+    Bool& as_bool = Bool::ZoneHandle(InstanceOfAsBool(unary_checks, type));
+    if (!as_bool.IsNull()) {
+      AddCheckClass(call, left_val->Copy());
+      if (negate) {
+        as_bool = as_bool.value() ? Bool::False().raw() : Bool::True().raw();
+      }
+      ConstantInstr* bool_const = new ConstantInstr(as_bool);
+      call->ReplaceWith(bool_const, current_iterator());
+      RemovePushArguments(call);
+      return;
+    }
+  }
   InstanceOfInstr* instance_of =
       new InstanceOfInstr(call->token_pos(),
                           left_val,
                           instantiator_val,
                           type_args_val,
                           type,
-                          negate.value());
+                          negate);
   call->ReplaceWith(instance_of, current_iterator());
   RemovePushArguments(call);
 }
