@@ -23,6 +23,7 @@ pseudo_kw_illegal_test/14: Fail  # Issue 356
 method_override2_test/00: Fail # Issue 7076.
 method_override2_test/02: Fail # Issue 7076.
 method_override2_test/03: Fail # Issue 7076.
+cascade_2_test: Fail # Issue 7665.
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail           # (Discussion ongoing)
