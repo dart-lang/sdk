@@ -72,16 +72,6 @@ class Enqueuer {
    *
    * Invariant: [element] must be a declaration element.
    */
-  String lookupCode(Element element) {
-    assert(invariant(element, element.isDeclaration));
-    return universe.generatedCode[element].toString();
-  }
-
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [element] must be a declaration element.
-   */
   void addToWorkList(Element element, [TreeElements elements]) {
     assert(invariant(element, element.isDeclaration));
     if (element.isForeign(compiler)) return;
