@@ -31,16 +31,11 @@ class Printer implements NodeVisitor {
         ? new MinifyRenamer() : new IdentityNamer();
   }
 
-  /// Always emit a newline, even under `enableMinification`.
-  void forceLine() {
-    out("\n");
-  }
-  /// Emits a newline for readability.
-  void lineOut() {
-    if (!shouldCompressOutput) forceLine();
-  }
   void spaceOut() {
     if (!shouldCompressOutput) out(" ");
+  }
+  void lineOut() {
+    if (!shouldCompressOutput) out("\n");
   }
 
   String lastAddedString = null;
@@ -75,8 +70,7 @@ class Printer implements NodeVisitor {
     if (shouldCompressOutput) {
       pendingSemicolon = true;
     } else {
-      out(";");
-      forceLine();
+      out(";\n");
     }
   }
 
@@ -678,10 +672,8 @@ class Printer implements NodeVisitor {
         return false;
       }
     }
-    // TODO(floitsch): normally we should also check that the field is not a
-    // reserved word.  We don't generate fields with reserved word names except
-    // for 'super'.
-    if (field == '"super"') return false;
+    // TODO(floitsch): normally we should also check that the field is not
+    // a reserved word.
     return true;
   }
 
@@ -766,28 +758,15 @@ class Printer implements NodeVisitor {
   }
 
   visitObjectInitializer(ObjectInitializer node) {
-    // Print all the properties on one line until we see a function-valued
-    // property.  Ideally, we would use a proper pretty-printer to make the
-    // decision based on layout.
-    bool onePerLine = false;
-    List<Property> properties = node.properties;
     out("{");
-    ++indentLevel;
+    List<Property> properties = node.properties;
     for (int i = 0; i < properties.length; i++) {
-      Expression value = properties[i].value;
-      if (value is Fun || value is NamedFunction) onePerLine = true;
       if (i != 0) {
         out(",");
-        if (!onePerLine) spaceOut();
-      }
-      if (onePerLine) {
-        forceLine();
-        indent();
+        spaceOut();
       }
       visitProperty(properties[i]);
     }
-    --indentLevel;
-    if (onePerLine) lineOut();
     out("}");
   }
 

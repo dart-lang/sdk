@@ -917,13 +917,13 @@ class JavaScriptBackend extends Backend {
     optimizer.optimize(work, graph, false);
     if (work.allowSpeculativeOptimization
         && optimizer.trySpeculativeOptimizations(work, graph)) {
-      js.Expression code = generator.generateBailoutMethod(work, graph);
-      compiler.codegenWorld.addBailoutCode(work, code);
+      CodeBuffer codeBuffer = generator.generateBailoutMethod(work, graph);
+      compiler.codegenWorld.addBailoutCode(work, codeBuffer);
       optimizer.prepareForSpeculativeOptimizations(work, graph);
       optimizer.optimize(work, graph, true);
     }
-    js.Expression code = generator.generateCode(work, graph);
-    compiler.codegenWorld.addGeneratedCode(work, code);
+    CodeBuffer codeBuffer = generator.generateCode(work, graph);
+    compiler.codegenWorld.addGeneratedCode(work, codeBuffer);
     invalidateAfterCodegen.forEach(compiler.enqueuer.codegen.eagerRecompile);
     invalidateAfterCodegen.clear();
   }

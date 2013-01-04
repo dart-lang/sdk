@@ -125,25 +125,45 @@ function(cls, desc) {
   }
 
   void generateNativeClass(ClassElement classElement) {
-    assert(classElement.backendMembers.isEmpty);
     nativeClasses.add(classElement);
 
-    ClassBuilder builder = new ClassBuilder();
-    emitter.emitClassFields(classElement, builder, classIsNative: true);
-    emitter.emitClassGettersSetters(classElement, builder);
-    emitter.emitInstanceMembers(classElement, builder);
+    assert(classElement.backendMembers.isEmpty);
+    String quotedName = classElement.nativeTagInfo.slowToString();
 
-    // An empty native class may be omitted since the superclass methods can be
-    // located via the dispatch metadata.
-    if (builder.properties.isEmpty) return;
+    CodeBuffer fieldBuffer = new CodeBuffer();
+    CodeBuffer getterSetterBuffer = new CodeBuffer();
+    CodeBuffer methodBuffer = new CodeBuffer();
+
+    emitter.emitClassFields(classElement, fieldBuffer, false,
+                            classIsNative: true);
+    emitter.emitClassGettersSetters(classElement, getterSetterBuffer, false);
+    emitter.emitInstanceMembers(classElement, methodBuffer, false);
+
+    if (methodBuffer.isEmpty
+        && fieldBuffer.isEmpty
+        && getterSetterBuffer.isEmpty) {
+      return;
+    }
 
     String nativeTag = toNativeTag(classElement);
-    js.Expression definition =
-        js.call(js.use(defineNativeClassName),
-                [js.string(nativeTag), builder.toObjectInitializer()]);
-
-    nativeBuffer.add(js.prettyPrint(definition, compiler));
-    nativeBuffer.add('$N$n');
+    nativeBuffer.add("$defineNativeClassName('$nativeTag',$_");
+    nativeBuffer.add('{');
+    bool firstInMap = true;
+    if (!fieldBuffer.isEmpty) {
+      firstInMap = false;
+      nativeBuffer.add(fieldBuffer);
+    }
+    if (!getterSetterBuffer.isEmpty) {
+      if (!firstInMap) nativeBuffer.add(",");
+      firstInMap = false;
+      nativeBuffer.add("\n$_");
+      nativeBuffer.add(getterSetterBuffer);
+    }
+    if (!methodBuffer.isEmpty) {
+      if (!firstInMap) nativeBuffer.add(",");
+      nativeBuffer.add(methodBuffer);
+    }
+    nativeBuffer.add('$n})$N$n');
 
     classesWithDynamicDispatch.add(classElement);
   }
@@ -176,10 +196,11 @@ function(cls, desc) {
 
             statements.add(
                 new js.ExpressionStatement(
-                    js.assign(
-                        js.use(name),
-                        js.use(closureConverter).callWith(
-                            [js.use(name), new js.LiteralNumber('$arity')]))));
+                    new js.Assignment(
+                        new js.VariableUse(name),
+                        new js.VariableUse(closureConverter)
+                            .callWith([new js.VariableUse(name),
+                                       new js.LiteralNumber('$arity')]))));
             break;
           }
         }
@@ -203,6 +224,7 @@ function(cls, desc) {
     //   foo(null, y).
 
     ClassElement classElement = member.enclosingElement;
+    //String nativeTagInfo = classElement.nativeName.slowToString();
     String nativeTagInfo = classElement.nativeTagInfo.slowToString();
 
     List<js.Statement> statements = <js.Statement>[];
@@ -246,16 +268,23 @@ function(cls, desc) {
       String methodName,
       js.Statement body,
       List<js.Parameter> parameters) {
-    return js.if_(
-        js.use('Object').dot('getPrototypeOf')
-            .callWith([js.use('this')])
-            .dot('hasOwnProperty').callWith([js.string(methodName)]),
+    return new js.If(
+        new js.VariableUse('Object')
+            .dot('getPrototypeOf')
+            .callWith([new js.VariableUse('this')])
+            .dot('hasOwnProperty')
+            .callWith([new js.LiteralString("'$methodName'")]),
         body,
-        js.return_(
-            js.use('Object').dot('prototype').dot(methodName).dot('call')
-            .callWith(
-                <js.Expression>[js.use('this')]..addAll(
-                    parameters.map((param) => js.use(param.name))))));
+        new js.Block(
+            <js.Statement>[
+                new js.Return(
+                    new js.VariableUse('Object')
+                        .dot('prototype').dot(methodName).dot('call')
+                        .callWith(
+                            <js.Expression>[new js.VariableUse('this')]
+                                ..addAll(parameters.map((param) =>
+                                        new js.VariableUse(param.name)))))
+            ]));
   }
 
   js.Block generateMethodBodyWithPrototypeCheckForElement(
@@ -271,7 +300,7 @@ function(cls, desc) {
     } else if (element.kind == ElementKind.SETTER) {
       methodName = namer.setterName(element.getLibrary(), element.name);
     } else {
-      compiler.internalError("unexpected kind: '${element.kind}'",
+      compiler.internalError('unexpected kind: "${element.kind}"',
           element: element);
     }
 
@@ -371,14 +400,17 @@ function(cls, desc) {
       walk(classElement);
 
       if (!subtags.isEmpty) {
-        expressions.add(js.string(Strings.join(subtags, '|')));
+        expressions.add(
+            new js.LiteralString("'${Strings.join(subtags, '|')}'"));
       }
       js.Expression expression;
       if (expressions.length == 1) {
         expression = expressions[0];
       } else {
         js.Expression array = new js.ArrayInitializer.from(expressions);
-        expression = js.call(array.dot('join'), [js.string('|')]);
+        expression = new js.Call(
+            new js.PropertyAccess.field(array, 'join'),
+            [new js.LiteralString("'|'")]);
       }
       return expression;
     }
@@ -413,7 +445,7 @@ function(cls, desc) {
           new js.ArrayInitializer.from(
               preorderDispatchClasses.map((cls) =>
                   new js.ArrayInitializer.from([
-                      js.string(toNativeTag(cls)),
+                      new js.LiteralString("'${toNativeTag(cls)}'"),
                       tagDefns[cls]])));
 
       //  $.dynamicSetMetadata(table);
@@ -459,86 +491,67 @@ function(cls, desc) {
     return isSupertypeOfNativeClass(element);
   }
 
+  void emitIsChecks(Map<String, String> objectProperties) {
+    for (Element element in emitter.checkedClasses) {
+      if (!requiresNativeIsCheck(element)) continue;
+      if (element.isObject(compiler)) continue;
+      String name = backend.namer.operatorIs(element);
+      objectProperties[name] = 'function()$_{${_}return false;$_}';
+    }
+  }
+
   void assembleCode(CodeBuffer targetBuffer) {
     if (nativeClasses.isEmpty) return;
     emitDynamicDispatchMetadata();
     targetBuffer.add('$defineNativeClassName = '
                      '$defineNativeClassFunction$N$n');
 
-    List<js.Property> objectProperties = <js.Property>[];
-
-    void addProperty(String name, js.Expression value) {
-      objectProperties.add(new js.Property(js.string(name), value));
-    }
-
     // Because of native classes, we have to generate some is checks
     // by calling a method, instead of accessing a property. So we
     // attach to the JS Object prototype these methods that return
     // false, and will be overridden by subclasses when they have to
     // return true.
-    void emitIsChecks() {
-      for (Element element in
-               Elements.sortedByPosition(emitter.checkedClasses)) {
-        if (!requiresNativeIsCheck(element)) continue;
-        if (element.isObject(compiler)) continue;
-        String name = backend.namer.operatorIs(element);
-        addProperty(name,
-            js.fun([], js.block1(js.return_(new js.LiteralBool(false)))));
-      }
-    }
-    emitIsChecks();
-
-    js.Expression makeCallOnThis(String functionName) =>
-        js.fun([],
-            js.block1(
-                js.return_(
-                    js.call(js.use(functionName), [js.use('this')]))));
+    Map<String, String> objectProperties = new Map<String, String>();
+    emitIsChecks(objectProperties);
 
     // In order to have the toString method on every native class,
     // we must patch the JS Object prototype with a helper method.
     String toStringName = backend.namer.publicInstanceMethodNameByArity(
         const SourceString('toString'), 0);
-    addProperty(toStringName, makeCallOnThis(toStringHelperName));
+    objectProperties[toStringName] =
+        'function() { return $toStringHelperName(this); }';
 
     // Same as above, but for hashCode.
     String hashCodeName =
         backend.namer.publicGetterName(const SourceString('hashCode'));
-    addProperty(hashCodeName, makeCallOnThis(hashCodeHelperName));
+    objectProperties[hashCodeName] =
+        'function() { return $hashCodeHelperName(this); }';
 
     // If the native emitter has been asked to take care of the
     // noSuchMethod handlers, we do that now.
     if (handleNoSuchMethod) {
-      emitter.emitNoSuchMethodHandlers(addProperty);
+      emitter.emitNoSuchMethodHandlers((String name, CodeBuffer buffer) {
+        objectProperties[name] = buffer.toString();
+      });
     }
 
     // If we have any properties to add to Object.prototype, we run
     // through them and add them using defineProperty.
     if (!objectProperties.isEmpty) {
-      js.Expression init =
-          js.call(
-              js.fun(['table'],
-                  js.block1(
-                      new js.ForIn(
-                          new js.VariableDeclarationList(
-                              [new js.VariableInitialization(
-                                  new js.VariableDeclaration('key'),
-                                  null)]),
-                          js.use('table'),
-                          new js.ExpressionStatement(
-                              js.call(
-                                  js.use(defPropName),
-                                  [js.use('Object').dot('prototype'),
-                                   js.use('key'),
-                                   new js.PropertyAccess(js.use('table'),
-                                                         js.use('key'))]))))),
-              [new js.ObjectInitializer(objectProperties)]);
-
-      if (emitter.compiler.enableMinification) targetBuffer.add(';');
-      targetBuffer.add(js.prettyPrint(
-          new js.ExpressionStatement(init), compiler));
-      targetBuffer.add('\n');
+      if (emitter.compiler.enableMinification) targetBuffer.add(";");
+      targetBuffer.add("(function(table) {\n"
+                       "  for (var key in table) {\n"
+                       "    $defPropName(Object.prototype, key, table[key]);\n"
+                       "  }\n"
+                       "})({\n");
+      bool first = true;
+      objectProperties.forEach((String name, String function) {
+        if (!first) targetBuffer.add(",\n");
+        targetBuffer.add("$_$name:$_$function");
+        first = false;
+      });
+      targetBuffer.add("\n})$N$n");
     }
-
     targetBuffer.add(nativeBuffer);
     targetBuffer.add('\n');
   }
