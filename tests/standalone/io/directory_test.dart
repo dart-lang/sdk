@@ -22,6 +22,31 @@ class DirectoryTest {
     Expect.isFalse(f.existsSync());
     f.createSync();
 
+    void testSyncListing(bool recursive) {
+      for (var entry in directory.listSync(recursive: recursive)) {
+        if (entry is File) {
+          Expect.isTrue(entry.name.contains(directory.path));
+          Expect.isTrue(entry.name.contains('subdir'));
+          Expect.isTrue(entry.name.contains('file.txt'));
+          Expect.isFalse(listedFile);
+          listedFile = true;
+        } else {
+          Expect.isTrue(entry is Directory);
+          Expect.isTrue(entry.path.contains(directory.path));
+          Expect.isTrue(entry.path.contains('subdir'));
+          Expect.isFalse(listedDir);
+          listedDir = true;
+        }
+      }
+      Expect.equals(listedFile, recursive);
+      Expect.isTrue(listedDir);
+      listedFile = false;
+      listedDir = false;
+    }
+
+    testSyncListing(true);
+    testSyncListing(false);
+
     var lister = directory.list(recursive: true);
 
     lister.onDir = (dir) {

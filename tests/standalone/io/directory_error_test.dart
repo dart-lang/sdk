@@ -139,6 +139,7 @@ bool checkListNonExistentFileException(e) {
 
 void testListNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent");
+  Expect.throws(() => nonExistent.listSync(), (e) => e is DirectoryIOException);
   var lister = nonExistent.list();
   lister.onError = (e) {
     checkListNonExistentFileException(e);

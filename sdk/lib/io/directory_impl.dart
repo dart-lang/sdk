@@ -26,6 +26,7 @@ class _Directory implements Directory {
   external static _create(String path);
   external static _delete(String path, bool recursive);
   external static _rename(String path, String newPath);
+  external static List _list(String path, bool recursive);
   external static SendPort _newServicePort();
 
   Future<bool> exists() {
@@ -227,6 +228,13 @@ class _Directory implements Directory {
 
   DirectoryLister list({bool recursive: false}) {
     return new _DirectoryLister(_path, recursive);
+  }
+
+  List listSync({bool recursive: false}) {
+    if (_path is! String || recursive is! bool) {
+      throw new ArgumentError();
+    }
+    return _list(_path, recursive);
   }
 
   String get path => _path;

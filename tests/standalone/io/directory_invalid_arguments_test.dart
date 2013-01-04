@@ -39,8 +39,12 @@ class DirectoryInvalidArgumentsTest {
       Expect.isTrue(e is ArgumentError);
     }
     testFailingList(d, false);
+    Expect.throws(() => d.listSync(recursive: true),
+                  (e) => e is ArgumentError);
     d = new Directory(".");
     testFailingList(d, 1);
+    Expect.throws(() => d.listSync(recursive: 1),
+                  (e) => e is ArgumentError);
   }
 
   static void testMain() {

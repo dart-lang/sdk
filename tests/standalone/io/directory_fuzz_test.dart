@@ -17,6 +17,7 @@ fuzzSyncMethods() {
       doItSync(d.existsSync);
       doItSync(d.createSync);
       doItSync(d.deleteSync);
+      doItSync(d.listSync);
       doItSync(() {
         d.createTempSync().deleteSync();
       });
@@ -27,6 +28,7 @@ fuzzSyncMethods() {
       });
       typeMapping.forEach((k2, v2) {
         doItSync(() => d.renameSync(v2));
+        doItSync(() => d.listSync(recursive: v2));
         doItSync(() => d.list(recursive: v2).onError = (e) => null);
       });
     });

@@ -127,6 +127,21 @@ testDirectoryListing() {
   createLink(temp2.path, y, true, () {
     var files = [];
     var dirs = [];
+    for (var entry in temp.listSync(recursive:true)) {
+      if (entry is File) {
+        files.add(entry.name);
+      } else {
+        Expect.isTrue(entry is Directory);
+        dirs.add(entry.path);
+      }
+    }
+    Expect.equals(1, files.length);
+    Expect.isTrue(files[0].endsWith(x));
+    Expect.equals(1, dirs.length);
+    Expect.isTrue(dirs[0].endsWith(y));
+
+    files = [];
+    dirs = [];
     var lister = temp.list(recursive: true);
     lister.onFile = (f) => files.add(f);
     lister.onDir = (d) => dirs.add(d);
@@ -150,6 +165,8 @@ testDirectoryListingBrokenLink() {
   var doesNotExist = 'this_thing_does_not_exist';
   new File(x).createSync();
   createLink(doesNotExist, link, true, () {
+    Expect.throws(() => temp.listSync(recursive: true),
+                  (e) => e is DirectoryIOException);
     var files = [];
     var dirs = [];
     var errors = [];
