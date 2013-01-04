@@ -42,7 +42,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return code;
   }
 
-  CodeBuffer generateCode(WorkItem work, HGraph graph) {
+  js.Expression generateCode(WorkItem work, HGraph graph) {
     if (work.element.isField()) {
       return generateLazyInitializer(work, graph);
     } else {
@@ -50,19 +50,17 @@ class SsaCodeGeneratorTask extends CompilerTask {
     }
   }
 
-  CodeBuffer generateLazyInitializer(work, graph) {
+  js.Expression generateLazyInitializer(work, graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       SsaOptimizedCodeGenerator codegen =
           new SsaOptimizedCodeGenerator(backend, work);
       codegen.visitGraph(graph);
-      js.Block body = codegen.body;
-      js.Fun fun = new js.Fun(codegen.parameters, body);
-      return prettyPrint(fun);
+      return new js.Fun(codegen.parameters, codegen.body);
     });
   }
 
-  CodeBuffer generateMethod(WorkItem work, HGraph graph) {
+  js.Expression generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       SsaOptimizedCodeGenerator codegen =
@@ -89,12 +87,11 @@ class SsaCodeGeneratorTask extends CompilerTask {
         body = codegen.body;
       }
 
-      js.Fun fun = buildJavaScriptFunction(element, codegen.parameters, body);
-      return prettyPrint(fun);
+      return buildJavaScriptFunction(element, codegen.parameters, body);
     });
   }
 
-  CodeBuffer generateBailoutMethod(WorkItem work, HGraph graph) {
+  js.Expression generateBailoutMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen-bailout", graph);
 
@@ -107,7 +104,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       body.statements.add(codegen.body);
       js.Fun fun =
           buildJavaScriptFunction(work.element, codegen.newParameters, body);
-      return prettyPrint(fun);
+      return fun;
     });
   }
 }
@@ -2193,7 +2190,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkTypeOf(HInstruction input, String cmp, String typeName) {
     use(input);
     js.Expression typeOf = new js.Prefix("typeof", pop());
-    push(new js.Binary(cmp, typeOf, new js.LiteralString("'$typeName'")));
+    push(new js.Binary(cmp, typeOf, js.string(typeName)));
   }
 
   void checkNum(HInstruction input, String cmp)
@@ -2501,14 +2498,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // or [propertyTypeCast].
         assert(!type.isMalformed);
         String additionalArgument = backend.namer.operatorIs(element);
-        arguments.add(new js.LiteralString("'$additionalArgument'"));
+        arguments.add(js.string(additionalArgument));
       } else if (parameterCount == 3) {
         // 3 arguments implies that the method is [malformedTypeCheck].
         assert(type.isMalformed);
         String reasons = fetchReasonsFromMalformedType(type);
-        arguments.add(new js.LiteralString("'$type'"));
+        arguments.add(js.string('$type'));
         // TODO(johnniwinther): Handle escaping correctly.
-        arguments.add(new js.LiteralString("'$reasons'"));
+        arguments.add(js.string(reasons));
       } else {
         assert(!type.isMalformed);
       }

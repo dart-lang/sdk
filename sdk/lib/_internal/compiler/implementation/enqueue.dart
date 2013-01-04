@@ -68,13 +68,13 @@ class Enqueuer {
   }
 
   /**
-   * Documentation wanted -- johnniwinther
+   * Unit test hook that returns code of an element as a String.
    *
    * Invariant: [element] must be a declaration element.
    */
   String lookupCode(Element element) {
     assert(invariant(element, element.isDeclaration));
-    return universe.generatedCode[element].toString();
+    return js.prettyPrint(universe.generatedCode[element], compiler).getText();
   }
 
   /**

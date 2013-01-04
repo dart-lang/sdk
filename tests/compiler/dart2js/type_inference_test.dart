@@ -70,7 +70,7 @@ foo(a) {
 
 main() {
   compileAndMatchFuzzy(TEST_ONE, 'sum', "x \\+= x");
-  compileAndMatchFuzzy(TEST_ONE, 'sum', "typeof x !== 'number'");
+  compileAndMatchFuzzy(TEST_ONE, 'sum', 'typeof x !== "number"');
 
   var generated = compile(TEST_TWO, entry: 'foo');
   RegExp regexp = new RegExp(getNumberTypeCheck('a'));

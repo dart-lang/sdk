@@ -78,7 +78,7 @@ String getIntTypeCheck(String variable) {
 }
 
 String getNumberTypeCheck(String variable) {
-  return "\\(typeof $variable ?!== ?'number'\\)";
+  return """\\(typeof $variable ?!== ?"number"\\)""";
 }
 
 bool checkNumberOfMatches(Iterator it, int nb) {
@@ -126,4 +126,3 @@ void compileAndMatchFuzzyHelper(
     Expect.isFalse(new RegExp(regexp).hasMatch(generated));
   }
 }
-
