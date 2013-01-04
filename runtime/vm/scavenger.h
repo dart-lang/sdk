@@ -62,8 +62,8 @@ class Scavenger {
   }
 
   // Collect the garbage in this scavenger.
-  void Scavenge(const char* gc_reason);
-  void Scavenge(bool invoke_api_callbacks, const char* gc_reason);
+  void Scavenge();
+  void Scavenge(bool invoke_api_callbacks);
 
   // Accessors to generate code for inlined allocation.
   uword* TopAddress() { return &top_; }
@@ -96,6 +96,20 @@ class Scavenger {
   int64_t PeerCount() const;
 
  private:
+  // Ids for time and data records in Heap::GCStats.
+  enum {
+    // Time
+    kVisitIsolateRoots = 0,
+    kIterateStoreBuffers = 1,
+    kProcessToSpace = 2,
+    kIterateWeaks = 3,
+    // Data
+    kStoreBufferEntries = 0,
+    kStoreBufferDuplicates = 1,
+    kStoreBufferBlockEntries = 2,
+    kStoreBufferBlockDuplicates = 3
+  };
+
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   void Prologue(Isolate* isolate, bool invoke_api_callbacks);
   void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
@@ -159,8 +173,6 @@ class Scavenger {
   // All object are aligned to this value.
   uword object_alignment_;
 
-  // Scavenge cycle count.
-  int count_;
   // Keep track whether a scavenge is currently running.
   bool scavenging_;
   // Keep track whether the scavenge had a promotion failure.

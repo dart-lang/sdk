@@ -1305,8 +1305,7 @@ class GCTestHelper : public AllStatic {
  public:
   static void CollectNewSpace(Heap::ApiCallbacks api_callbacks) {
     bool invoke_api_callbacks = (api_callbacks == Heap::kInvokeApiCallbacks);
-    Isolate::Current()->heap()->new_space_->Scavenge(invoke_api_callbacks,
-                                                     "test case");
+    Isolate::Current()->heap()->new_space_->Scavenge(invoke_api_callbacks);
   }
 };
 

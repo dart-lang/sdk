@@ -176,8 +176,12 @@ const int kBitsPerWord = kWordSize * kBitsPerByte;
 
 // System-wide named constants.
 const intptr_t KB = 1024;
+const intptr_t KBLog2 = 10;
 const intptr_t MB = KB * KB;
-const intptr_t GB = KB * KB * KB;
+const intptr_t MBLog2 = KBLog2 + KBLog2;
+const intptr_t GB = MB * KB;
+const intptr_t GBLog2 = MBLog2 + KBLog2;
+
 const intptr_t kIntptrOne = 1;
 const intptr_t kIntptrMin = (kIntptrOne << (kBitsPerWord - 1));
 const intptr_t kIntptrMax = ~kIntptrMin;

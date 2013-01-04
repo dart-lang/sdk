@@ -43,7 +43,6 @@ class Heap {
     kNewSpace,
     kPromotionFailure,
     kOldSpace,
-    kCodeSpace,
     kFull,
     kGCAtAlloc,
     kGCTestCase,
@@ -178,15 +177,65 @@ class Heap {
   // Returns the number of objects with a peer.
   int64_t PeerCount() const;
 
+  // Stats collection.
+  void RecordTime(int id, int64_t micros) {
+    ASSERT((id >= 0) && (id < GCStats::kDataEntries));
+    stats_.times_[id] = micros;
+  }
+
+  void RecordData(int id, intptr_t value) {
+    ASSERT((id >= 0) && (id < GCStats::kDataEntries));
+    stats_.data_[id] = value;
+  }
+
  private:
+  class GCStats : public ValueObject {
+   public:
+    GCStats() {}
+    intptr_t num_;
+    Heap::Space space_;
+    Heap::GCReason reason_;
+
+    class Data : public ValueObject {
+    public:
+      Data() {}
+      int64_t micros_;
+      intptr_t new_used_;
+      intptr_t new_capacity_;
+      intptr_t old_used_;
+      intptr_t old_capacity_;
+
+      DISALLOW_COPY_AND_ASSIGN(Data);
+    };
+
+    enum {
+      kDataEntries = 4
+    };
+
+    Data before_;
+    Data after_;
+    int64_t times_[kDataEntries];
+    intptr_t data_[kDataEntries];
+
+    DISALLOW_COPY_AND_ASSIGN(GCStats);
+  };
+
   Heap();
 
   uword AllocateNew(intptr_t size);
   uword AllocateOld(intptr_t size, HeapPage::PageType type);
 
+  // GC stats collection.
+  void RecordBeforeGC(Space space, GCReason reason);
+  void RecordAfterGC();
+  void PrintStats();
+
   // The different spaces used for allocation.
   Scavenger* new_space_;
   PageSpace* old_space_;
+
+  // GC stats collection.
+  GCStats stats_;
 
   // The active heap trace.
   HeapTrace* heap_trace_;

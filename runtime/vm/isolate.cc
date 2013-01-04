@@ -259,6 +259,7 @@ Isolate::Isolate()
       store_buffer_(),
       message_notify_callback_(NULL),
       name_(NULL),
+      start_time_(OS::GetCurrentTimeMicros()),
       main_port_(0),
       heap_(NULL),
       object_store_(NULL),

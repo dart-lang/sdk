@@ -195,7 +195,7 @@ class PageSpace {
                         HeapPage::PageType type) const;
 
   // Collect the garbage in the page space using mark-sweep.
-  void MarkSweep(bool invoke_api_callbacks, const char* gc_reason);
+  void MarkSweep(bool invoke_api_callbacks);
 
   static HeapPage* PageFor(RawObject* raw_obj) {
     return reinterpret_cast<HeapPage*>(
@@ -221,6 +221,20 @@ class PageSpace {
   PeerTable* GetPeerTable() { return &peer_table_; }
 
  private:
+  // Ids for time and data records in Heap::GCStats.
+  enum {
+    // Time
+    kMarkObjects = 0,
+    kResetFreeLists = 1,
+    kSweepPages = 2,
+    kSweepLargePages = 3,
+    // Data
+    kGarbageRatio = 0,
+    kGCTimeFraction = 1,
+    kPageGrowth = 2,
+    kAllowedGrowth = 3
+  };
+
   static const intptr_t kAllocatablePageSize = kPageSize - sizeof(HeapPage);
 
   HeapPage* AllocatePage(HeapPage::PageType type);
@@ -251,13 +265,12 @@ class PageSpace {
   intptr_t capacity_;
   intptr_t in_use_;
 
-  // Old-gen GC cycle count.
-  int count_;
-
   // Keep track whether a MarkSweep is currently running.
   bool sweeping_;
 
   PageSpaceController page_space_controller_;
+
+  friend class PageSpaceController;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);
 };

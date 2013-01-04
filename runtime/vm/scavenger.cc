@@ -74,7 +74,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         vm_heap_(Dart::vm_isolate()->heap()),
         delayed_weak_stack_(),
         growth_policy_(PageSpace::kControlGrowth),
-        bytes_promoted_(0),
         visiting_old_pointers_(false),
         in_scavenge_pointer_(false) {}
 
@@ -108,8 +107,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       WeakProperty::Clear(it->second);
     }
   }
-
-  intptr_t bytes_promoted() { return bytes_promoted_; }
 
  private:
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
@@ -187,7 +184,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
-          bytes_promoted_ += size;
           if (HeapTrace::is_enabled()) {
             heap_->trace()->TracePromotion(raw_addr, new_addr);
           }
@@ -200,7 +196,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           new_addr = heap_->TryAllocate(size, Heap::kOld, growth_policy_);
           if (new_addr != 0) {
             scavenger_->PushToPromotedStack(new_addr);
-            bytes_promoted_ += size;
             if (HeapTrace::is_enabled()) {
               heap_->trace()->TracePromotion(raw_addr, new_addr);
             }
@@ -247,7 +242,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   DelaySet delay_set_;
   GrowableArray<RawObject*> delayed_weak_stack_;
   PageSpace::GrowthPolicy growth_policy_;
-  intptr_t bytes_promoted_;
 
   bool visiting_old_pointers_;
   bool in_scavenge_pointer_;
@@ -303,7 +297,6 @@ class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
 Scavenger::Scavenger(Heap* heap, intptr_t max_capacity, uword object_alignment)
     : heap_(heap),
       object_alignment_(object_alignment),
-      count_(0),
       scavenging_(false) {
   // Verify assumptions about the first word in objects which the scavenger is
   // going to use for forwarding pointers.
@@ -417,10 +410,8 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     delete pending;
     pending = next;
   }
-  if (FLAG_verbose_gc) {
-    OS::PrintErr("StoreBuffer: %"Pd", %"Pd" (entries, dups)\n",
-                 entries, duplicates);
-  }
+  heap_->RecordData(kStoreBufferEntries, entries);
+  heap_->RecordData(kStoreBufferDuplicates, duplicates);
   StoreBufferBlock* block = isolate->store_buffer_block();
   entries = block->Count();
   duplicates = 0;
@@ -436,20 +427,23 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     }
   }
   block->Reset();
-  if (FLAG_verbose_gc) {
-    OS::PrintErr("StoreBufferBlock: %"Pd", %"Pd" (entries, dups)\n",
-                 entries, duplicates);
-  }
+  heap_->RecordData(kStoreBufferBlockEntries, entries);
+  heap_->RecordData(kStoreBufferBlockDuplicates, duplicates);
 }
 
 
 void Scavenger::IterateRoots(Isolate* isolate,
                              ScavengerVisitor* visitor,
                              bool visit_prologue_weak_persistent_handles) {
-  IterateStoreBuffers(isolate, visitor);
+  int64_t start = OS::GetCurrentTimeMicros();
   isolate->VisitObjectPointers(visitor,
                                visit_prologue_weak_persistent_handles,
                                StackFrameIterator::kDontValidateFrames);
+  int64_t middle = OS::GetCurrentTimeMicros();
+  IterateStoreBuffers(isolate, visitor);
+  int64_t end = OS::GetCurrentTimeMicros();
+  heap_->RecordTime(kVisitIsolateRoots, middle - start);
+  heap_->RecordTime(kIterateStoreBuffers, end - middle);
 }
 
 
@@ -626,14 +620,14 @@ void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
-void Scavenger::Scavenge(const char* gc_reason) {
+void Scavenger::Scavenge() {
   // TODO(cshapiro): Add a decision procedure for determining when the
   // the API callbacks should be invoked.
-  Scavenge(false, gc_reason);
+  Scavenge(false);
 }
 
 
-void Scavenger::Scavenge(bool invoke_api_callbacks, const char* gc_reason) {
+void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
@@ -647,49 +641,25 @@ void Scavenger::Scavenge(bool invoke_api_callbacks, const char* gc_reason) {
     OS::PrintErr(" done.\n");
   }
 
-  if (FLAG_verbose_gc) {
-    OS::PrintErr("Start scavenge for %s collection\n", gc_reason);
-  }
   uword prev_first_obj_start = FirstObjectStart();
   uword prev_top_addr = *(TopAddress());
-  Timer timer(FLAG_verbose_gc, "Scavenge");
-  timer.Start();
-
-  intptr_t in_use_before = in_use();
 
   // Setup the visitor and run a scavenge.
   ScavengerVisitor visitor(isolate, this);
   Prologue(isolate, invoke_api_callbacks);
   IterateRoots(isolate, &visitor, !invoke_api_callbacks);
+  int64_t start = OS::GetCurrentTimeMicros();
   ProcessToSpace(&visitor);
+  int64_t middle = OS::GetCurrentTimeMicros();
   IterateWeakReferences(isolate, &visitor);
   ScavengerWeakVisitor weak_visitor(this);
   IterateWeakRoots(isolate, &weak_visitor, invoke_api_callbacks);
   visitor.Finalize();
   ProcessPeerReferents();
+  int64_t end = OS::GetCurrentTimeMicros();
+  heap_->RecordTime(kProcessToSpace, middle - start);
+  heap_->RecordTime(kIterateWeaks, end - middle);
   Epilogue(isolate, invoke_api_callbacks);
-  timer.Stop();
-
-  if (FLAG_verbose_gc) {
-    const intptr_t KB2 = KB / 2;
-    double survival = ((in_use() + visitor.bytes_promoted()) /
-                       static_cast<double>(in_use_before)) * 100.0;
-    double promoted = (visitor.bytes_promoted() /
-                       static_cast<double>(in_use() + visitor.bytes_promoted()))
-                      * 100.0;
-    OS::PrintErr("Scavenge[%d]: %"Pd64"us (%"Pd"K -> %"Pd"K, %"Pd"K)\n"
-                 "Surviving %"Pd"K %.1f%%\n"
-                 "Promoted survivors %"Pd"K %.1f%%\n",
-                 count_,
-                 timer.TotalElapsedTime(),
-                 (in_use_before + KB2) / KB,
-                 (in_use() + KB2) / KB,
-                 (capacity() + KB2) / KB,
-                 (in_use() + visitor.bytes_promoted() + KB2) / KB,
-                 survival,
-                 (visitor.bytes_promoted() + KB2) / KB,
-                 promoted);
-  }
 
   if (FLAG_verify_after_gc) {
     OS::PrintErr("Verifying after Scavenge...");
@@ -701,7 +671,6 @@ void Scavenger::Scavenge(bool invoke_api_callbacks, const char* gc_reason) {
     heap_->trace()->TraceDeathRange(prev_first_obj_start, prev_top_addr);
   }
 
-  count_++;
   // Done scavenging. Reset the marker.
   ASSERT(scavenging_);
   scavenging_ = false;

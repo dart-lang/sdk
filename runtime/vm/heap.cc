@@ -23,6 +23,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, verbose_gc, false, "Enables verbose GC.");
+DEFINE_FLAG(int, verbose_gc_hdr, 40, "Print verbose GC header interval.");
 DEFINE_FLAG(bool, verify_before_gc, false,
             "Enables heap verification before GC.");
 DEFINE_FLAG(bool, verify_after_gc, false,
@@ -39,6 +40,7 @@ Heap::Heap() : read_only_(false) {
                              (FLAG_new_gen_heap_size * MB),
                              kNewObjectAlignmentOffset);
   old_space_ = new PageSpace(this, (FLAG_old_gen_heap_size * MB));
+  stats_.num_ = 0;
   heap_trace_ = new HeapTrace;
 }
 
@@ -151,24 +153,26 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
     case kNew: {
-      new_space_->Scavenge(invoke_api_callbacks,
-                           GCReasonToString(kNewSpace));
+      RecordBeforeGC(kNew, kNewSpace);
+      new_space_->Scavenge(invoke_api_callbacks);
+      RecordAfterGC();
+      PrintStats();
       if (new_space_->HadPromotionFailure()) {
-        old_space_->MarkSweep(true,
-                              GCReasonToString(kPromotionFailure));
+        CollectGarbage(kOld, api_callbacks);
       }
       break;
     }
     case kOld:
-    case kCode:
-      old_space_->MarkSweep(invoke_api_callbacks,
-                            GCReasonToString(kOldSpace));
+    case kCode: {
+      bool promotion_failure = new_space_->HadPromotionFailure();
+      RecordBeforeGC(kOld, promotion_failure ? kPromotionFailure : kOldSpace);
+      old_space_->MarkSweep(invoke_api_callbacks);
+      RecordAfterGC();
+      PrintStats();
       break;
+    }
     default:
       UNREACHABLE();
-  }
-  if (FLAG_verbose_gc) {
-    PrintSizes();
   }
 }
 
@@ -185,12 +189,14 @@ void Heap::CollectGarbage(Space space) {
 
 
 void Heap::CollectAllGarbage() {
-  const char* gc_reason = GCReasonToString(kFull);
-  new_space_->Scavenge(kInvokeApiCallbacks, gc_reason);
-  old_space_->MarkSweep(kInvokeApiCallbacks, gc_reason);
-  if (FLAG_verbose_gc) {
-    PrintSizes();
-  }
+  RecordBeforeGC(kNew, kFull);
+  new_space_->Scavenge(kInvokeApiCallbacks);
+  RecordAfterGC();
+  PrintStats();
+  RecordBeforeGC(kOld, kFull);
+  old_space_->MarkSweep(kInvokeApiCallbacks);
+  RecordAfterGC();
+  PrintStats();
 }
 
 
@@ -323,8 +329,6 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "promotion failure";
     case kOldSpace:
       return "old space";
-    case kCodeSpace:
-      return "code space";
     case kFull:
       return "full";
     case kGCAtAlloc:
@@ -359,6 +363,96 @@ void* Heap::GetPeer(RawObject* raw_obj) {
 
 int64_t Heap::PeerCount() const {
   return new_space_->PeerCount() + old_space_->PeerCount();
+}
+
+
+void Heap::RecordBeforeGC(Space space, GCReason reason) {
+  stats_.num_++;
+  stats_.space_ = space;
+  stats_.reason_ = reason;
+  stats_.before_.micros_ = OS::GetCurrentTimeMicros();
+  stats_.before_.new_used_ = new_space_->in_use();
+  stats_.before_.new_capacity_ = new_space_->capacity();
+  stats_.before_.old_used_ = old_space_->in_use();
+  stats_.before_.old_capacity_ = old_space_->capacity();
+  stats_.times_[0] = 0;
+  stats_.times_[1] = 0;
+  stats_.times_[2] = 0;
+  stats_.times_[3] = 0;
+  stats_.data_[0] = 0;
+  stats_.data_[1] = 0;
+  stats_.data_[2] = 0;
+  stats_.data_[3] = 0;
+}
+
+
+void Heap::RecordAfterGC() {
+  stats_.after_.micros_ = OS::GetCurrentTimeMicros();
+  stats_.after_.new_used_ = new_space_->in_use();
+  stats_.after_.new_capacity_ = new_space_->capacity();
+  stats_.after_.old_used_ = old_space_->in_use();
+  stats_.after_.old_capacity_ = old_space_->capacity();
+}
+
+
+static intptr_t RoundToKB(intptr_t memory_size) {
+  return (memory_size + (KB >> 1)) >> KBLog2;
+}
+
+
+static double RoundToSecs(int64_t micros) {
+  const int k1M = 1000000;  // Converting us to secs.
+  return static_cast<double>(micros + (k1M / 2)) / k1M;
+}
+
+
+static double RoundToMillis(int64_t micros) {
+  const int k1K = 1000;  // Conversting us to ms.
+  return static_cast<double>(micros + (k1K / 2)) / k1K;
+}
+
+
+void Heap::PrintStats() {
+  if (!FLAG_verbose_gc) return;
+  Isolate* isolate = Isolate::Current();
+
+  if ((FLAG_verbose_gc_hdr != 0) &&
+      (((stats_.num_ - 1) % FLAG_verbose_gc_hdr) == 0)) {
+    OS::PrintErr("[    GC    |  space  | count | start | gc time | "
+                 "new gen (KB) | old gen (KB) | timers | data ]\n"
+                 "[ (isolate)| (reason)|       |  (s)  |   (ms)  | "
+                 " used , cap  |  used , cap  |  (ms)  |      ]\n");
+  }
+
+  const char* space_str = stats_.space_ == kNew ? "Scavenge" : "Mark-Sweep";
+  OS::PrintErr(
+    "[ GC(%"Pd64"): %s(%s), "  // GC(isolate), space(reason)
+    "%"Pd", "  // count
+    "%.3f, "  // start time
+    "%.3f, "  // total time
+    "%"Pd", %"Pd", %"Pd", %"Pd", "  // new gen: in use, capacity before/after
+    "%"Pd", %"Pd", %"Pd", %"Pd", "  // old gen: in use, capacity before/after
+    "%.3f, %.3f, %.3f, %.3f, "  // times
+    "%"Pd", %"Pd", %"Pd", %"Pd", "  // data
+    "]\n",  // End with a comma to make it easier to import in spreadsheets.
+    isolate->main_port(), space_str, GCReasonToString(stats_.reason_),
+    stats_.num_,
+    RoundToSecs(stats_.before_.micros_ - isolate->start_time()),
+    RoundToMillis(stats_.after_.micros_ - stats_.before_.micros_),
+    RoundToKB(stats_.before_.new_used_), RoundToKB(stats_.after_.new_used_),
+    RoundToKB(stats_.before_.new_capacity_),
+    RoundToKB(stats_.after_.new_capacity_),
+    RoundToKB(stats_.before_.old_used_), RoundToKB(stats_.after_.old_used_),
+    RoundToKB(stats_.before_.old_capacity_),
+    RoundToKB(stats_.after_.old_capacity_),
+    RoundToMillis(stats_.times_[0]),
+    RoundToMillis(stats_.times_[1]),
+    RoundToMillis(stats_.times_[2]),
+    RoundToMillis(stats_.times_[3]),
+    stats_.data_[0],
+    stats_.data_[1],
+    stats_.data_[2],
+    stats_.data_[3]);
 }
 
 
