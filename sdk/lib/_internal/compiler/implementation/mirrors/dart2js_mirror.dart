@@ -79,7 +79,9 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
     // TODO(johnniwinther): We need a mirror on malformed types.
     return system.dynamicType;
   }
-  throw new ArgumentError("Unexpected type $type of kind ${type.kind}");
+  _diagnosticListener.internalError(
+      "Unexpected type $type of kind ${type.kind}");
+  system.compiler.internalError("Unexpected type $type of kind ${type.kind}");
 }
 
 Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
@@ -100,7 +102,7 @@ Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
     }
     return members;
   }
-  throw new ArgumentError(
+  library.mirrors.compiler.internalError(
       "Unexpected member type $element ${element.kind}");
 }
 
@@ -111,6 +113,30 @@ MethodMirror _convertElementMethodToMethodMirror(Dart2JsContainerMirror library,
   } else {
     return null;
   }
+}
+
+InstanceMirror _convertConstantToInstanceMirror(Dart2JsMirrorSystem mirrors,
+                                                Constant constant) {
+  if (constant is BoolConstant) {
+    return new Dart2JsBoolConstantMirror(mirrors, constant);
+  } else if (constant is NumConstant) {
+    return new Dart2JsNumConstantMirror(mirrors, constant);
+  } else if (constant is StringConstant) {
+    return new Dart2JsStringConstantMirror(mirrors, constant);
+  } else if (constant is ListConstant) {
+    return new Dart2JsListConstantMirror(mirrors, constant);
+  } else if (constant is MapConstant) {
+    return new Dart2JsMapConstantMirror(mirrors, constant);
+  } else if (constant is TypeConstant) {
+    return new Dart2JsTypeConstantMirror(mirrors, constant);
+  } else if (constant is FunctionConstant) {
+    return new Dart2JsConstantMirror(mirrors, constant);
+  } else if (constant is NullConstant) {
+    return new Dart2JsNullConstantMirror(mirrors, constant);
+  } else if (constant is ConstructedConstant) {
+    return new Dart2JsConstructedConstantMirror(mirrors, constant);
+  }
+  mirrors.compiler.internalError("Unexpected constant $constant");
 }
 
 class Dart2JsMethodKind {
@@ -440,6 +466,7 @@ abstract class Dart2JsTypeMirror extends Dart2JsDeclarationMirror
 abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   final Dart2JsMirrorSystem mirrors;
   final Element _element;
+  List<InstanceMirror> _metadata;
 
   Dart2JsElementMirror(this.mirrors, this._element) {
     assert (mirrors != null);
@@ -457,6 +484,19 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   String toString() => _element.toString();
 
   int get hashCode => qualifiedName.hashCode;
+
+  List<InstanceMirror> get metadata {
+    if (_metadata == null) {
+      _metadata = <InstanceMirror>[];
+      for (MetadataAnnotation metadata in _element.metadata) {
+        metadata.ensureResolved(mirrors.compiler);
+        _metadata.add(
+            _convertConstantToInstanceMirror(mirrors, metadata.value));
+      }
+    }
+    // TODO(johnniwinther): Return an unmodifiable list instead.
+    return new List<InstanceMirror>.from(_metadata);
+  }
 }
 
 abstract class Dart2JsProxyMirror extends Dart2JsDeclarationMirror {
@@ -1086,6 +1126,7 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
 abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
     implements Dart2JsTypeMirror {
   final DartType _type;
+  List<InstanceMirror> _metadata;
 
   Dart2JsTypeElementMirror(Dart2JsMirrorSystem system, this._type)
     : super(system);
@@ -1131,6 +1172,20 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
   Map<String, VariableMirror> get variables => const <String, VariableMirror>{};
 
   ClassMirror get defaultFactory => null;
+
+  // TODO(johnniwinther): Should a type show the metadata of its declaration?
+  List<InstanceMirror> get metadata {
+    if (_metadata == null) {
+      var _metadata = <InstanceMirror>[];
+      for (MetadataAnnotation metadata in _type.element.metadata) {
+        metadata.ensureResolved(mirrors.compiler);
+        _metadata.add(
+            _convertConstantToInstanceMirror(mirrors, metadata.value));
+      }
+    }
+    // TODO(johnniwinther): Return an unmodifiable list instead.
+    return new List<InstanceMirror>.from(_metadata);
+  }
 }
 
 class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
@@ -1563,5 +1618,182 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
       var span = mirrors.compiler.spanFromElement(_variable);
       return new Dart2JsSourceLocation(script, span);
     }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Mirrors on constant values used for metadata.
+////////////////////////////////////////////////////////////////////////////////
+
+class Dart2JsConstantMirror extends InstanceMirror {
+  final Dart2JsMirrorSystem mirrors;
+  final Constant _constant;
+
+  Dart2JsConstantMirror(this.mirrors, this._constant);
+
+  ClassMirror get type {
+    return new Dart2JsClassMirror(mirrors,
+        _constant.computeType(mirrors.compiler).element);
+  }
+
+  bool get hasReflectee => false;
+
+  get reflectee {
+    // TODO(johnniwinther): Which exception/error should be thrown here?
+    throw new UnsupportedError('InstanceMirror does not have a reflectee');
+  }
+
+  Future<InstanceMirror> getField(String fieldName) {
+    // TODO(johnniwinther): Which exception/error should be thrown here?
+    throw new UnsupportedError('InstanceMirror does not have a reflectee');
+  }
+}
+
+class Dart2JsNullConstantMirror extends Dart2JsConstantMirror {
+  Dart2JsNullConstantMirror(Dart2JsMirrorSystem mirrors, NullConstant constant)
+      : super(mirrors, constant);
+
+  NullConstant get _constant => super._constant;
+
+  bool get hasReflectee => true;
+
+  get reflectee => null;
+}
+
+class Dart2JsBoolConstantMirror extends Dart2JsConstantMirror {
+  Dart2JsBoolConstantMirror(Dart2JsMirrorSystem mirrors, BoolConstant constant)
+      : super(mirrors, constant);
+
+  BoolConstant get _constant => super._constant;
+
+  bool get hasReflectee => true;
+
+  get reflectee => _constant is TrueConstant;
+}
+
+class Dart2JsStringConstantMirror extends Dart2JsConstantMirror {
+  Dart2JsStringConstantMirror(Dart2JsMirrorSystem mirrors,
+                              StringConstant constant)
+      : super(mirrors, constant);
+
+  StringConstant get _constant => super._constant;
+
+  bool get hasReflectee => true;
+
+  get reflectee => _constant.value.slowToString();
+}
+
+class Dart2JsNumConstantMirror extends Dart2JsConstantMirror {
+  Dart2JsNumConstantMirror(Dart2JsMirrorSystem mirrors,
+                           NumConstant constant)
+      : super(mirrors, constant);
+
+  NumConstant get _constant => super._constant;
+
+  bool get hasReflectee => true;
+
+  get reflectee => _constant.value;
+}
+
+class Dart2JsListConstantMirror extends Dart2JsConstantMirror
+    implements ListInstanceMirror {
+  Dart2JsListConstantMirror(Dart2JsMirrorSystem mirrors,
+                            ListConstant constant)
+      : super(mirrors, constant);
+
+  ListConstant get _constant => super._constant;
+
+  int get length => _constant.length;
+
+  Future<InstanceMirror> operator[](int index) {
+    if (index < 0) throw new RangeError('Negative index');
+    if (index >= _constant.length) throw new RangeError('Index out of bounds');
+    return new Future<InstanceMirror>.immediate(
+        _convertConstantToInstanceMirror(mirrors, _constant.entries[index]));
+  }
+}
+
+class Dart2JsMapConstantMirror extends Dart2JsConstantMirror
+    implements MapInstanceMirror {
+  List<String> _listCache;
+
+  Dart2JsMapConstantMirror(Dart2JsMirrorSystem mirrors,
+                           MapConstant constant)
+      : super(mirrors, constant);
+
+  MapConstant get _constant => super._constant;
+
+  List<String> get _list {
+    if (_listCache == null) {
+      _listCache = new List<String>(_constant.keys.entries.length);
+      int index = 0;
+      for (StringConstant keyConstant in _constant.keys.entries) {
+        _listCache[index] = keyConstant.value.slowToString();
+        index++;
+      }
+    }
+    return _listCache;
+  }
+
+  int get length => _constant.length;
+
+  Collection<String> get keys {
+    // TODO(johnniwinther): Return an unmodifiable list instead.
+    return new List<String>.from(_list);
+  }
+
+  Future<InstanceMirror> operator[](String key) {
+    int index = _list.indexOf(key);
+    if (index == -1) return null;
+    return new Future<InstanceMirror>.immediate(
+        _convertConstantToInstanceMirror(mirrors, _constant.values[index]));
+  }
+}
+
+class Dart2JsTypeConstantMirror extends Dart2JsConstantMirror
+    implements TypeInstanceMirror {
+
+  Dart2JsTypeConstantMirror(Dart2JsMirrorSystem mirrors,
+                            TypeConstant constant)
+      : super(mirrors, constant);
+
+  TypeConstant get _constant => super._constant;
+
+  TypeMirror get representedType => _convertTypeToTypeMirror(
+      mirrors, _constant.representedType, mirrors.compiler.types.dynamicType);
+}
+
+class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
+  Map<String,Constant> _fieldMapCache;
+
+  Dart2JsConstructedConstantMirror(Dart2JsMirrorSystem mirrors,
+                                   ConstructedConstant constant)
+      : super(mirrors, constant);
+
+  ConstructedConstant get _constant => super._constant;
+
+  Map<String,Constant> get _fieldMap {
+    if (_fieldMapCache == null) {
+      _fieldMapCache = new LinkedHashMap<String,Constant>();
+      if (identical(_constant.type.element.kind, ElementKind.CLASS)) {
+        var index = 0;
+        ClassElement element = _constant.type.element;
+        element.forEachInstanceField((_, Element field) {
+          String fieldName = field.name.slowToString();
+          _fieldMapCache.putIfAbsent(fieldName, () => _constant.fields[index]);
+          index++;
+        }, includeBackendMembers: true, includeSuperMembers: true);
+      }
+    }
+    return _fieldMapCache;
+  }
+
+  Future<InstanceMirror> getField(String fieldName) {
+    Constant fieldConstant = _fieldMap[fieldName];
+    if (fieldConstant != null) {
+      return new Future<InstanceMirror>.immediate(
+          _convertConstantToInstanceMirror(mirrors, fieldConstant));
+    }
+    return super.getField(fieldName);
   }
 }

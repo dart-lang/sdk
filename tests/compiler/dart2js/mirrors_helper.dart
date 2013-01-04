@@ -14,6 +14,16 @@ main() {
 
 }
 
+@Metadata // This is intentionally the type literal.
+@Metadata(null)
+@Metadata(true)
+@Metadata(false)
+@Metadata(0)
+@Metadata(1.5)
+@Metadata("Foo")
+@Metadata(const ["Foo"])
+@Metadata(const {'foo':"Foo"})
+@metadata
 class Foo {
 
 }
@@ -53,4 +63,11 @@ class _PrivateClass {
   void _privateMethod() {}
   _PrivateClass._privateConstructor();
   factory _PrivateClass._privateFactoryConstructor() => new _PrivateClass();
+}
+
+const metadata = const Metadata(null);
+
+class Metadata {
+  final data;
+  const Metadata(this.data);
 }
