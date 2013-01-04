@@ -15,6 +15,7 @@ import '../../pub/entrypoint.dart';
 import '../../pub/io.dart';
 import '../../pub/validator.dart';
 import '../../pub/validator/dependency.dart';
+import '../../pub/validator/directory.dart';
 import '../../pub/validator/lib.dart';
 import '../../pub/validator/license.dart';
 import '../../pub/validator/name.dart';
@@ -34,6 +35,9 @@ void expectValidationWarning(ValidatorCreator fn) {
 
 Validator dependency(Entrypoint entrypoint) =>
   new DependencyValidator(entrypoint);
+
+Validator directory(Entrypoint entrypoint) =>
+  new DirectoryValidator(entrypoint);
 
 Validator lib(Entrypoint entrypoint) => new LibValidator(entrypoint);
 
@@ -119,6 +123,14 @@ main() {
         ])
       ]).scheduleCreate();
       expectNoValidationError(dependency);
+      run();
+    });
+
+    test('has a nested directory named "tools"', () {
+      dir(appPath, [
+        dir("foo", [dir("tools")])
+      ]).scheduleCreate();
+      expectNoValidationError(directory);
       run();
     });
   });
@@ -542,6 +554,19 @@ main() {
       expectValidationWarning(dependency);
 
       run();
+    });
+
+    group('has a top-level directory named', () {
+      setUp(scheduleNormalPackage);
+
+      var names = ["tools", "tests", "docs", "examples", "sample", "samples"];
+      for (var name in names) {
+        test('"$name"', () {
+          dir(appPath, [dir(name)]).scheduleCreate();
+          expectValidationWarning(directory);
+          run();
+        });
+      }
     });
   });
 }
