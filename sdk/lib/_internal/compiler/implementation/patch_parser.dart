@@ -502,4 +502,6 @@ class PatchMetadataAnnotation extends MetadataAnnotation {
   final leg.Constant value = null;
 
   PatchMetadataAnnotation() : super(STATE_DONE);
+
+  Token get beginToken => null;
 }

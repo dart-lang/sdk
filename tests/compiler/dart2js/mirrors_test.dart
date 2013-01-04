@@ -306,6 +306,20 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
     Expect.isTrue(data.hasReflectee);
     Expect.isNull(data.reflectee);
   });
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Location test
+  //////////////////////////////////////////////////////////////////////////////
+
+  var fooClassLocation = fooClass.location;
+  Expect.isNotNull(fooClassLocation);
+  // Expect the location to start with the first metadata.
+  Expect.equals(348, fooClassLocation.offset, "Unexpected offset");
+  // Expect the location to end with the class body.
+  Expect.equals(227, fooClassLocation.length, "Unexpected length");
+  Expect.equals(17, fooClassLocation.line, "Unexpected line");
+  Expect.equals(1, fooClassLocation.column, "Unexpected column");
+
 }
 
 // Testing abstract class Bar:

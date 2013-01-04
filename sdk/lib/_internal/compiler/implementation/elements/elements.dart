@@ -2161,6 +2161,11 @@ abstract class MetadataAnnotation {
   Element annotatedElement;
   int resolutionState;
 
+  /**
+   * The beginning token of this annotation, or [:null:] if it is synthetic.
+   */
+  Token get beginToken;
+
   MetadataAnnotation([this.resolutionState = STATE_NOT_STARTED]);
 
   MetadataAnnotation ensureResolved(Compiler compiler) {

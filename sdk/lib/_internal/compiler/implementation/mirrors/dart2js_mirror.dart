@@ -433,12 +433,40 @@ abstract class Dart2JsMirror implements Mirror {
   Dart2JsMirrorSystem get mirrors;
 }
 
-abstract class Dart2JsDeclarationMirror
-    implements Dart2JsMirror, DeclarationMirror {
+abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
+    implements DeclarationMirror {
 
   bool get isTopLevel => owner != null && owner is LibraryMirror;
 
   bool get isPrivate => _isPrivate(simpleName);
+
+  /**
+   * Returns the first token for the source of this declaration.
+   */
+  Token getBeginToken();
+
+  /**
+   * Returns the last token for the source of this declaration.
+   */
+  Token getEndToken();
+
+  /**
+   * Returns the script for the source of this declaration.
+   */
+  Script getScript();
+
+  SourceLocation get location {
+    Token beginToken = getBeginToken();
+    Script script = getScript();
+    SourceSpan span;
+    if (beginToken == null) {
+      span = new SourceSpan(script.uri, 0, 0);
+    } else {
+      Token endToken = getEndToken();
+      span = mirrors.compiler.spanFromTokens(beginToken, endToken, script.uri);
+    }
+    return new Dart2JsSourceLocation(script, span);
+  }
 }
 
 abstract class Dart2JsMemberMirror extends Dart2JsElementMirror
@@ -477,9 +505,41 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
 
   String get displayName => simpleName;
 
-  SourceLocation get location => new Dart2JsSourceLocation(
-      _element.getCompilationUnit().script,
-      mirrors.compiler.spanFromElement(_element));
+  /**
+   * Computes the first token for this declaration using the first metadata
+   * annotation, the begin token of the element node or element position as
+   * indicator.
+   */
+  Token getBeginToken() {
+    if (!_element.metadata.isEmpty) {
+      for (MetadataAnnotation metadata in _element.metadata) {
+        if (metadata.beginToken != null) {
+          return metadata.beginToken;
+        }
+      }
+    }
+    // TODO(johnniwinther): Avoid calling [parseNode].
+    Node node = _element.parseNode(mirrors.compiler);
+    if (node == null) {
+      return _element.position();
+    }
+    return node.getBeginToken();
+  }
+
+  /**
+   * Computes the last token for this declaration using the end token of the
+   * element node or element position as indicator.
+   */
+  Token getEndToken() {
+    // TODO(johnniwinther): Avoid calling [parseNode].
+    Node node = _element.parseNode(mirrors.compiler);
+    if (node == null) {
+      return _element.position();
+    }
+    return node.getEndToken();
+  }
+
+  Script getScript() => _element.getCompilationUnit().script;
 
   String toString() => _element.toString();
 
@@ -499,21 +559,11 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   }
 }
 
-abstract class Dart2JsProxyMirror extends Dart2JsDeclarationMirror {
-  final Dart2JsMirrorSystem mirrors;
-
-  Dart2JsProxyMirror(this.mirrors);
-
-  String get displayName => simpleName;
-
-  int get hashCode => qualifiedName.hashCode;
-}
-
 //------------------------------------------------------------------------------
 // Mirror system implementation.
 //------------------------------------------------------------------------------
 
-class Dart2JsMirrorSystem implements MirrorSystem, Dart2JsMirror {
+class Dart2JsMirrorSystem implements MirrorSystem {
   final api.Compiler compiler;
   Map<String, Dart2JsLibraryMirror> _libraries;
   Map<LibraryElement, Dart2JsLibraryMirror> _libraryMap;
@@ -679,15 +729,35 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
     return new ImmutableMapWrapper<String, ClassMirror>(_classes);
   }
 
-  SourceLocation get location {
-    var script = _library.getCompilationUnit().script;
-    SourceSpan span;
-    if (_library.libraryTag != null) {
-      span = mirrors.compiler.spanFromNode(_library.libraryTag, script.uri);
-    } else {
-      span = new SourceSpan(script.uri, 0, 0);
+  /**
+   * Computes the first token of this library using the first metadata
+   * annotation or the first library tag as indicator.
+   */
+  Token getBeginToken() {
+    if (!_element.metadata.isEmpty) {
+      for (MetadataAnnotation metadata in _element.metadata) {
+        if (metadata.beginToken != null) {
+          return metadata.beginToken;
+        }
+      }
     }
-    return new Dart2JsSourceLocation(script, span);
+    if (_library.libraryTag != null) {
+      return _library.libraryTag.getBeginToken();
+    } else if (!_library.tags.isEmpty) {
+      return _library.tags.reverse().head.getBeginToken();
+    }
+    return null;
+  }
+
+  /**
+   * Computes the first token of this library using the last library tag as
+   * indicator.
+   */
+  Token getEndToken() {
+    if (!_library.tags.isEmpty) {
+      return _library.tags.head.getEndToken();
+    }
+    return null;
   }
 }
 
@@ -869,18 +939,6 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
 
   String get qualifiedName => '${library.qualifiedName}.${simpleName}';
 
-  SourceLocation get location {
-    if (_class is PartialClassElement) {
-      var node = _class.parseNode(mirrors.compiler);
-      if (node != null) {
-        var script = _class.getCompilationUnit().script;
-        var span = mirrors.compiler.spanFromNode(node, script.uri);
-        return new Dart2JsSourceLocation(script, span);
-      }
-    }
-    return super.location;
-  }
-
   void _ensureMembers() {
     if (_members == null) {
       _members = <String, Dart2JsMemberMirror>{};
@@ -1005,16 +1063,6 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
 
   String get qualifiedName => '${library.qualifiedName}.${simpleName}';
 
-  SourceLocation get location {
-    var node = _typedef.element.parseNode(_diagnosticListener);
-    if (node != null) {
-      var script = _typedef.element.getCompilationUnit().script;
-      var span = mirrors.compiler.spanFromNode(node, script.uri);
-      return new Dart2JsSourceLocation(script, span);
-    }
-    return super.location;
-  }
-
   LibraryMirror get library => _library;
 
   bool get isTypedef => true;
@@ -1123,21 +1171,15 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
 // Types
 //------------------------------------------------------------------------------
 
-abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
+abstract class Dart2JsTypeElementMirror extends Dart2JsElementMirror
     implements Dart2JsTypeMirror {
   final DartType _type;
-  List<InstanceMirror> _metadata;
 
-  Dart2JsTypeElementMirror(Dart2JsMirrorSystem system, this._type)
-    : super(system);
+  Dart2JsTypeElementMirror(Dart2JsMirrorSystem system, DartType type)
+    : super(system, type.element),
+      this._type = type;
 
   String get simpleName => _type.name.slowToString();
-
-  SourceLocation get location {
-    var script = _type.element.getCompilationUnit().script;
-    return new Dart2JsSourceLocation(script,
-        mirrors.compiler.spanFromElement(_type.element));
-  }
 
   DeclarationMirror get owner => library;
 
@@ -1157,7 +1199,7 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
 
   bool get isFunction => false;
 
-  String toString() => _type.element.toString();
+  String toString() => _type.toString();
 
   Map<String, MemberMirror> get members => const <String, MemberMirror>{};
 
@@ -1172,20 +1214,6 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
   Map<String, VariableMirror> get variables => const <String, VariableMirror>{};
 
   ClassMirror get defaultFactory => null;
-
-  // TODO(johnniwinther): Should a type show the metadata of its declaration?
-  List<InstanceMirror> get metadata {
-    if (_metadata == null) {
-      var _metadata = <InstanceMirror>[];
-      for (MetadataAnnotation metadata in _type.element.metadata) {
-        metadata.ensureResolved(mirrors.compiler);
-        _metadata.add(
-            _convertConstantToInstanceMirror(mirrors, metadata.value));
-      }
-    }
-    // TODO(johnniwinther): Return an unmodifiable list instead.
-    return new List<InstanceMirror>.from(_metadata);
-  }
 }
 
 class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
@@ -1566,17 +1594,6 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
   bool get isSetter => _kind == Dart2JsMethodKind.SETTER;
 
   bool get isOperator => _kind == Dart2JsMethodKind.OPERATOR;
-
-  SourceLocation get location {
-    var node = _function.parseNode(_diagnosticListener);
-    if (node != null) {
-      var script = _function.getCompilationUnit().script;
-      var span = mirrors.compiler.spanFromNode(node, script.uri);
-      return new Dart2JsSourceLocation(script, span);
-    }
-    return super.location;
-  }
-
 }
 
 class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
@@ -1607,18 +1624,6 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
   TypeMirror get type => _convertTypeToTypeMirror(mirrors,
       _variable.computeType(mirrors.compiler),
       mirrors.compiler.types.dynamicType);
-
-  SourceLocation get location {
-    var script = _variable.getCompilationUnit().script;
-    var node = _variable.variables.parseNode(_diagnosticListener);
-    if (node != null) {
-      var span = mirrors.compiler.spanFromNode(node, script.uri);
-      return new Dart2JsSourceLocation(script, span);
-    } else {
-      var span = mirrors.compiler.spanFromElement(_variable);
-      return new Dart2JsSourceLocation(script, span);
-    }
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
