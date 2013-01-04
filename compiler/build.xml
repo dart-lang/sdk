@@ -77,7 +77,9 @@
            srcdir="java"
            includes="${java_sources}"
            fork="true"
-           debug="true">
+           debug="true"
+           source="1.6"
+           target="1.6">
       <classpath refid="classpath.compile"/>
     </javac>
     <!--
@@ -97,7 +99,9 @@
            includes="${javatests_sources}"
            excludes="com/google/dart/compiler/vm/**"
            fork="true"
-           debug="true">
+           debug="true"
+           source="1.6"
+           target="1.6">
       <classpath refid="classpath.compile.tests"/>
     </javac>
     <!--

@@ -55,6 +55,10 @@ pre, code {
   overflow-y:hidden;
 }
 
+pre > code {
+  padding: 0;
+}
+
 a {
   color: #15c;
   text-decoration: none;
@@ -71,6 +75,15 @@ a:visited {
 li {
   font-size: 16px;
   line-height: 22px;
+}
+
+/* First paragraph in an li is snug, but others are spaced out. */
+li p:first-child {
+  margin: 0 0 0 0;
+}
+
+li > p {
+  margin: 22px 0 0 0;
 }
 
 ol, ul {
@@ -414,26 +427,26 @@ pre.source.expanded {
 
 /* Syntax highlighting. */
 /* Note: these correspond to the constants in classify.dart. */
-pre.source .e { color: hsl(  0, 100%, 70%); } /* Error */
-pre.source .c { color: hsl(220,  20%, 65%); } /* Comment */
-pre.source .i { color: hsl(220,  20%, 20%); } /* Identifier */
-pre.source .k { color: hsl(220, 100%, 50%); } /* Keyword */
-pre.source .p { color: hsl(220,  20%, 50%); } /* Punctuation */
-pre.source .o { color: hsl(220,  40%, 50%); } /* Operator */
-pre.source .s { color: hsl( 40,  90%, 40%); } /* String */
-pre.source .n { color: hsl( 30,  70%, 50%); } /* Number */
-pre.source .t { color: hsl(180,  40%, 40%); } /* Type Name */
-pre.source .r { color: hsl(200, 100%, 50%); } /* Special Identifier */
-pre.source .a { color: hsl(220, 100%, 45%); } /* Arrow */
+.doc pre .e, pre.source .e { color: hsl(  0, 100%, 70%); } /* Error */
+.doc pre .c, pre.source .c { color: hsl(220,  20%, 65%); } /* Comment */
+.doc pre .i, pre.source .i { color: hsl(220,  20%, 20%); } /* Identifier */
+.doc pre .k, pre.source .k { color: hsl(220, 100%, 50%); } /* Keyword */
+.doc pre .p, pre.source .p { color: hsl(220,  20%, 50%); } /* Punctuation */
+.doc pre .o, pre.source .o { color: hsl(220,  40%, 50%); } /* Operator */
+.doc pre .s, pre.source .s { color: hsl( 40,  90%, 40%); } /* String */
+.doc pre .n, pre.source .n { color: hsl( 30,  70%, 50%); } /* Number */
+.doc pre .t, pre.source .t { color: hsl(180,  40%, 40%); } /* Type Name */
+.doc pre .r, pre.source .r { color: hsl(200, 100%, 50%); } /* Special Identifier */
+.doc pre .a, pre.source .a { color: hsl(220, 100%, 45%); } /* Arrow */
 
 /* Interpolated expressions within strings. */
-pre.source .si {
+.doc pre .si, pre.source .si {
   background: hsl(40, 100%, 90%);
 }
 
-pre.source .s.si { background: hsl(40, 80%, 95%); }
-pre.source .i.si { color: hsl(40, 30%, 30%); }
-pre.source .p.si { color: hsl(40, 60%, 40%); }
+.doc pre .s.si, pre.source .s.si { background: hsl(40, 80%, 95%); }
+.doc pre .i.si, pre.source .i.si { color: hsl(40, 30%, 30%); }
+.doc pre .p.si, pre.source .p.si { color: hsl(40, 60%, 40%); }
 
 /* Enable these to debug the grid: */
 

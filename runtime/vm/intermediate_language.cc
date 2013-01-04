@@ -149,8 +149,8 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   LoadStaticFieldInstr* other_load = other->AsLoadStaticField();
   ASSERT(other_load != NULL);
   // Assert that the field is initialized.
-  ASSERT(field().value() != Object::sentinel());
-  ASSERT(field().value() != Object::transition_sentinel());
+  ASSERT(field().value() != Object::sentinel().raw());
+  ASSERT(field().value() != Object::transition_sentinel().raw());
   return field().raw() == other_load->field().raw();
 }
 
@@ -229,17 +229,21 @@ static bool CompareNames(const Library& lib,
 }
 
 
+static bool IsRecognizedLibrary(const Library& library) {
+  // List of libraries where methods can be recognized.
+  return (library.raw() == Library::CoreLibrary())
+      || (library.raw() == Library::MathLibrary())
+      || (library.raw() == Library::ScalarlistLibrary());
+}
+
 MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {
-  // Only core and math library methods can be recognized.
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
   const Class& function_class = Class::Handle(function.Owner());
-  if ((function_class.library() != core_lib.raw()) &&
-      (function_class.library() != math_lib.raw())) {
+  const Library& lib = Library::Handle(function_class.library());
+  if (!IsRecognizedLibrary(lib)) {
     return kUnknown;
   }
-  const Library& lib = Library::Handle(function_class.library());
+
   const String& function_name = String::Handle(function.name());
   const String& class_name = String::Handle(function_class.Name());
 
@@ -698,84 +702,41 @@ static bool IsMarked(BlockEntryInstr* block,
 }
 
 
-void GraphEntryInstr::DiscoverBlocks(
-    BlockEntryInstr* current_block,
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<intptr_t>* parent,
-    GrowableArray<BitVector*>* assigned_vars,
-    intptr_t variable_count,
-    intptr_t fixed_parameter_count) {
-  // We only visit this block once, first of all blocks.
-  ASSERT(!IsMarked(this, preorder));
-  ASSERT(current_block == NULL);
-  ASSERT(preorder->is_empty());
-  ASSERT(postorder->is_empty());
-  ASSERT(parent->is_empty());
-
-  // This node has no parent, indicated by -1.  The preorder number is 0.
-  parent->Add(-1);
-  set_preorder_number(0);
-  preorder->Add(this);
-  BitVector* vars =
-      (variable_count == 0) ? NULL : new BitVector(variable_count);
-  assigned_vars->Add(vars);
-
-  // The graph entry consists of only one instruction.
-  set_last_instruction(this);
-
-  // Iteratively traverse all successors.  In the unoptimized code, we will
-  // enter the function at the first successor in reverse postorder, so we
-  // must visit the normal entry last.
-  for (intptr_t i = catch_entries_.length() - 1; i >= 0; --i) {
-    catch_entries_[i]->DiscoverBlocks(this, preorder, postorder,
-                                      parent, assigned_vars,
-                                      variable_count, fixed_parameter_count);
-  }
-  normal_entry_->DiscoverBlocks(this, preorder, postorder,
-                                parent, assigned_vars,
-                                variable_count, fixed_parameter_count);
-
-  // Assign postorder number.
-  set_postorder_number(postorder->length());
-  postorder->Add(this);
-}
-
-
 // Base class implementation used for JoinEntry and TargetEntry.
 void BlockEntryInstr::DiscoverBlocks(
-    BlockEntryInstr* current_block,
+    BlockEntryInstr* predecessor,
     GrowableArray<BlockEntryInstr*>* preorder,
     GrowableArray<BlockEntryInstr*>* postorder,
     GrowableArray<intptr_t>* parent,
     GrowableArray<BitVector*>* assigned_vars,
     intptr_t variable_count,
     intptr_t fixed_parameter_count) {
-  // We have already visited the graph entry, so we can assume current_block
-  // is non-null and preorder array is non-empty.
-  ASSERT(current_block != NULL);
-  ASSERT(!preorder->is_empty());
+  // If this block has a predecessor (i.e., is not the graph entry) we can
+  // assume the preorder array is non-empty.
+  ASSERT((predecessor == NULL) || !preorder->is_empty());
   // Blocks with a single predecessor cannot have been reached before.
-  ASSERT(!IsTargetEntry() || !IsMarked(this, preorder));
+  ASSERT(IsJoinEntry() || !IsMarked(this, preorder));
 
   // 1. If the block has already been reached, add current_block as a
   // basic-block predecessor and we are done.
   if (IsMarked(this, preorder)) {
-    AddPredecessor(current_block);
+    ASSERT(predecessor != NULL);
+    AddPredecessor(predecessor);
     return;
   }
 
   // 2. Otherwise, clear the predecessors which might have been computed on
-  // some earlier call to DiscoverBlocks and record this predecessor.  For
-  // joins save the original predecessors, if any, so we can garbage collect
-  // phi inputs from unreachable predecessors without recomputing SSA.
+  // some earlier call to DiscoverBlocks and record this predecessor.
   ClearPredecessors();
-  AddPredecessor(current_block);
+  if (predecessor != NULL) AddPredecessor(predecessor);
 
-  // 3. The current block is the spanning-tree parent.
-  parent->Add(current_block->preorder_number());
+  // 3. The predecessor is the spanning-tree parent.  The graph entry has no
+  // parent, indicated by -1.
+  intptr_t parent_number =
+      (predecessor == NULL) ? -1 : predecessor->preorder_number();
+  parent->Add(parent_number);
 
-  // 4. Assign preorder number and add the block entry to the list.
+  // 4. Assign the preorder number and add the block entry to the list.
   // Allocate an empty set of assigned variables for the block.
   set_preorder_number(preorder->length());
   preorder->Add(this);
@@ -787,26 +748,25 @@ void BlockEntryInstr::DiscoverBlocks(
   ASSERT(preorder->length() == parent->length());
   ASSERT(preorder->length() == assigned_vars->length());
 
-  // 5. Iterate straight-line successors until a branch instruction or
-  // another basic block entry instruction, and visit that instruction.
-  ASSERT(next() != NULL);
-  ASSERT(!next()->IsBlockEntry());
-  Instruction* next_instr = next();
-  while ((next_instr != NULL) &&
-         !next_instr->IsBlockEntry() &&
-         !next_instr->IsControl()) {
+  // 5. Iterate straight-line successors to record assigned variables and
+  // find the last instruction in the block.  The graph entry block consists
+  // of only the entry instruction, so that is the last instruction in the
+  // block.
+  Instruction* last = this;
+  for (ForwardInstructionIterator it(this); !it.Done(); it.Advance()) {
+    last = it.Current();
     if (vars != NULL) {
-      next_instr->RecordAssignedVars(vars, fixed_parameter_count);
+      last->RecordAssignedVars(vars, fixed_parameter_count);
     }
-    set_last_instruction(next_instr);
-    GotoInstr* goto_instr = next_instr->AsGoto();
-    next_instr =
-        (goto_instr != NULL) ? goto_instr->successor() : next_instr->next();
   }
-  if (next_instr != NULL) {
-    next_instr->DiscoverBlocks(this, preorder, postorder,
-                               parent, assigned_vars,
-                               variable_count, fixed_parameter_count);
+  set_last_instruction(last);
+
+  // Visit the block's successors in reverse so that they appear forwards
+  // the reverse postorder block ordering.
+  for (intptr_t i = last->SuccessorCount() - 1; i >= 0; --i) {
+    last->SuccessorAt(i)->DiscoverBlocks(this, preorder, postorder,
+                                         parent, assigned_vars,
+                                         variable_count, fixed_parameter_count);
   }
 
   // 6. Assign postorder number and add the block entry to the list.
@@ -827,29 +787,6 @@ bool BlockEntryInstr::Dominates(BlockEntryInstr* other) const {
 }
 
 
-void ControlInstruction::DiscoverBlocks(
-    BlockEntryInstr* current_block,
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<intptr_t>* parent,
-    GrowableArray<BitVector*>* assigned_vars,
-    intptr_t variable_count,
-    intptr_t fixed_parameter_count) {
-  current_block->set_last_instruction(this);
-  // Visit the false successor before the true successor so they appear in
-  // true/false order in reverse postorder used as the block ordering in the
-  // nonoptimizing compiler.
-  ASSERT(true_successor_ != NULL);
-  ASSERT(false_successor_ != NULL);
-  false_successor_->DiscoverBlocks(current_block, preorder, postorder,
-                                   parent, assigned_vars,
-                                   variable_count, fixed_parameter_count);
-  true_successor_->DiscoverBlocks(current_block, preorder, postorder,
-                                  parent, assigned_vars,
-                                  variable_count, fixed_parameter_count);
-}
-
-
 void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
   // Lazily initialize the array of phis.
   // Currently, phis are stored in a sparse array that holds the phi
@@ -863,6 +800,16 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
   }
   ASSERT((*phis_)[var_index] == NULL);
   (*phis_)[var_index] = new PhiInstr(this, PredecessorCount());
+  phi_count_++;
+}
+
+
+void JoinEntryInstr::InsertPhi(PhiInstr* phi) {
+  // Lazily initialize the array of phis.
+  if (phis_ == NULL) {
+    phis_ = new ZoneGrowableArray<PhiInstr*>(1);
+  }
+  phis_->Add(phi);
   phi_count_++;
 }
 
@@ -1446,6 +1393,11 @@ RawAbstractType* DoubleToIntegerInstr::CompileType() const {
 }
 
 
+RawAbstractType* DoubleToSmiInstr::CompileType() const {
+  return Type::SmiType();
+}
+
+
 RawAbstractType* CheckClassInstr::CompileType() const {
   return AbstractType::null();
 }
@@ -1539,7 +1491,7 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   // TODO(fschneider): Handle other cases: e === false and e !== true/false.
   // Handles e === true.
   if ((kind() == Token::kEQ_STRICT) &&
-      (right_constant.raw() == Bool::True()) &&
+      (right_constant.raw() == Bool::True().raw()) &&
       (left()->ResultCid() == kBoolCid)) {
     // Return left subexpression as the replacement for this instruction.
     return left_defn;
@@ -1839,8 +1791,7 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const bool result = (kind() == Token::kEQ_STRICT) ?
         left.constant().raw() == right.constant().raw() :
         left.constant().raw() != right.constant().raw();
-    __ LoadObject(locs()->out().reg(), result ? compiler->bool_true() :
-                                                compiler->bool_false());
+    __ LoadObject(locs()->out().reg(), result ? Bool::True() : Bool::False());
     return;
   }
   if (left.IsConstant()) {
@@ -1861,10 +1812,10 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label load_true, done;
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   __ j(true_condition, &load_true, Assembler::kNearJump);
-  __ LoadObject(result, compiler->bool_false());
+  __ LoadObject(result, Bool::False());
   __ jmp(&done, Assembler::kNearJump);
   __ Bind(&load_true);
-  __ LoadObject(result, compiler->bool_true());
+  __ LoadObject(result, Bool::True());
   __ Bind(&done);
 }
 
@@ -1975,7 +1926,7 @@ LocationSummary* StaticCallInstr::MakeLocationSummary() const {
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label skip_call;
-  if (function().name() == Symbols::EqualOperator()) {
+  if (function().name() == Symbols::EqualOperator().raw()) {
     compiler->EmitSuperEqualityCallPrologue(locs()->out().reg(), &skip_call);
   }
   compiler->GenerateStaticCall(deopt_id(),
@@ -2011,10 +1962,10 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
 
   Label done;
-  __ LoadObject(result, compiler->bool_true());
+  __ LoadObject(result, Bool::True());
   __ CompareRegisters(result, value);
   __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-  __ LoadObject(result, compiler->bool_false());
+  __ LoadObject(result, Bool::False());
   __ Bind(&done);
 }
 

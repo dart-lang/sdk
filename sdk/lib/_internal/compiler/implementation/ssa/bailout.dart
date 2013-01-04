@@ -139,6 +139,12 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
       if (isNested(userLoopHeader, currentLoopHeader)) return true;
     }
 
+    bool isIndexOperatorOnIndexablePrimitive(instruction, types) {
+      return instruction is HIndex
+          || (instruction is HInvokeDynamicMethod
+              && instruction.isIndexOperatorOnIndexablePrimitive(types));
+    }
+
     // To speed up computations on values loaded from arrays, we
     // insert type guards for builtin array indexing operations in
     // nested loops. Since this can blow up code size quite
@@ -146,9 +152,8 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     // inserted for this method. The code size price for an additional
     // type guard is much smaller than the first one that causes the
     // generation of a bailout method.
-    if (instruction is HIndex &&
-        (instruction as HIndex).isBuiltin(types) &&
-        hasTypeGuards) {
+    if (hasTypeGuards
+        && isIndexOperatorOnIndexablePrimitive(instruction, types)) {
       HBasicBlock loopHeader = instruction.block.enclosingLoopHeader;
       if (loopHeader != null && loopHeader.parentLoopHeader != null) {
         return true;

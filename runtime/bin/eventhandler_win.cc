@@ -97,28 +97,30 @@ int IOBuffer::GetRemainingLength() {
 
 Handle::Handle(HANDLE handle)
     : handle_(reinterpret_cast<HANDLE>(handle)),
-      flags_(0),
       port_(0),
+      mask_(0),
       completion_port_(INVALID_HANDLE_VALUE),
       event_handler_(NULL),
       data_ready_(NULL),
       pending_read_(NULL),
       pending_write_(NULL),
-      last_error_(NOERROR) {
+      last_error_(NOERROR),
+      flags_(0) {
   InitializeCriticalSection(&cs_);
 }
 
 
 Handle::Handle(HANDLE handle, Dart_Port port)
     : handle_(reinterpret_cast<HANDLE>(handle)),
-      flags_(0),
       port_(port),
+      mask_(0),
       completion_port_(INVALID_HANDLE_VALUE),
       event_handler_(NULL),
       data_ready_(NULL),
       pending_read_(NULL),
       pending_write_(NULL),
-      last_error_(NOERROR) {
+      last_error_(NOERROR),
+      flags_(0) {
   InitializeCriticalSection(&cs_);
 }
 
@@ -258,12 +260,13 @@ bool Handle::IssueRead() {
       pending_read_ = buffer;
       return true;
     }
-
-    if (GetLastError() != ERROR_BROKEN_PIPE) {
-      Log::PrintErr("ReadFile failed: %d\n", GetLastError());
-    }
-    event_handler_->HandleClosed(this);
     IOBuffer::DisposeBuffer(buffer);
+
+    if (GetLastError() == ERROR_BROKEN_PIPE) {
+      event_handler_->HandleClosed(this);
+    } else {
+      event_handler_->HandleError(this);
+    }
     return false;
   } else {
     // Completing asynchronously through thread.
@@ -297,12 +300,13 @@ bool Handle::IssueWrite() {
     pending_write_ = buffer;
     return true;
   }
-
-  if (GetLastError() != ERROR_BROKEN_PIPE) {
-    Log::PrintErr("WriteFile failed: %d\n", GetLastError());
-  }
-  event_handler_->HandleClosed(this);
   IOBuffer::DisposeBuffer(buffer);
+
+  if (GetLastError() == ERROR_BROKEN_PIPE) {
+    event_handler_->HandleClosed(this);
+  } else {
+    event_handler_->HandleError(this);
+  }
   return false;
 }
 
@@ -558,12 +562,14 @@ bool ClientSocket::IssueRead() {
     pending_read_ = buffer;
     return true;
   }
-
-  if (WSAGetLastError() != WSAECONNRESET) {
-    Log::PrintErr("WSARecv failed: %d\n", WSAGetLastError());
-  }
-  event_handler_->HandleClosed(this);
   IOBuffer::DisposeBuffer(buffer);
+  pending_read_ = NULL;
+
+  if (WSAGetLastError() == WSAECONNRESET) {
+    event_handler_->HandleClosed(this);
+  } else {
+    event_handler_->HandleError(this);
+  }
   return false;
 }
 
@@ -584,10 +590,14 @@ bool ClientSocket::IssueWrite() {
   if (rc == NO_ERROR || WSAGetLastError() == WSA_IO_PENDING) {
     return true;
   }
-
-  Log::PrintErr("WSASend failed: %d\n", WSAGetLastError());
   IOBuffer::DisposeBuffer(pending_write_);
   pending_write_ = NULL;
+
+  if (WSAGetLastError() == WSAECONNRESET) {
+    event_handler_->HandleClosed(this);
+  } else {
+    event_handler_->HandleError(this);
+  }
   return false;
 }
 
@@ -657,36 +667,41 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
 
       Handle::ScopedLock lock(handle);
 
-      // If the data available callback has been requested and data are
-      // available post it immediately. Otherwise make sure that a pending
-      // read is issued unless the socket is already closed for read.
-      if ((msg->data & (1 << kInEvent)) != 0) {
-        if (handle->Available() > 0) {
-          int event_mask = (1 << kInEvent);
-          DartUtils::PostInt32(handle->port(), event_mask);
-        } else if (!handle->HasPendingRead() &&
-                   !handle->IsClosedRead()) {
-          handle->IssueRead();
-        }
-      }
-
-      // If can send callback had been requested and there is no pending
-      // send post it immediately.
-      if ((msg->data & (1 << kOutEvent)) != 0) {
-        if (!handle->HasPendingWrite()) {
-          int event_mask = (1 << kOutEvent);
-          DartUtils::PostInt32(handle->port(), event_mask);
-        }
-      }
-
-      if (handle->is_client_socket()) {
-        ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(handle);
-        if ((msg->data & (1 << kShutdownReadCommand)) != 0) {
-          client_socket->Shutdown(SD_RECEIVE);
+      if (!handle->IsError()) {
+        // If in events (data available events) have been requested, and data
+        // is available, post an in event immediately. Otherwise make sure
+        // that a pending read is issued, unless the socket is already closed
+        // for read.
+        if ((msg->data & (1 << kInEvent)) != 0) {
+          if (handle->Available() > 0) {
+            int event_mask = (1 << kInEvent);
+            handle->set_mask(handle->mask() & ~event_mask);
+            DartUtils::PostInt32(handle->port(), event_mask);
+          } else if (!handle->HasPendingRead() &&
+                     !handle->IsClosedRead()) {
+            handle->IssueRead();
+          }
         }
 
-        if ((msg->data & (1 << kShutdownWriteCommand)) != 0) {
-          client_socket->Shutdown(SD_SEND);
+        // If out events (can write events) have been requested, and there
+        // are no pending writes, post an out event immediately.
+        if ((msg->data & (1 << kOutEvent)) != 0) {
+          if (!handle->HasPendingWrite()) {
+            int event_mask = (1 << kOutEvent);
+            handle->set_mask(handle->mask() & ~event_mask);
+            DartUtils::PostInt32(handle->port(), event_mask);
+          }
+        }
+
+        if (handle->is_client_socket()) {
+          ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(handle);
+          if ((msg->data & (1 << kShutdownReadCommand)) != 0) {
+            client_socket->Shutdown(SD_RECEIVE);
+          }
+
+          if ((msg->data & (1 << kShutdownWriteCommand)) != 0) {
+            client_socket->Shutdown(SD_SEND);
+          }
         }
       }
 
@@ -731,6 +746,7 @@ void EventHandlerImplementation::HandleClosed(Handle* handle) {
 
 void EventHandlerImplementation::HandleError(Handle* handle) {
   handle->set_last_error(WSAGetLastError());
+  handle->MarkError();
   if (!handle->IsClosing()) {
     int event_mask = 1 << kErrorEvent;
     DartUtils::PostInt32(handle->port(), event_mask);
@@ -771,7 +787,7 @@ void EventHandlerImplementation::HandleWrite(Handle* handle,
   handle->WriteComplete(buffer);
 
   if (bytes > 0) {
-    if (!handle->IsClosing()) {
+    if (!handle->IsError() && !handle->IsClosing()) {
       int event_mask = 1 << kOutEvent;
       if ((handle->mask() & event_mask) != 0) {
         DartUtils::PostInt32(handle->port(), event_mask);

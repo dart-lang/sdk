@@ -4,7 +4,7 @@
 // Stress test isolate generation.
 // DartOptions=tests/standalone/io/options_test.dart 10 options_test 20
 
-#import('dart:math');
+import "dart:math";
 
 main() {
   var opts = new Options();

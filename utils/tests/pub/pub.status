@@ -9,3 +9,6 @@
 # Pub only runs on the standalone VM, not the browser.
 [ $runtime == drt || $runtime == dartium || $runtime == opera ]
 *: Skip
+
+[ $system == windows ]
+io_test: Fail, Pass, Timeout # Issue 7505

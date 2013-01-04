@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library test.html.util;
+
+import 'dart:html';
+import '../../pkg/unittest/lib/unittest.dart';
+
 void expectUnsupported(f) => expect(f, throwsUnsupportedError);
 
 void expectEmptyRect(ClientRect rect) {

@@ -39,11 +39,7 @@ static bool Equals(const Object& expected, const Object& actual) {
   }
   if (expected.IsBool()) {
     if (actual.IsBool()) {
-      Bool& bl1 = Bool::Handle();
-      Bool& bl2 = Bool::Handle();
-      bl1 ^= expected.raw();
-      bl2 ^= actual.raw();
-      return bl1.value() == bl2.value();
+      return expected.raw() == actual.raw();
     }
     return false;
   }
@@ -312,7 +308,7 @@ TEST_CASE(SerializeTrue) {
   // Write snapshot with true object.
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator);
-  const Bool& bl = Bool::Handle(Bool::True());
+  const Bool& bl = Bool::True();
   writer.WriteMessage(bl);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -341,7 +337,7 @@ TEST_CASE(SerializeFalse) {
   // Write snapshot with false object.
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator);
-  const Bool& bl = Bool::Handle(Bool::False());
+  const Bool& bl = Bool::False();
   writer.WriteMessage(bl);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -1260,12 +1256,12 @@ static Dart_CObject* GetDeserializedDartMessage(Dart_Handle lib,
 }
 
 
-static void CheckString(Dart_Handle string, const char* expected) {
+static void CheckString(Dart_Handle dart_string, const char* expected) {
   StackZone zone(Isolate::Current());
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator);
   String& str = String::Handle();
-  str ^= Api::UnwrapHandle(string);
+  str ^= Api::UnwrapHandle(dart_string);
   writer.WriteMessage(str);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -1280,12 +1276,12 @@ static void CheckString(Dart_Handle string, const char* expected) {
 }
 
 
-static void CheckStringInvalid(Dart_Handle string) {
+static void CheckStringInvalid(Dart_Handle dart_string) {
   StackZone zone(Isolate::Current());
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator);
   String& str = String::Handle();
-  str ^= Api::UnwrapHandle(string);
+  str ^= Api::UnwrapHandle(dart_string);
   writer.WriteMessage(str);
   intptr_t buffer_len = writer.BytesWritten();
 

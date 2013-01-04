@@ -1,0 +1,10 @@
+name: pathos
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
+description: >
+ A string-based path manipulation library. All of the path operations you know
+ and love, with solid support on both Windows and POSIX (Linux and Mac OS X)
+ machines.
+
+ Currently only runs on the standalone VM, but will run in a browser as soon as
+ configuration-specific code is supported by Dart.

@@ -14,15 +14,15 @@
  * [: ./tools/testing/bin/$OS/dart tools/testing/dart/co19_test.dart :]
  */
 
-#library("co19_test");
+library co19_test;
 
-#import("dart:io");
-#import("test_runner.dart");
-#import("test_options.dart");
-#import("test_suite.dart");
-#import("test_progress.dart");
+import "dart:io";
+import "test_runner.dart";
+import "test_options.dart";
+import "test_suite.dart";
+import "test_progress.dart";
 
-#import("../../../tests/co19/test_config.dart");
+import "../../../tests/co19/test_config.dart";
 
 const List<String> COMMON_ARGUMENTS = const <String>['--report'];
 

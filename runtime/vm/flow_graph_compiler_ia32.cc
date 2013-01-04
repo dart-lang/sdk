@@ -61,7 +61,7 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   Label fall_through;
   __ cmpl(bool_register, raw_null);
   __ j(EQUAL, &fall_through, Assembler::kNearJump);
-  __ CompareObject(bool_register, bool_true());
+  __ CompareObject(bool_register, Bool::True());
   __ j(EQUAL, is_true);
   __ jmp(is_false);
   __ Bind(&fall_through);
@@ -200,21 +200,18 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   ASSERT(!type_class.HasTypeArguments());
 
   const Register kInstanceReg = EAX;
-  Label compare_classes;
   __ testl(kInstanceReg, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
-  // Instance is Smi, check directly.
+  // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(Smi::Class());
   if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
                             type_class,
                             TypeArguments::Handle(),
                             NULL)) {
-    __ jmp(is_instance_lbl);
+    __ j(ZERO, is_instance_lbl);
   } else {
-    __ jmp(is_not_instance_lbl);
+    __ j(ZERO, is_not_instance_lbl);
   }
   // Compare if the classes are equal.
-  __ Bind(&compare_classes);
   const Register kClassIdReg = ECX;
   __ LoadClassId(kClassIdReg, kInstanceReg);
   __ cmpl(kClassIdReg, Immediate(type_class.id()));
@@ -235,8 +232,6 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ movl(EDI, FieldAddress(EDI, Class::signature_function_offset()));
     __ cmpl(EDI, raw_null);
     __ j(NOT_EQUAL, is_instance_lbl);
-    __ jmp(is_not_instance_lbl);
-    return false;
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
@@ -501,21 +496,21 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ Drop(5);
     if (negate_result) {
       __ popl(EDX);
-      __ LoadObject(EAX, bool_true());
+      __ LoadObject(EAX, Bool::True());
       __ cmpl(EDX, EAX);
       __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-      __ LoadObject(EAX, bool_false());
+      __ LoadObject(EAX, Bool::False());
     } else {
       __ popl(EAX);
     }
     __ jmp(&done, Assembler::kNearJump);
   }
   __ Bind(&is_not_instance);
-  __ LoadObject(EAX, negate_result ? bool_true() : bool_false());
+  __ LoadObject(EAX, negate_result ? Bool::True() : Bool::False());
   __ jmp(&done, Assembler::kNearJump);
 
   __ Bind(&is_instance);
-  __ LoadObject(EAX, negate_result ? bool_false() : bool_true());
+  __ LoadObject(EAX, negate_result ? Bool::False() : Bool::True());
   __ Bind(&done);
   __ popl(EDX);  // Remove pushed instantiator type arguments.
   __ popl(ECX);  // Remove pushed instantiator.
@@ -800,7 +795,7 @@ void FlowGraphCompiler::CopyParameters() {
   // Invoke noSuchMethod function passing the original name of the function.
   // If the function is a closure function, use "call" as the original name.
   const String& name = String::Handle(
-      function.IsClosureFunction() ? Symbols::Call() : function.name());
+      function.IsClosureFunction() ? Symbols::Call().raw() : function.name());
   const int kNumArgsChecked = 1;
   const ICData& ic_data = ICData::ZoneHandle(
       ICData::New(function, name, Isolate::kNoDeoptId, kNumArgsChecked));
@@ -899,7 +894,7 @@ void FlowGraphCompiler::CompileGraph() {
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional parameters.
   // No such checking code is generated if only fixed parameters are declared,
-  // unless we are debug mode or unless we are compiling a closure.
+  // unless we are in debug mode or unless we are compiling a closure.
   LocalVariable* saved_args_desc_var =
       parsed_function().GetSavedArgumentsDescriptorVar();
   if (num_copied_params == 0) {
@@ -911,11 +906,17 @@ void FlowGraphCompiler::CompileGraph() {
 #endif
     if (check_arguments) {
       __ Comment("Check argument count");
-      // Check that num_fixed <= argc <= num_params.
-      Label argc_in_range;
+      // Check that exactly num_fixed arguments are passed in.
+      Label correct_num_arguments, wrong_num_arguments;
       __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
       __ cmpl(EAX, Immediate(Smi::RawValue(num_fixed_params)));
-      __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
+      __ j(NOT_EQUAL, &wrong_num_arguments, Assembler::kNearJump);
+      __ cmpl(EAX,
+              FieldAddress(EDX,
+                           ArgumentsDescriptor::positional_count_offset()));
+      __ j(EQUAL, &correct_num_arguments, Assembler::kNearJump);
+
+      __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction()) {
         if (StackSize() != 0) {
           // We need to unwind the space we reserved for locals and copied
@@ -928,10 +929,10 @@ void FlowGraphCompiler::CompileGraph() {
         BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
 
         // Invoke noSuchMethod function passing "call" as the function name.
-        const String& name = String::Handle(Symbols::Call());
         const int kNumArgsChecked = 1;
         const ICData& ic_data = ICData::ZoneHandle(
-            ICData::New(function, name, Isolate::kNoDeoptId, kNumArgsChecked));
+            ICData::New(function, Symbols::Call(),
+                        Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(ECX, ic_data);
         // EBP - 4 : PC marker, for easy identification of RawInstruction obj.
         // EBP : points to previous frame pointer.
@@ -952,7 +953,7 @@ void FlowGraphCompiler::CompileGraph() {
       } else {
         __ Stop("Wrong number of arguments");
       }
-      __ Bind(&argc_in_range);
+      __ Bind(&correct_num_arguments);
     }
     // The arguments descriptor is never saved in the absence of optional
     // parameters, since any argument definition test would always yield true.
@@ -1245,11 +1246,11 @@ void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
   __ cmpl(result, Address(ESP, 0 * kWordSize));
   Label is_false;
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
-  __ LoadObject(result, bool_true());
+  __ LoadObject(result, Bool::True());
   __ Drop(1);
   __ jmp(skip_call);
   __ Bind(&is_false);
-  __ LoadObject(result, bool_false());
+  __ LoadObject(result, Bool::False());
   __ Drop(1);
   __ jmp(skip_call);
   __ Bind(&fall_through);

@@ -20,8 +20,8 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
       Instance, handle_multi_line, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(
       Instance, handle_ignore_case, arguments->NativeArgAt(3));
-  bool ignore_case = handle_ignore_case.raw() == Bool::True();
-  bool multi_line = handle_multi_line.raw() == Bool::True();
+  bool ignore_case = handle_ignore_case.raw() == Bool::True().raw();
+  bool multi_line = handle_multi_line.raw() == Bool::True().raw();
   return Jscre::Compile(pattern, multi_line, ignore_case);
 }
 
@@ -56,9 +56,9 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
   const String& pattern = String::Handle(regexp.pattern());
   const String& errmsg =
       String::Handle(String::New("Regular expression is not initialized yet"));
-  GrowableArray<const Object*> args;
-  args.Add(&pattern);
-  args.Add(&errmsg);
+  const Array& args = Array::Handle(Array::New(2));
+  args.SetAt(0, pattern);
+  args.SetAt(1, errmsg);
   Exceptions::ThrowByType(Exceptions::kIllegalJSRegExp, args);
   return Object::null();
 }

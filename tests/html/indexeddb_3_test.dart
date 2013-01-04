@@ -22,8 +22,9 @@ class Test {
       // Nuke object store if it already exists.
       db.deleteObjectStore(STORE_NAME);
     }
-    on DatabaseException catch(e) { }  // Chrome
-    on DomException catch(e) { }          // Firefox
+    // TODO:
+    //on DomException catch(e) { } // Chrome and Firefox
+    catch(e) { } // Chrome and Firefox
     db.createObjectStore(STORE_NAME);
   }
 
@@ -143,8 +144,12 @@ class Test {
 main() {
   useHtmlConfiguration();
 
-  var test_ = new Test();
-  test('prepare', test_.setupDb);
-  test('readAll1', test_.readAllViaCursor);
-  test('readAll2', test_.readAllReversedViaCursor);
+  // Don't bother with these tests if it's unsupported.
+  // Support is tested in indexeddb_1_test
+  if (IdbFactory.supported) {
+    var test_ = new Test();
+    test('prepare', test_.setupDb);
+    test('readAll1', test_.readAllViaCursor);
+    test('readAll2', test_.readAllReversedViaCursor);
+  }
 }

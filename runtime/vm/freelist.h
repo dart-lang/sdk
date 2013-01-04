@@ -93,6 +93,9 @@ class FreeList {
 
   void SplitElementAfterAndEnqueue(FreeListElement* element, intptr_t size);
 
+  void PrintSmall() const;
+  void PrintLarge() const;
+
   BitSet<kNumLists> free_map_;
 
   FreeListElement* free_lists_[kNumLists + 1];

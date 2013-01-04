@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
 
-#import("dart:io");
-#import("dart:isolate");
+import "dart:io";
+import "dart:isolate";
 
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.

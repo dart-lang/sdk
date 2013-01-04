@@ -27,6 +27,9 @@ patch class _Directory {
   patch static _rename(String path, String newPath) {
     throw new UnsupportedError("Directory._rename");
   }
+  patch static List _list(String path, bool recursive) {
+    throw new UnsupportedError("Directory._list");
+  }
   patch static SendPort _newServicePort() {
     throw new UnsupportedError("Directory._newServicePort");
   }
@@ -143,6 +146,9 @@ patch class _Platform {
 patch class _ProcessUtils {
   patch static _exit(int status) {
     throw new UnsupportedError("ProcessUtils._exit");
+  }
+  patch static _setExitCode(int status) {
+    throw new UnsupportedError("ProcessUtils._setExitCode");
   }
 }
 

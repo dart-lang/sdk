@@ -77,7 +77,7 @@ class LocalVariable : public ZoneAllocated {
   }
 
   void SetConstValue(const Instance& value) {
-    ASSERT(value.IsZoneHandle());
+    ASSERT(value.IsZoneHandle() || value.IsReadOnlyHandle());
     const_value_ = &value;
   }
 
@@ -148,7 +148,7 @@ class SourceLabel : public ZoneAllocated {
       return new SourceLabel(token_pos, *name, kind);
     } else {
       return new SourceLabel(token_pos,
-                             String::ZoneHandle(Symbols::DefaultLabel()),
+                             Symbols::DefaultLabel(),
                              kind);
     }
   }

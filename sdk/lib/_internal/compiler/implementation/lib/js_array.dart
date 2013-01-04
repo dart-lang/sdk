@@ -181,4 +181,10 @@ class JSArray<E> implements List<E> {
     checkGrowable(this, 'set length');
     JS('void', r'#.length = #', this, newLength);
   }
+
+  E operator [](int index) {
+    if (index is !int) throw new ArgumentError(index);
+    if (index >= length || index < 0) throw new RangeError.value(index);
+    return JS('var', '#[#]', this, index);
+  }
 }

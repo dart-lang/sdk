@@ -20,7 +20,7 @@ main() {
   var greenbox = _colorBox('green', 60, 10);
 
   // assemble DOM
-  var sRoot = new ShadowRoot(div);
+  var sRoot = div.createShadowRoot();
   sRoot.nodes.add(new Element.html('<content select=".foo"></content>'));
   sRoot.nodes.add(redbox);
   sRoot.nodes.add(new Element.tag('content'));

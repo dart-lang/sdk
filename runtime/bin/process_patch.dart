@@ -31,7 +31,8 @@ patch class Process {
 
 
 patch class _ProcessUtils {
-  /* patch */ static _exit(int status) native "Exit";
+  /* patch */ static _exit(int status) native "Process_Exit";
+  /* patch */ static _setExitCode(int status) native "Process_SetExitCode";
 }
 
 
@@ -314,7 +315,7 @@ class _NonInteractiveProcess {
 
     processFuture.then((Process p) {
       // Make sure the process stdin is closed.
-      p.stdin.close;
+      p.stdin.close();
 
       // Setup process exit handling.
       p.onExit = (exitCode) {

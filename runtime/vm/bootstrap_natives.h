@@ -16,7 +16,11 @@ namespace dart {
   V(Object_toString, 1)                                                        \
   V(Object_noSuchMethod, 5)                                                    \
   V(Object_runtimeType, 1)                                                     \
+  V(Object_instanceOf, 5)                                                      \
+  V(Function_apply, 2)                                                         \
+  V(InvocationMirror_invoke, 4)                                                \
   V(AbstractType_toString, 1)                                                  \
+  V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \
   V(Integer_bitOrFromInteger, 2)                                               \
   V(Integer_bitXorFromInteger, 2)                                              \
@@ -102,7 +106,6 @@ namespace dart {
   V(TypeError_throwNew, 5)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
   V(AbstractClassInstantiationError_throwNew, 2)                               \
-  V(NoSuchMethodError_throwNew, 2)                                             \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
   V(ByteArray_getLength, 1)                                                    \
@@ -192,7 +195,7 @@ namespace dart {
   V(ExternalFloat64Array_getIndexed, 2)                                        \
   V(ExternalFloat64Array_setIndexed, 3)                                        \
   V(isolate_getPortInternal, 0)                                                \
-  V(isolate_spawnFunction, 1)                                                  \
+  V(isolate_spawnFunction, 2)                                                  \
   V(isolate_spawnUri, 1)                                                       \
   V(Mirrors_isLocalPort, 1)                                                    \
   V(Mirrors_makeLocalInstanceMirror, 1)                                        \

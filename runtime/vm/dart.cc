@@ -25,14 +25,15 @@ namespace dart {
 
 DEFINE_FLAG(bool, heap_profile_initialize, false,
             "Writes a heap profile on isolate initialization.");
+DECLARE_FLAG(bool, heap_trace);
 DECLARE_FLAG(bool, print_bootstrap);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
 
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
-void* Dart::perf_events_file_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
+ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 
 // An object visitor which will mark all visited objects. This is used to
 // premark all objects in the vm_isolate_ heap.
@@ -46,6 +47,29 @@ class PremarkingVisitor : public ObjectVisitor {
       obj->SetMarkBit();
     }
   }
+};
+
+
+// Structure for managing read-only global handles allocation used for
+// creating global read-only handles that are pre created and initialized
+// for use across all isolates. Having these global pre created handles
+// stored in the vm isolate ensures that we don't constantly create and
+// destroy handles for read-only objects referred in the VM code
+// (e.g: symbols, null object, empty array etc.)
+// The ReadOnlyHandles C++ Wrapper around VMHandles which is a ValueObject is
+// to ensure that the handles area is not trashed by automatic running of C++
+// static destructors when 'exit()" is called by any isolate. There might be
+// other isolates running at the same time and trashing the handles area will
+// have unintended consequences.
+class ReadOnlyHandles {
+ public:
+  ReadOnlyHandles() { }
+
+ private:
+  VMHandles handles_;
+
+  friend class Dart;
+  DISALLOW_COPY_AND_ASSIGN(ReadOnlyHandles);
 };
 
 
@@ -69,6 +93,9 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   FreeListElement::InitOnce();
   Api::InitOnce();
   CodeObservers::InitOnce();
+  // Create the read-only handles area.
+  ASSERT(predefined_handles_ == NULL);
+  predefined_handles_ = new ReadOnlyHandles();
   // Create the VM isolate and finish the VM initialization.
   ASSERT(thread_pool_ == NULL);
   thread_pool_ = new ThreadPool();
@@ -100,6 +127,9 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   Isolate::SetInterruptCallback(interrupt);
   Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
+  if (FLAG_heap_trace) {
+    HeapTrace::InitOnce(file_open, file_write, file_close);
+  }
   return NULL;
 }
 
@@ -182,6 +212,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 
   StubCode::Init(isolate);
   isolate->megamorphic_cache_table()->InitMissHandler();
+  if (FLAG_heap_trace) {
+    isolate->heap()->trace()->Init(isolate);
+  }
   isolate->heap()->EnableGrowthControl();
   isolate->set_init_callback_data(data);
   if (FLAG_print_class_table) {
@@ -203,5 +236,16 @@ void Dart::ShutdownIsolate() {
   }
 }
 
+
+uword Dart::AllocateReadOnlyHandle() {
+  ASSERT(predefined_handles_ != NULL);
+  return predefined_handles_->handles_.AllocateScopedHandle();
+}
+
+
+bool Dart::IsReadOnlyHandle(uword address) {
+  ASSERT(predefined_handles_ != NULL);
+  return predefined_handles_->handles_.IsValidScopedHandle(address);
+}
 
 }  // namespace dart

@@ -31,12 +31,15 @@ import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.ConstructorElement;
+import com.google.dart.compiler.resolver.ConstructorNodeElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.EnclosingElement;
@@ -155,6 +158,44 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertEquals(
         libraryResult.source.indexOf("call() => 42"),
         element.getNameLocation().getOffset());
+  }
+
+  /**
+   * If a type I includes a method named call(), and the type of call() is the function type F, then
+   * I is considered to be a subtype of F.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7271
+   */
+  public void test_classWithCallMethod_isFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class X {",
+        "  call() => 42;",
+        "}",
+        "",
+        "class Y {",
+        "  call(int x) => 87;",
+        "}",
+        "",
+        "typedef F(int x);",
+        "typedef G(String y);",
+        "",
+        "main() {",
+        "  X x = new X();",
+        "  Y y = new Y();",
+        "  Function f = x;", // OK
+        "  Function g = y;", // OK
+        "  F f0 = x;", // WARN
+        "  F f1 = y;", // OK
+        "  G g0 = x;", // WARN
+        "  G g1 = y;", // WARN
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 18, 10, 1),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 20, 10, 1),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 21, 10, 1));
   }
 
   /**
@@ -4295,6 +4336,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 11, 3, 9));
   }
   
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3223
+   */
+  public void test_invokeNonFunction_inferred() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "method() {",
+        "  var v = 1;",
+        "  v();",
+        "}");
+    assertErrors(libraryResult.getErrors());
+  }
+  
   public void test_invokeNonFunction_getter() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5295,6 +5350,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
   
   /**
+   * It is a compile-time error if the superclass of a class C appears in the implements clause of C.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7469
+   */
+  public void test_superClass_imImplementsClause() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B extends A implements A {}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.SUPER_CLASS_IN_IMPLEMENTS, 3, 30, 1));
+  }
+  
+  /**
    * We should report only "no such type", but not duplicate.
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=5084
@@ -5392,6 +5461,18 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     DartMethodDefinition node = findNode(DartMethodDefinition.class, "foo() => 2");
     Set<Element> superElements = node.getElement().getOverridden();
     assertClassMembers(superElements, "method A.foo");
+  }
+
+  public void test_getOverridden_methodAbstract() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo();",
+        "}",
+        "");
+    DartMethodDefinition node = findNode(DartMethodDefinition.class, "foo();");
+    Set<Element> superElements = node.getElement().getOverridden();
+    assertTrue(superElements.isEmpty());
   }
 
   public void test_getOverridden_field_withGetterSetter() throws Exception {
@@ -6015,5 +6096,79 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors(),
         errEx(TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE, 7, 17, 1));
+  }
+
+  public void test_builtInIdentifier_asType() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  abstract v_abstract;",
+        "}",
+        "");
+    assertErrors(result.getErrors(),
+        errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 3, 3, 8));
+  }
+
+  public void test_builtInIdentifier_asParameterizedType() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  abstract<int> v_01;",
+        "  as<int> v_02;",
+        "  export<int> v_03;",
+        "  external<int> v_04;",
+        "  factory<int> v_05;",
+        "  get<int> v_06;",
+        "  implements<int> v_07;",
+        "  import<int> v_08;",
+        "  library<int> v_09;",
+        "  operator<int> v_q0;",
+        "  part<int> v_11;",
+        "  set<int> v_12;",
+        "  static<int> v_13;",
+        "  typedef<int> v_14;",
+        "}",
+        "");
+    List<DartCompilationError> errors = result.getErrors();
+    assertEquals(14, errors.size());
+    for (DartCompilationError error : errors) {
+      assertSame(TypeErrorCode.NO_SUCH_TYPE, error.getErrorCode());
+      assertEquals(3, error.getColumnNumber());
+    }
+  }
+
+  public void test_superConstructorInvocation_wrongPlace() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "topLevelMethod() : super() {}",
+        "",
+        "class A {",
+        "  m() : super() {}",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.SUPER_OUTSIDE_OF_CONSTRUCTOR, 2, 20, 7),
+        errEx(ResolverErrorCode.SUPER_OUTSIDE_OF_CONSTRUCTOR, 5, 9, 7));
+  }
+
+  /**
+   * Test that we set {@link ConstructorElement} for {@link DartSuperConstructorInvocation}.
+   */
+  public void test_superConstructorInvocation_resolveElement() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  A.named() {}",
+        "}",
+        "abstract class B extends A {",
+        "  B() : super.named();",
+        "}",
+        "");
+    DartIdentifier nameInInvocation = findNode(DartIdentifier.class, "named();");
+    DartSuperConstructorInvocation invocation = (DartSuperConstructorInvocation) nameInInvocation.getParent();
+    ConstructorNodeElement expectedElement = invocation.getElement();
+    assertNotNull(expectedElement);
+    assertSame(nameInInvocation.getElement(), expectedElement);
   }
 }

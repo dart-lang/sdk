@@ -20,7 +20,7 @@ testWriteAsStringSync(dir) {
   var data = 'asdf';
   f.writeAsStringSync(data);
   Expect.equals(data, f.readAsStringSync());
-  f.writeAsStringSync(data, FileMode.APPEND);
+  f.writeAsStringSync(data, mode: FileMode.APPEND);
   Expect.equals('$data$data', f.readAsStringSync());
 }
 
@@ -53,7 +53,7 @@ Future testWriteAsString(dir) {
     Expect.equals(f, file);
     f.readAsString().then((str) {
       Expect.equals(data, str);
-      f.writeAsString(data, FileMode.APPEND).then((file) {
+      f.writeAsString(data, mode: FileMode.APPEND).then((file) {
         Expect.equals(f, file);
         f.readAsString().then((str) {
           Expect.equals('$data$data', str);

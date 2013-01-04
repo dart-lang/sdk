@@ -68,6 +68,7 @@ class SSLFilter {
         handshake_complete_(NULL),
         bad_certificate_callback_(NULL),
         in_handshake_(false),
+        client_certificate_name_(NULL),
         filter_(NULL) { }
 
   void Init(Dart_Handle dart_this);
@@ -85,7 +86,8 @@ class SSLFilter {
   Dart_Handle bad_certificate_callback() { return bad_certificate_callback_; }
   static void InitializeLibrary(const char* certificate_database,
                                 const char* password,
-                                bool use_builtin_root_certificates);
+                                bool use_builtin_root_certificates,
+                                bool report_duplicate_initialization = true);
   intptr_t ProcessBuffer(int bufferIndex);
   Dart_Handle PeerCertificate();
 
@@ -104,6 +106,7 @@ class SSLFilter {
   Dart_Handle bad_certificate_callback_;
   bool in_handshake_;
   bool is_server_;
+  char* client_certificate_name_;
   PRFileDesc* filter_;
 
   void InitializeBuffers(Dart_Handle dart_this);

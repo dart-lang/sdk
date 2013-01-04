@@ -54,11 +54,10 @@ void MegamorphicCacheTable::InitMissHandler() {
   const Code& code =
       Code::Handle(StubCode::Generate("_stub_MegamorphicMiss",
                                       StubCode::GenerateMegamorphicMissStub));
-  const String& name = String::Handle(Symbols::New("megamorphic_miss"));
   const Class& cls =
       Class::Handle(Type::Handle(Type::Function()).type_class());
   const Function& function =
-      Function::Handle(Function::New(name,
+      Function::Handle(Function::New(Symbols::MegamorphicMiss(),
                                      RawFunction::kRegularFunction,
                                      false,  // Not static.
                                      false,  // Not const.

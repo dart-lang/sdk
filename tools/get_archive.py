@@ -200,12 +200,15 @@ def GetSdkRevision(name, directory, version_file, latest_pattern,
   def FindPermanentUrl(out, osname, not_used):
     rev_num = revision_num
     if not rev_num:
-      temp_file = tempfile.NamedTemporaryFile()
+      temp_file = tempfile.NamedTemporaryFile(delete=False)
+      temp_file.close()
       temp_file_url = 'file://' + temp_file.name
       Gsutil('cp', latest_pattern % {'osname' : osname }, temp_file_url)
+      temp_file = open(temp_file.name)
       temp_file.seek(0)
       version_info = temp_file.read()
       temp_file.close()
+      os.unlink(temp_file.name)
       if version_info != '':
         rev_num = json.loads(version_info)['revision']
       else:

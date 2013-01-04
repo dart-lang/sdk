@@ -8,6 +8,7 @@
 #include "vm/compiler_stats.h"
 #include "vm/gc_marker.h"
 #include "vm/gc_sweeper.h"
+#include "vm/heap_trace.h"
 #include "vm/object.h"
 #include "vm/virtual_memory.h"
 
@@ -117,7 +118,6 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity)
       max_capacity_(max_capacity),
       capacity_(0),
       in_use_(0),
-      count_(0),
       sweeping_(false),
       page_space_controller_(FLAG_heap_growth_space_ratio,
                              FLAG_heap_growth_rate,
@@ -232,7 +232,9 @@ uword PageSpace::TryAllocate(intptr_t size,
       // On overflow we fail to allocate.
       return 0;
     }
-    if (CanIncreaseCapacity(page_size)) {
+    if ((page_space_controller_.CanGrowPageSpace(size) ||
+         growth_policy == kForceGrowth) &&
+        CanIncreaseCapacity(page_size)) {
       HeapPage* page = AllocateLargePage(size, type);
       if (page != NULL) {
         result = page->object_start();
@@ -399,17 +401,21 @@ void PageSpace::WriteProtect(bool read_only) {
 }
 
 
-void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
+void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   // MarkSweep is not reentrant. Make sure that is the case.
   ASSERT(!sweeping_);
   sweeping_ = true;
   Isolate* isolate = Isolate::Current();
   NoHandleScope no_handles(isolate);
 
+  if (HeapTrace::is_enabled()) {
+    isolate->heap()->trace()->TraceMarkSweepStart();
+  }
+
   if (FLAG_print_free_list_before_gc) {
-    OS::Print("Data Freelist:\n");
+    OS::Print("Data Freelist (before GC):\n");
     freelist_[HeapPage::kData].Print();
-    OS::Print("Executable Freelist:\n");
+    OS::Print("Executable Freelist (before GC):\n");
     freelist_[HeapPage::kExecutable].Print();
   }
 
@@ -419,21 +425,21 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
     OS::PrintErr(" done.\n");
   }
 
-  if (FLAG_verbose_gc) {
-    OS::PrintErr("Start mark sweep for %s collection\n", gc_reason);
-  }
-  Timer timer(true, "MarkSweep");
-  timer.Start();
-  int64_t start = OS::GetCurrentTimeMillis();
+  int64_t start = OS::GetCurrentTimeMicros();
 
   // Mark all reachable old-gen objects.
   GCMarker marker(heap_);
   marker.MarkObjects(isolate, this, invoke_api_callbacks);
 
+  int64_t mid1 = OS::GetCurrentTimeMicros();
+
   // Reset the bump allocation page to unused.
   // Reset the freelists and setup sweeping.
   freelist_[HeapPage::kData].Reset();
   freelist_[HeapPage::kExecutable].Reset();
+
+  int64_t mid2 = OS::GetCurrentTimeMicros();
+
   GCSweeper sweeper(heap_);
   intptr_t in_use = 0;
 
@@ -451,6 +457,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
     // Advance to the next page.
     page = next_page;
   }
+
+  int64_t mid3 = OS::GetCurrentTimeMicros();
 
   prev_page = NULL;
   page = large_pages_;
@@ -471,27 +479,21 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
   intptr_t in_use_before = in_use_;
   in_use_ = in_use;
 
-  int64_t end = OS::GetCurrentTimeMillis();
-  timer.Stop();
+  int64_t end = OS::GetCurrentTimeMicros();
 
   // Record signals for growth control.
   page_space_controller_.EvaluateGarbageCollection(in_use_before, in_use,
                                                    start, end);
 
-  if (FLAG_verbose_gc) {
-    const intptr_t KB2 = KB / 2;
-    OS::PrintErr("Mark-Sweep[%d]: %"Pd64"us (%"Pd"K -> %"Pd"K, %"Pd"K)\n",
-                 count_,
-                 timer.TotalElapsedTime(),
-                 (in_use_before + (KB2)) / KB,
-                 (in_use + (KB2)) / KB,
-                 (capacity_ + KB2) / KB);
-  }
+  heap_->RecordTime(kMarkObjects, mid1 - start);
+  heap_->RecordTime(kResetFreeLists, mid2 - mid1);
+  heap_->RecordTime(kSweepPages, mid3 - mid2);
+  heap_->RecordTime(kSweepLargePages, end - mid3);
 
   if (FLAG_print_free_list_after_gc) {
-    OS::Print("Data Freelist:\n");
+    OS::Print("Data Freelist (after GC):\n");
     freelist_[HeapPage::kData].Print();
-    OS::Print("Executable Freelist:\n");
+    OS::Print("Executable Freelist (after GC):\n");
     freelist_[HeapPage::kExecutable].Print();
   }
 
@@ -501,7 +503,10 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
     OS::PrintErr(" done.\n");
   }
 
-  count_++;
+  if (HeapTrace::is_enabled()) {
+    isolate->heap()->trace()->TraceMarkSweepFinish();
+  }
+
   // Done, reset the marker.
   ASSERT(sweeping_);
   sweeping_ = false;
@@ -555,37 +560,23 @@ void PageSpaceController::EvaluateGarbageCollection(
       history_.GarbageCollectionTimeFraction();
   bool enough_free_time =
       (garbage_collection_time_fraction <= garbage_collection_time_ratio_);
+
+  Heap* heap = Isolate::Current()->heap();
   if (enough_free_space && enough_free_time) {
     grow_heap_ = 0;
   } else {
-    if (FLAG_verbose_gc) {
-      OS::PrintErr("PageSpaceController: ");
-      if (!enough_free_space) {
-        OS::PrintErr("free space %d%% < %d%%",
-                     collected_garbage_ratio,
-                     heap_growth_ratio_);
-      }
-      if (!enough_free_space && !enough_free_time) {
-        OS::PrintErr(", ");
-      }
-      if (!enough_free_time) {
-        OS::PrintErr("garbage collection time %d%% > %d%%",
-                     garbage_collection_time_fraction,
-                     garbage_collection_time_ratio_);
-      }
-      OS::PrintErr("\n");
-    }
-    if (!enough_free_space) {
-      intptr_t growth_target = static_cast<intptr_t>(in_use_after /
-                                                     desired_utilization_);
-      intptr_t growth_in_bytes = Utils::RoundUp(growth_target - in_use_after,
-                                                PageSpace::kPageSize);
-      int growth_in_pages = growth_in_bytes / PageSpace::kPageSize;
-      grow_heap_ = Utils::Maximum(growth_in_pages, heap_growth_rate_);
-    } else {
-      grow_heap_ = heap_growth_rate_;
-    }
+    intptr_t growth_target = static_cast<intptr_t>(in_use_after /
+                                                   desired_utilization_);
+    intptr_t growth_in_bytes = Utils::RoundUp(growth_target - in_use_after,
+                                              PageSpace::kPageSize);
+    int growth_in_pages = growth_in_bytes / PageSpace::kPageSize;
+    grow_heap_ = Utils::Maximum(growth_in_pages, heap_growth_rate_);
+    heap->RecordData(PageSpace::kPageGrowth, growth_in_pages);
   }
+  heap->RecordData(PageSpace::kGarbageRatio, collected_garbage_ratio);
+  heap->RecordData(PageSpace::kGCTimeFraction,
+                   garbage_collection_time_fraction);
+  heap->RecordData(PageSpace::kAllowedGrowth, grow_heap_);
 }
 
 

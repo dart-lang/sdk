@@ -85,6 +85,7 @@ class ApiMessageReader : public BaseReader {
   void Init();
 
   intptr_t LookupInternalClass(intptr_t class_header);
+  Dart_CObject* ReadVMIsolateObject(intptr_t value);
   Dart_CObject* ReadInternalVMObject(intptr_t class_id, intptr_t object_id);
   Dart_CObject* ReadInlinedObject(intptr_t object_id);
   Dart_CObject* ReadObjectImpl();

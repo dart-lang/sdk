@@ -202,6 +202,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
       Value** instantiator,
       ZoneGrowableArray<PushArgumentInstr*>* call_arguments);
 
+  void BuildTypecheckPushArguments(
+      intptr_t token_pos,
+      PushArgumentInstr** push_instantiator,
+      PushArgumentInstr** push_instantiator_type_arguments);
   void BuildTypecheckArguments(intptr_t token_pos,
                                Value** instantiator,
                                Value** instantiator_type_arguments);
@@ -261,6 +265,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
       AstNode* receiver,
       const String& method_name,
       ArgumentListNode* method_arguments);
+
+  StaticCallInstr* BuildThrowNoSuchMethodError(intptr_t token_pos,
+                                               const Class& function_class,
+                                               const String& function_name);
 
   void BuildStaticSetter(StaticSetterNode* node, bool result_is_needed);
   Definition* BuildStoreStaticField(StoreStaticFieldNode* node,
@@ -325,6 +333,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitClosureCallNode(ClosureCallNode* node);
   virtual void VisitStaticSetterNode(StaticSetterNode* node);
   virtual void VisitStoreStaticFieldNode(StoreStaticFieldNode* node);
+  virtual void VisitTypeNode(TypeNode* node);
 
   Value* value() const { return value_; }
 

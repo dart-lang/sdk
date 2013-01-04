@@ -34,10 +34,11 @@ class StreamedRequest extends BaseRequest {
     : super(method, url),
       stream = new ListOutputStream(),
       _inputStream = new ListInputStream() {
+    ListOutputStream outputStream = stream;
     // TODO(nweiz): pipe errors from the output stream to the input stream once
     // issue 3657 is fixed
-    stream.onData = () => _inputStream.write(stream.read());
-    stream.onClosed = _inputStream.markEndOfStream;
+    outputStream.onData = () => _inputStream.write(outputStream.read());
+    outputStream.onClosed = _inputStream.markEndOfStream;
   }
 
   /// Freezes all mutable fields other than [stream] and returns an [InputStream]

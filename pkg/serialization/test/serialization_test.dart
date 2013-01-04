@@ -4,10 +4,10 @@
 
 library serialization_test;
 
-import '../../unittest/lib/unittest.dart';
-import '../lib/serialization.dart';
-import '../lib/src/serialization_helpers.dart';
-import '../lib/src/mirrors_helpers.dart';
+import 'package:unittest/unittest.dart';
+import 'package:serialization/serialization.dart';
+import 'package:serialization/src/serialization_helpers.dart';
+import 'package:serialization/src/mirrors_helpers.dart';
 
 part 'test_models.dart';
 
@@ -220,7 +220,7 @@ main() {
     runRoundTripTest(nodeSerializerReflective);
   });
 
-  test('round-trip hard-coded', () {
+  test('round-trip ClosureRule', () {
     runRoundTripTest(nodeSerializerNonReflective);
   });
 
@@ -236,6 +236,14 @@ main() {
     runRoundTripTest(nodeSerializerUsingMaps);
   });
 
+  test('round-trip with Node CustomRule', () {
+    runRoundTripTestFlat(nodeSerializerCustom);
+  });
+
+  test('round-trip with Node CustomRule, to maps', () {
+    runRoundTripTest(nodeSerializerCustom);
+  });
+
   test('eating your own tail', () {
     // Create a meta-serializer, that serializes serializations, then
     // use it to serialize a basic serialization, then run a test on the
@@ -246,7 +254,7 @@ main() {
     var meta = metaSerialization();
     var serialized = meta.write(s);
     var s2 = new Reader(meta)
-        .readOne(serialized, {"Node" : reflect(new Node('')).type});
+        .read(serialized, {"Node" : reflect(new Node('')).type});
     runRoundTripTest((x) => s2);
   });
 
@@ -257,7 +265,7 @@ main() {
     n3.parent = n1;
     var s = new Serialization()
       ..addRuleFor(n1, constructorFields: ["name"]).
-          specialTreatmentFor("children", (parent, child) =>
+          setFieldWith("children", (parent, child) =>
               parent.reflectee.children = child);
     var w = new Writer(s);
     w.write(n1);
@@ -285,13 +293,28 @@ main() {
       ..addRuleFor(n1, constructorFields: ["name"]);
     var w = new Writer(s);
     var r = new Reader(s);
-    var m1 = r.read(w.write(n1)).first;
+    var m1 = r.read(w.write(n1));
     var m2 = m1.children.first;
     var m3 = m1.children.last;
     expect(m1, m2);
     expect(identical(m1, m2), isFalse);
     expect(m1 == m3, isFalse);
     expect(identical(m2.parent, m3.parent), isTrue);
+  });
+
+  test("Constant values as fields", () {
+    var s = new Serialization()
+      ..selfDescribing = false
+      ..addRuleFor(a1,
+          constructor: 'with',
+          constructorFields: ["street", "Kirkland", "WA", "98103"],
+          fields: []);
+    var out = s.write(a1);
+    var newAddress = s.read(out);
+    expect(newAddress.street, a1.street);
+    expect(newAddress.city, "Kirkland");
+    expect(newAddress.state, "WA");
+    expect(newAddress.zip, "98103");
   });
 
 }
@@ -305,25 +328,25 @@ main() {
 Serialization metaSerialization() {
   // Make some bogus rule instances so we have something to feed rule creation
   // and get their types. If only we had class literals implemented...
-  var closureRule = new ClosureToMapRule.stub([].runtimeType);
   var basicRule = new BasicRule(reflect(null).type, '', [], [], []);
 
   var meta = new Serialization()
     ..selfDescribing = false
     ..addRuleFor(new ListRule())
     ..addRuleFor(new PrimitiveRule())
-    // TODO(alanknight): Handle the ClosureToMapRule as well.
+    // TODO(alanknight): Handle CustomRule as well.
     // Note that we're passing in a constant for one of the fields.
     ..addRuleFor(basicRule,
-        constructorFields: ['typeWrapped',
+        constructorFields: ['type',
           'constructorName',
           'constructorFields', 'regularFields', []],
         fields: [])
-     ..addRuleFor(new Serialization()).specialTreatmentFor('rules',
+     ..addRuleFor(new Serialization()).setFieldWith('rules',
          (InstanceMirror s, List rules) {
              rules.forEach((x) => s.reflectee.addRule(x));
          })
-    ..addRule(new ClassMirrorRule());
+    ..addRule(new NamedObjectRule())
+    ..addRule(new MirrorRule());
   return meta;
 }
 
@@ -332,7 +355,7 @@ Serialization metaSerialization() {
  * reader.
  */
 readBackSimple(Serialization s, object, Reader reader) {
-  var rule = s.rulesFor(object)[0];
+  var rule = s.rulesFor(object, null)[0];
   reader.inflateForRule(rule);
   var list2 = reader.allObjectsForRule(rule)[0];
   return list2;
@@ -354,7 +377,7 @@ Reader setUpReader(aSerialization, sampleData) {
 Serialization nodeSerializerReflective(Node n) {
   return new Serialization()
     ..addRuleFor(n, constructorFields: ["name"])
-    ..externalObjects['Node'] = reflect(new Node('')).type;
+    ..namedObjects['Node'] = reflect(new Node('')).type;
 }
 
 /**
@@ -364,7 +387,16 @@ Serialization nodeSerializerReflective(Node n) {
 Serialization nodeSerializerUsingMaps(Node n) {
   return new Serialization()
     ..addRuleFor(n, constructorFields: ["name"]).configureForMaps()
-    ..externalObjects['Node'] = reflect(new Node('')).type;
+    ..namedObjects['Node'] = reflect(new Node('')).type;
+}
+
+/**
+ * Return a serialization for Node objects but using Maps for the internal
+ * representation rather than lists.
+ */
+Serialization nodeSerializerCustom(Node n) {
+  return new Serialization()
+    ..addRule(new NodeRule());
 }
 
 /**
@@ -381,18 +413,18 @@ Serialization nodeSerializerWithEssentialParent(Node n) {
         constructor: "parentEssential",
         constructorFields: ["parent"])
     ..addDefaultRules()
-    ..externalObjects['Node'] = reflect(new Node('')).type
+    ..namedObjects['Node'] = reflect(new Node('')).type
     ..selfDescribing = false;
   return s;
 }
 
 /** Return a serialization for Node objects using a ClosureToMapRule. */
 Serialization nodeSerializerNonReflective(Node n) {
-  var rule = new ClosureToMapRule(
+  var rule = new ClosureRule(
       n.runtimeType,
       (o) => {"name" : o.name, "children" : o.children, "parent" : o.parent},
       (map) => new Node(map["name"]),
-      (map, object) {
+      (object, map) {
         object
           ..children = map["children"]
           ..parent = map["parent"];
@@ -415,7 +447,7 @@ runRoundTripTest(Function serializerSetUp) {
   var output = s.write(n2);
   var s2 = serializerSetUp(n1);
   var reader = new Reader(s2);
-  var m2 = reader.readOne(output);
+  var m2 = reader.read(output);
   var m1 = m2.parent;
   expect(m1 is Node, isTrue);
   var children = m1.children;
@@ -442,7 +474,7 @@ runRoundTripTestFlat(serializerSetUp) {
   expect(output is List, isTrue);
   var s2 = serializerSetUp(n1);
   var reader = new Reader(s2);
-  var m2 = reader.readFlat(output).first;
+  var m2 = reader.readFlat(output);
   var m1 = m2.parent;
   expect(m1 is Node, isTrue);
   var children = m1.children;
@@ -456,7 +488,18 @@ runRoundTripTestFlat(serializerSetUp) {
 }
 
 /** Extract the state from [object] using the rules in [s] and return it. */
-states(Object object, Serialization s) {
-  var rules = s.rulesFor(object);
+states(object, Serialization s) {
+  var rules = s.rulesFor(object, null);
   return rules.map((x) => x.extractState(object, doNothing));
+}
+
+/** A hard-coded rule for serializing Node instances. */
+class NodeRule extends CustomRule {
+  bool appliesTo(instance, _) => instance is Node;
+  getState(instance) => [instance.parent, instance.name, instance.children];
+  create(state) => new Node(state[1]);
+  setState(Node node, state) {
+    node.parent = state[0];
+    node.children = state[2];
+  }
 }

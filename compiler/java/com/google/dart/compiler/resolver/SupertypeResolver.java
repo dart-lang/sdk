@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilerContext;
@@ -109,6 +110,10 @@ public class SupertypeResolver {
           if (!classElement.isInterface()) {
             if (seenImplement.contains(intType)) {
               topLevelContext.onError(intNode, ResolverErrorCode.DUPLICATE_IMPLEMENTS_TYPE);
+              continue;
+            }
+            if (Objects.equal(intType, supertype)) {
+              topLevelContext.onError(intNode, ResolverErrorCode.SUPER_CLASS_IN_IMPLEMENTS);
               continue;
             }
             seenImplement.add(intType);

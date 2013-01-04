@@ -290,13 +290,13 @@ Result get currentResult => _currentResult;
  * the result link on enter.
  */
 void handleUpDown(KeyboardEvent event) {
-  if (event.keyIdentifier == KeyName.UP) {
+  if (event.keyCode == KeyCode.UP) {
     currentResultIndex--;
     event.preventDefault();
-  } else if (event.keyIdentifier == KeyName.DOWN) {
+  } else if (event.keyCode == KeyCode.DOWN) {
     currentResultIndex++;
     event.preventDefault();
-  } else if (event.keyIdentifier == KeyName.ENTER) {
+  } else if (event.keyCode == KeyCode.ENTER) {
     if (currentResult != null) {
       window.location.href = currentResult.url;
       event.preventDefault();
@@ -326,10 +326,10 @@ void hideDropDown() {
 
 /** Activate search on Ctrl+3 and S. */
 void shortcutHandler(KeyboardEvent event) {
-  if (event.keyCode == 0x33/* 3 */ && event.ctrlKey) {
+  if (event.keyCode == KeyCode.THREE && event.ctrlKey) {
     searchInput.focus();
     event.preventDefault();
-  } else if (event.target != searchInput && event.keyCode == 0x53/* S */) {
+  } else if (event.target != searchInput && event.keyCode == KeyCode.S) {
     // Allow writing 's' in the search input.
     searchInput.focus();
     event.preventDefault();

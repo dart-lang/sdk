@@ -10,6 +10,11 @@ import 'dart:html';
 main() {
   useHtmlConfiguration();
 
+  // Only perform tests if ArrayBuffer is supported.
+  if (!ArrayBuffer.supported) {
+    return;
+  }
+
   test('access8', () {
       var a1 = new Uint8Array.fromList([0,0,3,255,0,0,0,0,0,0]);
 

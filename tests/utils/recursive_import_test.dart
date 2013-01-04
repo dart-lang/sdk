@@ -52,6 +52,8 @@ main() {
         source = CORE_LIB;
       } else if (uri.path.endsWith('_patch.dart')) {
         source = '';
+      } else if (uri.path.endsWith('isolate_helper.dart')) {
+        source = 'class _WorkerStub {}';
       } else {
         source = "library lib${uri.path.replaceAll('/', '.')};";
       }

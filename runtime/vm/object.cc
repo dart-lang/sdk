@@ -40,6 +40,8 @@ DEFINE_FLAG(bool, show_internal_names, false,
     "instead of showing the corresponding interface names (e.g. \"String\")");
 DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
     "Trace disabling optimized code.");
+DEFINE_FLAG(int, huge_method_cutoff, 20000,
+            "Huge method cutoff: Disables optimizations for huge methods.");
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -59,11 +61,13 @@ cpp_vtable Smi::handle_vtable_ = 0;
 #error RAW_NULL should not be defined.
 #endif
 #define RAW_NULL kHeapObjectTag
-RawObject* Object::null_ = reinterpret_cast<RawInstance*>(RAW_NULL);
-RawArray* Object::empty_array_ = reinterpret_cast<RawArray*>(RAW_NULL);
-RawInstance* Object::sentinel_ = reinterpret_cast<RawInstance*>(RAW_NULL);
-RawInstance* Object::transition_sentinel_ =
-    reinterpret_cast<RawInstance*>(RAW_NULL);
+Array* Object::empty_array_ = NULL;
+Instance* Object::sentinel_ = NULL;
+Instance* Object::transition_sentinel_ = NULL;
+Bool* Object::bool_true_ = NULL;
+Bool* Object::bool_false_ = NULL;
+
+RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::null_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -187,8 +191,7 @@ static RawString* IdentifierPrettyName(const String& name) {
 
   if (is_setter) {
     // Setters need to end with '='.
-    const String& suffix = String::Handle(Symbols::Equals());
-    return String::Concat(result, suffix);
+    return String::Concat(result, Symbols::Equals());
   }
 
   return result.raw();
@@ -240,6 +243,14 @@ void Object::InitOnce() {
     Smi::handle_vtable_ = fake_smi.vtable();
   }
 
+  // Allocate the read only object handles here.
+  empty_array_ = reinterpret_cast<Array*>(Dart::AllocateReadOnlyHandle());
+  sentinel_ = reinterpret_cast<Instance*>(Dart::AllocateReadOnlyHandle());
+  transition_sentinel_ =
+      reinterpret_cast<Instance*>(Dart::AllocateReadOnlyHandle());
+  bool_true_ = reinterpret_cast<Bool*>(Dart::AllocateReadOnlyHandle());
+  bool_false_ = reinterpret_cast<Bool*>(Dart::AllocateReadOnlyHandle());
+
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   // Allocate and initialize the null instance.
@@ -252,9 +263,9 @@ void Object::InitOnce() {
     InitializeObject(address, kNullCid, Instance::InstanceSize());
   }
 
-  // Initialize object_store empty array to null_ in order to be able to check
+  // Initialize the empty array handle to null_ in order to be able to check
   // if the empty array was allocated (RAW_NULL is not available).
-  empty_array_ = Array::null();
+  *empty_array_ = Array::null();
 
   Class& cls = Class::Handle();
 
@@ -294,15 +305,11 @@ void Object::InitOnce() {
 
   // Allocate and initialize the sentinel values of Null class.
   {
-    Instance& sentinel = Instance::Handle();
-    sentinel ^=
+    *sentinel_ ^=
         Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
-    sentinel_ = sentinel.raw();
 
-    Instance& transition_sentinel = Instance::Handle();
-    transition_sentinel ^=
+    *transition_sentinel_ ^=
         Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
-    transition_sentinel_ = transition_sentinel.raw();
   }
 
   cls = Class::New<Instance>(kDynamicCid);
@@ -420,21 +427,25 @@ void Object::InitOnce() {
   // Allocate and initialize the empty_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
-    empty_array_ = reinterpret_cast<RawArray*>(address + kHeapObjectTag);
+    *empty_array_ = reinterpret_cast<RawArray*>(address + kHeapObjectTag);
     InitializeObject(address, kArrayCid, Array::InstanceSize(0));
-    empty_array_->ptr()->length_ = Smi::New(0);
+    empty_array_->raw()->ptr()->length_ = Smi::New(0);
   }
+
+  // Allocate and initialize singleton true and false boolean objects.
+  cls = Class::New<Bool>();
+  isolate->object_store()->set_bool_class(cls);
+  *bool_true_ = Bool::New(true);
+  *bool_false_ = Bool::New(false);
 }
 
 
 #define SET_CLASS_NAME(class_name, name)                                       \
   cls = class_name##_class();                                                  \
-  str = Symbols::name();                                                       \
-  cls.set_name(str);                                                           \
+  cls.set_name(Symbols::name());                                               \
 
 void Object::RegisterSingletonClassNames() {
   Class& cls = Class::Handle();
-  String& str = String::Handle();
 
   // Set up names for all VM singleton classes.
   SET_CLASS_NAME(class, Class);
@@ -475,11 +486,9 @@ void Object::RegisterSingletonClassNames() {
   // Set up names for object array and one byte string class which are
   // pre-allocated in the vm isolate also.
   cls = Dart::vm_isolate()->object_store()->array_class();
-  str = Symbols::ObjectArray();
-  cls.set_name(str);
+  cls.set_name(Symbols::ObjectArray());
   cls = Dart::vm_isolate()->object_store()->one_byte_string_class();
-  str = Symbols::OneByteString();
-  cls.set_name(str);
+  cls.set_name(Symbols::OneByteString());
 }
 
 
@@ -573,8 +582,11 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_type_arguments_field_offset(
       GrowableObjectArray::type_arguments_offset());
 
-  // canonical_type_arguments_ are NULL terminated.
-  array = Array::New(4);
+  // canonical_type_arguments_ are Smi terminated.
+  // Last element contains the count of used slots.
+  const intptr_t kInitialCanonicalTypeArgumentsSize = 4;
+  array = Array::New(kInitialCanonicalTypeArgumentsSize + 1);
+  array.SetAt(kInitialCanonicalTypeArgumentsSize, Smi::Handle(Smi::New(0)));
   object_store->set_canonical_type_arguments(array);
 
   // Setup type class early in the process.
@@ -618,13 +630,11 @@ RawError* Object::Init(Isolate* isolate) {
   String& name = String::Handle();
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
-  name = Symbols::Bool();
-  RegisterClass(cls, name, core_lib);
+  RegisterClass(cls, Symbols::Bool(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->array_class();  // Was allocated above.
-  name = Symbols::ObjectArray();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::ObjectArray(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
   type ^= Type::New(Object::Handle(cls.raw()),
@@ -635,51 +645,43 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_array_type(type);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
-  name = Symbols::GrowableObjectArray();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::GrowableObjectArray(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
-  name = Symbols::ImmutableArray();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::ImmutableArray(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
-  name = Symbols::OneByteString();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::OneByteString(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->two_byte_string_class();  // Was allocated above.
-  name = Symbols::TwoByteString();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::TwoByteString(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::NewStringClass(kExternalOneByteStringCid);
   object_store->set_external_one_byte_string_class(cls);
-  name = Symbols::ExternalOneByteString();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::ExternalOneByteString(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::NewStringClass(kExternalTwoByteStringCid);
   object_store->set_external_two_byte_string_class(cls);
-  name = Symbols::ExternalTwoByteString();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::ExternalTwoByteString(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
-  name = Symbols::Stacktrace();
-  RegisterClass(cls, name, core_lib);
+  RegisterClass(cls, Symbols::Stacktrace(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
-  name = Symbols::JSSyntaxRegExp();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::JSSyntaxRegExp(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
@@ -688,8 +690,7 @@ RawError* Object::Init(Isolate* isolate) {
   // Allocate and initialize the pre-allocated classes in the core library.
   cls = Class::New<Instance>(kInstanceCid);
   object_store->set_object_class(cls);
-  name = Symbols::Object();
-  cls.set_name(name);
+  cls.set_name(Symbols::Object());
   cls.set_script(script);
   cls.set_is_prefinalized();
   core_lib.AddClass(cls);
@@ -698,162 +699,134 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_object_type(type);
 
   cls = object_store->type_class();
-  name = Symbols::Type();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::Type(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->type_parameter_class();
-  name = Symbols::TypeParameter();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::TypeParameter(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
-  name = Symbols::IntegerImplementation();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::IntegerImplementation(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
-  name = Symbols::Smi();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::_Smi(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Mint>();
   object_store->set_mint_class(cls);
-  name = Symbols::Mint();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::_Mint(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bigint>();
   object_store->set_bigint_class(cls);
-  name = Symbols::Bigint();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::_Bigint(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Double>();
   object_store->set_double_class(cls);
-  name = Symbols::Double();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::_Double(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
-  name = Symbols::_WeakProperty();
-  RegisterPrivateClass(cls, name, core_lib);
+  RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
 
   Library::InitScalarlistLibrary(isolate);
   Library& scalarlist_lib = Library::Handle(Library::ScalarlistLibrary());
 
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);
-  name = Symbols::_Int8Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Int8Array(), scalarlist_lib);
 
   cls = Class::New<Uint8Array>();
   object_store->set_uint8_array_class(cls);
-  name = Symbols::_Uint8Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Uint8Array(), scalarlist_lib);
 
   cls = Class::New<Uint8ClampedArray>();
   object_store->set_uint8_clamped_array_class(cls);
-  name = Symbols::_Uint8ClampedArray();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Uint8ClampedArray(), scalarlist_lib);
 
   cls = Class::New<Int16Array>();
   object_store->set_int16_array_class(cls);
-  name = Symbols::_Int16Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Int16Array(), scalarlist_lib);
 
   cls = Class::New<Uint16Array>();
   object_store->set_uint16_array_class(cls);
-  name = Symbols::_Uint16Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Uint16Array(), scalarlist_lib);
 
   cls = Class::New<Int32Array>();
   object_store->set_int32_array_class(cls);
-  name = Symbols::_Int32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Int32Array(), scalarlist_lib);
 
   cls = Class::New<Uint32Array>();
   object_store->set_uint32_array_class(cls);
-  name = Symbols::_Uint32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Uint32Array(), scalarlist_lib);
 
   cls = Class::New<Int64Array>();
   object_store->set_int64_array_class(cls);
-  name = Symbols::_Int64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Int64Array(), scalarlist_lib);
 
   cls = Class::New<Uint64Array>();
   object_store->set_uint64_array_class(cls);
-  name = Symbols::_Uint64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Uint64Array(), scalarlist_lib);
 
   cls = Class::New<Float32Array>();
   object_store->set_float32_array_class(cls);
-  name = Symbols::_Float32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Float32Array(), scalarlist_lib);
 
   cls = Class::New<Float64Array>();
   object_store->set_float64_array_class(cls);
-  name = Symbols::_Float64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_Float64Array(), scalarlist_lib);
 
   cls = Class::New<ExternalInt8Array>();
   object_store->set_external_int8_array_class(cls);
-  name = Symbols::_ExternalInt8Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalInt8Array(), scalarlist_lib);
 
   cls = Class::New<ExternalUint8Array>();
   object_store->set_external_uint8_array_class(cls);
-  name = Symbols::_ExternalUint8Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalUint8Array(), scalarlist_lib);
 
   cls = Class::New<ExternalUint8ClampedArray>();
   object_store->set_external_uint8_clamped_array_class(cls);
-  name = Symbols::_ExternalUint8ClampedArray();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls,
+                       Symbols::_ExternalUint8ClampedArray(),
+                       scalarlist_lib);
 
   cls = Class::New<ExternalInt16Array>();
   object_store->set_external_int16_array_class(cls);
-  name = Symbols::_ExternalInt16Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalInt16Array(), scalarlist_lib);
 
   cls = Class::New<ExternalUint16Array>();
   object_store->set_external_uint16_array_class(cls);
-  name = Symbols::_ExternalUint16Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalUint16Array(), scalarlist_lib);
 
   cls = Class::New<ExternalInt32Array>();
   object_store->set_external_int32_array_class(cls);
-  name = Symbols::_ExternalInt32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalInt32Array(), scalarlist_lib);
 
   cls = Class::New<ExternalUint32Array>();
   object_store->set_external_uint32_array_class(cls);
-  name = Symbols::_ExternalUint32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalUint32Array(), scalarlist_lib);
 
   cls = Class::New<ExternalInt64Array>();
   object_store->set_external_int64_array_class(cls);
-  name = Symbols::_ExternalInt64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalInt64Array(), scalarlist_lib);
 
   cls = Class::New<ExternalUint64Array>();
   object_store->set_external_uint64_array_class(cls);
-  name = Symbols::_ExternalUint64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalUint64Array(), scalarlist_lib);
 
   cls = Class::New<ExternalFloat32Array>();
   object_store->set_external_float32_array_class(cls);
-  name = Symbols::_ExternalFloat32Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalFloat32Array(), scalarlist_lib);
 
   cls = Class::New<ExternalFloat64Array>();
   object_store->set_external_float64_array_class(cls);
-  name = Symbols::_ExternalFloat64Array();
-  RegisterPrivateClass(cls, name, scalarlist_lib);
+  RegisterPrivateClass(cls, Symbols::_ExternalFloat64Array(), scalarlist_lib);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -862,30 +835,28 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Note: The abstract class Function is represented by VM class
   // DartFunction, not VM class Function.
-  name = Symbols::Function();
   cls = Class::New<DartFunction>();
-  RegisterClass(cls, name, core_lib);
+  RegisterClass(cls, Symbols::Function(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_function_type(type);
 
   cls = Class::New<Number>();
-  name = Symbols::Number();
-  RegisterClass(cls, name, core_lib);
+  RegisterClass(cls, Symbols::Number(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_number_type(type);
 
-  name = Symbols::New("int");
-  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
-  RegisterClass(cls, name, core_lib);
+  cls = Class::New<Instance>(Symbols::Int(), script, Scanner::kDummyTokenIndex);
+  RegisterClass(cls, Symbols::Int(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int_type(type);
 
-  name = Symbols::New("double");
-  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
-  RegisterClass(cls, name, core_lib);
+  cls = Class::New<Instance>(Symbols::Double(),
+                             script,
+                             Scanner::kDummyTokenIndex);
+  RegisterClass(cls, Symbols::Double(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_double_type(type);
@@ -897,9 +868,10 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_type(type);
 
-  name = Symbols::New("List");
-  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
-  RegisterClass(cls, name, core_lib);
+  cls = Class::New<Instance>(Symbols::List(),
+                             script,
+                             Scanner::kDummyTokenIndex);
+  RegisterClass(cls, Symbols::List(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   object_store->set_list_class(cls);
 
@@ -934,13 +906,6 @@ RawError* Object::Init(Isolate* isolate) {
   cls = dynamic_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_dynamic_type(type);
-
-  // Allocate pre-initialized values.
-  Bool& bool_value = Bool::Handle();
-  bool_value = Bool::New(true);
-  object_store->set_true_value(bool_value);
-  bool_value = Bool::New(false);
-  object_store->set_false_value(bool_value);
 
   // Setup some default native field classes which can be extended for
   // specifying native fields in dart classes.
@@ -1169,13 +1134,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
-
-  // Allocate pre-initialized values.
-  Bool& bool_value = Bool::Handle();
-  bool_value = Bool::New(true);
-  object_store->set_true_value(bool_value);
-  bool_value = Bool::New(false);
-  object_store->set_false_value(bool_value);
 }
 
 
@@ -1250,9 +1208,13 @@ class StoreBufferObjectPointerVisitor : public ObjectPointerVisitor {
 };
 
 
+bool Object::IsReadOnlyHandle() const {
+  return Dart::IsReadOnlyHandle(reinterpret_cast<uword>(this));
+}
+
+
 bool Object::IsNotTemporaryScopedHandle() const {
-  return (IsZoneHandle() ||
-          Symbols::IsPredefinedHandle(reinterpret_cast<uword>(this)));
+  return (IsZoneHandle() || IsReadOnlyHandle());
 }
 
 
@@ -1286,9 +1248,9 @@ RawString* Class::UserVisibleName() const {
     case kSmiCid:
     case kMintCid:
     case kBigintCid:
-      return Symbols::New("int");
+      return Symbols::Int().raw();
     case kDoubleCid:
-      return Symbols::New("double");
+      return Symbols::Double().raw();
     case kOneByteStringCid:
     case kTwoByteStringCid:
     case kExternalOneByteStringCid:
@@ -1297,40 +1259,40 @@ RawString* Class::UserVisibleName() const {
     case kArrayCid:
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
-      return Symbols::New("List");
+      return Symbols::List().raw();
     case kInt8ArrayCid:
     case kExternalInt8ArrayCid:
-      return Symbols::New("Int8List");
+      return Symbols::Int8List().raw();
     case kUint8ArrayCid:
     case kExternalUint8ArrayCid:
-      return Symbols::New("Uint8List");
+      return Symbols::Uint8List().raw();
     case kUint8ClampedArrayCid:
     case kExternalUint8ClampedArrayCid:
-      return Symbols::New("Uint8ClampedList");
+      return Symbols::Uint8ClampedList().raw();
     case kInt16ArrayCid:
     case kExternalInt16ArrayCid:
-      return Symbols::New("Int16List");
+      return Symbols::Int16List().raw();
     case kUint16ArrayCid:
     case kExternalUint16ArrayCid:
-      return Symbols::New("Uint16List");
+      return Symbols::Uint16List().raw();
     case kInt32ArrayCid:
     case kExternalInt32ArrayCid:
-      return Symbols::New("Int32List");
+      return Symbols::Int32List().raw();
     case kUint32ArrayCid:
     case kExternalUint32ArrayCid:
-      return Symbols::New("Uint32List");
+      return Symbols::Uint32List().raw();
     case kInt64ArrayCid:
     case kExternalInt64ArrayCid:
-      return Symbols::New("Int64List");
+      return Symbols::Int64List().raw();
     case kUint64ArrayCid:
     case kExternalUint64ArrayCid:
-      return Symbols::New("Uint64List");
+      return Symbols::Uint64List().raw();
     case kFloat32ArrayCid:
     case kExternalFloat32ArrayCid:
-      return Symbols::New("Float32List");
+      return Symbols::Float32List().raw();
     case kFloat64ArrayCid:
     case kExternalFloat64ArrayCid:
-      return Symbols::New("Float64List");
+      return Symbols::Float64List().raw();
     default:
       if (!IsSignatureClass()) {
         const String& name = String::Handle(Name());
@@ -1415,15 +1377,15 @@ RawClass* Class::New() {
 
 // Initialize class fields of type Array with empty array.
 void Class::InitEmptyFields() {
-  if (Object::empty_array() == Array::null()) {
+  if (Object::empty_array().raw() == Array::null()) {
     // The empty array has not been initialized yet.
     return;
   }
-  StorePointer(&raw_ptr()->interfaces_, Object::empty_array());
-  StorePointer(&raw_ptr()->constants_, Object::empty_array());
-  StorePointer(&raw_ptr()->canonical_types_, Object::empty_array());
-  StorePointer(&raw_ptr()->functions_, Object::empty_array());
-  StorePointer(&raw_ptr()->fields_, Object::empty_array());
+  StorePointer(&raw_ptr()->interfaces_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->constants_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->canonical_types_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->fields_, Object::empty_array().raw());
 }
 
 
@@ -1837,15 +1799,14 @@ RawClass* Class::NewSignatureClass(const String& name,
   const intptr_t token_pos = signature_function.token_pos();
   Class& result = Class::Handle(New<Instance>(name, script, token_pos));
   const Type& super_type = Type::Handle(Type::ObjectType());
-  const Array& empty_array = Array::Handle(Object::empty_array());
   ASSERT(!super_type.IsNull());
   result.set_instance_size(Closure::InstanceSize());
   result.set_next_field_offset(Closure::InstanceSize());
   result.set_super_type(super_type);
   result.set_signature_function(signature_function);
   result.set_type_parameters(type_parameters);
-  result.SetFields(empty_array);
-  result.SetFunctions(empty_array);
+  result.SetFields(Object::empty_array());
+  result.SetFunctions(Object::empty_array());
   result.set_type_arguments_field_offset(
       Closure::type_arguments_offset());
   // Implements interface "Function".
@@ -1883,10 +1844,9 @@ RawClass* Class::NewNativeWrapper(const Library& library,
                                   int field_count) {
   Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
-    const Array& empty_array = Array::Handle(Object::empty_array());
     cls = New<Instance>(name, Script::Handle(), Scanner::kDummyTokenIndex);
-    cls.SetFields(empty_array);
-    cls.SetFunctions(empty_array);
+    cls.SetFields(Object::empty_array());
+    cls.SetFunctions(Object::empty_array());
     // Set super class to Object.
     cls.set_super_type(Type::Handle(Type::ObjectType()));
     // Compute instance size. First word contains a pointer to a properly
@@ -2119,13 +2079,13 @@ bool Class::TypeTest(
                           malformed_error);
     }
     // Check if type S has a call() method of function type T.
-    const String& function_name = String::Handle(Symbols::Call());
-    Function& function = Function::Handle(LookupDynamicFunction(function_name));
+    Function& function =
+        Function::Handle(LookupDynamicFunction(Symbols::Call()));
     if (function.IsNull()) {
       // Walk up the super_class chain.
       Class& cls = Class::Handle(SuperClass());
       while (!cls.IsNull() && function.IsNull()) {
-        function = cls.LookupDynamicFunction(function_name);
+        function = cls.LookupDynamicFunction(Symbols::Call());
         cls = cls.SuperClass();
       }
     }
@@ -2333,7 +2293,7 @@ RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
   for (intptr_t i = 0; i < len; i++) {
     func ^= funcs.At(i);
     if ((func.token_pos() <= token_pos) &&
-        (token_pos < func.end_token_pos())) {
+        (token_pos <= func.end_token_pos())) {
       return func.raw();
     }
   }
@@ -2473,11 +2433,9 @@ RawString* UnresolvedClass::Name() const {
   if (library_prefix() != LibraryPrefix::null()) {
     const LibraryPrefix& lib_prefix = LibraryPrefix::Handle(library_prefix());
     String& name = String::Handle();
-    String& str = String::Handle();
     name = lib_prefix.name();  // Qualifier.
-    str = Symbols::Dot();
-    name = String::Concat(name, str);
-    str = ident();
+    name = String::Concat(name, Symbols::Dot());
+    const String& str = String::Handle(ident());
     name = String::Concat(name, str);
     return name.raw();
   } else {
@@ -2538,6 +2496,29 @@ bool AbstractTypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
+static intptr_t FinalizeHash(uword hash) {
+  hash += hash << 3;
+  hash ^= hash >> 11;
+  hash += hash << 15;
+  return hash;
+}
+
+
+intptr_t AbstractTypeArguments::Hash() const {
+  if (IsNull()) return 0;
+  uword result = 0;
+  intptr_t num_types = Length();
+  AbstractType& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    result += type.Hash();
+    result += result << 10;
+    result ^= result >> 6;
+  }
+  return FinalizeHash(result);
+}
+
+
 RawString* AbstractTypeArguments::SubvectorName(
     intptr_t from_index,
     intptr_t len,
@@ -2547,18 +2528,17 @@ RawString* AbstractTypeArguments::SubvectorName(
   const intptr_t num_strings = 2*len + 1;  // "<""T"", ""T"">".
   const Array& strings = Array::Handle(Array::New(num_strings));
   intptr_t s = 0;
-  strings.SetAt(s++, String::Handle(Symbols::New("<")));
-  const String& kCommaSpace = String::Handle(Symbols::New(", "));
+  strings.SetAt(s++, Symbols::LAngleBracket());
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
     name = type.BuildName(name_visibility);
     strings.SetAt(s++, name);
     if (i < len - 1) {
-      strings.SetAt(s++, kCommaSpace);
+      strings.SetAt(s++, Symbols::CommaSpace());
     }
   }
-  strings.SetAt(s++, String::Handle(Symbols::New(">")));
+  strings.SetAt(s++, Symbols::RAngleBracket());
   ASSERT(s == num_strings);
   name = String::ConcatAll(strings);
   return Symbols::New(name);
@@ -2871,36 +2851,108 @@ void TypeArguments::SetLength(intptr_t value) const {
 }
 
 
+static void GrowCanonicalTypeArguments(Isolate* isolate, const Array& table) {
+  // Last element of the array is the number of used elements.
+  intptr_t table_size = table.Length() - 1;
+  intptr_t new_table_size = table_size * 2;
+  Array& new_table = Array::Handle(isolate, Array::New(new_table_size + 1));
+  // Copy all elements from the original table to the newly allocated
+  // array.
+  TypeArguments& element = TypeArguments::Handle(isolate);
+  Object& new_element = Object::Handle(isolate);
+  for (intptr_t i = 0; i < table_size; i++) {
+    element ^= table.At(i);
+    if (!element.IsNull()) {
+      intptr_t hash = element.Hash();
+      ASSERT(Utils::IsPowerOfTwo(new_table_size));
+      intptr_t index = hash & (new_table_size - 1);
+      new_element = new_table.At(index);
+      while (!new_element.IsNull()) {
+        index = (index + 1) & (new_table_size - 1);  // Move to next element.
+        new_element = new_table.At(index);
+      }
+      new_table.SetAt(index, element);
+    }
+  }
+  // Copy used count.
+  new_element = table.At(table_size);
+  new_table.SetAt(new_table_size, new_element);
+  // Remember the new table now.
+  isolate->object_store()->set_canonical_type_arguments(new_table);
+}
+
+
+static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
+                                             const Array& table,
+                                             const TypeArguments& arguments,
+                                             intptr_t index) {
+  arguments.SetCanonical();  // Mark object as being canonical.
+  table.SetAt(index, arguments);  // Remember the new element.
+  // Update used count.
+  // Last element of the array is the number of used elements.
+  intptr_t table_size = table.Length() - 1;
+  Smi& used = Smi::Handle(isolate);
+  used ^= table.At(table_size);
+  intptr_t used_elements = used.Value() + 1;
+  used = Smi::New(used_elements);
+  table.SetAt(table_size, used);
+
+  // Rehash if table is 75% full.
+  if (used_elements > ((table_size / 4) * 3)) {
+    GrowCanonicalTypeArguments(isolate, table);
+  }
+}
+
+
+static intptr_t FindIndexInCanonicalTypeArguments(
+    Isolate* isolate,
+    const Array& table,
+    const TypeArguments& arguments,
+    intptr_t hash) {
+  // Last element of the array is the number of used elements.
+  intptr_t table_size = table.Length() - 1;
+  ASSERT(Utils::IsPowerOfTwo(table_size));
+  intptr_t index = hash & (table_size - 1);
+
+  TypeArguments& current = TypeArguments::Handle(isolate);
+  current ^= table.At(index);
+  while (!current.IsNull() && !current.Equals(arguments)) {
+    index = (index + 1) & (table_size - 1);  // Move to next element.
+    current ^= table.At(index);
+  }
+  return index;  // Index of element if found or slot into which to add it.
+}
+
+
 RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
   if (IsNull() || IsCanonical()) {
     ASSERT(IsOld());
     return this->raw();
   }
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  // 'table' must be null terminated.
-  Array& table = Array::Handle(object_store->canonical_type_arguments());
+  Isolate* isolate = Isolate::Current();
+  ObjectStore* object_store = isolate->object_store();
+  const Array& table = Array::Handle(isolate,
+                                     object_store->canonical_type_arguments());
   ASSERT(table.Length() > 0);
-  intptr_t index = 0;
-  TypeArguments& result = TypeArguments::Handle();
+  intptr_t index = FindIndexInCanonicalTypeArguments(isolate,
+                                                     table,
+                                                     *this,
+                                                     Hash());
+  TypeArguments& result = TypeArguments::Handle(isolate);
   result ^= table.At(index);
-  while (!result.IsNull()) {
-    if (this->Equals(result)) {
-      return result.raw();
+  if (result.IsNull()) {
+    // Make sure we have an old space object and add it to the table.
+    if (this->IsNew()) {
+      result ^= Object::Clone(*this, Heap::kOld);
+    } else {
+      result ^= this->raw();
     }
-    result ^= table.At(++index);
+    ASSERT(result.IsOld());
+    InsertIntoCanonicalTypeArguments(isolate, table, result, index);
   }
-  // Not found. Add 'this' to table.
-  result ^= this->raw();
-  if (result.IsNew()) {
-    result ^= Object::Clone(result, Heap::kOld);
-  }
-  ASSERT(result.IsOld());
-  if (index == table.Length() - 1) {
-    table = Array::Grow(table, table.Length() + 4, Heap::kOld);
-    object_store->set_canonical_type_arguments(table);
-  }
-  table.SetAt(index, result);
-  result.SetCanonical();
+  ASSERT(result.Equals(*this));
+  ASSERT(!result.IsNull());
+  ASSERT(result.IsTypeArguments());
   return result.raw();
 }
 
@@ -3402,7 +3454,8 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 bool Function::is_optimizable() const {
   return OptimizableBit::decode(raw_ptr()->kind_tag_) &&
          (script() != Script::null()) &&
-         !is_native();
+         !is_native() &&
+         ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff);
 }
 
 
@@ -3435,7 +3488,7 @@ bool Function::IsInlineable() const {
   // '==' call is handled specially.
   return InlinableBit::decode(raw_ptr()->kind_tag_) &&
          HasCode() &&
-         name() != Symbols::EqualOperator();
+         name() != Symbols::EqualOperator().raw();
 }
 
 
@@ -3841,9 +3894,8 @@ RawFunction* Function::New(const String& name,
   ASSERT(name.IsOneByteString());
   ASSERT(!owner.IsNull());
   const Function& result = Function::Handle(Function::New());
-  const Array& empty_array = Array::Handle(Object::empty_array());
-  result.set_parameter_types(empty_array);
-  result.set_parameter_names(empty_array);
+  result.set_parameter_types(Object::empty_array());
+  result.set_parameter_names(Object::empty_array());
   result.set_name(name);
   result.set_kind(kind);
   result.set_is_static(is_static);
@@ -3858,6 +3910,8 @@ RawFunction* Function::New(const String& name,
   result.set_num_optional_parameters(0);
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
+  result.set_optimized_instruction_count(0);
+  result.set_optimized_call_site_count(0);
   result.set_is_optimizable(true);
   result.set_has_finally(false);
   result.set_is_native(false);
@@ -3935,8 +3989,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // Add implicit closure object parameter.
   param_type = Type::DynamicType();
   closure_function.SetParameterTypeAt(0, param_type);
-  param_name = Symbols::ClosureParameter();
-  closure_function.SetParameterNameAt(0, param_name);
+  closure_function.SetParameterNameAt(0, Symbols::ClosureParameter());
   for (int i = kClosure; i < num_params; i++) {
     param_type = ParameterTypeAt(has_receiver - kClosure + i);
     closure_function.SetParameterTypeAt(i, param_type);
@@ -3980,23 +4033,11 @@ RawString* Function::BuildSignature(
     const AbstractTypeArguments& instantiator) const {
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const String& kCommaSpace = String::Handle(Symbols::New(", "));
-  const String& kColonSpace = String::Handle(Symbols::New(": "));
-  const String& kLParen = String::Handle(Symbols::New("("));
-  const String& kRParenArrow = String::Handle(Symbols::New(") => "));
-  const String& kLBracket = String::Handle(Symbols::New("["));
-  const String& kRBracket = String::Handle(Symbols::New("]"));
-  const String& kLBrace = String::Handle(Symbols::New("{"));
-  const String& kRBrace = String::Handle(Symbols::New("}"));
   String& name = String::Handle();
   if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
     // Prefix the signature with its class and type parameters, if any (e.g.
     // "Map<K, V>(K) => bool").
     // The signature of static functions cannot be type parameterized.
-    const String& kSpaceExtendsSpace =
-        String::Handle(Symbols::New(" extends "));
-    const String& kLAngleBracket = String::Handle(Symbols::New("<"));
-    const String& kRAngleBracket = String::Handle(Symbols::New(">"));
     const Class& function_class = Class::Handle(Owner());
     ASSERT(!function_class.IsNull());
     const TypeArguments& type_parameters = TypeArguments::Handle(
@@ -4005,7 +4046,7 @@ RawString* Function::BuildSignature(
       const String& function_class_name = String::Handle(function_class.Name());
       pieces.Add(function_class_name);
       intptr_t num_type_parameters = type_parameters.Length();
-      pieces.Add(kLAngleBracket);
+      pieces.Add(Symbols::LAngleBracket());
       TypeParameter& type_parameter = TypeParameter::Handle();
       AbstractType& bound = AbstractType::Handle();
       for (intptr_t i = 0; i < num_type_parameters; i++) {
@@ -4014,15 +4055,15 @@ RawString* Function::BuildSignature(
         pieces.Add(name);
         bound = type_parameter.bound();
         if (!bound.IsNull() && !bound.IsObjectType()) {
-          pieces.Add(kSpaceExtendsSpace);
+          pieces.Add(Symbols::SpaceExtendsSpace());
           name = bound.BuildName(name_visibility);
           pieces.Add(name);
         }
         if (i < num_type_parameters - 1) {
-          pieces.Add(kCommaSpace);
+          pieces.Add(Symbols::CommaSpace());
         }
       }
-      pieces.Add(kRAngleBracket);
+      pieces.Add(Symbols::RAngleBracket());
     }
   }
   AbstractType& param_type = AbstractType::Handle();
@@ -4032,7 +4073,7 @@ RawString* Function::BuildSignature(
   const intptr_t num_opt_named_params = NumOptionalNamedParameters();
   const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
   ASSERT((num_fixed_params + num_opt_params) == num_params);
-  pieces.Add(kLParen);
+  pieces.Add(Symbols::LParen());
   intptr_t i = 0;
   if (name_visibility == kUserVisibleName) {
     // Hide implicit parameters.
@@ -4047,15 +4088,15 @@ RawString* Function::BuildSignature(
     name = param_type.BuildName(name_visibility);
     pieces.Add(name);
     if (i != (num_params - 1)) {
-      pieces.Add(kCommaSpace);
+      pieces.Add(Symbols::CommaSpace());
     }
     i++;
   }
   if (num_opt_params > 0) {
     if (num_opt_pos_params > 0) {
-      pieces.Add(kLBracket);
+      pieces.Add(Symbols::LBracket());
     } else {
-      pieces.Add(kLBrace);
+      pieces.Add(Symbols::LBrace());
     }
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
       // The parameter name of an optional positional parameter does not need
@@ -4063,7 +4104,7 @@ RawString* Function::BuildSignature(
       if (num_opt_named_params > 0) {
         name = ParameterNameAt(i);
         pieces.Add(name);
-        pieces.Add(kColonSpace);
+        pieces.Add(Symbols::ColonSpace());
       }
       param_type = ParameterTypeAt(i);
       if (instantiate && !param_type.IsInstantiated()) {
@@ -4073,16 +4114,16 @@ RawString* Function::BuildSignature(
       name = param_type.BuildName(name_visibility);
       pieces.Add(name);
       if (i != (num_params - 1)) {
-        pieces.Add(kCommaSpace);
+        pieces.Add(Symbols::CommaSpace());
       }
     }
     if (num_opt_pos_params > 0) {
-      pieces.Add(kRBracket);
+      pieces.Add(Symbols::RBracket());
     } else {
-      pieces.Add(kRBrace);
+      pieces.Add(Symbols::RBrace());
     }
   }
-  pieces.Add(kRParenArrow);
+  pieces.Add(Symbols::RParenArrow());
   AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {
     res_type = res_type.InstantiateFrom(instantiator);
@@ -4143,7 +4184,6 @@ RawString* Function::UserVisibleName() const {
 
 RawString* Function::QualifiedUserVisibleName() const {
   String& tmp = String::Handle();
-  String& suffix = String::Handle();
   const Class& cls = Class::Handle(Owner());
 
   if (IsClosureFunction()) {
@@ -4160,9 +4200,8 @@ RawString* Function::QualifiedUserVisibleName() const {
       tmp = cls.UserVisibleName();
     }
   }
-  suffix = Symbols::Dot();
-  tmp = String::Concat(tmp, suffix);
-  suffix = UserVisibleName();
+  tmp = String::Concat(tmp, Symbols::Dot());
+  const String& suffix = String::Handle(UserVisibleName());
   return String::Concat(tmp, suffix);
 }
 
@@ -4329,8 +4368,7 @@ RawString* Field::GetterName(const String& field_name) {
 
 
 RawString* Field::GetterSymbol(const String& field_name) {
-  String& str = String::Handle();
-  str = Field::GetterName(field_name);
+  const String& str = String::Handle(Field::GetterName(field_name));
   return Symbols::New(str);
 }
 
@@ -4344,8 +4382,7 @@ RawString* Field::SetterName(const String& field_name) {
 
 
 RawString* Field::SetterSymbol(const String& field_name) {
-  String& str = String::Handle();
-  str = Field::SetterName(field_name);
+  const String& str = String::Handle(Field::SetterName(field_name));
   return Symbols::New(str);
 }
 
@@ -4542,14 +4579,6 @@ RawString* TokenStream::GenerateSource() const {
   const String& private_key = String::Handle(PrivateKey());
   intptr_t private_len = private_key.Length();
 
-  String& blank = String::Handle(String::New(" "));
-  String& newline = String::Handle(String::New("\n"));
-  String& two_newlines = String::Handle(String::New("\n\n"));
-  String& double_quotes = String::Handle(String::New("\""));
-  String& dollar = String::Handle(String::New("$"));
-  String& two_spaces = String::Handle(String::New("  "));
-  String& raw_string = String::Handle(String::New("r"));
-
   Token::Kind curr = iterator.CurrentTokenKind();
   Token::Kind prev = Token::kILLEGAL;
   // Handles used in the loop.
@@ -4590,9 +4619,9 @@ RawString* TokenStream::GenerateSource() const {
       }
       if ((prev != Token::kINTERPOL_VAR) && (prev != Token::kINTERPOL_END)) {
         if (is_raw_string) {
-          literals.Add(raw_string);
+          literals.Add(Symbols::LowercaseR());
         }
-        literals.Add(double_quotes);
+        literals.Add(Symbols::DoubleQuotes());
       }
       if (escape_characters) {
         literal = String::EscapeSpecialCharacters(literal, is_raw_string);
@@ -4601,10 +4630,10 @@ RawString* TokenStream::GenerateSource() const {
         literals.Add(literal);
       }
       if ((next != Token::kINTERPOL_VAR) && (next != Token::kINTERPOL_START)) {
-        literals.Add(double_quotes);
+        literals.Add(Symbols::DoubleQuotes());
       }
     } else if (curr == Token::kINTERPOL_VAR) {
-      literals.Add(dollar);
+      literals.Add(Symbols::Dollar());
       if (literal.CharAt(0) == Scanner::kPrivateIdentifierStart) {
         literal = String::SubString(literal, 0, literal.Length() - private_len);
       }
@@ -4622,17 +4651,17 @@ RawString* TokenStream::GenerateSource() const {
     switch (curr) {
       case Token::kLBRACE:
         indent++;
-        separator = &newline;
+        separator = &Symbols::NewLine();
         break;
       case Token::kRBRACE:
         if (indent == 0) {
-          separator = &two_newlines;
+          separator = &Symbols::TwoNewlines();
         } else {
-          separator = &newline;
+          separator = &Symbols::NewLine();
         }
         break;
       case Token::kSEMICOLON:
-        separator = &newline;
+        separator = &Symbols::NewLine();
         break;
       case Token::kPERIOD:
       case Token::kLPAREN:
@@ -4643,7 +4672,7 @@ RawString* TokenStream::GenerateSource() const {
       case Token::kINTERPOL_END:
         break;
       default:
-        separator = &blank;
+        separator = &Symbols::Blank();
         break;
     }
     // Determine whether the separation text needs to be updated based on the
@@ -4665,7 +4694,7 @@ RawString* TokenStream::GenerateSource() const {
         separator = NULL;
         break;
       case Token::kELSE:
-        separator = &blank;
+        separator = &Symbols::Blank();
       default:
         // Do nothing.
         break;
@@ -4673,17 +4702,17 @@ RawString* TokenStream::GenerateSource() const {
     // Update the few cases where both tokens need to be taken into account.
     if (((curr == Token::kIF) || (curr == Token::kFOR)) &&
         (next == Token::kLPAREN)) {
-      separator = &blank;
+      separator = &Symbols::Blank();
     } else if ((curr == Token::kASSIGN) && (next == Token::kLPAREN)) {
-      separator = & blank;
+      separator = &Symbols::Blank();
     } else if ((curr == Token::kLBRACE) && (next == Token::kRBRACE)) {
       separator = NULL;
     }
     if (separator != NULL) {
       literals.Add(*separator);
-      if (separator == &newline) {
+      if (separator == &Symbols::NewLine()) {
         for (int i = 0; i < indent; i++) {
-          literals.Add(two_spaces);
+          literals.Add(Symbols::TwoSpaces());
         }
       }
     }
@@ -5116,10 +5145,9 @@ void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
   const String& src = String::Handle(Source());
-  const String& dummy_key = String::Handle(Symbols::Empty());
   const TokenStream& tkns = TokenStream::Handle(tokens());
   intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
-  Scanner scanner(src, dummy_key);
+  Scanner scanner(src, Symbols::Empty());
   scanner.ScanTo(src_pos);
   *line = scanner.CurrentPosition().line;
   *column = scanner.CurrentPosition().column;
@@ -5130,9 +5158,8 @@ void Script::TokenRangeAtLine(intptr_t line_number,
                               intptr_t* first_token_index,
                               intptr_t* last_token_index) const {
   const String& src = String::Handle(Source());
-  const String& dummy_key = String::Handle(Symbols::Empty());
   const TokenStream& tkns = TokenStream::Handle(tokens());
-  Scanner scanner(src, dummy_key);
+  Scanner scanner(src, Symbols::Empty());
   scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
   if (*first_token_index >= 0) {
     *first_token_index = tkns.ComputeTokenPosition(*first_token_index);
@@ -5165,11 +5192,13 @@ RawString* Script::GetLine(intptr_t line_number) const {
     }
   }
   // Guarantee that returned string is never NULL.
-  String& line = String::Handle(Symbols::Empty());
   if (line_start >= 0) {
-    line = String::SubString(src, line_start, last_char - line_start + 1);
+    const String& line = String::Handle(
+        String::SubString(src, line_start, last_char - line_start + 1));
+    return line.raw();
+  } else {
+    return Symbols::Empty().raw();
   }
-  return line.raw();
 }
 
 
@@ -5564,7 +5593,14 @@ RawFunction* Library::LookupFunctionInSource(const String& script_url,
     // Script does not contain the given line number.
     return Function::null();
   }
-  return LookupFunctionInScript(script, first_token_pos);
+  Function& func = Function::Handle();
+  for (intptr_t pos = first_token_pos; pos <= last_token_pos; pos++) {
+    func = LookupFunctionInScript(script, pos);
+    if (!func.IsNull()) {
+      return func.raw();
+    }
+  }
+  return Function::null();
 }
 
 
@@ -5859,7 +5895,7 @@ void Library::AddImport(const Namespace& ns) const {
 // Convenience function to determine whether the export list is
 // non-empty.
 bool Library::HasExports() const {
-  return exports() != Object::empty_array();
+  return exports() != Object::empty_array().raw();
 }
 
 
@@ -5910,11 +5946,11 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.StorePointer(&result.raw_ptr()->name_, url.raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.raw_ptr()->private_key_ = Scanner::AllocatePrivateKey(result);
-  result.raw_ptr()->dictionary_ = Object::empty_array();
-  result.raw_ptr()->anonymous_classes_ = Object::empty_array();
+  result.raw_ptr()->dictionary_ = Object::empty_array().raw();
+  result.raw_ptr()->anonymous_classes_ = Object::empty_array().raw();
   result.raw_ptr()->num_anonymous_ = 0;
-  result.raw_ptr()->imports_ = Object::empty_array();
-  result.raw_ptr()->exports_ = Object::empty_array();
+  result.raw_ptr()->imports_ = Object::empty_array().raw();
+  result.raw_ptr()->exports_ = Object::empty_array().raw();
   result.raw_ptr()->loaded_scripts_ = Array::null();
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
@@ -6968,7 +7004,8 @@ Code::Comments& Code::Comments::New(intptr_t count) {
   if (count == 0) {
     comments = new Comments(Object::empty_array());
   } else {
-    comments = new Comments(Array::New(count * kNumberOfEntries));
+    const Array& data = Array::Handle(Array::New(count * kNumberOfEntries));
+    comments = new Comments(data);
   }
   return *comments;
 }
@@ -7005,8 +7042,8 @@ void Code::Comments::SetCommentAt(intptr_t idx, const String& comment) {
 }
 
 
-Code::Comments::Comments(RawArray* comments)
-    : comments_(Array::Handle(comments)) {
+Code::Comments::Comments(const Array& comments)
+    : comments_(comments) {
 }
 
 
@@ -7064,7 +7101,7 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
 
 
 const Code::Comments& Code::comments() const  {
-  Comments* comments = new Code::Comments(raw_ptr()->comments_);
+  Comments* comments = new Code::Comments(Array::Handle(raw_ptr()->comments_));
   return *comments;
 }
 
@@ -7696,6 +7733,16 @@ intptr_t ICData::GetCountAt(intptr_t index) const {
 }
 
 
+intptr_t ICData::AggregateCount() const {
+  const intptr_t len = NumberOfChecks();
+  intptr_t count = 0;
+  for (intptr_t i = 0; i < len; i++) {
+    count += GetCountAt(i);
+  }
+  return count;
+}
+
+
 RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
@@ -8308,8 +8355,8 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       // Object::transition_sentinel() if type checks were not eliminated at
       // compile time. Both sentinels are instances of the Null class, but they
       // are not the Object::null() instance.
-      ASSERT((raw() == Object::transition_sentinel()) ||
-             (raw() == Object::sentinel()));
+      ASSERT((raw() == Object::transition_sentinel().raw()) ||
+             (raw() == Object::sentinel().raw()));
       ASSERT(!FLAG_eliminate_type_checks);
       return true;  // We are doing an instance of test as part of a type check.
     }
@@ -8409,6 +8456,36 @@ bool Instance::IsClosure() const {
 }
 
 
+bool Instance::IsCallable(Function* function, Context* context) const {
+  Class& cls = Class::Handle(clazz());
+  if (cls.IsSignatureClass()) {
+    if (function != NULL) {
+      *function = Closure::function(*this);
+    }
+    if (context != NULL) {
+      *context = Closure::context(*this);
+    }
+    return true;
+  }
+  // Try to resolve a "call" method.
+  Function& call_function = Function::Handle();
+  do {
+    call_function = cls.LookupDynamicFunction(Symbols::Call());
+    if (!call_function.IsNull()) {
+      if (function != NULL) {
+        *function = call_function.raw();
+      }
+      if (context != NULL) {
+        *context = Isolate::Current()->object_store()->empty_context();
+      }
+      return true;
+    }
+    cls = cls.SuperClass();
+  } while (!cls.IsNull());
+  return false;
+}
+
+
 RawInstance* Instance::New(const Class& cls, Heap::Space space) {
   Instance& result = Instance::Handle();
   {
@@ -8431,9 +8508,9 @@ bool Instance::IsValidFieldOffset(int offset) const {
 const char* Instance::ToCString() const {
   if (IsNull()) {
     return "null";
-  } else if (raw() == Object::sentinel()) {
+  } else if (raw() == Object::sentinel().raw()) {
     return "sentinel";
-  } else if (raw() == Object::transition_sentinel()) {
+  } else if (raw() == Object::transition_sentinel().raw()) {
     return "transition_sentinel";
   } else if (Isolate::Current()->no_gc_scope_depth() > 0) {
     // Can occur when running disassembler.
@@ -8751,6 +8828,13 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
 }
 
 
+intptr_t AbstractType::Hash() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return 0;
+}
+
+
 const char* AbstractType::ToCString() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -9025,6 +9109,16 @@ RawAbstractType* Type::Canonicalize() const {
 }
 
 
+intptr_t Type::Hash() const {
+  ASSERT(IsFinalized());
+  uword result = 1;
+  if (IsMalformed()) return result;
+  result += Class::Handle(type_class()).id();
+  result += AbstractTypeArguments::Handle(arguments()).Hash();
+  return FinalizeHash(result);
+}
+
+
 void Type::set_type_class(const Object& value) const {
   ASSERT(!value.IsNull() && (value.IsClass() || value.IsUnresolvedClass()));
   StorePointer(&raw_ptr()->type_class_, value.raw());
@@ -9128,9 +9222,7 @@ bool TypeParameter::Equals(const Instance& other) const {
   if (index() != other_type_param.index()) {
     return false;
   }
-  const String& type_param_name = String::Handle(name());
-  const String& other_type_param_name = String::Handle(other_type_param.name());
-  return type_param_name.Equals(other_type_param_name);
+  return true;
 }
 
 
@@ -9163,6 +9255,15 @@ RawAbstractType* TypeParameter::InstantiateFrom(
     return Type::DynamicType();
   }
   return instantiator_type_arguments.TypeAt(index());
+}
+
+
+intptr_t TypeParameter::Hash() const {
+  ASSERT(IsFinalized());
+  uword result = 0;
+  result += Class::Handle(parameterized_class()).id();
+  result <<= index();
+  return FinalizeHash(result);
 }
 
 
@@ -10514,7 +10615,7 @@ RawString* String::SubString(const String& str,
   ASSERT(begin_index >= 0);
   ASSERT(length >= 0);
   if (begin_index <= str.Length() && length == 0) {
-    return Symbols::Empty();
+    return Symbols::Empty().raw();
   }
   if (begin_index > str.Length()) {
     return String::null();
@@ -10927,7 +11028,7 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
   ASSERT(begin_index >= 0);
   ASSERT(length >= 0);
   if (begin_index <= str.Length() && length == 0) {
-    return OneByteString::raw(String::Handle(Symbols::Empty()));
+    return OneByteString::raw(Symbols::Empty());
   }
   ASSERT(begin_index < str.Length());
   RawOneByteString* result = OneByteString::New(length, space);
@@ -11182,16 +11283,6 @@ void ExternalTwoByteString::Finalize(Dart_Handle handle, void* peer) {
 }
 
 
-RawBool* Bool::True() {
-  return Isolate::Current()->object_store()->true_value();
-}
-
-
-RawBool* Bool::False() {
-  return Isolate::Current()->object_store()->false_value();
-}
-
-
 RawBool* Bool::New(bool value) {
   ASSERT(Isolate::Current()->object_store()->bool_class() != Class::null());
   Bool& result = Bool::Handle();
@@ -11205,6 +11296,7 @@ RawBool* Bool::New(bool value) {
     result ^= raw;
   }
   result.set_value(value);
+  result.SetCanonical();
   return result.raw();
 }
 
@@ -11308,7 +11400,6 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   intptr_t capacity_len = growable_array.Capacity();
   Isolate* isolate = Isolate::Current();
   const Array& array = Array::Handle(isolate, growable_array.data());
-  const Array& new_array = Array::Handle(isolate, Object::empty_array());
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
   NoGCScope no_gc;
@@ -11322,7 +11413,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
 
   // Null the GrowableObjectArray, we are removing it's backing array.
   growable_array.SetLength(0);
-  growable_array.SetData(new_array);
+  growable_array.SetData(Object::empty_array());
 
   // If there is any left over space fill it with either an Array object or
   // just a plain object (depending on the amount of left over space) so

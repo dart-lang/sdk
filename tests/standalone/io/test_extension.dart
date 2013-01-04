@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("test_extension");
+library test_extension;
 
-#import("dart-ext:test_extension");
+import "dart-ext:test_extension";
 
 class Cat {
   Cat(this.x);

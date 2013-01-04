@@ -1489,6 +1489,15 @@ abstract class ClassElement extends ScopeContainerElement
     return result;
   }
 
+  /// Lookup a synthetic element created by the backend.
+  Element lookupBackendMember(SourceString memberName) {
+    for (Element element in backendMembers) {
+      if (element.name == memberName) {
+        return element;
+      }
+    }
+  }
+
   /**
    * Lookup super members for the class. This will ignore constructors.
    */
@@ -1761,6 +1770,9 @@ abstract class ClassElement extends ScopeContainerElement
 
   bool isInterface() => false;
   bool isNative() => nativeTagInfo != null;
+  void setNative(String name) {
+    nativeTagInfo = new SourceString(name);
+  }
   int get hashCode => id;
 
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
@@ -2007,6 +2019,30 @@ class Elements {
     return (element == coreLibrary.find(const SourceString('Collection')))
         || (element == coreLibrary.find(const SourceString('Iterable')));
   }
+
+  /// A `compareTo` function that places [Element]s in a consistent order based
+  /// on the source code order.
+  static int compareByPosition(Element a, Element b) {
+    CompilationUnitElement unitA = a.getCompilationUnit();
+    CompilationUnitElement unitB = b.getCompilationUnit();
+    if (!identical(unitA, unitB)) {
+      int r = unitA.script.uri.path.compareTo(unitB.script.uri.path);
+      if (r != 0) return r;
+    }
+    Token positionA = a.position();
+    Token positionB = b.position();
+    int r = positionA.charOffset.compareTo(positionB.charOffset);
+    if (r != 0) return r;
+    r = a.name.slowToString().compareTo(b.name.slowToString());
+    if (r != 0) return r;
+    // Same file, position and name.  If this happens, we should find out why
+    // and make the order total and independent of hashCode.
+    return a.hashCode.compareTo(b.hashCode);
+  }
+
+  static List<Element> sortedByPosition(Collection<Element> elements) {
+    return new List<Element>.from(elements)..sort(compareByPosition);
+  }
 }
 
 class LabelElement extends Element {
@@ -2124,6 +2160,11 @@ abstract class MetadataAnnotation {
   Constant get value;
   Element annotatedElement;
   int resolutionState;
+
+  /**
+   * The beginning token of this annotation, or [:null:] if it is synthetic.
+   */
+  Token get beginToken;
 
   MetadataAnnotation([this.resolutionState = STATE_NOT_STARTED]);
 

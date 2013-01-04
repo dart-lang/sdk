@@ -22,19 +22,19 @@
  *
  */
 
-#library("test");
+library test;
 
-#import("dart:io");
-#import("testing/dart/test_runner.dart");
-#import("testing/dart/test_options.dart");
-#import("testing/dart/test_suite.dart");
-#import("testing/dart/test_progress.dart");
-#import("testing/dart/http_server.dart");
+import "dart:io";
+import "testing/dart/test_runner.dart";
+import "testing/dart/test_options.dart";
+import "testing/dart/test_suite.dart";
+import "testing/dart/test_progress.dart";
+import "testing/dart/http_server.dart";
 
-#import("../compiler/tests/dartc/test_config.dart");
-#import("../runtime/tests/vm/test_config.dart");
-#import("../samples/tests/dartc/test_config.dart");
-#import("../tests/co19/test_config.dart");
+import "../compiler/tests/dartc/test_config.dart";
+import "../runtime/tests/vm/test_config.dart";
+import "../samples/tests/dartc/test_config.dart";
+import "../tests/co19/test_config.dart";
 
 /**
  * The directories that contain test suites which follow the conventions

@@ -6,7 +6,7 @@ library command_version;
 
 import 'pub.dart';
 
-/** Handles the `version` pub command. */
+/// Handles the `version` pub command. 
 class VersionCommand extends PubCommand {
   String get description => 'Print pub version.';
   String get usage => 'pub version';

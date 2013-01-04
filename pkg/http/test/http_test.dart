@@ -6,8 +6,8 @@ library http_test;
 
 import 'dart:io';
 
-import '../../unittest/lib/unittest.dart';
-import '../lib/http.dart' as http;
+import 'package:unittest/unittest.dart';
+import 'package:http/http.dart' as http;
 import 'utils.dart';
 
 main() {
@@ -32,6 +32,7 @@ main() {
           'method': 'GET',
           'path': '/',
           'headers': {
+            'content-length': ['0'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           },
@@ -55,11 +56,11 @@ main() {
             'content-type': [
               'application/x-www-form-urlencoded; charset=UTF-8'
             ],
-            'content-length': ['42'],
+            'content-length': ['40'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           },
-          'body': 'some-field=value&other-field=other%20value'
+          'body': 'some-field=value&other-field=other+value'
         })));
       }), completes);
     });
@@ -75,6 +76,7 @@ main() {
           'method': 'POST',
           'path': '/',
           'headers': {
+            'content-length': ['0'],
             'content-type': ['text/plain'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
@@ -99,11 +101,11 @@ main() {
             'content-type': [
               'application/x-www-form-urlencoded; charset=UTF-8'
             ],
-            'content-length': ['42'],
+            'content-length': ['40'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           },
-          'body': 'some-field=value&other-field=other%20value'
+          'body': 'some-field=value&other-field=other+value'
         })));
       }), completes);
     });
@@ -119,6 +121,7 @@ main() {
           'method': 'PUT',
           'path': '/',
           'headers': {
+            'content-length': ['0'],
             'content-type': ['text/plain'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
@@ -137,6 +140,7 @@ main() {
           'method': 'DELETE',
           'path': '/',
           'headers': {
+            'content-length': ['0'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           }
@@ -152,6 +156,7 @@ main() {
         'method': 'GET',
         'path': '/',
         'headers': {
+          'content-length': ['0'],
           'x-random-header': ['Value'],
           'x-other-header': ['Other Value']
         },
@@ -172,6 +177,7 @@ main() {
         'method': 'GET',
         'path': '/',
         'headers': {
+          'content-length': ['0'],
           'x-random-header': ['Value'],
           'x-other-header': ['Other Value']
         },

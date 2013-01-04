@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.io;
+
 /**
  * SecureSocket provides a secure (SSL or TLS) client connection to a server.
  * The certificate provided by the server is checked
- * using the certificate database provided in setCertificateDatabase.
+ * using the certificate database (optionally) provided in initialize().
  */
 abstract class SecureSocket implements Socket {
   /**
@@ -47,12 +49,16 @@ abstract class SecureSocket implements Socket {
   X509Certificate get peerCertificate;
 
    /**
-   * Initializes the NSS library with the path to a certificate database
+   * Initializes the NSS library.  If [initialize] is not called, the library
+   * is automatically initialized as if [initialize] were called with no
+   * arguments.
+   *
+   * The optional argument [database] is the path to a certificate database
    * containing root certificates for verifying certificate paths on
    * client connections, and server certificates to provide on server
-   * connections.  The password argument should be used when creating
+   * connections.  The argument [password] should be used when creating
    * secure server sockets, to allow the private key of the server
-   * certificate to be fetched.  If useBuiltinRoots is true (the default),
+   * certificate to be fetched.  If [useBuiltinRoots] is true (the default),
    * then a built-in set of root certificates for trusted certificate
    * authorities is merged with the certificates in the database.
    *
@@ -73,7 +79,7 @@ abstract class SecureSocket implements Socket {
    * containing a cert9.db file, not a cert8.db file.  This version of
    * the database can be created using the NSS certutil tool with "sql:" in
    * front of the absolute path of the database directory, or setting the
-   * environment variable NSS_DEFAULT_DB_TYPE to "sql".
+   * environment variable [[NSS_DEFAULT_DB_TYPE]] to "sql".
    */
   external static void initialize({String database,
                                    String password,
@@ -304,7 +310,8 @@ class _SecureSocket implements SecureSocket {
         toRead = len;
       }
     }
-    List<int> result = buffer.data.getRange(buffer.start, toRead);
+    List<int> result = (toRead == 0) ? null :
+        buffer.data.getRange(buffer.start, toRead);
     buffer.advanceStart(toRead);
     _setHandlersAfterRead();
     return result;

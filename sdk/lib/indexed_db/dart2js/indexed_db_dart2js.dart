@@ -135,14 +135,6 @@ const _annotation_Returns_IDBKey = const Returns(_idbKey);
 /// @domName IDBCursor; @docsEditable true
 class Cursor native "*IDBCursor" {
 
-  static const int NEXT = 0;
-
-  static const int NEXT_NO_DUPLICATE = 1;
-
-  static const int PREV = 2;
-
-  static const int PREV_NO_DUPLICATE = 3;
-
   /// @domName IDBCursor.direction; @docsEditable true
   final String direction;
 
@@ -213,39 +205,14 @@ class Database extends EventTarget native "*IDBDatabase" {
     // TODO(sra): Ensure storeName_OR_storeNames is a string or List<String>,
     // and copy to JavaScript array if necessary.
 
-    if (_transaction_fn != null) {
-      return _transaction_fn(this, storeName_OR_storeNames, mode);
-    }
-
     // Try and create a transaction with a string mode.  Browsers that expect a
     // numeric mode tend to convert the string into a number.  This fails
     // silently, resulting in zero ('readonly').
-    var txn = _transaction(storeName_OR_storeNames, mode);
-    if (_hasNumericMode(txn)) {
-      _transaction_fn = _transaction_numeric_mode;
-      txn = _transaction_fn(this, storeName_OR_storeNames, mode);
-    } else {
-      _transaction_fn = _transaction_string_mode;
-    }
-    return txn;
-  }
-
-  static Transaction _transaction_string_mode(Database db, stores, mode) {
-    return db._transaction(stores, mode);
-  }
-
-  static Transaction _transaction_numeric_mode(Database db, stores, mode) {
-    int intMode;
-    if (mode == 'readonly') intMode = Transaction.READ_ONLY;
-    if (mode == 'readwrite') intMode = Transaction.READ_WRITE;
-    return db._transaction(stores, intMode);
+    return _transaction(storeName_OR_storeNames, mode);
   }
 
   @JSName('transaction')
   Transaction _transaction(stores, mode) native;
-
-  static bool _hasNumericMode(txn) =>
-      JS('bool', 'typeof(#.mode) === "number"', txn);
 
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -292,14 +259,7 @@ class Database extends EventTarget native "*IDBDatabase" {
   /// @domName IDBDatabase.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName IDBDatabase.setVersion; @docsEditable true
-  VersionChangeRequest setVersion(String version) native;
 }
-
-// TODO(sra): This should be a static member of IDBTransaction but dart2js
-// can't handle that.  Move it back after dart2js is completely done.
-var _transaction_fn;  // Assigned one of the static methods.
 
 /// @docsEditable true
 class DatabaseEvents extends Events {
@@ -320,54 +280,22 @@ class DatabaseEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBDatabaseException; @docsEditable true
-class DatabaseException native "*IDBDatabaseException" {
-
-  static const int ABORT_ERR = 20;
-
-  static const int CONSTRAINT_ERR = 4;
-
-  static const int DATA_ERR = 5;
-
-  static const int NON_TRANSIENT_ERR = 2;
-
-  static const int NOT_ALLOWED_ERR = 6;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NO_ERR = 0;
-
-  static const int QUOTA_ERR = 22;
-
-  static const int READ_ONLY_ERR = 9;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TRANSACTION_INACTIVE_ERR = 7;
-
-  static const int UNKNOWN_ERR = 1;
-
-  static const int VER_ERR = 12;
-
-  /// @domName IDBDatabaseException.code; @docsEditable true
-  final int code;
-
-  /// @domName IDBDatabaseException.message; @docsEditable true
-  final String message;
-
-  /// @domName IDBDatabaseException.name; @docsEditable true
-  final String name;
-
-  /// @domName IDBDatabaseException.toString; @docsEditable true
-  String toString() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName IDBFactory; @docsEditable true
+/// @domName IDBFactory
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX, '15')
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@Experimental()
 class IdbFactory native "*IDBFactory" {
+  /**
+   * Checks to see if Indexed DB is supported on the current platform.
+   */
+  static bool get supported {
+    return JS('bool',
+        '!!(window.indexedDB || '
+        'window.webkitIndexedDB || '
+        'window.mozIndexedDB)');
+  }
+
 
   /// @domName IDBFactory.cmp; @docsEditable true
   int cmp(/*IDBKey*/ first, /*IDBKey*/ second) {
@@ -387,6 +315,7 @@ class IdbFactory native "*IDBFactory" {
 
   /// @domName IDBFactory.webkitGetDatabaseNames; @docsEditable true
   Request webkitGetDatabaseNames() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -416,7 +345,7 @@ class Index native "*IDBIndex" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null))) {
+    if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -434,7 +363,7 @@ class Index native "*IDBIndex" {
 
   /// @domName IDBIndex.get; @docsEditable true
   Request get(key) {
-    if ((?key && (key is KeyRange || key == null))) {
+    if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
     if (?key) {
@@ -452,7 +381,7 @@ class Index native "*IDBIndex" {
 
   /// @domName IDBIndex.getKey; @docsEditable true
   Request getKey(key) {
-    if ((?key && (key is KeyRange || key == null))) {
+    if ((key is KeyRange || key == null)) {
       return _getKey_1(key);
     }
     if (?key) {
@@ -474,11 +403,11 @@ class Index native "*IDBIndex" {
         !?direction) {
       return _openCursor_1();
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null)) &&
+    if ((key_OR_range is KeyRange || key_OR_range == null) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null))) {
+    if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -514,11 +443,11 @@ class Index native "*IDBIndex" {
         !?direction) {
       return _openKeyCursor_1();
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null)) &&
+    if ((key_OR_range is KeyRange || key_OR_range == null) &&
         !?direction) {
       return _openKeyCursor_2(key_OR_range);
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null))) {
+    if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -715,7 +644,7 @@ class ObjectStore native "*IDBObjectStore" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null))) {
+    if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -733,30 +662,28 @@ class ObjectStore native "*IDBObjectStore" {
 
   /// @domName IDBObjectStore.createIndex; @docsEditable true
   Index createIndex(String name, keyPath, [Map options]) {
-    if ((?keyPath && (keyPath is List<String> || keyPath == null)) &&
+    if ((keyPath is List<String> || keyPath == null) &&
         !?options) {
-      List keyPath_1 = convertDartToNative_StringArray(keyPath);
-      return _createIndex_1(name, keyPath_1);
+      return _createIndex_1(name, keyPath);
     }
-    if ((?keyPath && (keyPath is List<String> || keyPath == null))) {
-      List keyPath_2 = convertDartToNative_StringArray(keyPath);
-      var options_3 = convertDartToNative_Dictionary(options);
-      return _createIndex_2(name, keyPath_2, options_3);
+    if ((keyPath is List<String> || keyPath == null)) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _createIndex_2(name, keyPath, options_1);
     }
-    if ((?keyPath && (keyPath is String || keyPath == null)) &&
+    if ((keyPath is String || keyPath == null) &&
         !?options) {
       return _createIndex_3(name, keyPath);
     }
-    if ((?keyPath && (keyPath is String || keyPath == null))) {
-      var options_4 = convertDartToNative_Dictionary(options);
-      return _createIndex_4(name, keyPath, options_4);
+    if ((keyPath is String || keyPath == null)) {
+      var options_2 = convertDartToNative_Dictionary(options);
+      return _createIndex_4(name, keyPath, options_2);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createIndex')
-  Index _createIndex_1(name, List keyPath) native;
+  Index _createIndex_1(name, List<String> keyPath) native;
   @JSName('createIndex')
-  Index _createIndex_2(name, List keyPath, options) native;
+  Index _createIndex_2(name, List<String> keyPath, options) native;
   @JSName('createIndex')
   Index _createIndex_3(name, String keyPath) native;
   @JSName('createIndex')
@@ -764,7 +691,7 @@ class ObjectStore native "*IDBObjectStore" {
 
   /// @domName IDBObjectStore.delete; @docsEditable true
   Request delete(key_OR_keyRange) {
-    if ((?key_OR_keyRange && (key_OR_keyRange is KeyRange || key_OR_keyRange == null))) {
+    if ((key_OR_keyRange is KeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }
     if (?key_OR_keyRange) {
@@ -783,7 +710,7 @@ class ObjectStore native "*IDBObjectStore" {
 
   /// @domName IDBObjectStore.getObject; @docsEditable true
   Request getObject(key) {
-    if ((?key && (key is KeyRange || key == null))) {
+    if ((key is KeyRange || key == null)) {
       return _getObject_1(key);
     }
     if (?key) {
@@ -808,11 +735,11 @@ class ObjectStore native "*IDBObjectStore" {
         !?direction) {
       return _openCursor_1();
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null)) &&
+    if ((key_OR_range is KeyRange || key_OR_range == null) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((?key_OR_range && (key_OR_range is KeyRange || key_OR_range == null))) {
+    if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -898,9 +825,6 @@ class Request extends EventTarget native "*IDBRequest" {
   /// @domName IDBRequest.error; @docsEditable true
   final DomError error;
 
-  /// @domName IDBRequest.errorCode; @docsEditable true
-  final int errorCode;
-
   /// @domName IDBRequest.readyState; @docsEditable true
   final String readyState;
 
@@ -956,12 +880,6 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   TransactionEvents get on =>
     new TransactionEvents(this);
 
-  static const int READ_ONLY = 0;
-
-  static const int READ_WRITE = 1;
-
-  static const int VERSION_CHANGE = 2;
-
   /// @domName IDBTransaction.db; @docsEditable true
   final Database db;
 
@@ -970,6 +888,9 @@ class Transaction extends EventTarget native "*IDBTransaction" {
 
   /// @domName IDBTransaction.mode; @docsEditable true
   final String mode;
+
+  /// @domName IDBTransaction.webkitErrorMessage; @docsEditable true
+  final String webkitErrorMessage;
 
   /// @domName IDBTransaction.abort; @docsEditable true
   void abort() native;

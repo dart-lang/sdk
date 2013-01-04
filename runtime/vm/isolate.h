@@ -128,6 +128,8 @@ class Isolate : public BaseIsolate {
 
   const char* name() const { return name_; }
 
+  int64_t start_time() const { return start_time_; }
+
   Dart_Port main_port() { return main_port_; }
   void set_main_port(Dart_Port port) {
     ASSERT(main_port_ == 0);  // Only set main port once.
@@ -351,6 +353,7 @@ class Isolate : public BaseIsolate {
   MegamorphicCacheTable megamorphic_cache_table_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
+  int64_t start_time_;
   Dart_Port main_port_;
   Heap* heap_;
   ObjectStore* object_store_;
@@ -372,6 +375,7 @@ class Isolate : public BaseIsolate {
   uword spawn_data_;
   GcPrologueCallbacks gc_prologue_callbacks_;
   GcEpilogueCallbacks gc_epilogue_callbacks_;
+
   // Deoptimization support.
   intptr_t* deopt_cpu_registers_copy_;
   double* deopt_xmm_registers_copy_;

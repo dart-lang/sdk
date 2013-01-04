@@ -68,7 +68,7 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
   "mirrors": const LibraryInfo(
       "mirrors/mirrors.dart",
-      dart2jsPath: "_internal/compiler/implementation/lib/mirrors.dart"),
+      dart2jsPatchPath: "_internal/compiler/implementation/lib/mirrors_patch.dart"),
 
   "nativewrappers": const LibraryInfo(
       "html/dartium/nativewrappers.dart",
@@ -112,6 +112,12 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
   "_foreign_helper": const LibraryInfo(
       "_internal/compiler/implementation/lib/foreign_helper.dart",
+      category: "Internal",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
+
+  "_isolate_helper": const LibraryInfo(
+      "_internal/compiler/implementation/lib/isolate_helper.dart",
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),

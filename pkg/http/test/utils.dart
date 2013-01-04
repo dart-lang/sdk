@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library utils;
+library test_utils;
 
 import 'dart:io';
 import 'dart:json';
 import 'dart:uri';
 
-import '../../unittest/lib/unittest.dart';
-import '../lib/http.dart' as http;
-import '../lib/src/utils.dart';
+import 'package:unittest/unittest.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/src/utils.dart';
 
 /// The current server instance.
 HttpServer _server;

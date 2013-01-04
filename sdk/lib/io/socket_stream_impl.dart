@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.io;
+
 class _SocketInputStream implements InputStream {
   _SocketInputStream(Socket socket) : _socket = socket {
     if (_socket._closed) _closed = true;
@@ -107,7 +109,7 @@ class _SocketOutputStream
   }
 
   void destroy() {
-    _socket.onWrite = null;
+    _socket._onWrite = null;
     _pendingWrites.clear();
     _socket.close();
     _closed = true;
@@ -189,12 +191,12 @@ class _SocketOutputStream
   }
 
   bool _onSocketError(e) {
-    close();
+    destroy();
     if (_onError != null) {
       _onError(e);
       return true;
     } else {
-      return false;
+      throw e;
     }
   }
 

@@ -105,6 +105,8 @@ EventHandlerImplementation::EventHandlerImplementation()
     FATAL("Pipe creation failed");
   }
   FDUtils::SetNonBlocking(interrupt_fds_[0]);
+  FDUtils::SetCloseOnExec(interrupt_fds_[0]);
+  FDUtils::SetCloseOnExec(interrupt_fds_[1]);
   timeout_ = kInfinityTimeout;
   timeout_port_ = 0;
   shutdown_ = false;
@@ -115,6 +117,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (epoll_fd_ == -1) {
     FATAL("Failed creating epoll file descriptor");
   }
+  FDUtils::SetCloseOnExec(epoll_fd_);
   // Register the interrupt_fd with the epoll instance.
   struct epoll_event event;
   event.events = EPOLLIN;

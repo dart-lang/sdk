@@ -435,11 +435,12 @@ class ObjectStore {
   }
   void clear_sticky_error() { sticky_error_ = Error::null(); }
 
-  RawBool* true_value() const { return true_value_; }
-  void set_true_value(const Bool& value) { true_value_ = value.raw(); }
-
-  RawBool* false_value() const { return false_value_; }
-  void set_false_value(const Bool& value) { false_value_ = value.raw(); }
+  RawString* unhandled_exception_handler() const {
+    return unhandled_exception_handler_;
+  }
+  void set_unhandled_exception_handler(const String& value) {
+    unhandled_exception_handler_ = value.raw();
+  }
 
   RawContext* empty_context() const { return empty_context_; }
   void set_empty_context(const Context& value) {
@@ -461,6 +462,27 @@ class ObjectStore {
     keyword_symbols_ = value.raw();
   }
   void InitKeywordTable();
+
+  RawFunction* receive_port_create_function() const {
+    return receive_port_create_function_;
+  }
+  void set_receive_port_create_function(const Function& function) {
+    receive_port_create_function_ = function.raw();
+  }
+
+  RawFunction* lookup_receive_port_function() const {
+    return lookup_receive_port_function_;
+  }
+  void set_lookup_receive_port_function(const Function& function) {
+    lookup_receive_port_function_ = function.raw();
+  }
+
+  RawFunction* handle_message_function() const {
+    return handle_message_function_;
+  }
+  void set_handle_message_function(const Function& function) {
+    handle_message_function_ = function.raw();
+  }
 
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -531,8 +553,6 @@ class ObjectStore {
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
   RawClass* weak_property_class_;
-  RawBool* true_value_;
-  RawBool* false_value_;
   RawArray* symbol_table_;
   RawArray* canonical_type_arguments_;
   RawLibrary* core_library_;
@@ -548,10 +568,14 @@ class ObjectStore {
   RawGrowableObjectArray* libraries_;
   RawGrowableObjectArray* pending_classes_;
   RawError* sticky_error_;
+  RawString* unhandled_exception_handler_;
   RawContext* empty_context_;
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;
   RawArray* keyword_symbols_;
+  RawFunction* receive_port_create_function_;
+  RawFunction* lookup_receive_port_function_;
+  RawFunction* handle_message_function_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&keyword_symbols_); }
 
   friend class SnapshotReader;

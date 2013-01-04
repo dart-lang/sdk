@@ -71,6 +71,13 @@ String typeNameInIE(obj) {
   if (name == 'MSStyleCSSProperties') return 'CSSStyleDeclaration';
   if (name == 'MouseWheelEvent') return 'WheelEvent';
   if (name == 'Position') return 'Geoposition';
+
+  // Patches for types which report themselves as Objects.
+  if (name == 'Object') {
+    if (JS('bool', 'window.DataView && (# instanceof window.DataView)', obj)) {
+      return 'DataView';
+    }
+  }
   return name;
 }
 

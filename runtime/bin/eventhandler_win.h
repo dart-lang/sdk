@@ -159,9 +159,11 @@ class Handle {
   bool IsClosing() { return (flags_ & (1 << kClosing)) != 0; }
   bool IsClosedRead() { return (flags_ & (1 << kCloseRead)) != 0; }
   bool IsClosedWrite() { return (flags_ & (1 << kCloseWrite)) != 0; }
+  bool IsError() { return (flags_ & (1 << kError)) != 0; }
   void MarkClosing() { flags_ |= (1 << kClosing); }
   void MarkClosedRead() { flags_ |= (1 << kCloseRead); }
   void MarkClosedWrite() { flags_ |= (1 << kCloseWrite); }
+  void MarkError() { flags_ |= (1 << kError); }
 
   virtual void EnsureInitialized(
     EventHandlerImplementation* event_handler) = 0;
@@ -187,6 +189,7 @@ class Handle {
   bool is_socket() { return type_ == kListenSocket || type_ == kClientSocket; }
   bool is_listen_socket() { return type_ == kListenSocket; }
   bool is_client_socket() { return type_ == kClientSocket; }
+  void set_mask(intptr_t mask) { mask_ = mask; }
   intptr_t mask() { return mask_; }
 
   void MarkDoesNotSupportOverlappedIO() {
@@ -206,7 +209,8 @@ class Handle {
     kClosing = 0,
     kCloseRead = 1,
     kCloseWrite = 2,
-    kDoesNotSupportOverlappedIO = 3
+    kDoesNotSupportOverlappedIO = 3,
+    kError = 4
   };
 
   explicit Handle(HANDLE handle);

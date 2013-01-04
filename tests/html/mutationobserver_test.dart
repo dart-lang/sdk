@@ -4,7 +4,7 @@
 
 library mutationobserver_test;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
 /**
@@ -12,10 +12,17 @@ import 'dart:html';
  * checks, not a complete test suite.
  */
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
+
+  group('supported', () {
+    test('supported', () {
+      expect(MutationObserver.supported, true);
+    });
+  });
+
+  var expectation = MutationObserver.supported ? returnsNormally : throws;
 
   group('childList', () {
-
     mutationCallback(count, expectation) {
       var done = false;
       var nodes = [];
@@ -33,18 +40,26 @@ main() {
         }
       }
 
+      // If it's not supported, don't block waiting for it.
+      if (!MutationObserver.supported) {
+        return () => done;
+      }
+
       return expectAsyncUntil2(callback, () => done);
     }
 
     test('empty options is syntax error', () {
+      expect(() {
         var mutationObserver = new MutationObserver(
             (mutations, observer) { expect(false, isTrue,
                 reason: 'Should not be reached'); });
         expect(() { mutationObserver.observe(document, {}); },
                throws);
-      });
+      }, expectation);
+    });
 
     test('direct-parallel options-map', () {
+      expect(() {
         var container = new DivElement();
         var div1 = new DivElement();
         var div2 = new DivElement();
@@ -54,9 +69,11 @@ main() {
 
         container.nodes.add(div1);
         container.nodes.add(div2);
-      });
+      }, expectation);
+    });
 
     test('direct-parallel options-named', () {
+      expect(() {
         var container = new DivElement();
         var div1 = new DivElement();
         var div2 = new DivElement();
@@ -66,9 +83,11 @@ main() {
 
         container.nodes.add(div1);
         container.nodes.add(div2);
-      });
+      }, expectation);
+    });
 
     test('direct-nested options-named', () {
+      expect(() {
         var container = new DivElement();
         var div1 = new DivElement();
         var div2 = new DivElement();
@@ -78,10 +97,12 @@ main() {
 
         container.nodes.add(div1);
         div1.nodes.add(div2);
-      });
+      }, expectation);
+    });
 
 
     test('subtree options-map', () {
+      expect(() {
         var container = new DivElement();
         var div1 = new DivElement();
         var div2 = new DivElement();
@@ -92,9 +113,11 @@ main() {
 
         container.nodes.add(div1);
         div1.nodes.add(div2);
-      });
+      }, expectation);
+    });
 
     test('subtree options-named', () {
+      expect(() {
         var container = new DivElement();
         var div1 = new DivElement();
         var div2 = new DivElement();
@@ -104,6 +127,7 @@ main() {
 
         container.nodes.add(div1);
         div1.nodes.add(div2);
-      });
+      }, expectation);
+    });
   });
 }

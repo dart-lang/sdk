@@ -10,15 +10,11 @@ import 'source.dart';
 import 'source_registry.dart';
 import 'version.dart';
 
-/**
- * A named, versioned, unit of code and resource reuse.
- */
+/// A named, versioned, unit of code and resource reuse.
 class Package {
-  /**
-   * Loads the package whose root directory is [packageDir]. [name] is the
-   * expected name of that package (e.g. the name given in the dependency), or
-   * null if the package being loaded is the entrypoint package.
-   */
+  /// Loads the package whose root directory is [packageDir]. [name] is the
+  /// expected name of that package (e.g. the name given in the dependency), or
+  /// null if the package being loaded is the entrypoint package.
   static Future<Package> load(String name, String packageDir,
       SourceRegistry sources) {
     var pubspecPath = join(packageDir, 'pubspec.yaml');
@@ -41,84 +37,60 @@ class Package {
     });
   }
 
-  /**
-   * The path to the directory containing the package.
-   */
+  /// The path to the directory containing the package.
   final String dir;
 
-  /**
-   * The name of the package.
-   */
+  /// The name of the package.
   String get name {
     if (pubspec.name != null) return pubspec.name;
     if (dir != null) return basename(dir);
     return null;
   }
 
-  /**
-   * The package's version.
-   */
+  /// The package's version.
   Version get version => pubspec.version;
 
-  /**
-   * The parsed pubspec associated with this package.
-   */
+  /// The parsed pubspec associated with this package.
   final Pubspec pubspec;
 
-  /**
-   * The ids of the packages that this package depends on. This is what is
-   * specified in the pubspec when this package depends on another.
-   */
+  /// The ids of the packages that this package depends on. This is what is
+  /// specified in the pubspec when this package depends on another.
   Collection<PackageRef> get dependencies => pubspec.dependencies;
 
-  /**
-   * Constructs a package with the given pubspec. The package will have no
-   * directory associated with it.
-   */
+  /// Constructs a package with the given pubspec. The package will have no
+  /// directory associated with it.
   Package.inMemory(this.pubspec)
     : dir = null;
 
-  /**
-   * Constructs a package. This should not be called directly. Instead, acquire
-   * packages from [load()].
-   */
+  /// Constructs a package. This should not be called directly. Instead, acquire
+  /// packages from [load()].
   Package._(this.dir, this.pubspec);
 
-  /**
-   * Returns a debug string for the package.
-   */
+  /// Returns a debug string for the package.
   String toString() => '$name $version ($dir)';
 }
 
-/**
- * An unambiguous resolved reference to a package. A package ID contains enough
- * information to correctly install the package.
- *
- * Note that it's possible for multiple distinct package IDs to point to
- * different directories that happen to contain identical packages. For example,
- * the same package may be available from multiple sources. As far as Pub is
- * concerned, those packages are different.
- */
+/// An unambiguous resolved reference to a package. A package ID contains enough
+/// information to correctly install the package.
+///
+/// Note that it's possible for multiple distinct package IDs to point to
+/// different directories that happen to contain identical packages. For
+/// example, the same package may be available from multiple sources. As far as
+/// Pub is concerned, those packages are different.
 class PackageId implements Comparable {
   /// The name of the package being identified.
   final String name;
 
-  /**
-   * The [Source] used to look up this package given its [description].
-   */
+  /// The [Source] used to look up this package given its [description].
   final Source source;
 
-  /**
-   * The package's version.
-   */
+  /// The package's version.
   final Version version;
 
-  /**
-   * The metadata used by the package's [source] to identify and locate it. It
-   * contains whatever [Source]-specific data it needs to be able to install
-   * the package. For example, the description of a git sourced package might
-   * by the URL "git://github.com/dart/uilib.git".
-   */
+  /// The metadata used by the package's [source] to identify and locate it. It
+  /// contains whatever [Source]-specific data it needs to be able to install
+  /// the package. For example, the description of a git sourced package might
+  /// by the URL "git://github.com/dart/uilib.git".
   final description;
 
   PackageId(this.name, this.source, this.version, this.description);
@@ -154,50 +126,36 @@ class PackageId implements Comparable {
     return version.compareTo(other.version);
   }
 
-  /**
-   * Returns the pubspec for this package.
-   */
+  /// Returns the pubspec for this package.
   Future<Pubspec> describe() => source.describe(this);
 
-  /**
-   * Returns a future that completes to the resovled [PackageId] for this id.
-   */
+  /// Returns a future that completes to the resovled [PackageId] for this id.
   Future<PackageId> get resolved => source.resolveId(this);
 }
 
-/**
- * A reference to a package. Unlike a [PackageId], a PackageRef may not
- * unambiguously refer to a single package. It may describe a range of allowed
- * packages.
- */
+/// A reference to a package. Unlike a [PackageId], a PackageRef may not
+/// unambiguously refer to a single package. It may describe a range of allowed
+/// packages.
 class PackageRef {
   /// The name of the package being identified.
   final String name;
 
-  /**
-   * The [Source] used to look up the package.
-   */
+  /// The [Source] used to look up the package.
   final Source source;
 
-  /**
-   * The allowed package versions.
-   */
+  /// The allowed package versions.
   final VersionConstraint constraint;
 
-  /**
-   * The metadata used to identify the package being referenced. The
-   * interpretation of this will vary based on the [source].
-   */
+  /// The metadata used to identify the package being referenced. The
+  /// interpretation of this will vary based on the [source].
   final description;
 
   PackageRef(this.name, this.source, this.constraint, this.description);
 
   String toString() => "$name $constraint from $source ($description)";
 
-  /**
-   * Returns a [PackageId] generated from this [PackageRef] with the given
-   * concrete version.
-   */
+  /// Returns a [PackageId] generated from this [PackageRef] with the given
+  /// concrete version.
   PackageId atVersion(Version version) =>
     new PackageId(name, source, version, description);
 }

@@ -123,6 +123,8 @@ EventHandlerImplementation::EventHandlerImplementation()
     FATAL("Pipe creation failed");
   }
   FDUtils::SetNonBlocking(interrupt_fds_[0]);
+  FDUtils::SetCloseOnExec(interrupt_fds_[0]);
+  FDUtils::SetCloseOnExec(interrupt_fds_[1]);
   timeout_ = kInfinityTimeout;
   timeout_port_ = 0;
   shutdown_ = false;
@@ -131,6 +133,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (kqueue_fd_ == -1) {
     FATAL("Failed creating kqueue");
   }
+  FDUtils::SetCloseOnExec(kqueue_fd_);
   // Register the interrupt_fd with the kqueue.
   struct kevent event;
   EV_SET(&event, interrupt_fds_[0], EVFILT_READ, EV_ADD, 0, 0, NULL);

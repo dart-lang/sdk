@@ -6,7 +6,7 @@
 // Test that certain interfaces/classes are blacklisted from being
 // implemented or extended (VM corelib only).
 
-#library("BlackListedTest.dart");
+library BlackListedTest;
 
 class MyBool extends Bool {}  /// 01: compile-time error
 

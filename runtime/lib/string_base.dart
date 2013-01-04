@@ -219,10 +219,11 @@ class _StringBase {
     Iterator iterator = pattern.allMatches(this).iterator();
     if (iterator.hasNext) {
       Match match = iterator.next();
-      buffer.add(this.substring(startIndex, match.start)).add(replacement);
+      buffer..add(this.substring(startIndex, match.start))
+            ..add(replacement);
       startIndex = match.end;
     }
-    return buffer.add(this.substring(startIndex)).toString();
+    return (buffer..add(this.substring(startIndex))).toString();
   }
 
   String replaceAll(Pattern pattern, String replacement) {
@@ -235,10 +236,11 @@ class _StringBase {
     StringBuffer buffer = new StringBuffer();
     int startIndex = 0;
     for (Match match in pattern.allMatches(this)) {
-      buffer.add(this.substring(startIndex, match.start)).add(replacement);
+      buffer..add(this.substring(startIndex, match.start))
+            ..add(replacement);
       startIndex = match.end;
     }
-    return buffer.add(this.substring(startIndex)).toString();
+    return (buffer..add(this.substring(startIndex))).toString();
   }
 
   /**

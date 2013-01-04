@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.io;
 
 class _Directory implements Directory {
   static const CREATE_REQUEST = 0;
@@ -25,6 +26,7 @@ class _Directory implements Directory {
   external static _create(String path);
   external static _delete(String path, bool recursive);
   external static _rename(String path, String newPath);
+  external static List _list(String path, bool recursive);
   external static SendPort _newServicePort();
 
   Future<bool> exists() {
@@ -51,22 +53,25 @@ class _Directory implements Directory {
     return (result == 1);
   }
 
+  // Compute the index of the first directory in the list that exists. If
+  // none of the directories exist dirsToCreate.length is returned.
   Future<int> _computeExistingIndex(List dirsToCreate) {
     var future;
+    var notFound = dirsToCreate.length;
     for (var i = 0; i < dirsToCreate.length; i++) {
       if (future == null) {
-        future = dirsToCreate[i].exists().transform((e) => e ? i : -1);
+        future = dirsToCreate[i].exists().transform((e) => e ? i : notFound);
       } else {
         future = future.chain((index) {
-          if (index != -1) {
+          if (index != notFound) {
             return new Future.immediate(index);
           }
-          return dirsToCreate[i].exists().transform((e) => e ? i : -1);
+          return dirsToCreate[i].exists().transform((e) => e ? i : notFound);
         });
       }
     }
     if (future == null) {
-      return new Future.immediate(-1);
+      return new Future.immediate(notFound);
     } else {
       return future;
     }
@@ -225,7 +230,16 @@ class _Directory implements Directory {
     return new _DirectoryLister(_path, recursive);
   }
 
-  String get path { return _path; }
+  List listSync({bool recursive: false}) {
+    if (_path is! String || recursive is! bool) {
+      throw new ArgumentError();
+    }
+    return _list(_path, recursive);
+  }
+
+  String get path => _path;
+
+  String toString() => "Directory: '$path'";
 
   bool _isErrorResponse(response) {
     return response is List && response[0] != _SUCCESS_RESPONSE;

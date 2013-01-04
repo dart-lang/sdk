@@ -1479,6 +1479,23 @@ DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
                                           intptr_t* length);
 
 /**
+ * Gets the data corresponding to the string object. This function returns
+ * the data only for Latin-1 (ISO-8859-1) string objects. For all other
+ * string objects it return and error.
+ *
+ * \param str A string.
+ * \param latin1_array An array allocated by the caller, used to return
+ *   the string data.
+ * \param length Used to pass in the length of the provided array.
+ *   Used to return the length of the array which was actually used.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_StringToLatin1(Dart_Handle str,
+                                            uint8_t* latin1_array,
+                                            intptr_t* length);
+
+/**
  * Gets the UTF-16 encoded representation of a string.
  *
  * \param str A string.
@@ -1517,6 +1534,9 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str, intptr_t* size);
  *
  * \return the converted ExternalString object if no error occurs.
  *   Otherwise returns an error handle.
+ *   If the object is a valid string but if it cannot be externalized
+ *   then Dart_Null() is returned and the string data is copied into
+ *   the external space specified.
  *
  * For example:
  *  intptr_t size;

@@ -4,7 +4,7 @@
 //
 // Process test program to test that invalid arguments throw exceptions.
 
-#import("dart:io");
+import "dart:io";
 
 void main() {
   Expect.throws(() => Process.start(["true"], []),

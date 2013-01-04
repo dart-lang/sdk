@@ -68,6 +68,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                const ICData& unary_ic_data);
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
+  void ReplaceWithInstanceOf(InstanceCallInstr* instr);
 
   StringCharCodeAtInstr* BuildStringCharCodeAt(InstanceCallInstr* call,
                                                intptr_t cid);
@@ -95,9 +96,13 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                intptr_t length_offset,
                                bool is_immutable,
                                MethodRecognizer::Kind kind);
-  void InlineGArrayCapacityGetter(InstanceCallInstr* call);
+  void InlineGrowableArrayCapacityGetter(InstanceCallInstr* call);
   void InlineStringLengthGetter(InstanceCallInstr* call);
   void InlineStringIsEmptyGetter(InstanceCallInstr* call);
+
+  RawBool* InstanceOfAsBool(const ICData& ic_data,
+                            const AbstractType& type) const;
+
 
   FlowGraph* flow_graph_;
 
@@ -168,6 +173,7 @@ class DominatorBasedCSE : public AllStatic {
 
  private:
   static bool OptimizeRecursive(
+      FlowGraph* graph,
       BlockEntryInstr* entry,
       DirectChainedHashMap<PointerKeyValueTrait<Instruction> >* map);
 };
@@ -183,7 +189,7 @@ class ConstantPropagator : public FlowGraphVisitor {
   static void Optimize(FlowGraph* graph);
 
   // Used to initialize the abstract value of definitions.
-  static RawObject* Unknown() { return Object::transition_sentinel(); }
+  static RawObject* Unknown() { return Object::transition_sentinel().raw(); }
 
  private:
   void Analyze();

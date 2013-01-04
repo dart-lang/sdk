@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of test_suite;
+
 String getHtmlContents(String title,
                        Path controllerScript,
                        Path dartJsScript,
@@ -23,7 +25,8 @@ String getHtmlContents(String title,
 <body>
   <h1> Running $title </h1>
   <script type="text/javascript" src="$controllerScript"></script>
-  <script type="$scriptType" src="$sourceScript"></script>
+  <script type="$scriptType" src="$sourceScript" onerror="externalError(null)">
+  </script>
   <script type="text/javascript" src="$dartJsScript"></script>
 </body>
 </html>
@@ -51,12 +54,24 @@ library libraryWrapper;
 part '$test';
 """;
 
-String dartTestWrapper(Path dartHome, Path library) =>
-"""
+String dartTestWrapper(Path dartHome, Path library) {
+  // Tests inside "pkg" import unittest using "package:". All others use a
+  // relative path. The imports need to agree, so use a matching form here.
+  var unitTest = dartHome.append("pkg/unittest/lib").toString();
+
+  // TODO(rnystrom): Looking in the entire path here is wrong. It should only
+  // consider the relative path within dartHome. Unfortunately,
+  // Path.relativeTo() does not handle cases where library is already a relative
+  // path, and Path.isAbsolute does not work on Windows.
+  if (library.segments().contains("pkg")) {
+    unitTest = 'package:unittest';
+  }
+
+  return """
 library test;
 
-import '${dartHome.append('pkg/unittest/lib/unittest.dart')}' as unittest;
-import '${dartHome.append('pkg/unittest/lib/html_config.dart')}' as config;
+import '$unitTest/unittest.dart' as unittest;
+import '$unitTest/html_config.dart' as config;
 import '${library}' as Test;
 
 main() {
@@ -64,4 +79,4 @@ main() {
   unittest.group('', Test.main);
 }
 """;
-
+}

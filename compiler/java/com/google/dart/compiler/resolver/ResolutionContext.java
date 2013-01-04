@@ -203,7 +203,8 @@ public class ResolutionContext implements ResolutionErrorListener {
     // Built-in identifier can not be used as a type annotation.
     if (identifier instanceof DartIdentifier) {
       String name = ((DartIdentifier) identifier).getName();
-      if (DartParser.PSEUDO_KEYWORDS_SET.contains(name) && !"dynamic".equals(name)) {
+      if (DartParser.PSEUDO_KEYWORDS_SET.contains(name) && !"dynamic".equals(name)
+          && typeArguments.isEmpty()) {
         onError(identifier, ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, name);
         return Types.newDynamicType();
       }
@@ -223,6 +224,7 @@ public class ResolutionContext implements ResolutionErrorListener {
       }
       case CLASS:
       case FUNCTION_TYPE_ALIAS:
+      case DYNAMIC:
         return instantiateParameterizedType(
             (ClassElement) element,
             diagnosticNode,
@@ -243,13 +245,9 @@ public class ResolutionContext implements ResolutionErrorListener {
         onError(identifier, duplicateErrorCode, element.getName(), locations.size(), locations);
         return typeProvider.getDynamicType();
       }
+      case VOID:
+        return typeProvider.getVoidType();
       case NONE:
-        if (Elements.isIdentifierName(identifier, "void")) {
-          return typeProvider.getVoidType();
-        }
-        if (Elements.isIdentifierName(identifier, "dynamic")) {
-          return typeProvider.getDynamicType();
-        }
         onError(identifier, errorCode, identifier);
         return typeProvider.getDynamicType();
       default:
@@ -315,6 +313,12 @@ public class ResolutionContext implements ResolutionErrorListener {
    * Interpret this node as a name reference,
    */
   Element resolveName(DartNode node) {
+    if (Elements.isIdentifierName(node, "void")) {
+      return typeProvider.getVoidType().getElement();
+    }
+    if (Elements.isIdentifierName(node, "dynamic")) {
+      return typeProvider.getDynamicType().getElement();
+    }
     return node.accept(new Selector());
   }
 

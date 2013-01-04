@@ -4,7 +4,7 @@
 // Testing Mints. Note that the tests may not work on 64-bit machines,
 // as Smi's would be used to represent many of the numbers.
 
-#library("MediumIntegerTest.dart");
+library MediumIntegerTest;
 
 
 class MediumIntegerTest {

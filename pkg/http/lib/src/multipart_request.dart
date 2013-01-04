@@ -81,7 +81,7 @@ class MultipartRequest extends BaseRequest {
   InputStream finalize() {
     // TODO(nweiz): freeze fields and files
     var boundary = _boundaryString(_BOUNDARY_LENGTH);
-    headers['content-type'] = 'multipart/form-data, boundary="$boundary"';
+    headers['content-type'] = 'multipart/form-data; boundary="$boundary"';
     headers['content-transfer-encoding'] = 'binary';
     super.finalize();
 

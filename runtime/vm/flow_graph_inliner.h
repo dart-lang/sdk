@@ -20,6 +20,8 @@ class FlowGraphInliner : ValueObject {
   // The flow graph is destructively updated upon inlining.
   void Inline();
 
+  static void CollectGraphInfo(FlowGraph* flow_graph);
+
  private:
   FlowGraph* flow_graph_;
   DISALLOW_COPY_AND_ASSIGN(FlowGraphInliner);

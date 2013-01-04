@@ -5,7 +5,7 @@
 // Test that the executable is looked up on the user's PATH when spawning a
 // process.
 
-#import('dart:io');
+import "dart:io";
 
 main() {
   // Pick an app that we expect to be on the PATH that returns 0 when run with

@@ -6,6 +6,6 @@ import 'dart:html';
 main() {
   useHtmlConfiguration();
   test('RequestAnimationFrameCallback', () {
-    window.requestAnimationFrame((int time) => false);
+    window.requestAnimationFrame((num time) => false);
   });
 }

@@ -11,12 +11,11 @@ class N {
   var last;
   noSuchMethod(InvocationMirror m) => last = m;
 
-  get wut => this;
-
   flif(int x) { Expect.fail("never get here"); }
   flaf([int x]) { Expect.fail("never get here"); }
   flof({int y}) { Expect.fail("never get here"); }
 
+  get wut => this;
   final int plif = 99;
   int get plaf { Expect.fail("never get here"); return 0; }
 }
@@ -42,8 +41,8 @@ testInvocationMirror(InvocationMirror im, String name,
     if (positional == null) {
       Expect.isTrue(im.isGetter, "$name:isGetter");
       Expect.isFalse(im.isSetter, "$name:isSetter");
-      Expect.equals(null, im.positionalArguments, "$name:positional");
-      Expect.equals(null, im.namedArguments, "$name:named");
+      Expect.equals(0, im.positionalArguments.length, "$name:#positional");
+      Expect.equals(0, im.namedArguments.length, "$name:#named");
       return;
     }
     Expect.isTrue(im.isSetter, "$name:isSetter");
@@ -51,7 +50,7 @@ testInvocationMirror(InvocationMirror im, String name,
     Expect.equals(1, im.positionalArguments.length, "$name:#positional");
     Expect.equals(positional[0], im.positionalArguments[0],
                   "$name:positional[0]");
-    Expect.equals(null, im.namedArguments, "$name:named");
+    Expect.equals(0, im.namedArguments.length, "$name:#named");
     return;
   }
   Expect.isTrue(im.isMethod, "$name:isMethod");
@@ -134,6 +133,13 @@ testInvocationMirrors() {
   // Trick call to n.call - wut is a getter returning n again.
   testInvocationMirror(n.wut(42), "call", [42], {});
 
+  // Calling noSuchMethod itself, badly.
+  testInvocationMirror(n.noSuchMethod(), "noSuchMethod", [], {});
+  testInvocationMirror(n.noSuchMethod(37, 42), "noSuchMethod", [37, 42], {});
+  testInvocationMirror(n.noSuchMethod(37, x:42),
+                       "noSuchMethod", [37], {"x": 42});
+  testInvocationMirror(n.noSuchMethod(x:42), "noSuchMethod", [], {"x": 42});
+
   // Closurizing a method means that calling it badly will not hit the
   // original receivers noSuchMethod, only the one inherited from Object
   // by the closure object.
@@ -142,6 +148,71 @@ testInvocationMirrors() {
   Expect.throws(() { var x = c.call; x(37, 42); },
                 (e) => e is NoSuchMethodError);
 }
+
+class M extends N {
+  noSuchMethod(InvocationMirror m) { throw "never get here"; }
+
+  testSuperCalls() {
+    // Missing property/method access.
+    testInvocationMirror(super.bar, 'bar');
+    testInvocationMirror((){super.bar = 42; return last;}(), 'bar=', [42]);
+    testInvocationMirror(super.bar(), 'bar', [], {});
+    testInvocationMirror(super.bar(42), 'bar', [42], {});
+    testInvocationMirror(super.bar(x: 42), 'bar', [], {"x": 42});
+    testInvocationMirror(super.bar(37, x: 42), 'bar', [37], {"x": 42});
+
+    // Missing operator access.
+    testInvocationMirror(super + 4, '+', [4], {});
+    testInvocationMirror(super - 4, '-', [4], {});
+    testInvocationMirror(-super, 'unary-', [], {});
+    testInvocationMirror(super[42], '[]', [42], {});
+    testInvocationMirror((){super[37] = 42; return last;}(), '[]=', [37, 42], {});
+
+    // Wrong arguments to existing function.
+    testInvocationMirror(super.flif(), "flif", [], {});
+    testInvocationMirror(super.flif(37, 42), "flif", [37, 42], {});
+    testInvocationMirror(super.flif(x: 42), "flif", [], {"x": 42});
+    testInvocationMirror(super.flif(37, x: 42), "flif", [37], {"x": 42});
+    testInvocationMirror((){super.flif = 42; return last;}(), "flif=", [42]);
+
+    testInvocationMirror(super.flaf(37, 42), "flaf", [37, 42], {});
+    testInvocationMirror(super.flaf(x: 42), "flaf", [], {"x": 42});
+    testInvocationMirror(super.flaf(37, x: 42), "flaf", [37], {"x": 42});
+    testInvocationMirror((){super.flaf = 42; return last;}(), "flaf=", [42]);
+
+    testInvocationMirror(super.flof(37, 42), "flof", [37, 42], {});
+    testInvocationMirror(super.flof(x: 42), "flof", [], {"x": 42});
+    testInvocationMirror(super.flof(37, y: 42), "flof", [37], {"y": 42});
+    testInvocationMirror((){super.flof = 42; return last;}(), "flof=", [42]);
+
+    // Reading works.
+    Expect.isTrue(super.flif is Function);
+    Expect.isTrue(super.flaf is Function);
+    Expect.isTrue(super.flof is Function);
+
+    // Writing to read-only fields.
+    testInvocationMirror((){super.wut = 42; return last;}(), "wut=", [42]);
+    testInvocationMirror((){super.plif = 42; return last;}(), "plif=", [42]);
+    testInvocationMirror((){super.plaf = 42; return last;}(), "plaf=", [42]);
+
+    // Calling noSuchMethod itself, badly.
+    testInvocationMirror(super.noSuchMethod(), "noSuchMethod", [], {});
+    testInvocationMirror(super.noSuchMethod(37, 42),
+                         "noSuchMethod", [37, 42], {});
+    testInvocationMirror(super.noSuchMethod(37, x:42),
+                         "noSuchMethod", [37], {"x": 42});
+    testInvocationMirror(super.noSuchMethod(x:42),
+                         "noSuchMethod", [], {"x": 42});
+
+    // Closurizing a method means that calling it badly will not hit the
+    // original receivers noSuchMethod, only the one inherited from Object
+    // by the closure object.
+    Expect.throws(() { var x = super.flif; x(37, 42); },
+                  (e) => e is NoSuchMethodError);
+  }
+}
+
+
 
 // Test the NoSuchMethodError thrown by different incorrect calls.
 testNoSuchMethodErrors() {
@@ -163,10 +234,11 @@ testNoSuchMethodErrors() {
   test(() => o.toString(x: 37));
   test(() => o.hashCode = 42);
   test(() => o.hashCode());  // Thrown by int.noSuchMethod.
-  test(n.flif);  // Extracted method has no noSuchMethod.
+  test(() => (n.flif)());  // Extracted method has no noSuchMethod.
 }
 
 main() {
   testInvocationMirrors();
   testNoSuchMethodErrors();
+  new M().testSuperCalls();
 }

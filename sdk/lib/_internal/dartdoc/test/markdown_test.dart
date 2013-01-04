@@ -68,6 +68,15 @@ void main() {
         <p>para
         1. list</p>
         ''');
+
+    // Windows line endings have a \r\n format
+    // instead of the unix \n format.
+    validate('take account of windows line endings', '''
+        line1\r\n\r\n        line2\r\n
+        ''', '''
+        <p>line1</p>
+        <p>line2</p>
+        ''');
   });
 
   group('Setext headers', () {
@@ -265,6 +274,22 @@ void main() {
         </ul>
         ''');
 
+    validate('can span newlines', '''
+        *   one
+            two
+        *   three
+        ''', '''
+        <ul>
+          <li>
+            <p>one
+            two</p>
+          </li>
+          <li>
+            three
+          </li>
+        </ul>
+        ''');
+
     // TODO(rnystrom): This is how most other markdown parsers handle
     // this but that seems like a nasty special case. For now, let's not
     // worry about it.
@@ -359,6 +384,38 @@ void main() {
          one
           two
            three</code></pre>
+        ''');
+
+    validate('code blocks separated by newlines form one block', '''
+            zero
+            one
+
+            two
+
+            three
+        ''', '''
+        <pre><code>zero
+         one
+
+         two
+
+         three</code></pre>
+        ''');
+
+    validate('code blocks separated by two newlines form multiple blocks', '''
+            zero
+            one
+
+
+            two
+
+
+            three
+        ''', '''
+        <pre><code>zero
+         one</code></pre>
+        <pre><code>two</code></pre>
+        <pre><code>three</code></pre>
         ''');
 
     validate('escape HTML characters', '''
@@ -771,7 +828,8 @@ String cleanUpLiteral(String text) {
   return Strings.join(lines, '\n');
 }
 
-validate(String description, String markdown, String html) {
+validate(String description, String markdown, String html,
+         {bool verbose: false}) {
   test(description, () {
     markdown = cleanUpLiteral(markdown);
     html = cleanUpLiteral(html);
@@ -789,7 +847,7 @@ validate(String description, String markdown, String html) {
       print('');
     }
 
-    expect(passed, isTrue);
+    expect(passed, isTrue, verbose: verbose);
   });
 }
 

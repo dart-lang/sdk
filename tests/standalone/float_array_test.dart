@@ -5,9 +5,9 @@
 // Dart test program for testing native float arrays.
 
 // Library tag to be able to run in html test framework.
-#library("FloatArrayTest.dart");
+library FloatArrayTest;
 
-#import('dart:scalarlist');
+import 'dart:scalarlist';
 
 void testCreateFloat32Array() {
   Float32List floatArray;

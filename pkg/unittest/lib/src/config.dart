@@ -12,6 +12,9 @@ part of unittest;
  */
 
 class Configuration {
+  // The VM won't shut down if a receive port is open. Use this to make sure
+  // we correctly wait for asynchronous tests.
+  ReceivePort _receivePort;
   TestCase currentTestCase = null;
 
   /**
@@ -39,6 +42,7 @@ class Configuration {
    * wait until they are done.
    */
   void onStart() {
+    _receivePort = new ReceivePort();
     _postMessage('unittest-suite-wait-for-done');
   }
 
@@ -96,7 +100,8 @@ class Configuration {
       String uncaughtError) {
     // Print each test's result.
     for (final t in _tests) {
-      print('${t.result.toUpperCase()}: ${t.description}');
+      var resultString = "${t.result}".toUpperCase();
+      print('$resultString: ${t.description}');
 
       if (t.message != '') {
         print(_indent(t.message));
@@ -124,6 +129,7 @@ class Configuration {
       print('$passed PASSED, $failed FAILED, $errors ERRORS');
     }
 
+    _receivePort.close();
     if (success) {
       _postMessage('unittest-suite-success');
     } else {

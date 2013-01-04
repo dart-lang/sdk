@@ -351,7 +351,7 @@ class Parser : public ValueObject {
                          LocalVariable* receiver,
                          GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
-  RawArray* ParseInterfaceList();
+  RawArray* ParseInterfaceList(const Type& super_type);
   void AddInterfaceIfUnique(intptr_t interfaces_pos,
                             const GrowableObjectArray& interface_list,
                             const AbstractType& interface);
@@ -368,6 +368,7 @@ class Parser : public ValueObject {
       const ArgumentListNode& function_args);
   RawFunction* GetSuperFunction(intptr_t token_pos,
                                 const String& name,
+                                ArgumentListNode* arguments,
                                 bool resolve_getter,
                                 bool* is_no_such_method);
   AstNode* ParseSuperCall(const String& function_name);
@@ -572,7 +573,9 @@ class Parser : public ValueObject {
   String& Interpolate(ArrayNode* values);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
   AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
-  AstNode* ThrowNoSuchMethodError(intptr_t call_pos, const String& name);
+  AstNode* ThrowNoSuchMethodError(intptr_t call_pos,
+                                  const Class& cls,
+                                  const String& function_name);
 
   void CheckOperatorArity(const MemberDesc& member);
 

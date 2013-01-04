@@ -5,7 +5,7 @@
 // Utility script to echo strings in various formats to stdout or
 // stderr.
 
-#import("dart:io");
+import "dart:io";
 
 writeData(data, encoding, stream) {
   if (stream == "stdout") {

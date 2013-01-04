@@ -217,9 +217,9 @@ static void EmitAssertBoolean(Register reg,
   // Call the runtime if the object is not bool::true or bool::false.
   ASSERT(locs->always_calls());
   Label done;
-  __ CompareObject(reg, compiler->bool_true());
+  __ CompareObject(reg, Bool::True());
   __ j(EQUAL, &done, Assembler::kNearJump);
-  __ CompareObject(reg, compiler->bool_false());
+  __ CompareObject(reg, Bool::False());
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ pushq(reg);  // Push the source object.
@@ -378,7 +378,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     }
   } else {
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
-                                   Symbols::EqualOperatorHandle(),
+                                   Symbols::EqualOperator(),
                                    deopt_id,
                                    kNumArgumentsChecked);
   }
@@ -400,12 +400,10 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ popq(RDX);
     __ cmpq(RAX, RDX);
     __ j(EQUAL, &is_true);
-    __ LoadObject(RAX, (kind == Token::kEQ) ? compiler->bool_false()
-                                            : compiler->bool_true());
+    __ LoadObject(RAX, (kind == Token::kEQ) ? Bool::False() : Bool::True());
     __ jmp(&equality_done);
     __ Bind(&is_true);
-    __ LoadObject(RAX, (kind == Token::kEQ) ? compiler->bool_true()
-                                            : compiler->bool_false());
+    __ LoadObject(RAX, (kind == Token::kEQ) ? Bool::True() : Bool::False());
     if (kind == Token::kNE) {
       // Skip not-equal result conversion.
       __ jmp(&equality_done);
@@ -426,13 +424,13 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   if (kind == Token::kNE) {
     Label false_label, true_label, done;
     // Negate the condition: true label returns false and vice versa.
-    __ CompareObject(RAX, compiler->bool_true());
+    __ CompareObject(RAX, Bool::True());
     __ j(EQUAL, &true_label, Assembler::kNearJump);
     __ Bind(&false_label);
-    __ LoadObject(RAX, compiler->bool_true());
+    __ LoadObject(RAX, Bool::True());
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&true_label);
-    __ LoadObject(RAX, compiler->bool_false());
+    __ LoadObject(RAX, Bool::False());
     __ Bind(&done);
   }
   __ Bind(&equality_done);
@@ -490,10 +488,10 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
         Register result = locs->out().reg();
         Label load_true;
         __ j(cond, &load_true, Assembler::kNearJump);
-        __ LoadObject(result, compiler->bool_false());
+        __ LoadObject(result, Bool::False());
         __ jmp(&done);
         __ Bind(&load_true);
-        __ LoadObject(result, compiler->bool_true());
+        __ LoadObject(result, Bool::True());
       }
     } else {
       const int kNumberOfArguments = 2;
@@ -507,19 +505,19 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
       if (branch == NULL) {
         if (kind == Token::kNE) {
           Label false_label;
-          __ CompareObject(RAX, compiler->bool_true());
+          __ CompareObject(RAX, Bool::True());
           __ j(EQUAL, &false_label, Assembler::kNearJump);
-          __ LoadObject(RAX, compiler->bool_true());
+          __ LoadObject(RAX, Bool::True());
           __ jmp(&done);
           __ Bind(&false_label);
-          __ LoadObject(RAX, compiler->bool_false());
+          __ LoadObject(RAX, Bool::False());
           __ jmp(&done);
         }
       } else {
         if (branch->is_checked()) {
           EmitAssertBoolean(RAX, token_pos, locs, compiler);
         }
-        __ CompareObject(RAX, compiler->bool_true());
+        __ CompareObject(RAX, Bool::True());
         branch->EmitBranchOnCondition(compiler, cond);
       }
     }
@@ -572,12 +570,10 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
     Register result = locs.out().reg();
     __ j(EQUAL, &is_equal, Assembler::kNearJump);
     // Not equal.
-    __ LoadObject(result, (kind == Token::kEQ) ? compiler->bool_false()
-                                               : compiler->bool_true());
+    __ LoadObject(result, (kind == Token::kEQ) ? Bool::False() : Bool::True());
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&is_equal);
-    __ LoadObject(result, (kind == Token::kEQ) ? compiler->bool_true()
-                                               : compiler->bool_false());
+    __ LoadObject(result, (kind == Token::kEQ) ? Bool::True() : Bool::False());
     __ Bind(&done);
   } else {
     Condition cond = TokenKindToSmiCondition(kind);
@@ -617,10 +613,10 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
     Register result = locs->out().reg();
     Label load_true;
     __ j(cond, &load_true, Assembler::kNearJump);
-    __ LoadObject(result, compiler->bool_false());
+    __ LoadObject(result, Bool::False());
     __ jmp(&done);
     __ Bind(&load_true);
-    __ LoadObject(result, compiler->bool_true());
+    __ LoadObject(result, Bool::True());
   }
   __ jmp(&done);
   __ Bind(&non_null_compare);  // Receiver is not null.
@@ -657,10 +653,10 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     Register result = locs.out().reg();
     Label done, is_true;
     __ j(true_condition, &is_true);
-    __ LoadObject(result, compiler->bool_false());
+    __ LoadObject(result, Bool::False());
     __ jmp(&done);
     __ Bind(&is_true);
-    __ LoadObject(result, compiler->bool_true());
+    __ LoadObject(result, Bool::True());
     __ Bind(&done);
   }
 }
@@ -777,7 +773,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitAssertBoolean(RAX, token_pos(), locs(), compiler);
   }
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
-  __ CompareObject(RAX, compiler->bool_true());
+  __ CompareObject(RAX, Bool::True());
   branch->EmitBranchOnCondition(compiler, branch_condition);
 }
 
@@ -899,7 +895,7 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     return;
   }
   EmitNativeCode(compiler);
-  __ CompareObject(RAX, compiler->bool_true());
+  __ CompareObject(RAX, Bool::True());
   branch->EmitBranchOnCondition(compiler, EQUAL);
 }
 
@@ -1011,7 +1007,7 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movq(result, Address(result,
                           char_code,
                           TIMES_HALF_WORD_SIZE,  // Char code is a smi.
-                          Symbols::kNullCharId * kWordSize));
+                          Symbols::kNullCharCodeSymbolOffset * kWordSize));
 }
 
 
@@ -2201,6 +2197,35 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                Array::Handle(),  // No argument names.
                                locs());
   __ Bind(&done);
+}
+
+
+LocationSummary* DoubleToSmiInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* result = new LocationSummary(
+      kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresXmmRegister());
+  result->set_out(Location:: Location::RequiresRegister());
+  result->set_temp(0, Location::RequiresRegister());
+  return result;
+}
+
+
+void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptDoubleToSmi);
+  Register result = locs()->out().reg();
+  XmmRegister value = locs()->in(0).xmm_reg();
+  Register temp = locs()->temp(0).reg();
+
+  __ cvttsd2siq(result, value);
+  // Overflow is signalled with minint.
+  Label do_call, done;
+  // Check for overflow and that it fits into Smi.
+  __ movq(temp, result);
+  __ shlq(temp, Immediate(1));
+  __ j(OVERFLOW, deopt);
+  __ SmiTag(result);
 }
 
 

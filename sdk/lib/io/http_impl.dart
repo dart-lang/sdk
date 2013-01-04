@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.io;
+
 // The close queue handles graceful closing of HTTP connections. When
 // a connection is added to the queue it will enter a wait state
 // waiting for all data written and possibly socket shutdown from
@@ -32,7 +34,7 @@ class _CloseQueue {
     connection._state |= _HttpConnectionBase.CLOSING;
     _q.add(connection);
 
-    // If output stream is not closed for writing close it now and
+    // If the output stream is not closed for writing, close it now and
     // wait for callback when closed.
     if (!connection._isWriteClosed) {
       connection._socket.outputStream.close();
@@ -44,14 +46,15 @@ class _CloseQueue {
       connection._socket.outputStream.onClosed = () { assert(false); };
     }
 
-    // If socket is not closed for reading wait for callback.
+    // If the request is not already fully read wait for the socket to close.
+    // As the _isReadClosed state from the HTTP request processing indicate
+    // that the response has been parsed this does not necesarily mean tha
+    // the socket is closed.
     if (!connection._isReadClosed) {
       connection._socket.onClosed = () {
         connection._state |= _HttpConnectionBase.READ_CLOSED;
         closeIfDone();
       };
-    } else {
-      connection._socket.onClosed = () { assert(false); };
     }
 
     // Ignore any data on a socket in the close queue.
@@ -84,7 +87,7 @@ class _HttpRequestResponseBase {
   _HttpRequestResponseBase(_HttpConnectionBase this._httpConnection)
       : _state = START, _headResponse = false;
 
-  int get contentLength => _contentLength;
+  int get contentLength => _headers.contentLength;
   HttpHeaders get headers => _headers;
 
   bool get persistentConnection {
@@ -98,6 +101,11 @@ class _HttpRequestResponseBase {
       return headers[HttpHeaders.CONNECTION].some(
           (value) => value.toLowerCase() == "keep-alive");
     }
+  }
+
+  X509Certificate get certificate {
+    var socket = _httpConnection._socket as SecureSocket;
+    return socket == null ? socket : socket.peerCertificate;
   }
 
   void set persistentConnection(bool persistentConnection) {
@@ -119,7 +127,7 @@ class _HttpRequestResponseBase {
     _ensureHeadersSent();
     bool allWritten = true;
     if (data.length > 0) {
-      if (_contentLength < 0) {
+      if (_headers.chunkedTransferEncoding) {
         // Write chunk size if transfer encoding is chunked.
         _writeHexString(data.length);
         _writeCRLF();
@@ -138,7 +146,7 @@ class _HttpRequestResponseBase {
     _ensureHeadersSent();
     bool allWritten = true;
     if (count > 0) {
-      if (_contentLength < 0) {
+      if (_headers.chunkedTransferEncoding) {
         // Write chunk size if transfer encoding is chunked.
         _writeHexString(count);
         _writeCRLF();
@@ -154,20 +162,19 @@ class _HttpRequestResponseBase {
 
   bool _writeDone() {
     bool allWritten = true;
-    if (_contentLength < 0) {
+    if (_headers.chunkedTransferEncoding) {
       // Terminate the content if transfer encoding is chunked.
       allWritten = _httpConnection._write(_Const.END_CHUNKED);
     } else {
-      if (!_headResponse && _bodyBytesWritten < _contentLength) {
+      if (!_headResponse && _bodyBytesWritten < _headers.contentLength) {
         throw new HttpException("Sending less than specified content length");
       }
-      assert(_headResponse || _bodyBytesWritten == _contentLength);
+      assert(_headResponse || _bodyBytesWritten == _headers.contentLength);
     }
     return allWritten;
   }
 
   bool _writeHeaders() {
-    _headers._mutable = false;
     _headers._write(_httpConnection);
     // Terminate header.
     return _writeCRLF();
@@ -205,7 +212,7 @@ class _HttpRequestResponseBase {
   }
 
   void _updateContentLength(int bytes) {
-    if (_bodyBytesWritten + bytes > _contentLength) {
+    if (_bodyBytesWritten + bytes > _headers.contentLength) {
       throw new HttpException("Writing more than specified content length");
     }
     _bodyBytesWritten += bytes;
@@ -223,10 +230,6 @@ class _HttpRequestResponseBase {
   List<Cookie> _cookies;
   String _protocolVersion = "1.1";
 
-  // Length of the content body. If this is set to -1 (default value)
-  // when starting to send data chunked transfer encoding will be
-  // used.
-  int _contentLength = -1;
   // Number of body bytes written. This is only actual body data not
   // including headers or chunk information of using chinked transfer
   // encoding.
@@ -354,11 +357,7 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
       }
     }
 
-    // Get parsed content length.
-    _contentLength = _httpConnection._httpParser.contentLength;
-
     // Prepare for receiving data.
-    _headers._mutable = false;
     _buffer = new _BufferList();
   }
 
@@ -432,7 +431,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     if (_state >= _HttpRequestResponseBase.HEADER_SENT) {
       throw new HttpException("Header already sent");
     }
-    _contentLength = contentLength;
+    _headers.contentLength = contentLength;
   }
 
   int get statusCode => _statusCode;
@@ -589,15 +588,6 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     _httpConnection._write(data);
     _writeCRLF();
 
-    // Determine the value of the "Transfer-Encoding" header based on
-    // whether the content length is known. HTTP/1.0 does not support
-    // chunked.
-    if (_contentLength >= 0) {
-      _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
-    } else if (_contentLength < 0 && _protocolVersion == "1.1") {
-      _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
-    }
-
     var session = _httpConnection._request._session;
     if (session != null && !session._destroyed) {
       // Make sure we only send the current session id.
@@ -622,6 +612,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     }
 
     // Write headers.
+    _headers._finalize(_protocolVersion);
     bool allWritten = _writeHeaders();
     _state = _HttpRequestResponseBase.HEADER_SENT;
     return allWritten;
@@ -929,10 +920,11 @@ class _HttpConnection extends _HttpConnectionBase {
       // body.
       bool close =
           !_response.persistentConnection ||
-          (_response._protocolVersion == "1.0" && _response._contentLength < 0);
+          (_response._protocolVersion == "1.0" && _response.contentLength < 0);
       _request = null;
       _response = null;
       if (close) {
+        _httpParser.cancel();
         _server._closeQueue.add(this);
       } else {
         _state = _HttpConnectionBase.IDLE;
@@ -944,7 +936,7 @@ class _HttpConnection extends _HttpConnectionBase {
       // not care to read the request body) this is send.
       assert(!_isRequestDone);
       _writeBufferedResponse();
-      _close();
+      _httpParser.cancel();
       _server._closeQueue.add(this);
     }
   }
@@ -1000,9 +992,15 @@ class _HttpServer implements HttpServer, HttpsServer {
   void listen(String host,
               int port,
               {int backlog: 128,
-              String certificate_name}) {
+               String certificate_name,
+               bool requestClientCertificate: false}) {
     if (_secure) {
-      listenOn(new SecureServerSocket(host, port, backlog, certificate_name));
+      listenOn(new SecureServerSocket(
+          host,
+          port,
+          backlog,
+          certificate_name,
+          requestClientCertificate: requestClientCertificate));
     } else {
       listenOn(new ServerSocket(host, port, backlog));
     }
@@ -1152,7 +1150,7 @@ class _HttpClientRequest
     _connection = connection;
     // Default GET and HEAD requests to have no content.
     if (_method == "GET" || _method == "HEAD") {
-      _contentLength = 0;
+      contentLength = 0;
     }
   }
 
@@ -1160,7 +1158,7 @@ class _HttpClientRequest
     if (_state >= _HttpRequestResponseBase.HEADER_SENT) {
       throw new HttpException("Header already sent");
     }
-    _contentLength = contentLength;
+    _headers.contentLength = contentLength;
   }
 
   List<Cookie> get cookies {
@@ -1245,15 +1243,6 @@ class _HttpClientRequest
     _httpConnection._write(_Const.HTTP11);
     _writeCRLF();
 
-    // Determine the value of the "Transfer-Encoding" header based on
-    // whether the content length is known. If there is no content
-    // neither "Content-Length" nor "Transfer-Encoding" is set.
-    if (_contentLength > 0) {
-      _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
-    } else if (_contentLength < 0) {
-      _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
-    }
-
     // Add the cookies to the headers.
     if (_cookies != null) {
       StringBuffer sb = new StringBuffer();
@@ -1267,6 +1256,7 @@ class _HttpClientRequest
     }
 
     // Write headers.
+    _headers._finalize("1.1");
     _writeHeaders();
     _state = _HttpRequestResponseBase.HEADER_SENT;
   }
@@ -1330,11 +1320,8 @@ class _HttpClientResponse
     _statusCode = statusCode;
     _reasonPhrase = reasonPhrase;
     _headers = headers;
-    // Get parsed content length.
-    _contentLength = _httpConnection._httpParser.contentLength;
 
     // Prepare for receiving data.
-    _headers._mutable = false;
     _buffer = new _BufferList();
     if (isRedirect && _connection.followRedirects) {
       if (_connection._redirects == null ||
@@ -1550,7 +1537,7 @@ class _HttpClientConnection
           _client._closedSocketConnection(_socketConn);
         };
         _client._closeQueue.add(this);
-      } else {
+      } else if (_socket != null) {
         _client._returnSocketConnection(_socketConn);
         _socket = null;
         _socketConn = null;
@@ -1750,7 +1737,7 @@ class _SocketConnection {
     _httpClientConnection = null;
   }
 
-  void _markRetreived() {
+  void _markRetrieved() {
     _socket.onData = null;
     _socket.onClosed = null;
     _socket.onError = null;
@@ -1899,6 +1886,10 @@ class _HttpClient implements HttpClient {
     credentials.add(new _Credentials(url, realm, cr));
   }
 
+  set sendClientCertificate(bool send) => _sendClientCertificate = send;
+
+  set clientCertificate(String nickname) => _clientCertificate = nickname;
+
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
   void shutdown({bool force: false}) {
@@ -1992,15 +1983,26 @@ class _HttpClient implements HttpClient {
       Queue socketConnections = _openSockets[key];
       // Remove active connections that are not valid any more or of
       // the wrong type (HTTP or HTTPS).
-      while (socketConnections != null &&
-             !socketConnections.isEmpty &&
-             (!socketConnections.first._valid ||
-              secure != (socketConnections.first._socket is SecureSocket))) {
-        socketConnections.removeFirst()._close();
+      if (socketConnections != null) {
+        while (!socketConnections.isEmpty) {
+          if (socketConnections.first._valid) {
+            // If socket has the same properties, exit loop with found socket.
+            var socket = socketConnections.first._socket;
+            if (!secure && socket is! SecureSocket) break;
+            if (secure && socket is SecureSocket &&
+                 _sendClientCertificate == socket.sendClientCertificate &&
+                 _clientCertificate == socket.certificateName) break;
+          }
+          socketConnections.removeFirst()._close();
+        }
       }
       if (socketConnections == null || socketConnections.isEmpty) {
-        Socket socket = secure ? new SecureSocket(connectHost, connectPort) :
-                                 new Socket(connectHost, connectPort);
+        Socket socket = secure ?
+            new SecureSocket(connectHost,
+                             connectPort,
+                             sendClientCertificate: _sendClientCertificate,
+                             certificateName: _clientCertificate) :
+            new Socket(connectHost, connectPort);
         // Until the connection is established handle connection errors
         // here as the HttpClientConnection object is not yet associated
         // with the socket.
@@ -2029,7 +2031,7 @@ class _HttpClient implements HttpClient {
         };
       } else {
         _SocketConnection socketConn = socketConnections.removeFirst();
-        socketConn._markRetreived();
+        socketConn._markRetrieved();
         _activeSockets.add(socketConn);
         new Timer(0, (ignored) =>
                   _connectionOpened(socketConn, connection, !proxy.isDirect));
@@ -2172,6 +2174,8 @@ class _HttpClient implements HttpClient {
   Timer _evictionTimer;
   Function _findProxy;
   Function _authenticate;
+  bool _sendClientCertificate = false;
+  String _clientCertificate;
   bool _shutdown;  // Has this HTTP client been shutdown?
 }
 

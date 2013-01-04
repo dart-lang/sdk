@@ -4,8 +4,8 @@
 //
 // Directory listing test.
 
-#import("dart:io");
-#import("dart:isolate");
+import "dart:io";
+import "dart:isolate";
 
 class DirectoryTest {
   static void testListing() {
@@ -14,12 +14,38 @@ class DirectoryTest {
 
     Directory directory = new Directory("").createTempSync();
     Directory subDirectory = new Directory("${directory.path}/subdir");
+    Expect.isTrue('$directory'.contains(directory.path));
     Expect.isFalse(subDirectory.existsSync());
     subDirectory.createSync();
     Expect.isTrue(subDirectory.existsSync());
     File f = new File('${subDirectory.path}/file.txt');
     Expect.isFalse(f.existsSync());
     f.createSync();
+
+    void testSyncListing(bool recursive) {
+      for (var entry in directory.listSync(recursive: recursive)) {
+        if (entry is File) {
+          Expect.isTrue(entry.name.contains(directory.path));
+          Expect.isTrue(entry.name.contains('subdir'));
+          Expect.isTrue(entry.name.contains('file.txt'));
+          Expect.isFalse(listedFile);
+          listedFile = true;
+        } else {
+          Expect.isTrue(entry is Directory);
+          Expect.isTrue(entry.path.contains(directory.path));
+          Expect.isTrue(entry.path.contains('subdir'));
+          Expect.isFalse(listedDir);
+          listedDir = true;
+        }
+      }
+      Expect.equals(listedFile, recursive);
+      Expect.isTrue(listedDir);
+      listedFile = false;
+      listedDir = false;
+    }
+
+    testSyncListing(true);
+    testSyncListing(false);
 
     var lister = directory.list(recursive: true);
 

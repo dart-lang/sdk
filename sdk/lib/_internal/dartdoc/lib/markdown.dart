@@ -5,6 +5,8 @@
 /// Parses text in a markdown-like format and renders to HTML.
 library markdown;
 
+import 'classify.dart';
+
 // TODO(rnystrom): Use "package:" URL (#4968).
 part 'src/markdown/ast.dart';
 part 'src/markdown/block_parser.dart';
@@ -15,7 +17,8 @@ part 'src/markdown/inline_parser.dart';
 String markdownToHtml(String markdown) {
   final document = new Document();
 
-  final lines = markdown.split('\n');
+  // Replace windows line endings with unix line endings, and split.
+  final lines = markdown.replaceAll('\r\n','\n').split('\n');
   document.parseRefLinks(lines);
   final blocks = document.parseLines(lines);
   return renderToHtml(blocks);

@@ -111,6 +111,9 @@ class OS {
   // value.
   static bool StringToInt64(const char* str, int64_t* value);
 
+  // Register code observers relevant to this OS.
+  static void RegisterCodeObservers();
+
   // Initialize the OS class.
   static void InitOnce();
 

@@ -13,6 +13,16 @@
 
 namespace dart {
 
+bool RawObject::IsVMHeapObject() const {
+  // TODO(asiva): Need a better way to represent VM heap objects, for
+  // now we use the premarked property for identifying objects in the
+  // VM heap.
+  ASSERT(IsHeapObject());
+  ASSERT(!Isolate::Current()->heap()->gc_in_progress());
+  return IsMarked();
+}
+
+
 void RawObject::Validate(Isolate* isolate) const {
   if (Object::null_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
     // Validation relies on properly initialized class classes. Skip if the

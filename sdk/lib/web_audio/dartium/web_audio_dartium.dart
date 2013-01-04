@@ -17,7 +17,7 @@ import 'dart:nativewrappers';
 
 /// @domName AnalyserNode
 class AnalyserNode extends AudioNode {
-  AnalyserNode.internal(): super.internal();
+  AnalyserNode.internal() : super.internal();
 
 
   /** @domName AnalyserNode.fftSize */
@@ -125,7 +125,7 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 
 /// @domName AudioBufferSourceNode
 class AudioBufferSourceNode extends AudioSourceNode {
-  AudioBufferSourceNode.internal(): super.internal();
+  AudioBufferSourceNode.internal() : super.internal();
 
   static const int FINISHED_STATE = 3;
 
@@ -184,8 +184,12 @@ class AudioBufferSourceNode extends AudioSourceNode {
       _start_1(when);
       return;
     }
+    if ((when is num || when == null) && (grainOffset is num || grainOffset == null) && !?grainDuration) {
+      _start_2(when, grainOffset);
+      return;
+    }
     if ((when is num || when == null) && (grainOffset is num || grainOffset == null) && (grainDuration is num || grainDuration == null)) {
-      _start_2(when, grainOffset, grainDuration);
+      _start_3(when, grainOffset, grainDuration);
       return;
     }
     throw "Incorrect number or type of arguments";
@@ -197,7 +201,11 @@ class AudioBufferSourceNode extends AudioSourceNode {
 
 
   /** @domName AudioBufferSourceNode.start_2 */
-  void _start_2(when, grainOffset, grainDuration) native "AudioBufferSourceNode_start_2_Callback";
+  void _start_2(when, grainOffset) native "AudioBufferSourceNode_start_2_Callback";
+
+
+  /** @domName AudioBufferSourceNode.start_3 */
+  void _start_3(when, grainOffset, grainDuration) native "AudioBufferSourceNode_start_3_Callback";
 
 
   /** @domName AudioBufferSourceNode.stop */
@@ -211,14 +219,11 @@ class AudioBufferSourceNode extends AudioSourceNode {
 
 /// @domName AudioContext
 class AudioContext extends EventTarget {
-  factory AudioContext() => _createAudioContext();
+  AudioContext.internal() : super.internal();
 
-  static _createAudioContext([int numberOfChannels,
-                              int numberOfFrames,
-                              int sampleRate])
-      native "AudioContext_constructor_Callback";
-
-  AudioContext.internal(): super.internal();
+  ///@docsEditable true
+  factory AudioContext() => AudioContext._create();
+  static AudioContext _create() native "AudioContext_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AudioContextEvents get on =>
@@ -336,6 +341,10 @@ class AudioContext extends EventTarget {
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native "AudioContext_createMediaElementSource_Callback";
 
 
+  /** @domName AudioContext.createMediaStreamDestination */
+  MediaStreamAudioDestinationNode createMediaStreamDestination() native "AudioContext_createMediaStreamDestination_Callback";
+
+
   /** @domName AudioContext.createMediaStreamSource */
   MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native "AudioContext_createMediaStreamSource_Callback";
 
@@ -404,7 +413,7 @@ class AudioContextEvents extends Events {
 
 /// @domName AudioDestinationNode
 class AudioDestinationNode extends AudioNode {
-  AudioDestinationNode.internal(): super.internal();
+  AudioDestinationNode.internal() : super.internal();
 
 
   /** @domName AudioDestinationNode.numberOfChannels */
@@ -420,7 +429,7 @@ class AudioDestinationNode extends AudioNode {
 
 /// @domName AudioGain
 class AudioGain extends AudioParam {
-  AudioGain.internal(): super.internal();
+  AudioGain.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -584,7 +593,7 @@ class AudioParam extends NativeFieldWrapperClass1 {
 
 /// @domName AudioProcessingEvent
 class AudioProcessingEvent extends Event {
-  AudioProcessingEvent.internal(): super.internal();
+  AudioProcessingEvent.internal() : super.internal();
 
 
   /** @domName AudioProcessingEvent.inputBuffer */
@@ -604,7 +613,7 @@ class AudioProcessingEvent extends Event {
 
 /// @domName AudioSourceNode
 class AudioSourceNode extends AudioNode {
-  AudioSourceNode.internal(): super.internal();
+  AudioSourceNode.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -616,7 +625,7 @@ class AudioSourceNode extends AudioNode {
 
 /// @domName BiquadFilterNode
 class BiquadFilterNode extends AudioNode {
-  BiquadFilterNode.internal(): super.internal();
+  BiquadFilterNode.internal() : super.internal();
 
   static const int ALLPASS = 7;
 
@@ -637,6 +646,10 @@ class BiquadFilterNode extends AudioNode {
 
   /** @domName BiquadFilterNode.Q */
   AudioParam get Q native "BiquadFilterNode_Q_Getter";
+
+
+  /** @domName BiquadFilterNode.detune */
+  AudioParam get detune native "BiquadFilterNode_detune_Getter";
 
 
   /** @domName BiquadFilterNode.frequency */
@@ -668,7 +681,7 @@ class BiquadFilterNode extends AudioNode {
 
 /// @domName ChannelMergerNode
 class ChannelMergerNode extends AudioNode {
-  ChannelMergerNode.internal(): super.internal();
+  ChannelMergerNode.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -680,7 +693,7 @@ class ChannelMergerNode extends AudioNode {
 
 /// @domName ChannelSplitterNode
 class ChannelSplitterNode extends AudioNode {
-  ChannelSplitterNode.internal(): super.internal();
+  ChannelSplitterNode.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -692,7 +705,7 @@ class ChannelSplitterNode extends AudioNode {
 
 /// @domName ConvolverNode
 class ConvolverNode extends AudioNode {
-  ConvolverNode.internal(): super.internal();
+  ConvolverNode.internal() : super.internal();
 
 
   /** @domName ConvolverNode.buffer */
@@ -720,7 +733,7 @@ class ConvolverNode extends AudioNode {
 
 /// @domName DelayNode
 class DelayNode extends AudioNode {
-  DelayNode.internal(): super.internal();
+  DelayNode.internal() : super.internal();
 
 
   /** @domName DelayNode.delayTime */
@@ -736,7 +749,7 @@ class DelayNode extends AudioNode {
 
 /// @domName DynamicsCompressorNode
 class DynamicsCompressorNode extends AudioNode {
-  DynamicsCompressorNode.internal(): super.internal();
+  DynamicsCompressorNode.internal() : super.internal();
 
 
   /** @domName DynamicsCompressorNode.attack */
@@ -772,7 +785,7 @@ class DynamicsCompressorNode extends AudioNode {
 
 /// @domName GainNode
 class GainNode extends AudioNode {
-  GainNode.internal(): super.internal();
+  GainNode.internal() : super.internal();
 
 
   /** @domName GainNode.gain */
@@ -788,7 +801,7 @@ class GainNode extends AudioNode {
 
 /// @domName MediaElementAudioSourceNode
 class MediaElementAudioSourceNode extends AudioSourceNode {
-  MediaElementAudioSourceNode.internal(): super.internal();
+  MediaElementAudioSourceNode.internal() : super.internal();
 
 
   /** @domName MediaElementAudioSourceNode.mediaElement */
@@ -802,9 +815,25 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName MediaStreamAudioDestinationNode
+class MediaStreamAudioDestinationNode extends AudioSourceNode {
+  MediaStreamAudioDestinationNode.internal() : super.internal();
+
+
+  /** @domName MediaStreamAudioDestinationNode.stream */
+  MediaStream get stream native "MediaStreamAudioDestinationNode_stream_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName MediaStreamAudioSourceNode
 class MediaStreamAudioSourceNode extends AudioSourceNode {
-  MediaStreamAudioSourceNode.internal(): super.internal();
+  MediaStreamAudioSourceNode.internal() : super.internal();
 
 
   /** @domName MediaStreamAudioSourceNode.mediaStream */
@@ -820,7 +849,7 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
 
 /// @domName OfflineAudioCompletionEvent
 class OfflineAudioCompletionEvent extends Event {
-  OfflineAudioCompletionEvent.internal(): super.internal();
+  OfflineAudioCompletionEvent.internal() : super.internal();
 
 
   /** @domName OfflineAudioCompletionEvent.renderedBuffer */
@@ -834,9 +863,25 @@ class OfflineAudioCompletionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName OfflineAudioContext
+class OfflineAudioContext extends AudioContext implements EventTarget {
+  OfflineAudioContext.internal() : super.internal();
+
+  ///@docsEditable true
+  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) => OfflineAudioContext._create(numberOfChannels, numberOfFrames, sampleRate);
+  static OfflineAudioContext _create(int numberOfChannels, int numberOfFrames, num sampleRate) native "OfflineAudioContext_constructor_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName OscillatorNode
 class OscillatorNode extends AudioSourceNode {
-  OscillatorNode.internal(): super.internal();
+  OscillatorNode.internal() : super.internal();
 
   static const int CUSTOM = 4;
 
@@ -898,7 +943,7 @@ class OscillatorNode extends AudioSourceNode {
 
 /// @domName PannerNode
 class PannerNode extends AudioNode {
-  PannerNode.internal(): super.internal();
+  PannerNode.internal() : super.internal();
 
   static const int EQUALPOWER = 0;
 
@@ -911,10 +956,6 @@ class PannerNode extends AudioNode {
   static const int LINEAR_DISTANCE = 0;
 
   static const int SOUNDFIELD = 2;
-
-
-  /** @domName PannerNode.coneGain */
-  AudioGain get coneGain native "PannerNode_coneGain_Getter";
 
 
   /** @domName PannerNode.coneInnerAngle */
@@ -939,10 +980,6 @@ class PannerNode extends AudioNode {
 
   /** @domName PannerNode.coneOuterGain */
   void set coneOuterGain(num value) native "PannerNode_coneOuterGain_Setter";
-
-
-  /** @domName PannerNode.distanceGain */
-  AudioGain get distanceGain native "PannerNode_distanceGain_Getter";
 
 
   /** @domName PannerNode.distanceModel */
@@ -1006,25 +1043,12 @@ class PannerNode extends AudioNode {
 
 /// @domName ScriptProcessorNode
 class ScriptProcessorNode extends AudioNode implements EventTarget {
-  ScriptProcessorNode.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  ScriptProcessorNodeEvents get on =>
-    new ScriptProcessorNodeEvents(this);
+  ScriptProcessorNode.internal() : super.internal();
 
 
   /** @domName ScriptProcessorNode.bufferSize */
   int get bufferSize native "ScriptProcessorNode_bufferSize_Getter";
 
-}
-
-/// @docsEditable true
-class ScriptProcessorNodeEvents extends Events {
-  /// @docsEditable true
-  ScriptProcessorNodeEvents(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get audioProcess => this['audioprocess'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1035,7 +1059,7 @@ class ScriptProcessorNodeEvents extends Events {
 
 /// @domName WaveShaperNode
 class WaveShaperNode extends AudioNode {
-  WaveShaperNode.internal(): super.internal();
+  WaveShaperNode.internal() : super.internal();
 
 
   /** @domName WaveShaperNode.curve */

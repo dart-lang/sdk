@@ -51,6 +51,7 @@ const String DEFAULT_HELPERLIB = r'''
 const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSArray {
     var length;
+    operator[](index) {}
   }
   class JSString {
     var length;
@@ -88,6 +89,9 @@ const String DEFAULT_CORELIB = r'''
   class Dynamic_ {}
   bool identical(Object a, Object b) {}''';
 
+const String DEFAULT_ISOLATE_HELPERLIB = r'''
+  class _WorkerBase {}''';
+
 class MockCompiler extends Compiler {
   List<WarningMessage> warnings;
   List<WarningMessage> errors;
@@ -97,15 +101,18 @@ class MockCompiler extends Compiler {
   MockCompiler({String coreSource: DEFAULT_CORELIB,
                 String helperSource: DEFAULT_HELPERLIB,
                 String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
+                String isolateHelperSource: DEFAULT_ISOLATE_HELPERLIB,
                 bool enableTypeAssertions: false,
                 bool enableMinification: false,
                 bool enableConcreteTypeInference: false,
+                int maxConcreteTypeSize: 5,
                 bool analyzeAll: false})
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
               enableConcreteTypeInference: enableConcreteTypeInference,
+              maxConcreteTypeSize: maxConcreteTypeSize,
               analyzeAll: analyzeAll) {
     coreLibrary = createLibrary("core", coreSource);
     // We need to set the assert method to avoid calls with a 'null'
@@ -116,6 +123,7 @@ class MockCompiler extends Compiler {
 
     assertMethod = jsHelperLibrary.find(buildSourceString('assert'));
     interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
+    isolateHelperLibrary = createLibrary("isolate_helper", isolateHelperSource);
 
     mainApp = mockLibrary(this, "");
     initializeSpecialClasses();

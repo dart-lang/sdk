@@ -10,6 +10,11 @@ import 'dart:html';
 main() {
   useHtmlConfiguration();
 
+  // Only perform tests if ArrayBuffer is supported.
+  if (!ArrayBuffer.supported) {
+    return;
+  }
+
   test('outOfRangeAccess_dynamic', () {
       var a = new Uint8Array(1024);
 

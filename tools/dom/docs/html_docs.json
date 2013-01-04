@@ -1,0 +1,2399 @@
+{
+"AbstractWorker.dart":
+  {
+
+  },
+"AnalyserNode.dart":
+  {
+
+  },
+"AnchorElement.dart":
+  {
+
+  },
+"Animation.dart":
+  {
+
+  },
+"AnimationEvent.dart":
+  {
+
+  },
+"AppletElement.dart":
+  {
+
+  },
+"ApplicationCache.dart":
+  {
+
+  },
+"AreaElement.dart":
+  {
+
+  },
+"ArrayBuffer.dart":
+  {
+
+  },
+"ArrayBufferView.dart":
+  {
+
+  },
+"Attr.dart":
+  {
+
+  },
+"AudioBuffer.dart":
+  {
+
+  },
+"AudioBufferCallback.dart":
+  {
+
+  },
+"AudioBufferSourceNode.dart":
+  {
+
+  },
+"AudioContext.dart":
+  {
+
+  },
+"AudioDestinationNode.dart":
+  {
+
+  },
+"AudioElement.dart":
+  {
+
+  },
+"AudioGain.dart":
+  {
+
+  },
+"AudioListener.dart":
+  {
+
+  },
+"AudioNode.dart":
+  {
+
+  },
+"AudioParam.dart":
+  {
+
+  },
+"AudioProcessingEvent.dart":
+  {
+
+  },
+"AudioSourceNode.dart":
+  {
+
+  },
+"BRElement.dart":
+  {
+
+  },
+"BarInfo.dart":
+  {
+
+  },
+"BaseElement.dart":
+  {
+
+  },
+"BaseFontElement.dart":
+  {
+
+  },
+"BatteryManager.dart":
+  {
+
+  },
+"BeforeLoadEvent.dart":
+  {
+
+  },
+"BiquadFilterNode.dart":
+  {
+
+  },
+"Blob.dart":
+  {
+
+  },
+"BodyElement.dart":
+  {
+
+  },
+"ButtonElement.dart":
+  {
+
+  },
+"CDATASection.dart":
+  {
+
+  },
+"CDataSection.dart":
+  {
+
+  },
+"CSSCharsetRule.dart":
+  {
+
+  },
+"CSSFontFaceRule.dart":
+  {
+
+  },
+"CSSImportRule.dart":
+  {
+
+  },
+"CSSKeyframeRule.dart":
+  {
+
+  },
+"CSSKeyframesRule.dart":
+  {
+
+  },
+"CSSMatrix.dart":
+  {
+
+  },
+"CSSMediaRule.dart":
+  {
+
+  },
+"CSSPageRule.dart":
+  {
+
+  },
+"CSSPrimitiveValue.dart":
+  {
+
+  },
+"CSSRule.dart":
+  {
+
+  },
+"CSSStyleDeclaration.dart":
+  {
+
+  },
+"CSSStyleRule.dart":
+  {
+
+  },
+"CSSStyleSheet.dart":
+  {
+
+  },
+"CSSTransformValue.dart":
+  {
+
+  },
+"CSSUnknownRule.dart":
+  {
+
+  },
+"CSSValue.dart":
+  {
+
+  },
+"CanvasElement.dart":
+  {
+  "  @JSName('toDataURL')":
+    [
+      "  /**",
+      "   * Returns a data URI containing a representation of the image in the ",
+      "   * format specified by type (defaults to 'image/png'). ",
+      "   * ",
+      "   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`",
+      "   * ",
+      "   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]",
+      "   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default",
+      "   * value is used. Note: the default value varies by browser.",
+      "   * ",
+      "   * If the height or width of this canvas element is 0, then 'data:' is returned,",
+      "   * representing no data.",
+      "   * ",
+      "   * If the type requested is not 'image/png', and the returned value is ",
+      "   * 'data:image/png', then the requested type is not supported.",
+      "   * ",
+      "   * Example usage:",
+      "   * ",
+      "   *     CanvasElement canvas = new CanvasElement();",
+      "   *     var ctx = canvas.context2d",
+      "   *     ..fillStyle = \"rgb(200,0,0)\"",
+      "   *     ..fillRect(10, 10, 55, 50);",
+      "   *     var dataUrl = canvas.toDataURL(\"image/jpeg\", 0.95);",
+      "   *     // The Data Uri would look similar to",
+      "   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA",
+      "   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO",
+      "   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='",
+      "   *     //Create a new image element from the data URI.",
+      "   *     var img = new ImageElement();",
+      "   *     img.src = dataUrl;",
+      "   *     document.body.children.add(img);",
+      "   *     ",
+      "   * See also:",
+      "   * ",
+      "   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.",
+      "   * ",
+      "   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.",
+      "   * ",
+      "   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.",
+      "   */"
+    ],
+  "  int height;":
+    [
+      "  /// The height of this canvas element in CSS pixels."
+    ],
+  "  int width;":
+    [
+      "  /// The width of this canvas element in CSS pixels."
+    ]
+  },
+"CanvasGradient.dart":
+  {
+  "  void addColorStop(num offset, String color) native;":
+    [
+      "  /**",
+      "   * Adds a color stop to this gradient at the offset.",
+      "   *",
+      "   * The [offset] can range between 0.0 and 1.0.",
+      "   *",
+      "   * See also:",
+      "   *",
+      "   * * [Multiple Color Stops](https://developer.mozilla.org/en-US/docs/CSS/linear-gradient#Gradient_with_multiple_color_stops) from MDN.",
+      "   */"
+    ],
+  "class CanvasGradient native \"*CanvasGradient\" {":
+    [
+      "/**",
+      " * An opaque canvas object representing a gradient.",
+      " *",
+      " * Created by calling [createLinearGradient] or [createRadialGradient] on a",
+      " * [CanvasRenderingContext2D] object.",
+      " *",
+      " * Example usage:",
+      " *",
+      " *     var canvas = new CanvasElement(width: 600, height: 600);",
+      " *     var ctx = canvas.context2d;",
+      " *     ctx.clearRect(0, 0, 600, 600);",
+      " *     ctx.save();",
+      " *     // Create radial gradient.",
+      " *     CanvasGradient gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 600);",
+      " *     gradient.addColorStop(0, '#000');",
+      " *     gradient.addColorStop(1, 'rgb(255, 255, 255)');",
+      " *     // Assign gradients to fill.",
+      " *     ctx.fillStyle = gradient;",
+      " *     // Draw a rectangle with a gradient fill.",
+      " *     ctx.fillRect(0, 0, 600, 600);",
+      " *     ctx.save();",
+      " *     document.body.children.add(canvas);",
+      " *",
+      " * See also:",
+      " *",
+      " * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.",
+      " * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.",
+      " * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.",
+      " */"
+    ]
+  },
+"CanvasPattern.dart":
+  {
+  "class CanvasPattern native \"*CanvasPattern\" {":
+    [
+      "/**",
+      " * An opaque object representing a pattern of image, canvas, or video.",
+      " *",
+      " * Created by calling [createPattern] on a [CanvasRenderingContext2D] object.",
+      " *",
+      " * Example usage:",
+      " *",
+      " *     var canvas = new CanvasElement(width: 600, height: 600);",
+      " *     var ctx = canvas.context2d;",
+      " *     var img = new ImageElement();",
+      " *     // Image src needs to be loaded before pattern is applied.",
+      " *     img.on.load.add((event) {",
+      " *       // When the image is loaded, create a pattern",
+      " *       // from the ImageElement.",
+      " *       CanvasPattern pattern = ctx.createPattern(img, 'repeat');",
+      " *       ctx.rect(0, 0, canvas.width, canvas.height);",
+      " *       ctx.fillStyle = pattern;",
+      " *       ctx.fill();",
+      " *     });",
+      " *     img.src = \"images/foo.jpg\";",
+      " *     document.body.children.add(canvas);",
+      " *",
+      " * See also:",
+      " * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.",
+      " * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.",
+      " * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.",
+      " */"
+    ]
+  },
+"CanvasRenderingContext.dart":
+  {
+  "  final CanvasElement canvas;":
+    [
+      "  /// Reference to the canvas element to which this context belongs."
+    ],
+  "class CanvasRenderingContext native \"*CanvasRenderingContext\" {":
+    [
+      "/**",
+      " * A rendering context for a canvas element.",
+      " *",
+      " * This context is extended by [CanvasRenderingContext2D] and",
+      " * [WebGLRenderingContext].",
+      " */"
+    ]
+  },
+"CanvasRenderingContext2D.dart":
+  {
+
+  },
+"ChannelMergerNode.dart":
+  {
+
+  },
+"ChannelSplitterNode.dart":
+  {
+
+  },
+"CharacterData.dart":
+  {
+
+  },
+"ClientRect.dart":
+  {
+
+  },
+"Clipboard.dart":
+  {
+
+  },
+"CloseEvent.dart":
+  {
+
+  },
+"Comment.dart":
+  {
+
+  },
+"CompositionEvent.dart":
+  {
+
+  },
+"Console.dart":
+  {
+
+  },
+"ContentElement.dart":
+  {
+
+  },
+"ConvolverNode.dart":
+  {
+
+  },
+"Coordinates.dart":
+  {
+
+  },
+"Counter.dart":
+  {
+
+  },
+"Crypto.dart":
+  {
+
+  },
+"CssCharsetRule.dart":
+  {
+
+  },
+"CssFontFaceRule.dart":
+  {
+
+  },
+"CssImportRule.dart":
+  {
+
+  },
+"CssKeyframeRule.dart":
+  {
+
+  },
+"CssKeyframesRule.dart":
+  {
+
+  },
+"CssMatrix.dart":
+  {
+
+  },
+"CssMediaRule.dart":
+  {
+
+  },
+"CssPageRule.dart":
+  {
+
+  },
+"CssPrimitiveValue.dart":
+  {
+
+  },
+"CssRule.dart":
+  {
+
+  },
+"CssStyleDeclaration.dart":
+  {
+
+  },
+"CssStyleRule.dart":
+  {
+
+  },
+"CssStyleSheet.dart":
+  {
+
+  },
+"CssTransformValue.dart":
+  {
+
+  },
+"CssUnknownRule.dart":
+  {
+
+  },
+"CssValue.dart":
+  {
+
+  },
+"CustomEvent.dart":
+  {
+
+  },
+"DListElement.dart":
+  {
+
+  },
+"DOMApplicationCache.dart":
+  {
+
+  },
+"DOMError.dart":
+  {
+
+  },
+"DOMException.dart":
+  {
+
+  },
+"DOMFileSystem.dart":
+  {
+
+  },
+"DOMFileSystemSync.dart":
+  {
+
+  },
+"DOMImplementation.dart":
+  {
+
+  },
+"DOMMimeType.dart":
+  {
+
+  },
+"DOMMimeTypeArray.dart":
+  {
+
+  },
+"DOMParser.dart":
+  {
+
+  },
+"DOMPlugin.dart":
+  {
+
+  },
+"DOMPluginArray.dart":
+  {
+
+  },
+"DOMSelection.dart":
+  {
+
+  },
+"DOMSettableTokenList.dart":
+  {
+
+  },
+"DOMStringMap.dart":
+  {
+
+  },
+"DOMTokenList.dart":
+  {
+
+  },
+"DataListElement.dart":
+  {
+
+  },
+"DataTransferItem.dart":
+  {
+
+  },
+"DataTransferItemList.dart":
+  {
+
+  },
+"DataView.dart":
+  {
+
+  },
+"Database.dart":
+  {
+
+  },
+"DatabaseCallback.dart":
+  {
+
+  },
+"DatabaseSync.dart":
+  {
+
+  },
+"DedicatedWorkerContext.dart":
+  {
+
+  },
+"DelayNode.dart":
+  {
+
+  },
+"DetailsElement.dart":
+  {
+
+  },
+"DeviceMotionEvent.dart":
+  {
+
+  },
+"DeviceOrientationEvent.dart":
+  {
+
+  },
+"DirectoryElement.dart":
+  {
+
+  },
+"DirectoryEntry.dart":
+  {
+
+  },
+"DirectoryEntrySync.dart":
+  {
+
+  },
+"DirectoryReader.dart":
+  {
+
+  },
+"DirectoryReaderSync.dart":
+  {
+
+  },
+"DivElement.dart":
+  {
+  "class DivElement extends Element native \"*HTMLDivElement\" {":
+    [
+      "/**",
+      " * Represents an HTML <div> element.",
+      " *",
+      " * The [DivElement] is a generic container for content and does not have any",
+      " * special significance. It is functionally similar to [SpanElement].",
+      " *",
+      " * The [DivElement] is a block-level element, as opposed to [SpanElement],",
+      " * which is an inline-level element.",
+      " *",
+      " * Example usage:",
+      " *",
+      " *     DivElement div = new DivElement();",
+      " *     div.text = 'Here's my new DivElem",
+      " *     document.body.elements.add(elem);",
+      " *",
+      " * See also:",
+      " *",
+      " * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.",
+      " * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.",
+      " * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.",
+      " */"
+    ]
+  },
+"Document.dart":
+  {
+  "  @JSName('body')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('caretRangeFromPoint')":
+    [
+      "  /// Use the [Range] constructor instead."
+    ],
+  "  @JSName('createElement')":
+    [
+      "  /// Deprecated: use new Element.tag(tagName) instead."
+    ],
+  "  @JSName('createTouchList')":
+    [
+      "  /// Use the [TouchList] constructor isntead."
+    ],
+  "  @JSName('elementFromPoint')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('getElementById')":
+    [
+      "  /// Deprecated: use query(\"#$elementId\") instead."
+    ],
+  "  @JSName('head')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('lastModified')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('querySelector')":
+    [
+      "  /// Deprecated: renamed to the shorter name [query]."
+    ],
+  "  @JSName('querySelectorAll')":
+    [
+      "  /// Deprecated: use query(\"#$elementId\") instead."
+    ],
+  "  @JSName('referrer')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('styleSheets')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('title')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitCancelFullScreen')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitExitFullscreen')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitExitPointerLock')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitFullscreenElement')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitFullscreenEnabled')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitHidden')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitIsFullScreen')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitPointerLockElement')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  @JSName('webkitVisibilityState')":
+    [
+      "  /// Moved to [HtmlDocument]."
+    ],
+  "  Window get window => _convertNativeToDart_Window(this._window);":
+    [
+      "  /// Returns the [Window] associated with the document."
+    ]
+  },
+"DocumentFragment.dart":
+  {
+
+  },
+"DocumentType.dart":
+  {
+
+  },
+"DomError.dart":
+  {
+
+  },
+"DomException.dart":
+  {
+
+  },
+"DomImplementation.dart":
+  {
+
+  },
+"DomMimeType.dart":
+  {
+
+  },
+"DomMimeTypeArray.dart":
+  {
+
+  },
+"DomParser.dart":
+  {
+
+  },
+"DomPlugin.dart":
+  {
+
+  },
+"DomPluginArray.dart":
+  {
+
+  },
+"DomSelection.dart":
+  {
+
+  },
+"DomSettableTokenList.dart":
+  {
+
+  },
+"DomStringList.dart":
+  {
+
+  },
+"DomStringMap.dart":
+  {
+
+  },
+"DomTokenList.dart":
+  {
+
+  },
+"DynamicsCompressorNode.dart":
+  {
+
+  },
+"EXTTextureFilterAnisotropic.dart":
+  {
+
+  },
+"Element.dart":
+  {
+
+  },
+"ElementTimeControl.dart":
+  {
+
+  },
+"ElementTraversal.dart":
+  {
+
+  },
+"EmbedElement.dart":
+  {
+
+  },
+"EntityReference.dart":
+  {
+
+  },
+"EntriesCallback.dart":
+  {
+
+  },
+"Entry.dart":
+  {
+
+  },
+"EntryCallback.dart":
+  {
+
+  },
+"EntrySync.dart":
+  {
+
+  },
+"ErrorCallback.dart":
+  {
+
+  },
+"ErrorEvent.dart":
+  {
+
+  },
+"Event.dart":
+  {
+
+  },
+"EventException.dart":
+  {
+
+  },
+"EventSource.dart":
+  {
+
+  },
+"EventTarget.dart":
+  {
+
+  },
+"ExtTextureFilterAnisotropic.dart":
+  {
+
+  },
+"FieldSetElement.dart":
+  {
+
+  },
+"File.dart":
+  {
+
+  },
+"FileCallback.dart":
+  {
+
+  },
+"FileEntry.dart":
+  {
+
+  },
+"FileEntrySync.dart":
+  {
+
+  },
+"FileError.dart":
+  {
+
+  },
+"FileException.dart":
+  {
+
+  },
+"FileList.dart":
+  {
+
+  },
+"FileReader.dart":
+  {
+
+  },
+"FileReaderSync.dart":
+  {
+
+  },
+"FileSystem.dart":
+  {
+
+  },
+"FileSystemCallback.dart":
+  {
+
+  },
+"FileSystemSync.dart":
+  {
+
+  },
+"FileWriter.dart":
+  {
+
+  },
+"FileWriterCallback.dart":
+  {
+
+  },
+"FileWriterSync.dart":
+  {
+
+  },
+"Float32Array.dart":
+  {
+
+  },
+"Float64Array.dart":
+  {
+
+  },
+"FontElement.dart":
+  {
+
+  },
+"FormData.dart":
+  {
+
+  },
+"FormElement.dart":
+  {
+
+  },
+"FrameElement.dart":
+  {
+
+  },
+"FrameSetElement.dart":
+  {
+
+  },
+"GainNode.dart":
+  {
+
+  },
+"Gamepad.dart":
+  {
+
+  },
+"Geolocation.dart":
+  {
+
+  },
+"Geoposition.dart":
+  {
+
+  },
+"HRElement.dart":
+  {
+
+  },
+"HTMLAllCollection.dart":
+  {
+
+  },
+"HTMLCollection.dart":
+  {
+
+  },
+"HTMLOptionsCollection.dart":
+  {
+
+  },
+"HashChangeEvent.dart":
+  {
+
+  },
+"HeadElement.dart":
+  {
+
+  },
+"HeadingElement.dart":
+  {
+
+  },
+"HtmlAllCollection.dart":
+  {
+
+  },
+"HtmlCollection.dart":
+  {
+
+  },
+"HtmlDocument.dart":
+  {
+
+  },
+"HtmlElement.dart":
+  {
+
+  },
+"HtmlOptionsCollection.dart":
+  {
+
+  },
+"HttpRequest.dart":
+  {
+  "  @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')":
+    [
+      "  /**",
+      "   * The data received as a reponse from the request.",
+      "   *",
+      "   * The data could be in the",
+      "   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a ",
+      "   * [String]). `null` indicates request failure.",
+      "   */"
+    ],
+  "  @JSName('responseXML')":
+    [
+      "  /**",
+      "   * The request response, or null on failure.",
+      "   * ",
+      "   * The response is processed as",
+      "   * `text/xml` stream, unless responseType = 'document' and the request is",
+      "   * synchronous.",
+      "   */"
+    ],
+  "  EventListenerList get abort => this['abort'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified when request has been aborted,",
+      "   * generally due to calling `httpRequest.abort()`.",
+      "   */"
+    ],
+  "  EventListenerList get error => this['error'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified when a request has failed, such as when a",
+      "   * cross-domain error occurred or the file wasn't found on the server.",
+      "   */"
+    ],
+  "  EventListenerList get load => this['load'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified once the request has completed",
+      "   * *successfully*.",
+      "   */"
+    ],
+  "  EventListenerList get loadEnd => this['loadend'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified once the request has completed (on",
+      "   * either success or failure).",
+      "   */"
+    ],
+  "  EventListenerList get loadStart => this['loadstart'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified when the request starts, once",
+      "   * `httpRequest.send()` has been called.",
+      "   */"
+    ],
+  "  EventListenerList get progress => this['progress'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified when data for the request ",
+      "   * is being sent or loaded.",
+      "   *",
+      "   * Progress events are fired every 50ms or for every byte transmitted,",
+      "   * whichever is less frequent.",
+      "   */"
+    ],
+  "  EventListenerList get readyStateChange => this['readystatechange'];":
+    [
+      "  /**",
+      "   * Event listeners to be notified every time the [HttpRequest]",
+      "   * object's `readyState` changes values.",
+      "   */"
+    ],
+  "  HttpRequestEvents get on =>":
+    [
+      "  /**",
+      "   * Get the set of [HttpRequestEvents] that this request can respond to.",
+      "   * Usually used when adding an EventListener, such as in",
+      "   * `document.window.on.keyDown.add((e) => print('keydown happened'))`.",
+      "   */"
+    ],
+  "  String getAllResponseHeaders() native;":
+    [
+      "  /**",
+      "   * Retrieve all the response headers from a request.",
+      "   * ",
+      "   * `null` if no headers have been received. For multipart requests,",
+      "   * `getAllResponseHeaders` will return the response headers for the current",
+      "   * part of the request.",
+      "   * ",
+      "   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)",
+      "   * for a list of common response headers.",
+      "   */"
+    ],
+  "  String getResponseHeader(String header) native;":
+    [
+      "  /**",
+      "   * Return the response header named `header`, or `null` if not found.",
+      "   * ",
+      "   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)",
+      "   * for a list of common response headers.",
+      "   */"
+    ],
+  "  String responseType;":
+    [
+      "  /**",
+      "   * [String] telling the server the desired response format. ",
+      "   *",
+      "   * Default is `String`.",
+      "   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',",
+      "   * 'text'. Some newer browsers will throw `NS_ERROR_DOM_INVALID_ACCESS_ERR` if",
+      "   * `responseType` is set while performing a synchronous request.",
+      "   *",
+      "   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)",
+      "   */"
+    ],
+  "  bool withCredentials;":
+    [
+      "  /**",
+      "   * True if cross-site requests should use credentials such as cookies",
+      "   * or authorization headers; false otherwise. ",
+      "   *",
+      "   * This value is ignored for same-site requests.",
+      "   */"
+    ],
+  "  factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();":
+    [
+      "  /**",
+      "   * General constructor for any type of request (GET, POST, etc).",
+      "   *",
+      "   * This call is used in conjunction with [open]:",
+      "   * ",
+      "   *     var request = new HttpRequest();",
+      "   *     request.open('GET', 'http://dartlang.org')",
+      "   *     request.on.load.add((event) => print('Request complete'));",
+      "   * ",
+      "   * is the (more verbose) equivalent of",
+      "   * ",
+      "   *     var request = new HttpRequest.get('http://dartlang.org',",
+      "   *         (event) => print('Request complete'));",
+      "   */"
+    ],
+  "  final HttpRequestUpload upload;":
+    [
+      "  /**",
+      "   * [EventTarget] that can hold listeners to track the progress of the request.",
+      "   * The events fired will be members of [HttpRequestUploadEvents].",
+      "   */"
+    ],
+  "  final String responseText;":
+    [
+      "  /**",
+      "   * The response in string form or null on failure.",
+      "   */"
+    ],
+  "  final String statusText;":
+    [
+      "  /**",
+      "   * The request response string (such as \"200 OK\").",
+      "   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)",
+      "   */"
+    ],
+  "  final int readyState;":
+    [
+      "  /**",
+      "   * Indicator of the current state of the request:",
+      "   *",
+      "   * <table>",
+      "   *   <tr>",
+      "   *     <td>Value</td>",
+      "   *     <td>State</td>",
+      "   *     <td>Meaning</td>",
+      "   *   </tr>",
+      "   *   <tr>",
+      "   *     <td>0</td>",
+      "   *     <td>unsent</td>",
+      "   *     <td><code>open()</code> has not yet been called</td>",
+      "   *   </tr>",
+      "   *   <tr>",
+      "   *     <td>1</td>",
+      "   *     <td>opened</td>",
+      "   *     <td><code>send()</code> has not yet been called</td>",
+      "   *   </tr>",
+      "   *   <tr>",
+      "   *     <td>2</td>",
+      "   *     <td>headers received</td>",
+      "   *     <td><code>sent()</code> has been called; response headers and <code>status</code> are available</td>",
+      "   *   </tr>",
+      "   *   <tr>",
+      "   *     <td>3</td> <td>loading</td> <td><code>responseText</code> holds some data</td>",
+      "   *   </tr>",
+      "   *   <tr>",
+      "   *     <td>4</td> <td>done</td> <td>request is complete</td>",
+      "   *   </tr>",
+      "   * </table>",
+      "   */"
+    ],
+  "  final int status;":
+    [
+      "  /**",
+      "   * The http result code from the request (200, 404, etc).",
+      "   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)",
+      "   */"
+    ],
+  "  void abort() native;":
+    [
+      "  /**",
+      "   * Stop the current request.",
+      "   *",
+      "   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or ",
+      "   * `LOADING`. If this method is not in the process of being sent, the method",
+      "   * has no effect.",
+      "   */"
+    ],
+  "  void open(String method, String url, [bool async, String user, String password]) native;":
+    [
+      "  /**",
+      "   * Specify the desired `url`, and `method` to use in making the request.",
+      "   * ",
+      "   * By default the request is done asyncronously, with no user or password",
+      "   * authentication information. If `async` is false, the request will be send",
+      "   * synchronously.",
+      "   * ",
+      "   * Calling `open` again on a currently active request is equivalent to",
+      "   * calling `abort`.",
+      "   */"
+    ],
+  "  void overrideMimeType(String override) native;":
+    [
+      "  /**",
+      "   * Specify a particular MIME type (such as `text/xml`) desired for the",
+      "   * response.",
+      "   * ",
+      "   * This value must be set before the request has been sent. See also the list",
+      "   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)",
+      "   */"
+    ],
+  "  void send([data]) native;":
+    [
+      "  /**",
+      "   * Send the request with any given `data`.",
+      "   *",
+      "   * See also: ",
+      "   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())",
+      "   * from MDN.",
+      "   */"
+    ],
+  "  void setRequestHeader(String header, String value) native;":
+    [
+      "  /** Sets HTTP `header` to `value`. */"
+    ],
+  "class HttpRequestEvents extends Events {":
+    [
+      "/**",
+      " * A class that supports listening for and dispatching events that can fire when",
+      " * making an HTTP request. ",
+      " *  ",
+      " * Here's an example of adding an event handler that executes once an HTTP",
+      " * request has fully loaded:",
+      " * ",
+      " *     httpRequest.on.loadEnd.add((e) => myCustomLoadEndHandler(e));",
+      " *",
+      " * Each property of this class is a read-only pointer to an [EventListenerList].",
+      " * That list holds all of the [EventListener]s that have registered for that",
+      " * particular type of event that fires from an HttpRequest.",
+      " */"
+    ]
+  },
+"HttpRequestException.dart":
+  {
+
+  },
+"HttpRequestProgressEvent.dart":
+  {
+
+  },
+"HttpRequestUpload.dart":
+  {
+
+  },
+"IDBAny.dart":
+  {
+
+  },
+"IDBCursor.dart":
+  {
+
+  },
+"IDBCursorWithValue.dart":
+  {
+
+  },
+"IDBDatabase.dart":
+  {
+
+  },
+"IDBDatabaseException.dart":
+  {
+
+  },
+"IDBFactory.dart":
+  {
+
+  },
+"IDBIndex.dart":
+  {
+
+  },
+"IDBKey.dart":
+  {
+
+  },
+"IDBKeyRange.dart":
+  {
+
+  },
+"IDBObjectStore.dart":
+  {
+
+  },
+"IDBOpenDBRequest.dart":
+  {
+
+  },
+"IDBRequest.dart":
+  {
+
+  },
+"IDBTransaction.dart":
+  {
+
+  },
+"IDBUpgradeNeededEvent.dart":
+  {
+
+  },
+"IDBVersionChangeEvent.dart":
+  {
+
+  },
+"IDBVersionChangeRequest.dart":
+  {
+
+  },
+"IFrameElement.dart":
+  {
+
+  },
+"IceCallback.dart":
+  {
+
+  },
+"IceCandidate.dart":
+  {
+
+  },
+"ImageData.dart":
+  {
+
+  },
+"ImageElement.dart":
+  {
+
+  },
+"InputElement.dart":
+  {
+
+  },
+"Int16Array.dart":
+  {
+
+  },
+"Int32Array.dart":
+  {
+
+  },
+"Int8Array.dart":
+  {
+
+  },
+"JavaScriptCallFrame.dart":
+  {
+
+  },
+"KeyboardEvent.dart":
+  {
+
+  },
+"KeygenElement.dart":
+  {
+
+  },
+"LIElement.dart":
+  {
+
+  },
+"LabelElement.dart":
+  {
+
+  },
+"LegendElement.dart":
+  {
+
+  },
+"LinkElement.dart":
+  {
+
+  },
+"LocalHistory.dart":
+  {
+
+  },
+"LocalLocation.dart":
+  {
+
+  },
+"LocalMediaStream.dart":
+  {
+
+  },
+"LocalWindow.dart":
+  {
+
+  },
+"MapElement.dart":
+  {
+
+  },
+"MarqueeElement.dart":
+  {
+
+  },
+"MediaController.dart":
+  {
+
+  },
+"MediaElement.dart":
+  {
+
+  },
+"MediaElementAudioSourceNode.dart":
+  {
+
+  },
+"MediaError.dart":
+  {
+
+  },
+"MediaKeyError.dart":
+  {
+
+  },
+"MediaKeyEvent.dart":
+  {
+
+  },
+"MediaList.dart":
+  {
+
+  },
+"MediaQueryList.dart":
+  {
+
+  },
+"MediaQueryListListener.dart":
+  {
+
+  },
+"MediaSource.dart":
+  {
+
+  },
+"MediaStream.dart":
+  {
+
+  },
+"MediaStreamAudioSourceNode.dart":
+  {
+
+  },
+"MediaStreamEvent.dart":
+  {
+
+  },
+"MediaStreamTrack.dart":
+  {
+
+  },
+"MediaStreamTrackEvent.dart":
+  {
+
+  },
+"MediaStreamTrackList.dart":
+  {
+
+  },
+"MemoryInfo.dart":
+  {
+
+  },
+"MenuElement.dart":
+  {
+  "class MenuElement extends Element native \"*HTMLMenuElement\" {":
+    [
+      "/**",
+      " * An HTML <menu> element.",
+      " *",
+      " * A <menu> element represents an unordered list of menu commands.",
+      " *",
+      " * See also:",
+      " *",
+      " *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.",
+      " *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.",
+      " */"
+    ]
+  },
+"MessageChannel.dart":
+  {
+
+  },
+"MessageEvent.dart":
+  {
+
+  },
+"MessagePort.dart":
+  {
+
+  },
+"MetaElement.dart":
+  {
+
+  },
+"Metadata.dart":
+  {
+
+  },
+"MetadataCallback.dart":
+  {
+
+  },
+"MeterElement.dart":
+  {
+
+  },
+"ModElement.dart":
+  {
+
+  },
+"MouseEvent.dart":
+  {
+
+  },
+"MutationCallback.dart":
+  {
+
+  },
+"MutationEvent.dart":
+  {
+
+  },
+"MutationObserver.dart":
+  {
+
+  },
+"MutationRecord.dart":
+  {
+
+  },
+"NamedNodeMap.dart":
+  {
+
+  },
+"Navigator.dart":
+  {
+
+  },
+"NavigatorUserMediaError.dart":
+  {
+
+  },
+"NavigatorUserMediaErrorCallback.dart":
+  {
+
+  },
+"NavigatorUserMediaSuccessCallback.dart":
+  {
+
+  },
+"Node.dart":
+  {
+
+  },
+"NodeFilter.dart":
+  {
+
+  },
+"NodeIterator.dart":
+  {
+
+  },
+"NodeList.dart":
+  {
+
+  },
+"Notation.dart":
+  {
+
+  },
+"Notification.dart":
+  {
+
+  },
+"NotificationCenter.dart":
+  {
+
+  },
+"NotificationPermissionCallback.dart":
+  {
+
+  },
+"OESElementIndexUint.dart":
+  {
+
+  },
+"OESStandardDerivatives.dart":
+  {
+
+  },
+"OESTextureFloat.dart":
+  {
+
+  },
+"OESVertexArrayObject.dart":
+  {
+
+  },
+"OListElement.dart":
+  {
+
+  },
+"ObjectElement.dart":
+  {
+
+  },
+"OesElementIndexUint.dart":
+  {
+
+  },
+"OesStandardDerivatives.dart":
+  {
+
+  },
+"OesTextureFloat.dart":
+  {
+
+  },
+"OesVertexArrayObject.dart":
+  {
+
+  },
+"OfflineAudioCompletionEvent.dart":
+  {
+
+  },
+"OptGroupElement.dart":
+  {
+
+  },
+"OptionElement.dart":
+  {
+
+  },
+"OscillatorNode.dart":
+  {
+
+  },
+"OutputElement.dart":
+  {
+
+  },
+"OverflowEvent.dart":
+  {
+
+  },
+"PagePopupController.dart":
+  {
+
+  },
+"PageTransitionEvent.dart":
+  {
+
+  },
+"PannerNode.dart":
+  {
+
+  },
+"ParagraphElement.dart":
+  {
+
+  },
+"ParamElement.dart":
+  {
+
+  },
+"PeerConnection00.dart":
+  {
+
+  },
+"Performance.dart":
+  {
+
+  },
+"PerformanceNavigation.dart":
+  {
+
+  },
+"PerformanceTiming.dart":
+  {
+
+  },
+"Point.dart":
+  {
+
+  },
+"PopStateEvent.dart":
+  {
+
+  },
+"PositionCallback.dart":
+  {
+
+  },
+"PositionError.dart":
+  {
+
+  },
+"PositionErrorCallback.dart":
+  {
+
+  },
+"PreElement.dart":
+  {
+
+  },
+"ProcessingInstruction.dart":
+  {
+
+  },
+"ProgressElement.dart":
+  {
+
+  },
+"ProgressEvent.dart":
+  {
+
+  },
+"QuoteElement.dart":
+  {
+
+  },
+"RGBColor.dart":
+  {
+
+  },
+"RTCDataChannel.dart":
+  {
+
+  },
+"RTCDataChannelEvent.dart":
+  {
+
+  },
+"RTCErrorCallback.dart":
+  {
+
+  },
+"RTCIceCandidate.dart":
+  {
+
+  },
+"RTCIceCandidateEvent.dart":
+  {
+
+  },
+"RTCPeerConnection.dart":
+  {
+
+  },
+"RTCSessionDescription.dart":
+  {
+
+  },
+"RTCSessionDescriptionCallback.dart":
+  {
+
+  },
+"RTCStatsCallback.dart":
+  {
+
+  },
+"RTCStatsElement.dart":
+  {
+
+  },
+"RTCStatsReport.dart":
+  {
+
+  },
+"RTCStatsResponse.dart":
+  {
+
+  },
+"RadioNodeList.dart":
+  {
+
+  },
+"Range.dart":
+  {
+
+  },
+"RangeException.dart":
+  {
+
+  },
+"Rect.dart":
+  {
+
+  },
+"RequestAnimationFrameCallback.dart":
+  {
+
+  },
+"RgbColor.dart":
+  {
+
+  },
+"RtcDataChannel.dart":
+  {
+
+  },
+"RtcDataChannelEvent.dart":
+  {
+
+  },
+"RtcIceCandidate.dart":
+  {
+
+  },
+"RtcIceCandidateEvent.dart":
+  {
+
+  },
+"RtcPeerConnection.dart":
+  {
+
+  },
+"RtcSessionDescription.dart":
+  {
+
+  },
+"RtcStatsElement.dart":
+  {
+
+  },
+"RtcStatsReport.dart":
+  {
+
+  },
+"RtcStatsResponse.dart":
+  {
+
+  },
+"SQLError.dart":
+  {
+
+  },
+"SQLException.dart":
+  {
+
+  },
+"SQLResultSet.dart":
+  {
+
+  },
+"SQLResultSetRowList.dart":
+  {
+
+  },
+"SQLStatementCallback.dart":
+  {
+
+  },
+"SQLStatementErrorCallback.dart":
+  {
+
+  },
+"SQLTransaction.dart":
+  {
+
+  },
+"SQLTransactionCallback.dart":
+  {
+
+  },
+"SQLTransactionErrorCallback.dart":
+  {
+
+  },
+"SQLTransactionSync.dart":
+  {
+
+  },
+"SQLTransactionSyncCallback.dart":
+  {
+
+  },
+"Screen.dart":
+  {
+
+  },
+"ScriptElement.dart":
+  {
+
+  },
+"ScriptProcessorNode.dart":
+  {
+
+  },
+"ScriptProfile.dart":
+  {
+
+  },
+"ScriptProfileNode.dart":
+  {
+
+  },
+"SelectElement.dart":
+  {
+
+  },
+"SessionDescription.dart":
+  {
+
+  },
+"ShadowElement.dart":
+  {
+
+  },
+"ShadowRoot.dart":
+  {
+
+  },
+"SharedWorker.dart":
+  {
+
+  },
+"SharedWorkerContext.dart":
+  {
+
+  },
+"SourceBuffer.dart":
+  {
+
+  },
+"SourceBufferList.dart":
+  {
+
+  },
+"SourceElement.dart":
+  {
+
+  },
+"SpanElement.dart":
+  {
+
+  },
+"SpeechGrammar.dart":
+  {
+
+  },
+"SpeechGrammarList.dart":
+  {
+
+  },
+"SpeechInputEvent.dart":
+  {
+
+  },
+"SpeechInputResult.dart":
+  {
+
+  },
+"SpeechRecognition.dart":
+  {
+
+  },
+"SpeechRecognitionAlternative.dart":
+  {
+
+  },
+"SpeechRecognitionError.dart":
+  {
+
+  },
+"SpeechRecognitionEvent.dart":
+  {
+
+  },
+"SpeechRecognitionResult.dart":
+  {
+
+  },
+"SqlError.dart":
+  {
+
+  },
+"SqlException.dart":
+  {
+
+  },
+"SqlResultSet.dart":
+  {
+
+  },
+"SqlResultSetRowList.dart":
+  {
+
+  },
+"SqlTransaction.dart":
+  {
+
+  },
+"SqlTransactionSync.dart":
+  {
+
+  },
+"Storage.dart":
+  {
+
+  },
+"StorageEvent.dart":
+  {
+
+  },
+"StorageInfo.dart":
+  {
+
+  },
+"StorageInfoErrorCallback.dart":
+  {
+
+  },
+"StorageInfoQuotaCallback.dart":
+  {
+
+  },
+"StorageInfoUsageCallback.dart":
+  {
+
+  },
+"StringCallback.dart":
+  {
+
+  },
+"StyleElement.dart":
+  {
+
+  },
+"StyleMedia.dart":
+  {
+
+  },
+"StyleSheet.dart":
+  {
+
+  },
+"TableCaptionElement.dart":
+  {
+
+  },
+"TableCellElement.dart":
+  {
+
+  },
+"TableColElement.dart":
+  {
+
+  },
+"TableElement.dart":
+  {
+
+  },
+"TableRowElement.dart":
+  {
+
+  },
+"TableSectionElement.dart":
+  {
+
+  },
+"Text.dart":
+  {
+
+  },
+"TextAreaElement.dart":
+  {
+
+  },
+"TextEvent.dart":
+  {
+
+  },
+"TextMetrics.dart":
+  {
+
+  },
+"TextTrack.dart":
+  {
+
+  },
+"TextTrackCue.dart":
+  {
+
+  },
+"TextTrackCueList.dart":
+  {
+
+  },
+"TextTrackList.dart":
+  {
+
+  },
+"TimeRanges.dart":
+  {
+
+  },
+"TimeoutHandler.dart":
+  {
+
+  },
+"TitleElement.dart":
+  {
+
+  },
+"Touch.dart":
+  {
+
+  },
+"TouchEvent.dart":
+  {
+
+  },
+"TouchList.dart":
+  {
+
+  },
+"TrackElement.dart":
+  {
+
+  },
+"TrackEvent.dart":
+  {
+
+  },
+"TransitionEvent.dart":
+  {
+
+  },
+"TreeWalker.dart":
+  {
+
+  },
+"UIEvent.dart":
+  {
+
+  },
+"UListElement.dart":
+  {
+
+  },
+"Uint16Array.dart":
+  {
+
+  },
+"Uint32Array.dart":
+  {
+
+  },
+"Uint8Array.dart":
+  {
+
+  },
+"Uint8ClampedArray.dart":
+  {
+
+  },
+"UnknownElement.dart":
+  {
+
+  },
+"Url.dart":
+  {
+
+  },
+"ValidityState.dart":
+  {
+
+  },
+"VideoElement.dart":
+  {
+
+  },
+"VoidCallback.dart":
+  {
+
+  },
+"WaveShaperNode.dart":
+  {
+
+  },
+"WaveTable.dart":
+  {
+
+  },
+"WebGLActiveInfo.dart":
+  {
+
+  },
+"WebGLBuffer.dart":
+  {
+
+  },
+"WebGLCompressedTextureS3TC.dart":
+  {
+
+  },
+"WebGLContextAttributes.dart":
+  {
+
+  },
+"WebGLContextEvent.dart":
+  {
+
+  },
+"WebGLDebugRendererInfo.dart":
+  {
+
+  },
+"WebGLDebugShaders.dart":
+  {
+
+  },
+"WebGLDepthTexture.dart":
+  {
+
+  },
+"WebGLFramebuffer.dart":
+  {
+
+  },
+"WebGLLoseContext.dart":
+  {
+
+  },
+"WebGLProgram.dart":
+  {
+
+  },
+"WebGLRenderbuffer.dart":
+  {
+
+  },
+"WebGLRenderingContext.dart":
+  {
+
+  },
+"WebGLShader.dart":
+  {
+
+  },
+"WebGLShaderPrecisionFormat.dart":
+  {
+
+  },
+"WebGLTexture.dart":
+  {
+
+  },
+"WebGLUniformLocation.dart":
+  {
+
+  },
+"WebGLVertexArrayObject.dart":
+  {
+
+  },
+"WebGLVertexArrayObjectOES.dart":
+  {
+
+  },
+"WebKitCSSFilterValue.dart":
+  {
+
+  },
+"WebKitCssFilterValue.dart":
+  {
+
+  },
+"WebKitNamedFlow.dart":
+  {
+
+  },
+"WebSocket.dart":
+  {
+
+  },
+"WheelEvent.dart":
+  {
+
+  },
+"Worker.dart":
+  {
+
+  },
+"WorkerContext.dart":
+  {
+
+  },
+"WorkerLocation.dart":
+  {
+
+  },
+"WorkerNavigator.dart":
+  {
+
+  },
+"XMLSerializer.dart":
+  {
+
+  },
+"XPathEvaluator.dart":
+  {
+
+  },
+"XPathException.dart":
+  {
+
+  },
+"XPathExpression.dart":
+  {
+
+  },
+"XPathNSResolver.dart":
+  {
+
+  },
+"XPathResult.dart":
+  {
+
+  },
+"XSLTProcessor.dart":
+  {
+
+  },
+"XmlSerializer.dart":
+  {
+
+  },
+"XsltProcessor.dart":
+  {
+
+  }
+}

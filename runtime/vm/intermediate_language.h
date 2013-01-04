@@ -29,22 +29,22 @@ class Range;
 class FlowGraphOptimizer;
 
 
-// TODO(srdjan): Add _ByteArrayBase, get:length.
 // TODO(srdjan): Unify with INTRINSIC_LIST.
 // (class-name, function-name, recognized enum, fingerprint).
 // See intrinsifier for fingerprint computation.
 #define RECOGNIZED_LIST(V)                                                     \
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
+  V(_ByteArrayBase, get:length, ByteArrayBaseLength, 1098081765)               \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
-  V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity, 725548050)      \
+  V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
-  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 583130725)                    \
+  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 711547329)                    \
   V(_StringBase, charCodeAt, StringBaseCharCodeAt, 984449525)                  \
   V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
-  V(_IntegerImplementation, toDouble, IntegerToDouble, 1252792570)             \
+  V(_IntegerImplementation, toDouble, IntegerToDouble, 733149324)              \
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
-  V(::, sqrt, MathSqrt, 2232519)                                               \
+  V(::, sqrt, MathSqrt, 1662640002)                                            \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -253,6 +253,7 @@ class EmbeddedArray<T, 0> {
   M(CheckStackOverflow)                                                        \
   M(SmiToDouble)                                                               \
   M(DoubleToInteger)                                                           \
+  M(DoubleToSmi)                                                               \
   M(CheckClass)                                                                \
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
@@ -377,31 +378,6 @@ class Instruction : public ZoneAllocated {
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
   void Goto(JoinEntryInstr* entry);
-
-  // Discover basic-block structure by performing a recursive depth first
-  // traversal of the instruction graph reachable from this instruction.  As
-  // a side effect, the block entry instructions in the graph are assigned
-  // numbers in both preorder and postorder.  The array 'preorder' maps
-  // preorder block numbers to the block entry instruction with that number
-  // and analogously for the array 'postorder'.  The depth first spanning
-  // tree is recorded in the array 'parent', which maps preorder block
-  // numbers to the preorder number of the block's spanning-tree parent.
-  // The array 'assigned_vars' maps preorder block numbers to the set of
-  // assigned frame-allocated local variables in the block.  As a side
-  // effect of this function, the set of basic block predecessors (e.g.,
-  // block entry instructions of predecessor blocks) and also the last
-  // instruction in the block is recorded in each entry instruction.
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count) {
-    // Never called for instructions except block entries and branches.
-    UNREACHABLE();
-  }
 
   // Mutate assigned_vars to add the local variable index for all
   // frame-allocated locals assigned to by the instruction.
@@ -534,6 +510,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class CheckEitherNonSmiInstr;
   friend class StringCharCodeAtInstr;
   friend class LICM;
+  friend class DoubleToSmiInstr;
 
   intptr_t deopt_id_;
   intptr_t lifetime_position_;  // Position used by register allocator.
@@ -725,8 +702,21 @@ class BlockEntryInstr : public Instruction {
     return parallel_move_;
   }
 
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
+  // Discover basic-block structure by performing a recursive depth first
+  // traversal of the instruction graph reachable from this instruction.  As
+  // a side effect, the block entry instructions in the graph are assigned
+  // numbers in both preorder and postorder.  The array 'preorder' maps
+  // preorder block numbers to the block entry instruction with that number
+  // and analogously for the array 'postorder'.  The depth first spanning
+  // tree is recorded in the array 'parent', which maps preorder block
+  // numbers to the preorder number of the block's spanning-tree parent.
+  // The array 'assigned_vars' maps preorder block numbers to the set of
+  // assigned frame-allocated local variables in the block.  As a side
+  // effect of this function, the set of basic block predecessors (e.g.,
+  // block entry instructions of predecessor blocks) and also the last
+  // instruction in the block is recorded in each entry instruction.
+  void DiscoverBlocks(
+      BlockEntryInstr* predecessor,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent,
@@ -814,7 +804,6 @@ class ForwardInstructionIterator : public ValueObject {
  public:
   explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
       : block_entry_(block_entry), current_(block_entry) {
-    ASSERT(block_entry_->last_instruction()->next() == NULL);
     Advance();
   }
 
@@ -876,15 +865,6 @@ class GraphEntryInstr : public BlockEntryInstr {
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count);
-
   void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
@@ -905,7 +885,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
-  virtual void ClearPredecessors() { UNREACHABLE(); }
+  virtual void ClearPredecessors() {}
   virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
 
   TargetEntryInstr* normal_entry_;
@@ -941,6 +921,8 @@ class JoinEntryInstr : public BlockEntryInstr {
 
   void InsertPhi(intptr_t var_index, intptr_t var_count);
   void RemoveDeadPhis();
+
+  void InsertPhi(PhiInstr* phi);
 
   intptr_t phi_count() const { return phi_count_; }
 
@@ -1138,6 +1120,22 @@ class Definition : public Instruction {
   // this check statically we override base Canonicalize with a Canonicalize
   // returning Definition (return type is covariant).
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+
+  static const intptr_t kReplacementMarker = -2;
+
+  Definition* Replacement() {
+    if (ssa_temp_index_ == kReplacementMarker) {
+      return reinterpret_cast<Definition*>(temp_index_);
+    }
+    return this;
+  }
+
+  void SetReplacement(Definition* other) {
+    ASSERT(ssa_temp_index_ >= 0);
+    ASSERT(WasEliminated());
+    ssa_temp_index_ = kReplacementMarker;
+    temp_index_ = reinterpret_cast<intptr_t>(other);
+  }
 
  protected:
   friend class RangeAnalysis;
@@ -1485,16 +1483,6 @@ class ControlInstruction : public Instruction {
 
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count);
-
 
   void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                              Condition true_condition);
@@ -2064,6 +2052,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsPrefixOperator(token_kind) ||
            Token::IsIndexOperator(token_kind) ||
+           Token::IsTypeTestOperator(token_kind) ||
            token_kind == Token::kGET ||
            token_kind == Token::kSET ||
            token_kind == Token::kILLEGAL);
@@ -3013,7 +3002,7 @@ class CreateArrayInstr : public TemplateDefinition<1> {
 
   virtual bool HasSideEffect() const { return true; }
 
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
+  virtual intptr_t ResultCid() const { return kArrayCid; }
 
  private:
   const intptr_t token_pos_;
@@ -3957,7 +3946,7 @@ class SmiToDoubleInstr : public TemplateDefinition<0> {
 
 class DoubleToIntegerInstr : public TemplateDefinition<1> {
  public:
-  explicit DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
+  DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
       : instance_call_(instance_call) {
     ASSERT(value != NULL);
     inputs_[0] = value;
@@ -3982,6 +3971,39 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
   InstanceCallInstr* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(DoubleToIntegerInstr);
+};
+
+
+// Similar to 'DoubleToIntegerInstr' but expects unboxed double as input
+// and creates a Smi.
+class DoubleToSmiInstr : public TemplateDefinition<1> {
+ public:
+  DoubleToSmiInstr(Value* value, InstanceCallInstr* instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(DoubleToSmi)
+  virtual RawAbstractType* CompileType() const;
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kSmiCid; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DoubleToSmiInstr);
 };
 
 

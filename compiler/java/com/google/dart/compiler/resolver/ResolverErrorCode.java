@@ -14,7 +14,6 @@ public enum ResolverErrorCode implements ErrorCode {
   BLACK_LISTED_EXTENDS("'%s' can not be used as superclass"),
   BLACK_LISTED_IMPLEMENTS("'%s' can not be used as superinterface"),
   BREAK_LABEL_RESOLVES_TO_CASE_OR_DEFAULT("break label resolves to case or default statement"),
-  BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX("Built-in identifier '%s' cannot be used as a import prefix"),
   BUILT_IN_IDENTIFIER_AS_TYPE("Built-in identifier '%s' cannot be used as a type annotation"),
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
   CANNOT_ACCESS_METHOD(ErrorSeverity.WARNING, "Cannot access private method '%s'"),
@@ -46,7 +45,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_METHOD_IN_LIBRARY("cannot resolve method '%s' in library '%s'"),
   // TODO(zundel): To exercise this requires simulating a corrupted SDK?
   CANNOT_RESOLVE_SDK_TYPE("cannot resolve SDK type %s"),
-  CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method '%s'"),
+  CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve super constructor '%s'"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
       "super type %s does not have a default constructor"),
   CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER(
@@ -118,7 +117,7 @@ public enum ResolverErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test (reachable code?)
   EXPECTED_STATIC_FIELD("expected a static field, but got %s"),
   // TODO(zundel): error message needs JUnit test, (reachable code?)
-  EXTRA_TYPE_ARGUMENT("Type variables may not have type arguments"),
+  EXTRA_TYPE_ARGUMENT(ErrorSeverity.WARNING, "Type variables may not have type arguments"),
   FACTORY_CANNOT_BE_CONST("A factory cannot be const"),
   FIELD_DOES_NOT_HAVE_A_GETTER(ErrorSeverity.WARNING, "Field does not have a getter"),
   FIELD_DOES_NOT_HAVE_A_SETTER(ErrorSeverity.WARNING, "Field does not have a setter"),
@@ -198,8 +197,10 @@ public enum ResolverErrorCode implements ErrorCode {
   RETHROW_NOT_IN_CATCH("Re-throw not in a catch block"),
   STATIC_FINAL_REQUIRES_VALUE("Static final fields must have an initial value"),
   STATIC_METHOD_MUST_HAVE_BODY("Static method must have a body"),
+  SUPER_CLASS_IN_IMPLEMENTS("Superclass in implements clause"),
   SUPER_IN_FACTORY_CONSTRUCTOR("Cannot use 'super' in a factory constructor"),
   SUPER_IN_STATIC_METHOD("Cannot use 'super' in a static method"),
+  SUPER_OUTSIDE_OF_CONSTRUCTOR("Cannot use 'super' constructor outside of a constructor"),
   SUPER_OUTSIDE_OF_METHOD("Cannot use 'super' outside of a method"),
   SUPER_ON_TOP_LEVEL("Cannot use 'super' in a top-level element"),
   SWITCH_CASE_FALL_THROUGH(ErrorSeverity.WARNING, "Switch case should end with break, continue, return or throw"),

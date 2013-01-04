@@ -185,8 +185,7 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 2) {
 
 DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
-  const String& dummy_key = String::Handle(Symbols::Empty());
-  Scanner scanner(value, dummy_key);
+  Scanner scanner(value, Symbols::Empty());
   const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
   String* int_string;
   bool is_positive;
@@ -198,12 +197,12 @@ DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
       return Integer::New(*int_string);
     }
     String& temp = String::Handle();
-    temp = String::Concat(String::Handle(Symbols::New("-")), *int_string);
+    temp = String::Concat(Symbols::Dash(), *int_string);
     return Integer::New(temp);
   }
 
-  GrowableArray<const Object*> args;
-  args.Add(&value);
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, value);
   Exceptions::ThrowByType(Exceptions::kFormat, args);
   return Object::null();
 }
@@ -213,8 +212,8 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
                                         const Integer& value,
                                         const Smi& amount) {
   if (amount.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&amount);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, amount);
     Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   if (value.IsSmi()) {

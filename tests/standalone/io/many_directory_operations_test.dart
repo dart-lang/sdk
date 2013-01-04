@@ -4,7 +4,7 @@
 //
 // Dart test program for testing using a lot of native port operations.
 
-#import("dart:io");
+import "dart:io";
 
 main() {
   for (var i = 0; i < 10000; i++) {

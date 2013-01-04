@@ -53,6 +53,10 @@ class ArgumentsDescriptor : public ValueObject {
   static RawArray* New(intptr_t count,
                        const Array& optional_arguments_names);
 
+  // Allocate and return an arguments descriptor that has no optional
+  // arguments. All arguments are positional.
+  static RawArray* New(intptr_t count);
+
  private:
   // Absolute indexes into the array.
   enum {
@@ -86,30 +90,51 @@ class DartEntry : public AllStatic {
   // On success, returns a RawInstance.  On failure, a RawError.
   typedef RawObject* (*invokestub)(uword entry_point,
                                    const Array& arguments_descriptor,
-                                   const Object** arguments,
+                                   const Array& arguments,
                                    const Context& context);
 
   // Invokes the specified instance function on the receiver.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeDynamic(
-      const Instance& receiver,
-      const Function& function,
-      const GrowableArray<const Object*>& arguments,
-      const Array& optional_arguments_names);
+  // This is used when there are no named arguments in the call.
+  static RawObject* InvokeDynamic(const Function& function,
+                                  const Array& arguments);
+
+  // Invokes the specified instance function on the receiver.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeDynamic(const Function& function,
+                                  const Array& arguments,
+                                  const Array& arguments_descriptor);
 
   // Invoke the specified static function.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeStatic(
-      const Function& function,
-      const GrowableArray<const Object*>& arguments,
-      const Array& optional_arguments_names);
+  // This is used when there are no named arguments in the call.
+  static RawObject* InvokeStatic(const Function& function,
+                                 const Array& arguments);
+
+  // Invoke the specified static function.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeStatic(const Function& function,
+                                 const Array& arguments,
+                                 const Array& arguments_descriptor);
 
   // Invoke the specified closure object.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeClosure(
-      const Instance& closure,
-      const GrowableArray<const Object*>& arguments,
-      const Array& optional_arguments_names);
+  // This is used when there are no named arguments in the call.
+  static RawObject* InvokeClosure(const Instance& closure,
+                                  const Array& arguments);
+
+  // Invoke the specified closure object.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeClosure(const Instance& closure,
+                                  const Array& arguments,
+                                  const Array& arguments_descriptor);
+
+  // Invoke the noSuchMethod instance function on the receiver.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeNoSuchMethod(const Instance& receiver,
+                                       const String& target_name,
+                                       const Array& arguments,
+                                       const Array& arguments_descriptor);
 };
 
 
@@ -118,10 +143,9 @@ class DartEntry : public AllStatic {
 class DartLibraryCalls : public AllStatic {
  public:
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* ExceptionCreate(
-      const Library& library,
-      const String& exception_name,
-      const GrowableArray<const Object*>& arguments);
+  static RawObject* ExceptionCreate(const Library& library,
+                                    const String& exception_name,
+                                    const Array& arguments);
 
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* ToString(const Instance& receiver);
@@ -129,8 +153,12 @@ class DartLibraryCalls : public AllStatic {
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* Equals(const Instance& left, const Instance& right);
 
+  // Returns the receive port if it is in the port map and null otherwise.
+  // On failure, a RawError.
+  static RawObject* LookupReceivePort(Dart_Port port_id);
+
   // Returns null on success, a RawError on failure.
-  static RawObject* HandleMessage(Dart_Port dest_port_id,
+  static RawObject* HandleMessage(const Object& receive_port,
                                   Dart_Port reply_port_id,
                                   const Instance& dart_message);
 

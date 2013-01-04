@@ -2702,13 +2702,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     Operator op = node.selector;
     if (const SourceString("[]") == op.source) {
-      HStatic target = new HStatic(interceptors.getIndexInterceptor());
-      add(target);
-      visit(node.receiver);
-      HInstruction receiver = pop();
-      visit(node.argumentsNode);
-      HInstruction index = pop();
-      push(new HIndex(target, receiver, index));
+      visitDynamicSend(node);
     } else if (const SourceString("&&") == op.source ||
                const SourceString("||") == op.source) {
       visitLogicalAndOr(node, op);
@@ -2950,6 +2944,26 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     pushWithPosition(new HInvokeClosure(selector, inputs), node);
   }
 
+  void registerForeignTypes(String specString) {
+    Enqueuer enqueuer = compiler.enqueuer.codegen;
+    for (final typeString in specString.split('|')) {
+      if (typeString == '=List') {
+        enqueuer.registerInstantiatedClass(compiler.listClass);
+      } else if (typeString == 'int') {
+        enqueuer.registerInstantiatedClass(compiler.intClass);
+      } else if (typeString == 'double') {
+        enqueuer.registerInstantiatedClass(compiler.doubleClass);
+      } else if (typeString == 'num') {
+        enqueuer.registerInstantiatedClass(compiler.intClass);
+        enqueuer.registerInstantiatedClass(compiler.doubleClass);
+      } else if (typeString == 'Null') {
+        enqueuer.registerInstantiatedClass(compiler.nullClass);
+      } else if (typeString == 'String') {
+        enqueuer.registerInstantiatedClass(compiler.stringClass);
+      }
+    }
+  }
+
   void handleForeignJs(Send node) {
     Link<Node> link = node.arguments;
     // If the invoke is on foreign code, don't visit the first
@@ -2970,6 +2984,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                       node: type);
     }
     LiteralString typeString = type;
+    // TODO(ngeoffray): This should be registered in codegen, not here.
+    // Also, we should share the type parsing with the native
+    // enqueuer.
+    registerForeignTypes(typeString.dartString.slowToString());
 
     if (code is StringNode) {
       StringNode codeString = code;
@@ -3027,7 +3045,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
       // Leg's isolate.
-      Element element = compiler.isolateLibrary.find(
+      Element element = compiler.isolateHelperLibrary.find(
           const SourceString('_currentIsolate'));
       if (element == null) {
         compiler.cancel(
@@ -3047,7 +3065,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       push(new HInvokeClosure(selector, <HInstruction>[pop()]));
     } else {
       // Call a helper method from the isolate library.
-      Element element = compiler.isolateLibrary.find(
+      Element element = compiler.isolateHelperLibrary.find(
           const SourceString('_callInIsolate'));
       if (element == null) {
         compiler.cancel(
@@ -3139,7 +3157,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);
 
     var arguments = new List<HInstruction>();
-    addGenericSendArgumentsToList(node.arguments, arguments);
+    if (node.argumentsNode != null) {
+      addGenericSendArgumentsToList(node.arguments, arguments);
+    }
     var argumentsInstruction = new HLiteralList(arguments);
     add(argumentsInstruction);
 
@@ -3594,9 +3614,24 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // on type arguments.
         generateRuntimeError(node, '$type is malformed: $reasons');
       } else {
+        // TODO(karlklose): move this type registration to the codegen.
+        compiler.codegenWorld.instantiatedTypes.add(type);
         visitNewSend(node.send, type);
       }
     }
+  }
+
+  HInvokeDynamicMethod buildInvokeDynamicWithOneArgument(
+      Node node, Selector selector, HInstruction receiver, HInstruction arg0) {
+    Set<ClassElement> interceptedClasses =
+        getInterceptedClassesOn(node, selector);
+    List<HInstruction> inputs = <HInstruction>[];
+    if (interceptedClasses != null) {
+      inputs.add(invokeInterceptor(interceptedClasses, receiver, node));
+    }
+    inputs.add(receiver);
+    inputs.add(arg0);
+    return new HInvokeDynamicMethod(selector, inputs);
   }
 
   visitSendSet(SendSet node) {
@@ -3650,9 +3685,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             index = pop();
             value = graph.addConstantInt(1, constantSystem);
           }
-          HStatic indexMethod = new HStatic(interceptors.getIndexInterceptor());
-          add(indexMethod);
-          HInstruction left = new HIndex(indexMethod, receiver, index);
+
+          HInvokeDynamicMethod left = buildInvokeDynamicWithOneArgument(
+              node, new Selector.index(), receiver, index);
           add(left);
           Element opElement = elements[op];
           visitBinary(left, op, value);

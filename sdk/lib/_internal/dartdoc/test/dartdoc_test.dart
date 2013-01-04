@@ -121,7 +121,7 @@ main() {
   
   group('integration tests', () {
     test('no entrypoints', () {
-      expect(_runDartdoc([]), completes);
+      expect(_runDartdoc([], exitCode: 1), completes);
     });
 
     test('library with no packages', () {
@@ -141,12 +141,12 @@ main() {
   });
 }
 
-Future _runDartdoc(List<String> arguments) {
+Future _runDartdoc(List<String> arguments, {int exitCode: 0}) {
   var dartBin = new Options().executable;
   var dartdoc = 'bin/dartdoc.dart';
   arguments.insertRange(0, 1, dartdoc);
   return Process.run(dartBin, arguments)
       .transform((result) {
-        expect(result.exitCode, 0);
+        expect(result.exitCode, exitCode);
       });
 }

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("multitest");
+library multitest;
 
-#import("dart:io");
-#import("test_suite.dart");
+import "dart:io";
+import "test_suite.dart";
 
 // Multitests are Dart test scripts containing lines of the form
 // " [some dart code] /// [key]: [error type]"

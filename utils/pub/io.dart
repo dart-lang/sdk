@@ -2,20 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Helper functionality to make working with IO easier.
- */
+/// Helper functionality to make working with IO easier.
 library io;
 
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:json';
 import 'dart:uri';
 
-// TODO(nweiz): Make this import better.
-import '../../pkg/http/lib/http.dart' as http;
-import 'curl_client.dart';
+import '../../pkg/path/lib/path.dart' as path;
 import 'log.dart' as log;
-import 'path.dart' as path;
 import 'utils.dart';
 
 bool _isGitInstalledCache;
@@ -25,11 +21,9 @@ String _gitCommandCache;
 
 final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
 
-/**
- * Joins a number of path string parts into a single path. Handles
- * platform-specific path separators. Parts can be [String], [Directory], or
- * [File] objects.
- */
+/// Joins a number of path string parts into a single path. Handles
+/// platform-specific path separators. Parts can be [String], [Directory], or
+/// [File] objects.
 String join(part1, [part2, part3, part4, part5, part6, part7, part8]) {
   var parts = [part1, part2, part3, part4, part5, part6, part7, part8]
       .map((part) => part == null ? null : _getPath(part));
@@ -59,11 +53,9 @@ bool isBeneath(entry, dir) {
 /// Returns the path to [target] from [base].
 String relativeTo(target, base) => path.relative(target, from: base);
 
-/**
- * Asynchronously determines if [path], which can be a [String] file path, a
- * [File], or a [Directory] exists on the file system. Returns a [Future] that
- * completes with the result.
- */
+/// Asynchronously determines if [path], which can be a [String] file path, a
+/// [File], or a [Directory] exists on the file system. Returns a [Future] that
+/// completes with the result.
 Future<bool> exists(path) {
   path = _getPath(path);
   return Futures.wait([fileExists(path), dirExists(path)]).transform((results) {
@@ -71,11 +63,9 @@ Future<bool> exists(path) {
   });
 }
 
-/**
- * Asynchronously determines if [file], which can be a [String] file path or a
- * [File], exists on the file system. Returns a [Future] that completes with
- * the result.
- */
+/// Asynchronously determines if [file], which can be a [String] file path or a
+/// [File], exists on the file system. Returns a [Future] that completes with
+/// the result.
 Future<bool> fileExists(file) {
   var path = _getPath(file);
   return log.ioAsync("Seeing if file $path exists.",
@@ -83,10 +73,8 @@ Future<bool> fileExists(file) {
       (exists) => "File $path ${exists ? 'exists' : 'does not exist'}.");
 }
 
-/**
- * Reads the contents of the text file [file], which can either be a [String] or
- * a [File].
- */
+/// Reads the contents of the text file [file], which can either be a [String]
+/// or a [File].
 Future<String> readTextFile(file) {
   var path = _getPath(file);
   return log.ioAsync("Reading text file $path.",
@@ -101,17 +89,17 @@ Future<String> readTextFile(file) {
       });
 }
 
-/**
- * Creates [file] (which can either be a [String] or a [File]), and writes
- * [contents] to it. Completes when the file is written and closed.
- */
-Future<File> writeTextFile(file, String contents) {
+/// Creates [file] (which can either be a [String] or a [File]), and writes
+/// [contents] to it. Completes when the file is written and closed.
+///
+/// If [dontLogContents] is true, the contents of the file will never be logged.
+Future<File> writeTextFile(file, String contents, {dontLogContents: false}) {
   var path = _getPath(file);
   file = new File(path);
 
   // Sanity check: don't spew a huge file.
   log.io("Writing ${contents.length} characters to text file $path.");
-  if (contents.length < 1024 * 1024) {
+  if (!dontLogContents && contents.length < 1024 * 1024) {
     log.fine("Contents:\n$contents");
   }
 
@@ -125,10 +113,8 @@ Future<File> writeTextFile(file, String contents) {
   });
 }
 
-/**
- * Asynchronously deletes [file], which can be a [String] or a [File]. Returns a
- * [Future] that completes when the deletion is done.
- */
+/// Asynchronously deletes [file], which can be a [String] or a [File]. Returns
+/// a [Future] that completes when the deletion is done.
 Future<File> deleteFile(file) {
   var path = _getPath(file);
   return log.ioAsync("delete file $path",
@@ -175,21 +161,17 @@ Future<File> createFileFromStream(InputStream stream, path) {
   return completer.future;
 }
 
-/**
- * Creates a directory [dir]. Returns a [Future] that completes when the
- * directory is created.
- */
+/// Creates a directory [dir]. Returns a [Future] that completes when the
+/// directory is created.
 Future<Directory> createDir(dir) {
   dir = _getDirectory(dir);
   return log.ioAsync("create directory ${dir.path}",
       dir.create());
 }
 
-/**
- * Ensures that [path] and all its parent directories exist. If they don't
- * exist, creates them. Returns a [Future] that completes once all the
- * directories are created.
- */
+/// Ensures that [path] and all its parent directories exist. If they don't
+/// exist, creates them. Returns a [Future] that completes once all the
+/// directories are created.
 Future<Directory> ensureDir(path) {
   path = _getPath(path);
   log.fine("Ensuring directory $path exists.");
@@ -222,22 +204,18 @@ Future<Directory> ensureDir(path) {
   });
 }
 
-/**
- * Creates a temp directory whose name will be based on [dir] with a unique
- * suffix appended to it. If [dir] is not provided, a temp directory will be
- * created in a platform-dependent temporary location. Returns a [Future] that
- * completes when the directory is created.
- */
+/// Creates a temp directory whose name will be based on [dir] with a unique
+/// suffix appended to it. If [dir] is not provided, a temp directory will be
+/// created in a platform-dependent temporary location. Returns a [Future] that
+/// completes when the directory is created.
 Future<Directory> createTempDir([dir = '']) {
   dir = _getDirectory(dir);
   return log.ioAsync("create temp directory ${dir.path}",
       dir.createTemp());
 }
 
-/**
- * Asynchronously recursively deletes [dir], which can be a [String] or a
- * [Directory]. Returns a [Future] that completes when the deletion is done.
- */
+/// Asynchronously recursively deletes [dir], which can be a [String] or a
+/// [Directory]. Returns a [Future] that completes when the deletion is done.
 Future<Directory> deleteDir(dir) {
   dir = _getDirectory(dir);
 
@@ -245,57 +223,81 @@ Future<Directory> deleteDir(dir) {
       dir.delete(recursive: true)));
 }
 
-/**
- * Asynchronously lists the contents of [dir], which can be a [String] directory
- * path or a [Directory]. If [recursive] is `true`, lists subdirectory contents
- * (defaults to `false`). If [includeHiddenFiles] is `true`, includes files and
- * directories beginning with `.` (defaults to `false`).
- */
+/// Asynchronously lists the contents of [dir], which can be a [String]
+/// directory path or a [Directory]. If [recursive] is `true`, lists
+/// subdirectory contents (defaults to `false`). If [includeHiddenFiles] is
+/// `true`, includes files and directories beginning with `.` (defaults to
+/// `false`).
+///
+/// If [dir] is a string, the returned paths are guaranteed to begin with it.
 Future<List<String>> listDir(dir,
     {bool recursive: false, bool includeHiddenFiles: false}) {
-  final completer = new Completer<List<String>>();
-  final contents = <String>[];
+  Future<List<String>> doList(Directory dir, Set<String> listedDirectories) {
+    var contents = <String>[];
+    var completer = new Completer<List<String>>();
 
-  dir = _getDirectory(dir);
-  log.io("Listing directory ${dir.path}.");
-  var lister = dir.list(recursive: recursive);
-
-  lister.onDone = (done) {
-    // TODO(rnystrom): May need to sort here if it turns out onDir and onFile
-    // aren't guaranteed to be called in a certain order. So far, they seem to.
-    if (done) {
-      log.fine("Listed directory ${dir.path}:\n"
-                "${Strings.join(contents, '\n')}");
-      completer.complete(contents);
+    // Avoid recursive symlinks.
+    var resolvedPath = new File(dir.path).fullPathSync();
+    if (listedDirectories.contains(resolvedPath)) {
+      return new Future.immediate([]);
     }
-  };
+    listedDirectories = new Set<String>.from(listedDirectories);
+    listedDirectories.add(resolvedPath);
 
-  // TODO(nweiz): remove this when issue 4061 is fixed.
-  var stackTrace;
-  try {
-    throw "";
-  } catch (_, localStackTrace) {
-    stackTrace = localStackTrace;
+    log.io("Listing directory ${dir.path}.");
+    var lister = dir.list();
+
+    lister.onDone = (done) {
+      // TODO(rnystrom): May need to sort here if it turns out onDir and onFile
+      // aren't guaranteed to be called in a certain order. So far, they seem to.
+      if (done) {
+        log.fine("Listed directory ${dir.path}:\n"
+                  "${Strings.join(contents, '\n')}");
+        completer.complete(contents);
+      }
+    };
+
+    // TODO(nweiz): remove this when issue 4061 is fixed.
+    var stackTrace;
+    try {
+      throw "";
+    } catch (_, localStackTrace) {
+      stackTrace = localStackTrace;
+    }
+
+    var children = [];
+    lister.onError = (error) => completer.completeException(error, stackTrace);
+    lister.onDir = (file) {
+      if (!includeHiddenFiles && basename(file).startsWith('.')) return;
+      file = join(dir, basename(file));
+      contents.add(file);
+
+      // TODO(nweiz): don't manually recurse once issue 7358 is fixed. Note that
+      // once we remove the manual recursion, we'll need to explicitly filter
+      // out files in hidden directories.
+      if (recursive) {
+        children.add(doList(new Directory(file), listedDirectories));
+      }
+    };
+    lister.onFile = (file) {
+      if (!includeHiddenFiles && basename(file).startsWith('.')) return;
+      contents.add(join(dir, basename(file)));
+    };
+
+    return completer.future.chain((contents) {
+      return Futures.wait(children).transform((childContents) {
+        contents.addAll(flatten(childContents));
+        return contents;
+      });
+    });
   }
 
-  lister.onError = (error) => completer.completeException(error, stackTrace);
-  lister.onDir = (file) {
-    if (!includeHiddenFiles && basename(file).startsWith('.')) return;
-    contents.add(file);
-  };
-  lister.onFile = (file) {
-    if (!includeHiddenFiles && basename(file).startsWith('.')) return;
-    contents.add(file);
-  };
-
-  return completer.future;
+  return doList(_getDirectory(dir), new Set<String>());
 }
 
-/**
- * Asynchronously determines if [dir], which can be a [String] directory path
- * or a [Directory], exists on the file system. Returns a [Future] that
- * completes with the result.
- */
+/// Asynchronously determines if [dir], which can be a [String] directory path
+/// or a [Directory], exists on the file system. Returns a [Future] that
+/// completes with the result.
 Future<bool> dirExists(dir) {
   dir = _getDirectory(dir);
   return log.ioAsync("Seeing if directory ${dir.path} exists.",
@@ -304,11 +306,9 @@ Future<bool> dirExists(dir) {
                   "${exists ? 'exists' : 'does not exist'}.");
 }
 
-/**
- * "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
- * new empty directory will be created. Returns a [Future] that completes when
- * the new clean directory is created.
- */
+/// "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
+/// new empty directory will be created. Returns a [Future] that completes when
+/// the new clean directory is created.
 Future<Directory> cleanDir(dir) {
   return dirExists(dir).chain((exists) {
     if (exists) {
@@ -363,11 +363,9 @@ Future _attemptRetryable(Future callback()) {
   return makeAttempt(null);
 }
 
-/**
- * Creates a new symlink that creates an alias from [from] to [to], both of
- * which can be a [String], [File], or [Directory]. Returns a [Future] which
- * completes to the symlink file (i.e. [to]).
- */
+/// Creates a new symlink that creates an alias from [from] to [to], both of
+/// which can be a [String], [File], or [Directory]. Returns a [Future] which
+/// completes to the symlink file (i.e. [to]).
 Future<File> createSymlink(from, to) {
   from = _getPath(from);
   to = _getPath(to);
@@ -393,13 +391,11 @@ Future<File> createSymlink(from, to) {
   });
 }
 
-/**
- * Creates a new symlink that creates an alias from the `lib` directory of
- * package [from] to [to], both of which can be a [String], [File], or
- * [Directory]. Returns a [Future] which completes to the symlink file (i.e.
- * [to]). If [from] does not have a `lib` directory, this shows a warning if
- * appropriate and then does nothing.
- */
+/// Creates a new symlink that creates an alias from the `lib` directory of
+/// package [from] to [to], both of which can be a [String], [File], or
+/// [Directory]. Returns a [Future] which completes to the symlink file (i.e.
+/// [to]). If [from] does not have a `lib` directory, this shows a warning if
+/// appropriate and then does nothing.
 Future<File> createPackageSymlink(String name, from, to,
     {bool isSelfLink: false}) {
   // See if the package has a "lib" directory.
@@ -500,73 +496,9 @@ Future<String> readLine([StringInputStream stream]) {
   return completer.future;
 }
 
-// TODO(nweiz): make this configurable
-/**
- * The amount of time in milliseconds to allow HTTP requests before assuming
- * they've failed.
- */
-final HTTP_TIMEOUT = 30 * 1000;
-
-/// An HTTP client that transforms 40* errors and socket exceptions into more
-/// user-friendly error messages.
-class PubHttpClient extends http.BaseClient {
-  final http.Client _inner;
-
-  PubHttpClient([http.Client inner])
-    : _inner = inner == null ? new http.Client() : inner;
-
-  Future<http.StreamedResponse> send(http.BaseRequest request) {
-    log.io("Sending HTTP request $request.");
-    // TODO(rnystrom): Log request body when it's available and plaintext.
-
-    // TODO(nweiz): remove this when issue 4061 is fixed.
-    var stackTrace;
-    try {
-      throw null;
-    } catch (_, localStackTrace) {
-      stackTrace = localStackTrace;
-    }
-
-    // TODO(nweiz): Ideally the timeout would extend to reading from the
-    // response input stream, but until issue 3657 is fixed that's not feasible.
-    return timeout(_inner.send(request).chain((streamedResponse) {
-      log.fine("Got response ${streamedResponse.statusCode} "
-               "${streamedResponse.reasonPhrase}.");
-
-      var status = streamedResponse.statusCode;
-      // 401 responses should be handled by the OAuth2 client. It's very
-      // unlikely that they'll be returned by non-OAuth2 requests.
-      if (status < 400 || status == 401) {
-        return new Future.immediate(streamedResponse);
-      }
-
-      return http.Response.fromStream(streamedResponse).transform((response) {
-        throw new PubHttpException(response);
-      });
-    }).transformException((e) {
-      if (e is SocketIOException &&
-          e.osError != null &&
-          (e.osError.errorCode == 8 ||
-           e.osError.errorCode == -2 ||
-           e.osError.errorCode == -5 ||
-           e.osError.errorCode == 11004)) {
-        throw 'Could not resolve URL "${request.url.origin}".';
-      }
-      throw e;
-    }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
-  }
-}
-
-/// The HTTP client to use for all HTTP requests.
-final httpClient = new PubHttpClient();
-
-final curlClient = new PubHttpClient(new CurlClient());
-
-/**
- * Takes all input from [source] and writes it to [sink].
- *
- * Returns a future that completes when [source] is closed.
- */
+/// Takes all input from [source] and writes it to [sink].
+///
+/// Returns a future that completes when [source] is closed.
 Future pipeInputToInput(InputStream source, ListInputStream sink) {
   var completer = new Completer();
   source.onClosed = () {
@@ -590,9 +522,7 @@ Future pipeInputToInput(InputStream source, ListInputStream sink) {
   return completer.future;
 }
 
-/**
- * Buffers all input from an InputStream and returns it as a future.
- */
+/// Buffers all input from an InputStream and returns it as a future.
 Future<List<int>> consumeInputStream(InputStream stream) {
   if (stream.closed) return new Future.immediate(<int>[]);
 
@@ -732,16 +662,14 @@ Future _doProcess(Function fn, String executable, List<String> args, workingDir,
   return fn(executable, args, options);
 }
 
-/**
- * Wraps [input] to provide a timeout. If [input] completes before
- * [milliseconds] have passed, then the return value completes in the same way.
- * However, if [milliseconds] pass before [input] has completed, it completes
- * with a [TimeoutException] with [description] (which should be a fragment
- * describing the action that timed out).
- *
- * Note that timing out will not cancel the asynchronous operation behind
- * [input].
- */
+/// Wraps [input] to provide a timeout. If [input] completes before
+/// [milliseconds] have passed, then the return value completes in the same way.
+/// However, if [milliseconds] pass before [input] has completed, it completes
+/// with a [TimeoutException] with [description] (which should be a fragment
+/// describing the action that timed out).
+///
+/// Note that timing out will not cancel the asynchronous operation behind
+/// [input].
 Future timeout(Future input, int milliseconds, String description) {
   var completer = new Completer();
   var timer = new Timer(milliseconds, (_) {
@@ -841,10 +769,8 @@ Future<bool> _tryGitCommand(String command) {
   return completer.future;
 }
 
-/**
- * Extracts a `.tar.gz` file from [stream] to [destination], which can be a
- * directory or a path. Returns whether or not the extraction was successful.
- */
+/// Extracts a `.tar.gz` file from [stream] to [destination], which can be a
+/// directory or a path. Returns whether or not the extraction was successful.
 Future<bool> extractTarGz(InputStream stream, destination) {
   destination = _getPath(destination);
 
@@ -1010,21 +936,7 @@ InputStream createTarGz(List contents, {baseDir}) {
   return stream;
 }
 
-/**
- * Exception thrown when an HTTP operation fails.
- */
-class PubHttpException implements Exception {
-  final http.Response response;
-
-  const PubHttpException(this.response);
-
-  String toString() => 'HTTP error ${response.statusCode}: '
-      '${response.reasonPhrase}';
-}
-
-/**
- * Exception thrown when an operation times out.
- */
+/// Exception thrown when an operation times out.
 class TimeoutException implements Exception {
   final String message;
 
@@ -1033,9 +945,7 @@ class TimeoutException implements Exception {
   String toString() => message;
 }
 
-/**
- * Contains the results of invoking a [Process] and waiting for it to complete.
- */
+/// Contains the results of invoking a [Process] and waiting for it to complete.
 class PubProcessResult {
   final List<String> stdout;
   final List<String> stderr;
@@ -1046,11 +956,9 @@ class PubProcessResult {
   bool get success => exitCode == 0;
 }
 
-/**
- * Gets the path string for [entry], which can either already be a path string,
- * or be a [File] or [Directory]. Allows working generically with "file-like"
- * objects.
- */
+/// Gets the path string for [entry], which can either already be a path string,
+/// or be a [File] or [Directory]. Allows working generically with "file-like"
+/// objects.
 String _getPath(entry) {
   if (entry is String) return entry;
   if (entry is File) return entry.name;
@@ -1058,18 +966,14 @@ String _getPath(entry) {
   throw 'Entry $entry is not a supported type.';
 }
 
-/**
- * Gets a [Directory] for [entry], which can either already be one, or be a
- * [String].
- */
+/// Gets a [Directory] for [entry], which can either already be one, or be a
+/// [String].
 Directory _getDirectory(entry) {
   if (entry is Directory) return entry;
   return new Directory(entry);
 }
 
-/**
- * Gets a [Uri] for [uri], which can either already be one, or be a [String].
- */
+/// Gets a [Uri] for [uri], which can either already be one, or be a [String].
 Uri _getUri(uri) {
   if (uri is Uri) return uri;
   return new Uri.fromString(uri);

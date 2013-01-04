@@ -91,11 +91,15 @@ class AnalysisResult {
     return element.lookupLocalMember(buildSourceString(fieldName));
   }
 
-  static ConcreteType concreteFrom(List<BaseType> baseTypes) {
-    ConcreteType result = new ConcreteType.empty();
+  ConcreteType concreteFrom(List<BaseType> baseTypes) {
+    ConcreteType result = inferrer.emptyConcreteType;
     for (final baseType in baseTypes) {
-      result = result.union(new ConcreteType.singleton(baseType));
+      result = result.union(compiler.maxConcreteTypeSize,
+          inferrer.singletonConcreteType(baseType));
     }
+    // We make sure the concrete types expected by the tests don't default to
+    // dynamic because of widening.
+    assert(!result.isUnkown());
     return result;
   }
 
@@ -162,10 +166,12 @@ const String CORELIB = r'''
   class Dynamic_ {}
   bool identical(Object a, Object b) {}''';
 
-AnalysisResult analyze(String code) {
+AnalysisResult analyze(String code, {int maxConcreteTypeSize: 1000}) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
-  MockCompiler compiler = new MockCompiler(coreSource: CORELIB,
-                                           enableConcreteTypeInference: true);
+  MockCompiler compiler = new MockCompiler(
+      coreSource: CORELIB,
+      enableConcreteTypeInference: true,
+      maxConcreteTypeSize: maxConcreteTypeSize);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   compiler.typesTask.concreteTypesInferrer.testMode = true;
   compiler.runCompiler(uri);
@@ -786,6 +792,39 @@ testSendWithWrongArity() {
   result.checkNodeHasType('w', []);
 }
 
+testBigTypesWidening1() {
+  final String source = r"""
+    small() => true ? 1 : 'abc';
+    big() => true ? 1 : (true ? 'abc' : false);
+    main () {
+      var x = small();
+      var y = big();
+      x; y;
+    }
+    """;
+  AnalysisResult result = analyze(source, maxConcreteTypeSize: 2);
+  result.checkNodeHasType('x', [result.int, result.string]);
+  result.checkNodeHasUnknownType('y');
+}
+
+testBigTypesWidening2() {
+  final String source = r"""
+    class A {
+      var x, y;
+      A(this.x, this.y);
+    }
+    main () {
+      var a = new A(1, 1);
+      a.x = 'abc';
+      a.y = 'abc';
+      a.y = true;
+    }
+    """;
+  AnalysisResult result = analyze(source, maxConcreteTypeSize: 2);
+  result.checkFieldHasType('A', 'x', [result.int, result.string]);
+  result.checkFieldHasUknownType('A', 'y');
+}
+
 testDynamicIsAbsorbing() {
   final String source = r"""
     main () {
@@ -835,5 +874,7 @@ void main() {
   testInequality();
   // testFieldInitialization(); // TODO(polux)
   testSendWithWrongArity();
+  testBigTypesWidening1();
+  testBigTypesWidening2();
   testDynamicIsAbsorbing();
 }

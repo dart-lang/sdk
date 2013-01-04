@@ -27,6 +27,26 @@ main() {
     data[100] = 200;
     expect(data[100], equals(200));
   });
+
+  test('toDataUrl', () {
+    var canvas = new CanvasElement(width: 100, height: 100);
+    var context = canvas.context2d;
+    context.fillStyle = 'red';
+    context.fill();
+
+    var url = canvas.toDataUrl('image/png');
+
+    var img = new ImageElement();
+    img.on.load.add(expectAsync1((_) {
+      expect(img.complete, true);
+    }));
+    img.on.error.add((_) {
+      guardAsync(() {
+        expect(true, isFalse, reason: 'URL failed to load.');
+      });
+    });
+    img.src = url;
+  });
 }
 
 void checkPixel(Uint8ClampedArray data, int offset, List<int> rgba)

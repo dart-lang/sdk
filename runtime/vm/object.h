@@ -202,6 +202,15 @@ class Object {
 
   bool IsNew() const { return raw()->IsNewObject(); }
   bool IsOld() const { return raw()->IsOldObject(); }
+  bool InVMHeap() const {
+#if defined(DEBUG)
+    if (raw()->IsVMHeapObject()) {
+      Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+      ASSERT(vm_isolate_heap->Contains(RawObject::ToAddr(raw())));
+    }
+#endif
+    return raw()->IsVMHeapObject();
+  }
 
   // Print the object on stdout for debugging.
   void Print() const;
@@ -209,6 +218,8 @@ class Object {
   bool IsZoneHandle() const {
     return VMHandles::IsZoneHandle(reinterpret_cast<uword>(this));
   }
+
+  bool IsReadOnlyHandle() const;
 
   bool IsNotTemporaryScopedHandle() const;
 
@@ -248,15 +259,33 @@ class Object {
   }
 
   static RawObject* null() { return null_; }
-  static RawArray* empty_array() { return empty_array_; }
+  static const Array& empty_array() {
+    ASSERT(empty_array_ != NULL);
+    return *empty_array_;
+  }
 
   // The sentinel is a value that cannot be produced by Dart code.
   // It can be used to mark special values, for example to distinguish
   // "uninitialized" fields.
-  static RawInstance* sentinel() { return sentinel_; }
+  static const Instance& sentinel() {
+    ASSERT(sentinel_ != NULL);
+    return *sentinel_;
+  }
   // Value marking that we are transitioning from sentinel, e.g., computing
   // a field value. Used to detect circular initialization.
-  static RawInstance* transition_sentinel() { return transition_sentinel_; }
+  static const Instance& transition_sentinel() {
+    ASSERT(transition_sentinel_ != NULL);
+    return *transition_sentinel_;
+  }
+
+  static const Bool& bool_true() {
+    ASSERT(bool_true_ != NULL);
+    return *bool_true_;
+  }
+  static const Bool& bool_false() {
+    ASSERT(bool_false_ != NULL);
+    return *bool_false_;
+  }
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* null_class() { return null_class_; }
@@ -400,9 +429,6 @@ class Object {
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
   static RawObject* null_;
-  static RawArray* empty_array_;
-  static RawInstance* sentinel_;
-  static RawInstance* transition_sentinel_;
 
   static RawClass* class_class_;  // Class of the Class vm object.
   static RawClass* null_class_;  // Class of the null object.
@@ -439,6 +465,14 @@ class Object {
   static RawClass* language_error_class_;  // Class of LanguageError.
   static RawClass* unhandled_exception_class_;  // Class of UnhandledException.
   static RawClass* unwind_error_class_;  // Class of UnwindError.
+
+  // The static values below are read-only handle pointers for singleton
+  // objects that are shared between the different isolates.
+  static Array* empty_array_;
+  static Instance* sentinel_;
+  static Instance* transition_sentinel_;
+  static Bool* bool_true_;
+  static Bool* bool_false_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
@@ -924,6 +958,8 @@ class AbstractTypeArguments : public Object {
   virtual bool IsInstantiated() const;
   virtual bool IsUninstantiatedIdentity() const;
 
+  virtual intptr_t Hash() const;
+
  private:
   // Check if this type argument vector consists solely of DynamicType,
   // considering only a prefix of length 'len'.
@@ -1284,6 +1320,29 @@ class Function : public Object {
   }
   void set_deoptimization_counter(int16_t value) const {
     raw_ptr()->deoptimization_counter_ = value;
+  }
+
+  static const intptr_t kMaxInstructionCount = (1 << 16) - 1;
+  intptr_t optimized_instruction_count() const {
+    return raw_ptr()->optimized_instruction_count_;
+  }
+  void set_optimized_instruction_count(intptr_t value) const {
+    ASSERT(value >= 0);
+    if (value > kMaxInstructionCount) {
+      value = kMaxInstructionCount;
+    }
+    raw_ptr()->optimized_instruction_count_ = static_cast<uint16_t>(value);
+  }
+
+  intptr_t optimized_call_site_count() const {
+    return raw_ptr()->optimized_call_site_count_;
+  }
+  void set_optimized_call_site_count(intptr_t value) const {
+    ASSERT(value >= 0);
+    if (value > kMaxInstructionCount) {
+      value = kMaxInstructionCount;
+    }
+    raw_ptr()->optimized_call_site_count_ = static_cast<uint16_t>(value);
   }
 
   bool is_optimizable() const;
@@ -2527,7 +2586,7 @@ class Code : public Object {
     const String& CommentAt(intptr_t idx) const;
 
    private:
-    explicit Comments(RawArray* comments);
+    explicit Comments(const Array& comments);
 
     // Layout of entries describing comments.
     enum {
@@ -2890,6 +2949,7 @@ class ICData : public Object {
   RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
 
   intptr_t GetCountAt(intptr_t index) const;
+  intptr_t AggregateCount() const;
 
   // Returns this->raw() if num_args_tested == 1 and arg_nr == 1, otherwise
   // returns a new ICData object containing only unique arg_nr checks.
@@ -3188,6 +3248,12 @@ class Instance : public Object {
   // Returns true if the instance is a closure object.
   bool IsClosure() const;
 
+  // If the instance is a callable object, i.e. a closure or the instance of a
+  // class implementing a 'call' method, return true and set the function
+  // (if not NULL) to call and the context (if not NULL) to pass to the
+  // function.
+  bool IsCallable(Function* function, Context* context) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
   }
@@ -3253,6 +3319,8 @@ class AbstractType : public Instance {
   virtual RawString* UserVisibleName() const {
     return BuildName(kUserVisibleName);
   }
+
+  virtual intptr_t Hash() const;
 
   // The name of this type's class, i.e. without the type argument names of this
   // type.
@@ -3366,6 +3434,8 @@ class Type : public AbstractType {
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const;
 
+  virtual intptr_t Hash() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawType));
   }
@@ -3463,6 +3533,8 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
+
+  virtual intptr_t Hash() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypeParameter));
@@ -4342,11 +4414,16 @@ class Bool : public Instance {
     return RoundedAllocationSize(sizeof(RawBool));
   }
 
-  static RawBool* True();
-  static RawBool* False();
+  static const Bool& True() {
+    return Object::bool_true();
+  }
+
+  static const Bool& False() {
+    return Object::bool_false();
+  }
 
   static RawBool* Get(bool value) {
-    return value ? Bool::True() : Bool::False();
+    return value ? Bool::True().raw() : Bool::False().raw();
   }
 
  private:
@@ -6070,8 +6147,8 @@ void Object::SetRaw(RawObject* value) {
   if (FLAG_verify_handles) {
     Heap* isolate_heap = isolate->heap();
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-    ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
-           vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
+    ASSERT(isolate_heap->Contains(RawObject::ToAddr(raw_)) ||
+           vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
   }
   ASSERT(builtin_vtables_[cid] ==
          isolate->class_table()->At(cid)->ptr()->handle_vtable_);

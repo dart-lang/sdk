@@ -690,7 +690,7 @@ class JavaScriptBackend extends Backend {
   /**
    * Set of classes whose instances are intercepted. Implemented as a
    * [LinkedHashMap] to preserve the insertion order.
-   * TODO(ngeoffray): Use a BitSet instead.
+   * TODO(ngeoffray): No need to preserve order anymore.
    */
   final Map<ClassElement, ClassElement> interceptedClasses;
 
@@ -849,6 +849,12 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsStringClass, enqueuer);
     } else if (cls == compiler.listClass) {
       addInterceptors(jsArrayClass, enqueuer);
+      // The backend will try to optimize array access and use the
+      // `ioore` and `iae` helpers directly.
+      enqueuer.registerStaticUse(
+          compiler.findHelper(const SourceString('ioore')));
+      enqueuer.registerStaticUse(
+          compiler.findHelper(const SourceString('iae')));
     } else if (cls == compiler.intClass) {
       addInterceptors(jsIntClass, enqueuer);
       addInterceptors(jsNumberClass, enqueuer);
@@ -1095,7 +1101,7 @@ class JavaScriptBackend extends Backend {
       return const SourceString('numTypeCheck');
     } else if (element == compiler.boolClass) {
       return const SourceString('boolTypeCheck');
-    } else if (element == compiler.functionClass || element.isTypedef()) {
+    } else if (element == compiler.functionClass) {
       return const SourceString('functionTypeCheck');
     } else if (element == compiler.intClass) {
       return const SourceString('intTypeCheck');

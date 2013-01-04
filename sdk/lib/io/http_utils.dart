@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.io;
+
 class _HttpUtils {
   static String decodeUrlEncodedString(String urlEncoded) {
     // First check the string for any encoding.
@@ -29,12 +31,14 @@ class _HttpUtils {
           var charCode = urlEncoded.charCodeAt(i + j + 1);
           if (0x30 <= charCode && charCode <= 0x39) {
             byte = byte * 16 + charCode - 0x30;
-          } else if (0x41 <= charCode && charCode <= 0x46) {
-            byte = byte * 16 + charCode - 0x37;
-          } else if (0x61 <= charCode && charCode <= 0x66) {
-            byte = byte * 16 + charCode - 0x57;
           } else {
-            throw new HttpException("Invalid URL encoding");
+            // Check ranges A-F (0x41-0x46) and a-f (0x61-0x66).
+            charCode |= 0x20;
+            if (0x61 <= charCode && charCode <= 0x66) {
+              byte = byte * 16 + charCode - 0x57;
+            } else {
+              throw new ArgumentError("Invalid URL encoding");
+            }
           }
         }
         bytes.add(byte);

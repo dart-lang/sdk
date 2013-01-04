@@ -28,6 +28,8 @@
   V(Platform_Environment, 0)                                                   \
   V(Process_Start, 10)                                                         \
   V(Process_Kill, 3)                                                           \
+  V(Process_SetExitCode, 1)                                                    \
+  V(Process_Exit, 1)                                                           \
   V(ServerSocket_CreateBindListen, 4)                                          \
   V(ServerSocket_Accept, 2)                                                    \
   V(Socket_CreateConnect, 3)                                                   \

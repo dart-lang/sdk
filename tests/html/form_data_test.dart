@@ -8,6 +8,12 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
 
+void fail(message) {
+  guardAsync(() {
+    expect(false, isTrue, reason: message);
+  });
+}
+
 void main() {
   // TODO(efortuna): This is a bad test. Revisit when we have tests that can run
   // both a server and fire up a browser.
@@ -42,5 +48,25 @@ void main() {
         ['Indescribable... Indestructible! Nothing can stop it!'],
         'text/plain');
     form.append('theBlob', blob, 'theBlob.txt');
+  });
+
+  test('send', () {
+    var form = new FormData();
+    var blobString = 'Indescribable... Indestructible! Nothing can stop it!';
+    var blob = new Blob(
+        [blobString],
+        'text/plain');
+    form.append('theBlob', blob, 'theBlob.txt');
+
+    var xhr = new HttpRequest();
+    xhr.open("POST", "http://localhost:9876/echo");
+
+    xhr.on.load.add(expectAsync1((e) {
+      expect(xhr.responseText.contains(blobString), true);
+    }));
+    xhr.on.error.add((e) {
+      fail('$e');
+    });
+    xhr.send(form);
   });
 }

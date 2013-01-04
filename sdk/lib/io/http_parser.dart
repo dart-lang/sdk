@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.io;
+
 // Global constants.
 class _Const {
   // Bytes for "HTTP".
@@ -96,7 +98,7 @@ class _MessageType {
 
 /**
  * HTTP parser which parses the HTTP stream as data is supplied
- * through the [:writeList:] and [:connectionClosed:] methods. As the
+ * through the [:streamData:] and [:streamDone:] methods. As the
  * data is parsed the following callbacks are called:
  *
  *   [:requestStart:]
@@ -107,7 +109,7 @@ class _MessageType {
  *   [:error:]
  *
  * If an HTTP parser error occours it is possible to get an exception
- * thrown from the [:writeList:] and [:connectionClosed:] methods if
+ * thrown from the [:streamData:] and [:streamDone:] methods if
  * the error callback is not set.
  *
  * The connection upgrades (e.g. switching from HTTP/1.1 to the
@@ -385,11 +387,7 @@ class _HttpParser {
               String headerField = new String.fromCharCodes(_headerField);
               String headerValue = new String.fromCharCodes(_headerValue);
               bool reportHeader = true;
-              if (headerField == "content-length" && !_chunked) {
-                // Ignore the Content-Length header if Transfer-Encoding
-                // is chunked (RFC 2616 section 4.4)
-                _contentLength = parseInt(headerValue);
-              } else if (headerField == "connection") {
+              if (headerField == "connection") {
                 List<String> tokens = _tokenizeFieldValue(headerValue);
                 for (int i = 0; i < tokens.length; i++) {
                   String token = tokens[i].toLowerCase();
@@ -406,10 +404,7 @@ class _HttpParser {
                 reportHeader = false;
               } else if (headerField == "transfer-encoding" &&
                          headerValue.toLowerCase() == "chunked") {
-                // Ignore the Content-Length header if Transfer-Encoding
-                // is chunked (RFC 2616 section 4.4)
                 _chunked = true;
-                _contentLength = -1;
               }
               if (reportHeader) {
                 _headers.add(headerField, headerValue);
@@ -429,6 +424,13 @@ class _HttpParser {
 
           case _State.HEADER_ENDING:
             _expect(byte, _CharCode.LF);
+            _headers._mutable = false;
+
+            _contentLength = _headers.contentLength;
+            // Ignore the Content-Length header if Transfer-Encoding
+            // is chunked (RFC 2616 section 4.4)
+            if (_chunked) _contentLength = -1;
+
             // If a request message has neither Content-Length nor
             // Transfer-Encoding the message must not have a body (RFC
             // 2616 section 4.3).

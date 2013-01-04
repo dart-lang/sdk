@@ -17,13 +17,15 @@ import 'dart:math';
 import 'dart:uri';
 
 import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
+import '../../../pkg/path/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../pkg/http/lib/testing.dart';
 import '../../lib/file_system.dart' as fs;
 import '../../pub/entrypoint.dart';
 import '../../pub/git_source.dart';
 import '../../pub/hosted_source.dart';
+import '../../pub/http.dart';
 import '../../pub/io.dart';
-import '../../pub/path.dart' as path;
 import '../../pub/sdk_source.dart';
 import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
@@ -509,6 +511,10 @@ List<_ScheduledEvent> _scheduledOnException;
  */
 bool _abortScheduled = false;
 
+/// The time (in milliseconds) to wait for the entire scheduled test to
+/// complete.
+final _TIMEOUT = 30000;
+
 /**
  * Runs all the scheduled events for a test case. This should only be called
  * once per test case.
@@ -549,9 +555,9 @@ void run() {
     return true;
   });
 
-  future.chain((_) => cleanup()).then((_) {
-    asyncDone();
-  });
+  timeout(future, _TIMEOUT, 'waiting for a test to complete')
+      .chain((_) => cleanup())
+      .then((_) => asyncDone());
 }
 
 /// Get the path to the root "util/test/pub" directory containing the pub tests.
@@ -566,7 +572,7 @@ String get testDirectory {
  * Schedules a call to the Pub command-line utility. Runs Pub with [args] and
  * validates that its results match [output], [error], and [exitCode].
  */
-void schedulePub({List<String> args, Pattern output, Pattern error,
+void schedulePub({List args, Pattern output, Pattern error,
     Future<Uri> tokenEndpoint, int exitCode: 0}) {
   _schedule((sandboxDir) {
     return _doPub(runProcess, sandboxDir, args, tokenEndpoint)
@@ -596,37 +602,36 @@ void schedulePub({List<String> args, Pattern output, Pattern error,
   });
 }
 
-/**
- * A shorthand for [schedulePub] and [run] when no validation needs to be done
- * after Pub has been run.
- */
-void runPub({List<String> args, Pattern output, Pattern error,
-    int exitCode: 0}) {
+/// A shorthand for [schedulePub] and [run] when no validation needs to be done
+/// after Pub has been run.
+///
+/// Any futures in [args] will be resolved before the process is started.
+void runPub({List args, Pattern output, Pattern error, int exitCode: 0}) {
   schedulePub(args: args, output: output, error: error, exitCode: exitCode);
   run();
 }
 
 /// Starts a Pub process and returns a [ScheduledProcess] that supports
 /// interaction with that process.
-ScheduledProcess startPub({List<String> args}) {
+///
+/// Any futures in [args] will be resolved before the process is started.
+ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   var process = _scheduleValue((sandboxDir) =>
-      _doPub(startProcess, sandboxDir, args));
+      _doPub(startProcess, sandboxDir, args, tokenEndpoint));
   return new ScheduledProcess("pub", process);
 }
 
 /// Like [startPub], but runs `pub lish` in particular with [server] used both
 /// as the OAuth2 server (with "/token" as the token endpoint) and as the
 /// package server.
-ScheduledProcess startPubLish(ScheduledServer server, {List<String> args}) {
-  var process = _scheduleValue((sandboxDir) {
-    return server.url.chain((url) {
-      var tokenEndpoint = url.resolve('/token');
-      if (args == null) args = [];
-      args = flatten(['lish', '--server', url.toString(), args]);
-      return _doPub(startProcess, sandboxDir, args, tokenEndpoint);
-    });
-  });
-  return new ScheduledProcess("pub lish", process);
+///
+/// Any futures in [args] will be resolved before the process is started.
+ScheduledProcess startPubLish(ScheduledServer server, {List args}) {
+  var tokenEndpoint = server.url.transform((url) =>
+      url.resolve('/token').toString());
+  if (args == null) args = [];
+  args = flatten(['lish', '--server', tokenEndpoint, args]);
+  return startPub(args: args, tokenEndpoint: tokenEndpoint);
 }
 
 /// Handles the beginning confirmation process for uploading a packages.
@@ -649,10 +654,16 @@ void confirmPublish(ScheduledProcess pub) {
 /// Calls [fn] with appropriately modified arguments to run a pub process. [fn]
 /// should have the same signature as [startProcess], except that the returned
 /// [Future] may have a type other than [Process].
-Future _doPub(Function fn, sandboxDir, List<String> args, Uri tokenEndpoint) {
+Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
   String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
 
-  return ensureDir(pathInSandbox(appPath)).chain((_) {
+  return Futures.wait([
+    ensureDir(pathInSandbox(appPath)),
+    _awaitObject(args),
+    tokenEndpoint == null ? new Future.immediate(null) : tokenEndpoint
+  ]).chain((results) {
+    var args = results[1];
+    var tokenEndpoint = results[2];
     // Find a Dart executable we can use to spawn. Use the same one that was
     // used to run this script itself.
     var dartBin = new Options().executable;
@@ -700,6 +711,18 @@ void ensureGit() {
       }
       return null;
     });
+  });
+}
+
+/// Use [client] as the mock HTTP client for this test.
+///
+/// Note that this will only affect HTTP requests made via http.dart in the
+/// parent process.
+void useMockClient(MockClient client) {
+  var oldInnerClient = httpClient.inner;
+  httpClient.inner = client;
+  _scheduleCleanup((_) {
+    httpClient.inner = oldInnerClient;
   });
 }
 
@@ -1419,7 +1442,8 @@ class ScheduledProcess {
   /// Reads the next line of stdout from the process.
   Future<String> nextLine() {
     return _scheduleValue((_) {
-      return timeout(_stdout.chain(readLine), _SCHEDULE_TIMEOUT,
+      return timeout(_stdout.chain((stream) => readLine(stream)),
+          _SCHEDULE_TIMEOUT,
           "waiting for the next stdout line from process $name");
     });
   }
@@ -1427,7 +1451,8 @@ class ScheduledProcess {
   /// Reads the next line of stderr from the process.
   Future<String> nextErrLine() {
     return _scheduleValue((_) {
-      return timeout(_stderr.chain(readLine), _SCHEDULE_TIMEOUT,
+      return timeout(_stderr.chain((stream) => readLine(stream)),
+          _SCHEDULE_TIMEOUT,
           "waiting for the next stderr line from process $name");
     });
   }
@@ -1559,7 +1584,8 @@ class ScheduledServer {
       var requestCompleteCompleter = new Completer();
       handlerCompleter.complete((request, response) {
         expect(request.method, equals(method));
-        expect(request.path, equals(path));
+        // TODO(nweiz): Use request.path once issue 7464 is fixed.
+        expect(new Uri.fromString(request.uri).path, equals(path));
 
         var future = handler(request, response);
         if (future == null) future = new Future.immediate(null);

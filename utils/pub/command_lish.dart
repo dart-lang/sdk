@@ -10,12 +10,13 @@ import 'dart:uri';
 
 import '../../pkg/args/lib/args.dart';
 import '../../pkg/http/lib/http.dart' as http;
+import '../../pkg/path/lib/path.dart' as path;
 import 'directory_tree.dart';
 import 'git.dart' as git;
+import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
-import 'path.dart' as path;
 import 'pub.dart';
 import 'validator.dart';
 
@@ -27,6 +28,8 @@ class LishCommand extends PubCommand {
 
   ArgParser get commandParser {
     var parser = new ArgParser();
+    // TODO(nweiz): Use HostedSource.defaultUrl as the default value once we use
+    // dart:io for HTTPS requests.
     parser.addOption('server', defaultsTo: 'https://pub.dartlang.org',
         help: 'The package server to which to upload this package');
     return parser;
@@ -42,17 +45,17 @@ class LishCommand extends PubCommand {
       // should report that error and exit.
       var newUri = server.resolve("/packages/versions/new.json");
       return client.get(newUri).chain((response) {
-        var parameters = _parseJson(response);
+        var parameters = parseJsonResponse(response);
 
         var url = _expectField(parameters, 'url', response);
-        if (url is! String) _invalidServerResponse(response);
+        if (url is! String) invalidServerResponse(response);
         cloudStorageUrl = new Uri.fromString(url);
         var request = new http.MultipartRequest('POST', cloudStorageUrl);
 
         var fields = _expectField(parameters, 'fields', response);
-        if (fields is! Map) _invalidServerResponse(response);
+        if (fields is! Map) invalidServerResponse(response);
         fields.forEach((key, value) {
-          if (value is! String) _invalidServerResponse(response);
+          if (value is! String) invalidServerResponse(response);
           request.fields[key] = value;
         });
 
@@ -64,44 +67,18 @@ class LishCommand extends PubCommand {
         var location = response.headers['location'];
         if (location == null) throw new PubHttpException(response);
         return location;
-      }).chain((location) => client.get(location)).transform((response) {
-        var parsed = _parseJson(response);
-        if (parsed['success'] is! Map ||
-            !parsed['success'].containsKey('message') ||
-            parsed['success']['message'] is! String) {
-          _invalidServerResponse(response);
-        }
-        log.message(parsed['success']['message']);
-      });
+      }).chain((location) => client.get(location))
+          .transform(handleJsonSuccess);
     }).transformException((e) {
-      if (e is PubHttpException) {
-        var url = e.response.request.url;
-        if (url.toString() == cloudStorageUrl.toString()) {
-          // TODO(nweiz): the response may have XML-formatted information about
-          // the error. Try to parse that out once we have an easily-accessible
-          // XML parser.
-          throw 'Failed to upload the package.';
-        } else if (url.origin == server.origin) {
-          var errorMap = _parseJson(e.response);
-          if (errorMap['error'] is! Map ||
-              !errorMap['error'].containsKey('message') ||
-              errorMap['error']['message'] is! String) {
-            _invalidServerResponse(e.response);
-          }
-          throw errorMap['error']['message'];
-        }
-      } else if (e is oauth2.ExpirationException) {
-        log.error("Pub's authorization to upload packages has expired and "
-        "can't be automatically refreshed.");
-        return _publish(packageBytes);
-      } else if (e is oauth2.AuthorizationException) {
-        var message = "OAuth2 authorization failed";
-        if (e.description != null) message = "$message (${e.description})";
-        log.error("$message.");
-        return oauth2.clearCredentials(cache).chain((_) =>
-            _publish(packageBytes));
-      } else {
-        throw e;
+      if (e is! PubHttpException) throw e;
+      var url = e.response.request.url;
+      if (url.toString() == cloudStorageUrl.toString()) {
+        // TODO(nweiz): the response may have XML-formatted information about
+        // the error. Try to parse that out once we have an easily-accessible
+        // XML parser.
+        throw 'Failed to upload the package.';
+      } else if (url.origin == server.origin) {
+        handleJsonError(e.response);
       }
     });
   }
@@ -137,13 +114,6 @@ class LishCommand extends PubCommand {
   Future<List<String>> get _filesToPublish {
     var rootDir = entrypoint.root.dir;
 
-    // TODO(rnystrom): listDir() returns real file paths after symlinks are
-    // resolved. This means if libDir contains a symlink, the resulting paths
-    // won't appear to be within it, which confuses relativeTo(). Work around
-    // that here by making sure we have the real path to libDir. Remove this
-    // when #7346 is fixed.
-    rootDir = new File(rootDir).fullPathSync();
-
     return Futures.wait([
       dirExists(join(rootDir, '.git')),
       git.isInstalled
@@ -166,20 +136,7 @@ class LishCommand extends PubCommand {
             // Should instead only make these relative right before generating
             // the tree display (which is what really needs them to be).
             // Make it relative to the package root.
-            entry = relativeTo(entry, rootDir);
-
-            // TODO(rnystrom): dir.list() will include paths with resolved
-            // symlinks. In particular, we'll get paths to symlinked files from
-            // "packages" that reach outside of this package. Since the path
-            // has already been resolved, we don't even see "packages" in that
-            // path anymore.
-            // These should not be included in the archive. As a hack, ignore
-            // any file whose relative path is backing out of the root
-            // directory. Should do something cleaner.
-            var parts = path.split(entry);
-            if (!parts.isEmpty && parts[0] == '..') return null;
-
-            return entry;
+            return relativeTo(entry, rootDir);
           });
         }));
       });
@@ -192,31 +149,11 @@ class LishCommand extends PubCommand {
     }));
   }
 
-  /// Parses a response body, assuming it's JSON-formatted. Throws a
-  /// user-friendly error if the response body is invalid JSON, or if it's not a
-  /// map.
-  Map _parseJson(http.Response response) {
-    var value;
-    try {
-      value = JSON.parse(response.body);
-    } catch (e) {
-      // TODO(nweiz): narrow this catch clause once issue 6775 is fixed.
-      _invalidServerResponse(response);
-    }
-    if (value is! Map) _invalidServerResponse(response);
-    return value;
-  }
-
   /// Returns the value associated with [key] in [map]. Throws a user-friendly
   /// error if [map] doens't contain [key].
   _expectField(Map map, String key, http.Response response) {
     if (map.containsKey(key)) return map[key];
-    _invalidServerResponse(response);
-  }
-
-  /// Throws an error describing an invalid response from the server.
-  void _invalidServerResponse(http.Response response) {
-    throw 'Invalid server response:\n${response.body}';
+    invalidServerResponse(response);
   }
 
   /// Validates the package. Throws an exception if it's invalid.

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.io;
 
 /**
  * FileMode describes the modes in which a file can be opened.
@@ -249,8 +250,8 @@ abstract class File {
    * file pass [:FileMode.APPEND:] as the optional mode parameter.
    */
   Future<File> writeAsString(String contents,
-                             [Encoding encoding = Encoding.UTF_8,
-                              FileMode mode = FileMode.WRITE]);
+                             {FileMode mode: FileMode.WRITE,
+                              Encoding encoding: Encoding.UTF_8});
 
   /**
    * Synchronously write a string to a file.
@@ -264,8 +265,8 @@ abstract class File {
    * parameter.
    */
   void writeAsStringSync(String contents,
-                         [Encoding encoding = Encoding.UTF_8,
-                          FileMode mode = FileMode.WRITE]);
+                         {FileMode mode: FileMode.WRITE,
+                          Encoding encoding: Encoding.UTF_8});
 
   /**
    * Get the name of the file.
@@ -425,6 +426,11 @@ abstract class RandomAccessFile {
    * Synchronously flush the contents of the file to disk.
    */
   void flushSync();
+
+  /**
+   * Returns a human readable string for this File instance.
+   */
+  String toString();
 
   /**
    * Get the name of the file.

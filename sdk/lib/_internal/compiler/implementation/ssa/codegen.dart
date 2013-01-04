@@ -37,9 +37,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return result;
   }
 
-  CodeBuffer prettyPrint(js.Node node, {bool allowVariableMinification: true}) {
-    var code = js.prettyPrint(
-        node, compiler, allowVariableMinification: allowVariableMinification);
+  CodeBuffer prettyPrint(js.Node node) {
+    var code = js.prettyPrint(node, compiler, allowVariableMinification: true);
     return code;
   }
 
@@ -73,7 +72,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
       FunctionElement element = work.element;
       js.Block body;
       ClassElement enclosingClass = element.getEnclosingClass();
-      bool allowVariableMinification = !codegen.inhibitVariableMinification;
 
       if (element.isInstanceMember()
           && enclosingClass.isNative()
@@ -92,8 +90,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       }
 
       js.Fun fun = buildJavaScriptFunction(element, codegen.parameters, body);
-      return prettyPrint(fun,
-                         allowVariableMinification: allowVariableMinification);
+      return prettyPrint(fun);
     });
   }
 
@@ -162,8 +159,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * This includes declarations, which are generated as expressions.
    */
   bool isGeneratingExpression = false;
-
-  bool inhibitVariableMinification = false;
 
   final JavaScriptBackend backend;
   final WorkItem work;
@@ -1777,17 +1772,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assignVariable(variableNames.getName(node.receiver), pop());
   }
 
-  // TODO(sra): We could be more picky about when to inhibit renaming of locals
-  // - most JS strings don't contain free variables, or contain safe ones like
-  // 'Object'.  JS strings like "#.length" and "#[#]" are perfectly safe for
-  // variable renaming.  For now, be shy of any potential identifiers.
-  static final RegExp safeCodeRegExp = new RegExp(r'^[^_$a-zA-Z]*$');
-
   visitForeign(HForeign node) {
     String code = node.code.slowToString();
-    if (!safeCodeRegExp.hasMatch(code)) {
-      inhibitVariableMinification = true;
-    }
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement(types)) {
       if (!inputs.isEmpty) {
@@ -2166,14 +2152,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitIndex(HIndex node) {
-    if (node.isBuiltin(types)) {
-      use(node.inputs[1]);
-      js.Expression receiver = pop();
-      use(node.inputs[2]);
-      push(new js.PropertyAccess(receiver, pop()), node);
-    } else {
-      visitInvokeStatic(node);
-    }
+    use(node.receiver);
+    js.Expression receiver = pop();
+    use(node.index);
+    push(new js.PropertyAccess(receiver, pop()), node);
   }
 
   void visitIndexAssign(HIndexAssign node) {
@@ -2272,6 +2254,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkNull(HInstruction input) {
     use(input);
     push(new js.Binary('==', pop(), new js.LiteralNull()));
+  }
+
+  void checkNonNull(HInstruction input) {
+    use(input);
+    push(new js.Binary('!=', pop(), new js.LiteralNull()));
   }
 
   void checkFunction(HInstruction input, DartType type) {
@@ -2397,6 +2384,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else if (identical(element, compiler.listClass)
                || Elements.isListSupertype(element, compiler)) {
       handleListOrSupertypeCheck(input, type);
+      attachLocationToLast(node);
+    } else if (element.isTypedef()) {
+      checkNonNull(input);
+      js.Expression nullTest = pop();
+      checkType(input, type);
+      push(new js.Binary('&&', nullTest, pop()));
       attachLocationToLast(node);
     } else if (types[input].canBePrimitive() || types[input].canBeNull()) {
       checkObject(input, '===');

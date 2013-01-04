@@ -11,13 +11,9 @@ import 'utils.dart';
 import 'version.dart';
 import 'yaml/yaml.dart';
 
-/**
- * A parsed and validated `pubspec.lock` file.
- */
+/// A parsed and validated `pubspec.lock` file.
 class LockFile {
-  /**
-   * The packages this lockfile pins.
-   */
+  /// The packages this lockfile pins.
   Map<String, PackageId> packages;
 
   LockFile._(this.packages);
@@ -25,9 +21,7 @@ class LockFile {
   LockFile.empty()
     : packages = <String, PackageId>{};
 
-  /**
-   * Parses the lockfile whose text is [contents].
-   */
+  /// Parses the lockfile whose text is [contents].
   factory LockFile.parse(String contents, SourceRegistry sources) {
     var packages = <String, PackageId>{};
 
@@ -78,9 +72,7 @@ class LockFile {
     return new LockFile._(packages);
   }
 
-  /**
-   * Returns the serialized YAML text of the lock file.
-   */
+  /// Returns the serialized YAML text of the lock file.
   String serialize() {
     var packagesObj = <String, Map>{};
     packages.forEach((name, id) {

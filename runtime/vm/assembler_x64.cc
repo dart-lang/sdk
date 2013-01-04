@@ -1649,7 +1649,7 @@ void Assembler::Drop(intptr_t stack_elements) {
 
 
 void Assembler::LoadObject(Register dst, const Object& object) {
-  if (object.IsSmi() || object.IsNull()) {
+  if (object.IsSmi() || object.InVMHeap()) {
     movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   } else {
     ASSERT(object.IsNotTemporaryScopedHandle());
@@ -1663,7 +1663,7 @@ void Assembler::LoadObject(Register dst, const Object& object) {
 
 
 void Assembler::StoreObject(const Address& dst, const Object& object) {
-  if (object.IsSmi() || object.IsNull()) {
+  if (object.IsSmi() || object.InVMHeap()) {
     movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   } else {
     ASSERT(object.IsNotTemporaryScopedHandle());
@@ -1675,7 +1675,7 @@ void Assembler::StoreObject(const Address& dst, const Object& object) {
 
 
 void Assembler::PushObject(const Object& object) {
-  if (object.IsSmi() || object.IsNull()) {
+  if (object.IsSmi() || object.InVMHeap()) {
     pushq(Immediate(reinterpret_cast<int64_t>(object.raw())));
   } else {
     LoadObject(TMP, object);
@@ -1685,7 +1685,7 @@ void Assembler::PushObject(const Object& object) {
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
-  if (object.IsSmi() || object.IsNull()) {
+  if (object.IsSmi() || object.InVMHeap()) {
     cmpq(reg, Immediate(reinterpret_cast<int64_t>(object.raw())));
   } else {
     ASSERT(reg != TMP);

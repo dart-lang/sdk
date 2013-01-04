@@ -5,8 +5,8 @@
 library DocumentFragmentTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
+import 'util.dart';
 import 'dart:html';
-part 'util.dart';
 
 main() {
   useHtmlConfiguration();

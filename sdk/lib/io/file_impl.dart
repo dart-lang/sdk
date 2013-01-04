@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.io;
+
 class _FileInputStream extends _BaseDataInputStream implements InputStream {
   _FileInputStream(String name)
       : _data = const [],
@@ -681,8 +683,8 @@ class _File extends _FileBase implements File {
   }
 
   Future<File> writeAsString(String contents,
-                             [FileMode mode = FileMode.WRITE,
-                              Encoding encoding = Encoding.UTF_8]) {
+                             {FileMode mode: FileMode.WRITE,
+                              Encoding encoding: Encoding.UTF_8}) {
     try {
       var data = _StringEncoders.encoder(encoding).encodeString(contents);
       return writeAsBytes(data, mode);
@@ -694,13 +696,15 @@ class _File extends _FileBase implements File {
   }
 
   void writeAsStringSync(String contents,
-                         [FileMode mode = FileMode.WRITE,
-                          Encoding encoding = Encoding.UTF_8]) {
+                         {FileMode mode: FileMode.WRITE,
+                          Encoding encoding: Encoding.UTF_8}) {
     var data = _StringEncoders.encoder(encoding).encodeString(contents);
     writeAsBytesSync(data, mode);
   }
 
   String get name => _name;
+
+  String toString() => "File: '$name'";
 
   void _ensureFileService() {
     if (_fileService == null) {

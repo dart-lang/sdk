@@ -345,6 +345,13 @@ class TypeNode : public AstNode {
 
   const AbstractType& type() const { return type_; }
 
+  virtual const Instance* EvalConstExpr() const {
+    if (!type_.IsInstantiated() || type_.IsMalformed()) {
+      return NULL;
+    }
+    return &type();
+  }
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
   DECLARE_COMMON_NODE_FUNCTIONS(TypeNode);
@@ -367,7 +374,7 @@ class AssignableNode : public AstNode {
     ASSERT(type_.IsZoneHandle());
     ASSERT(!type_.IsNull());
     ASSERT(type_.IsFinalized());
-    ASSERT(dst_name_.IsZoneHandle());
+    ASSERT(dst_name_.IsNotTemporaryScopedHandle());
   }
 
   AstNode* expr() const { return expr_; }
@@ -418,6 +425,8 @@ class ClosureNode : public AstNode {
     }
   }
 
+  virtual AstNode* MakeAssignmentNode(AstNode* rhs);
+
   virtual const Instance* EvalConstExpr() const;
 
   DECLARE_COMMON_NODE_FUNCTIONS(ClosureNode);
@@ -439,13 +448,13 @@ class PrimaryNode : public AstNode {
  public:
   PrimaryNode(intptr_t token_pos, const Object& primary)
       : AstNode(token_pos), primary_(primary) {
-    ASSERT(primary_.IsZoneHandle());
+    ASSERT(primary_.IsNotTemporaryScopedHandle());
   }
 
   const Object& primary() const { return primary_; }
 
   bool IsSuper() const {
-    return primary().IsString() && (primary().raw() == Symbols::Super());
+    return primary().IsString() && (primary().raw() == Symbols::Super().raw());
   }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const;
@@ -1192,7 +1201,7 @@ class InstanceCallNode : public AstNode {
         function_name_(function_name),
         arguments_(arguments) {
     ASSERT(receiver_ != NULL);
-    ASSERT(function_name_.IsZoneHandle());
+    ASSERT(function_name_.IsNotTemporaryScopedHandle());
     ASSERT(function_name_.IsSymbol());
     ASSERT(arguments_ != NULL);
   }
@@ -1226,7 +1235,7 @@ class InstanceGetterNode : public AstNode {
         receiver_(receiver),
         field_name_(field_name) {
     ASSERT(receiver_ != NULL);
-    ASSERT(field_name_.IsZoneHandle());
+    ASSERT(field_name_.IsNotTemporaryScopedHandle());
     ASSERT(field_name_.IsSymbol());
   }
 

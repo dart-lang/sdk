@@ -28,9 +28,19 @@ List<VariableMirror> publicFields(ClassMirror mirror) {
   }
 }
 
+/** Return true if the class has a field named [name]. Note that this
+ * includes private fields, but excludes statics. */
+bool hasField(String name, ClassMirror mirror) {
+  var field = mirror.variables[name];
+  if (field != null && !field.isStatic) return true;
+  var superclass = mirror.superclass;
+  if (superclass == mirror) return false;
+  return hasField(name, superclass);
+}
+
 /**
- * Return a list of all the public getters of a class, including inherited
- * getters.
+ * Return a list of all the getters of a class, including inherited
+ * getters. Note that this allows private getters, but excludes statics.
  */
 List<MethodMirror> publicGetters(ClassMirror mirror) {
   var mine = mirror.getters.values.filter((x) => !(x.isPrivate || x.isStatic));
@@ -40,6 +50,15 @@ List<MethodMirror> publicGetters(ClassMirror mirror) {
   } else {
     return mine;
   }
+}
+
+/** Return true if the class has a getter named [name] */
+bool hasGetter(String name, ClassMirror mirror) {
+  var getter = mirror.getters[name];
+  if (getter != null && !getter.isStatic) return true;
+  var superclass = mirror.superclass;
+  if (superclass == mirror) return false;
+  return hasField(name, superclass);
 }
 
 /**
@@ -58,16 +77,3 @@ List<MethodMirror> publicGettersWithMatchingSetters(ClassMirror mirror) {
  * ClassMirror from that. Given a horrible name as an extra reminder to fix it.
  */
 ClassMirror turnInstanceIntoSomethingWeCanUse(x) => reflect(x).type;
-
-/**
- * This is polyfill because we can't hash ClassMirror right now. We
- * don't bother implementing most of its methods because we don't need them.
- */
-// TODO(alanknight): Remove this when you can hash mirrors directly
-class ClassMirrorWrapper implements ClassMirror {
-  ClassMirror mirror;
-  ClassMirrorWrapper(this.mirror);
-  get simpleName => mirror.simpleName;
-  get hashCode => simpleName.hashCode;
-  operator ==(x) => x is ClassMirror && simpleName == x.simpleName;
-}

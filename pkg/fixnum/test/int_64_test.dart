@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library int64test;
-import '../lib/fixnum.dart';
+import 'package:fixnum/fixnum.dart';
 
 void main() {
   testAdditive();

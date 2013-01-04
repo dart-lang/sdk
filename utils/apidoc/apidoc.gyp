@@ -20,6 +20,7 @@
       'dependencies': [
         '../../utils/compiler/compiler.gyp:dart2js',
         '../../runtime/dart-runtime.gyp:dart',
+        '../../pkg/pkg.gyp:pkg_packages',
       ],
       'includes': [
         '../../sdk/lib/core/corelib_sources.gypi',
@@ -45,10 +46,12 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             'apidoc.dart',
             '--out=<(PRODUCT_DIR)/api_docs',
+            '--pkg=<(PRODUCT_DIR)/packages/',
             '--mode=static',
             '--exclude-lib=dartdoc',
             '--exclude-lib=http',
             '--exclude-lib=oauth2',
+            '--exclude-lib=path',
             '--exclude-lib=webdriver',
             '--include-lib=matcher',
             '--include-lib=mock',

@@ -30,8 +30,8 @@ TEST_CASE(OptimizationTests) {
   Value* use2 = new Value(def2);
   EXPECT(!use2->Equals(use1a));
 
-  ConstantInstr* c1 = new ConstantInstr(Bool::ZoneHandle(Bool::True()));
-  ConstantInstr* c2 = new ConstantInstr(Bool::ZoneHandle(Bool::True()));
+  ConstantInstr* c1 = new ConstantInstr(Bool::True());
+  ConstantInstr* c2 = new ConstantInstr(Bool::True());
   EXPECT(c1->Equals(c2));
   ConstantInstr* c3 = new ConstantInstr(Object::ZoneHandle());
   ConstantInstr* c4 = new ConstantInstr(Object::ZoneHandle());

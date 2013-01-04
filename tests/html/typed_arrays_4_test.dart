@@ -10,6 +10,11 @@ import 'dart:html';
 main() {
   useHtmlConfiguration();
 
+  // Only perform tests if ArrayBuffer is supported.
+  if (!ArrayBuffer.supported) {
+    return;
+  }
+
   test('indexOf_dynamic', () {
       var a1 = new Uint8Array(1024);
       for (int i = 0; i < a1.length; i++) {

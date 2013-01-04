@@ -4,7 +4,7 @@
 //
 // Dart test program for testing native extensions.
 
-#import('dart:io');
+import "dart:io";
 
 Future copyFileToDirectory(Path file, Path directory) {
   String src = file.toNativePath();

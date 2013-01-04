@@ -179,6 +179,9 @@ public enum Token {
    */
   public static Token lookup(String syntax) {
     Token token = tokens.get(syntax);
+    if ("as".equals(syntax)) {
+      return IDENTIFIER;
+    }
     if (token == null) {
       return IDENTIFIER;
     }

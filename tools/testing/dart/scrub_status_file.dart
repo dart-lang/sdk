@@ -11,9 +11,9 @@
 
 // TODO(ahe): Consider generalizing this.
 
-#import('dart:io');
+import 'dart:io';
 
-#import('status_file_parser.dart');
+import 'status_file_parser.dart';
 
 const List<String> CO19_STATUS_FILES = const <String>[
     'tests/co19/co19-compiler.status',

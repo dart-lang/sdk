@@ -8,7 +8,9 @@ part of js_backend;
  * Assigns JavaScript identifiers to Dart variables, class-names and members.
  */
 class MinifyNamer extends Namer {
-  MinifyNamer(Compiler compiler) : super(compiler);
+  MinifyNamer(Compiler compiler) : super(compiler) {
+    reserveBackendNames();
+  }
 
   String get isolateName => 'I';
   String get isolatePropertiesName => 'p';
@@ -30,6 +32,15 @@ class MinifyNamer extends Namer {
       return new SourceString(new String.fromCharCodes([_letterNumber(id)]));
     }
     return new SourceString("${getMappedInstanceName('closure')}_$id");
+  }
+
+  void reserveBackendNames() {
+    for (var name in JsNames.reservedNativeProperties) {
+      if (name.length < 3) {
+        instanceNameMap[name] = name;
+      }
+      usedInstanceNames.add(name);
+    }
   }
 
   // This gets a minified name based on a hash of the proposed name.  This

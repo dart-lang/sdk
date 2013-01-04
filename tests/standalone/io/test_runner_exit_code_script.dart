@@ -4,9 +4,9 @@
 
 // Simulates a use of test_progress during a failing run of test.dart.
 
-#import("../../../tools/testing/dart/test_progress.dart");
-#import("../../../tools/testing/dart/test_runner.dart");
-#import("../../../tools/testing/dart/test_options.dart");
+import "../../../tools/testing/dart/test_progress.dart";
+import "../../../tools/testing/dart/test_runner.dart";
+import "../../../tools/testing/dart/test_options.dart";
 
 main() {
   var progressType = new Options().arguments[0];
@@ -31,7 +31,7 @@ main() {
   progress.allTestsKnown();
   progress.start(testCase);
   new CommandOutput.fromCase(testCase, dummyCommand, 1, false, false, [], [],
-                             new Date.now().difference(startTime));
+                             new Date.now().difference(startTime), false);
   progress.done(testCase);
   progress.allDone();
 }

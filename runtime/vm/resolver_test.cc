@@ -99,36 +99,33 @@ TEST_CASE(DartStaticResolve) {
   // Now try to resolve and invoke the static function in this class.
   {
     const int kNumArguments = 2;
-    const Array& kNoArgumentNames = Array::Handle();
     const Function& function = Function::Handle(
         Resolver::ResolveStatic(library,
                                 class_name,
                                 static_function_name,
                                 kNumArguments,
-                                kNoArgumentNames,
+                                Object::empty_array(),
                                 kResolveType));
     EXPECT(!function.IsNull());
-    GrowableArray<const Object*> arguments(2);
+    const Array& args = Array::Handle(Array::New(kNumArguments));
     const String& arg0 = String::Handle(String::New("junk"));
-    arguments.Add(&arg0);
+    args.SetAt(0, arg0);
     const Smi& arg1 = Smi::Handle(Smi::New(kTestValue));
-    arguments.Add(&arg1);
+    args.SetAt(1, arg1);
     const Smi& retval = Smi::Handle(
-        reinterpret_cast<RawSmi*>(
-            DartEntry::InvokeStatic(function, arguments, kNoArgumentNames)));
+        reinterpret_cast<RawSmi*>(DartEntry::InvokeStatic(function, args)));
     EXPECT_EQ(kTestValue, retval.Value());
   }
 
   // Now try to resolve a static function with invalid argument count.
   {
     const int kNumArguments = 1;
-    const Array& kNoArgumentNames = Array::Handle();
     const Function& bad_function = Function::Handle(
         Resolver::ResolveStatic(library,
                                 class_name,
                                 static_function_name,
                                 kNumArguments,
-                                kNoArgumentNames,
+                                Object::empty_array(),
                                 kResolveType));
     EXPECT(bad_function.IsNull());
   }
@@ -139,13 +136,12 @@ TEST_CASE(DartStaticResolve) {
         String::Handle(String::New("statCall"));
     const String& super_class_name = String::Handle(String::New("Base"));
     const int kNumArguments = 0;
-    const Array& kNoArgumentNames = Array::Handle();
     const Function& super_function = Function::Handle(
         Resolver::ResolveStatic(library,
                                 super_class_name,
                                 super_static_function_name,
                                 kNumArguments,
-                                kNoArgumentNames,
+                                Object::empty_array(),
                                 kResolveType));
     EXPECT(!super_function.IsNull());
   }
@@ -185,17 +181,14 @@ TEST_CASE(DartDynamicResolve) {
                                  kNumPositionalArguments,
                                  kNumNamedArguments));
     EXPECT(!function.IsNull());
-    GrowableArray<const Object*> arguments;
+    const Array& args = Array::Handle(Array::New(kNumPositionalArguments));
+    args.SetAt(0, receiver);
     const String& arg0 = String::Handle(String::New("junk"));
-    arguments.Add(&arg0);
+    args.SetAt(1, arg0);
     const Smi& arg1 = Smi::Handle(Smi::New(kTestValue));
-    arguments.Add(&arg1);
-    const Array& kNoArgumentNames = Array::Handle();
+    args.SetAt(2, arg1);
     const Smi& retval = Smi::Handle(
-        reinterpret_cast<RawSmi*>(DartEntry::InvokeDynamic(receiver,
-                                                           function,
-                                                           arguments,
-                                                           kNoArgumentNames)));
+        reinterpret_cast<RawSmi*>(DartEntry::InvokeDynamic(function, args)));
     EXPECT_EQ(kTestValue, retval.Value());
   }
 

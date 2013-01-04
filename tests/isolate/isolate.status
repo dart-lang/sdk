@@ -26,7 +26,6 @@ timer_not_available_test: Skip # only meant to test when there is no way to
                                # implement timer (currently only in d8)
 
 [ $compiler == dartc ]
-serialization_test: Skip  # tests dart2js-specific serialization code
 isolate_negative_test: Fail    # status change with --check-only
 isolate2_negative_test: Fail   # status change with --check-only
 spawn_function_negative_test: Fail, OK # Fails at runtime.
@@ -41,7 +40,6 @@ compute_this_script_browser_test: Pass
 
 [ $compiler == dart2js ]
 serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
-port_test: Fail # Issue 6608
 illegal_msg_test: Fail # Issue 6750
 
 [ $runtime == safari ]

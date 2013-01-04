@@ -4,9 +4,9 @@
 //
 // Process test program to test process communication.
 
-#library("ProcessKillTest");
-#import("dart:io");
-#source("process_test_util.dart");
+library ProcessKillTest;
+import "dart:io";
+import "process_test_util.dart";
 
 testKill() {
   // Start a process that will hang waiting for input until killed.

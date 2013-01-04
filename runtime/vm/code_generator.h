@@ -30,20 +30,19 @@ DECLARE_RUNTIME_ENTRY(BreakpointDynamicHandler);
 DECLARE_RUNTIME_ENTRY(CloneContext);
 DECLARE_RUNTIME_ENTRY(Deoptimize);
 DECLARE_RUNTIME_ENTRY(FixCallersTarget);
+DECLARE_LEAF_RUNTIME_ENTRY(void, HeapTraceStore, RawObject*, uword, RawObject*);
 DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg);
 DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs);
 DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs);
+DECLARE_RUNTIME_ENTRY(InstanceFunctionLookup);
 DECLARE_RUNTIME_ENTRY(Instanceof);
 DECLARE_RUNTIME_ENTRY(InstantiateTypeArguments);
-DECLARE_RUNTIME_ENTRY(InvokeImplicitClosureFunction);
 DECLARE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction);
 DECLARE_RUNTIME_ENTRY(MegamorphicCacheMissHandler);
 DECLARE_RUNTIME_ENTRY(OptimizeInvokedFunction);
 DECLARE_RUNTIME_ENTRY(TraceICCall);
 DECLARE_RUNTIME_ENTRY(PatchStaticCall);
 DECLARE_RUNTIME_ENTRY(InvokeNonClosure);
-DECLARE_RUNTIME_ENTRY(ResolveImplicitClosureFunction);
-DECLARE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter);
 DECLARE_RUNTIME_ENTRY(ReThrow);
 DECLARE_RUNTIME_ENTRY(StackOverflow);
 DECLARE_RUNTIME_ENTRY(Throw);
@@ -73,6 +72,7 @@ DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
   V(CheckSmi)                                                                  \
   V(CheckArrayBound)                                                           \
   V(AtCall)                                                                    \
+  V(DoubleToSmi)                                                               \
   V(NumReasons)                                                                \
 
 enum DeoptReasonId {

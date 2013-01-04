@@ -5,11 +5,13 @@
 library client;
 
 import 'dart:io';
+import 'dart:scalarlist';
 
 import 'base_client.dart';
 import 'base_request.dart';
 import 'io_client.dart';
 import 'streamed_response.dart';
+import 'response.dart';
 import 'utils.dart';
 
 /// The interface for HTTP clients that take care of maintaining persistent

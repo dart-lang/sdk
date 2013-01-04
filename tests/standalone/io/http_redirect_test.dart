@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#import("dart:io");
-#import("dart:uri");
+import "dart:io";
+import "dart:uri";
 
 HttpServer setupServer() {
   HttpServer server = new HttpServer();

@@ -115,6 +115,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(fooClass, fooClass.originalDeclaration);
 
   Expect.isTrue(fooClass.isClass, "Class is not class");
+  Expect.isFalse(fooClass.isAbstract);
   Expect.isFalse(fooClass.isInterface, "Class is interface");
   Expect.isFalse(fooClass.isPrivate, "Class is private");
 
@@ -163,65 +164,222 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(fooClass.getters);
   Expect.isNotNull(fooClass.setters);
   Expect.isNotNull(fooClass.variables);
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Metadata tests
+  //////////////////////////////////////////////////////////////////////////////
+
+  var metadata = fooClass.metadata;
+  Expect.isNotNull(metadata);
+  Expect.equals(10, metadata.length);
+
+  // @Metadata // This is intentionally the type literal.
+  var metadata0 = metadata[0];
+  Expect.isTrue(metadata0 is InstanceMirror);
+  Expect.isFalse(metadata0.hasReflectee);
+  Expect.throws(() => metadata0.reflectee, (_) => true);
+  Expect.isTrue(metadata0 is TypeInstanceMirror);
+  var metadataType = metadata0.representedType;
+  Expect.isNotNull(metadataType);
+  Expect.stringEquals('Metadata', metadataType.simpleName);
+
+  // @Metadata(null)
+  var metadata1 = metadata[1];
+  Expect.isTrue(metadata1 is InstanceMirror);
+  Expect.isFalse(metadata1.hasReflectee);
+  Expect.throws(() => metadata1.reflectee, (_) => true);
+  Expect.equals(metadataType.originalDeclaration, metadata1.type);
+  metadata1.getField('data').then((InstanceMirror data) {
+    Expect.isNotNull(data);
+    Expect.isTrue(data.hasReflectee);
+    Expect.isNull(data.reflectee);
+  });
+
+  // @Metadata(true)
+  var metadata2 = metadata[2];
+  Expect.isTrue(metadata2 is InstanceMirror);
+  Expect.isFalse(metadata2.hasReflectee);
+  Expect.throws(() => metadata2.reflectee, (_) => true);
+  Expect.equals(metadataType.originalDeclaration, metadata2.type);
+  metadata2.getField('data').then((InstanceMirror data) {
+    Expect.isNotNull(data);
+    Expect.isTrue(data.hasReflectee);
+    Expect.isTrue(data.reflectee);
+  });
+
+  // @Metadata(false)
+  var metadata3 = metadata[3];
+  Expect.isTrue(metadata3 is InstanceMirror);
+  Expect.isFalse(metadata3.hasReflectee);
+  Expect.throws(() => metadata3.reflectee, (_) => true);
+  Expect.equals(metadataType.originalDeclaration, metadata3.type);
+  metadata3.getField('data').then((InstanceMirror data) {
+    Expect.isNotNull(data);
+    Expect.isTrue(data.hasReflectee);
+    Expect.isFalse(data.reflectee);
+  });
+
+  // @Metadata(0)
+  var metadata4 = metadata[4];
+  Expect.isTrue(metadata4 is InstanceMirror);
+  Expect.isFalse(metadata4.hasReflectee);
+  Expect.throws(() => metadata4.reflectee, (_) => true);
+  Expect.equals(metadataType.originalDeclaration, metadata4.type);
+  metadata4.getField('data').then((InstanceMirror data) {
+    Expect.isNotNull(data);
+    Expect.isTrue(data.hasReflectee);
+    Expect.equals(0, data.reflectee);
+  });
+
+  // @Metadata(1.5)
+  var metadata5 = metadata[5];
+  Expect.isTrue(metadata5 is InstanceMirror);
+  Expect.isFalse(metadata5.hasReflectee);
+  Expect.throws(() => metadata5.reflectee, (_) => true);
+  Expect.equals(metadataType.originalDeclaration, metadata5.type);
+  metadata5.getField('data').then((InstanceMirror data) {
+    Expect.isNotNull(data);
+    Expect.isTrue(data.hasReflectee);
+    Expect.equals(1.5, data.reflectee);
+  });
+
+  // @Metadata("Foo")
+  var metadata6 = metadata[6];
+  Expect.isTrue(metadata6 is InstanceMirror);
+  Expect.isFalse(metadata6.hasReflectee);
+  Expect.throws(() => metadata6.reflectee, (_) => true);
+  Expect.equals(metadataType.originalDeclaration, metadata6.type);
+  metadata6.getField('data').then((InstanceMirror data) {
+    Expect.isNotNull(data);
+    Expect.isTrue(data.hasReflectee);
+    Expect.stringEquals("Foo", data.reflectee);
+  });
+
+  // @Metadata(const ["Foo"])
+  var metadata7 = metadata[7];
+  Expect.isTrue(metadata7 is InstanceMirror);
+  Expect.isFalse(metadata7.hasReflectee);
+  Expect.throws(() => metadata7.reflectee, (_) => true);
+  Expect.equals(metadataType.originalDeclaration, metadata7.type);
+  metadata7.getField('data').then((InstanceMirror data) {
+    Expect.isTrue(data is ListInstanceMirror);
+    Expect.isFalse(data.hasReflectee);
+    Expect.throws(() => data.reflectee, (_) => true);
+    ListInstanceMirror listData = data;
+    Expect.equals(1, listData.length);
+    listData[0].then((InstanceMirror element) {
+      Expect.isNotNull(element);
+      Expect.isTrue(element.hasReflectee);
+      Expect.stringEquals("Foo", element.reflectee);
+    });
+  });
+
+  // @Metadata(const {'foo':"Foo"})
+  var metadata8 = metadata[8];
+  Expect.isTrue(metadata8 is InstanceMirror);
+  Expect.isFalse(metadata8.hasReflectee);
+  Expect.throws(() => metadata8.reflectee, (_) => true);
+  Expect.equals(metadataType.originalDeclaration, metadata8.type);
+  metadata8.getField('data').then((InstanceMirror data) {
+    Expect.isTrue(data is MapInstanceMirror);
+    Expect.isFalse(data.hasReflectee);
+    Expect.throws(() => data.reflectee, (_) => true);
+    MapInstanceMirror mapData = data;
+    Expect.equals(1, mapData.length);
+    Expect.stringEquals('foo', mapData.keys.iterator().next());
+    mapData['foo'].then((InstanceMirror element) {
+      Expect.isNotNull(element);
+      Expect.isTrue(element.hasReflectee);
+      Expect.stringEquals("Foo", element.reflectee);
+    });
+    Expect.isNull(mapData['bar']);
+  });
+
+  // @metadata
+  var metadata9 = metadata[9];
+  Expect.isTrue(metadata9 is InstanceMirror);
+  Expect.isFalse(metadata9.hasReflectee);
+  Expect.throws(() => metadata9.reflectee, (_) => true);
+  Expect.equals(metadataType.originalDeclaration, metadata9.type);
+  metadata9.getField('data').then((InstanceMirror data) {
+    Expect.isNotNull(data);
+    Expect.isTrue(data.hasReflectee);
+    Expect.isNull(data.reflectee);
+  });
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Location test
+  //////////////////////////////////////////////////////////////////////////////
+
+  var fooClassLocation = fooClass.location;
+  Expect.isNotNull(fooClassLocation);
+  // Expect the location to start with the first metadata.
+  Expect.equals(348, fooClassLocation.offset, "Unexpected offset");
+  // Expect the location to end with the class body.
+  Expect.equals(227, fooClassLocation.length, "Unexpected length");
+  Expect.equals(17, fooClassLocation.line, "Unexpected line");
+  Expect.equals(1, fooClassLocation.column, "Unexpected column");
+
 }
 
-// Testing interface Bar:
+// Testing abstract class Bar:
 //
-// interface Bar<E> {
+// abstract class Bar<E> {
 //
 // }
 void testBar(MirrorSystem system, LibraryMirror helperLibrary,
              Map<String,TypeMirror> classes) {
-  var barInterface = classes["Bar"];
-  Expect.isNotNull(barInterface, "Type 'Bar' not found");
-  Expect.isTrue(barInterface is ClassMirror,
+  var barClass = classes["Bar"];
+  Expect.isNotNull(barClass, "Type 'Bar' not found");
+  Expect.isTrue(barClass is ClassMirror,
                "Unexpected mirror type returned");
-  Expect.stringEquals("Bar", barInterface.simpleName,
+  Expect.stringEquals("Bar", barClass.simpleName,
                       "Unexpected type simple name");
-  Expect.stringEquals("mirrors_helper.Bar", barInterface.qualifiedName,
+  Expect.stringEquals("mirrors_helper.Bar", barClass.qualifiedName,
                       "Unexpected type qualified name");
 
-  Expect.equals(helperLibrary, barInterface.library,
+  Expect.equals(helperLibrary, barClass.library,
                 "Unexpected library returned from type");
 
-  Expect.isFalse(barInterface.isObject, "Interface is Object");
-  Expect.isFalse(barInterface.isDynamic, "Interface is Dynamic");
-  Expect.isFalse(barInterface.isVoid, "Interface is void");
-  Expect.isFalse(barInterface.isTypeVariable, "Interface is a type variable");
-  Expect.isFalse(barInterface.isTypedef, "Interface is a typedef");
-  Expect.isFalse(barInterface.isFunction, "Interface is a function");
+  Expect.isFalse(barClass.isObject, "Interface is Object");
+  Expect.isFalse(barClass.isDynamic, "Interface is Dynamic");
+  Expect.isFalse(barClass.isVoid, "Interface is void");
+  Expect.isFalse(barClass.isTypeVariable, "Interface is a type variable");
+  Expect.isFalse(barClass.isTypedef, "Interface is a typedef");
+  Expect.isFalse(barClass.isFunction, "Interface is a function");
 
-  Expect.isTrue(barInterface.isOriginalDeclaration);
-  Expect.equals(barInterface, barInterface.originalDeclaration);
+  Expect.isTrue(barClass.isOriginalDeclaration);
+  Expect.equals(barClass, barClass.originalDeclaration);
 
-  Expect.isFalse(barInterface.isClass, "Interface is class");
-  Expect.isTrue(barInterface.isInterface, "Interface is not interface");
-  Expect.isFalse(barInterface.isPrivate, "Interface is private");
+  Expect.isTrue(barClass.isClass);
+  Expect.isTrue(barClass.isAbstract);
+  Expect.isFalse(barClass.isInterface);
+  Expect.isFalse(barClass.isPrivate, "Interface is private");
 
-  var objectType = barInterface.superclass;
+  var objectType = barClass.superclass;
   Expect.isNotNull(objectType, "Superclass is null");
   Expect.isTrue(objectType.isObject, "Object is not Object");
   Expect.isFalse(objectType.isOriginalDeclaration);
-  Expect.isTrue(containsType(barInterface,
+  Expect.isTrue(containsType(barClass,
                              computeSubdeclarations(objectType)),
                 "Class is not subclass of superclass");
 
-  var barInterfaces = barInterface.superinterfaces;
+  var barInterfaces = barClass.superinterfaces;
   Expect.isNotNull(barInterfaces, "Interfaces map is null");
   Expect.isTrue(barInterfaces.isEmpty, "Interfaces map is not empty");
 
-  var barSubdeclarations = computeSubdeclarations(barInterface);
+  var barSubdeclarations = computeSubdeclarations(barClass);
   Expect.equals(1, count(barSubdeclarations), "Unexpected subtype count");
   for (var barSubdeclaration in barSubdeclarations) {
-    Expect.isTrue(containsType(barInterface,
+    Expect.isTrue(containsType(barClass,
                                barSubdeclaration.superinterfaces),
                   "Interface is not superinterface of subclass");
   }
 
-  Expect.throws(() => barInterface.typeArguments,
+  Expect.throws(() => barClass.typeArguments,
               (exception) => true,
               "Interface has type arguments");
-  var barInterfaceTypeVariables = barInterface.typeVariables;
+  var barInterfaceTypeVariables = barClass.typeVariables;
   Expect.isNotNull(barInterfaceTypeVariables, "Type variable list is null");
   Expect.isFalse(barInterfaceTypeVariables.isEmpty,
                  "Type variable list is empty");
@@ -232,17 +390,21 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(barE, "Type variable is null");
   Expect.isTrue(barE.isTypeVariable, "Type variable is not type variable");
 
-  Expect.isNull(barInterface.defaultFactory);
+  Expect.isNull(barClass.defaultFactory);
 
-  var barInterfaceMembers = barInterface.members;
+  var barInterfaceMembers = barClass.members;
   Expect.isNotNull(barInterfaceMembers, "Declared members map is null");
   Expect.isTrue(barInterfaceMembers.isEmpty,
                 "Declared members map is unempty");
 
-  var barInterfaceConstructors = barInterface.constructors;
+  var barInterfaceConstructors = barClass.constructors;
   Expect.isNotNull(barInterfaceConstructors, "Constructors map is null");
   Expect.isTrue(barInterfaceConstructors.isEmpty,
                 "Constructors map is unempty");
+
+  var metadata = barClass.metadata;
+  Expect.isNotNull(metadata);
+  Expect.equals(0, metadata.length);
 }
 
 // Testing class Baz:
@@ -284,6 +446,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(bazClass, bazClass.originalDeclaration);
 
   Expect.isTrue(bazClass.isClass, "Class is not class");
+  Expect.isFalse(bazClass.isAbstract);
   Expect.isFalse(bazClass.isInterface, "Class is interface");
   Expect.isFalse(bazClass.isPrivate, "Class is private");
 
@@ -721,6 +884,10 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
 
   // TODO(johnniwinther): Add more tests of constructors.
   // TODO(johnniwinther): Add a test for unnamed factory methods.
+
+  var metadata = bazClass.metadata;
+  Expect.isNotNull(metadata);
+  Expect.equals(0, metadata.length);
 }
 
 // class _PrivateClass {
@@ -737,6 +904,7 @@ void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(privateClass);
   Expect.isTrue(privateClass is ClassMirror);
   Expect.isTrue(privateClass.isClass);
+  Expect.isFalse(privateClass.isAbstract);
   Expect.isTrue(privateClass.isPrivate);
 
   var privateField = privateClass.members['_privateField'];
@@ -785,4 +953,8 @@ void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(privateFactoryConstructor.isRedirectingConstructor);
   Expect.isFalse(privateFactoryConstructor.isGenerativeConstructor);
   Expect.isTrue(privateFactoryConstructor.isFactoryConstructor);
+
+  var metadata = privateClass.metadata;
+  Expect.isNotNull(metadata);
+  Expect.equals(0, metadata.length);
 }

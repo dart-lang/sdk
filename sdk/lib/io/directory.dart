@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.io;
+
 /**
  * [Directory] objects are used for working with directories.
  */
@@ -136,6 +138,18 @@ abstract class Directory {
    * registered on this DirectoryLister object.
    */
   DirectoryLister list({bool recursive: false});
+
+  /**
+   * List the sub-directories and files of this
+   * [Directory]. Optionally recurse into sub-directories. Returns a
+   * List containing Directory and File objects.
+   */
+  List listSync({bool recursive: false});
+
+  /**
+   * Returns a human readable string for this Directory instance.
+   */
+  String toString();
 
   /**
    * Gets the path of this directory.

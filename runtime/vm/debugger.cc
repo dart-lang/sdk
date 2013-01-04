@@ -852,7 +852,12 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
 
 
 void Debugger::SignalExceptionThrown(const Object& exc) {
+  // We ignore this exception event when the VM is executing code invoked
+  // by the debugger to evaluate variables values, when we see a nested
+  // breakpoint or exception event, or if the debugger is not
+  // interested in exception events.
   if (ignore_breakpoints_ ||
+      (stack_trace_ != NULL) ||
       (event_handler_ == NULL) ||
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
@@ -932,10 +937,11 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
     bpt = new CodeBreakpoint(func, best_fit_index);
     if (FLAG_verbose_debug) {
       OS::Print("Setting breakpoint in function '%s' "
-                "(%s:%"Pd") (PC %#"Px")\n",
+                "(%s:%"Pd") (Token %"Pd") (PC %#"Px")\n",
                 String::Handle(func.name()).ToCString(),
                 String::Handle(bpt->SourceUrl()).ToCString(),
                 bpt->LineNumber(),
+                bpt->token_pos(),
                 bpt->pc());
     }
     RegisterCodeBreakpoint(bpt);
@@ -1008,6 +1014,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     const Function& closure =
         Function::Handle(target_function.ImplicitClosureFunction());
     if (closure.HasCode()) {
+      EnsureFunctionIsDeoptimized(closure);
       CodeBreakpoint* closure_bpt =
           MakeCodeBreakpoint(closure, first_token_pos, last_token_pos);
       if ((closure_bpt != NULL) && (closure_bpt->src_bpt() == NULL)) {
@@ -1127,10 +1134,9 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
   bool saved_ignore_flag = ignore_breakpoints_;
   ignore_breakpoints_ = true;
   if (setjmp(*jump.Set()) == 0) {
-    GrowableArray<const Object*> noArguments;
-    const Array& noArgumentNames = Array::Handle();
-    result = DartEntry::InvokeDynamic(object, getter_func,
-                                      noArguments, noArgumentNames);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, object);
+    result = DartEntry::InvokeDynamic(getter_func, args);
   } else {
     result = isolate_->object_store()->sticky_error();
   }
@@ -1146,8 +1152,8 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   if (!fld.IsNull()) {
     // Return the value in the field if it has been initialized already.
     const Instance& value = Instance::Handle(fld.value());
-    ASSERT(value.raw() != Object::transition_sentinel());
-    if (value.raw() != Object::sentinel()) {
+    ASSERT(value.raw() != Object::transition_sentinel().raw());
+    if (value.raw() != Object::sentinel().raw()) {
       return value.raw();
     }
   }
@@ -1167,9 +1173,7 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   bool saved_ignore_flag = ignore_breakpoints_;
   ignore_breakpoints_ = true;
   if (setjmp(*jump.Set()) == 0) {
-    GrowableArray<const Object*> noArguments;
-    const Array& noArgumentNames = Array::Handle();
-    result = DartEntry::InvokeStatic(getter_func, noArguments, noArgumentNames);
+    result = DartEntry::InvokeStatic(getter_func, Object::empty_array());
   } else {
     result = isolate_->object_store()->sticky_error();
   }
@@ -1283,8 +1287,7 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
     prefix = it.GetNext();
     prefix_name = prefix.name();
     ASSERT(!prefix_name.IsNull());
-    prefix_name = String::Concat(prefix_name,
-                                 String::Handle(isolate_, Symbols::Dot()));
+    prefix_name = String::Concat(prefix_name, Symbols::Dot());
     for (int i = 0; i < prefix.num_imports(); i++) {
       imported = prefix.GetLibrary(i);
       CollectLibraryFields(field_list, imported, prefix_name, false);
@@ -1335,7 +1338,10 @@ bool Debugger::IsDebuggable(const Function& func) {
 
 
 void Debugger::SignalBpReached() {
-  if (ignore_breakpoints_) {
+  // We ignore this breakpoint when the VM is executing code invoked
+  // by the debugger to evaluate variables values, or when we see a nested
+  // breakpoint or exception event.
+  if (ignore_breakpoints_ || (stack_trace_ != NULL)) {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
@@ -1345,10 +1351,12 @@ void Debugger::SignalBpReached() {
   CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
   if (FLAG_verbose_debug) {
-    OS::Print(">>> hit %s breakpoint at %s:%"Pd" (Address %#"Px")\n",
+    OS::Print(">>> hit %s breakpoint at %s:%"Pd" "
+              "(token %"Pd") (address %#"Px")\n",
               bpt->IsInternal() ? "internal" : "user",
               String::Handle(bpt->SourceUrl()).ToCString(),
               bpt->LineNumber(),
+              bpt->token_pos(),
               top_frame->pc());
   }
 

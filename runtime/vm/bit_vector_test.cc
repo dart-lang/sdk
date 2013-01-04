@@ -102,6 +102,19 @@ TEST_CASE(BitVector) {
     a->Remove(1);
     EXPECT_EQ(true, a->Equals(*b));
   }
+
+  { BitVector* a = new BitVector(128);
+    BitVector* b = new BitVector(128);
+    b->Add(0);
+    b->Add(32);
+    b->Add(64);
+    a->Add(0);
+    a->Add(64);
+    b->RemoveAll(a);
+    EXPECT_EQ(false, b->Contains(0));
+    EXPECT_EQ(true, b->Contains(32));
+    EXPECT_EQ(false, b->Contains(64));
+  }
 }
 
 }  // namespace dart

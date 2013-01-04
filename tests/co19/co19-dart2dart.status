@@ -274,8 +274,6 @@ Language/11_Expressions/11_Instance_Creation/2_Const_A06_t01: Fail # http://dart
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # inherited from VM
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t03: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t04: Fail # http://dartbug.com/5519
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t06: Fail # inherited from VM
@@ -325,7 +323,6 @@ Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "
 Language/11_Expressions/30_Identifier_Reference_A04_t09: Fail # Inherited from dart2js
 Language/11_Expressions/30_Identifier_Reference_A05_t01: Fail # Inherited from dart2js
 Language/11_Expressions/30_Identifier_Reference_A05_t12: Fail # Inherited from dart2js
-Language/11_Expressions/30_Identifier_Reference_A06_t01: Fail # Inherited from VM (error returning class name).
 Language/11_Expressions/30_Identifier_Reference_A06_t02: Fail # Inherited from VM (error returning typedef).
 Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/30_Identifier_Reference_A08_t02: Fail # Inhertited from VM.
@@ -444,6 +441,12 @@ LibTest/math/pow_A11_t01: Fail # Inherited from VM.
 LibTest/math/pow_A13_t01: Fail # Inherited from VM.
 LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
+
+
+LibTest/core/StringBuffer/addAll_A02_t01:  Fail, OK # co19 issue 355
+LibTest/core/StringBuffer/add_A02_t01:  Fail, OK # co19 issue 355
+LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355
+LibTest/core/StringBuffer/clear_A02_t01: Fail, OK # co19 issue 355
 
 
 [ $compiler == dart2dart && $system == windows ]

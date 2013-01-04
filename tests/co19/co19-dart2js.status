@@ -143,18 +143,6 @@ Language/13_Libraries_and_Scripts/5_URIs_A01_t11: Fail # TODO(ahe): Please triag
 Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t24: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t25: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A01_t04: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A02_t03: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A02_t04: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A02_t08: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t09: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t12: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/5_Function_Types_A03_t13: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A04_t01: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(ahe): Please triage this failure.
@@ -171,6 +159,11 @@ LibTest/math/pow_A11_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/sin_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/tan_A01_t01: Fail # TODO(ahe): Please triage this failure.
+
+LibTest/core/StringBuffer/addAll_A02_t01:  Fail, OK # co19 issue 355
+LibTest/core/StringBuffer/add_A02_t01:  Fail, OK # co19 issue 355
+LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355
+LibTest/core/StringBuffer/clear_A02_t01: Fail, OK # co19 issue 355
 
 # Partially implemented rediriecting constructors makes this fail.
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
@@ -207,12 +200,6 @@ Language/11_Expressions/06_Lists_A09_t05: Fail # TODO(ahe): Please triage this f
 Language/11_Expressions/07_Maps_A10_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/07_Maps_A10_t05: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/07_Maps_A11_t01: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/09_Function_Expressions_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/09_Function_Expressions_A04_t03: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/09_Function_Expressions_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/09_Function_Expressions_A05_t04: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/09_Function_Expressions_A06_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/09_Function_Expressions_A06_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A07_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A11_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A09_t02: Fail # TODO(ahe): Please triage this failure.
@@ -237,7 +224,6 @@ LibTest/core/AssertionError/column_A01_t02: Fail # TODO(ahe): Please triage this
 LibTest/core/AssertionError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/line_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/List/operator_subscript_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Map/putIfAbsent_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Queue/iterator_hasNext_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -252,6 +238,10 @@ LibTest/core/TypeError/srcType_A01_t01: Fail # TODO(ahe): Please triage this fai
 LibTest/core/TypeError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # http://dartbug.com/3970
+
+Language/13_Libraries_and_Scripts/3_Parts_A02_t03: Fail # http://dartbug.com/5022
+Language/13_Libraries_and_Scripts/3_Parts_A03_t01: Fail # http://dartbug.com/5022
+Language/14_Types/3_Type_Declarations/1_Typedef_A01_t01: Fail # http://dartbug.com/5022
 
 
 [ $compiler == dart2js ]
@@ -527,6 +517,8 @@ Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # Checks that it i
 Language/12_Statements/03_Variable_Declaration_A04_t01: Fail # Checks that if the variable declaration is prefixed with the const modifier, then variable must be initialized to a constant expression.
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t15: Fail # http://dartbug.com/7149
+Language/07_Classes/1_Instance_Methods/2_Operators_A04_t16: Fail # http://dartbug.com/7149
 
 #
 # Unexpected compile-time errors.
@@ -545,23 +537,11 @@ Language/07_Classes/3_Setters_A04_t05: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t06: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t07: Fail # http://dartbug.com/5023
 
-Language/14_Types/3_Type_Declarations/1_Typedef_A02_t01: Fail # http://dartbug.com/5022
-Language/14_Types/3_Type_Declarations/1_Typedef_A02_t02: Fail # http://dartbug.com/5022
-Language/14_Types/3_Type_Declarations/1_Typedef_A02_t03: Fail # http://dartbug.com/5022
-Language/14_Types/3_Type_Declarations/1_Typedef_A03_t01: Fail # http://dartbug.com/5022
-Language/14_Types/3_Type_Declarations/1_Typedef_A04_t01: Fail # http://dartbug.com/5022
-Language/14_Types/3_Type_Declarations/1_Typedef_A04_t02: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t01: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t02: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t03: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t05: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t06: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t07: Fail # http://dartbug.com/5022
 
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5683
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5683
-
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Fail # http://dartbug.com/5713
 
 Language/07_Classes/07_Classes_A03_t10: Fail # http://dartbug.com/6687
 
@@ -570,26 +550,33 @@ Language/07_Classes/07_Classes_A03_t10: Fail # http://dartbug.com/6687
 # Unexpected runtime errors.
 #
 [ $compiler == dart2js ]
-Language/14_Types/5_Function_Types_A02_t01: Fail # Expect.isTrue(false) fails.
-
 Language/14_Types/4_Interface_Types_A08_t06: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A10_t01: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A10_t02: Fail # http://dartbug.com/5020
-Language/14_Types/4_Interface_Types_A10_t03: Fail # http://dartbug.com/5020
-Language/14_Types/4_Interface_Types_A10_t07: Fail # http://dartbug.com/5020
-Language/14_Types/4_Interface_Types_A11_t02: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A12_t09: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A12_t10: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A12_t14: Fail # http://dartbug.com/5020
-Language/14_Types/4_Interface_Types_A12_t16 :Fail # http://dartbug.com/5020
+Language/14_Types/4_Interface_Types_A12_t16: Fail # http://dartbug.com/5020
 
-Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/7202
-Language/14_Types/3_Type_Declarations/1_Typedef_A06_t01: Fail # http://dartbug.com/7202
-Language/14_Types/3_Type_Declarations/1_Typedef_A06_t02: Fail # http://dartbug.com/7202
-Language/14_Types/3_Type_Declarations/1_Typedef_A06_t03: Fail # http://dartbug.com/7202
-Language/14_Types/3_Type_Declarations/1_Typedef_A06_t04: Fail # http://dartbug.com/7202
-Language/14_Types/3_Type_Declarations/1_Typedef_A06_t05: Fail # http://dartbug.com/7202
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # http://dartbug.com/7202
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # http://dartbug.com/7202
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # http://dartbug.com/7202
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # http://dartbug.com/7202
+Language/03_Overview/1_Scoping_A01_t39: Fail # dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t01: Fail # dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t02: Fail # dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t03: Fail # dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t04: Fail # dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A06_t05: Fail # dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # dartbug.com/7202
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # dartbug.com/7202
+
+Language/14_Types/5_Function_Types_A01_t08: Fail # dartbug.com/7342
+Language/14_Types/5_Function_Types_A01_t09: Fail # dartbug.com/7342
+Language/14_Types/5_Function_Types_A01_t11: Fail # dartbug.com/7342
+Language/14_Types/5_Function_Types_A02_t05: Fail # dartbug.com/7342
+Language/14_Types/5_Function_Types_A02_t07: Fail # dartbug.com/7342
+Language/14_Types/5_Function_Types_A02_t09: Fail # dartbug.com/7342
+Language/14_Types/5_Function_Types_A02_t10: Fail # dartbug.com/7342
+Language/14_Types/5_Function_Types_A03_t06: Fail # dartbug.com/7342
+Language/14_Types/5_Function_Types_A03_t08: Fail # dartbug.com/7342
+Language/14_Types/5_Function_Types_A03_t10: Fail # dartbug.com/7342
+Language/14_Types/5_Function_Types_A03_t11: Fail # dartbug.com/7342

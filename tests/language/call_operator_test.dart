@@ -73,4 +73,7 @@ main() {
   Expect.equals("foo", e.call("foo"));
   Expect.equals("foo:foo", e.call("foo", count:2));
   Expect.equals("foo:foo:foo", e.call("foo", count:3));
+
+  Expect.isTrue(a1 is Function);
+  Expect.isTrue(e is Function);
 }

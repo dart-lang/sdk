@@ -128,7 +128,7 @@ public class PackageLibraryManager {
               uri = new URI(PACKAGE_SCHEME + "://" + spec);
             } 
           } catch (URISyntaxException e) {
-            throw new AssertionError();
+            throw new AssertionError(e);
           }
         }       
       }

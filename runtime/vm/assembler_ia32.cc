@@ -6,7 +6,9 @@
 #if defined(TARGET_ARCH_IA32)
 
 #include "vm/assembler.h"
+#include "vm/code_generator.h"
 #include "vm/heap.h"
+#include "vm/heap_trace.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
 #include "vm/stub_code.h"
@@ -1551,7 +1553,7 @@ void Assembler::Drop(intptr_t stack_elements) {
 
 
 void Assembler::LoadObject(Register dst, const Object& object) {
-  if (object.IsSmi() || object.IsNull()) {
+  if (object.IsSmi() || object.InVMHeap()) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsNotTemporaryScopedHandle());
@@ -1564,7 +1566,7 @@ void Assembler::LoadObject(Register dst, const Object& object) {
 
 
 void Assembler::PushObject(const Object& object) {
-  if (object.IsSmi() || object.IsNull()) {
+  if (object.IsSmi() || object.InVMHeap()) {
     pushl(Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsNotTemporaryScopedHandle());
@@ -1577,7 +1579,7 @@ void Assembler::PushObject(const Object& object) {
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
-  if (object.IsSmi() || object.IsNull()) {
+  if (object.IsSmi() || object.InVMHeap()) {
     cmpl(reg, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsNotTemporaryScopedHandle());
@@ -1620,6 +1622,7 @@ void Assembler::StoreIntoObject(Register object,
                                 const FieldAddress& dest,
                                 Register value) {
   ASSERT(object != value);
+  TraceStoreIntoObject(object, dest, value);
   movl(dest, value);
   Label done;
   StoreIntoObjectFilter(object, value, &done);
@@ -1635,6 +1638,7 @@ void Assembler::StoreIntoObject(Register object,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const FieldAddress& dest,
                                          Register value) {
+  TraceStoreIntoObject(object, dest, value);
   movl(dest, value);
 #if defined(DEBUG)
   Label done;
@@ -1651,9 +1655,10 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const FieldAddress& dest,
                                          const Object& value) {
-  if (value.IsSmi()) {
+  if (value.IsSmi() || value.InVMHeap()) {
     movl(dest, Immediate(reinterpret_cast<int32_t>(value.raw())));
   } else {
+    // No heap trace for an old object store.
     ASSERT(value.IsOld());
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0xC7);
@@ -1661,6 +1666,23 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
     buffer_.EmitObject(value);
   }
   // No store buffer update.
+}
+
+
+void Assembler::TraceStoreIntoObject(Register object,
+                                     const FieldAddress& dest,
+                                     Register value) {
+  if (HeapTrace::is_enabled()) {
+    pushal();
+    EnterCallRuntimeFrame(3 * kWordSize);
+    movl(Address(ESP, 0 * kWordSize), object);
+    leal(EAX, dest);
+    movl(Address(ESP, 1 * kWordSize), EAX);
+    movl(Address(ESP, 2 * kWordSize), value);
+    CallRuntime(kHeapTraceStoreRuntimeEntry);
+    LeaveCallRuntimeFrame();
+    popal();
+  }
 }
 
 

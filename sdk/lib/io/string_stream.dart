@@ -1,6 +1,8 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+part of dart.io;
 
 // Interface for decoders decoding binary data into string data. The
 // decoder keeps track of line breaks during decoding.
@@ -8,6 +10,8 @@ abstract class _StringDecoder {
   // Add more binary data to be decoded. The ownership of the buffer
   // is transfered to the decoder and the caller most not modify it any more.
   int write(List<int> buffer);
+
+  void done();
 
   // Returns whether any decoded data is available.
   bool get isEmpty;
@@ -85,6 +89,8 @@ abstract class _StringDecoderBase implements _StringDecoder {
     }
     return buffer.length;
   }
+
+  void done() { }
 
   bool get isEmpty => _result.isEmpty;
 
@@ -180,6 +186,24 @@ abstract class _StringDecoderBase implements _StringDecoder {
 // Utility class for decoding UTF-8 from data delivered as a stream of
 // bytes.
 class _UTF8Decoder extends _StringDecoderBase {
+  static const kMaxCodePoint = 0x10FFFF;
+  static const kReplacementCodePoint = 0x3f;
+
+  void done() {
+    if (!_bufferList.isEmpty) {
+      _reportError(new DecoderException("Illegal UTF-8"));
+    }
+  }
+
+  bool _reportError(error) {
+    if (onError != null) {
+      onError(error);
+      return false;
+    } else {
+      throw error;
+    }
+  }
+
   // Process the next UTF-8 encoded character.
   bool _processNext() {
     // Peek the next byte to calculate the number of bytes required for
@@ -193,9 +217,17 @@ class _UTF8Decoder extends _StringDecoderBase {
       } else if ((value & 0xf0) == 0xe0) {  // 1110xxxx
         value = value & 0x0F;
         additionalBytes = 2;
-      } else {  // 11110xxx
+      } else if ((value & 0xf8) == 0xf0) {  // 11110xxx
         value = value & 0x07;
         additionalBytes = 3;
+      } else if ((value & 0xfc) == 0xf8) {  // 111110xx
+        value = value & 0x03;
+        additionalBytes = 4;
+      } else if ((value & 0xfe) == 0xfc) {  // 1111110x
+        value = value & 0x01;
+        additionalBytes = 5;
+      } else {
+        return _reportError(new DecoderException("Illegal UTF-8"));
       }
       // Check if there are enough bytes to decode the character. Otherwise
       // return false.
@@ -206,13 +238,20 @@ class _UTF8Decoder extends _StringDecoderBase {
       _bufferList.next();
       for (int i = 0; i < additionalBytes; i++) {
         int byte = _bufferList.next();
+        if ((byte & 0xc0) != 0x80) {
+          return _reportError(new DecoderException("Illegal UTF-8"));
+        }
         value = value << 6 | (byte & 0x3F);
       }
     } else {
       // Remove the value peeked from the buffer list.
       _bufferList.next();
     }
-    addChar(value);
+    if (value > kMaxCodePoint) {
+      addChar(kReplacementCodePoint);
+    } else {
+      addChar(value);
+    }
     return true;
   }
 }
@@ -448,6 +487,7 @@ class _StringInputStream implements StringInputStream {
 
   void _onClosed() {
     _inputClosed = true;
+    _decoder.done();
     if (_decoder.isEmpty && _clientCloseHandler !=  null) {
       _clientCloseHandler();
     } else {

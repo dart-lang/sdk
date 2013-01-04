@@ -23,8 +23,8 @@ static void RangeCheck(const ByteArray& array,
     const String& error = String::Handle(String::NewFormatted(
         "index (%"Pd") must be in the range [0..%"Pd")",
         index, (array.ByteLength() / num_bytes)));
-    GrowableArray<const Object*> args;
-    args.Add(&error);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, error);
     Exceptions::ThrowByType(Exceptions::kRange, args);
   }
 }
@@ -36,8 +36,8 @@ static void LengthCheck(intptr_t len, intptr_t max) {
   if (len < 0 || len > max) {
     const String& error = String::Handle(String::NewFormatted(
         "length (%"Pd") must be in the range [0..%"Pd"]", len, max));
-    GrowableArray<const Object*> args;
-    args.Add(&error);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, error);
     Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
 }
@@ -265,8 +265,8 @@ DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
   if (length_value < 0) {
     const String& error = String::Handle(String::NewFormatted(
         "length (%"Pd") must be non-negative", length_value));
-    GrowableArray<const Object*> args;
-    args.Add(&error);
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, error);
     Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   RangeCheck(src, src_start_value, length_value);

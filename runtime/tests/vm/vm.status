@@ -6,7 +6,6 @@ cc/New: Crash # Issue 6958.
 cc/TypeVariableReflection: Crash # Issue 6958.
 cc/LibraryGetClassNames: Fail # Issue 6958.
 cc/ImportLibrary5: Fail # Issue 6958.
-cc/CustomIsolates: Crash # Default factory classes are removed.
 
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash
@@ -32,6 +31,7 @@ dart/isolate_mirror_local_test: Skip
 [ $compiler == dart2js || $compiler == dartc ]
 dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays
+dart/isolate_unhandled*: Skip
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.

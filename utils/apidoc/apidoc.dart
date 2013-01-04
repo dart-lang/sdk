@@ -34,6 +34,7 @@ void main() {
 
   List<String> excludedLibraries = <String>[];
   List<String> includedLibraries = <String>[];
+  var pkgPath;
 
 
   // Parse the command-line arguments.
@@ -60,6 +61,8 @@ void main() {
           includedLibraries.add(arg.substring('--include-lib='.length));
         } else if (arg.startsWith('--out=')) {
           outputDir = new Path.fromNative(arg.substring('--out='.length));
+        } else if (arg.startsWith('--pkg=')) {
+          pkgPath = arg.substring('--pkg='.length);
         } else {
           print('Unknown option: $arg');
           return;
@@ -69,7 +72,6 @@ void main() {
   }
 
   final libPath = doc.scriptDir.append('../../sdk/');
-  final pkgPath = doc.scriptDir.append('../../pkg/');
 
   doc.cleanOutputDirectory(outputDir);
 
@@ -97,7 +99,7 @@ void main() {
   final htmldoc = new Htmldoc();
   htmldoc.includeApi = true;
   htmldoc.documentLibraries(
-    <Path>[doc.scriptDir.append('../../sdk/lib/html/doc/html.dartdoc')],
+    <Path>[doc.scriptDir.append('../../tools/dom/doc/html.dartdoc')],
     libPath, pkgPath);
 
   // Process libraries.

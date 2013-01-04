@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("status_file_parser");
+library status_file_parser;
 
-#import("dart:io");
-#import("status_expression.dart");
+import "dart:io";
+import "status_expression.dart";
 
 /** Possible outcomes of running a test. */
 const CRASH = "crash";

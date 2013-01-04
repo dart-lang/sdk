@@ -156,6 +156,7 @@ class JsNames {
       const <String>["__PROTO__", "prototype", "constructor"];
 
   static Set<String> _reserved;
+  static Set<String> _reservedNativeProperties;
 
   static Set<String> get reserved {
     if (_reserved == null) {
@@ -165,6 +166,16 @@ class JsNames {
       _reserved.addAll(javaScriptKeywords);
     }
     return _reserved;
+  }
+
+  static Set<String> get reservedNativeProperties {
+    // TODO(sra): We need a complete list from the DOM.
+    if (_reservedNativeProperties == null) {
+      const names = const <String>["x", "y", "z"];
+      _reservedNativeProperties = new Set<String>();
+      _reservedNativeProperties.addAll(names);
+    }
+    return _reservedNativeProperties;
   }
 
   // TODO(ngeoffray): only the namer should call this method.

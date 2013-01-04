@@ -29,13 +29,6 @@ class LibValidator extends Validator {
         return new Future.immediate(null);
       }
 
-      // TODO(rnystrom): listDir() returns real file paths after symlinks are
-      // resolved. This means if libDir contains a symlink, the resulting paths
-      // won't appear to be within it, which confuses relativeTo(). Work around
-      // that here by making sure we have the real path to libDir. Remove this
-      // when #7346 is fixed.
-      libDir = new File(libDir).fullPathSync();
-
       return listDir(libDir).transform((files) {
         files = files.map((file) => relativeTo(file, libDir));
         if (files.isEmpty) {

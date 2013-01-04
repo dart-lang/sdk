@@ -9,8 +9,6 @@ unicode_test: Fail        # Bug 6706
 *dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
 null_test: Fail           # Bug 5511
-apply_test: Fail # Bug 5670
-apply2_test: Fail # Bug 5670
 
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
@@ -20,6 +18,7 @@ string_trim_unicode_test: Fail  # V8 bug 2408
 
 [ $runtime == opera ]
 core_runtime_types_test: Fail
+null_nosuchmethod_test: Fail # Issue: 7413
 date_time7_test: Fail
 unicode_test: Fail
 
@@ -56,7 +55,7 @@ string_base_vm_test: Fail, OK # VM specific test.
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $runtime == safari ]
-null_nosuchmethod_test: Fail # TODO(ahe): Please triage this failure.
+null_nosuchmethod_test: Fail # Issue: 7414
 core_runtime_types_test: Fail
 
 [ $compiler == dart2js && $runtime == ie9 ]
@@ -65,8 +64,6 @@ reg_exp_all_matches_test: Fail # BUG(3304): Maybe this doesn't time out?
 string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 
 [ $compiler == dart2dart ]
-apply_test: Fail # inherited from VM
-apply2_test: Fail # inherited from VM
 compare_to2_test: Fail # inherited from VM
 null_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM

@@ -43,14 +43,6 @@ class _KeyRangeFactoryProvider {
 class Cursor extends NativeFieldWrapperClass1 {
   Cursor.internal();
 
-  static const int NEXT = 0;
-
-  static const int NEXT_NO_DUPLICATE = 1;
-
-  static const int PREV = 2;
-
-  static const int PREV_NO_DUPLICATE = 3;
-
 
   /** @domName IDBCursor.direction */
   String get direction native "IDBCursor_direction_Getter";
@@ -105,7 +97,7 @@ class Cursor extends NativeFieldWrapperClass1 {
 
 /// @domName IDBCursorWithValue
 class CursorWithValue extends Cursor {
-  CursorWithValue.internal(): super.internal();
+  CursorWithValue.internal() : super.internal();
 
 
   /** @domName IDBCursorWithValue.value */
@@ -120,8 +112,12 @@ class CursorWithValue extends Cursor {
 
 
 /// @domName IDBDatabase
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX, '15')
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@Experimental()
 class Database extends EventTarget {
-  Database.internal(): super.internal();
+  Database.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DatabaseEvents get on =>
@@ -162,10 +158,6 @@ class Database extends EventTarget {
 
   /** @domName IDBDatabase.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_removeEventListener_Callback";
-
-
-  /** @domName IDBDatabase.setVersion */
-  VersionChangeRequest setVersion(String version) native "IDBDatabase_setVersion_Callback";
 
   Transaction transaction(storeName_OR_storeNames, /*DOMString*/ mode) {
     if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
@@ -212,65 +204,20 @@ class DatabaseEvents extends Events {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IDBDatabaseException
-class DatabaseException extends NativeFieldWrapperClass1 {
-  DatabaseException.internal();
-
-  static const int ABORT_ERR = 20;
-
-  static const int CONSTRAINT_ERR = 4;
-
-  static const int DATA_ERR = 5;
-
-  static const int NON_TRANSIENT_ERR = 2;
-
-  static const int NOT_ALLOWED_ERR = 6;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NO_ERR = 0;
-
-  static const int QUOTA_ERR = 22;
-
-  static const int READ_ONLY_ERR = 9;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TRANSACTION_INACTIVE_ERR = 7;
-
-  static const int UNKNOWN_ERR = 1;
-
-  static const int VER_ERR = 12;
-
-
-  /** @domName IDBDatabaseException.code */
-  int get code native "IDBDatabaseException_code_Getter";
-
-
-  /** @domName IDBDatabaseException.message */
-  String get message native "IDBDatabaseException_message_Getter";
-
-
-  /** @domName IDBDatabaseException.name */
-  String get name native "IDBDatabaseException_name_Getter";
-
-
-  /** @domName IDBDatabaseException.toString */
-  String toString() native "IDBDatabaseException_toString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 
 /// @domName IDBFactory
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX, '15')
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@Experimental()
 class IdbFactory extends NativeFieldWrapperClass1 {
+  /**
+   * Checks to see if Indexed DB is supported on the current platform.
+   */
+  static bool get supported {
+    return true;
+  }
+
   IdbFactory.internal();
 
 
@@ -339,7 +286,9 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
-    return _count_3(key_OR_range);
+    if (?key_OR_range) {
+      return _count_3(key_OR_range);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -359,7 +308,9 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
-    return _get_2(key);
+    if (?key) {
+      return _get_2(key);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -375,7 +326,9 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key is KeyRange || key == null)) {
       return _getKey_1(key);
     }
-    return _getKey_2(key);
+    if (?key) {
+      return _getKey_2(key);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -397,10 +350,10 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if (!?direction) {
+    if (?key_OR_range && !?direction) {
       return _openCursor_4(key_OR_range);
     }
-    if ((direction is String || direction == null)) {
+    if (?key_OR_range && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -436,10 +389,10 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
-    if (!?direction) {
+    if (?key_OR_range && !?direction) {
       return _openKeyCursor_4(key_OR_range);
     }
-    if ((direction is String || direction == null)) {
+    if (?key_OR_range && (direction is String || direction == null)) {
       return _openKeyCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -643,7 +596,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
-    return _count_3(key_OR_range);
+    if (?key_OR_range) {
+      return _count_3(key_OR_range);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -681,7 +636,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((key_OR_keyRange is KeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }
-    return _delete_2(key_OR_keyRange);
+    if (?key_OR_keyRange) {
+      return _delete_2(key_OR_keyRange);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -701,7 +658,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
-    return _get_2(key);
+    if (?key) {
+      return _get_2(key);
+    }
     throw "Incorrect number or type of arguments";
   }
 
@@ -727,10 +686,10 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if (!?direction) {
+    if (?key_OR_range && !?direction) {
       return _openCursor_4(key_OR_range);
     }
-    if ((direction is String || direction == null)) {
+    if (?key_OR_range && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -781,7 +740,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 
 /// @domName IDBOpenDBRequest
 class OpenDBRequest extends Request implements EventTarget {
-  OpenDBRequest.internal(): super.internal();
+  OpenDBRequest.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   OpenDBRequestEvents get on =>
@@ -809,7 +768,7 @@ class OpenDBRequestEvents extends RequestEvents {
 
 /// @domName IDBRequest
 class Request extends EventTarget {
-  Request.internal(): super.internal();
+  Request.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RequestEvents get on =>
@@ -818,10 +777,6 @@ class Request extends EventTarget {
 
   /** @domName IDBRequest.error */
   DomError get error native "IDBRequest_error_Getter";
-
-
-  /** @domName IDBRequest.errorCode */
-  int get errorCode native "IDBRequest_errorCode_Getter";
 
 
   /** @domName IDBRequest.readyState */
@@ -877,17 +832,11 @@ class RequestEvents extends Events {
 
 /// @domName IDBTransaction
 class Transaction extends EventTarget {
-  Transaction.internal(): super.internal();
+  Transaction.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TransactionEvents get on =>
     new TransactionEvents(this);
-
-  static const int READ_ONLY = 0;
-
-  static const int READ_WRITE = 1;
-
-  static const int VERSION_CHANGE = 2;
 
 
   /** @domName IDBTransaction.db */
@@ -900,6 +849,10 @@ class Transaction extends EventTarget {
 
   /** @domName IDBTransaction.mode */
   String get mode native "IDBTransaction_mode_Getter";
+
+
+  /** @domName IDBTransaction.webkitErrorMessage */
+  String get webkitErrorMessage native "IDBTransaction_webkitErrorMessage_Getter";
 
 
   /** @domName IDBTransaction.abort */
@@ -946,7 +899,7 @@ class TransactionEvents extends Events {
 
 /// @domName IDBVersionChangeEvent
 class UpgradeNeededEvent extends Event {
-  UpgradeNeededEvent.internal(): super.internal();
+  UpgradeNeededEvent.internal() : super.internal();
 
 
   /** @domName IDBUpgradeNeededEvent.newVersion */
@@ -966,7 +919,7 @@ class UpgradeNeededEvent extends Event {
 
 /// @domName IDBVersionChangeEvent
 class VersionChangeEvent extends Event {
-  VersionChangeEvent.internal(): super.internal();
+  VersionChangeEvent.internal() : super.internal();
 
 
   /** @domName IDBVersionChangeEvent.version */
@@ -982,7 +935,7 @@ class VersionChangeEvent extends Event {
 
 /// @domName IDBVersionChangeRequest
 class VersionChangeRequest extends Request implements EventTarget {
-  VersionChangeRequest.internal(): super.internal();
+  VersionChangeRequest.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   VersionChangeRequestEvents get on =>

@@ -857,3 +857,41 @@ class RegExpLiteral extends Expression {
 
   int get precedenceLevel => PRIMARY;
 }
+
+Prefix typeOf(Expression argument) => new Prefix('typeof', argument);
+
+Binary equals(Expression left, Expression right) {
+  return new Binary('==', left, right);
+}
+
+LiteralString string(String value) => new LiteralString("'$value'");
+
+If if_(Expression condition, Node then, [Node otherwise]) {
+  return (otherwise == null)
+      ? new If.noElse(condition, then)
+      : new If(condition, then, otherwise);
+}
+
+Return return_([Expression value]) => new Return(value);
+
+VariableUse use(String name) => new VariableUse(name);
+
+PropertyAccess fieldAccess(Expression receiver, String fieldName) {
+  return new PropertyAccess.field(receiver, fieldName);
+}
+
+Block emptyBlock() => new Block.empty();
+
+Call call(Expression target, List<Expression> arguments) {
+  return new Call(target, arguments);
+}
+
+Fun fun(List<String> parameterNames, Block body) {
+  return new Fun(parameterNames.map((n) => new Parameter(n)), body);
+}
+
+Assignment assign(Expression leftHandSide, Expression value) {
+  return new Assignment(leftHandSide, value);
+}
+
+Expression undefined() => new Prefix('void', new LiteralNumber('0'));

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:io");
+import "dart:io";
 
 class DirectoryInvalidArgumentsTest {
   static void testFailingList(Directory d, var recursive) {
@@ -39,8 +39,12 @@ class DirectoryInvalidArgumentsTest {
       Expect.isTrue(e is ArgumentError);
     }
     testFailingList(d, false);
+    Expect.throws(() => d.listSync(recursive: true),
+                  (e) => e is ArgumentError);
     d = new Directory(".");
     testFailingList(d, 1);
+    Expect.throws(() => d.listSync(recursive: 1),
+                  (e) => e is ArgumentError);
   }
 
   static void testMain() {

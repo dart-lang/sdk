@@ -60,10 +60,10 @@ class _SvgSvgElementFactoryProvider {
 
 /// @domName SVGAElement
 class AElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
+  AElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
-  AElement.internal(): super.internal();
 
 
   /** @domName SVGAElement.target */
@@ -159,7 +159,7 @@ class AElement extends SvgElement implements Transformable, Tests, UriReference,
 
 /// @domName SVGAltGlyphDefElement
 class AltGlyphDefElement extends SvgElement {
-  AltGlyphDefElement.internal(): super.internal();
+  AltGlyphDefElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -171,7 +171,7 @@ class AltGlyphDefElement extends SvgElement {
 
 /// @domName SVGAltGlyphElement
 class AltGlyphElement extends TextPositioningElement implements UriReference {
-  AltGlyphElement.internal(): super.internal();
+  AltGlyphElement.internal() : super.internal();
 
 
   /** @domName SVGAltGlyphElement.format */
@@ -203,7 +203,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 
 /// @domName SVGAltGlyphItemElement
 class AltGlyphItemElement extends SvgElement {
-  AltGlyphItemElement.internal(): super.internal();
+  AltGlyphItemElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -273,10 +273,10 @@ class Angle extends NativeFieldWrapperClass1 {
 
 /// @domName SVGAnimateColorElement
 class AnimateColorElement extends AnimationElement {
+  AnimateColorElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AnimateColorElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateColor");
-  AnimateColorElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -288,10 +288,10 @@ class AnimateColorElement extends AnimationElement {
 
 /// @domName SVGAnimateElement
 class AnimateElement extends AnimationElement {
+  AnimateElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
-  AnimateElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -303,10 +303,10 @@ class AnimateElement extends AnimationElement {
 
 /// @domName SVGAnimateMotionElement
 class AnimateMotionElement extends AnimationElement {
+  AnimateMotionElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
-  AnimateMotionElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -318,10 +318,10 @@ class AnimateMotionElement extends AnimationElement {
 
 /// @domName SVGAnimateTransformElement
 class AnimateTransformElement extends AnimationElement {
+  AnimateTransformElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
-  AnimateTransformElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -593,10 +593,10 @@ class AnimatedTransformList extends NativeFieldWrapperClass1 {
 
 /// @domName SVGAnimationElement
 class AnimationElement extends SvgElement implements Tests, ElementTimeControl, ExternalResourcesRequired {
+  AnimationElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AnimationElement() => _SvgElementFactoryProvider.createSvgElement_tag("animation");
-  AnimationElement.internal(): super.internal();
 
 
   /** @domName SVGAnimationElement.targetElement */
@@ -660,10 +660,10 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 
 /// @domName SVGCircleElement
 class CircleElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  CircleElement.internal() : super.internal();
 
   ///@docsEditable true
   factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
-  CircleElement.internal(): super.internal();
 
 
   /** @domName SVGCircleElement.cx */
@@ -763,10 +763,10 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
 
 /// @domName SVGClipPathElement
 class ClipPathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  ClipPathElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
-  ClipPathElement.internal(): super.internal();
 
 
   /** @domName SVGClipPathElement.clipPathUnits */
@@ -858,7 +858,7 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
 
 /// @domName SVGColor
 class Color extends CssValue {
-  Color.internal(): super.internal();
+  Color.internal() : super.internal();
 
   static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
 
@@ -898,7 +898,7 @@ class Color extends CssValue {
 
 /// @domName SVGComponentTransferFunctionElement
 class ComponentTransferFunctionElement extends SvgElement {
-  ComponentTransferFunctionElement.internal(): super.internal();
+  ComponentTransferFunctionElement.internal() : super.internal();
 
   static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
 
@@ -950,10 +950,10 @@ class ComponentTransferFunctionElement extends SvgElement {
 
 /// @domName SVGCursorElement
 class CursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired {
+  CursorElement.internal() : super.internal();
 
   ///@docsEditable true
   factory CursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
-  CursorElement.internal(): super.internal();
 
 
   /** @domName SVGCursorElement.x */
@@ -997,10 +997,10 @@ class CursorElement extends SvgElement implements UriReference, Tests, ExternalR
 
 /// @domName SVGDefsElement
 class DefsElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  DefsElement.internal() : super.internal();
 
   ///@docsEditable true
   factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
-  DefsElement.internal(): super.internal();
 
 
   /** @domName SVGDefsElement.externalResourcesRequired */
@@ -1088,10 +1088,10 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 /// @domName SVGDescElement
 class DescElement extends SvgElement implements Stylable, LangSpace {
+  DescElement.internal() : super.internal();
 
   ///@docsEditable true
   factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
-  DescElement.internal(): super.internal();
 
 
   /** @domName SVGDescElement.xmllang */
@@ -1131,7 +1131,7 @@ class DescElement extends SvgElement implements Stylable, LangSpace {
 
 /// @domName SVGElementInstance
 class ElementInstance extends EventTarget {
-  ElementInstance.internal(): super.internal();
+  ElementInstance.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementInstanceEvents get on =>
@@ -1333,10 +1333,10 @@ class ElementTimeControl extends NativeFieldWrapperClass1 {
 
 /// @domName SVGEllipseElement
 class EllipseElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  EllipseElement.internal() : super.internal();
 
   ///@docsEditable true
   factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
-  EllipseElement.internal(): super.internal();
 
 
   /** @domName SVGEllipseElement.cx */
@@ -1456,7 +1456,7 @@ class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
 
 /// @domName SVGFEBlendElement
 class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEBlendElement.internal(): super.internal();
+  FEBlendElement.internal() : super.internal();
 
   static const int SVG_FEBLEND_MODE_DARKEN = 4;
 
@@ -1524,7 +1524,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 /// @domName SVGFEColorMatrixElement
 class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEColorMatrixElement.internal(): super.internal();
+  FEColorMatrixElement.internal() : super.internal();
 
   static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
@@ -1590,7 +1590,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 
 /// @domName SVGFEComponentTransferElement
 class FEComponentTransferElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEComponentTransferElement.internal(): super.internal();
+  FEComponentTransferElement.internal() : super.internal();
 
 
   /** @domName SVGFEComponentTransferElement.in1 */
@@ -1638,7 +1638,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 
 /// @domName SVGFECompositeElement
 class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FECompositeElement.internal(): super.internal();
+  FECompositeElement.internal() : super.internal();
 
   static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
 
@@ -1724,7 +1724,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 
 /// @domName SVGFEConvolveMatrixElement
 class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEConvolveMatrixElement.internal(): super.internal();
+  FEConvolveMatrixElement.internal() : super.internal();
 
   static const int SVG_EDGEMODE_DUPLICATE = 1;
 
@@ -1824,7 +1824,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 
 /// @domName SVGFEDiffuseLightingElement
 class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEDiffuseLightingElement.internal(): super.internal();
+  FEDiffuseLightingElement.internal() : super.internal();
 
 
   /** @domName SVGFEDiffuseLightingElement.diffuseConstant */
@@ -1888,7 +1888,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 
 /// @domName SVGFEDisplacementMapElement
 class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEDisplacementMapElement.internal(): super.internal();
+  FEDisplacementMapElement.internal() : super.internal();
 
   static const int SVG_CHANNEL_A = 4;
 
@@ -1962,7 +1962,7 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 
 /// @domName SVGFEDistantLightElement
 class FEDistantLightElement extends SvgElement {
-  FEDistantLightElement.internal(): super.internal();
+  FEDistantLightElement.internal() : super.internal();
 
 
   /** @domName SVGFEDistantLightElement.azimuth */
@@ -1982,7 +1982,7 @@ class FEDistantLightElement extends SvgElement {
 
 /// @domName SVGFEDropShadowElement
 class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEDropShadowElement.internal(): super.internal();
+  FEDropShadowElement.internal() : super.internal();
 
 
   /** @domName SVGFEDropShadowElement.dx */
@@ -2050,7 +2050,7 @@ class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardA
 
 /// @domName SVGFEFloodElement
 class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEFloodElement.internal(): super.internal();
+  FEFloodElement.internal() : super.internal();
 
 
   /** @domName SVGFEFloodElement.height */
@@ -2094,7 +2094,7 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 /// @domName SVGFEFuncAElement
 class FEFuncAElement extends ComponentTransferFunctionElement {
-  FEFuncAElement.internal(): super.internal();
+  FEFuncAElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2106,7 +2106,7 @@ class FEFuncAElement extends ComponentTransferFunctionElement {
 
 /// @domName SVGFEFuncBElement
 class FEFuncBElement extends ComponentTransferFunctionElement {
-  FEFuncBElement.internal(): super.internal();
+  FEFuncBElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2118,7 +2118,7 @@ class FEFuncBElement extends ComponentTransferFunctionElement {
 
 /// @domName SVGFEFuncGElement
 class FEFuncGElement extends ComponentTransferFunctionElement {
-  FEFuncGElement.internal(): super.internal();
+  FEFuncGElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2130,7 +2130,7 @@ class FEFuncGElement extends ComponentTransferFunctionElement {
 
 /// @domName SVGFEFuncRElement
 class FEFuncRElement extends ComponentTransferFunctionElement {
-  FEFuncRElement.internal(): super.internal();
+  FEFuncRElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2142,7 +2142,7 @@ class FEFuncRElement extends ComponentTransferFunctionElement {
 
 /// @domName SVGFEGaussianBlurElement
 class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEGaussianBlurElement.internal(): super.internal();
+  FEGaussianBlurElement.internal() : super.internal();
 
 
   /** @domName SVGFEGaussianBlurElement.in1 */
@@ -2202,7 +2202,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 
 /// @domName SVGFEImageElement
 class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace {
-  FEImageElement.internal(): super.internal();
+  FEImageElement.internal() : super.internal();
 
 
   /** @domName SVGFEImageElement.preserveAspectRatio */
@@ -2274,7 +2274,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 /// @domName SVGFEMergeElement
 class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEMergeElement.internal(): super.internal();
+  FEMergeElement.internal() : super.internal();
 
 
   /** @domName SVGFEMergeElement.height */
@@ -2318,7 +2318,7 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 /// @domName SVGFEMergeNodeElement
 class FEMergeNodeElement extends SvgElement {
-  FEMergeNodeElement.internal(): super.internal();
+  FEMergeNodeElement.internal() : super.internal();
 
 
   /** @domName SVGFEMergeNodeElement.in1 */
@@ -2334,7 +2334,7 @@ class FEMergeNodeElement extends SvgElement {
 
 /// @domName SVGFEMorphologyElement
 class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEMorphologyElement.internal(): super.internal();
+  FEMorphologyElement.internal() : super.internal();
 
   static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
@@ -2404,7 +2404,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 
 /// @domName SVGFEOffsetElement
 class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FEOffsetElement.internal(): super.internal();
+  FEOffsetElement.internal() : super.internal();
 
 
   /** @domName SVGFEOffsetElement.dx */
@@ -2460,7 +2460,7 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
 
 /// @domName SVGFEPointLightElement
 class FEPointLightElement extends SvgElement {
-  FEPointLightElement.internal(): super.internal();
+  FEPointLightElement.internal() : super.internal();
 
 
   /** @domName SVGFEPointLightElement.x */
@@ -2484,7 +2484,7 @@ class FEPointLightElement extends SvgElement {
 
 /// @domName SVGFESpecularLightingElement
 class FESpecularLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FESpecularLightingElement.internal(): super.internal();
+  FESpecularLightingElement.internal() : super.internal();
 
 
   /** @domName SVGFESpecularLightingElement.in1 */
@@ -2544,7 +2544,7 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
 
 /// @domName SVGFESpotLightElement
 class FESpotLightElement extends SvgElement {
-  FESpotLightElement.internal(): super.internal();
+  FESpotLightElement.internal() : super.internal();
 
 
   /** @domName SVGFESpotLightElement.limitingConeAngle */
@@ -2588,7 +2588,7 @@ class FESpotLightElement extends SvgElement {
 
 /// @domName SVGFETileElement
 class FETileElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FETileElement.internal(): super.internal();
+  FETileElement.internal() : super.internal();
 
 
   /** @domName SVGFETileElement.in1 */
@@ -2636,7 +2636,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 
 /// @domName SVGFETurbulenceElement
 class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardAttributes {
-  FETurbulenceElement.internal(): super.internal();
+  FETurbulenceElement.internal() : super.internal();
 
   static const int SVG_STITCHTYPE_NOSTITCH = 2;
 
@@ -2716,10 +2716,10 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 
 /// @domName SVGFilterElement
 class FilterElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable, LangSpace {
+  FilterElement.internal() : super.internal();
 
   ///@docsEditable true
   factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
-  FilterElement.internal(): super.internal();
 
 
   /** @domName SVGFilterElement.filterResX */
@@ -2867,10 +2867,10 @@ class FitToViewBox extends NativeFieldWrapperClass1 {
 
 /// @domName SVGFontElement
 class FontElement extends SvgElement {
+  FontElement.internal() : super.internal();
 
   ///@docsEditable true
   factory FontElement() => _SvgElementFactoryProvider.createSvgElement_tag("font");
-  FontElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2882,10 +2882,10 @@ class FontElement extends SvgElement {
 
 /// @domName SVGFontFaceElement
 class FontFaceElement extends SvgElement {
+  FontFaceElement.internal() : super.internal();
 
   ///@docsEditable true
   factory FontFaceElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face");
-  FontFaceElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2897,10 +2897,10 @@ class FontFaceElement extends SvgElement {
 
 /// @domName SVGFontFaceFormatElement
 class FontFaceFormatElement extends SvgElement {
+  FontFaceFormatElement.internal() : super.internal();
 
   ///@docsEditable true
   factory FontFaceFormatElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-format");
-  FontFaceFormatElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2912,10 +2912,10 @@ class FontFaceFormatElement extends SvgElement {
 
 /// @domName SVGFontFaceNameElement
 class FontFaceNameElement extends SvgElement {
+  FontFaceNameElement.internal() : super.internal();
 
   ///@docsEditable true
   factory FontFaceNameElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-name");
-  FontFaceNameElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2927,10 +2927,10 @@ class FontFaceNameElement extends SvgElement {
 
 /// @domName SVGFontFaceSrcElement
 class FontFaceSrcElement extends SvgElement {
+  FontFaceSrcElement.internal() : super.internal();
 
   ///@docsEditable true
   factory FontFaceSrcElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-src");
-  FontFaceSrcElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2942,10 +2942,10 @@ class FontFaceSrcElement extends SvgElement {
 
 /// @domName SVGFontFaceUriElement
 class FontFaceUriElement extends SvgElement {
+  FontFaceUriElement.internal() : super.internal();
 
   ///@docsEditable true
   factory FontFaceUriElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-uri");
-  FontFaceUriElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2957,10 +2957,10 @@ class FontFaceUriElement extends SvgElement {
 
 /// @domName SVGForeignObjectElement
 class ForeignObjectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  ForeignObjectElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
-  ForeignObjectElement.internal(): super.internal();
 
 
   /** @domName SVGForeignObjectElement.height */
@@ -3064,10 +3064,10 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
 
 /// @domName SVGGElement
 class GElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  GElement.internal() : super.internal();
 
   ///@docsEditable true
   factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
-  GElement.internal(): super.internal();
 
 
   /** @domName SVGGElement.externalResourcesRequired */
@@ -3155,10 +3155,10 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
 
 /// @domName SVGGlyphElement
 class GlyphElement extends SvgElement {
+  GlyphElement.internal() : super.internal();
 
   ///@docsEditable true
   factory GlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
-  GlyphElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3170,7 +3170,7 @@ class GlyphElement extends SvgElement {
 
 /// @domName SVGGlyphRefElement
 class GlyphRefElement extends SvgElement implements UriReference, Stylable {
-  GlyphRefElement.internal(): super.internal();
+  GlyphRefElement.internal() : super.internal();
 
 
   /** @domName SVGGlyphRefElement.dx */
@@ -3246,7 +3246,7 @@ class GlyphRefElement extends SvgElement implements UriReference, Stylable {
 
 /// @domName SVGGradientElement
 class GradientElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable {
-  GradientElement.internal(): super.internal();
+  GradientElement.internal() : super.internal();
 
   static const int SVG_SPREADMETHOD_PAD = 1;
 
@@ -3298,10 +3298,10 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
 
 /// @domName SVGHKernElement
 class HKernElement extends SvgElement {
+  HKernElement.internal() : super.internal();
 
   ///@docsEditable true
   factory HKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
-  HKernElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3313,10 +3313,10 @@ class HKernElement extends SvgElement {
 
 /// @domName SVGImageElement
 class ImageElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
+  ImageElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
-  ImageElement.internal(): super.internal();
 
 
   /** @domName SVGImageElement.height */
@@ -3670,10 +3670,10 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
 /// @domName SVGLineElement
 class LineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  LineElement.internal() : super.internal();
 
   ///@docsEditable true
   factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
-  LineElement.internal(): super.internal();
 
 
   /** @domName SVGLineElement.x1 */
@@ -3777,10 +3777,10 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 /// @domName SVGLinearGradientElement
 class LinearGradientElement extends GradientElement {
+  LinearGradientElement.internal() : super.internal();
 
   ///@docsEditable true
   factory LinearGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
-  LinearGradientElement.internal(): super.internal();
 
 
   /** @domName SVGLinearGradientElement.x1 */
@@ -3844,10 +3844,10 @@ class Locatable extends NativeFieldWrapperClass1 {
 
 /// @domName SVGMPathElement
 class MPathElement extends SvgElement implements UriReference, ExternalResourcesRequired {
+  MPathElement.internal() : super.internal();
 
   ///@docsEditable true
   factory MPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
-  MPathElement.internal(): super.internal();
 
 
   /** @domName SVGMPathElement.externalResourcesRequired */
@@ -3867,10 +3867,10 @@ class MPathElement extends SvgElement implements UriReference, ExternalResources
 
 /// @domName SVGMarkerElement
 class MarkerElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace {
+  MarkerElement.internal() : super.internal();
 
   ///@docsEditable true
   factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
-  MarkerElement.internal(): super.internal();
 
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
@@ -3970,10 +3970,10 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 
 /// @domName SVGMaskElement
 class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  MaskElement.internal() : super.internal();
 
   ///@docsEditable true
   factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
-  MaskElement.internal(): super.internal();
 
 
   /** @domName SVGMaskElement.height */
@@ -4161,7 +4161,7 @@ class Matrix extends NativeFieldWrapperClass1 {
 
 /// @domName SVGMetadataElement
 class MetadataElement extends SvgElement {
-  MetadataElement.internal(): super.internal();
+  MetadataElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4173,7 +4173,7 @@ class MetadataElement extends SvgElement {
 
 /// @domName SVGMissingGlyphElement
 class MissingGlyphElement extends SvgElement {
-  MissingGlyphElement.internal(): super.internal();
+  MissingGlyphElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4349,7 +4349,7 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
 /// @domName SVGPaint
 class Paint extends Color {
-  Paint.internal(): super.internal();
+  Paint.internal() : super.internal();
 
   static const int SVG_PAINTTYPE_CURRENTCOLOR = 102;
 
@@ -4397,10 +4397,10 @@ class Paint extends Color {
 
 /// @domName SVGPathElement
 class PathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  PathElement.internal() : super.internal();
 
   ///@docsEditable true
   factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
-  PathElement.internal(): super.internal();
 
 
   /** @domName SVGPathElement.animatedNormalizedPathSegList */
@@ -4656,7 +4656,7 @@ class PathSeg extends NativeFieldWrapperClass1 {
 
 /// @domName SVGPathSegArcAbs
 class PathSegArcAbs extends PathSeg {
-  PathSegArcAbs.internal(): super.internal();
+  PathSegArcAbs.internal() : super.internal();
 
 
   /** @domName SVGPathSegArcAbs.angle */
@@ -4724,7 +4724,7 @@ class PathSegArcAbs extends PathSeg {
 
 /// @domName SVGPathSegArcRel
 class PathSegArcRel extends PathSeg {
-  PathSegArcRel.internal(): super.internal();
+  PathSegArcRel.internal() : super.internal();
 
 
   /** @domName SVGPathSegArcRel.angle */
@@ -4792,7 +4792,7 @@ class PathSegArcRel extends PathSeg {
 
 /// @domName SVGPathSegClosePath
 class PathSegClosePath extends PathSeg {
-  PathSegClosePath.internal(): super.internal();
+  PathSegClosePath.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4804,7 +4804,7 @@ class PathSegClosePath extends PathSeg {
 
 /// @domName SVGPathSegCurvetoCubicAbs
 class PathSegCurvetoCubicAbs extends PathSeg {
-  PathSegCurvetoCubicAbs.internal(): super.internal();
+  PathSegCurvetoCubicAbs.internal() : super.internal();
 
 
   /** @domName SVGPathSegCurvetoCubicAbs.x */
@@ -4864,7 +4864,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
 
 /// @domName SVGPathSegCurvetoCubicRel
 class PathSegCurvetoCubicRel extends PathSeg {
-  PathSegCurvetoCubicRel.internal(): super.internal();
+  PathSegCurvetoCubicRel.internal() : super.internal();
 
 
   /** @domName SVGPathSegCurvetoCubicRel.x */
@@ -4924,7 +4924,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
 
 /// @domName SVGPathSegCurvetoCubicSmoothAbs
 class PathSegCurvetoCubicSmoothAbs extends PathSeg {
-  PathSegCurvetoCubicSmoothAbs.internal(): super.internal();
+  PathSegCurvetoCubicSmoothAbs.internal() : super.internal();
 
 
   /** @domName SVGPathSegCurvetoCubicSmoothAbs.x */
@@ -4968,7 +4968,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
 
 /// @domName SVGPathSegCurvetoCubicSmoothRel
 class PathSegCurvetoCubicSmoothRel extends PathSeg {
-  PathSegCurvetoCubicSmoothRel.internal(): super.internal();
+  PathSegCurvetoCubicSmoothRel.internal() : super.internal();
 
 
   /** @domName SVGPathSegCurvetoCubicSmoothRel.x */
@@ -5012,7 +5012,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
 
 /// @domName SVGPathSegCurvetoQuadraticAbs
 class PathSegCurvetoQuadraticAbs extends PathSeg {
-  PathSegCurvetoQuadraticAbs.internal(): super.internal();
+  PathSegCurvetoQuadraticAbs.internal() : super.internal();
 
 
   /** @domName SVGPathSegCurvetoQuadraticAbs.x */
@@ -5056,7 +5056,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
 
 /// @domName SVGPathSegCurvetoQuadraticRel
 class PathSegCurvetoQuadraticRel extends PathSeg {
-  PathSegCurvetoQuadraticRel.internal(): super.internal();
+  PathSegCurvetoQuadraticRel.internal() : super.internal();
 
 
   /** @domName SVGPathSegCurvetoQuadraticRel.x */
@@ -5100,7 +5100,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
 
 /// @domName SVGPathSegCurvetoQuadraticSmoothAbs
 class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
-  PathSegCurvetoQuadraticSmoothAbs.internal(): super.internal();
+  PathSegCurvetoQuadraticSmoothAbs.internal() : super.internal();
 
 
   /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.x */
@@ -5128,7 +5128,7 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
 
 /// @domName SVGPathSegCurvetoQuadraticSmoothRel
 class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
-  PathSegCurvetoQuadraticSmoothRel.internal(): super.internal();
+  PathSegCurvetoQuadraticSmoothRel.internal() : super.internal();
 
 
   /** @domName SVGPathSegCurvetoQuadraticSmoothRel.x */
@@ -5156,7 +5156,7 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
 
 /// @domName SVGPathSegLinetoAbs
 class PathSegLinetoAbs extends PathSeg {
-  PathSegLinetoAbs.internal(): super.internal();
+  PathSegLinetoAbs.internal() : super.internal();
 
 
   /** @domName SVGPathSegLinetoAbs.x */
@@ -5184,7 +5184,7 @@ class PathSegLinetoAbs extends PathSeg {
 
 /// @domName SVGPathSegLinetoHorizontalAbs
 class PathSegLinetoHorizontalAbs extends PathSeg {
-  PathSegLinetoHorizontalAbs.internal(): super.internal();
+  PathSegLinetoHorizontalAbs.internal() : super.internal();
 
 
   /** @domName SVGPathSegLinetoHorizontalAbs.x */
@@ -5204,7 +5204,7 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
 
 /// @domName SVGPathSegLinetoHorizontalRel
 class PathSegLinetoHorizontalRel extends PathSeg {
-  PathSegLinetoHorizontalRel.internal(): super.internal();
+  PathSegLinetoHorizontalRel.internal() : super.internal();
 
 
   /** @domName SVGPathSegLinetoHorizontalRel.x */
@@ -5224,7 +5224,7 @@ class PathSegLinetoHorizontalRel extends PathSeg {
 
 /// @domName SVGPathSegLinetoRel
 class PathSegLinetoRel extends PathSeg {
-  PathSegLinetoRel.internal(): super.internal();
+  PathSegLinetoRel.internal() : super.internal();
 
 
   /** @domName SVGPathSegLinetoRel.x */
@@ -5252,7 +5252,7 @@ class PathSegLinetoRel extends PathSeg {
 
 /// @domName SVGPathSegLinetoVerticalAbs
 class PathSegLinetoVerticalAbs extends PathSeg {
-  PathSegLinetoVerticalAbs.internal(): super.internal();
+  PathSegLinetoVerticalAbs.internal() : super.internal();
 
 
   /** @domName SVGPathSegLinetoVerticalAbs.y */
@@ -5272,7 +5272,7 @@ class PathSegLinetoVerticalAbs extends PathSeg {
 
 /// @domName SVGPathSegLinetoVerticalRel
 class PathSegLinetoVerticalRel extends PathSeg {
-  PathSegLinetoVerticalRel.internal(): super.internal();
+  PathSegLinetoVerticalRel.internal() : super.internal();
 
 
   /** @domName SVGPathSegLinetoVerticalRel.y */
@@ -5436,7 +5436,7 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 
 /// @domName SVGPathSegMovetoAbs
 class PathSegMovetoAbs extends PathSeg {
-  PathSegMovetoAbs.internal(): super.internal();
+  PathSegMovetoAbs.internal() : super.internal();
 
 
   /** @domName SVGPathSegMovetoAbs.x */
@@ -5464,7 +5464,7 @@ class PathSegMovetoAbs extends PathSeg {
 
 /// @domName SVGPathSegMovetoRel
 class PathSegMovetoRel extends PathSeg {
-  PathSegMovetoRel.internal(): super.internal();
+  PathSegMovetoRel.internal() : super.internal();
 
 
   /** @domName SVGPathSegMovetoRel.x */
@@ -5492,10 +5492,10 @@ class PathSegMovetoRel extends PathSeg {
 
 /// @domName SVGPatternElement
 class PatternElement extends SvgElement implements FitToViewBox, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
+  PatternElement.internal() : super.internal();
 
   ///@docsEditable true
   factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
-  PatternElement.internal(): super.internal();
 
 
   /** @domName SVGPatternElement.height */
@@ -5671,10 +5671,10 @@ class PointList extends NativeFieldWrapperClass1 {
 
 /// @domName SVGPolygonElement
 class PolygonElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  PolygonElement.internal() : super.internal();
 
   ///@docsEditable true
   factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
-  PolygonElement.internal(): super.internal();
 
 
   /** @domName SVGPolygonElement.animatedPoints */
@@ -5770,10 +5770,10 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
 
 /// @domName SVGPolylineElement
 class PolylineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  PolylineElement.internal() : super.internal();
 
   ///@docsEditable true
   factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
-  PolylineElement.internal(): super.internal();
 
 
   /** @domName SVGPolylineElement.animatedPoints */
@@ -5925,10 +5925,10 @@ class PreserveAspectRatio extends NativeFieldWrapperClass1 {
 
 /// @domName SVGRadialGradientElement
 class RadialGradientElement extends GradientElement {
+  RadialGradientElement.internal() : super.internal();
 
   ///@docsEditable true
   factory RadialGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
-  RadialGradientElement.internal(): super.internal();
 
 
   /** @domName SVGRadialGradientElement.cx */
@@ -6008,10 +6008,10 @@ class Rect extends NativeFieldWrapperClass1 {
 
 /// @domName SVGRectElement
 class RectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  RectElement.internal() : super.internal();
 
   ///@docsEditable true
   factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
-  RectElement.internal(): super.internal();
 
 
   /** @domName SVGRectElement.height */
@@ -6147,10 +6147,10 @@ class RenderingIntent extends NativeFieldWrapperClass1 {
 
 /// @domName SVGScriptElement
 class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired {
+  ScriptElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ScriptElement() => _SvgElementFactoryProvider.createSvgElement_tag("script");
-  ScriptElement.internal(): super.internal();
 
 
   /** @domName SVGScriptElement.type */
@@ -6178,10 +6178,10 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
 
 /// @domName SVGSetElement
 class SetElement extends AnimationElement {
+  SetElement.internal() : super.internal();
 
   ///@docsEditable true
   factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
-  SetElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6193,10 +6193,10 @@ class SetElement extends AnimationElement {
 
 /// @domName SVGStopElement
 class StopElement extends SvgElement implements Stylable {
+  StopElement.internal() : super.internal();
 
   ///@docsEditable true
   factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
-  StopElement.internal(): super.internal();
 
 
   /** @domName SVGStopElement.offset */
@@ -6392,10 +6392,10 @@ class Stylable extends NativeFieldWrapperClass1 {
 
 /// @domName SVGStyleElement
 class StyleElement extends SvgElement implements LangSpace {
+  StyleElement.internal() : super.internal();
 
   ///@docsEditable true
   factory StyleElement() => _SvgElementFactoryProvider.createSvgElement_tag("style");
-  StyleElement.internal(): super.internal();
 
 
   /** @domName SVGStyleElement.disabled */
@@ -6455,7 +6455,7 @@ class StyleElement extends SvgElement implements LangSpace {
 
 /// @domName SVGDocument
 class SvgDocument extends Document {
-  SvgDocument.internal(): super.internal();
+  SvgDocument.internal() : super.internal();
 
 
   /** @domName SVGDocument.rootElement */
@@ -6579,7 +6579,7 @@ class SvgElement extends Element {
     throw new UnsupportedError("Cannot invoke click SVG.");
   }
 
-  SvgElement.internal(): super.internal();
+  SvgElement.internal() : super.internal();
 
 
   /** @domName SVGElement.id */
@@ -6649,7 +6649,7 @@ class SvgException extends NativeFieldWrapperClass1 {
 class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable, Locatable, ExternalResourcesRequired, ZoomAndPan, LangSpace {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 
-  SvgSvgElement.internal(): super.internal();
+  SvgSvgElement.internal() : super.internal();
 
 
   /** @domName SVGSVGElement.contentScriptType */
@@ -6913,10 +6913,10 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
 
 /// @domName SVGSwitchElement
 class SwitchElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+  SwitchElement.internal() : super.internal();
 
   ///@docsEditable true
   factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
-  SwitchElement.internal(): super.internal();
 
 
   /** @domName SVGSwitchElement.externalResourcesRequired */
@@ -7004,10 +7004,10 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
 
 /// @domName SVGSymbolElement
 class SymbolElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace {
+  SymbolElement.internal() : super.internal();
 
   ///@docsEditable true
   factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
-  SymbolElement.internal(): super.internal();
 
 
   /** @domName SVGSymbolElement.externalResourcesRequired */
@@ -7059,10 +7059,10 @@ class SymbolElement extends SvgElement implements FitToViewBox, ExternalResource
 
 /// @domName SVGTRefElement
 class TRefElement extends TextPositioningElement implements UriReference {
+  TRefElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
-  TRefElement.internal(): super.internal();
 
 
   /** @domName SVGTRefElement.href */
@@ -7078,10 +7078,10 @@ class TRefElement extends TextPositioningElement implements UriReference {
 
 /// @domName SVGTSpanElement
 class TSpanElement extends TextPositioningElement {
+  TSpanElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TSpanElement() => _SvgElementFactoryProvider.createSvgElement_tag("tspan");
-  TSpanElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7121,7 +7121,7 @@ class Tests extends NativeFieldWrapperClass1 {
 
 /// @domName SVGTextContentElement
 class TextContentElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace {
-  TextContentElement.internal(): super.internal();
+  TextContentElement.internal() : super.internal();
 
   static const int LENGTHADJUST_SPACING = 1;
 
@@ -7231,10 +7231,10 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
 
 /// @domName SVGTextElement
 class TextElement extends TextPositioningElement implements Transformable {
+  TextElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
-  TextElement.internal(): super.internal();
 
 
   /** @domName SVGTextElement.farthestViewportElement */
@@ -7274,7 +7274,7 @@ class TextElement extends TextPositioningElement implements Transformable {
 
 /// @domName SVGTextPathElement
 class TextPathElement extends TextContentElement implements UriReference {
-  TextPathElement.internal(): super.internal();
+  TextPathElement.internal() : super.internal();
 
   static const int TEXTPATH_METHODTYPE_ALIGN = 1;
 
@@ -7314,7 +7314,7 @@ class TextPathElement extends TextContentElement implements UriReference {
 
 /// @domName SVGTextPositioningElement
 class TextPositioningElement extends TextContentElement {
-  TextPositioningElement.internal(): super.internal();
+  TextPositioningElement.internal() : super.internal();
 
 
   /** @domName SVGTextPositioningElement.dx */
@@ -7346,10 +7346,10 @@ class TextPositioningElement extends TextContentElement {
 
 /// @domName SVGTitleElement
 class TitleElement extends SvgElement implements Stylable, LangSpace {
+  TitleElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
-  TitleElement.internal(): super.internal();
 
 
   /** @domName SVGTitleElement.xmllang */
@@ -7677,10 +7677,10 @@ class UriReference extends NativeFieldWrapperClass1 {
 
 /// @domName SVGUseElement
 class UseElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
+  UseElement.internal() : super.internal();
 
   ///@docsEditable true
   factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
-  UseElement.internal(): super.internal();
 
 
   /** @domName SVGUseElement.animatedInstanceRoot */
@@ -7796,10 +7796,10 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
 
 /// @domName SVGVKernElement
 class VKernElement extends SvgElement {
+  VKernElement.internal() : super.internal();
 
   ///@docsEditable true
   factory VKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
-  VKernElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7811,10 +7811,10 @@ class VKernElement extends SvgElement {
 
 /// @domName SVGViewElement
 class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan {
+  ViewElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ViewElement() => _SvgElementFactoryProvider.createSvgElement_tag("view");
-  ViewElement.internal(): super.internal();
 
 
   /** @domName SVGViewElement.viewTarget */
@@ -7928,7 +7928,7 @@ class ZoomAndPan extends NativeFieldWrapperClass1 {
 
 /// @domName SVGZoomEvent
 class ZoomEvent extends UIEvent {
-  ZoomEvent.internal(): super.internal();
+  ZoomEvent.internal() : super.internal();
 
 
   /** @domName SVGZoomEvent.newScale */

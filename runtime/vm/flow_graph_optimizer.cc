@@ -117,14 +117,26 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
 }
 
 
+static void EnsureSSATempIndex(FlowGraph* graph,
+                               Definition* defn,
+                               Definition* replacement) {
+  if ((replacement->ssa_temp_index() == -1) &&
+      (defn->ssa_temp_index() != -1)) {
+    replacement->set_ssa_temp_index(graph->alloc_ssa_temp_index());
+  }
+}
+
+
 static void ReplaceCurrentInstruction(ForwardInstructionIterator* it,
                                       Instruction* current,
-                                      Instruction* replacement) {
+                                      Instruction* replacement,
+                                      FlowGraph* graph) {
   if ((replacement != NULL) && current->IsDefinition()) {
     Definition* current_defn = current->AsDefinition();
     Definition* replacement_defn = replacement->AsDefinition();
     ASSERT(replacement_defn != NULL);
     current_defn->ReplaceUsesWith(replacement_defn);
+    EnsureSSATempIndex(graph, current_defn, replacement_defn);
 
     if (FLAG_trace_optimization) {
       OS::Print("Replacing v%"Pd" with v%"Pd"\n",
@@ -157,7 +169,7 @@ void FlowGraphOptimizer::OptimizeComputations() {
         // For non-definitions Canonicalize should return either NULL or
         // this.
         ASSERT((replacement == NULL) || current->IsDefinition());
-        ReplaceCurrentInstruction(&it, current, replacement);
+        ReplaceCurrentInstruction(&it, current, replacement, flow_graph_);
       }
     }
   }
@@ -192,7 +204,17 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     ASSERT((deopt_target != NULL) || (def->GetPropagatedCid() == kDoubleCid));
-    converted = new UnboxDoubleInstr(new Value(def), deopt_id);
+    if (def->IsConstant() && def->AsConstant()->value().IsSmi()) {
+      const double dbl_val =
+          Smi::Cast(def->AsConstant()->value()).AsDoubleValue();
+      const Double& dbl_obj =
+          Double::ZoneHandle(Double::New(dbl_val, Heap::kOld));
+      ConstantInstr* double_const = new ConstantInstr(dbl_obj);
+      InsertBefore(instr, double_const, NULL, Definition::kValue);
+      converted = new UnboxDoubleInstr(new Value(double_const), deopt_id);
+    } else {
+      converted = new UnboxDoubleInstr(new Value(def), deopt_id);
+    }
   }
   ASSERT(converted != NULL);
   InsertBefore(instr, converted, use->instruction()->env(),
@@ -590,7 +612,7 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
                                   instantiator,
                                   type_args,
                                   value_type,
-                                  String::ZoneHandle(Symbols::New("value")));
+                                  Symbols::Value());
     InsertBefore(call, assert_value, NULL, Definition::kValue);
   }
 
@@ -949,7 +971,8 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   LoadFieldInstr* load = new LoadFieldInstr(
       call->ArgumentAt(0)->value(),
       field.Offset(),
-      AbstractType::ZoneHandle(field.type()));
+      AbstractType::ZoneHandle(field.type()),
+      field.is_final());
   call->ReplaceWith(load, current_iterator());
   RemovePushArguments(call);
 }
@@ -974,7 +997,8 @@ void FlowGraphOptimizer::InlineArrayLengthGetter(InstanceCallInstr* call,
 }
 
 
-void FlowGraphOptimizer::InlineGArrayCapacityGetter(InstanceCallInstr* call) {
+void FlowGraphOptimizer::InlineGrowableArrayCapacityGetter(
+    InstanceCallInstr* call) {
   // Check receiver class.
   AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
@@ -1040,6 +1064,22 @@ void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
 }
 
 
+static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
+  switch (kind) {
+    case MethodRecognizer::kObjectArrayLength:
+    case MethodRecognizer::kImmutableArrayLength:
+      return Array::length_offset();
+    case MethodRecognizer::kByteArrayBaseLength:
+      return ByteArray::length_offset();
+    case MethodRecognizer::kGrowableArrayLength:
+      return GrowableObjectArray::length_offset();
+    default:
+      UNREACHABLE();
+      return 0;
+  }
+}
+
+
 // Only unique implicit instance getters can be currently handled.
 bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -1063,56 +1103,43 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       MethodRecognizer::RecognizeKind(target);
 
   // VM objects length getter.
-  if ((recognized_kind == MethodRecognizer::kObjectArrayLength) ||
-      (recognized_kind == MethodRecognizer::kImmutableArrayLength) ||
-      (recognized_kind == MethodRecognizer::kGrowableArrayLength)) {
-    if (!ic_data.HasOneTarget()) {
-      // TODO(srdjan): Implement for mutiple targets.
-      return false;
+  switch (recognized_kind) {
+    case MethodRecognizer::kObjectArrayLength:
+    case MethodRecognizer::kImmutableArrayLength:
+    case MethodRecognizer::kByteArrayBaseLength:
+    case MethodRecognizer::kGrowableArrayLength: {
+      if (!ic_data.HasOneTarget()) {
+        // TODO(srdjan): Implement for mutiple targets.
+        return false;
+      }
+      const bool is_immutable =
+          (recognized_kind != MethodRecognizer::kGrowableArrayLength);
+      InlineArrayLengthGetter(call,
+                              OffsetForLengthGetter(recognized_kind),
+                              is_immutable,
+                              recognized_kind);
+      return true;
     }
-    switch (recognized_kind) {
-      case MethodRecognizer::kObjectArrayLength:
-      case MethodRecognizer::kImmutableArrayLength:
-        InlineArrayLengthGetter(call,
-                                Array::length_offset(),
-                                true,
-                                recognized_kind);
-        break;
-      case MethodRecognizer::kGrowableArrayLength:
-        InlineArrayLengthGetter(call,
-                                GrowableObjectArray::length_offset(),
-                                false,
-                                recognized_kind);
-        break;
-      default:
-        UNREACHABLE();
-    }
-    return true;
+    case MethodRecognizer::kGrowableArrayCapacity:
+      InlineGrowableArrayCapacityGetter(call);
+      return true;
+    case MethodRecognizer::kStringBaseLength:
+      if (!ic_data.HasOneTarget()) {
+        // Target is not only StringBase_get_length.
+        return false;
+      }
+      InlineStringLengthGetter(call);
+      return true;
+    case MethodRecognizer::kStringBaseIsEmpty:
+      if (!ic_data.HasOneTarget()) {
+        // Target is not only StringBase_get_isEmpty.
+        return false;
+      }
+      InlineStringIsEmptyGetter(call);
+      return true;
+    default:
+      ASSERT(recognized_kind == MethodRecognizer::kUnknown);
   }
-
-  if (recognized_kind == MethodRecognizer::kGrowableArrayCapacity) {
-    InlineGArrayCapacityGetter(call);
-    return true;
-  }
-
-  if (recognized_kind == MethodRecognizer::kStringBaseLength) {
-    if (!ic_data.HasOneTarget()) {
-      // Target is not only StringBase_get_length.
-      return false;
-    }
-    InlineStringLengthGetter(call);
-    return true;
-  }
-
-  if (recognized_kind == MethodRecognizer::kStringBaseIsEmpty) {
-    if (!ic_data.HasOneTarget()) {
-      // Target is not only StringBase_get_isEmpty.
-      return false;
-    }
-    InlineStringIsEmptyGetter(call);
-    return true;
-  }
-
   return false;
 }
 
@@ -1203,9 +1230,17 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   if ((recognized_kind == MethodRecognizer::kDoubleToInteger) &&
       (class_ids[0] == kDoubleCid)) {
     AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-    DoubleToIntegerInstr* d2int_instr =
-        new DoubleToIntegerInstr(call->ArgumentAt(0)->value(), call);
-    call->ReplaceWith(d2int_instr, current_iterator());
+    ASSERT(call->HasICData());
+    const ICData& ic_data = *call->ic_data();
+    Definition* d2i_instr = NULL;
+    if (ic_data.deopt_reason() == kDeoptDoubleToSmi) {
+      // Do not repeatedly deoptimize because result didn't fit into Smi.
+      d2i_instr = new DoubleToIntegerInstr(call->ArgumentAt(0)->value(), call);
+    } else {
+      // Optimistically assume result fits into Smi.
+      d2i_instr = new DoubleToSmiInstr(call->ArgumentAt(0)->value(), call);
+    }
+    call->ReplaceWith(d2i_instr, current_iterator());
     RemovePushArguments(call);
     return true;
   }
@@ -1214,11 +1249,89 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 }
 
 
+// Returns a Boolean constant if all classes in ic_data yield the same type-test
+// result and the type tests do not depend on type arguments. Otherwise return
+// Bool::null().
+RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
+                                              const AbstractType& type) const {
+  ASSERT(ic_data.num_args_tested() == 1);  // Unary checks only.
+  if (!type.IsInstantiated() || type.IsMalformed()) return Bool::null();
+  const Class& type_class = Class::Handle(type.type_class());
+  if (type_class.HasTypeArguments()) return Bool::null();
+  const ClassTable& class_table = *Isolate::Current()->class_table();
+  Bool& prev = Bool::Handle();
+  Class& cls = Class::Handle();
+  for (int i = 0; i < ic_data.NumberOfChecks(); i++) {
+    cls = class_table.At(ic_data.GetReceiverClassIdAt(i));
+    if (cls.HasTypeArguments()) return Bool::null();
+    bool is_subtype = false;
+    if (cls.IsNullClass()) {
+      is_subtype = type_class.IsDynamicClass() || type_class.IsObjectClass();
+    } else {
+      is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
+                                   type_class,
+                                   TypeArguments::Handle(),
+                                   NULL);
+    }
+    if (prev.IsNull()) {
+      prev = is_subtype ? Bool::True().raw() : Bool::False().raw();
+    } else {
+      if (is_subtype != prev.value()) return Bool::null();
+    }
+  }
+  return prev.raw();
+}
+
+
+// TODO(srdjan): Use ICData to check if always true or false.
+void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
+  ASSERT(Token::IsTypeTestOperator(call->token_kind()));
+  Value* left_val = call->ArgumentAt(0)->value();
+  Value* instantiator_val = call->ArgumentAt(1)->value();
+  Value* type_args_val = call->ArgumentAt(2)->value();
+  const AbstractType& type =
+      AbstractType::Cast(call->ArgumentAt(3)->value()->BoundConstant());
+  const bool negate =
+      Bool::Cast(call->ArgumentAt(4)->value()->BoundConstant()).value();
+  const ICData& unary_checks =
+      ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
+  if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
+    Bool& as_bool = Bool::ZoneHandle(InstanceOfAsBool(unary_checks, type));
+    if (!as_bool.IsNull()) {
+      AddCheckClass(call, left_val->Copy());
+      if (negate) {
+        as_bool = as_bool.value() ? Bool::False().raw() : Bool::True().raw();
+      }
+      ConstantInstr* bool_const = new ConstantInstr(as_bool);
+      call->ReplaceWith(bool_const, current_iterator());
+      RemovePushArguments(call);
+      return;
+    }
+  }
+  InstanceOfInstr* instance_of =
+      new InstanceOfInstr(call->token_pos(),
+                          left_val,
+                          instantiator_val,
+                          type_args_val,
+                          type,
+                          negate);
+  call->ReplaceWith(instance_of, current_iterator());
+  RemovePushArguments(call);
+}
+
+
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (!instr->HasICData() || (instr->ic_data()->NumberOfChecks() == 0)) {
     // An instance call without ICData will trigger deoptimization.
+    return;
+  }
+
+  const Token::Kind op_kind = instr->token_kind();
+  // Type test is special as it always gets converted into inlined code.
+  if (Token::IsTypeTestOperator(op_kind)) {
+    ReplaceWithInstanceOf(instr);
     return;
   }
 
@@ -1231,7 +1344,6 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  const Token::Kind op_kind = instr->token_kind();
   if ((op_kind == Token::kASSIGN_INDEX) &&
       TryReplaceWithStoreIndexed(instr)) {
     return;
@@ -2485,12 +2597,11 @@ void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
     }
 
     if (FLAG_trace_type_check_elimination) {
-      const String& name = String::Handle(Symbols::New("boolean expression"));
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
                                        instr->token_pos(),
                                        instr->value(),
                                        Type::Handle(Type::BoolType()),
-                                       name,
+                                       Symbols::BooleanExpression(),
                                        instr->is_eliminated());
     }
   }
@@ -2504,8 +2615,8 @@ void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       instr->value()->CanComputeIsNull(&is_null) &&
       (is_null ||
        instr->value()->CanComputeIsInstanceOf(instr->type(), &is_instance))) {
-    Definition* result = new ConstantInstr(Bool::ZoneHandle(Bool::Get(
-        instr->negate_result() ? !is_instance : is_instance)));
+    bool val = instr->negate_result() ? !is_instance : is_instance;
+    Definition* result = new ConstantInstr(val ? Bool::True() : Bool::False());
     result->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
     result->InsertBefore(instr);
     // Replace uses and remove the current instruction via the iterator.
@@ -2519,12 +2630,11 @@ void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
     }
 
     if (FLAG_trace_type_check_elimination) {
-      const String& name = String::Handle(Symbols::New("InstanceOf"));
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
                                        instr->token_pos(),
                                        instr->value(),
                                        instr->type(),
-                                       name,
+                                       Symbols::InstanceOf(),
                                        /* eliminated = */ true);
     }
   }
@@ -2829,10 +2939,105 @@ static bool IsInterferingStore(Instruction* instr,
 }
 
 
+static Definition* GetStoredValue(Instruction* instr) {
+  if (instr->IsStoreIndexed()) {
+    return instr->AsStoreIndexed()->value()->definition();
+  }
+
+  StoreInstanceFieldInstr* store_instance_field = instr->AsStoreInstanceField();
+  if (store_instance_field != NULL) {
+    return store_instance_field->value()->definition();
+  }
+
+  StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
+  if (store_vm_field != NULL) {
+    return store_vm_field->value()->definition();
+  }
+
+  UNREACHABLE();  // Should only be called for supported store instructions.
+  return NULL;
+}
+
+
+// KeyValueTrait used for numbering of loads. Allows to lookup loads
+// corresponding to stores.
+class LoadKeyValueTrait {
+ public:
+  typedef Definition* Value;
+  typedef Definition* Key;
+  typedef Definition* Pair;
+
+  static Key KeyOf(Pair kv) {
+    return kv;
+  }
+
+  static Value ValueOf(Pair kv) {
+    return kv;
+  }
+
+  static inline intptr_t Hashcode(Key key) {
+    intptr_t object = 0;
+    intptr_t location = 0;
+
+    if (key->IsLoadIndexed()) {
+      LoadIndexedInstr* load_indexed = key->AsLoadIndexed();
+      object = load_indexed->array()->definition()->ssa_temp_index();
+      location = load_indexed->index()->definition()->ssa_temp_index();
+    } else if (key->IsStoreIndexed()) {
+      StoreIndexedInstr* store_indexed = key->AsStoreIndexed();
+      object = store_indexed->array()->definition()->ssa_temp_index();
+      location = store_indexed->index()->definition()->ssa_temp_index();
+    } else if (key->IsLoadField()) {
+      LoadFieldInstr* load_field = key->AsLoadField();
+      object = load_field->value()->definition()->ssa_temp_index();
+      location = load_field->offset_in_bytes();
+    } else if (key->IsStoreInstanceField()) {
+      StoreInstanceFieldInstr* store_field = key->AsStoreInstanceField();
+      object = store_field->instance()->definition()->ssa_temp_index();
+      location = store_field->field().Offset();
+    } else if (key->IsStoreVMField()) {
+      StoreVMFieldInstr* store_field = key->AsStoreVMField();
+      object = store_field->dest()->definition()->ssa_temp_index();
+      location = store_field->offset_in_bytes();
+    }
+
+    return object * 31 + location;
+  }
+
+  static inline bool IsKeyEqual(Pair kv, Key key) {
+    if (kv->Equals(key)) return true;
+
+    if (kv->IsLoadIndexed()) {
+      if (key->IsStoreIndexed()) {
+        LoadIndexedInstr* load_indexed = kv->AsLoadIndexed();
+        StoreIndexedInstr* store_indexed = key->AsStoreIndexed();
+        return load_indexed->array()->Equals(store_indexed->array()) &&
+               load_indexed->index()->Equals(store_indexed->index());
+      }
+      return false;
+    }
+
+    ASSERT(kv->IsLoadField());
+    LoadFieldInstr* load_field = kv->AsLoadField();
+    if (key->IsStoreVMField()) {
+      StoreVMFieldInstr* store_field = key->AsStoreVMField();
+      return load_field->value()->Equals(store_field->dest()) &&
+             (load_field->offset_in_bytes() == store_field->offset_in_bytes());
+    } else if (key->IsStoreInstanceField()) {
+      StoreInstanceFieldInstr* store_field = key->AsStoreInstanceField();
+      return load_field->value()->Equals(store_field->instance()) &&
+             (load_field->offset_in_bytes() == store_field->field().Offset());
+    }
+
+    return false;
+  }
+};
+
+
 static intptr_t NumberLoadExpressions(
     FlowGraph* graph,
+    DirectChainedHashMap<LoadKeyValueTrait>* map,
     GrowableArray<BitVector*>* kill_by_offs) {
-  DirectChainedHashMap<PointerKeyValueTrait<Definition> > map;
   intptr_t expr_id = 0;
 
   // Loads representing different expression ids will be collected and
@@ -2850,9 +3055,9 @@ static intptr_t NumberLoadExpressions(
       if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
         continue;
       }
-      Definition* result = map.Lookup(defn);
+      Definition* result = map->Lookup(defn);
       if (result == NULL) {
-        map.Insert(defn);
+        map->Insert(defn);
         defn->set_expr_id(expr_id++);
         loads.Add(defn);
       } else {
@@ -2876,217 +3081,474 @@ static intptr_t NumberLoadExpressions(
     (*kill_by_offs)[offset_in_words]->Add(defn->expr_id());
   }
 
-
   return expr_id;
 }
 
 
-static void ComputeAvailableLoads(
-    FlowGraph* graph,
-    intptr_t max_expr_id,
-    const GrowableArray<BitVector*>& avail_in,
-    const GrowableArray<BitVector*>& kill_by_offs) {
-  // Initialize gen-, kill-, out-sets.
-  intptr_t num_blocks = graph->preorder().length();
-  GrowableArray<BitVector*> avail_out(num_blocks);
-  GrowableArray<BitVector*> avail_gen(num_blocks);
-  GrowableArray<BitVector*> avail_kill(num_blocks);
-  for (intptr_t i = 0; i < num_blocks; i++) {
-    avail_out.Add(new BitVector(max_expr_id));
-    avail_gen.Add(new BitVector(max_expr_id));
-    avail_kill.Add(new BitVector(max_expr_id));
-  }
+class LoadOptimizer : public ValueObject {
+ public:
+  LoadOptimizer(FlowGraph* graph,
+                intptr_t max_expr_id,
+                DirectChainedHashMap<LoadKeyValueTrait>* map,
+                const GrowableArray<BitVector*>& kill_by_offset)
+      : graph_(graph),
+        map_(map),
+        max_expr_id_(max_expr_id),
+        kill_by_offset_(kill_by_offset),
+        in_(graph_->preorder().length()),
+        out_(graph_->preorder().length()),
+        gen_(graph_->preorder().length()),
+        kill_(graph_->preorder().length()),
+        exposed_values_(graph_->preorder().length()),
+        out_values_(graph_->preorder().length()),
+        phis_(5),
+        worklist_(5),
+        in_worklist_(NULL) {
+    const intptr_t num_blocks = graph_->preorder().length();
+    for (intptr_t i = 0; i < num_blocks; i++) {
+      out_.Add(new BitVector(max_expr_id_));
+      gen_.Add(new BitVector(max_expr_id_));
+      kill_.Add(new BitVector(max_expr_id_));
+      in_.Add(new BitVector(max_expr_id_));
 
-  for (BlockIterator block_it = graph->reverse_postorder_iterator();
-       !block_it.Done();
-       block_it.Advance()) {
-    BlockEntryInstr* block = block_it.Current();
-    intptr_t preorder_number = block->preorder_number();
-    for (BackwardInstructionIterator instr_it(block);
-         !instr_it.Done();
-         instr_it.Advance()) {
-      Instruction* instr = instr_it.Current();
-
-      intptr_t offset_in_words = 0;
-      if (IsInterferingStore(instr, &offset_in_words)) {
-        if ((offset_in_words < kill_by_offs.length()) &&
-            (kill_by_offs[offset_in_words] != NULL)) {
-          avail_kill[preorder_number]->AddAll(kill_by_offs[offset_in_words]);
-        }
-        ASSERT(instr->IsDefinition() &&
-               !IsLoadEliminationCandidate(instr->AsDefinition()));
-        continue;
-      } else if (instr->HasSideEffect()) {
-        avail_kill[preorder_number]->SetAll();
-        break;
-      }
-      Definition* defn = instr->AsDefinition();
-      if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
-        continue;
-      }
-
-      const intptr_t expr_id = defn->expr_id();
-      if (!avail_kill[preorder_number]->Contains(expr_id)) {
-        avail_gen[preorder_number]->Add(expr_id);
-      }
+      exposed_values_.Add(NULL);
+      out_values_.Add(NULL);
     }
-    avail_out[preorder_number]->CopyFrom(avail_gen[preorder_number]);
   }
 
-  BitVector* temp = new BitVector(avail_in[0]->length());
+  void Optimize() {
+    ComputeInitialSets();
+    ComputeOutValues();
+    ForwardLoads();
+    EmitPhis();
+  }
 
-  bool changed = true;
-  while (changed) {
-    changed = false;
-
-    for (BlockIterator block_it = graph->reverse_postorder_iterator();
+ private:
+  // Compute sets of loads generated and killed by each block.
+  // Additionally compute upwards exposed and generated loads for each block.
+  // Exposed loads are those that can be replaced if a corresponding
+  // reaching load will be found.
+  // Loads that are locally redundant will be replaced as we go through
+  // instructions.
+  void ComputeInitialSets() {
+    for (BlockIterator block_it = graph_->reverse_postorder_iterator();
          !block_it.Done();
          block_it.Advance()) {
       BlockEntryInstr* block = block_it.Current();
-      BitVector* block_in = avail_in[block->preorder_number()];
-      BitVector* block_out = avail_out[block->preorder_number()];
-      BitVector* block_kill = avail_kill[block->preorder_number()];
-      BitVector* block_gen = avail_gen[block->preorder_number()];
+      const intptr_t preorder_number = block->preorder_number();
 
-      if (FLAG_trace_optimization) {
-        OS::Print("B%"Pd"", block->block_id());
-        block_in->Print();
-        block_out->Print();
-        OS::Print("\n");
+      BitVector* kill = kill_[preorder_number];
+      BitVector* gen = gen_[preorder_number];
+
+      ZoneGrowableArray<Definition*>* exposed_values = NULL;
+      ZoneGrowableArray<Definition*>* out_values = NULL;
+
+      for (ForwardInstructionIterator instr_it(block);
+           !instr_it.Done();
+           instr_it.Advance()) {
+        Instruction* instr = instr_it.Current();
+
+        intptr_t offset_in_words = 0;
+        if (IsInterferingStore(instr, &offset_in_words)) {
+          // Interfering stores kill only loads from the same offset.
+          if ((offset_in_words < kill_by_offset_.length()) &&
+              (kill_by_offset_[offset_in_words] != NULL)) {
+            kill->AddAll(kill_by_offset_[offset_in_words]);
+            // There is no need to clear out_values when clearing GEN set
+            // because only those values that are in the GEN set
+            // will ever be used.
+            gen->RemoveAll(kill_by_offset_[offset_in_words]);
+
+            Definition* load = map_->Lookup(instr->AsDefinition());
+            if (load != NULL) {
+              // Store has a corresponding numbered load. Try forwarding
+              // stored value to it.
+              gen->Add(load->expr_id());
+              if (out_values == NULL) out_values = CreateBlockOutValues();
+              (*out_values)[load->expr_id()] = GetStoredValue(instr);
+            }
+          }
+          ASSERT(instr->IsDefinition() &&
+                 !IsLoadEliminationCandidate(instr->AsDefinition()));
+          continue;
+        }
+
+        // Other instructions with side effects kill all loads.
+        if (instr->HasSideEffect()) {
+          kill->SetAll();
+          // There is no need to clear out_values when clearing GEN set
+          // because only those values that are in the GEN set
+          // will ever be used.
+          gen->Clear();
+          continue;
+        }
+
+        Definition* defn = instr->AsDefinition();
+        if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
+          continue;
+        }
+
+        const intptr_t expr_id = defn->expr_id();
+        if (gen->Contains(expr_id)) {
+          // This is a locally redundant load.
+          ASSERT((out_values != NULL) && ((*out_values)[expr_id] != NULL));
+
+          Definition* replacement = (*out_values)[expr_id];
+          EnsureSSATempIndex(graph_, defn, replacement);
+          if (FLAG_trace_optimization) {
+            OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
+                      defn->ssa_temp_index(),
+                      replacement->ssa_temp_index());
+          }
+
+          defn->ReplaceUsesWith(replacement);
+          instr_it.RemoveCurrentFromGraph();
+          continue;
+        } else if (!kill->Contains(expr_id)) {
+          // This is an exposed load: it is the first representative of a
+          // given expression id and it is not killed on the path from
+          // the block entry.
+          if (exposed_values == NULL) {
+            static const intptr_t kMaxExposedValuesInitialSize = 5;
+            exposed_values = new ZoneGrowableArray<Definition*>(
+                Utils::Minimum(kMaxExposedValuesInitialSize, max_expr_id_));
+          }
+
+          exposed_values->Add(defn);
+        }
+
+        gen->Add(expr_id);
+
+        if (out_values == NULL) out_values = CreateBlockOutValues();
+        (*out_values)[expr_id] = defn;
       }
 
-      // Compute block_in as the intersection of all out(p) where p
-      // is a predecessor of the current block.
-      if (block->IsGraphEntry()) {
-        temp->Clear();
-      } else {
-        temp->SetAll();
-        ASSERT(block->PredecessorCount() > 0);
-        for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
-          BlockEntryInstr* pred = block->PredecessorAt(i);
-          BitVector* pred_out = avail_out[pred->preorder_number()];
-          temp->Intersect(*pred_out);
+      out_[preorder_number]->CopyFrom(gen);
+      exposed_values_[preorder_number] = exposed_values;
+      out_values_[preorder_number] = out_values;
+    }
+  }
+
+  // Compute OUT sets and corresponding out_values mappings by propagating them
+  // iteratively until fix point is reached.
+  // No replacement is done at this point and thus any out_value[expr_id] is
+  // changed at most once: from NULL to an actual value.
+  // When merging incoming loads we might need to create a phi.
+  // These phis are not inserted at the graph immediately because some of them
+  // might become redundant after load forwarding is done.
+  void ComputeOutValues() {
+    BitVector* temp = new BitVector(max_expr_id_);
+
+    bool changed = true;
+    while (changed) {
+      changed = false;
+
+      for (BlockIterator block_it = graph_->reverse_postorder_iterator();
+           !block_it.Done();
+           block_it.Advance()) {
+        BlockEntryInstr* block = block_it.Current();
+
+        const intptr_t preorder_number = block->preorder_number();
+
+        BitVector* block_in = in_[preorder_number];
+        BitVector* block_out = out_[preorder_number];
+        BitVector* block_kill = kill_[preorder_number];
+        BitVector* block_gen = gen_[preorder_number];
+
+        if (FLAG_trace_optimization) {
+          OS::Print("B%"Pd"", block->block_id());
+          block_in->Print();
+          block_out->Print();
+          block_kill->Print();
+          block_gen->Print();
+          OS::Print("\n");
+        }
+
+        ZoneGrowableArray<Definition*>* block_out_values =
+            out_values_[preorder_number];
+
+        // Compute block_in as the intersection of all out(p) where p
+        // is a predecessor of the current block.
+        if (block->IsGraphEntry()) {
+          temp->Clear();
+        } else {
+          // TODO(vegorov): this can be optimized for the case of a single
+          // predecessor.
+          // TODO(vegorov): this can be reordered to reduce amount of operations
+          // temp->CopyFrom(first_predecessor)
+          temp->SetAll();
+          ASSERT(block->PredecessorCount() > 0);
+          for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+            BlockEntryInstr* pred = block->PredecessorAt(i);
+            BitVector* pred_out = out_[pred->preorder_number()];
+            temp->Intersect(*pred_out);
+          }
+        }
+
+        if (!temp->Equals(*block_in)) {
+          // If IN set has changed propagate the change to OUT set.
+          block_in->CopyFrom(temp);
+          if (block_out->KillAndAdd(block_kill, block_in)) {
+            // If OUT set has changed then we have new values available out of
+            // the block. Compute these values creating phi where necessary.
+            for (BitVector::Iterator it(block_out);
+                 !it.Done();
+                 it.Advance()) {
+              const intptr_t expr_id = it.Current();
+
+              if (block_out_values == NULL) {
+                out_values_[preorder_number] = block_out_values =
+                    CreateBlockOutValues();
+              }
+
+              if ((*block_out_values)[expr_id] == NULL) {
+                ASSERT(block->PredecessorCount() > 0);
+                (*block_out_values)[expr_id] =
+                    MergeIncomingValues(block, expr_id);
+              }
+            }
+            changed = true;
+          }
+        }
+
+        if (FLAG_trace_optimization) {
+          OS::Print("after B%"Pd"", block->block_id());
+          block_in->Print();
+          block_out->Print();
+          block_kill->Print();
+          block_gen->Print();
+          OS::Print("\n");
         }
       }
-      if (!temp->Equals(*block_in)) {
-        block_in->CopyFrom(temp);
-        if (block_out->KillAndAdd(block_kill, block_gen)) changed = true;
+    }
+  }
+
+  // Compute incoming value for the given expression id.
+  // Will create a phi if different values are incoming from multiple
+  // predecessors.
+  Definition* MergeIncomingValues(BlockEntryInstr* block, intptr_t expr_id) {
+    // First check if the same value is coming in from all predecessors.
+    Definition* incoming = NULL;
+    for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+      BlockEntryInstr* pred = block->PredecessorAt(i);
+      ZoneGrowableArray<Definition*>* pred_out_values =
+          out_values_[pred->preorder_number()];
+      if (incoming == NULL) {
+        incoming = (*pred_out_values)[expr_id];
+      } else if (incoming != (*pred_out_values)[expr_id]) {
+        incoming = NULL;
+        break;
       }
     }
-  }
-}
 
-
-static bool OptimizeLoads(
-    BlockEntryInstr* block,
-    GrowableArray<Definition*>* definitions,
-    const GrowableArray<BitVector*>& avail_in,
-    const GrowableArray<BitVector*>& kill_by_offs) {
-  // TODO(fschneider): Factor out code shared with the existing CSE pass.
-
-  // Delete loads that are killed (not available) at the entry.
-  intptr_t pre_num = block->preorder_number();
-  ASSERT(avail_in[pre_num]->length() == definitions->length());
-  for (intptr_t i = 0; i < avail_in[pre_num]->length(); i++) {
-    if (!avail_in[pre_num]->Contains(i)) {
-      (*definitions)[i] = NULL;
+    if (incoming != NULL) {
+      return incoming;
     }
+
+    // Incoming values are different. Phi is required to merge.
+    PhiInstr* phi = new PhiInstr(
+        block->AsJoinEntry(), block->PredecessorCount());
+
+    for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+      BlockEntryInstr* pred = block->PredecessorAt(i);
+      ZoneGrowableArray<Definition*>* pred_out_values =
+          out_values_[pred->preorder_number()];
+      ASSERT((*pred_out_values)[expr_id] != NULL);
+
+      // Sets of outgoing values are not linked into use lists so
+      // they might contain values that were replaced and removed
+      // from the graph by this iteration.
+      // To prevent using them we additionally mark definitions themselves
+      // as replaced and store a pointer to the replacement.
+      Value* input = new Value((*pred_out_values)[expr_id]->Replacement());
+      phi->SetInputAt(i, input);
+
+      // TODO(vegorov): add a helper function to handle input insertion.
+      input->set_instruction(phi);
+      input->set_use_index(i);
+      input->AddToInputUseList();
+    }
+
+    phi->set_ssa_temp_index(graph_->alloc_ssa_temp_index());
+    phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
+
+    return phi;
   }
 
-  bool changed = false;
-  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-    Instruction* instr = it.Current();
+  // Iterate over basic blocks and replace exposed loads with incoming
+  // values.
+  void ForwardLoads() {
+    for (BlockIterator block_it = graph_->reverse_postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      BlockEntryInstr* block = block_it.Current();
 
-    intptr_t offset_in_words = 0;
-    if (IsInterferingStore(instr, &offset_in_words)) {
-      if ((offset_in_words < kill_by_offs.length()) &&
-          (kill_by_offs[offset_in_words] != NULL)) {
-        for (BitVector::Iterator it(kill_by_offs[offset_in_words]);
-             !it.Done();
-             it.Advance()) {
-          (*definitions)[it.Current()] = NULL;
+      ZoneGrowableArray<Definition*>* loads =
+          exposed_values_[block->preorder_number()];
+      if (loads == NULL) continue;  // No exposed loads.
+
+      BitVector* in = in_[block->preorder_number()];
+
+      for (intptr_t i = 0; i < loads->length(); i++) {
+        Definition* load = (*loads)[i];
+        if (!in->Contains(load->expr_id())) continue;  // No incoming value.
+
+        Definition* replacement = MergeIncomingValues(block, load->expr_id());
+
+        // Sets of outgoing values are not linked into use lists so
+        // they might contain values that were replace and removed
+        // from the graph by this iteration.
+        // To prevent using them we additionally mark definitions themselves
+        // as replaced and store a pointer to the replacement.
+        replacement = replacement->Replacement();
+
+        if (load != replacement) {
+          EnsureSSATempIndex(graph_, load, replacement);
+
+          if (FLAG_trace_optimization) {
+            OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
+                      load->ssa_temp_index(),
+                      replacement->ssa_temp_index());
+          }
+
+          load->ReplaceUsesWith(replacement);
+          load->RemoveFromGraph();
+          load->SetReplacement(replacement);
         }
       }
-      ASSERT(instr->IsDefinition() &&
-             !IsLoadEliminationCandidate(instr->AsDefinition()));
-      continue;
-    } else if (instr->HasSideEffect()) {
-      // Handle local side effects by clearing current definitions.
-      for (intptr_t i = 0; i < definitions->length(); i++) {
-        (*definitions)[i] = NULL;
-      }
-      continue;
-    }
-    Definition* defn = instr->AsDefinition();
-    if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
-      continue;
-    }
-    Definition* result = (*definitions)[defn->expr_id()];
-    if (result == NULL) {
-      (*definitions)[defn->expr_id()] = defn;
-      continue;
-    }
-
-    // Replace current with lookup result.
-    defn->ReplaceUsesWith(result);
-    it.RemoveCurrentFromGraph();
-    changed = true;
-    if (FLAG_trace_optimization) {
-      OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
-                defn->ssa_temp_index(),
-                result->ssa_temp_index());
     }
   }
 
-  // Process children in the dominator tree recursively.
-  intptr_t num_children = block->dominated_blocks().length();
-  for (intptr_t i = 0; i < num_children; ++i) {
-    BlockEntryInstr* child = block->dominated_blocks()[i];
-    if (i  < num_children - 1) {
-      GrowableArray<Definition*> child_defs(definitions->length());
-      child_defs.AddArray(*definitions);
-      changed = OptimizeLoads(child, &child_defs, avail_in, kill_by_offs) ||
-                changed;
+  // Check if the given phi take the same value on all code paths.
+  // Eliminate it as redundant if this is the case.
+  // When analyzing phi operands assumes that only generated during
+  // this load phase can be redundant. They can be distinguished because
+  // they are not marked alive.
+  // TODO(vegorov): move this into a separate phase over all phis.
+  bool EliminateRedundantPhi(PhiInstr* phi) {
+    Definition* value = NULL;  // Possible value of this phi.
+
+    worklist_.Clear();
+    if (in_worklist_ == NULL) {
+      in_worklist_ = new BitVector(graph_->current_ssa_temp_index());
     } else {
-      changed = OptimizeLoads(child, definitions, avail_in, kill_by_offs) ||
-                changed;
+      in_worklist_->Clear();
+    }
+
+    worklist_.Add(phi);
+    in_worklist_->Add(phi->ssa_temp_index());
+
+    for (intptr_t i = 0; i < worklist_.length(); i++) {
+      PhiInstr* phi = worklist_[i];
+
+      for (intptr_t i = 0; i < phi->InputCount(); i++) {
+        Definition* input = phi->InputAt(i)->definition();
+        if (input == phi) continue;
+
+        PhiInstr* phi_input = input->AsPhi();
+        if ((phi_input != NULL) && !phi_input->is_alive()) {
+          if (!in_worklist_->Contains(phi_input->ssa_temp_index())) {
+            worklist_.Add(phi_input);
+            in_worklist_->Add(phi_input->ssa_temp_index());
+          }
+          continue;
+        }
+
+        if (value == NULL) {
+          value = input;
+        } else if (value != input) {
+          return false;  // This phi is not redundant.
+        }
+      }
+    }
+
+    // All phis in the worklist are redundant and have the same computed
+    // value on all code paths.
+    ASSERT(value != NULL);
+    for (intptr_t i = 0; i < worklist_.length(); i++) {
+      worklist_[i]->ReplaceUsesWith(value);
+    }
+
+    return true;
+  }
+
+  // Emit non-redundant phis created during ComputeOutValues and ForwardLoads.
+  void EmitPhis() {
+    for (intptr_t i = 0; i < phis_.length(); i++) {
+      PhiInstr* phi = phis_[i];
+      if ((phi->input_use_list() != NULL) && !EliminateRedundantPhi(phi)) {
+        phi->mark_alive();
+        phi->block()->InsertPhi(phi);
+      }
     }
   }
-  return changed;
-}
+
+  ZoneGrowableArray<Definition*>* CreateBlockOutValues() {
+    ZoneGrowableArray<Definition*>* out =
+        new ZoneGrowableArray<Definition*>(max_expr_id_);
+    for (intptr_t i = 0; i < max_expr_id_; i++) {
+      out->Add(NULL);
+    }
+    return out;
+  }
+
+  FlowGraph* graph_;
+  DirectChainedHashMap<LoadKeyValueTrait>* map_;
+  const intptr_t max_expr_id_;
+
+  // Mapping between field offsets in words and expression ids of loads from
+  // that offset.
+  const GrowableArray<BitVector*>& kill_by_offset_;
+
+  // Per block sets of expression ids for loads that are: incoming (available
+  // on the entry), outgoing (available on the exit), generated and killed.
+  GrowableArray<BitVector*> in_;
+  GrowableArray<BitVector*> out_;
+  GrowableArray<BitVector*> gen_;
+  GrowableArray<BitVector*> kill_;
+
+  // Per block list of upwards exposed loads.
+  GrowableArray<ZoneGrowableArray<Definition*>*> exposed_values_;
+
+  // Per block mappings between expression ids and outgoing definitions that
+  // represent those ids.
+  GrowableArray<ZoneGrowableArray<Definition*>*> out_values_;
+
+  // List of phis generated during ComputeOutValues and ForwardLoads.
+  // Some of these phis might be redundant and thus a separate pass is
+  // needed to emit only non-redundant ones.
+  GrowableArray<PhiInstr*> phis_;
+
+  // Auxiliary worklist used by redundant phi elimination.
+  GrowableArray<PhiInstr*> worklist_;
+  BitVector* in_worklist_;
+
+  DISALLOW_COPY_AND_ASSIGN(LoadOptimizer);
+};
 
 
 bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
   bool changed = false;
   if (FLAG_load_cse) {
     GrowableArray<BitVector*> kill_by_offs(10);
-    intptr_t max_expr_id = NumberLoadExpressions(graph, &kill_by_offs);
+    DirectChainedHashMap<LoadKeyValueTrait> map;
+    const intptr_t max_expr_id =
+        NumberLoadExpressions(graph, &map, &kill_by_offs);
     if (max_expr_id > 0) {
-      intptr_t num_blocks = graph->preorder().length();
-      GrowableArray<BitVector*> avail_in(num_blocks);
-      for (intptr_t i = 0; i < num_blocks; i++) {
-        avail_in.Add(new BitVector(max_expr_id));
-      }
-
-      ComputeAvailableLoads(graph, max_expr_id, avail_in, kill_by_offs);
-
-      GrowableArray<Definition*> definitions(max_expr_id);
-      for (intptr_t j = 0; j < max_expr_id ; j++) {
-        definitions.Add(NULL);
-      }
-      changed = OptimizeLoads(
-          graph->graph_entry(), &definitions, avail_in, kill_by_offs);
+      LoadOptimizer load_optimizer(graph, max_expr_id, &map, kill_by_offs);
+      load_optimizer.Optimize();
     }
   }
 
   DirectChainedHashMap<PointerKeyValueTrait<Instruction> > map;
-  changed = OptimizeRecursive(graph->graph_entry(), &map) || changed;
+  changed = OptimizeRecursive(graph, graph->graph_entry(), &map) || changed;
 
   return changed;
 }
 
 
 bool DominatorBasedCSE::OptimizeRecursive(
+    FlowGraph* graph,
     BlockEntryInstr* block,
     DirectChainedHashMap<PointerKeyValueTrait<Instruction> >* map) {
   bool changed = false;
@@ -3099,7 +3561,7 @@ bool DominatorBasedCSE::OptimizeRecursive(
       continue;
     }
     // Replace current with lookup result.
-    ReplaceCurrentInstruction(&it, current, replacement);
+    ReplaceCurrentInstruction(&it, current, replacement, graph);
     changed = true;
   }
 
@@ -3110,10 +3572,10 @@ bool DominatorBasedCSE::OptimizeRecursive(
     if (i  < num_children - 1) {
       // Copy map.
       DirectChainedHashMap<PointerKeyValueTrait<Instruction> > child_map(*map);
-      changed = OptimizeRecursive(child, &child_map) || changed;
+      changed = OptimizeRecursive(graph, child, &child_map) || changed;
     } else {
       // Reuse map for the last child.
-      changed = OptimizeRecursive(child, map) || changed;
+      changed = OptimizeRecursive(graph, child, map) || changed;
     }
   }
   return changed;
@@ -3125,8 +3587,8 @@ ConstantPropagator::ConstantPropagator(
     const GrowableArray<BlockEntryInstr*>& ignored)
     : FlowGraphVisitor(ignored),
       graph_(graph),
-      unknown_(Object::ZoneHandle(Object::transition_sentinel())),
-      non_constant_(Object::ZoneHandle(Object::sentinel())),
+      unknown_(Object::transition_sentinel()),
+      non_constant_(Object::sentinel()),
       reachable_(new BitVector(graph->preorder().length())),
       definition_marks_(new BitVector(graph->max_virtual_register_number())),
       block_worklist_(),
@@ -3271,7 +3733,7 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
     if (IsNonConstant(value)) {
       SetReachable(instr->true_successor());
       SetReachable(instr->false_successor());
-    } else if (value.raw() == Bool::True()) {
+    } else if (value.raw() == Bool::True().raw()) {
       SetReachable(instr->true_successor());
     } else if (!IsUnknown(value)) {  // Any other constant.
       SetReachable(instr->false_successor());
@@ -3417,14 +3879,32 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
       bool result = left.IsNull() ? (instr->right()->ResultCid() == kNullCid)
                                   : (instr->left()->ResultCid() == kNullCid);
       if (instr->kind() == Token::kNE_STRICT) result = !result;
-      SetValue(instr, Bool::ZoneHandle(Bool::Get(result)));
+      SetValue(instr, result ? Bool::True() : Bool::False());
     } else {
       SetValue(instr, non_constant_);
     }
   } else if (IsConstant(left) && IsConstant(right)) {
     bool result = (left.raw() == right.raw());
     if (instr->kind() == Token::kNE_STRICT) result = !result;
-    SetValue(instr, Bool::ZoneHandle(Bool::Get(result)));
+    SetValue(instr, result ? Bool::True() : Bool::False());
+  }
+}
+
+
+static bool CompareIntegers(Token::Kind kind,
+                            const Integer& left,
+                            const Integer& right) {
+  const int result = left.CompareWith(right);
+  switch (kind) {
+    case Token::kEQ: return (result == 0);
+    case Token::kNE: return (result != 0);
+    case Token::kLT: return (result < 0);
+    case Token::kGT: return (result > 0);
+    case Token::kLTE: return (result <= 0);
+    case Token::kGTE: return (result >= 0);
+    default:
+      UNREACHABLE();
+      return false;
   }
 }
 
@@ -3435,8 +3915,14 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
-    // TODO(kmillikin): Handle equality comparison of constants.
-    SetValue(instr, non_constant_);
+    if (left.IsInteger() && right.IsInteger()) {
+      const bool result = CompareIntegers(instr->kind(),
+                                          Integer::Cast(left),
+                                          Integer::Cast(right));
+      SetValue(instr, result ? Bool::True() : Bool::False());
+    } else {
+      SetValue(instr, non_constant_);
+    }
   }
 }
 
@@ -3447,8 +3933,14 @@ void ConstantPropagator::VisitRelationalOp(RelationalOpInstr* instr) {
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
-    // TODO(kmillikin): Handle relational comparison of constants.
-    SetValue(instr, non_constant_);
+    if (left.IsInteger() && right.IsInteger()) {
+      const bool result = CompareIntegers(instr->kind(),
+                                          Integer::Cast(left),
+                                          Integer::Cast(right));
+      SetValue(instr, result ? Bool::True() : Bool::False());
+    } else {
+      SetValue(instr, non_constant_);
+    }
   }
 }
 
@@ -3500,7 +3992,8 @@ void ConstantPropagator::VisitBooleanNegate(BooleanNegateInstr* instr) {
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(value)) {
-    SetValue(instr, Bool::ZoneHandle(Bool::Get(value.raw() != Bool::True())));
+    bool val = value.raw() != Bool::True().raw();
+    SetValue(instr, val ? Bool::True() : Bool::False());
   }
 }
 
@@ -3539,7 +4032,15 @@ void ConstantPropagator::VisitAllocateObjectWithBoundsCheck(
 
 
 void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
-  SetValue(instr, non_constant_);
+  if ((instr->recognized_kind() == MethodRecognizer::kObjectArrayLength) &&
+      (instr->value()->definition()->IsCreateArray())) {
+    const intptr_t length =
+        instr->value()->definition()->AsCreateArray()->ArgumentCount();
+    const Object& result = Smi::ZoneHandle(Smi::New(length));
+    SetValue(instr, result);
+  } else {
+    SetValue(instr, non_constant_);
+  }
 }
 
 
@@ -3695,6 +4196,12 @@ void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
 
 
 void ConstantPropagator::VisitDoubleToInteger(DoubleToIntegerInstr* instr) {
+  // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitDoubleToSmi(DoubleToSmiInstr* instr) {
   // TODO(kmillikin): Handle conversion.
   SetValue(instr, non_constant_);
 }
@@ -3874,7 +4381,6 @@ void ConstantPropagator::Transform() {
 
       if (!reachable_->Contains(if_true->preorder_number())) {
         ASSERT(reachable_->Contains(if_false->preorder_number()));
-        ASSERT(branch->comparison()->IsStrictCompare());
         ASSERT(if_false->parallel_move() == NULL);
         ASSERT(if_false->loop_info() == NULL);
         join = new JoinEntryInstr(if_false->block_id(),
@@ -3882,7 +4388,6 @@ void ConstantPropagator::Transform() {
                                   if_false->loop_depth());
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
-        ASSERT(branch->comparison()->IsStrictCompare());
         ASSERT(if_true->parallel_move() == NULL);
         ASSERT(if_true->loop_info() == NULL);
         join = new JoinEntryInstr(if_true->block_id(),

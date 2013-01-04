@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('http_server');
+library http_server;
 
-#import('dart:io');
-#import('dart:isolate');
-#import('test_suite.dart');  // For TestUtils.
+import 'dart:io';
+import 'dart:isolate';
+import 'test_suite.dart';  // For TestUtils.
 
 HttpServer _httpServer;
 
@@ -41,6 +41,13 @@ void startHttpServer(String host, int port) {
       });
     }
   };
+
+  // Echos back the contents of the request as the response data.
+  _httpServer.addRequestHandler((req) => req.path == "/echo", (request, resp) {
+    resp.headers.set("Access-Control-Allow-Origin", "*");
+
+    request.inputStream.pipe(resp.outputStream);
+  });
 
   _httpServer.listen(host, port);
 }

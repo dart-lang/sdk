@@ -35,6 +35,7 @@ class _ReceivePortImpl implements ReceivePort {
     }
     return new _ReceivePortImpl._internal(id);
   }
+
   _ReceivePortImpl._internal(int id) : _id = id {
     if (_portMap == null) {
       _portMap = new Map();
@@ -42,10 +43,15 @@ class _ReceivePortImpl implements ReceivePort {
     _portMap[id] = this;
   }
 
-  // Called from the VM to dispatch to the handler.
-  static void _handleMessage(int id, int replyId, var message) {
+  // Called from the VM to retrieve the ReceivePort for a message.
+  static _ReceivePortImpl _lookupReceivePort(int id) {
     assert(_portMap != null);
-    ReceivePort port = _portMap[id];
+    return _portMap[id];
+  }
+
+  // Called from the VM to dispatch to the handler.
+  static void _handleMessage(_ReceivePortImpl port, int replyId, var message) {
+    assert(port != null);
     SendPort replyTo = (replyId == 0) ? null : new _SendPortImpl(replyId);
     (port._onMessage)(message, replyTo);
   }
@@ -123,32 +129,34 @@ patch ReceivePort get port {
   return _portInternal;
 }
 
-patch spawnFunction(void topLevelFunction()) native "isolate_spawnFunction";
+patch spawnFunction(void topLevelFunction(),
+    [bool UnhandledExceptionCallback(IsolateUnhandledException e)]) 
+    native "isolate_spawnFunction";
 
 patch spawnUri(String uri) native "isolate_spawnUri";
 
 patch class Timer {
-  /* patch */ factory Timer(int milliSeconds, void callback(Timer timer)) {
+  /* patch */ factory Timer(int milliseconds, void callback(Timer timer)) {
     if (_TimerFactory._factory == null) {
       throw new UnsupportedError("Timer interface not supported.");
     }
-    return _TimerFactory._factory(milliSeconds, callback, false);
+    return _TimerFactory._factory(milliseconds, callback, false);
   }
 
   /**
    * Creates a new repeating timer. The [callback] is invoked every
-   * [milliSeconds] millisecond until cancelled.
+   * [milliseconds] millisecond until cancelled.
    */
-  /* patch */ factory Timer.repeating(int milliSeconds,
+  /* patch */ factory Timer.repeating(int milliseconds,
                                       void callback(Timer timer)) {
     if (_TimerFactory._factory == null) {
       throw new UnsupportedError("Timer interface not supported.");
     }
-    return _TimerFactory._factory(milliSeconds, callback, true);
+    return _TimerFactory._factory(milliseconds, callback, true);
   }
 }
 
-typedef Timer _TimerFactoryClosure(int milliSeconds,
+typedef Timer _TimerFactoryClosure(int milliseconds,
                                    void callback(Timer timer),
                                    bool repeating);
 

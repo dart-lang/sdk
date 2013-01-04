@@ -20,7 +20,6 @@ DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
 DEFINE_FLAG(bool, heap_profile_out_of_memory, false,
             "Writes a heap profile on unhandled out-of-memory exceptions.");
-DECLARE_FLAG(bool, heap_profile_out_of_memory);
 
 
 const char* Exceptions::kCastErrorDstName = "type cast";
@@ -144,8 +143,8 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
                                  const Instance& existing_stacktrace) {
   Instance& exception = Instance::Handle(incoming_exception.raw());
   if (exception.IsNull()) {
-    GrowableArray<const Object*> arguments;
-    exception ^= Exceptions::Create(Exceptions::kNullThrown, arguments);
+    exception ^= Exceptions::Create(Exceptions::kNullThrown,
+                                    Object::empty_array());
   }
   uword handler_pc = 0;
   uword handler_sp = 0;
@@ -379,8 +378,7 @@ void Exceptions::PropagateError(const Error& error) {
 }
 
 
-void Exceptions::ThrowByType(
-    ExceptionType type, const GrowableArray<const Object*>& arguments) {
+void Exceptions::ThrowByType(ExceptionType type, const Array& arguments) {
   const Object& result = Object::Handle(Create(type, arguments));
   if (result.IsError()) {
     // We got an error while constructing the exception object.
@@ -393,57 +391,60 @@ void Exceptions::ThrowByType(
 }
 
 
-RawObject* Exceptions::Create(
-    ExceptionType type, const GrowableArray<const Object*>& arguments) {
+RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
-  String& class_name = String::Handle();
+  const String* class_name = NULL;
   switch (type) {
     case kNone:
       UNREACHABLE();
       break;
     case kRange:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("RangeError");
+      class_name = &Symbols::RangeError();
       break;
     case kArgument:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("ArgumentError");
+      class_name = &Symbols::ArgumentError();
       break;
     case kNoSuchMethod:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("NoSuchMethodError");
+      class_name = &Symbols::NoSuchMethodError();
       break;
     case kFormat:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("FormatException");
+      class_name = &Symbols::FormatException();
       break;
     case kStackOverflow:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("StackOverflowError");
+      class_name = &Symbols::StackOverflowError();
       break;
     case kOutOfMemory:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("OutOfMemoryError");
+      class_name = &Symbols::OutOfMemoryError();
       break;
     case kInternalError:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("InternalError");
+      class_name = &Symbols::InternalError();
       break;
     case kNullThrown:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("NullThrownError");
+      class_name = &Symbols::NullThrownError();
       break;
     case kIllegalJSRegExp:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("IllegalJSRegExpException");
+      class_name = &Symbols::IllegalJSRegExpException();
       break;
     case kIsolateSpawn:
       library = Library::IsolateLibrary();
-      class_name = Symbols::New("IsolateSpawnException");
+      class_name = &Symbols::IsolateSpawnException();
+      break;
+    case kIsolateUnhandledException:
+      library = Library::IsolateLibrary();
+      class_name = &Symbols::IsolateUnhandledException();
       break;
   }
 
-  return DartLibraryCalls::ExceptionCreate(library, class_name, arguments);
+  return DartLibraryCalls::ExceptionCreate(library, *class_name, arguments);
 }
 
 }  // namespace dart

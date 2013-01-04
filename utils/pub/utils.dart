@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Generic utility functions. Stuff that should possibly be in core.
- */
+/// Generic utility functions. Stuff that should possibly be in core.
 library utils;
 
 import 'dart:crypto';
 import 'dart:isolate';
 import 'dart:uri';
 
-/** A pair of values. */
+/// A pair of values.
 class Pair<E, F> {
   E first;
   F last;
@@ -29,7 +27,7 @@ class Pair<E, F> {
 }
 
 // TODO(rnystrom): Move into String?
-/** Pads [source] to [length] by adding spaces at the end. */
+/// Pads [source] to [length] by adding spaces at the end.
 String padRight(String source, int length) {
   final result = new StringBuffer();
   result.add(source);
@@ -41,10 +39,8 @@ String padRight(String source, int length) {
   return result.toString();
 }
 
-/**
- * Runs [fn] after [future] completes, whether it completes successfully or not.
- * Essentially an asynchronous `finally` block.
- */
+/// Runs [fn] after [future] completes, whether it completes successfully or
+/// not. Essentially an asynchronous `finally` block.
 always(Future future, fn()) {
   var completer = new Completer();
   future.then((_) => fn());
@@ -54,10 +50,8 @@ always(Future future, fn()) {
   });
 }
 
-/**
- * Flattens nested collections into a single list containing only non-list
- * elements.
- */
+/// Flattens nested collections into a single list containing only non-list
+/// elements.
 List flatten(Collection nested) {
   var result = [];
   helper(list) {
@@ -73,9 +67,7 @@ List flatten(Collection nested) {
   return result;
 }
 
-/**
- * Asserts that [iter] contains only one element, and returns it.
- */
+/// Asserts that [iter] contains only one element, and returns it.
 only(Iterable iter) {
   var iterator = iter.iterator();
   assert(iterator.hasNext);
@@ -84,19 +76,16 @@ only(Iterable iter) {
   return obj;
 }
 
-/**
- * Returns a set containing all elements in [minuend] that are not in
- * [subtrahend].
- */
+/// Returns a set containing all elements in [minuend] that are not in
+/// [subtrahend].
 Set setMinus(Collection minuend, Collection subtrahend) {
   var minuendSet = new Set.from(minuend);
   minuendSet.removeAll(subtrahend);
   return minuendSet;
 }
 
-/**
- * Replace each instance of [matcher] in [source] with the return value of [fn].
- */
+/// Replace each instance of [matcher] in [source] with the return value of
+/// [fn].
 String replace(String source, Pattern matcher, String fn(Match)) {
   var buffer = new StringBuffer();
   var start = 0;
@@ -109,9 +98,7 @@ String replace(String source, Pattern matcher, String fn(Match)) {
   return buffer.toString();
 }
 
-/**
- * Returns whether or not [str] ends with [matcher].
- */
+/// Returns whether or not [str] ends with [matcher].
 bool endsWithPattern(String str, Pattern matcher) {
   for (var match in matcher.allMatches(str)) {
     if (match.end == str.length) return true;
@@ -119,15 +106,11 @@ bool endsWithPattern(String str, Pattern matcher) {
   return false;
 }
 
-/**
- * Returns the hex-encoded sha1 hash of [source].
- */
+/// Returns the hex-encoded sha1 hash of [source].
 String sha1(String source) =>
   CryptoUtils.bytesToHex(new SHA1().update(source.charCodes).digest());
 
-/**
- * Returns a [Future] that completes in [milliseconds].
- */
+/// Returns a [Future] that completes in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
   new Timer(milliseconds, completer.complete);

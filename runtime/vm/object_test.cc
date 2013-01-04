@@ -22,8 +22,7 @@ TEST_CASE(Class) {
       Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // Class has no fields.
-  const Array& no_fields = Array::Handle(Object::empty_array());
-  cls.SetFields(no_fields);
+  cls.SetFields(Object::empty_array());
 
   // Create and populate the function arrays.
   const Array& functions = Array::Handle(Array::New(6));
@@ -168,8 +167,7 @@ TEST_CASE(InstanceClass) {
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // No functions and no super class for the EmptyClass.
-  const Array& no_fields = Array::Handle(Object::empty_array());
-  empty_class.SetFields(no_fields);
+  empty_class.SetFields(Object::empty_array());
   empty_class.Finalize();
   EXPECT_EQ(kObjectAlignment, empty_class.instance_size());
   Instance& instance = Instance::Handle(Instance::New(empty_class));
@@ -1615,10 +1613,8 @@ TEST_CASE(SymbolUnicode) {
 
 
 TEST_CASE(Bool) {
-  const Bool& true_value = Bool::Handle(Bool::True());
-  EXPECT(true_value.value());
-  const Bool& false_value = Bool::Handle(Bool::False());
-  EXPECT(!false_value.value());
+  EXPECT(Bool::True().value());
+  EXPECT(!Bool::False().value());
 }
 
 
@@ -1654,7 +1650,7 @@ TEST_CASE(Array) {
   other_array.SetAt(2, array);
   EXPECT(!array.Equals(other_array));
 
-  EXPECT_EQ(0, Array::Handle(Object::empty_array()).Length());
+  EXPECT_EQ(0, Object::empty_array().Length());
 }
 
 
@@ -2545,8 +2541,8 @@ TEST_CASE(ObjectPrinting) {
   const Class& bool_class = Class::Handle(object_store->bool_class());
   EXPECT_STREQ("Library:'dart:core' Class: bool",
                bool_class.ToCString());
-  EXPECT_STREQ("true", Bool::Handle(Bool::True()).ToCString());
-  EXPECT_STREQ("false", Bool::Handle(Bool::False()).ToCString());
+  EXPECT_STREQ("true", Bool::True().ToCString());
+  EXPECT_STREQ("false", Bool::False().ToCString());
 
   // Strings.
   EXPECT_STREQ("Sugarbowl",
@@ -2848,7 +2844,7 @@ TEST_CASE(SubtypeTestCache) {
   EXPECT_EQ(0, cache.NumberOfChecks());
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
-  cache.AddCheck(empty_class.id(), targ_0, targ_1, Bool::Handle(Bool::True()));
+  cache.AddCheck(empty_class.id(), targ_0, targ_1, Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   intptr_t test_class_id = -1;
   AbstractTypeArguments& test_targ_0 = AbstractTypeArguments::Handle();
@@ -2858,7 +2854,7 @@ TEST_CASE(SubtypeTestCache) {
   EXPECT_EQ(empty_class.id(), test_class_id);
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
-  EXPECT_EQ(Bool::True(), test_result.raw());
+  EXPECT_EQ(Bool::True().raw(), test_result.raw());
 }
 
 
@@ -3127,13 +3123,12 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   {
     // Weak property and value in new. Key in VM isolate.
     HANDLESCOPE(isolate);
-    String& key = String::Handle();
-    key ^= Symbols::Dot();
     String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kNew);
     weak ^= WeakProperty::New(Heap::kNew);
-    weak.set_key(key);
+    weak.set_key(Symbols::Dot());
     weak.set_value(value);
+    String& key = String::Handle();
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
@@ -3145,13 +3140,12 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   {
     // Weak property and value in old. Key in VM isolate.
     HANDLESCOPE(isolate);
-    String& key = String::Handle();
-    key ^= Symbols::Dot();
     String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kOld);
     weak ^= WeakProperty::New(Heap::kOld);
-    weak.set_key(key);
+    weak.set_key(Symbols::Dot());
     weak.set_value(value);
+    String& key = String::Handle();
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }

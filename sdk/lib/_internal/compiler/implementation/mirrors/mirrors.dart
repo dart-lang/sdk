@@ -75,6 +75,7 @@ abstract class MirrorSystem {
 abstract class Mirror {
   static const String UNARY_MINUS = 'unary-';
 
+  // TODO(johnniwinther): Do we need this on all mirrors?
   /**
    * Returns the mirror system which contains this mirror.
    */
@@ -140,6 +141,94 @@ abstract class DeclarationMirror implements Mirror {
    *    [:mirror.owner != null && mirror.owner is LibraryMirror:]
    */
   bool get isTopLevel;
+
+  /**
+   * A list of the metadata associated with this declaration.
+   */
+  List<InstanceMirror> get metadata;
+}
+
+abstract class ObjectMirror implements Mirror {
+  /**
+   * Invokes a getter and returns a mirror on the result. The getter
+   * can be the implicit getter for a field or a user-defined getter
+   * method.
+   */
+  Future<InstanceMirror> getField(String fieldName);
+}
+
+/**
+ * An [InstanceMirror] reflects an instance of a Dart language object.
+ */
+abstract class InstanceMirror implements ObjectMirror {
+  /**
+   * A mirror on the type of the reflectee.
+   */
+  ClassMirror get type;
+
+  /**
+   * Does [reflectee] contain the instance reflected by this mirror?
+   * This will always be true in the local case (reflecting instances
+   * in the same isolate), but only true in the remote case if this
+   * mirror reflects a simple value.
+   *
+   * A value is simple if one of the following holds:
+   *  - the value is null
+   *  - the value is of type [num]
+   *  - the value is of type [bool]
+   *  - the value is of type [String]
+   */
+  bool get hasReflectee;
+
+  /**
+   * If the [InstanceMirror] reflects an instance it is meaningful to
+   * have a local reference to, we provide access to the actual
+   * instance here.
+   *
+   * If you access [reflectee] when [hasReflectee] is false, an
+   * exception is thrown.
+   */
+  get reflectee;
+}
+
+/**
+ * Specialized [InstanceMirror] used for reflection on constant lists.
+ */
+abstract class ListInstanceMirror
+    implements InstanceMirror, Sequence<Future<InstanceMirror>> {
+
+}
+
+/**
+ * Specialized [InstanceMirror] used for reflection on constant maps.
+ */
+abstract class MapInstanceMirror implements InstanceMirror {
+  /**
+   * Returns a collection containing all the keys in the map.
+   */
+  Collection<String> get keys;
+
+  /**
+   * Returns a future on the instance mirror of the value for the given key or
+   * null if key is not in the map.
+   */
+  Future<InstanceMirror> operator[](String key);
+
+  /**
+   * The number of {key, value} pairs in the map.
+   */
+  int get length;
+}
+
+/**
+ * Specialized [InstanceMirror] used for reflection on type constants.
+ */
+abstract class TypeInstanceMirror implements InstanceMirror {
+  /**
+   * Returns the type mirror for the type represented by the reflected type
+   * constant.
+   */
+  TypeMirror get representedType;
 }
 
 /**
@@ -619,4 +708,13 @@ abstract class SourceLocation {
    * Returns the text of this source.
    */
   String get sourceText;
+}
+
+/**
+ * Class used for encoding dartdoc comments as metadata annotations.
+ */
+class DartdocComment {
+  final String text;
+
+  const DartdocComment(this.text);
 }

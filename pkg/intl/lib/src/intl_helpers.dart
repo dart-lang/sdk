@@ -8,20 +8,22 @@
  */
 
 library intl_helpers;
+import '../date_symbols.dart';
 
 /**
  * This is used as a marker for a locale data map that hasn't been initialized,
- * and will throw an exception on any usage.
+ * and will throw an exception on any usage that isn't the fallback
+ * patterns/symbols provided.
  */
-class UninitializedLocaleData {
+class UninitializedLocaleData<F> {
   final String message;
-  const UninitializedLocaleData(this.message);
+  final F fallbackData;
+  const UninitializedLocaleData(this.message, this.fallbackData);
 
-  operator [](String key) {
-    _throwException();
-  }
+  operator [](String key) =>
+      (key == 'en_US') ? fallbackData : _throwException();
   List get keys => _throwException();
-  bool containsKey(String key) => _throwException();
+  bool containsKey(String key) => (key == 'en_US') ? true : _throwException();
 
   _throwException() {
     throw new LocaleDataException("Locale data has not been initialized"
@@ -48,7 +50,7 @@ abstract class LocaleDataReader {
  * implementation.
  */
 var messageLookup = const
-    UninitializedLocaleData('initializeMessages(<locale>)');
+    UninitializedLocaleData('initializeMessages(<locale>)', null);
 
 /**
  * Initialize the message lookup mechanism. This is for internal use only.

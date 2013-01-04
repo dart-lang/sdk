@@ -22,9 +22,9 @@ import 'dart:web_audio' as web_audio;
 
 
 
-LocalWindow _window;
+Window _window;
 
-LocalWindow get window {
+Window get window {
   if (_window != null) {
     return _window;
   }
@@ -73,7 +73,7 @@ _callPortSync(num id, var message) {
 
 /// @domName AbstractWorker
 class AbstractWorker extends EventTarget {
-  AbstractWorker.internal(): super.internal();
+  AbstractWorker.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AbstractWorkerEvents get on =>
@@ -110,6 +110,7 @@ class AbstractWorkerEvents extends Events {
 
 /// @domName HTMLAnchorElement
 class AnchorElement extends _Element_Merged {
+  AnchorElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AnchorElement({String href}) {
@@ -117,23 +118,6 @@ class AnchorElement extends _Element_Merged {
     if (href != null) e.href = href;
     return e;
   }
-  AnchorElement.internal(): super.internal();
-
-
-  /** @domName HTMLAnchorElement.charset */
-  String get charset native "HTMLAnchorElement_charset_Getter";
-
-
-  /** @domName HTMLAnchorElement.charset */
-  void set charset(String value) native "HTMLAnchorElement_charset_Setter";
-
-
-  /** @domName HTMLAnchorElement.coords */
-  String get coords native "HTMLAnchorElement_coords_Getter";
-
-
-  /** @domName HTMLAnchorElement.coords */
-  void set coords(String value) native "HTMLAnchorElement_coords_Setter";
 
 
   /** @domName HTMLAnchorElement.download */
@@ -236,28 +220,12 @@ class AnchorElement extends _Element_Merged {
   void set rel(String value) native "HTMLAnchorElement_rel_Setter";
 
 
-  /** @domName HTMLAnchorElement.rev */
-  String get rev native "HTMLAnchorElement_rev_Getter";
-
-
-  /** @domName HTMLAnchorElement.rev */
-  void set rev(String value) native "HTMLAnchorElement_rev_Setter";
-
-
   /** @domName HTMLAnchorElement.search */
   String get search native "HTMLAnchorElement_search_Getter";
 
 
   /** @domName HTMLAnchorElement.search */
   void set search(String value) native "HTMLAnchorElement_search_Setter";
-
-
-  /** @domName HTMLAnchorElement.shape */
-  String get shape native "HTMLAnchorElement_shape_Getter";
-
-
-  /** @domName HTMLAnchorElement.shape */
-  void set shape(String value) native "HTMLAnchorElement_shape_Setter";
 
 
   /** @domName HTMLAnchorElement.target */
@@ -287,81 +255,9 @@ class AnchorElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebKitAnimation
-class Animation extends NativeFieldWrapperClass1 {
-  Animation.internal();
-
-  static const int DIRECTION_ALTERNATE = 1;
-
-  static const int DIRECTION_NORMAL = 0;
-
-  static const int FILL_BACKWARDS = 1;
-
-  static const int FILL_BOTH = 3;
-
-  static const int FILL_FORWARDS = 2;
-
-  static const int FILL_NONE = 0;
-
-
-  /** @domName WebKitAnimation.delay */
-  num get delay native "WebKitAnimation_delay_Getter";
-
-
-  /** @domName WebKitAnimation.direction */
-  int get direction native "WebKitAnimation_direction_Getter";
-
-
-  /** @domName WebKitAnimation.duration */
-  num get duration native "WebKitAnimation_duration_Getter";
-
-
-  /** @domName WebKitAnimation.elapsedTime */
-  num get elapsedTime native "WebKitAnimation_elapsedTime_Getter";
-
-
-  /** @domName WebKitAnimation.elapsedTime */
-  void set elapsedTime(num value) native "WebKitAnimation_elapsedTime_Setter";
-
-
-  /** @domName WebKitAnimation.ended */
-  bool get ended native "WebKitAnimation_ended_Getter";
-
-
-  /** @domName WebKitAnimation.fillMode */
-  int get fillMode native "WebKitAnimation_fillMode_Getter";
-
-
-  /** @domName WebKitAnimation.iterationCount */
-  int get iterationCount native "WebKitAnimation_iterationCount_Getter";
-
-
-  /** @domName WebKitAnimation.name */
-  String get name native "WebKitAnimation_name_Getter";
-
-
-  /** @domName WebKitAnimation.paused */
-  bool get paused native "WebKitAnimation_paused_Getter";
-
-
-  /** @domName WebKitAnimation.pause */
-  void pause() native "WebKitAnimation_pause_Callback";
-
-
-  /** @domName WebKitAnimation.play */
-  void play() native "WebKitAnimation_play_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName WebKitAnimationEvent
 class AnimationEvent extends Event {
-  AnimationEvent.internal(): super.internal();
+  AnimationEvent.internal() : super.internal();
 
 
   /** @domName WebKitAnimationEvent.animationName */
@@ -381,7 +277,7 @@ class AnimationEvent extends Event {
 
 /// @domName HTMLAppletElement
 class AppletElement extends _Element_Merged {
-  AppletElement.internal(): super.internal();
+  AppletElement.internal() : super.internal();
 
 
   /** @domName HTMLAppletElement.align */
@@ -481,7 +377,7 @@ class AppletElement extends _Element_Merged {
 
 /// @domName DOMApplicationCache
 class ApplicationCache extends EventTarget {
-  ApplicationCache.internal(): super.internal();
+  ApplicationCache.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ApplicationCacheEvents get on =>
@@ -567,10 +463,10 @@ class ApplicationCacheEvents extends Events {
 
 /// @domName HTMLAreaElement
 class AreaElement extends _Element_Merged {
+  AreaElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AreaElement() => document.$dom_createElement("area");
-  AreaElement.internal(): super.internal();
 
 
   /** @domName HTMLAreaElement.alt */
@@ -607,14 +503,6 @@ class AreaElement extends _Element_Merged {
 
   /** @domName HTMLAreaElement.href */
   void set href(String value) native "HTMLAreaElement_href_Setter";
-
-
-  /** @domName HTMLAreaElement.noHref */
-  bool get noHref native "HTMLAreaElement_noHref_Getter";
-
-
-  /** @domName HTMLAreaElement.noHref */
-  void set noHref(bool value) native "HTMLAreaElement_noHref_Setter";
 
 
   /** @domName HTMLAreaElement.pathname */
@@ -665,11 +553,21 @@ class AreaElement extends _Element_Merged {
 
 
 /// @domName ArrayBuffer
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBuffer extends NativeFieldWrapperClass1 {
+  ArrayBuffer.internal();
 
   ///@docsEditable true
-  factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
-  ArrayBuffer.internal();
+  factory ArrayBuffer(int length) => ArrayBuffer._create(length);
+  static ArrayBuffer _create(int length) native "ArrayBuffer_constructor_Callback";
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName ArrayBuffer.byteLength */
@@ -699,6 +597,10 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
 
 
 /// @domName ArrayBufferView
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBufferView extends NativeFieldWrapperClass1 {
   ArrayBufferView.internal();
 
@@ -724,7 +626,7 @@ class ArrayBufferView extends NativeFieldWrapperClass1 {
 
 /// @domName Attr
 class Attr extends Node {
-  Attr.internal(): super.internal();
+  Attr.internal() : super.internal();
 
 
   /** @domName Attr.isId */
@@ -760,15 +662,16 @@ class Attr extends Node {
 
 /// @domName HTMLAudioElement
 class AudioElement extends MediaElement {
+  AudioElement.internal() : super.internal();
 
   ///@docsEditable true
   factory AudioElement([String src]) {
     if (!?src) {
-      return _AudioElementFactoryProvider.createAudioElement();
+      return AudioElement._create();
     }
-    return _AudioElementFactoryProvider.createAudioElement(src);
+    return AudioElement._create(src);
   }
-  AudioElement.internal(): super.internal();
+  static AudioElement _create([String src]) native "HTMLAudioElement_constructor_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -780,18 +683,10 @@ class AudioElement extends MediaElement {
 
 /// @domName HTMLBRElement
 class BRElement extends _Element_Merged {
+  BRElement.internal() : super.internal();
 
   ///@docsEditable true
   factory BRElement() => document.$dom_createElement("br");
-  BRElement.internal(): super.internal();
-
-
-  /** @domName HTMLBRElement.clear */
-  String get clear native "HTMLBRElement_clear_Getter";
-
-
-  /** @domName HTMLBRElement.clear */
-  void set clear(String value) native "HTMLBRElement_clear_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -819,10 +714,10 @@ class BarInfo extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLBaseElement
 class BaseElement extends _Element_Merged {
+  BaseElement.internal() : super.internal();
 
   ///@docsEditable true
   factory BaseElement() => document.$dom_createElement("base");
-  BaseElement.internal(): super.internal();
 
 
   /** @domName HTMLBaseElement.href */
@@ -850,7 +745,7 @@ class BaseElement extends _Element_Merged {
 
 /// @domName HTMLBaseFontElement
 class BaseFontElement extends _Element_Merged {
-  BaseFontElement.internal(): super.internal();
+  BaseFontElement.internal() : super.internal();
 
 
   /** @domName HTMLBaseFontElement.color */
@@ -886,7 +781,7 @@ class BaseFontElement extends _Element_Merged {
 
 /// @domName BatteryManager
 class BatteryManager extends EventTarget {
-  BatteryManager.internal(): super.internal();
+  BatteryManager.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BatteryManagerEvents get on =>
@@ -948,7 +843,7 @@ class BatteryManagerEvents extends Events {
 
 /// @domName BeforeLoadEvent
 class BeforeLoadEvent extends Event {
-  BeforeLoadEvent.internal(): super.internal();
+  BeforeLoadEvent.internal() : super.internal();
 
 
   /** @domName BeforeLoadEvent.url */
@@ -964,18 +859,19 @@ class BeforeLoadEvent extends Event {
 
 /// @domName Blob
 class Blob extends NativeFieldWrapperClass1 {
+  Blob.internal();
 
   ///@docsEditable true
   factory Blob(List blobParts, [String type, String endings]) {
     if (!?type) {
-      return _BlobFactoryProvider.createBlob(blobParts);
+      return Blob._create(blobParts);
     }
     if (!?endings) {
-      return _BlobFactoryProvider.createBlob(blobParts, type);
+      return Blob._create(blobParts, type);
     }
-    return _BlobFactoryProvider.createBlob(blobParts, type, endings);
+    return Blob._create(blobParts, type, endings);
   }
-  Blob.internal();
+  static Blob _create(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
 
 
   /** @domName Blob.size */
@@ -1024,46 +920,14 @@ class Blob extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLBodyElement
 class BodyElement extends _Element_Merged {
+  BodyElement.internal() : super.internal();
 
   ///@docsEditable true
   factory BodyElement() => document.$dom_createElement("body");
-  BodyElement.internal(): super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BodyElementEvents get on =>
     new BodyElementEvents(this);
-
-
-  /** @domName HTMLBodyElement.aLink */
-  String get aLink native "HTMLBodyElement_aLink_Getter";
-
-
-  /** @domName HTMLBodyElement.aLink */
-  void set aLink(String value) native "HTMLBodyElement_aLink_Setter";
-
-
-  /** @domName HTMLBodyElement.background */
-  String get background native "HTMLBodyElement_background_Getter";
-
-
-  /** @domName HTMLBodyElement.background */
-  void set background(String value) native "HTMLBodyElement_background_Setter";
-
-
-  /** @domName HTMLBodyElement.bgColor */
-  String get bgColor native "HTMLBodyElement_bgColor_Getter";
-
-
-  /** @domName HTMLBodyElement.bgColor */
-  void set bgColor(String value) native "HTMLBodyElement_bgColor_Setter";
-
-
-  /** @domName HTMLBodyElement.link */
-  String get link native "HTMLBodyElement_link_Getter";
-
-
-  /** @domName HTMLBodyElement.link */
-  void set link(String value) native "HTMLBodyElement_link_Setter";
 
 
   /** @domName HTMLBodyElement.vLink */
@@ -1128,10 +992,10 @@ class BodyElementEvents extends ElementEvents {
 
 /// @domName HTMLButtonElement
 class ButtonElement extends _Element_Merged {
+  ButtonElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ButtonElement() => document.$dom_createElement("button");
-  ButtonElement.internal(): super.internal();
 
 
   /** @domName HTMLButtonElement.autofocus */
@@ -1251,7 +1115,7 @@ class ButtonElement extends _Element_Merged {
 
 /// @domName CDATASection
 class CDataSection extends Text {
-  CDataSection.internal(): super.internal();
+  CDataSection.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1261,6 +1125,7 @@ class CDataSection extends Text {
 
 /// @domName HTMLCanvasElement
 class CanvasElement extends _Element_Merged {
+  CanvasElement.internal() : super.internal();
 
   ///@docsEditable true
   factory CanvasElement({int width, int height}) {
@@ -1269,7 +1134,6 @@ class CanvasElement extends _Element_Merged {
     if (height != null) e.height = height;
     return e;
   }
-  CanvasElement.internal(): super.internal();
 
 
   /** @domName HTMLCanvasElement.height */
@@ -1349,7 +1213,7 @@ class CanvasRenderingContext extends NativeFieldWrapperClass1 {
 
 /// @domName CanvasRenderingContext2D
 class CanvasRenderingContext2D extends CanvasRenderingContext {
-  CanvasRenderingContext2D.internal(): super.internal();
+  CanvasRenderingContext2D.internal() : super.internal();
 
 
   /** @domName CanvasRenderingContext2D.fillStyle */
@@ -1528,10 +1392,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void clearRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_clearRect_Callback";
 
 
-  /** @domName CanvasRenderingContext2D.clearShadow */
-  void clearShadow() native "CanvasRenderingContext2D_clearShadow_Callback";
-
-
   /** @domName CanvasRenderingContext2D.clip */
   void clip() native "CanvasRenderingContext2D_clip_Callback";
 
@@ -1659,86 +1519,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.drawImage_9 */
   void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
 
-  void drawImageFromRect(/*HTMLImageElement*/ image, [/*float*/ sx, /*float*/ sy, /*float*/ sw, /*float*/ sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh, /*DOMString*/ compositeOperation]) {
-    if (?compositeOperation) {
-      _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
-      return;
-    }
-    if (?dh) {
-      _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw, dh);
-      return;
-    }
-    if (?dw) {
-      _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy, dw);
-      return;
-    }
-    if (?dy) {
-      _drawImageFromRect_4(image, sx, sy, sw, sh, dx, dy);
-      return;
-    }
-    if (?dx) {
-      _drawImageFromRect_5(image, sx, sy, sw, sh, dx);
-      return;
-    }
-    if (?sh) {
-      _drawImageFromRect_6(image, sx, sy, sw, sh);
-      return;
-    }
-    if (?sw) {
-      _drawImageFromRect_7(image, sx, sy, sw);
-      return;
-    }
-    if (?sy) {
-      _drawImageFromRect_8(image, sx, sy);
-      return;
-    }
-    if (?sx) {
-      _drawImageFromRect_9(image, sx);
-      return;
-    }
-    _drawImageFromRect_10(image);
-  }
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_1 */
-  void _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation) native "CanvasRenderingContext2D_drawImageFromRect_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_2 */
-  void _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImageFromRect_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_3 */
-  void _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy, dw) native "CanvasRenderingContext2D_drawImageFromRect_3_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_4 */
-  void _drawImageFromRect_4(image, sx, sy, sw, sh, dx, dy) native "CanvasRenderingContext2D_drawImageFromRect_4_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_5 */
-  void _drawImageFromRect_5(image, sx, sy, sw, sh, dx) native "CanvasRenderingContext2D_drawImageFromRect_5_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_6 */
-  void _drawImageFromRect_6(image, sx, sy, sw, sh) native "CanvasRenderingContext2D_drawImageFromRect_6_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_7 */
-  void _drawImageFromRect_7(image, sx, sy, sw) native "CanvasRenderingContext2D_drawImageFromRect_7_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_8 */
-  void _drawImageFromRect_8(image, sx, sy) native "CanvasRenderingContext2D_drawImageFromRect_8_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_9 */
-  void _drawImageFromRect_9(image, sx) native "CanvasRenderingContext2D_drawImageFromRect_9_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.drawImageFromRect_10 */
-  void _drawImageFromRect_10(image) native "CanvasRenderingContext2D_drawImageFromRect_10_Callback";
-
 
   /** @domName CanvasRenderingContext2D.fill */
   void fill() native "CanvasRenderingContext2D_fill_Callback";
@@ -1832,92 +1612,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void scale(num sx, num sy) native "CanvasRenderingContext2D_scale_Callback";
 
 
-  /** @domName CanvasRenderingContext2D.setAlpha */
-  void setAlpha(num alpha) native "CanvasRenderingContext2D_setAlpha_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setCompositeOperation */
-  void setCompositeOperation(String compositeOperation) native "CanvasRenderingContext2D_setCompositeOperation_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setLineCap */
-  void setLineCap(String cap) native "CanvasRenderingContext2D_setLineCap_Callback";
-
-
   /** @domName CanvasRenderingContext2D.setLineDash */
   void setLineDash(List<num> dash) native "CanvasRenderingContext2D_setLineDash_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setLineJoin */
-  void setLineJoin(String join) native "CanvasRenderingContext2D_setLineJoin_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setLineWidth */
-  void setLineWidth(num width) native "CanvasRenderingContext2D_setLineWidth_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setMiterLimit */
-  void setMiterLimit(num limit) native "CanvasRenderingContext2D_setMiterLimit_Callback";
-
-  void setShadow(/*float*/ width, /*float*/ height, /*float*/ blur, [c_OR_color_OR_grayLevel_OR_r, /*float*/ alpha_OR_g_OR_m, /*float*/ b_OR_y, /*float*/ a_OR_k, /*float*/ a]) {
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && !?c_OR_color_OR_grayLevel_OR_r && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_1(width, height, blur);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r == null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setShadow_5(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && (b_OR_y is num || b_OR_y == null) && (a_OR_k is num || a_OR_k == null) && !?a) {
-      _setShadow_6(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
-      return;
-    }
-    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && (b_OR_y is num || b_OR_y == null) && (a_OR_k is num || a_OR_k == null) && (a is num || a == null)) {
-      _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_1 */
-  void _setShadow_1(width, height, blur) native "CanvasRenderingContext2D_setShadow_1_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_2 */
-  void _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setShadow_2_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_3 */
-  void _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setShadow_3_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_4 */
-  void _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setShadow_4_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_5 */
-  void _setShadow_5(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setShadow_5_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_6 */
-  void _setShadow_6(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native "CanvasRenderingContext2D_setShadow_6_Callback";
-
-
-  /** @domName CanvasRenderingContext2D.setShadow_7 */
-  void _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setShadow_7_Callback";
 
 
   /** @domName CanvasRenderingContext2D.setTransform */
@@ -2037,7 +1733,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
 /// @domName CharacterData
 class CharacterData extends Node {
-  CharacterData.internal(): super.internal();
+  CharacterData.internal() : super.internal();
 
 
   /** @domName CharacterData.data */
@@ -2177,7 +1873,7 @@ class Clipboard extends NativeFieldWrapperClass1 {
 
 /// @domName CloseEvent
 class CloseEvent extends Event {
-  CloseEvent.internal(): super.internal();
+  CloseEvent.internal() : super.internal();
 
 
   /** @domName CloseEvent.code */
@@ -2201,7 +1897,7 @@ class CloseEvent extends Event {
 
 /// @domName Comment
 class Comment extends CharacterData {
-  Comment.internal(): super.internal();
+  Comment.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2213,7 +1909,7 @@ class Comment extends CharacterData {
 
 /// @domName CompositionEvent
 class CompositionEvent extends UIEvent {
-  CompositionEvent.internal(): super.internal();
+  CompositionEvent.internal() : super.internal();
 
 
   /** @domName CompositionEvent.data */
@@ -2221,7 +1917,7 @@ class CompositionEvent extends UIEvent {
 
 
   /** @domName CompositionEvent.initCompositionEvent */
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2246,6 +1942,10 @@ class Console extends NativeFieldWrapperClass1 {
 
   /** @domName Console.assertCondition */
   void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
+
+
+  /** @domName Console.clear */
+  void clear(Object arg) native "Console_clear_Callback";
 
 
   /** @domName Console.count */
@@ -2289,7 +1989,7 @@ class Console extends NativeFieldWrapperClass1 {
 
 
   /** @domName Console.markTimeline */
-  void markTimeline(Object arg) native "Console_markTimeline_Callback";
+  void markTimeline() native "Console_markTimeline_Callback";
 
 
   /** @domName Console.profile */
@@ -2305,11 +2005,11 @@ class Console extends NativeFieldWrapperClass1 {
 
 
   /** @domName Console.timeEnd */
-  void timeEnd(String title, Object arg) native "Console_timeEnd_Callback";
+  void timeEnd(String title) native "Console_timeEnd_Callback";
 
 
   /** @domName Console.timeStamp */
-  void timeStamp(Object arg) native "Console_timeStamp_Callback";
+  void timeStamp() native "Console_timeStamp_Callback";
 
 
   /** @domName Console.trace */
@@ -2328,11 +2028,18 @@ class Console extends NativeFieldWrapperClass1 {
 
 
 /// @domName HTMLContentElement
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class ContentElement extends _Element_Merged {
+  ContentElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ContentElement() => document.$dom_createElement("content");
-  ContentElement.internal(): super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLContentElement.resetStyleInheritance */
@@ -2444,7 +2151,7 @@ class Crypto extends NativeFieldWrapperClass1 {
 
 /// @domName CSSCharsetRule
 class CssCharsetRule extends CssRule {
-  CssCharsetRule.internal(): super.internal();
+  CssCharsetRule.internal() : super.internal();
 
 
   /** @domName CSSCharsetRule.encoding */
@@ -2464,7 +2171,7 @@ class CssCharsetRule extends CssRule {
 
 /// @domName CSSFontFaceRule
 class CssFontFaceRule extends CssRule {
-  CssFontFaceRule.internal(): super.internal();
+  CssFontFaceRule.internal() : super.internal();
 
 
   /** @domName CSSFontFaceRule.style */
@@ -2480,7 +2187,7 @@ class CssFontFaceRule extends CssRule {
 
 /// @domName CSSImportRule
 class CssImportRule extends CssRule {
-  CssImportRule.internal(): super.internal();
+  CssImportRule.internal() : super.internal();
 
 
   /** @domName CSSImportRule.href */
@@ -2504,7 +2211,7 @@ class CssImportRule extends CssRule {
 
 /// @domName WebKitCSSKeyframeRule
 class CssKeyframeRule extends CssRule {
-  CssKeyframeRule.internal(): super.internal();
+  CssKeyframeRule.internal() : super.internal();
 
 
   /** @domName WebKitCSSKeyframeRule.keyText */
@@ -2528,7 +2235,7 @@ class CssKeyframeRule extends CssRule {
 
 /// @domName WebKitCSSKeyframesRule
 class CssKeyframesRule extends CssRule {
-  CssKeyframesRule.internal(): super.internal();
+  CssKeyframesRule.internal() : super.internal();
 
 
   /** @domName WebKitCSSKeyframesRule.cssRules */
@@ -2564,15 +2271,16 @@ class CssKeyframesRule extends CssRule {
 
 /// @domName WebKitCSSMatrix
 class CssMatrix extends NativeFieldWrapperClass1 {
+  CssMatrix.internal();
 
   ///@docsEditable true
   factory CssMatrix([String cssValue]) {
     if (!?cssValue) {
-      return _CssMatrixFactoryProvider.createCssMatrix();
+      return CssMatrix._create();
     }
-    return _CssMatrixFactoryProvider.createCssMatrix(cssValue);
+    return CssMatrix._create(cssValue);
   }
-  CssMatrix.internal();
+  static CssMatrix _create([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
 
 
   /** @domName WebKitCSSMatrix.a */
@@ -2800,7 +2508,7 @@ class CssMatrix extends NativeFieldWrapperClass1 {
 
 /// @domName CSSMediaRule
 class CssMediaRule extends CssRule {
-  CssMediaRule.internal(): super.internal();
+  CssMediaRule.internal() : super.internal();
 
 
   /** @domName CSSMediaRule.cssRules */
@@ -2828,7 +2536,7 @@ class CssMediaRule extends CssRule {
 
 /// @domName CSSPageRule
 class CssPageRule extends CssRule {
-  CssPageRule.internal(): super.internal();
+  CssPageRule.internal() : super.internal();
 
 
   /** @domName CSSPageRule.selectorText */
@@ -2852,7 +2560,7 @@ class CssPageRule extends CssRule {
 
 /// @domName CSSPrimitiveValue
 class CssPrimitiveValue extends CssValue {
-  CssPrimitiveValue.internal(): super.internal();
+  CssPrimitiveValue.internal() : super.internal();
 
   static const int CSS_ATTR = 22;
 
@@ -6240,7 +5948,7 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
 /// @domName CSSStyleRule
 class CssStyleRule extends CssRule {
-  CssStyleRule.internal(): super.internal();
+  CssStyleRule.internal() : super.internal();
 
 
   /** @domName CSSStyleRule.selectorText */
@@ -6264,7 +5972,7 @@ class CssStyleRule extends CssRule {
 
 /// @domName CSSStyleSheet
 class CssStyleSheet extends StyleSheet {
-  CssStyleSheet.internal(): super.internal();
+  CssStyleSheet.internal() : super.internal();
 
 
   /** @domName CSSStyleSheet.cssRules */
@@ -6315,7 +6023,7 @@ class CssStyleSheet extends StyleSheet {
 
 /// @domName WebKitCSSTransformValue
 class CssTransformValue extends _CssValueList {
-  CssTransformValue.internal(): super.internal();
+  CssTransformValue.internal() : super.internal();
 
   static const int CSS_MATRIX = 11;
 
@@ -6373,7 +6081,7 @@ class CssTransformValue extends _CssValueList {
 
 /// @domName CSSUnknownRule
 class CssUnknownRule extends CssRule {
-  CssUnknownRule.internal(): super.internal();
+  CssUnknownRule.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6420,7 +6128,7 @@ class CustomEvent extends Event {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
       type, canBubble, cancelable, detail);
-  CustomEvent.internal(): super.internal();
+  CustomEvent.internal() : super.internal();
 
 
   /** @domName CustomEvent.detail */
@@ -6440,18 +6148,10 @@ class CustomEvent extends Event {
 
 /// @domName HTMLDListElement
 class DListElement extends _Element_Merged {
+  DListElement.internal() : super.internal();
 
   ///@docsEditable true
   factory DListElement() => document.$dom_createElement("dl");
-  DListElement.internal(): super.internal();
-
-
-  /** @domName HTMLDListElement.compact */
-  bool get compact native "HTMLDListElement_compact_Getter";
-
-
-  /** @domName HTMLDListElement.compact */
-  void set compact(bool value) native "HTMLDListElement_compact_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6462,11 +6162,20 @@ class DListElement extends _Element_Merged {
 
 
 /// @domName HTMLDataListElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class DataListElement extends _Element_Merged {
+  DataListElement.internal() : super.internal();
 
   ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
-  DataListElement.internal(): super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLDataListElement.options */
@@ -6558,18 +6267,19 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 
 /// @domName DataView
 class DataView extends ArrayBufferView {
+  DataView.internal() : super.internal();
 
   ///@docsEditable true
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
     if (!?byteOffset) {
-      return _DataViewFactoryProvider.createDataView(buffer);
+      return DataView._create(buffer);
     }
     if (!?byteLength) {
-      return _DataViewFactoryProvider.createDataView(buffer, byteOffset);
+      return DataView._create(buffer, byteOffset);
     }
-    return _DataViewFactoryProvider.createDataView(buffer, byteOffset, byteLength);
+    return DataView._create(buffer, byteOffset, byteLength);
   }
-  DataView.internal(): super.internal();
+  static DataView _create(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
 
   num getFloat32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
@@ -6851,7 +6561,7 @@ class DatabaseSync extends NativeFieldWrapperClass1 {
 
 /// @domName DedicatedWorkerContext
 class DedicatedWorkerContext extends WorkerContext {
-  DedicatedWorkerContext.internal(): super.internal();
+  DedicatedWorkerContext.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DedicatedWorkerContextEvents get on =>
@@ -6879,11 +6589,19 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 
 
 /// @domName HTMLDetailsElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class DetailsElement extends _Element_Merged {
+  DetailsElement.internal() : super.internal();
 
   ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
-  DetailsElement.internal(): super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLDetailsElement.open */
@@ -6903,7 +6621,7 @@ class DetailsElement extends _Element_Merged {
 
 /// @domName DeviceMotionEvent
 class DeviceMotionEvent extends Event {
-  DeviceMotionEvent.internal(): super.internal();
+  DeviceMotionEvent.internal() : super.internal();
 
 
   /** @domName DeviceMotionEvent.interval */
@@ -6919,7 +6637,7 @@ class DeviceMotionEvent extends Event {
 
 /// @domName DeviceOrientationEvent
 class DeviceOrientationEvent extends Event {
-  DeviceOrientationEvent.internal(): super.internal();
+  DeviceOrientationEvent.internal() : super.internal();
 
 
   /** @domName DeviceOrientationEvent.absolute */
@@ -6951,7 +6669,7 @@ class DeviceOrientationEvent extends Event {
 
 /// @domName HTMLDirectoryElement
 class DirectoryElement extends _Element_Merged {
-  DirectoryElement.internal(): super.internal();
+  DirectoryElement.internal() : super.internal();
 
 
   /** @domName HTMLDirectoryElement.compact */
@@ -6971,7 +6689,7 @@ class DirectoryElement extends _Element_Merged {
 
 /// @domName DirectoryEntry
 class DirectoryEntry extends Entry {
-  DirectoryEntry.internal(): super.internal();
+  DirectoryEntry.internal() : super.internal();
 
 
   /** @domName DirectoryEntry.createReader */
@@ -6999,7 +6717,7 @@ class DirectoryEntry extends Entry {
 
 /// @domName DirectoryEntrySync
 class DirectoryEntrySync extends EntrySync {
-  DirectoryEntrySync.internal(): super.internal();
+  DirectoryEntrySync.internal() : super.internal();
 
 
   /** @domName DirectoryEntrySync.createReader */
@@ -7059,10 +6777,10 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLDivElement
 class DivElement extends _Element_Merged {
+  DivElement.internal() : super.internal();
 
   ///@docsEditable true
   factory DivElement() => document.$dom_createElement("div");
-  DivElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7083,7 +6801,7 @@ class DivElement extends _Element_Merged {
 class Document extends Node 
 {
 
-  Document.internal(): super.internal();
+  Document.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DocumentEvents get on =>
@@ -7115,7 +6833,7 @@ class Document extends Node
 
 
   /** @domName Document.defaultView */
-  Window get window native "Document_defaultView_Getter";
+  WindowBase get window native "Document_defaultView_Getter";
 
 
   /** @domName Document.documentElement */
@@ -7227,7 +6945,7 @@ class Document extends Node
 
 
   /** @domName Document.createTouch */
-  Touch $dom_createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
+  Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
 
   /** @domName Document.createTouchList */
@@ -7646,7 +7364,7 @@ class DocumentFragment extends Node {
       "WebKit region overflow can't be set for document fragments.");
   }
 
-  DocumentFragment.internal(): super.internal();
+  DocumentFragment.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
@@ -7670,7 +7388,7 @@ class DocumentFragment extends Node {
 
 /// @domName DocumentType
 class DocumentType extends Node {
-  DocumentType.internal(): super.internal();
+  DocumentType.internal() : super.internal();
 
 
   /** @domName DocumentType.entities */
@@ -7988,10 +7706,11 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 
 /// @domName DOMParser
 class DomParser extends NativeFieldWrapperClass1 {
+  DomParser.internal();
 
   ///@docsEditable true
-  factory DomParser() => _DomParserFactoryProvider.createDomParser();
-  DomParser.internal();
+  factory DomParser() => DomParser._create();
+  static DomParser _create() native "DOMParser_constructor_Callback";
 
 
   /** @domName DOMParser.parseFromString */
@@ -8287,7 +8006,7 @@ class DomSelection extends NativeFieldWrapperClass1 {
 
 /// @domName DOMSettableTokenList
 class DomSettableTokenList extends DomTokenList {
-  DomSettableTokenList.internal(): super.internal();
+  DomSettableTokenList.internal() : super.internal();
 
 
   /** @domName DOMSettableTokenList.value */
@@ -8863,6 +8582,10 @@ abstract class Element extends Node implements ElementTraversal {
    *
    * For standard elements it is more preferable to use the type constructors:
    *     var element = new DivElement();
+   *
+   * See also:
+   *
+   * * [isTagSupported]
    */
   factory Element.tag(String tag) =>
       _ElementFactoryProvider.createElement_tag(tag);
@@ -9076,6 +8799,16 @@ abstract class Element extends Node implements ElementTraversal {
     this.insertAdjacentHtml('beforeend', text);
   }
 
+  /**
+   * Checks to see if the tag name is supported by the current platform.
+   *
+   * The tag should be a valid HTML tag name.
+   */
+  static bool isTagSupported(String tag) {
+    var e = _ElementFactoryProvider.createElement_tag(tag);
+    return e is Element && !(e is UnknownElement);
+  }
+
   // Hooks to support custom WebComponents.
   /**
    * Experimental support for [web components][wc]. This field stores a
@@ -9089,23 +8822,8 @@ abstract class Element extends Node implements ElementTraversal {
    */
   var xtag;
 
-  noSuchMethod(InvocationMirror invocation) {
-    if (dynamicUnknownElementDispatcher == null) {
-      throw new NoSuchMethodError(this, invocation.memberName,
-                                        invocation.positionalArguments,
-                                        invocation.namedArguments);
-    } else {
-      String hackedName = invocation.memberName;
-      if (invocation.isGetter) hackedName = "get:$hackedName";
-      if (invocation.isSetter) hackedName = "set:$hackedName";
-      return dynamicUnknownElementDispatcher(this,
-                                             hackedName,
-                                             invocation.positionalArguments);
-    }
-  }
 
-
-  Element.internal(): super.internal();
+  Element.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
@@ -9271,6 +8989,18 @@ abstract class Element extends Node implements ElementTraversal {
   String get tagName native "Element_tagName_Getter";
 
 
+  /** @domName Element.webkitPseudo */
+  String get webkitPseudo native "Element_webkitPseudo_Getter";
+
+
+  /** @domName Element.webkitPseudo */
+  void set webkitPseudo(String value) native "Element_webkitPseudo_Setter";
+
+
+  /** @domName Element.webkitShadowRoot */
+  ShadowRoot get webkitShadowRoot native "Element_webkitShadowRoot_Getter";
+
+
   /** @domName Element.blur */
   void blur() native "Element_blur_Callback";
 
@@ -9363,6 +9093,12 @@ abstract class Element extends Node implements ElementTraversal {
   void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
 
 
+  /** @domName Element.webkitCreateShadowRoot */
+  @SupportedBrowser(SupportedBrowser.CHROME, '25')
+  @Experimental()
+  ShadowRoot createShadowRoot() native "Element_webkitCreateShadowRoot_Callback";
+
+
   /** @domName Element.webkitMatchesSelector */
   bool matchesSelector(String selectors) native "Element_webkitMatchesSelector_Callback";
 
@@ -9379,9 +9115,6 @@ abstract class Element extends Node implements ElementTraversal {
   void webkitRequestPointerLock() native "Element_webkitRequestPointerLock_Callback";
 
 }
-
-// Temporary dispatch hook to support WebComponents.
-Function dynamicUnknownElementDispatcher;
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
@@ -9629,11 +9362,19 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 
 
 /// @domName HTMLEmbedElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class EmbedElement extends _Element_Merged {
+  EmbedElement.internal() : super.internal();
 
   ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
-  EmbedElement.internal(): super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLEmbedElement.align */
@@ -9693,7 +9434,7 @@ class EmbedElement extends _Element_Merged {
 
 /// @domName EntityReference
 class EntityReference extends Node {
-  EntityReference.internal(): super.internal();
+  EntityReference.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9865,7 +9606,7 @@ typedef void ErrorCallback(FileError error);
 
 /// @domName ErrorEvent
 class ErrorEvent extends Event {
-  ErrorEvent.internal(): super.internal();
+  ErrorEvent.internal() : super.internal();
 
 
   /** @domName ErrorEvent.filename */
@@ -10049,10 +9790,11 @@ class EventException extends NativeFieldWrapperClass1 {
 
 /// @domName EventSource
 class EventSource extends EventTarget {
+  EventSource.internal() : super.internal();
 
   ///@docsEditable true
-  factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
-  EventSource.internal(): super.internal();
+  factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
+  static EventSource _create(String scriptUrl) native "EventSource_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   EventSourceEvents get on =>
@@ -10223,10 +9965,10 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLFieldSetElement
 class FieldSetElement extends _Element_Merged {
+  FieldSetElement.internal() : super.internal();
 
   ///@docsEditable true
   factory FieldSetElement() => document.$dom_createElement("fieldset");
-  FieldSetElement.internal(): super.internal();
 
 
   /** @domName HTMLFieldSetElement.disabled */
@@ -10286,7 +10028,7 @@ class FieldSetElement extends _Element_Merged {
 
 /// @domName File
 class File extends Blob {
-  File.internal(): super.internal();
+  File.internal() : super.internal();
 
 
   /** @domName File.lastModifiedDate */
@@ -10318,7 +10060,7 @@ typedef void FileCallback(File file);
 
 /// @domName FileEntry
 class FileEntry extends Entry {
-  FileEntry.internal(): super.internal();
+  FileEntry.internal() : super.internal();
 
 
   /** @domName FileEntry.createWriter */
@@ -10338,7 +10080,7 @@ class FileEntry extends Entry {
 
 /// @domName FileEntrySync
 class FileEntrySync extends EntrySync {
-  FileEntrySync.internal(): super.internal();
+  FileEntrySync.internal() : super.internal();
 
 
   /** @domName FileEntrySync.createWriter */
@@ -10570,10 +10312,11 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 
 /// @domName FileReader
 class FileReader extends EventTarget {
+  FileReader.internal() : super.internal();
 
   ///@docsEditable true
-  factory FileReader() => _FileReaderFactoryProvider.createFileReader();
-  FileReader.internal(): super.internal();
+  factory FileReader() => FileReader._create();
+  static FileReader _create() native "FileReader_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileReaderEvents get on =>
@@ -10675,10 +10418,11 @@ class FileReaderEvents extends Events {
 
 /// @domName FileReaderSync
 class FileReaderSync extends NativeFieldWrapperClass1 {
+  FileReaderSync.internal();
 
   ///@docsEditable true
-  factory FileReaderSync() => _FileReaderSyncFactoryProvider.createFileReaderSync();
-  FileReaderSync.internal();
+  factory FileReaderSync() => FileReaderSync._create();
+  static FileReaderSync _create() native "FileReaderSync_constructor_Callback";
 
 
   /** @domName FileReaderSync.readAsArrayBuffer */
@@ -10765,7 +10509,7 @@ class FileSystemSync extends NativeFieldWrapperClass1 {
 
 /// @domName FileWriter
 class FileWriter extends EventTarget {
-  FileWriter.internal(): super.internal();
+  FileWriter.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileWriterEvents get on =>
@@ -10895,6 +10639,7 @@ class FileWriterSync extends NativeFieldWrapperClass1 {
 
 /// @domName Float32Array
 class Float32Array extends ArrayBufferView implements List<num> {
+  Float32Array.internal() : super.internal();
 
   factory Float32Array(int length) =>
     _TypedArrayFactoryProvider.createFloat32Array(length);
@@ -10904,7 +10649,6 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
-  Float32Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 4;
 
@@ -11043,6 +10787,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
 /// @domName Float64Array
 class Float64Array extends ArrayBufferView implements List<num> {
+  Float64Array.internal() : super.internal();
 
   factory Float64Array(int length) =>
     _TypedArrayFactoryProvider.createFloat64Array(length);
@@ -11052,7 +10797,6 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
-  Float64Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 8;
 
@@ -11191,7 +10935,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
 /// @domName HTMLFontElement
 class FontElement extends _Element_Merged {
-  FontElement.internal(): super.internal();
+  FontElement.internal() : super.internal();
 
 
   /** @domName HTMLFontElement.color */
@@ -11227,15 +10971,16 @@ class FontElement extends _Element_Merged {
 
 /// @domName FormData
 class FormData extends NativeFieldWrapperClass1 {
+  FormData.internal();
 
   ///@docsEditable true
   factory FormData([FormElement form]) {
     if (!?form) {
-      return _FormDataFactoryProvider.createFormData();
+      return FormData._create();
     }
-    return _FormDataFactoryProvider.createFormData(form);
+    return FormData._create(form);
   }
-  FormData.internal();
+  static FormData _create([FormElement form]) native "DOMFormData_constructor_Callback";
 
 
   /** @domName DOMFormData.append */
@@ -11251,10 +10996,10 @@ class FormData extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLFormElement
 class FormElement extends _Element_Merged {
+  FormElement.internal() : super.internal();
 
   ///@docsEditable true
   factory FormElement() => document.$dom_createElement("form");
-  FormElement.internal(): super.internal();
 
 
   /** @domName HTMLFormElement.acceptCharset */
@@ -11354,11 +11099,11 @@ class FormElement extends _Element_Merged {
 
 /// @domName HTMLFrameElement
 class FrameElement extends _Element_Merged {
-  FrameElement.internal(): super.internal();
+  FrameElement.internal() : super.internal();
 
 
   /** @domName HTMLFrameElement.contentWindow */
-  Window get contentWindow native "HTMLFrameElement_contentWindow_Getter";
+  WindowBase get contentWindow native "HTMLFrameElement_contentWindow_Getter";
 
 
   /** @domName HTMLFrameElement.frameBorder */
@@ -11450,7 +11195,7 @@ class FrameElement extends _Element_Merged {
 
 /// @domName HTMLFrameSetElement
 class FrameSetElement extends _Element_Merged {
-  FrameSetElement.internal(): super.internal();
+  FrameSetElement.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FrameSetElementEvents get on =>
@@ -11603,42 +11348,10 @@ class Geoposition extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLHRElement
 class HRElement extends _Element_Merged {
+  HRElement.internal() : super.internal();
 
   ///@docsEditable true
   factory HRElement() => document.$dom_createElement("hr");
-  HRElement.internal(): super.internal();
-
-
-  /** @domName HTMLHRElement.align */
-  String get align native "HTMLHRElement_align_Getter";
-
-
-  /** @domName HTMLHRElement.align */
-  void set align(String value) native "HTMLHRElement_align_Setter";
-
-
-  /** @domName HTMLHRElement.noShade */
-  bool get noShade native "HTMLHRElement_noShade_Getter";
-
-
-  /** @domName HTMLHRElement.noShade */
-  void set noShade(bool value) native "HTMLHRElement_noShade_Setter";
-
-
-  /** @domName HTMLHRElement.size */
-  String get size native "HTMLHRElement_size_Getter";
-
-
-  /** @domName HTMLHRElement.size */
-  void set size(String value) native "HTMLHRElement_size_Setter";
-
-
-  /** @domName HTMLHRElement.width */
-  String get width native "HTMLHRElement_width_Getter";
-
-
-  /** @domName HTMLHRElement.width */
-  void set width(String value) native "HTMLHRElement_width_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11650,7 +11363,7 @@ class HRElement extends _Element_Merged {
 
 /// @domName HashChangeEvent
 class HashChangeEvent extends Event {
-  HashChangeEvent.internal(): super.internal();
+  HashChangeEvent.internal() : super.internal();
 
 
   /** @domName HashChangeEvent.newURL */
@@ -11674,18 +11387,10 @@ class HashChangeEvent extends Event {
 
 /// @domName HTMLHeadElement
 class HeadElement extends _Element_Merged {
+  HeadElement.internal() : super.internal();
 
   ///@docsEditable true
   factory HeadElement() => document.$dom_createElement("head");
-  HeadElement.internal(): super.internal();
-
-
-  /** @domName HTMLHeadElement.profile */
-  String get profile native "HTMLHeadElement_profile_Getter";
-
-
-  /** @domName HTMLHeadElement.profile */
-  void set profile(String value) native "HTMLHeadElement_profile_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11697,6 +11402,7 @@ class HeadElement extends _Element_Merged {
 
 /// @domName HTMLHeadingElement
 class HeadingElement extends _Element_Merged {
+  HeadingElement.internal() : super.internal();
 
   ///@docsEditable true
   factory HeadingElement.h1() => document.$dom_createElement("h1");
@@ -11715,16 +11421,63 @@ class HeadingElement extends _Element_Merged {
 
   ///@docsEditable true
   factory HeadingElement.h6() => document.$dom_createElement("h6");
-  HeadingElement.internal(): super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 
-  /** @domName HTMLHeadingElement.align */
-  String get align native "HTMLHeadingElement_align_Getter";
+/// @domName History; @docsEditable true
+class History extends NativeFieldWrapperClass1 implements HistoryBase {
+
+  /**
+   * Checks if the State APIs are supported on the current platform.
+   *
+   * See also:
+   *
+   * * [pushState]
+   * * [replaceState]
+   * * [state]
+   */
+  static bool get supportsState => true;
+  History.internal();
 
 
-  /** @domName HTMLHeadingElement.align */
-  void set align(String value) native "HTMLHeadingElement_align_Setter";
+  /** @domName History.length */
+  int get length native "History_length_Getter";
 
+
+  /** @domName History.state */
+  dynamic get state native "History_state_Getter";
+
+
+  /** @domName History.back */
+  void back() native "History_back_Callback";
+
+
+  /** @domName History.forward */
+  void forward() native "History_forward_Callback";
+
+
+  /** @domName History.go */
+  void go(int distance) native "History_go_Callback";
+
+
+  /** @domName History.pushState */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void pushState(Object data, String title, [String url]) native "History_pushState_Callback";
+
+
+  /** @domName History.replaceState */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void replaceState(Object data, String title, [String url]) native "History_replaceState_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11987,7 +11740,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
 /// @domName HTMLDocument
 class HtmlDocument extends Document {
-  HtmlDocument.internal(): super.internal();
+  HtmlDocument.internal() : super.internal();
 
 
   /** @domName HTMLDocument.activeElement */
@@ -12089,10 +11842,26 @@ class HtmlDocument extends Document {
 
 /// @domName HTMLHtmlElement
 class HtmlElement extends _Element_Merged {
+  HtmlElement.internal() : super.internal();
 
   ///@docsEditable true
   factory HtmlElement() => document.$dom_createElement("html");
-  HtmlElement.internal(): super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName HTMLFormControlsCollection
+class HtmlFormControlsCollection extends HtmlCollection {
+  HtmlFormControlsCollection.internal() : super.internal();
+
+
+  /** @domName HTMLFormControlsCollection.namedItem */
+  Node namedItem(String name) native "HTMLFormControlsCollection_namedItem_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12104,7 +11873,7 @@ class HtmlElement extends _Element_Merged {
 
 /// @domName HTMLOptionsCollection
 class HtmlOptionsCollection extends HtmlCollection {
-  HtmlOptionsCollection.internal(): super.internal();
+  HtmlOptionsCollection.internal() : super.internal();
 
 
   /** @domName HTMLOptionsCollection.length */
@@ -12125,6 +11894,10 @@ class HtmlOptionsCollection extends HtmlCollection {
 
   /** @domName HTMLOptionsCollection.numericIndexSetter */
   void operator[]=(int index, Node value) native "HTMLOptionsCollection_numericIndexSetter_Callback";
+
+
+  /** @domName HTMLOptionsCollection.namedItem */
+  Node namedItem(String name) native "HTMLOptionsCollection_namedItem_Callback";
 
 
   /** @domName HTMLOptionsCollection.remove */
@@ -12170,27 +11943,35 @@ class HttpRequest extends EventTarget {
    * [onComplete] callback.
    */
   factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
+      _HttpRequestUtils.get(url, onComplete, false);
 
+  // 80 char issue for comments in lists: dartbug.com/7588.
   /**
    * Creates a URL GET request for the specified `url` with
    * credentials such a cookie (already) set in the header or
-   * (authorization headers)[http://tools.ietf.org/html/rfc1945#section-10.2].
+   * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2).
    * 
    * After completing the request, the object will call the user-provided 
    * [onComplete] callback.
+   *
+   * A few other details to keep in mind when using credentials:
+   *
+   * * Using credentials is only useful for cross-origin requests.
+   * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
+   * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
+   * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
    * 
-   * See also: (authorization headers)[http://en.wikipedia.org/wiki/Basic_access_authentication].
+   * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   factory HttpRequest.getWithCredentials(String url,
       onComplete(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url,
-      onComplete);
+      _HttpRequestUtils.get(url, onComplete, true);
 
+  HttpRequest.internal() : super.internal();
 
   ///@docsEditable true
-  factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
-  HttpRequest.internal(): super.internal();
+  factory HttpRequest() => HttpRequest._create();
+  static HttpRequest _create() native "XMLHttpRequest_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestEvents get on =>
@@ -12359,7 +12140,7 @@ class HttpRequestException extends NativeFieldWrapperClass1 {
 
 /// @domName XMLHttpRequestProgressEvent
 class HttpRequestProgressEvent extends ProgressEvent {
-  HttpRequestProgressEvent.internal(): super.internal();
+  HttpRequestProgressEvent.internal() : super.internal();
 
 
   /** @domName XMLHttpRequestProgressEvent.position */
@@ -12379,7 +12160,7 @@ class HttpRequestProgressEvent extends ProgressEvent {
 
 /// @domName XMLHttpRequestUpload
 class HttpRequestUpload extends EventTarget {
-  HttpRequestUpload.internal(): super.internal();
+  HttpRequestUpload.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestUploadEvents get on =>
@@ -12431,30 +12212,14 @@ class HttpRequestUploadEvents extends Events {
 
 /// @domName HTMLIFrameElement
 class IFrameElement extends _Element_Merged {
+  IFrameElement.internal() : super.internal();
 
   ///@docsEditable true
   factory IFrameElement() => document.$dom_createElement("iframe");
-  IFrameElement.internal(): super.internal();
-
-
-  /** @domName HTMLIFrameElement.align */
-  String get align native "HTMLIFrameElement_align_Getter";
-
-
-  /** @domName HTMLIFrameElement.align */
-  void set align(String value) native "HTMLIFrameElement_align_Setter";
 
 
   /** @domName HTMLIFrameElement.contentWindow */
-  Window get contentWindow native "HTMLIFrameElement_contentWindow_Getter";
-
-
-  /** @domName HTMLIFrameElement.frameBorder */
-  String get frameBorder native "HTMLIFrameElement_frameBorder_Getter";
-
-
-  /** @domName HTMLIFrameElement.frameBorder */
-  void set frameBorder(String value) native "HTMLIFrameElement_frameBorder_Setter";
+  WindowBase get contentWindow native "HTMLIFrameElement_contentWindow_Getter";
 
 
   /** @domName HTMLIFrameElement.height */
@@ -12463,30 +12228,6 @@ class IFrameElement extends _Element_Merged {
 
   /** @domName HTMLIFrameElement.height */
   void set height(String value) native "HTMLIFrameElement_height_Setter";
-
-
-  /** @domName HTMLIFrameElement.longDesc */
-  String get longDesc native "HTMLIFrameElement_longDesc_Getter";
-
-
-  /** @domName HTMLIFrameElement.longDesc */
-  void set longDesc(String value) native "HTMLIFrameElement_longDesc_Setter";
-
-
-  /** @domName HTMLIFrameElement.marginHeight */
-  String get marginHeight native "HTMLIFrameElement_marginHeight_Getter";
-
-
-  /** @domName HTMLIFrameElement.marginHeight */
-  void set marginHeight(String value) native "HTMLIFrameElement_marginHeight_Setter";
-
-
-  /** @domName HTMLIFrameElement.marginWidth */
-  String get marginWidth native "HTMLIFrameElement_marginWidth_Getter";
-
-
-  /** @domName HTMLIFrameElement.marginWidth */
-  void set marginWidth(String value) native "HTMLIFrameElement_marginWidth_Setter";
 
 
   /** @domName HTMLIFrameElement.name */
@@ -12503,14 +12244,6 @@ class IFrameElement extends _Element_Merged {
 
   /** @domName HTMLIFrameElement.sandbox */
   void set sandbox(String value) native "HTMLIFrameElement_sandbox_Setter";
-
-
-  /** @domName HTMLIFrameElement.scrolling */
-  String get scrolling native "HTMLIFrameElement_scrolling_Getter";
-
-
-  /** @domName HTMLIFrameElement.scrolling */
-  void set scrolling(String value) native "HTMLIFrameElement_scrolling_Setter";
 
 
   /** @domName HTMLIFrameElement.src */
@@ -12535,37 +12268,6 @@ class IFrameElement extends _Element_Merged {
 
   /** @domName HTMLIFrameElement.width */
   void set width(String value) native "HTMLIFrameElement_width_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName IceCandidate
-class IceCandidate extends NativeFieldWrapperClass1 {
-
-  ///@docsEditable true
-  factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
-  IceCandidate.internal();
-
-
-  /** @domName IceCandidate.label */
-  String get label native "IceCandidate_label_Getter";
-
-
-  /** @domName IceCandidate.toSdp */
-  String toSdp() native "IceCandidate_toSdp_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12601,6 +12303,7 @@ class ImageData extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLImageElement
 class ImageElement extends _Element_Merged {
+  ImageElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ImageElement({String src, int width, int height}) {
@@ -12610,15 +12313,6 @@ class ImageElement extends _Element_Merged {
     if (height != null) e.height = height;
     return e;
   }
-  ImageElement.internal(): super.internal();
-
-
-  /** @domName HTMLImageElement.align */
-  String get align native "HTMLImageElement_align_Getter";
-
-
-  /** @domName HTMLImageElement.align */
-  void set align(String value) native "HTMLImageElement_align_Setter";
 
 
   /** @domName HTMLImageElement.alt */
@@ -12657,14 +12351,6 @@ class ImageElement extends _Element_Merged {
   void set height(int value) native "HTMLImageElement_height_Setter";
 
 
-  /** @domName HTMLImageElement.hspace */
-  int get hspace native "HTMLImageElement_hspace_Getter";
-
-
-  /** @domName HTMLImageElement.hspace */
-  void set hspace(int value) native "HTMLImageElement_hspace_Setter";
-
-
   /** @domName HTMLImageElement.isMap */
   bool get isMap native "HTMLImageElement_isMap_Getter";
 
@@ -12673,28 +12359,12 @@ class ImageElement extends _Element_Merged {
   void set isMap(bool value) native "HTMLImageElement_isMap_Setter";
 
 
-  /** @domName HTMLImageElement.longDesc */
-  String get longDesc native "HTMLImageElement_longDesc_Getter";
-
-
-  /** @domName HTMLImageElement.longDesc */
-  void set longDesc(String value) native "HTMLImageElement_longDesc_Setter";
-
-
   /** @domName HTMLImageElement.lowsrc */
   String get lowsrc native "HTMLImageElement_lowsrc_Getter";
 
 
   /** @domName HTMLImageElement.lowsrc */
   void set lowsrc(String value) native "HTMLImageElement_lowsrc_Setter";
-
-
-  /** @domName HTMLImageElement.name */
-  String get name native "HTMLImageElement_name_Getter";
-
-
-  /** @domName HTMLImageElement.name */
-  void set name(String value) native "HTMLImageElement_name_Setter";
 
 
   /** @domName HTMLImageElement.naturalHeight */
@@ -12719,14 +12389,6 @@ class ImageElement extends _Element_Merged {
 
   /** @domName HTMLImageElement.useMap */
   void set useMap(String value) native "HTMLImageElement_useMap_Setter";
-
-
-  /** @domName HTMLImageElement.vspace */
-  int get vspace native "HTMLImageElement_vspace_Getter";
-
-
-  /** @domName HTMLImageElement.vspace */
-  void set vspace(int value) native "HTMLImageElement_vspace_Setter";
 
 
   /** @domName HTMLImageElement.width */
@@ -12779,10 +12441,15 @@ class InputElement extends _Element_Merged implements
   ///@docsEditable true
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
-    if (type != null) e.type = type;
+    if (type != null) {
+      try {
+        // IE throws an exception for unknown types.
+        e.type = type;
+      } catch(_) {}
+    }
     return e;
   }
-  InputElement.internal(): super.internal();
+  InputElement.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   InputElementEvents get on =>
@@ -12795,14 +12462,6 @@ class InputElement extends _Element_Merged implements
 
   /** @domName HTMLInputElement.accept */
   void set accept(String value) native "HTMLInputElement_accept_Setter";
-
-
-  /** @domName HTMLInputElement.align */
-  String get align native "HTMLInputElement_align_Getter";
-
-
-  /** @domName HTMLInputElement.align */
-  void set align(String value) native "HTMLInputElement_align_Setter";
 
 
   /** @domName HTMLInputElement.alt */
@@ -13328,7 +12987,13 @@ abstract class TextInputElementBase implements InputElementBase {
 /**
  * Similar to [TextInputElement], but on platforms where search is styled
  * differently this will get the search style.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 abstract class SearchInputElement implements TextInputElementBase {
   factory SearchInputElement() => new InputElement(type: 'search');
 
@@ -13337,6 +13002,11 @@ abstract class SearchInputElement implements TextInputElementBase {
 
   /// @domName HTMLInputElement.list;
   Element get list;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'search')).type == 'search';
+  }
 }
 
 /**
@@ -13354,12 +13024,23 @@ abstract class TextInputElement implements TextInputElementBase {
 
 /**
  * A control for editing an absolute URL.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 abstract class UrlInputElement implements TextInputElementBase {
   factory UrlInputElement() => new InputElement(type: 'url');
 
   /// @domName HTMLInputElement.list;
   Element get list;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'url')).type == 'url';
+  }
 }
 
 /**
@@ -13367,17 +13048,34 @@ abstract class UrlInputElement implements TextInputElementBase {
  *
  * This provides a single line of text with minimal formatting help since
  * there is a wide variety of telephone numbers.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 abstract class TelephoneInputElement implements TextInputElementBase {
   factory TelephoneInputElement() => new InputElement(type: 'tel');
 
   /// @domName HTMLInputElement.list;
   Element get list;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'tel')).type == 'tel';
+  }
 }
 
 /**
  * An e-mail address or list of e-mail addresses.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 abstract class EmailInputElement implements TextInputElementBase {
   factory EmailInputElement() => new InputElement(type: 'email');
 
@@ -13410,6 +13108,11 @@ abstract class EmailInputElement implements TextInputElementBase {
 
   /// @domName HTMLInputElement.size
   int size;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'email')).type == 'email';
+  }
 }
 
 /**
@@ -13449,7 +13152,11 @@ abstract class RangeInputElementBase implements InputElementBase {
 /**
  * A date and time (year, month, day, hour, minute, second, fraction of a
  * second) with the time zone set to UTC.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 abstract class DateTimeInputElement implements RangeInputElementBase {
   factory DateTimeInputElement() => new InputElement(type: 'datetime');
 
@@ -13461,11 +13168,20 @@ abstract class DateTimeInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'datetime')).type == 'datetime';
+  }
 }
 
 /**
  * A date (year, month, day) with no time zone.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
@@ -13477,11 +13193,20 @@ abstract class DateInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'date')).type == 'date';
+  }
 }
 
 /**
  * A date consisting of a year and a month with no time zone.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
@@ -13493,11 +13218,20 @@ abstract class MonthInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'month')).type == 'month';
+  }
 }
 
 /**
  * A date consisting of a week-year number and a week number with no time zone.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
@@ -13509,11 +13243,20 @@ abstract class WeekInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'week')).type == 'week';
+  }
 }
 
 /**
  * A time (hour, minute, seconds, fractional seconds) with no time zone.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental()
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
@@ -13525,12 +13268,21 @@ abstract class TimeInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'time')).type == 'time';
+  }
 }
 
 /**
  * A date and time (year, month, day, hour, minute, second, fraction of a
  * second) with no time zone.
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
@@ -13540,11 +13292,20 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'datetime-local')).type == 'datetime-local';
+  }
 }
 
 /**
  * A numeric editor control.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 abstract class NumberInputElement implements RangeInputElementBase {
   factory NumberInputElement() => new InputElement(type: 'number');
 
@@ -13556,14 +13317,29 @@ abstract class NumberInputElement implements RangeInputElementBase {
 
   /// @domName HTMLInputElement.required
   bool required;
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'number')).type == 'number';
+  }
 }
 
 /**
  * Similar to [NumberInputElement] but the browser may provide more optimal
  * styling (such as a slider control).
+ *
+ * Use [supported] to check if this is supported on the current platform.
  */
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@Experimental()
 abstract class RangeInputElement implements RangeInputElementBase {
   factory RangeInputElement() => new InputElement(type: 'range');
+
+  /// Returns true if this input type is supported on the current platform.
+  static bool get supported {
+    return (new InputElement(type: 'range')).type == 'range';
+  }
 }
 
 /**
@@ -13712,6 +13488,7 @@ class InputElementEvents extends ElementEvents {
 
 /// @domName Int16Array
 class Int16Array extends ArrayBufferView implements List<int> {
+  Int16Array.internal() : super.internal();
 
   factory Int16Array(int length) =>
     _TypedArrayFactoryProvider.createInt16Array(length);
@@ -13721,7 +13498,6 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
-  Int16Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 2;
 
@@ -13860,6 +13636,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
 /// @domName Int32Array
 class Int32Array extends ArrayBufferView implements List<int> {
+  Int32Array.internal() : super.internal();
 
   factory Int32Array(int length) =>
     _TypedArrayFactoryProvider.createInt32Array(length);
@@ -13869,7 +13646,6 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
-  Int32Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 4;
 
@@ -14008,6 +13784,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
 /// @domName Int8Array
 class Int8Array extends ArrayBufferView implements List<int> {
+  Int8Array.internal() : super.internal();
 
   factory Int8Array(int length) =>
     _TypedArrayFactoryProvider.createInt8Array(length);
@@ -14017,7 +13794,6 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
-  Int8Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 1;
 
@@ -14237,7 +14013,7 @@ class KeyboardEvent extends UIEvent {
   
   /** @domName KeyboardEvent.charCode */
   int get charCode => $dom_charCode;
-  KeyboardEvent.internal(): super.internal();
+  KeyboardEvent.internal() : super.internal();
 
 
   /** @domName KeyboardEvent.altGraphKey */
@@ -14269,7 +14045,7 @@ class KeyboardEvent extends UIEvent {
 
 
   /** @domName KeyboardEvent.initKeyboardEvent */
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14280,11 +14056,19 @@ class KeyboardEvent extends UIEvent {
 
 
 /// @domName HTMLKeygenElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class KeygenElement extends _Element_Merged {
+  KeygenElement.internal() : super.internal();
 
   ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
-  KeygenElement.internal(): super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLKeygenElement.autofocus */
@@ -14368,10 +14152,10 @@ class KeygenElement extends _Element_Merged {
 
 /// @domName HTMLLIElement
 class LIElement extends _Element_Merged {
+  LIElement.internal() : super.internal();
 
   ///@docsEditable true
   factory LIElement() => document.$dom_createElement("li");
-  LIElement.internal(): super.internal();
 
 
   /** @domName HTMLLIElement.type */
@@ -14399,10 +14183,10 @@ class LIElement extends _Element_Merged {
 
 /// @domName HTMLLabelElement
 class LabelElement extends _Element_Merged {
+  LabelElement.internal() : super.internal();
 
   ///@docsEditable true
   factory LabelElement() => document.$dom_createElement("label");
-  LabelElement.internal(): super.internal();
 
 
   /** @domName HTMLLabelElement.control */
@@ -14430,10 +14214,10 @@ class LabelElement extends _Element_Merged {
 
 /// @domName HTMLLegendElement
 class LegendElement extends _Element_Merged {
+  LegendElement.internal() : super.internal();
 
   ///@docsEditable true
   factory LegendElement() => document.$dom_createElement("legend");
-  LegendElement.internal(): super.internal();
 
 
   /** @domName HTMLLegendElement.align */
@@ -14457,18 +14241,10 @@ class LegendElement extends _Element_Merged {
 
 /// @domName HTMLLinkElement
 class LinkElement extends _Element_Merged {
+  LinkElement.internal() : super.internal();
 
   ///@docsEditable true
   factory LinkElement() => document.$dom_createElement("link");
-  LinkElement.internal(): super.internal();
-
-
-  /** @domName HTMLLinkElement.charset */
-  String get charset native "HTMLLinkElement_charset_Getter";
-
-
-  /** @domName HTMLLinkElement.charset */
-  void set charset(String value) native "HTMLLinkElement_charset_Setter";
 
 
   /** @domName HTMLLinkElement.disabled */
@@ -14511,14 +14287,6 @@ class LinkElement extends _Element_Merged {
   void set rel(String value) native "HTMLLinkElement_rel_Setter";
 
 
-  /** @domName HTMLLinkElement.rev */
-  String get rev native "HTMLLinkElement_rev_Getter";
-
-
-  /** @domName HTMLLinkElement.rev */
-  void set rev(String value) native "HTMLLinkElement_rev_Setter";
-
-
   /** @domName HTMLLinkElement.sheet */
   StyleSheet get sheet native "HTMLLinkElement_sheet_Getter";
 
@@ -14529,14 +14297,6 @@ class LinkElement extends _Element_Merged {
 
   /** @domName HTMLLinkElement.sizes */
   void set sizes(DomSettableTokenList value) native "HTMLLinkElement_sizes_Setter";
-
-
-  /** @domName HTMLLinkElement.target */
-  String get target native "HTMLLinkElement_target_Getter";
-
-
-  /** @domName HTMLLinkElement.target */
-  void set target(String value) native "HTMLLinkElement_target_Setter";
 
 
   /** @domName HTMLLinkElement.type */
@@ -14554,37 +14314,13 @@ class LinkElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName History
-class LocalHistory extends NativeFieldWrapperClass1 implements History {
-  LocalHistory.internal();
+/// @domName LocalMediaStream
+class LocalMediaStream extends MediaStream implements EventTarget {
+  LocalMediaStream.internal() : super.internal();
 
 
-  /** @domName History.length */
-  int get length native "History_length_Getter";
-
-
-  /** @domName History.state */
-  dynamic get state native "History_state_Getter";
-
-
-  /** @domName History.back */
-  void back() native "History_back_Callback";
-
-
-  /** @domName History.forward */
-  void forward() native "History_forward_Callback";
-
-
-  /** @domName History.go */
-  void go(int distance) native "History_go_Callback";
-
-
-  /** @domName History.pushState */
-  void pushState(Object data, String title, [String url]) native "History_pushState_Callback";
-
-
-  /** @domName History.replaceState */
-  void replaceState(Object data, String title, [String url]) native "History_replaceState_Callback";
+  /** @domName LocalMediaStream.stop */
+  void stop() native "LocalMediaStream_stop_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14595,8 +14331,8 @@ class LocalHistory extends NativeFieldWrapperClass1 implements History {
 
 
 /// @domName Location
-class LocalLocation extends NativeFieldWrapperClass1 implements Location {
-  LocalLocation.internal();
+class Location extends NativeFieldWrapperClass1 implements LocationBase {
+  Location.internal();
 
 
   /** @domName Location.ancestorOrigins */
@@ -14694,668 +14430,12 @@ class LocalLocation extends NativeFieldWrapperClass1 implements Location {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName LocalMediaStream
-class LocalMediaStream extends MediaStream implements EventTarget {
-  LocalMediaStream.internal(): super.internal();
-
-
-  /** @domName LocalMediaStream.stop */
-  void stop() native "LocalMediaStream_stop_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Window
-class LocalWindow extends EventTarget implements Window {
-
-  /**
-   * Executes a [callback] after the next batch of browser layout measurements
-   * has completed or would have completed if any browser layout measurements
-   * had been scheduled.
-   */
-  void requestLayoutFrame(TimeoutHandler callback) {
-    _addMeasurementFrameCallback(callback);
-  }
-
-  /**
-   * Lookup a port by its [name].  Return null if no port is
-   * registered under [name].
-   */
-  lookupPort(String name) {
-    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
-    return _deserialize(port);
-  }
-
-  /**
-   * Register a [port] on this window under the given [name].  This
-   * port may be retrieved by any isolate (or JavaScript script)
-   * running in this window.
-   */
-  registerPort(String name, var port) {
-    var serialized = _serialize(port);
-    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
-  }
-
-  LocalWindow.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  LocalWindowEvents get on =>
-    new LocalWindowEvents(this);
-
-  static const int PERSISTENT = 1;
-
-  static const int TEMPORARY = 0;
-
-
-  /** @domName DOMWindow.applicationCache */
-  ApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
-
-
-  /** @domName DOMWindow.closed */
-  bool get closed native "DOMWindow_closed_Getter";
-
-
-  /** @domName DOMWindow.console */
-  Console get console native "DOMWindow_console_Getter";
-
-
-  /** @domName DOMWindow.crypto */
-  Crypto get crypto native "DOMWindow_crypto_Getter";
-
-
-  /** @domName DOMWindow.defaultStatus */
-  String get defaultStatus native "DOMWindow_defaultStatus_Getter";
-
-
-  /** @domName DOMWindow.defaultStatus */
-  void set defaultStatus(String value) native "DOMWindow_defaultStatus_Setter";
-
-
-  /** @domName DOMWindow.defaultstatus */
-  String get defaultstatus native "DOMWindow_defaultstatus_Getter";
-
-
-  /** @domName DOMWindow.defaultstatus */
-  void set defaultstatus(String value) native "DOMWindow_defaultstatus_Setter";
-
-
-  /** @domName DOMWindow.devicePixelRatio */
-  num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
-
-
-  /** @domName DOMWindow.document */
-  Document get document native "DOMWindow_document_Getter";
-
-
-  /** @domName DOMWindow.event */
-  Event get event native "DOMWindow_event_Getter";
-
-
-  /** @domName DOMWindow.history */
-  LocalHistory get history native "DOMWindow_history_Getter";
-
-
-  /** @domName DOMWindow.indexedDB */
-  IdbFactory get indexedDB native "DOMWindow_indexedDB_Getter";
-
-
-  /** @domName DOMWindow.innerHeight */
-  int get innerHeight native "DOMWindow_innerHeight_Getter";
-
-
-  /** @domName DOMWindow.innerWidth */
-  int get innerWidth native "DOMWindow_innerWidth_Getter";
-
-
-  /** @domName DOMWindow.localStorage */
-  Storage get localStorage native "DOMWindow_localStorage_Getter";
-
-
-  /** @domName DOMWindow.location */
-  LocalLocation get location native "DOMWindow_location_Getter";
-
-
-  /** @domName DOMWindow.location */
-  void set location(LocalLocation value) native "DOMWindow_location_Setter";
-
-
-  /** @domName DOMWindow.locationbar */
-  BarInfo get locationbar native "DOMWindow_locationbar_Getter";
-
-
-  /** @domName DOMWindow.menubar */
-  BarInfo get menubar native "DOMWindow_menubar_Getter";
-
-
-  /** @domName DOMWindow.name */
-  String get name native "DOMWindow_name_Getter";
-
-
-  /** @domName DOMWindow.name */
-  void set name(String value) native "DOMWindow_name_Setter";
-
-
-  /** @domName DOMWindow.navigator */
-  Navigator get navigator native "DOMWindow_navigator_Getter";
-
-
-  /** @domName DOMWindow.offscreenBuffering */
-  bool get offscreenBuffering native "DOMWindow_offscreenBuffering_Getter";
-
-
-  /** @domName DOMWindow.opener */
-  Window get opener native "DOMWindow_opener_Getter";
-
-
-  /** @domName DOMWindow.outerHeight */
-  int get outerHeight native "DOMWindow_outerHeight_Getter";
-
-
-  /** @domName DOMWindow.outerWidth */
-  int get outerWidth native "DOMWindow_outerWidth_Getter";
-
-
-  /** @domName DOMWindow.pagePopupController */
-  PagePopupController get pagePopupController native "DOMWindow_pagePopupController_Getter";
-
-
-  /** @domName DOMWindow.pageXOffset */
-  int get pageXOffset native "DOMWindow_pageXOffset_Getter";
-
-
-  /** @domName DOMWindow.pageYOffset */
-  int get pageYOffset native "DOMWindow_pageYOffset_Getter";
-
-
-  /** @domName DOMWindow.parent */
-  Window get parent native "DOMWindow_parent_Getter";
-
-
-  /** @domName DOMWindow.performance */
-  Performance get performance native "DOMWindow_performance_Getter";
-
-
-  /** @domName DOMWindow.personalbar */
-  BarInfo get personalbar native "DOMWindow_personalbar_Getter";
-
-
-  /** @domName DOMWindow.screen */
-  Screen get screen native "DOMWindow_screen_Getter";
-
-
-  /** @domName DOMWindow.screenLeft */
-  int get screenLeft native "DOMWindow_screenLeft_Getter";
-
-
-  /** @domName DOMWindow.screenTop */
-  int get screenTop native "DOMWindow_screenTop_Getter";
-
-
-  /** @domName DOMWindow.screenX */
-  int get screenX native "DOMWindow_screenX_Getter";
-
-
-  /** @domName DOMWindow.screenY */
-  int get screenY native "DOMWindow_screenY_Getter";
-
-
-  /** @domName DOMWindow.scrollX */
-  int get scrollX native "DOMWindow_scrollX_Getter";
-
-
-  /** @domName DOMWindow.scrollY */
-  int get scrollY native "DOMWindow_scrollY_Getter";
-
-
-  /** @domName DOMWindow.scrollbars */
-  BarInfo get scrollbars native "DOMWindow_scrollbars_Getter";
-
-
-  /** @domName DOMWindow.self */
-  Window get self native "DOMWindow_self_Getter";
-
-
-  /** @domName DOMWindow.sessionStorage */
-  Storage get sessionStorage native "DOMWindow_sessionStorage_Getter";
-
-
-  /** @domName DOMWindow.status */
-  String get status native "DOMWindow_status_Getter";
-
-
-  /** @domName DOMWindow.status */
-  void set status(String value) native "DOMWindow_status_Setter";
-
-
-  /** @domName DOMWindow.statusbar */
-  BarInfo get statusbar native "DOMWindow_statusbar_Getter";
-
-
-  /** @domName DOMWindow.styleMedia */
-  StyleMedia get styleMedia native "DOMWindow_styleMedia_Getter";
-
-
-  /** @domName DOMWindow.toolbar */
-  BarInfo get toolbar native "DOMWindow_toolbar_Getter";
-
-
-  /** @domName DOMWindow.top */
-  Window get top native "DOMWindow_top_Getter";
-
-
-  /** @domName DOMWindow.webkitNotifications */
-  NotificationCenter get webkitNotifications native "DOMWindow_webkitNotifications_Getter";
-
-
-  /** @domName DOMWindow.webkitStorageInfo */
-  StorageInfo get webkitStorageInfo native "DOMWindow_webkitStorageInfo_Getter";
-
-
-  /** @domName DOMWindow.window */
-  Window get window native "DOMWindow_window_Getter";
-
-
-  /** @domName DOMWindow.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_addEventListener_Callback";
-
-
-  /** @domName DOMWindow.alert */
-  void alert(String message) native "DOMWindow_alert_Callback";
-
-
-  /** @domName DOMWindow.atob */
-  String atob(String string) native "DOMWindow_atob_Callback";
-
-
-  /** @domName DOMWindow.btoa */
-  String btoa(String string) native "DOMWindow_btoa_Callback";
-
-
-  /** @domName DOMWindow.cancelAnimationFrame */
-  void cancelAnimationFrame(int id) native "DOMWindow_cancelAnimationFrame_Callback";
-
-
-  /** @domName DOMWindow.captureEvents */
-  void captureEvents() native "DOMWindow_captureEvents_Callback";
-
-
-  /** @domName DOMWindow.clearInterval */
-  void clearInterval(int handle) native "DOMWindow_clearInterval_Callback";
-
-
-  /** @domName DOMWindow.clearTimeout */
-  void clearTimeout(int handle) native "DOMWindow_clearTimeout_Callback";
-
-
-  /** @domName DOMWindow.close */
-  void close() native "DOMWindow_close_Callback";
-
-
-  /** @domName DOMWindow.confirm */
-  bool confirm(String message) native "DOMWindow_confirm_Callback";
-
-
-  /** @domName DOMWindow.dispatchEvent */
-  bool $dom_dispatchEvent(Event evt) native "DOMWindow_dispatchEvent_Callback";
-
-
-  /** @domName DOMWindow.find */
-  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
-
-
-  /** @domName DOMWindow.getComputedStyle */
-  CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
-
-
-  /** @domName DOMWindow.getMatchedCSSRules */
-  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
-
-
-  /** @domName DOMWindow.getSelection */
-  DomSelection getSelection() native "DOMWindow_getSelection_Callback";
-
-
-  /** @domName DOMWindow.matchMedia */
-  MediaQueryList matchMedia(String query) native "DOMWindow_matchMedia_Callback";
-
-
-  /** @domName DOMWindow.moveBy */
-  void moveBy(num x, num y) native "DOMWindow_moveBy_Callback";
-
-
-  /** @domName DOMWindow.moveTo */
-  void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
-
-
-  /** @domName DOMWindow.open */
-  Window open(String url, String name, [String options]) native "DOMWindow_open_Callback";
-
-
-  /** @domName DOMWindow.openDatabase */
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
-
-
-  /** @domName DOMWindow.postMessage */
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
-
-
-  /** @domName DOMWindow.print */
-  void print() native "DOMWindow_print_Callback";
-
-
-  /** @domName DOMWindow.releaseEvents */
-  void releaseEvents() native "DOMWindow_releaseEvents_Callback";
-
-
-  /** @domName DOMWindow.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_removeEventListener_Callback";
-
-
-  /** @domName DOMWindow.requestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_requestAnimationFrame_Callback";
-
-
-  /** @domName DOMWindow.resizeBy */
-  void resizeBy(num x, num y) native "DOMWindow_resizeBy_Callback";
-
-
-  /** @domName DOMWindow.resizeTo */
-  void resizeTo(num width, num height) native "DOMWindow_resizeTo_Callback";
-
-
-  /** @domName DOMWindow.scroll */
-  void scroll(int x, int y) native "DOMWindow_scroll_Callback";
-
-
-  /** @domName DOMWindow.scrollBy */
-  void scrollBy(int x, int y) native "DOMWindow_scrollBy_Callback";
-
-
-  /** @domName DOMWindow.scrollTo */
-  void scrollTo(int x, int y) native "DOMWindow_scrollTo_Callback";
-
-
-  /** @domName DOMWindow.setInterval */
-  int setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
-
-
-  /** @domName DOMWindow.setTimeout */
-  int setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
-
-
-  /** @domName DOMWindow.showModalDialog */
-  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native "DOMWindow_showModalDialog_Callback";
-
-
-  /** @domName DOMWindow.stop */
-  void stop() native "DOMWindow_stop_Callback";
-
-
-  /** @domName DOMWindow.webkitCancelAnimationFrame */
-  void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
-
-
-  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
-  Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
-
-
-  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
-  Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
-
-
-  /** @domName DOMWindow.webkitRequestAnimationFrame */
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
-
-
-  /** @domName DOMWindow.webkitRequestFileSystem */
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
-
-
-  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
-  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
-
-}
-
-/// @docsEditable true
-class LocalWindowEvents extends Events {
-  /// @docsEditable true
-  LocalWindowEvents(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get abort => this['abort'];
-
-  /// @docsEditable true
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  /// @docsEditable true
-  EventListenerList get blur => this['blur'];
-
-  /// @docsEditable true
-  EventListenerList get canPlay => this['canplay'];
-
-  /// @docsEditable true
-  EventListenerList get canPlayThrough => this['canplaythrough'];
-
-  /// @docsEditable true
-  EventListenerList get change => this['change'];
-
-  /// @docsEditable true
-  EventListenerList get click => this['click'];
-
-  /// @docsEditable true
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  /// @docsEditable true
-  EventListenerList get doubleClick => this['dblclick'];
-
-  /// @docsEditable true
-  EventListenerList get deviceMotion => this['devicemotion'];
-
-  /// @docsEditable true
-  EventListenerList get deviceOrientation => this['deviceorientation'];
-
-  /// @docsEditable true
-  EventListenerList get drag => this['drag'];
-
-  /// @docsEditable true
-  EventListenerList get dragEnd => this['dragend'];
-
-  /// @docsEditable true
-  EventListenerList get dragEnter => this['dragenter'];
-
-  /// @docsEditable true
-  EventListenerList get dragLeave => this['dragleave'];
-
-  /// @docsEditable true
-  EventListenerList get dragOver => this['dragover'];
-
-  /// @docsEditable true
-  EventListenerList get dragStart => this['dragstart'];
-
-  /// @docsEditable true
-  EventListenerList get drop => this['drop'];
-
-  /// @docsEditable true
-  EventListenerList get durationChange => this['durationchange'];
-
-  /// @docsEditable true
-  EventListenerList get emptied => this['emptied'];
-
-  /// @docsEditable true
-  EventListenerList get ended => this['ended'];
-
-  /// @docsEditable true
-  EventListenerList get error => this['error'];
-
-  /// @docsEditable true
-  EventListenerList get focus => this['focus'];
-
-  /// @docsEditable true
-  EventListenerList get hashChange => this['hashchange'];
-
-  /// @docsEditable true
-  EventListenerList get input => this['input'];
-
-  /// @docsEditable true
-  EventListenerList get invalid => this['invalid'];
-
-  /// @docsEditable true
-  EventListenerList get keyDown => this['keydown'];
-
-  /// @docsEditable true
-  EventListenerList get keyPress => this['keypress'];
-
-  /// @docsEditable true
-  EventListenerList get keyUp => this['keyup'];
-
-  /// @docsEditable true
-  EventListenerList get load => this['load'];
-
-  /// @docsEditable true
-  EventListenerList get loadedData => this['loadeddata'];
-
-  /// @docsEditable true
-  EventListenerList get loadedMetadata => this['loadedmetadata'];
-
-  /// @docsEditable true
-  EventListenerList get loadStart => this['loadstart'];
-
-  /// @docsEditable true
-  EventListenerList get message => this['message'];
-
-  /// @docsEditable true
-  EventListenerList get mouseDown => this['mousedown'];
-
-  /// @docsEditable true
-  EventListenerList get mouseMove => this['mousemove'];
-
-  /// @docsEditable true
-  EventListenerList get mouseOut => this['mouseout'];
-
-  /// @docsEditable true
-  EventListenerList get mouseOver => this['mouseover'];
-
-  /// @docsEditable true
-  EventListenerList get mouseUp => this['mouseup'];
-
-  /// @docsEditable true
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  /// @docsEditable true
-  EventListenerList get offline => this['offline'];
-
-  /// @docsEditable true
-  EventListenerList get online => this['online'];
-
-  /// @docsEditable true
-  EventListenerList get pageHide => this['pagehide'];
-
-  /// @docsEditable true
-  EventListenerList get pageShow => this['pageshow'];
-
-  /// @docsEditable true
-  EventListenerList get pause => this['pause'];
-
-  /// @docsEditable true
-  EventListenerList get play => this['play'];
-
-  /// @docsEditable true
-  EventListenerList get playing => this['playing'];
-
-  /// @docsEditable true
-  EventListenerList get popState => this['popstate'];
-
-  /// @docsEditable true
-  EventListenerList get progress => this['progress'];
-
-  /// @docsEditable true
-  EventListenerList get rateChange => this['ratechange'];
-
-  /// @docsEditable true
-  EventListenerList get reset => this['reset'];
-
-  /// @docsEditable true
-  EventListenerList get resize => this['resize'];
-
-  /// @docsEditable true
-  EventListenerList get scroll => this['scroll'];
-
-  /// @docsEditable true
-  EventListenerList get search => this['search'];
-
-  /// @docsEditable true
-  EventListenerList get seeked => this['seeked'];
-
-  /// @docsEditable true
-  EventListenerList get seeking => this['seeking'];
-
-  /// @docsEditable true
-  EventListenerList get select => this['select'];
-
-  /// @docsEditable true
-  EventListenerList get stalled => this['stalled'];
-
-  /// @docsEditable true
-  EventListenerList get storage => this['storage'];
-
-  /// @docsEditable true
-  EventListenerList get submit => this['submit'];
-
-  /// @docsEditable true
-  EventListenerList get suspend => this['suspend'];
-
-  /// @docsEditable true
-  EventListenerList get timeUpdate => this['timeupdate'];
-
-  /// @docsEditable true
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  /// @docsEditable true
-  EventListenerList get touchEnd => this['touchend'];
-
-  /// @docsEditable true
-  EventListenerList get touchMove => this['touchmove'];
-
-  /// @docsEditable true
-  EventListenerList get touchStart => this['touchstart'];
-
-  /// @docsEditable true
-  EventListenerList get unload => this['unload'];
-
-  /// @docsEditable true
-  EventListenerList get volumeChange => this['volumechange'];
-
-  /// @docsEditable true
-  EventListenerList get waiting => this['waiting'];
-
-  /// @docsEditable true
-  EventListenerList get animationEnd => this['webkitAnimationEnd'];
-
-  /// @docsEditable true
-  EventListenerList get animationIteration => this['webkitAnimationIteration'];
-
-  /// @docsEditable true
-  EventListenerList get animationStart => this['webkitAnimationStart'];
-
-  /// @docsEditable true
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName HTMLMapElement
 class MapElement extends _Element_Merged {
+  MapElement.internal() : super.internal();
 
   ///@docsEditable true
   factory MapElement() => document.$dom_createElement("map");
-  MapElement.internal(): super.internal();
 
 
   /** @domName HTMLMapElement.areas */
@@ -15379,7 +14459,12 @@ class MapElement extends _Element_Merged {
 
 /// @domName HTMLMarqueeElement
 class MarqueeElement extends _Element_Merged {
-  MarqueeElement.internal(): super.internal();
+  MarqueeElement.internal() : super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLMarqueeElement.behavior */
@@ -15487,10 +14572,11 @@ class MarqueeElement extends _Element_Merged {
 
 /// @domName MediaController
 class MediaController extends EventTarget {
+  MediaController.internal() : super.internal();
 
   ///@docsEditable true
-  factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
-  MediaController.internal(): super.internal();
+  factory MediaController() => MediaController._create();
+  static MediaController _create() native "MediaController_constructor_Callback";
 
 
   /** @domName MediaController.buffered */
@@ -15537,6 +14623,10 @@ class MediaController extends EventTarget {
   void set playbackRate(num value) native "MediaController_playbackRate_Setter";
 
 
+  /** @domName MediaController.playbackState */
+  String get playbackState native "MediaController_playbackState_Getter";
+
+
   /** @domName MediaController.played */
   TimeRanges get played native "MediaController_played_Getter";
 
@@ -15572,6 +14662,10 @@ class MediaController extends EventTarget {
   /** @domName MediaController.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_removeEventListener_Callback";
 
+
+  /** @domName MediaController.unpause */
+  void unpause() native "MediaController_unpause_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15582,7 +14676,7 @@ class MediaController extends EventTarget {
 
 /// @domName HTMLMediaElement
 class MediaElement extends _Element_Merged {
-  MediaElement.internal(): super.internal();
+  MediaElement.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaElementEvents get on =>
@@ -16013,7 +15107,7 @@ class MediaKeyError extends NativeFieldWrapperClass1 {
 
 /// @domName MediaKeyEvent
 class MediaKeyEvent extends Event {
-  MediaKeyEvent.internal(): super.internal();
+  MediaKeyEvent.internal() : super.internal();
 
 
   /** @domName MediaKeyEvent.defaultURL */
@@ -16133,10 +15227,11 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 
 /// @domName MediaSource
 class MediaSource extends EventTarget {
+  MediaSource.internal() : super.internal();
 
   ///@docsEditable true
-  factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
-  MediaSource.internal(): super.internal();
+  factory MediaSource() => MediaSource._create();
+  static MediaSource _create() native "MediaSource_constructor_Callback";
 
 
   /** @domName MediaSource.activeSourceBuffers */
@@ -16192,10 +15287,11 @@ class MediaSource extends EventTarget {
 
 /// @domName MediaStream
 class MediaStream extends EventTarget {
+  MediaStream.internal() : super.internal();
 
   ///@docsEditable true
-  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
-  MediaStream.internal(): super.internal();
+  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => MediaStream._create(audioTracks, videoTracks);
+  static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native "MediaStream_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamEvents get on =>
@@ -16252,7 +15348,7 @@ class MediaStreamEvents extends Events {
 
 /// @domName MediaStreamEvent
 class MediaStreamEvent extends Event {
-  MediaStreamEvent.internal(): super.internal();
+  MediaStreamEvent.internal() : super.internal();
 
 
   /** @domName MediaStreamEvent.stream */
@@ -16268,7 +15364,7 @@ class MediaStreamEvent extends Event {
 
 /// @domName MediaStreamTrack
 class MediaStreamTrack extends EventTarget {
-  MediaStreamTrack.internal(): super.internal();
+  MediaStreamTrack.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackEvents get on =>
@@ -16337,7 +15433,7 @@ class MediaStreamTrackEvents extends Events {
 
 /// @domName MediaStreamTrackEvent
 class MediaStreamTrackEvent extends Event {
-  MediaStreamTrackEvent.internal(): super.internal();
+  MediaStreamTrackEvent.internal() : super.internal();
 
 
   /** @domName MediaStreamTrackEvent.track */
@@ -16353,7 +15449,7 @@ class MediaStreamTrackEvent extends Event {
 
 /// @domName MediaStreamTrackList
 class MediaStreamTrackList extends EventTarget {
-  MediaStreamTrackList.internal(): super.internal();
+  MediaStreamTrackList.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackListEvents get on =>
@@ -16433,10 +15529,10 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLMenuElement
 class MenuElement extends _Element_Merged {
+  MenuElement.internal() : super.internal();
 
   ///@docsEditable true
   factory MenuElement() => document.$dom_createElement("menu");
-  MenuElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16448,10 +15544,11 @@ class MenuElement extends _Element_Merged {
 
 /// @domName MessageChannel
 class MessageChannel extends NativeFieldWrapperClass1 {
+  MessageChannel.internal();
 
   ///@docsEditable true
-  factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
-  MessageChannel.internal();
+  factory MessageChannel() => MessageChannel._create();
+  static MessageChannel _create() native "MessageChannel_constructor_Callback";
 
 
   /** @domName MessageChannel.port1 */
@@ -16471,7 +15568,7 @@ class MessageChannel extends NativeFieldWrapperClass1 {
 
 /// @domName MessageEvent
 class MessageEvent extends Event {
-  MessageEvent.internal(): super.internal();
+  MessageEvent.internal() : super.internal();
 
 
   /** @domName MessageEvent.data */
@@ -16491,15 +15588,15 @@ class MessageEvent extends Event {
 
 
   /** @domName MessageEvent.source */
-  Window get source native "MessageEvent_source_Getter";
+  WindowBase get source native "MessageEvent_source_Getter";
 
 
   /** @domName MessageEvent.initMessageEvent */
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
 
 
   /** @domName MessageEvent.webkitInitMessageEvent */
-  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List transferables) native "MessageEvent_webkitInitMessageEvent_Callback";
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) native "MessageEvent_webkitInitMessageEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16511,7 +15608,7 @@ class MessageEvent extends Event {
 
 /// @domName MessagePort
 class MessagePort extends EventTarget {
-  MessagePort.internal(): super.internal();
+  MessagePort.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MessagePortEvents get on =>
@@ -16560,7 +15657,7 @@ class MessagePortEvents extends Events {
 
 /// @domName HTMLMetaElement
 class MetaElement extends _Element_Merged {
-  MetaElement.internal(): super.internal();
+  MetaElement.internal() : super.internal();
 
 
   /** @domName HTMLMetaElement.content */
@@ -16585,14 +15682,6 @@ class MetaElement extends _Element_Merged {
 
   /** @domName HTMLMetaElement.name */
   void set name(String value) native "HTMLMetaElement_name_Setter";
-
-
-  /** @domName HTMLMetaElement.scheme */
-  String get scheme native "HTMLMetaElement_scheme_Getter";
-
-
-  /** @domName HTMLMetaElement.scheme */
-  void set scheme(String value) native "HTMLMetaElement_scheme_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16631,11 +15720,19 @@ typedef void MetadataCallback(Metadata metadata);
 
 
 /// @domName HTMLMeterElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class MeterElement extends _Element_Merged {
+  MeterElement.internal() : super.internal();
 
   ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
-  MeterElement.internal(): super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLMeterElement.high */
@@ -16699,7 +15796,7 @@ class MeterElement extends _Element_Merged {
 
 /// @domName HTMLModElement
 class ModElement extends _Element_Merged {
-  ModElement.internal(): super.internal();
+  ModElement.internal() : super.internal();
 
 
   /** @domName HTMLModElement.cite */
@@ -16737,7 +15834,7 @@ class MouseEvent extends UIEvent {
           clientX, clientY, button, canBubble, cancelable,
           ctrlKey, altKey, shiftKey, metaKey,
           relatedTarget);
-  MouseEvent.internal(): super.internal();
+  MouseEvent.internal() : super.internal();
 
 
   /** @domName MouseEvent.altKey */
@@ -16817,7 +15914,7 @@ class MouseEvent extends UIEvent {
 
 
   /** @domName MouseEvent.initMouseEvent */
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16837,7 +15934,7 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 
 /// @domName MutationEvent
 class MutationEvent extends Event {
-  MutationEvent.internal(): super.internal();
+  MutationEvent.internal() : super.internal();
 
   static const int ADDITION = 2;
 
@@ -16876,11 +15973,16 @@ class MutationEvent extends Event {
 
 
 /// @domName MutationObserver
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class MutationObserver extends NativeFieldWrapperClass1 {
+  MutationObserver.internal();
 
   ///@docsEditable true
-  factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
-  MutationObserver.internal();
+  factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
+  static MutationObserver _create(MutationCallback callback) native "MutationObserver_constructor_Callback";
 
 
   /** @domName MutationObserver.disconnect */
@@ -16893,6 +15995,14 @@ class MutationObserver extends NativeFieldWrapperClass1 {
 
   /** @domName MutationObserver.takeRecords */
   List<MutationRecord> takeRecords() native "MutationObserver_takeRecords_Callback";
+
+  /**
+   * Checks to see if the mutation observer API is supported on the current
+   * platform.
+   */
+  static bool get supported {
+    return true;
+  }
 
   void observe(Node target,
                {Map options,
@@ -17443,7 +16553,7 @@ class Node extends EventTarget {
     return this;
   }
 
-  Node.internal(): super.internal();
+  Node.internal() : super.internal();
 
   static const int ATTRIBUTE_NODE = 2;
 
@@ -17803,7 +16913,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
 /// @domName Notation
 class Notation extends Node {
-  Notation.internal(): super.internal();
+  Notation.internal() : super.internal();
 
 
   /** @domName Notation.publicId */
@@ -17823,15 +16933,16 @@ class Notation extends Node {
 
 /// @domName Notification
 class Notification extends EventTarget {
+  Notification.internal() : super.internal();
 
   ///@docsEditable true
   factory Notification(String title, [Map options]) {
     if (!?options) {
-      return _NotificationFactoryProvider.createNotification(title);
+      return Notification._create(title);
     }
-    return _NotificationFactoryProvider.createNotification(title, options);
+    return Notification._create(title, options);
   }
-  Notification.internal(): super.internal();
+  static Notification _create(String title, [Map options]) native "Notification_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   NotificationEvents get on =>
@@ -17960,18 +17071,10 @@ typedef void NotificationPermissionCallback(String permission);
 
 /// @domName HTMLOListElement
 class OListElement extends _Element_Merged {
+  OListElement.internal() : super.internal();
 
   ///@docsEditable true
   factory OListElement() => document.$dom_createElement("ol");
-  OListElement.internal(): super.internal();
-
-
-  /** @domName HTMLOListElement.compact */
-  bool get compact native "HTMLOListElement_compact_Getter";
-
-
-  /** @domName HTMLOListElement.compact */
-  void set compact(bool value) native "HTMLOListElement_compact_Setter";
 
 
   /** @domName HTMLOListElement.reversed */
@@ -18006,35 +17109,19 @@ class OListElement extends _Element_Merged {
 
 
 /// @domName HTMLObjectElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ObjectElement extends _Element_Merged {
+  ObjectElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
-  ObjectElement.internal(): super.internal();
 
-
-  /** @domName HTMLObjectElement.align */
-  String get align native "HTMLObjectElement_align_Getter";
-
-
-  /** @domName HTMLObjectElement.align */
-  void set align(String value) native "HTMLObjectElement_align_Setter";
-
-
-  /** @domName HTMLObjectElement.archive */
-  String get archive native "HTMLObjectElement_archive_Getter";
-
-
-  /** @domName HTMLObjectElement.archive */
-  void set archive(String value) native "HTMLObjectElement_archive_Setter";
-
-
-  /** @domName HTMLObjectElement.border */
-  String get border native "HTMLObjectElement_border_Getter";
-
-
-  /** @domName HTMLObjectElement.border */
-  void set border(String value) native "HTMLObjectElement_border_Setter";
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLObjectElement.code */
@@ -18045,36 +17132,12 @@ class ObjectElement extends _Element_Merged {
   void set code(String value) native "HTMLObjectElement_code_Setter";
 
 
-  /** @domName HTMLObjectElement.codeBase */
-  String get codeBase native "HTMLObjectElement_codeBase_Getter";
-
-
-  /** @domName HTMLObjectElement.codeBase */
-  void set codeBase(String value) native "HTMLObjectElement_codeBase_Setter";
-
-
-  /** @domName HTMLObjectElement.codeType */
-  String get codeType native "HTMLObjectElement_codeType_Getter";
-
-
-  /** @domName HTMLObjectElement.codeType */
-  void set codeType(String value) native "HTMLObjectElement_codeType_Setter";
-
-
   /** @domName HTMLObjectElement.data */
   String get data native "HTMLObjectElement_data_Getter";
 
 
   /** @domName HTMLObjectElement.data */
   void set data(String value) native "HTMLObjectElement_data_Setter";
-
-
-  /** @domName HTMLObjectElement.declare */
-  bool get declare native "HTMLObjectElement_declare_Getter";
-
-
-  /** @domName HTMLObjectElement.declare */
-  void set declare(bool value) native "HTMLObjectElement_declare_Setter";
 
 
   /** @domName HTMLObjectElement.form */
@@ -18089,28 +17152,12 @@ class ObjectElement extends _Element_Merged {
   void set height(String value) native "HTMLObjectElement_height_Setter";
 
 
-  /** @domName HTMLObjectElement.hspace */
-  int get hspace native "HTMLObjectElement_hspace_Getter";
-
-
-  /** @domName HTMLObjectElement.hspace */
-  void set hspace(int value) native "HTMLObjectElement_hspace_Setter";
-
-
   /** @domName HTMLObjectElement.name */
   String get name native "HTMLObjectElement_name_Getter";
 
 
   /** @domName HTMLObjectElement.name */
   void set name(String value) native "HTMLObjectElement_name_Setter";
-
-
-  /** @domName HTMLObjectElement.standby */
-  String get standby native "HTMLObjectElement_standby_Getter";
-
-
-  /** @domName HTMLObjectElement.standby */
-  void set standby(String value) native "HTMLObjectElement_standby_Setter";
 
 
   /** @domName HTMLObjectElement.type */
@@ -18135,14 +17182,6 @@ class ObjectElement extends _Element_Merged {
 
   /** @domName HTMLObjectElement.validity */
   ValidityState get validity native "HTMLObjectElement_validity_Getter";
-
-
-  /** @domName HTMLObjectElement.vspace */
-  int get vspace native "HTMLObjectElement_vspace_Getter";
-
-
-  /** @domName HTMLObjectElement.vspace */
-  void set vspace(int value) native "HTMLObjectElement_vspace_Setter";
 
 
   /** @domName HTMLObjectElement.width */
@@ -18242,10 +17281,10 @@ class OesVertexArrayObject extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLOptGroupElement
 class OptGroupElement extends _Element_Merged {
+  OptGroupElement.internal() : super.internal();
 
   ///@docsEditable true
   factory OptGroupElement() => document.$dom_createElement("optgroup");
-  OptGroupElement.internal(): super.internal();
 
 
   /** @domName HTMLOptGroupElement.disabled */
@@ -18273,24 +17312,25 @@ class OptGroupElement extends _Element_Merged {
 
 /// @domName HTMLOptionElement
 class OptionElement extends _Element_Merged {
+  OptionElement.internal() : super.internal();
 
   ///@docsEditable true
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (!?data) {
-      return _OptionElementFactoryProvider.createOptionElement();
+      return OptionElement._create();
     }
     if (!?value) {
-      return _OptionElementFactoryProvider.createOptionElement(data);
+      return OptionElement._create(data);
     }
     if (!?defaultSelected) {
-      return _OptionElementFactoryProvider.createOptionElement(data, value);
+      return OptionElement._create(data, value);
     }
     if (!?selected) {
-      return _OptionElementFactoryProvider.createOptionElement(data, value, defaultSelected);
+      return OptionElement._create(data, value, defaultSelected);
     }
-    return _OptionElementFactoryProvider.createOptionElement(data, value, defaultSelected, selected);
+    return OptionElement._create(data, value, defaultSelected, selected);
   }
-  OptionElement.internal(): super.internal();
+  static OptionElement _create([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
 
 
   /** @domName HTMLOptionElement.defaultSelected */
@@ -18349,11 +17389,19 @@ class OptionElement extends _Element_Merged {
 
 
 /// @domName HTMLOutputElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class OutputElement extends _Element_Merged {
+  OutputElement.internal() : super.internal();
 
   ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
-  OutputElement.internal(): super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLOutputElement.defaultValue */
@@ -18429,7 +17477,7 @@ class OutputElement extends _Element_Merged {
 
 /// @domName OverflowEvent
 class OverflowEvent extends Event {
-  OverflowEvent.internal(): super.internal();
+  OverflowEvent.internal() : super.internal();
 
   static const int BOTH = 2;
 
@@ -18462,6 +17510,14 @@ class PagePopupController extends NativeFieldWrapperClass1 {
   PagePopupController.internal();
 
 
+  /** @domName PagePopupController.formatMonth */
+  String formatMonth(int year, int zeroBaseMonth) native "PagePopupController_formatMonth_Callback";
+
+
+  /** @domName PagePopupController.histogramEnumeration */
+  void histogramEnumeration(String name, int sample, int boundaryValue) native "PagePopupController_histogramEnumeration_Callback";
+
+
   /** @domName PagePopupController.localizeNumberString */
   String localizeNumberString(String numberString) native "PagePopupController_localizeNumberString_Callback";
 
@@ -18479,7 +17535,7 @@ class PagePopupController extends NativeFieldWrapperClass1 {
 
 /// @domName PageTransitionEvent
 class PageTransitionEvent extends Event {
-  PageTransitionEvent.internal(): super.internal();
+  PageTransitionEvent.internal() : super.internal();
 
 
   /** @domName PageTransitionEvent.persisted */
@@ -18495,18 +17551,10 @@ class PageTransitionEvent extends Event {
 
 /// @domName HTMLParagraphElement
 class ParagraphElement extends _Element_Merged {
+  ParagraphElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ParagraphElement() => document.$dom_createElement("p");
-  ParagraphElement.internal(): super.internal();
-
-
-  /** @domName HTMLParagraphElement.align */
-  String get align native "HTMLParagraphElement_align_Getter";
-
-
-  /** @domName HTMLParagraphElement.align */
-  void set align(String value) native "HTMLParagraphElement_align_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18518,10 +17566,10 @@ class ParagraphElement extends _Element_Merged {
 
 /// @domName HTMLParamElement
 class ParamElement extends _Element_Merged {
+  ParamElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ParamElement() => document.$dom_createElement("param");
-  ParamElement.internal(): super.internal();
 
 
   /** @domName HTMLParamElement.name */
@@ -18532,14 +17580,6 @@ class ParamElement extends _Element_Merged {
   void set name(String value) native "HTMLParamElement_name_Setter";
 
 
-  /** @domName HTMLParamElement.type */
-  String get type native "HTMLParamElement_type_Getter";
-
-
-  /** @domName HTMLParamElement.type */
-  void set type(String value) native "HTMLParamElement_type_Setter";
-
-
   /** @domName HTMLParamElement.value */
   String get value native "HTMLParamElement_value_Getter";
 
@@ -18547,154 +17587,6 @@ class ParamElement extends _Element_Merged {
   /** @domName HTMLParamElement.value */
   void set value(String value) native "HTMLParamElement_value_Setter";
 
-
-  /** @domName HTMLParamElement.valueType */
-  String get valueType native "HTMLParamElement_valueType_Getter";
-
-
-  /** @domName HTMLParamElement.valueType */
-  void set valueType(String value) native "HTMLParamElement_valueType_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName PeerConnection00
-class PeerConnection00 extends EventTarget {
-
-  ///@docsEditable true
-  factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
-  PeerConnection00.internal(): super.internal();
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  PeerConnection00Events get on =>
-    new PeerConnection00Events(this);
-
-  static const int ACTIVE = 2;
-
-  static const int CLOSED = 3;
-
-  static const int ICE_CHECKING = 0x300;
-
-  static const int ICE_CLOSED = 0x700;
-
-  static const int ICE_COMPLETED = 0x500;
-
-  static const int ICE_CONNECTED = 0x400;
-
-  static const int ICE_FAILED = 0x600;
-
-  static const int ICE_GATHERING = 0x100;
-
-  static const int ICE_WAITING = 0x200;
-
-  static const int NEW = 0;
-
-  static const int OPENING = 1;
-
-  static const int SDP_ANSWER = 0x300;
-
-  static const int SDP_OFFER = 0x100;
-
-  static const int SDP_PRANSWER = 0x200;
-
-
-  /** @domName PeerConnection00.iceState */
-  int get iceState native "PeerConnection00_iceState_Getter";
-
-
-  /** @domName PeerConnection00.localDescription */
-  SessionDescription get localDescription native "PeerConnection00_localDescription_Getter";
-
-
-  /** @domName PeerConnection00.localStreams */
-  List<MediaStream> get localStreams native "PeerConnection00_localStreams_Getter";
-
-
-  /** @domName PeerConnection00.readyState */
-  int get readyState native "PeerConnection00_readyState_Getter";
-
-
-  /** @domName PeerConnection00.remoteDescription */
-  SessionDescription get remoteDescription native "PeerConnection00_remoteDescription_Getter";
-
-
-  /** @domName PeerConnection00.remoteStreams */
-  List<MediaStream> get remoteStreams native "PeerConnection00_remoteStreams_Getter";
-
-
-  /** @domName PeerConnection00.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_addEventListener_Callback";
-
-
-  /** @domName PeerConnection00.addStream */
-  void addStream(MediaStream stream, [Map mediaStreamHints]) native "PeerConnection00_addStream_Callback";
-
-
-  /** @domName PeerConnection00.close */
-  void close() native "PeerConnection00_close_Callback";
-
-
-  /** @domName PeerConnection00.createAnswer */
-  SessionDescription createAnswer(String offer, [Map mediaHints]) native "PeerConnection00_createAnswer_Callback";
-
-
-  /** @domName PeerConnection00.createOffer */
-  SessionDescription createOffer([Map mediaHints]) native "PeerConnection00_createOffer_Callback";
-
-
-  /** @domName PeerConnection00.dispatchEvent */
-  bool $dom_dispatchEvent(Event event) native "PeerConnection00_dispatchEvent_Callback";
-
-
-  /** @domName PeerConnection00.processIceMessage */
-  void processIceMessage(IceCandidate candidate) native "PeerConnection00_processIceMessage_Callback";
-
-
-  /** @domName PeerConnection00.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_removeEventListener_Callback";
-
-
-  /** @domName PeerConnection00.removeStream */
-  void removeStream(MediaStream stream) native "PeerConnection00_removeStream_Callback";
-
-
-  /** @domName PeerConnection00.setLocalDescription */
-  void setLocalDescription(int action, SessionDescription desc) native "PeerConnection00_setLocalDescription_Callback";
-
-
-  /** @domName PeerConnection00.setRemoteDescription */
-  void setRemoteDescription(int action, SessionDescription desc) native "PeerConnection00_setRemoteDescription_Callback";
-
-
-  /** @domName PeerConnection00.startIce */
-  void startIce([Map iceOptions]) native "PeerConnection00_startIce_Callback";
-
-}
-
-/// @docsEditable true
-class PeerConnection00Events extends Events {
-  /// @docsEditable true
-  PeerConnection00Events(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get addStream => this['addstream'];
-
-  /// @docsEditable true
-  EventListenerList get connecting => this['connecting'];
-
-  /// @docsEditable true
-  EventListenerList get open => this['open'];
-
-  /// @docsEditable true
-  EventListenerList get removeStream => this['removestream'];
-
-  /// @docsEditable true
-  EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18705,7 +17597,7 @@ class PeerConnection00Events extends Events {
 
 /// @domName Performance
 class Performance extends EventTarget {
-  Performance.internal(): super.internal();
+  Performance.internal() : super.internal();
 
 
   /** @domName Performance.memory */
@@ -18857,8 +17749,11 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 
 /// @domName WebKitPoint
 class Point extends NativeFieldWrapperClass1 {
-  factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
   Point.internal();
+
+  ///@docsEditable true
+  factory Point(num x, num y) => Point._create(x, y);
+  static Point _create(num x, num y) native "WebKitPoint_constructor_Callback";
 
 
   /** @domName WebKitPoint.x */
@@ -18886,7 +17781,7 @@ class Point extends NativeFieldWrapperClass1 {
 
 /// @domName PopStateEvent
 class PopStateEvent extends Event {
-  PopStateEvent.internal(): super.internal();
+  PopStateEvent.internal() : super.internal();
 
 
   /** @domName PopStateEvent.state */
@@ -18944,18 +17839,10 @@ typedef void PositionErrorCallback(PositionError error);
 
 /// @domName HTMLPreElement
 class PreElement extends _Element_Merged {
+  PreElement.internal() : super.internal();
 
   ///@docsEditable true
   factory PreElement() => document.$dom_createElement("pre");
-  PreElement.internal(): super.internal();
-
-
-  /** @domName HTMLPreElement.width */
-  int get width native "HTMLPreElement_width_Getter";
-
-
-  /** @domName HTMLPreElement.width */
-  void set width(int value) native "HTMLPreElement_width_Setter";
 
 
   /** @domName HTMLPreElement.wrap */
@@ -18975,7 +17862,7 @@ class PreElement extends _Element_Merged {
 
 /// @domName ProcessingInstruction
 class ProcessingInstruction extends Node {
-  ProcessingInstruction.internal(): super.internal();
+  ProcessingInstruction.internal() : super.internal();
 
 
   /** @domName ProcessingInstruction.data */
@@ -19002,11 +17889,20 @@ class ProcessingInstruction extends Node {
 
 
 /// @domName HTMLProgressElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ProgressElement extends _Element_Merged {
+  ProgressElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
-  ProgressElement.internal(): super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
 
   /** @domName HTMLProgressElement.labels */
@@ -19042,7 +17938,7 @@ class ProgressElement extends _Element_Merged {
 
 /// @domName ProgressEvent
 class ProgressEvent extends Event {
-  ProgressEvent.internal(): super.internal();
+  ProgressEvent.internal() : super.internal();
 
 
   /** @domName ProgressEvent.lengthComputable */
@@ -19066,7 +17962,7 @@ class ProgressEvent extends Event {
 
 /// @domName HTMLQuoteElement
 class QuoteElement extends _Element_Merged {
-  QuoteElement.internal(): super.internal();
+  QuoteElement.internal() : super.internal();
 
 
   /** @domName HTMLQuoteElement.cite */
@@ -19110,7 +18006,7 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 
 /// @domName RadioNodeList
 class RadioNodeList extends NodeList {
-  RadioNodeList.internal(): super.internal();
+  RadioNodeList.internal() : super.internal();
 
 
   /** @domName RadioNodeList.value */
@@ -19376,7 +18272,7 @@ class RgbColor extends NativeFieldWrapperClass1 {
 
 /// @domName RTCDataChannel
 class RtcDataChannel extends EventTarget {
-  RtcDataChannel.internal(): super.internal();
+  RtcDataChannel.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RtcDataChannelEvents get on =>
@@ -19486,7 +18382,7 @@ class RtcDataChannelEvents extends Events {
 
 /// @domName RTCDataChannelEvent
 class RtcDataChannelEvent extends Event {
-  RtcDataChannelEvent.internal(): super.internal();
+  RtcDataChannelEvent.internal() : super.internal();
 
 
   /** @domName RTCDataChannelEvent.channel */
@@ -19502,10 +18398,11 @@ class RtcDataChannelEvent extends Event {
 
 /// @domName RTCIceCandidate
 class RtcIceCandidate extends NativeFieldWrapperClass1 {
+  RtcIceCandidate.internal();
 
   ///@docsEditable true
-  factory RtcIceCandidate(Map dictionary) => _RtcIceCandidateFactoryProvider.createRtcIceCandidate(dictionary);
-  RtcIceCandidate.internal();
+  factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
+  static RtcIceCandidate _create(Map dictionary) native "RTCIceCandidate_constructor_Callback";
 
 
   /** @domName RTCIceCandidate.candidate */
@@ -19529,7 +18426,7 @@ class RtcIceCandidate extends NativeFieldWrapperClass1 {
 
 /// @domName RTCIceCandidateEvent
 class RtcIceCandidateEvent extends Event {
-  RtcIceCandidateEvent.internal(): super.internal();
+  RtcIceCandidateEvent.internal() : super.internal();
 
 
   /** @domName RTCIceCandidateEvent.candidate */
@@ -19545,19 +18442,24 @@ class RtcIceCandidateEvent extends Event {
 
 /// @domName RTCPeerConnection
 class RtcPeerConnection extends EventTarget {
+  RtcPeerConnection.internal() : super.internal();
 
   ///@docsEditable true
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     if (!?mediaConstraints) {
-      return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers);
+      return RtcPeerConnection._create(rtcIceServers);
     }
-    return _RtcPeerConnectionFactoryProvider.createRtcPeerConnection(rtcIceServers, mediaConstraints);
+    return RtcPeerConnection._create(rtcIceServers, mediaConstraints);
   }
-  RtcPeerConnection.internal(): super.internal();
+  static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RtcPeerConnectionEvents get on =>
     new RtcPeerConnectionEvents(this);
+
+
+  /** @domName RTCPeerConnection.iceGatheringState */
+  String get iceGatheringState native "RTCPeerConnection_iceGatheringState_Getter";
 
 
   /** @domName RTCPeerConnection.iceState */
@@ -19676,10 +18578,11 @@ class RtcPeerConnectionEvents extends Events {
 
 /// @domName RTCSessionDescription
 class RtcSessionDescription extends NativeFieldWrapperClass1 {
+  RtcSessionDescription.internal();
 
   ///@docsEditable true
-  factory RtcSessionDescription(Map dictionary) => _RtcSessionDescriptionFactoryProvider.createRtcSessionDescription(dictionary);
-  RtcSessionDescription.internal();
+  factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
+  static RtcSessionDescription _create(Map dictionary) native "RTCSessionDescription_constructor_Callback";
 
 
   /** @domName RTCSessionDescription.sdp */
@@ -19712,6 +18615,10 @@ class RtcStatsElement extends NativeFieldWrapperClass1 {
 
   /** @domName RTCStatsElement.timestamp */
   Date get timestamp native "RTCStatsElement_timestamp_Getter";
+
+
+  /** @domName RTCStatsElement.names */
+  List<String> names() native "RTCStatsElement_names_Callback";
 
 
   /** @domName RTCStatsElement.stat */
@@ -19847,10 +18754,10 @@ class Screen extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLScriptElement
 class ScriptElement extends _Element_Merged {
+  ScriptElement.internal() : super.internal();
 
   ///@docsEditable true
   factory ScriptElement() => document.$dom_createElement("script");
-  ScriptElement.internal(): super.internal();
 
 
   /** @domName HTMLScriptElement.async */
@@ -19993,15 +18900,13 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 /// @domName HTMLSelectElement
 class SelectElement extends _Element_Merged {
+  SelectElement.internal() : super.internal();
 
   ///@docsEditable true
   factory SelectElement() => document.$dom_createElement("select");
-  SelectElement.internal(): super.internal();
 
 
   /** @domName HTMLSelectElement.autofocus */
@@ -20052,10 +18957,6 @@ class SelectElement extends _Element_Merged {
   void set name(String value) native "HTMLSelectElement_name_Setter";
 
 
-  /** @domName HTMLSelectElement.options */
-  HtmlOptionsCollection get options native "HTMLSelectElement_options_Getter";
-
-
   /** @domName HTMLSelectElement.required */
   bool get required native "HTMLSelectElement_required_Getter";
 
@@ -20070,10 +18971,6 @@ class SelectElement extends _Element_Merged {
 
   /** @domName HTMLSelectElement.selectedIndex */
   void set selectedIndex(int value) native "HTMLSelectElement_selectedIndex_Setter";
-
-
-  /** @domName HTMLSelectElement.selectedOptions */
-  HtmlCollection get selectedOptions native "HTMLSelectElement_selectedOptions_Getter";
 
 
   /** @domName HTMLSelectElement.size */
@@ -20123,29 +19020,21 @@ class SelectElement extends _Element_Merged {
   /** @domName HTMLSelectElement.setCustomValidity */
   void setCustomValidity(String error) native "HTMLSelectElement_setCustomValidity_Callback";
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+  // Override default options, since IE returns SelectElement itself and it
+  // does not operate as a List.
+  List<OptionElement> get options {
+    return this.children.filter((e) => e is OptionElement);
+  }
 
-
-/// @domName SessionDescription
-class SessionDescription extends NativeFieldWrapperClass1 {
-
-  ///@docsEditable true
-  factory SessionDescription(String sdp) => _SessionDescriptionFactoryProvider.createSessionDescription(sdp);
-  SessionDescription.internal();
-
-
-  /** @domName SessionDescription.addCandidate */
-  void addCandidate(IceCandidate candidate) native "SessionDescription_addCandidate_Callback";
-
-
-  /** @domName SessionDescription.toSdp */
-  String toSdp() native "SessionDescription_toSdp_Callback";
-
+  List<OptionElement> get selectedOptions {
+    // IE does not change the selected flag for single-selection items.
+    if (this.multiple) {
+      return this.options.filter((o) => o.selected);
+    } else {
+      return [this.options[this.selectedIndex]];
+    }
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20155,8 +19044,19 @@ class SessionDescription extends NativeFieldWrapperClass1 {
 
 
 /// @domName HTMLShadowElement
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class ShadowElement extends _Element_Merged {
-  ShadowElement.internal(): super.internal();
+  ShadowElement.internal() : super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
+
+
+  /** @domName HTMLShadowElement.olderShadowRoot */
+  ShadowRoot get olderShadowRoot native "HTMLShadowElement_olderShadowRoot_Getter";
 
 
   /** @domName HTMLShadowElement.resetStyleInheritance */
@@ -20175,11 +19075,10 @@ class ShadowElement extends _Element_Merged {
 
 
 /// @domName ShadowRoot
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class ShadowRoot extends DocumentFragment {
-
-  ///@docsEditable true
-  factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
-  ShadowRoot.internal(): super.internal();
+  ShadowRoot.internal() : super.internal();
 
 
   /** @domName ShadowRoot.activeElement */
@@ -20240,15 +19139,16 @@ class ShadowRoot extends DocumentFragment {
 
 /// @domName SharedWorker
 class SharedWorker extends AbstractWorker {
+  SharedWorker.internal() : super.internal();
 
   ///@docsEditable true
   factory SharedWorker(String scriptURL, [String name]) {
     if (!?name) {
-      return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL);
+      return SharedWorker._create(scriptURL);
     }
-    return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL, name);
+    return SharedWorker._create(scriptURL, name);
   }
-  SharedWorker.internal(): super.internal();
+  static SharedWorker _create(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
 
 
   /** @domName SharedWorker.port */
@@ -20264,7 +19164,7 @@ class SharedWorker extends AbstractWorker {
 
 /// @domName SharedWorkerContext
 class SharedWorkerContext extends WorkerContext {
-  SharedWorkerContext.internal(): super.internal();
+  SharedWorkerContext.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SharedWorkerContextEvents get on =>
@@ -20325,7 +19225,7 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 
 /// @domName SourceBufferList
 class SourceBufferList extends EventTarget implements List<SourceBuffer> {
-  SourceBufferList.internal(): super.internal();
+  SourceBufferList.internal() : super.internal();
 
 
   /** @domName SourceBufferList.length */
@@ -20457,10 +19357,10 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
 /// @domName HTMLSourceElement
 class SourceElement extends _Element_Merged {
+  SourceElement.internal() : super.internal();
 
   ///@docsEditable true
   factory SourceElement() => document.$dom_createElement("source");
-  SourceElement.internal(): super.internal();
 
 
   /** @domName HTMLSourceElement.media */
@@ -20496,10 +19396,10 @@ class SourceElement extends _Element_Merged {
 
 /// @domName HTMLSpanElement
 class SpanElement extends _Element_Merged {
+  SpanElement.internal() : super.internal();
 
   ///@docsEditable true
   factory SpanElement() => document.$dom_createElement("span");
-  SpanElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20511,10 +19411,11 @@ class SpanElement extends _Element_Merged {
 
 /// @domName SpeechGrammar
 class SpeechGrammar extends NativeFieldWrapperClass1 {
+  SpeechGrammar.internal();
 
   ///@docsEditable true
-  factory SpeechGrammar() => _SpeechGrammarFactoryProvider.createSpeechGrammar();
-  SpeechGrammar.internal();
+  factory SpeechGrammar() => SpeechGrammar._create();
+  static SpeechGrammar _create() native "SpeechGrammar_constructor_Callback";
 
 
   /** @domName SpeechGrammar.src */
@@ -20542,10 +19443,11 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 
 /// @domName SpeechGrammarList
 class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechGrammar> {
+  SpeechGrammarList.internal();
 
   ///@docsEditable true
-  factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
-  SpeechGrammarList.internal();
+  factory SpeechGrammarList() => SpeechGrammarList._create();
+  static SpeechGrammarList _create() native "SpeechGrammarList_constructor_Callback";
 
 
   /** @domName SpeechGrammarList.length */
@@ -20697,7 +19599,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
 /// @domName SpeechInputEvent
 class SpeechInputEvent extends Event {
-  SpeechInputEvent.internal(): super.internal();
+  SpeechInputEvent.internal() : super.internal();
 
 
   /** @domName SpeechInputEvent.results */
@@ -20733,10 +19635,11 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 
 /// @domName SpeechRecognition
 class SpeechRecognition extends EventTarget {
+  SpeechRecognition.internal() : super.internal();
 
   ///@docsEditable true
-  factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
-  SpeechRecognition.internal(): super.internal();
+  factory SpeechRecognition() => SpeechRecognition._create();
+  static SpeechRecognition _create() native "SpeechRecognition_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SpeechRecognitionEvents get on =>
@@ -20875,29 +19778,11 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
 
 /// @domName SpeechRecognitionError
 class SpeechRecognitionError extends Event {
-  SpeechRecognitionError.internal(): super.internal();
-
-  static const int ABORTED = 2;
-
-  static const int AUDIO_CAPTURE = 3;
-
-  static const int BAD_GRAMMAR = 7;
-
-  static const int LANGUAGE_NOT_SUPPORTED = 8;
-
-  static const int NETWORK = 4;
-
-  static const int NOT_ALLOWED = 5;
-
-  static const int NO_SPEECH = 1;
-
-  static const int OTHER = 0;
-
-  static const int SERVICE_NOT_ALLOWED = 6;
+  SpeechRecognitionError.internal() : super.internal();
 
 
-  /** @domName SpeechRecognitionError.code */
-  int get code native "SpeechRecognitionError_code_Getter";
+  /** @domName SpeechRecognitionError.error */
+  String get error native "SpeechRecognitionError_error_Getter";
 
 
   /** @domName SpeechRecognitionError.message */
@@ -20913,7 +19798,7 @@ class SpeechRecognitionError extends Event {
 
 /// @domName SpeechRecognitionEvent
 class SpeechRecognitionEvent extends Event {
-  SpeechRecognitionEvent.internal(): super.internal();
+  SpeechRecognitionEvent.internal() : super.internal();
 
 
   /** @domName SpeechRecognitionEvent.result */
@@ -20926,6 +19811,10 @@ class SpeechRecognitionEvent extends Event {
 
   /** @domName SpeechRecognitionEvent.resultIndex */
   int get resultIndex native "SpeechRecognitionEvent_resultIndex_Getter";
+
+
+  /** @domName SpeechRecognitionEvent.results */
+  List<SpeechRecognitionResult> get results native "SpeechRecognitionEvent_results_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20940,12 +19829,8 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
   SpeechRecognitionResult.internal();
 
 
-  /** @domName SpeechRecognitionResult.emma */
-  Document get emma native "SpeechRecognitionResult_emma_Getter";
-
-
-  /** @domName SpeechRecognitionResult.final */
-  bool get finalValue native "SpeechRecognitionResult_final_Getter";
+  /** @domName SpeechRecognitionResult.isFinal */
+  bool get isFinal native "SpeechRecognitionResult_isFinal_Getter";
 
 
   /** @domName SpeechRecognitionResult.length */
@@ -21294,7 +20179,7 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
 /// @domName StorageEvent
 class StorageEvent extends Event {
-  StorageEvent.internal(): super.internal();
+  StorageEvent.internal() : super.internal();
 
 
   /** @domName StorageEvent.key */
@@ -21386,10 +20271,10 @@ typedef void StringCallback(String data);
 
 /// @domName HTMLStyleElement
 class StyleElement extends _Element_Merged {
+  StyleElement.internal() : super.internal();
 
   ///@docsEditable true
   factory StyleElement() => document.$dom_createElement("style");
-  StyleElement.internal(): super.internal();
 
 
   /** @domName HTMLStyleElement.disabled */
@@ -21501,18 +20386,10 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLTableCaptionElement
 class TableCaptionElement extends _Element_Merged {
+  TableCaptionElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TableCaptionElement() => document.$dom_createElement("caption");
-  TableCaptionElement.internal(): super.internal();
-
-
-  /** @domName HTMLTableCaptionElement.align */
-  String get align native "HTMLTableCaptionElement_align_Getter";
-
-
-  /** @domName HTMLTableCaptionElement.align */
-  void set align(String value) native "HTMLTableCaptionElement_align_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21524,62 +20401,14 @@ class TableCaptionElement extends _Element_Merged {
 
 /// @domName HTMLTableCellElement
 class TableCellElement extends _Element_Merged {
+  TableCellElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TableCellElement() => document.$dom_createElement("td");
-  TableCellElement.internal(): super.internal();
-
-
-  /** @domName HTMLTableCellElement.abbr */
-  String get abbr native "HTMLTableCellElement_abbr_Getter";
-
-
-  /** @domName HTMLTableCellElement.abbr */
-  void set abbr(String value) native "HTMLTableCellElement_abbr_Setter";
-
-
-  /** @domName HTMLTableCellElement.align */
-  String get align native "HTMLTableCellElement_align_Getter";
-
-
-  /** @domName HTMLTableCellElement.align */
-  void set align(String value) native "HTMLTableCellElement_align_Setter";
-
-
-  /** @domName HTMLTableCellElement.axis */
-  String get axis native "HTMLTableCellElement_axis_Getter";
-
-
-  /** @domName HTMLTableCellElement.axis */
-  void set axis(String value) native "HTMLTableCellElement_axis_Setter";
-
-
-  /** @domName HTMLTableCellElement.bgColor */
-  String get bgColor native "HTMLTableCellElement_bgColor_Getter";
-
-
-  /** @domName HTMLTableCellElement.bgColor */
-  void set bgColor(String value) native "HTMLTableCellElement_bgColor_Setter";
 
 
   /** @domName HTMLTableCellElement.cellIndex */
   int get cellIndex native "HTMLTableCellElement_cellIndex_Getter";
-
-
-  /** @domName HTMLTableCellElement.ch */
-  String get ch native "HTMLTableCellElement_ch_Getter";
-
-
-  /** @domName HTMLTableCellElement.ch */
-  void set ch(String value) native "HTMLTableCellElement_ch_Setter";
-
-
-  /** @domName HTMLTableCellElement.chOff */
-  String get chOff native "HTMLTableCellElement_chOff_Getter";
-
-
-  /** @domName HTMLTableCellElement.chOff */
-  void set chOff(String value) native "HTMLTableCellElement_chOff_Setter";
 
 
   /** @domName HTMLTableCellElement.colSpan */
@@ -21598,52 +20427,12 @@ class TableCellElement extends _Element_Merged {
   void set headers(String value) native "HTMLTableCellElement_headers_Setter";
 
 
-  /** @domName HTMLTableCellElement.height */
-  String get height native "HTMLTableCellElement_height_Getter";
-
-
-  /** @domName HTMLTableCellElement.height */
-  void set height(String value) native "HTMLTableCellElement_height_Setter";
-
-
-  /** @domName HTMLTableCellElement.noWrap */
-  bool get noWrap native "HTMLTableCellElement_noWrap_Getter";
-
-
-  /** @domName HTMLTableCellElement.noWrap */
-  void set noWrap(bool value) native "HTMLTableCellElement_noWrap_Setter";
-
-
   /** @domName HTMLTableCellElement.rowSpan */
   int get rowSpan native "HTMLTableCellElement_rowSpan_Getter";
 
 
   /** @domName HTMLTableCellElement.rowSpan */
   void set rowSpan(int value) native "HTMLTableCellElement_rowSpan_Setter";
-
-
-  /** @domName HTMLTableCellElement.scope */
-  String get scope native "HTMLTableCellElement_scope_Getter";
-
-
-  /** @domName HTMLTableCellElement.scope */
-  void set scope(String value) native "HTMLTableCellElement_scope_Setter";
-
-
-  /** @domName HTMLTableCellElement.vAlign */
-  String get vAlign native "HTMLTableCellElement_vAlign_Getter";
-
-
-  /** @domName HTMLTableCellElement.vAlign */
-  void set vAlign(String value) native "HTMLTableCellElement_vAlign_Setter";
-
-
-  /** @domName HTMLTableCellElement.width */
-  String get width native "HTMLTableCellElement_width_Getter";
-
-
-  /** @domName HTMLTableCellElement.width */
-  void set width(String value) native "HTMLTableCellElement_width_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21655,34 +20444,10 @@ class TableCellElement extends _Element_Merged {
 
 /// @domName HTMLTableColElement
 class TableColElement extends _Element_Merged {
+  TableColElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TableColElement() => document.$dom_createElement("col");
-  TableColElement.internal(): super.internal();
-
-
-  /** @domName HTMLTableColElement.align */
-  String get align native "HTMLTableColElement_align_Getter";
-
-
-  /** @domName HTMLTableColElement.align */
-  void set align(String value) native "HTMLTableColElement_align_Setter";
-
-
-  /** @domName HTMLTableColElement.ch */
-  String get ch native "HTMLTableColElement_ch_Getter";
-
-
-  /** @domName HTMLTableColElement.ch */
-  void set ch(String value) native "HTMLTableColElement_ch_Setter";
-
-
-  /** @domName HTMLTableColElement.chOff */
-  String get chOff native "HTMLTableColElement_chOff_Getter";
-
-
-  /** @domName HTMLTableColElement.chOff */
-  void set chOff(String value) native "HTMLTableColElement_chOff_Setter";
 
 
   /** @domName HTMLTableColElement.span */
@@ -21691,22 +20456,6 @@ class TableColElement extends _Element_Merged {
 
   /** @domName HTMLTableColElement.span */
   void set span(int value) native "HTMLTableColElement_span_Setter";
-
-
-  /** @domName HTMLTableColElement.vAlign */
-  String get vAlign native "HTMLTableColElement_vAlign_Getter";
-
-
-  /** @domName HTMLTableColElement.vAlign */
-  void set vAlign(String value) native "HTMLTableColElement_vAlign_Setter";
-
-
-  /** @domName HTMLTableColElement.width */
-  String get width native "HTMLTableColElement_width_Getter";
-
-
-  /** @domName HTMLTableColElement.width */
-  void set width(String value) native "HTMLTableColElement_width_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21718,26 +20467,10 @@ class TableColElement extends _Element_Merged {
 
 /// @domName HTMLTableElement
 class TableElement extends _Element_Merged {
+  TableElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TableElement() => document.$dom_createElement("table");
-  TableElement.internal(): super.internal();
-
-
-  /** @domName HTMLTableElement.align */
-  String get align native "HTMLTableElement_align_Getter";
-
-
-  /** @domName HTMLTableElement.align */
-  void set align(String value) native "HTMLTableElement_align_Setter";
-
-
-  /** @domName HTMLTableElement.bgColor */
-  String get bgColor native "HTMLTableElement_bgColor_Getter";
-
-
-  /** @domName HTMLTableElement.bgColor */
-  void set bgColor(String value) native "HTMLTableElement_bgColor_Setter";
 
 
   /** @domName HTMLTableElement.border */
@@ -21756,48 +20489,8 @@ class TableElement extends _Element_Merged {
   void set caption(TableCaptionElement value) native "HTMLTableElement_caption_Setter";
 
 
-  /** @domName HTMLTableElement.cellPadding */
-  String get cellPadding native "HTMLTableElement_cellPadding_Getter";
-
-
-  /** @domName HTMLTableElement.cellPadding */
-  void set cellPadding(String value) native "HTMLTableElement_cellPadding_Setter";
-
-
-  /** @domName HTMLTableElement.cellSpacing */
-  String get cellSpacing native "HTMLTableElement_cellSpacing_Getter";
-
-
-  /** @domName HTMLTableElement.cellSpacing */
-  void set cellSpacing(String value) native "HTMLTableElement_cellSpacing_Setter";
-
-
-  /** @domName HTMLTableElement.frame */
-  String get frame native "HTMLTableElement_frame_Getter";
-
-
-  /** @domName HTMLTableElement.frame */
-  void set frame(String value) native "HTMLTableElement_frame_Setter";
-
-
   /** @domName HTMLTableElement.rows */
   HtmlCollection get rows native "HTMLTableElement_rows_Getter";
-
-
-  /** @domName HTMLTableElement.rules */
-  String get rules native "HTMLTableElement_rules_Getter";
-
-
-  /** @domName HTMLTableElement.rules */
-  void set rules(String value) native "HTMLTableElement_rules_Setter";
-
-
-  /** @domName HTMLTableElement.summary */
-  String get summary native "HTMLTableElement_summary_Getter";
-
-
-  /** @domName HTMLTableElement.summary */
-  void set summary(String value) native "HTMLTableElement_summary_Setter";
 
 
   /** @domName HTMLTableElement.tBodies */
@@ -21818,14 +20511,6 @@ class TableElement extends _Element_Merged {
 
   /** @domName HTMLTableElement.tHead */
   void set tHead(TableSectionElement value) native "HTMLTableElement_tHead_Setter";
-
-
-  /** @domName HTMLTableElement.width */
-  String get width native "HTMLTableElement_width_Getter";
-
-
-  /** @domName HTMLTableElement.width */
-  void set width(String value) native "HTMLTableElement_width_Setter";
 
 
   /** @domName HTMLTableElement.createCaption */
@@ -21873,46 +20558,14 @@ class TableElement extends _Element_Merged {
 
 /// @domName HTMLTableRowElement
 class TableRowElement extends _Element_Merged {
+  TableRowElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TableRowElement() => document.$dom_createElement("tr");
-  TableRowElement.internal(): super.internal();
-
-
-  /** @domName HTMLTableRowElement.align */
-  String get align native "HTMLTableRowElement_align_Getter";
-
-
-  /** @domName HTMLTableRowElement.align */
-  void set align(String value) native "HTMLTableRowElement_align_Setter";
-
-
-  /** @domName HTMLTableRowElement.bgColor */
-  String get bgColor native "HTMLTableRowElement_bgColor_Getter";
-
-
-  /** @domName HTMLTableRowElement.bgColor */
-  void set bgColor(String value) native "HTMLTableRowElement_bgColor_Setter";
 
 
   /** @domName HTMLTableRowElement.cells */
   HtmlCollection get cells native "HTMLTableRowElement_cells_Getter";
-
-
-  /** @domName HTMLTableRowElement.ch */
-  String get ch native "HTMLTableRowElement_ch_Getter";
-
-
-  /** @domName HTMLTableRowElement.ch */
-  void set ch(String value) native "HTMLTableRowElement_ch_Setter";
-
-
-  /** @domName HTMLTableRowElement.chOff */
-  String get chOff native "HTMLTableRowElement_chOff_Getter";
-
-
-  /** @domName HTMLTableRowElement.chOff */
-  void set chOff(String value) native "HTMLTableRowElement_chOff_Setter";
 
 
   /** @domName HTMLTableRowElement.rowIndex */
@@ -21921,14 +20574,6 @@ class TableRowElement extends _Element_Merged {
 
   /** @domName HTMLTableRowElement.sectionRowIndex */
   int get sectionRowIndex native "HTMLTableRowElement_sectionRowIndex_Getter";
-
-
-  /** @domName HTMLTableRowElement.vAlign */
-  String get vAlign native "HTMLTableRowElement_vAlign_Getter";
-
-
-  /** @domName HTMLTableRowElement.vAlign */
-  void set vAlign(String value) native "HTMLTableRowElement_vAlign_Setter";
 
 
   /** @domName HTMLTableRowElement.deleteCell */
@@ -21948,23 +20593,7 @@ class TableRowElement extends _Element_Merged {
 
 /// @domName HTMLTableSectionElement
 class TableSectionElement extends _Element_Merged {
-  TableSectionElement.internal(): super.internal();
-
-
-  /** @domName HTMLTableSectionElement.align */
-  String get align native "HTMLTableSectionElement_align_Getter";
-
-
-  /** @domName HTMLTableSectionElement.align */
-  void set align(String value) native "HTMLTableSectionElement_align_Setter";
-
-
-  /** @domName HTMLTableSectionElement.ch */
-  String get ch native "HTMLTableSectionElement_ch_Getter";
-
-
-  /** @domName HTMLTableSectionElement.ch */
-  void set ch(String value) native "HTMLTableSectionElement_ch_Setter";
+  TableSectionElement.internal() : super.internal();
 
 
   /** @domName HTMLTableSectionElement.chOff */
@@ -21977,14 +20606,6 @@ class TableSectionElement extends _Element_Merged {
 
   /** @domName HTMLTableSectionElement.rows */
   HtmlCollection get rows native "HTMLTableSectionElement_rows_Getter";
-
-
-  /** @domName HTMLTableSectionElement.vAlign */
-  String get vAlign native "HTMLTableSectionElement_vAlign_Getter";
-
-
-  /** @domName HTMLTableSectionElement.vAlign */
-  void set vAlign(String value) native "HTMLTableSectionElement_vAlign_Setter";
 
 
   /** @domName HTMLTableSectionElement.deleteRow */
@@ -22005,7 +20626,7 @@ class TableSectionElement extends _Element_Merged {
 /// @domName Text
 class Text extends CharacterData {
   factory Text(String data) => _TextFactoryProvider.createText(data);
-  Text.internal(): super.internal();
+  Text.internal() : super.internal();
 
 
   /** @domName Text.wholeText */
@@ -22029,10 +20650,10 @@ class Text extends CharacterData {
 
 /// @domName HTMLTextAreaElement
 class TextAreaElement extends _Element_Merged {
+  TextAreaElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TextAreaElement() => document.$dom_createElement("textarea");
-  TextAreaElement.internal(): super.internal();
 
 
   /** @domName HTMLTextAreaElement.autofocus */
@@ -22248,7 +20869,7 @@ class TextAreaElement extends _Element_Merged {
 
 /// @domName TextEvent
 class TextEvent extends UIEvent {
-  TextEvent.internal(): super.internal();
+  TextEvent.internal() : super.internal();
 
 
   /** @domName TextEvent.data */
@@ -22256,7 +20877,7 @@ class TextEvent extends UIEvent {
 
 
   /** @domName TextEvent.initTextEvent */
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
+  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22284,7 +20905,7 @@ class TextMetrics extends NativeFieldWrapperClass1 {
 
 /// @domName TextTrack
 class TextTrack extends EventTarget {
-  TextTrack.internal(): super.internal();
+  TextTrack.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackEvents get on =>
@@ -22357,10 +20978,11 @@ class TextTrackEvents extends Events {
 
 /// @domName TextTrackCue
 class TextTrackCue extends EventTarget {
+  TextTrackCue.internal() : super.internal();
 
   ///@docsEditable true
-  factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
-  TextTrackCue.internal(): super.internal();
+  factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
+  static TextTrackCue _create(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackCueEvents get on =>
@@ -22620,7 +21242,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 
 /// @domName TextTrackList
 class TextTrackList extends EventTarget implements List<TextTrack> {
-  TextTrackList.internal(): super.internal();
+  TextTrackList.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackListEvents get on =>
@@ -22797,10 +21419,10 @@ typedef void TimeoutHandler();
 
 /// @domName HTMLTitleElement
 class TitleElement extends _Element_Merged {
+  TitleElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TitleElement() => document.$dom_createElement("title");
-  TitleElement.internal(): super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22872,7 +21494,7 @@ class Touch extends NativeFieldWrapperClass1 {
 
 /// @domName TouchEvent
 class TouchEvent extends UIEvent {
-  TouchEvent.internal(): super.internal();
+  TouchEvent.internal() : super.internal();
 
 
   /** @domName TouchEvent.altKey */
@@ -22904,7 +21526,7 @@ class TouchEvent extends UIEvent {
 
 
   /** @domName TouchEvent.initTouchEvent */
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
+  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23035,11 +21657,19 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
 
 /// @domName HTMLTrackElement
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class TrackElement extends _Element_Merged {
+  TrackElement.internal() : super.internal();
 
   ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
-  TrackElement.internal(): super.internal();
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
   static const int ERROR = 3;
 
@@ -23107,7 +21737,7 @@ class TrackElement extends _Element_Merged {
 
 /// @domName TrackEvent
 class TrackEvent extends Event {
-  TrackEvent.internal(): super.internal();
+  TrackEvent.internal() : super.internal();
 
 
   /** @domName TrackEvent.track */
@@ -23123,7 +21753,7 @@ class TrackEvent extends Event {
 
 /// @domName WebKitTransitionEvent
 class TransitionEvent extends Event {
-  TransitionEvent.internal(): super.internal();
+  TransitionEvent.internal() : super.internal();
 
 
   /** @domName WebKitTransitionEvent.elapsedTime */
@@ -23219,7 +21849,7 @@ class UIEvent extends Event {
     e.$dom_initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
-  UIEvent.internal(): super.internal();
+  UIEvent.internal() : super.internal();
 
 
   /** @domName UIEvent.charCode */
@@ -23251,7 +21881,7 @@ class UIEvent extends Event {
 
 
   /** @domName UIEvent.view */
-  Window get view native "UIEvent_view_Getter";
+  WindowBase get view native "UIEvent_view_Getter";
 
 
   /** @domName UIEvent.which */
@@ -23259,7 +21889,7 @@ class UIEvent extends Event {
 
 
   /** @domName UIEvent.initUIEvent */
-  void $dom_initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native "UIEvent_initUIEvent_Callback";
+  void $dom_initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23271,26 +21901,10 @@ class UIEvent extends Event {
 
 /// @domName HTMLUListElement
 class UListElement extends _Element_Merged {
+  UListElement.internal() : super.internal();
 
   ///@docsEditable true
   factory UListElement() => document.$dom_createElement("ul");
-  UListElement.internal(): super.internal();
-
-
-  /** @domName HTMLUListElement.compact */
-  bool get compact native "HTMLUListElement_compact_Getter";
-
-
-  /** @domName HTMLUListElement.compact */
-  void set compact(bool value) native "HTMLUListElement_compact_Setter";
-
-
-  /** @domName HTMLUListElement.type */
-  String get type native "HTMLUListElement_type_Getter";
-
-
-  /** @domName HTMLUListElement.type */
-  void set type(String value) native "HTMLUListElement_type_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23302,6 +21916,7 @@ class UListElement extends _Element_Merged {
 
 /// @domName Uint16Array
 class Uint16Array extends ArrayBufferView implements List<int> {
+  Uint16Array.internal() : super.internal();
 
   factory Uint16Array(int length) =>
     _TypedArrayFactoryProvider.createUint16Array(length);
@@ -23311,7 +21926,6 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
-  Uint16Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 2;
 
@@ -23450,6 +22064,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
 /// @domName Uint32Array
 class Uint32Array extends ArrayBufferView implements List<int> {
+  Uint32Array.internal() : super.internal();
 
   factory Uint32Array(int length) =>
     _TypedArrayFactoryProvider.createUint32Array(length);
@@ -23459,7 +22074,6 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
-  Uint32Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 4;
 
@@ -23598,6 +22212,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
 /// @domName Uint8Array
 class Uint8Array extends ArrayBufferView implements List<int> {
+  Uint8Array.internal() : super.internal();
 
   factory Uint8Array(int length) =>
     _TypedArrayFactoryProvider.createUint8Array(length);
@@ -23607,7 +22222,6 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
-  Uint8Array.internal(): super.internal();
 
   static const int BYTES_PER_ELEMENT = 1;
 
@@ -23746,6 +22360,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
 /// @domName Uint8ClampedArray
 class Uint8ClampedArray extends Uint8Array {
+  Uint8ClampedArray.internal() : super.internal();
 
   factory Uint8ClampedArray(int length) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray(length);
@@ -23755,7 +22370,6 @@ class Uint8ClampedArray extends Uint8Array {
 
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
-  Uint8ClampedArray.internal(): super.internal();
 
 
   /** @domName Uint8ClampedArray.length */
@@ -23798,7 +22412,7 @@ class Uint8ClampedArray extends Uint8Array {
 
 /// @domName HTMLUnknownElement
 class UnknownElement extends _Element_Merged {
-  UnknownElement.internal(): super.internal();
+  UnknownElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23854,6 +22468,10 @@ class ValidityState extends NativeFieldWrapperClass1 {
   ValidityState.internal();
 
 
+  /** @domName ValidityState.badInput */
+  bool get badInput native "ValidityState_badInput_Getter";
+
+
   /** @domName ValidityState.customError */
   bool get customError native "ValidityState_customError_Getter";
 
@@ -23899,10 +22517,10 @@ class ValidityState extends NativeFieldWrapperClass1 {
 
 /// @domName HTMLVideoElement
 class VideoElement extends MediaElement {
+  VideoElement.internal() : super.internal();
 
   ///@docsEditable true
   factory VideoElement() => document.$dom_createElement("video");
-  VideoElement.internal(): super.internal();
 
 
   /** @domName HTMLVideoElement.height */
@@ -24102,7 +22720,7 @@ class WebGLContextAttributes extends NativeFieldWrapperClass1 {
 
 /// @domName WebGLContextEvent
 class WebGLContextEvent extends Event {
-  WebGLContextEvent.internal(): super.internal();
+  WebGLContextEvent.internal() : super.internal();
 
 
   /** @domName WebGLContextEvent.statusMessage */
@@ -24220,7 +22838,7 @@ class WebGLRenderbuffer extends NativeFieldWrapperClass1 {
 
 /// @domName WebGLRenderingContext
 class WebGLRenderingContext extends CanvasRenderingContext {
-  WebGLRenderingContext.internal(): super.internal();
+  WebGLRenderingContext.internal() : super.internal();
 
   static const int ACTIVE_ATTRIBUTES = 0x8B89;
 
@@ -25570,7 +24188,7 @@ class WebGLVertexArrayObject extends NativeFieldWrapperClass1 {
 
 /// @domName WebKitCSSFilterValue
 class WebKitCssFilterValue extends _CssValueList {
-  WebKitCssFilterValue.internal(): super.internal();
+  WebKitCssFilterValue.internal() : super.internal();
 
   static const int CSS_FILTER_BLUR = 10;
 
@@ -25608,9 +24226,21 @@ class WebKitCssFilterValue extends _CssValueList {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName WebKitCSSMixFunctionValue
+class WebKitCssMixFunctionValue extends _CssValueList {
+  WebKitCssMixFunctionValue.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 /// @domName WebKitNamedFlow
 class WebKitNamedFlow extends EventTarget {
-  WebKitNamedFlow.internal(): super.internal();
+  WebKitNamedFlow.internal() : super.internal();
 
 
   /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
@@ -25658,8 +24288,11 @@ class WebKitNamedFlow extends EventTarget {
 
 /// @domName WebSocket
 class WebSocket extends EventTarget {
-  factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
-  WebSocket.internal(): super.internal();
+  WebSocket.internal() : super.internal();
+
+  ///@docsEditable true
+  factory WebSocket(String url) => WebSocket._create(url);
+  static WebSocket _create(String url) native "WebSocket_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WebSocketEvents get on =>
@@ -25741,9 +24374,62 @@ class WebSocket extends EventTarget {
   /** @domName WebSocket.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
+  bool send(data) {
+    if ((data is ArrayBuffer || data == null)) {
+      return _send_1(data);
+    }
+    if ((data is ArrayBufferView || data == null)) {
+      return _send_2(data);
+    }
+    if ((data is Blob || data == null)) {
+      return _send_3(data);
+    }
+    if ((data is String || data == null)) {
+      _send_4(data);
+      return;
+    }
+    if ((data is ArrayBufferView || data == null)) {
+      _send_5(data);
+      return;
+    }
+    if ((data is Blob || data == null)) {
+      _send_6(data);
+      return;
+    }
+    if ((data is ArrayBuffer || data == null)) {
+      _send_7(data);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
+  }
 
-  /** @domName WebSocket.send */
-  void send(data) native "WebSocket_send_Callback";
+
+  /** @domName WebSocket.send_1 */
+  bool _send_1(data) native "WebSocket_send_1_Callback";
+
+
+  /** @domName WebSocket.send_2 */
+  bool _send_2(data) native "WebSocket_send_2_Callback";
+
+
+  /** @domName WebSocket.send_3 */
+  bool _send_3(data) native "WebSocket_send_3_Callback";
+
+
+  /** @domName WebSocket.send_4 */
+  void _send_4(data) native "WebSocket_send_4_Callback";
+
+
+  /** @domName WebSocket.send_5 */
+  void _send_5(data) native "WebSocket_send_5_Callback";
+
+
+  /** @domName WebSocket.send_6 */
+  void _send_6(data) native "WebSocket_send_6_Callback";
+
+
+  /** @domName WebSocket.send_7 */
+  void _send_7(data) native "WebSocket_send_7_Callback";
 
 }
 
@@ -25771,7 +24457,7 @@ class WebSocketEvents extends Events {
 
 /// @domName WheelEvent
 class WheelEvent extends MouseEvent {
-  WheelEvent.internal(): super.internal();
+  WheelEvent.internal() : super.internal();
 
 
   /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
@@ -25787,7 +24473,7 @@ class WheelEvent extends MouseEvent {
 
 
   /** @domName WheelEvent.initWebKitWheelEvent */
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
 
   /** @domName WheelEvent.deltaX */
@@ -25802,15 +24488,663 @@ class WheelEvent extends MouseEvent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+/// @domName Window
+class Window extends EventTarget implements WindowBase {
+
+  /**
+   * Executes a [callback] after the next batch of browser layout measurements
+   * has completed or would have completed if any browser layout measurements
+   * had been scheduled.
+   */
+  void requestLayoutFrame(TimeoutHandler callback) {
+    _addMeasurementFrameCallback(callback);
+  }
+
+  /**
+   * Lookup a port by its [name].  Return null if no port is
+   * registered under [name].
+   */
+  lookupPort(String name) {
+    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
+    return _deserialize(port);
+  }
+
+  /**
+   * Register a [port] on this window under the given [name].  This
+   * port may be retrieved by any isolate (or JavaScript script)
+   * running in this window.
+   */
+  registerPort(String name, var port) {
+    var serialized = _serialize(port);
+    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
+  }
+
+  Window.internal() : super.internal();
+
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  WindowEvents get on =>
+    new WindowEvents(this);
+
+  static const int PERSISTENT = 1;
+
+  static const int TEMPORARY = 0;
+
+
+  /** @domName DOMWindow.applicationCache */
+  ApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
+
+
+  /** @domName DOMWindow.closed */
+  bool get closed native "DOMWindow_closed_Getter";
+
+
+  /** @domName DOMWindow.console */
+  Console get console native "DOMWindow_console_Getter";
+
+
+  /** @domName DOMWindow.crypto */
+  Crypto get crypto native "DOMWindow_crypto_Getter";
+
+
+  /** @domName DOMWindow.defaultStatus */
+  String get defaultStatus native "DOMWindow_defaultStatus_Getter";
+
+
+  /** @domName DOMWindow.defaultStatus */
+  void set defaultStatus(String value) native "DOMWindow_defaultStatus_Setter";
+
+
+  /** @domName DOMWindow.defaultstatus */
+  String get defaultstatus native "DOMWindow_defaultstatus_Getter";
+
+
+  /** @domName DOMWindow.defaultstatus */
+  void set defaultstatus(String value) native "DOMWindow_defaultstatus_Setter";
+
+
+  /** @domName DOMWindow.devicePixelRatio */
+  num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
+
+
+  /** @domName DOMWindow.document */
+  Document get document native "DOMWindow_document_Getter";
+
+
+  /** @domName DOMWindow.event */
+  Event get event native "DOMWindow_event_Getter";
+
+
+  /** @domName DOMWindow.history */
+  History get history native "DOMWindow_history_Getter";
+
+
+  /** @domName DOMWindow.indexedDB */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @Experimental()
+  IdbFactory get indexedDB native "DOMWindow_indexedDB_Getter";
+
+
+  /** @domName DOMWindow.innerHeight */
+  int get innerHeight native "DOMWindow_innerHeight_Getter";
+
+
+  /** @domName DOMWindow.innerWidth */
+  int get innerWidth native "DOMWindow_innerWidth_Getter";
+
+
+  /** @domName DOMWindow.localStorage */
+  Storage get localStorage native "DOMWindow_localStorage_Getter";
+
+
+  /** @domName DOMWindow.location */
+  Location get location native "DOMWindow_location_Getter";
+
+
+  /** @domName DOMWindow.location */
+  void set location(Location value) native "DOMWindow_location_Setter";
+
+
+  /** @domName DOMWindow.locationbar */
+  BarInfo get locationbar native "DOMWindow_locationbar_Getter";
+
+
+  /** @domName DOMWindow.menubar */
+  BarInfo get menubar native "DOMWindow_menubar_Getter";
+
+
+  /** @domName DOMWindow.name */
+  String get name native "DOMWindow_name_Getter";
+
+
+  /** @domName DOMWindow.name */
+  void set name(String value) native "DOMWindow_name_Setter";
+
+
+  /** @domName DOMWindow.navigator */
+  Navigator get navigator native "DOMWindow_navigator_Getter";
+
+
+  /** @domName DOMWindow.offscreenBuffering */
+  bool get offscreenBuffering native "DOMWindow_offscreenBuffering_Getter";
+
+
+  /** @domName DOMWindow.opener */
+  WindowBase get opener native "DOMWindow_opener_Getter";
+
+
+  /** @domName DOMWindow.outerHeight */
+  int get outerHeight native "DOMWindow_outerHeight_Getter";
+
+
+  /** @domName DOMWindow.outerWidth */
+  int get outerWidth native "DOMWindow_outerWidth_Getter";
+
+
+  /** @domName DOMWindow.pagePopupController */
+  PagePopupController get pagePopupController native "DOMWindow_pagePopupController_Getter";
+
+
+  /** @domName DOMWindow.pageXOffset */
+  int get pageXOffset native "DOMWindow_pageXOffset_Getter";
+
+
+  /** @domName DOMWindow.pageYOffset */
+  int get pageYOffset native "DOMWindow_pageYOffset_Getter";
+
+
+  /** @domName DOMWindow.parent */
+  WindowBase get parent native "DOMWindow_parent_Getter";
+
+
+  /** @domName DOMWindow.performance */
+  Performance get performance native "DOMWindow_performance_Getter";
+
+
+  /** @domName DOMWindow.personalbar */
+  BarInfo get personalbar native "DOMWindow_personalbar_Getter";
+
+
+  /** @domName DOMWindow.screen */
+  Screen get screen native "DOMWindow_screen_Getter";
+
+
+  /** @domName DOMWindow.screenLeft */
+  int get screenLeft native "DOMWindow_screenLeft_Getter";
+
+
+  /** @domName DOMWindow.screenTop */
+  int get screenTop native "DOMWindow_screenTop_Getter";
+
+
+  /** @domName DOMWindow.screenX */
+  int get screenX native "DOMWindow_screenX_Getter";
+
+
+  /** @domName DOMWindow.screenY */
+  int get screenY native "DOMWindow_screenY_Getter";
+
+
+  /** @domName DOMWindow.scrollX */
+  int get scrollX native "DOMWindow_scrollX_Getter";
+
+
+  /** @domName DOMWindow.scrollY */
+  int get scrollY native "DOMWindow_scrollY_Getter";
+
+
+  /** @domName DOMWindow.scrollbars */
+  BarInfo get scrollbars native "DOMWindow_scrollbars_Getter";
+
+
+  /** @domName DOMWindow.self */
+  WindowBase get self native "DOMWindow_self_Getter";
+
+
+  /** @domName DOMWindow.sessionStorage */
+  Storage get sessionStorage native "DOMWindow_sessionStorage_Getter";
+
+
+  /** @domName DOMWindow.status */
+  String get status native "DOMWindow_status_Getter";
+
+
+  /** @domName DOMWindow.status */
+  void set status(String value) native "DOMWindow_status_Setter";
+
+
+  /** @domName DOMWindow.statusbar */
+  BarInfo get statusbar native "DOMWindow_statusbar_Getter";
+
+
+  /** @domName DOMWindow.styleMedia */
+  StyleMedia get styleMedia native "DOMWindow_styleMedia_Getter";
+
+
+  /** @domName DOMWindow.toolbar */
+  BarInfo get toolbar native "DOMWindow_toolbar_Getter";
+
+
+  /** @domName DOMWindow.top */
+  WindowBase get top native "DOMWindow_top_Getter";
+
+
+  /** @domName DOMWindow.webkitNotifications */
+  NotificationCenter get webkitNotifications native "DOMWindow_webkitNotifications_Getter";
+
+
+  /** @domName DOMWindow.webkitStorageInfo */
+  StorageInfo get webkitStorageInfo native "DOMWindow_webkitStorageInfo_Getter";
+
+
+  /** @domName DOMWindow.window */
+  WindowBase get window native "DOMWindow_window_Getter";
+
+
+  /** @domName DOMWindow.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_addEventListener_Callback";
+
+
+  /** @domName DOMWindow.alert */
+  void alert(String message) native "DOMWindow_alert_Callback";
+
+
+  /** @domName DOMWindow.atob */
+  String atob(String string) native "DOMWindow_atob_Callback";
+
+
+  /** @domName DOMWindow.btoa */
+  String btoa(String string) native "DOMWindow_btoa_Callback";
+
+
+  /** @domName DOMWindow.cancelAnimationFrame */
+  void cancelAnimationFrame(int id) native "DOMWindow_cancelAnimationFrame_Callback";
+
+
+  /** @domName DOMWindow.captureEvents */
+  void captureEvents() native "DOMWindow_captureEvents_Callback";
+
+
+  /** @domName DOMWindow.clearInterval */
+  void clearInterval(int handle) native "DOMWindow_clearInterval_Callback";
+
+
+  /** @domName DOMWindow.clearTimeout */
+  void clearTimeout(int handle) native "DOMWindow_clearTimeout_Callback";
+
+
+  /** @domName DOMWindow.close */
+  void close() native "DOMWindow_close_Callback";
+
+
+  /** @domName DOMWindow.confirm */
+  bool confirm(String message) native "DOMWindow_confirm_Callback";
+
+
+  /** @domName DOMWindow.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt) native "DOMWindow_dispatchEvent_Callback";
+
+
+  /** @domName DOMWindow.find */
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
+
+
+  /** @domName DOMWindow.getComputedStyle */
+  CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
+
+
+  /** @domName DOMWindow.getMatchedCSSRules */
+  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
+
+
+  /** @domName DOMWindow.getSelection */
+  DomSelection getSelection() native "DOMWindow_getSelection_Callback";
+
+
+  /** @domName DOMWindow.matchMedia */
+  MediaQueryList matchMedia(String query) native "DOMWindow_matchMedia_Callback";
+
+
+  /** @domName DOMWindow.moveBy */
+  void moveBy(num x, num y) native "DOMWindow_moveBy_Callback";
+
+
+  /** @domName DOMWindow.moveTo */
+  void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
+
+
+  /** @domName DOMWindow.open */
+  WindowBase open(String url, String name, [String options]) native "DOMWindow_open_Callback";
+
+
+  /** @domName DOMWindow.openDatabase */
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
+
+
+  /** @domName DOMWindow.postMessage */
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
+
+
+  /** @domName DOMWindow.print */
+  void print() native "DOMWindow_print_Callback";
+
+
+  /** @domName DOMWindow.releaseEvents */
+  void releaseEvents() native "DOMWindow_releaseEvents_Callback";
+
+
+  /** @domName DOMWindow.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_removeEventListener_Callback";
+
+
+  /** @domName DOMWindow.requestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_requestAnimationFrame_Callback";
+
+
+  /** @domName DOMWindow.resizeBy */
+  void resizeBy(num x, num y) native "DOMWindow_resizeBy_Callback";
+
+
+  /** @domName DOMWindow.resizeTo */
+  void resizeTo(num width, num height) native "DOMWindow_resizeTo_Callback";
+
+
+  /** @domName DOMWindow.scroll */
+  void scroll(int x, int y) native "DOMWindow_scroll_Callback";
+
+
+  /** @domName DOMWindow.scrollBy */
+  void scrollBy(int x, int y) native "DOMWindow_scrollBy_Callback";
+
+
+  /** @domName DOMWindow.scrollTo */
+  void scrollTo(int x, int y) native "DOMWindow_scrollTo_Callback";
+
+
+  /** @domName DOMWindow.setInterval */
+  int setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
+
+
+  /** @domName DOMWindow.setTimeout */
+  int setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
+
+
+  /** @domName DOMWindow.showModalDialog */
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native "DOMWindow_showModalDialog_Callback";
+
+
+  /** @domName DOMWindow.stop */
+  void stop() native "DOMWindow_stop_Callback";
+
+
+  /** @domName DOMWindow.webkitCancelAnimationFrame */
+  void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
+
+
+  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
+  Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
+
+
+  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
+  Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
+
+
+  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
+
+
+  /** @domName DOMWindow.webkitRequestFileSystem */
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
+
+
+  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+
+}
+
+/// @docsEditable true
+class WindowEvents extends Events {
+  /// @docsEditable true
+  WindowEvents(EventTarget _ptr) : super(_ptr);
+
+  /// @docsEditable true
+  EventListenerList get contentLoaded => this['DOMContentLoaded'];
+
+  /// @docsEditable true
+  EventListenerList get abort => this['abort'];
+
+  /// @docsEditable true
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  /// @docsEditable true
+  EventListenerList get blur => this['blur'];
+
+  /// @docsEditable true
+  EventListenerList get canPlay => this['canplay'];
+
+  /// @docsEditable true
+  EventListenerList get canPlayThrough => this['canplaythrough'];
+
+  /// @docsEditable true
+  EventListenerList get change => this['change'];
+
+  /// @docsEditable true
+  EventListenerList get click => this['click'];
+
+  /// @docsEditable true
+  EventListenerList get contextMenu => this['contextmenu'];
+
+  /// @docsEditable true
+  EventListenerList get doubleClick => this['dblclick'];
+
+  /// @docsEditable true
+  EventListenerList get deviceMotion => this['devicemotion'];
+
+  /// @docsEditable true
+  EventListenerList get deviceOrientation => this['deviceorientation'];
+
+  /// @docsEditable true
+  EventListenerList get drag => this['drag'];
+
+  /// @docsEditable true
+  EventListenerList get dragEnd => this['dragend'];
+
+  /// @docsEditable true
+  EventListenerList get dragEnter => this['dragenter'];
+
+  /// @docsEditable true
+  EventListenerList get dragLeave => this['dragleave'];
+
+  /// @docsEditable true
+  EventListenerList get dragOver => this['dragover'];
+
+  /// @docsEditable true
+  EventListenerList get dragStart => this['dragstart'];
+
+  /// @docsEditable true
+  EventListenerList get drop => this['drop'];
+
+  /// @docsEditable true
+  EventListenerList get durationChange => this['durationchange'];
+
+  /// @docsEditable true
+  EventListenerList get emptied => this['emptied'];
+
+  /// @docsEditable true
+  EventListenerList get ended => this['ended'];
+
+  /// @docsEditable true
+  EventListenerList get error => this['error'];
+
+  /// @docsEditable true
+  EventListenerList get focus => this['focus'];
+
+  /// @docsEditable true
+  EventListenerList get hashChange => this['hashchange'];
+
+  /// @docsEditable true
+  EventListenerList get input => this['input'];
+
+  /// @docsEditable true
+  EventListenerList get invalid => this['invalid'];
+
+  /// @docsEditable true
+  EventListenerList get keyDown => this['keydown'];
+
+  /// @docsEditable true
+  EventListenerList get keyPress => this['keypress'];
+
+  /// @docsEditable true
+  EventListenerList get keyUp => this['keyup'];
+
+  /// @docsEditable true
+  EventListenerList get load => this['load'];
+
+  /// @docsEditable true
+  EventListenerList get loadedData => this['loadeddata'];
+
+  /// @docsEditable true
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
+
+  /// @docsEditable true
+  EventListenerList get loadStart => this['loadstart'];
+
+  /// @docsEditable true
+  EventListenerList get message => this['message'];
+
+  /// @docsEditable true
+  EventListenerList get mouseDown => this['mousedown'];
+
+  /// @docsEditable true
+  EventListenerList get mouseMove => this['mousemove'];
+
+  /// @docsEditable true
+  EventListenerList get mouseOut => this['mouseout'];
+
+  /// @docsEditable true
+  EventListenerList get mouseOver => this['mouseover'];
+
+  /// @docsEditable true
+  EventListenerList get mouseUp => this['mouseup'];
+
+  /// @docsEditable true
+  EventListenerList get mouseWheel => this['mousewheel'];
+
+  /// @docsEditable true
+  EventListenerList get offline => this['offline'];
+
+  /// @docsEditable true
+  EventListenerList get online => this['online'];
+
+  /// @docsEditable true
+  EventListenerList get pageHide => this['pagehide'];
+
+  /// @docsEditable true
+  EventListenerList get pageShow => this['pageshow'];
+
+  /// @docsEditable true
+  EventListenerList get pause => this['pause'];
+
+  /// @docsEditable true
+  EventListenerList get play => this['play'];
+
+  /// @docsEditable true
+  EventListenerList get playing => this['playing'];
+
+  /// @docsEditable true
+  EventListenerList get popState => this['popstate'];
+
+  /// @docsEditable true
+  EventListenerList get progress => this['progress'];
+
+  /// @docsEditable true
+  EventListenerList get rateChange => this['ratechange'];
+
+  /// @docsEditable true
+  EventListenerList get reset => this['reset'];
+
+  /// @docsEditable true
+  EventListenerList get resize => this['resize'];
+
+  /// @docsEditable true
+  EventListenerList get scroll => this['scroll'];
+
+  /// @docsEditable true
+  EventListenerList get search => this['search'];
+
+  /// @docsEditable true
+  EventListenerList get seeked => this['seeked'];
+
+  /// @docsEditable true
+  EventListenerList get seeking => this['seeking'];
+
+  /// @docsEditable true
+  EventListenerList get select => this['select'];
+
+  /// @docsEditable true
+  EventListenerList get stalled => this['stalled'];
+
+  /// @docsEditable true
+  EventListenerList get storage => this['storage'];
+
+  /// @docsEditable true
+  EventListenerList get submit => this['submit'];
+
+  /// @docsEditable true
+  EventListenerList get suspend => this['suspend'];
+
+  /// @docsEditable true
+  EventListenerList get timeUpdate => this['timeupdate'];
+
+  /// @docsEditable true
+  EventListenerList get touchCancel => this['touchcancel'];
+
+  /// @docsEditable true
+  EventListenerList get touchEnd => this['touchend'];
+
+  /// @docsEditable true
+  EventListenerList get touchMove => this['touchmove'];
+
+  /// @docsEditable true
+  EventListenerList get touchStart => this['touchstart'];
+
+  /// @docsEditable true
+  EventListenerList get unload => this['unload'];
+
+  /// @docsEditable true
+  EventListenerList get volumeChange => this['volumechange'];
+
+  /// @docsEditable true
+  EventListenerList get waiting => this['waiting'];
+
+  /// @docsEditable true
+  EventListenerList get animationEnd => this['webkitAnimationEnd'];
+
+  /// @docsEditable true
+  EventListenerList get animationIteration => this['webkitAnimationIteration'];
+
+  /// @docsEditable true
+  EventListenerList get animationStart => this['webkitAnimationStart'];
+
+  /// @docsEditable true
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 
 /// @domName Worker
 class Worker extends AbstractWorker {
+  Worker.internal() : super.internal();
 
   ///@docsEditable true
-  factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
-  Worker.internal(): super.internal();
+  factory Worker(String scriptUrl) => Worker._create(scriptUrl);
+  static Worker _create(String scriptUrl) native "Worker_constructor_Callback";
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerEvents get on =>
@@ -25843,7 +25177,7 @@ class WorkerEvents extends AbstractWorkerEvents {
 
 /// @domName WorkerContext
 class WorkerContext extends EventTarget {
-  WorkerContext.internal(): super.internal();
+  WorkerContext.internal() : super.internal();
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerContextEvents get on =>
@@ -25855,6 +25189,10 @@ class WorkerContext extends EventTarget {
 
 
   /** @domName WorkerContext.indexedDB */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @Experimental()
   IdbFactory get indexedDB native "WorkerContext_indexedDB_Getter";
 
 
@@ -26032,10 +25370,11 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
 
 /// @domName XPathEvaluator
 class XPathEvaluator extends NativeFieldWrapperClass1 {
+  XPathEvaluator.internal();
 
   ///@docsEditable true
-  factory XPathEvaluator() => _XPathEvaluatorFactoryProvider.createXPathEvaluator();
-  XPathEvaluator.internal();
+  factory XPathEvaluator() => XPathEvaluator._create();
+  static XPathEvaluator _create() native "XPathEvaluator_constructor_Callback";
 
 
   /** @domName XPathEvaluator.createExpression */
@@ -26191,10 +25530,11 @@ class XPathResult extends NativeFieldWrapperClass1 {
 
 /// @domName XMLSerializer
 class XmlSerializer extends NativeFieldWrapperClass1 {
+  XmlSerializer.internal();
 
   ///@docsEditable true
-  factory XmlSerializer() => _XmlSerializerFactoryProvider.createXmlSerializer();
-  XmlSerializer.internal();
+  factory XmlSerializer() => XmlSerializer._create();
+  static XmlSerializer _create() native "XMLSerializer_constructor_Callback";
 
 
   /** @domName XMLSerializer.serializeToString */
@@ -26210,10 +25550,11 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
 
 /// @domName XSLTProcessor
 class XsltProcessor extends NativeFieldWrapperClass1 {
+  XsltProcessor.internal();
 
   ///@docsEditable true
-  factory XsltProcessor() => _XsltProcessorFactoryProvider.createXsltProcessor();
-  XsltProcessor.internal();
+  factory XsltProcessor() => XsltProcessor._create();
+  static XsltProcessor _create() native "XSLTProcessor_constructor_Callback";
 
 
   /** @domName XSLTProcessor.clearParameters */
@@ -26247,30 +25588,6 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
   /** @domName XSLTProcessor.transformToFragment */
   DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _ArrayBufferFactoryProvider {
-  static ArrayBuffer createArrayBuffer(int length) native "ArrayBuffer_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _AudioElementFactoryProvider {
-  static AudioElement createAudioElement([String src]) native "HTMLAudioElement_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _BlobFactoryProvider {
-  static Blob createBlob(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26391,14 +25708,6 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
   /** @domName ClientRectList.item */
   ClientRect item(int index) native "ClientRectList_item_Callback";
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _CssMatrixFactoryProvider {
-  static CssMatrix createCssMatrix([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26529,7 +25838,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 
 /// @domName CSSValueList
 class _CssValueList extends CssValue implements List<CssValue> {
-  _CssValueList.internal(): super.internal();
+  _CssValueList.internal() : super.internal();
 
 
   /** @domName CSSValueList.length */
@@ -26644,28 +25953,12 @@ class _CssValueList extends CssValue implements List<CssValue> {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-class _DataViewFactoryProvider {
-  static DataView createDataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _DomParserFactoryProvider {
-  static DomParser createDomParser() native "DOMParser_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
 
 /// @domName HTMLElement
 class _Element_Merged extends Element {
-  _Element_Merged.internal(): super.internal();
+  _Element_Merged.internal() : super.internal();
 
 
   /** @domName HTMLElement.children */
@@ -27036,38 +26329,6 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-class _EventSourceFactoryProvider {
-  static EventSource createEventSource(String scriptUrl) native "EventSource_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _FileReaderFactoryProvider {
-  static FileReader createFileReader() native "FileReader_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _FileReaderSyncFactoryProvider {
-  static FileReaderSync createFileReaderSync() native "FileReaderSync_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _FormDataFactoryProvider {
-  static FormData createFormData([FormElement form]) native "DOMFormData_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
 
@@ -27183,55 +26444,6 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   /** @domName GamepadList.item */
   Gamepad item(int index) native "GamepadList_item_Callback";
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _HttpRequestFactoryProvider {
-  static HttpRequest createHttpRequest() => _createHttpRequest();
-  static HttpRequest _createHttpRequest() native "XMLHttpRequest_constructor_Callback";
-
-  static HttpRequest createHttpRequest_get(String url,
-                                     onSuccess(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onSuccess, false);
-
-  static HttpRequest createHttpRequest_getWithCredentials(String url,
-                                     onSuccess(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onSuccess, true);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _IceCandidateFactoryProvider {
-  static IceCandidate createIceCandidate(String label, String candidateLine) native "IceCandidate_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _MediaControllerFactoryProvider {
-  static MediaController createMediaController() native "MediaController_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _MediaSourceFactoryProvider {
-  static MediaSource createMediaSource() native "MediaSource_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _MediaStreamFactoryProvider {
-  static MediaStream createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native "MediaStream_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27357,110 +26569,6 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-class _MessageChannelFactoryProvider {
-  static MessageChannel createMessageChannel() native "MessageChannel_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _MutationObserverFactoryProvider {
-  static MutationObserver createMutationObserver(MutationCallback callback) native "MutationObserver_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _NotificationFactoryProvider {
-  static Notification createNotification(String title, [Map options]) native "Notification_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _OptionElementFactoryProvider {
-  static OptionElement createOptionElement([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _PeerConnection00FactoryProvider {
-  static PeerConnection00 createPeerConnection00(String serverConfiguration, IceCallback iceCallback) native "PeerConnection00_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _RtcIceCandidateFactoryProvider {
-  static RtcIceCandidate createRtcIceCandidate(Map dictionary) native "RTCIceCandidate_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _RtcPeerConnectionFactoryProvider {
-  static RtcPeerConnection createRtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _RtcSessionDescriptionFactoryProvider {
-  static RtcSessionDescription createRtcSessionDescription(Map dictionary) native "RTCSessionDescription_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _SessionDescriptionFactoryProvider {
-  static SessionDescription createSessionDescription(String sdp) native "SessionDescription_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _ShadowRootFactoryProvider {
-  static ShadowRoot createShadowRoot(Element host) native "ShadowRoot_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _SharedWorkerFactoryProvider {
-  static SharedWorker createSharedWorker(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _SpeechGrammarFactoryProvider {
-  static SpeechGrammar createSpeechGrammar() native "SpeechGrammar_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _SpeechGrammarListFactoryProvider {
-  static SpeechGrammarList createSpeechGrammarList() native "SpeechGrammarList_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
 
@@ -27576,14 +26684,6 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   /** @domName SpeechInputResultList.item */
   SpeechInputResult item(int index) native "SpeechInputResultList_item_Callback";
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _SpeechRecognitionFactoryProvider {
-  static SpeechRecognition createSpeechRecognition() native "SpeechRecognition_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27830,166 +26930,6 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _TextTrackCueFactoryProvider {
-  static TextTrackCue createTextTrackCue(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName WebKitAnimationList
-class _WebKitAnimationList extends NativeFieldWrapperClass1 implements List<Animation> {
-  _WebKitAnimationList.internal();
-
-
-  /** @domName WebKitAnimationList.length */
-  int get length native "WebKitAnimationList_length_Getter";
-
-  Animation operator[](int index) native "WebKitAnimationList_item_Callback";
-
-  void operator[]=(int index, Animation value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Animation> mixins.
-  // Animation is the element type.
-
-  // From Iterable<Animation>:
-
-  Iterator<Animation> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Animation>(this);
-  }
-
-  // From Collection<Animation>:
-
-  void add(Animation value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Animation value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<Animation> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Animation)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Animation element) => Collections.contains(this, element);
-
-  void forEach(void f(Animation element)) => Collections.forEach(this, f);
-
-  Collection map(f(Animation element)) => Collections.map(this, [], f);
-
-  Collection<Animation> filter(bool f(Animation element)) =>
-     Collections.filter(this, <Animation>[], f);
-
-  bool every(bool f(Animation element)) => Collections.every(this, f);
-
-  bool some(bool f(Animation element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<Animation>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  void sort([int compare(Animation a, Animation b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Animation element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Animation element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Animation get first => this[0];
-
-  Animation get last => this[length - 1];
-
-  Animation removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
-  }
-
-  Animation removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Animation> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Animation initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<Animation> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Animation>[]);
-
-  // -- end List<Animation> mixins.
-
-
-  /** @domName WebKitAnimationList.item */
-  Animation item(int index) native "WebKitAnimationList_item_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _WorkerFactoryProvider {
-  static Worker createWorker(String scriptUrl) native "Worker_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _XPathEvaluatorFactoryProvider {
-  static XPathEvaluator createXPathEvaluator() native "XPathEvaluator_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _XmlSerializerFactoryProvider {
-  static XmlSerializer createXmlSerializer() native "XMLSerializer_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _XsltProcessorFactoryProvider {
-  static XsltProcessor createXsltProcessor() native "XSLTProcessor_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 abstract class _AttributeMap implements Map<String, String> {
   final Element _element;
 
@@ -28220,7 +27160,7 @@ class _DataAttributeMap implements Map<String, String> {
  * is the container that displays a [Document]'s content. All web scripting
  * happens within the context of a [Window] object.
  *
- * **Note:** This class represents any window, whereas [LocalWindow] is
+ * **Note:** This class represents any window, whereas [Window] is
  * used to access the properties and content of the current window.
  *
  * See also:
@@ -28228,7 +27168,7 @@ class _DataAttributeMap implements Map<String, String> {
  * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
  */
-abstract class Window {
+abstract class WindowBase {
   // Fields.
 
   /**
@@ -28237,8 +27177,8 @@ abstract class Window {
    *     Location currentLocation = window.location;
    *     print(currentLocation.href); // 'http://www.example.com:80/'
    */
-  Location get location;
-  History get history;
+  LocationBase get location;
+  HistoryBase get history;
 
   /**
    * Indicates whether this window has been closed.
@@ -28253,16 +27193,16 @@ abstract class Window {
    * A reference to the window that opened this one.
    *
    *     Window thisWindow = window;
-   *     Window otherWindow = thisWindow.open('http://www.example.com/', 'foo');
+   *     WindowBase otherWindow = thisWindow.open('http://www.example.com/', 'foo');
    *     print(otherWindow.opener == thisWindow); // 'true'
    */
-  Window get opener;
+  WindowBase get opener;
 
   /**
    * A reference to the parent of this window.
    *
-   * If this [Window] has no parent, [parent] will return a reference to
-   * the [Window] itself.
+   * If this [WindowBase] has no parent, [parent] will return a reference to
+   * the [WindowBase] itself.
    *
    *     IFrameElement myIFrame = new IFrameElement();
    *     window.document.body.elements.add(myIFrame);
@@ -28270,13 +27210,13 @@ abstract class Window {
    *
    *     print(window.parent == window) // 'true'
    */
-  Window get parent;
+  WindowBase get parent;
 
   /**
    * A reference to the topmost window in the window hierarchy.
    *
-   * If this [Window] is the topmost [Window], [top] will return a reference to
-   * the [Window] itself.
+   * If this [WindowBase] is the topmost [WindowBase], [top] will return a
+   * reference to the [WindowBase] itself.
    *
    *     // Add an IFrame to the current window.
    *     IFrameElement myIFrame = new IFrameElement();
@@ -28291,13 +27231,13 @@ abstract class Window {
    *
    *     print(window.top == window) // 'true'
    */
-  Window get top;
+  WindowBase get top;
 
   // Methods.
   /**
    * Closes the window.
    *
-   * This method should only succeed if the [Window] object is
+   * This method should only succeed if the [WindowBase] object is
    * **script-closeable** and the window calling [close] is allowed to navigate
    * the window.
    *
@@ -28326,11 +27266,11 @@ abstract class Window {
   void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
 
-abstract class Location {
+abstract class LocationBase {
   void set href(String val);
 }
 
-abstract class History {
+abstract class HistoryBase {
   void back();
   void forward();
   void go(int distance);
@@ -29905,7 +28845,7 @@ class KeyEvent implements KeyboardEvent {
   void stopImmediatePropagation() => _parent.stopImmediatePropagation();
   void stopPropagation() => _parent.stopPropagation();
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, int detail) {
+      Window view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
@@ -29921,7 +28861,7 @@ class KeyEvent implements KeyboardEvent {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey,
       bool altGraphKey) {
     throw new UnsupportedError(
@@ -29999,16 +28939,6 @@ class _TypedArrayFactoryProvider {
   static _U8C(arg0, [arg1, arg2]) native "Uint8ClampedArray_constructor_Callback";
 
   static ensureNative(List list) => list;  // TODO: make sure.
-}
-
-class _PointFactoryProvider {
-  static Point createPoint(num x, num y) => _createWebKitPoint(x, y);
-  static _createWebKitPoint(num x, num y) native "WebKitPoint_constructor_Callback";
-}
-
-class _WebSocketFactoryProvider {
-  static WebSocket createWebSocket(String url) => _createWebSocket(url);
-  static _createWebSocket(String url) native "WebSocket_constructor_Callback";
 }
 
 class _TextFactoryProvider {
@@ -30271,7 +29201,6 @@ class _MeasurementRequest<T> {
 
 typedef void _MeasurementCallback();
 
-
 /**
  * This class attempts to invoke a callback as soon as the current event stack
  * unwinds, but before the browser repaints.
@@ -30286,7 +29215,7 @@ abstract class _MeasurementScheduler {
    * Creates the best possible measurement scheduler for the current platform.
    */
   factory _MeasurementScheduler.best(_MeasurementCallback callback) {
-    if (_isMutationObserverSupported()) {
+    if (MutationObserver.supported) {
       return new _MutationObserverScheduler(callback);
     }
     return new _PostMessageScheduler(callback);
@@ -30638,18 +29567,6 @@ abstract class _Deserializer {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * Checks to see if the mutation observer API is supported on the current
- * platform.
- */
-bool _isMutationObserverSupported() {
-  return true;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 // TODO(rnystrom): add a way to supress public classes from DartDoc output.
 // TODO(jacobr): we can remove this class now that we are using the $dom_
 // convention for deprecated methods rather than truly private methods.
@@ -30777,17 +29694,18 @@ class _NPObject extends NativeFieldWrapperClass1 {
   invoke(String methodName, [List args = null]) native "NPObject_invoke";
 }
 
-class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements Window {
+class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements
+    WindowBase {
   _DOMWindowCrossFrame.internal();
 
   // Fields.
-  History get history native "DOMWindow_history_cross_frame_Getter";
-  Location get location native "DOMWindow_location_cross_frame_Getter";
+  HistoryBase get history native "DOMWindow_history_cross_frame_Getter";
+  LocationBase get location native "DOMWindow_location_cross_frame_Getter";
   bool get closed native "DOMWindow_closed_Getter";
   int get length native "DOMWindow_length_Getter";
-  Window get opener native "DOMWindow_opener_Getter";
-  Window get parent native "DOMWindow_parent_Getter";
-  Window get top native "DOMWindow_top_Getter";
+  WindowBase get opener native "DOMWindow_opener_Getter";
+  WindowBase get parent native "DOMWindow_parent_Getter";
+  WindowBase get top native "DOMWindow_top_Getter";
 
   // Methods.
   void close() native "DOMWindow_close_Callback";
@@ -30797,7 +29715,7 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements Window {
   String get typeName => "DOMWindow";
 }
 
-class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements History {
+class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
@@ -30809,7 +29727,7 @@ class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements History {
   String get typeName => "History";
 }
 
-class _LocationCrossFrame extends NativeFieldWrapperClass1 implements Location {
+class _LocationCrossFrame extends NativeFieldWrapperClass1 implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.

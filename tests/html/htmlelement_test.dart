@@ -61,7 +61,7 @@ main() {
 
     final keys = <String> [];
     final values = <String> [];
-    div.dataAttributes.forEach(void f(String key, String value) {
+    div.dataAttributes.forEach((String key, String value) {
         keys.add(key);
         values.add(value);
     });

@@ -6,10 +6,11 @@
 // VMOptions=--short_socket_read
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
+library ServerTest;
 
-#import("dart:io");
-#import("dart:isolate");
-#source("testing_server.dart");
+import "dart:io";
+import "dart:isolate";
+part "testing_server.dart";
 
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.

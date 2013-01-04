@@ -34,7 +34,6 @@ class SpecialType {
 class NativeEnqueuer {
   /// Initial entry point to native enqueuer.
   void processNativeClasses(Collection<LibraryElement> libraries) {}
-  void processNativeClassesInLibrary(LibraryElement library) {}
 
   /// Notification of a main Enqueuer worklist element.  For methods, adds
   /// information from metadata attributes, and computes types instantiated due
@@ -104,6 +103,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   void processNativeClasses(Collection<LibraryElement> libraries) {
     libraries.forEach(processNativeClassesInLibrary);
+    processNativeClassesInLibrary(compiler.isolateHelperLibrary);
     if (!enableLiveTypeAnalysis) {
       nativeClasses.forEach((c) => enqueueClass(c, 'forced'));
       flushQueue();
@@ -113,17 +113,17 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void processNativeClassesInLibrary(LibraryElement library) {
     // Use implementation to ensure the inclusion of injected members.
     library.implementation.forEachLocalMember((Element element) {
-      if (element.kind == ElementKind.CLASS) {
-        ClassElement classElement = element;
-        if (classElement.isNative()) {
-          nativeClasses.add(classElement);
-          unusedClasses.add(classElement);
-
-          // Resolve class to ensure the class has valid inheritance info.
-          classElement.ensureResolved(compiler);
-        }
+      if (element.isClass() && element.isNative()) {
+        processNativeClass(element);
       }
     });
+  }
+
+  void processNativeClass(ClassElement classElement) {
+    nativeClasses.add(classElement);
+    unusedClasses.add(classElement);
+    // Resolve class to ensure the class has valid inheritance info.
+    classElement.ensureResolved(compiler);
   }
 
   ClassElement get annotationCreatesClass {
@@ -323,7 +323,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         } else if (type.element == compiler.doubleClass) {
           world.registerInstantiatedClass(compiler.doubleClass);
         } else if (type.element == compiler.numClass) {
-          world.registerInstantiatedClass(compiler.numClass);
+          world.registerInstantiatedClass(compiler.doubleClass);
+          world.registerInstantiatedClass(compiler.intClass);
         } else if (type.element == compiler.stringClass) {
           world.registerInstantiatedClass(compiler.stringClass);
         } else if (type.element == compiler.nullClass) {
@@ -453,7 +454,6 @@ void maybeEnableNative(Compiler compiler,
   String libraryName = uri.toString();
   if (library.entryCompilationUnit.script.name.contains(
           'dart/tests/compiler/dart2js_native')
-      || libraryName == 'dart:isolate'
       || libraryName == 'dart:html'
       || libraryName == 'dart:html_common'
       || libraryName == 'dart:indexed_db'
@@ -872,26 +872,11 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
         new HForeign(jsCode, const LiteralDartString('Object'), inputs));
     builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   } else {
-    // This is JS code written in a Dart file with the construct
-    // native """ ... """;. It does not work well with mangling,
-    // but there should currently be no clash between leg mangling
-    // and the library where this construct is being used. This
-    // mangling problem will go away once we switch these libraries
-    // to use Leg's 'JS' function.
-    parameters.forEachParameter((Element parameter) {
-      DartType type = parameter.computeType(compiler).unalias(compiler);
-      if (type is FunctionType) {
-        // The parameter type is a function type either directly or through
-        // typedef(s).
-        HInstruction jsClosure = convertDartClosure(parameter, type);
-        // Because the JS code references the argument name directly,
-        // we must keep the name and assign the JS closure to it.
-        builder.add(new HForeign(
-            new DartString.literal('${parameter.name.slowToString()} = #'),
-            const LiteralDartString('void'),
-            <HInstruction>[jsClosure]));
-      }
-    });
+    if (parameters.parameterCount != 0) {
+      compiler.cancel(
+          'native "..." syntax is restricted to functions with zero parameters',
+          node: nativeBody);
+    }
     LiteralString jsCode = nativeBody.asLiteralString();
     builder.push(new HForeign.statement(jsCode.dartString, <HInstruction>[]));
   }

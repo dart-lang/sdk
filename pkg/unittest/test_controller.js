@@ -83,12 +83,17 @@ function onLoad(e) {
 
 window.addEventListener("DOMContentLoaded", onLoad, false);
 
-// If nobody intercepts the error, finish the test.
-window.addEventListener("error", function(e) {
+// Note: before renaming this function, note that it is also included in an
+// inlined error handler in the HTML files that wrap DRT tests.
+// See: tools/testing/dart/browser_test.dart
+function externalError(e) {
   // needed for dartium compilation errors.
   showErrorAndExit(e && e.message);
   window.postMessage('unittest-suite-external-error', '*');
-}, false);
+}
+
+// If nobody intercepts the error, finish the test.
+window.addEventListener("error", externalError, false);
 
 document.addEventListener('readystatechange', function () {
   if (document.readyState != "loaded") return;

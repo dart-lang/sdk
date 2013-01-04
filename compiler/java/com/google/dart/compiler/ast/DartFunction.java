@@ -12,15 +12,17 @@ import java.util.List;
 public class DartFunction extends DartNode {
 
   private final NodeList<DartParameter> parameters = NodeList.create(this);
+  private final int parametersOpenParen;
   private final int parametersOptionalOpen;
   private final int parametersOptionalClose;
   private final int parametersCloseParen;
   private DartBlock body;
   private DartTypeNode returnTypeNode;
 
-  public DartFunction(List<DartParameter> parameters, int parametersOptionalOpen,
+  public DartFunction(List<DartParameter> parameters, int parametersOpenParen, int parametersOptionalOpen,
       int parametersOptionalClose, int parametersCloseParen, DartBlock body,
       DartTypeNode returnTypeNode) {
+    this.parametersOpenParen = parametersOpenParen;
     this.parametersOptionalOpen = parametersOptionalOpen;
     this.parametersOptionalClose = parametersOptionalClose;
     if (parameters != null && !parameters.isEmpty()) {
@@ -45,6 +47,10 @@ public class DartFunction extends DartNode {
 
   public int getParametersOptionalClose() {
     return parametersOptionalClose;
+  }
+  
+  public int getParametersOpenParen() {
+    return parametersOpenParen;
   }
   
   public int getParametersCloseParen() {

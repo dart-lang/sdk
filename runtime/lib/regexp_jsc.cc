@@ -44,9 +44,9 @@ static void ThrowExceptionOnError(const String& pattern,
     error_msg = "Unknown regexp compile error";
   }
   const String& errmsg = String::Handle(String::New(error_msg));
-  GrowableArray<const Object*> args;
-  args.Add(&pattern);
-  args.Add(&errmsg);
+  const Array& args = Array::Handle(Array::New(2));
+  args.SetAt(0, pattern);
+  args.SetAt(1, errmsg);
   Exceptions::ThrowByType(Exceptions::kIllegalJSRegExp, args);
 }
 

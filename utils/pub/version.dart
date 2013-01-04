@@ -2,20 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Handles version numbers, following the [Semantic Versioning][semver] spec.
- *
- * [semver]: http://semver.org/
- */
+/// Handles version numbers, following the [Semantic Versioning][semver] spec.
+///
+/// [semver]: http://semver.org/
 library version;
 
 import 'dart:math';
 
 import 'utils.dart';
 
-/** A parsed semantic version number. */
+/// A parsed semantic version number.
 class Version implements Comparable, VersionConstraint {
-  /** No released version: i.e. "0.0.0". */
+  /// No released version: i.e. "0.0.0".
   static Version get none => new Version(0, 0, 0);
 
   static final _PARSE_REGEX = new RegExp(
@@ -25,22 +23,22 @@ class Version implements Comparable, VersionConstraint {
       r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?'  // Build.
       r'$');                                     // Consume entire string.
 
-  /** The major version number: "1" in "1.2.3". */
+  /// The major version number: "1" in "1.2.3".
   final int major;
 
-  /** The minor version number: "2" in "1.2.3". */
+  /// The minor version number: "2" in "1.2.3".
   final int minor;
 
-  /** The patch version number: "3" in "1.2.3". */
+  /// The patch version number: "3" in "1.2.3".
   final int patch;
 
-  /** The pre-release identifier: "foo" in "1.2.3-foo". May be `null`. */
+  /// The pre-release identifier: "foo" in "1.2.3-foo". May be `null`.
   final String preRelease;
 
-  /** The build identifier: "foo" in "1.2.3+foo". May be `null`. */
+  /// The build identifier: "foo" in "1.2.3+foo". May be `null`.
   final String build;
 
-  /** Creates a new [Version] object. */
+  /// Creates a new [Version] object.
   Version(this.major, this.minor, this.patch, {String pre, this.build})
     : preRelease = pre {
     if (major < 0) throw new ArgumentError(
@@ -51,9 +49,7 @@ class Version implements Comparable, VersionConstraint {
         'Patch version must be non-negative.');
   }
 
-  /**
-   * Creates a new [Version] by parsing [text].
-   */
+  /// Creates a new [Version] by parsing [text].
   factory Version.parse(String text) {
     final match = _PARSE_REGEX.firstMatch(text);
     if (match == null) {
@@ -74,6 +70,20 @@ class Version implements Comparable, VersionConstraint {
     }
   }
 
+  /// Returns the primary version out of a list of candidates. This is the
+  /// highest-numbered stable (non-prerelease) version. If there are no stable
+  /// versions, it's just the highest-numbered version.
+  static Version primary(List<Version> versions) {
+    var primary;
+    for (var version in versions) {
+      if (primary == null || (!version.isPreRelease && primary.isPreRelease) ||
+          (version.isPreRelease == primary.isPreRelease && version > primary)) {
+        primary = version;
+      }
+    }
+    return primary;
+  }
+
   bool operator ==(other) {
     if (other is! Version) return false;
     return compareTo(other) == 0;
@@ -84,9 +94,13 @@ class Version implements Comparable, VersionConstraint {
   bool operator <=(Version other) => compareTo(other) <= 0;
   bool operator >=(Version other) => compareTo(other) >= 0;
 
+  bool get isAny => false;
   bool get isEmpty => false;
 
-  /** Tests if [other] matches this version exactly. */
+  /// Whether or not this is a pre-release version.
+  bool get isPreRelease => preRelease != null;
+
+  /// Tests if [other] matches this version exactly.
   bool allows(Version other) => this == other;
 
   VersionConstraint intersect(VersionConstraint other) {
@@ -136,11 +150,9 @@ class Version implements Comparable, VersionConstraint {
     return buffer.toString();
   }
 
-  /**
-   * Compares the string part of two versions. This is used for the pre-release
-   * and build version parts. This follows Rule 12. of the Semantic Versioning
-   * spec.
-   */
+  /// Compares the string part of two versions. This is used for the pre-release
+  /// and build version parts. This follows Rule 12. of the Semantic Versioning
+  /// spec.
   int _compareStrings(String a, String b) {
     var aParts = _splitParts(a);
     var bParts = _splitParts(b);
@@ -175,10 +187,8 @@ class Version implements Comparable, VersionConstraint {
     }
   }
 
-  /**
-   * Splits a string of dot-delimited identifiers into their component parts.
-   * Identifiers that are numeric are converted to numbers.
-   */
+  /// Splits a string of dot-delimited identifiers into their component parts.
+  /// Identifiers that are numeric are converted to numbers.
   List _splitParts(String text) {
     return text.split('.').map((part) {
       try {
@@ -191,33 +201,27 @@ class Version implements Comparable, VersionConstraint {
   }
 }
 
-/**
- * A [VersionConstraint] is a predicate that can determine whether a given
- * version is valid or not. For example, a ">= 2.0.0" constraint allows any
- * version that is "2.0.0" or greater. Version objects themselves implement
- * this to match a specific version.
- */
+/// A [VersionConstraint] is a predicate that can determine whether a given
+/// version is valid or not. For example, a ">= 2.0.0" constraint allows any
+/// version that is "2.0.0" or greater. Version objects themselves implement
+/// this to match a specific version.
 abstract class VersionConstraint {
-  /**
-   * A [VersionConstraint] that allows no versions: i.e. the empty set.
-   */
+  /// A [VersionConstraint] that allows no versions: i.e. the empty set.
   factory VersionConstraint.empty() => const _EmptyVersion();
 
-  /**
-   * Parses a version constraint. This string is a space-separated series of
-   * version parts. Each part can be one of:
-   *
-   *   * A version string like `1.2.3`. In other words, anything that can be
-   *     parsed by [Version.parse()].
-   *   * A comparison operator (`<`, `>`, `<=`, or `>=`) followed by a version
-   *     string. There cannot be a space between the operator and the version.
-   *
-   * Examples:
-   *
-   *     1.2.3-alpha
-   *     <=5.1.4
-   *     >2.0.4 <=2.4.6
-   */
+  /// Parses a version constraint. This string is a space-separated series of
+  /// version parts. Each part can be one of:
+  ///
+  ///   * A version string like `1.2.3`. In other words, anything that can be
+  ///     parsed by [Version.parse()].
+  ///   * A comparison operator (`<`, `>`, `<=`, or `>=`) followed by a version
+  ///     string. There cannot be a space between the operator and the version.
+  ///
+  /// Examples:
+  ///
+  ///     1.2.3-alpha
+  ///     <=5.1.4
+  ///     >2.0.4 <=2.4.6
   factory VersionConstraint.parse(String text) {
     if (text.trim() == '') {
       throw new FormatException('Cannot parse an empty string.');
@@ -232,12 +236,10 @@ abstract class VersionConstraint {
     return new VersionConstraint.intersection(constraints);
   }
 
-  /**
-   * Creates a new version constraint that is the intersection of [constraints].
-   * It will only allow versions that all of those constraints allow. If
-   * constraints is empty, then it returns a VersionConstraint that allows all
-   * versions.
-   */
+  /// Creates a new version constraint that is the intersection of
+  /// [constraints]. It will only allow versions that all of those constraints
+  /// allow. If constraints is empty, then it returns a VersionConstraint that
+  /// allows all versions.
   factory VersionConstraint.intersection(
       Collection<VersionConstraint> constraints) {
     var constraint = new VersionRange();
@@ -247,20 +249,17 @@ abstract class VersionConstraint {
     return constraint;
   }
 
-  /**
-   * Returns `true` if this constraint allows no versions.
-   */
+  /// Returns `true` if this constraint allows no versions.
   bool get isEmpty;
 
-  /**
-   * Returns `true` if this constraint allows [version].
-   */
+  /// Returns `true` if this constraint allows all versions.
+  bool get isAny;
+
+  /// Returns `true` if this constraint allows [version].
   bool allows(Version version);
 
-  /**
-   * Creates a new [VersionConstraint] that only allows [Version]s allowed by
-   * both this and [other].
-   */
+  /// Creates a new [VersionConstraint] that only allows [Version]s allowed by
+  /// both this and [other].
   VersionConstraint intersect(VersionConstraint other);
 
   static VersionConstraint _parseSingleConstraint(String text) {
@@ -290,12 +289,10 @@ abstract class VersionConstraint {
   }
 }
 
-/**
- * Constrains versions to a fall within a given range. If there is a minimum,
- * then this only allows versions that are at that minimum or greater. If there
- * is a maximum, then only versions less than that are allowed. In other words,
- * this allows `>= min, < max`.
- */
+/// Constrains versions to a fall within a given range. If there is a minimum,
+/// then this only allows versions that are at that minimum or greater. If there
+/// is a maximum, then only versions less than that are allowed. In other words,
+/// this allows `>= min, < max`.
 class VersionRange implements VersionConstraint {
   final Version min;
   final Version max;
@@ -321,7 +318,9 @@ class VersionRange implements VersionConstraint {
 
   bool get isEmpty => false;
 
-  /** Tests if [other] matches falls within this version range. */
+  bool get isAny => !includeMin && !includeMax;
+
+  /// Tests if [other] matches falls within this version range.
   bool allows(Version other) {
     if (min != null && other < min) return false;
     if (min != null && !includeMin && other == min) return false;
@@ -415,6 +414,7 @@ class _EmptyVersion implements VersionConstraint {
   const _EmptyVersion();
 
   bool get isEmpty => true;
+  bool get isAny => false;
   bool allows(Version other) => false;
   VersionConstraint intersect(VersionConstraint other) => this;
   String toString() => '<empty>';

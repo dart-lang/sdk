@@ -125,6 +125,7 @@ import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.util.apache.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -1016,8 +1017,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         setVariableElementType(variable, mergedType, mergedTypeQuality);
       }
     }
-
-    private boolean checkAssignable(DartNode node, Type t, Type s) {
+    
+    private boolean isAssignable(Type t, Type s) {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
       // ignore inferred types, treat them as Dynamic
@@ -1026,15 +1027,18 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return true;
         }
       }
-      // do check and report error
-      if (!types.isAssignable(t, s)) {
+      // do check
+      return types.isAssignable(t, s);
+    }
+
+    private boolean checkAssignable(DartNode node, Type t, Type s) {
+      if (!isAssignable(t, s)) {
         TypeErrorCode errorCode = TypeQuality.isInferred(t) || TypeQuality.isInferred(s)
             ? TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE_INFERRED
-            : TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE;
+                : TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE;
         typeError(node, errorCode, s, t);
         return false;
       }
-      // OK
       return true;
     }
 
@@ -2809,7 +2813,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           case DYNAMIC:
             return type;
           default:
-            if (types.isAssignable(functionType, type)) {
+            if (isAssignable(functionType, type)) {
               // A subtype of interface Function.
               return dynamicType;
             } else if (name == null || currentClass == null) {
@@ -3163,7 +3167,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
         // cull out duplicate elements in the supertype list - inheriting more than one interface
         // of the same type is valid.
         Set<ClassElement> typesForAbstractMembers = Sets.newHashSet();
-        typesForAbstractMembers.add(currentClass.getElement());
         for (InterfaceType supertype : supertypes) {
           typesForAbstractMembers.add(supertype.getElement());
         }
@@ -3230,7 +3233,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
 
         // All remaining methods are unimplemented.
-        for (String name : superMembers.keys()) {
+        List<String> keys = new ArrayList<String>(superMembers.keys());
+        for (int i = 0; i < keys.size(); i++) {
+          String name = keys.get(i);
           Collection<Element> elements = superMembers.removeAll(name);
           for (Element element : elements) {
             if (!element.getModifiers().isStatic()) {
@@ -3350,7 +3355,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
                   case FIELD:
                     typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_FIELD, superElement.getName(),
                         superElement.getEnclosingElement().getName());
-
                     break;
 
                   default:

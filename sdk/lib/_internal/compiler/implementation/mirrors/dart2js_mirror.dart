@@ -79,7 +79,9 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
     // TODO(johnniwinther): We need a mirror on malformed types.
     return system.dynamicType;
   }
-  throw new ArgumentError("Unexpected type $type of kind ${type.kind}");
+  _diagnosticListener.internalError(
+      "Unexpected type $type of kind ${type.kind}");
+  system.compiler.internalError("Unexpected type $type of kind ${type.kind}");
 }
 
 Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
@@ -100,7 +102,7 @@ Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
     }
     return members;
   }
-  throw new ArgumentError(
+  library.mirrors.compiler.internalError(
       "Unexpected member type $element ${element.kind}");
 }
 
@@ -111,6 +113,30 @@ MethodMirror _convertElementMethodToMethodMirror(Dart2JsContainerMirror library,
   } else {
     return null;
   }
+}
+
+InstanceMirror _convertConstantToInstanceMirror(Dart2JsMirrorSystem mirrors,
+                                                Constant constant) {
+  if (constant is BoolConstant) {
+    return new Dart2JsBoolConstantMirror(mirrors, constant);
+  } else if (constant is NumConstant) {
+    return new Dart2JsNumConstantMirror(mirrors, constant);
+  } else if (constant is StringConstant) {
+    return new Dart2JsStringConstantMirror(mirrors, constant);
+  } else if (constant is ListConstant) {
+    return new Dart2JsListConstantMirror(mirrors, constant);
+  } else if (constant is MapConstant) {
+    return new Dart2JsMapConstantMirror(mirrors, constant);
+  } else if (constant is TypeConstant) {
+    return new Dart2JsTypeConstantMirror(mirrors, constant);
+  } else if (constant is FunctionConstant) {
+    return new Dart2JsConstantMirror(mirrors, constant);
+  } else if (constant is NullConstant) {
+    return new Dart2JsNullConstantMirror(mirrors, constant);
+  } else if (constant is ConstructedConstant) {
+    return new Dart2JsConstructedConstantMirror(mirrors, constant);
+  }
+  mirrors.compiler.internalError("Unexpected constant $constant");
 }
 
 class Dart2JsMethodKind {
@@ -407,12 +433,40 @@ abstract class Dart2JsMirror implements Mirror {
   Dart2JsMirrorSystem get mirrors;
 }
 
-abstract class Dart2JsDeclarationMirror
-    implements Dart2JsMirror, DeclarationMirror {
+abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
+    implements DeclarationMirror {
 
   bool get isTopLevel => owner != null && owner is LibraryMirror;
 
   bool get isPrivate => _isPrivate(simpleName);
+
+  /**
+   * Returns the first token for the source of this declaration.
+   */
+  Token getBeginToken();
+
+  /**
+   * Returns the last token for the source of this declaration.
+   */
+  Token getEndToken();
+
+  /**
+   * Returns the script for the source of this declaration.
+   */
+  Script getScript();
+
+  SourceLocation get location {
+    Token beginToken = getBeginToken();
+    Script script = getScript();
+    SourceSpan span;
+    if (beginToken == null) {
+      span = new SourceSpan(script.uri, 0, 0);
+    } else {
+      Token endToken = getEndToken();
+      span = mirrors.compiler.spanFromTokens(beginToken, endToken, script.uri);
+    }
+    return new Dart2JsSourceLocation(script, span);
+  }
 }
 
 abstract class Dart2JsMemberMirror extends Dart2JsElementMirror
@@ -440,6 +494,7 @@ abstract class Dart2JsTypeMirror extends Dart2JsDeclarationMirror
 abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   final Dart2JsMirrorSystem mirrors;
   final Element _element;
+  List<InstanceMirror> _metadata;
 
   Dart2JsElementMirror(this.mirrors, this._element) {
     assert (mirrors != null);
@@ -450,30 +505,65 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
 
   String get displayName => simpleName;
 
-  SourceLocation get location => new Dart2JsSourceLocation(
-      _element.getCompilationUnit().script,
-      mirrors.compiler.spanFromElement(_element));
+  /**
+   * Computes the first token for this declaration using the first metadata
+   * annotation, the begin token of the element node or element position as
+   * indicator.
+   */
+  Token getBeginToken() {
+    if (!_element.metadata.isEmpty) {
+      for (MetadataAnnotation metadata in _element.metadata) {
+        if (metadata.beginToken != null) {
+          return metadata.beginToken;
+        }
+      }
+    }
+    // TODO(johnniwinther): Avoid calling [parseNode].
+    Node node = _element.parseNode(mirrors.compiler);
+    if (node == null) {
+      return _element.position();
+    }
+    return node.getBeginToken();
+  }
+
+  /**
+   * Computes the last token for this declaration using the end token of the
+   * element node or element position as indicator.
+   */
+  Token getEndToken() {
+    // TODO(johnniwinther): Avoid calling [parseNode].
+    Node node = _element.parseNode(mirrors.compiler);
+    if (node == null) {
+      return _element.position();
+    }
+    return node.getEndToken();
+  }
+
+  Script getScript() => _element.getCompilationUnit().script;
 
   String toString() => _element.toString();
 
   int get hashCode => qualifiedName.hashCode;
-}
 
-abstract class Dart2JsProxyMirror extends Dart2JsDeclarationMirror {
-  final Dart2JsMirrorSystem mirrors;
-
-  Dart2JsProxyMirror(this.mirrors);
-
-  String get displayName => simpleName;
-
-  int get hashCode => qualifiedName.hashCode;
+  List<InstanceMirror> get metadata {
+    if (_metadata == null) {
+      _metadata = <InstanceMirror>[];
+      for (MetadataAnnotation metadata in _element.metadata) {
+        metadata.ensureResolved(mirrors.compiler);
+        _metadata.add(
+            _convertConstantToInstanceMirror(mirrors, metadata.value));
+      }
+    }
+    // TODO(johnniwinther): Return an unmodifiable list instead.
+    return new List<InstanceMirror>.from(_metadata);
+  }
 }
 
 //------------------------------------------------------------------------------
 // Mirror system implementation.
 //------------------------------------------------------------------------------
 
-class Dart2JsMirrorSystem implements MirrorSystem, Dart2JsMirror {
+class Dart2JsMirrorSystem implements MirrorSystem {
   final api.Compiler compiler;
   Map<String, Dart2JsLibraryMirror> _libraries;
   Map<LibraryElement, Dart2JsLibraryMirror> _libraryMap;
@@ -639,15 +729,35 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
     return new ImmutableMapWrapper<String, ClassMirror>(_classes);
   }
 
-  SourceLocation get location {
-    var script = _library.getCompilationUnit().script;
-    SourceSpan span;
-    if (_library.libraryTag != null) {
-      span = mirrors.compiler.spanFromNode(_library.libraryTag, script.uri);
-    } else {
-      span = new SourceSpan(script.uri, 0, 0);
+  /**
+   * Computes the first token of this library using the first metadata
+   * annotation or the first library tag as indicator.
+   */
+  Token getBeginToken() {
+    if (!_element.metadata.isEmpty) {
+      for (MetadataAnnotation metadata in _element.metadata) {
+        if (metadata.beginToken != null) {
+          return metadata.beginToken;
+        }
+      }
     }
-    return new Dart2JsSourceLocation(script, span);
+    if (_library.libraryTag != null) {
+      return _library.libraryTag.getBeginToken();
+    } else if (!_library.tags.isEmpty) {
+      return _library.tags.reverse().head.getBeginToken();
+    }
+    return null;
+  }
+
+  /**
+   * Computes the first token of this library using the last library tag as
+   * indicator.
+   */
+  Token getEndToken() {
+    if (!_library.tags.isEmpty) {
+      return _library.tags.head.getEndToken();
+    }
+    return null;
   }
 }
 
@@ -829,18 +939,6 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
 
   String get qualifiedName => '${library.qualifiedName}.${simpleName}';
 
-  SourceLocation get location {
-    if (_class is PartialClassElement) {
-      var node = _class.parseNode(mirrors.compiler);
-      if (node != null) {
-        var script = _class.getCompilationUnit().script;
-        var span = mirrors.compiler.spanFromNode(node, script.uri);
-        return new Dart2JsSourceLocation(script, span);
-      }
-    }
-    return super.location;
-  }
-
   void _ensureMembers() {
     if (_members == null) {
       _members = <String, Dart2JsMemberMirror>{};
@@ -965,16 +1063,6 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
 
   String get qualifiedName => '${library.qualifiedName}.${simpleName}';
 
-  SourceLocation get location {
-    var node = _typedef.element.parseNode(_diagnosticListener);
-    if (node != null) {
-      var script = _typedef.element.getCompilationUnit().script;
-      var span = mirrors.compiler.spanFromNode(node, script.uri);
-      return new Dart2JsSourceLocation(script, span);
-    }
-    return super.location;
-  }
-
   LibraryMirror get library => _library;
 
   bool get isTypedef => true;
@@ -1083,20 +1171,15 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
 // Types
 //------------------------------------------------------------------------------
 
-abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
+abstract class Dart2JsTypeElementMirror extends Dart2JsElementMirror
     implements Dart2JsTypeMirror {
   final DartType _type;
 
-  Dart2JsTypeElementMirror(Dart2JsMirrorSystem system, this._type)
-    : super(system);
+  Dart2JsTypeElementMirror(Dart2JsMirrorSystem system, DartType type)
+    : super(system, type.element),
+      this._type = type;
 
   String get simpleName => _type.name.slowToString();
-
-  SourceLocation get location {
-    var script = _type.element.getCompilationUnit().script;
-    return new Dart2JsSourceLocation(script,
-        mirrors.compiler.spanFromElement(_type.element));
-  }
 
   DeclarationMirror get owner => library;
 
@@ -1116,7 +1199,7 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
 
   bool get isFunction => false;
 
-  String toString() => _type.element.toString();
+  String toString() => _type.toString();
 
   Map<String, MemberMirror> get members => const <String, MemberMirror>{};
 
@@ -1511,17 +1594,6 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
   bool get isSetter => _kind == Dart2JsMethodKind.SETTER;
 
   bool get isOperator => _kind == Dart2JsMethodKind.OPERATOR;
-
-  SourceLocation get location {
-    var node = _function.parseNode(_diagnosticListener);
-    if (node != null) {
-      var script = _function.getCompilationUnit().script;
-      var span = mirrors.compiler.spanFromNode(node, script.uri);
-      return new Dart2JsSourceLocation(script, span);
-    }
-    return super.location;
-  }
-
 }
 
 class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
@@ -1552,16 +1624,181 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
   TypeMirror get type => _convertTypeToTypeMirror(mirrors,
       _variable.computeType(mirrors.compiler),
       mirrors.compiler.types.dynamicType);
+}
 
-  SourceLocation get location {
-    var script = _variable.getCompilationUnit().script;
-    var node = _variable.variables.parseNode(_diagnosticListener);
-    if (node != null) {
-      var span = mirrors.compiler.spanFromNode(node, script.uri);
-      return new Dart2JsSourceLocation(script, span);
-    } else {
-      var span = mirrors.compiler.spanFromElement(_variable);
-      return new Dart2JsSourceLocation(script, span);
+////////////////////////////////////////////////////////////////////////////////
+// Mirrors on constant values used for metadata.
+////////////////////////////////////////////////////////////////////////////////
+
+class Dart2JsConstantMirror extends InstanceMirror {
+  final Dart2JsMirrorSystem mirrors;
+  final Constant _constant;
+
+  Dart2JsConstantMirror(this.mirrors, this._constant);
+
+  ClassMirror get type {
+    return new Dart2JsClassMirror(mirrors,
+        _constant.computeType(mirrors.compiler).element);
+  }
+
+  bool get hasReflectee => false;
+
+  get reflectee {
+    // TODO(johnniwinther): Which exception/error should be thrown here?
+    throw new UnsupportedError('InstanceMirror does not have a reflectee');
+  }
+
+  Future<InstanceMirror> getField(String fieldName) {
+    // TODO(johnniwinther): Which exception/error should be thrown here?
+    throw new UnsupportedError('InstanceMirror does not have a reflectee');
+  }
+}
+
+class Dart2JsNullConstantMirror extends Dart2JsConstantMirror {
+  Dart2JsNullConstantMirror(Dart2JsMirrorSystem mirrors, NullConstant constant)
+      : super(mirrors, constant);
+
+  NullConstant get _constant => super._constant;
+
+  bool get hasReflectee => true;
+
+  get reflectee => null;
+}
+
+class Dart2JsBoolConstantMirror extends Dart2JsConstantMirror {
+  Dart2JsBoolConstantMirror(Dart2JsMirrorSystem mirrors, BoolConstant constant)
+      : super(mirrors, constant);
+
+  BoolConstant get _constant => super._constant;
+
+  bool get hasReflectee => true;
+
+  get reflectee => _constant is TrueConstant;
+}
+
+class Dart2JsStringConstantMirror extends Dart2JsConstantMirror {
+  Dart2JsStringConstantMirror(Dart2JsMirrorSystem mirrors,
+                              StringConstant constant)
+      : super(mirrors, constant);
+
+  StringConstant get _constant => super._constant;
+
+  bool get hasReflectee => true;
+
+  get reflectee => _constant.value.slowToString();
+}
+
+class Dart2JsNumConstantMirror extends Dart2JsConstantMirror {
+  Dart2JsNumConstantMirror(Dart2JsMirrorSystem mirrors,
+                           NumConstant constant)
+      : super(mirrors, constant);
+
+  NumConstant get _constant => super._constant;
+
+  bool get hasReflectee => true;
+
+  get reflectee => _constant.value;
+}
+
+class Dart2JsListConstantMirror extends Dart2JsConstantMirror
+    implements ListInstanceMirror {
+  Dart2JsListConstantMirror(Dart2JsMirrorSystem mirrors,
+                            ListConstant constant)
+      : super(mirrors, constant);
+
+  ListConstant get _constant => super._constant;
+
+  int get length => _constant.length;
+
+  Future<InstanceMirror> operator[](int index) {
+    if (index < 0) throw new RangeError('Negative index');
+    if (index >= _constant.length) throw new RangeError('Index out of bounds');
+    return new Future<InstanceMirror>.immediate(
+        _convertConstantToInstanceMirror(mirrors, _constant.entries[index]));
+  }
+}
+
+class Dart2JsMapConstantMirror extends Dart2JsConstantMirror
+    implements MapInstanceMirror {
+  List<String> _listCache;
+
+  Dart2JsMapConstantMirror(Dart2JsMirrorSystem mirrors,
+                           MapConstant constant)
+      : super(mirrors, constant);
+
+  MapConstant get _constant => super._constant;
+
+  List<String> get _list {
+    if (_listCache == null) {
+      _listCache = new List<String>(_constant.keys.entries.length);
+      int index = 0;
+      for (StringConstant keyConstant in _constant.keys.entries) {
+        _listCache[index] = keyConstant.value.slowToString();
+        index++;
+      }
     }
+    return _listCache;
+  }
+
+  int get length => _constant.length;
+
+  Collection<String> get keys {
+    // TODO(johnniwinther): Return an unmodifiable list instead.
+    return new List<String>.from(_list);
+  }
+
+  Future<InstanceMirror> operator[](String key) {
+    int index = _list.indexOf(key);
+    if (index == -1) return null;
+    return new Future<InstanceMirror>.immediate(
+        _convertConstantToInstanceMirror(mirrors, _constant.values[index]));
+  }
+}
+
+class Dart2JsTypeConstantMirror extends Dart2JsConstantMirror
+    implements TypeInstanceMirror {
+
+  Dart2JsTypeConstantMirror(Dart2JsMirrorSystem mirrors,
+                            TypeConstant constant)
+      : super(mirrors, constant);
+
+  TypeConstant get _constant => super._constant;
+
+  TypeMirror get representedType => _convertTypeToTypeMirror(
+      mirrors, _constant.representedType, mirrors.compiler.types.dynamicType);
+}
+
+class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
+  Map<String,Constant> _fieldMapCache;
+
+  Dart2JsConstructedConstantMirror(Dart2JsMirrorSystem mirrors,
+                                   ConstructedConstant constant)
+      : super(mirrors, constant);
+
+  ConstructedConstant get _constant => super._constant;
+
+  Map<String,Constant> get _fieldMap {
+    if (_fieldMapCache == null) {
+      _fieldMapCache = new LinkedHashMap<String,Constant>();
+      if (identical(_constant.type.element.kind, ElementKind.CLASS)) {
+        var index = 0;
+        ClassElement element = _constant.type.element;
+        element.forEachInstanceField((_, Element field) {
+          String fieldName = field.name.slowToString();
+          _fieldMapCache.putIfAbsent(fieldName, () => _constant.fields[index]);
+          index++;
+        }, includeBackendMembers: true, includeSuperMembers: true);
+      }
+    }
+    return _fieldMapCache;
+  }
+
+  Future<InstanceMirror> getField(String fieldName) {
+    Constant fieldConstant = _fieldMap[fieldName];
+    if (fieldConstant != null) {
+      return new Future<InstanceMirror>.immediate(
+          _convertConstantToInstanceMirror(mirrors, fieldConstant));
+    }
+    return super.getField(fieldName);
   }
 }

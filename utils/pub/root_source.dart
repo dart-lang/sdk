@@ -8,12 +8,10 @@ import 'package.dart';
 import 'pubspec.dart';
 import 'source.dart';
 
-/**
- * A source used only for the root package when doing version resolution. It
- * contains only the root package and is unable to install packages.
- *
- * This source cannot be referenced from a pubspec.
- */
+/// A source used only for the root package when doing version resolution. It
+/// contains only the root package and is unable to install packages.
+///
+/// This source cannot be referenced from a pubspec.
 class RootSource extends Source {
   final String name = "root";
   final bool shouldCache = false;

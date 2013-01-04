@@ -23,8 +23,8 @@
   V(Directory_CreateTemp, 1)                                                   \
   V(Directory_Delete, 2)                                                       \
   V(Directory_Rename, 2)                                                       \
+  V(Directory_List, 2)                                                         \
   V(Directory_NewServicePort, 0)                                               \
-  V(Exit, 1)                                                                   \
   V(File_Open, 2)                                                              \
   V(File_Exists, 1)                                                            \
   V(File_Close, 1)                                                             \
@@ -103,14 +103,4 @@ void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Builtin::PrintString(stdout, Dart_GetNativeArgument(args, 0));
   Dart_ExitScope();
-}
-
-
-void FUNCTION_NAME(Exit)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  int64_t status = 0;
-  // Ignore result if passing invalid argument and just exit 0.
-  DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
-  Dart_ExitScope();
-  exit(static_cast<int>(status));
 }

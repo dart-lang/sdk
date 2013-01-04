@@ -463,6 +463,18 @@ public class ResolverTest extends ResolverTestCase {
         TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
   }
 
+  public void test_variableStatement_typeArgumentsForDynamic() throws Exception {
+    resolveAndTest(
+        Joiner.on("\n").join(
+            "class Object {}",
+            "class MyClass {",
+            "  bar() {",
+            "    dynamic<Object> v1;",
+            "  }",
+            "}"),
+        TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+  }
+
   public void test_noSuchType_classExtends() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",

@@ -44,6 +44,9 @@ class CodeEmitterTask extends CompilerTask {
       well as in the generated code. */
   String isolateProperties;
   String classesCollector;
+  Set<ClassElement> neededClasses;
+  // TODO(ngeoffray): remove this field.
+  Set<ClassElement> instantiatedClasses;
 
   String get _ => compiler.enableMinification ? "" : " ";
   String get n => compiler.enableMinification ? "" : "\n";
@@ -757,6 +760,49 @@ $lazyInitializerLogic
     }
   }
 
+  void emitRuntimeClassesAndTests(CodeBuffer buffer) {
+    JavaScriptBackend backend = compiler.backend;
+    RuntimeTypeInformation rti = backend.rti;
+
+    TypeChecks typeChecks = rti.computeRequiredChecks();
+
+    bool needsHolder(ClassElement cls) {
+      return !neededClasses.contains(cls) || cls.isNative() ||
+          rti.isJsNative(cls);
+    }
+
+    void maybeGenerateHolder(ClassElement cls) {
+      if (!needsHolder(cls)) return;
+
+      String holder = namer.isolateAccess(cls);
+      String name = namer.getName(cls);
+      buffer.add("$holder$_=$_{builtin\$cls:$_'$name'");
+      for (ClassElement check in typeChecks[cls]) {
+        buffer.add(',$_${namer.operatorIs(check)}:${_}true');
+      };
+      buffer.add('}$N');
+    }
+
+    // Create representation objects for classes that we do not have a class
+    // definition for (because they are uninstantiated or native).
+    for (ClassElement cls in rti.allArguments) {
+      maybeGenerateHolder(cls);
+    }
+
+    // Add checks to the constructors of instantiated classes.
+    for (ClassElement cls in typeChecks) {
+      if (needsHolder(cls)) {
+        // We already emitted the is-checks in the object definition for this
+        // class.
+        continue;
+      }
+      String holder = namer.isolateAccess(cls);
+      for (ClassElement check in typeChecks[cls]) {
+        buffer.add('$holder.${namer.operatorIs(check)}$_=${_}true$N');
+      };
+    }
+  }
+
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -833,17 +879,17 @@ $lazyInitializerLogic
   }
 
   void generateGetter(Element member, String fieldName, String accessorName,
-                      CodeBuffer buffer) {      
+                      CodeBuffer buffer) {
     String getterName = namer.getterNameFromAccessorName(accessorName);
-    buffer.add("$getterName: function() { return this.$fieldName; }");    
-  }       
-  
+    buffer.add("$getterName: function() { return this.$fieldName; }");
+  }
+
   void generateSetter(Element member, String fieldName, String accessorName,
-                      CodeBuffer buffer) {      
+                      CodeBuffer buffer) {
     String setterName = namer.setterNameFromAccessorName(accessorName);
-    buffer.add("$setterName: function(v) { this.$fieldName = v; }");      
-  }       
-  
+    buffer.add("$setterName: function(v) { this.$fieldName = v; }");
+  }
+
   bool canGenerateCheckedSetter(Element member) {
     DartType type = member.computeType(compiler);
     if (type.element.isTypeVariable()
@@ -1043,7 +1089,6 @@ $lazyInitializerLogic
         parameters.add(new js.Parameter('value'));
         arguments.add(new js.VariableUse('value'));
       } else {
-        assert(selector.isCall() || selector.isOperator());
         name = backend.namer.instanceMethodInvocationName(
             selector.library, selector.name, selector);
         for (int i = 0; i < selector.argumentCount; i++) {
@@ -1067,6 +1112,14 @@ $lazyInitializerLogic
     }
   }
 
+  Collection<Element> getTypedefChecksOn(DartType type) {
+    return checkedTypedefs.filter((TypedefElement typedef) {
+      FunctionType typedefType =
+          typedef.computeType(compiler).unalias(compiler);
+      return compiler.types.isSubtype(type, typedefType);
+    });
+  }
+
   /**
    * Generate "is tests" for [cls]: itself, and the "is tests" for the
    * classes it implements. We don't need to add the "is tests" of the
@@ -1084,18 +1137,15 @@ $lazyInitializerLogic
     if (checkedClasses.contains(compiler.functionClass) ||
         !checkedTypedefs.isEmpty) {
       FunctionElement call = cls.lookupLocalMember(Compiler.CALL_OPERATOR_NAME);
+      if (call == null) {
+        // If [cls] is a closure, it has a synthetic call operator method.
+        call = cls.lookupBackendMember(Compiler.CALL_OPERATOR_NAME);
+      }
       if (call != null) {
         generateInterfacesIsTests(compiler.functionClass,
                                   emitIsTest,
                                   generated);
-        FunctionType callType = call.computeType(compiler);
-        for (TypedefElement typedef in checkedTypedefs) {
-          FunctionType typedefType =
-              typedef.computeType(compiler).unalias(compiler);
-          if (compiler.types.isSubtype(callType, typedefType)) {
-            emitIsTest(typedef);
-          }
-        }
+        getTypedefChecksOn(call.computeType(compiler)).forEach(emitIsTest);
       }
     }
     for (DartType interfaceType in cls.interfaces) {
@@ -1178,21 +1228,6 @@ $lazyInitializerLogic
     // Compute the required type checks to know which classes need a
     // 'is$' method.
     computeRequiredTypeChecks();
-
-    Set<ClassElement> instantiatedClasses =
-        compiler.codegenWorld.instantiatedClasses.filter(computeClassFilter());
-
-    Set<ClassElement> neededClasses =
-        new Set<ClassElement>.from(instantiatedClasses);
-
-    for (ClassElement element in instantiatedClasses) {
-      for (ClassElement superclass = element.superclass;
-           superclass != null;
-           superclass = superclass.superclass) {
-        if (neededClasses.contains(superclass)) break;
-        neededClasses.add(superclass);
-      }
-    }
     List<ClassElement> sortedClasses =
         new List<ClassElement>.from(neededClasses);
     sortedClasses.sort((ClassElement class1, ClassElement class2) {
@@ -1248,30 +1283,45 @@ $lazyInitializerLogic
     buffer.add(functionBuffer);
     buffer.add('$N$n');
   }
-  void emitStaticFunctionsWithNamer(CodeBuffer buffer,
-                                    Map<Element, CodeBuffer> generatedCode,
-                                    String functionNamer(Element element)) {
-    generatedCode.forEach((Element element, CodeBuffer functionBuffer) {
-      if (!element.isInstanceMember() && !element.isField()) {
-        emitStaticFunctionWithNamer(
-            buffer, element, functionBuffer,functionNamer);
-      }
-    });
-  }
 
   void emitStaticFunctions(CodeBuffer buffer) {
-    emitStaticFunctionsWithNamer(buffer,
-                                 compiler.codegenWorld.generatedCode,
-                                 namer.getName);
-    emitStaticFunctionsWithNamer(buffer,
-                                 compiler.codegenWorld.generatedBailoutCode,
-                                 namer.getBailoutName);
+    bool isStaticFunction(Element element) =>
+        !element.isInstanceMember() && !element.isField();
+
+    Collection<Element> elements =
+        compiler.codegenWorld.generatedCode.keys.filter(isStaticFunction);
+    Set<Element> pendingElementsWithBailouts =
+        new Set<Element>.from(
+            compiler.codegenWorld.generatedBailoutCode.keys.filter(
+                isStaticFunction));
+
+    for (Element element in Elements.sortedByPosition(elements)) {
+      CodeBuffer code = compiler.codegenWorld.generatedCode[element];
+      emitStaticFunctionWithNamer(buffer, element, code, namer.getName);
+      CodeBuffer bailoutCode =
+          compiler.codegenWorld.generatedBailoutCode[element];
+      if (bailoutCode != null) {
+        pendingElementsWithBailouts.remove(element);
+        emitStaticFunctionWithNamer(
+            buffer, element, bailoutCode, namer.getBailoutName);
+      }
+    }
+
+    // Is it possible the primary function was inlined but the bailout was not?
+    for (Element element in
+             Elements.sortedByPosition(pendingElementsWithBailouts)) {
+      CodeBuffer bailoutCode =
+          compiler.codegenWorld.generatedBailoutCode[element];
+      emitStaticFunctionWithNamer(
+          buffer, element, bailoutCode, namer.getBailoutName);
+    }
   }
 
   void emitStaticFunctionGetters(CodeBuffer buffer) {
     Set<FunctionElement> functionsNeedingGetter =
         compiler.codegenWorld.staticFunctionsNeedingGetter;
-    for (FunctionElement element in functionsNeedingGetter) {
+    for (FunctionElement element in
+             Elements.sortedByPosition(functionsNeedingGetter)) {
       // The static function does not have the correct name. Since
       // [addParameterStubs] use the name to create its stubs we simply
       // create a fake element with the correct name.
@@ -1290,6 +1340,12 @@ $lazyInitializerLogic
       // in case it is used in spawnFunction.
       String fieldName = namer.STATIC_CLOSURE_NAME_NAME;
       buffer.add('$fieldAccess.$fieldName$_=$_"$staticName"$N');
+      getTypedefChecksOn(element.computeType(compiler)).forEach(
+        (Element typedef) {
+          String operator = namer.operatorIs(typedef);
+          buffer.add('$fieldAccess.$operator$_=${_}true$N');
+        }
+      );
     }
   }
 
@@ -1351,7 +1407,13 @@ $lazyInitializerLogic
         : inInterceptor ? const ['self', 'target', 'receiver']
                         : const ['self', 'target'];
 
-    String closureClass = hasOptionalParameters ? null : cache[parameterCount];
+    Collection<Element> typedefChecks =
+        getTypedefChecksOn(member.computeType(compiler));
+    bool hasTypedefChecks = !typedefChecks.isEmpty;
+
+    bool canBeShared = !hasOptionalParameters && !hasTypedefChecks;
+
+    String closureClass = canBeShared ? cache[parameterCount] : null;
     if (closureClass == null) {
       // Either the class was not cached yet, or there are optional parameters.
       // Create a new closure class.
@@ -1403,12 +1465,18 @@ $lazyInitializerLogic
       addParameterStubs(callElement, (String stubName, CodeBuffer memberValue) {
         boundClosureBuffer.add(',\n$_$stubName:$_$memberValue');
       });
+
+      typedefChecks.forEach((Element typedef) {
+        String operator = namer.operatorIs(typedef);
+        boundClosureBuffer.add(',\n$_$operator$_:${_}true');
+      });
+
       boundClosureBuffer.add("$n}$N");
 
       closureClass = namer.isolateAccess(closureClassElement);
 
       // Cache it.
-      if (!hasOptionalParameters) {
+      if (canBeShared) {
         cache[parameterCount] = closureClass;
       }
     }
@@ -1672,8 +1740,7 @@ $lazyInitializerLogic
           selector.getOrderedNamedArguments().map((SourceString name) =>
               new js.LiteralString('"${name.slowToString()}"'));
 
-      String internalName = namer.instanceMethodInvocationName(
-          selector.library, new SourceString(methodName), selector);
+      String internalName = namer.invocationMirrorInternalName(selector);
 
       String createInvocationMirror = namer.getName(
           compiler.createInvocationMirrorElement);
@@ -1843,9 +1910,9 @@ $mainEnsureGetter
     if (compiler.isMockCompilation) return;
     Element main = compiler.mainApp.find(Compiler.MAIN);
     String mainCall = null;
-    if (compiler.isolateLibrary != null) {
+    if (compiler.hasIsolateSupport()) {
       Element isolateMain =
-        compiler.isolateLibrary.find(Compiler.START_ROOT_ISOLATE);
+        compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
       mainCall = buildIsolateSetup(buffer, main, isolateMain);
     } else {
       mainCall = '${namer.isolateAccess(main)}()';
@@ -1887,32 +1954,129 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
   }
 
-  /**
-   * Emit the code for doing a type check on [cls]. [cls] must
-   * be an interceptor class.
-   */
-  void emitInterceptorCheck(ClassElement cls, CodeBuffer buffer) {
-    JavaScriptBackend backend = compiler.backend;
-    assert(backend.isInterceptorClass(cls));
-    if (cls == backend.jsBoolClass) {
-      buffer.add("if$_(typeof receiver$_==$_'boolean')");
-    } else if (cls == backend.jsIntClass) {
-      buffer.add("if$_(typeof receiver$_==$_'number'$_"
-                 "&&${_}Math.floor(receiver)$_==${_}receiver)");
-    } else if (cls == backend.jsDoubleClass || cls == backend.jsNumberClass) {
-      buffer.add("if$_(typeof receiver$_==$_'number')");
-    } else if (cls == backend.jsArrayClass) {
-      buffer.add("if$_(receiver$_!=${_}null$_&&$_"
-                 "receiver.constructor$_==${_}Array)");
-    } else if (cls == backend.jsStringClass) {
-      buffer.add("if$_(typeof receiver$_==$_'string')");
-    } else if (cls == backend.jsNullClass) {
-      buffer.add("if$_(receiver$_==${_}null)");
-    } else if (cls == backend.jsFunctionClass) {
-      buffer.add("if$_(typeof receiver$_==$_'function')");
+  void emitGetInterceptorMethod(CodeBuffer buffer,
+                                String objectName,
+                                String key,
+                                Collection<ClassElement> classes) {
+    js.Statement buildReturnInterceptor(ClassElement cls) {
+      return js.return_(js.fieldAccess(js.use(namer.isolateAccess(cls)),
+                                       'prototype'));
     }
-    buffer.add('${_}return ${namer.isolateAccess(cls)}.prototype');
-    if (!compiler.enableMinification) buffer.add(';');
+
+    js.VariableUse receiver = js.use('receiver');
+    JavaScriptBackend backend = compiler.backend;
+
+    /**
+     * Build a JavaScrit AST node for doing a type check on
+     * [cls]. [cls] must be an interceptor class.
+     */
+    js.Statement buildInterceptorCheck(ClassElement cls) {
+      js.Expression condition;
+      assert(backend.isInterceptorClass(cls));
+      if (cls == backend.jsBoolClass) {
+        condition = js.equals(js.typeOf(receiver), js.string('boolean'));
+      } else if (cls == backend.jsIntClass ||
+                 cls == backend.jsDoubleClass ||
+                 cls == backend.jsNumberClass) {
+        throw 'internal error';
+      } else if (cls == backend.jsArrayClass) {
+        condition = js.equals(js.fieldAccess(receiver, 'constructor'),
+                              js.use('Array'));
+      } else if (cls == backend.jsStringClass) {
+        condition = js.equals(js.typeOf(receiver), js.string('string'));
+      } else if (cls == backend.jsNullClass) {
+        condition = js.equals(receiver, new js.LiteralNull());
+      } else if (cls == backend.jsFunctionClass) {
+        condition = js.equals(js.typeOf(receiver), js.string('function'));
+      } else {
+        throw 'internal error';
+      }
+      return js.if_(condition, buildReturnInterceptor(cls));
+    }
+
+    bool hasArray = false;
+    bool hasBool = false;
+    bool hasDouble = false;
+    bool hasFunction = false;
+    bool hasInt = false;
+    bool hasNull = false;
+    bool hasNumber = false;
+    bool hasString = false;
+    for (ClassElement cls in classes) {
+      if (cls == backend.jsArrayClass) hasArray = true;
+      else if (cls == backend.jsBoolClass) hasBool = true;
+      else if (cls == backend.jsDoubleClass) hasDouble = true;
+      else if (cls == backend.jsFunctionClass) hasFunction = true;
+      else if (cls == backend.jsIntClass) hasInt = true;
+      else if (cls == backend.jsNullClass) hasNull = true;
+      else if (cls == backend.jsNumberClass) hasNumber = true;
+      else if (cls == backend.jsStringClass) hasString = true;
+      else throw 'Internal error: $cls';
+    }
+    if (hasDouble) {
+      assert(!hasNumber);
+      hasNumber = true;
+    }
+    if (hasInt) hasNumber = true;
+
+    js.Block block = new js.Block.empty();
+
+    if (hasNumber) {
+      js.Statement whenNumber;
+
+      /// Note: there are two number classes in play: Dart's [num],
+      /// and JavaScript's Number (typeof receiver == 'number').  This
+      /// is the fallback used when we have determined that receiver
+      /// is a JavaScript Number.
+      js.Return returnNumberClass = buildReturnInterceptor(
+          hasDouble ? backend.jsDoubleClass : backend.jsNumberClass);
+
+      if (hasInt) {
+        js.Expression isInt =
+            js.equals(js.call(js.fieldAccess(js.use('Math'), 'floor'),
+                              [receiver]),
+                      receiver);
+        (whenNumber = js.emptyBlock()).statements
+          ..add(js.if_(isInt, buildReturnInterceptor(backend.jsIntClass)))
+          ..add(returnNumberClass);
+      } else {
+        whenNumber = returnNumberClass;
+      }
+      block.statements.add(
+          js.if_(js.equals(js.typeOf(receiver), js.string('number')),
+                 whenNumber));
+    }
+
+    if (hasString) {
+      block.statements.add(buildInterceptorCheck(backend.jsStringClass));
+    }
+    if (hasNull) {
+      block.statements.add(buildInterceptorCheck(backend.jsNullClass));
+    } else {
+      // Returning "undefined" here will provoke a JavaScript
+      // TypeError which is later identified as a null-error by
+      // [unwrapException] in js_helper.dart.
+      block.statements.add(js.if_(js.equals(receiver, new js.LiteralNull()),
+                                  js.return_(js.undefined())));
+    }
+    if (hasFunction) {
+      block.statements.add(buildInterceptorCheck(backend.jsFunctionClass));
+    }
+    if (hasBool) {
+      block.statements.add(buildInterceptorCheck(backend.jsBoolClass));
+    }
+    // TODO(ahe): It might be faster to check for Array before
+    // function and bool.
+    if (hasArray) {
+      block.statements.add(buildInterceptorCheck(backend.jsArrayClass));
+    }
+    block.statements.add(js.return_(js.fieldAccess(js.use(objectName),
+                                                   'prototype')));
+
+    js.PropertyAccess name = js.fieldAccess(js.use(isolateProperties), key);
+    buffer.add(js.prettyPrint(js.assign(name, js.fun(['receiver'], block)),
+                              compiler));
+    buffer.add(N);
   }
 
   /**
@@ -1925,19 +2089,28 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     String objectName = namer.isolateAccess(backend.objectInterceptorClass);
     backend.specializedGetInterceptors.forEach(
         (String key, Collection<ClassElement> classes) {
-          buffer.add('$isolateProperties.$key$_=${_}function(receiver)$_{');
-          for (ClassElement cls in classes) {
-            if (compiler.codegenWorld.instantiatedClasses.contains(cls)) {
-              buffer.add('\n$_$_');
-              emitInterceptorCheck(cls, buffer);
-            }
-          }
-          buffer.add('\n$_${_}return $objectName.prototype;$n}$N');
+          emitGetInterceptorMethod(buffer, objectName, key, classes);
         });
+  }
+
+  void computeNeededClasses() {
+    instantiatedClasses =
+        compiler.codegenWorld.instantiatedClasses.filter(computeClassFilter());
+    neededClasses = new Set<ClassElement>.from(instantiatedClasses);
+    for (ClassElement element in instantiatedClasses) {
+      for (ClassElement superclass = element.superclass;
+          superclass != null;
+          superclass = superclass.superclass) {
+        if (neededClasses.contains(superclass)) break;
+        neededClasses.add(superclass);
+      }
+    }
   }
 
   String assembleProgram() {
     measure(() {
+      computeNeededClasses();
+
       mainBuffer.add(GENERATED_BY);
       if (!compiler.enableMinification) mainBuffer.add(HOOKS_API_USAGE);
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
@@ -1958,6 +2131,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       // We need to finish the classes before we construct compile time
       // constants.
       emitFinishClassesInvocationIfNecessary(mainBuffer);
+      emitRuntimeClassesAndTests(mainBuffer);
       emitCompileTimeConstants(mainBuffer);
       // Static field initializations require the classes and compile-time
       // constants to be set up.

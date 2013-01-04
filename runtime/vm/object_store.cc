@@ -64,8 +64,6 @@ ObjectStore::ObjectStore()
     stacktrace_class_(Class::null()),
     jsregexp_class_(Class::null()),
     weak_property_class_(Class::null()),
-    true_value_(Bool::null()),
-    false_value_(Bool::null()),
     symbol_table_(Array::null()),
     canonical_type_arguments_(Array::null()),
     core_library_(Library::null()),
@@ -80,10 +78,14 @@ ObjectStore::ObjectStore()
     libraries_(GrowableObjectArray::null()),
     pending_classes_(GrowableObjectArray::null()),
     sticky_error_(Error::null()),
+    unhandled_exception_handler_(String::null()),
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),
-    keyword_symbols_(Array::null()) {
+    keyword_symbols_(Array::null()),
+    receive_port_create_function_(Function::null()),
+    lookup_receive_port_function_(Function::null()),
+    handle_message_function_(Function::null()) {
 }
 
 
@@ -113,16 +115,16 @@ bool ObjectStore::PreallocateObjects() {
   }
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
-  GrowableArray<const Object*> args;
   Object& result = Object::Handle();
 
-  result = Exceptions::Create(Exceptions::kStackOverflow, args);
+  result = Exceptions::Create(Exceptions::kStackOverflow,
+                              Object::empty_array());
   if (result.IsError()) {
     return false;
   }
   set_stack_overflow(Instance::Cast(result));
 
-  result = Exceptions::Create(Exceptions::kOutOfMemory, args);
+  result = Exceptions::Create(Exceptions::kOutOfMemory, Object::empty_array());
   if (result.IsError()) {
     return false;
   }

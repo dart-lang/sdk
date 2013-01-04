@@ -264,6 +264,9 @@ static Dart_Handle X509FromCertificate(CERTCertificate* certificate) {
 
 
 void SSLFilter::Init(Dart_Handle dart_this) {
+  if (!library_initialized_) {
+    InitializeLibrary(NULL, "", true, false);
+  }
   string_start_ = ThrowIfError(
       Dart_NewPersistentHandle(DartUtils::NewString("start")));
   string_length_ = ThrowIfError(
@@ -320,7 +323,8 @@ void SSLFilter::RegisterBadCertificateCallback(Dart_Handle callback) {
 
 void SSLFilter::InitializeLibrary(const char* certificate_database,
                                   const char* password,
-                                  bool use_builtin_root_certificates) {
+                                  bool use_builtin_root_certificates,
+                                  bool report_duplicate_initialization) {
   MutexLocker locker(&mutex_);
   if (!library_initialized_) {
     library_initialized_ = true;
@@ -362,7 +366,8 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
       ThrowPRException("Failed SSL_ConfigServerSessionIDCache call.");
     }
 
-  } else {
+  } else if (report_duplicate_initialization) {
+    mutex_.Unlock();  // MutexLocker destructor not called when throwing.
     ThrowException("Called SSLFilter::InitializeLibrary more than once");
   }
 }
@@ -410,6 +415,10 @@ void SSLFilter::Connect(const char* host_name,
   is_server_ = is_server;
   if (in_handshake_) {
     ThrowException("Connect called while already in handshake state.");
+  }
+
+  if (!is_server && certificate_name != NULL) {
+    client_certificate_name_ = strdup(certificate_name);
   }
 
   filter_ = SSL_ImportFD(NULL, filter_);
@@ -481,7 +490,7 @@ void SSLFilter::Connect(const char* host_name,
       status = SSL_GetClientAuthDataHook(
           filter_,
           NSS_GetClientAuthData,
-          static_cast<void*>(const_cast<char*>(certificate_name)));
+          static_cast<void*>(client_certificate_name_));
       if (status != SECSuccess) {
         ThrowPRException("Failed SSL_GetClientAuthDataHook call");
       }
@@ -552,6 +561,7 @@ void SSLFilter::Destroy() {
   if (bad_certificate_callback_ != NULL) {
     Dart_DeletePersistentHandle(bad_certificate_callback_);
   }
+  free(client_certificate_name_);
 
   PR_Close(filter_);
 }

@@ -125,6 +125,8 @@ class ExitCodeHandler {
     if (result < 0) {
       return false;
     }
+    FDUtils::SetCloseOnExec(sig_chld_fds_[0]);
+    FDUtils::SetCloseOnExec(sig_chld_fds_[1]);
 
     // Start thread that polls the pipe and handles process exits when
     // data is received on the pipe.
@@ -482,6 +484,8 @@ int Process::Start(const char* path,
     Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
+  FDUtils::SetCloseOnExec(event_fds[0]);
+  FDUtils::SetCloseOnExec(event_fds[1]);
 
   ProcessInfoList::AddProcess(pid, event_fds[1]);
   *exit_event = event_fds[0];

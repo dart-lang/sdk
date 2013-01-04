@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * This class wraps behaves almost identically to the normal Dart Map
- * implementation, with the following differences:
- *
- * * It allows null, NaN, boolean, list, and map keys.
- * * It defines `==` structurally. That is, `yamlMap1 == yamlMap2` if they have
- *   the same contents.
- * * It has a compatible [hashCode] method.
- */
+part of yaml;
+
+/// This class wraps behaves almost identically to the normal Dart Map
+/// implementation, with the following differences:
+///
+///  *  It allows null, NaN, boolean, list, and map keys.
+///  *  It defines `==` structurally. That is, `yamlMap1 == yamlMap2` if they
+///     have the same contents.
+///  *  It has a compatible [hashCode] method.
 class YamlMap implements Map {
   Map _map;
 
@@ -42,7 +42,7 @@ class YamlMap implements Map {
     return deepEquals(this, other);
   }
 
-  /** Wraps an object for use as a key in the map. */
+  /// Wraps an object for use as a key in the map.
   _wrapKey(obj) {
     if (obj != null && obj is! bool && obj is! List &&
         (obj is! double || !obj.isNan()) &&
@@ -54,14 +54,12 @@ class YamlMap implements Map {
     return new _WrappedHashKey(obj);
   }
 
-  /** Unwraps an object that was used as a key in the map. */
+  /// Unwraps an object that was used as a key in the map.
   _unwrapKey(obj) => obj is _WrappedHashKey ? obj.value : obj;
 }
 
-/**
- * A class for wrapping normally-unhashable objects that are being used as keys
- * in a YamlMap.
- */
+/// A class for wrapping normally-unhashable objects that are being used as keys
+/// in a YamlMap.
 class _WrappedHashKey {
   var value;
 
@@ -71,17 +69,15 @@ class _WrappedHashKey {
 
   String toString() => value.toString();
 
-  /** This is defined as both values being structurally equal. */
+  /// This is defined as both values being structurally equal.
   bool operator ==(other) {
     if (other is! _WrappedHashKey) return false;
     return deepEquals(this.value, other.value);
   }
 }
 
-/**
- * Returns the hash code for [obj]. This includes null, true, false, maps, and
- * lists. Also handles self-referential structures.
- */
+/// Returns the hash code for [obj]. This includes null, true, false, maps, and
+/// lists. Also handles self-referential structures.
 int _hashCode(obj, [List parents]) {
   if (parents == null) {
     parents = [];
@@ -99,8 +95,8 @@ int _hashCode(obj, [List parents]) {
         _hashCode(obj.values, parents);
     }
     if (obj is List) {
-      // This is probably a really bad hash function, but presumably we'll get this
-      // in the standard library before it actually matters.
+      // This is probably a really bad hash function, but presumably we'll get
+      // this in the standard library before it actually matters.
       int hash = 0;
       for (var e in obj) {
         hash ^= _hashCode(e, parents);

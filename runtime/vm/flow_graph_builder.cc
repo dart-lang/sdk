@@ -24,6 +24,8 @@ DEFINE_FLAG(bool, eliminate_type_checks, true,
             "Eliminate type checks when allowed by static type analysis.");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
+DEFINE_FLAG(bool, print_flow_graph_optimized, false,
+            "Print the IR flow graph when optimizing.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -362,8 +364,7 @@ void TestGraphVisitor::ReturnValue(Value* value) {
   if (FLAG_enable_type_checks) {
     value = Bind(new AssertBooleanInstr(condition_token_pos(), value));
   }
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  Value* constant_true = Bind(new ConstantInstr(bool_true));
+  Value* constant_true = Bind(new ConstantInstr(Bool::True()));
   StrictCompareInstr* comp =
       new StrictCompareInstr(Token::kEQ_STRICT, value, constant_true);
   BranchInstr* branch = new BranchInstr(comp);
@@ -400,8 +401,7 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
 
 void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
   ASSERT(!FLAG_enable_type_checks);
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  Value* constant_true = Bind(new ConstantInstr(bool_true));
+  Value* constant_true = Bind(new ConstantInstr(Bool::True()));
   BranchInstr* branch = new BranchInstr(
       new StrictCompareInstr(Token::kNE_STRICT, neg->value(), constant_true));
   AddInstruction(branch);
@@ -508,11 +508,10 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
       const AbstractType& dst_type =
           AbstractType::ZoneHandle(
               owner()->parsed_function().function().result_type());
-      const String& dst_name = String::ZoneHandle(Symbols::FunctionResult());
       return_value = BuildAssignableValue(node->value()->token_pos(),
                                           return_value,
                                           dst_type,
-                                          dst_name);
+                                          Symbols::FunctionResult());
     }
   }
 
@@ -545,9 +544,17 @@ void ValueGraphVisitor::VisitLiteralNode(LiteralNode* node) {
 }
 
 
-// Type nodes only occur as the right-hand side of instanceof comparisons,
-// and they are handled specially in that context.
-void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
+// Type nodes are used when a type is referenced as a literal. Type nodes
+// can also be used for the right-hand side of instanceof comparisons,
+// but they are handled specially in that context, not here.
+void EffectGraphVisitor::VisitTypeNode(TypeNode* node) {
+  return;
+}
+
+
+void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
+  ReturnDefinition(new ConstantInstr(node->type()));
+}
 
 
 // Returns true if the type check can be skipped, for example, if the
@@ -692,8 +699,6 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     // of left is sufficient.
     // AND:  left ? right === true : false;
     // OR:   left ? true : right === true;
-    const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-    const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
     TestGraphVisitor for_test(owner(),
                               temp_index(),
@@ -709,7 +714,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
           for_right.Bind(new AssertBooleanInstr(node->right()->token_pos(),
                                                 right_value));
     }
-    Value* constant_true = for_right.Bind(new ConstantInstr(bool_true));
+    Value* constant_true = for_right.Bind(new ConstantInstr(Bool::True()));
     Value* compare =
         for_right.Bind(new StrictCompareInstr(Token::kEQ_STRICT,
                                               right_value,
@@ -718,13 +723,13 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 
     if (node->kind() == Token::kAND) {
       ValueGraphVisitor for_false(owner(), temp_index(), loop_depth());
-      Value* constant_false = for_false.Bind(new ConstantInstr(bool_false));
+      Value* constant_false = for_false.Bind(new ConstantInstr(Bool::False()));
       for_false.Do(BuildStoreExprTemp(constant_false));
       Join(for_test, for_right, for_false);
     } else {
       ASSERT(node->kind() == Token::kOR);
       ValueGraphVisitor for_true(owner(), temp_index(), loop_depth());
-      Value* constant_true = for_true.Bind(new ConstantInstr(bool_true));
+      Value* constant_true = for_true.Bind(new ConstantInstr(Bool::True()));
       for_true.Do(BuildStoreExprTemp(constant_true));
       Join(for_test, for_true, for_right);
     }
@@ -733,6 +738,34 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   }
   EffectGraphVisitor::VisitBinaryOpNode(node);
 }
+
+
+void EffectGraphVisitor::BuildTypecheckPushArguments(
+    intptr_t token_pos,
+    PushArgumentInstr** push_instantiator_result,
+    PushArgumentInstr** push_instantiator_type_arguments_result) {
+  const Class& instantiator_class = Class::Handle(
+      owner()->parsed_function().function().Owner());
+  // Since called only when type tested against is not instantiated.
+  ASSERT(instantiator_class.NumTypeParameters() > 0);
+  Value* instantiator_type_arguments = NULL;
+  Value* instantiator = BuildInstantiator();
+  if (instantiator == NULL) {
+    // No instantiator when inside factory.
+    *push_instantiator_result = PushArgument(BuildNullValue());
+    instantiator_type_arguments =
+        BuildInstantiatorTypeArguments(token_pos, NULL);
+  } else {
+    instantiator = Bind(BuildStoreExprTemp(instantiator));
+    *push_instantiator_result = PushArgument(instantiator);
+    Value* loaded = Bind(BuildLoadExprTemp());
+    instantiator_type_arguments =
+        BuildInstantiatorTypeArguments(token_pos, loaded);
+  }
+  *push_instantiator_type_arguments_result =
+      PushArgument(instantiator_type_arguments);
+}
+
 
 
 void EffectGraphVisitor::BuildTypecheckArguments(
@@ -832,8 +865,6 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
 
 void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   const AbstractType& type = node->right()->AsTypeNode()->type();
   ASSERT(type.IsFinalized() && !type.IsMalformed());
   const bool negate_result = (node->kind() == Token::kISNOT);
@@ -844,7 +875,8 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     EffectGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
     node->left()->Visit(&for_left_value);
     Append(for_left_value);
-    ReturnDefinition(new ConstantInstr(negate_result ? bool_false : bool_true));
+    ReturnDefinition(new ConstantInstr(negate_result ?
+                                       Bool::False() : Bool::True()));
     return;
   }
 
@@ -860,12 +892,14 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       // already been checked above (if the type is instantiated). So we can
       // return false here if the instance is null (and if the type is
       // instantiated).
-      result = new ConstantInstr(negate_result ? bool_true : bool_false);
+      result = new ConstantInstr(negate_result ? Bool::True() : Bool::False());
     } else {
       if (literal_value.IsInstanceOf(type, TypeArguments::Handle(), NULL)) {
-        result = new ConstantInstr(negate_result ? bool_false : bool_true);
+        result = new ConstantInstr(negate_result ?
+                                   Bool::False() : Bool::True());
       } else {
-        result = new ConstantInstr(negate_result ? bool_true : bool_false);
+        result = new ConstantInstr(negate_result ?
+                                   Bool::True() : Bool::False());
       }
     }
     ReturnDefinition(result);
@@ -875,24 +909,39 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ValueGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
-  Value* instantiator = NULL;
-  Value* instantiator_type_arguments = NULL;
+  PushArgumentInstr* push_left = PushArgument(for_left_value.value());
+  PushArgumentInstr* push_instantiator = NULL;
+  PushArgumentInstr* push_type_args = NULL;
   if (type.IsInstantiated()) {
-    instantiator = BuildNullValue();
-    instantiator_type_arguments = BuildNullValue();
+    push_instantiator = PushArgument(BuildNullValue());
+    push_type_args = PushArgument(BuildNullValue());
   } else {
-    BuildTypecheckArguments(node->token_pos(),
-                            &instantiator,
-                            &instantiator_type_arguments);
+    BuildTypecheckPushArguments(node->token_pos(),
+                                &push_instantiator,
+                                &push_type_args);
   }
-  InstanceOfInstr* instance_of =
-      new InstanceOfInstr(node->token_pos(),
-                          for_left_value.value(),
-                          instantiator,
-                          instantiator_type_arguments,
-                          node->right()->AsTypeNode()->type(),
-                          (node->kind() == Token::kISNOT));
-  ReturnDefinition(instance_of);
+  const String& name = String::ZoneHandle(Symbols::New("_instanceOf"));
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(5);
+  arguments->Add(push_left);
+  arguments->Add(push_instantiator);
+  arguments->Add(push_type_args);
+  ASSERT(!node->right()->AsTypeNode()->type().IsNull());
+  Value* type_arg = Bind(
+      new ConstantInstr(node->right()->AsTypeNode()->type()));
+  arguments->Add(PushArgument(type_arg));
+  const Bool& negate = (node->kind() == Token::kISNOT) ? Bool::True() :
+                                                         Bool::False();
+  Value* negate_arg = Bind(new ConstantInstr(negate));
+  arguments->Add(PushArgument(negate_arg));
+  const intptr_t kNumArgsChecked = 1;
+  InstanceCallInstr* call = new InstanceCallInstr(node->token_pos(),
+                                                  name,
+                                                  node->kind(),
+                                                  arguments,
+                                                  Array::ZoneHandle(),
+                                                  kNumArgsChecked);
+  ReturnDefinition(call);
 }
 
 
@@ -1598,7 +1647,7 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
-  if (node->function().name() == Symbols::Identical()) {
+  if (node->function().name() == Symbols::Identical().raw()) {
     // Attempt to replace top level defined 'identical' from the core
     // library with strict equal early on.
     // TODO(hausner): Evaluate if this can happen at AST building time.
@@ -1749,7 +1798,7 @@ static bool IsRecognizedConstructor(const Function& function,
 
   const String& function_name = String::Handle(function.name());
   const String& expected_function_name = String::Handle(
-      String::Concat(expected_class_name, Symbols::DotHandle()));
+      String::Concat(expected_class_name, Symbols::Dot()));
   return function_name.Equals(expected_function_name);
 }
 
@@ -1764,8 +1813,8 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
   }
 
   if (node->constructor().IsFactory()) {
-    if ((function_class.Name() == Symbols::List()) &&
-        (function.name() == Symbols::ListFactory())) {
+    if ((function_class.Name() == Symbols::List().raw()) &&
+        (function.name() == Symbols::ListFactory().raw())) {
       // If there are no arguments then the result is guaranteed to be a
       // GrowableObjectArray. However if there is an argument the result
       // is not guaranteed to be a fixed size array because the argument
@@ -1774,12 +1823,11 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
         return kGrowableObjectArrayCid;
       }
     } else {
-      if (IsRecognizedConstructor(function,
-                                  String::Handle(Symbols::ObjectArray())) &&
+      if (IsRecognizedConstructor(function, Symbols::ObjectArray()) &&
           (node->arguments()->length() == 1)) {
         return kArrayCid;
       } else if (IsRecognizedConstructor(function,
-                     String::Handle(Symbols::GrowableObjectArray())) &&
+                                         Symbols::GrowableObjectArray()) &&
                  (node->arguments()->length() == 0)) {
         return kGrowableObjectArrayCid;
       }
@@ -2095,20 +2143,30 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
 
 void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   const String& getter_name =
-      String::Handle(Field::GetterName(node->field_name()));
+      String::ZoneHandle(Field::GetterSymbol(node->field_name()));
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>();
   Function& getter_function = Function::ZoneHandle();
   if (node->is_super_getter()) {
     // Statically resolved instance getter, i.e. "super getter".
-    getter_function =
-        Resolver::ResolveDynamicAnyArgs(node->cls(), getter_name);
-    ASSERT(!getter_function.IsNull());
     ASSERT(node->receiver() != NULL);
-    ValueGraphVisitor receiver_value(owner(), temp_index(), loop_depth());
-    node->receiver()->Visit(&receiver_value);
-    Append(receiver_value);
-    arguments->Add(PushArgument(receiver_value.value()));
+    getter_function = Resolver::ResolveDynamicAnyArgs(node->cls(), getter_name);
+    if (getter_function.IsNull()) {
+      // Resolve and call noSuchMethod.
+      ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->receiver());
+      StaticCallInstr* call = BuildStaticNoSuchMethodCall(node->cls(),
+                                                          node->receiver(),
+                                                          getter_name,
+                                                          arguments);
+      ReturnDefinition(call);
+      return;
+    } else {
+      ValueGraphVisitor receiver_value(owner(), temp_index(), loop_depth());
+      node->receiver()->Visit(&receiver_value);
+      Append(receiver_value);
+      arguments->Add(PushArgument(receiver_value.value()));
+    }
   } else {
     getter_function = node->cls().LookupStaticFunction(getter_name);
     if (getter_function.IsNull()) {
@@ -2126,27 +2184,15 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
       // StaticGetterNode missing a getter function, so we throw a
       // NoSuchMethodError.
 
-      // Location argument.
-      Value* call_pos = Bind(
-          new ConstantInstr(Smi::ZoneHandle(Smi::New(node->token_pos()))));
-      arguments->Add(PushArgument(call_pos));
-      // Function name argument.
-      const String& method_name = String::ZoneHandle(Symbols::New(getter_name));
-      Value* method_name_value = Bind(new ConstantInstr(method_name));
-      arguments->Add(PushArgument(method_name_value));
-      const String& cls_name = String::Handle(Symbols::NoSuchMethodError());
-      const String& func_name = String::Handle(Symbols::ThrowNew());
-      const Class& cls = Class::Handle(
-          Library::Handle(Library::CoreLibrary()).LookupClass(cls_name));
-      ASSERT(!cls.IsNull());
-      getter_function = Resolver::ResolveStatic(cls,
-                                                func_name,
-                                                arguments->length(),
-                                                Array::ZoneHandle(),
-                                                Resolver::kIsQualified);
-      ASSERT(!getter_function.IsNull());
+      // Throw a NoSuchMethodError.
+      StaticCallInstr* call = BuildThrowNoSuchMethodError(node->token_pos(),
+                                                          node->cls(),
+                                                          getter_name);
+      ReturnDefinition(call);
+      return;
     }
   }
+  ASSERT(!getter_function.IsNull());
   StaticCallInstr* call = new StaticCallInstr(node->token_pos(),
                                               getter_function,
                                               Array::ZoneHandle(),  // No names.
@@ -2158,41 +2204,59 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
 void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
                                            bool result_is_needed) {
   const String& setter_name =
-      String::Handle(Field::SetterName(node->field_name()));
+      String::ZoneHandle(Field::SetterSymbol(node->field_name()));
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(1);
   // A super setter is an instance setter whose setter function is
   // resolved at compile time (in the caller instance getter's super class).
   // Unlike a static getter, a super getter has a receiver parameter.
   const bool is_super_setter = (node->receiver() != NULL);
-  const Function& setter_function =
+  Function& setter_function =
       Function::ZoneHandle(is_super_setter
           ? Resolver::ResolveDynamicAnyArgs(node->cls(), setter_name)
           : node->cls().LookupStaticFunction(setter_name));
-  ASSERT(!setter_function.IsNull());
-
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new ZoneGrowableArray<PushArgumentInstr*>(1);
-  if (is_super_setter) {
-    // Add receiver of instance getter.
-    ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
-    node->receiver()->Visit(&for_receiver);
-    Append(for_receiver);
-    arguments->Add(PushArgument(for_receiver.value()));
-  }
-  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
-  node->value()->Visit(&for_value);
-  Append(for_value);
-  Value* value = NULL;
-  if (result_is_needed) {
-    value = Bind(BuildStoreExprTemp(for_value.value()));
+  StaticCallInstr* call;
+  if (setter_function.IsNull()) {
+    if (is_super_setter) {
+      ASSERT(node->receiver() != NULL);
+      // Resolve and call noSuchMethod.
+      ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->receiver());
+      arguments->Add(node->value());
+      call = BuildStaticNoSuchMethodCall(node->cls(),
+                                         node->receiver(),
+                                         setter_name,
+                                         arguments);
+    } else {
+      // Throw a NoSuchMethodError.
+      call = BuildThrowNoSuchMethodError(node->token_pos(),
+                                         node->cls(),
+                                         setter_name);
+    }
   } else {
-    value = for_value.value();
-  }
-  arguments->Add(PushArgument(value));
+    if (is_super_setter) {
+      // Add receiver of instance getter.
+      ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
+      node->receiver()->Visit(&for_receiver);
+      Append(for_receiver);
+      arguments->Add(PushArgument(for_receiver.value()));
+    }
+    ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
+    node->value()->Visit(&for_value);
+    Append(for_value);
+    Value* value = NULL;
+    if (result_is_needed) {
+      value = Bind(BuildStoreExprTemp(for_value.value()));
+    } else {
+      value = for_value.value();
+    }
+    arguments->Add(PushArgument(value));
 
-  StaticCallInstr* call = new StaticCallInstr(node->token_pos(),
-                                              setter_function,
-                                              Array::ZoneHandle(),  // No names.
-                                              arguments);
+    call = new StaticCallInstr(node->token_pos(),
+                               setter_function,
+                               Array::ZoneHandle(),  // No names.
+                               arguments);
+  }
   if (result_is_needed) {
     Do(call);
     ReturnDefinition(BuildLoadExprTemp());
@@ -2370,16 +2434,17 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
     // Resolve the load indexed operator in the super class.
     super_function = &Function::ZoneHandle(
           Resolver::ResolveDynamicAnyArgs(node->super_class(),
-                                          Symbols::IndexTokenHandle()));
+                                          Symbols::IndexToken()));
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
       ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->array());
       arguments->Add(node->index_expr());
       StaticCallInstr* call =
           BuildStaticNoSuchMethodCall(node->super_class(),
                                       node->array(),
-                                      Symbols::IndexTokenHandle(),
+                                      Symbols::IndexToken(),
                                       arguments);
       ReturnDefinition(call);
       return;
@@ -2408,7 +2473,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
     // Generate dynamic call to index operator.
     const intptr_t checked_argument_count = 1;
     InstanceCallInstr* load = new InstanceCallInstr(node->token_pos(),
-                                                    Symbols::IndexTokenHandle(),
+                                                    Symbols::IndexToken(),
                                                     Token::kINDEX,
                                                     arguments,
                                                     Array::ZoneHandle(),
@@ -2426,7 +2491,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     // Resolve the store indexed operator in the super class.
     super_function = &Function::ZoneHandle(
         Resolver::ResolveDynamicAnyArgs(node->super_class(),
-                                        Symbols::AssignIndexTokenHandle()));
+                                        Symbols::AssignIndexToken()));
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
@@ -2439,12 +2504,13 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
         Bind(BuildStoreExprTemp(for_value.value()));
       }
       ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->array());
       arguments->Add(node->index_expr());
       arguments->Add(node->value());
       StaticCallInstr* call =
           BuildStaticNoSuchMethodCall(node->super_class(),
                                       node->array(),
-                                      Symbols::AssignIndexTokenHandle(),
+                                      Symbols::AssignIndexToken(),
                                       arguments);
       if (result_is_needed) {
         Do(call);
@@ -2778,16 +2844,13 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
     ArgumentListNode* method_arguments) {
   // Build the graph to allocate an InvocationMirror object by calling
   // the static allocation method.
-  const String& mirror_name = String::Handle(Symbols::InvocationMirror());
   const Library& corelib = Library::Handle(Library::CoreLibrary());
   const Class& mirror_class = Class::Handle(
-      corelib.LookupClassAllowPrivate(mirror_name));
+      corelib.LookupClassAllowPrivate(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
-  const String& function_name = String::Handle(
-      Symbols::AllocateInvocationMirror());
   const Function& allocation_function = Function::ZoneHandle(
       Resolver::ResolveStaticByName(mirror_class,
-                                    function_name,
+                                    Symbols::AllocateInvocationMirror(),
                                     Resolver::kIsQualified));
   ASSERT(!allocation_function.IsNull());
 
@@ -2827,10 +2890,8 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   Value* invocation_mirror = Bind(allocation);
   PushArgumentInstr* push_invocation_mirror = PushArgument(invocation_mirror);
   // Lookup noSuchMethod and call it with the receiver and the InvocationMirror.
-  const String& no_such_method_name =
-      String::ZoneHandle(Symbols::NoSuchMethod());
   const Function& no_such_method_func = Function::ZoneHandle(
-      Resolver::ResolveDynamicAnyArgs(target_class, no_such_method_name));
+      Resolver::ResolveDynamicAnyArgs(target_class, Symbols::NoSuchMethod()));
   // We are guaranteed to find noSuchMethod of class Object.
   ASSERT(!no_such_method_func.IsNull());
   ZoneGrowableArray<PushArgumentInstr*>* args =
@@ -2841,6 +2902,58 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
                              no_such_method_func,
                              Array::ZoneHandle(),
                              args);
+}
+
+
+StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
+    intptr_t token_pos,
+    const Class& function_class,
+    const String& function_name) {
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>();
+  // Object receiver.
+  // TODO(regis): For now, we pass a class literal of the unresolved
+  // method's owner, but this is not specified and will probably change.
+  Type& type = Type::ZoneHandle(
+      Type::New(function_class,
+                TypeArguments::Handle(),
+                token_pos,
+                Heap::kOld));
+  type ^= ClassFinalizer::FinalizeType(
+      function_class, type, ClassFinalizer::kCanonicalize);
+  Value* receiver_value = Bind(new ConstantInstr(type));
+  arguments->Add(PushArgument(receiver_value));
+  // String memberName.
+  const String& member_name = String::ZoneHandle(Symbols::New(function_name));
+  Value* member_name_value = Bind(new ConstantInstr(member_name));
+  arguments->Add(PushArgument(member_name_value));
+  // List arguments.
+  Value* arguments_value = Bind(new ConstantInstr(Array::ZoneHandle()));
+  arguments->Add(PushArgument(arguments_value));
+  // List argumentNames.
+  Value* argument_names_value =
+      Bind(new ConstantInstr(Array::ZoneHandle()));
+  arguments->Add(PushArgument(argument_names_value));
+  // List existingArgumentNames.
+  Value* existing_argument_names_value =
+      Bind(new ConstantInstr(Array::ZoneHandle()));
+  arguments->Add(PushArgument(existing_argument_names_value));
+  // Resolve and call NoSuchMethodError._throwNew.
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const Class& cls = Class::Handle(
+      core_lib.LookupClass(Symbols::NoSuchMethodError()));
+  ASSERT(!cls.IsNull());
+  const Function& func = Function::ZoneHandle(
+      Resolver::ResolveStatic(cls,
+                              Symbols::ThrowNew(),
+                              arguments->length(),
+                              Array::ZoneHandle(),
+                              Resolver::kIsQualified));
+  ASSERT(!func.IsNull());
+  return new StaticCallInstr(token_pos,
+                             func,
+                             Array::ZoneHandle(),  // No names.
+                             arguments);
 }
 
 

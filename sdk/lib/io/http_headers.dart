@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.io;
+
 class _HttpHeaders implements HttpHeaders {
   _HttpHeaders() : _headers = new Map<String, List<String>>();
 
@@ -63,6 +65,33 @@ class _HttpHeaders implements HttpHeaders {
   void noFolding(String name) {
     if (_noFoldingHeaders == null) _noFoldingHeaders = new List<String>();
     _noFoldingHeaders.add(name);
+  }
+
+  int get contentLength => _contentLength;
+
+  void set contentLength(int contentLength) {
+    _checkMutable();
+    _contentLength = contentLength;
+    if (_contentLength >= 0) {
+      _set("content-length", contentLength.toString());
+    } else {
+      removeAll("content-length");
+    }
+  }
+
+  bool get chunkedTransferEncoding => _chunkedTransferEncoding;
+
+  void set chunkedTransferEncoding(bool chunkedTransferEncoding) {
+    _checkMutable();
+    _chunkedTransferEncoding = chunkedTransferEncoding;
+    List<String> values = _headers["transfer-encoding"];
+    if (values == null || values[values.length - 1] != "chunked") {
+      // Headers does not specify chunked encoding - add it if set.
+      if (chunkedTransferEncoding) _addValue("transfer-encoding", "chunked");
+    } else {
+      // Headers does specify chunked encoding - remove it if not set.
+      if (!chunkedTransferEncoding) remove("transfer-encoding", "chunked");
+    }
   }
 
   String get host => _host;
@@ -155,7 +184,21 @@ class _HttpHeaders implements HttpHeaders {
   void _add(String name, Object value) {
     var lowerCaseName = name.toLowerCase();
     // TODO(sgjesse): Add immutable state throw HttpException is immutable.
-    if (lowerCaseName == "date") {
+    if (lowerCaseName == "content-length") {
+      if (value is int) {
+        contentLength = value;
+      } else if (value is String) {
+        contentLength = parseInt(value);
+      } else {
+        throw new HttpException("Unexpected type for header named $name");
+      }
+    } else if (lowerCaseName == "transfer-encoding") {
+      if (value == "chunked") {
+        chunkedTransferEncoding = true;
+      } else {
+        _addValue(lowerCaseName, value);
+      }
+    } else if (lowerCaseName == "date") {
       if (value is Date) {
         date = value;
       } else if (value is String) {
@@ -204,17 +247,20 @@ class _HttpHeaders implements HttpHeaders {
     } else if (lowerCaseName == "content-type") {
       _set("content-type", value);
     } else {
-      name = lowerCaseName;
-      List<String> values = _headers[name];
-      if (values == null) {
-        values = new List<String>();
-        _headers[name] = values;
-      }
-      if (value is Date) {
-        values.add(_HttpUtils.formatDate(value));
-      } else {
-        values.add(value.toString());
-      }
+        _addValue(lowerCaseName, value);
+    }
+  }
+
+  void _addValue(String name, Object value) {
+    List<String> values = _headers[name];
+    if (values == null) {
+      values = new List<String>();
+      _headers[name] = values;
+    }
+    if (value is Date) {
+      values.add(_HttpUtils.formatDate(value));
+    } else {
+      values.add(value.toString());
     }
   }
 
@@ -242,6 +288,22 @@ class _HttpHeaders implements HttpHeaders {
       return false;
     }
     return true;
+  }
+
+  void _finalize(String protocolVersion) {
+    // If the content length is not known make sure chunked transfer
+    // encoding is used for HTTP 1.1.
+    if (contentLength < 0 && protocolVersion == "1.1") {
+      chunkedTransferEncoding = true;
+    }
+    // If a Transfer-Encoding header field is present the
+    // Content-Length header MUST NOT be sent (RFC 2616 section 4.4).
+    if (chunkedTransferEncoding &&
+        contentLength >= 0 &&
+        protocolVersion == "1.1") {
+      contentLength = -1;
+    }
+    _mutable = false;
   }
 
   _write(_HttpConnectionBase connection) {
@@ -323,6 +385,8 @@ class _HttpHeaders implements HttpHeaders {
   Map<String, List<String>> _headers;
   List<String> _noFoldingHeaders;
 
+  int _contentLength = -1;
+  bool _chunkedTransferEncoding = false;
   String _host;
   int _port;
 }

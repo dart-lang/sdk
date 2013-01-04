@@ -610,9 +610,8 @@ class ApiState {
     if (true_ == NULL) {
       DARTSCOPE(Isolate::Current());
 
-      const Object& true_object = Object::Handle(Bool::True());
       true_ = persistent_handles().AllocateHandle();
-      true_->set_raw(true_object);
+      true_->set_raw(Bool::True());
     }
     return true_;
   }
@@ -620,9 +619,8 @@ class ApiState {
     if (false_ == NULL) {
       DARTSCOPE(Isolate::Current());
 
-      const Object& false_object = Object::Handle(Bool::False());
       false_ = persistent_handles().AllocateHandle();
-      false_->set_raw(false_object);
+      false_->set_raw(Bool::False());
     }
     return false_;
   }

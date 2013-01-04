@@ -4,10 +4,20 @@
 
 part of js_backend;
 
+/// For each class, stores the possible class subtype tests that could succeed.
+abstract class TypeChecks implements Iterable<ClassElement> {
+  /// Get the set of checks required for class [element].
+  Iterable<ClassElement> operator[](ClassElement element);
+}
+
 class RuntimeTypeInformation {
   final Compiler compiler;
 
   RuntimeTypeInformation(this.compiler);
+
+  /// Contains the classes of all arguments that have been used in
+  /// instantiations and checks.
+  Set<ClassElement> allArguments;
 
   bool isJsNative(Element element) {
     return (element == compiler.intClass ||
@@ -18,6 +28,60 @@ class RuntimeTypeInformation {
             element == compiler.listClass ||
             element == compiler.objectClass ||
             element == compiler.dynamicClass);
+  }
+
+  TypeChecks computeRequiredChecks() {
+    Set<ClassElement> instantiatedArguments = new Set<ClassElement>();
+    for (DartType type in compiler.codegenWorld.instantiatedTypes) {
+      addAllInterfaceTypeArguments(type, instantiatedArguments);
+    }
+
+    Set<ClassElement> checkedArguments = new Set<ClassElement>();
+    for (DartType type in compiler.enqueuer.codegen.universe.isChecks) {
+      addAllInterfaceTypeArguments(type, checkedArguments);
+    }
+
+    allArguments = new Set<ClassElement>.from(instantiatedArguments)
+        ..addAll(checkedArguments);
+
+    TypeCheckMapping requiredChecks = new TypeCheckMapping();
+    for (ClassElement element in instantiatedArguments) {
+      if (element == compiler.dynamicClass) continue;
+      if (checkedArguments.contains(element)) {
+        requiredChecks.add(element, element);
+      }
+      // Find all supertypes of [element] in [checkedArguments] and add checks.
+      for (DartType supertype in element.allSupertypes) {
+        ClassElement superelement = supertype.element;
+        if (checkedArguments.contains(superelement)) {
+          requiredChecks.add(element, superelement);
+        }
+      }
+    }
+
+    return requiredChecks;
+  }
+
+  void addAllInterfaceTypeArguments(DartType type, Set<ClassElement> classes) {
+    if (type is !InterfaceType) return;
+    for (DartType argument in type.typeArguments) {
+      forEachInterfaceType(argument, (InterfaceType t) {
+        ClassElement cls = t.element;
+        if (cls != compiler.dynamicClass && cls != compiler.objectClass) {
+          classes.add(cls);
+        }
+      });
+    }
+  }
+
+  void forEachInterfaceType(DartType type, f(InterfaceType type)) {
+    if (type.kind == TypeKind.INTERFACE) {
+      f(type);
+      InterfaceType interface = type;
+      for (DartType argument in interface.typeArguments) {
+        forEachInterfaceType(argument, f);
+      }
+    }
   }
 
   /// Return the unique name for the element as an unquoted string.
@@ -31,20 +95,7 @@ class RuntimeTypeInformation {
   String getJsName(Element element) {
     JavaScriptBackend backend = compiler.backend;
     Namer namer = backend.namer;
-    if (element.isClass()) {
-      ClassElement cls = element;
-      // If the class is not instantiated, we will not generate code for it and
-      // thus cannot refer to its constructor. For now, use a string instead of
-      // a reference to the constructor.
-      // TODO(karlklose): remove this and record classes that we need only
-      // for runtime types and emit structures for them.
-      Universe universe = compiler.enqueuer.resolution.universe;
-      if (!universe.instantiatedClasses.contains(cls)) {
-        return "'${namer.isolateAccess(element)}'";
-      }
-    }
-   return isJsNative(element) ? "'${element.name.slowToString()}'"
-                               : namer.isolateAccess(element);
+    return namer.isolateAccess(element);
   }
 
   String getRawTypeRepresentation(DartType type) {
@@ -100,4 +151,21 @@ class RuntimeTypeInformation {
       if (variables.head == variable) return index;
     }
   }
+}
+
+class TypeCheckMapping implements TypeChecks {
+  final Map<ClassElement, Set<ClassElement>> map =
+      new Map<ClassElement, Set<ClassElement>>();
+
+  Iterable<ClassElement> operator[](ClassElement element) {
+    Set<ClassElement> result = map[element];
+    return result != null ? result : const <ClassElement>[];
+  }
+
+  void add(ClassElement cls, ClassElement check) {
+    map.putIfAbsent(cls, () => new Set<ClassElement>());
+    map[cls].add(check);
+  }
+
+  Iterator<ClassElement> iterator() => map.keys.iterator();
 }

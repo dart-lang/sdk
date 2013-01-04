@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("test_progress");
+library test_progress;
 
-#import("dart:io");
-#import("test_runner.dart");
-#import("test_suite.dart");
-#import("status_file_parser.dart");
+import "dart:io";
+import "test_runner.dart";
+import "test_suite.dart";
+import "status_file_parser.dart";
 
 class ProgressIndicator {
   ProgressIndicator(this._startTime, this._printTiming)
@@ -53,6 +53,10 @@ class ProgressIndicator {
       }
       _appendToFlakyFile(buf.toString());
     }
+    for (var commandOutput in test.commandOutputs.values) {
+      if (commandOutput.compilationSkipped)
+        _skippedCompilations++;
+    }
 
     if (test.lastCommandOutput.unexpectedOutput) {
       _failedTests++;
@@ -69,6 +73,13 @@ class ProgressIndicator {
   void allTestsKnown() {
     if (!_allTestsKnown) SummaryReport.printReport();
     _allTestsKnown = true;
+  }
+
+  void _printSkippedCompilationInfo() {
+    if (_skippedCompilations > 0) {
+      print('\n$_skippedCompilations compilations were skipped because '
+            'the previous output was already up to date\n');
+    }
   }
 
   void _printTimingInformation() {
@@ -93,6 +104,7 @@ class ProgressIndicator {
   void allDone() {
     _printFailureSummary();
     _printStatus();
+    _printSkippedCompilationInfo();
     _printTimingInformation();
     stdout.close();
     stderr.close();
@@ -136,7 +148,7 @@ class ProgressIndicator {
     }
     _failureSummary.addAll(failureOutput);
   }
-  
+
   List<String> _buildFailureOutput(TestCase test) {
     List<String> output = new List<String>();
     output.add('');
@@ -171,16 +183,17 @@ class ProgressIndicator {
     if (!test.lastCommandOutput.stdout.isEmpty) {
       output.add('');
       output.add('stdout:');
-      for (var s in test.lastCommandOutput.stdout) {
-        output.add(s);
+      if (test.lastCommandOutput.command.isPixelTest) {
+        output.add('DRT pixel test failed! stdout is not printed because it '
+                   'contains binary data!');
+      } else {
+        output.add(new String.fromCharCodes(test.lastCommandOutput.stdout));
       }
     }
     if (!test.lastCommandOutput.stderr.isEmpty) {
       output.add('');
       output.add('stderr:');
-      for (var s in test.lastCommandOutput.stderr) {
-        output.add(s);
-      }
+      output.add(new String.fromCharCodes(test.lastCommandOutput.stderr));
     }
     for (Command c in test.commands) {
       output.add('');
@@ -225,6 +238,7 @@ class ProgressIndicator {
   int _foundTests = 0;
   int _passedTests = 0;
   int _failedTests = 0;
+  int _skippedCompilations = 0;
   bool _allTestsKnown = false;
   Date _startTime;
   bool _printTiming;
@@ -252,6 +266,7 @@ abstract class CompactIndicator extends ProgressIndicator {
   void allDone() {
     stdout.write('\n'.charCodes);
     _printFailureSummary();
+    _printSkippedCompilationInfo();
     _printTimingInformation();
     if (_failedTests > 0) {
       // We may have printed many failure logs, so reprint the summary data.

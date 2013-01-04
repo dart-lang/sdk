@@ -11,7 +11,8 @@ class A native "*A" {
 
   factory A.fromString(String s)  => _construct(s.length);
 
-  factory A.nativeConstructor(int a, int b) native r'return makeA(a+b);';
+  // Only functions with zero parameters are allowed with "native r'...'".
+  factory A.nativeConstructor() native r'return makeA(102);';
 
   static A _construct(v) { return makeA(v); }
 
@@ -30,7 +31,7 @@ main() {
   setup();
   var a1 = new A(100);
   var a2 = new A.fromString('Hello');
-  var a3 = new A.nativeConstructor(100, 2);
+  var a3 = new A.nativeConstructor();
 
   Expect.equals(100, a1.foo());
   Expect.equals(5, a2.foo());

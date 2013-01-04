@@ -9,6 +9,8 @@ import 'log.dart' as log;
 import 'io.dart';
 import 'system_cache.dart';
 import 'utils.dart';
+import 'validator/dependency.dart';
+import 'validator/directory.dart';
 import 'validator/lib.dart';
 import 'validator/license.dart';
 import 'validator/name.dart';
@@ -44,7 +46,9 @@ abstract class Validator {
       new LibValidator(entrypoint),
       new LicenseValidator(entrypoint),
       new NameValidator(entrypoint),
-      new PubspecFieldValidator(entrypoint)
+      new PubspecFieldValidator(entrypoint),
+      new DependencyValidator(entrypoint),
+      new DirectoryValidator(entrypoint)
     ];
 
     // TODO(nweiz): The sleep 0 here forces us to go async. This works around
