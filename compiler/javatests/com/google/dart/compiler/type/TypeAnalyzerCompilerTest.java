@@ -1818,8 +1818,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}",
             "");
     assertErrors(result.getErrors(),
-        errEx(ResolverErrorCode.FIELD_GETTER_SETTER_SAME_STATIC, 4, 14, 5),
-        errEx(ResolverErrorCode.FIELD_GETTER_SETTER_SAME_STATIC, 8, 14, 5));
+        errEx(TypeErrorCode.FIELD_GETTER_SETTER_SAME_STATIC, 4, 14, 5),
+        errEx(TypeErrorCode.FIELD_GETTER_SETTER_SAME_STATIC, 8, 14, 5));
   }
 
   /**
