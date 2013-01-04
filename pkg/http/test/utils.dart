@@ -8,9 +8,9 @@ import 'dart:io';
 import 'dart:json';
 import 'dart:uri';
 
-import '../../unittest/lib/unittest.dart';
-import '../lib/http.dart' as http;
-import '../lib/src/utils.dart';
+import 'package:unittest/unittest.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/src/utils.dart';
 
 /// The current server instance.
 HttpServer _server;

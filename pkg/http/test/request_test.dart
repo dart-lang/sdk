@@ -6,9 +6,9 @@ library request_test;
 
 import 'dart:io';
 
-import '../../unittest/lib/unittest.dart';
-import '../lib/http.dart' as http;
-import '../lib/src/utils.dart';
+import 'package:unittest/unittest.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/src/utils.dart';
 import 'utils.dart';
 
 void main() {
