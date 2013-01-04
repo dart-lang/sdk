@@ -18,5 +18,5 @@ main() {
 main() {
   String generated = compileAll(TEST);
   Expect.isTrue(
-      generated.contains('\$.A = {"":"Object;"\n}'));
+      generated.contains('\$.A = {"": "Object;"}'));
 }

@@ -45,7 +45,7 @@ class CodeBuffer implements StringBuffer {
       }
       lastBufferOffset = buffer.length + other.lastBufferOffset;
     }
-    buffer.add(other.toString());
+    buffer.add(other.getText());
   }
 
   CodeBuffer addAll(Collection<Object> objects) {
@@ -67,6 +67,10 @@ class CodeBuffer implements StringBuffer {
   }
 
   String toString() {
+    throw "Don't use CodeBuffer.toString() since it drops sourcemap data.";
+  }
+
+  String getText() {
     return buffer.toString();
   }
 

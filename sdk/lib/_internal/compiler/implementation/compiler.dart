@@ -51,8 +51,8 @@ class WorkItem {
   bool isAnalyzed() => resolutionTree != null;
 
   void run(Compiler compiler, Enqueuer world) {
-    CodeBuffer codeBuffer = world.universe.generatedCode[element];
-    if (codeBuffer != null) return;
+    js.Expression code = world.universe.generatedCode[element];
+    if (code != null) return;
     resolutionTree = compiler.analyze(this, world);
     compiler.codegen(this, world);
   }

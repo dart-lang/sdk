@@ -864,7 +864,7 @@ Binary equals(Expression left, Expression right) {
   return new Binary('==', left, right);
 }
 
-LiteralString string(String value) => new LiteralString("'$value'");
+LiteralString string(String value) => new LiteralString('"$value"');
 
 If if_(Expression condition, Node then, [Node otherwise]) {
   return (otherwise == null)
@@ -881,6 +881,10 @@ PropertyAccess fieldAccess(Expression receiver, String fieldName) {
 }
 
 Block emptyBlock() => new Block.empty();
+
+Block block1(Statement statement) => new Block(<Statement>[statement]);
+
+Block block2(Statement s1, Statement s2) => new Block(<Statement>[s1, s2]);
 
 Call call(Expression target, List<Expression> arguments) {
   return new Call(target, arguments);

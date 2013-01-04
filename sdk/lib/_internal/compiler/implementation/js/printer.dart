@@ -31,11 +31,16 @@ class Printer implements NodeVisitor {
         ? new MinifyRenamer() : new IdentityNamer();
   }
 
+  /// Always emit a newline, even under `enableMinification`.
+  void forceLine() {
+    out("\n");
+  }
+  /// Emits a newline for readability.
+  void lineOut() {
+    if (!shouldCompressOutput) forceLine();
+  }
   void spaceOut() {
     if (!shouldCompressOutput) out(" ");
-  }
-  void lineOut() {
-    if (!shouldCompressOutput) out("\n");
   }
 
   String lastAddedString = null;
@@ -70,7 +75,8 @@ class Printer implements NodeVisitor {
     if (shouldCompressOutput) {
       pendingSemicolon = true;
     } else {
-      out(";\n");
+      out(";");
+      forceLine();
     }
   }
 
@@ -672,8 +678,10 @@ class Printer implements NodeVisitor {
         return false;
       }
     }
-    // TODO(floitsch): normally we should also check that the field is not
-    // a reserved word.
+    // TODO(floitsch): normally we should also check that the field is not a
+    // reserved word.  We don't generate fields with reserved word names except
+    // for 'super'.
+    if (field == '"super"') return false;
     return true;
   }
 
@@ -758,15 +766,28 @@ class Printer implements NodeVisitor {
   }
 
   visitObjectInitializer(ObjectInitializer node) {
-    out("{");
+    // Print all the properties on one line until we see a function-valued
+    // property.  Ideally, we would use a proper pretty-printer to make the
+    // decision based on layout.
+    bool onePerLine = false;
     List<Property> properties = node.properties;
+    out("{");
+    ++indentLevel;
     for (int i = 0; i < properties.length; i++) {
+      Expression value = properties[i].value;
+      if (value is Fun || value is NamedFunction) onePerLine = true;
       if (i != 0) {
         out(",");
-        spaceOut();
+        if (!onePerLine) spaceOut();
+      }
+      if (onePerLine) {
+        forceLine();
+        indent();
       }
       visitProperty(properties[i]);
     }
+    --indentLevel;
+    if (onePerLine) lineOut();
     out("}");
   }
 
