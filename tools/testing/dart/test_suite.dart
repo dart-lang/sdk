@@ -108,10 +108,10 @@ abstract class TestSuite {
    * in the built SDK.
    */
   bool get useSdk {
-    // Some suites always use the SDK.
-    // TODO(rnystrom): Eventually, all tests should run out of the SDK and this
-    // check should go away.
-    if (['pkg', 'pub'].contains(suiteName)) return true;
+    // The pub suite always uses the SDK.
+    // TODO(rnystrom): Eventually, all test suites should run out of the SDK
+    // and this check should go away.
+    if (suiteName == 'pub') return true;
 
     return configuration['use_sdk'];
   }
