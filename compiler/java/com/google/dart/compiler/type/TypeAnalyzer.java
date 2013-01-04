@@ -2491,6 +2491,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
               }
             }
           }
+          result = Types.makeInferred(result, receiver.getQuality());
           node.setType(result);
           return result;
 
