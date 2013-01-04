@@ -59,13 +59,16 @@ void testBody(int totalConnections, bool useHeader) {
     } else {
       response.headers.set("content-length", 2);
     }
-    OutputStream stream = response.outputStream;
-    stream.writeString("x");
-    Expect.throws(() => response.contentLength = 3, (e) => e is HttpException);
-    stream.writeString("x");
-    Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
-    stream.close();
-    Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
+    request.inputStream.onData = request.inputStream.read;
+    request.inputStream.onClosed = () {
+      OutputStream stream = response.outputStream;
+      stream.writeString("x");
+      Expect.throws(() => response.contentLength = 3, (e) => e is HttpException);
+      stream.writeString("x");
+      Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
+      stream.close();
+      Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
+    };
   };
 
   int count = 0;
@@ -116,14 +119,17 @@ void testBodyChunked(int totalConnections, bool useHeader) {
       response.headers.set("content-length", 2);
       response.headers.set("transfer-encoding", "chunked");
     }
-    OutputStream stream = response.outputStream;
-    stream.writeString("x");
-    Expect.throws(() => response.headers.chunkedTransferEncoding = false,
-                  (e) => e is HttpException);
-    stream.writeString("x");
-    stream.writeString("x");
-    stream.close();
-    Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
+    request.inputStream.onData = request.inputStream.read;
+    request.inputStream.onClosed = () {
+      OutputStream stream = response.outputStream;
+      stream.writeString("x");
+      Expect.throws(() => response.headers.chunkedTransferEncoding = false,
+                    (e) => e is HttpException);
+      stream.writeString("x");
+      stream.writeString("x");
+      stream.close();
+      Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
+    };
   };
 
   int count = 0;
@@ -193,10 +199,7 @@ void main() {
   testNoBody(5, true);
   testBody(5, false);
   testBody(5, true);
-  // These tests can fail or timeout on Windows, issue 7562.
-  if (Platform.operatingSystem != 'windows') {
-    testBodyChunked(5, false);
-    testBodyChunked(5, true);
-  }
+  testBodyChunked(5, false);
+  testBodyChunked(5, true);
   testHttp10();
 }
