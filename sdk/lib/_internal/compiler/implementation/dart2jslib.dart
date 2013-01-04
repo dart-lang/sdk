@@ -24,7 +24,6 @@ import '../compiler.dart' as api;
 import 'patch_parser.dart';
 import 'types/types.dart' as ti;
 import 'resolution/resolution.dart';
-import 'js/js.dart' as js;
 
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;
 export 'scanner/scannerlib.dart' show SourceString, isUserDefinableOperator;

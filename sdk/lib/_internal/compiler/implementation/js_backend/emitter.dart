@@ -25,25 +25,6 @@ class ClosureInvocationElement extends FunctionElement {
 }
 
 /**
- * A convenient type alias for some functions that emit keyed values.
- */
-typedef void DefineStubFunction(String invocationName, js.Expression value);
-
-/**
- * A data structure for collecting fragments of a class definition.
- */
-class ClassBuilder {
-  final List<js.Property> properties = <js.Property>[];
-
-  // Has the same signature as [DefineStubFunction].
-  void addProperty(String name, js.Expression value) {
-    properties.add(new js.Property(js.string(name), value));
-  }
-
-  js.Expression toObjectInitializer() => new js.ObjectInitializer(properties);
-}
-
-/**
  * Generates the code for all used classes in the program. Static fields (even
  * in classes) are ignored, since they can be treated as non-class elements.
  *
@@ -446,7 +427,7 @@ $lazyInitializerLogic
    */
   void addParameterStub(FunctionElement member,
                         Selector selector,
-                        DefineStubFunction defineStub,
+                        DefineMemberFunction defineInstanceMember,
                         Set<String> alreadyGenerated) {
     FunctionSignature parameters = member.computeSignature(compiler);
     int positionalArgumentCount = selector.positionalArgumentCount;
@@ -550,11 +531,13 @@ $lazyInitializerLogic
 
     js.Fun function = new js.Fun(parametersBuffer, new js.Block(body));
 
-    defineStub(invocationName, function);
+    CodeBuffer buffer = new CodeBuffer();
+    buffer.add(js.prettyPrint(function, compiler));
+    defineInstanceMember(invocationName, buffer);
   }
 
   void addParameterStubs(FunctionElement member,
-                         DefineStubFunction defineStub) {
+                         DefineMemberFunction defineInstanceMember) {
     // We fill the lists depending on the selector. For example,
     // take method foo:
     //    foo(a, b, {c, d});
@@ -594,14 +577,16 @@ $lazyInitializerLogic
           ? computeNamedSelectors(signature, member)
           : computeOptionalSelectors(signature, member);
       for (Selector selector in selectors) {
-        addParameterStub(member, selector, defineStub, generatedStubNames);
+        addParameterStub(
+            member, selector, defineInstanceMember, generatedStubNames);
       }
     } else {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
       if (selectors == null) return;
       for (Selector selector in selectors) {
         if (!selector.applies(member, compiler)) continue;
-        addParameterStub(member, selector, defineStub, generatedStubNames);
+        addParameterStub(
+            member, selector, defineInstanceMember, generatedStubNames);
       }
     }
   }
@@ -688,7 +673,8 @@ $lazyInitializerLogic
    *
    * Invariant: [member] must be a declaration element.
    */
-  void addInstanceMember(Element member, ClassBuilder builder) {
+  void addInstanceMember(Element member,
+                         DefineMemberFunction defineInstanceMember) {
     assert(invariant(member, member.isDeclaration));
     // TODO(floitsch): we don't need to deal with members of
     // uninstantiated classes, that have been overwritten by subclasses.
@@ -697,23 +683,23 @@ $lazyInitializerLogic
         || member.isGenerativeConstructorBody()
         || member.isAccessor()) {
       if (member.isAbstract(compiler)) return;
-      js.Expression code = compiler.codegenWorld.generatedCode[member];
-      if (code == null) return;
-      builder.addProperty(namer.getName(member), code);
-      code = compiler.codegenWorld.generatedBailoutCode[member];
-      if (code != null) {
-        builder.addProperty(namer.getBailoutName(member), code);
+      CodeBuffer codeBuffer = compiler.codegenWorld.generatedCode[member];
+      if (codeBuffer == null) return;
+      defineInstanceMember(namer.getName(member), codeBuffer);
+      codeBuffer = compiler.codegenWorld.generatedBailoutCode[member];
+      if (codeBuffer != null) {
+        defineInstanceMember(namer.getBailoutName(member), codeBuffer);
       }
       FunctionElement function = member;
       FunctionSignature parameters = function.computeSignature(compiler);
       if (!parameters.optionalParameters.isEmpty) {
-        addParameterStubs(member, builder.addProperty);
+        addParameterStubs(member, defineInstanceMember);
       }
     } else if (!member.isField()) {
       compiler.internalError('unexpected kind: "${member.kind}"',
                              element: member);
     }
-    emitExtraAccessors(member, builder);
+    emitExtraAccessors(member, defineInstanceMember);
   }
 
   /**
@@ -722,11 +708,20 @@ $lazyInitializerLogic
    * Invariant: [classElement] must be a declaration element.
    */
   void emitInstanceMembers(ClassElement classElement,
-                           ClassBuilder builder) {
+                           CodeBuffer buffer,
+                           bool emitLeadingComma) {
     assert(invariant(classElement, classElement.isDeclaration));
+    void defineInstanceMember(String name, StringBuffer memberBuffer) {
+      if (emitLeadingComma) buffer.add(',');
+      emitLeadingComma = true;
+      buffer.add('\n');
+      buffer.add('$_$name:$_');
+      buffer.add(memberBuffer);
+    }
+
     JavaScriptBackend backend = compiler.backend;
     if (classElement == backend.objectInterceptorClass) {
-      emitInterceptorMethods(builder);
+      emitInterceptorMethods(defineInstanceMember);
       // The ObjectInterceptor does not have any instance methods.
       return;
     }
@@ -735,20 +730,22 @@ $lazyInitializerLogic
         (ClassElement enclosing, Element member) {
           assert(invariant(classElement, member.isDeclaration));
           if (member.isInstanceMember()) {
-            addInstanceMember(member, builder);
+            addInstanceMember(member, defineInstanceMember);
           }
         },
         includeBackendMembers: true);
 
     generateIsTestsOn(classElement, (Element other) {
-      js.Expression code;
+      String code;
       if (compiler.objectClass == other) return;
       if (nativeEmitter.requiresNativeIsCheck(other)) {
-        code = js.fun([], js.block1(js.return_(new js.LiteralBool(true))));
+        code = 'function()$_{${_}return true;$_}';
       } else {
-        code = new js.LiteralBool(true);
+        code = 'true';
       }
-      builder.addProperty(namer.operatorIs(other), code);
+      CodeBuffer typeTestBuffer = new CodeBuffer();
+      typeTestBuffer.add(code);
+      defineInstanceMember(namer.operatorIs(other), typeTestBuffer);
     });
 
     if (identical(classElement, compiler.objectClass)
@@ -758,7 +755,7 @@ $lazyInitializerLogic
       // them. Note that this helper is invoked before analyzing the
       // full JS script.
       if (!nativeEmitter.handleNoSuchMethod) {
-        emitNoSuchMethodHandlers(builder.addProperty);
+        emitNoSuchMethodHandlers(defineInstanceMember);
       }
     }
   }
@@ -882,20 +879,15 @@ $lazyInitializerLogic
   }
 
   void generateGetter(Element member, String fieldName, String accessorName,
-                      ClassBuilder builder) {
+                      CodeBuffer buffer) {
     String getterName = namer.getterNameFromAccessorName(accessorName);
-    builder.addProperty(getterName,
-        js.fun([], js.block1(js.return_(js.use('this').dot(fieldName)))));
+    buffer.add("$getterName: function() { return this.$fieldName; }");
   }
 
   void generateSetter(Element member, String fieldName, String accessorName,
-                      ClassBuilder builder) {
+                      CodeBuffer buffer) {
     String setterName = namer.setterNameFromAccessorName(accessorName);
-    builder.addProperty(setterName,
-        js.fun(['v'],
-            js.block1(
-                new js.ExpressionStatement(
-                    js.assign(js.use('this').dot(fieldName), js.use('v'))))));
+    buffer.add("$setterName: function(v) { this.$fieldName = v; }");
   }
 
   bool canGenerateCheckedSetter(Element member) {
@@ -912,43 +904,39 @@ $lazyInitializerLogic
   void generateCheckedSetter(Element member,
                              String fieldName,
                              String accessorName,
-                             ClassBuilder builder) {
+                             CodeBuffer buffer) {
     assert(canGenerateCheckedSetter(member));
     DartType type = member.computeType(compiler);
     SourceString helper = compiler.backend.getCheckedModeHelper(type);
     FunctionElement helperElement = compiler.findHelper(helper);
     String helperName = namer.isolateAccess(helperElement);
-    List<js.Expression> arguments = <js.Expression>[js.use('v')];
+    String additionalArgument = '';
     if (helperElement.computeSignature(compiler).parameterCount != 1) {
-      arguments.add(js.string(namer.operatorIs(type.element)));
+      additionalArgument = ",$_'${namer.operatorIs(type.element)}'";
     }
-
     String setterName = namer.setterNameFromAccessorName(accessorName);
-    builder.addProperty(setterName,
-        js.fun(['v'],
-            js.block1(
-                new js.ExpressionStatement(
-                    js.assign(
-                        js.use('this').dot(fieldName),
-                        js.call(js.use(helperName), arguments))))));
+    buffer.add("$setterName:${_}function(v)$_{$_"
+        "this.$fieldName$_=$_$helperName(v$additionalArgument);}");
   }
 
-  void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
+  void emitClassConstructor(ClassElement classElement, CodeBuffer buffer) {
     /* Do nothing. */
   }
 
-  void emitSuper(String superName, ClassBuilder builder) {
+  void emitSuper(String superName, CodeBuffer buffer) {
     /* Do nothing. */
   }
 
   void emitClassFields(ClassElement classElement,
-                       ClassBuilder builder,
+                       CodeBuffer buffer,
+                       bool emitEndingComma,
                        { String superClass: "",
                          bool classIsNative: false}) {
     bool isFirstField = true;
-    StringBuffer buffer = new StringBuffer();
+    bool isAnythingOutput = false;
     if (!classIsNative) {
-      buffer.add('$superClass;');
+      buffer.add('"":"$superClass;');
+      isAnythingOutput = true;
     }
     visitClassFields(classElement, (Element member,
                                     String name,
@@ -966,8 +954,12 @@ $lazyInitializerLogic
         // Emit correct commas.
         if (isFirstField) {
           isFirstField = false;
+          if (!isAnythingOutput) {
+            buffer.add('"":"');
+            isAnythingOutput = true;
+          }
         } else {
-          buffer.add(',');
+          buffer.add(",");
         }
         int flag = 0;
         if (!needsAccessor) {
@@ -994,15 +986,25 @@ $lazyInitializerLogic
         }
       }
     });
-
-    String compactClassData = buffer.toString();
-    if (compactClassData.length > 0) {
-      builder.addProperty('', js.string(compactClassData));
+    if (isAnythingOutput) {
+      buffer.add('"');
+      if (emitEndingComma) {
+        buffer.add(',');
+      }
     }
   }
 
+  /** Each getter/setter must be prefixed with a ",\n ". */
   void emitClassGettersSetters(ClassElement classElement,
-                               ClassBuilder builder) {
+                               CodeBuffer buffer,
+                               bool emitLeadingComma) {
+    emitComma() {
+      if (emitLeadingComma) {
+        buffer.add(",\n$_");
+      } else {
+        emitLeadingComma = true;
+      }
+    }
 
     visitClassFields(classElement, (Element member,
                                     String name,
@@ -1012,14 +1014,17 @@ $lazyInitializerLogic
                                     bool needsCheckedSetter) {
       if (needsCheckedSetter) {
         assert(!needsSetter);
-        generateCheckedSetter(member, name, accessorName, builder);
+        emitComma();
+        generateCheckedSetter(member, name, accessorName, buffer);
       }
       if (!getterAndSetterCanBeImplementedByFieldSpec) {
         if (needsGetter) {
-          generateGetter(member, name, accessorName, builder);
+          emitComma();
+          generateGetter(member, name, accessorName, buffer);
         }
         if (needsSetter) {
-          generateSetter(member, name, accessorName, builder);
+          emitComma();
+          generateSetter(member, name, accessorName, buffer);
         }
       }
     });
@@ -1050,26 +1055,23 @@ $lazyInitializerLogic
       superName = namer.getName(superclass);
     }
 
-    ClassBuilder builder = new ClassBuilder();
-
-    emitClassConstructor(classElement, builder);
-    emitSuper(superName, builder);
-    emitClassFields(classElement, builder,
+    buffer.add('$classesCollector.$className$_=$_{');
+    emitClassConstructor(classElement, buffer);
+    emitSuper(superName, buffer);
+    emitClassFields(classElement, buffer, false,
                     superClass: superName, classIsNative: false);
-    emitClassGettersSetters(classElement, builder);
-    emitInstanceMembers(classElement, builder);
-
-    js.Expression init =
-        js.assign(
-            js.use(classesCollector).dot(className),
-            builder.toObjectInitializer());
-    buffer.add(js.prettyPrint(init, compiler));
-    buffer.add('$N$n');
+    // TODO(floitsch): the emitInstanceMember should simply always emit a ',\n'.
+    // That does currently not work because the native classes have a different
+    // syntax.
+    emitClassGettersSetters(classElement, buffer, true);
+    emitInstanceMembers(classElement, buffer, true);
+    buffer.add('$n}$N$n');
   }
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => true;
 
-  void emitInterceptorMethods(ClassBuilder builder) {
+  void emitInterceptorMethods(
+      void defineInstanceMember(String name, StringBuffer memberBuffer)) {
     JavaScriptBackend backend = compiler.backend;
     // Emit forwarders for the ObjectInterceptor class. We need to
     // emit all possible sends on intercepted methods.
@@ -1103,7 +1105,10 @@ $lazyInitializerLogic
                           new js.VariableUse('receiver')
                               .dot(name)
                               .callWith(arguments))]));
-      builder.addProperty(name, function);
+
+      CodeBuffer code = new CodeBuffer();
+      code.add(js.prettyPrint(function, compiler));
+      defineInstanceMember(name, code);
     }
   }
 
@@ -1269,12 +1274,13 @@ $lazyInitializerLogic
     }
   }
 
-  void emitStaticFunction(CodeBuffer buffer,
-                          String name,
-                          js.Expression functionExpression) {
-    js.Expression assignment =
-        js.assign(js.use(isolateProperties).dot(name), functionExpression);
-    buffer.add(js.prettyPrint(assignment, compiler));
+  void emitStaticFunctionWithNamer(CodeBuffer buffer,
+                                   Element element,
+                                   CodeBuffer functionBuffer,
+                                   String functionNamer(Element element)) {
+    String functionName = functionNamer(element);
+    buffer.add('$isolateProperties.$functionName$_=$_');
+    buffer.add(functionBuffer);
     buffer.add('$N$n');
   }
 
@@ -1290,13 +1296,14 @@ $lazyInitializerLogic
                 isStaticFunction));
 
     for (Element element in Elements.sortedByPosition(elements)) {
-      js.Expression code = compiler.codegenWorld.generatedCode[element];
-      emitStaticFunction(buffer, namer.getName(element), code);
-      js.Expression bailoutCode =
+      CodeBuffer code = compiler.codegenWorld.generatedCode[element];
+      emitStaticFunctionWithNamer(buffer, element, code, namer.getName);
+      CodeBuffer bailoutCode =
           compiler.codegenWorld.generatedBailoutCode[element];
       if (bailoutCode != null) {
         pendingElementsWithBailouts.remove(element);
-        emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
+        emitStaticFunctionWithNamer(
+            buffer, element, bailoutCode, namer.getBailoutName);
       }
     }
 
@@ -1305,14 +1312,16 @@ $lazyInitializerLogic
              Elements.sortedByPosition(pendingElementsWithBailouts)) {
       CodeBuffer bailoutCode =
           compiler.codegenWorld.generatedBailoutCode[element];
-      emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
+      emitStaticFunctionWithNamer(
+          buffer, element, bailoutCode, namer.getBailoutName);
     }
   }
 
   void emitStaticFunctionGetters(CodeBuffer buffer) {
     Set<FunctionElement> functionsNeedingGetter =
         compiler.codegenWorld.staticFunctionsNeedingGetter;
-    for (FunctionElement element in functionsNeedingGetter) {
+    for (FunctionElement element in
+             Elements.sortedByPosition(functionsNeedingGetter)) {
       // The static function does not have the correct name. Since
       // [addParameterStubs] use the name to create its stubs we simply
       // create a fake element with the correct name.
@@ -1324,17 +1333,9 @@ $lazyInitializerLogic
       String invocationName = namer.instanceMethodName(callElement);
       String fieldAccess = '$isolateProperties.$staticName';
       buffer.add("$fieldAccess.$invocationName$_=$_$fieldAccess$N");
-
-      addParameterStubs(callElement, (String name, js.Expression value) {
-        js.Expression assignment =
-            js.assign(
-                js.use(isolateProperties).dot(staticName).dot(name),
-                value);
-        buffer.add(
-            js.prettyPrint(new js.ExpressionStatement(assignment), compiler));
-        buffer.add('$N');
+      addParameterStubs(callElement, (String name, CodeBuffer value) {
+        buffer.add('$fieldAccess.$name$_=$_$value$N');
       });
-
       // If a static function is used as a closure we need to add its name
       // in case it is used in spawnFunction.
       String fieldName = namer.STATIC_CLOSURE_NAME_NAME;
@@ -1351,9 +1352,9 @@ $lazyInitializerLogic
   void emitBoundClosureClassHeader(String mangledName,
                                    String superName,
                                    List<String> fieldNames,
-                                   ClassBuilder builder) {
-    builder.addProperty('',
-        js.string("$superName;${Strings.join(fieldNames,',')}"));
+                                   CodeBuffer buffer) {
+    buffer.add('$classesCollector.$mangledName$_=$_'
+               '{"":"$superName;${Strings.join(fieldNames,',')}",');
   }
 
   /**
@@ -1362,7 +1363,7 @@ $lazyInitializerLogic
    * Invariant: [member] must be a declaration element.
    */
   void emitDynamicFunctionGetter(FunctionElement member,
-                                 DefineStubFunction defineStub) {
+                                 DefineMemberFunction defineInstanceMember) {
     assert(invariant(member, member.isDeclaration));
     // For every method that has the same name as a property-get we create a
     // getter that returns a bound closure. Say we have a class 'A' with method
@@ -1425,9 +1426,8 @@ $lazyInitializerLogic
 
       // Define the constructor with a name so that Object.toString can
       // find the class name of the closure class.
-      ClassBuilder boundClosureBuilder = new ClassBuilder();
       emitBoundClosureClassHeader(
-          mangledName, superName, fieldNames, boundClosureBuilder);
+          mangledName, superName, fieldNames, boundClosureBuffer);
       // Now add the methods on the closure class. The instance method does not
       // have the correct name. Since [addParameterStubs] use the name to create
       // its stubs we simply create a fake element with the correct name.
@@ -1458,20 +1458,20 @@ $lazyInitializerLogic
                               new js.This().dot(fieldNames[0]),
                               new js.This().dot(fieldNames[1]))
                           .callWith(arguments))]));
-      boundClosureBuilder.addProperty(invocationName, fun);
 
-      addParameterStubs(callElement, boundClosureBuilder.addProperty);
-      typedefChecks.forEach((Element typedef) {
-        String operator = namer.operatorIs(typedef);
-        boundClosureBuilder.addProperty(operator, new js.LiteralBool(true));
+      boundClosureBuffer.add(
+          '$_$invocationName:$_${js.prettyPrint(fun,compiler)}');
+
+      addParameterStubs(callElement, (String stubName, CodeBuffer memberValue) {
+        boundClosureBuffer.add(',\n$_$stubName:$_$memberValue');
       });
 
-      js.Expression init =
-          js.assign(
-              js.use(classesCollector).dot(mangledName),
-              boundClosureBuilder.toObjectInitializer());
-      boundClosureBuffer.add(js.prettyPrint(init, compiler));
-      boundClosureBuffer.add("$N");
+      typedefChecks.forEach((Element typedef) {
+        String operator = namer.operatorIs(typedef);
+        boundClosureBuffer.add(',\n$_$operator$_:${_}true');
+      });
+
+      boundClosureBuffer.add("$n}$N");
 
       closureClass = namer.isolateAccess(closureClassElement);
 
@@ -1488,7 +1488,7 @@ $lazyInitializerLogic
     List<js.Parameter> parameters = <js.Parameter>[];
     List<js.Expression> arguments = <js.Expression>[];
     arguments.add(new js.This());
-    arguments.add(js.string(targetName));
+    arguments.add(new js.LiteralString("'$targetName'"));
     if (inInterceptor) {
       parameters.add(new js.Parameter(extraArg));
       arguments.add(new js.VariableUse(extraArg));
@@ -1503,7 +1503,9 @@ $lazyInitializerLogic
                             new js.VariableUse(closureClass),
                             arguments))]));
 
-    defineStub(getterName, getterFunction);
+    CodeBuffer getterBuffer = new CodeBuffer();
+    getterBuffer.add(js.prettyPrint(getterFunction, compiler));
+    defineInstanceMember(getterName, getterBuffer);
   }
 
   /**
@@ -1513,7 +1515,7 @@ $lazyInitializerLogic
    */
   void emitCallStubForGetter(Element member,
                              Set<Selector> selectors,
-                             DefineStubFunction defineStub) {
+                             DefineMemberFunction defineInstanceMember) {
     assert(invariant(member, member.isDeclaration));
     LibraryElement memberLibrary = member.getLibrary();
     JavaScriptBackend backend = compiler.backend;
@@ -1569,7 +1571,9 @@ $lazyInitializerLogic
                             buildGetter().dot(closureCallName)
                                 .callWith(arguments))]));
 
-        defineStub(invocationName, function);
+        CodeBuffer getterBuffer = new CodeBuffer();
+        getterBuffer.add(js.prettyPrint(function, compiler));
+        defineInstanceMember(invocationName, getterBuffer);
       }
     }
   }
@@ -1601,7 +1605,7 @@ $lazyInitializerLogic
       needsLazyInitializer = true;
       for (VariableElement element in lazyFields) {
         assert(compiler.codegenWorld.generatedBailoutCode[element] == null);
-        js.Expression code = compiler.codegenWorld.generatedCode[element];
+        StringBuffer code = compiler.codegenWorld.generatedCode[element];
         assert(code != null);
         // The code only computes the initial value. We build the lazy-check
         // here:
@@ -1617,7 +1621,7 @@ $lazyInitializerLogic
         buffer.add("',$_'");
         buffer.add(namer.getLazyInitializerName(element));
         buffer.add("',$_");
-        buffer.add(js.prettyPrint(code, compiler));
+        buffer.add(code);
         emitLazyInitializedGetter(element, buffer);
         buffer.add(")$N");
       }
@@ -1673,21 +1677,22 @@ $lazyInitializerLogic
    *
    * Invariant: [member] must be a declaration element.
    */
-  void emitExtraAccessors(Element member, ClassBuilder builder) {
+  void emitExtraAccessors(Element member,
+                          DefineMemberFunction defineInstanceMember) {
     assert(invariant(member, member.isDeclaration));
     if (member.isGetter() || member.isField()) {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
       if (selectors != null && !selectors.isEmpty) {
-        emitCallStubForGetter(member, selectors, builder.addProperty);
+        emitCallStubForGetter(member, selectors, defineInstanceMember);
       }
     } else if (member.isFunction()) {
       if (compiler.codegenWorld.hasInvokedGetter(member, compiler)) {
-        emitDynamicFunctionGetter(member, builder.addProperty);
+        emitDynamicFunctionGetter(member, defineInstanceMember);
       }
     }
   }
 
-  void emitNoSuchMethodHandlers(DefineStubFunction defineStub) {
+  void emitNoSuchMethodHandlers(DefineMemberFunction defineInstanceMember) {
     // Do not generate no such method handlers if there is no class.
     if (compiler.codegenWorld.instantiatedClasses.isEmpty) return;
 
@@ -1733,7 +1738,7 @@ $lazyInitializerLogic
 
       List<js.Expression> argNames =
           selector.getOrderedNamedArguments().map((SourceString name) =>
-              js.string(name.slowToString()));
+              new js.LiteralString('"${name.slowToString()}"'));
 
       String internalName = namer.invocationMirrorInternalName(selector);
 
@@ -1749,11 +1754,12 @@ $lazyInitializerLogic
                   .dot(createInvocationMirror)
                   .callWith(
                       <js.Expression>[
-                          js.string(methodName),
-                          js.string(internalName),
+                          new js.LiteralString('"$methodName"'),
+                          new js.LiteralString('"$internalName"'),
                           new js.LiteralNumber('$type'),
                           new js.ArrayInitializer.from(
-                              parameters.map((param) => js.use(param.name))),
+                              parameters.map((param) =>
+                                  new js.VariableUse(param.name))),
                           new js.ArrayInitializer.from(argNames)])]);
       js.Expression function =
           new js.Fun(parameters,
@@ -1851,7 +1857,9 @@ $lazyInitializerLogic
         String jsName = namer.invocationMirrorInternalName(selector);
         if (!addedJsNames.contains(jsName)) {
           js.Expression method = generateMethod(jsName, selector);
-          defineStub(jsName, method);
+          CodeBuffer jsCode = new CodeBuffer();
+          jsCode.add(js.prettyPrint(method, compiler));
+          defineInstanceMember(jsName, jsCode);
           addedJsNames.add(jsName);
         }
       }
@@ -2153,7 +2161,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       addLazyInitializerFunctionIfNecessary(mainBuffer);
       emitFinishIsolateConstructor(mainBuffer);
       mainBuffer.add('}\n');
-      compiler.assembledCode = mainBuffer.getText();
+      compiler.assembledCode = mainBuffer.toString();
 
       if (generateSourceMap) {
         SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
@@ -2174,6 +2182,8 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     return sourceMapBuilder.build(compiledFile);
   }
 }
+
+typedef void DefineMemberFunction(String invocationName, CodeBuffer definition);
 
 const String GENERATED_BY = """
 // Generated by dart2js, the Dart to JavaScript compiler.

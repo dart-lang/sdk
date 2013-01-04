@@ -9,7 +9,6 @@ import '../elements/elements.dart';
 import '../dart2jslib.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
-import '../js/js.dart' as js;
 
 part 'function_set.dart';
 part 'partial_type_tree.dart';
@@ -21,14 +20,14 @@ class Universe {
    *
    * Invariant: Key elements are declaration elements.
    */
-  Map<Element, js.Expression> generatedCode;
+  Map<Element, CodeBuffer> generatedCode;
 
   /**
    * Documentation wanted -- johnniwinther
    *
    * Invariant: Key elements are declaration elements.
    */
-  Map<Element, js.Expression> generatedBailoutCode;
+  Map<Element, CodeBuffer> generatedBailoutCode;
 
   /**
    * Documentation wanted -- johnniwinther
@@ -52,8 +51,8 @@ class Universe {
   final Map<SourceString, Set<Selector>> fieldSetters;
   final Set<DartType> isChecks;
 
-  Universe() : generatedCode = new Map<Element, js.Expression>(),
-               generatedBailoutCode = new Map<Element, js.Expression>(),
+  Universe() : generatedCode = new Map<Element, CodeBuffer>(),
+               generatedBailoutCode = new Map<Element, CodeBuffer>(),
                instantiatedClasses = new Set<ClassElement>(),
                instantiatedTypes = new Set<DartType>(),
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
@@ -64,14 +63,14 @@ class Universe {
                fieldSetters = new Map<SourceString, Set<Selector>>(),
                isChecks = new Set<DartType>();
 
-  void addGeneratedCode(WorkItem work, js.Expression code) {
+  void addGeneratedCode(WorkItem work, CodeBuffer codeBuffer) {
     assert(invariant(work.element, work.element.isDeclaration));
-    generatedCode[work.element] = code;
+    generatedCode[work.element] = codeBuffer;
   }
 
-  void addBailoutCode(WorkItem work, js.Expression code) {
+  void addBailoutCode(WorkItem work, CodeBuffer codeBuffer) {
     assert(invariant(work.element, work.element.isDeclaration));
-    generatedBailoutCode[work.element] = code;
+    generatedBailoutCode[work.element] = codeBuffer;
   }
 
   bool hasMatchingSelector(Set<Selector> selectors,

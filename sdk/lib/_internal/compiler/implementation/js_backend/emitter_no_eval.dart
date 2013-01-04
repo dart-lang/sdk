@@ -88,12 +88,14 @@ $lazyInitializerLogic
   void emitBoundClosureClassHeader(String mangledName,
                                    String superName,
                                    List<String> fieldNames,
-                                   ClassBuilder builder) {
-    builder.addProperty('', buildConstructor(mangledName, fieldNames));
-    builder.addProperty('super', js.string(superName));
+                                   CodeBuffer buffer) {
+    buffer.add("$classesCollector.$mangledName = {'': ");
+    buffer.add(
+        js.prettyPrint(buildConstructor(mangledName, fieldNames), compiler));
+    buffer.add(",\n 'super': '$superName',\n");
   }
 
-  void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
+  void emitClassConstructor(ClassElement classElement, CodeBuffer buffer) {
     // Say we have a class A with fields b, c and d, where c needs a getter and
     // d needs both a getter and a setter. Then we produce:
     // - a constructor (directly into the given [buffer]):
@@ -112,20 +114,23 @@ $lazyInitializerLogic
       fields.add(name);
     });
     String constructorName = namer.safeName(classElement.name.slowToString());
-
-    builder.addProperty('', buildConstructor(constructorName, fields));
+    buffer.add("'': ");
+    buffer.add(
+        js.prettyPrint(buildConstructor(constructorName, fields), compiler));
   }
 
-  void emitSuper(String superName, ClassBuilder builder) {
+  void emitSuper(String superName, CodeBuffer buffer) {
     if (superName != '') {
-      builder.addProperty('super', js.string(superName));
+      buffer.add(",\n 'super': '$superName'");
     }
   }
 
   void emitClassFields(ClassElement classElement,
-                       ClassBuilder builder,
+                       CodeBuffer buffer,
+                       bool emitEndingComma,
                        { String superClass: "",
                          bool classIsNative: false}) {
+    if (emitEndingComma) buffer.add(', ');
   }
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => false;
