@@ -104,6 +104,19 @@ abstract class TestSuite {
   TestSuite(this.configuration, this.suiteName);
 
   /**
+   * Whether or not binaries should be found in the root build directory or
+   * in the built SDK.
+   */
+  bool get useSdk {
+    // Some suites always use the SDK.
+    // TODO(rnystrom): Eventually, all tests should run out of the SDK and this
+    // check should go away.
+    if (['pkg', 'pub'].contains(suiteName)) return true;
+
+    return configuration['use_sdk'];
+  }
+
+  /**
    * The output directory for this suite's configuration.
    */
   String get buildDir => TestUtils.buildDir(configuration);
@@ -119,7 +132,7 @@ abstract class TestSuite {
     var name;
     switch (configuration['compiler']) {
       case 'dartc':
-        name = '$buildDir/$executableName';
+        name = executablePath;
       case 'dart2js':
       case 'dart2dart':
         var prefix = 'sdk/bin/';
@@ -146,15 +159,18 @@ abstract class TestSuite {
   }
 
   /**
-   * The file name of the executable used to run this suite's tests.
+   * The path to the executable used to run this suite's tests.
    */
-  String get executableName {
-    String suffix = getExecutableSuffix(configuration['compiler']);
+  String get executablePath {
+    var suffix = getExecutableSuffix(configuration['compiler']);
     switch (configuration['compiler']) {
       case 'none':
-        return 'dart$suffix';
+        if (useSdk) {
+          return '$buildDir/dart-sdk/bin/dart$suffix';
+        }
+        return '$buildDir/dart$suffix';
       case 'dartc':
-        return 'analyzer/bin/dart_analyzer$suffix';
+        return '$buildDir/analyzer/bin/dart_analyzer$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }
@@ -173,8 +189,9 @@ abstract class TestSuite {
   String get dartShellFileName {
     var name = configuration['dart'];
     if (name == '') {
-      name = '$buildDir/$executableName';
+      name = executablePath;
     }
+
     TestUtils.ensureExists(name, configuration);
     return name;
   }
@@ -435,16 +452,12 @@ class StandardTestSuite extends TestSuite {
   }
 
   Collection<Uri> get dart2JsBootstrapDependencies {
-    if (!useDart2JsFromSdk) return [];
+    if (!useSdk) return [];
 
     var snapshotPath = TestUtils.absolutePath(new Path(buildDir).join(
         new Path('dart-sdk/lib/_internal/compiler/'
                  'implementation/dart2js.dart.snapshot'))).toString();
     return [new Uri.fromComponents(scheme: 'file', path: snapshotPath)];
-  }
-
-  bool get useDart2JsFromSdk {
-    return configuration['use_sdk'];
   }
 
   /**
@@ -704,9 +717,9 @@ class StandardTestSuite extends TestSuite {
       String tempDir = createOutputDirectory(info.filePath, '');
       args.add('--out=$tempDir/out.js');
 
-       List<Command> commands = 
+       List<Command> commands =
            <Command>[new CompilationCommand("$tempDir/out.js",
-                                            !useDart2JsFromSdk,
+                                            !useSdk,
                                             dart2JsBootstrapDependencies,
                                             compilerPath,
                                             args)];
@@ -728,7 +741,7 @@ class StandardTestSuite extends TestSuite {
 
       List<Command> commands =
           <Command>[new CompilationCommand("$tempDir/out.dart",
-                                           !useDart2JsFromSdk,
+                                           !useSdk,
                                            dart2JsBootstrapDependencies,
                                            compilerPath,
                                            args)];
@@ -922,8 +935,8 @@ class StandardTestSuite extends TestSuite {
       do {
         List<Command> commandSet = new List<Command>.from(commands);
         if (subtestIndex != 0) {
-          // NOTE: The first time we enter this loop, all the compilation 
-          // commands will be executed. On subsequent loop iterations, we 
+          // NOTE: The first time we enter this loop, all the compilation
+          // commands will be executed. On subsequent loop iterations, we
           // don't need to do any compilations. Thus we set "commandSet = []".
           commandSet = [];
         }
@@ -971,7 +984,7 @@ class StandardTestSuite extends TestSuite {
           if (compiler == 'none') {
             var packageRootPath = packageRoot(optionsFromFile['packageRoot']);
             if (packageRootPath != null) {
-              var absolutePath = 
+              var absolutePath =
                   TestUtils.absolutePath(new Path(packageRootPath));
               packageRootUri = new Uri.fromComponents(
                   scheme: 'file',
@@ -1047,7 +1060,7 @@ class StandardTestSuite extends TestSuite {
     }
     if (['dart2js', 'dart2dart'].contains(configuration['compiler'])) {
       return new CompilationCommand(outputFile,
-                                   !useDart2JsFromSdk,
+                                   !useSdk,
                                    dart2JsBootstrapDependencies,
                                    compilerPath,
                                    args);
