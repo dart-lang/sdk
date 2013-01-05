@@ -1453,7 +1453,8 @@ class DartcCompilationTestSuite extends StandardTestSuite {
       : super(configuration,
               suiteName,
               new Path.fromNative(directoryPath),
-              expectations);
+              expectations,
+              []);
 
   List<String> additionalOptions(Path filePath) {
     return ['--fatal-warnings', '--fatal-type-errors'];
