@@ -139,6 +139,7 @@ ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp,
     : pc_(pc), fp_(fp), sp_(sp),
       ctx_(Context::ZoneHandle(ctx.raw())),
       function_(Function::ZoneHandle()),
+      code_(Code::ZoneHandle()),
       token_pos_(-1),
       pc_desc_index_(-1),
       line_number_(-1),
@@ -150,12 +151,19 @@ ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp,
 }
 
 
-const Function& ActivationFrame::DartFunction() {
-  if (function_.IsNull()) {
+const Code& ActivationFrame::DartCode() {
+  if (code_.IsNull()) {
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
-    const Code& code = Code::Handle(Code::LookupCode(pc_));
-    function_ = code.function();
+    code_ = Code::LookupCode(pc_);
+  }
+  return code_;
+}
+
+
+const Function& ActivationFrame::DartFunction() {
+  if (function_.IsNull()) {
+    function_ = DartCode().function();
   }
   return function_;
 }
@@ -235,9 +243,7 @@ RawLibrary* ActivationFrame::Library() {
 
 void ActivationFrame::GetPcDescriptors() {
   if (pc_desc_.IsNull()) {
-    const Function& func = DartFunction();
-    ASSERT(!func.HasOptimizedCode());
-    Code& code = Code::Handle(func.unoptimized_code());
+    const Code& code = DartCode();
     ASSERT(!code.IsNull());
     pc_desc_ = code.pc_descriptors();
     ASSERT(!pc_desc_.IsNull());
@@ -283,13 +289,11 @@ intptr_t ActivationFrame::LineNumber() {
 
 
 void ActivationFrame::GetVarDescriptors() {
-  if (!var_descriptors_.IsNull()) {
-    return;
+  if (var_descriptors_.IsNull()) {
+    const Code& code = DartCode();
+    var_descriptors_ = code.var_descriptors();
+    ASSERT(!var_descriptors_.IsNull());
   }
-  ASSERT(!DartFunction().HasOptimizedCode());
-  const Code& code = Code::Handle(DartFunction().unoptimized_code());
-  var_descriptors_ = code.var_descriptors();
-  ASSERT(!var_descriptors_.IsNull());
 }
 
 
@@ -349,7 +353,16 @@ void ActivationFrame::GetDescIndices() {
     return;
   }
   GetVarDescriptors();
-  // TODO(hausner): Consider replacing this GrowableArray.
+
+  // We don't trust variable descriptors in optimized code.
+  // Rather than potentially displaying incorrect values, we
+  // pretend that there are no variables in the frame.
+  // We should be more clever about this in the future.
+  if (DartCode().is_optimized()) {
+    vars_initialized_ = true;
+    return;
+  }
+
   GrowableArray<String*> var_names(8);
   intptr_t activation_token_pos = TokenPos();
   intptr_t var_desc_len = var_descriptors_.Length();

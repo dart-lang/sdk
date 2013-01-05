@@ -126,6 +126,7 @@ class ActivationFrame : public ZoneAllocated {
   uword sp() const { return sp_; }
 
   const Function& DartFunction();
+  const Code& DartCode();
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
   RawScript* SourceScript();
@@ -167,6 +168,7 @@ class ActivationFrame : public ZoneAllocated {
   const Context& ctx_;
 
   Function& function_;
+  Code& code_;
   intptr_t token_pos_;
   intptr_t pc_desc_index_;
   intptr_t line_number_;
