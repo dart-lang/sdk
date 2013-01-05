@@ -54,25 +54,27 @@ library libraryWrapper;
 part '$test';
 """;
 
-String dartTestWrapper(Path dartHome, Path library) {
+String dartTestWrapper(Path dartHome, String testPath, Path library) {
+  var testPathDir = pathLib.dirname(testPath);
+  var dartHomePath = dartHome.toString();
+  var unitTest = pathLib.relative(pathLib.join(dartHomePath,
+    'pkg/unittest/lib'), from: testPathDir);
+
+  var libString = library.toString();
+  if (!pathLib.isAbsolute(libString)) {
+    libString = pathLib.join(dartHome.toString(), libString);
+  }
   // Tests inside "pkg" import unittest using "package:". All others use a
   // relative path. The imports need to agree, so use a matching form here.
-  var unitTest = dartHome.append("pkg/unittest/lib").toString();
-
-  // TODO(rnystrom): Looking in the entire path here is wrong. It should only
-  // consider the relative path within dartHome. Unfortunately,
-  // Path.relativeTo() does not handle cases where library is already a relative
-  // path, and Path.isAbsolute does not work on Windows.
-  if (library.segments().contains("pkg")) {
+  if (pathLib.relative(libString, from: dartHome.toString()).contains("pkg")) {
     unitTest = 'package:unittest';
   }
-
   return """
 library test;
 
 import '$unitTest/unittest.dart' as unittest;
 import '$unitTest/html_config.dart' as config;
-import '${library}' as Test;
+import '${pathLib.relative(libString, from: testPathDir)}' as Test;
 
 main() {
   config.useHtmlConfiguration();

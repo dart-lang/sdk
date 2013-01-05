@@ -269,7 +269,6 @@ websql_test: Fail # FF does not support web SQL
 websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
 # Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4"
 #    (NS_ERROR_DOM_BAD_URI) ...
-xhr_test: Fail
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip
@@ -292,7 +291,6 @@ request_animation_frame_test: Skip # Async test hangs.
 isolates_test: Skip   # Timeout because leg does not support web workers.
 
 [ $compiler == dart2js && $runtime == ff ]
-xhr_test: Skip # Timeout
 inner_frame_test: Skip # Timeout
 svg_3_test: Skip # Timeout
 documentfragment_test: Skip # Timeout

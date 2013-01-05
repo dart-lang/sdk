@@ -6,9 +6,9 @@
 
 library number_format_test;
 
-import '../../../pkg/unittest/lib/unittest.dart';
-import '../lib/number_format.dart';
-import '../lib/intl.dart';
+import 'package:unittest/unittest.dart';
+import 'package:intl/number_format.dart';
+import 'package:intl/intl.dart';
 
 /**
  * Tests the Numeric formatting library in dart.

@@ -10,8 +10,8 @@ main() {
       window.webkitNotifications.createNotification('', '', '');
     } on DomException catch (e) {
       expect(e.code, DomException.SECURITY_ERR);
-      expect(e.name, 'SECURITY_ERR');
-      expect(e.message, 'SECURITY_ERR: DOM Exception 18');
+      expect(e.name, 'SecurityError');
+      expect(e.message, 'SecurityError: DOM Exception 18');
     }
   });
   test('EventException', () {

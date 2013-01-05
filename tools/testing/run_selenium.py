@@ -150,28 +150,27 @@ def print_server_error():
   sys.exit(1)
 
 def start_browser(browser, executable_path, html_out):
-  if browser == 'chrome':
+  if browser == 'chrome' or browser == 'dartium':
     # Note: you need ChromeDriver *in your path* to run Chrome, in addition to
     # installing Chrome. Also note that the build bot runs have a different path
     # from a normal user -- check the build logs.
-    return selenium.webdriver.Chrome()
-  elif browser == 'dartium':
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    dartium_dir = os.path.join(script_dir, '..', '..', 'client', 'tests',
-                               'dartium')
     options = selenium.webdriver.chrome.options.Options()
-    # enable ShadowDOM and style scoped for Dartium
-    options.add_argument('--enable-shadow-dom')
-    options.add_argument('--enable-style-scoped')
-    if executable_path is not None:
-      options.binary_location = executable_path
-    elif platform.system() == 'Windows':
-      options.binary_location = os.path.join(dartium_dir, 'chrome.exe')
-    elif platform.system() == 'Darwin':
-      options.binary_location = os.path.join(dartium_dir, 'Chromium.app',
-                                             'Contents', 'MacOS', 'Chromium')
-    else:
-      options.binary_location = os.path.join(dartium_dir, 'chrome')
+    if browser == 'dartium':
+      script_dir = os.path.dirname(os.path.abspath(__file__))
+      dartium_dir = os.path.join(script_dir, '..', '..', 'client', 'tests',
+                                 'dartium')
+      # enable ShadowDOM and style scoped for Dartium
+      options.add_argument('--enable-shadow-dom')
+      options.add_argument('--enable-style-scoped')
+      if executable_path is not None:
+        options.binary_location = executable_path
+      elif platform.system() == 'Windows':
+        options.binary_location = os.path.join(dartium_dir, 'chrome.exe')
+      elif platform.system() == 'Darwin':
+        options.binary_location = os.path.join(dartium_dir, 'Chromium.app',
+                                               'Contents', 'MacOS', 'Chromium')
+      else:
+        options.binary_location = os.path.join(dartium_dir, 'chrome')
     return selenium.webdriver.Chrome(chrome_options=options)
   elif browser == 'ff':
     script_dir = os.path.dirname(os.path.abspath(__file__))

@@ -8,19 +8,17 @@ import 'dart:io';
 import 'dart:isolate';
 import 'test_suite.dart';  // For TestUtils.
 
-HttpServer _httpServer;
-
-void startHttpServer(String host, int port) {
+HttpServer startHttpServer(String host, [int allowedPort = -1]) {
   var basePath = TestUtils.dartDir();
-  _httpServer = new HttpServer();
-  _httpServer.onError = (e) {
+  var httpServer = new HttpServer();
+  httpServer.onError = (e) {
     // Consider errors in the builtin http server fatal.
     // Intead of just throwing the exception we print
     // a message that makes it clearer what happened.
     print('Test http server error: $e');
     exit(1);
   };
-  _httpServer.defaultRequestHandler = (request, resp) {
+  httpServer.defaultRequestHandler = (request, resp) {
     var requestPath = new Path(request.path).canonicalize();
     if (!requestPath.isAbsolute) {
       resp.statusCode = HttpStatus.NOT_FOUND;
@@ -31,8 +29,23 @@ void startHttpServer(String host, int port) {
       var file = new File(path.toNativePath());
       file.exists().then((exists) {
         if (exists) {
-          // Allow loading from localhost in browsers.
-          resp.headers.set("Access-Control-Allow-Origin", "*");
+          if (allowedPort != -1) {
+            // Allow loading from localhost:$allowedPort in browsers.
+            resp.headers.set("Access-Control-Allow-Origin",
+                "http://127.0.0.1:$allowedPort");
+            resp.headers.set('Access-Control-Allow-Credentials', 'true');
+          } else {
+            // No allowedPort specified. Allow from anywhere (but cross-origin
+            // requests *with credentials* will fail because you can't use "*").
+            resp.headers.set("Access-Control-Allow-Origin", "*");
+          }
+          if (path.toNativePath().endsWith('.html')) {
+            resp.headers.set('Content-Type', 'text/html');
+          } else if (path.toNativePath().endsWith('.js')) {
+            resp.headers.set('Content-Type', 'application/javascript');
+          } else if (path.toNativePath().endsWith('.dart')) {
+            resp.headers.set('Content-Type', 'application/dart');
+          }
           file.openInputStream().pipe(resp.outputStream);
         } else {
           resp.statusCode = HttpStatus.NOT_FOUND;
@@ -43,15 +56,16 @@ void startHttpServer(String host, int port) {
   };
 
   // Echos back the contents of the request as the response data.
-  _httpServer.addRequestHandler((req) => req.path == "/echo", (request, resp) {
+  httpServer.addRequestHandler((req) => req.path == "/echo", (request, resp) {
     resp.headers.set("Access-Control-Allow-Origin", "*");
 
     request.inputStream.pipe(resp.outputStream);
   });
 
-  _httpServer.listen(host, port);
+  httpServer.listen(host, 0);
+  return httpServer;
 }
 
-terminateHttpServer() {
-  if (_httpServer != null) _httpServer.close();
+terminateHttpServers(List<HttpServer> servers) {
+  for (var server in servers) server.close();
 }
