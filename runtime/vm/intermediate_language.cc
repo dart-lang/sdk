@@ -1092,6 +1092,7 @@ RawAbstractType* LoadIndexedInstr::CompileType() const {
     case kFloat64ArrayCid :
       return Type::Double();
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
       return Type::IntType();
     default:
@@ -1110,6 +1111,7 @@ intptr_t LoadIndexedInstr::ResultCid() const {
     case kFloat64ArrayCid :
       return kDoubleCid;
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
       return kSmiCid;
     default:
@@ -1124,6 +1126,7 @@ Representation LoadIndexedInstr::representation() const {
     case kArrayCid:
     case kImmutableArrayCid:
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
       return kTagged;
     case kFloat32ArrayCid :
@@ -2460,8 +2463,9 @@ void StringCharCodeAtInstr::InferRange() {
 
 void LoadIndexedInstr::InferRange() {
   switch (class_id()) {
-    case kExternalUint8ArrayCid:
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(255));
       break;
@@ -2699,6 +2703,8 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
       return Array::length_offset();
     case kUint8ArrayCid:
       return Uint8Array::length_offset();
+    case kUint8ClampedArrayCid:
+      return Uint8ClampedArray::length_offset();
     case kExternalUint8ArrayCid:
       return ByteArray::length_offset();
     default:

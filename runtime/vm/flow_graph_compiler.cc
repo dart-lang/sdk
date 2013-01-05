@@ -1024,6 +1024,11 @@ FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
       ASSERT(Utils::IsInt(31, disp));
       return FieldAddress(array, disp);
     }
+    case kUint8ClampedArrayCid: {
+      const intptr_t disp = offset + Uint8ClampedArray::data_offset();
+      ASSERT(Utils::IsInt(31, disp));
+      return FieldAddress(array, disp);
+    }
     default:
       UNIMPLEMENTED();
       return FieldAddress(SPREG, 0);
@@ -1046,6 +1051,9 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
       return FieldAddress(array, index, TIMES_4, Float64Array::data_offset());
     case kUint8ArrayCid:
       return FieldAddress(array, index, TIMES_1, Uint8Array::data_offset());
+    case kUint8ClampedArrayCid:
+      return
+          FieldAddress(array, index, TIMES_1, Uint8ClampedArray::data_offset());
     default:
       UNIMPLEMENTED();
       return FieldAddress(SPREG, 0);

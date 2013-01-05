@@ -519,6 +519,41 @@ bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::UintClamped8Array_getIndexed(Assembler* assembler) {
+  return Uint8Array_setIndexed(assembler);
+}
+
+
+bool Intrinsifier::Uint8ClampedArray_setIndexed(Assembler* assembler) {
+  Label fall_through, store_value, load_0xff;
+  // Verify that the array index is valid.
+  TestByteArraySetIndex(assembler, &fall_through);
+  // After TestByteArraySetIndex:
+  // * RAX has the base address of the byte array.
+  // * R12 has the index into the array.
+  // R12 contains the SMI index which is shifted by 1.
+  __ SmiUntag(R12);
+  __ movq(RDI, Address(RSP, + 1 * kWordSize));  // Value.
+  __ testq(RDI, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+
+  __ SmiUntag(RDI);
+  __ cmpq(RDI, Immediate(0xFF));
+  __ j(BELOW_EQUAL, &store_value, Assembler::kNearJump);
+  __ j(GREATER, &load_0xff,  Assembler::kNearJump);
+  __ xorq(RDI, RDI);  // Zero.
+  __ jmp(&store_value, Assembler::kNearJump);
+  __ Bind(&load_0xff);
+  __ movq(RDI, Immediate(0xFF));
+
+  __ Bind(&store_value);
+  __ movb(FieldAddress(RAX, R12, TIMES_1, Uint8Array::data_offset()), RDI);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);

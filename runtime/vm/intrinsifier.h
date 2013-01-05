@@ -90,6 +90,8 @@ namespace dart {
   V(_Int8Array, []=, Int8Array_setIndexed, 1709956322)                         \
   V(_Uint8Array, [], Uint8Array_getIndexed, 578331916)                         \
   V(_Uint8Array, []=, Uint8Array_setIndexed, 121509844)                        \
+  V(_Uint8ClampedArray, [], UintClamped8Array_getIndexed, 327062422)           \
+  V(_Uint8ClampedArray, []=, Uint8ClampedArray_setIndexed, 2054663547)         \
   V(_Int16Array, [], Int16Array_getIndexed, 870098766)                         \
   V(_Uint16Array, [], Uint16Array_getIndexed, 1019828411)                      \
   V(_Int32Array, [], Int32Array_getIndexed, 1999321436)                        \

@@ -1206,7 +1206,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   Register result = locs()->out().reg();
-  if (class_id() == kUint8ArrayCid) {
+  if ((class_id() == kUint8ArrayCid) ||
+      (class_id() == kUint8ClampedArrayCid)) {
     if (index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
