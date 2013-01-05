@@ -48,10 +48,10 @@ main() {
   });
 
   test('XHR.get file', () {
-    var xhr = new HttpRequest.get(url, expectAsync1((xhr) {
-      expect(xhr.readyState, equals(HttpRequest.DONE));
-      expect(xhr.status, equals(200));
-      var data = JSON.parse(xhr.response);
+    var xhr = new HttpRequest.get(url, expectAsync1((event) {
+      expect(event.readyState, equals(HttpRequest.DONE));
+      expect(event.status, equals(200));
+      var data = JSON.parse(event.response);
       expect(data, contains('feed'));
       expect(data['feed'], contains('entry'));
       expect(data, isMap);

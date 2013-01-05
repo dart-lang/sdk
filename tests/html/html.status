@@ -77,7 +77,6 @@ element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
 exceptions_test: Fail
 fileapi_test: Fail
-indexeddb_1_test/supported: Fail         # IE10 does not support from file://
 inner_frame_test: Skip
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime: Fail
@@ -248,7 +247,6 @@ element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
 fileapi_test: Fail         # FF does not support filesystem APIs.
-indexeddb_1_test/supported: Fail  # FF disables indexedDB from file URLs.
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
 input_element_test/supported_date: Fail
