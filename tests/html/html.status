@@ -65,6 +65,7 @@ documentfragment_test: Pass, Timeout
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 css_test: Fail
+canvasrenderingcontext2d_test: Fail #TODO(efortuna): Issue 7711
 document_test/getCssCanvasContext: Fail # IE does not support this.
 element_test/additionalConstructors: Fail
 element_test/click: Fail                # IE does not support firing this event.
