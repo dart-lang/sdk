@@ -21,7 +21,6 @@ import "test_runner.dart";
 import "multitest.dart";
 import "drt_updater.dart";
 import "dart:uri";
-import '../../../pkg/path/lib/path.dart' as pathLib;
 
 part "browser_test.dart";
 
@@ -402,17 +401,11 @@ class StandardTestSuite extends TestSuite {
   final Path dartDir;
   Predicate<String> isTestFilePredicate;
   final bool listRecursively;
-  /**
-   * The set of servers that have been started to run these tests (Could be
-   * none).
-   */
-  List serverList;
 
   StandardTestSuite(Map configuration,
                     String suiteName,
                     Path suiteDirectory,
                     this.statusFilePaths,
-                    this.serverList,
                     {this.isTestFilePredicate,
                     bool recursive: false})
   : super(configuration, suiteName),
@@ -446,18 +439,14 @@ class StandardTestSuite extends TestSuite {
    * instead of having to create a custom [StandardTestSuite] subclass. In
    * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
    * in test.dart, this will all be set up for you.
-   *
-   * The [StandardTestSuite] also optionally takes a list of servers that have
-   * been started up by the test harness, to be used by browser tests.
    */
   factory StandardTestSuite.forDirectory(
-      Map configuration, Path directory, [List serverList = const []]) {
+      Map configuration, Path directory) {
     final name = directory.filename;
 
     return new StandardTestSuite(configuration,
         name, directory,
         ['$directory/$name.status', '$directory/${name}_dart2js.status'],
-        serverList,
         isTestFilePredicate: (filename) => filename.endsWith('_test.dart'),
         recursive: true);
   }
@@ -864,7 +853,7 @@ class StandardTestSuite extends TestSuite {
         File file = new File(dartWrapperFilename);
         RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
         dartWrapper.writeStringSync(
-            dartTestWrapper(dartDir, file.name, dartLibraryFilename));
+            dartTestWrapper(dartDir, dartLibraryFilename));
         dartWrapper.closeSync();
       } else {
         dartWrapperFilename = filename;
@@ -886,6 +875,12 @@ class StandardTestSuite extends TestSuite {
           dartWrapperFilename : compiledDartWrapperFilename;
       // Create the HTML file for the test.
       RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
+      String filePrefix = '';
+      if (Platform.operatingSystem == 'windows') {
+        // Firefox on Windows does not like absolute file path names that start
+        // with 'C:' adding 'file:///' solves the problem.
+        filePrefix = 'file:///';
+      }
       String content = null;
       Path dir = filePath.directoryPath;
       String nameNoExt = filePath.filenameWithoutExtension;
@@ -894,12 +889,10 @@ class StandardTestSuite extends TestSuite {
       Path expectedOutput = null;
       if (new File.fromPath(pngPath).existsSync()) {
         expectedOutput = pngPath;
-        content = getHtmlLayoutContents(scriptType, pathLib.relative(scriptPath,
-            from: pathLib.dirname(htmlPath)));
+        content = getHtmlLayoutContents(scriptType, '$filePrefix$scriptPath');
       } else if (new File.fromPath(txtPath).existsSync()) {
         expectedOutput = txtPath;
-        content = getHtmlLayoutContents(scriptType, pathLib.relative(scriptPath,
-            from: pathLib.dirname(htmlPath)));
+        content = getHtmlLayoutContents(scriptType, '$filePrefix$scriptPath');
       } else {
         final htmlLocation = new Path.fromNative(htmlPath);
         content = getHtmlContents(
@@ -949,15 +942,10 @@ class StandardTestSuite extends TestSuite {
         }
 
         List<String> args = <String>[];
-        var basePath = TestUtils.dartDir().toString();
-        htmlPath = htmlPath.startsWith(basePath) ?
-            htmlPath.substring(basePath.length) : htmlPath;
-        String fullHtmlPath = htmlPath;
-        if (!htmlPath.startsWith('http')) {
-          if (!htmlPath.startsWith('/')) htmlPath = '/$htmlPath';
-          fullHtmlPath = 'http://127.0.0.1:${serverList[0].port}$htmlPath?'
-              'crossOriginPort=${serverList[1].port}';
-        }
+        String fullHtmlPath = htmlPath.startsWith('http:') ? htmlPath :
+            (htmlPath.startsWith('/') ?
+             'file://$htmlPath' :
+             'file:///$htmlPath');
         if (info.optionsFromFile['isMultiHtmlTest']
             && subtestNames.length > 0) {
           fullHtmlPath = '${fullHtmlPath}#${subtestNames[subtestIndex]}';
@@ -999,10 +987,8 @@ class StandardTestSuite extends TestSuite {
               var absolutePath =
                   TestUtils.absolutePath(new Path(packageRootPath));
               packageRootUri = new Uri.fromComponents(
-                  scheme: 'http',
-                  path: '127.0.0.1:${serverList[0].port}/'
-                      '${pathLib.relative(absolutePath.toString(), from:
-                      TestUtils.dartDir().toString())}');
+                  scheme: 'file',
+                  path: absolutePath.toString());
             }
           }
 
@@ -1111,8 +1097,7 @@ class StandardTestSuite extends TestSuite {
     var minified = configuration['minified'] ? '-minified' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
                   "$checked$minified";
-    Path generatedTestPath = new Path.fromNative(dartDir.toString())
-        .append(buildDir.toString())
+    Path generatedTestPath = new Path.fromNative(buildDir)
         .append('generated_tests')
         .append(dirName)
         .append(testUniqueName);
@@ -1453,8 +1438,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
       : super(configuration,
               suiteName,
               new Path.fromNative(directoryPath),
-              expectations,
-              []);
+              expectations);
 
   List<String> additionalOptions(Path filePath) {
     return ['--fatal-warnings', '--fatal-type-errors'];

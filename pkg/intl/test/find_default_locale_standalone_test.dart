@@ -4,9 +4,9 @@
 
 library find_default_locale_browser_test;
 
-import 'package:intl/intl.dart';
-import 'package:intl/intl_standalone.dart';
-import 'package:unittest/unittest.dart';
+import '../lib/intl.dart';
+import '../lib/intl_standalone.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 
 main() {
   test("Find system locale standalone", () {

@@ -9,18 +9,15 @@
 
 library date_time_format_http_request_test;
 
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_http_request.dart';
+import '../lib/intl.dart';
+import '../lib/date_symbol_data_http_request.dart';
 import 'date_time_format_test_core.dart';
 import 'dart:html';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 
-var url = '';
+var url = "http://localhost:9876/pkg/intl/lib/src/data/dates/";
 
 main() {
-  useHtmlConfiguration();
-  url = "http://localhost:${window.location.port}/pkg/intl/lib/src/data/dates/";
   // Initialize one locale just so we know what the list is.
   test('Run everything', () {
     initializeDateFormatting("en_US", url).then(expectAsync1(runEverything));});
@@ -32,5 +29,11 @@ void runEverything(_) {
       (locale) => initializeDateFormatting(locale, url));
   Futures.wait(futures).then(expectAsync1((_) {
       runDateTests(smallSetOfLocales());
-    }));
+      shutDown();}));
+}
+
+void shutDown() {
+  // The tiny web server knows to use this request as a cue to terminate.
+  var source = '${url}terminate';
+  var request = new HttpRequest.get(source, (_) {});
 }

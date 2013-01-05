@@ -9,9 +9,9 @@
 
 library date_time_format_test;
 
-import 'package:intl/intl.dart';
-import 'package:intl/date_time_patterns.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import '../lib/intl.dart';
+import '../lib/date_time_patterns.dart';
+import '../lib/date_symbol_data_local.dart';
 import 'date_time_format_test_core.dart';
 
 runWith([Function getSubset]) {

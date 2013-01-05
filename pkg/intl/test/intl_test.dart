@@ -4,9 +4,10 @@
 
 library intl_test;
 
-import 'package:intl/intl.dart';
-import 'package:unittest/unittest.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import '../lib/intl.dart';
+// TODO(rnystrom): Use "package:" import when test.dart supports it (#4968).
+import '../../../pkg/unittest/lib/unittest.dart';
+import '../lib/date_symbol_data_local.dart';
 
 main() {
   test("Locale setting doesn't verify the core locale", () {

@@ -59,7 +59,7 @@ void main() {
     form.append('theBlob', blob, 'theBlob.txt');
 
     var xhr = new HttpRequest();
-    xhr.open("POST", "http://localhost:${window.location.port}/echo");
+    xhr.open("POST", "http://localhost:9876/echo");
 
     xhr.on.load.add(expectAsync1((e) {
       expect(xhr.responseText.contains(blobString), true);
