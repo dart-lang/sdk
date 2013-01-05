@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Test infrastructure for testing pub. Unlike typical unit tests, most pub
- * tests are integration tests that stage some stuff on the file system, run
- * pub, and then validate the results. This library provides an API to build
- * tests like that.
- */
+/// Test infrastructure for testing pub. Unlike typical unit tests, most pub
+/// tests are integration tests that stage some stuff on the file system, run
+/// pub, and then validate the results. This library provides an API to build
+/// tests like that.
 library test_pub;
 
 import 'dart:io';
@@ -32,50 +30,36 @@ import '../../pub/utils.dart';
 import '../../pub/validator.dart';
 import '../../pub/yaml/yaml.dart';
 
-/**
- * Creates a new [FileDescriptor] with [name] and [contents].
- */
+/// Creates a new [FileDescriptor] with [name] and [contents].
 FileDescriptor file(Pattern name, String contents) =>
     new FileDescriptor(name, contents);
 
-/**
- * Creates a new [DirectoryDescriptor] with [name] and [contents].
- */
+/// Creates a new [DirectoryDescriptor] with [name] and [contents].
 DirectoryDescriptor dir(Pattern name, [List<Descriptor> contents]) =>
     new DirectoryDescriptor(name, contents);
 
-/**
- * Creates a new [FutureDescriptor] wrapping [future].
- */
+/// Creates a new [FutureDescriptor] wrapping [future].
 FutureDescriptor async(Future<Descriptor> future) =>
     new FutureDescriptor(future);
 
-/**
- * Creates a new [GitRepoDescriptor] with [name] and [contents].
- */
+/// Creates a new [GitRepoDescriptor] with [name] and [contents].
 GitRepoDescriptor git(Pattern name, [List<Descriptor> contents]) =>
     new GitRepoDescriptor(name, contents);
 
-/**
- * Creates a new [TarFileDescriptor] with [name] and [contents].
- */
+/// Creates a new [TarFileDescriptor] with [name] and [contents].
 TarFileDescriptor tar(Pattern name, [List<Descriptor> contents]) =>
     new TarFileDescriptor(name, contents);
 
-/**
- * Creates a new [NothingDescriptor] with [name].
- */
+/// Creates a new [NothingDescriptor] with [name].
 NothingDescriptor nothing(String name) => new NothingDescriptor(name);
 
-/**
- * The current [HttpServer] created using [serve].
- */
+/// The current [HttpServer] created using [serve].
 var _server;
 
-/** The cached value for [_portCompleter]. */
+/// The cached value for [_portCompleter].
 Completer<int> _portCompleterCache;
 
-/** The completer for [port]. */
+/// The completer for [port].
 Completer<int> get _portCompleter {
   if (_portCompleterCache != null) return _portCompleterCache;
   _portCompleterCache = new Completer<int>();
@@ -85,17 +69,13 @@ Completer<int> get _portCompleter {
   return _portCompleterCache;
 }
 
-/**
- * A future that will complete to the port used for the current server.
- */
+/// A future that will complete to the port used for the current server.
 Future<int> get port => _portCompleter.future;
 
-/**
- * Creates an HTTP server to serve [contents] as static files. This server will
- * exist only for the duration of the pub run.
- *
- * Subsequent calls to [serve] will replace the previous server.
- */
+/// Creates an HTTP server to serve [contents] as static files. This server will
+/// exist only for the duration of the pub run.
+///
+/// Subsequent calls to [serve] will replace the previous server.
 void serve([List<Descriptor> contents]) {
   var baseDir = dir("serve-dir", contents);
 
@@ -138,10 +118,8 @@ void serve([List<Descriptor> contents]) {
   });
 }
 
-/**
- * Closes [_server]. Returns a [Future] that will complete after the [_server]
- * is closed.
- */
+/// Closes [_server]. Returns a [Future] that will complete after the [_server]
+/// is closed.
 Future _closeServer() {
   if (_server == null) return new Future.immediate(null);
   _server.close();
@@ -153,29 +131,23 @@ Future _closeServer() {
   return sleep(10);
 }
 
-/**
- * The [DirectoryDescriptor] describing the server layout of packages that are
- * being served via [servePackages]. This is `null` if [servePackages] has not
- * yet been called for this test.
- */
+/// The [DirectoryDescriptor] describing the server layout of packages that are
+/// being served via [servePackages]. This is `null` if [servePackages] has not
+/// yet been called for this test.
 DirectoryDescriptor _servedPackageDir;
 
-/**
- * A map from package names to version numbers to YAML-serialized pubspecs for
- * those packages. This represents the packages currently being served by
- * [servePackages], and is `null` if [servePackages] has not yet been called for
- * this test.
- */
+/// A map from package names to version numbers to YAML-serialized pubspecs for
+/// those packages. This represents the packages currently being served by
+/// [servePackages], and is `null` if [servePackages] has not yet been called
+/// for this test.
 Map<String, Map<String, String>> _servedPackages;
 
-/**
- * Creates an HTTP server that replicates the structure of pub.dartlang.org.
- * [pubspecs] is a list of unserialized pubspecs representing the packages to
- * serve.
- *
- * Subsequent calls to [servePackages] will add to the set of packages that are
- * being served. Previous packages will continue to be served.
- */
+/// Creates an HTTP server that replicates the structure of pub.dartlang.org.
+/// [pubspecs] is a list of unserialized pubspecs representing the packages to
+/// serve.
+///
+/// Subsequent calls to [servePackages] will add to the set of packages that
+/// are being served. Previous packages will continue to be served.
 void servePackages(List<Map> pubspecs) {
   if (_servedPackages == null || _servedPackageDir == null) {
     _servedPackages = <String, Map<String, String>>{};
@@ -221,7 +193,7 @@ void servePackages(List<Map> pubspecs) {
   });
 }
 
-/** Converts [value] into a YAML string. */
+/// Converts [value] into a YAML string.
 String yaml(value) => JSON.stringify(value);
 
 /// Describes a package that passes all validation.
@@ -233,22 +205,18 @@ Descriptor get normalPackage => dir(appPath, [
   ])
 ]);
 
-/**
- * Describes a file named `pubspec.yaml` with the given YAML-serialized
- * [contents], which should be a serializable object.
- *
- * [contents] may contain [Future]s that resolve to serializable objects, which
- * may in turn contain [Future]s recursively.
- */
+/// Describes a file named `pubspec.yaml` with the given YAML-serialized
+/// [contents], which should be a serializable object.
+///
+/// [contents] may contain [Future]s that resolve to serializable objects,
+/// which may in turn contain [Future]s recursively.
 Descriptor pubspec(Map contents) {
   return async(_awaitObject(contents).transform((resolvedContents) =>
       file("pubspec.yaml", yaml(resolvedContents))));
 }
 
-/**
- * Describes a file named `pubspec.yaml` for an application package with the
- * given [dependencies].
- */
+/// Describes a file named `pubspec.yaml` for an application package with the
+/// given [dependencies].
 Descriptor appPubspec(List dependencies) {
   return pubspec({
     "name": "myapp",
@@ -256,17 +224,13 @@ Descriptor appPubspec(List dependencies) {
   });
 }
 
-/**
- * Describes a file named `pubspec.yaml` for a library package with the given
- * [name], [version], and [dependencies].
- */
+/// Describes a file named `pubspec.yaml` for a library package with the given
+/// [name], [version], and [dependencies].
 Descriptor libPubspec(String name, String version, [List dependencies]) =>
   pubspec(package(name, version, dependencies));
 
-/**
- * Describes a directory named `lib` containing a single dart file named
- * `<name>.dart` that contains a line of Dart code.
- */
+/// Describes a directory named `lib` containing a single dart file named
+/// `<name>.dart` that contains a line of Dart code.
 Descriptor libDir(String name, [String code]) {
   // Default to printing the name if no other code was given.
   if (code == null) {
@@ -278,10 +242,8 @@ Descriptor libDir(String name, [String code]) {
   ]);
 }
 
-/**
- * Describes a map representing a library package with the given [name],
- * [version], and [dependencies].
- */
+/// Describes a map representing a library package with the given [name],
+/// [version], and [dependencies].
 Map package(String name, String version, [List dependencies]) {
   var package = {
     "name": name,
@@ -296,10 +258,8 @@ Map package(String name, String version, [List dependencies]) {
   return package;
 }
 
-/**
- * Describes a map representing a dependency on a package in the package
- * repository.
- */
+/// Describes a map representing a dependency on a package in the package
+/// repository.
 Map dependency(String name, [String versionConstraint]) {
   var url = port.transform((p) => "http://localhost:$p");
   var dependency = {"hosted": {"name": name, "url": url}};
@@ -307,20 +267,16 @@ Map dependency(String name, [String versionConstraint]) {
   return dependency;
 }
 
-/**
- * Describes a directory for a package installed from the mock package server.
- * This directory is of the form found in the global package cache.
- */
+/// Describes a directory for a package installed from the mock package server.
+/// This directory is of the form found in the global package cache.
 DirectoryDescriptor packageCacheDir(String name, String version) {
   return dir("$name-$version", [
     libDir(name, '$name $version')
   ]);
 }
 
-/**
- * Describes a directory for a Git package. This directory is of the form found
- * in the revision cache of the global package cache.
- */
+/// Describes a directory for a Git package. This directory is of the form
+/// found in the revision cache of the global package cache.
 DirectoryDescriptor gitPackageRevisionCacheDir(String name, [int modifier]) {
   var value = name;
   if (modifier != null) value = "$name $modifier";
@@ -329,10 +285,8 @@ DirectoryDescriptor gitPackageRevisionCacheDir(String name, [int modifier]) {
   ]);
 }
 
-/**
- * Describes a directory for a Git package. This directory is of the form found
- * in the repo cache of the global package cache.
- */
+/// Describes a directory for a Git package. This directory is of the form
+/// found in the repo cache of the global package cache.
 DirectoryDescriptor gitPackageRepoCacheDir(String name) {
   return dir(new RegExp("$name${r'-[a-f0-9]+'}"), [
     dir('hooks'),
@@ -342,13 +296,11 @@ DirectoryDescriptor gitPackageRepoCacheDir(String name) {
   ]);
 }
 
-/**
- * Describes the `packages/` directory containing all the given [packages],
- * which should be name/version pairs. The packages will be validated against
- * the format produced by the mock package server.
- *
- * A package with a null version should not be installed.
- */
+/// Describes the `packages/` directory containing all the given [packages],
+/// which should be name/version pairs. The packages will be validated against
+/// the format produced by the mock package server.
+///
+/// A package with a null version should not be installed.
 DirectoryDescriptor packagesDir(Map<String, String> packages) {
   var contents = <Descriptor>[];
   packages.forEach((name, version) {
@@ -363,14 +315,12 @@ DirectoryDescriptor packagesDir(Map<String, String> packages) {
   return dir(packagesPath, contents);
 }
 
-/**
- * Describes the global package cache directory containing all the given
- * [packages], which should be name/version pairs. The packages will be
- * validated against the format produced by the mock package server.
- *
- * A package's value may also be a list of versions, in which case all versions
- * are expected to be installed.
- */
+/// Describes the global package cache directory containing all the given
+/// [packages], which should be name/version pairs. The packages will be
+/// validated against the format produced by the mock package server.
+///
+/// A package's value may also be a list of versions, in which case all
+/// versions are expected to be installed.
 DirectoryDescriptor cacheDir(Map packages) {
   var contents = <Descriptor>[];
   packages.forEach((name, versions) {
@@ -406,17 +356,13 @@ Descriptor credentialsFile(
   }));
 }
 
-/**
- * Describes the application directory, containing only a pubspec specifying the
- * given [dependencies].
- */
+/// Describes the application directory, containing only a pubspec specifying
+/// the given [dependencies].
 DirectoryDescriptor appDir(List dependencies) =>
   dir(appPath, [appPubspec(dependencies)]);
 
-/**
- * Converts a list of dependencies as passed to [package] into a hash as used in
- * a pubspec.
- */
+/// Converts a list of dependencies as passed to [package] into a hash as used
+/// in a pubspec.
 Future<Map> _dependencyListToMap(List<Map> dependencies) {
   return _awaitObject(dependencies).transform((resolvedDependencies) {
     var result = <String, Map>{};
@@ -461,64 +407,46 @@ String _packageName(String sourceName, description) {
   }
 }
 
-/**
- * The path of the package cache directory used for tests. Relative to the
- * sandbox directory.
- */
+/// The path of the package cache directory used for tests. Relative to the
+/// sandbox directory.
 final String cachePath = "cache";
 
-/**
- * The path of the mock SDK directory used for tests. Relative to the sandbox
- * directory.
- */
+/// The path of the mock SDK directory used for tests. Relative to the sandbox
+/// directory.
 final String sdkPath = "sdk";
 
-/**
- * The path of the mock app directory used for tests. Relative to the sandbox
- * directory.
- */
+/// The path of the mock app directory used for tests. Relative to the sandbox
+/// directory.
 final String appPath = "myapp";
 
-/**
- * The path of the packages directory in the mock app used for tests. Relative
- * to the sandbox directory.
- */
+/// The path of the packages directory in the mock app used for tests. Relative
+/// to the sandbox directory.
 final String packagesPath = "$appPath/packages";
 
-/**
- * The type for callbacks that will be fired during [runPub]. Takes the sandbox
- * directory as a parameter.
- */
+/// The type for callbacks that will be fired during [runPub]. Takes the
+/// sandbox directory as a parameter.
 typedef Future _ScheduledEvent(Directory parentDir);
 
-/**
- * The list of events that are scheduled to run as part of the test case.
- */
+/// The list of events that are scheduled to run as part of the test case.
 List<_ScheduledEvent> _scheduled;
 
-/**
- * The list of events that are scheduled to run after the test case, even if it
- * failed.
- */
+/// The list of events that are scheduled to run after the test case, even if
+/// it failed.
 List<_ScheduledEvent> _scheduledCleanup;
 
 /// The list of events that are scheduled to run after the test case only if it
 /// failed.
 List<_ScheduledEvent> _scheduledOnException;
 
-/**
- * Set to true when the current batch of scheduled events should be aborted.
- */
+/// Set to true when the current batch of scheduled events should be aborted.
 bool _abortScheduled = false;
 
 /// The time (in milliseconds) to wait for the entire scheduled test to
 /// complete.
 final _TIMEOUT = 30000;
 
-/**
- * Runs all the scheduled events for a test case. This should only be called
- * once per test case.
- */
+/// Runs all the scheduled events for a test case. This should only be called
+/// once per test case.
 void run() {
   var createdSandboxDir;
 
@@ -560,7 +488,8 @@ void run() {
       .then((_) => asyncDone());
 }
 
-/// Get the path to the root "util/test/pub" directory containing the pub tests.
+/// Get the path to the root "util/test/pub" directory containing the pub
+/// tests.
 String get testDirectory {
   var dir = new Options().script;
   while (basename(dir) != 'pub') dir = dirname(dir);
@@ -568,10 +497,8 @@ String get testDirectory {
   return getFullPath(dir);
 }
 
-/**
- * Schedules a call to the Pub command-line utility. Runs Pub with [args] and
- * validates that its results match [output], [error], and [exitCode].
- */
+/// Schedules a call to the Pub command-line utility. Runs Pub with [args] and
+/// validates that its results match [output], [error], and [exitCode].
 void schedulePub({List args, Pattern output, Pattern error,
     Future<Uri> tokenEndpoint, int exitCode: 0}) {
   _schedule((sandboxDir) {
@@ -694,14 +621,12 @@ Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
   });
 }
 
-/**
- * Skips the current test if Git is not installed. This validates that the
- * current test is running on a buildbot in which case we expect git to be
- * installed. If we are not running on the buildbot, we will instead see if git
- * is installed and skip the test if not. This way, users don't need to have git
- * installed to run the tests locally (unless they actually care about the pub
- * git tests).
- */
+/// Skips the current test if Git is not installed. This validates that the
+/// current test is running on a buildbot in which case we expect git to be
+/// installed. If we are not running on the buildbot, we will instead see if
+/// git is installed and skip the test if not. This way, users don't need to
+/// have git installed to run the tests locally (unless they actually care
+/// about the pub git tests).
 void ensureGit() {
   _schedule((_) {
     return isGitInstalled.transform((installed) {
@@ -750,12 +675,10 @@ Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
   return runNextEvent(null);
 }
 
-/**
- * Compares the [actual] output from running pub with [expected]. For [String]
- * patterns, ignores leading and trailing whitespace differences and tries to
- * report the offending difference in a nice way. For other [Pattern]s, just
- * reports whether the output contained the pattern.
- */
+/// Compares the [actual] output from running pub with [expected]. For [String]
+/// patterns, ignores leading and trailing whitespace differences and tries to
+/// report the offending difference in a nice way. For other [Pattern]s, just
+/// reports whether the output contained the pattern.
 void _validateOutput(List<String> failures, String pipe, Pattern expected,
                      List<String> actual) {
   if (expected == null) return;
@@ -827,76 +750,54 @@ void _validateOutputString(List<String> failures, String pipe,
   }
 }
 
-/**
- * Base class for [FileDescriptor] and [DirectoryDescriptor] so that a
- * directory can contain a heterogeneous collection of files and
- * subdirectories.
- */
+/// Base class for [FileDescriptor] and [DirectoryDescriptor] so that a
+/// directory can contain a heterogeneous collection of files and
+/// subdirectories.
 abstract class Descriptor {
-  /**
-   * The name of this file or directory. This must be a [String] if the fiel or
-   * directory is going to be created.
-   */
+  /// The name of this file or directory. This must be a [String] if the file
+  /// or directory is going to be created.
   final Pattern name;
 
   Descriptor(this.name);
 
-  /**
-   * Creates the file or directory within [dir]. Returns a [Future] that is
-   * completed after the creation is done.
-   */
+  /// Creates the file or directory within [dir]. Returns a [Future] that is
+  /// completed after the creation is done.
   Future create(dir);
 
-  /**
-   * Validates that this descriptor correctly matches the corresponding file
-   * system entry within [dir]. Returns a [Future] that completes to `null` if
-   * the entry is valid, or throws an error if it failed.
-   */
+  /// Validates that this descriptor correctly matches the corresponding file
+  /// system entry within [dir]. Returns a [Future] that completes to `null` if
+  /// the entry is valid, or throws an error if it failed.
   Future validate(String dir);
 
-  /**
-   * Deletes the file or directory within [dir]. Returns a [Future] that is
-   * completed after the deletion is done.
-   */
+  /// Deletes the file or directory within [dir]. Returns a [Future] that is
+  /// completed after the deletion is done.
   Future delete(String dir);
 
-  /**
-   * Loads the file at [path] from within this descriptor. If [path] is empty,
-   * loads the contents of the descriptor itself.
-   */
+  /// Loads the file at [path] from within this descriptor. If [path] is empty,
+  /// loads the contents of the descriptor itself.
   InputStream load(List<String> path);
 
-  /**
-   * Schedules the directory to be created before Pub is run with [runPub]. The
-   * directory will be created relative to the sandbox directory.
-   */
+  /// Schedules the directory to be created before Pub is run with [runPub].
+  /// The directory will be created relative to the sandbox directory.
   // TODO(nweiz): Use implicit closurization once issue 2984 is fixed.
   void scheduleCreate() => _schedule((dir) => this.create(dir));
 
-  /**
-   * Schedules the file or directory to be deleted recursively.
-   */
+  /// Schedules the file or directory to be deleted recursively.
   void scheduleDelete() => _schedule((dir) => this.delete(dir));
 
-  /**
-   * Schedules the directory to be validated after Pub is run with [runPub]. The
-   * directory will be validated relative to the sandbox directory.
-   */
+  /// Schedules the directory to be validated after Pub is run with [runPub].
+  /// The directory will be validated relative to the sandbox directory.
   void scheduleValidate() => _schedule((parentDir) => validate(parentDir.path));
 
-  /**
-   * Asserts that the name of the descriptor is a [String] and returns it.
-   */
+  /// Asserts that the name of the descriptor is a [String] and returns it.
   String get _stringName {
     if (name is String) return name;
     throw 'Pattern $name must be a string.';
   }
 
-  /**
-   * Validates that at least one file in [dir] matching [name] is valid
-   * according to [validate]. [validate] should complete to an exception if the
-   * input path is invalid.
-   */
+  /// Validates that at least one file in [dir] matching [name] is valid
+  /// according to [validate]. [validate] should complete to an exception if
+  /// the input path is invalid.
   Future _validateOneMatch(String dir, Future validate(String path)) {
     // Special-case strings to support multi-level names like "myapp/packages".
     if (name is String) {
@@ -960,38 +861,28 @@ abstract class Descriptor {
   }
 }
 
-/**
- * Describes a file. These are used both for setting up an expected directory
- * tree before running a test, and for validating that the file system matches
- * some expectations after running it.
- */
+/// Describes a file. These are used both for setting up an expected directory
+/// tree before running a test, and for validating that the file system matches
+/// some expectations after running it.
 class FileDescriptor extends Descriptor {
-  /**
-   * The text contents of the file.
-   */
+  /// The text contents of the file.
   final String contents;
 
   FileDescriptor(Pattern name, this.contents) : super(name);
 
-  /**
-   * Creates the file within [dir]. Returns a [Future] that is completed after
-   * the creation is done.
-   */
+  /// Creates the file within [dir]. Returns a [Future] that is completed after
+  /// the creation is done.
   Future<File> create(dir) {
     return writeTextFile(join(dir, _stringName), contents);
   }
 
-  /**
-   * Deletes the file within [dir]. Returns a [Future] that is completed after
-   * the deletion is done.
-   */
+  /// Deletes the file within [dir]. Returns a [Future] that is completed after
+  /// the deletion is done.
   Future delete(dir) {
     return deleteFile(join(dir, _stringName));
   }
 
-  /**
-   * Validates that this file correctly matches the actual file at [path].
-   */
+  /// Validates that this file correctly matches the actual file at [path].
   Future validate(String path) {
     return _validateOneMatch(path, (file) {
       return readTextFile(file).transform((text) {
@@ -1003,9 +894,7 @@ class FileDescriptor extends Descriptor {
     });
   }
 
-  /**
-   * Loads the contents of the file.
-   */
+  /// Loads the contents of the file.
   InputStream load(List<String> path) {
     if (!path.isEmpty) {
       var joinedPath = Strings.join(path, '/');
@@ -1019,25 +908,19 @@ class FileDescriptor extends Descriptor {
   }
 }
 
-/**
- * Describes a directory and its contents. These are used both for setting up
- * an expected directory tree before running a test, and for validating that
- * the file system matches some expectations after running it.
- */
+/// Describes a directory and its contents. These are used both for setting up
+/// an expected directory tree before running a test, and for validating that
+/// the file system matches some expectations after running it.
 class DirectoryDescriptor extends Descriptor {
-  /**
-   * The files and directories contained in this directory.
-   */
+  /// The files and directories contained in this directory.
   final List<Descriptor> contents;
 
   DirectoryDescriptor(Pattern name, List<Descriptor> contents)
     : this.contents = contents == null ? <Descriptor>[] : contents,
       super(name);
 
-  /**
-   * Creates the file within [dir]. Returns a [Future] that is completed after
-   * the creation is done.
-   */
+  /// Creates the file within [dir]. Returns a [Future] that is completed after
+  /// the creation is done.
   Future<Directory> create(parentDir) {
     // Create the directory.
     return ensureDir(join(parentDir, _stringName)).chain((dir) {
@@ -1050,20 +933,16 @@ class DirectoryDescriptor extends Descriptor {
     });
   }
 
-  /**
-   * Deletes the directory within [dir]. Returns a [Future] that is completed
-   * after the deletion is done.
-   */
+  /// Deletes the directory within [dir]. Returns a [Future] that is completed
+  /// after the deletion is done.
   Future delete(dir) {
     return deleteDir(join(dir, _stringName));
   }
 
-  /**
-   * Validates that the directory at [path] contains all of the expected
-   * contents in this descriptor. Note that this does *not* check that the
-   * directory doesn't contain other unexpected stuff, just that it *does*
-   * contain the stuff we do expect.
-   */
+  /// Validates that the directory at [path] contains all of the expected
+  /// contents in this descriptor. Note that this does *not* check that the
+  /// directory doesn't contain other unexpected stuff, just that it *does*
+  /// contain the stuff we do expect.
   Future validate(String path) {
     return _validateOneMatch(path, (dir) {
       // Validate each of the items in this directory.
@@ -1074,9 +953,7 @@ class DirectoryDescriptor extends Descriptor {
     });
   }
 
-  /**
-   * Loads [path] from within this directory.
-   */
+  /// Loads [path] from within this directory.
   InputStream load(List<String> path) {
     if (path.isEmpty) {
       throw "Can't load the contents of $name: is a directory.";
@@ -1092,12 +969,10 @@ class DirectoryDescriptor extends Descriptor {
   }
 }
 
-/**
- * Wraps a [Future] that will complete to a [Descriptor] and makes it behave
- * like a concrete [Descriptor]. This is necessary when the contents of the
- * descriptor depends on information that's not available until part of the test
- * run is completed.
- */
+/// Wraps a [Future] that will complete to a [Descriptor] and makes it behave
+/// like a concrete [Descriptor]. This is necessary when the contents of the
+/// descriptor depends on information that's not available until part of the
+/// test run is completed.
 class FutureDescriptor extends Descriptor {
   Future<Descriptor> _future;
 
@@ -1116,16 +991,12 @@ class FutureDescriptor extends Descriptor {
   }
 }
 
-/**
- * Describes a Git repository and its contents.
- */
+/// Describes a Git repository and its contents.
 class GitRepoDescriptor extends DirectoryDescriptor {
   GitRepoDescriptor(Pattern name, List<Descriptor> contents)
   : super(name, contents);
 
-  /**
-   * Creates the Git repository and commits the contents.
-   */
+  /// Creates the Git repository and commits the contents.
   Future<Directory> create(parentDir) {
     return _runGitCommands(parentDir, [
       ['init'],
@@ -1134,9 +1005,7 @@ class GitRepoDescriptor extends DirectoryDescriptor {
     ]);
   }
 
-  /**
-   * Commits any changes to the Git repository.
-   */
+  /// Commits any changes to the Git repository.
   Future commit(parentDir) {
     return _runGitCommands(parentDir, [
       ['add', '.'],
@@ -1144,15 +1013,11 @@ class GitRepoDescriptor extends DirectoryDescriptor {
     ]);
   }
 
-  /**
-   * Schedules changes to be committed to the Git repository.
-   */
+  /// Schedules changes to be committed to the Git repository.
   void scheduleCommit() => _schedule((dir) => this.commit(dir));
 
-  /**
-   * Return a Future that completes to the commit in the git repository referred
-   * to by [ref] at the current point in the scheduled test run.
-   */
+  /// Return a Future that completes to the commit in the git repository
+  /// referred to by [ref] at the current point in the scheduled test run.
   Future<String> revParse(String ref) {
     return _scheduleValue((parentDir) {
       return super.create(parentDir).chain((rootDir) {
@@ -1206,19 +1071,15 @@ class GitRepoDescriptor extends DirectoryDescriptor {
   }
 }
 
-/**
- * Describes a gzipped tar file and its contents.
- */
+/// Describes a gzipped tar file and its contents.
 class TarFileDescriptor extends Descriptor {
   final List<Descriptor> contents;
 
   TarFileDescriptor(Pattern name, this.contents)
   : super(name);
 
-  /**
-   * Creates the files and directories within this tar file, then archives them,
-   * compresses them, and saves the result to [parentDir].
-   */
+  /// Creates the files and directories within this tar file, then archives
+  /// them, compresses them, and saves the result to [parentDir].
   Future<File> create(parentDir) {
     // TODO(rnystrom): Use withTempDir().
     var tempDir;
@@ -1234,9 +1095,8 @@ class TarFileDescriptor extends Descriptor {
     });
   }
 
-  /**
-   * Validates that the `.tar.gz` file at [path] contains the expected contents.
-   */
+  /// Validates that the `.tar.gz` file at [path] contains the expected
+  /// contents.
   Future validate(String path) {
     throw "TODO(nweiz): implement this";
   }
@@ -1245,9 +1105,7 @@ class TarFileDescriptor extends Descriptor {
     throw new UnsupportedError('');
   }
 
-  /**
-   * Loads the contents of this tar file.
-   */
+  /// Loads the contents of this tar file.
   InputStream load(List<String> path) {
     if (!path.isEmpty) {
       var joinedPath = Strings.join(path, '/');
@@ -1271,9 +1129,7 @@ class TarFileDescriptor extends Descriptor {
   }
 }
 
-/**
- * A descriptor that validates that no file exists with the given name.
- */
+/// A descriptor that validates that no file exists with the given name.
 class NothingDescriptor extends Descriptor {
   NothingDescriptor(String name) : super(name);
 
@@ -1539,8 +1395,8 @@ class ScheduledProcess {
 }
 
 /// A class representing an [HttpServer] that's scheduled to run in the course
-/// of the test. This class allows the server's request handling to be scheduled
-/// synchronously. All operations on this class are scheduled.
+/// of the test. This class allows the server's request handling to be
+/// scheduled synchronously. All operations on this class are scheduled.
 class ScheduledServer {
   /// The wrapped server.
   final Future<HttpServer> _server;
@@ -1618,11 +1474,9 @@ class ScheduledServer {
   }
 }
 
-/**
- * Takes a simple data structure (composed of [Map]s, [List]s, scalar objects,
- * and [Future]s) and recursively resolves all the [Future]s contained within.
- * Completes with the fully resolved structure.
- */
+/// Takes a simple data structure (composed of [Map]s, [List]s, scalar objects,
+/// and [Future]s) and recursively resolves all the [Future]s contained within.
+/// Completes with the fully resolved structure.
 Future _awaitObject(object) {
   // Unroll nested futures.
   if (object is Future) return object.chain(_awaitObject);
@@ -1643,9 +1497,7 @@ Future _awaitObject(object) {
   });
 }
 
-/**
- * Schedules a callback to be called as part of the test case.
- */
+/// Schedules a callback to be called as part of the test case.
 void _schedule(_ScheduledEvent event) {
   if (_scheduled == null) _scheduled = [];
   _scheduled.add(event);
@@ -1662,8 +1514,8 @@ Future _scheduleValue(_ScheduledEvent event) {
   return completer.future;
 }
 
-/// Schedules a callback to be called after the test case has completed, even if
-/// it failed.
+/// Schedules a callback to be called after the test case has completed, even
+/// if it failed.
 void _scheduleCleanup(_ScheduledEvent event) {
   if (_scheduledCleanup == null) _scheduledCleanup = [];
   _scheduledCleanup.add(event);

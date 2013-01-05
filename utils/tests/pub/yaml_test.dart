@@ -11,24 +11,20 @@ import '../../pub/yaml/yaml.dart';
 import '../../pub/yaml/deep_equals.dart';
 import '../../../tests/utils/test_utils.dart';
 
-/** Constructs a new yaml.YamlMap, optionally from a normal Map. */
+/// Constructs a new yaml.YamlMap, optionally from a normal Map.
 Map yamlMap([Map from]) =>
     from == null ? new YamlMap() : new YamlMap.from(from);
 
-/**
- * Asserts that a string containing a single YAML document produces a given
- * value when loaded.
- */
+/// Asserts that a string containing a single YAML document produces a given
+/// value when loaded.
 expectYamlLoads(expected, String source) {
   var actual = loadYaml(cleanUpLiteral(source));
   Expect.isTrue(deepEquals(expected, actual), 
       'expectYamlLoads(expected: <$expected>, actual: <$actual>)');
 }
 
-/**
- * Asserts that a string containing a stream of YAML documents produces a given
- * list of values when loaded.
- */
+/// Asserts that a string containing a stream of YAML documents produces a given
+/// list of values when loaded.
 expectYamlStreamLoads(List expected, String source) {
   var actual = loadYamlStream(cleanUpLiteral(source));
   Expect.isTrue(deepEquals(expected, actual), 
