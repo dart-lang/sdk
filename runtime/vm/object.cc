@@ -2026,15 +2026,12 @@ bool Class::TypeTest(
   if (IsDynamicClass()) {
     return test_kind == kIsSubtypeOf;
   }
-  // Check for NullType, which is not a subtype of any type, but is more
-  // specific than any type.
+  // Check for NullType, which is only a subtype of ObjectType, of DynamicType,
+  // or of itself, and which is more specific than any type.
   if (IsNullClass()) {
-    // User code cannot refer to class Null, therefore, we can only encounter
-    // NullType here as the type of the null constant, which must be treated
-    // separately in 'instance of' checks. Therefore, the NullType can only
-    // be encountered here during optimizations in 'more specific than' tests.
-    ASSERT(test_kind == kIsMoreSpecificThan);
-    return true;
+    // We already checked for other.IsDynamicClass() above.
+    return (test_kind == kIsMoreSpecificThan) ||
+        other.IsObjectClass() || other.IsNullClass();
   }
   // Check for ObjectType. Any type that is not NullType or DynamicType (already
   // checked above), is more specific than ObjectType.
@@ -8348,42 +8345,10 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsMalformed());
-  const Class& cls = Class::Handle(clazz());
-  if (cls.IsNullClass()) {
-    if (!IsNull()) {
-      // We can only encounter Object::sentinel() or
-      // Object::transition_sentinel() if type checks were not eliminated at
-      // compile time. Both sentinels are instances of the Null class, but they
-      // are not the Object::null() instance.
-      ASSERT((raw() == Object::transition_sentinel().raw()) ||
-             (raw() == Object::sentinel().raw()));
-      ASSERT(!FLAG_eliminate_type_checks);
-      return true;  // We are doing an instance of test as part of a type check.
-    }
-    // The null instance can be returned from a void function.
-    if (other.IsVoidType()) {
-      return true;
-    }
-    // Otherwise, null is only an instance of Object and of dynamic.
-    // It is not necessary to fully instantiate the other type for this test.
-    Class& other_class = Class::Handle();
-    if (other.IsTypeParameter()) {
-      if (other_instantiator.IsNull()) {
-        return true;  // Other type is uninstantiated, i.e. dynamic.
-      }
-      const TypeParameter& other_type_param = TypeParameter::Cast(other);
-      const AbstractType& instantiated_other = AbstractType::Handle(
-          other_instantiator.TypeAt(other_type_param.index()));
-      ASSERT(instantiated_other.IsInstantiated());
-      other_class = instantiated_other.type_class();
-    } else {
-      other_class = other.type_class();
-    }
-    return other_class.IsObjectClass() || other_class.IsDynamicClass();
-  }
   if (other.IsVoidType()) {
     return false;
   }
+  const Class& cls = Class::Handle(clazz());
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
   const intptr_t num_type_arguments = cls.NumTypeArguments();
   if (num_type_arguments > 0) {

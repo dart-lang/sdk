@@ -1264,15 +1264,10 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
   for (int i = 0; i < ic_data.NumberOfChecks(); i++) {
     cls = class_table.At(ic_data.GetReceiverClassIdAt(i));
     if (cls.HasTypeArguments()) return Bool::null();
-    bool is_subtype = false;
-    if (cls.IsNullClass()) {
-      is_subtype = type_class.IsDynamicClass() || type_class.IsObjectClass();
-    } else {
-      is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
-                                   type_class,
-                                   TypeArguments::Handle(),
-                                   NULL);
-    }
+    const bool is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
+                                            type_class,
+                                            TypeArguments::Handle(),
+                                            NULL);
     if (prev.IsNull()) {
       prev = is_subtype ? Bool::True().raw() : Bool::False().raw();
     } else {
