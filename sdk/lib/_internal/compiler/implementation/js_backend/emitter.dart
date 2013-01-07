@@ -917,6 +917,8 @@ $lazyInitializerLogic
                              ClassBuilder builder) {
     assert(canGenerateCheckedSetter(member));
     DartType type = member.computeType(compiler);
+    // TODO(ahe): Generate a dynamic type error here.
+    if (type.element.isErroneous()) return;
     SourceString helper = compiler.backend.getCheckedModeHelper(type);
     FunctionElement helperElement = compiler.findHelper(helper);
     String helperName = namer.isolateAccess(helperElement);
@@ -1012,18 +1014,20 @@ $lazyInitializerLogic
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
-      if (needsCheckedSetter) {
-        assert(!needsSetter);
-        generateCheckedSetter(member, name, accessorName, builder);
-      }
-      if (!getterAndSetterCanBeImplementedByFieldSpec) {
-        if (needsGetter) {
-          generateGetter(member, name, accessorName, builder);
+      compiler.withCurrentElement(member, () {
+        if (needsCheckedSetter) {
+          assert(!needsSetter);
+          generateCheckedSetter(member, name, accessorName, builder);
         }
-        if (needsSetter) {
-          generateSetter(member, name, accessorName, builder);
+        if (!getterAndSetterCanBeImplementedByFieldSpec) {
+          if (needsGetter) {
+            generateGetter(member, name, accessorName, builder);
+          }
+          if (needsSetter) {
+            generateSetter(member, name, accessorName, builder);
+          }
         }
-      }
+      });
     });
   }
 
