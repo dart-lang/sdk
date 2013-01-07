@@ -644,7 +644,7 @@ class _StreamSubscriptionImpl<T> extends _StreamListener<T>
                                  implements StreamSubscription<T> {
   final bool _unsubscribeOnError;
   _DataHandler<T> _onData;
-  _ErrorHandler<T> _onError;
+  _ErrorHandler _onError;
   _DoneHandler _onDone;
   _StreamSubscriptionImpl(_StreamImpl source,
                           this._onData,
