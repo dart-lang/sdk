@@ -4,6 +4,10 @@
 
 [ $compiler == dartc ]
 
+# co19 issue 365 (iterator changes)
+Language/12_Statements/06_For/2_For_in_A01_t05: Fail # co19 issue 365
+LibTest/core/Set/Set.from_A01_t02: Fail # co19 issue 365
+LibTest/core/Queue/Queue.from_A01_t02: Fail # co19 issue 365
 
 # co19 issue 336 (allow use same prefix for several imports)
 Language/13_Libraries_and_Scripts/1_Imports_A02_t29: Fail
