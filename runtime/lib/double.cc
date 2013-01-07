@@ -72,6 +72,21 @@ DEFINE_NATIVE_ENTRY(Double_div, 2) {
 }
 
 
+static RawInteger* DoubleToInteger(double val, const char* error_msg) {
+  if (isinf(val) || isnan(val)) {
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, String::Handle(String::New(error_msg)));
+    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+  }
+  if ((Smi::kMinValue <= val) && (val <= Smi::kMaxValue)) {
+    return Smi::New(static_cast<intptr_t>(val));
+  } else if ((Mint::kMinValue <= val) && (val <= Mint::kMaxValue)) {
+    return Mint::New(static_cast<int64_t>(val));
+  } else {
+    return BigintOperations::NewFromDouble(val);
+  }
+}
+
 DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
@@ -79,20 +94,8 @@ DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Double_trunc_div %f ~/ %f\n", left, right);
   }
-  double result = trunc(left / right);
-  if (isinf(result) || isnan(result)) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, String::Handle(String::New(
-        "Result of truncating division is Infinity or NaN")));
-    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
-  }
-  if ((Smi::kMinValue <= result) && (result <= Smi::kMaxValue)) {
-    return Smi::New(static_cast<intptr_t>(result));
-  } else if ((Mint::kMinValue <= result) && (result <= Mint::kMaxValue)) {
-    return Mint::New(static_cast<int64_t>(result));
-  } else {
-    return BigintOperations::NewFromDouble(result);
-  }
+  return DoubleToInteger(trunc(left / right),
+                         "Result of truncating division is Infinity or NaN");
 }
 
 
@@ -201,19 +204,7 @@ DEFINE_NATIVE_ENTRY(Double_pow, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
-  if (isinf(arg.value()) || isnan(arg.value())) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, String::Handle(String::New("Infinity or NaN toInt")));
-    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
-  }
-  double result = trunc(arg.value());
-  if ((Smi::kMinValue <= result) && (result <= Smi::kMaxValue)) {
-    return Smi::New(static_cast<intptr_t>(result));
-  } else if ((Mint::kMinValue <= result) && (result <= Mint::kMaxValue)) {
-    return Mint::New(static_cast<int64_t>(result));
-  } else {
-    return BigintOperations::NewFromDouble(result);
-  }
+  return DoubleToInteger(arg.value(), "Infinity or NaN toInt");
 }
 
 

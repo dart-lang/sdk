@@ -946,7 +946,7 @@ class LoadLocalNode : public AstNode {
   // A local variable load can optionally be a pair of an arbitrary 'pseudo'
   // AST node followed by the load.  The pseudo node is evaluated for its
   // side-effects and the value of the expression is the value of the local
-  // load after evaluating the pseudo node.  Psuedo nodes are used, e.g., in
+  // load after evaluating the pseudo node.  Pseudo nodes are used, e.g., in
   // the desugaring of postincrement and cascade expressions.
   LoadLocalNode(intptr_t token_pos, const LocalVariable* local, AstNode* pseudo)
       : AstNode(token_pos), local_(*local), pseudo_(pseudo) {
