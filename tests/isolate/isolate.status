@@ -38,7 +38,7 @@ isolate2_negative_test: Pass
 compute_this_script_browser_test: Pass
 
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js && $runtime == d8 ]
 count_test: Fail # Timer interface not supported; dartbug.com/7728.
 cross_isolate_message_test: Fail # Timer interface not supported; dartbug.com/7728.
 isolate_complex_messages_test: Fail # Timer interface not supported; dartbug.com/7728.
@@ -54,6 +54,7 @@ spawn_function_test: Fail # Timer interface not supported; dartbug.com/7728.
 stream_mangling_test: Fail # Timer interface not supported; dartbug.com/7728.
 unresolved_ports_test: Fail # Timer interface not supported; dartbug.com/7728.
 
+[ $compiler == dart2js ]
 serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
 illegal_msg_test: Fail # Issue 6750
 
