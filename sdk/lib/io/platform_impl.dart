@@ -83,8 +83,8 @@ class _CaseInsensitiveStringMap<V> implements Map<String, V> {
   V remove(String key) => _map.remove(key.toUpperCase());
   void clear() => _map.clear();
   void forEach(void f(String key, V value)) => _map.forEach(f);
-  Collection<String> get keys => _map.keys;
-  Collection<V> get values => _map.values;
+  Iterable<String> get keys => _map.keys;
+  Iterable<V> get values => _map.values;
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
 
