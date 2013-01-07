@@ -7,6 +7,8 @@ class_test: Fail
 statements_test: Fail
 typed_locals_test: Fail
 no_such_method_test: Fail # Wrong InvocationMirror.memberName.
+type_argument_factory_nocrash_test: Fail # Issue 7735
+
 
 [ $compiler == dart2js && $checked ]
 parameter_bailout_test: Fail, OK

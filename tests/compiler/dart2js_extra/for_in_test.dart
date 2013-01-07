@@ -37,7 +37,7 @@ class MyListIterator<T> implements Iterator<T> {
   MyListIterator(List<T> values) : this.values = values, index = -1;
 
   bool moveNext() => ++index < values.length;
-  T current() => (0 <= index && index < length) ? values[index] : null;
+  T get current => (0 <= index && index < values.length) ? values[index] : null;
 }
 
 void main() {
