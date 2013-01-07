@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartBreakStatement;
+import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartComment;
@@ -1144,12 +1145,15 @@ public class Resolver {
 
     @Override
     public Element visitSwitchMember(DartSwitchMember x) {
-      // visit children
-      {
-        getContext().pushScope("<switch member>");
-        x.visitChildren(this);
-        getContext().popScope();
-      }
+      getContext().pushScope("<switch member>");
+      x.visitChildren(this);
+      getContext().popScope();
+      return null;
+    }
+    
+    @Override
+    public Element visitCase(DartCase x) {
+      super.visitCase(x);
       // check fall-through
       {
         List<DartStatement> statements = x.getStatements();

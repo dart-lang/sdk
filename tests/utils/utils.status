@@ -36,5 +36,5 @@ dart2js_test: Fail # http://dartbug.com/2264
 
 [ $compiler == dartc ]
 
-# dartc issue 7743
+# dart2js issue 7744
 dart2js_test: Fail

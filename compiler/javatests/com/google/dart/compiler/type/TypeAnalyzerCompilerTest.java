@@ -520,8 +520,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.SWITCH_CASE_FALL_THROUGH, 14, 9, 6),
-        errEx(ResolverErrorCode.SWITCH_CASE_FALL_THROUGH, 16, 9, 6));
+        errEx(ResolverErrorCode.SWITCH_CASE_FALL_THROUGH, 14, 9, 6));
   }
 
   /**
