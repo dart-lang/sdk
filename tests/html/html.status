@@ -17,6 +17,9 @@ html/element_test/_ElementList: Fail # Issue 7732.
 html/shadow_dom_test/ShadowDOM*tests: Fail # Issue 7732.
 html/element_test/queryAll: Fail # Issue 7732.
 
+form_data_test: Skip # Issue 7751, crashes the test server
+xhr_cross_origin_test: Skip # Issue 7751, crashes the test server
+
 [ $compiler == none ]
 documentfragment_test: Fail # Issue 7732.
 typing_test: Fail # Issue 7732.
