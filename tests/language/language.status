@@ -535,3 +535,9 @@ prefix22_test: Pass
 invocation_mirror_test: Fail, OK # hardcoded names.
 invocation_mirror2_test: Fail, OK # hardcoded names.
 super_call4_test: Fail, OK # hardcoded names.
+
+[ $compiler == dart2js && $runtime == d8 && $checked ]
+# Issue 7733.
+compile_time_constant_a_test: Fail
+compile_time_constant_b_test: Fail
+ordered_maps_test: Fail

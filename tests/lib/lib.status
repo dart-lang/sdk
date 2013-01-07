@@ -31,3 +31,7 @@ async/slow_consumer2_test: Fail # Issue 7726
 
 [ $compiler == none && $runtime == drt ]
 async/*: Fail # Issue 7731
+
+[ $compiler == dart2js && $runtime == d8 && $checked ]
+# Issue 7733.
+async/stream_controller_test: Fail

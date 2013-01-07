@@ -375,3 +375,7 @@ stack_overflow_test: Fail
 string_interpolate_npe_test: Fail
 closure_call_wrong_argument_count_negative_test: Skip
 label_test: Skip
+
+[ $runtime == d8 ]
+# Timer interface not supported.
+typed_message_test: Fail

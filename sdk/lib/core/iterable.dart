@@ -372,7 +372,7 @@ typedef T _Transformation<S, T>(S value);
 
 class MappedIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
-  final _Transformation _f;
+  final _Transformation<S, T> _f;
 
   MappedIterable(this._iterable, T this._f(S element));
 
