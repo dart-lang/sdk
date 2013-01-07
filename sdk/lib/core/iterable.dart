@@ -386,7 +386,7 @@ class MappedIterable<S, T> extends Iterable<T> {
 class MappedIterator<S, T> extends Iterator<T> {
   T _current;
   final Iterator<S> _iterator;
-  final _Transformation _f;
+  final _Transformation<S, T> _f;
 
   MappedIterator(this._iterator, T this._f(S element));
 

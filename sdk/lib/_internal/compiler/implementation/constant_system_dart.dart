@@ -207,7 +207,11 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
     if (right == 0) return null;
     return left ~/ right;
   }
-  num foldNums(num left, num right) => left ~/ right;
+  num foldNums(num left, num right) {
+    num ratio = left / right;
+    if (ratio.isNaN || ratio.isInfinite) return null;
+    return ratio.truncate().toInt();
+  }
   apply(left, right) => left ~/ right;
 }
 
