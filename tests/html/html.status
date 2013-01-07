@@ -2,6 +2,18 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+html/measurement_test: Fail # Issue 7732.
+queryall_test: Fail # Issue 7732.
+htmloptionscollection_test: Fail # Issue 7732.
+typing_test: Fail # Issue 7732.
+documentfragment_test: Fail # Issue 7732.
+websql_test: Fail # Issue 7732.
+element_test/children: Fail # Issue 7732.
+html/element_test/_ElementList: Fail # Issue 7732.
+html/shadow_dom_test/ShadowDOM*tests: Fail # Issue 7732.
+html/element_test/queryAll: Fail # Issue 7732.
+
+
 window_open_test: Skip # http://dartbug.com/5151
 
 event_test: Skip  # Issue 1996
@@ -189,7 +201,7 @@ shadow_dom_test/supported: Fail
 htmlelement_test: Fail, Pass
 
 [ $runtime == opera && $system == macos ]
-html/element_test/constructors: Fail
+element_test/constructors: Fail
 
 
 [ $runtime == opera ]
