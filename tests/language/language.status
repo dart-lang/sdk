@@ -87,6 +87,11 @@ default_factory2_test/01: Fail # Issue 7075.
 [ $compiler == dartc ]
 class_literal_test/none : Fail # Issue 7630.
 
+# dartc issue 7743
+list_literal1_negative_test: Fail
+map_literal1_negative_test: Fail
+
+
 library_juxtaposition_test: Fail # Issue 6881
 new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
 redirecting_factory_infinite_steps_test/01: Fail # http://dartbug.com/6560
@@ -151,8 +156,6 @@ is_not_class2_negative_test: Fail #  Runtime only test, rewrite as multitest
 library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530
 library6_negative_test: Fail # still a valid test? Issue 3650
-list_literal4_test: Fail # Issue 1343
-map_literal4_test: Fail # Issue 1343
 named_parameters_with_object_property_names_test: Fail # Issue 2137
 many_overridden_no_such_method_test: Fail
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multitest
