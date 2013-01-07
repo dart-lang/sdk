@@ -12,25 +12,17 @@ xmlelement_test: Skip  # XML in dart:html is incomplete
 history_test/history: Fail, Pass # Issue 7676.
 
 html/measurement_test: Fail # Issue 7732.
-queryall_test: Fail # Issue 7732.
-htmloptionscollection_test: Fail # Issue 7732.
-typing_test: Fail # Issue 7732.
-documentfragment_test: Fail # Issue 7732.
-websql_test: Fail # Issue 7732.
 element_test/children: Fail # Issue 7732.
 html/element_test/_ElementList: Fail # Issue 7732.
 html/shadow_dom_test/ShadowDOM*tests: Fail # Issue 7732.
 html/element_test/queryAll: Fail # Issue 7732.
 
-# Remove all of these when Issue 7732 is fixed. Only putting in
-# the pass status for dartc so we will get test failures when
-# the issue is resolved on other test targets.
-[ $compiler == dartc ]
-documentfragment_test: Pass
-typing_test: Pass
-queryall_test: Pass
-htmloptionscollection_test: Pass
-websql_test: Pass
+[ $compiler == none ]
+documentfragment_test: Fail # Issue 7732.
+typing_test: Fail # Issue 7732.
+queryall_test: Fail # Issue 7732.
+htmloptionscollection_test: Fail # Issue 7732.
+websql_test: Fail # Issue 7732.
 
 # Layout tests are only supported on DRT.
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
