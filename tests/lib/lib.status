@@ -29,3 +29,5 @@ crypto/hmac_sha256_test: Fail
 [ $runtime == vm && $arch == x64 ]
 async/slow_consumer2_test: Fail # Issue 7726
 
+[ $compiler == none && $runtime == drt ]
+async/*: Fail # Issue 7731
