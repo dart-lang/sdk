@@ -7,15 +7,14 @@ package/invalid_uri_test: Fail, OK # Fails intentionally
 # These tests fail because the test scripts do not use the new streams library.
 # When the test scripts are updated, and the precompiled dart executable is
 # updated, they will be re-enabled.  Issue 7724.
-io/test_runner_test: Fail, Pass
-io/test_runner_exit_code_test: Fail
-status_expression_test: Fail
-io/status_file_parser_test: Fail
+io/test_runner_test: Pass, Fail
+io/test_runner_exit_code_test: Pass, Fail
+status_expression_test: Pass, Fail
+io/status_file_parser_test: Pass, Fail
+io/skipping_dart2js_compilations_test: Pass, Fail
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 7520.
-
-io/skipping_dart2js_compilations_test: Fail # used by both a test and the VM. Can be reenabled when we replace the precompiled dart executable in tools.
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
