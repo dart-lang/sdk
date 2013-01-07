@@ -38,9 +38,6 @@ string_trim_unicode_test: Fail  # Bug 6569
 *: Skip
 
 [ $compiler == dart2js ]
-futures_test: Fail # Timer interface not supported; dartbug.com/7728.
-future_test: Fail # Timer interface not supported; dartbug.com/7728.
-
 math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
 math_test: Fail # issue 3333
 surrogate_pair_toUpper_test: Fail # Issue 6707
@@ -71,9 +68,6 @@ null_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
 
 # Library changes
-[ $compiler == none ]
-future_test: Skip # Bug 6890 .TODO(ajohnsen): Fix this as part of library changes.
-
 [ $compiler == none || $compiler == dart2js || $compiler == dart2dart ]
 map_keys2_test: Fail # Generic types aren't right.
 
