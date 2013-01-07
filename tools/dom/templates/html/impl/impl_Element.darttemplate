@@ -388,7 +388,7 @@ class _FrozenElementList implements List {
 
 class _FrozenElementListIterator implements Iterator<Element> {
   final _FrozenElementList _list;
-  int _index = 0;
+  int _index = -1;
   Element _current;
 
   _FrozenElementListIterator(this._list);

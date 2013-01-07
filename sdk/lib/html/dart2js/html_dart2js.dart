@@ -777,23 +777,23 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
   int width;
 
   /**
-   * Returns a data URI containing a representation of the image in the 
-   * format specified by type (defaults to 'image/png'). 
-   * 
+   * Returns a data URI containing a representation of the image in the
+   * format specified by type (defaults to 'image/png').
+   *
    * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
-   * 
+   *
    * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
    * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
    * value is used. Note: the default value varies by browser.
-   * 
+   *
    * If the height or width of this canvas element is 0, then 'data:' is returned,
    * representing no data.
-   * 
-   * If the type requested is not 'image/png', and the returned value is 
+   *
+   * If the type requested is not 'image/png', and the returned value is
    * 'data:image/png', then the requested type is not supported.
-   * 
+   *
    * Example usage:
-   * 
+   *
    *     CanvasElement canvas = new CanvasElement();
    *     var ctx = canvas.context2d
    *     ..fillStyle = "rgb(200,0,0)"
@@ -807,13 +807,13 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
    *     var img = new ImageElement();
    *     img.src = dataUrl;
    *     document.body.children.add(img);
-   *     
+   *
    * See also:
-   * 
+   *
    * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
-   * 
+   *
    * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
-   * 
+   *
    * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
    */
   /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
@@ -7521,7 +7521,7 @@ class _FrozenElementList implements List {
 
 class _FrozenElementListIterator implements Iterator<Element> {
   final _FrozenElementList _list;
-  int _index = 0;
+  int _index = -1;
   Element _current;
 
   _FrozenElementListIterator(this._list);
@@ -8790,7 +8790,7 @@ class EventSourceEvents extends Events {
  * Events can either be accessed by string name (using the indexed getter) or by
  * getters exposed by subclasses. Use the getters exposed by subclasses when
  * possible for better compile-time type checks.
- * 
+ *
  * Using an indexed getter:
  *     events['mouseover'].add((e) => print("Mouse over!"));
  *
@@ -8853,7 +8853,7 @@ class EventListenerList {
  * [$dom_addEventListener], [$dom_dispatchEvent], and
  * [$dom_removeEventListener]) for compile-time type checks and a more concise
  * API.
- */ 
+ */
 class EventTarget native "*EventTarget" {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
@@ -9484,7 +9484,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   factory Float32Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat32Array_fromList(list);
 
-  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -9655,7 +9655,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   factory Float64Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat64Array_fromList(list);
 
-  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 8;
@@ -10663,23 +10663,23 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
 
 /**
  * A utility for retrieving data from a URL.
- * 
+ *
  * HttpRequest can be used to obtain data from http, ftp, and file
- * protocols. 
- * 
+ * protocols.
+ *
  * For example, suppose we're developing these API docs, and we
  * wish to retrieve the HTML of the top-level page and print it out.
  * The easiest way to do that would be:
- * 
+ *
  *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
  *         (request) => print(request.responseText));
- * 
+ *
  * **Important**: With the default behavior of this class, your
  * code making the request should be served from the same origin (domain name,
  * port, and application layer protocol) as the URL you are trying to access
- * with HttpRequest. However, there are ways to 
+ * with HttpRequest. However, there are ways to
  * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
- * 
+ *
  * See also:
  *
  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
@@ -10690,7 +10690,7 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /**
    * Creates a URL get request for the specified `url`.
-   * 
+   *
    * After completing the request, the object will call the user-provided
    * [onComplete] callback.
    */
@@ -10702,8 +10702,8 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * Creates a URL GET request for the specified `url` with
    * credentials such a cookie (already) set in the header or
    * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2).
-   * 
-   * After completing the request, the object will call the user-provided 
+   *
+   * After completing the request, the object will call the user-provided
    * [onComplete] callback.
    *
    * A few other details to keep in mind when using credentials:
@@ -10712,7 +10712,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
-   * 
+   *
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   factory HttpRequest.getWithCredentials(String url,
@@ -10782,7 +10782,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * The data received as a reponse from the request.
    *
    * The data could be in the
-   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a 
+   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a
    * [String]). `null` indicates request failure.
    */
   /// @domName XMLHttpRequest.response; @docsEditable true
@@ -10796,7 +10796,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   final String responseText;
 
   /**
-   * [String] telling the server the desired response format. 
+   * [String] telling the server the desired response format.
    *
    * Default is `String`.
    * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
@@ -10810,7 +10810,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   /**
    * The request response, or null on failure.
-   * 
+   *
    * The response is processed as
    * `text/xml` stream, unless responseType = 'document' and the request is
    * synchronous.
@@ -10842,7 +10842,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   /**
    * True if cross-site requests should use credentials such as cookies
-   * or authorization headers; false otherwise. 
+   * or authorization headers; false otherwise.
    *
    * This value is ignored for same-site requests.
    */
@@ -10852,7 +10852,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /**
    * Stop the current request.
    *
-   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or 
+   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
    * `LOADING`. If this method is not in the process of being sent, the method
    * has no effect.
    */
@@ -10869,11 +10869,11 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   /**
    * Retrieve all the response headers from a request.
-   * 
+   *
    * `null` if no headers have been received. For multipart requests,
    * `getAllResponseHeaders` will return the response headers for the current
    * part of the request.
-   * 
+   *
    * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
    * for a list of common response headers.
    */
@@ -10882,7 +10882,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   /**
    * Return the response header named `header`, or `null` if not found.
-   * 
+   *
    * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
    * for a list of common response headers.
    */
@@ -10891,11 +10891,11 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   /**
    * Specify the desired `url`, and `method` to use in making the request.
-   * 
+   *
    * By default the request is done asyncronously, with no user or password
    * authentication information. If `async` is false, the request will be send
    * synchronously.
-   * 
+   *
    * Calling `open` again on a currently active request is equivalent to
    * calling `abort`.
    */
@@ -10905,7 +10905,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
    * response.
-   * 
+   *
    * This value must be set before the request has been sent. See also the list
    * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
    */
@@ -10919,7 +10919,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /**
    * Send the request with any given `data`.
    *
-   * See also: 
+   * See also:
    * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())
    * from MDN.
    */
@@ -10934,11 +10934,11 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
 /**
  * A class that supports listening for and dispatching events that can fire when
- * making an HTTP request. 
- *  
+ * making an HTTP request.
+ *
  * Here's an example of adding an event handler that executes once an HTTP
  * request has fully loaded:
- * 
+ *
  *     httpRequest.on.loadEnd.add((e) => myCustomLoadEndHandler(e));
  *
  * Each property of this class is a read-only pointer to an [EventListenerList].
@@ -10986,7 +10986,7 @@ class HttpRequestEvents extends Events {
   EventListenerList get loadStart => this['loadstart'];
 
   /**
-   * Event listeners to be notified when data for the request 
+   * Event listeners to be notified when data for the request
    * is being sent or loaded.
    *
    * Progress events are fired every 50ms or for every byte transmitted,
@@ -12023,7 +12023,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Int16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt16Array_fromList(list);
 
-  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -12194,7 +12194,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Int32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt32Array_fromList(list);
 
-  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -12365,7 +12365,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   factory Int8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt8Array_fromList(list);
 
-  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -14296,7 +14296,7 @@ class Navigator native "*Navigator" {
   /// @domName Navigator.language; @docsEditable true
   String get language => JS('String', '#.language || #.userLanguage', this,
       this);
-  
+
   /// @domName Navigator.appCodeName; @docsEditable true
   final String appCodeName;
 
@@ -19021,7 +19021,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   factory Uint16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint16Array_fromList(list);
 
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -19192,7 +19192,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   factory Uint32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint32Array_fromList(list);
 
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -19363,7 +19363,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Uint8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8Array_fromList(list);
 
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -19534,7 +19534,7 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
   factory Uint8ClampedArray.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromList(list);
 
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
   // Use implementation from Uint8Array.
@@ -24798,9 +24798,9 @@ class KeyboardEventController {
 
 
 /**
- * Defines the keycode values for keys that are returned by 
+ * Defines the keycode values for keys that are returned by
  * KeyboardEvent.keyCode.
- * 
+ *
  * Important note: There is substantial divergence in how different browsers
  * handle keycodes and their variants in different locales/keyboard layouts. We
  * provide these constants to help make code processing keys more readable.
@@ -24808,7 +24808,7 @@ class KeyboardEventController {
 abstract class KeyCode {
   // These constant names were borrowed from Closure's Keycode enumeration
   // class.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html  
+  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html
   static const int WIN_KEY_FF_LINUX = 0;
   static const int MAC_ENTER = 3;
   static const int BACKSPACE = 8;
@@ -25003,12 +25003,12 @@ abstract class KeyCode {
         (keyCode >= A && keyCode <= Z)) {
       return true;
     }
- 
+
     // Safari sends zero key code for non-latin characters.
     if (_Device.isWebKit && keyCode == 0) {
       return true;
     }
- 
+
     return (keyCode == SPACE || keyCode == QUESTION_MARK || keyCode == NUM_PLUS
         || keyCode == NUM_MINUS || keyCode == NUM_PERIOD ||
         keyCode == NUM_DIVISION || keyCode == SEMICOLON ||
@@ -26877,7 +26877,7 @@ class FixedSizeListIterator<T> implements Iterator<T> {
   final int _length;  // Cache array length for faster access.
   int _position;
   T _current;
-  
+
   FixedSizeListIterator(List<T> array)
       : _array = array,
         _position = -1,
