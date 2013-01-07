@@ -33,18 +33,16 @@ class Configuration {
    * Called as soon as the unittest framework becomes initialized. This is done
    * even before tests are added to the test framework. It might be used to
    * determine/debug errors that occur before the test harness starts executing.
+   * It is also used to tell the vm or browser that tests are going to be run
+   * asynchronously and that the process should wait until they are done.
    */
-  void onInit() {}
-
-  /**
-   * Called as soon as the unittest framework starts running. Used commonly to
-   * tell the vm or browser that tests are still running and the process should
-   * wait until they are done.
-   */
-  void onStart() {
+  void onInit() {
     _receivePort = new ReceivePort();
     _postMessage('unittest-suite-wait-for-done');
   }
+
+  /** Called as soon as the unittest framework starts running. */
+  void onStart() {}
 
   /**
    * Called when each test starts. Useful to show intermediate progress on
@@ -129,10 +127,11 @@ class Configuration {
       print('$passed PASSED, $failed FAILED, $errors ERRORS');
     }
 
-    _receivePort.close();
     if (success) {
       _postMessage('unittest-suite-success');
+    _receivePort.close();
     } else {
+    _receivePort.close();
       throw new Exception('Some tests failed.');
     }
   }

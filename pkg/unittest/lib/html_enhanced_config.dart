@@ -66,10 +66,10 @@ class HtmlEnhancedConfiguration extends Configuration {
     }
 
     cssElement.innerHtml = _htmlTestCSS;
+    window.postMessage('unittest-suite-wait-for-done', '*');
   }
 
   void onStart() {
-    window.postMessage('unittest-suite-wait-for-done', '*');
     // Listen for uncaught errors.
     window.on.error.add(_onErrorClosure);
   }
