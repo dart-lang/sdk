@@ -87,10 +87,9 @@ default_factory2_test/01: Fail # Issue 7075.
 [ $compiler == dartc ]
 class_literal_test/none : Fail # Issue 7630.
 
-# dartc issue 7743
+# test issue 7749
 list_literal1_negative_test: Fail
 map_literal1_negative_test: Fail
-
 
 library_juxtaposition_test: Fail # Issue 6881
 new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
