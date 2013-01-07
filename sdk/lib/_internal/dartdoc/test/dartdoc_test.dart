@@ -5,6 +5,7 @@
 /// Unit tests for doc.
 library dartdocTests;
 
+import 'dart:async';
 import 'dart:io';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
