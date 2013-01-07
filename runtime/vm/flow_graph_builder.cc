@@ -2622,9 +2622,11 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
                                       num_context_variables));
 
     // If this node_sequence is the body of the function being compiled, and if
-    // this function is not a closure, do not link the current context as the
-    // parent of the newly allocated context, as it is not accessible. Instead,
-    // save it in a pre-allocated variable and restore it on exit.
+    // this function allocates context variables, but none of its enclosing
+    // functions do, the context on entry is not linked as parent of the
+    // allocated context but saved on entry and restored on exit as to prevent
+    // memory leaks.
+    // In this case, the parser pre-allocates a variable to save the context.
     if (MustSaveRestoreContext(node)) {
       Value* current_context = Bind(new CurrentContextInstr());
       Do(BuildStoreTemp(*owner()->parsed_function().saved_context_var(),

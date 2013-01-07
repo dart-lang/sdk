@@ -186,17 +186,22 @@ void ParsedFunction::AllocateVariables() {
                                scope,
                                &context_owner);
 
-  // If this function is not a closure function and if it contains captured
-  // variables, the context needs to be saved on entry and restored on exit.
+  // If this function allocates context variables, but none of its enclosing
+  // functions do, the context on entry is not linked as parent of the allocated
+  // context but saved on entry and restored on exit as to prevent memory leaks.
   // Add and allocate a local variable to this purpose.
-  if ((context_owner != NULL) && !function().IsClosureFunction()) {
-    LocalVariable* context_var =
-        new LocalVariable(function().token_pos(),
-                          Symbols::SavedEntryContextVar(),
-                          Type::ZoneHandle(Type::DynamicType()));
-    context_var->set_index(next_free_frame_index--);
-    scope->AddVariable(context_var);
-    set_saved_context_var(context_var);
+  if (context_owner != NULL) {
+    const ContextScope& context_scope =
+        ContextScope::Handle(function().context_scope());
+    if (context_scope.IsNull() || (context_scope.num_variables() == 0)) {
+      LocalVariable* context_var =
+          new LocalVariable(function().token_pos(),
+                            Symbols::SavedEntryContextVar(),
+                            Type::ZoneHandle(Type::DynamicType()));
+      context_var->set_index(next_free_frame_index--);
+      scope->AddVariable(context_var);
+      set_saved_context_var(context_var);
+    }
   }
 
   // Frame indices are relative to the frame pointer and are decreasing.
