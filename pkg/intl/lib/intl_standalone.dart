@@ -81,7 +81,7 @@ String _checkEnvironmentVariable() {
  */
 Future _getAppleDefaults() {
   var p = Process.run('defaults', ['read', '-g', 'AppleLocale']);
-  var myResult = p.chain((result) => _checkResult(result, _appleDefaultsRegex));
+  var myResult = p.then((result) => _checkResult(result, _appleDefaultsRegex));
   return myResult;
 }
 
@@ -90,7 +90,7 @@ Future _getAppleDefaults() {
  */
 Future _getWindowsSystemInfo() {
   var p = Process.run('systeminfo', []);
-  var myResult = p.chain((result) => _checkResult(result, _sysInfoRegex));
+  var myResult = p.then((result) => _checkResult(result, _sysInfoRegex));
   return myResult;
 }
 
