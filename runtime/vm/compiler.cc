@@ -206,6 +206,9 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       // Use propagated class-ids to optimize further.
       optimizer.ApplyClassIds();
 
+      // Recompute use lists after applying class ids.
+      flow_graph->ComputeUseLists();
+
       // Do optimizations that depend on the propagated type information.
       // TODO(srdjan): Should this be called CanonicalizeComputations?
       optimizer.OptimizeComputations();
