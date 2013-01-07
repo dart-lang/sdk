@@ -7,7 +7,6 @@ class E {
 }
 
 class WithGetter {
-  //   get field => null;
   String field;
 }
 
@@ -15,8 +14,9 @@ void main() {
   f(x) {
     x.field = true;
   }
-
-  [new E(), new WithGetter()].forEach(f);
-  new missingType();
-  new E().field = 'a string';
+  Expect.throws(() {
+    [new E(), new WithGetter()].forEach(f);
+    new missingType();
+    new E().field = 'a string';
+  });
 }

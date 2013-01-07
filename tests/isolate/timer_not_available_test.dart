@@ -4,7 +4,7 @@
 
 library timerNotAvailable;
 
-import 'dart:isolate';
+import 'dart:async';
 
 main() {
   bool failed = false;
