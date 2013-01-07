@@ -4,6 +4,7 @@
 
 library multipart_file;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'utils.dart';

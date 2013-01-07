@@ -41,7 +41,7 @@ class HostedSource extends Source {
       return doc['versions']
           .mappedBy((version) => new Version.parse(version))
           .toList();
-    }).transformException((ex) {
+    }).catchError((ex) {
       _throwFriendlyError(ex, parsed.first, parsed.last);
     });
   }
@@ -55,7 +55,7 @@ class HostedSource extends Source {
 
     return httpClient.read(fullUrl).then((yaml) {
       return new Pubspec.parse(yaml, systemCache.sources);
-    }).transformException((ex) {
+    }).catchError((ex) {
       _throwFriendlyError(ex, id, parsed.last);
     });
   }

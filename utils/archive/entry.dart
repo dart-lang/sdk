@@ -272,7 +272,7 @@ class ArchiveEntry {
 
     _input = new ListInputStream();
     // TODO(nweiz): Report errors once issue 3657 is fixed
-    var future = _consumeInput().chain((_) {
+    var future = _consumeInput().then((_) {
       if (!_input.closed) _input.markEndOfStream();
       // Asynchronously complete to give the InputStream callbacks a chance to
       // fire.
@@ -307,11 +307,11 @@ class ArchiveEntry {
    */
   Future _consumeInput() {
     var data;
-    return call(read.DATA_BLOCK, _archiveId).chain((_data) {
+    return call(read.DATA_BLOCK, _archiveId).then((_data) {
       data = _data;
       // TODO(nweiz): This async() call is only necessary because of issue 4222.
       return async();
-    }).chain((_) {
+    }).then((_) {
       if (_input.closed || _archiveId == null || data == null) {
         return new Future.immediate(null);
       }

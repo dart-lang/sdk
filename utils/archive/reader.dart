@@ -57,7 +57,7 @@ class ArchiveReader {
    */
   Future<ArchiveInputStream> openFilename(String file, [int block_size=16384]) {
     var id;
-    return _createArchive().chain((_id) {
+    return _createArchive().then((_id) {
       id = _id;
       return call(OPEN_FILENAME, id, [file, block_size]);
     }).then((_) => new ArchiveInputStream(id));
@@ -66,7 +66,7 @@ class ArchiveReader {
   /** Begins extracting from [data], which should be a list of bytes. */
   Future<ArchiveInputStream> openData(List<int> data) {
     var id;
-    return _createArchive().chain((_id) {
+    return _createArchive().then((_id) {
       id = _id;
       return call(OPEN_MEMORY, id, [bytesForC(data)]);
     }).then((_) => new ArchiveInputStream(id));
@@ -77,7 +77,7 @@ class ArchiveReader {
    * returns its id.
    */
   Future<int> _createArchive() {
-    return call(NEW).chain((id) {
+    return call(NEW).then((id) {
       if (id == 0 || id == null) {
         throw new ArchiveException("Archive is invalid or closed.");
       }

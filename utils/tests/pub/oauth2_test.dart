@@ -190,7 +190,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
       'Looks great! Are you ready to upload your package (y/n)? '
       'Pub needs your authorization to upload packages on your behalf.'));
 
-  expectLater(pub.nextLine().chain((line) {
+  expectLater(pub.nextLine().then((line) {
     var match = new RegExp(r'[?&]redirect_uri=([0-9a-zA-Z%+-]+)[$&]')
         .firstMatch(line);
     expect(match, isNotNull);

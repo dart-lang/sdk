@@ -4,6 +4,7 @@
 
 library command_lish;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:json';
 import 'dart:uri';
@@ -44,7 +45,7 @@ class LishCommand extends PubCommand {
       // TODO(nweiz): Cloud Storage can provide an XML-formatted error. We
       // should report that error and exit.
       var newUri = server.resolve("/packages/versions/new.json");
-      return client.get(newUri).chain((response) {
+      return client.get(newUri).then((response) {
         var parameters = parseJsonResponse(response);
 
         var url = _expectField(parameters, 'url', response);
@@ -63,13 +64,13 @@ class LishCommand extends PubCommand {
         request.files.add(new http.MultipartFile.fromBytes(
             'file', packageBytes, filename: 'package.tar.gz'));
         return client.send(request);
-      }).chain(http.Response.fromStream).then((response) {
+      }).then(http.Response.fromStream).then((response) {
         var location = response.headers['location'];
         if (location == null) throw new PubHttpException(response);
         return location;
       }).then((location) => client.get(location))
           .then(handleJsonSuccess);
-    }).transformException((e) {
+    }).catchError((e) {
       if (e is! PubHttpException) throw e;
       var url = e.response.request.url;
       if (url.toString() == cloudStorageUrl.toString()) {
@@ -85,11 +86,11 @@ class LishCommand extends PubCommand {
 
   Future onRun() {
     var files;
-    return _filesToPublish.transform((f) {
+    return _filesToPublish.then((f) {
       files = f;
       log.fine('Archiving and publishing ${entrypoint.root}.');
       return createTarGz(files, baseDir: entrypoint.root.dir);
-    }).chain(consumeInputStream).chain((packageBytes) {
+    }).then(consumeInputStream).then((packageBytes) {
       // Show the package contents so the user can verify they look OK.
       var package = entrypoint.root;
       log.message(
@@ -97,7 +98,7 @@ class LishCommand extends PubCommand {
           '${generateTree(files)}');
 
       // Validate the package.
-      return _validate().chain((_) => _publish(packageBytes));
+      return _validate().then((_) => _publish(packageBytes));
     });
   }
 
@@ -117,7 +118,7 @@ class LishCommand extends PubCommand {
     return Futures.wait([
       dirExists(join(rootDir, '.git')),
       git.isInstalled
-    ]).chain((results) {
+    ]).then((results) {
       if (results[0] && results[1]) {
         // List all files that aren't gitignored, including those not checked
         // in to Git.
@@ -125,7 +126,7 @@ class LishCommand extends PubCommand {
                         "--exclude-standard"]);
       }
 
-      return listDir(rootDir, recursive: true).chain((entries) {
+      return listDir(rootDir, recursive: true).then((entries) {
         return Futures.wait(entries.mappedBy((entry) {
           return fileExists(entry).then((isFile) {
             // Skip directories.
@@ -158,7 +159,7 @@ class LishCommand extends PubCommand {
 
   /// Validates the package. Throws an exception if it's invalid.
   Future _validate() {
-    return Validator.runAll(entrypoint).chain((pair) {
+    return Validator.runAll(entrypoint).then((pair) {
       var errors = pair.first;
       var warnings = pair.last;
 

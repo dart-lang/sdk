@@ -5,6 +5,7 @@
 /// Helpers for dealing with HTTP.
 library pub.http;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:json';
 
@@ -41,7 +42,7 @@ class PubHttpClient extends http.BaseClient {
 
     // TODO(nweiz): Ideally the timeout would extend to reading from the
     // response input stream, but until issue 3657 is fixed that's not feasible.
-    return timeout(inner.send(request).chain((streamedResponse) {
+    return timeout(inner.send(request).then((streamedResponse) {
       log.fine("Got response ${streamedResponse.statusCode} "
                "${streamedResponse.reasonPhrase}.");
 
@@ -52,10 +53,10 @@ class PubHttpClient extends http.BaseClient {
         return new Future.immediate(streamedResponse);
       }
 
-      return http.Response.fromStream(streamedResponse).transform((response) {
+      return http.Response.fromStream(streamedResponse).then((response) {
         throw new PubHttpException(response);
       });
-    }).transformException((e) {
+    }).catchError((e) {
       if (e is SocketIOException &&
           e.osError != null &&
           (e.osError.errorCode == 8 ||

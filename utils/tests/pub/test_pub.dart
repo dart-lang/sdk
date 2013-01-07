@@ -170,7 +170,7 @@ void servePackages(List<Map> pubspecs) {
 
       _servedPackageDir.contents.clear();
       for (var name in _servedPackages.keys) {
-        var versions = _servedPackages[name].keys.toList());
+        var versions = _servedPackages[name].keys.toList();
         _servedPackageDir.contents.addAll([
           file('$name.json',
               json.stringify({'versions': versions})),
@@ -465,7 +465,7 @@ void run() {
     return _runScheduled(sandboxDir, _scheduled);
   });
 
-  future.catchError((error) {
+  future.catchError((e) {
     // If an error occurs during testing, delete the sandbox, throw the error so
     // that the test framework sees it, then finally call asyncDone so that the
     // test framework knows we're done doing asynchronous stuff.
@@ -477,6 +477,10 @@ void run() {
       registerException(e.error, e.stackTrace);
       return true;
     });
+    subFuture.then((_) => registerException(e.error, e.stackTrace));
+    return true;
+  });
+
   timeout(future, _TIMEOUT, 'waiting for a test to complete')
       .then((_) => cleanup())
       .then((_) => asyncDone());
@@ -548,7 +552,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
 ///
 /// Any futures in [args] will be resolved before the process is started.
 ScheduledProcess startPubLish(ScheduledServer server, {List args}) {
-  var tokenEndpoint = server.url.transform((url) =>
+  var tokenEndpoint = server.url.then((url) =>
       url.resolve('/token').toString());
   if (args == null) args = [];
   args = flatten(['lish', '--server', tokenEndpoint, args]);
@@ -582,7 +586,7 @@ Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
     ensureDir(pathInSandbox(appPath)),
     _awaitObject(args),
     tokenEndpoint == null ? new Future.immediate(null) : tokenEndpoint
-  ]).chain((results) {
+  ]).then((results) {
     var args = results[1];
     var tokenEndpoint = results[2];
     // Find a Dart executable we can use to spawn. Use the same one that was
@@ -1160,7 +1164,7 @@ Future<Pair<List<String>, List<String>>> schedulePackageValidation(
         join(sandboxDir, sdkPath));
 
     return Entrypoint.load(join(sandboxDir, appPath), cache)
-        .chain((entrypoint) {
+        .then((entrypoint) {
       var validator = fn(entrypoint);
       return validator.validate().then((_) {
         return new Pair(validator.errors, validator.warnings);
@@ -1207,20 +1211,26 @@ class ScheduledProcess {
   /// The name of the process. Used for error reporting.
   final String name;
 
-  /// The process that's scheduled to run.
-  final Future<Process> _process;
+  /// The process future that's scheduled to run.
+  Future<Process> _processFuture;
+
+  /// The process that's scheduled to run. It may be null.
+  Process _process;
+
+  /// The exit code of the scheduled program. It may be null.
+  int _exitCode;
 
   /// A [StringInputStream] wrapping the stdout of the process that's scheduled
   /// to run.
-  final Future<StringInputStream> _stdout;
+  final Future<StringInputStream> _stdoutFuture;
 
   /// A [StringInputStream] wrapping the stderr of the process that's scheduled
   /// to run.
-  final Future<StringInputStream> _stderr;
+  final Future<StringInputStream> _stderrFuture;
 
   /// The exit code of the process that's scheduled to run. This will naturally
   /// only complete once the process has terminated.
-  Future<int> get _exitCode => _exitCodeCompleter.future;
+  Future<int> get _exitCodeFuture => _exitCodeCompleter.future;
 
   /// The completer for [_exitCode].
   final Completer<int> _exitCodeCompleter = new Completer();
@@ -1234,9 +1244,12 @@ class ScheduledProcess {
 
   /// Wraps a [Process] [Future] in a scheduled process.
   ScheduledProcess(this.name, Future<Process> process)
-    : _process = process,
-      _stdout = process.then((p) => new StringInputStream(p.stdout)),
-      _stderr = process.then((p) => new StringInputStream(p.stderr)) {
+    : _processFuture = process,
+      _stdoutFuture = process.then((p) => new StringInputStream(p.stdout)),
+      _stderrFuture = process.then((p) => new StringInputStream(p.stderr)) {
+    process.then((p) {
+      _process = p;
+    });
 
     _schedule((_) {
       if (!_endScheduled) {
@@ -1244,9 +1257,10 @@ class ScheduledProcess {
             "or kill() called before the test is run.");
       }
 
-      return _process.then((p) {
+      return process.then((p) {
         p.onExit = (c) {
           if (_endExpected) {
+            _exitCode = c;
             _exitCodeCompleter.complete(c);
             return;
           }
@@ -1269,31 +1283,30 @@ class ScheduledProcess {
     });
 
     _scheduleOnException((_) {
-      if (!_process.hasValue) return;
+      if (_process == null) return;
 
-      if (!_exitCode.hasValue) {
+      if (_exitCode == null) {
         print("\nKilling process $name prematurely.");
         _endExpected = true;
-        _process.value.kill();
+        _process.kill();
       }
 
       return _printStreams();
     });
 
     _scheduleCleanup((_) {
-      if (!_process.hasValue) return;
+      if (_process == null) return;
       // Ensure that the process is dead and we aren't waiting on any IO.
-      var process = _process.value;
-      process.kill();
-      process.stdout.close();
-      process.stderr.close();
+      _process.kill();
+      _process.stdout.close();
+      _process.stderr.close();
     });
   }
 
   /// Reads the next line of stdout from the process.
   Future<String> nextLine() {
     return _scheduleValue((_) {
-      return timeout(_stdout.chain((stream) => readLine(stream)),
+      return timeout(_stdoutFuture.then((stream) => readLine(stream)),
           _SCHEDULE_TIMEOUT,
           "waiting for the next stdout line from process $name");
     });
@@ -1302,7 +1315,7 @@ class ScheduledProcess {
   /// Reads the next line of stderr from the process.
   Future<String> nextErrLine() {
     return _scheduleValue((_) {
-      return timeout(_stderr.chain((stream) => readLine(stream)),
+      return timeout(_stderrFuture.then((stream) => readLine(stream)),
           _SCHEDULE_TIMEOUT,
           "waiting for the next stderr line from process $name");
     });
@@ -1317,7 +1330,8 @@ class ScheduledProcess {
     }
 
     return _scheduleValue((_) {
-      return timeout(_stdout.chain(consumeStringInputStream), _SCHEDULE_TIMEOUT,
+      return timeout(_stdoutFuture.then(consumeStringInputStream),
+          _SCHEDULE_TIMEOUT,
           "waiting for the last stdout line from process $name");
     });
   }
@@ -1331,14 +1345,16 @@ class ScheduledProcess {
     }
 
     return _scheduleValue((_) {
-      return timeout(_stderr.chain(consumeStringInputStream), _SCHEDULE_TIMEOUT,
+      return timeout(_stderrFuture.then(consumeStringInputStream),
+          _SCHEDULE_TIMEOUT,
           "waiting for the last stderr line from process $name");
     });
   }
 
   /// Writes [line] to the process as stdin.
   void writeLine(String line) {
-    _schedule((_) => _process.then((p) => p.stdin.writeString('$line\n')));
+    _schedule((_) => _processFuture.then(
+        (p) => p.stdin.writeString('$line\n')));
   }
 
   /// Kills the process, and waits until it's dead.
@@ -1346,11 +1362,9 @@ class ScheduledProcess {
     _endScheduled = true;
     _schedule((_) {
       _endExpected = true;
-      return _process.chain((p) {
-        p.kill();
-        return timeout(_exitCode, _SCHEDULE_TIMEOUT,
-            "waiting for process $name to die");
-      });
+      _process.kill();
+      timeout(_exitCodeCompleter.future, _SCHEDULE_TIMEOUT,
+          "waiting for process $name to die");
     });
   }
 
@@ -1360,7 +1374,7 @@ class ScheduledProcess {
     _endScheduled = true;
     _schedule((_) {
       _endExpected = true;
-      return timeout(_exitCode, _SCHEDULE_TIMEOUT,
+      return timeout(_exitCodeCompleter.future, _SCHEDULE_TIMEOUT,
           "waiting for process $name to exit").then((exitCode) {
         if (expectedExitCode != null) {
           expect(exitCode, equals(expectedExitCode));
@@ -1384,8 +1398,12 @@ class ScheduledProcess {
       });
     }
 
-    return printStream('stdout', _stdout.value)
-        .chain((_) => printStream('stderr', _stderr.value));
+    return _stdoutFuture.then((stdout) {
+      return _stderrFuture.then((stderr) {
+        return printStream('stdout', stdout)
+            .then((_) => printStream('stderr', stderr));
+      });
+    });
   }
 }
 
@@ -1456,7 +1474,7 @@ class ScheduledServer {
   /// Raises an error complaining of an unexpected request.
   void _awaitHandle(HttpRequest request, HttpResponse response) {
     if (_ignored.contains(new Pair(request.method, request.path))) return;
-    var future = timeout(new Future.immediate(null).chain((_) {
+    var future = timeout(new Future.immediate(null).then((_) {
       if (_handlers.isEmpty) {
         fail('Unexpected ${request.method} request to ${request.path}.');
       }

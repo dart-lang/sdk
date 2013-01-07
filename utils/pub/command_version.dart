@@ -4,6 +4,7 @@
 
 library command_version;
 
+import 'dart:async';
 import 'pub.dart';
 
 /// Handles the `version` pub command. 

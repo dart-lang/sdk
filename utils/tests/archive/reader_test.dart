@@ -55,7 +55,7 @@ main() {
     reader.filter.gzip = true;
 
     var future = reader.openFilename("$dataPath/test-archive.tar.gz")
-      .chain((input) => input.readAll())
+      .then((input) => input.readAll())
       .then((entries) {
       entries = entries
           .mappedBy((entry) => [entry.pathname, entry.contents.trim()])
@@ -76,7 +76,7 @@ main() {
     reader.filter.gzip = true;
 
     var future = new File("$dataPath/test-archive.tar.gz").readAsBytes()
-      .chain((bytes) => reader.openData(bytes))
+      .then((bytes) => reader.openData(bytes))
       .then((input) {
       var log = <String>[];
       input.onEntry = (entry) => guardAsync(() {

@@ -4,6 +4,8 @@
 
 library pubspec_field_validator;
 
+import 'dart:async';
+
 import '../entrypoint.dart';
 import '../system_cache.dart';
 import '../validator.dart';

@@ -75,7 +75,7 @@ class ArchiveInputStream {
     this.onError = (e, stack) => completer.completeException(e, stack);
     this.onClosed = () => completer.complete(result);
 
-    return completer.future.chain(Futures.wait);
+    return completer.future.then(Futures.wait);
   }
 
   /**
@@ -130,11 +130,11 @@ class ArchiveInputStream {
   Future _consumeHeaders() {
     if (closed) return new Future.immediate(null);
     var data;
-    return call(NEXT_HEADER, _id.value).chain((_data) {
+    return call(NEXT_HEADER, _id.value).then((_data) {
       data = _data;
       if (data == null) return new Future.immediate(null);
       return _emit(new archive.ArchiveEntry.internal(data, _id.value)).
-        chain((_) => _consumeHeaders());
+        then((_) => _consumeHeaders());
     });
   }
 
@@ -145,16 +145,16 @@ class ArchiveInputStream {
    */
   Future _emit(ArchiveEntry entry) {
     _currentEntry = entry;
-    var future = _onEntryCompleter.future.chain((onEntry) {
+    var future = _onEntryCompleter.future.then((onEntry) {
       if (closed) return new Future.immediate(null);
       var result = onEntry(entry);
       if (result is Future) return result;
       return new Future.immediate(null);
-    }).chain((_) {
+    }).then((_) {
       if (entry.isInputOpen) return entry.inputComplete;
       return new Future.immediate(null);
     });
-    future.onComplete((_) {
+    future.whenComplete(() {
       _currentEntry = null;
       entry.close();
     });

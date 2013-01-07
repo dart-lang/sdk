@@ -4,6 +4,7 @@
 
 library oauth2;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:uri';
 
@@ -53,7 +54,7 @@ Credentials _credentials;
 Future clearCredentials(SystemCache cache) {
   _credentials = null;
   var credentialsFile = _credentialsFile(cache);
-  return fileExists(credentialsFile).chain((exists) {
+  return fileExists(credentialsFile).then((exists) {
     if (exists) return deleteFile(credentialsFile);
     return new Future.immediate(null);
   });
@@ -66,25 +67,25 @@ Future clearCredentials(SystemCache cache) {
 /// prompting the user for their authorization. It will also re-authorize and
 /// re-run [fn] if a recoverable authorization error is detected.
 Future withClient(SystemCache cache, Future fn(Client client)) {
-  return _getClient(cache).chain((client) {
+  return _getClient(cache).then((client) {
     var completer = new Completer();
     var future = fn(client);
-    future.onComplete((_) {
+    future.whenComplete(() {
       try {
         client.close();
         // Be sure to save the credentials even when an error happens. Also be
         // sure to pipe the exception from `future` to `completer`.
         chainToCompleter(
-            _saveCredentials(cache, client.credentials).chain((_) => future),
+            _saveCredentials(cache, client.credentials).then((_) => future),
             completer);
       } catch (e, stackTrace) {
-        // onComplete will drop exceptions on the floor. We want to ensure that
-        // any programming errors here don't go un-noticed. See issue 4127.
+        // whenComplete will drop exceptions on the floor. We want to ensure
+        // that any programming errors here don't go un-noticed. See issue 4127.
         completer.completeException(e, stackTrace);
       }
     });
     return completer.future;
-  }).transformException((e) {
+  }).catchError((e) {
     if (e is ExpirationException) {
       log.error("Pub's authorization to upload packages has expired and "
           "can't be automatically refreshed.");
@@ -93,7 +94,7 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
       var message = "OAuth2 authorization failed";
       if (e.description != null) message = "$message (${e.description})";
       log.error("$message.");
-      return clearCredentials(cache).chain((_) => withClient(cache, fn));
+      return clearCredentials(cache).then((_) => withClient(cache, fn));
     } else {
       throw e;
     }
@@ -103,11 +104,11 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
 /// Gets a new OAuth2 client. If saved credentials are available, those are
 /// used; otherwise, the user is prompted to authorize the pub client.
 Future<Client> _getClient(SystemCache cache) {
-  return _loadCredentials(cache).chain((credentials) {
+  return _loadCredentials(cache).then((credentials) {
     if (credentials == null) return _authorize();
     return new Future.immediate(new Client(
         _identifier, _secret, credentials, httpClient: curlClient));
-  }).chain((client) {
+  }).then((client) {
     return _saveCredentials(cache, client.credentials).then((_) => client);
   });
 }
@@ -124,7 +125,7 @@ Future<Credentials> _loadCredentials(SystemCache cache) {
   }
 
   var path = _credentialsFile(cache);
-  return fileExists(path).chain((credentialsExist) {
+  return fileExists(path).then((credentialsExist) {
     if (!credentialsExist) {
       log.fine('No credentials found at $path.');
       return new Future.immediate(null);
@@ -140,7 +141,7 @@ Future<Credentials> _loadCredentials(SystemCache cache) {
 
       return credentials;
     });
-  }).transformException((e) {
+  }).catchError((e) {
     log.error('Warning: could not load the saved OAuth2 credentials: $e\n'
         'Obtaining new credentials...');
     return null; // null means re-authorize
@@ -153,7 +154,7 @@ Future _saveCredentials(SystemCache cache, Credentials credentials) {
   log.fine('Saving OAuth2 credentials.');
   _credentials = credentials;
   var path = _credentialsFile(cache);
-  return ensureDir(dirname(path)).chain((_) =>
+  return ensureDir(dirname(path)).then((_) =>
       writeTextFile(path, credentials.toJson(), dontLogContents: true));
 }
 
@@ -186,7 +187,7 @@ Future<Client> _authorize() {
   var server = new HttpServer();
   server.addRequestHandler((request) => request.path == "/",
       (request, response) {
-    chainToCompleter(new Future.immediate(null).chain((_) {
+    chainToCompleter(new Future.immediate(null).then((_) {
       log.message('Authorization received, processing...');
       var queryString = request.queryString;
       if (queryString == null) queryString = '';

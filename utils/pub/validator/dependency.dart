@@ -4,6 +4,8 @@
 
 library dependency_validator;
 
+import 'dart:async';
+
 import '../entrypoint.dart';
 import '../hosted_source.dart';
 import '../http.dart';
@@ -47,8 +49,8 @@ class DependencyValidator extends Validator {
   Future _warnAboutSource(PackageRef ref) {
     return entrypoint.cache.sources['hosted']
         .getVersions(ref.name, ref.name)
-        .transformException((e) => <Version>[])
-        .transform((versions) {
+        .catchError((e) => <Version>[])
+        .then((versions) {
       var constraint;
       var primary = Version.primary(versions);
       if (primary != null) {
@@ -73,7 +75,7 @@ class DependencyValidator extends Validator {
 
   /// Warn that dependencies should have version constraints.
   Future _warnAboutConstraint(PackageRef ref) {
-    return entrypoint.loadLockFile().transform((lockFile) {
+    return entrypoint.loadLockFile().then((lockFile) {
       var message = 'Your dependency on "${ref.name}" should have a version '
           'constraint.';
       var locked = lockFile.packages[ref.name];

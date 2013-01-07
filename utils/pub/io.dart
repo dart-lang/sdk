@@ -281,8 +281,8 @@ Future<List<String>> listDir(dir,
       contents.add(join(dir, basename(file)));
     };
 
-    return completer.future.chain((contents) {
-      return Futures.wait(children).transform((childContents) {
+    return completer.future.then((contents) {
+      return Futures.wait(children).then((childContents) {
         contents.addAll(flatten(childContents));
         return contents;
       });
@@ -346,14 +346,14 @@ Future _attemptRetryable(Future callback()) {
   var attempts = 0;
   makeAttempt(_) {
     attempts++;
-    return callback().transformException((e) {
+    return callback().catchError((e) {
       if (attempts >= 10) {
         throw 'Could not complete operation. Gave up after $attempts attempts.';
       }
 
       // Wait a bit and try again.
       log.fine("Operation failed, retrying (attempt $attempts).");
-      return sleep(500).chain(makeAttempt);
+      return sleep(500).then(makeAttempt);
     });
   }
 
@@ -448,7 +448,7 @@ final _stringStdin = new StringInputStream(stdin);
 Future<bool> confirm(String message) {
   log.fine('Showing confirm message: $message');
   stdout.writeString("$message (y/n)? ");
-  return readLine().transform((line) => new RegExp(r"^[yY]").hasMatch(line));
+  return readLine().then((line) => new RegExp(r"^[yY]").hasMatch(line));
 }
 
 /// Returns a single line read from a [StringInputStream]. By default, reads
@@ -698,7 +698,7 @@ Future withTempDir(Future fn(String path)) {
     tempDir = dir;
     return fn(tempDir.path);
   });
-  future.catchError((_) {}).then(_) {
+  future.catchError((_) {}).then((_) {
     log.fine('Cleaning up temp directory ${tempDir.path}.');
     deleteDir(tempDir);
   });
@@ -912,12 +912,12 @@ InputStream createTarGz(List contents, {baseDir}) {
     // directory explicitly here intentionally. The former ensures that the
     // files added to the archive have the correct relative path in the archive.
     // The latter enables relative paths in the "-i" args to be resolved.
-    return runProcess(command, args, workingDir: baseDir).chain((_) {
+    return runProcess(command, args, workingDir: baseDir).then((_) {
       // GZIP it. 7zip doesn't support doing both as a single operation. Send
       // the output to stdout.
       args = ["a", "unused", "-tgzip", "-so", tarFile];
       return startProcess(command, args);
-    }).chain((process) {
+    }).then((process) {
       // Drain and discard 7zip's stderr. 7zip writes its normal output to
       // stderr. We don't want to show that since it's meaningless.
       // TODO(rnystrom): Should log this and display it if an actual error

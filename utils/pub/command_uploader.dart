@@ -4,6 +4,7 @@
 
 library command_uploader;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:uri';
 
@@ -56,12 +57,12 @@ class UploaderCommand extends PubCommand {
       exit(exit_codes.USAGE);
     }
 
-    return new Future.immediate(null).chain((_) {
+    return new Future.immediate(null).then((_) {
       var package = commandOptions['package'];
       if (package != null) return new Future.immediate(package);
       return Entrypoint.load(path.current, cache)
-          .transform((entrypoint) => entrypoint.root.name);
-    }).chain((package) {
+          .then((entrypoint) => entrypoint.root.name);
+    }).then((package) {
       var uploader = commandOptions.rest[0];
       return oauth2.withClient(cache, (client) {
         if (command == 'add') {
@@ -74,7 +75,7 @@ class UploaderCommand extends PubCommand {
           return client.delete(url);
         }
       });
-    }).transform(handleJsonSuccess).transformException((e) {
+    }).then(handleJsonSuccess).catchError((e) {
       if (e is! PubHttpException) throw e;
       handleJsonError(e.response);
     });

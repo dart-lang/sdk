@@ -5,7 +5,7 @@
 library pub_uploader_test;
 
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 
 import 'test_pub.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
@@ -24,7 +24,7 @@ final USAGE_STRING = '''
     ''';
 
 ScheduledProcess startPubUploader(ScheduledServer server, List<String> args) {
-  var tokenEndpoint = server.url.transform((url) =>
+  var tokenEndpoint = server.url.then((url) =>
       url.resolve('/token').toString());
   args = flatten(['uploader', '--server', tokenEndpoint, args]);
   return startPub(args: args, tokenEndpoint: tokenEndpoint);
@@ -49,11 +49,11 @@ main() {
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
     server.handle('POST', '/packages/pkg/uploaders.json', (request, response) {
-      expect(consumeInputStream(request.inputStream).transform((bodyBytes) {
+      expect(consumeInputStream(request.inputStream).then((bodyBytes) {
         expect(new String.fromCharCodes(bodyBytes), equals('email=email'));
 
         response.headers.contentType = new ContentType("application", "json");
-        response.outputStream.writeString(JSON.stringify({
+        response.outputStream.writeString(json.stringify({
           'success': {'message': 'Good job!'}
         }));
         response.outputStream.close();

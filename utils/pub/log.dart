@@ -5,6 +5,7 @@
 /// Message logging.
 library log;
 
+import 'dart:async';
 import 'dart:io';
 import 'io.dart';
 

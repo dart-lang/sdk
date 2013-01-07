@@ -4,6 +4,8 @@
 
 library directory_validator;
 
+import 'dart:async';
+
 import '../entrypoint.dart';
 import '../io.dart';
 import '../validator.dart';
@@ -16,7 +18,7 @@ class DirectoryValidator extends Validator {
   static final _PLURAL_NAMES = ["tools", "tests", "docs", "examples"];
 
   Future validate() {
-    return listDir(entrypoint.root.dir).chain((dirs) {
+    return listDir(entrypoint.root.dir).then((dirs) {
       return Futures.wait(dirs.mappedBy((dir) {
         return dirExists(dir).then((exists) {
           if (!exists) return;

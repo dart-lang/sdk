@@ -6,7 +6,7 @@ library curl_client_test;
 
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:uri';
 
 import '../../../pkg/unittest/lib/unittest.dart';
@@ -123,7 +123,7 @@ void startServer() {
         outputEncoding = Encoding.ASCII;
       }
 
-      var body = JSON.stringify(content);
+      var body = json.stringify(content);
       response.contentLength = body.length;
       response.outputStream.writeString(body, outputEncoding);
       response.outputStream.close();
