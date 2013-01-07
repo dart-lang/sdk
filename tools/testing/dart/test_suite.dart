@@ -1412,7 +1412,7 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'dart2dart', 'dartc'];
+    var COMPILERS = const ['none', 'dart2dart'];
     var RUNTIMES = const ['none', 'vm', 'drt', 'dartium'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
