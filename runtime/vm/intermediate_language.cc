@@ -2197,7 +2197,7 @@ RangeBoundary RangeBoundary::LowerBound() const {
   if (IsConstant()) return *this;
   return Add(Range::ConstantMin(symbol()->range()),
              RangeBoundary::FromConstant(offset_),
-             MinSmi());
+             OverflowedMinSmi());
 }
 
 
@@ -2205,7 +2205,7 @@ RangeBoundary RangeBoundary::UpperBound() const {
   if (IsConstant()) return *this;
   return Add(Range::ConstantMax(symbol()->range()),
              RangeBoundary::FromConstant(offset_),
-             MaxSmi());
+             OverflowedMaxSmi());
 }
 
 
@@ -2355,8 +2355,8 @@ RangeBoundary RangeBoundary::Min(RangeBoundary a, RangeBoundary b) {
     return (a.offset() <= b.offset()) ? a : b;
   }
 
-  const intptr_t min_a = a.LowerBound().value();
-  const intptr_t min_b = b.LowerBound().value();
+  const intptr_t min_a = a.LowerBound().Clamp().value();
+  const intptr_t min_b = b.LowerBound().Clamp().value();
 
   return RangeBoundary::FromConstant(Utils::Minimum(min_a, min_b));
 }
@@ -2367,8 +2367,8 @@ RangeBoundary RangeBoundary::Max(RangeBoundary a, RangeBoundary b) {
     return (a.offset() >= b.offset()) ? a : b;
   }
 
-  const intptr_t max_a = a.UpperBound().value();
-  const intptr_t max_b = b.UpperBound().value();
+  const intptr_t max_a = a.UpperBound().Clamp().value();
+  const intptr_t max_b = b.UpperBound().Clamp().value();
 
   return RangeBoundary::FromConstant(Utils::Maximum(max_a, max_b));
 }

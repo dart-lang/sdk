@@ -1720,12 +1720,12 @@ class Range : public ZoneAllocated {
 
   static RangeBoundary ConstantMin(Range* range) {
     if (range == NULL) return RangeBoundary::MinSmi();
-    return range->min().LowerBound();
+    return range->min().LowerBound().Clamp();
   }
 
   static RangeBoundary ConstantMax(Range* range) {
     if (range == NULL) return RangeBoundary::MaxSmi();
-    return range->max().UpperBound();
+    return range->max().UpperBound().Clamp();
   }
 
   // Inclusive.
