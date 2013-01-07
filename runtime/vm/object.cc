@@ -414,11 +414,14 @@ void Object::InitOnce() {
 
   ASSERT(class_class() != null_);
 
-  // Pre-allocate the Array and OneByteString class in the vm isolate so that
-  // we can create a symbol table and populate it with some frequently used
-  // strings as symbols.
+  // Pre-allocate classes in the vm isolate so that we can for example create a
+  // symbol table and populate it with some frequently used strings as symbols.
   cls = Class::New<Array>();
   isolate->object_store()->set_array_class(cls);
+  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
+  cls = Class::New<ImmutableArray>();
+  isolate->object_store()->set_immutable_array_class(cls);
+  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls = Class::NewStringClass(kOneByteStringCid);
   isolate->object_store()->set_one_byte_string_class(cls);
   cls = Class::NewStringClass(kTwoByteStringCid);

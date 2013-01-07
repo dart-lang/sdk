@@ -57,6 +57,9 @@ class ArgumentsDescriptor : public ValueObject {
   // arguments. All arguments are positional.
   static RawArray* New(intptr_t count);
 
+  // Initialize the preallocated fixed length arguments descriptors cache.
+  static void InitOnce();
+
  private:
   // Absolute indexes into the array.
   enum {
@@ -72,12 +75,21 @@ class ArgumentsDescriptor : public ValueObject {
     kNamedEntrySize,
   };
 
+  enum {
+    kCachedDescriptorCount = 32
+  };
+
   static intptr_t LengthFor(intptr_t count) {
     // Add 1 for the terminating null.
     return kFirstNamedEntryIndex + (kNamedEntrySize * count) + 1;
   }
 
+  static RawArray* NewNonCached(intptr_t count, bool canonicalize = true);
+
   const Array& array_;
+
+  // A cache of VM heap allocated arguments descriptors.
+  static RawArray* cached_args_descriptors_[kCachedDescriptorCount];
 
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
 };
