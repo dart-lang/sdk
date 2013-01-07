@@ -6912,9 +6912,10 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
   intptr_t cascade_pos = TokenPos();
   LocalVariable* cascade_receiver_var =
       CreateTempConstVariable(cascade_pos, "casc");
+  SequenceNode* cascade = new SequenceNode(cascade_pos, NULL);
   StoreLocalNode* save_cascade =
       new StoreLocalNode(cascade_pos, cascade_receiver_var, expr);
-  current_block_->statements->Add(save_cascade);
+  cascade->Add(save_cascade);
   while (CurrentToken() == Token::kCASCADE) {
     cascade_pos = TokenPos();
     LoadLocalNode* load_cascade_receiver =
@@ -6952,10 +6953,11 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
       }
       expr = assign_expr;
     }
-    current_block_->statements->Add(expr);
+    cascade->Add(expr);
   }
-  // Result of the cascade is the receiver.
-  return new LoadLocalNode(cascade_pos, cascade_receiver_var);
+  // The result is a pair of the (side effects of the) cascade sequence
+  // followed by the (value of the) receiver temp variable load.
+  return new LoadLocalNode(cascade_pos, cascade_receiver_var, cascade);
 }
 
 
@@ -7539,6 +7541,8 @@ AstNode* Parser::ParsePostfixExpr() {
         save,
         new LiteralNode(postfix_expr_pos, Smi::ZoneHandle(Smi::New(1))));
     AstNode* store = CreateAssignmentNode(left_expr, add);
+    // The result is a pair of the (side effects of the) store followed by
+    // the (value of the) initial value temp variable load.
     LoadLocalNode* load_res =
         new LoadLocalNode(postfix_expr_pos, temp, store);
     return load_res;
