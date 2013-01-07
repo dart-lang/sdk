@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -164,9 +164,9 @@ main() {
     });
 
     test('read throws an error for a 4** status code', () {
-      http.read(serverUrl.resolve('/error')).catchError(expectAsync1((e) {
-        expect(true, e.error is HttpException);
-      }));
+      http.read(serverUrl.resolve('/error'))
+          .then((_) { throw "Error expected for readBytes"; })
+          .catchError(expectAsync1((e) { }), test: (e) => e is HttpException);
     });
 
     test('readBytes', () {
@@ -187,9 +187,9 @@ main() {
     });
 
     test('readBytes throws an error for a 4** status code', () {
-      http.readBytes(serverUrl.resolve('/error')).catchError(expectAsync1((e) {
-        expect(true, e.error is HttpException);
-      }));
+        http.readBytes(serverUrl.resolve('/error'))
+            .then((_) { throw "Error expected for readBytes"; })
+            .catchError(expectAsync1((e) { }), test: (e) => e is HttpException);
     });
   });
 }

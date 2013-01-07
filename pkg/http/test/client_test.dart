@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,7 +25,7 @@ void main() {
       expect(response.request, equals(request));
       expect(response.statusCode, equals(200));
       return consumeInputStream(response.stream);
-    }).then((bytes) => new String.fromCharCodes(bytes));
+    }).then(expectAsync1((bytes) => new String.fromCharCodes(bytes)));
     future.catchError((_) {}).then((_) => client.close());
 
     future.then(expectAsync1((content) {
