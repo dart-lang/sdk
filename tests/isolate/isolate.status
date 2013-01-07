@@ -39,6 +39,21 @@ compute_this_script_browser_test: Pass
 
 
 [ $compiler == dart2js ]
+count_test: Fail # Timer interface not supported; dartbug.com/7728.
+cross_isolate_message_test: Fail # Timer interface not supported; dartbug.com/7728.
+isolate_complex_messages_test: Fail # Timer interface not supported; dartbug.com/7728.
+mandel_isolate_test: Fail # Timer interface not supported; dartbug.com/7728.
+message2_test: Fail # Timer interface not supported; dartbug.com/7728.
+message_test: Fail # Timer interface not supported; dartbug.com/7728.
+mint_maker_test: Fail # Timer interface not supported; dartbug.com/7728.
+nested_spawn2_test: Fail # Timer interface not supported; dartbug.com/7728.
+nested_spawn_test: Fail # Timer interface not supported; dartbug.com/7728.
+request_reply_test: Fail # Timer interface not supported; dartbug.com/7728.
+spawn_function_custom_class_test: Fail # Timer interface not supported; dartbug.com/7728.
+spawn_function_test: Fail # Timer interface not supported; dartbug.com/7728.
+stream_mangling_test: Fail # Timer interface not supported; dartbug.com/7728.
+unresolved_ports_test: Fail # Timer interface not supported; dartbug.com/7728.
+
 serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
 illegal_msg_test: Fail # Issue 6750
 

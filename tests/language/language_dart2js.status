@@ -91,6 +91,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+typed_message_test: Fail # Timer interface not supported; dartbug.com/7728.
 call_operator_test: Fail # Issue 7622.
 class_literal_test: Fail # Issue 7626.
 identical_closure_test: Fail # Fix for identical closure has not been implemented in dart2js yet: https://chromiumcodereview.appspot.com/11612022/
