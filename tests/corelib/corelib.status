@@ -75,7 +75,7 @@ map_keys2_test: Fail # Generic types aren't right.
 map_values2_test: Fail # Generic types aren't right
 
 ## Tests failing after merge of experimental library branch.
-[ $compiler == dart2js && ($runtime == d8 || $runtime == drt) ]
+[ $compiler == dart2js ]
 # Tests fail due to bug in generics on constants, issue 6827
 iterable_to_list_test: Fail
 iterable_to_set_test: Fail
@@ -83,7 +83,7 @@ iterable_to_set_test: Fail
 # Issue 7734.
 string_replace_all_test: Crash
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == drt) && $checked ]
+[ $compiler == dart2js && $checked ]
 # Issue 7733.
 apply2_test: Fail
 apply_test: Fail
