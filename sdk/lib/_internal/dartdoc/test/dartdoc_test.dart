@@ -146,7 +146,7 @@ Future _runDartdoc(List<String> arguments, {int exitCode: 0}) {
   var dartdoc = 'bin/dartdoc.dart';
   arguments.insertRange(0, 1, dartdoc);
   return Process.run(dartBin, arguments)
-      .transform((result) {
+      .then((result) {
         expect(result.exitCode, exitCode);
       });
 }

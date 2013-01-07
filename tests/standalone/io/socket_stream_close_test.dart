@@ -9,8 +9,9 @@
 //
 // Test socket close events.
 
-import "dart:io";
-import "dart:isolate";
+import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
 
 const SERVERSHUTDOWN = -1;
 const ITERATIONS = 10;

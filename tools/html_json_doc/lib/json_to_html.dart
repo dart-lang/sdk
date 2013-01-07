@@ -7,7 +7,7 @@
  * the HTML files the comments are associated with.
  *
  * The format of the JSON file is:
- * 
+ *
  *     {
  *       "$filename":
  *         {
@@ -22,9 +22,9 @@
  */
 library json_to_html;
 
-import 'dart:json';
+import 'dart:json' as JSON;
 import 'dart:io';
-
+import 'dart:async';
 
 /// True if any errors were triggered through the conversion.
 bool _anyErrors = false;
@@ -139,7 +139,7 @@ void _convertFile(File file, Map<String, List<String>> comments) {
         '${new Path(file.fullPathSync()).filename}:\n"$key"');
     _anyErrors = true;
   });
-  
+
   // TODO(amouravski): file.writeAsStringSync('${Strings.join(fileLines, '\n')}\n');
   var outputStream = file.openOutputStream();
   outputStream.writeString(Strings.join(fileLines, '\n'));

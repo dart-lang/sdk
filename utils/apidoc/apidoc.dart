@@ -14,8 +14,9 @@
  */
 library apidoc;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 import 'html_diff.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
@@ -87,7 +88,7 @@ void main() {
 
   print('Parsing MDN data...');
   final mdnFile = new File.fromPath(doc.scriptDir.append('mdn/database.json'));
-  final mdn = JSON.parse(mdnFile.readAsStringSync());
+  final mdn = json.parse(mdnFile.readAsStringSync());
 
   print('Cross-referencing dart:html...');
   HtmlDiff.initialize(libPath);
@@ -484,7 +485,10 @@ class Apidoc extends doc.Dartdoc {
       // Use the corresponding DOM type when searching MDN.
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
-      typeString = domTypes.iterator().next();
+      // TODO(floitsch): switch to domTypes.first, once that's implemented.
+      var iter = domTypes.iterator;
+      iter.moveNext();
+      typeString = iter.current;
     } else {
       // Not a DOM type.
       return null;
@@ -518,7 +522,10 @@ class Apidoc extends doc.Dartdoc {
       // Use the corresponding DOM member when searching MDN.
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
-      memberString = domMembers.iterator().next();
+      // TODO(floitsch): switch to domTypes.first, once that's implemented.
+      var iter = domMembers.iterator;
+      iter.moveNext();
+      memberString = iter.current;
     } else {
       // Not a DOM type.
       return null;

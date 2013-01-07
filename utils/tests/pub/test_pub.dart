@@ -8,9 +8,9 @@
 /// tests like that.
 library test_pub;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:math';
 import 'dart:uri';
 
@@ -80,7 +80,7 @@ void serve([List<Descriptor> contents]) {
   var baseDir = dir("serve-dir", contents);
 
   _schedule((_) {
-    return _closeServer().transform((_) {
+    return _closeServer().then((_) {
       _server = new HttpServer();
       _server.defaultRequestHandler = (request, response) {
         var path = request.uri.replaceFirst("/", "").split("/");
@@ -101,9 +101,7 @@ void serve([List<Descriptor> contents]) {
           response.contentLength = data.length;
           response.outputStream.write(data);
           response.outputStream.close();
-        });
-
-        future.handleException((e) {
+        }).catchError((e) {
           print("Exception while handling ${request.uri}: $e");
           response.statusCode = 500;
           response.reasonPhrase = e.message;
@@ -161,7 +159,7 @@ void servePackages(List<Map> pubspecs) {
   }
 
   _schedule((_) {
-    return _awaitObject(pubspecs).transform((resolvedPubspecs) {
+    return _awaitObject(pubspecs).then((resolvedPubspecs) {
       for (var spec in resolvedPubspecs) {
         var name = spec['name'];
         var version = spec['version'];
@@ -172,12 +170,12 @@ void servePackages(List<Map> pubspecs) {
 
       _servedPackageDir.contents.clear();
       for (var name in _servedPackages.keys) {
-        var versions = _servedPackages[name].keys;
+        var versions = _servedPackages[name].keys.toList());
         _servedPackageDir.contents.addAll([
           file('$name.json',
-              JSON.stringify({'versions': versions})),
+              json.stringify({'versions': versions})),
           dir(name, [
-            dir('versions', flatten(versions.map((version) {
+            dir('versions', flatten(versions.mappedBy((version) {
               return [
                 file('$version.yaml', _servedPackages[name][version]),
                 tar('$version.tar.gz', [
@@ -194,7 +192,7 @@ void servePackages(List<Map> pubspecs) {
 }
 
 /// Converts [value] into a YAML string.
-String yaml(value) => JSON.stringify(value);
+String yaml(value) => json.stringify(value);
 
 /// Describes a package that passes all validation.
 Descriptor get normalPackage => dir(appPath, [
@@ -211,7 +209,7 @@ Descriptor get normalPackage => dir(appPath, [
 /// [contents] may contain [Future]s that resolve to serializable objects,
 /// which may in turn contain [Future]s recursively.
 Descriptor pubspec(Map contents) {
-  return async(_awaitObject(contents).transform((resolvedContents) =>
+  return async(_awaitObject(contents).then((resolvedContents) =>
       file("pubspec.yaml", yaml(resolvedContents))));
 }
 
@@ -261,7 +259,7 @@ Map package(String name, String version, [List dependencies]) {
 /// Describes a map representing a dependency on a package in the package
 /// repository.
 Map dependency(String name, [String versionConstraint]) {
-  var url = port.transform((p) => "http://localhost:$p");
+  var url = port.then((p) => "http://localhost:$p");
   var dependency = {"hosted": {"name": name, "url": url}};
   if (versionConstraint != null) dependency["version"] = versionConstraint;
   return dependency;
@@ -331,7 +329,7 @@ DirectoryDescriptor cacheDir(Map packages) {
   });
   return dir(cachePath, [
     dir('hosted', [
-      async(port.transform((p) => dir('localhost%58$p', contents)))
+      async(port.then((p) => dir('localhost%58$p', contents)))
     ])
   ]);
 }
@@ -344,7 +342,7 @@ Descriptor credentialsFile(
     String accessToken,
     {String refreshToken,
      Date expiration}) {
-  return async(server.url.transform((url) {
+  return async(server.url.then((url) {
     return dir(cachePath, [
       file('credentials.json', new oauth2.Credentials(
           accessToken,
@@ -364,10 +362,10 @@ DirectoryDescriptor appDir(List dependencies) =>
 /// Converts a list of dependencies as passed to [package] into a hash as used
 /// in a pubspec.
 Future<Map> _dependencyListToMap(List<Map> dependencies) {
-  return _awaitObject(dependencies).transform((resolvedDependencies) {
+  return _awaitObject(dependencies).then((resolvedDependencies) {
     var result = <String, Map>{};
     for (var dependency in resolvedDependencies) {
-      var keys = dependency.keys.filter((key) => key != "version");
+      var keys = dependency.keys.where((key) => key != "version");
       var sourceName = only(keys);
       var source;
       switch (sourceName) {
@@ -453,7 +451,7 @@ void run() {
   var asyncDone = expectAsync0(() {});
 
   Future cleanup() {
-    return _runScheduled(createdSandboxDir, _scheduledCleanup).chain((_) {
+    return _runScheduled(createdSandboxDir, _scheduledCleanup).then((_) {
       _scheduled = null;
       _scheduledCleanup = null;
       _scheduledOnException = null;
@@ -462,29 +460,25 @@ void run() {
     });
   }
 
-  final future = _setUpSandbox().chain((sandboxDir) {
+  final future = _setUpSandbox().then((sandboxDir) {
     createdSandboxDir = sandboxDir;
     return _runScheduled(sandboxDir, _scheduled);
   });
 
-  future.handleException((error) {
+  future.catchError((error) {
     // If an error occurs during testing, delete the sandbox, throw the error so
     // that the test framework sees it, then finally call asyncDone so that the
     // test framework knows we're done doing asynchronous stuff.
     var subFuture = _runScheduled(createdSandboxDir, _scheduledOnException)
-        .chain((_) => cleanup());
-    subFuture.handleException((e) {
-      print("Exception while cleaning up: $e");
-      print(subFuture.stackTrace);
-      registerException(error, subFuture.stackTrace);
+        .then((_) => cleanup());
+    subFuture.catchError((e) {
+      print("Exception while cleaning up: ${e.error}");
+      print(e.stackTrace);
+      registerException(e.error, e.stackTrace);
       return true;
     });
-    subFuture.then((_) => registerException(error, future.stackTrace));
-    return true;
-  });
-
   timeout(future, _TIMEOUT, 'waiting for a test to complete')
-      .chain((_) => cleanup())
+      .then((_) => cleanup())
       .then((_) => asyncDone());
 }
 
@@ -503,7 +497,7 @@ void schedulePub({List args, Pattern output, Pattern error,
     Future<Uri> tokenEndpoint, int exitCode: 0}) {
   _schedule((sandboxDir) {
     return _doPub(runProcess, sandboxDir, args, tokenEndpoint)
-        .transform((result) {
+        .then((result) {
       var failures = [];
 
       _validateOutput(failures, 'stdout', output, result.stdout);
@@ -518,7 +512,7 @@ void schedulePub({List args, Pattern output, Pattern error,
         if (error == null) {
           // If we aren't validating the error, still show it on failure.
           failures.add('Pub stderr:');
-          failures.addAll(result.stderr.map((line) => '| $line'));
+          failures.addAll(result.stderr.mappedBy((line) => '| $line'));
         }
 
         throw new ExpectException(Strings.join(failures, '\n'));
@@ -629,7 +623,7 @@ Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
 /// about the pub git tests).
 void ensureGit() {
   _schedule((_) {
-    return isGitInstalled.transform((installed) {
+    return isGitInstalled.then((installed) {
       if (!installed &&
           !Platform.environment.containsKey('BUILDBOT_BUILDERNAME')) {
         _abortScheduled = true;
@@ -655,18 +649,18 @@ Future<Directory> _setUpSandbox() => createTempDir();
 
 Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
   if (scheduled == null) return new Future.immediate(null);
-  var iterator = scheduled.iterator();
+  var iterator = scheduled.iterator;
 
   Future runNextEvent(_) {
-    if (_abortScheduled || !iterator.hasNext) {
+    if (_abortScheduled || !iterator.moveNext()) {
       _abortScheduled = false;
       scheduled.clear();
       return new Future.immediate(null);
     }
 
-    var future = iterator.next()(parentDir);
+    var future = iterator.current(parentDir);
     if (future != null) {
-      return future.chain(runNextEvent);
+      return future.then(runNextEvent);
     } else {
       return runNextEvent(null);
     }
@@ -699,7 +693,7 @@ void _validateOutputRegex(List<String> failures, String pipe,
     failures.add('Expected $pipe to match "${expected.pattern}" but got none.');
   } else {
     failures.add('Expected $pipe to match "${expected.pattern}" but got:');
-    failures.addAll(actual.map((line) => '| $line'));
+    failures.addAll(actual.mappedBy((line) => '| $line'));
   }
 }
 
@@ -744,7 +738,7 @@ void _validateOutputString(List<String> failures, String pipe,
   // If any lines mismatched, show the expected and actual.
   if (failed) {
     failures.add('Expected $pipe:');
-    failures.addAll(expected.map((line) => '| $line'));
+    failures.addAll(expected.mappedBy((line) => '| $line'));
     failures.add('Got:');
     failures.addAll(results);
   }
@@ -802,7 +796,7 @@ abstract class Descriptor {
     // Special-case strings to support multi-level names like "myapp/packages".
     if (name is String) {
       var path = join(dir, name);
-      return exists(path).chain((exists) {
+      return exists(path).then((exists) {
         if (!exists) Expect.fail('File $name in $dir not found.');
         return validate(path);
       });
@@ -816,9 +810,9 @@ abstract class Descriptor {
       stackTrace = localStackTrace;
     }
 
-    return listDir(dir).chain((files) {
-      var matches = files.filter((file) => endsWithPattern(file, name));
-      if (matches.length == 0) {
+    return listDir(dir).then((files) {
+      var matches = files.where((file) => endsWithPattern(file, name)).toList();
+      if (matches.isEmpty) {
         Expect.fail('No files in $dir match pattern $name.');
       }
       if (matches.length == 1) return validate(matches[0]);
@@ -845,16 +839,15 @@ abstract class Descriptor {
       for (var match in matches) {
         var future = validate(match);
 
-        future.handleException((e) {
+        future.catchError((e) {
           failures.add(e);
           checkComplete();
-          return true;
         });
 
         future.then((_) {
           successes++;
           checkComplete();
-        });
+        }).catchError(() {});
       }
       return completer.future;
     });
@@ -885,7 +878,7 @@ class FileDescriptor extends Descriptor {
   /// Validates that this file correctly matches the actual file at [path].
   Future validate(String path) {
     return _validateOneMatch(path, (file) {
-      return readTextFile(file).transform((text) {
+      return readTextFile(file).then((text) {
         if (text == contents) return null;
 
         Expect.fail('File $file should contain:\n\n$contents\n\n'
@@ -923,13 +916,14 @@ class DirectoryDescriptor extends Descriptor {
   /// the creation is done.
   Future<Directory> create(parentDir) {
     // Create the directory.
-    return ensureDir(join(parentDir, _stringName)).chain((dir) {
+    return ensureDir(join(parentDir, _stringName)).then((dir) {
       if (contents == null) return new Future<Directory>.immediate(dir);
 
       // Recursively create all of its children.
-      final childFutures = contents.map((child) => child.create(dir));
+      final childFutures =
+          contents.mappedBy((child) => child.create(dir)).toList();
       // Only complete once all of the children have been created too.
-      return Futures.wait(childFutures).transform((_) => dir);
+      return Futures.wait(childFutures).then((_) => dir);
     });
   }
 
@@ -946,10 +940,11 @@ class DirectoryDescriptor extends Descriptor {
   Future validate(String path) {
     return _validateOneMatch(path, (dir) {
       // Validate each of the items in this directory.
-      final entryFutures = contents.map((entry) => entry.validate(dir));
+      final entryFutures =
+          contents.mappedBy((entry) => entry.validate(dir)).toList();
 
       // If they are all valid, the directory is valid.
-      return Futures.wait(entryFutures).transform((entries) => null);
+      return Futures.wait(entryFutures).then((entries) => null);
     });
   }
 
@@ -978,11 +973,11 @@ class FutureDescriptor extends Descriptor {
 
   FutureDescriptor(this._future) : super('<unknown>');
 
-  Future create(dir) => _future.chain((desc) => desc.create(dir));
+  Future create(dir) => _future.then((desc) => desc.create(dir));
 
-  Future validate(dir) => _future.chain((desc) => desc.validate(dir));
+  Future validate(dir) => _future.then((desc) => desc.validate(dir));
 
-  Future delete(dir) => _future.chain((desc) => desc.delete(dir));
+  Future delete(dir) => _future.then((desc) => desc.delete(dir));
 
   InputStream load(List<String> path) {
     var resultStream = new ListInputStream();
@@ -1020,9 +1015,9 @@ class GitRepoDescriptor extends DirectoryDescriptor {
   /// referred to by [ref] at the current point in the scheduled test run.
   Future<String> revParse(String ref) {
     return _scheduleValue((parentDir) {
-      return super.create(parentDir).chain((rootDir) {
+      return super.create(parentDir).then((rootDir) {
         return _runGit(['rev-parse', ref], rootDir);
-      }).transform((output) => output[0]);
+      }).then((output) => output[0]);
     });
   }
 
@@ -1040,10 +1035,10 @@ class GitRepoDescriptor extends DirectoryDescriptor {
     Future runGitStep(_) {
       if (commands.isEmpty) return new Future.immediate(workingDir);
       var command = commands.removeAt(0);
-      return _runGit(command, workingDir).chain(runGitStep);
+      return _runGit(command, workingDir).then(runGitStep);
     }
 
-    return super.create(parentDir).chain((rootDir) {
+    return super.create(parentDir).then((rootDir) {
       workingDir = rootDir;
       return runGitStep(null);
     });
@@ -1060,7 +1055,7 @@ class GitRepoDescriptor extends DirectoryDescriptor {
     };
 
     return runGit(args, workingDir: workingDir.path,
-        environment: environment).transform((result) {
+        environment: environment).then((result) {
       if (!result.success) {
         throw "Error running: git ${Strings.join(args, ' ')}\n"
             "${Strings.join(result.stderr, '\n')}";
@@ -1083,15 +1078,15 @@ class TarFileDescriptor extends Descriptor {
   Future<File> create(parentDir) {
     // TODO(rnystrom): Use withTempDir().
     var tempDir;
-    return createTempDir().chain((_tempDir) {
+    return createTempDir().then((_tempDir) {
       tempDir = _tempDir;
-      return Futures.wait(contents.map((child) => child.create(tempDir)));
-    }).chain((createdContents) {
+      return Futures.wait(contents.mappedBy((child) => child.create(tempDir)));
+    }).then((createdContents) {
       return consumeInputStream(createTarGz(createdContents, baseDir: tempDir));
-    }).chain((bytes) {
+    }).then((bytes) {
       return new File(join(parentDir, _stringName)).writeAsBytes(bytes);
-    }).chain((file) {
-      return deleteDir(tempDir).transform((_) => file);
+    }).then((file) {
+      return deleteDir(tempDir).then((_) => file);
     });
   }
 
@@ -1116,7 +1111,7 @@ class TarFileDescriptor extends Descriptor {
     var tempDir;
     // TODO(rnystrom): Use withTempDir() here.
     // TODO(nweiz): propagate any errors to the return value. See issue 3657.
-    createTempDir().chain((_tempDir) {
+    createTempDir().then((_tempDir) {
       tempDir = _tempDir;
       return create(tempDir);
     }).then((tar) {
@@ -1137,7 +1132,7 @@ class NothingDescriptor extends Descriptor {
   Future delete(dir) => new Future.immediate(null);
 
   Future validate(String dir) {
-    return exists(join(dir, name)).transform((exists) {
+    return exists(join(dir, name)).then((exists) {
       if (exists) Expect.fail('File $name in $dir should not exist.');
     });
   }
@@ -1167,7 +1162,7 @@ Future<Pair<List<String>, List<String>>> schedulePackageValidation(
     return Entrypoint.load(join(sandboxDir, appPath), cache)
         .chain((entrypoint) {
       var validator = fn(entrypoint);
-      return validator.validate().transform((_) {
+      return validator.validate().then((_) {
         return new Pair(validator.errors, validator.warnings);
       });
     });
@@ -1240,8 +1235,8 @@ class ScheduledProcess {
   /// Wraps a [Process] [Future] in a scheduled process.
   ScheduledProcess(this.name, Future<Process> process)
     : _process = process,
-      _stdout = process.transform((p) => new StringInputStream(p.stdout)),
-      _stderr = process.transform((p) => new StringInputStream(p.stderr)) {
+      _stdout = process.then((p) => new StringInputStream(p.stdout)),
+      _stderr = process.then((p) => new StringInputStream(p.stderr)) {
 
     _schedule((_) {
       if (!_endScheduled) {
@@ -1249,7 +1244,7 @@ class ScheduledProcess {
             "or kill() called before the test is run.");
       }
 
-      return _process.transform((p) {
+      return _process.then((p) {
         p.onExit = (c) {
           if (_endExpected) {
             _exitCodeCompleter.complete(c);
@@ -1343,7 +1338,7 @@ class ScheduledProcess {
 
   /// Writes [line] to the process as stdin.
   void writeLine(String line) {
-    _schedule((_) => _process.transform((p) => p.stdin.writeString('$line\n')));
+    _schedule((_) => _process.then((p) => p.stdin.writeString('$line\n')));
   }
 
   /// Kills the process, and waits until it's dead.
@@ -1366,7 +1361,7 @@ class ScheduledProcess {
     _schedule((_) {
       _endExpected = true;
       return timeout(_exitCode, _SCHEDULE_TIMEOUT,
-          "waiting for process $name to exit").transform((exitCode) {
+          "waiting for process $name to exit").then((exitCode) {
         if (expectedExitCode != null) {
           expect(exitCode, equals(expectedExitCode));
         }
@@ -1378,7 +1373,7 @@ class ScheduledProcess {
   /// Prints nothing if the straems are empty.
   Future _printStreams() {
     Future printStream(String streamName, StringInputStream stream) {
-      return consumeStringInputStream(stream).transform((output) {
+      return consumeStringInputStream(stream).then((output) {
         if (output.isEmpty) return;
 
         print('\nProcess $name $streamName:');
@@ -1424,11 +1419,11 @@ class ScheduledServer {
   }
 
   /// The port on which the server is listening.
-  Future<int> get port => _server.transform((s) => s.port);
+  Future<int> get port => _server.then((s) => s.port);
 
   /// The base URL of the server, including its port.
   Future<Uri> get url =>
-    port.transform((p) => new Uri.fromString("http://localhost:$p"));
+    port.then((p) => new Uri.fromString("http://localhost:$p"));
 
   /// Assert that the next request has the given [method] and [path], and pass
   /// it to [handler] to handle. If [handler] returns a [Future], wait until
@@ -1466,7 +1461,7 @@ class ScheduledServer {
         fail('Unexpected ${request.method} request to ${request.path}.');
       }
       return _handlers.removeFirst();
-    }).transform((handler) {
+    }).then((handler) {
       handler(request, response);
     }), _SCHEDULE_TIMEOUT, "waiting for a handler for ${request.method} "
         "${request.path}");
@@ -1479,16 +1474,18 @@ class ScheduledServer {
 /// Completes with the fully resolved structure.
 Future _awaitObject(object) {
   // Unroll nested futures.
-  if (object is Future) return object.chain(_awaitObject);
-  if (object is Collection) return Futures.wait(object.map(_awaitObject));
+  if (object is Future) return object.then(_awaitObject);
+  if (object is Collection) {
+    return Futures.wait(object.mappedBy(_awaitObject).toList());
+  }
   if (object is! Map) return new Future.immediate(object);
 
   var pairs = <Future<Pair>>[];
   object.forEach((key, value) {
     pairs.add(_awaitObject(value)
-        .transform((resolved) => new Pair(key, resolved)));
+        .then((resolved) => new Pair(key, resolved)));
   });
-  return Futures.wait(pairs).transform((resolvedPairs) {
+  return Futures.wait(pairs).then((resolvedPairs) {
     var map = {};
     for (var pair in resolvedPairs) {
       map[pair.first] = pair.last;
@@ -1537,7 +1534,7 @@ void _scheduleOnException(_ScheduledEvent event) {
 void expectLater(Future actual, matcher, {String reason,
     FailureHandler failureHandler, bool verbose: false}) {
   _schedule((_) {
-    return actual.transform((value) {
+    return actual.then((value) {
       expect(value, matcher, reason: reason, failureHandler: failureHandler,
           verbose: false);
     });

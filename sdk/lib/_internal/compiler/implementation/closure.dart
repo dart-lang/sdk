@@ -614,7 +614,7 @@ class ClosureTranslator extends Visitor {
     currentElement = oldFunctionElement;
 
     // Mark all free variables as captured and use them in the outer function.
-    List<Element> freeVariables = savedClosureData.freeVariableMapping.keys;
+    Iterable<Element> freeVariables = savedClosureData.freeVariableMapping.keys;
     assert(freeVariables.isEmpty || savedInsideClosure);
     for (Element freeElement in freeVariables) {
       if (capturedVariableMapping[freeElement] != null &&

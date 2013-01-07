@@ -104,8 +104,7 @@ class TestReport {
   }
 
   int resultsMeanNanos() =>
-      (BlockSample._totalTime(results) /
-      BlockSample._totalCount(results)).toInt();
+      BlockSample._totalTime(results) ~/ BlockSample._totalCount(results);
 
   int resultsWorstNanos() {
     BlockSample worst = worstBlock(results);
@@ -199,7 +198,7 @@ class Runner {
   static bool runTest(String testId) {
     Options opts = new Options();
     return opts.arguments.length == 0 ||
-        opts.arguments.some(_(String id) => id == testId);
+        opts.arguments.any((String id) => id == testId);
   }
 }
 

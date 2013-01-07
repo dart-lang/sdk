@@ -13,22 +13,22 @@ class OrderedMapsTest {
   static void testMaps(map1, map2, bool isConst) {
     Expect.isFalse(identical(map1, map2));
 
-    var keys = map1.keys;
+    var keys = map1.keys.toList();
     Expect.equals(2, keys.length);
     Expect.equals("a", keys[0]);
     Expect.equals("c", keys[1]);
 
-    keys = map2.keys;
+    keys = map2.keys.toList();
     Expect.equals(2, keys.length);
     Expect.equals("c", keys[0]);
     Expect.equals("a", keys[1]);
 
-    var values = map1.values;
+    var values = map1.values.toList();
     Expect.equals(2, values.length);
     Expect.equals(1, values[0]);
     Expect.equals(2, values[1]);
 
-    values = map2.values;
+    values = map2.values.toList();
     Expect.equals(2, values.length);
     Expect.equals(2, values[0]);
     Expect.equals(1, values[1]);
@@ -38,36 +38,36 @@ class OrderedMapsTest {
     map1["b"] = 3;
     map2["b"] = 3;
 
-    keys = map1.keys;
+    keys = map1.keys.toList();
     Expect.equals(3, keys.length);
     Expect.equals("a", keys[0]);
     Expect.equals("c", keys[1]);
     Expect.equals("b", keys[2]);
 
-    keys = map2.keys;
+    keys = map2.keys.toList();
     Expect.equals(3, keys.length);
     Expect.equals("c", keys[0]);
     Expect.equals("a", keys[1]);
     Expect.equals("b", keys[2]);
 
-    values = map1.values;
+    values = map1.values.toList();
     Expect.equals(3, values.length);
     Expect.equals(1, values[0]);
     Expect.equals(2, values[1]);
     Expect.equals(3, values[2]);
 
-    values = map2.values;
+    values = map2.values.toList();
     Expect.equals(3, values.length);
     Expect.equals(2, values[0]);
     Expect.equals(1, values[1]);
     Expect.equals(3, values[2]);
 
     map1["a"] = 4;
-    keys = map1.keys;
+    keys = map1.keys.toList();
     Expect.equals(3, keys.length);
     Expect.equals("a", keys[0]);
 
-    values = map1.values;
+    values = map1.values.toList();
     Expect.equals(3, values.length);
     Expect.equals(4, values[0]);
   }

@@ -78,8 +78,9 @@ main() {
       expect(nodes[2], isComment);
     });
 
-    test('filter', () {
-      var filtered = makeNodeWithChildren().nodes.filter((n) => n is BRElement);
+    test('where', () {
+      var filtered =
+          makeNodeWithChildren().nodes.where((n) => n is BRElement).toList();
       expect(filtered.length, 1);
       expect(filtered[0], isBRElement);
       expect(filtered, isNodeList);
@@ -91,10 +92,10 @@ main() {
       expect(node.nodes.every((n) => n is Comment), isFalse);
     });
 
-    test('some', () {
+    test('any', () {
       var node = makeNodeWithChildren();
-      expect(node.nodes.some((n) => n is Comment), isTrue);
-      expect(node.nodes.some((n) => n is svg.SvgElement), isFalse);
+      expect(node.nodes.any((n) => n is Comment), isTrue);
+      expect(node.nodes.any((n) => n is svg.SvgElement), isFalse);
     });
 
     test('isEmpty', () {
@@ -182,15 +183,15 @@ main() {
 
   group('_NodeList', () {
     List<Node> makeNodeList() =>
-      makeNodeWithChildren().nodes.filter((_) => true);
+      makeNodeWithChildren().nodes.where((_) => true).toList();
 
     test('first', () {
       var nodes = makeNodeList();
       expect(nodes.first, isText);
     });
 
-    test('filter', () {
-      var filtered = makeNodeList().filter((n) => n is BRElement);
+    test('where', () {
+      var filtered = makeNodeList().where((n) => n is BRElement).toList();
       expect(filtered.length, 1);
       expect(filtered[0], isBRElement);
       expect(filtered, isNodeList);

@@ -174,7 +174,7 @@ class int64VMTest {
       testSet.add(new int64.fromInt(pow));
     }
 
-    TEST_VALUES = new List<int64>(testSet.length);
+    TEST_VALUES = new List<int64>.fixedLength(testSet.length);
     int index = 0;
     for (int64 val in testSet) {
       TEST_VALUES[index++] = val;

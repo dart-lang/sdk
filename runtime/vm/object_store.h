@@ -355,6 +355,11 @@ class ObjectStore {
     canonical_type_arguments_ = value.raw();
   }
 
+  RawLibrary* async_library() const { return async_library_; }
+  void set_async_library(const Library& value) {
+    async_library_ = value.raw();
+  }
+
   RawLibrary* core_library() const { return core_library_; }
   void set_core_library(const Library& value) {
     core_library_ = value.raw();
@@ -555,6 +560,7 @@ class ObjectStore {
   RawClass* weak_property_class_;
   RawArray* symbol_table_;
   RawArray* canonical_type_arguments_;
+  RawLibrary* async_library_;
   RawLibrary* core_library_;
   RawLibrary* core_impl_library_;
   RawLibrary* collection_library_;

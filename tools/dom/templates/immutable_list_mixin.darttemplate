@@ -3,31 +3,17 @@
 
   // From Iterable<$E>:
 
-  Iterator<$E> iterator() {
+  Iterator<$E> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<$E>(this);
   }
 
-  // From Collection<$E>:
 $if DEFINE_LENGTH_AS_NUM_ITEMS
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
 $endif
-
-  void add($E value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast($E value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<$E> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, $E)) {
     return Collections.reduce(this, initialValue, combine);
   }
@@ -40,16 +26,59 @@ $endif
 
   void forEach(void f($E element)) => Collections.forEach(this, f);
 
-  Collection map(f($E element)) => Collections.map(this, [], f);
+  String join([String separator]) => Collections.joinList(this, separator);
 
-  Collection<$E> filter(bool f($E element)) =>
-     Collections.filter(this, <$E>[], f);
+  List mappedBy(f($E element)) => new MappedList<$E, dynamic>(this, f);
+
+  Iterable<$E> where(bool f($E element)) => new WhereIterable<$E>(this, f);
 
   bool every(bool f($E element)) => Collections.every(this, f);
 
-  bool some(bool f($E element)) => Collections.some(this, f);
+  bool any(bool f($E element)) => Collections.any(this, f);
 
   bool get isEmpty => this.length == 0;
+
+  List<$E> take(int n) => new ListView<$E>(this, 0, n);
+
+  Iterable<$E> takeWhile(bool test($E value)) {
+    return new TakeWhileIterable<$E>(this, test);
+  }
+
+  List<$E> skip(int n) => new ListView<$E>(this, n, null);
+
+  Iterable<$E> skipWhile(bool test($E value)) {
+    return new SkipWhileIterable<$E>(this, test);
+  }
+
+  $E firstMatching(bool test($E value), { $E orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  $E lastMatching(bool test($E value), {$E orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  $E singleMatching(bool test($E value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  $E elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<$E>:
+
+  void add($E value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast($E value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<$E> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   // From List<$E>:
 $if DEFINE_LENGTH_SETTER
@@ -78,9 +107,25 @@ $endif
     return Lists.lastIndexOf(this, element, start);
   }
 
-  $E get first => this[0];
+  $E get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  $E get last => this[length - 1];
+  $E get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  $E get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  $E min([int compare($E a, $E b)]) => _Collections.minInList(this, compare);
+
+  $E max([int compare($E a, $E b)]) => _Collections.maxInList(this, compare);
 
   $E removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");

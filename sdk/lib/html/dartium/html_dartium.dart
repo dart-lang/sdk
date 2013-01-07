@@ -1,10 +1,11 @@
 library html;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:nativewrappers';
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
@@ -54,7 +55,7 @@ var _callPortLastResult = null;
 _callPortSync(num id, var message) {
   if (!_callPortInitialized) {
     window.on['js-result'].add((event) {
-      _callPortLastResult = JSON.parse(_getPortSyncEventData(event));
+      _callPortLastResult = json.parse(_getPortSyncEventData(event));
     }, false);
     _callPortInitialized = true;
   }
@@ -7063,7 +7064,7 @@ class Document extends Node
       final mutableMatches = $dom_getElementsByName(
           selectors.substring(7,selectors.length - 2));
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
+      final copyOfMatches = new List<Element>.fixedLength(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }
@@ -7071,7 +7072,7 @@ class Document extends Node
     } else if (new RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByTagName(selectors);
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
+      final copyOfMatches = new List<Element>.fixedLength(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }
@@ -7598,11 +7599,59 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 
   // From Iterable<DomMimeType>:
 
-  Iterator<DomMimeType> iterator() {
+  Iterator<DomMimeType> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<DomMimeType>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(DomMimeType element) => Collections.contains(this, element);
+
+  void forEach(void f(DomMimeType element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(DomMimeType element)) => new MappedList<DomMimeType, dynamic>(this, f);
+
+  Iterable<DomMimeType> where(bool f(DomMimeType element)) => new WhereIterable<DomMimeType>(this, f);
+
+  bool every(bool f(DomMimeType element)) => Collections.every(this, f);
+
+  bool any(bool f(DomMimeType element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<DomMimeType> take(int n) => new ListView<DomMimeType>(this, 0, n);
+
+  Iterable<DomMimeType> takeWhile(bool test(DomMimeType value)) {
+    return new TakeWhileIterable<DomMimeType>(this, test);
+  }
+
+  List<DomMimeType> skip(int n) => new ListView<DomMimeType>(this, n, null);
+
+  Iterable<DomMimeType> skipWhile(bool test(DomMimeType value)) {
+    return new SkipWhileIterable<DomMimeType>(this, test);
+  }
+
+  DomMimeType firstMatching(bool test(DomMimeType value), { DomMimeType orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  DomMimeType lastMatching(bool test(DomMimeType value), {DomMimeType orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  DomMimeType singleMatching(bool test(DomMimeType value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  DomMimeType elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<DomMimeType>:
@@ -7615,28 +7664,9 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<DomMimeType> collection) {
+  void addAll(Iterable<DomMimeType> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(DomMimeType element) => Collections.contains(this, element);
-
-  void forEach(void f(DomMimeType element)) => Collections.forEach(this, f);
-
-  Collection map(f(DomMimeType element)) => Collections.map(this, [], f);
-
-  Collection<DomMimeType> filter(bool f(DomMimeType element)) =>
-     Collections.filter(this, <DomMimeType>[], f);
-
-  bool every(bool f(DomMimeType element)) => Collections.every(this, f);
-
-  bool some(bool f(DomMimeType element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<DomMimeType>:
   void set length(int value) {
@@ -7659,9 +7689,25 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     return Lists.lastIndexOf(this, element, start);
   }
 
-  DomMimeType get first => this[0];
+  DomMimeType get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  DomMimeType get last => this[length - 1];
+  DomMimeType get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  DomMimeType get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) => _Collections.minInList(this, compare);
+
+  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) => _Collections.maxInList(this, compare);
 
   DomMimeType removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -7778,11 +7824,59 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   // From Iterable<DomPlugin>:
 
-  Iterator<DomPlugin> iterator() {
+  Iterator<DomPlugin> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<DomPlugin>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(DomPlugin element) => Collections.contains(this, element);
+
+  void forEach(void f(DomPlugin element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(DomPlugin element)) => new MappedList<DomPlugin, dynamic>(this, f);
+
+  Iterable<DomPlugin> where(bool f(DomPlugin element)) => new WhereIterable<DomPlugin>(this, f);
+
+  bool every(bool f(DomPlugin element)) => Collections.every(this, f);
+
+  bool any(bool f(DomPlugin element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<DomPlugin> take(int n) => new ListView<DomPlugin>(this, 0, n);
+
+  Iterable<DomPlugin> takeWhile(bool test(DomPlugin value)) {
+    return new TakeWhileIterable<DomPlugin>(this, test);
+  }
+
+  List<DomPlugin> skip(int n) => new ListView<DomPlugin>(this, n, null);
+
+  Iterable<DomPlugin> skipWhile(bool test(DomPlugin value)) {
+    return new SkipWhileIterable<DomPlugin>(this, test);
+  }
+
+  DomPlugin firstMatching(bool test(DomPlugin value), { DomPlugin orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  DomPlugin lastMatching(bool test(DomPlugin value), {DomPlugin orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  DomPlugin singleMatching(bool test(DomPlugin value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  DomPlugin elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<DomPlugin>:
@@ -7795,28 +7889,9 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<DomPlugin> collection) {
+  void addAll(Iterable<DomPlugin> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(DomPlugin element) => Collections.contains(this, element);
-
-  void forEach(void f(DomPlugin element)) => Collections.forEach(this, f);
-
-  Collection map(f(DomPlugin element)) => Collections.map(this, [], f);
-
-  Collection<DomPlugin> filter(bool f(DomPlugin element)) =>
-     Collections.filter(this, <DomPlugin>[], f);
-
-  bool every(bool f(DomPlugin element)) => Collections.every(this, f);
-
-  bool some(bool f(DomPlugin element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<DomPlugin>:
   void set length(int value) {
@@ -7839,9 +7914,25 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     return Lists.lastIndexOf(this, element, start);
   }
 
-  DomPlugin get first => this[0];
+  DomPlugin get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  DomPlugin get last => this[length - 1];
+  DomPlugin get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  DomPlugin get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) => _Collections.minInList(this, compare);
+
+  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) => _Collections.maxInList(this, compare);
 
   DomPlugin removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -8042,11 +8133,59 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
 
   // From Iterable<String>:
 
-  Iterator<String> iterator() {
+  Iterator<String> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<String>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  // contains() defined by IDL.
+
+  void forEach(void f(String element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(String element)) => new MappedList<String, dynamic>(this, f);
+
+  Iterable<String> where(bool f(String element)) => new WhereIterable<String>(this, f);
+
+  bool every(bool f(String element)) => Collections.every(this, f);
+
+  bool any(bool f(String element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<String> take(int n) => new ListView<String>(this, 0, n);
+
+  Iterable<String> takeWhile(bool test(String value)) {
+    return new TakeWhileIterable<String>(this, test);
+  }
+
+  List<String> skip(int n) => new ListView<String>(this, n, null);
+
+  Iterable<String> skipWhile(bool test(String value)) {
+    return new SkipWhileIterable<String>(this, test);
+  }
+
+  String firstMatching(bool test(String value), { String orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  String lastMatching(bool test(String value), {String orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  String singleMatching(bool test(String value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  String elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<String>:
@@ -8059,28 +8198,9 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<String> collection) {
+  void addAll(Iterable<String> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  // contains() defined by IDL.
-
-  void forEach(void f(String element)) => Collections.forEach(this, f);
-
-  Collection map(f(String element)) => Collections.map(this, [], f);
-
-  Collection<String> filter(bool f(String element)) =>
-     Collections.filter(this, <String>[], f);
-
-  bool every(bool f(String element)) => Collections.every(this, f);
-
-  bool some(bool f(String element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<String>:
   void set length(int value) {
@@ -8103,9 +8223,25 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  String get first => this[0];
+  String get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  String get last => this[length - 1];
+  String get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  String get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  String min([int compare(String a, String b)]) => _Collections.minInList(this, compare);
+
+  String max([int compare(String a, String b)]) => _Collections.maxInList(this, compare);
 
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -8212,10 +8348,18 @@ class _ChildrenElementList implements List {
     : _childElements = element.$dom_children,
       _element = element;
 
-  List<Element> _toList() {
-    final output = new List(_childElements.length);
+  List<Element> toList() {
+    final output = new List<Element>.fixedLength(_childElements.length);
     for (int i = 0, len = _childElements.length; i < len; i++) {
       output[i] = _childElements[i];
+    }
+    return output;
+  }
+
+  Set<Element> toSet() {
+    final output = new Set<Element>(_childElements.length);
+    for (int i = 0, len = _childElements.length; i < len; i++) {
+      output.add(_childElements[i]);
     }
     return output;
   }
@@ -8228,44 +8372,69 @@ class _ChildrenElementList implements List {
     }
   }
 
-  List<Element> filter(bool f(Element element)) {
-    final output = [];
-    forEach((Element element) {
-      if (f(element)) {
-        output.add(element);
-      }
-    });
-    return new _FrozenElementList._wrap(output);
-  }
-
   bool every(bool f(Element element)) {
     for (Element element in this) {
       if (!f(element)) {
         return false;
       }
-    };
+    }
     return true;
   }
 
-  bool some(bool f(Element element)) {
+  bool any(bool f(Element element)) {
     for (Element element in this) {
       if (f(element)) {
         return true;
       }
-    };
+    }
     return false;
   }
 
-  Collection map(f(Element element)) {
-    final out = [];
-    for (Element el in this) {
-      out.add(f(el));
-    }
-    return out;
+  String join([String separator]) {
+    return Collections.joinList(this, separator);
   }
+
+  List mappedBy(f(Element element)) {
+    return new MappedList<Element, dynamic>(this, f);
+  }
+
+  Iterable<Element> where(bool f(Element element))
+      => new WhereIterable<Element>(this, f);
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
+  }
+
+  List<Element> take(int n) {
+    return new ListView<Element>(this, 0, n);
+  }
+
+  Iterable<Element> takeWhile(bool test(Element value)) {
+    return new TakeWhileIterable<Element>(this, test);
+  }
+
+  List<Element> skip(int n) {
+    return new ListView<Element>(this, n, null);
+  }
+
+  Iterable<Element> skipWhile(bool test(Element value)) {
+    return new SkipWhileIterable<Element>(this, test);
+  }
+
+  Element firstMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Element lastMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Element singleMatching(bool test(Element value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Element elementAt(int index) {
+    return this[index];
   }
 
   int get length {
@@ -8292,10 +8461,10 @@ class _ChildrenElementList implements List {
 
   Element addLast(Element value) => add(value);
 
-  Iterator<Element> iterator() => _toList().iterator();
+  Iterator<Element> get iterator => toList().iterator;
 
-  void addAll(Collection<Element> collection) {
-    for (Element element in collection) {
+  void addAll(Iterable<Element> iterable) {
+    for (Element element in iterable) {
       _element.$dom_appendChild(element);
     }
   }
@@ -8356,12 +8525,29 @@ class _ChildrenElementList implements List {
   }
 
   Element get first {
-    return _element.$dom_firstElementChild;
+    Element result = _element.$dom_firstElementChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
   }
 
 
   Element get last {
-    return _element.$dom_lastElementChild;
+    Element result = _element.$dom_lastElementChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+
+  Element get single {
+    if (length > 1) throw new StateError("More than one element");
+    return first;
+  }
+
+  Element min([int compare(Element a, Element b)]) {
+    return _Collections.minInList(this, compare);
+  }
+
+  Element max([int compare(Element a, Element b)]) {
+    return _Collections.maxInList(this, compare);
   }
 }
 
@@ -8387,21 +8573,16 @@ class _FrozenElementList implements List {
     }
   }
 
-  Collection map(f(Element element)) {
-    final out = [];
-    for (Element el in this) {
-      out.add(f(el));
-    }
-    return out;
+  String join([String separator]) {
+    return Collections.joinList(this, separator);
   }
 
-  List<Element> filter(bool f(Element element)) {
-    final out = [];
-    for (Element el in this) {
-      if (f(el)) out.add(el);
-    }
-    return out;
+  List mappedBy(f(Element element)) {
+    return new MappedList<Element, dynamic>(this, f);
   }
+
+  Iterable<Element> where(bool f(Element element))
+      => new WhereIterable<Element>(this, f);
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -8412,13 +8593,45 @@ class _FrozenElementList implements List {
     return true;
   }
 
-  bool some(bool f(Element element)) {
+  bool any(bool f(Element element)) {
     for(Element element in this) {
       if (f(element)) {
         return true;
       }
     };
     return false;
+  }
+
+  List<Element> take(int n) {
+    return new ListView<Element>(this, 0, n);
+  }
+
+  Iterable<Element> takeWhile(bool test(T value)) {
+    return new TakeWhileIterable<Element>(this, test);
+  }
+
+  List<Element> skip(int n) {
+    return new ListView<Element>(this, n, null);
+  }
+
+  Iterable<Element> skipWhile(bool test(T value)) {
+    return new SkipWhileIterable<Element>(this, test);
+  }
+
+  Element firstMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Element lastMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Element singleMatching(bool test(Element value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Element elementAt(int index) {
+    return this[index];
   }
 
   bool get isEmpty => _nodeList.isEmpty;
@@ -8443,9 +8656,9 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  Iterator<Element> iterator() => new _FrozenElementListIterator(this);
+  Iterator<Element> get iterator => new _FrozenElementListIterator(this);
 
-  void addAll(Collection<Element> collection) {
+  void addAll(Iterable<Element> iterable) {
     throw new UnsupportedError('');
   }
 
@@ -8494,6 +8707,16 @@ class _FrozenElementList implements List {
   Element get first => _nodeList.first;
 
   Element get last => _nodeList.last;
+
+  Element get single => _nodeList.single;
+
+  Element min([int compare(Element a, Element b)]) {
+    return _Collections.minInList(this, compare);
+  }
+
+  Element max([int compare(Element a, Element b)]) {
+    return _Collections.maxInList(this, compare);
+  }
 }
 
 class _FrozenElementListIterator implements Iterator<Element> {
@@ -8503,21 +8726,28 @@ class _FrozenElementListIterator implements Iterator<Element> {
   _FrozenElementListIterator(this._list);
 
   /**
-   * Gets the next element in the iteration. Throws a
-   * [StateError("No more elements")] if no element is left.
+   * Moves to the next element. Returns true if the iterator is positioned
+   * at an element. Returns false if it is positioned after the last element.
    */
-  Element next() {
-    if (!hasNext) {
-      throw new StateError("No more elements");
+  bool moveNext() {
+    int nextIndex = _index + 1;
+    if (nextIndex < _list.length) {
+      _current = _list[nextIndex];
+      _index = nextIndex;
+      return true;
     }
-
-    return _list[_index++];
+    _index = _list.length;
+    _current = null;
+    return false;
   }
 
   /**
-   * Returns whether the [Iterator] has elements left.
+   * Returns the element the [Iterator] is positioned at.
+   *
+   * Return [:null:] if the iterator is positioned before the first, or
+   * after the last element.
    */
-  bool get hasNext => _index < _list.length;
+  E get current => _current;
 }
 
 class _ElementCssClassSet extends CssClassSet {
@@ -8541,7 +8771,7 @@ class _ElementCssClassSet extends CssClassSet {
 
   void writeClasses(Set<String> s) {
     List list = new List.from(s);
-    _element.$dom_className = Strings.join(list, ' ');
+    _element.$dom_className = s.join(' ');
   }
 }
 
@@ -10208,11 +10438,59 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 
   // From Iterable<File>:
 
-  Iterator<File> iterator() {
+  Iterator<File> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<File>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, File)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(File element) => Collections.contains(this, element);
+
+  void forEach(void f(File element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(File element)) => new MappedList<File, dynamic>(this, f);
+
+  Iterable<File> where(bool f(File element)) => new WhereIterable<File>(this, f);
+
+  bool every(bool f(File element)) => Collections.every(this, f);
+
+  bool any(bool f(File element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<File> take(int n) => new ListView<File>(this, 0, n);
+
+  Iterable<File> takeWhile(bool test(File value)) {
+    return new TakeWhileIterable<File>(this, test);
+  }
+
+  List<File> skip(int n) => new ListView<File>(this, n, null);
+
+  Iterable<File> skipWhile(bool test(File value)) {
+    return new SkipWhileIterable<File>(this, test);
+  }
+
+  File firstMatching(bool test(File value), { File orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  File lastMatching(bool test(File value), {File orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  File singleMatching(bool test(File value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  File elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<File>:
@@ -10225,28 +10503,9 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<File> collection) {
+  void addAll(Iterable<File> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, File)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(File element) => Collections.contains(this, element);
-
-  void forEach(void f(File element)) => Collections.forEach(this, f);
-
-  Collection map(f(File element)) => Collections.map(this, [], f);
-
-  Collection<File> filter(bool f(File element)) =>
-     Collections.filter(this, <File>[], f);
-
-  bool every(bool f(File element)) => Collections.every(this, f);
-
-  bool some(bool f(File element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<File>:
   void set length(int value) {
@@ -10269,9 +10528,25 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  File get first => this[0];
+  File get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  File get last => this[length - 1];
+  File get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  File get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  File min([int compare(File a, File b)]) => _Collections.minInList(this, compare);
+
+  File max([int compare(File a, File b)]) => _Collections.maxInList(this, compare);
 
   File removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -10668,11 +10943,59 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   // From Iterable<num>:
 
-  Iterator<num> iterator() {
+  Iterator<num> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<num>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(num element) => Collections.contains(this, element);
+
+  void forEach(void f(num element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(num element)) => new MappedList<num, dynamic>(this, f);
+
+  Iterable<num> where(bool f(num element)) => new WhereIterable<num>(this, f);
+
+  bool every(bool f(num element)) => Collections.every(this, f);
+
+  bool any(bool f(num element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<num> take(int n) => new ListView<num>(this, 0, n);
+
+  Iterable<num> takeWhile(bool test(num value)) {
+    return new TakeWhileIterable<num>(this, test);
+  }
+
+  List<num> skip(int n) => new ListView<num>(this, n, null);
+
+  Iterable<num> skipWhile(bool test(num value)) {
+    return new SkipWhileIterable<num>(this, test);
+  }
+
+  num firstMatching(bool test(num value), { num orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  num lastMatching(bool test(num value), {num orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  num singleMatching(bool test(num value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  num elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<num>:
@@ -10685,28 +11008,9 @@ class Float32Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<num> collection) {
+  void addAll(Iterable<num> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(num element) => Collections.contains(this, element);
-
-  void forEach(void f(num element)) => Collections.forEach(this, f);
-
-  Collection map(f(num element)) => Collections.map(this, [], f);
-
-  Collection<num> filter(bool f(num element)) =>
-     Collections.filter(this, <num>[], f);
-
-  bool every(bool f(num element)) => Collections.every(this, f);
-
-  bool some(bool f(num element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<num>:
   void set length(int value) {
@@ -10729,9 +11033,25 @@ class Float32Array extends ArrayBufferView implements List<num> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  num get first => this[0];
+  num get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  num get last => this[length - 1];
+  num get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  num get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  num min([int compare(num a, num b)]) => _Collections.minInList(this, compare);
+
+  num max([int compare(num a, num b)]) => _Collections.maxInList(this, compare);
 
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -10816,11 +11136,59 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   // From Iterable<num>:
 
-  Iterator<num> iterator() {
+  Iterator<num> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<num>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(num element) => Collections.contains(this, element);
+
+  void forEach(void f(num element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(num element)) => new MappedList<num, dynamic>(this, f);
+
+  Iterable<num> where(bool f(num element)) => new WhereIterable<num>(this, f);
+
+  bool every(bool f(num element)) => Collections.every(this, f);
+
+  bool any(bool f(num element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<num> take(int n) => new ListView<num>(this, 0, n);
+
+  Iterable<num> takeWhile(bool test(num value)) {
+    return new TakeWhileIterable<num>(this, test);
+  }
+
+  List<num> skip(int n) => new ListView<num>(this, n, null);
+
+  Iterable<num> skipWhile(bool test(num value)) {
+    return new SkipWhileIterable<num>(this, test);
+  }
+
+  num firstMatching(bool test(num value), { num orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  num lastMatching(bool test(num value), {num orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  num singleMatching(bool test(num value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  num elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<num>:
@@ -10833,28 +11201,9 @@ class Float64Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<num> collection) {
+  void addAll(Iterable<num> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(num element) => Collections.contains(this, element);
-
-  void forEach(void f(num element)) => Collections.forEach(this, f);
-
-  Collection map(f(num element)) => Collections.map(this, [], f);
-
-  Collection<num> filter(bool f(num element)) =>
-     Collections.filter(this, <num>[], f);
-
-  bool every(bool f(num element)) => Collections.every(this, f);
-
-  bool some(bool f(num element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<num>:
   void set length(int value) {
@@ -10877,9 +11226,25 @@ class Float64Array extends ArrayBufferView implements List<num> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  num get first => this[0];
+  num get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  num get last => this[length - 1];
+  num get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  num get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  num min([int compare(num a, num b)]) => _Collections.minInList(this, compare);
+
+  num max([int compare(num a, num b)]) => _Collections.maxInList(this, compare);
 
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -11504,11 +11869,59 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   // From Iterable<Node>:
 
-  Iterator<Node> iterator() {
+  Iterator<Node> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Node>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+
+  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+
+  bool every(bool f(Node element)) => Collections.every(this, f);
+
+  bool any(bool f(Node element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return new TakeWhileIterable<Node>(this, test);
+  }
+
+  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return new SkipWhileIterable<Node>(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), { Node orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Node>:
@@ -11521,28 +11934,9 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Node> collection) {
+  void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => Collections.every(this, f);
-
-  bool some(bool f(Node element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
   void set length(int value) {
@@ -11565,9 +11959,25 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Node get first => this[0];
+  Node get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Node get last => this[length - 1];
+  Node get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node min([int compare(Node a, Node b)]) => _Collections.minInList(this, compare);
+
+  Node max([int compare(Node a, Node b)]) => _Collections.maxInList(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -11632,11 +12042,59 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   // From Iterable<Node>:
 
-  Iterator<Node> iterator() {
+  Iterator<Node> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Node>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+
+  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+
+  bool every(bool f(Node element)) => Collections.every(this, f);
+
+  bool any(bool f(Node element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return new TakeWhileIterable<Node>(this, test);
+  }
+
+  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return new SkipWhileIterable<Node>(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), { Node orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Node>:
@@ -11649,28 +12107,9 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Node> collection) {
+  void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => Collections.every(this, f);
-
-  bool some(bool f(Node element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
   void set length(int value) {
@@ -11693,9 +12132,25 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Node get first => this[0];
+  Node get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Node get last => this[length - 1];
+  Node get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node min([int compare(Node a, Node b)]) => _Collections.minInList(this, compare);
+
+  Node max([int compare(Node a, Node b)]) => _Collections.maxInList(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -13517,11 +13972,59 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -13534,28 +14037,9 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -13578,9 +14062,25 @@ class Int16Array extends ArrayBufferView implements List<int> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+
+  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -13665,11 +14165,59 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -13682,28 +14230,9 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -13726,9 +14255,25 @@ class Int32Array extends ArrayBufferView implements List<int> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+
+  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -13813,11 +14358,59 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -13830,28 +14423,9 @@ class Int8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -13874,9 +14448,25 @@ class Int8Array extends ArrayBufferView implements List<int> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+
+  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -16139,11 +16729,59 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
   // From Iterable<Node>:
 
-  Iterator<Node> iterator() {
+  Iterator<Node> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Node>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+
+  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+
+  bool every(bool f(Node element)) => Collections.every(this, f);
+
+  bool any(bool f(Node element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return new TakeWhileIterable<Node>(this, test);
+  }
+
+  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return new SkipWhileIterable<Node>(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), { Node orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Node>:
@@ -16156,28 +16794,9 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Node> collection) {
+  void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => Collections.every(this, f);
-
-  bool some(bool f(Node element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
   void set length(int value) {
@@ -16200,9 +16819,25 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Node get first => this[0];
+  Node get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Node get last => this[length - 1];
+  Node get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node min([int compare(Node a, Node b)]) => _Collections.minInList(this, compare);
+
+  Node max([int compare(Node a, Node b)]) => _Collections.maxInList(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -16400,8 +17035,30 @@ class _ChildNodeListLazy implements List {
   _ChildNodeListLazy(this._this);
 
 
-  Node get first => _this.$dom_firstChild;
-  Node get last => _this.$dom_lastChild;
+  Node get first {
+    Node result = _this.$dom_firstChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+  Node get last {
+    Node result = _this.$dom_lastChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+  Node get single {
+    int l = this.length;
+    if (l == 0) throw new StateError("No elements");
+    if (l > 1) throw new StateError("More than one element");
+    return _this.$dom_firstChild;
+  }
+
+  Node min([int compare(Node a, Node b)]) {
+    return _Collections.minInList(this, compare);
+  }
+
+  Node max([int compare(Node a, Node b)]) {
+    return _Collections.maxInList(this, compare);
+  }
 
   void add(Node value) {
     _this.$dom_appendChild(value);
@@ -16412,8 +17069,8 @@ class _ChildNodeListLazy implements List {
   }
 
 
-  void addAll(Collection<Node> collection) {
-    for (Node node in collection) {
+  void addAll(Iterable<Node> iterable) {
+    for (Node node in iterable) {
       _this.$dom_appendChild(node);
     }
   }
@@ -16442,7 +17099,7 @@ class _ChildNodeListLazy implements List {
     _this.$dom_replaceChild(value, this[index]);
   }
 
-  Iterator<Node> iterator() => _this.$dom_childNodes.iterator();
+  Iterator<Node> get iterator => _this.$dom_childNodes.iterator;
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
@@ -16455,18 +17112,55 @@ class _ChildNodeListLazy implements List {
     return Collections.reduce(this, initialValue, combine);
   }
 
-  Collection map(f(Node element)) => Collections.map(this, [], f);
+  String join([String separator]) {
+    return Collections.joinList(this, separator);
+  }
 
-  Collection<Node> filter(bool f(Node element)) =>
-     Collections.filter(this, <Node>[], f);
+  List mappedBy(f(Node element)) =>
+      new MappedList<Node, dynamic>(this, f);
+
+  Iterable<Node> where(bool f(Node element)) =>
+     new WhereIterable<Node>(this, f);
 
   bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => Collections.some(this, f);
+  bool any(bool f(Node element)) => Collections.any(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+
+  List<Node> take(int n) {
+    return new ListView<Node>(this, 0, n);
+  }
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return new TakeWhileIterable<Node>(this, test);
+  }
+
+  List<Node> skip(int n) {
+    return new ListView<Node>(this, n, null);
+  }
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return new SkipWhileIterable<Node>(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
+  }
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
@@ -16809,11 +17503,59 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   // From Iterable<Node>:
 
-  Iterator<Node> iterator() {
+  Iterator<Node> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Node>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+
+  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+
+  bool every(bool f(Node element)) => Collections.every(this, f);
+
+  bool any(bool f(Node element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return new TakeWhileIterable<Node>(this, test);
+  }
+
+  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return new SkipWhileIterable<Node>(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), { Node orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Node>:
@@ -16826,28 +17568,9 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Node> collection) {
+  void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => Collections.every(this, f);
-
-  bool some(bool f(Node element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
   void set length(int value) {
@@ -16870,9 +17593,25 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Node get first => this[0];
+  Node get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Node get last => this[length - 1];
+  Node get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node min([int compare(Node a, Node b)]) => _Collections.minInList(this, compare);
+
+  Node max([int compare(Node a, Node b)]) => _Collections.maxInList(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -19024,13 +19763,13 @@ class SelectElement extends _Element_Merged {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    return this.children.filter((e) => e is OptionElement);
+    return this.children.where((e) => e is OptionElement).toList();
   }
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
-      return this.options.filter((o) => o.selected);
+      return this.options.where((o) => o.selected).toList();
     } else {
       return [this.options[this.selectedIndex]];
     }
@@ -19241,11 +19980,59 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
   // From Iterable<SourceBuffer>:
 
-  Iterator<SourceBuffer> iterator() {
+  Iterator<SourceBuffer> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<SourceBuffer>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(SourceBuffer element) => Collections.contains(this, element);
+
+  void forEach(void f(SourceBuffer element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(SourceBuffer element)) => new MappedList<SourceBuffer, dynamic>(this, f);
+
+  Iterable<SourceBuffer> where(bool f(SourceBuffer element)) => new WhereIterable<SourceBuffer>(this, f);
+
+  bool every(bool f(SourceBuffer element)) => Collections.every(this, f);
+
+  bool any(bool f(SourceBuffer element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<SourceBuffer> take(int n) => new ListView<SourceBuffer>(this, 0, n);
+
+  Iterable<SourceBuffer> takeWhile(bool test(SourceBuffer value)) {
+    return new TakeWhileIterable<SourceBuffer>(this, test);
+  }
+
+  List<SourceBuffer> skip(int n) => new ListView<SourceBuffer>(this, n, null);
+
+  Iterable<SourceBuffer> skipWhile(bool test(SourceBuffer value)) {
+    return new SkipWhileIterable<SourceBuffer>(this, test);
+  }
+
+  SourceBuffer firstMatching(bool test(SourceBuffer value), { SourceBuffer orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  SourceBuffer lastMatching(bool test(SourceBuffer value), {SourceBuffer orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  SourceBuffer singleMatching(bool test(SourceBuffer value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  SourceBuffer elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<SourceBuffer>:
@@ -19258,28 +20045,9 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SourceBuffer> collection) {
+  void addAll(Iterable<SourceBuffer> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(SourceBuffer element) => Collections.contains(this, element);
-
-  void forEach(void f(SourceBuffer element)) => Collections.forEach(this, f);
-
-  Collection map(f(SourceBuffer element)) => Collections.map(this, [], f);
-
-  Collection<SourceBuffer> filter(bool f(SourceBuffer element)) =>
-     Collections.filter(this, <SourceBuffer>[], f);
-
-  bool every(bool f(SourceBuffer element)) => Collections.every(this, f);
-
-  bool some(bool f(SourceBuffer element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<SourceBuffer>:
   void set length(int value) {
@@ -19302,9 +20070,25 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  SourceBuffer get first => this[0];
+  SourceBuffer get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  SourceBuffer get last => this[length - 1];
+  SourceBuffer get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  SourceBuffer get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) => _Collections.minInList(this, compare);
+
+  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) => _Collections.maxInList(this, compare);
 
   SourceBuffer removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -19463,11 +20247,59 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   // From Iterable<SpeechGrammar>:
 
-  Iterator<SpeechGrammar> iterator() {
+  Iterator<SpeechGrammar> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<SpeechGrammar>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(SpeechGrammar element) => Collections.contains(this, element);
+
+  void forEach(void f(SpeechGrammar element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(SpeechGrammar element)) => new MappedList<SpeechGrammar, dynamic>(this, f);
+
+  Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) => new WhereIterable<SpeechGrammar>(this, f);
+
+  bool every(bool f(SpeechGrammar element)) => Collections.every(this, f);
+
+  bool any(bool f(SpeechGrammar element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<SpeechGrammar> take(int n) => new ListView<SpeechGrammar>(this, 0, n);
+
+  Iterable<SpeechGrammar> takeWhile(bool test(SpeechGrammar value)) {
+    return new TakeWhileIterable<SpeechGrammar>(this, test);
+  }
+
+  List<SpeechGrammar> skip(int n) => new ListView<SpeechGrammar>(this, n, null);
+
+  Iterable<SpeechGrammar> skipWhile(bool test(SpeechGrammar value)) {
+    return new SkipWhileIterable<SpeechGrammar>(this, test);
+  }
+
+  SpeechGrammar firstMatching(bool test(SpeechGrammar value), { SpeechGrammar orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  SpeechGrammar lastMatching(bool test(SpeechGrammar value), {SpeechGrammar orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  SpeechGrammar singleMatching(bool test(SpeechGrammar value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  SpeechGrammar elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<SpeechGrammar>:
@@ -19480,28 +20312,9 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SpeechGrammar> collection) {
+  void addAll(Iterable<SpeechGrammar> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(SpeechGrammar element) => Collections.contains(this, element);
-
-  void forEach(void f(SpeechGrammar element)) => Collections.forEach(this, f);
-
-  Collection map(f(SpeechGrammar element)) => Collections.map(this, [], f);
-
-  Collection<SpeechGrammar> filter(bool f(SpeechGrammar element)) =>
-     Collections.filter(this, <SpeechGrammar>[], f);
-
-  bool every(bool f(SpeechGrammar element)) => Collections.every(this, f);
-
-  bool some(bool f(SpeechGrammar element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<SpeechGrammar>:
   void set length(int value) {
@@ -19524,9 +20337,25 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     return Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechGrammar get first => this[0];
+  SpeechGrammar get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  SpeechGrammar get last => this[length - 1];
+  SpeechGrammar get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  SpeechGrammar get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) => _Collections.minInList(this, compare);
+
+  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) => _Collections.maxInList(this, compare);
 
   SpeechGrammar removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -19962,11 +20791,59 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
   // From Iterable<Map>:
 
-  Iterator<Map> iterator() {
+  Iterator<Map> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Map>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Map element) => Collections.contains(this, element);
+
+  void forEach(void f(Map element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Map element)) => new MappedList<Map, dynamic>(this, f);
+
+  Iterable<Map> where(bool f(Map element)) => new WhereIterable<Map>(this, f);
+
+  bool every(bool f(Map element)) => Collections.every(this, f);
+
+  bool any(bool f(Map element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Map> take(int n) => new ListView<Map>(this, 0, n);
+
+  Iterable<Map> takeWhile(bool test(Map value)) {
+    return new TakeWhileIterable<Map>(this, test);
+  }
+
+  List<Map> skip(int n) => new ListView<Map>(this, n, null);
+
+  Iterable<Map> skipWhile(bool test(Map value)) {
+    return new SkipWhileIterable<Map>(this, test);
+  }
+
+  Map firstMatching(bool test(Map value), { Map orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Map lastMatching(bool test(Map value), {Map orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Map singleMatching(bool test(Map value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Map elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Map>:
@@ -19979,28 +20856,9 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Map> collection) {
+  void addAll(Iterable<Map> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Map element) => Collections.contains(this, element);
-
-  void forEach(void f(Map element)) => Collections.forEach(this, f);
-
-  Collection map(f(Map element)) => Collections.map(this, [], f);
-
-  Collection<Map> filter(bool f(Map element)) =>
-     Collections.filter(this, <Map>[], f);
-
-  bool every(bool f(Map element)) => Collections.every(this, f);
-
-  bool some(bool f(Map element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Map>:
   void set length(int value) {
@@ -20023,9 +20881,25 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Map get first => this[0];
+  Map get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Map get last => this[length - 1];
+  Map get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Map get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Map min([int compare(Map a, Map b)]) => _Collections.minInList(this, compare);
+
+  Map max([int compare(Map a, Map b)]) => _Collections.maxInList(this, compare);
 
   Map removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -20098,7 +20972,7 @@ class SqlTransactionSync extends NativeFieldWrapperClass1 {
 class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
   // TODO(nweiz): update this when maps support lazy iteration
-  bool containsValue(String value) => values.some((e) => e == value);
+  bool containsValue(String value) => values.any((e) => e == value);
 
   bool containsKey(String key) => $dom_getItem(key) != null;
 
@@ -21134,11 +22008,59 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 
   // From Iterable<TextTrackCue>:
 
-  Iterator<TextTrackCue> iterator() {
+  Iterator<TextTrackCue> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<TextTrackCue>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(TextTrackCue element) => Collections.contains(this, element);
+
+  void forEach(void f(TextTrackCue element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(TextTrackCue element)) => new MappedList<TextTrackCue, dynamic>(this, f);
+
+  Iterable<TextTrackCue> where(bool f(TextTrackCue element)) => new WhereIterable<TextTrackCue>(this, f);
+
+  bool every(bool f(TextTrackCue element)) => Collections.every(this, f);
+
+  bool any(bool f(TextTrackCue element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<TextTrackCue> take(int n) => new ListView<TextTrackCue>(this, 0, n);
+
+  Iterable<TextTrackCue> takeWhile(bool test(TextTrackCue value)) {
+    return new TakeWhileIterable<TextTrackCue>(this, test);
+  }
+
+  List<TextTrackCue> skip(int n) => new ListView<TextTrackCue>(this, n, null);
+
+  Iterable<TextTrackCue> skipWhile(bool test(TextTrackCue value)) {
+    return new SkipWhileIterable<TextTrackCue>(this, test);
+  }
+
+  TextTrackCue firstMatching(bool test(TextTrackCue value), { TextTrackCue orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  TextTrackCue lastMatching(bool test(TextTrackCue value), {TextTrackCue orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  TextTrackCue singleMatching(bool test(TextTrackCue value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  TextTrackCue elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<TextTrackCue>:
@@ -21151,28 +22073,9 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<TextTrackCue> collection) {
+  void addAll(Iterable<TextTrackCue> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(TextTrackCue element) => Collections.contains(this, element);
-
-  void forEach(void f(TextTrackCue element)) => Collections.forEach(this, f);
-
-  Collection map(f(TextTrackCue element)) => Collections.map(this, [], f);
-
-  Collection<TextTrackCue> filter(bool f(TextTrackCue element)) =>
-     Collections.filter(this, <TextTrackCue>[], f);
-
-  bool every(bool f(TextTrackCue element)) => Collections.every(this, f);
-
-  bool some(bool f(TextTrackCue element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<TextTrackCue>:
   void set length(int value) {
@@ -21195,9 +22098,25 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     return Lists.lastIndexOf(this, element, start);
   }
 
-  TextTrackCue get first => this[0];
+  TextTrackCue get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  TextTrackCue get last => this[length - 1];
+  TextTrackCue get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  TextTrackCue get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) => _Collections.minInList(this, compare);
+
+  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) => _Collections.maxInList(this, compare);
 
   TextTrackCue removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21262,11 +22181,59 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   // From Iterable<TextTrack>:
 
-  Iterator<TextTrack> iterator() {
+  Iterator<TextTrack> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<TextTrack>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(TextTrack element) => Collections.contains(this, element);
+
+  void forEach(void f(TextTrack element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(TextTrack element)) => new MappedList<TextTrack, dynamic>(this, f);
+
+  Iterable<TextTrack> where(bool f(TextTrack element)) => new WhereIterable<TextTrack>(this, f);
+
+  bool every(bool f(TextTrack element)) => Collections.every(this, f);
+
+  bool any(bool f(TextTrack element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<TextTrack> take(int n) => new ListView<TextTrack>(this, 0, n);
+
+  Iterable<TextTrack> takeWhile(bool test(TextTrack value)) {
+    return new TakeWhileIterable<TextTrack>(this, test);
+  }
+
+  List<TextTrack> skip(int n) => new ListView<TextTrack>(this, n, null);
+
+  Iterable<TextTrack> skipWhile(bool test(TextTrack value)) {
+    return new SkipWhileIterable<TextTrack>(this, test);
+  }
+
+  TextTrack firstMatching(bool test(TextTrack value), { TextTrack orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  TextTrack lastMatching(bool test(TextTrack value), {TextTrack orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  TextTrack singleMatching(bool test(TextTrack value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  TextTrack elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<TextTrack>:
@@ -21279,28 +22246,9 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<TextTrack> collection) {
+  void addAll(Iterable<TextTrack> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(TextTrack element) => Collections.contains(this, element);
-
-  void forEach(void f(TextTrack element)) => Collections.forEach(this, f);
-
-  Collection map(f(TextTrack element)) => Collections.map(this, [], f);
-
-  Collection<TextTrack> filter(bool f(TextTrack element)) =>
-     Collections.filter(this, <TextTrack>[], f);
-
-  bool every(bool f(TextTrack element)) => Collections.every(this, f);
-
-  bool some(bool f(TextTrack element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<TextTrack>:
   void set length(int value) {
@@ -21323,9 +22271,25 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  TextTrack get first => this[0];
+  TextTrack get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  TextTrack get last => this[length - 1];
+  TextTrack get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  TextTrack get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrack min([int compare(TextTrack a, TextTrack b)]) => _Collections.minInList(this, compare);
+
+  TextTrack max([int compare(TextTrack a, TextTrack b)]) => _Collections.maxInList(this, compare);
 
   TextTrack removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21554,11 +22518,59 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   // From Iterable<Touch>:
 
-  Iterator<Touch> iterator() {
+  Iterator<Touch> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Touch>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Touch)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Touch element) => Collections.contains(this, element);
+
+  void forEach(void f(Touch element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Touch element)) => new MappedList<Touch, dynamic>(this, f);
+
+  Iterable<Touch> where(bool f(Touch element)) => new WhereIterable<Touch>(this, f);
+
+  bool every(bool f(Touch element)) => Collections.every(this, f);
+
+  bool any(bool f(Touch element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Touch> take(int n) => new ListView<Touch>(this, 0, n);
+
+  Iterable<Touch> takeWhile(bool test(Touch value)) {
+    return new TakeWhileIterable<Touch>(this, test);
+  }
+
+  List<Touch> skip(int n) => new ListView<Touch>(this, n, null);
+
+  Iterable<Touch> skipWhile(bool test(Touch value)) {
+    return new SkipWhileIterable<Touch>(this, test);
+  }
+
+  Touch firstMatching(bool test(Touch value), { Touch orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Touch lastMatching(bool test(Touch value), {Touch orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Touch singleMatching(bool test(Touch value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Touch elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Touch>:
@@ -21571,28 +22583,9 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Touch> collection) {
+  void addAll(Iterable<Touch> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Touch)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Touch element) => Collections.contains(this, element);
-
-  void forEach(void f(Touch element)) => Collections.forEach(this, f);
-
-  Collection map(f(Touch element)) => Collections.map(this, [], f);
-
-  Collection<Touch> filter(bool f(Touch element)) =>
-     Collections.filter(this, <Touch>[], f);
-
-  bool every(bool f(Touch element)) => Collections.every(this, f);
-
-  bool some(bool f(Touch element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Touch>:
   void set length(int value) {
@@ -21615,9 +22608,25 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Touch get first => this[0];
+  Touch get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Touch get last => this[length - 1];
+  Touch get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Touch get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Touch min([int compare(Touch a, Touch b)]) => _Collections.minInList(this, compare);
+
+  Touch max([int compare(Touch a, Touch b)]) => _Collections.maxInList(this, compare);
 
   Touch removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21945,11 +22954,59 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -21962,28 +23019,9 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -22006,9 +23044,25 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+
+  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -22093,11 +23147,59 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -22110,28 +23212,9 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -22154,9 +23237,25 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+
+  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -22241,11 +23340,59 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -22258,28 +23405,9 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -22302,9 +23430,25 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+
+  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -24506,7 +25650,7 @@ class Window extends EventTarget implements WindowBase {
    * registered under [name].
    */
   lookupPort(String name) {
-    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
+    var port = json.parse(document.documentElement.attributes['dart-port:$name']);
     return _deserialize(port);
   }
 
@@ -24517,7 +25661,7 @@ class Window extends EventTarget implements WindowBase {
    */
   registerPort(String name, var port) {
     var serialized = _serialize(port);
-    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
+    document.documentElement.attributes['dart-port:$name'] = json.stringify(serialized);
   }
 
   Window.internal() : super.internal();
@@ -25614,11 +26758,59 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 
   // From Iterable<ClientRect>:
 
-  Iterator<ClientRect> iterator() {
+  Iterator<ClientRect> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<ClientRect>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ClientRect)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(ClientRect element) => Collections.contains(this, element);
+
+  void forEach(void f(ClientRect element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(ClientRect element)) => new MappedList<ClientRect, dynamic>(this, f);
+
+  Iterable<ClientRect> where(bool f(ClientRect element)) => new WhereIterable<ClientRect>(this, f);
+
+  bool every(bool f(ClientRect element)) => Collections.every(this, f);
+
+  bool any(bool f(ClientRect element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<ClientRect> take(int n) => new ListView<ClientRect>(this, 0, n);
+
+  Iterable<ClientRect> takeWhile(bool test(ClientRect value)) {
+    return new TakeWhileIterable<ClientRect>(this, test);
+  }
+
+  List<ClientRect> skip(int n) => new ListView<ClientRect>(this, n, null);
+
+  Iterable<ClientRect> skipWhile(bool test(ClientRect value)) {
+    return new SkipWhileIterable<ClientRect>(this, test);
+  }
+
+  ClientRect firstMatching(bool test(ClientRect value), { ClientRect orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  ClientRect lastMatching(bool test(ClientRect value), {ClientRect orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  ClientRect singleMatching(bool test(ClientRect value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  ClientRect elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<ClientRect>:
@@ -25631,28 +26823,9 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<ClientRect> collection) {
+  void addAll(Iterable<ClientRect> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ClientRect)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(ClientRect element) => Collections.contains(this, element);
-
-  void forEach(void f(ClientRect element)) => Collections.forEach(this, f);
-
-  Collection map(f(ClientRect element)) => Collections.map(this, [], f);
-
-  Collection<ClientRect> filter(bool f(ClientRect element)) =>
-     Collections.filter(this, <ClientRect>[], f);
-
-  bool every(bool f(ClientRect element)) => Collections.every(this, f);
-
-  bool some(bool f(ClientRect element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<ClientRect>:
   void set length(int value) {
@@ -25675,9 +26848,25 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     return Lists.lastIndexOf(this, element, start);
   }
 
-  ClientRect get first => this[0];
+  ClientRect get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  ClientRect get last => this[length - 1];
+  ClientRect get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  ClientRect get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  ClientRect min([int compare(ClientRect a, ClientRect b)]) => _Collections.minInList(this, compare);
+
+  ClientRect max([int compare(ClientRect a, ClientRect b)]) => _Collections.maxInList(this, compare);
 
   ClientRect removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -25734,11 +26923,59 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 
   // From Iterable<CssRule>:
 
-  Iterator<CssRule> iterator() {
+  Iterator<CssRule> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<CssRule>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(CssRule element) => Collections.contains(this, element);
+
+  void forEach(void f(CssRule element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(CssRule element)) => new MappedList<CssRule, dynamic>(this, f);
+
+  Iterable<CssRule> where(bool f(CssRule element)) => new WhereIterable<CssRule>(this, f);
+
+  bool every(bool f(CssRule element)) => Collections.every(this, f);
+
+  bool any(bool f(CssRule element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<CssRule> take(int n) => new ListView<CssRule>(this, 0, n);
+
+  Iterable<CssRule> takeWhile(bool test(CssRule value)) {
+    return new TakeWhileIterable<CssRule>(this, test);
+  }
+
+  List<CssRule> skip(int n) => new ListView<CssRule>(this, n, null);
+
+  Iterable<CssRule> skipWhile(bool test(CssRule value)) {
+    return new SkipWhileIterable<CssRule>(this, test);
+  }
+
+  CssRule firstMatching(bool test(CssRule value), { CssRule orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  CssRule lastMatching(bool test(CssRule value), {CssRule orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  CssRule singleMatching(bool test(CssRule value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  CssRule elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<CssRule>:
@@ -25751,28 +26988,9 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<CssRule> collection) {
+  void addAll(Iterable<CssRule> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(CssRule element) => Collections.contains(this, element);
-
-  void forEach(void f(CssRule element)) => Collections.forEach(this, f);
-
-  Collection map(f(CssRule element)) => Collections.map(this, [], f);
-
-  Collection<CssRule> filter(bool f(CssRule element)) =>
-     Collections.filter(this, <CssRule>[], f);
-
-  bool every(bool f(CssRule element)) => Collections.every(this, f);
-
-  bool some(bool f(CssRule element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<CssRule>:
   void set length(int value) {
@@ -25795,9 +27013,25 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  CssRule get first => this[0];
+  CssRule get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  CssRule get last => this[length - 1];
+  CssRule get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  CssRule get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  CssRule min([int compare(CssRule a, CssRule b)]) => _Collections.minInList(this, compare);
+
+  CssRule max([int compare(CssRule a, CssRule b)]) => _Collections.maxInList(this, compare);
 
   CssRule removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -25854,11 +27088,59 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   // From Iterable<CssValue>:
 
-  Iterator<CssValue> iterator() {
+  Iterator<CssValue> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<CssValue>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(CssValue element) => Collections.contains(this, element);
+
+  void forEach(void f(CssValue element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(CssValue element)) => new MappedList<CssValue, dynamic>(this, f);
+
+  Iterable<CssValue> where(bool f(CssValue element)) => new WhereIterable<CssValue>(this, f);
+
+  bool every(bool f(CssValue element)) => Collections.every(this, f);
+
+  bool any(bool f(CssValue element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<CssValue> take(int n) => new ListView<CssValue>(this, 0, n);
+
+  Iterable<CssValue> takeWhile(bool test(CssValue value)) {
+    return new TakeWhileIterable<CssValue>(this, test);
+  }
+
+  List<CssValue> skip(int n) => new ListView<CssValue>(this, n, null);
+
+  Iterable<CssValue> skipWhile(bool test(CssValue value)) {
+    return new SkipWhileIterable<CssValue>(this, test);
+  }
+
+  CssValue firstMatching(bool test(CssValue value), { CssValue orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  CssValue lastMatching(bool test(CssValue value), {CssValue orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  CssValue singleMatching(bool test(CssValue value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  CssValue elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<CssValue>:
@@ -25871,28 +27153,9 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<CssValue> collection) {
+  void addAll(Iterable<CssValue> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(CssValue element) => Collections.contains(this, element);
-
-  void forEach(void f(CssValue element)) => Collections.forEach(this, f);
-
-  Collection map(f(CssValue element)) => Collections.map(this, [], f);
-
-  Collection<CssValue> filter(bool f(CssValue element)) =>
-     Collections.filter(this, <CssValue>[], f);
-
-  bool every(bool f(CssValue element)) => Collections.every(this, f);
-
-  bool some(bool f(CssValue element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<CssValue>:
   void set length(int value) {
@@ -25915,9 +27178,25 @@ class _CssValueList extends CssValue implements List<CssValue> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  CssValue get first => this[0];
+  CssValue get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  CssValue get last => this[length - 1];
+  CssValue get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  CssValue get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  CssValue min([int compare(CssValue a, CssValue b)]) => _Collections.minInList(this, compare);
+
+  CssValue max([int compare(CssValue a, CssValue b)]) => _Collections.maxInList(this, compare);
 
   CssValue removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -26110,11 +27389,59 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 
   // From Iterable<Entry>:
 
-  Iterator<Entry> iterator() {
+  Iterator<Entry> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Entry>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Entry)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Entry element) => Collections.contains(this, element);
+
+  void forEach(void f(Entry element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Entry element)) => new MappedList<Entry, dynamic>(this, f);
+
+  Iterable<Entry> where(bool f(Entry element)) => new WhereIterable<Entry>(this, f);
+
+  bool every(bool f(Entry element)) => Collections.every(this, f);
+
+  bool any(bool f(Entry element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Entry> take(int n) => new ListView<Entry>(this, 0, n);
+
+  Iterable<Entry> takeWhile(bool test(Entry value)) {
+    return new TakeWhileIterable<Entry>(this, test);
+  }
+
+  List<Entry> skip(int n) => new ListView<Entry>(this, n, null);
+
+  Iterable<Entry> skipWhile(bool test(Entry value)) {
+    return new SkipWhileIterable<Entry>(this, test);
+  }
+
+  Entry firstMatching(bool test(Entry value), { Entry orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Entry lastMatching(bool test(Entry value), {Entry orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Entry singleMatching(bool test(Entry value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Entry elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Entry>:
@@ -26127,28 +27454,9 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Entry> collection) {
+  void addAll(Iterable<Entry> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Entry)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Entry element) => Collections.contains(this, element);
-
-  void forEach(void f(Entry element)) => Collections.forEach(this, f);
-
-  Collection map(f(Entry element)) => Collections.map(this, [], f);
-
-  Collection<Entry> filter(bool f(Entry element)) =>
-     Collections.filter(this, <Entry>[], f);
-
-  bool every(bool f(Entry element)) => Collections.every(this, f);
-
-  bool some(bool f(Entry element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Entry>:
   void set length(int value) {
@@ -26171,9 +27479,25 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Entry get first => this[0];
+  Entry get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Entry get last => this[length - 1];
+  Entry get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Entry get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Entry min([int compare(Entry a, Entry b)]) => _Collections.minInList(this, compare);
+
+  Entry max([int compare(Entry a, Entry b)]) => _Collections.maxInList(this, compare);
 
   Entry removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -26230,11 +27554,59 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 
   // From Iterable<EntrySync>:
 
-  Iterator<EntrySync> iterator() {
+  Iterator<EntrySync> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<EntrySync>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(EntrySync element) => Collections.contains(this, element);
+
+  void forEach(void f(EntrySync element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(EntrySync element)) => new MappedList<EntrySync, dynamic>(this, f);
+
+  Iterable<EntrySync> where(bool f(EntrySync element)) => new WhereIterable<EntrySync>(this, f);
+
+  bool every(bool f(EntrySync element)) => Collections.every(this, f);
+
+  bool any(bool f(EntrySync element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<EntrySync> take(int n) => new ListView<EntrySync>(this, 0, n);
+
+  Iterable<EntrySync> takeWhile(bool test(EntrySync value)) {
+    return new TakeWhileIterable<EntrySync>(this, test);
+  }
+
+  List<EntrySync> skip(int n) => new ListView<EntrySync>(this, n, null);
+
+  Iterable<EntrySync> skipWhile(bool test(EntrySync value)) {
+    return new SkipWhileIterable<EntrySync>(this, test);
+  }
+
+  EntrySync firstMatching(bool test(EntrySync value), { EntrySync orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  EntrySync lastMatching(bool test(EntrySync value), {EntrySync orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  EntrySync singleMatching(bool test(EntrySync value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  EntrySync elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<EntrySync>:
@@ -26247,28 +27619,9 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<EntrySync> collection) {
+  void addAll(Iterable<EntrySync> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(EntrySync element) => Collections.contains(this, element);
-
-  void forEach(void f(EntrySync element)) => Collections.forEach(this, f);
-
-  Collection map(f(EntrySync element)) => Collections.map(this, [], f);
-
-  Collection<EntrySync> filter(bool f(EntrySync element)) =>
-     Collections.filter(this, <EntrySync>[], f);
-
-  bool every(bool f(EntrySync element)) => Collections.every(this, f);
-
-  bool some(bool f(EntrySync element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<EntrySync>:
   void set length(int value) {
@@ -26291,9 +27644,25 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     return Lists.lastIndexOf(this, element, start);
   }
 
-  EntrySync get first => this[0];
+  EntrySync get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  EntrySync get last => this[length - 1];
+  EntrySync get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  EntrySync get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  EntrySync min([int compare(EntrySync a, EntrySync b)]) => _Collections.minInList(this, compare);
+
+  EntrySync max([int compare(EntrySync a, EntrySync b)]) => _Collections.maxInList(this, compare);
 
   EntrySync removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -26350,11 +27719,59 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   // From Iterable<Gamepad>:
 
-  Iterator<Gamepad> iterator() {
+  Iterator<Gamepad> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Gamepad>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Gamepad element) => Collections.contains(this, element);
+
+  void forEach(void f(Gamepad element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Gamepad element)) => new MappedList<Gamepad, dynamic>(this, f);
+
+  Iterable<Gamepad> where(bool f(Gamepad element)) => new WhereIterable<Gamepad>(this, f);
+
+  bool every(bool f(Gamepad element)) => Collections.every(this, f);
+
+  bool any(bool f(Gamepad element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Gamepad> take(int n) => new ListView<Gamepad>(this, 0, n);
+
+  Iterable<Gamepad> takeWhile(bool test(Gamepad value)) {
+    return new TakeWhileIterable<Gamepad>(this, test);
+  }
+
+  List<Gamepad> skip(int n) => new ListView<Gamepad>(this, n, null);
+
+  Iterable<Gamepad> skipWhile(bool test(Gamepad value)) {
+    return new SkipWhileIterable<Gamepad>(this, test);
+  }
+
+  Gamepad firstMatching(bool test(Gamepad value), { Gamepad orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Gamepad lastMatching(bool test(Gamepad value), {Gamepad orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Gamepad singleMatching(bool test(Gamepad value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Gamepad elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Gamepad>:
@@ -26367,28 +27784,9 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Gamepad> collection) {
+  void addAll(Iterable<Gamepad> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Gamepad element) => Collections.contains(this, element);
-
-  void forEach(void f(Gamepad element)) => Collections.forEach(this, f);
-
-  Collection map(f(Gamepad element)) => Collections.map(this, [], f);
-
-  Collection<Gamepad> filter(bool f(Gamepad element)) =>
-     Collections.filter(this, <Gamepad>[], f);
-
-  bool every(bool f(Gamepad element)) => Collections.every(this, f);
-
-  bool some(bool f(Gamepad element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Gamepad>:
   void set length(int value) {
@@ -26411,9 +27809,25 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Gamepad get first => this[0];
+  Gamepad get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Gamepad get last => this[length - 1];
+  Gamepad get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Gamepad get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Gamepad min([int compare(Gamepad a, Gamepad b)]) => _Collections.minInList(this, compare);
+
+  Gamepad max([int compare(Gamepad a, Gamepad b)]) => _Collections.maxInList(this, compare);
 
   Gamepad removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -26470,11 +27884,59 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
 
   // From Iterable<MediaStream>:
 
-  Iterator<MediaStream> iterator() {
+  Iterator<MediaStream> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<MediaStream>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, MediaStream)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(MediaStream element) => Collections.contains(this, element);
+
+  void forEach(void f(MediaStream element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(MediaStream element)) => new MappedList<MediaStream, dynamic>(this, f);
+
+  Iterable<MediaStream> where(bool f(MediaStream element)) => new WhereIterable<MediaStream>(this, f);
+
+  bool every(bool f(MediaStream element)) => Collections.every(this, f);
+
+  bool any(bool f(MediaStream element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<MediaStream> take(int n) => new ListView<MediaStream>(this, 0, n);
+
+  Iterable<MediaStream> takeWhile(bool test(MediaStream value)) {
+    return new TakeWhileIterable<MediaStream>(this, test);
+  }
+
+  List<MediaStream> skip(int n) => new ListView<MediaStream>(this, n, null);
+
+  Iterable<MediaStream> skipWhile(bool test(MediaStream value)) {
+    return new SkipWhileIterable<MediaStream>(this, test);
+  }
+
+  MediaStream firstMatching(bool test(MediaStream value), { MediaStream orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  MediaStream lastMatching(bool test(MediaStream value), {MediaStream orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  MediaStream singleMatching(bool test(MediaStream value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  MediaStream elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<MediaStream>:
@@ -26487,28 +27949,9 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<MediaStream> collection) {
+  void addAll(Iterable<MediaStream> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, MediaStream)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(MediaStream element) => Collections.contains(this, element);
-
-  void forEach(void f(MediaStream element)) => Collections.forEach(this, f);
-
-  Collection map(f(MediaStream element)) => Collections.map(this, [], f);
-
-  Collection<MediaStream> filter(bool f(MediaStream element)) =>
-     Collections.filter(this, <MediaStream>[], f);
-
-  bool every(bool f(MediaStream element)) => Collections.every(this, f);
-
-  bool some(bool f(MediaStream element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<MediaStream>:
   void set length(int value) {
@@ -26531,9 +27974,25 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
     return Lists.lastIndexOf(this, element, start);
   }
 
-  MediaStream get first => this[0];
+  MediaStream get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  MediaStream get last => this[length - 1];
+  MediaStream get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  MediaStream get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  MediaStream min([int compare(MediaStream a, MediaStream b)]) => _Collections.minInList(this, compare);
+
+  MediaStream max([int compare(MediaStream a, MediaStream b)]) => _Collections.maxInList(this, compare);
 
   MediaStream removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -26590,11 +28049,59 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 
   // From Iterable<SpeechInputResult>:
 
-  Iterator<SpeechInputResult> iterator() {
+  Iterator<SpeechInputResult> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<SpeechInputResult>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(SpeechInputResult element) => Collections.contains(this, element);
+
+  void forEach(void f(SpeechInputResult element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(SpeechInputResult element)) => new MappedList<SpeechInputResult, dynamic>(this, f);
+
+  Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) => new WhereIterable<SpeechInputResult>(this, f);
+
+  bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
+
+  bool any(bool f(SpeechInputResult element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<SpeechInputResult> take(int n) => new ListView<SpeechInputResult>(this, 0, n);
+
+  Iterable<SpeechInputResult> takeWhile(bool test(SpeechInputResult value)) {
+    return new TakeWhileIterable<SpeechInputResult>(this, test);
+  }
+
+  List<SpeechInputResult> skip(int n) => new ListView<SpeechInputResult>(this, n, null);
+
+  Iterable<SpeechInputResult> skipWhile(bool test(SpeechInputResult value)) {
+    return new SkipWhileIterable<SpeechInputResult>(this, test);
+  }
+
+  SpeechInputResult firstMatching(bool test(SpeechInputResult value), { SpeechInputResult orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  SpeechInputResult lastMatching(bool test(SpeechInputResult value), {SpeechInputResult orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  SpeechInputResult singleMatching(bool test(SpeechInputResult value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  SpeechInputResult elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<SpeechInputResult>:
@@ -26607,28 +28114,9 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SpeechInputResult> collection) {
+  void addAll(Iterable<SpeechInputResult> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(SpeechInputResult element) => Collections.contains(this, element);
-
-  void forEach(void f(SpeechInputResult element)) => Collections.forEach(this, f);
-
-  Collection map(f(SpeechInputResult element)) => Collections.map(this, [], f);
-
-  Collection<SpeechInputResult> filter(bool f(SpeechInputResult element)) =>
-     Collections.filter(this, <SpeechInputResult>[], f);
-
-  bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
-
-  bool some(bool f(SpeechInputResult element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<SpeechInputResult>:
   void set length(int value) {
@@ -26651,9 +28139,25 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     return Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechInputResult get first => this[0];
+  SpeechInputResult get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  SpeechInputResult get last => this[length - 1];
+  SpeechInputResult get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  SpeechInputResult get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) => _Collections.minInList(this, compare);
+
+  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) => _Collections.maxInList(this, compare);
 
   SpeechInputResult removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -26710,11 +28214,59 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
 
   // From Iterable<SpeechRecognitionResult>:
 
-  Iterator<SpeechRecognitionResult> iterator() {
+  Iterator<SpeechRecognitionResult> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<SpeechRecognitionResult>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(SpeechRecognitionResult element) => Collections.contains(this, element);
+
+  void forEach(void f(SpeechRecognitionResult element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(SpeechRecognitionResult element)) => new MappedList<SpeechRecognitionResult, dynamic>(this, f);
+
+  Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) => new WhereIterable<SpeechRecognitionResult>(this, f);
+
+  bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
+
+  bool any(bool f(SpeechRecognitionResult element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<SpeechRecognitionResult> take(int n) => new ListView<SpeechRecognitionResult>(this, 0, n);
+
+  Iterable<SpeechRecognitionResult> takeWhile(bool test(SpeechRecognitionResult value)) {
+    return new TakeWhileIterable<SpeechRecognitionResult>(this, test);
+  }
+
+  List<SpeechRecognitionResult> skip(int n) => new ListView<SpeechRecognitionResult>(this, n, null);
+
+  Iterable<SpeechRecognitionResult> skipWhile(bool test(SpeechRecognitionResult value)) {
+    return new SkipWhileIterable<SpeechRecognitionResult>(this, test);
+  }
+
+  SpeechRecognitionResult firstMatching(bool test(SpeechRecognitionResult value), { SpeechRecognitionResult orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  SpeechRecognitionResult lastMatching(bool test(SpeechRecognitionResult value), {SpeechRecognitionResult orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  SpeechRecognitionResult singleMatching(bool test(SpeechRecognitionResult value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  SpeechRecognitionResult elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<SpeechRecognitionResult>:
@@ -26727,28 +28279,9 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SpeechRecognitionResult> collection) {
+  void addAll(Iterable<SpeechRecognitionResult> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(SpeechRecognitionResult element) => Collections.contains(this, element);
-
-  void forEach(void f(SpeechRecognitionResult element)) => Collections.forEach(this, f);
-
-  Collection map(f(SpeechRecognitionResult element)) => Collections.map(this, [], f);
-
-  Collection<SpeechRecognitionResult> filter(bool f(SpeechRecognitionResult element)) =>
-     Collections.filter(this, <SpeechRecognitionResult>[], f);
-
-  bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
-
-  bool some(bool f(SpeechRecognitionResult element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<SpeechRecognitionResult>:
   void set length(int value) {
@@ -26771,9 +28304,25 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     return Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechRecognitionResult get first => this[0];
+  SpeechRecognitionResult get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  SpeechRecognitionResult get last => this[length - 1];
+  SpeechRecognitionResult get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  SpeechRecognitionResult get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => _Collections.minInList(this, compare);
+
+  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => _Collections.maxInList(this, compare);
 
   SpeechRecognitionResult removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -26830,11 +28379,59 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   // From Iterable<StyleSheet>:
 
-  Iterator<StyleSheet> iterator() {
+  Iterator<StyleSheet> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<StyleSheet>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(StyleSheet element) => Collections.contains(this, element);
+
+  void forEach(void f(StyleSheet element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(StyleSheet element)) => new MappedList<StyleSheet, dynamic>(this, f);
+
+  Iterable<StyleSheet> where(bool f(StyleSheet element)) => new WhereIterable<StyleSheet>(this, f);
+
+  bool every(bool f(StyleSheet element)) => Collections.every(this, f);
+
+  bool any(bool f(StyleSheet element)) => Collections.any(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  List<StyleSheet> take(int n) => new ListView<StyleSheet>(this, 0, n);
+
+  Iterable<StyleSheet> takeWhile(bool test(StyleSheet value)) {
+    return new TakeWhileIterable<StyleSheet>(this, test);
+  }
+
+  List<StyleSheet> skip(int n) => new ListView<StyleSheet>(this, n, null);
+
+  Iterable<StyleSheet> skipWhile(bool test(StyleSheet value)) {
+    return new SkipWhileIterable<StyleSheet>(this, test);
+  }
+
+  StyleSheet firstMatching(bool test(StyleSheet value), { StyleSheet orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  StyleSheet lastMatching(bool test(StyleSheet value), {StyleSheet orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  StyleSheet singleMatching(bool test(StyleSheet value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  StyleSheet elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<StyleSheet>:
@@ -26847,28 +28444,9 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<StyleSheet> collection) {
+  void addAll(Iterable<StyleSheet> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(StyleSheet element) => Collections.contains(this, element);
-
-  void forEach(void f(StyleSheet element)) => Collections.forEach(this, f);
-
-  Collection map(f(StyleSheet element)) => Collections.map(this, [], f);
-
-  Collection<StyleSheet> filter(bool f(StyleSheet element)) =>
-     Collections.filter(this, <StyleSheet>[], f);
-
-  bool every(bool f(StyleSheet element)) => Collections.every(this, f);
-
-  bool some(bool f(StyleSheet element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<StyleSheet>:
   void set length(int value) {
@@ -26891,9 +28469,25 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     return Lists.lastIndexOf(this, element, start);
   }
 
-  StyleSheet get first => this[0];
+  StyleSheet get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  StyleSheet get last => this[length - 1];
+  StyleSheet get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  StyleSheet get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) => _Collections.minInList(this, compare);
+
+  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) => _Collections.maxInList(this, compare);
 
   StyleSheet removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -27087,7 +28681,7 @@ class _DataAttributeMap implements Map<String, String> {
   // interface Map
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => values.some((v) => v == value);
+  bool containsValue(String value) => values.any((v) => v == value);
 
   bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
 
@@ -27310,7 +28904,7 @@ abstract class CssClassSet implements Set<String> {
   bool get frozen => false;
 
   // interface Iterable - BEGIN
-  Iterator<String> iterator() => readClasses().iterator();
+  Iterator<String> get iterator => readClasses().iterator;
   // interface Iterable - END
 
   // interface Collection - BEGIN
@@ -27318,13 +28912,15 @@ abstract class CssClassSet implements Set<String> {
     readClasses().forEach(f);
   }
 
-  Collection map(f(String element)) => readClasses().map(f);
+  String join([String separator]) => readClasses().join(separator);
 
-  Collection<String> filter(bool f(String element)) => readClasses().filter(f);
+  Iterable mappedBy(f(String element)) => readClasses().mappedBy(f);
+
+  Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
   bool every(bool f(String element)) => readClasses().every(f);
 
-  bool some(bool f(String element)) => readClasses().some(f);
+  bool any(bool f(String element)) => readClasses().any(f);
 
   bool get isEmpty => readClasses().isEmpty;
 
@@ -27352,13 +28948,13 @@ abstract class CssClassSet implements Set<String> {
     return result;
   }
 
-  void addAll(Collection<String> collection) {
+  void addAll(Iterable<String> iterable) {
     // TODO - see comment above about validation
-    _modify((s) => s.addAll(collection));
+    _modify((s) => s.addAll(iterable));
   }
 
-  void removeAll(Collection<String> collection) {
-    _modify((s) => s.removeAll(collection));
+  void removeAll(Iterable<String> iterable) {
+    _modify((s) => s.removeAll(iterable));
   }
 
   bool isSubsetOf(Collection<String> collection) =>
@@ -27561,7 +29157,7 @@ class KeyboardEventController {
 
   /** Determine if caps lock is one of the currently depressed keys. */
   bool get _capsLockOn =>
-      _keyDownList.some((var element) => element.keyCode == KeyCode.CAPS_LOCK);
+      _keyDownList.any((var element) => element.keyCode == KeyCode.CAPS_LOCK);
 
   /**
    * Given the previously recorded keydown key codes, see if we can determine
@@ -27790,7 +29386,7 @@ class KeyboardEventController {
       // keyCode/which for non printable keys.
       e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
     }
-    e._shadowAltKey = _keyDownList.some((var element) => element.altKey);
+    e._shadowAltKey = _keyDownList.any((var element) => element.altKey);
     _dispatch(e);
   }
 
@@ -27804,7 +29400,8 @@ class KeyboardEventController {
       }
     }
     if (toRemove != null) {
-      _keyDownList = _keyDownList.filter((element) => element != toRemove);
+      _keyDownList =
+          _keyDownList.where((element) => element != toRemove).toList();
     } else if (_keyDownList.length > 0) {
       // This happens when we've reached some international keyboard case we
       // haven't accounted for or we haven't correctly eliminated all browser
@@ -29076,7 +30673,7 @@ class _RemoteSendPortSync implements SendPortSync {
     var source = '$target-result';
     var result = null;
     var listener = (Event e) {
-      result = JSON.parse(_getPortSyncEventData(e));
+      result = json.parse(_getPortSyncEventData(e));
     };
     window.on[source].add(listener);
     _dispatchEvent(target, [source, message]);
@@ -29148,7 +30745,7 @@ class ReceivePortSync {
     _callback = callback;
     if (_listener == null) {
       _listener = (Event e) {
-        var data = JSON.parse(_getPortSyncEventData(e));
+        var data = json.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -29179,7 +30776,7 @@ class ReceivePortSync {
 get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
-  var event = new CustomEvent(receiver, false, false, JSON.stringify(message));
+  var event = new CustomEvent(receiver, false, false, json.stringify(message));
   window.$dom_dispatchEvent(event);
 }
 
@@ -29474,15 +31071,15 @@ abstract class _Serializer extends _MessageTraverser {
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
-    var keys = _serializeList(map.keys);
-    var values = _serializeList(map.values);
+    var keys = _serializeList(map.keys.toList());
+    var values = _serializeList(map.values.toList());
     // TODO(floitsch): we are losing the generic type.
     return ['map', id, keys, values];
   }
 
   _serializeList(List list) {
     int len = list.length;
-    var result = new List(len);
+    var result = new List.fixedLength(len);
     for (int i = 0; i < len; i++) {
       result[i] = _dispatch(list[i]);
     }
@@ -29588,33 +31185,55 @@ class Testing {
 
 
 // Iterator for arrays with fixed size.
-class FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
+class FixedSizeListIterator<T> implements Iterator<T> {
+  final List<T> _array;
+  final int _length;  // Cache array length for faster access.
+  int _position;
+  T _current;
+  
   FixedSizeListIterator(List<T> array)
-      : super(array),
+      : _array = array,
+        _position = -1,
         _length = array.length;
 
-  bool get hasNext => _length > _pos;
+  bool moveNext() {
+    int nextPosition = _position + 1;
+    if (nextPosition < _length) {
+      _current = _array[nextPosition];
+      _position = nextPosition;
+      return true;
+    }
+    _current = null;
+    _position = _length;
+    return false;
+  }
 
-  final int _length;  // Cache array length for faster access.
+  T get current => _current;
 }
 
 // Iterator for arrays with variable size.
 class _VariableSizeListIterator<T> implements Iterator<T> {
+  final List<T> _array;
+  int _position;
+  T _current;
+
   _VariableSizeListIterator(List<T> array)
       : _array = array,
-        _pos = 0;
+        _position = -1;
 
-  bool get hasNext => _array.length > _pos;
-
-  T next() {
-    if (!hasNext) {
-      throw new StateError("No more elements");
+  bool moveNext() {
+    int nextPosition = _position + 1;
+    if (nextPosition < _array.length) {
+      _current = _array[nextPosition];
+      _position = nextPosition;
+      return true;
     }
-    return _array[_pos++];
+    _current = null;
+    _position = _array.length;
+    return false;
   }
 
-  final List<T> _array;
-  int _pos;
+  T get current => _current;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29655,7 +31274,7 @@ class _Utils {
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
-    List result = new List(length);
+    List result = new List.fixedLength(length);
     result.setRange(0, length, list);
     return result;
   }

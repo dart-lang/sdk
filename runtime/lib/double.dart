@@ -6,11 +6,8 @@ class _Double implements double {
   factory _Double.fromInteger(int value)
       native "Double_doubleFromInteger";
   int get hashCode {
-    try {
-      return toInt();
-    } on FormatException catch (e) {
-      return 0;
-    }
+    if (isNaN || isInfinite) return 0;
+    return toInt();
   }
   double operator +(num other) {
     return _add(other.toDouble());
@@ -27,10 +24,10 @@ class _Double implements double {
   }
   double _mul(double other) native "Double_mul";
 
-  double operator ~/(num other) {
+  int operator ~/(num other) {
     return _trunc_div(other.toDouble());
   }
-  double _trunc_div(double other) native "Double_trunc_div";
+  int _trunc_div(double other) native "Double_trunc_div";
 
   double operator /(num other) {
     return _div(other.toDouble());
@@ -81,7 +78,7 @@ class _Double implements double {
   double _mulFromInteger(int other) {
     return new _Double.fromInteger(other) * this;
   }
-  double _truncDivFromInteger(int other) {
+  int _truncDivFromInteger(int other) {
     return new _Double.fromInteger(other) ~/ this;
   }
   double _moduloFromInteger(int other) {
@@ -107,6 +104,20 @@ class _Double implements double {
   double floor() native "Double_floor";
   double ceil () native "Double_ceil";
   double truncate() native "Double_truncate";
+
+  num clamp(num lowerLimit, num upperLimit) {
+    if (lowerLimit is! num) throw new ArgumentError(lowerLimit);
+    if (upperLimit is! num) throw new ArgumentError(upperLimit);
+
+    if (lowerLimit.compareTo(upperLimit) > 0) {
+      throw new ArgumentError(lowerLimit);
+    }
+    if (lowerLimit.isNaN) return lowerLimit;
+    if (this.compareTo(lowerLimit) < 0) return lowerLimit;
+    if (this.compareTo(upperLimit) > 0) return upperLimit;
+    return this;
+  }
+
   int toInt() native "Double_toInt";
   double toDouble() { return this; }
 
@@ -128,10 +139,12 @@ class _Double implements double {
   String toStringAsFixed(int fractionDigits) {
     // See ECMAScript-262, 15.7.4.5 for details.
 
+    if (fractionDigits is! int) {
+      throw new ArgumentError(fractionDigits);
+    }
     // Step 2.
     if (fractionDigits < 0 || fractionDigits > 20) {
-      // TODO(antonm): should be proper RangeError or Dart counterpart.
-      throw "Range error";
+      throw new RangeError(fractionDigits);
     }
 
     // Step 3.
@@ -151,7 +164,7 @@ class _Double implements double {
   }
   String _toStringAsFixed(int fractionDigits) native "Double_toStringAsFixed";
 
-  String toStringAsExponential(int fractionDigits) {
+  String toStringAsExponential([int fractionDigits]) {
     // See ECMAScript-262, 15.7.4.6 for details.
 
     // The EcmaScript specification checks for NaN and Infinity before looking
@@ -159,10 +172,13 @@ class _Double implements double {
     // look at the fractionDigits first.
 
     // Step 7.
-    if (fractionDigits != null &&
-        (fractionDigits < 0 || fractionDigits > 20)) {
-      // TODO(antonm): should be proper RangeError or Dart counterpart.
-      throw "Range error";
+    if (fractionDigits != null) {
+      if (fractionDigits is! int) {
+        throw new ArgumentError(fractionDigits);
+      }
+      if (fractionDigits < 0 || fractionDigits > 20) {
+        throw new RangeError(fractionDigits);
+      }
     }
 
     if (isNaN) return "NaN";
@@ -185,10 +201,11 @@ class _Double implements double {
     // at the fractionDigits. In Dart we are consistent with toStringAsFixed and
     // look at the fractionDigits first.
 
+    if (precision is! int) throw new ArgumentError(precision);
+
     // Step 8.
     if (precision < 1 || precision > 21) {
-      // TODO(antonm): should be proper RangeError or Dart counterpart.
-      throw "Range error";
+      throw new RangeError(precision);
     }
 
     if (isNaN) return "NaN";
@@ -199,10 +216,6 @@ class _Double implements double {
   }
   String _toStringAsPrecision(int fractionDigits)
       native "Double_toStringAsPrecision";
-
-  String toRadixString(int radix) {
-    return toInt().toRadixString(radix);
-  }
 
   // Order is: NaN > Infinity > ... > 0.0 > -0.0 > ... > -Infinity.
   int compareTo(Comparable other) {

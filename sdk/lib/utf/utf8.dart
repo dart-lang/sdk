@@ -86,7 +86,7 @@ List<int> codepointsToUtf8(
     }
   }
 
-  List<int> encoded = new List<int>(encodedLength);
+  List<int> encoded = new List<int>.fixedLength(encodedLength);
   int insertAt = 0;
   for (int value in source) {
     if (value < 0 || value > UNICODE_VALID_RANGE_MAX) {
@@ -129,7 +129,9 @@ List<int> utf8ToCodepoints(
  * provides an iterator on demand and the iterator will only translate bytes
  * as requested by the user of the iterator. (Note: results are not cached.)
  */
-class IterableUtf8Decoder implements Iterable<int> {
+// TODO(floitsch): Consider removing the extend and switch to implements since
+// that's cheaper to allocate.
+class IterableUtf8Decoder extends Iterable<int> {
   final List<int> bytes;
   final int offset;
   final int length;
@@ -138,8 +140,8 @@ class IterableUtf8Decoder implements Iterable<int> {
   IterableUtf8Decoder(this.bytes, [this.offset = 0, this.length = null,
       this.replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]);
 
-  Utf8Decoder iterator() => new Utf8Decoder(bytes, offset, length,
-          replacementCodepoint);
+  Utf8Decoder get iterator =>
+      new Utf8Decoder(bytes, offset, length, replacementCodepoint);
 }
 
 /**
@@ -153,55 +155,63 @@ class IterableUtf8Decoder implements Iterable<int> {
 class Utf8Decoder implements Iterator<int> {
   final _ListRangeIterator utf8EncodedBytesIterator;
   final int replacementCodepoint;
+  int _current = null;
 
   Utf8Decoder(List<int> utf8EncodedBytes, [int offset = 0, int length,
       this.replacementCodepoint =
       UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      utf8EncodedBytesIterator = (new _ListRange(utf8EncodedBytes, offset,
-          length)).iterator();
+      utf8EncodedBytesIterator =
+          (new _ListRange(utf8EncodedBytes, offset, length)).iterator;
 
 
   Utf8Decoder._fromListRangeIterator(_ListRange source, [
       this.replacementCodepoint =
       UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      utf8EncodedBytesIterator = source.iterator();
+      utf8EncodedBytesIterator = source.iterator;
 
   /** Decode the remaininder of the characters in this decoder
     * into a [List<int>].
     */
   List<int> decodeRest() {
-    List<int> codepoints = new List<int>(utf8EncodedBytesIterator.remaining);
+    List<int> codepoints = new List<int>.fixedLength(utf8EncodedBytesIterator.remaining);
     int i = 0;
-    while (hasNext) {
-      codepoints[i++] = next();
+    while (moveNext()) {
+      codepoints[i++] = current;
     }
     if (i == codepoints.length) {
       return codepoints;
     } else {
-      List<int> truncCodepoints = new List<int>(i);
+      List<int> truncCodepoints = new List<int>.fixedLength(i);
       truncCodepoints.setRange(0, i, codepoints);
       return truncCodepoints;
     }
   }
 
-  bool get hasNext => utf8EncodedBytesIterator.hasNext;
+  int get current => _current;
 
-  int next() {
-    int value = utf8EncodedBytesIterator.next();
+  bool moveNext() {
+    _current = null;
+
+    if (!utf8EncodedBytesIterator.moveNext()) return false;
+
+    int value = utf8EncodedBytesIterator.current;
     int additionalBytes = 0;
 
     if (value < 0) {
       if (replacementCodepoint != null) {
-        return replacementCodepoint;
+        _current = replacementCodepoint;
+        return true;
       } else {
         throw new ArgumentError(
             "Invalid UTF8 at ${utf8EncodedBytesIterator.position}");
       }
     } else if (value <= _UTF8_ONE_BYTE_MAX) {
-      return value;
+      _current = value;
+      return true;
     } else if (value < _UTF8_FIRST_BYTE_OF_TWO_BASE) {
       if (replacementCodepoint != null) {
-        return replacementCodepoint;
+        _current = replacementCodepoint;
+        return true;
       } else {
         throw new ArgumentError(
             "Invalid UTF8 at ${utf8EncodedBytesIterator.position}");
@@ -222,14 +232,15 @@ class Utf8Decoder implements Iterator<int> {
       value -= _UTF8_FIRST_BYTE_OF_SIX_BASE;
       additionalBytes = 5;
     } else if (replacementCodepoint != null) {
-      return replacementCodepoint;
+      _current = replacementCodepoint;
+      return true;
     } else {
       throw new ArgumentError(
           "Invalid UTF8 at ${utf8EncodedBytesIterator.position}");
     }
     int j = 0;
-    while (j < additionalBytes && utf8EncodedBytesIterator.hasNext) {
-      int nextValue = utf8EncodedBytesIterator.next();
+    while (j < additionalBytes && utf8EncodedBytesIterator.moveNext()) {
+      int nextValue = utf8EncodedBytesIterator.current;
       if (nextValue > _UTF8_ONE_BYTE_MAX &&
           nextValue < _UTF8_FIRST_BYTE_OF_TWO_BASE) {
         value = ((value << 6) | (nextValue & _UTF8_LO_SIX_BIT_MASK));
@@ -251,9 +262,11 @@ class Utf8Decoder implements Iterator<int> {
         (additionalBytes == 3 && value > _UTF8_THREE_BYTE_MAX);
     bool inRange = value <= UNICODE_VALID_RANGE_MAX;
     if (validSequence && nonOverlong && inRange) {
-      return value;
+      _current = value;
+      return true;
     } else if (replacementCodepoint != null) {
-      return replacementCodepoint;
+      _current = replacementCodepoint;
+      return true;
     } else {
       throw new ArgumentError(
           "Invalid UTF8 at ${utf8EncodedBytesIterator.position - j}");

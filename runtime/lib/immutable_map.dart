@@ -35,22 +35,12 @@ class ImmutableMap<K, V> implements Map<K, V> {
     }
   }
 
-  Collection<K> get keys {
-    int numKeys = length;
-    List<K> list = new List<K>(numKeys);
-    for (int i = 0; i < numKeys; i++) {
-      list[i] = kvPairs_[i*2];
-    }
-    return list;
+  Iterable<K> get keys {
+    return new _ImmutableMapKeyIterable<K>(this);
   }
 
-  Collection<V> get values {
-    int numValues = length;
-    List<V> list = new List<V>(numValues);
-    for (int i = 0; i < numValues; i++) {
-      list[i] = kvPairs_[i*2 + 1];
-    }
-    return list;
+  Iterable<V> get values {
+    return new _ImmutableMapValueIterable<V>(this);
   }
 
   bool containsKey(K key) {
@@ -92,3 +82,64 @@ class ImmutableMap<K, V> implements Map<K, V> {
   }
 }
 
+class _ImmutableMapKeyIterable<E> extends Iterable<E> {
+  final ImmutableMap _map;
+  _ImmutableMapKeyIterable(this._map);
+
+  Iterator<E> get iterator {
+    return new _ImmutableMapKeyIterator<E>(_map);
+  }
+}
+
+class _ImmutableMapValueIterable<E> extends Iterable<E> {
+  final ImmutableMap _map;
+  _ImmutableMapValueIterable(this._map);
+
+  Iterator<E> get iterator {
+    return new _ImmutableMapValueIterator<E>(_map);
+  }
+}
+
+class _ImmutableMapKeyIterator<E> implements Iterator<E> {
+  ImmutableMap _map;
+  int _index = -1;
+  E _current;
+
+  _ImmutableMapKeyIterator(this._map);
+
+  bool moveNext() {
+    int newIndex = _index + 1;
+    if (newIndex < _map.length) {
+      _index = newIndex;
+      _current = _map.kvPairs_[newIndex * 2];
+      return true;
+    }
+    _current = null;
+    _index = _map.length;
+    return false;
+  }
+
+  E get current => _current;
+}
+
+class _ImmutableMapValueIterator<E> implements Iterator<E> {
+  ImmutableMap _map;
+  int _index = -1;
+  E _current;
+
+  _ImmutableMapValueIterator(this._map);
+
+  bool moveNext() {
+    int newIndex = _index + 1;
+    if (newIndex < _map.length) {
+      _index = newIndex;
+      _current = _map.kvPairs_[newIndex * 2 + 1];
+      return true;
+    }
+    _current = null;
+    _index = _map.length;
+    return false;
+  }
+
+  E get current => _current;
+}

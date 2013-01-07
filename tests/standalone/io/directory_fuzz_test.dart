@@ -5,10 +5,11 @@
 // 'fuzz' test the directory APIs by providing unexpected type
 // arguments. The test passes if the VM does not crash.
 
-import "dart:io";
-import "dart:isolate";
+import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
 
-import "fuzz_support.dart";
+import 'fuzz_support.dart';
 
 fuzzSyncMethods() {
   typeMapping.forEach((k, v) {
@@ -44,12 +45,12 @@ fuzzAsyncMethods() {
     futures.add(doItAsync(d.create));
     futures.add(doItAsync(d.delete));
     futures.add(doItAsync(() {
-      return d.createTemp().chain((temp) {
+      return d.createTemp().then((temp) {
         return temp.delete();
       });
     }));
     futures.add(doItAsync(() {
-      return d.exists().chain((res) {
+      return d.exists().then((res) {
         if (!res) return d.delete(recursive: true);
         return new Future.immediate(true);
       });

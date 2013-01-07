@@ -17,11 +17,11 @@ void main() {
 
     var request = new http.Request('POST', serverUrl);
     request.body = "hello";
-    var future = request.send().chain((response) {
+    var future = request.send().then((response) {
       expect(response.statusCode, equals(200));
       return consumeInputStream(response.stream);
-    }).transform((bytes) => new String.fromCharCodes(bytes));
-    future.onComplete(expectAsync1((_) {
+    }).then((bytes) => new String.fromCharCodes(bytes));
+    future.catchError((_) {}).then(expectAsync1((_) {
       stopServer();
     }));
 
@@ -192,11 +192,11 @@ void main() {
 
     var request = new http.Request('POST', serverUrl.resolve('/redirect'))
         ..followRedirects = false;
-    var future = request.send().transform((response) {
+    var future = request.send().then((response) {
       print("#followRedirects test response received");
       expect(response.statusCode, equals(302));
     });
-    future.onComplete(expectAsync1((_) {
+    future.catchError((_) {}).then(expectAsync1((_) {
       print("#followRedirects test stopping server...");
       stopServer();
       print("#followRedirects test server stopped");
@@ -215,12 +215,12 @@ void main() {
 
     var request = new http.Request('POST', serverUrl.resolve('/loop?1'))
       ..maxRedirects = 2;
-    var future = request.send().transformException((e) {
+    var future = request.send().catchError((AsyncError e) {
       print("#maxRedirects test exception received");
-      expect(e, isRedirectLimitExceededException);
-      expect(e.redirects.length, equals(2));
+      expect(e.error, isRedirectLimitExceededException);
+      expect(e.error.redirects.length, equals(2));
     });
-    future.onComplete(expectAsync1((_) {
+    future.catchError((_) {}).then(expectAsync1((_) {
       print("#maxRedirects test stopping server...");
       stopServer();
       print("#maxRedirects test server stopped");
@@ -318,7 +318,7 @@ void main() {
       request.body = "Hello, world!";
       expect(
           consumeInputStream(request.finalize())
-              .transform((bytes) => new String.fromCharCodes(bytes)),
+              .then((bytes) => new String.fromCharCodes(bytes)),
           completion(equals("Hello, world!")));
     });
 

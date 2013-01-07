@@ -4,8 +4,8 @@
 
 library pub_update_test;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 
 import '../../pub/lock_file.dart';
 import '../../pub/package.dart';
@@ -452,10 +452,9 @@ testResolve(description, packages, {lockfile, result, Matcher error}) {
 
     // If we aren't expecting an error, print some debugging info if we get one.
     if (error == null) {
-      future.handleException((ex) {
+      future.catchError((ex) {
         print(ex);
         print(future.stackTrace);
-        return true;
       });
     }
   });
@@ -478,7 +477,7 @@ class MockSource extends Source {
       : _packages = <String, Map<Version, Package>>{};
 
   Future<List<Version>> getVersions(String name, String description) {
-    return fakeAsync(() => _packages[description].keys);
+    return fakeAsync(() => _packages[description].keys.toList());
   }
 
   Future<Pubspec> describe(PackageId id) {

@@ -4,7 +4,7 @@
 
 library lock_file;
 
-import 'dart:json';
+import 'dart:json' as json;
 import 'package.dart';
 import 'source_registry.dart';
 import 'utils.dart';
@@ -85,6 +85,6 @@ class LockFile {
 
     // TODO(nweiz): Serialize using the YAML library once it supports
     // serialization. For now, we use JSON, since it's a subset of YAML anyway.
-    return JSON.stringify({'packages': packagesObj});
+    return json.stringify({'packages': packagesObj});
   }
 }

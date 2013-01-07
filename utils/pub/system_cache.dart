@@ -5,6 +5,7 @@
 library system_cache;
 
 import 'dart:io';
+import 'dart:async';
 
 import 'git_source.dart';
 import 'hosted_source.dart';
@@ -83,7 +84,7 @@ class SystemCache {
   /// temp directory to ensure that it's on the same volume as the pub system
   /// cache so that it can move the directory from it.
   Future<Directory> createTempDir() {
-    return ensureDir(tempDir).chain((temp) {
+    return ensureDir(tempDir).then((temp) {
       return io.createTempDir(join(temp, 'dir'));
     });
   }
@@ -91,7 +92,7 @@ class SystemCache {
   /// Delete's the system cache's internal temp directory.
   Future deleteTempDir() {
     log.fine('Clean up system cache temp directory $tempDir.');
-    return dirExists(tempDir).chain((exists) {
+    return dirExists(tempDir).then((exists) {
       if (!exists) return new Future.immediate(null);
       return deleteDir(tempDir);
     });

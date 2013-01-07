@@ -1819,9 +1819,7 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
       // GrowableObjectArray. However if there is an argument the result
       // is not guaranteed to be a fixed size array because the argument
       // can be null.
-      if (node->arguments()->length() == 0) {
-        return kGrowableObjectArrayCid;
-      }
+      return kGrowableObjectArrayCid;
     } else {
       if (IsRecognizedConstructor(function, Symbols::ObjectArray()) &&
           (node->arguments()->length() == 1)) {

@@ -131,8 +131,8 @@ class _GrowableObjectArray<T> implements List<T> {
     add(element);
   }
 
-  void addAll(Collection<T> collection) {
-    for (T elem in collection) {
+  void addAll(Iterable<T> iterable) {
+    for (T elem in iterable) {
       add(elem);
     }
   }
@@ -146,12 +146,24 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   T get first {
-    return this[0];
+    if (length > 0) return this[0];
+    throw new StateError("No elements");
   }
 
   T get last {
-    return this[length - 1];
+    if (length > 0) return this[length - 1];
+    throw new StateError("No elements");
   }
+
+  T get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  T min([int compare(T a, T b)]) => Collections.min(this, compare);
+
+  T max([int compare(T a, T b)]) => Collections.max(this, compare);
 
   int indexOf(T element, [int start = 0]) {
     return Arrays.indexOf(this, element, start, length);
@@ -172,7 +184,9 @@ class _GrowableObjectArray<T> implements List<T> {
 
   // Collection interface.
 
-  bool contains(T element) => Collections.contains(this, element);
+  bool contains(T element) {
+    return Collections.contains(this, element);
+  }
 
   void forEach(f(T element)) {
     // TODO(srdjan): Use Collections.forEach(this, f);
@@ -182,25 +196,74 @@ class _GrowableObjectArray<T> implements List<T> {
     }
   }
 
-  Collection map(f(T element)) {
-    return Collections.map(this,
-                           new _GrowableObjectArray.withCapacity(length), f);
+  String join([String separator]) {
+    if (isEmpty) return "";
+    if (this.length == 1) return "${this[0]}";
+    StringBuffer buffer = new StringBuffer();
+    if (separator == null || separator == "") {
+      for (int i = 0; i < this.length; i++) {
+        buffer.add("${this[i]}");
+      }
+    } else {
+      buffer.add("${this[0]}");
+      for (int i = 1; i < this.length; i++) {
+        buffer.add(separator);
+        buffer.add("${this[i]}");
+      }
+    }
+    return buffer.toString();
+  }
+
+  List mappedBy(f(T element)) {
+    return new MappedList<T, dynamic>(this, f);
   }
 
   reduce(initialValue, combine(previousValue, T element)) {
     return Collections.reduce(this, initialValue, combine);
   }
 
-  Collection<T> filter(bool f(T element)) {
-    return Collections.filter(this, new _GrowableObjectArray<T>(), f);
+  Iterable<T> where(bool f(T element)) {
+    return new WhereIterable<T>(this, f);
+  }
+
+  List<T> take(int n) {
+    return new ListView<T>(this, 0, n);
+  }
+
+  Iterable<T> takeWhile(bool test(T value)) {
+    return new TakeWhileIterable<T>(this, test);
+  }
+
+  List<T> skip(int n) {
+    return new ListView<T>(this, n, null);
+  }
+
+  Iterable<T> skipWhile(bool test(T value)) {
+    return new SkipWhileIterable<T>(this, test);
   }
 
   bool every(bool f(T element)) {
     return Collections.every(this, f);
   }
 
-  bool some(bool f(T element)) {
-    return Collections.some(this, f);
+  bool any(bool f(T element)) {
+    return Collections.any(this, f);
+  }
+
+  T firstMatching(bool test(T value), {T orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  T lastMatching(bool test(T value), {T orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  T singleMatching(bool test(T value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  T elementAt(int index) {
+    return this[index];
   }
 
   bool get isEmpty {
@@ -220,7 +283,15 @@ class _GrowableObjectArray<T> implements List<T> {
     return Collections.collectionToString(this);
   }
 
-  Iterator<T> iterator() {
-    return new SequenceIterator<T>(this);
+  Iterator<T> get iterator {
+    return new ListIterator<T>(this);
+  }
+
+  List<T> toList() {
+    return new List<T>.from(this);
+  }
+
+  Set<T> toSet() {
+    return new Set<T>.from(this);
   }
 }

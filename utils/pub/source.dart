@@ -4,6 +4,7 @@
 
 library source;
 
+import 'dart:async';
 import 'io.dart';
 import 'package.dart';
 import 'pubspec.dart';
@@ -64,7 +65,7 @@ abstract class Source {
   /// uses [describe] to get that version.
   Future<List<Version>> getVersions(String name, description) {
     return describe(new PackageId(name, this, Version.none, description))
-      .transform((pubspec) => [pubspec.version]);
+      .then((pubspec) => [pubspec.version]);
   }
 
   /// Loads the (possibly remote) pubspec for the package version identified by
@@ -76,7 +77,7 @@ abstract class Source {
   /// must implement it manually.
   Future<Pubspec> describe(PackageId id) {
     if (!shouldCache) throw "Source $name must implement describe(id).";
-    return installToSystemCache(id).transform((package) => package.pubspec);
+    return installToSystemCache(id).then((package) => package.pubspec);
   }
 
   /// Installs the package identified by [id] to [path]. Returns a [Future] that
@@ -104,10 +105,10 @@ abstract class Source {
   /// By default, this uses [systemCacheDirectory] and [install].
   Future<Package> installToSystemCache(PackageId id) {
     var path = systemCacheDirectory(id);
-    return exists(path).chain((exists) {
+    return exists(path).then((exists) {
       if (exists) return new Future<bool>.immediate(true);
-      return ensureDir(dirname(path)).chain((_) => install(id, path));
-    }).chain((found) {
+      return ensureDir(dirname(path)).then((_) => install(id, path));
+    }).then((found) {
       if (!found) throw 'Package $id not found.';
       return Package.load(id.name, path, systemCache.sources);
     });

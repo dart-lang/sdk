@@ -4,6 +4,7 @@
 
 library authorization_code_grant;
 
+import 'dart:async';
 import 'dart:uri';
 
 // TODO(nweiz): This should be a "package:" import. See issue 6745.
@@ -159,7 +160,7 @@ class AuthorizationCodeGrant {
   ///
   /// Throws [AuthorizationException] if the authorization fails.
   Future<Client> handleAuthorizationResponse(Map<String, String> parameters) {
-    return async.chain((_) {
+    return async.then((_) {
       if (_state == _INITIAL_STATE) {
         throw new StateError(
             'The authorization URL has not yet been generated.');
@@ -211,7 +212,7 @@ class AuthorizationCodeGrant {
   ///
   /// Throws [AuthorizationException] if the authorization fails.
   Future<Client> handleAuthorizationCode(String authorizationCode) {
-    return async.chain((_) {
+    return async.then((_) {
       if (_state == _INITIAL_STATE) {
         throw new StateError(
             'The authorization URL has not yet been generated.');
@@ -238,7 +239,7 @@ class AuthorizationCodeGrant {
       // it be configurable?
       "client_id": this.identifier,
       "client_secret": this.secret
-    }).transform((response) {
+    }).then((response) {
       var credentials = handleAccessTokenResponse(
           response, tokenEndpoint, startTime, _scopes);
       return new Client(

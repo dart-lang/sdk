@@ -9,6 +9,7 @@
 
 library isolate_mirror_local_test;
 
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';
 
@@ -125,7 +126,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
       });
 
   // Check that the members map is complete.
-  List keys = lib_mirror.members.keys;
+  List keys = lib_mirror.members.keys.toList();
   sort(keys);
   Expect.equals('['
                 'FuncType, '
@@ -162,7 +163,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 '$keys');
 
   // Check that the classes map is complete.
-  keys = lib_mirror.classes.keys;
+  keys = lib_mirror.classes.keys.toList();
   sort(keys);
   Expect.equals('['
                 'FuncType, '
@@ -174,7 +175,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 '$keys');
 
   // Check that the functions map is complete.
-  keys = lib_mirror.functions.keys;
+  keys = lib_mirror.functions.keys.toList();
   sort(keys);
   Expect.equals('['
                 '_stringCompare, '
@@ -200,17 +201,17 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 '$keys');
 
   // Check that the getters map is complete.
-  keys = lib_mirror.getters.keys;
+  keys = lib_mirror.getters.keys.toList();
   sort(keys);
   Expect.equals('[myVar]', '$keys');
 
   // Check that the setters map is complete.
-  keys = lib_mirror.setters.keys;
+  keys = lib_mirror.setters.keys.toList();
   sort(keys);
   Expect.equals('[myVar=]', '$keys');
 
   // Check that the variables map is complete.
-  keys = lib_mirror.variables.keys;
+  keys = lib_mirror.variables.keys.toList();
   sort(keys);
   Expect.equals('['
                 'exit_port, '
@@ -458,59 +459,47 @@ void methodWithError() {
 void testMirrorErrors(MirrorSystem mirrors) {
   LibraryMirror lib_mirror = mirrors.isolate.rootLibrary;
 
-  Future<InstanceMirror> future =
-      lib_mirror.invoke('methodWithException', []);
-  future.handleException(
-      (MirroredError exc) {
-        Expect.isTrue(exc is MirroredUncaughtExceptionError);
+  lib_mirror.invoke('methodWithException', [])
+    .then((InstanceMirror retval) {
+      // Should not reach here.
+      Expect.isTrue(false);
+    })
+    .catchError((exc) {
+        Expect.isTrue(exc.error is MirroredUncaughtExceptionError);
         Expect.equals('MyException',
-                      exc.exception_mirror.type.simpleName);
+                      exc.error.exception_mirror.type.simpleName);
         Expect.equals('MyException: from methodWithException',
-                      exc.exception_string);
-        Expect.isTrue(exc.stacktrace.toString().contains(
+                      exc.error.exception_string);
+        Expect.isTrue(exc.error.stacktrace.toString().contains(
             'isolate_mirror_local_test.dart'));
         testDone('testMirrorErrors1');
-        return true;
-      });
-  future.then(
-      (InstanceMirror retval) {
-        // Should not reach here.
-        Expect.isTrue(false);
       });
 
-  Future<InstanceMirror> future2 =
-      lib_mirror.invoke('methodWithError', []);
-  future2.handleException(
-      (MirroredError exc) {
-        Expect.isTrue(exc is MirroredCompilationError);
-        Expect.isTrue(exc.message.contains('unexpected token'));
-        testDone('testMirrorErrors2');
-        return true;
-      });
-  future2.then(
-      (InstanceMirror retval) {
-        // Should not reach here.
-        Expect.isTrue(false);
-      });
+  lib_mirror.invoke('methodWithError', [])
+    .then((InstanceMirror retval) {
+      // Should not reach here.
+      Expect.isTrue(false);
+    })
+    .catchError((exc) {
+      Expect.isTrue(exc.error is MirroredCompilationError);
+      Expect.isTrue(exc.error.message.contains('unexpected token'));
+      testDone('testMirrorErrors2');
+    });
 
   // TODO(turnidge): When we call a method that doesn't exist, we
   // should probably call noSuchMethod().  I'm adding this test to
   // document the current behavior in the meantime.
-  Future<InstanceMirror> future3 =
-      lib_mirror.invoke('methodNotFound', []);
-  future3.handleException(
-      (MirroredError exc) {
-        Expect.isTrue(exc is MirroredCompilationError);
-        Expect.isTrue(exc.message.contains(
-            "did not find top-level function 'methodNotFound'"));
-        testDone('testMirrorErrors3');
-        return true;
-      });
-  future3.then(
-      (InstanceMirror retval) {
-        // Should not reach here.
-        Expect.isTrue(false);
-      });
+  lib_mirror.invoke('methodNotFound', [])
+    .then((InstanceMirror retval) {
+      // Should not reach here.
+      Expect.isTrue(false);
+    })
+    .catchError((exc) {
+      Expect.isTrue(exc.error is MirroredCompilationError);
+      Expect.isTrue(exc.error.message.contains(
+          "did not find top-level function 'methodNotFound'"));
+      testDone('testMirrorErrors3');
+    });
 }
 
 void main() {

@@ -158,7 +158,7 @@ testRoundTripParsing(String localeName, Date date) {
       DateFormat.ABBR_MONTH_WEEKDAY_DAY];
   for(int i = 0; i < formatsToTest.length; i++) {
     var skeleton = formatsToTest[i];
-    if (!badSkeletons.some((x) => x == skeleton)) {
+    if (!badSkeletons.any((x) => x == skeleton)) {
       var format = new DateFormat(skeleton, localeName);
       var actualResult = format.format(date);
       var parsed = format.parse(actualResult);
@@ -177,7 +177,7 @@ List<String> allLocales() => DateFormat.allLocalesWithSymbols();
  */
 List oddLocales() {
   int i = 1;
-  return allLocales().filter((x) => (i++).isOdd);
+  return allLocales().where((x) => (i++).isOdd).toList();
 }
 
 /**
@@ -193,7 +193,7 @@ List smallSetOfLocales() {
  */
 List evenLocales() {
   int i = 1;
-  return allLocales().filter((x) => !((i++).isOdd));
+  return allLocales().where((x) => !((i++).isOdd)).toList();
 }
 
 // TODO(alanknight): Run specific tests for the en_ISO locale which isn't
@@ -217,10 +217,14 @@ runDateTests([List<String> subset]) {
   test('Basic date format parsing', () {
     var date_format = new DateFormat("d");
     expect(
-        date_format.parsePattern("hh:mm:ss").map((x) => x.pattern),
+        date_format.parsePattern("hh:mm:ss")
+            .mappedBy((x) => x.pattern)
+            .toList(),
         orderedEquals(["hh",":", "mm",":","ss"]));
     expect(
-        date_format.parsePattern("hh:mm:ss").map((x) => x.pattern),
+        date_format.parsePattern("hh:mm:ss")
+            .mappedBy((x) => x.pattern)
+            .toList(),
         orderedEquals(["hh",":", "mm",":","ss"]));
   });
 

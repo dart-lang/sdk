@@ -19,7 +19,7 @@ main() {
     reader.filter.gzip = true;
 
     var future = reader.openFilename("$dataPath/test-archive.tar.gz")
-      .transform((input) {
+      .then((input) {
       var log = <String>[];
       input.onEntry = (entry) => guardAsync(() {
         log.add("Entry: ${entry.pathname}");
@@ -56,8 +56,10 @@ main() {
 
     var future = reader.openFilename("$dataPath/test-archive.tar.gz")
       .chain((input) => input.readAll())
-      .transform((entries) {
-      entries = entries.map((entry) => [entry.pathname, entry.contents.trim()]);
+      .then((entries) {
+      entries = entries
+          .mappedBy((entry) => [entry.pathname, entry.contents.trim()])
+          .toList();
       expect(entries[0], orderedEquals(["filename1", "contents 1"]));
       expect(entries[1], orderedEquals(["filename2", "contents 2"]));
       expect(entries[2], orderedEquals(["filename3", "contents 3"]));
@@ -75,7 +77,7 @@ main() {
 
     var future = new File("$dataPath/test-archive.tar.gz").readAsBytes()
       .chain((bytes) => reader.openData(bytes))
-      .transform((input) {
+      .then((input) {
       var log = <String>[];
       input.onEntry = (entry) => guardAsync(() {
         log.add("Entry: ${entry.pathname}");
@@ -113,7 +115,7 @@ main() {
     reader.filter.gzip = true;
 
     var future = reader.openFilename("$dataPath/test-archive.tar.gz")
-      .transform((input) {
+      .then((input) {
       var log = <String>[];
       input.onEntry = (entry) => guardAsync(() {
         log.add("Entry: ${entry.pathname}");
@@ -150,7 +152,7 @@ main() {
     reader.filter.gzip = true;
 
     var future = reader.openFilename("$dataPath/test-archive.tar.gz")
-      .transform((input) {
+      .then((input) {
       var count = 0;
 
       var log = <String>[];

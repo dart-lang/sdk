@@ -5,10 +5,11 @@
 // 'fuzz' test the file APIs by providing unexpected type arguments. The test
 // passes if the VM does not crash.
 
-import "dart:io";
-import "dart:isolate";
+import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
 
-import "fuzz_support.dart";
+import 'fuzz_support.dart';
 
 fuzzSyncMethods() {
   typeMapping.forEach((k, v) {

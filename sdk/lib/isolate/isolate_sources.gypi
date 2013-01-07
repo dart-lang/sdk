@@ -5,6 +5,7 @@
 {
   'sources': [
     'base.dart',
-    'timer.dart'
+    'isolate_stream.dart',
+    'mangler.dart',
   ],
 }

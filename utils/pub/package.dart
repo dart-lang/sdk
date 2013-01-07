@@ -4,6 +4,7 @@
 
 library package;
 
+import 'dart:async';
 import 'io.dart';
 import 'pubspec.dart';
 import 'source.dart';
@@ -19,10 +20,10 @@ class Package {
       SourceRegistry sources) {
     var pubspecPath = join(packageDir, 'pubspec.yaml');
 
-    return fileExists(pubspecPath).chain((exists) {
+    return fileExists(pubspecPath).then((exists) {
       if (!exists) throw new PubspecNotFoundException(name);
       return readTextFile(pubspecPath);
-    }).transform((contents) {
+    }).then((contents) {
       try {
         var pubspec = new Pubspec.parse(contents, sources);
 

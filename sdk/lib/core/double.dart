@@ -45,9 +45,9 @@ abstract class double extends num {
    * Truncating division operator.
    *
    * The result of the truncating division [:a ~/ b:] is equivalent to
-   * [:(a / b).truncate():].
+   * [:(a / b).truncate().toInt():].
    */
-  double operator ~/(num other);
+  int operator ~/(num other);
 
   /** Negate operator. */
   double operator -();
@@ -99,7 +99,11 @@ abstract class double extends num {
    * Also recognizes "NaN", "Infinity" and "-Infinity" as inputs and
    * returns the corresponding double value.
    *
-   * Throws a [FormatException] if [source] is not a valid double literal.
+   * If the [soure] is not a valid double literal, the [handleError]
+   * is called with the [source] as argument, and its return value is
+   * used instead. If no handleError is provided, a [FormatException]
+   * is thrown.
    */
-  external static double parse(String source);
+  external static double parse(String source,
+                               [double handleError(String source)]);
 }

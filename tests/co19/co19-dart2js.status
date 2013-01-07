@@ -171,6 +171,10 @@ Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
 [ $compiler == dart2js && ($system == linux || $system == macos)]
 LibTest/math/exp_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
+LibTest/math/parseDouble_A02_t01: Fail, OK # co19 issue 317
+LibTest/math/parseInt_A01_t01: Fail, OK # co19 issue 317
+LibTest/math/parseInt_A02_t01: Fail, OK # co19 issue 317
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
 

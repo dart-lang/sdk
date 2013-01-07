@@ -51,7 +51,7 @@ class SetTest {
       return val * val;
     }
 
-    Set mapped = set.map(testMap);
+    Set mapped = set.mappedBy(testMap).toSet();
     Expect.equals(10, mapped.length);
 
     Expect.equals(true, mapped.contains(0));
@@ -79,7 +79,7 @@ class SetTest {
       return val.isEven;
     }
 
-    Set filtered = set.filter(testFilter);
+    Set filtered = set.where(testFilter).toSet();
 
     Expect.equals(5, filtered.length);
 
@@ -112,10 +112,10 @@ class SetTest {
       return (val == 4);
     }
 
-    Expect.equals(true, set.some(testSome));
-    Expect.equals(true, filtered.some(testSome));
+    Expect.equals(true, set.any(testSome));
+    Expect.equals(true, filtered.any(testSome));
     filtered.remove(4);
-    Expect.equals(false, filtered.some(testSome));
+    Expect.equals(false, filtered.any(testSome));
 
     // Test Set.intersection.
     Set intersection = set.intersection(filtered);
@@ -138,7 +138,7 @@ class SetTest {
     Expect.equals(true, intersection.isSubsetOf(filtered));
 
     // Test Set.addAll.
-    List list = new List(10);
+    List list = new List.fixedLength(10);
     for (int i = 0; i < 10; i++) {
       list[i] = i + 10;
     }

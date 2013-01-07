@@ -11,7 +11,7 @@ part 'sha256_long_test_vectors.dart';
 part 'sha256_short_test_vectors.dart';
 
 List<int> createTestArr(int len) {
-  var arr = new List<int>(len);
+  var arr = new List<int>.fixedLength(len);
   for (var i = 0; i < len; i++) {
     arr[i] = i;
   }
@@ -278,26 +278,30 @@ void test() {
       '3f8591112c6bbe5c963965954e293108b7208ed2af893e500d859368c654eabe' ];
 
   for (var i = 0; i < expected_values.length; i++) {
-    var d = new SHA256().update(createTestArr(i)).digest();
+    var hash = new SHA256();
+    hash.add(createTestArr(i));
+    var d = hash.close();
     Expect.equals(expected_values[i], CryptoUtils.bytesToHex(d), '$i');
   }
 }
 
 void testInvalidUse() {
   var sha = new SHA256();
-  sha.digest();
-  Expect.throws(() => sha.update([0]), (e) => e is HashException);
+  sha.close();
+  Expect.throws(() => sha.add([0]), (e) => e is HashException);
 }
 
 void testRepeatedDigest() {
   var sha = new SHA256();
-  var digest = sha.digest();
-  Expect.listEquals(digest, sha.digest());
+  var digest = sha.close();
+  Expect.listEquals(digest, sha.close());
 }
 
 void testStandardVectors(inputs, mds) {
   for (var i = 0; i < inputs.length; i++) {
-    var d = new SHA256().update(inputs[i]).digest();
+    var hash = new SHA256();
+    hash.add(inputs[i]);
+    var d = hash.close();
     Expect.equals(mds[i], CryptoUtils.bytesToHex(d), '$i');
   }
 }

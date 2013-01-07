@@ -46,7 +46,7 @@ void main() {
       var stream = new ListInputStream();
       var streamResponse = new http.StreamedResponse(stream, 200, 13);
       var future = http.Response.fromStream(streamResponse)
-        .transform((response) => response.body);
+        .then((response) => response.body);
       expect(future, completion(equals("Hello, world!")));
 
       stream.write([72, 101, 108, 108, 111, 44, 32]);
@@ -58,7 +58,7 @@ void main() {
       var stream = new ListInputStream();
       var streamResponse = new http.StreamedResponse(stream, 200, 5);
       var future = http.Response.fromStream(streamResponse)
-        .transform((response) => response.bodyBytes);
+        .then((response) => response.bodyBytes);
       expect(future, completion(equals([104, 101, 108, 108, 111])));
 
       stream.write([104, 101, 108, 108, 111]);

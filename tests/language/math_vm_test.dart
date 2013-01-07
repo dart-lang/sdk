@@ -16,7 +16,7 @@ class FakeNumber {
 class MathTest {
   static bool testParseInt(x) {
     try {
-      parseInt(x);  // Expects string.
+      int.parse(x);  // Expects string.
       return true;
     } catch (e) {
       return false;

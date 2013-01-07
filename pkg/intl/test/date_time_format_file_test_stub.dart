@@ -8,6 +8,7 @@
  */
 library date_time_format_file_test;
 
+import 'dart:async';
 import '../lib/intl.dart';
 import '../lib/date_symbol_data_file.dart';
 import 'dart:io';

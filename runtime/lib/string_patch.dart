@@ -9,7 +9,7 @@ patch class String {
 }
 
 patch class Strings {
-  /* patch */ static String join(List<String> strings, String separator) {
+  /* patch */ static String join(Iterable<String> strings, String separator) {
     return _StringBase.join(strings, separator);
   }
 

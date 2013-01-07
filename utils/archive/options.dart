@@ -48,5 +48,5 @@ class ArchiveOptions {
   }
 
   /** Gets all options. */
-  List<ArchiveOption> get all => _options.values;
+  List<ArchiveOption> get all => _options.values.toList();
 }

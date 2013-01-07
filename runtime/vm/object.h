@@ -2027,6 +2027,7 @@ class Library : public Object {
   static RawLibrary* GetLibrary(intptr_t index);
   static bool IsKeyUsed(intptr_t key);
 
+  static void InitASyncLibrary(Isolate* isolate);
   static void InitCoreLibrary(Isolate* isolate);
   static void InitCollectionLibrary(Isolate* isolate);
   static void InitMathLibrary(Isolate* isolate);
@@ -2035,6 +2036,7 @@ class Library : public Object {
   static void InitScalarlistLibrary(Isolate* isolate);
   static void InitNativeWrappersLibrary(Isolate* isolate);
 
+  static RawLibrary* ASyncLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* MathLibrary();

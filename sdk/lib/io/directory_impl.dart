@@ -31,10 +31,10 @@ class _Directory implements Directory {
 
   Future<bool> exists() {
     _ensureDirectoryService();
-    List request = new List(2);
+    List request = new List.fixedLength(2);
     request[0] = EXISTS_REQUEST;
     request[1] = _path;
-    return _directoryService.call(request).transform((response) {
+    return _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Exists failed");
       }
@@ -60,13 +60,13 @@ class _Directory implements Directory {
     var notFound = dirsToCreate.length;
     for (var i = 0; i < dirsToCreate.length; i++) {
       if (future == null) {
-        future = dirsToCreate[i].exists().transform((e) => e ? i : notFound);
+        future = dirsToCreate[i].exists().then((e) => e ? i : notFound);
       } else {
-        future = future.chain((index) {
+        future = future.then((index) {
           if (index != notFound) {
             return new Future.immediate(index);
           }
-          return dirsToCreate[i].exists().transform((e) => e ? i : notFound);
+          return dirsToCreate[i].exists().then((e) => e ? i : notFound);
         });
       }
     }
@@ -88,13 +88,13 @@ class _Directory implements Directory {
       dirsToCreate.add(new Directory.fromPath(path));
       path = path.directoryPath;
     }
-    return _computeExistingIndex(dirsToCreate).chain((index) {
+    return _computeExistingIndex(dirsToCreate).then((index) {
       var future;
       for (var i = index - 1; i >= 0 ; i--) {
         if (future == null) {
           future = dirsToCreate[i].create();
         } else {
-          future = future.chain((_) {
+          future = future.then((_) {
             return dirsToCreate[i].create();
           });
         }
@@ -102,7 +102,7 @@ class _Directory implements Directory {
       if (future == null) {
         return new Future.immediate(this);
       } else {
-        return future.transform((_) => this);
+        return future.then((_) => this);
       }
     });
   }
@@ -110,10 +110,10 @@ class _Directory implements Directory {
   Future<Directory> create({recursive: false}) {
     if (recursive) return createRecursively();
     _ensureDirectoryService();
-    List request = new List(2);
+    List request = new List.fixedLength(2);
     request[0] = CREATE_REQUEST;
     request[1] = _path;
-    return _directoryService.call(request).transform((response) {
+    return _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Creation failed");
       }
@@ -149,10 +149,10 @@ class _Directory implements Directory {
 
   Future<Directory> createTemp() {
     _ensureDirectoryService();
-    List request = new List(2);
+    List request = new List.fixedLength(2);
     request[0] = CREATE_TEMP_REQUEST;
     request[1] = _path;
-    return _directoryService.call(request).transform((response) {
+    return _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response,
                                       "Creation of temporary directory failed");
@@ -179,11 +179,11 @@ class _Directory implements Directory {
 
   Future<Directory> delete({recursive: false}) {
     _ensureDirectoryService();
-    List request = new List(3);
+    List request = new List.fixedLength(3);
     request[0] = DELETE_REQUEST;
     request[1] = _path;
     request[2] = recursive;
-    return _directoryService.call(request).transform((response) {
+    return _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Deletion failed");
       }
@@ -203,11 +203,11 @@ class _Directory implements Directory {
 
   Future<Directory> rename(String newPath) {
     _ensureDirectoryService();
-    List request = new List(3);
+    List request = new List.fixedLength(3);
     request[0] = RENAME_REQUEST;
     request[1] = _path;
     request[2] = newPath;
-    return _directoryService.call(request).transform((response) {
+    return _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Rename failed");
       }
@@ -281,7 +281,7 @@ class _DirectoryLister implements DirectoryLister {
     final int RESPONSE_COMPLETE = 1;
     final int RESPONSE_ERROR = 2;
 
-    List request = new List(3);
+    List request = new List.fixedLength(3);
     request[0] = _Directory.LIST_REQUEST;
     request[1] = path;
     request[2] = recursive;

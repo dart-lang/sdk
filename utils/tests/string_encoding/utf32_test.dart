@@ -165,13 +165,13 @@ class Utf32Tests extends TestClass {
 
   void testIterableMethods() {
     // empty input
-    Expect.isFalse(decodeUtf32AsIterable([]).iterator().hasNext);
+    Expect.isFalse(decodeUtf32AsIterable([]).iterator.moveNext());
 
     IterableUtf32Decoder koreanDecoder =
       decodeUtf32AsIterable(testKoreanCharSubsetUtf32beBom);
     // get the first character
     Expect.equals(testKoreanCharSubset.charCodes[0],
-        koreanDecoder.iterator().next());
+        koreanDecoder.iterator.first);
     // get the whole translation using the Iterable interface
     Expect.stringEquals(testKoreanCharSubset,
         new String.fromCharCodes(new List<int>.from(koreanDecoder)));

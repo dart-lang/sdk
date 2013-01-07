@@ -167,5 +167,5 @@ class TypeCheckMapping implements TypeChecks {
     map[cls].add(check);
   }
 
-  Iterator<ClassElement> iterator() => map.keys.iterator();
+  Iterator<ClassElement> get iterator => map.keys.iterator;
 }

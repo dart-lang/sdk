@@ -30,7 +30,7 @@ class EchoServerGame {
   EchoServerGame.start()
       : _receivePort = new ReceivePort(),
         _sendPort = null,
-        _buffer = new List<int>(MSGSIZE),
+        _buffer = new List<int>.fixedLength(MSGSIZE),
         _messages = 0 {
     for (int i = 0; i < MSGSIZE; i++) {
       _buffer[i] = FIRSTCHAR + i;
@@ -44,7 +44,7 @@ class EchoServerGame {
 
     void messageHandler() {
 
-      List<int> bufferReceived = new List<int>(MSGSIZE);
+      List<int> bufferReceived = new List<int>.fixedLength(MSGSIZE);
       int bytesRead = 0;
 
       void handleRead() {
@@ -141,7 +141,7 @@ class EchoServer extends TestingServer {
 
     void messageHandler() {
 
-      List<int> buffer = new List<int>(msgSize);
+      List<int> buffer = new List<int>.fixedLength(msgSize);
       int bytesRead = 0;
 
       void handleRead() {

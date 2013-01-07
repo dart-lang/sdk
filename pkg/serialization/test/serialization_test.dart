@@ -192,7 +192,7 @@ main() {
     var trace = new Trace(new Writer(s));
     trace.writer.trace = trace;
     trace.trace(n1);
-    var all = trace.writer.references.keys;
+    var all = trace.writer.references.keys.toSet();
     expect(all.length, 4);
     expect(all.contains(n1), isTrue);
     expect(all.contains(n2), isTrue);
@@ -207,7 +207,7 @@ main() {
     w.write(n1);
     expect(w.states.length, 4); // prims, lists, essential lists, basic
     var children = 0, name = 1, parent = 2;
-    List rootNode = w.states[3].filter((x) => x[name] == "1");
+    List rootNode = w.states[3].where((x) => x[name] == "1").toList();
     rootNode = rootNode.first;
     expect(rootNode[parent], isNull);
     var list = w.states[1].first;
@@ -490,7 +490,7 @@ runRoundTripTestFlat(serializerSetUp) {
 /** Extract the state from [object] using the rules in [s] and return it. */
 states(object, Serialization s) {
   var rules = s.rulesFor(object, null);
-  return rules.map((x) => x.extractState(object, doNothing));
+  return rules.mappedBy((x) => x.extractState(object, doNothing)).toList();
 }
 
 /** A hard-coded rule for serializing Node instances. */

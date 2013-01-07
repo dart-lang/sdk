@@ -75,11 +75,17 @@ patch class Expando<T> {
 }
 
 patch class int {
-  patch static int parse(String source) => Primitives.parseInt(source);
+  patch static int parse(String source,
+                         { int radix,
+                           int onError(String source) }) {
+    return Primitives.parseInt(source, radix, onError);
+  }
 }
 
 patch class double {
-  patch static double parse(String source) => Primitives.parseDouble(source);
+  patch static double parse(String source, [int handleError(String source)]) {
+    return Primitives.parseDouble(source, handleError);
+  }
 }
 
 patch class Error {
@@ -155,7 +161,44 @@ patch class _StopwatchImpl {
 
 // Patch for List implementation.
 patch class List<E> {
-  patch factory List([int length]) => Primitives.newList(length);
+  patch factory List([int length = 0]) {
+    if ((length is !int) || (length < 0)) {
+      String lengthString = Error.safeToString(length);
+      throw new ArgumentError(
+          "Length must be a positive integer: $lengthString.");
+    }
+    return Primitives.newGrowableList(length);
+  }
+
+  patch factory List.fixedLength(int length, {E fill: null}) {
+    if ((length is !int) || (length < 0)) {
+      throw new ArgumentError("Length must be a positive integer: $length.");
+    }
+    List result = Primitives.newFixedList(length);
+    if (length != 0 && fill != null) {
+      for (int i = 0; i < result.length; i++) {
+        result[i] = fill;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Creates an extendable list of the given [length] where each entry is
+   * filled with [fill].
+   */
+  patch factory List.filled(int length, E fill) {
+    if ((length is !int) || (length < 0)) {
+      throw new ArgumentError("Length must be a positive integer: $length.");
+    }
+    List result = Primitives.newGrowableList(length);
+    if (length != 0 && fill != null) {
+      for (int i = 0; i < result.length; i++) {
+        result[i] = fill;
+      }
+    }
+    return result;
+  }
 }
 
 
@@ -171,45 +214,38 @@ patch class String {
 
 // Patch for String implementation.
 patch class Strings {
-  patch static String join(List<String> strings, String separator) {
+  patch static String join(Iterable<String> strings, String separator) {
     checkNull(strings);
     if (separator is !String) throw new ArgumentError(separator);
     return stringJoinUnchecked(_toJsStringArray(strings), separator);
   }
 
-  patch static String concatAll(List<String> strings) {
+  patch static String concatAll(Iterable<String> strings) {
     return stringJoinUnchecked(_toJsStringArray(strings), "");
   }
 
-  static List _toJsStringArray(List<String> strings) {
+  static List _toJsStringArray(Iterable<String> strings) {
     checkNull(strings);
     var array;
-    final length = strings.length;
-    if (isJsArray(strings)) {
-      array = strings;
-      for (int i = 0; i < length; i++) {
-        final string = strings[i];
-        if (string is !String) throw new ArgumentError(string);
-      }
-    } else {
-      array = new List(length);
-      for (int i = 0; i < length; i++) {
-        final string = strings[i];
-        if (string is !String) throw new ArgumentError(string);
-        array[i] = string;
-      }
+    if (!isJsArray(strings)) {
+      strings = new List.from(strings);
     }
-    return array;
+    final length = strings.length;
+    for (int i = 0; i < length; i++) {
+      final string = strings[i];
+      if (string is !String) throw new ArgumentError(string);
+    }
+    return strings;
   }
 }
 
 patch class RegExp {
   patch factory RegExp(String pattern,
                        {bool multiLine: false,
-                        bool ignoreCase: false})
+                        bool caseSensitive: true})
     => new JSSyntaxRegExp(pattern,
                           multiLine: multiLine,
-                          ignoreCase: ignoreCase);
+                          caseSensitive: caseSensitive);
 }
 
 // Patch for 'identical' function.

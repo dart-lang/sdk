@@ -221,12 +221,12 @@ class ConstantHandler extends CompilerTask {
   }
 
   /**
-   * Returns a [List] of static non final fields that need to be initialized.
-   * The list must be evaluated in order since the fields might depend on each
-   * other.
+   * Returns an [Iterable] of static non final fields that need to be
+   * initialized. The fields list must be evaluated in order since they might
+   * depend on each other.
    */
-  List<VariableElement> getStaticNonFinalFieldsForEmission() {
-    return initialVariableValues.keys.filter((element) {
+  Iterable<VariableElement> getStaticNonFinalFieldsForEmission() {
+    return initialVariableValues.keys.where((element) {
       return element.kind == ElementKind.FIELD
           && !element.isInstanceMember()
           && !element.modifiers.isFinal();
@@ -234,12 +234,12 @@ class ConstantHandler extends CompilerTask {
   }
 
   /**
-   * Returns a [List] of static const fields that need to be initialized. The
-   * list must be evaluated in order since the fields might depend on each
+   * Returns an [Iterable] of static const fields that need to be initialized.
+   * The fields must be evaluated in order since they might depend on each
    * other.
    */
-  List<VariableElement> getStaticFinalFieldsForEmission() {
-    return initialVariableValues.keys.filter((element) {
+  Iterable<VariableElement> getStaticFinalFieldsForEmission() {
+    return initialVariableValues.keys.where((element) {
       return element.kind == ElementKind.FIELD
           && !element.isInstanceMember()
           && element.modifiers.isFinal();

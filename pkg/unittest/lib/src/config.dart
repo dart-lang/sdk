@@ -132,6 +132,7 @@ class Configuration {
     _receivePort.close();
     if (success) {
       _postMessage('unittest-suite-success');
+      _receivePort.close();
     } else {
       throw new Exception('Some tests failed.');
     }
@@ -141,7 +142,7 @@ class Configuration {
     // TODO(nweiz): Use this simpler code once issue 2980 is fixed.
     // return str.replaceAll(new RegExp("^", multiLine: true), "  ");
 
-    return Strings.join(str.split("\n").map((line) => "  $line"), "\n");
+    return Strings.join(str.split("\n").mappedBy((line) => "  $line"), "\n");
   }
 
   /** Handle errors that happen outside the tests. */

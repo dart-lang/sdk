@@ -156,8 +156,8 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     try {
       completer.complete(
           _invoke(this, memberName, positionalArguments));
-    } catch (exception) {
-      completer.completeException(exception);
+    } catch (exception, s) {
+      completer.completeError(exception, s);
     }
     return completer.future;
   }
@@ -167,8 +167,8 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
       completer.complete(_getField(this, fieldName));
-    } catch (exception) {
-      completer.completeException(exception);
+    } catch (exception, s) {
+      completer.completeError(exception, s);
     }
     return completer.future;
   }
@@ -180,8 +180,8 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
       completer.complete(_setField(this, fieldName, arg));
-    } catch (exception) {
-      completer.completeException(exception);
+    } catch (exception, s) {
+      completer.completeError(exception, s);
     }
     return completer.future;
   }

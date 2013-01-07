@@ -4,6 +4,7 @@
 
 library entrypoint;
 
+import 'dart:async';
 import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
@@ -46,7 +47,7 @@ class Entrypoint {
 
   /// Loads the entrypoint from a package at [rootDir].
   static Future<Entrypoint> load(String rootDir, SystemCache cache) {
-    return Package.load(null, rootDir, cache.sources).transform((package) =>
+    return Package.load(null, rootDir, cache.sources).then((package) =>
         new Entrypoint(package, cache));
   }
 
@@ -70,26 +71,26 @@ class Entrypoint {
     if (pendingOrCompleted != null) return pendingOrCompleted;
 
     var packageDir = join(path, id.name);
-    var future = ensureDir(dirname(packageDir)).chain((_) {
+    var future = ensureDir(dirname(packageDir)).then((_) {
       return exists(packageDir);
-    }).chain((exists) {
+    }).then((exists) {
       if (!exists) return new Future.immediate(null);
       // TODO(nweiz): figure out when to actually delete the directory, and when
       // we can just re-use the existing symlink.
       log.fine("Deleting package directory for ${id.name} before install.");
       return deleteDir(packageDir);
-    }).chain((_) {
+    }).then((_) {
       if (id.source.shouldCache) {
-        return cache.install(id).chain(
+        return cache.install(id).then(
             (pkg) => createPackageSymlink(id.name, pkg.dir, packageDir));
       } else {
-        return id.source.install(id, packageDir).transform((found) {
+        return id.source.install(id, packageDir).then((found) {
           if (found) return null;
           // TODO(nweiz): More robust error-handling.
           throw 'Package ${id.name} not found in source "${id.source.name}".';
         });
       }
-    }).chain((_) => id.resolved);
+    }).then((_) => id.resolved);
 
     _installs[id] = future;
 
@@ -101,8 +102,8 @@ class Entrypoint {
   /// completes when all dependencies are installed.
   Future installDependencies() {
     return loadLockFile()
-      .chain((lockFile) => resolveVersions(cache.sources, root, lockFile))
-      .chain(_installDependencies);
+      .then((lockFile) => resolveVersions(cache.sources, root, lockFile))
+      .then(_installDependencies);
   }
 
   /// Installs the latest available versions of all dependencies of the [root]
@@ -110,33 +111,33 @@ class Entrypoint {
   /// [Future] that completes when all dependencies are installed.
   Future updateAllDependencies() {
     return resolveVersions(cache.sources, root, new LockFile.empty())
-      .chain(_installDependencies);
+      .then(_installDependencies);
   }
 
   /// Installs the latest available versions of [dependencies], while leaving
   /// other dependencies as specified by the [LockFile] if possible. Returns a
   /// [Future] that completes when all dependencies are installed.
   Future updateDependencies(List<String> dependencies) {
-    return loadLockFile().chain((lockFile) {
+    return loadLockFile().then((lockFile) {
       var versionSolver = new VersionSolver(cache.sources, root, lockFile);
       for (var dependency in dependencies) {
         versionSolver.useLatestVersion(dependency);
       }
       return versionSolver.solve();
-    }).chain(_installDependencies);
+    }).then(_installDependencies);
   }
 
   /// Removes the old packages directory, installs all dependencies listed in
   /// [packageVersions], and writes a [LockFile].
   Future _installDependencies(List<PackageId> packageVersions) {
-    return cleanDir(path).chain((_) {
-      return Futures.wait(packageVersions.map((id) {
+    return cleanDir(path).then((_) {
+      return Futures.wait(packageVersions.mappedBy((id) {
         if (id.source is RootSource) return new Future.immediate(id);
         return install(id);
       }));
-    }).chain(_saveLockFile)
-      .chain(_installSelfReference)
-      .chain(_linkSecondaryPackageDirs);
+    }).then(_saveLockFile)
+      .then(_installSelfReference)
+      .then(_linkSecondaryPackageDirs);
   }
 
   /// Loads the list of concrete package versions from the `pubspec.lock`, if it
@@ -145,13 +146,13 @@ class Entrypoint {
     var lockFilePath = join(root.dir, 'pubspec.lock');
 
     log.fine("Loading lockfile.");
-    return fileExists(lockFilePath).chain((exists) {
+    return fileExists(lockFilePath).then((exists) {
       if (!exists) {
         log.fine("No lock file at $lockFilePath, creating empty one.");
         return new Future<LockFile>.immediate(new LockFile.empty());
       }
 
-      return readTextFile(lockFilePath).transform((text) =>
+      return readTextFile(lockFilePath).then((text) =>
           new LockFile.parse(text, cache.sources));
     });
   }
@@ -172,10 +173,10 @@ class Entrypoint {
   /// allow a package to import its own files using `package:`.
   Future _installSelfReference(_) {
     var linkPath = join(path, root.name);
-    return exists(linkPath).chain((exists) {
+    return exists(linkPath).then((exists) {
       // Create the symlink if it doesn't exist.
       if (exists) return new Future.immediate(null);
-      return ensureDir(path).chain(
+      return ensureDir(path).then(
           (_) => createPackageSymlink(root.name, root.dir, linkPath,
               isSelfLink: true));
     });
@@ -190,25 +191,25 @@ class Entrypoint {
     var testDir = join(root.dir, 'test');
     var toolDir = join(root.dir, 'tool');
     var webDir = join(root.dir, 'web');
-    return dirExists(binDir).chain((exists) {
+    return dirExists(binDir).then((exists) {
       if (!exists) return new Future.immediate(null);
       return _linkSecondaryPackageDir(binDir);
-    }).chain((_) => _linkSecondaryPackageDirsRecursively(exampleDir))
-      .chain((_) => _linkSecondaryPackageDirsRecursively(testDir))
-      .chain((_) => _linkSecondaryPackageDirsRecursively(toolDir))
-      .chain((_) => _linkSecondaryPackageDirsRecursively(webDir));
+    }).then((_) => _linkSecondaryPackageDirsRecursively(exampleDir))
+      .then((_) => _linkSecondaryPackageDirsRecursively(testDir))
+      .then((_) => _linkSecondaryPackageDirsRecursively(toolDir))
+      .then((_) => _linkSecondaryPackageDirsRecursively(webDir));
   }
 
   /// Creates a symlink to the `packages` directory in [dir] and all its
   /// subdirectories.
   Future _linkSecondaryPackageDirsRecursively(String dir) {
-    return dirExists(dir).chain((exists) {
+    return dirExists(dir).then((exists) {
       if (!exists) return new Future.immediate(null);
       return _linkSecondaryPackageDir(dir)
-        .chain((_) => _listDirWithoutPackages(dir))
-        .chain((files) {
-        return Futures.wait(files.map((file) {
-          return dirExists(file).chain((isDir) {
+        .then((_) => _listDirWithoutPackages(dir))
+        .then((files) {
+        return Futures.wait(files.mappedBy((file) {
+          return dirExists(file).then((isDir) {
             if (!isDir) return new Future.immediate(null);
             return _linkSecondaryPackageDir(file);
           });
@@ -221,25 +222,25 @@ class Entrypoint {
   /// Recursively lists the contents of [dir], excluding hidden `.DS_Store`
   /// files and `package` files.
   Future<List<String>> _listDirWithoutPackages(dir) {
-    return listDir(dir).chain((files) {
-      return Futures.wait(files.map((file) {
+    return listDir(dir).then((files) {
+      return Futures.wait(files.mappedBy((file) {
         if (basename(file) == 'packages') return new Future.immediate([]);
-        return dirExists(file).chain((isDir) {
+        return dirExists(file).then((isDir) {
           if (!isDir) return new Future.immediate([]);
           return _listDirWithoutPackages(file);
-        }).transform((subfiles) {
+        }).then((subfiles) {
           var fileAndSubfiles = [file];
           fileAndSubfiles.addAll(subfiles);
           return fileAndSubfiles;
         });
       }));
-    }).transform(flatten);
+    }).then(flatten);
   }
 
   /// Creates a symlink to the `packages` directory in [dir] if none exists.
   Future _linkSecondaryPackageDir(String dir) {
     var to = join(dir, 'packages');
-    return exists(to).chain((exists) {
+    return exists(to).then((exists) {
       if (exists) return new Future.immediate(null);
       return createSymlink(path, to);
     });

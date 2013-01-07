@@ -14,6 +14,7 @@
 
 library dart.mirrors;
 
+import 'dart:async';
 import 'dart:isolate';
 
 part 'mirrors_impl.dart';

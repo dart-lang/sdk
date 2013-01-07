@@ -15,6 +15,7 @@
 
 library message_lookup_local;
 
+import 'dart:async';
 import 'intl.dart';
 import 'src/intl_helpers.dart';
 import 'dart:mirrors';
@@ -88,13 +89,13 @@ class MessageLookupLocal {
    * will be extracted automatically but for the time being it must be passed
    * explicitly in the [name] and [args] arguments.
    */
-  String lookupMessage(String message_str, [final String desc='',
+  Future<String> lookupMessage(String message_str, [final String desc='',
       final Map examples=const {}, String locale,
       String name, List<String> args]) {
-    if (name == null) return message_str;
+    if (name == null) return new Future.immediate(message_str);
     // The translations also make use of Intl.message, so we need to not
     // recurse and just stop when we find the first substitution.
-    if (_lookupInProgress) return message_str;
+    if (_lookupInProgress) return new Future.immediate(message_str);
     _lookupInProgress = true;
     var result;
     try {
@@ -108,14 +109,15 @@ class MessageLookupLocal {
               onFailure: (locale)=>locale);
       LibraryMirror messagesForThisLocale =
           _libraries['$_sourcePrefix$verifiedLocale'];
-      if (messagesForThisLocale == null) return message_str;
-      MethodMirror localized = messagesForThisLocale.functions[name];
-      if (localized == null) return message_str;
-      result = messagesForThisLocale.invoke(localized.simpleName, args);
+      if (messagesForThisLocale == null) {
+        return new Future.immediate(message_str);
       }
-    finally {
+      MethodMirror localized = messagesForThisLocale.functions[name];
+      if (localized == null) return new Future.immediate(message_str);
+      result = messagesForThisLocale.invoke(localized.simpleName, args);
+    } finally {
       _lookupInProgress = false;
     }
-    return result.value.reflectee;
+    return result.then((value) => value.reflectee);
   }
 }

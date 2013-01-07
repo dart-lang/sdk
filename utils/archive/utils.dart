@@ -33,7 +33,7 @@ SendPort _newServicePort() native "Archive_ServicePort";
 Future call(int requestType, [int id, List args]) {
   var fullArgs = [requestType, id];
   if (args != null) fullArgs.addAll(args);
-  return servicePort.call(listForC(fullArgs)).transform((response) {
+  return servicePort.call(listForC(fullArgs)).then((response) {
     var success = response[0];
     var errno = response[1];
     var message = response[2];
@@ -45,7 +45,7 @@ Future call(int requestType, [int id, List args]) {
 
 /** Converts [input] to a fixed-length list which C can understand. */
 List listForC(List input) {
-  var list = new List(input.length);
+  var list = new List.fixedLength(input.length);
   list.setRange(0, input.length, input);
   return list;
 }

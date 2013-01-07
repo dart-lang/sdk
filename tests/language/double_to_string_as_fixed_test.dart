@@ -85,24 +85,6 @@ class ToStringAsFixedTest {
     Expect.equals("1.3", 1.25.toStringAsFixed(1));
     Expect.equals("234.2040", 234.20405.toStringAsFixed(4));
     Expect.equals("234.2041", 234.2040506.toStringAsFixed(4));
-    {
-      bool thrown = false;
-      try {
-        0.0.toStringAsFixed(-1);
-      } catch (e) {
-        thrown = true;
-      }
-      Expect.equals(true, thrown);
-    }
-    {
-      bool thrown = false;
-      try {
-        0.0.toStringAsFixed(22);
-      } catch (e) {
-        thrown = true;
-      }
-      Expect.equals(true, thrown);
-    }
   }
 }
 

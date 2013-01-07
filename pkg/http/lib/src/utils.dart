@@ -4,9 +4,9 @@
 
 library utils;
 
+import 'dart:async';
 import 'dart:crypto';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:scalarlist';
 import 'dart:uri';
 import 'dart:utf';
@@ -36,7 +36,7 @@ String mapToQuery(Map<String, String> map) {
   var pairs = <List<String>>[];
   map.forEach((key, value) =>
       pairs.add([encodeUriComponent(key), encodeUriComponent(value)]));
-  return Strings.join(pairs.map((pair) => "${pair[0]}=${pair[1]}"), "&");
+  return Strings.join(pairs.mappedBy((pair) => "${pair[0]}=${pair[1]}"), "&");
 }
 
 /// Adds all key/value pairs from [source] to [destination], overwriting any
@@ -140,7 +140,7 @@ Future<List<int>> consumeInputStream(InputStream stream) {
   var buffer = <int>[];
   stream.onClosed = () => completer.complete(buffer);
   stream.onData = () => buffer.addAll(stream.read());
-  stream.onError = completer.completeException;
+  stream.onError = completer.completeError;
   return completer.future;
 }
 
@@ -183,10 +183,10 @@ Future get async {
 /// The return values of all [Future]s are discarded. Any errors will cause the
 /// iteration to stop and will be piped through the return value.
 Future forEachFuture(Iterable input, Future fn(element)) {
-  var iterator = input.iterator();
+  var iterator = input.iterator;
   Future nextElement(_) {
-    if (!iterator.hasNext) return new Future.immediate(null);
-    return fn(iterator.next()).chain(nextElement);
+    if (!iterator.moveNext()) return new Future.immediate(null);
+    return fn(iterator.current).then(nextElement);
   }
   return nextElement(null);
 }

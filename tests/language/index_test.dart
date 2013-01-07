@@ -18,7 +18,7 @@ class IndexTest {
   static const ID_IDLE = 0;
 
   static testMain() {
-    var a = new List(10);
+    var a = new List.fixedLength(10);
     Expect.equals(10, a.length);
     for (int i = 0; i < a.length; i++) {
       a[i] = Helper.fibonacci(i);

@@ -31,8 +31,7 @@ class ProcessWorkingDirectoryTest {
       };
       process.stdout.onData = process.stdout.read;
       process.stderr.onData = process.stderr.read;
-    });
-    processFuture.handleException((error) {
+    }).catchError((error) {
       directory.deleteSync();
       Expect.fail("Couldn't start process");
     });
@@ -50,12 +49,9 @@ class ProcessWorkingDirectoryTest {
     future.then((process) {
       Expect.fail("bad process completed");
       directory.deleteSync();
-    });
-
-    future.handleException((e) {
+    }).catchError((e) {
       Expect.isNotNull(e);
       directory.deleteSync();
-      return true;
     });
   }
 }

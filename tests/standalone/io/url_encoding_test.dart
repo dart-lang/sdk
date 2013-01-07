@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "dart:utf";
 part "../../../sdk/lib/io/input_stream.dart";
 part "../../../sdk/lib/io/output_stream.dart";
@@ -35,7 +36,7 @@ void testParseQueryString() {
                               'sqrt2' : '\u221A2',
                               'name'  : 'Franti\u0161ek'}[key]);
   }
-  Expect.setEquals(map.keys, ['&', '?', 'foo', 'sqrt2', 'name']);
+  Expect.setEquals(map.keys.toSet(), ['&', '?', 'foo', 'sqrt2', 'name']);
 }
 
 void main() {

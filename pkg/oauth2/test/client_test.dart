@@ -63,7 +63,7 @@ void main() {
         return new Future.immediate(new http.Response('good job', 200));
       });
 
-      expect(client.read(requestUri).transform((_) {
+      expect(client.read(requestUri).then((_) {
         expect(client.credentials.accessToken, equals('new access token'));
       }), completes);
     });
@@ -104,7 +104,7 @@ void main() {
         }), 200, headers: {'content-type': 'application/json'}));
       });
 
-      expect(client.refreshCredentials().transform((_) {
+      expect(client.refreshCredentials().then((_) {
         expect(client.credentials.accessToken, equals('new access token'));
       }), completes);
     });
@@ -156,7 +156,7 @@ void main() {
       });
 
       expect(
-          client.get(requestUri).transform((response) => response.statusCode),
+          client.get(requestUri).then((response) => response.statusCode),
           completion(equals(401)));
     });
 
@@ -178,7 +178,7 @@ void main() {
       });
 
       expect(
-          client.get(requestUri).transform((response) => response.statusCode),
+          client.get(requestUri).then((response) => response.statusCode),
           completion(equals(401)));
     });
 
@@ -198,7 +198,7 @@ void main() {
       });
 
       expect(
-          client.get(requestUri).transform((response) => response.statusCode),
+          client.get(requestUri).then((response) => response.statusCode),
           completion(equals(401)));
     });
 
@@ -218,7 +218,7 @@ void main() {
       });
 
       expect(
-          client.get(requestUri).transform((response) => response.statusCode),
+          client.get(requestUri).then((response) => response.statusCode),
           completion(equals(401)));
     });
   });

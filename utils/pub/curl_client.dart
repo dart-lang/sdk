@@ -4,6 +4,7 @@
 
 library curl_client;
 
+import 'dart:async';
 import 'dart:io';
 
 import '../../pkg/http/lib/http.dart' as http;
@@ -39,7 +40,7 @@ class CurlClient extends http.BaseClient {
       var arguments = _argumentsForRequest(request, headerFile);
       log.process(executable, arguments);
       var process;
-      return startProcess(executable, arguments).chain((process_) {
+      return startProcess(executable, arguments).then((process_) {
         process = process_;
         if (requestStream.closed) {
           process.stdin.close();
@@ -48,8 +49,8 @@ class CurlClient extends http.BaseClient {
         }
 
         return _waitForHeaders(process, expectBody: request.method != "HEAD");
-      }).chain((_) => new File(headerFile).readAsLines())
-        .transform((lines) => _buildResponse(request, process, lines));
+      }).then((_) => new File(headerFile).readAsLines())
+        .then((lines) => _buildResponse(request, process, lines));
     });
   }
 
@@ -126,7 +127,7 @@ class CurlClient extends http.BaseClient {
       }
 
       chainToCompleter(consumeInputStream(process.stderr)
-            .transform((stderrBytes) {
+            .then((stderrBytes) {
         var message = new String.fromCharCodes(stderrBytes);
         log.fine('Got error reading headers from curl: $message');
         if (exitCode == 47) {

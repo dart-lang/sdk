@@ -4,6 +4,7 @@
 
 // Smoke test of the dart2js compiler API.
 
+import 'dart:async';
 library dummy_compiler;
 
 import '../../sdk/lib/_internal/compiler/compiler.dart';

@@ -5,14 +5,14 @@
 library prettyPrint;
 
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 import 'util.dart';
 
 String orEmpty(String str) {
   return str == null ? "" : str;
 }
 
-List<String> sortStringCollection(Collection<String> collection) {
+List<String> sortStringCollection(Iterable<String> collection) {
   final out = <String>[];
   out.addAll(collection);
   out.sort((String a, String b) => a.compareTo(b));
@@ -51,7 +51,7 @@ int addMissing(StringBuffer sb, String type, Map members) {
 
 void main() {
   // Database of code documentation.
-  final Map<String, Map> database = JSON.parse(
+  final Map<String, Map> database = json.parse(
       new File('output/database.filtered.json').readAsStringSync());
 
   // Types we have documentation for.

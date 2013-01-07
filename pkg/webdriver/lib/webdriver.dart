@@ -4,10 +4,9 @@
 
 library webdriver;
 
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:uri';
 import 'dart:io';
-import 'dart:math';
 
 part 'src/base64decoder.dart';
 
@@ -207,7 +206,7 @@ class WebDriverBase {
     _path = matches[2];
     var idx = _host.indexOf(':');
     if (idx >= 0) {
-      _port = parseInt(_host.substring(idx+1));
+      _port = int.parse(_host.substring(idx+1));
       _host = _host.substring(0, idx);
     } else {
       _port = 80;
@@ -241,7 +240,7 @@ class WebDriverBase {
         throw new Exception(
           'The http method called for ${command} is ${http_method} but it has '
           'to be POST if you want to pass the JSON params '
-          '${JSON.stringify(params)}');
+          '${json.stringify(params)}');
       }
 
       var path = command;
@@ -258,7 +257,7 @@ class WebDriverBase {
             HttpHeaders.CONTENT_TYPE, 'application/json;charset=UTF-8');
         OutputStream s = r.outputStream;
         if (params != null && params is Map) {
-          s.writeString(JSON.stringify(params));
+          s.writeString(json.stringify(params));
         }
         s.close();
       };
@@ -282,7 +281,7 @@ class WebDriverBase {
           var value = null;
           results  = sbuf.toString().trim();
           // For some reason we get a bunch of NULs on the end
-          // of the text and the JSON parser blows up on these, so
+          // of the text and the json.parse blows up on these, so
           // strip them. We have to do this the hard way as
           // replaceAll('\0', '') does not work.
           // These NULs can be seen in the TCP packet, so it is not
@@ -301,7 +300,7 @@ class WebDriverBase {
           if (status == 0 && results.length > 0) {
             // 4xx responses send plain text; others send JSON.
             if (r.statusCode < 400) {
-              results = JSON.parse(results);
+              results = json.parse(results);
               status = results['status'];
             }
             if (results is Map && (results as Map).containsKey('value')) {

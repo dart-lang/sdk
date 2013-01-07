@@ -5,31 +5,53 @@
 part of html;
 
 // Iterator for arrays with fixed size.
-class FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
+class FixedSizeListIterator<T> implements Iterator<T> {
+  final List<T> _array;
+  final int _length;  // Cache array length for faster access.
+  int _position;
+  T _current;
+  
   FixedSizeListIterator(List<T> array)
-      : super(array),
+      : _array = array,
+        _position = -1,
         _length = array.length;
 
-  bool get hasNext => _length > _pos;
+  bool moveNext() {
+    int nextPosition = _position + 1;
+    if (nextPosition < _length) {
+      _current = _array[nextPosition];
+      _position = nextPosition;
+      return true;
+    }
+    _current = null;
+    _position = _length;
+    return false;
+  }
 
-  final int _length;  // Cache array length for faster access.
+  T get current => _current;
 }
 
 // Iterator for arrays with variable size.
 class _VariableSizeListIterator<T> implements Iterator<T> {
+  final List<T> _array;
+  int _position;
+  T _current;
+
   _VariableSizeListIterator(List<T> array)
       : _array = array,
-        _pos = 0;
+        _position = -1;
 
-  bool get hasNext => _array.length > _pos;
-
-  T next() {
-    if (!hasNext) {
-      throw new StateError("No more elements");
+  bool moveNext() {
+    int nextPosition = _position + 1;
+    if (nextPosition < _array.length) {
+      _current = _array[nextPosition];
+      _position = nextPosition;
+      return true;
     }
-    return _array[_pos++];
+    _current = null;
+    _position = _array.length;
+    return false;
   }
 
-  final List<T> _array;
-  int _pos;
+  T get current => _current;
 }

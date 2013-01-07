@@ -97,7 +97,7 @@ void testUnreadyInputStream() {
   String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
   var expected = "Hello Dart\nwassup!\n".charCodes;
   InputStream x = (new File(fileName)).openInputStream();
-  List<int> buffer = new List<int>(100);
+  List<int> buffer = new List<int>.fixedLength(100);
 
   x.onData = () {
     Expect.fail("Input stream closed before opening called onData handler.");

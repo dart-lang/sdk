@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-import "dart:isolate";
+import "dart:async";
 import "dart:io";
 import "dart:uri";
 
@@ -13,7 +13,7 @@ void testHttp10Close(bool closeRequest) {
 
   Socket socket = new Socket("127.0.0.1", server.port);
   socket.onConnect = () {
-    List<int> buffer = new List<int>(1024);
+    List<int> buffer = new List<int>.fixedLength(1024);
     socket.outputStream.writeString("GET / HTTP/1.0\r\n\r\n");
     if (closeRequest) socket.outputStream.close();
     socket.onData = () => socket.readList(buffer, 0, buffer.length);
@@ -30,7 +30,7 @@ void testHttp11Close(bool closeRequest) {
 
   Socket socket = new Socket("127.0.0.1", server.port);
   socket.onConnect = () {
-    List<int> buffer = new List<int>(1024);
+    List<int> buffer = new List<int>.fixedLength(1024);
     socket.outputStream.writeString(
         "GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
     if (closeRequest) socket.outputStream.close();

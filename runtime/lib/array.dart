@@ -61,31 +61,68 @@ class _ObjectArray<E> implements List<E> {
 
   // Collection interface.
 
-  bool contains(E element) => Collections.contains(this, element);
+  bool contains(E element) {
+    return Collections.contains(this, element);
+  }
 
   void forEach(f(E element)) {
     Collections.forEach(this, f);
   }
 
-  Collection map(f(E element)) {
-    return Collections.map(
-        this, new _GrowableObjectArray.withCapacity(length), f);
+  String join([String separator]) {
+    return Collections.join(this, separator);
+  }
+
+  List mappedBy(f(E element)) {
+    return new MappedList<E, dynamic>(this, f);
   }
 
   reduce(initialValue, combine(previousValue, E element)) {
     return Collections.reduce(this, initialValue, combine);
   }
 
-  Collection<E> filter(bool f(E element)) {
-    return Collections.filter(this, new _GrowableObjectArray<E>(), f);
+  Iterable<E> where(bool f(E element)) {
+    return new WhereIterable<E>(this, f);
+  }
+
+  List<E> take(int n) {
+    return new ListView<E>(this, 0, n);
+  }
+
+  Iterable<E> takeWhile(bool test(E value)) {
+    return new TakeWhileIterable<E>(this, test);
+  }
+
+  List<E> skip(int n) {
+    return new ListView<E>(this, n, null);
+  }
+
+  Iterable<E> skipWhile(bool test(E value)) {
+    return new SkipWhileIterable<E>(this, test);
   }
 
   bool every(bool f(E element)) {
     return Collections.every(this, f);
   }
 
-  bool some(bool f(E element)) {
-    return Collections.some(this, f);
+  bool any(bool f(E element)) {
+    return Collections.any(this, f);
+  }
+
+  E firstMatching(bool test(E value), {E orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  E lastMatching(bool test(E value), {E orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  E singleMatching(bool test(E value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  E elementAt(int index) {
+    return this[index];
   }
 
   bool get isEmpty {
@@ -106,7 +143,7 @@ class _ObjectArray<E> implements List<E> {
     return Arrays.lastIndexOf(this, element, start);
   }
 
-  Iterator<E> iterator() {
+  Iterator<E> get iterator {
     return new _FixedSizeArrayIterator<E>(this);
   }
 
@@ -119,7 +156,7 @@ class _ObjectArray<E> implements List<E> {
     add(element);
   }
 
-  void addAll(Collection<E> elements) {
+  void addAll(Iterable<E> iterable) {
     throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
@@ -140,11 +177,31 @@ class _ObjectArray<E> implements List<E> {
   }
 
   E get first {
-    return this[0];
+    if (length > 0) return this[0];
+    throw new StateError("No elements");
   }
 
   E get last {
-    return this[length - 1];
+    if (length > 0) return this[length - 1];
+    throw new StateError("No elements");
+  }
+
+  E get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  E min([int compare(E a, E b)]) => Collections.min(this, compare);
+
+  E max([int compare(E a, E b)]) => Collections.max(this, compare);
+
+  List<E> toList() {
+    return new List<E>.from(this);
+  }
+
+  Set<E> toSet() {
+    return new Set<E>.from(this);
   }
 }
 
@@ -208,31 +265,68 @@ class _ImmutableArray<E> implements List<E> {
 
   // Collection interface.
 
-  bool contains(E element) => Collections.contains(this, element);
+  bool contains(E element) {
+    return Collections.contains(this, element);
+  }
 
   void forEach(f(E element)) {
     Collections.forEach(this, f);
   }
 
-  Collection map(f(E element)) {
-    return Collections.map(
-        this, new _GrowableObjectArray.withCapacity(length), f);
+  List mappedBy(f(E element)) {
+    return new MappedList<E, dynamic>(this, f);
+  }
+
+  String join([String separator]) {
+    return Collections.join(this, separator);
   }
 
   reduce(initialValue, combine(previousValue, E element)) {
     return Collections.reduce(this, initialValue, combine);
   }
 
-  Collection<E> filter(bool f(E element)) {
-    return Collections.filter(this, new _GrowableObjectArray<E>(), f);
+  Iterable<E> where(bool f(E element)) {
+    return new WhereIterable<E>(this, f);
+  }
+
+  List<E> take(int n) {
+    return new ListView<E>(this, 0, n);
+  }
+
+  Iterable<E> takeWhile(bool test(E value)) {
+    return new TakeWhileIterable<E>(this, test);
+  }
+
+  List<E> skip(int n) {
+    return new ListView<E>(this, n, null);
+  }
+
+  Iterable<E> skipWhile(bool test(E value)) {
+    return new SkipWhileIterable<E>(this, test);
   }
 
   bool every(bool f(E element)) {
     return Collections.every(this, f);
   }
 
-  bool some(bool f(E element)) {
-    return Collections.some(this, f);
+  bool any(bool f(E element)) {
+    return Collections.any(this, f);
+  }
+
+  E firstMatching(bool test(E value), {E orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  E lastMatching(bool test(E value), {E orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  E singleMatching(bool test(E value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  E elementAt(int index) {
+    return this[index];
   }
 
   bool get isEmpty {
@@ -257,7 +351,7 @@ class _ImmutableArray<E> implements List<E> {
     return Arrays.lastIndexOf(this, element, start);
   }
 
-  Iterator<E> iterator() {
+  Iterator<E> get iterator {
     return new _FixedSizeArrayIterator<E>(this);
   }
 
@@ -270,7 +364,7 @@ class _ImmutableArray<E> implements List<E> {
     add(element);
   }
 
-  void addAll(Collection<E> elements) {
+  void addAll(Iterable<E> elements) {
     throw new UnsupportedError(
         "Cannot add to an immutable array");
   }
@@ -291,34 +385,60 @@ class _ImmutableArray<E> implements List<E> {
   }
 
   E get first {
-    return this[0];
+    if (length > 0) return this[0];
+    throw new StateError("No elements");
   }
 
   E get last {
-    return this[length - 1];
+    if (length > 0) return this[length - 1];
+    throw new StateError("No elements");
+  }
+
+  E get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  E min([int compare(E a, E b)]) => Collections.min(this, compare);
+
+  E max([int compare(E a, E b)]) => Collections.max(this, compare);
+
+  List<E> toList() {
+    return new List<E>.from(this);
+  }
+
+  Set<E> toSet() {
+    return new Set<E>.from(this);
   }
 }
 
 
 // Iterator for arrays with fixed size.
 class _FixedSizeArrayIterator<E> implements Iterator<E> {
+  final List<E> _array;
+  final int _length;  // Cache array length for faster access.
+  int _position;
+  E _current;
+
   _FixedSizeArrayIterator(List array)
-      : _array = array, _length = array.length, _pos = 0 {
+      : _array = array, _length = array.length, _position = -1 {
     assert(array is _ObjectArray || array is _ImmutableArray);
   }
 
-  bool get hasNext {
-    return _length > _pos;
-  }
-
-  E next() {
-    if (!hasNext) {
-      throw new StateError("No more elements");
+  bool moveNext() {
+    int nextPosition = _position + 1;
+    if (nextPosition < _length) {
+      _current = _array[nextPosition];
+      _position = nextPosition;
+      return true;
     }
-    return _array[_pos++];
+    _position = _length;
+    _current = null;
+    return false;
   }
 
-  final List<E> _array;
-  final int _length;  // Cache array length for faster access.
-  int _pos;
+  E get current {
+    return _current;
+  }
 }

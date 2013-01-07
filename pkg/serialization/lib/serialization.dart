@@ -149,7 +149,8 @@ library serialization;
 
 import 'src/mirrors_helpers.dart';
 import 'src/serialization_helpers.dart';
-import 'dart:json' show JSON;
+import 'dart:async';
+import 'dart:json' as json;
 
 part 'src/reader_writer.dart';
 part 'src/serialization_rule.dart';
@@ -201,7 +202,7 @@ class Serialization {
    */
   bool get selfDescribing {
     if (_selfDescribing != null) return _selfDescribing;
-    return !_rules.some((x) => x is CustomRule);
+    return !_rules.any((x) => x is CustomRule);
   }
 
   /**
@@ -362,8 +363,8 @@ class Serialization {
       target = object;
       candidateRules = _rules;
     }
-    List applicable = candidateRules.filter(
-        (each) => each.appliesTo(target, w));
+    List applicable =
+        candidateRules.where((each) => each.appliesTo(target, w)).toList();
 
     if (applicable.isEmpty) {
       return [addRuleFor(target)];
@@ -371,8 +372,8 @@ class Serialization {
 
     if (applicable.length == 1) return applicable;
     var first = applicable[0];
-    var finalRules = applicable.filter(
-        (x) => !x.mustBePrimary || (x == first));
+    var finalRules = applicable.where(
+        (x) => !x.mustBePrimary || (x == first)).toList();
 
     if (finalRules.isEmpty) throw new SerializationException(
         'No valid rule found for object $object');

@@ -184,7 +184,7 @@ void testHttp10() {
 
   Socket socket = new Socket("127.0.0.1", server.port);
   socket.onConnect = () {
-    List<int> buffer = new List<int>(1024);
+    List<int> buffer = new List<int>.fixedLength(1024);
     socket.outputStream.writeString("GET / HTTP/1.0\r\n\r\n");
     socket.onData = () => socket.readList(buffer, 0, buffer.length);
     socket.onClosed = () {

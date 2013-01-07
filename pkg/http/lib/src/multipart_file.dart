@@ -85,7 +85,7 @@ class MultipartFile {
   static Future<MultipartFile> fromFile(String field, File file,
       {String filename, ContentType contentType}) {
     if (filename == null) filename = new Path(file.name).filename;
-    return file.length().transform((length) {
+    return file.length().then((length) {
       return new MultipartFile(field, file.openInputStream(), length,
           filename: filename,
           contentType: contentType);

@@ -45,7 +45,7 @@ void main() {
     secure.onData = useReadList;
   }
   useReadList = () {
-    var buffer = new List(2000);
+    var buffer = new List.fixedLength(2000);
     int len = secure.readList(buffer, 0, 2000);
     var received = new String.fromCharCodes(buffer.getRange(0, len));
     chunks.add(received);

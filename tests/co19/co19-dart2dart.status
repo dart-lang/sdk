@@ -443,6 +443,10 @@ LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
 
 
+LibTest/math/parseDouble_A01_t01: Fail, OK # co19 issue 317
+LibTest/math/parseInt_A01_t01: Fail, OK # co19 issue 317
+LibTest/math/parseInt_A02_t01: Fail, OK # co19 issue 317
+
 LibTest/core/StringBuffer/addAll_A02_t01:  Fail, OK # co19 issue 355
 LibTest/core/StringBuffer/add_A02_t01:  Fail, OK # co19 issue 355
 LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355

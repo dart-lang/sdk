@@ -54,7 +54,7 @@ void test1() {
   }
 
   var _16k = 1024 * 16;
-  var data = new List<int>(_16k);
+  var data = new List<int>.fixedLength(_16k);
   for (int i = 0; i < _16k; i++) { data[i] = i % 256; }
 
   void testDone(int byteCount) {

@@ -30,6 +30,6 @@ baz(a) {
 main() {
   String generated = compileAll(TEST);
   RegExp regexp = new RegExp('foo\\\$1\\\$a: function');
-  Iterator<Match> matches = regexp.allMatches(generated).iterator();
+  Iterator<Match> matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 1);
 }

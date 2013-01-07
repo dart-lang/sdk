@@ -120,7 +120,8 @@ class Expect {
     if (expected.length != actual.length) {
       _fail('Expect.listEquals(list length, '
         'expected: <${expected.length}>, actual: <${actual.length}>$msg) '
-        'fails');
+        'fails: Next element <'
+        '${expected.length > n ? expected[n] : actual[n]}>');
     }
   }
 

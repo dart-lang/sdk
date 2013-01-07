@@ -94,11 +94,11 @@ class _HttpRequestResponseBase {
     List<String> connection = headers[HttpHeaders.CONNECTION];
     if (_protocolVersion == "1.1") {
       if (connection == null) return true;
-      return !headers[HttpHeaders.CONNECTION].some(
+      return !headers[HttpHeaders.CONNECTION].any(
           (value) => value.toLowerCase() == "close");
     } else {
       if (connection == null) return false;
-      return headers[HttpHeaders.CONNECTION].some(
+      return headers[HttpHeaders.CONNECTION].any(
           (value) => value.toLowerCase() == "keep-alive");
     }
   }
@@ -1269,9 +1269,9 @@ class _HttpClientRequest
   bool _emptyBody = true;
 }
 
-
 class _HttpClientResponse
-    extends _HttpRequestResponseBase implements HttpClientResponse {
+    extends _HttpRequestResponseBase
+    implements HttpClientResponse {
   _HttpClientResponse(_HttpClientConnection connection)
       : super(connection) {
     _connection = connection;

@@ -29,8 +29,8 @@ class LibValidator extends Validator {
         return new Future.immediate(null);
       }
 
-      return listDir(libDir).transform((files) {
-        files = files.map((file) => relativeTo(file, libDir));
+      return listDir(libDir).then((files) {
+        files = files.mappedBy((file) => relativeTo(file, libDir)).toList();
         if (files.isEmpty) {
           errors.add('You must have a non-empty "lib" directory.\n'
               "Without that, users cannot import any code from your package.");

@@ -49,7 +49,7 @@ class NameValidator extends Validator {
     return dirExists(libDir).chain((libDirExists) {
       if (!libDirExists) return new Future.immediate([]);
       return listDir(libDir, recursive: true);
-    }).transform((files) {
+    }).then((files) {
       return files.map((file) => relativeTo(file, dirname(libDir)))
           .filter((file) {
         return !splitPath(file).contains("src") &&

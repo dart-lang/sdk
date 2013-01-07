@@ -11,6 +11,7 @@
 // Session resume is currently disabled - see issue
 // https://code.google.com/p/dart/issues/detail?id=7230
 
+import "dart:async";
 import "dart:io";
 import "dart:isolate";
 

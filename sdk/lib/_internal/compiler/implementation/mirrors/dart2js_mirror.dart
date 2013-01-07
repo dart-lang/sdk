@@ -4,6 +4,7 @@
 
 library mirrors_dart2js;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:uri';
 
@@ -1304,14 +1305,15 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
     if (originalDeclaration != other.originalDeclaration) {
       return false;
     }
-    var thisTypeArguments = typeArguments.iterator();
-    var otherTypeArguments = other.typeArguments.iterator();
-    while (thisTypeArguments.hasNext && otherTypeArguments.hasNext) {
-      if (thisTypeArguments.next() != otherTypeArguments.next()) {
+    var thisTypeArguments = typeArguments.iterator;
+    var otherTypeArguments = other.typeArguments.iterator;
+    while (thisTypeArguments.moveNext()) {
+      if (!otherTypeArguments.moveNext()) return false;
+      if (thisTypeArguments.current != otherTypeArguments.current) {
         return false;
       }
     }
-    return !thisTypeArguments.hasNext && !otherTypeArguments.hasNext;
+    return !otherTypeArguments.moveNext();
   }
 }
 

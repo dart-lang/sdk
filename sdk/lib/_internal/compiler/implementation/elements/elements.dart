@@ -2040,8 +2040,8 @@ class Elements {
     return a.hashCode.compareTo(b.hashCode);
   }
 
-  static List<Element> sortedByPosition(Collection<Element> elements) {
-    return new List<Element>.from(elements)..sort(compareByPosition);
+  static List<Element> sortedByPosition(Iterable<Element> elements) {
+    return elements.toList()..sort(compareByPosition);
   }
 }
 

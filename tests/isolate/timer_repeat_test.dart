@@ -4,7 +4,7 @@
 
 library timer_repeat_test;
 
-import 'dart:isolate';
+import 'dart:async';
 import '../../pkg/unittest/lib/unittest.dart';
 
 const int TIMEOUT = 500;
@@ -13,7 +13,7 @@ const int ITERATIONS = 5;
 Timer timer;
 int startTime;
 int iteration;
-  
+
 void timeoutHandler(Timer timer) {
   int endTime = (new Date.now()).millisecondsSinceEpoch;
   iteration++;

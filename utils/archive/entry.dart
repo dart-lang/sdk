@@ -50,7 +50,7 @@ class ArchiveEntry {
 
   /** Create a new [ArchiveEntry] with default values for all of its fields. */
   static Future<ArchiveEntry> create() {
-    return call(NEW).transform((properties) {
+    return call(NEW).then((properties) {
       return new archive.ArchiveEntry.internal(properties, null);
     });
   }
@@ -215,7 +215,7 @@ class ArchiveEntry {
     stream.onClosed = () => completer.complete(buffer);
 
     return Futures.wait([call(CLONE, _id), completer.future])
-      .transform((list) => new CompleteArchiveEntry._(list[0], list[1]));
+      .then((list) => new CompleteArchiveEntry._(list[0], list[1]));
   }
 
   /**
@@ -277,7 +277,7 @@ class ArchiveEntry {
       // Asynchronously complete to give the InputStream callbacks a chance to
       // fire.
       return async();
-    }).transform((_) => inputCompleter.complete(null));
+    }).then((_) => inputCompleter.complete(null));
 
     future.handleException((e) {
       print(e);

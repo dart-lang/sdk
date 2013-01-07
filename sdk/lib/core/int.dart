@@ -70,12 +70,37 @@ abstract class int extends num {
   String toString();
 
   /**
+   * Converts [this] to a string representation in the given [radix].
+   *
+   * In the string representation, lower-case letters are used for digits above
+   * '9'.
+   *
+   * The [radix] argument must be an integer in the range 2 to 36.
+   */
+  String toRadixString(int radix);
+
+  /**
    * Parse [source] as an integer literal and return its value.
    *
-   * Accepts "0x" prefix for hexadecimal numbers, otherwise defaults
-   * to base-10.
+   * The [radix] must be in the range 2..36. The digits used are
+   * first the decimal digits 0..9, and then the letters 'a'..'z'.
+   * Accepts capital letters as well.
    *
-   * Throws a [FormatException] if [source] is not a valid integer literal.
+   * If no [radix] is given then it defaults to 16 if the string starts
+   * with "0x", "-0x" or "+0x" and 10 otherwise.
+   *
+   * The [source] must be a non-empty sequence of base-[radix] digits,
+   * optionally prefixed with a minus or plus sign ('-' or '+').
+   *
+   * It must always be the case for an int [:n:] and radix [:r:] that
+   * [:n == parseRadix(n.toRadixString(r), r):].
+   *
+   * If the [source] is not a valid integer literal, optionally prefixed by a
+   * sign, the [onError] is called with the [source] as argument, and its return
+   * value is used instead. If no [onError] is provided, a [FormatException]
+   * is thrown.
    */
-  external static int parse(String source);
+  external static int parse(String source,
+                            { int radix,
+                              int onError(String source) });
 }

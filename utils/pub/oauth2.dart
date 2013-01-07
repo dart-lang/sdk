@@ -108,7 +108,7 @@ Future<Client> _getClient(SystemCache cache) {
     return new Future.immediate(new Client(
         _identifier, _secret, credentials, httpClient: curlClient));
   }).chain((client) {
-    return _saveCredentials(cache, client.credentials).transform((_) => client);
+    return _saveCredentials(cache, client.credentials).then((_) => client);
   });
 }
 
@@ -130,7 +130,7 @@ Future<Credentials> _loadCredentials(SystemCache cache) {
       return new Future.immediate(null);
     }
 
-    return readTextFile(_credentialsFile(cache)).transform((credentialsJson) {
+    return readTextFile(_credentialsFile(cache)).then((credentialsJson) {
       var credentials = new Credentials.fromJson(credentialsJson);
       if (credentials.isExpired && !credentials.canRefresh) {
         log.error("Pub's authorization to upload packages has expired and "
@@ -194,7 +194,7 @@ Future<Client> _authorize() {
       response.headers.set('location', 'http://pub.dartlang.org/authorized');
       response.outputStream.close();
       return grant.handleAuthorizationResponse(queryToMap(queryString));
-    }).transform((client) {
+    }).then((client) {
       server.close();
       return client;
     }), completer);
@@ -210,7 +210,7 @@ Future<Client> _authorize() {
       'Then click "Allow access".\n\n'
       'Waiting for your authorization...');
 
-  return completer.future.transform((client) {
+  return completer.future.then((client) {
     log.message('Successfully authorized.\n');
     return client;
   });

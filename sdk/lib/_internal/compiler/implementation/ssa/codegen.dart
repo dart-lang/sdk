@@ -127,7 +127,11 @@ class OrderedSet<T> {
 
   void forEach(f) => map.keys.forEach(f);
 
-  T get first => map.keys.iterator().next();
+  T get first {
+    var iterator = map.keys.iterator;
+    if (!iterator.moveNext()) throw new StateError("No elements");
+    return iterator.current;
+  }
 
   get length => map.length;
 }
@@ -1143,7 +1147,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * Sequentialize a list of conceptually parallel copies. Parallel
    * copies may contain cycles, that this method breaks.
    */
-  void sequentializeCopies(List<Copy> copies,
+  void sequentializeCopies(Iterable<Copy> copies,
                            String tempName,
                            void doAssignment(String target, String source)) {
     // Map to keep track of the current location (ie the variable that
@@ -1226,7 +1230,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (handler == null) return;
 
     // Map the instructions to strings.
-    List<Copy> copies = handler.copies.map((Copy copy) {
+    Iterable<Copy> copies = handler.copies.mappedBy((Copy copy) {
       return new Copy(variableNames.getName(copy.source),
                       variableNames.getName(copy.destination));
     });

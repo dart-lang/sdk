@@ -21,12 +21,12 @@ void main() {
     request.headers[HttpHeaders.CONTENT_TYPE] =
       'application/json; charset=utf-8';
 
-    var future = client.send(request).chain((response) {
+    var future = client.send(request).then((response) {
       expect(response.request, equals(request));
       expect(response.statusCode, equals(200));
       return consumeInputStream(response.stream);
-    }).transform((bytes) => new String.fromCharCodes(bytes));
-    future.onComplete((_) => client.close());
+    }).then((bytes) => new String.fromCharCodes(bytes));
+    future.catchError((_) {}).then((_) => client.close());
 
     expect(future, completion(parse(equals({
       'method': 'POST',

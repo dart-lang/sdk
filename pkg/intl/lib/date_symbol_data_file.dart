@@ -9,6 +9,7 @@
 
 library date_symbol_data_json;
 
+import 'dart:async';
 import "date_symbols.dart";
 import "src/lazy_locale_data.dart";
 import 'src/date_format_internal.dart';

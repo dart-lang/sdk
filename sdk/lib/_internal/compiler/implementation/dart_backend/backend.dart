@@ -137,7 +137,7 @@ class DartBackend extends Backend {
     Set<DartType> processedTypes = new Set<DartType>();
     List<DartType> workQueue = new List<DartType>();
     workQueue.addAll(
-        classMembers.keys.map((classElement) => classElement.thisType));
+        classMembers.keys.mappedBy((classElement) => classElement.thisType));
     workQueue.addAll(compiler.resolverWorld.isChecks);
     Element typeErrorElement =
         compiler.coreLibrary.find(new SourceString('TypeError'));
@@ -210,7 +210,7 @@ class DartBackend extends Backend {
   }
   void codegen(WorkItem work) { }
   void processNativeClasses(Enqueuer world,
-                            Collection<LibraryElement> libraries) { }
+                            Iterable<LibraryElement> libraries) { }
 
   bool isUserLibrary(LibraryElement lib) {
     final INTERNAL_HELPERS = [
@@ -451,8 +451,8 @@ class DartBackend extends Backend {
   }
 
   void logResultBundleSizeInfo(Set<Element> topLevelElements) {
-    Collection<LibraryElement> referencedLibraries =
-        compiler.libraries.values.filter(isUserLibrary);
+    Iterable<LibraryElement> referencedLibraries =
+        compiler.libraries.values.where(isUserLibrary);
     // Sum total size of scripts in each referenced library.
     int nonPlatformSize = 0;
     for (LibraryElement lib in referencedLibraries) {
@@ -561,5 +561,5 @@ compareElements(e0, e1) {
   return compareBy((e) => e.position().charOffset)(e0, e1);
 }
 
-List<Element> sortElements(Collection<Element> elements) =>
+List<Element> sortElements(Iterable<Element> elements) =>
     sorted(elements, compareElements);

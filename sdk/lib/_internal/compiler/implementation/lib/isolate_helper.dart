@@ -4,6 +4,7 @@
 
 library _isolate_helper;
 
+import 'dart:async';
 import 'dart:isolate';
 
 /**

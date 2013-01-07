@@ -99,7 +99,8 @@ var hmac_md5_macs =
 void testStandardVectors(inputs, keys, string_macs, macs) {
   for (var i = 0; i < inputs.length; i++) {
     var h = new HMAC(new MD5(), keys[i]);
-    var d = h.update(inputs[i]).digest();
+    h.add(inputs[i]);
+    var d = h.close();
     Expect.isTrue(CryptoUtils.bytesToHex(d).startsWith(string_macs[i]), '$i');
     Expect.isTrue(h.verify(macs[i]));
     Expect.isFalse(h.verify(macs[(i+1)%macs.length]));

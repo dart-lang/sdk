@@ -13,7 +13,7 @@ class StringsTest {
   }
   static testCreation() {
     String s = "Hello";
-    List<int> l = new List(s.length);
+    List<int> l = new List.fixedLength(s.length);
     for (int i = 0; i < l.length; i++) {
       l[i] = s.charCodeAt(i);
     }

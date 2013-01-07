@@ -229,6 +229,27 @@ class Uri {
     return sb.toString();
   }
 
+  bool operator==(other) {
+    if (other is! Uri) return false;
+    Uri uri = other;
+    return scheme == uri.scheme &&
+        userInfo == uri.userInfo &&
+        domain == uri.domain &&
+        port == uri.port &&
+        path == uri.path &&
+        query == uri.query &&
+        fragment == uri.fragment;
+  }
+
+  int get hashCode {
+    int combine(part, current) {
+      // The sum is truncated to 30 bits to make sure it fits into a Smi.
+      return (current * 31 + part.hashCode) & 0x3FFFFFFF;
+    }
+    return combine(scheme, combine(userInfo, combine(domain, combine(port,
+        combine(path, combine(query, combine(fragment, 1)))))));
+  }
+
   static void _addIfNonEmpty(StringBuffer sb, String test,
                              String first, String second) {
     if ("" != test) {

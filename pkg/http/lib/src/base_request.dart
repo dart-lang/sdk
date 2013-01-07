@@ -4,6 +4,7 @@
 
 library base_request;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:uri';
@@ -105,7 +106,7 @@ abstract class BaseRequest {
   /// requests.
   Future<StreamedResponse> send() {
     var client = new Client();
-    return client.send(this).transform((response) {
+    return client.send(this).then((response) {
       // TODO(nweiz): This makes me sick to my stomach, but it's currently the
       // best way to listen for the response stream being closed. Kill it with
       // fire once issue 4202 is fixed.
@@ -117,7 +118,7 @@ abstract class BaseRequest {
       });
 
       return response;
-    });
+    }).catchError((_) { client.close(); });
   }
 
   /// Throws an error if this request has been finalized.

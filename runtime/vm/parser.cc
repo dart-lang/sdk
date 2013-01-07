@@ -5591,17 +5591,18 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
 
   // Generate initialization of iterator variable.
   ArgumentListNode* no_args = new ArgumentListNode(collection_pos);
-  AstNode* get_iterator = new InstanceCallNode(
-      collection_pos, collection_expr, Symbols::GetIterator(), no_args);
+  AstNode* get_iterator = new InstanceGetterNode(
+      collection_pos, collection_expr, Symbols::GetIterator());
   AstNode* iterator_init =
       new StoreLocalNode(collection_pos, iterator_var, get_iterator);
   current_block_->statements->Add(iterator_init);
 
   // Generate while loop condition.
-  AstNode* iterator_has_next = new InstanceGetterNode(
+  AstNode* iterator_moveNext = new InstanceCallNode(
       collection_pos,
       new LoadLocalNode(collection_pos, iterator_var),
-      Symbols::HasNext());
+      Symbols::MoveNext(),
+      no_args);
 
   // Parse the for loop body. Ideally, we would use ParseNestedStatement()
   // here, but that does not work well because we have to insert an implicit
@@ -5610,11 +5611,10 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   OpenLoopBlock();
   current_block_->scope->AddLabel(label);
 
-  AstNode* iterator_next = new InstanceCallNode(
+  AstNode* iterator_current = new InstanceGetterNode(
       collection_pos,
       new LoadLocalNode(collection_pos, iterator_var),
-      Symbols::Next(),
-      no_args);
+      Symbols::Current());
 
   // Generate assignment of next iterator value to loop variable.
   AstNode* loop_var_assignment = NULL;
@@ -5622,13 +5622,13 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     // The for loop declares a new variable. Add it to the loop body scope.
     current_block_->scope->AddVariable(loop_var);
     loop_var_assignment =
-        new StoreLocalNode(loop_var_pos, loop_var, iterator_next);
+        new StoreLocalNode(loop_var_pos, loop_var, iterator_current);
   } else {
     AstNode* loop_var_primary =
         ResolveIdent(loop_var_pos, *loop_var_name, false);
     ASSERT(!loop_var_primary->IsPrimaryNode());
     loop_var_assignment =
-        CreateAssignmentNode(loop_var_primary, iterator_next);
+        CreateAssignmentNode(loop_var_primary, iterator_current);
     if (loop_var_assignment == NULL) {
       ErrorMsg(loop_var_pos, "variable or field '%s' is not assignable",
                loop_var_name->ToCString());
@@ -5651,7 +5651,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   SequenceNode* for_loop_statement = CloseBlock();
 
   AstNode* while_statement =
-      new WhileNode(forin_pos, label, iterator_has_next, for_loop_statement);
+      new WhileNode(forin_pos, label, iterator_moveNext, for_loop_statement);
   current_block_->statements->Add(while_statement);
 
   return CloseBlock();  // Implicit block around while loop.

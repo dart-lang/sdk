@@ -247,20 +247,6 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
 }
 
 
-static intptr_t GetOffsetForField(const char* class_name_p,
-                                  const char* field_name_p) {
-  const String& class_name = String::Handle(Symbols::New(class_name_p));
-  const String& field_name = String::Handle(Symbols::New(field_name_p));
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Class& cls =
-      Class::Handle(core_lib.LookupClassAllowPrivate(class_name));
-  ASSERT(!cls.IsNull());
-  const Field& field = Field::ZoneHandle(cls.LookupInstanceField(field_name));
-  ASSERT(!field.IsNull());
-  return field.Offset();
-}
-
-
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
 bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
@@ -1616,85 +1602,6 @@ bool Intrinsifier::Object_equal(Assembler* assembler) {
   __ LoadObject(EAX, Bool::True());
   __ ret();
   return true;
-}
-
-
-static const char* kFixedSizeArrayIteratorClassName = "_FixedSizeArrayIterator";
-
-
-// Class 'FixedSizeArrayIterator':
-//   T next() {
-//     return _array[_pos++];
-//   }
-// Intrinsify: return _array[_pos++];
-// TODO(srdjan): Throw a 'StateError' exception if the iterator
-// has no more elements.
-bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
-  Label fall_through;
-  intptr_t array_offset =
-      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_array");
-  intptr_t pos_offset =
-      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_pos");
-  ASSERT(array_offset >= 0 && pos_offset >= 0);
-  // Receiver is not NULL.
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Receiver.
-  __ movl(EBX, FieldAddress(EAX, pos_offset));  // Field _pos.
-  // '_pos' cannot be greater than array length and therefore is always Smi.
-#if defined(DEBUG)
-  Label pos_ok;
-  __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(ZERO, &pos_ok, Assembler::kNearJump);
-  __ Stop("pos must be Smi");
-  __ Bind(&pos_ok);
-#endif
-  // Check that we are not trying to call 'next' when 'hasNext' is false.
-  __ movl(EAX, FieldAddress(EAX, array_offset));  // Field _array.
-  __ cmpl(EBX, FieldAddress(EAX, Array::length_offset()));  // Range check.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-
-  // EBX is Smi, i.e, times 2.
-  ASSERT(kSmiTagShift == 1);
-  __ movl(EDI, FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)));  // Result.
-  const Immediate value = Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
-  __ addl(EBX, value);  // _pos++.
-  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Receiver.
-  __ StoreIntoObjectNoBarrier(EAX,
-                              FieldAddress(EAX, pos_offset),
-                              EBX);  // Store _pos.
-  __ movl(EAX, EDI);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-// Class 'FixedSizeArrayIterator':
-//   bool get hasNext {
-//     return _length > _pos;
-//   }
-bool Intrinsifier::FixedSizeArrayIterator_getHasNext(Assembler* assembler) {
-  Label fall_through, is_true;
-  intptr_t length_offset =
-      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_length");
-  intptr_t pos_offset =
-      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_pos");
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));     // Receiver.
-  __ movl(EBX, FieldAddress(EAX, length_offset));  // Field _length.
-  __ movl(EAX, FieldAddress(EAX, pos_offset));    // Field _pos.
-  __ movl(EDI, EAX);
-  __ orl(EDI, EBX);
-  __ testl(EDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi _length.
-  __ cmpl(EBX, EAX);     // _length > _pos.
-  __ j(GREATER, &is_true, Assembler::kNearJump);
-  __ LoadObject(EAX, Bool::False());
-  __ ret();
-  __ Bind(&is_true);
-  __ LoadObject(EAX, Bool::True());
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
 }
 
 

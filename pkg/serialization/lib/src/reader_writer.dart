@@ -226,7 +226,7 @@ class Writer {
    * our custom JSON format.
    */
   String toStringFormat() {
-    return JSON.stringify(toMaps());
+    return json.stringify(toMaps());
   }
 
   /**
@@ -260,7 +260,7 @@ class Writer {
    * stored in the output under "roots" in the default format.
    */
   _rootReferences(roots) =>
-    roots.map(_referenceFor);
+    roots.mappedBy(_referenceFor).toList();
 
   /**
    * Given an object, return a reference for it if one exists. If there's
@@ -369,7 +369,7 @@ class Reader {
   // When we set the data, initialize the object storage to a matching size.
   void set data(List<List> newData) {
     _data = newData;
-    objects = _data.map((x) => new List(x.length));
+    objects = _data.mappedBy((x) => new List(x.length)).toList();
   }
 
   /**
@@ -379,7 +379,7 @@ class Reader {
    */
   read(String input, [Map externals = const {}]) {
     namedObjects = externals;
-    var topLevel = JSON.parse(input);
+    var topLevel = json.parse(input);
     var ruleString = topLevel["rules"];
     readRules(ruleString, externals);
     data = topLevel["data"];
@@ -415,7 +415,7 @@ class Reader {
     var ruleString = topLevel[0];
     readRules(ruleString, externals);
     var flatData = topLevel[1];
-    var stream = flatData.iterator();
+    var stream = flatData.iterator;
     var tempData = new List(rules.length);
      for (var eachRule in rules) {
        tempData[eachRule.number] = eachRule.pullStateFrom(stream);
@@ -425,10 +425,13 @@ class Reader {
       inflateForRule(eachRule);
     }
     var rootsAsInts = topLevel[2];
-    var rootStream = rootsAsInts.iterator();
+    var rootStream = rootsAsInts.iterator;
     var roots = new List();
-    while (rootStream.hasNext) {
-      roots.add(new Reference(this, rootStream.next(), rootStream.next()));
+    while (rootStream.moveNext()) {
+      var first = rootStream.current;
+      rootStream.moveNext();
+      var second = rootStream.current;
+      roots.add(new Reference(this, first, second));
     }
     var x = inflateReference(roots[0]);
     return inflateReference(roots.first);
@@ -646,5 +649,5 @@ class DesignatedRuleForObject {
 
   DesignatedRuleForObject(this.target, this.rulePredicate);
 
-  possibleRules(List rules) => rules.filter(rulePredicate);
+  possibleRules(List rules) => rules.where(rulePredicate).toList();
 }

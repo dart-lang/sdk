@@ -35,7 +35,7 @@ class StringMatch implements Match {
 
 List<Match> allMatchesInStringUnchecked(String needle, String haystack) {
   // Copied from StringBase.allMatches in
-  // ../../../runtime/lib/string.dart
+  // /runtime/lib/string_base.dart
   List<Match> result = new List<Match>();
   int length = haystack.length;
   int patternLength = needle.length;
@@ -65,7 +65,7 @@ stringContainsUnchecked(receiver, other, startIndex) {
     return other.hasMatch(receiver.substring(startIndex));
   } else {
     var substr = receiver.substring(startIndex);
-    return other.allMatches(substr).iterator().hasNext;
+    return other.allMatches(substr).iterator.moveNext();
   }
 }
 
@@ -80,6 +80,7 @@ stringReplaceJS(receiver, replacer, to) {
 final RegExp quoteRegExp = new JSSyntaxRegExp(r'[-[\]{}()*+?.,\\^$|#\s]');
 
 stringReplaceAllUnchecked(receiver, from, to) {
+  checkString(to);
   if (from is String) {
     if (from == "") {
       if (receiver == "") {
@@ -110,6 +111,80 @@ stringReplaceAllUnchecked(receiver, from, to) {
     throw "String.replaceAll(Pattern) UNIMPLEMENTED";
   }
 }
+
+String _matchString(Match match) => match[0];
+String _stringIdentity(String string) => string;
+
+stringReplaceAllFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
+  if (pattern is! Pattern) {
+    throw new ArgumentError("${pattern} is not a Pattern");
+  }
+  if (onMatch == null) onMatch = _matchString;
+  if (onNonMatch == null) onNonMatch = _stringIdentity;
+  if (pattern is String) {
+    return stringReplaceAllStringFuncUnchecked(receiver, pattern,
+                                               onMatch, onNonMatch);
+  }
+  StringBuffer buffer = new StringBuffer();
+  int startIndex = 0;
+  for (Match match in pattern.allMatches(receiver)) {
+    buffer.add(onNonMatch(receiver.substring(startIndex, match.start)));
+    buffer.add(onMatch(match));
+    startIndex = match.end;
+  }
+  buffer.add(onNonMatch(receiver.substring(startIndex)));
+  return buffer.toString();
+}
+
+stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch) {
+  // Pattern is the empty string.
+  StringBuffer buffer = new StringBuffer();
+  int length = receiver.length;
+  int i = 0;
+  buffer.add(onNonMatch(""));
+  while (i < length) {
+    buffer.add(onMatch(new StringMatch(i, receiver, "")));
+    // Special case to avoid splitting a surrogate pair.
+    int code = receiver.charCodeAt(i);
+    if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
+      // Leading surrogate;
+      code = receiver.charCodeAt(i + 1);
+      if ((code & ~0x3FF) == 0xDC00) {
+        // Matching trailing surrogate.
+        buffer.add(onNonMatch(receiver.substring(i, i + 2)));
+        i += 2;
+        continue;
+      }
+    }
+    buffer.add(onNonMatch(receiver[i]));
+    i++;
+  }
+  buffer.add(onMatch(new StringMatch(i, receiver, "")));
+  buffer.add(onNonMatch(""));
+  return buffer.toString();
+}
+
+stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
+  int patternLength = pattern.length;
+  if (patternLength == 0) {
+    return stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch);
+  }
+  int length = receiver.length;
+  StringBuffer buffer = new StringBuffer();
+  int startIndex = 0;
+  while (startIndex < length) {
+    int position = receiver.indexOf(pattern, startIndex);
+    if (position == -1) {
+      break;
+    }
+    buffer.add(onNonMatch(receiver.substring(startIndex, position)));
+    buffer.add(onMatch(new StringMatch(position, receiver, pattern)));
+    startIndex = position + patternLength;
+  }
+  buffer.add(onNonMatch(receiver.substring(startIndex)));
+  return buffer.toString();
+}
+
 
 stringReplaceFirstUnchecked(receiver, from, to) {
   if (from is String) {

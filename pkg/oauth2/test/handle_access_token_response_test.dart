@@ -5,7 +5,7 @@
 library handle_access_token_response_test;
 
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as JSON;
 import 'dart:uri';
 
 import '../../unittest/lib/unittest.dart';

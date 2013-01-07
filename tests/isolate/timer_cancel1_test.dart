@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library timer_cancel1_test;
-import 'dart:isolate';
+import 'dart:async';
 import '../../pkg/unittest/lib/unittest.dart';
 
 main() {

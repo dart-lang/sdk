@@ -26,12 +26,12 @@ abstract class _HashBase implements Hash {
             int this._digestSizeInWords,
             bool this._bigEndianWords)
       : _pendingData = [] {
-    _currentChunk = new List(_chunkSizeInWords);
-    _h = new List(_digestSizeInWords);
+    _currentChunk = new List.fixedLength(_chunkSizeInWords);
+    _h = new List.fixedLength(_digestSizeInWords);
   }
 
   // Update the hasher with more data.
-  _HashBase update(List<int> data) {
+  add(List<int> data) {
     if (_digestCalled) {
       throw new HashException(
           'Hash update method called after digest was retrieved');
@@ -39,11 +39,10 @@ abstract class _HashBase implements Hash {
     _lengthInBytes += data.length;
     _pendingData.addAll(data);
     _iterate();
-    return this;
   }
 
   // Finish the hash computation and return the digest string.
-  List<int> digest() {
+  List<int> close() {
     if (_digestCalled) {
       return _resultAsBytes();
     }
@@ -98,7 +97,7 @@ abstract class _HashBase implements Hash {
 
   // Convert a 32-bit word to four bytes.
   _wordToBytes(int word) {
-    List<int> bytes = new List(_BYTES_PER_WORD);
+    List<int> bytes = new List.fixedLength(_BYTES_PER_WORD);
     bytes[0] = (word >> (_bigEndianWords ? 24 : 0)) & _MASK_8;
     bytes[1] = (word >> (_bigEndianWords ? 16 : 8)) & _MASK_8;
     bytes[2] = (word >> (_bigEndianWords ? 8 : 16)) & _MASK_8;

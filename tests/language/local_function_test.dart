@@ -16,8 +16,8 @@ class LocalFunctionTest {
   }
   static int h(int n) {
     k(int n) {
-      var a = new List(n);
-      var b = new List(n);
+      var a = new List.fixedLength(n);
+      var b = new List.fixedLength(n);
       int i;
       for (i = 0; i < n; i++) {
         var j = i;
@@ -36,8 +36,8 @@ class LocalFunctionTest {
   }
   static int h2(int n) {
     k(int n) {
-      var a = new List(n);
-      var b = new List(n);
+      var a = new List.fixedLength(n);
+      var b = new List.fixedLength(n);
       for (int i = 0; i < n; i++) {
         var j = i;
         a[i] = () => i;  // Captured i varies from 0 to n-1.
@@ -94,7 +94,7 @@ class LocalFunctionTest {
     f();
   }
   static testNesting(int n) {
-    var a = new List(n*n);
+    var a = new List.fixedLength(n*n);
     f0() {
       for (int i = 0; i < n; i++) {
         int vi = i;

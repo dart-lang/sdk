@@ -15,10 +15,18 @@ class _ChildrenElementList implements List {
     : _childElements = element.$dom_children,
       _element = element;
 
-  List<Element> _toList() {
-    final output = new List(_childElements.length);
+  List<Element> toList() {
+    final output = new List<Element>.fixedLength(_childElements.length);
     for (int i = 0, len = _childElements.length; i < len; i++) {
       output[i] = _childElements[i];
+    }
+    return output;
+  }
+
+  Set<Element> toSet() {
+    final output = new Set<Element>(_childElements.length);
+    for (int i = 0, len = _childElements.length; i < len; i++) {
+      output.add(_childElements[i]);
     }
     return output;
   }
@@ -31,44 +39,69 @@ class _ChildrenElementList implements List {
     }
   }
 
-  List<Element> filter(bool f(Element element)) {
-    final output = [];
-    forEach((Element element) {
-      if (f(element)) {
-        output.add(element);
-      }
-    });
-    return new _FrozenElementList._wrap(output);
-  }
-
   bool every(bool f(Element element)) {
     for (Element element in this) {
       if (!f(element)) {
         return false;
       }
-    };
+    }
     return true;
   }
 
-  bool some(bool f(Element element)) {
+  bool any(bool f(Element element)) {
     for (Element element in this) {
       if (f(element)) {
         return true;
       }
-    };
+    }
     return false;
   }
 
-  Collection map(f(Element element)) {
-    final out = [];
-    for (Element el in this) {
-      out.add(f(el));
-    }
-    return out;
+  String join([String separator]) {
+    return Collections.joinList(this, separator);
   }
+
+  List mappedBy(f(Element element)) {
+    return new MappedList<Element, dynamic>(this, f);
+  }
+
+  Iterable<Element> where(bool f(Element element))
+      => new WhereIterable<Element>(this, f);
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
+  }
+
+  List<Element> take(int n) {
+    return new ListView<Element>(this, 0, n);
+  }
+
+  Iterable<Element> takeWhile(bool test(Element value)) {
+    return new TakeWhileIterable<Element>(this, test);
+  }
+
+  List<Element> skip(int n) {
+    return new ListView<Element>(this, n, null);
+  }
+
+  Iterable<Element> skipWhile(bool test(Element value)) {
+    return new SkipWhileIterable<Element>(this, test);
+  }
+
+  Element firstMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Element lastMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Element singleMatching(bool test(Element value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Element elementAt(int index) {
+    return this[index];
   }
 
   int get length {
@@ -95,10 +128,10 @@ class _ChildrenElementList implements List {
 
   Element addLast(Element value) => add(value);
 
-  Iterator<Element> iterator() => _toList().iterator();
+  Iterator<Element> get iterator => toList().iterator;
 
-  void addAll(Collection<Element> collection) {
-    for (Element element in collection) {
+  void addAll(Iterable<Element> iterable) {
+    for (Element element in iterable) {
       _element.$dom_appendChild(element);
     }
   }
@@ -159,12 +192,29 @@ class _ChildrenElementList implements List {
   }
 
   Element get first {
-    return _element.$dom_firstElementChild;
+    Element result = _element.$dom_firstElementChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
   }
 
 
   Element get last {
-    return _element.$dom_lastElementChild;
+    Element result = _element.$dom_lastElementChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+
+  Element get single {
+    if (length > 1) throw new StateError("More than one element");
+    return first;
+  }
+
+  Element min([int compare(Element a, Element b)]) {
+    return _Collections.minInList(this, compare);
+  }
+
+  Element max([int compare(Element a, Element b)]) {
+    return _Collections.maxInList(this, compare);
   }
 }
 
@@ -190,21 +240,16 @@ class _FrozenElementList implements List {
     }
   }
 
-  Collection map(f(Element element)) {
-    final out = [];
-    for (Element el in this) {
-      out.add(f(el));
-    }
-    return out;
+  String join([String separator]) {
+    return Collections.joinList(this, separator);
   }
 
-  List<Element> filter(bool f(Element element)) {
-    final out = [];
-    for (Element el in this) {
-      if (f(el)) out.add(el);
-    }
-    return out;
+  List mappedBy(f(Element element)) {
+    return new MappedList<Element, dynamic>(this, f);
   }
+
+  Iterable<Element> where(bool f(Element element))
+      => new WhereIterable<Element>(this, f);
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -215,13 +260,45 @@ class _FrozenElementList implements List {
     return true;
   }
 
-  bool some(bool f(Element element)) {
+  bool any(bool f(Element element)) {
     for(Element element in this) {
       if (f(element)) {
         return true;
       }
     };
     return false;
+  }
+
+  List<Element> take(int n) {
+    return new ListView<Element>(this, 0, n);
+  }
+
+  Iterable<Element> takeWhile(bool test(T value)) {
+    return new TakeWhileIterable<Element>(this, test);
+  }
+
+  List<Element> skip(int n) {
+    return new ListView<Element>(this, n, null);
+  }
+
+  Iterable<Element> skipWhile(bool test(T value)) {
+    return new SkipWhileIterable<Element>(this, test);
+  }
+
+  Element firstMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Element lastMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Element singleMatching(bool test(Element value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Element elementAt(int index) {
+    return this[index];
   }
 
   bool get isEmpty => _nodeList.isEmpty;
@@ -246,9 +323,9 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  Iterator<Element> iterator() => new _FrozenElementListIterator(this);
+  Iterator<Element> get iterator => new _FrozenElementListIterator(this);
 
-  void addAll(Collection<Element> collection) {
+  void addAll(Iterable<Element> iterable) {
     throw new UnsupportedError('');
   }
 
@@ -297,6 +374,16 @@ class _FrozenElementList implements List {
   Element get first => _nodeList.first;
 
   Element get last => _nodeList.last;
+
+  Element get single => _nodeList.single;
+
+  Element min([int compare(Element a, Element b)]) {
+    return _Collections.minInList(this, compare);
+  }
+
+  Element max([int compare(Element a, Element b)]) {
+    return _Collections.maxInList(this, compare);
+  }
 }
 
 class _FrozenElementListIterator implements Iterator<Element> {
@@ -306,21 +393,28 @@ class _FrozenElementListIterator implements Iterator<Element> {
   _FrozenElementListIterator(this._list);
 
   /**
-   * Gets the next element in the iteration. Throws a
-   * [StateError("No more elements")] if no element is left.
+   * Moves to the next element. Returns true if the iterator is positioned
+   * at an element. Returns false if it is positioned after the last element.
    */
-  Element next() {
-    if (!hasNext) {
-      throw new StateError("No more elements");
+  bool moveNext() {
+    int nextIndex = _index + 1;
+    if (nextIndex < _list.length) {
+      _current = _list[nextIndex];
+      _index = nextIndex;
+      return true;
     }
-
-    return _list[_index++];
+    _index = _list.length;
+    _current = null;
+    return false;
   }
 
   /**
-   * Returns whether the [Iterator] has elements left.
+   * Returns the element the [Iterator] is positioned at.
+   *
+   * Return [:null:] if the iterator is positioned before the first, or
+   * after the last element.
    */
-  bool get hasNext => _index < _list.length;
+  E get current => _current;
 }
 
 class _ElementCssClassSet extends CssClassSet {
@@ -344,7 +438,7 @@ class _ElementCssClassSet extends CssClassSet {
 
   void writeClasses(Set<String> s) {
     List list = new List.from(s);
-    _element.$dom_className = Strings.join(list, ' ');
+    _element.$dom_className = s.join(' ');
   }
 }
 

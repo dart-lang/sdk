@@ -23,6 +23,7 @@
 # ......dart_debugger_api.h
 # ....lib/
 # ......_internal/
+# ......async/
 # ......collection/
 # ......core/
 # ......crypto/
@@ -197,8 +198,8 @@ def Main(argv):
   #
 
   os.makedirs(join(LIB, 'html'))
-  for library in ['_internal', 'collection', 'core', 'crypto', 'io', 'isolate',
-                  join('html', 'dart2js'), join('html', 'dartium'),
+  for library in ['_internal', 'async', 'collection', 'core', 'crypto', 'io',
+                  'isolate', join('html', 'dart2js'), join('html', 'dartium'),
                   join('html', 'html_common'), join('indexed_db', 'dart2js'),
                   join('indexed_db', 'dartium'), 'json', 'math', 'mirrors',
                   'scalarlist', join('svg', 'dart2js'), join('svg', 'dartium'),

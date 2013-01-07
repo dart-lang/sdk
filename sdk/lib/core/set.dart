@@ -35,14 +35,14 @@ abstract class Set<E> extends Collection<E> {
   bool remove(E value);
 
   /**
-   * Adds all the elements of the given collection to the set.
+   * Adds all the elements of the given [iterable] to the set.
    */
-  void addAll(Collection<E> collection);
+  void addAll(Iterable<E> iterable);
 
   /**
    * Removes all the elements of the given collection from the set.
    */
-  void removeAll(Collection<E> collection);
+  void removeAll(Iterable<E> iterable);
 
   /**
    * Returns true if [collection] contains all the elements of this
@@ -79,7 +79,7 @@ abstract class HashSet<E> extends Set<E> {
 }
 
 
-class _HashSetImpl<E> implements HashSet<E> {
+class _HashSetImpl<E> extends Iterable<E> implements HashSet<E> {
 
   _HashSetImpl() {
     _backingMap = new _HashMapImpl<E, E>();
@@ -111,10 +111,10 @@ class _HashSetImpl<E> implements HashSet<E> {
     return true;
   }
 
-  void addAll(Collection<E> collection) {
-    collection.forEach((E value) {
-      add(value);
-    });
+  void addAll(Iterable<E> iterable) {
+    for (E element in iterable) {
+      add(element);
+    }
   }
 
   Set<E> intersection(Collection<E> collection) {
@@ -129,10 +129,10 @@ class _HashSetImpl<E> implements HashSet<E> {
     return new Set<E>.from(other).containsAll(this);
   }
 
-  void removeAll(Collection<E> collection) {
-    collection.forEach((E value) {
+  void removeAll(Iterable<E> iterable) {
+    for (E value in iterable) {
       remove(value);
-    });
+    }
   }
 
   bool containsAll(Collection<E> collection) {
@@ -147,37 +147,6 @@ class _HashSetImpl<E> implements HashSet<E> {
     });
   }
 
-  Set map(f(E element)) {
-    Set result = new Set();
-    _backingMap.forEach((E key, E value) {
-      result.add(f(key));
-    });
-    return result;
-  }
-
-  dynamic reduce(dynamic initialValue,
-                 dynamic combine(dynamic previousValue, E element)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  Set<E> filter(bool f(E element)) {
-    Set<E> result = new Set<E>();
-    _backingMap.forEach((E key, E value) {
-      if (f(key)) result.add(key);
-    });
-    return result;
-  }
-
-  bool every(bool f(E element)) {
-    Collection<E> keys = _backingMap.keys;
-    return keys.every(f);
-  }
-
-  bool some(bool f(E element)) {
-    Collection<E> keys = _backingMap.keys;
-    return keys.some(f);
-  }
-
   bool get isEmpty {
     return _backingMap.isEmpty;
   }
@@ -186,9 +155,7 @@ class _HashSetImpl<E> implements HashSet<E> {
     return _backingMap.length;
   }
 
-  Iterator<E> iterator() {
-    return new _HashSetIterator<E>(this);
-  }
+  Iterator<E> get iterator => new _HashSetIterator<E>(this);
 
   String toString() {
     return Collections.collectionToString(this);
@@ -202,48 +169,27 @@ class _HashSetImpl<E> implements HashSet<E> {
 
 class _HashSetIterator<E> implements Iterator<E> {
 
-  // TODO(4504458): Replace set_ with set.
-  _HashSetIterator(_HashSetImpl<E> set_)
-    : _nextValidIndex = -1,
-      _entries = set_._backingMap._keys {
-    _advance();
-  }
+  _HashSetIterator(_HashSetImpl<E> set)
+    : _keysIterator = set._backingMap._keys.iterator;
 
-  bool get hasNext {
-    if (_nextValidIndex >= _entries.length) return false;
-    if (identical(_entries[_nextValidIndex], _HashMapImpl._DELETED_KEY)) {
-      // This happens in case the set was modified in the meantime.
-      // A modification on the set may make this iterator misbehave,
-      // but we should never return the sentinel.
-      _advance();
+  E get current {
+    var result = _keysIterator.current;
+    if (identical(result, _HashMapImpl._DELETED_KEY)) {
+      // TODO(floitsch): improve the error reporting.
+      throw new StateError("Concurrent modification.");
     }
-    return _nextValidIndex < _entries.length;
+    return result;
   }
 
-  E next() {
-    if (!hasNext) {
-      throw new StateError("No more elements");
-    }
-    E res = _entries[_nextValidIndex];
-    _advance();
-    return res;
-  }
-
-  void _advance() {
-    int length = _entries.length;
-    var entry;
-    final deletedKey = _HashMapImpl._DELETED_KEY;
+  bool moveNext() {
+    bool result;
     do {
-      if (++_nextValidIndex >= length) break;
-      entry = _entries[_nextValidIndex];
-    } while ((entry == null) || identical(entry, deletedKey));
+      result = _keysIterator.moveNext();
+    } while (result &&
+             (_keysIterator.current == null ||
+              identical(_keysIterator.current, _HashMapImpl._DELETED_KEY)));
+    return result;
   }
 
-  // The entries in the set. May contain null or the sentinel value.
-  List<E> _entries;
-
-  // The next valid index in [_entries] or the length of [entries_].
-  // If it is the length of [_entries], calling [hasNext] on the
-  // iterator will return false.
-  int _nextValidIndex;
+  Iterator _keysIterator;
 }

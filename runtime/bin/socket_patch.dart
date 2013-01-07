@@ -45,7 +45,7 @@ class _SocketBase extends NativeFieldWrapperClass1 {
   static const int _LAST_COMMAND = _SHUTDOWN_WRITE_COMMAND;
 
   _SocketBase () {
-    _handlerMap = new List(_LAST_EVENT + 1);
+    _handlerMap = new List.fixedLength(_LAST_EVENT + 1);
     _handlerMask = 0;
     _canActivateHandlers = true;
     _closed = true;
@@ -339,7 +339,7 @@ class _Socket extends _SocketBase implements Socket {
   factory _Socket(String host, int port) {
     Socket socket = new _Socket._internal();
     _ensureSocketService();
-    List request = new List(2);
+    List request = new List.fixedLength(2);
     request[0] = HOST_NAME_LOOKUP;
     request[1] = host;
     _socketService.call(request).then((response) {

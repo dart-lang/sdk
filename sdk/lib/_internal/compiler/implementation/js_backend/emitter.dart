@@ -484,10 +484,12 @@ $lazyInitializerLogic
 
     // The parameters that this stub takes.
     List<js.Parameter> parametersBuffer =
-        new List<js.Parameter>(selector.argumentCount + extraArgumentCount);
+        new List<js.Parameter>.fixedLength(
+            selector.argumentCount + extraArgumentCount);
     // The arguments that will be passed to the real method.
     List<js.Expression> argumentsBuffer =
-        new List<js.Expression>(parameters.parameterCount + extraArgumentCount);
+        new List<js.Expression>.fixedLength(
+            parameters.parameterCount + extraArgumentCount);
 
     int count = 0;
     if (isInterceptorClass) {
@@ -1107,8 +1109,8 @@ $lazyInitializerLogic
     }
   }
 
-  Collection<Element> getTypedefChecksOn(DartType type) {
-    return checkedTypedefs.filter((TypedefElement typedef) {
+  Iterable<Element> getTypedefChecksOn(DartType type) {
+    return checkedTypedefs.where((TypedefElement typedef) {
       FunctionType typedefType =
           typedef.computeType(compiler).unalias(compiler);
       return compiler.types.isSubtype(type, typedefType);
@@ -1282,12 +1284,12 @@ $lazyInitializerLogic
     bool isStaticFunction(Element element) =>
         !element.isInstanceMember() && !element.isField();
 
-    Collection<Element> elements =
-        compiler.codegenWorld.generatedCode.keys.filter(isStaticFunction);
+    Iterable<Element> elements =
+        compiler.codegenWorld.generatedCode.keys.where(isStaticFunction);
     Set<Element> pendingElementsWithBailouts =
-        new Set<Element>.from(
-            compiler.codegenWorld.generatedBailoutCode.keys.filter(
-                isStaticFunction));
+        compiler.codegenWorld.generatedBailoutCode.keys
+            .where(isStaticFunction)
+            .toSet();
 
     for (Element element in Elements.sortedByPosition(elements)) {
       js.Expression code = compiler.codegenWorld.generatedCode[element];
@@ -1576,7 +1578,7 @@ $lazyInitializerLogic
 
   void emitStaticNonFinalFieldInitializations(CodeBuffer buffer) {
     ConstantHandler handler = compiler.constantHandler;
-    List<VariableElement> staticNonFinalFields =
+    Iterable<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
     for (Element element in staticNonFinalFields) {
       compiler.withCurrentElement(element, () {
@@ -1732,8 +1734,8 @@ $lazyInitializerLogic
       }
 
       List<js.Expression> argNames =
-          selector.getOrderedNamedArguments().map((SourceString name) =>
-              js.string(name.slowToString()));
+          selector.getOrderedNamedArguments().mappedBy((SourceString name) =>
+              js.string(name.slowToString())).toList();
 
       String internalName = namer.invocationMirrorInternalName(selector);
 
@@ -1753,7 +1755,7 @@ $lazyInitializerLogic
                           js.string(internalName),
                           new js.LiteralNumber('$type'),
                           new js.ArrayInitializer.from(
-                              parameters.map((param) => js.use(param.name))),
+                              parameters.mappedBy((param) => js.use(param.name)).toList()),
                           new js.ArrayInitializer.from(argNames)])]);
       js.Expression function =
           new js.Fun(parameters,
@@ -2087,8 +2089,8 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
 
   void computeNeededClasses() {
     instantiatedClasses =
-        compiler.codegenWorld.instantiatedClasses.filter(computeClassFilter());
-    neededClasses = new Set<ClassElement>.from(instantiatedClasses);
+        compiler.codegenWorld.instantiatedClasses.where(computeClassFilter());
+    neededClasses = instantiatedClasses.toSet();
     for (ClassElement element in instantiatedClasses) {
       for (ClassElement superclass = element.superclass;
           superclass != null;

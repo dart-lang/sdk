@@ -16,12 +16,48 @@ class _ChildNodeListLazy implements List {
 
 
 $if DART2JS
-  Node get first => JS('Node', '#.firstChild', _this);
-  Node get last => JS('Node', '#.lastChild', _this);
+  Node get first {
+    Node result = JS('Node', '#.firstChild', _this);
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+  Node get last {
+    Node result = JS('Node', '#.lastChild', _this);
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+  Node get single {
+    int l = this.length;
+    if (l == 0) throw new StateError("No elements");
+    if (l > 1) throw new StateError("More than one element");
+    return JS('Node', '#.firstChild', _this);
+  }
 $else
-  Node get first => _this.$dom_firstChild;
-  Node get last => _this.$dom_lastChild;
+  Node get first {
+    Node result = _this.$dom_firstChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+  Node get last {
+    Node result = _this.$dom_lastChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+  Node get single {
+    int l = this.length;
+    if (l == 0) throw new StateError("No elements");
+    if (l > 1) throw new StateError("More than one element");
+    return _this.$dom_firstChild;
+  }
 $endif
+
+  Node min([int compare(Node a, Node b)]) {
+    return _Collections.minInList(this, compare);
+  }
+
+  Node max([int compare(Node a, Node b)]) {
+    return _Collections.maxInList(this, compare);
+  }
 
   void add(Node value) {
     _this.$dom_appendChild(value);
@@ -32,8 +68,8 @@ $endif
   }
 
 
-  void addAll(Collection<Node> collection) {
-    for (Node node in collection) {
+  void addAll(Iterable<Node> iterable) {
+    for (Node node in iterable) {
       _this.$dom_appendChild(node);
     }
   }
@@ -62,7 +98,7 @@ $endif
     _this.$dom_replaceChild(value, this[index]);
   }
 
-  Iterator<Node> iterator() => _this.$dom_childNodes.iterator();
+  Iterator<Node> get iterator => _this.$dom_childNodes.iterator;
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
@@ -75,18 +111,55 @@ $endif
     return Collections.reduce(this, initialValue, combine);
   }
 
-  Collection map(f(Node element)) => Collections.map(this, [], f);
+  String join([String separator]) {
+    return Collections.joinList(this, separator);
+  }
 
-  Collection<Node> filter(bool f(Node element)) =>
-     Collections.filter(this, <Node>[], f);
+  List mappedBy(f(Node element)) =>
+      new MappedList<Node, dynamic>(this, f);
+
+  Iterable<Node> where(bool f(Node element)) =>
+     new WhereIterable<Node>(this, f);
 
   bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => Collections.some(this, f);
+  bool any(bool f(Node element)) => Collections.any(this, f);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+
+  List<Node> take(int n) {
+    return new ListView<Node>(this, 0, n);
+  }
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return new TakeWhileIterable<Node>(this, test);
+  }
+
+  List<Node> skip(int n) {
+    return new ListView<Node>(this, n, null);
+  }
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return new SkipWhileIterable<Node>(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
+  }
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.

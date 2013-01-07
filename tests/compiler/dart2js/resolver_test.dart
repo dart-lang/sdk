@@ -174,7 +174,7 @@ testThis() {
   FunctionExpression function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Map mapping = map(visitor);
-  List<Element> values = mapping.values;
+  List<Element> values = mapping.values.toList();
   Expect.equals(0, mapping.length);
   Expect.equals(0, compiler.warnings.length);
 
@@ -245,7 +245,7 @@ testLocalsThree() {
   MethodScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(3, map(visitor).length);
-  List<Element> elements = map(visitor).values;
+  List<Element> elements = map(visitor).values.toList();
   Expect.equals(elements[0], elements[1]);
 }
 
@@ -258,7 +258,7 @@ testLocalsFour() {
   MethodScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(2, map(visitor).length);
-  List<Element> elements = map(visitor).values;
+  List<Element> elements = map(visitor).values.toList();
   Expect.notEquals(elements[0], elements[1]);
 }
 
@@ -325,8 +325,8 @@ testFor() {
   // Check that we have the expected nodes. This test relies on the mapping
   // field to be a linked hash map (preserving insertion order).
   Expect.isTrue(map(visitor) is LinkedHashMap);
-  List<Node> nodes = map(visitor).keys;
-  List<Element> elements = map(visitor).values;
+  List<Node> nodes = map(visitor).keys.toList();
+  List<Element> elements = map(visitor).values.toList();
 
 
   // for (int i = 0; i < 10; i = i + 1) { i = 5; };

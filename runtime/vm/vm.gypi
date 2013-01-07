@@ -5,6 +5,8 @@
 {
   'variables': {
     'builtin_in_cc_file': '../bin/builtin_in.cc',
+    'async_cc_file': '<(SHARED_INTERMEDIATE_DIR)/async_gen.cc',
+    'async_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/async_patch_gen.cc',
     'corelib_cc_file': '<(SHARED_INTERMEDIATE_DIR)/corelib_gen.cc',
     'corelib_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/corelib_patch_gen.cc',
     'collection_cc_file': '<(SHARED_INTERMEDIATE_DIR)/collection_gen.cc',
@@ -82,6 +84,8 @@
       'target_name': 'libdart_lib_withcore',
       'type': 'static_library',
       'dependencies': [
+        'generate_async_cc_file',
+        'generate_async_patch_cc_file',
         'generate_corelib_cc_file',
         'generate_corelib_patch_cc_file',
         'generate_collection_cc_file',
@@ -95,6 +99,7 @@
         'generate_scalarlist_patch_cc_file',
       ],
       'includes': [
+        '../lib/async_sources.gypi',
         '../lib/lib_sources.gypi',
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
@@ -104,6 +109,8 @@
       'sources': [
         'bootstrap.cc',
         # Include generated source files.
+        '<(async_cc_file)',
+        '<(async_patch_cc_file)',
         '<(corelib_cc_file)',
         '<(corelib_patch_cc_file)',
         '<(collection_cc_file)',
@@ -124,6 +131,7 @@
       'target_name': 'libdart_lib',
       'type': 'static_library',
       'includes': [
+        '../lib/async_sources.gypi',
         '../lib/lib_sources.gypi',
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
@@ -136,6 +144,62 @@
       'include_dirs': [
         '..',
       ],
+    },
+    {
+      'target_name': 'generate_async_cc_file',
+      'type': 'none',
+      'variables': {
+        'async_dart': '<(SHARED_INTERMEDIATE_DIR)/async_gen.dart',
+      },
+      'includes': [
+        '../../sdk/lib/async/async_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_async_dart',
+          'inputs': [
+            '../tools/concat_library.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(async_dart)',
+          ],
+          'action': [
+            'python',
+            '<@(_inputs)',
+            '--output', '<(async_dart)',
+          ],
+          'message': 'Generating ''<(async_dart)'' file.',
+        },
+        {
+          'action_name': 'generate_async_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(async_dart)',
+          ],
+          'outputs': [
+            '<(async_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(async_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::async_source_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(async_cc_file)'' file.'
+        },
+      ]
     },
     {
       'target_name': 'generate_corelib_cc_file',
@@ -532,6 +596,44 @@
             '<(isolate_dart)',
           ],
           'message': 'Generating ''<(isolate_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_async_patch_cc_file',
+      'type': 'none',
+      'includes': [
+        # Load the runtime implementation sources.
+        '../lib/async_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_async_patch_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(async_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(async_patch_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::async_patch_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(async_patch_cc_file)'' file.'
         },
       ]
     },

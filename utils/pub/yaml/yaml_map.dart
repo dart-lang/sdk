@@ -29,8 +29,8 @@ class YamlMap implements Map {
   void clear() => _map.clear();
   void forEach(void f(key, value)) =>
     _map.forEach((k, v) => f(_unwrapKey(k), v));
-  Collection get keys => _map.keys.map(_unwrapKey);
-  Collection get values => _map.values;
+  Iterable get keys => _map.keys.mappedBy(_unwrapKey);
+  Iterable get values => _map.values;
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
   String toString() => _map.toString();
@@ -81,7 +81,7 @@ class _WrappedHashKey {
 int _hashCode(obj, [List parents]) {
   if (parents == null) {
     parents = [];
-  } else if (parents.some((p) => identical(p, obj))) {
+  } else if (parents.any((p) => identical(p, obj))) {
     return -1;
   }
 
@@ -94,7 +94,7 @@ int _hashCode(obj, [List parents]) {
       return _hashCode(obj.keys, parents) ^
         _hashCode(obj.values, parents);
     }
-    if (obj is List) {
+    if (obj is Iterable) {
       // This is probably a really bad hash function, but presumably we'll get
       // this in the standard library before it actually matters.
       int hash = 0;

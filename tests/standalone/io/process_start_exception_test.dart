@@ -4,17 +4,17 @@
 //
 // Process test program to errors during startup of the process.
 
-import "dart:io";
+import 'dart:async';
+import 'dart:io';
 
 testStartError() {
   Future<Process> processFuture =
       Process.start("__path_to_something_that_should_not_exist__",
                     const []);
-  processFuture.then((p) => Expect.fail('got process despite start error'));
-  processFuture.handleException((e) {
-    Expect.isTrue(e is ProcessException);
-    Expect.equals(2, e.errorCode, e.toString());
-    return true;
+  processFuture.then((p) => Expect.fail('got process despite start error'))
+  .catchError((e) {
+    Expect.isTrue(e.error is ProcessException);
+    Expect.equals(2, e.error.errorCode, e.error.toString());
   });
 }
 
@@ -23,12 +23,10 @@ testRunError() {
       Process.run("__path_to_something_that_should_not_exist__",
                   const []);
 
-  processFuture.then((result) => Expect.fail("exit handler called"));
-
-  processFuture.handleException((e) {
-    Expect.isTrue(e is ProcessException);
-    Expect.equals(2, e.errorCode, e.toString());
-    return true;
+  processFuture.then((result) => Expect.fail("exit handler called"))
+  .catchError((e) {
+    Expect.isTrue(e.error is ProcessException);
+    Expect.equals(2, e.error.errorCode, e.error.toString());
   });
 }
 

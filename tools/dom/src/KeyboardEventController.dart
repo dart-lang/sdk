@@ -150,7 +150,7 @@ class KeyboardEventController {
 
   /** Determine if caps lock is one of the currently depressed keys. */
   bool get _capsLockOn =>
-      _keyDownList.some((var element) => element.keyCode == KeyCode.CAPS_LOCK);
+      _keyDownList.any((var element) => element.keyCode == KeyCode.CAPS_LOCK);
 
   /**
    * Given the previously recorded keydown key codes, see if we can determine
@@ -379,7 +379,7 @@ class KeyboardEventController {
       // keyCode/which for non printable keys.
       e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
     }
-    e._shadowAltKey = _keyDownList.some((var element) => element.altKey);
+    e._shadowAltKey = _keyDownList.any((var element) => element.altKey);
     _dispatch(e);
   }
 
@@ -393,7 +393,8 @@ class KeyboardEventController {
       }
     }
     if (toRemove != null) {
-      _keyDownList = _keyDownList.filter((element) => element != toRemove);
+      _keyDownList =
+          _keyDownList.where((element) => element != toRemove).toList();
     } else if (_keyDownList.length > 0) {
       // This happens when we've reached some international keyboard case we
       // haven't accounted for or we haven't correctly eliminated all browser

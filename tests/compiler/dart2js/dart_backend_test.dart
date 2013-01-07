@@ -459,7 +459,7 @@ main() {
   FunctionExpression mainNode = mainElement.parseNode(compiler);
   FunctionExpression fooNode = mainNode.body.statements.nodes.head.function;
   LocalPlaceholder fooPlaceholder =
-      collector.functionScopes[mainElement].localPlaceholders.iterator().next();
+      collector.functionScopes[mainElement].localPlaceholders.first;
   Expect.isTrue(fooPlaceholder.nodes.contains(fooNode.name));
 }
 

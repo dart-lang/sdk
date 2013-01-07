@@ -4,39 +4,42 @@
 
 class ListIteratorsTest {
   static void checkListIterator(List a) {
-    Iterator it = a.iterator();
-    Expect.equals(false, it.hasNext == a.isEmpty);
+    Iterator it = a.iterator;
     for (int i = 0; i < a.length; i++) {
-      Expect.equals(true, it.hasNext);
-      var elem = it.next();
+      Expect.isTrue(it.moveNext());
+      var elem = it.current;
+      Expect.equals(a[i], elem);
     }
-    Expect.equals(false, it.hasNext);
-    bool exceptionCaught = false;
-    try {
-     var eleme = it.next();
-    } on StateError catch (e) {
-     exceptionCaught = true;
-    }
-    Expect.equals(true, exceptionCaught);
+    Expect.isFalse(it.moveNext());
+    Expect.isNull(it.current);
   }
 
   static testMain() {
     checkListIterator([]);
     checkListIterator([1, 2]);
-    checkListIterator(new List(0));
-    checkListIterator(new List(10));
+    checkListIterator(new List.fixedLength(0));
+    checkListIterator(new List.fixedLength(10));
     checkListIterator(new List());
     List g = new List();
-    g.addAll([1, 2]);
+    g.addAll([1, 2, 3]);
     checkListIterator(g);
 
-    Iterator it = g.iterator();
-    Expect.equals(true, it.hasNext);
+    // This is mostly undefined behavior.
+    Iterator it = g.iterator;
+    Expect.isTrue(it.moveNext());
     g.removeLast();
-    Expect.equals(true, it.hasNext);
+    Expect.equals(1, it.current);
+    Expect.isTrue(it.moveNext());
+    g[1] = 49;
+    // The iterator keeps the last value.
+    Expect.equals(2, it.current);
     g.removeLast();
-    Expect.equals(false, it.hasNext);
+    // The iterator keeps the last value.
+    Expect.equals(2, it.current);
+    Expect.isFalse(it.moveNext());
+    Expect.isNull(it.current);
 
+    g.clear();
     g.addAll([10, 20]);
     int sum = 0;
     for (var elem in g) {

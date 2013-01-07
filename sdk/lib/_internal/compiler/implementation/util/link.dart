@@ -4,7 +4,7 @@
 
 part of org_dartlang_compiler_util;
 
-class Link<T> implements Iterable<T> {
+class Link<T> extends Iterable<T> {
   T get head => null;
   Link<T> get tail => null;
 
@@ -33,12 +33,12 @@ class Link<T> implements Iterable<T> {
     return new LinkEntry<T>(element, this);
   }
 
-  Iterator<T> iterator() => new LinkIterator<T>(this);
+  Iterator<T> get iterator => new LinkIterator<T>(this);
 
   void printOn(StringBuffer buffer, [separatedBy]) {
   }
 
-  List toList() => new List<T>(0);
+  List toList() => new List<T>.fixedLength(0);
 
   bool get isEmpty => true;
 

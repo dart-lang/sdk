@@ -67,8 +67,8 @@ namespace dart {
   V(Double_pow, 2)                                                             \
   V(JSSyntaxRegExp_factory, 4)                                                 \
   V(JSSyntaxRegExp_getPattern, 1)                                              \
-  V(JSSyntaxRegExp_multiLine, 1)                                               \
-  V(JSSyntaxRegExp_ignoreCase, 1)                                              \
+  V(JSSyntaxRegExp_getIsMultiLine, 1)                                          \
+  V(JSSyntaxRegExp_getIsCaseSensitive, 1)                                      \
   V(JSSyntaxRegExp_getGroupCount, 1)                                           \
   V(JSSyntaxRegExp_ExecuteMatch, 3)                                            \
   V(ObjectArray_allocate, 2)                                                   \

@@ -2,6 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == none && $runtime == vm && $checked ]
+LibTest/core/Strings/concatAll_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. issue 6719
+LibTest/core/Strings/join_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. issue 6719
+
 [ $compiler == none && $runtime == vm ]
 Language/13_Libraries_and_Scripts/1_Imports_A02_t21: Crash # Dart issue 6060
 Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # Dart issue 6060
@@ -126,12 +130,182 @@ Language/05_Variables/05_Variables_A05_t15: Fail # Dart issue 5885
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Dart issue 5894
 
-LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
+LibTest/core/Queue/some_A01_t06: Fail, OK # behavior of some is undefined when underlying collection changes, issue 6719
+LibTest/core/Queue/every_A01_t06: Fail, OK # behavior of some is undefined when underlying collection changes, issue 6719
+LibTest/core/Queue/forEach_A01_t04: Fail, OK # behavior of some is undefined when underlying collection changes, issue 6719
+
+LibTest/core/List/length_A04_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/removeRange_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/addAll_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/removeLast_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/List_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/insertRange_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/List_A01_t02: Fail, OK # List constructors, issue 6719
+LibTest/core/List/clear_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/addLast_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/add_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/length_A04_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/removeRange_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/addAll_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/removeLast_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/List_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/insertRange_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/List_A01_t02: Fail, OK # List constructors, issue 6719
+LibTest/core/List/clear_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/addLast_A02_t01: Fail, OK # List constructors, issue 6719
+LibTest/core/List/add_A02_t01: Fail, OK # List constructors, issue 6719
+
+LibTest/core/List/last_A02_t01: Fail # List.last throws a StateError, issue 6719
+
+LibTest/core/double/toInt_A01_t03: Fail # conversion to integer throws UnsupportedError for NaN/Infinity now, issue 6719
+LibTest/core/double/toInt_A01_t04: Fail # conversion to integer throws UnsupportedError for NaN/Infinity now, issue 6719
+
+LibTest/core/double/operator_truncating_division_A01_t01: Fail # ~/ returns ints, issue 6719
+LibTest/core/double/operator_truncating_division_A01_t03: Fail # ~/ returns ints, issue 6719
+LibTest/core/double/operator_truncating_division_A01_t04: Fail # ~/ returns ints, issue 6719
+LibTest/core/double/operator_truncating_division_A01_t05: Fail # ~/ returns ints, issue 6719
+LibTest/core/double/operator_truncating_division_A01_t06: Fail # ~/ returns ints, issue 6719
+LibTest/core/double/isNaN_A01_t03: Fail # ~/ returns ints, issue 6719
+LibTest/core/double/double_class_A01_t01: Fail # ~/ returns ints, issue 6719
+
+LibTest/core/RegExp/stringMatch_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/pattern_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/RegExp_A01_t02: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A04_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/hasMatch_A01_t02: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/multiLine_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/RegExp_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/ignoreCase_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/String/replaceAll_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/String/split_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/String/replaceFirst_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/String/split_A01_t02: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/end_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/groups_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/str_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/pattern_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/groupCount_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/group_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/start_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/stringMatch_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/pattern_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/RegExp_A01_t02: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A04_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/hasMatch_A01_t02: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/multiLine_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/RegExp_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/ignoreCase_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/String/replaceAll_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/String/split_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/String/replaceFirst_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/String/split_A01_t02: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/end_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/groups_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/str_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/pattern_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/groupCount_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/group_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/start_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/firstMatch_A03_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/stringMatch_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/hasMatch_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/allMatches_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/String/contains_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/operator_subscript_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/groups_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/group_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/firstMatch_A03_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/stringMatch_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/hasMatch_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/RegExp/allMatches_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/String/contains_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/operator_subscript_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/groups_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+LibTest/core/Match/group_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, issue 6719
+
+LibTest/core/Set/some_A01_t03: Fail, OK # some -> any, issue 6719
+LibTest/core/Set/some_A01_t02: Fail, OK # some -> any, issue 6719
+LibTest/core/Set/some_A01_t01: Fail, OK # some -> any, issue 6719
+LibTest/core/List/some_A02_t01: Fail, OK # some -> any, issue 6719
+LibTest/core/List/some_A01_t02: Fail, OK # some -> any, issue 6719
+LibTest/core/List/some_A01_t01: Fail, OK # some -> any, issue 6719
+LibTest/core/Queue/some_A01_t05: Fail, OK # some -> any, issue 6719
+LibTest/core/Queue/some_A01_t03: Fail, OK # some -> any, issue 6719
+LibTest/core/Queue/some_A01_t02: Fail, OK # some -> any, issue 6719
+LibTest/core/Queue/some_A01_t01: Fail, OK # some -> any, issue 6719
+LibTest/core/Queue/some_A01_t04: Fail, OK # some -> any, issue 6719
+
+LibTest/core/Queue/filter_A01_t04: Fail, OK # filter->where, issue 6719
+LibTest/core/Queue/filter_A01_t06: Fail, OK # filter->where, issue 6719
+LibTest/core/Queue/filter_A01_t02: Fail, OK # filter->where, issue 6719
+LibTest/core/Queue/filter_A01_t03: Fail, OK # filter->where, issue 6719
+LibTest/core/Queue/filter_A01_t05: Fail, OK # filter->where, issue 6719
+LibTest/core/Queue/filter_A01_t01: Fail, OK # filter->where, issue 6719
+LibTest/core/List/filter_A04_t01: Fail, OK # filter->where, issue 6719
+LibTest/core/List/filter_A01_t02: Fail, OK # filter->where, issue 6719
+LibTest/core/List/filter_A02_t01: Fail, OK # filter->where, issue 6719
+LibTest/core/List/filter_A01_t01: Fail, OK # filter->where, issue 6719
+LibTest/core/Set/filter_A01_t02: Fail, OK # filter->where, issue 6719
+LibTest/core/Set/filter_A01_t03: Fail, OK # filter->where, issue 6719
+LibTest/core/Set/filter_A01_t01: Fail, OK # filter->where, issue 6719
+LibTest/core/Queue/filter_A01_t04: Fail, OK # filter->where, issue 6719
+LibTest/core/Queue/filter_A01_t06: Fail, OK # filter->where, issue 6719
+LibTest/core/Queue/filter_A01_t02: Fail, OK # filter->where, issue 6719
+LibTest/core/Queue/filter_A01_t03: Fail, OK # filter->where, issue 6719
+LibTest/core/Queue/filter_A01_t05: Fail, OK # filter->where, issue 6719
+LibTest/core/Queue/filter_A01_t01: Fail, OK # filter->where, issue 6719
+LibTest/core/List/filter_A04_t01: Fail, OK # filter->where, issue 6719
+LibTest/core/List/filter_A01_t02: Fail, OK # filter->where, issue 6719
+LibTest/core/List/filter_A02_t01: Fail, OK # filter->where, issue 6719
+LibTest/core/List/filter_A01_t01: Fail, OK # filter->where, issue 6719
+LibTest/core/Set/filter_A01_t02: Fail, OK # filter->where, issue 6719
+LibTest/core/Set/filter_A01_t03: Fail, OK # filter->where, issue 6719
+LibTest/core/Set/filter_A01_t01: Fail, OK # filter->where, issue 6719
+
+Language/12_Statements/08_Do_A02_t01: Fail, OK # iterator-change, issue 6719
+Language/12_Statements/06_For/2_For_in_A01_t01: Fail, OK # iterator-change, issue 6719
+Language/12_Statements/06_For/2_For_in_A01_t05: Fail, OK # iterator-change, issue 6719
+Language/12_Statements/07_While_A02_t01: Fail, OK # iterator-change, issue 6719
+LibTest/core/Queue/iterator_hasNext_A01_t02: Fail, OK # iterator-change, issue 6719
+LibTest/core/Queue/iterator_hasNext_A01_t01: Fail, OK # iterator-change, issue 6719
+LibTest/core/Queue/iterator_A01_t02: Fail, OK # iterator-change, issue 6719
+LibTest/core/Queue/iterator_next_A01_t01: Fail, OK # iterator-change, issue 6719
+LibTest/core/Queue/iterator_A01_t01: Fail, OK # iterator-change, issue 6719
+LibTest/core/Queue/iterator_next_A01_t02: Fail, OK # iterator-change, issue 6719
+LibTest/core/List/iterator_hasNext_A01_t01: Fail, OK # iterator-change, issue 6719
+LibTest/core/List/iterator_next_A01_t01: Fail, OK # iterator-change, issue 6719
+LibTest/core/List/iterator_A01_t01: Fail, OK # iterator-change, issue 6719
+LibTest/core/List/List.from_A01_t01: Fail, OK # iterator-change, issue 6719
+LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # iterator-change, issue 6719
+LibTest/core/Queue/Queue.from_A01_t02: Fail # iterator-change, issue 6719
+LibTest/core/Set/Set.from_A01_t02: Fail # iterator-change, issue 6719
+LibTest/core/Queue/iterator_next_A02_t01: Fail # iterator-change, issue 6719
+LibTest/core/List/iterator_next_A02_t01: Fail # iterator-change, issue 6719
+LibTest/core/Queue/iterator_next_A02_t01: Fail # iterator-change, issue 6719
+LibTest/core/Queue/Queue.from_A01_t02: Fail # iterator-change, issue 6719
+LibTest/core/List/iterator_next_A02_t01: Fail # iterator-change, issue 6719
+LibTest/core/Set/Set.from_A01_t02: Fail # iterator-change, issue 6719
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # issue 6085
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # issue 6085
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # issue 6085
 
+
+LibTest/math/parseDouble_A01_t01: Fail, OK # co19 issue 317
+LibTest/math/parseInt_A01_t01: Fail, OK # co19 issue 317
+LibTest/math/parseInt_A02_t01: Fail, OK # co19 issue 317
 
 [ $compiler == none && $runtime == vm && $checked ]
 Language/12_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
@@ -286,3 +460,76 @@ LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
 
 [ $compiler == none && $arch == arm ]
 *: Skip
+
+
+# Dart bug 6719
+# Fail due to Future being in dart:async now
+[ $compiler == none && $runtime == vm ]
+LibTest/core/Completer/Completer_A01_t01: fail
+LibTest/core/Completer/completeException_A01_t01: fail
+LibTest/core/Completer/completeException_A02_t01: fail
+LibTest/core/Completer/completeException_A03_t01: fail
+LibTest/core/Completer/completeException_A03_t02: fail
+LibTest/core/Completer/complete_A01_t01: fail
+LibTest/core/Completer/complete_A02_t01: fail
+LibTest/core/Completer/complete_A02_t02: fail
+LibTest/core/Completer/future_A01_t01: fail
+LibTest/core/Future/Future.immediate_A01_t01: fail
+LibTest/core/Future/chain_A01_t01: fail
+LibTest/core/Future/chain_A01_t02: fail
+LibTest/core/Future/chain_A01_t03: fail
+LibTest/core/Future/chain_A01_t04: fail
+LibTest/core/Future/chain_A01_t05: fail
+LibTest/core/Future/chain_A01_t06: fail
+LibTest/core/Future/chain_A01_t07: fail
+LibTest/core/Future/chain_A01_t08: fail
+LibTest/core/Future/chain_A01_t09: fail
+LibTest/core/Future/chain_A02_t01: fail
+LibTest/core/Future/chain_A02_t02: fail
+LibTest/core/Future/chain_A02_t03: fail
+LibTest/core/Future/chain_A02_t04: fail
+LibTest/core/Future/chain_A03_t01: fail
+LibTest/core/Future/exception_A01_t01: fail
+LibTest/core/Future/exception_A01_t02: fail
+LibTest/core/Future/exception_A02_t01: fail
+LibTest/core/Future/handleException_A01_t01: fail
+LibTest/core/Future/handleException_A01_t02: fail
+LibTest/core/Future/handleException_A01_t03: fail
+LibTest/core/Future/handleException_A01_t04: fail
+LibTest/core/Future/handleException_A01_t05: fail
+LibTest/core/Future/handleException_A01_t06: fail
+LibTest/core/Future/handleException_A01_t07: fail
+LibTest/core/Future/hasValue_A01_t01: fail
+LibTest/core/Future/isComplete_A01_t01: fail
+LibTest/core/Future/then_A01_t01: fail
+LibTest/core/Future/then_A01_t02: fail
+LibTest/core/Future/then_A01_t03: fail
+LibTest/core/Future/then_A01_t04: fail
+LibTest/core/Future/then_A01_t05: fail
+LibTest/core/Future/transform_A01_t01: fail
+LibTest/core/Future/transform_A01_t02: fail
+LibTest/core/Future/transform_A01_t03: fail
+LibTest/core/Future/transform_A01_t04: fail
+LibTest/core/Future/transform_A01_t05: fail
+LibTest/core/Future/transform_A01_t06: fail
+LibTest/core/Future/transform_A01_t07: fail
+LibTest/core/Future/transform_A02_t01: fail
+LibTest/core/Future/transform_A02_t02: fail
+LibTest/core/Future/transform_A02_t03: fail
+LibTest/core/Future/transform_A03_t01: fail
+LibTest/core/Future/value_A01_t01: fail
+LibTest/core/Future/value_A01_t02: fail
+LibTest/core/Future/value_A01_t03: fail
+LibTest/core/Futures/wait_A01_t01: fail
+LibTest/core/Futures/wait_A01_t03: fail
+LibTest/core/Futures/wait_A01_t04: fail
+LibTest/core/Futures/wait_A01_t05: fail
+LibTest/core/Futures/wait_A01_t06: fail
+LibTest/core/Futures/wait_A02_t01: fail
+LibTest/core/Futures/wait_A02_t02: fail
+
+[ $compiler == none && $runtime == vm && $unchecked ]
+LibTest/core/Future/chain_A02_t05: fail
+LibTest/core/Future/transform_A02_t04: fail
+[ $compiler == none && $runtime == vm && $checked ]
+LibTest/isolate/SendPort/call_A01_t01: fail

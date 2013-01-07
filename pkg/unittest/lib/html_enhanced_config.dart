@@ -172,10 +172,11 @@ class HtmlEnhancedConfiguration extends Configuration {
 
           previousGroup = test_.currentGroup;
 
-          var testsInGroup = results.filter(
-              (TestCase t) => t.currentGroup == previousGroup);
+          var testsInGroup = results
+              .where((TestCase t) => t.currentGroup == previousGroup)
+              .toList();
           var groupTotalTestCount = testsInGroup.length;
-          var groupTestPassedCount = testsInGroup.filter(
+          var groupTestPassedCount = testsInGroup.where(
               (TestCase t) => t.result == 'pass').length;
           groupPassFail = groupTotalTestCount == groupTestPassedCount;
           var passFailClass = "unittest-group-status unittest-group-"

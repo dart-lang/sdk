@@ -30,12 +30,12 @@ regExpAttachGlobalNative(JSSyntaxRegExp regExp) {
 
 regExpMakeNative(JSSyntaxRegExp regExp, {bool global: false}) {
   String pattern = regExp.pattern;
-  bool multiLine = regExp.multiLine;
-  bool ignoreCase = regExp.ignoreCase;
+  bool isMultiLine = regExp.isMultiLine;
+  bool isCaseSensitive = regExp.isCaseSensitive;
   checkString(pattern);
   StringBuffer sb = new StringBuffer();
-  if (multiLine) sb.add('m');
-  if (ignoreCase) sb.add('i');
+  if (isMultiLine) sb.add('m');
+  if (!isCaseSensitive) sb.add('i');
   if (global) sb.add('g');
   try {
     return JS('var', r'new RegExp(#, #)', pattern, sb.toString());
@@ -49,15 +49,15 @@ int regExpMatchStart(m) => JS('int', r'#.index', m);
 
 class JSSyntaxRegExp implements RegExp {
   final String _pattern;
-  final bool _multiLine;
-  final bool _ignoreCase;
+  final bool _isMultiLine;
+  final bool _isCaseSensitive;
 
   const JSSyntaxRegExp(String pattern,
                        {bool multiLine: false,
-                        bool ignoreCase: false})
+                        bool caseSensitive: true})
       : _pattern = pattern,
-        _multiLine = multiLine,
-        _ignoreCase = ignoreCase;
+        _isMultiLine = multiLine,
+        _isCaseSensitive = caseSensitive;
 
   Match firstMatch(String str) {
     List<String> m = regExpExec(this, checkString(str));
@@ -81,13 +81,14 @@ class JSSyntaxRegExp implements RegExp {
   }
 
   String get pattern => _pattern;
-  bool get multiLine => _multiLine;
-  bool get ignoreCase => _ignoreCase;
+  bool get isMultiLine => _isMultiLine;
+  bool get isCaseSensitive => _isCaseSensitive;
 
   static JSSyntaxRegExp _globalVersionOf(JSSyntaxRegExp other) {
-    JSSyntaxRegExp re = new JSSyntaxRegExp(other.pattern,
-                                           multiLine: other.multiLine,
-                                           ignoreCase: other.ignoreCase);
+    JSSyntaxRegExp re =
+        new JSSyntaxRegExp(other.pattern,
+                           multiLine: other.isMultiLine,
+                           caseSensitive: other.isCaseSensitive);
     regExpAttachGlobalNative(re);
     return re;
   }
@@ -122,50 +123,29 @@ class _MatchImplementation implements Match {
   }
 }
 
-class _AllMatchesIterable implements Iterable<Match> {
+class _AllMatchesIterable extends Iterable<Match> {
   final JSSyntaxRegExp _re;
   final String _str;
 
   const _AllMatchesIterable(this._re, this._str);
 
-  Iterator<Match> iterator() => new _AllMatchesIterator(_re, _str);
+  Iterator<Match> get iterator => new _AllMatchesIterator(_re, _str);
 }
 
 class _AllMatchesIterator implements Iterator<Match> {
   final RegExp _re;
   final String _str;
-  Match _next;
-  bool _done;
+  Match _current;
 
   _AllMatchesIterator(JSSyntaxRegExp re, String this._str)
-    : _done = false, _re = JSSyntaxRegExp._globalVersionOf(re);
+    : _re = JSSyntaxRegExp._globalVersionOf(re);
 
-  Match next() {
-    if (!hasNext) {
-      throw new StateError("No more elements");
-    }
+  Match get current => _current;
 
-    // _next is set by [hasNext].
-    var next = _next;
-    _next = null;
-    return next;
-  }
-
-  bool get hasNext {
-    if (_done) {
-      return false;
-    } else if (_next != null) {
-      return true;
-    }
-
+  bool moveNext() {
     // firstMatch actually acts as nextMatch because of
     // hidden global flag.
-    _next = _re.firstMatch(_str);
-    if (_next == null) {
-      _done = true;
-      return false;
-    } else {
-      return true;
-    }
+    _current = _re.firstMatch(_str);
+    return _current != null;
   }
 }

@@ -76,13 +76,16 @@ $lazyInitializerLogic
     return new js.NamedFunction(
         new js.VariableDeclaration(mangledName),
         new js.Fun(
-            fieldNames.map((fieldName) => new js.Parameter(fieldName)),
+            fieldNames
+                .mappedBy((fieldName) => new js.Parameter(fieldName))
+                .toList(),
             new js.Block(
-                fieldNames.map((fieldName) =>
+                fieldNames.mappedBy((fieldName) =>
                     new js.ExpressionStatement(
                         new js.Assignment(
                             new js.This().dot(fieldName),
-                            new js.VariableUse(fieldName)))))));
+                            new js.VariableUse(fieldName))))
+                    .toList())));
   }
 
   void emitBoundClosureClassHeader(String mangledName,

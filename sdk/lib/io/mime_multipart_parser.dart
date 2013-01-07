@@ -42,7 +42,7 @@ class _MimeMultipartParser {
   // type parameter, that is without the -- prefix.
   _MimeMultipartParser(String boundary) {
     List<int> charCodes = boundary.charCodes;
-    _boundary = new List<int>(4 + charCodes.length);
+    _boundary = new List<int>.fixedLength(4 + charCodes.length);
     // Set-up the matching boundary preceding it with CRLF and two
     // dashes.
     _boundary[0] = _CharCode.CR;

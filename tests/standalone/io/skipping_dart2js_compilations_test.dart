@@ -14,8 +14,8 @@
  * output (+deps file), dart application)
  */
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:uri';
 import '../../../tools/testing/dart/test_suite.dart' as suite;
 import '../../../tools/testing/dart/test_runner.dart' as runner;

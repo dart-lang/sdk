@@ -68,7 +68,7 @@ main() {
     confirmPublish(pub);
 
     server.handle('POST', '/token', (request, response) {
-      return consumeInputStream(request.inputStream).transform((bytes) {
+      return consumeInputStream(request.inputStream).then((bytes) {
         var body = new String.fromCharCodes(bytes);
         expect(body, matches(
             new RegExp(r'(^|&)refresh_token=refresh\+token(&|$)')));
@@ -199,7 +199,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
     redirectUrl = addQueryParameters(redirectUrl, {'code': 'access code'});
     return (new http.Request('GET', redirectUrl)..followRedirects = false)
       .send();
-  }).transform((response) {
+  }).then((response) {
     expect(response.headers['location'],
         equals(['http://pub.dartlang.org/authorized']));
   }), anything);
@@ -209,7 +209,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
 
 void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
   server.handle('POST', '/token', (request, response) {
-    return consumeInputStream(request.inputStream).transform((bytes) {
+    return consumeInputStream(request.inputStream).then((bytes) {
       var body = new String.fromCharCodes(bytes);
       expect(body, matches(new RegExp(r'(^|&)code=access\+code(&|$)')));
 

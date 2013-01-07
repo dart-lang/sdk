@@ -104,13 +104,13 @@ class MethodScope extends MutableScope {
   MethodScope(Scope parent, this.element)
       : super(parent);
 
-  String toString() => 'MethodScope($element${elements.keys})';
+  String toString() => 'MethodScope($element${elements.keys.toList()})';
 }
 
 class BlockScope extends MutableScope {
   BlockScope(Scope parent) : super(parent);
 
-  String toString() => 'BlockScope(${elements.keys})';
+  String toString() => 'BlockScope(${elements.keys.toList()})';
 }
 
 /**

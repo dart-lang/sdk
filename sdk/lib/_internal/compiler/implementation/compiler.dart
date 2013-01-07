@@ -537,6 +537,7 @@ abstract class Compiler implements DiagnosticListener {
     bool nativeTest = library.entryCompilationUnit.script.name.contains(
         'dart/tests/compiler/dart2js_native');
     if (nativeTest
+        || libraryName == 'dart:async'
         || libraryName == 'dart:mirrors'
         || libraryName == 'dart:math'
         || libraryName == 'dart:html'
@@ -567,7 +568,10 @@ abstract class Compiler implements DiagnosticListener {
   void maybeEnableIsolateHelper(LibraryElement library) {
     String libraryName = library.uri.toString();
     if (libraryName == 'dart:isolate'
-        || libraryName == 'dart:html') {
+        || libraryName == 'dart:html'
+        // TODO(floitsch): create a separate async-helper library instead of
+        // importing the isolate-library just for async.
+        || libraryName == 'dart:async') {
       importIsolateHelperLibrary(library);
     }
   }

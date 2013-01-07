@@ -50,8 +50,8 @@ class JSNumber {
   num abs() => JS('num', r'Math.abs(#)', this);
 
   int toInt() {
-    if (isNaN) throw new FormatException('NaN');
-    if (isInfinite) throw new FormatException('Infinity');
+    if (isNaN) throw new UnsupportedError('NaN');
+    if (isInfinite) throw new UnsupportedError('Infinity');
     num truncated = truncate();
     return JS('bool', r'# == -0.0', truncated) ? 0 : truncated;
   }
@@ -73,21 +73,40 @@ class JSNumber {
     }
   }
 
+  num clamp(lowerLimit, upperLimit) {
+    if (lowerLimit is! num) throw new ArgumentError(lowerLimit);
+    if (upperLimit is! num) throw new ArgumentError(upperLimit);
+    if (lowerLimit.compareTo(upperLimit) > 0) {
+      throw new ArgumentError(lowerLimit);
+    }
+    if (this.compareTo(lowerLimit) < 0) return lowerLimit;
+    if (this.compareTo(upperLimit) > 0) return upperLimit;
+    return this;
+  }
+
   double toDouble() => this;
 
   num truncate() => this < 0 ? ceil() : floor();
 
   String toStringAsFixed(int fractionDigits) {
     checkNum(fractionDigits);
+    // TODO(floitsch): fractionDigits must be an integer.
+    if (fractionDigits < 0 || fractionDigits > 20) {
+      throw new RangeError(fractionDigits);
+    }
     String result = JS('String', r'#.toFixed(#)', this, fractionDigits);
     if (this == 0 && isNegative) return "-$result";
     return result;
   }
 
-  String toStringAsExponential(int fractionDigits) {
+  String toStringAsExponential([int fractionDigits]) {
     String result;
     if (fractionDigits != null) {
+      // TODO(floitsch): fractionDigits must be an integer.
       checkNum(fractionDigits);
+      if (fractionDigits < 0 || fractionDigits > 20) {
+        throw new RangeError(fractionDigits);
+      }
       result = JS('String', r'#.toExponential(#)', this, fractionDigits);
     } else {
       result = JS('String', r'#.toExponential()', this);
@@ -96,17 +115,21 @@ class JSNumber {
     return result;
   }
 
-  String toStringAsPrecision(int fractionDigits) {
-    checkNum(fractionDigits);
+  String toStringAsPrecision(int precision) {
+    // TODO(floitsch): precision must be an integer.
+    checkNum(precision);
+    if (precision < 1 || precision > 21) {
+      throw new RangeError(precision);
+    }
     String result = JS('String', r'#.toPrecision(#)',
-                       this, fractionDigits);
+                       this, precision);
     if (this == 0 && isNegative) return "-$result";
     return result;
   }
 
   String toRadixString(int radix) {
     checkNum(radix);
-    if (radix < 2 || radix > 36) throw new ArgumentError(radix);
+    if (radix < 2 || radix > 36) throw new RangeError(radix);
     return JS('String', r'#.toString(#)', this, radix);
   }
 

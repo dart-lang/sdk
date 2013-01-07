@@ -16,10 +16,11 @@
  */
 library dartdoc;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:uri';
-import 'dart:json';
+import 'dart:json' as json;
 
 import '../../compiler/implementation/mirrors/mirrors.dart';
 import '../../compiler/implementation/mirrors/mirrors_util.dart';
@@ -140,7 +141,7 @@ Future<bool> compileScript(int mode, Path outputDir, Path libPath) {
     writeString(new File.fromPath(jsPath), jsCode);
     completer.complete(true);
   });
-  result.handleException((e) => completer.completeException(e));
+  result.catchError((e) => completer.completeError(e.error, e.stackTrace));
   return completer.future;
 }
 
@@ -336,8 +337,7 @@ class Dartdoc {
   void _document(Compilation compilation) {
     // Sort the libraries by name (not key).
     _sortedLibraries = new List<LibraryMirror>.from(
-        compilation.mirrors.libraries.values.filter(
-            shouldIncludeLibrary));
+        compilation.mirrors.libraries.values.where(shouldIncludeLibrary));
     _sortedLibraries.sort((x, y) {
       return displayName(x).toUpperCase().compareTo(
           displayName(y).toUpperCase());
@@ -360,8 +360,9 @@ class Dartdoc {
     }
 
     startFile("apidoc.json");
-    var libraries = _sortedLibraries.map(
-        (lib) => new LibraryElement(lib.qualifiedName, lib, _comments));
+    var libraries = _sortedLibraries.mappedBy(
+        (lib) => new LibraryElement(lib.qualifiedName, lib, _comments))
+        .toList();
     write(json_serializer.serialize(libraries));
     endFile();
   }
@@ -544,7 +545,7 @@ class Dartdoc {
    */
   void docNavigationJson() {
     startFile('nav.json');
-    writeln(JSON.stringify(createNavigationInfo()));
+    writeln(json.stringify(createNavigationInfo()));
     endFile();
   }
 
@@ -560,7 +561,7 @@ class Dartdoc {
         // Ignore.
       }
     }
-    String jsonString = JSON.stringify(createNavigationInfo());
+    String jsonString = json.stringify(createNavigationInfo());
     String dartString = jsonString.replaceAll(r"$", r"\$");
     final filePath = tmpPath.append('nav.dart');
     writeString(new File.fromPath(filePath),
@@ -904,14 +905,14 @@ class Dartdoc {
       if (types == null) return;
 
       // Filter out injected types. (JavaScriptIndexingBehavior)
-      types = new List.from(types.filter((t) => t.library != null));
+      types = new List.from(types.where((t) => t.library != null));
 
       var publicTypes;
       if (showPrivate) {
         publicTypes = types;
       } else {
         // Skip private types.
-        publicTypes = new List.from(types.filter((t) => !t.isPrivate));
+        publicTypes = new List.from(types.where((t) => !t.isPrivate));
       }
       if (publicTypes.length == 0) return;
 
@@ -1210,12 +1211,12 @@ class Dartdoc {
     writeln('</div>');
   }
 
-  void docMethods(ContainerMirror host, String title, List<MethodMirror> methods,
+  void docMethods(ContainerMirror host, String title, List<Mirror> methods,
                   {bool allInherited}) {
     if (methods.length > 0) {
       writeln('<div${allInherited ? ' class="inherited"' : ''}>');
       writeln('<h3>$title</h3>');
-      for (final method in methods) {
+      for (MethodMirror method in methods) {
         docMethod(host, method);
       }
       writeln('</div>');
@@ -1671,6 +1672,9 @@ class Dartdoc {
     if (type.isVoid) {
       return 'void';
     }
+    if (type.isDynamic) {
+      return 'dynamic';
+    }
     if (type is TypeVariableMirror) {
       return type.simpleName;
     }
@@ -1699,7 +1703,8 @@ class Dartdoc {
     // See if it's an instantiation of a generic type.
     final typeArgs = type.typeArguments;
     if (typeArgs.length > 0) {
-      final args = Strings.join(typeArgs.map((arg) => typeName(arg)), ', ');
+      final args =
+          Strings.join(typeArgs.mappedBy((arg) => typeName(arg)), ', ');
       return '${type.originalDeclaration.simpleName}&lt;$args&gt;';
     }
 

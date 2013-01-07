@@ -12,6 +12,6 @@ void main() {
   Expect.isFalse(o is List<int>);
 
   // Enable these two lines, the compiler doesn't crash.
-  Expect.isTrue(o.keys is List<int>);
-  Expect.isFalse(o.keys is List<String>);
+  Expect.isTrue(o.keys is Iterable<int>);
+  Expect.isFalse(o.keys is Iterable<String>);
 }

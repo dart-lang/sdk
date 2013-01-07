@@ -2359,10 +2359,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   visitForIn(ForIn node) {
     for (final name in const [
         const SourceString('iterator'),
-        const SourceString('next')]) {
-      registerImplicitInvocation(name, 0);
+        const SourceString('current')]) {
+      registerImplicitFieldGet(name);
     }
-    registerImplicitFieldGet(const SourceString('hasNext'));
+    registerImplicitInvocation(const SourceString('moveNext'), 0);
     visit(node.expression);
     Scope blockScope = new BlockScope(scope);
     Node declaration = node.declaredIdentifier;

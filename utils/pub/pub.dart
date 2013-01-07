@@ -5,6 +5,7 @@
 /// The main entrypoint for the pub command line application.
 library pub;
 
+import 'dart:async';
 import '../../pkg/args/lib/args.dart';
 import '../../pkg/path/lib/path.dart' as path;
 import 'dart:io';
@@ -244,7 +245,7 @@ abstract class PubCommand {
       future = Entrypoint.load(path.current, cache);
     }
 
-    future = future.chain((entrypoint) {
+    future = future.then((entrypoint) {
       this.entrypoint = entrypoint;
       try {
         var commandFuture = onRun();
@@ -257,23 +258,24 @@ abstract class PubCommand {
       }
     });
 
-    future = future.chain((_) => cache_.deleteTempDir());
 
-    future.handleException((e) {
-      if (e is PubspecNotFoundException && e.name == null) {
-        e = 'Could not find a file named "pubspec.yaml" in the directory '
-          '${path.current}.';
-      } else if (e is PubspecHasNoNameException && e.name == null) {
-        e = 'pubspec.yaml is missing the required "name" field (e.g. "name: '
-          '${basename(path.current)}").';
-      }
+    future
+      .then((_) => cache_.deleteTempDir())
+      .catchError((error) {
+        var e = error.error;
+        if (e is PubspecNotFoundException && e.name == null) {
+          e = 'Could not find a file named "pubspec.yaml" in the directory '
+            '${path.current}.';
+        } else if (e is PubspecHasNoNameException && e.name == null) {
+          e = 'pubspec.yaml is missing the required "name" field (e.g. "name: '
+            '${basename(path.current)}").';
+        }
 
-      handleError(e, future.stackTrace);
-    });
-
-    // Explicitly exit on success to ensure that any dangling dart:io handles
-    // don't cause the process to never terminate.
-    future.then((_) => exit(0));
+        handleError(e, error.stackTrace);
+      })
+      // Explicitly exit on success to ensure that any dangling dart:io handles
+      // don't cause the process to never terminate.
+      .then((_) => exit(0));
   }
 
   /// Override this to perform the specific command. Return a future that

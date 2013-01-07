@@ -34,7 +34,7 @@ abstract class CssClassSet implements Set<String> {
   bool get frozen => false;
 
   // interface Iterable - BEGIN
-  Iterator<String> iterator() => readClasses().iterator();
+  Iterator<String> get iterator => readClasses().iterator;
   // interface Iterable - END
 
   // interface Collection - BEGIN
@@ -42,13 +42,15 @@ abstract class CssClassSet implements Set<String> {
     readClasses().forEach(f);
   }
 
-  Collection map(f(String element)) => readClasses().map(f);
+  String join([String separator]) => readClasses().join(separator);
 
-  Collection<String> filter(bool f(String element)) => readClasses().filter(f);
+  Iterable mappedBy(f(String element)) => readClasses().mappedBy(f);
+
+  Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
   bool every(bool f(String element)) => readClasses().every(f);
 
-  bool some(bool f(String element)) => readClasses().some(f);
+  bool any(bool f(String element)) => readClasses().any(f);
 
   bool get isEmpty => readClasses().isEmpty;
 
@@ -76,13 +78,13 @@ abstract class CssClassSet implements Set<String> {
     return result;
   }
 
-  void addAll(Collection<String> collection) {
+  void addAll(Iterable<String> iterable) {
     // TODO - see comment above about validation
-    _modify((s) => s.addAll(collection));
+    _modify((s) => s.addAll(iterable));
   }
 
-  void removeAll(Collection<String> collection) {
-    _modify((s) => s.removeAll(collection));
+  void removeAll(Iterable<String> iterable) {
+    _modify((s) => s.removeAll(iterable));
   }
 
   bool isSubsetOf(Collection<String> collection) =>

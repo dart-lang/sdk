@@ -844,8 +844,9 @@ class LogEntryList {
       remainingCount = logs.length;
     }
 
-    var keyIterator = keys.logs.iterator();
-    LogEntry keyEntry = keyIterator.next();
+    var keyIterator = keys.logs.iterator;
+    keyIterator.moveNext();
+    LogEntry keyEntry = keyIterator.current;
     MatchState matchState = new MatchState();
 
     for (LogEntry logEntry in logs) {
@@ -869,8 +870,8 @@ class LogEntryList {
         if (includeKeys) {
           rtn.logs.add(keyEntry);
         }
-        if (keyIterator.hasNext) {
-          keyEntry = keyIterator.next();
+        if (keyIterator.moveNext()) {
+          keyEntry = keyIterator.current;
         } else if (isPreceding) { // We're done.
           break;
         }
@@ -1460,7 +1461,7 @@ class Mock {
       if (name == null) { // This log is not shared.
         log.logs.clear();
       } else { // This log may be shared.
-        log.logs = log.logs.filter((e) => e.mockName != name);
+        log.logs = log.logs.where((e) => e.mockName != name).toList();
       }
     }
   }

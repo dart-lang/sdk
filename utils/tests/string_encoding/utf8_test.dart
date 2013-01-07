@@ -459,15 +459,14 @@ class Utf8Tests extends TestClass {
   void testIterableMethods() {
     IterableUtf8Decoder englishDecoder = decodeUtf8AsIterable(testEnglishUtf8);
     // get the first character
-    Expect.equals(testEnglishUtf8[0], englishDecoder.iterator().next());
+    Expect.equals(testEnglishUtf8[0], englishDecoder.first);
     // get the whole translation using the Iterable interface
     Expect.stringEquals(testEnglishPhrase,
         new String.fromCharCodes(new List<int>.from(englishDecoder)));
 
     IterableUtf8Decoder kataDecoder = decodeUtf8AsIterable(testKatakanaUtf8);
     // get the first character
-    Expect.equals(testKatakanaPhrase.charCodes[0],
-        kataDecoder.iterator().next());
+    Expect.equals(testKatakanaPhrase.charCodes[0], kataDecoder.first);
     // get the whole translation using the Iterable interface
     Expect.stringEquals(testKatakanaPhrase,
         new String.fromCharCodes(new List<int>.from(kataDecoder)));

@@ -60,7 +60,7 @@ class ArchiveReader {
     return _createArchive().chain((_id) {
       id = _id;
       return call(OPEN_FILENAME, id, [file, block_size]);
-    }).transform((_) => new ArchiveInputStream(id));
+    }).then((_) => new ArchiveInputStream(id));
   }
 
   /** Begins extracting from [data], which should be a list of bytes. */
@@ -69,7 +69,7 @@ class ArchiveReader {
     return _createArchive().chain((_id) {
       id = _id;
       return call(OPEN_MEMORY, id, [bytesForC(data)]);
-    }).transform((_) => new ArchiveInputStream(id));
+    }).then((_) => new ArchiveInputStream(id));
   }
 
   /**
@@ -81,7 +81,7 @@ class ArchiveReader {
       if (id == 0 || id == null) {
         throw new ArchiveException("Archive is invalid or closed.");
       }
-      return _pushConfiguration(id).transform((_) => id);
+      return _pushConfiguration(id).then((_) => id);
     });
   }
 

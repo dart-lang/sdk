@@ -98,15 +98,15 @@ class _DeepMatcher extends BaseMatcher {
     if (actual is !Iterable) {
       return 'is not Iterable';
     }
-    var expectedIterator = expected.iterator();
-    var actualIterator = actual.iterator();
+    var expectedIterator = expected.iterator;
+    var actualIterator = actual.iterator;
     var position = 0;
     String reason = null;
     while (reason == null) {
-      if (expectedIterator.hasNext) {
-        if (actualIterator.hasNext) {
-          Description r = matcher(expectedIterator.next(),
-                           actualIterator.next(),
+      if (expectedIterator.moveNext()) {
+        if (actualIterator.moveNext()) {
+          Description r = matcher(expectedIterator.current,
+                           actualIterator.current,
                            'mismatch at position ${position}',
                            depth);
           if (r != null) reason = r.toString();
@@ -114,7 +114,7 @@ class _DeepMatcher extends BaseMatcher {
         } else {
           reason = 'shorter than expected';
         }
-      } else if (actualIterator.hasNext) {
+      } else if (actualIterator.moveNext()) {
         reason = 'longer than expected';
       } else {
         return null;
@@ -284,20 +284,20 @@ class Throws extends BaseMatcher {
     if (item is Future) {
       // Queue up an asynchronous expectation that validates when the future
       // completes.
-      item.onComplete(wrapAsync((future) {
-        if (future.hasValue) {
-          expect(false, isTrue, reason:
-              "Expected future to fail, but succeeded with '${future.value}'.");
-        } else if (_matcher != null) {
-          var reason;
-          if (future.stackTrace != null) {
-            var stackTrace = future.stackTrace.toString();
-            stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
-            reason = "Actual exception trace:\n$stackTrace";
-          }
-          expect(future.exception, _matcher, reason: reason);
+      item.then((value) {
+        expect(false, isTrue, reason:
+            "Expected future to fail, but succeeded with '$value'.");
+      });
+
+      item.catchError((e) {
+        var reason;
+        if (e.stackTrace != null) {
+          var stackTrace = e.stackTrace.toString();
+          stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
+          reason = "Actual exception trace:\n$stackTrace";
         }
-      }));
+        expect(e.error, _matcher, reason: reason);
+      });
 
       // It hasn't failed yet.
       return true;
@@ -573,9 +573,9 @@ class _Contains extends BaseMatcher {
       return item.indexOf(_expected) >= 0;
     } else if (item is Collection) {
       if (_expected is Matcher) {
-        return item.some((e) => _expected.matches(e, matchState));
+        return item.any((e) => _expected.matches(e, matchState));
       } else {
-        return item.some((e) => e == _expected);
+        return item.any((e) => e == _expected);
       }
     } else if (item is Map) {
       return item.containsKey(_expected);
@@ -603,7 +603,7 @@ class _In extends BaseMatcher {
     if (_expected is String) {
       return _expected.indexOf(item) >= 0;
     } else if (_expected is Collection) {
-      return _expected.some((e) => e == item);
+      return _expected.any((e) => e == item);
     } else if (_expected is Map) {
       return _expected.containsKey(item);
     }

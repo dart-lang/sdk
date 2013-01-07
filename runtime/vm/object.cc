@@ -924,6 +924,20 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
+  Library::InitASyncLibrary(isolate);
+  const Script& async_script =
+      Script::Handle(Bootstrap::LoadASyncScript(false));
+  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
+  ASSERT(!async_lib.IsNull());
+  error = Bootstrap::Compile(async_lib, async_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  patch_script = Bootstrap::LoadASyncScript(true);
+  error = async_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
   const Script& collection_script =
       Script::Handle(Bootstrap::LoadCollectionScript(false));
   const Library& collection_lib =
@@ -5972,6 +5986,14 @@ RawLibrary* Library::New(const String& url) {
 }
 
 
+void Library::InitASyncLibrary(Isolate* isolate) {
+  const String& url = String::Handle(Symbols::New("dart:async"));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
+  lib.Register();
+  isolate->object_store()->set_async_library(lib);
+}
+
+
 void Library::InitCoreLibrary(Isolate* isolate) {
   const String& core_lib_url = String::Handle(Symbols::New("dart:core"));
   const Library& core_lib =
@@ -6023,6 +6045,10 @@ void Library::InitIsolateLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:isolate"));
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
+  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
+  const Namespace& async_ns = Namespace::Handle(
+      Namespace::New(async_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(async_ns);
   isolate->object_store()->set_isolate_library(lib);
 }
 
@@ -6035,6 +6061,10 @@ void Library::InitMirrorsLibrary(Isolate* isolate) {
   const Namespace& isolate_ns = Namespace::Handle(
       Namespace::New(isolate_lib, Array::Handle(), Array::Handle()));
   lib.AddImport(isolate_ns);
+  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
+  const Namespace& async_ns = Namespace::Handle(
+      Namespace::New(async_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(async_ns);
   const Library& wrappers_lib =
       Library::Handle(Library::NativeWrappersLibrary());
   const Namespace& wrappers_ns = Namespace::Handle(
@@ -6157,6 +6187,11 @@ void Library::Register() const {
   ASSERT(!libs.IsNull());
   set_index(libs.Length());
   libs.Add(*this);
+}
+
+
+RawLibrary* Library::ASyncLibrary() {
+  return Isolate::Current()->object_store()->async_library();
 }
 
 

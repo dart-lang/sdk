@@ -6,7 +6,7 @@ library XHRCrossOriginTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
-import 'dart:json';
+import 'dart:json' as json;
 
 main() {
   useHtmlConfiguration();
@@ -23,7 +23,7 @@ main() {
     xhr.on.readyStateChange.add((e) {
       guardAsync(() {
         if (xhr.readyState == HttpRequest.DONE) {
-          validate(JSON.parse(xhr.response));
+          validate(json.parse(xhr.response));
         }
       });
     });
@@ -33,7 +33,7 @@ main() {
   test('XHR.get Cross-domain', () {
     var url = "http://localhost:9876/tests/html/xhr_cross_origin_data.txt";
     new HttpRequest.get(url, expectAsync1((xhr) {
-      var data = JSON.parse(xhr.response);
+      var data = json.parse(xhr.response);
       expect(data, contains('feed'));
       expect(data['feed'], contains('entry'));
       expect(data, isMap);

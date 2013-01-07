@@ -4,8 +4,9 @@
 
 library hosted_source;
 
+import 'dart:async';
 import 'dart:io' as io;
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:uri';
 
 // TODO(nweiz): Make this import better.
@@ -35,9 +36,11 @@ class HostedSource extends Source {
     var parsed = _parseDescription(description);
     var fullUrl = "${parsed.last}/packages/${parsed.first}.json";
 
-    return httpClient.read(fullUrl).transform((body) {
-      var doc = JSON.parse(body);
-      return doc['versions'].map((version) => new Version.parse(version));
+    return httpClient.read(fullUrl).then((body) {
+      var doc = json.parse(body);
+      return doc['versions']
+          .mappedBy((version) => new Version.parse(version))
+          .toList();
     }).transformException((ex) {
       _throwFriendlyError(ex, parsed.first, parsed.last);
     });
@@ -50,7 +53,7 @@ class HostedSource extends Source {
     var fullUrl = "${parsed.last}/packages/${parsed.first}/versions/"
       "${id.version}.yaml";
 
-    return httpClient.read(fullUrl).transform((yaml) {
+    return httpClient.read(fullUrl).then((yaml) {
       return new Pubspec.parse(yaml, systemCache.sources);
     }).transformException((ex) {
       _throwFriendlyError(ex, id, parsed.last);
@@ -71,18 +74,18 @@ class HostedSource extends Source {
     var tempDir;
     return Futures.wait([
       httpClient.send(new http.Request("GET", new Uri.fromString(fullUrl)))
-          .transform((response) => response.stream),
+          .then((response) => response.stream),
       systemCache.createTempDir()
-    ]).chain((args) {
+    ]).then((args) {
       tempDir = args[1];
       return timeout(extractTarGz(args[0], tempDir), HTTP_TIMEOUT,
           'fetching URL "$fullUrl"');
-    }).chain((_) {
+    }).then((_) {
       // Now that the install has succeeded, move it to the real location in
       // the cache. This ensures that we don't leave half-busted ghost
       // directories in the user's pub cache if an install fails.
       return renameDir(tempDir, destPath);
-    }).transform((_) => true);
+    }).then((_) => true);
   }
 
   /// The system cache directory for the hosted source contains subdirectories

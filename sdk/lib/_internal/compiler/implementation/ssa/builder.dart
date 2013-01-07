@@ -3973,9 +3973,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitForIn(ForIn node) {
     // Generate a structure equivalent to:
-    //   Iterator<E> $iter = <iterable>.iterator()
-    //   while ($iter.hasNext) {
-    //     E <declaredIdentifier> = $iter.next();
+    //   Iterator<E> $iter = <iterable>.iterator;
+    //   while ($iter.moveNext()) {
+    //     E <declaredIdentifier> = $iter.current;
     //     <body>
     //   }
 
@@ -3984,32 +3984,38 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     void buildInitializer() {
       SourceString iteratorName = const SourceString("iterator");
       Selector selector =
-          new Selector.call(iteratorName, work.element.getLibrary(), 0);
+          new Selector.getter(iteratorName, work.element.getLibrary());
       Set<ClassElement> interceptedClasses =
           interceptors.getInterceptedClassesOn(selector);
       visit(node.expression);
       HInstruction receiver = pop();
+      bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
       if (interceptedClasses == null) {
-        iterator = new HInvokeDynamicMethod(selector, <HInstruction>[receiver]);
+        iterator =
+            new HInvokeDynamicGetter(selector, null, receiver, hasGetter);
       } else {
         HInterceptor interceptor =
             invokeInterceptor(interceptedClasses, receiver, null);
-        iterator = new HInvokeDynamicMethod(
-            selector, <HInstruction>[interceptor, receiver]);
+        iterator =
+            new HInvokeDynamicGetter(selector, null, interceptor, hasGetter);
+        // Add the receiver as an argument to the getter call on the
+        // interceptor.
+        iterator.inputs.add(receiver);
       }
       add(iterator);
     }
     HInstruction buildCondition() {
-      SourceString name = const SourceString('hasNext');
-      Selector selector = new Selector.getter(name, work.element.getLibrary());
+      SourceString name = const SourceString('moveNext');
+      Selector selector = new Selector.call(name, work.element.getLibrary(), 0);
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
-      push(new HInvokeDynamicGetter(selector, null, iterator, !hasGetter));
+      push(new HInvokeDynamicMethod(selector, <HInstruction>[iterator]));
       return popBoolified();
     }
     void buildBody() {
-      SourceString name = const SourceString('next');
-      Selector call = new Selector.call(name, work.element.getLibrary(), 0);
-      push(new HInvokeDynamicMethod(call, <HInstruction>[iterator]));
+      SourceString name = const SourceString('current');
+      Selector call = new Selector.getter(name, work.element.getLibrary());
+      bool hasGetter = compiler.world.hasAnyUserDefinedGetter(call);
+      push(new HInvokeDynamicGetter(call, null, iterator, hasGetter));
 
       Element variable;
       if (node.declaredIdentifier.asSend() != null) {
@@ -4237,7 +4243,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     bool hasDefault = false;
     Element getFallThroughErrorElement =
         compiler.findHelper(const SourceString("getFallThroughError"));
-    Iterator<Node> caseIterator = node.cases.iterator();
+    HasNextIterator<Node> caseIterator =
+        new HasNextIterator<Node>(node.cases.iterator);
     while (caseIterator.hasNext) {
       SwitchCase switchCase = caseIterator.next();
       List<Constant> caseConstants = <Constant>[];

@@ -35,18 +35,20 @@ class _Completes extends BaseMatcher {
   bool matches(item, MatchState matchState) {
     if (item is! Future) return false;
 
-    item.onComplete(wrapAsync((future) {
+    item.then((value) {
+      if (_matcher != null) expect(value, _matcher);
+    });
+
+    item.catchError((e) {
       var reason = 'Expected future to complete successfully, but it failed '
-        'with ${future.exception}';
+                   'with ${e.error}';
       if (future.stackTrace != null) {
-        var stackTrace = future.stackTrace.toString();
+        var stackTrace = e.stackTrace.toString();
         stackTrace = '  ${stackTrace.replaceAll('\n', '\n  ')}';
         reason = '$reason\nStack trace:\n$stackTrace';
       }
-
-      expect(future.hasValue, isTrue, reason: reason);
-      if (_matcher != null) expect(future.value, _matcher);
-    }));
+      expect(false, isTrue, reason: reason);
+    });
 
     return true;
   }

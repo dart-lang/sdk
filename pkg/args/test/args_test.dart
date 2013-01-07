@@ -450,8 +450,8 @@ main() {
         parser.addOption('meow', defaultsTo: 'kitty');
         var args = parser.parse([]);
         expect(args.options, hasLength(2));
-        expect(args.options.some((o) => o == 'woof'), isTrue);
-        expect(args.options.some((o) => o == 'meow'), isTrue);
+        expect(args.options.any((o) => o == 'woof'), isTrue);
+        expect(args.options.any((o) => o == 'meow'), isTrue);
       });
     });
 

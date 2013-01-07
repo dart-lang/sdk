@@ -35,7 +35,8 @@
 /// the beginning again.
 library version_solver;
 
-import 'dart:json';
+import 'dart:async';
+import 'dart:json' as json;
 import 'dart:math';
 import 'lock_file.dart';
 import 'log.dart' as log;
@@ -116,7 +117,7 @@ class VersionSolver {
         // If we have an async operation to perform, chain the loop to resume
         // when it's done. Otherwise, just loop synchronously.
         if (future != null) {
-          return future.chain(processNextWorkItem);
+          return future.then(processNextWorkItem);
         }
       }
     }
@@ -143,7 +144,7 @@ class VersionSolver {
   /// Returns the most recent version of [dependency] that satisfies all of its
   /// version constraints.
   Future<Version> getBestVersion(Dependency dependency) {
-    return dependency.getVersions().transform((versions) {
+    return dependency.getVersions().then((versions) {
       var best = null;
       for (var version in versions) {
         if (dependency.useLatestVersion ||
@@ -189,12 +190,12 @@ class VersionSolver {
       }
     }
 
-    return dependency.dependers.map(getDependency).some((subdependency) =>
+    return dependency.dependers.mappedBy(getDependency).any((subdependency) =>
         tryUnlockDepender(subdependency, seen));
   }
 
   List<PackageId> buildResults() {
-    return _packages.values.filter((dep) => dep.isDependedOn).map((dep) {
+    return _packages.values.where((dep) => dep.isDependedOn).mappedBy((dep) {
       var description = dep.description;
 
       // If the lockfile contains a fully-resolved description for the package,
@@ -208,7 +209,8 @@ class VersionSolver {
       }
 
       return new PackageId(dep.name, dep.source, dep.version, description);
-    });
+    })
+    .toList();
   }
 }
 
@@ -254,7 +256,7 @@ class ChangeVersion implements WorkItem {
     // them both and update any constraints that differ between the two.
     return Futures.wait([
         getDependencyRefs(solver, oldVersion),
-        getDependencyRefs(solver, version)]).transform((list) {
+        getDependencyRefs(solver, version)]).then((list) {
       var oldDependencyRefs = list[0];
       var newDependencyRefs = list[1];
 
@@ -289,7 +291,7 @@ class ChangeVersion implements WorkItem {
     }
 
     var id = new PackageId(package, source, version, description);
-    return solver._pubspecs.load(id).transform((pubspec) {
+    return solver._pubspecs.load(id).then((pubspec) {
       var dependencies = <String, PackageRef>{};
       for (var dependency in pubspec.dependencies) {
         dependencies[dependency.name] = dependency;
@@ -364,7 +366,7 @@ abstract class ChangeConstraint implements WorkItem {
 
     // The constraint has changed, so see what the best version of the package
     // that meets the new constraint is.
-    return solver.getBestVersion(newDependency).transform((best) {
+    return solver.getBestVersion(newDependency).then((best) {
       if (best == null) {
         undo(solver);
       } else if (newDependency.version != best) {
@@ -438,7 +440,7 @@ class UnlockPackage implements WorkItem {
     log.fine("Unlocking ${package.name}.");
 
     solver.lockFile.packages.remove(package.name);
-    return solver.getBestVersion(package).transform((best) {
+    return solver.getBestVersion(package).then((best) {
       if (best == null) return null;
       solver.enqueue(new ChangeVersion(
           package.name, package.source, package.description, best));
@@ -470,7 +472,7 @@ class PubspecCache {
       return new Future<Pubspec>.immediate(_pubspecs[id]);
     }
 
-    return id.describe().transform((pubspec) {
+    return id.describe().then((pubspec) {
       // Cache it.
       _pubspecs[id] = pubspec;
       return pubspec;
@@ -500,7 +502,7 @@ class Dependency {
   bool get isDependedOn => !_refs.isEmpty;
 
   /// The names of all the packages that depend on this dependency.
-  Collection<String> get dependers => _refs.keys;
+  Iterable<String> get dependers => _refs.keys;
 
   /// Gets the overall constraint that all packages are placing on this one.
   /// If no packages have a constraint on this one (which can happen when this
@@ -508,7 +510,7 @@ class Dependency {
   VersionConstraint get constraint {
     if (_refs.isEmpty) return null;
     return new VersionConstraint.intersection(
-        _refs.values.map((ref) => ref.constraint));
+        _refs.values.mappedBy((ref) => ref.constraint));
   }
 
   /// The source of this dependency's package.
@@ -535,7 +537,7 @@ class Dependency {
     for (var ref in refs) {
       if (ref is RootSource) return ref;
     }
-    return refs[0];
+    return refs.first;
   }
 
   Dependency(this.name)
@@ -576,7 +578,7 @@ class Dependency {
   String _requiredDepender() {
     if (_refs.isEmpty) return null;
 
-    var dependers = _refs.keys;
+    var dependers = _refs.keys.toList();
     if (dependers.length == 1) {
       var depender = dependers[0];
       if (_refs[depender].source is RootSource) return null;
@@ -700,8 +702,8 @@ class DescriptionMismatchException implements Exception {
     // TODO(nweiz): Dump descriptions to YAML when that's supported.
     return "Incompatible dependencies on '$package':\n"
         "- '$depender1' depends on it with description "
-        "${JSON.stringify(description1)}\n"
+        "${json.stringify(description1)}\n"
         "- '$depender2' depends on it with description "
-        "${JSON.stringify(description2)}";
+        "${json.stringify(description2)}";
   }
 }

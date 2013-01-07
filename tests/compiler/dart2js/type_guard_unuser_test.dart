@@ -42,13 +42,13 @@ foo(int a, int b) {
 main() {
   String generated = compile(TEST_ONE, entry: 'foo');
   RegExp regexp = new RegExp(getIntTypeCheck(anyIdentifier));
-  Iterator<Match> matches = regexp.allMatches(generated).iterator();
+  Iterator<Match> matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 0);
   Expect.isTrue(generated.contains(r'return a === true ? $.foo(2) : b;'));
 
   generated = compile(TEST_TWO, entry: 'foo');
   regexp = new RegExp("foo\\(1\\)");
-  matches = regexp.allMatches(generated).iterator();
+  matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 1);
 
   generated = compile(TEST_THREE, entry: 'foo');

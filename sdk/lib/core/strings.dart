@@ -8,10 +8,10 @@ abstract class Strings {
   /**
    * Joins all the given strings to create a new string.
    */
-  external static String join(List<String> strings, String separator);
+  external static String join(Iterable<String> strings, String separator);
 
   /**
    * Concatenates all the given strings to create a new string.
    */
-  external static String concatAll(List<String> strings);
+  external static String concatAll(Iterable<String> strings);
 }

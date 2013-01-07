@@ -147,6 +147,7 @@
  */
 library unittest;
 
+import 'dart:async';
 import 'dart:isolate';
 import 'matcher.dart';
 export 'matcher.dart';
@@ -736,7 +737,7 @@ void filterTests(testFilter) {
   } else if (testFilter is Function) {
     filterFunction = testFilter;
   }
-  _tests = _tests.filter(filterFunction);
+  _tests = _tests.where(filterFunction).toList();
 }
 
 /** Runs all queued tests, one at a time. */

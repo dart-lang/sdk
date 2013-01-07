@@ -4,6 +4,7 @@
 
 library mock_client;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'base_client.dart';
@@ -31,7 +32,7 @@ class MockClient extends BaseClient {
   /// [Response]s.
   MockClient(MockClientHandler fn)
     : this._((baseRequest, bodyStream) {
-      return consumeInputStream(bodyStream).chain((bodyBytes) {
+      return consumeInputStream(bodyStream).then((bodyBytes) {
         var request = new Request(baseRequest.method, baseRequest.url);
         request.persistentConnection = baseRequest.persistentConnection;
         request.followRedirects = baseRequest.followRedirects;
@@ -41,7 +42,7 @@ class MockClient extends BaseClient {
         request.finalize();
 
         return fn(request);
-      }).transform((response) {
+      }).then((response) {
         var stream = new ListInputStream();
         stream.write(response.bodyBytes);
         stream.markEndOfStream();
@@ -62,7 +63,7 @@ class MockClient extends BaseClient {
   /// sends [StreamedResponse]s.
   MockClient.streaming(MockClientStreamHandler fn)
     : this._((request, bodyStream) {
-      return fn(request, bodyStream).transform((response) {
+      return fn(request, bodyStream).then((response) {
         return new StreamedResponse(
             response.stream,
             response.statusCode,
@@ -78,7 +79,7 @@ class MockClient extends BaseClient {
   /// Sends a request.
   Future<StreamedResponse> send(BaseRequest request) {
     var bodyStream = request.finalize();
-    return async.chain((_) => _handler(request, bodyStream));
+    return async.then((_) => _handler(request, bodyStream));
   }
 }
 

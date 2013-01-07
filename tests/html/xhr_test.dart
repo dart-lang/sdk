@@ -6,7 +6,6 @@ library XHRTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
-import 'dart:json';
 
 main() {
   useHtmlConfiguration();

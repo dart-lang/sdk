@@ -4,7 +4,9 @@
 //
 // Dart test program for testing native extensions.
 
-import "dart:io";
+import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
 
 Future copyFileToDirectory(Path file, Path directory) {
   String src = file.toNativePath();
@@ -44,20 +46,20 @@ void main() {
   // Copy test_extension shared library, test_extension.dart and
   // test_extension_tester.dart to the temporary test directory.
   copyFileToDirectory(getExtensionPath(buildDirectory),
-                      testDirectory).chain((_) {
+                      testDirectory).then((_) {
     Path extensionDartFile = scriptDirectory.append('test_extension.dart');
     return copyFileToDirectory(extensionDartFile, testDirectory);
-  }).chain((_) {
+  }).then((_) {
     Path testExtensionTesterFile =
         scriptDirectory.append('test_extension_tester.dart');
     return copyFileToDirectory(testExtensionTesterFile, testDirectory);
-  }).chain((_) {
+  }).then((_) {
     Path script = testDirectory.append('test_extension_tester.dart');
     return Process.run(options.executable, [script.toNativePath()]);
   })..then((ProcessResult result) {
     Expect.equals(0, result.exitCode);
     tempDirectory.deleteSync(recursive: true);
-  })..handleException((_) {
+  })..catchError((_) {
     tempDirectory.deleteSync(recursive: true);
   });
 }

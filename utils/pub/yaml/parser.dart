@@ -633,7 +633,7 @@ class _Parser {
     if (!captureAs('', () => consumeChar(char))) return false;
     var captured = captureAndTransform(
         () => nAtOnce(digits, (c, _) => isHexDigit(c)),
-        (hex) => new String.fromCharCodes([Math.parseInt("0x$hex")]));
+        (hex) => new String.fromCharCodes([int.parse("0x$hex")]));
     return expect(captured, "$digits hexidecimal digits");
   }
 

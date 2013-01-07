@@ -57,7 +57,8 @@ main() {
   group('children', () {
     test('filters out non-element nodes', () {
       final el = new XMLElement.xml("<xml>1<a/><b/>2<c/>3<d/></xml>");
-      expect(el.children.map((e) => e.tagName), ["a", "b", "c", "d"]);
+      expect(el.children.mappedBy((e) => e.tagName).toList(),
+             ["a", "b", "c", "d"]);
     });
 
     test('overwrites nodes when set', () {
@@ -114,13 +115,13 @@ main() {
       expect(classes, unorderedEquals(['foo', 'bar', 'baz']));
     });
 
-    test('map', () {
-      expect(makeClassSet().map((c) => c.toUpperCase()),
+    test('mappedBy', () {
+      expect(makeClassSet().mappedBy((c) => c.toUpperCase()).toList(),
           unorderedEquals(['FOO', 'BAR', 'BAZ']));
     });
 
-    test('filter', () {
-      expect(makeClassSet().filter((c) => c.contains('a')),
+    test('where', () {
+      expect(makeClassSet().where((c) => c.contains('a')).toSet(),
           unorderedEquals(['bar', 'baz']));
     });
 
@@ -129,9 +130,9 @@ main() {
       expect(makeClassSet().every((c) => c.contains('a')), isFalse);
     });
 
-    test('some', () {
-      expect(makeClassSet().some((c) => c.contains('a')), isTrue);
-      expect(makeClassSet().some((c) => c is num), isFalse);
+    test('any', () {
+      expect(makeClassSet().any((c) => c.contains('a')), isTrue);
+      expect(makeClassSet().any((c) => c is num), isFalse);
     });
 
     test('isEmpty', () {
@@ -417,7 +418,7 @@ main() {
   test('queryAll', () {
     final el = new XMLElement.xml(
         "<xml><foo id='f1' /><bar><foo id='f2' /></bar></xml>");
-    expect(el.queryAll('foo').map((e) => e.id), ['f1', 'f2']);
+    expect(el.queryAll('foo').mappedBy((e) => e.id).toList(), ['f1', 'f2']);
     expect(el.queryAll('baz'), []);
   });
 

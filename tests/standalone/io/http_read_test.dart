@@ -182,7 +182,7 @@ void testReadInto(bool chunkedEncoding) {
         InputStream stream = response.inputStream;
         List<int> body = new List<int>();
         stream.onData = () {
-          List tmp = new List(3);
+          List tmp = new List.fixedLength(3);
           int bytes = stream.readInto(tmp);
           body.addAll(tmp.getRange(0, bytes));
         };

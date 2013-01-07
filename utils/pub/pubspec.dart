@@ -133,7 +133,7 @@ List<PackageRef> _parseDependencies(SourceRegistry sources, yaml) {
   // Allow an empty dependencies key.
   if (yaml == null) return dependencies;
 
-  if (yaml is! Map || yaml.keys.some((e) => e is! String)) {
+  if (yaml is! Map || yaml.keys.any((e) => e is! String)) {
     throw new FormatException(
         'The pubspec dependencies should be a map of package names, but '
         'was ${yaml}.');
@@ -154,7 +154,7 @@ List<PackageRef> _parseDependencies(SourceRegistry sources, yaml) {
         versionConstraint = new VersionConstraint.parse(spec.remove('version'));
       }
 
-      var sourceNames = spec.keys;
+      var sourceNames = spec.keys.toList();
       if (sourceNames.length > 1) {
         throw new FormatException(
             'Dependency $name may only have one source: $sourceNames.');

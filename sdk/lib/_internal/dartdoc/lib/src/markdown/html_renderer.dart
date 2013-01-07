@@ -39,7 +39,7 @@ class HtmlRenderer implements NodeVisitor {
     // Sort the keys so that we generate stable output.
     // TODO(rnystrom): This assumes keys returns a fresh mutable
     // collection.
-    final attributeNames = element.attributes.keys;
+    final attributeNames = element.attributes.keys.toList();
     attributeNames.sort((a, b) => a.compareTo(b));
     for (final name in attributeNames) {
       buffer.add(' $name="${element.attributes[name]}"');

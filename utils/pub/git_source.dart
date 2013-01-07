@@ -4,6 +4,7 @@
 
 library git_source;
 
+import 'dart:async';
 import 'git.dart' as git;
 import 'io.dart';
 import 'package.dart';
@@ -34,7 +35,7 @@ class GitSource extends Source {
   Future<Package> installToSystemCache(PackageId id) {
     var revisionCachePath;
 
-    return git.isInstalled.chain((installed) {
+    return git.isInstalled.then((installed) {
       if (!installed) {
         throw new Exception(
             "Cannot install '${id.name}' from Git (${_getUrl(id)}).\n"
@@ -42,19 +43,19 @@ class GitSource extends Source {
       }
 
       return ensureDir(join(systemCacheRoot, 'cache'));
-    }).chain((_) => _ensureRepoCache(id))
-      .chain((_) => _revisionCachePath(id))
-      .chain((path) {
+    }).then((_) => _ensureRepoCache(id))
+      .then((_) => _revisionCachePath(id))
+      .then((path) {
       revisionCachePath = path;
       return exists(revisionCachePath);
-    }).chain((exists) {
+    }).then((exists) {
       if (exists) return new Future.immediate(null);
       return _clone(_repoCachePath(id), revisionCachePath, mirror: false);
-    }).chain((_) {
+    }).then((_) {
       var ref = _getEffectiveRef(id);
       if (ref == 'HEAD') return new Future.immediate(null);
       return _checkOut(revisionCachePath, ref);
-    }).chain((_) {
+    }).then((_) {
       return Package.load(id.name, revisionCachePath, systemCache.sources);
     });
   }
@@ -91,7 +92,7 @@ class GitSource extends Source {
 
   /// Attaches a specific commit to [id] to disambiguate it.
   Future<PackageId> resolveId(PackageId id) {
-    return _revisionAt(id).transform((revision) {
+    return _revisionAt(id).then((revision) {
       var description = {'url': _getUrl(id), 'ref': _getRef(id)};
       description['resolved-ref'] = revision;
       return new PackageId(id.name, this, id.version, description);
@@ -104,22 +105,22 @@ class GitSource extends Source {
   /// fails.
   Future _ensureRepoCache(PackageId id) {
     var path = _repoCachePath(id);
-    return exists(path).chain((exists) {
+    return exists(path).then((exists) {
       if (!exists) return _clone(_getUrl(id), path, mirror: true);
 
-      return git.run(["fetch"], workingDir: path).transform((result) => null);
+      return git.run(["fetch"], workingDir: path).then((result) => null);
     });
   }
 
   /// Returns a future that completes to the revision hash of [id].
   Future<String> _revisionAt(PackageId id) {
     return git.run(["rev-parse", _getEffectiveRef(id)],
-        workingDir: _repoCachePath(id)).transform((result) => result[0]);
+        workingDir: _repoCachePath(id)).then((result) => result[0]);
   }
 
   /// Returns the path to the revision-specific cache of [id].
   Future<String> _revisionCachePath(PackageId id) {
-    return _revisionAt(id).transform((rev) {
+    return _revisionAt(id).then((rev) {
       var revisionCacheName = '${id.name}-$rev';
       return join(systemCacheRoot, revisionCacheName);
     });
@@ -134,16 +135,16 @@ class GitSource extends Source {
   Future _clone(String from, String to, {bool mirror: false}) {
     // Git on Windows does not seem to automatically create the destination
     // directory.
-    return ensureDir(to).chain((_) {
+    return ensureDir(to).then((_) {
       var args = ["clone", from, to];
       if (mirror) args.insertRange(1, 1, "--mirror");
       return git.run(args);
-    }).transform((result) => null);
+    }).then((result) => null);
   }
 
   /// Checks out the reference [ref] in [repoPath].
   Future _checkOut(String repoPath, String ref) {
-    return git.run(["checkout", ref], workingDir: repoPath).transform(
+    return git.run(["checkout", ref], workingDir: repoPath).then(
         (result) => null);
   }
 

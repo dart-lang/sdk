@@ -143,7 +143,7 @@ class MockCompiler extends Compiler {
     var script = new Script(uri, new MockFile(source));
     var library = new LibraryElement(script);
     parseScript(source, library);
-    library.setExports(library.localScope.values);
+    library.setExports(library.localScope.values.toList());
     return library;
   }
 
@@ -237,8 +237,10 @@ class MockCompiler extends Compiler {
 
 void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
   var fail = (message) => Expect.fail('$text: $message');
-  Iterator<MessageKind> expected = expectedWarnings.iterator();
-  Iterator<WarningMessage> found = foundWarnings.iterator();
+  HasNextIterator<MessageKind> expected =
+      new HasNextIterator(expectedWarnings.iterator);
+  HasNextIterator<WarningMessage> found =
+      new HasNextIterator(foundWarnings.iterator);
   while (expected.hasNext && found.hasNext) {
     Expect.equals(expected.next(), found.next().message.kind);
   }

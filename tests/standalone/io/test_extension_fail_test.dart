@@ -44,23 +44,20 @@ void main() {
   // Copy test_extension shared library, test_extension.dart and
   // test_extension_fail_tester.dart to the temporary test directory.
   copyFileToDirectory(getExtensionPath(buildDirectory),
-                      testDirectory).chain((_) {
+                      testDirectory).then((_) {
     Path extensionDartFile = scriptDirectory.append('test_extension.dart');
     return copyFileToDirectory(extensionDartFile, testDirectory);
-  }).chain((_) {
+  }).then((_) {
     Path testExtensionTesterFile =
         scriptDirectory.append('test_extension_fail_tester.dart');
     return copyFileToDirectory(testExtensionTesterFile, testDirectory);
-  }).chain((_) {
+  }).then((_) {
     Path script = testDirectory.append('test_extension_fail_tester.dart');
     return Process.run(options.executable, [script.toNativePath()]);
-  })..then((ProcessResult result) {
+  }).then((ProcessResult result) {
     print("ERR: ${result.stderr}\n\n");
     print("OUT: ${result.stdout}\n\n");
     Expect.equals(255, result.exitCode);
     Expect.isTrue(result.stderr.contains("Unhandled exception:\nball\n"));
-    tempDirectory.deleteSync(recursive: true);
-  })..handleException((_) {
-    tempDirectory.deleteSync(recursive: true);
-  });
+  }).whenComplete(() => tempDirectory.deleteSync(recursive: true));
 }

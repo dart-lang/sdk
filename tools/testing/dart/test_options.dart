@@ -5,7 +5,6 @@
 library test_options_parser;
 
 import "dart:io";
-import "dart:math";
 import "drt_updater.dart";
 import "test_suite.dart";
 
@@ -149,7 +148,7 @@ is 'dart file.dart' and you specify special command
               'Progress indication mode',
               ['-p', '--progress'],
               ['compact', 'color', 'line', 'verbose',
-               'silent', 'status', 'buildbot'],
+               'silent', 'status', 'buildbot', 'diff'],
               'compact'),
           new _TestOptionSpecification(
               'step_name',
@@ -368,7 +367,7 @@ Note: currently only implemented for dart2js.''',
         configuration[spec.name] = true;
       } else if (spec.type == 'int') {
         try {
-          configuration[spec.name] = parseInt(value);
+          configuration[spec.name] = int.parse(value);
         } catch (e) {
           print('Integer value expected for int option $name');
           exit(1);

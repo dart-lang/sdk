@@ -414,6 +414,10 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::FormatException();
       break;
+    case kUnsupported:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::UnsupportedError();
+      break;
     case kStackOverflow:
       library = Library::CoreLibrary();
       class_name = &Symbols::StackOverflowError();

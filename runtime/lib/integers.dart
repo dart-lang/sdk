@@ -131,6 +131,30 @@ class _IntegerImplementation {
   int ceil() { return this; }
   int truncate() { return this; }
 
+  num clamp(num lowerLimit, num upperLimit) {
+    if (lowerLimit is! num) throw new ArgumentError(lowerLimit);
+    if (upperLimit is! num) throw new ArgumentError(upperLimit);
+
+    // Special case for integers.
+    if (lowerLimit is int && upperLimit is int) {
+      if (lowerLimit > upperLimit) {
+        throw new ArgumentError(lowerLimit);
+      }
+      if (this < lowerLimit) return lowerLimit;
+      if (this > upperLimit) return upperLimit;
+      return this;
+    }
+    // Generic case involving doubles.
+    if (lowerLimit.compareTo(upperLimit) > 0) {
+      throw new ArgumentError(lowerLimit);
+    }
+    if (lowerLimit.isNaN) return lowerLimit;
+    // Note that we don't need to care for -0.0 for the lower limit.
+    if (this < lowerLimit) return lowerLimit;
+    if (this.compareTo(upperLimit) > 0) return upperLimit;
+    return this;
+  }
+
   int toInt() { return this; }
   double toDouble() { return new _Double.fromInteger(this); }
 
@@ -146,25 +170,26 @@ class _IntegerImplementation {
   String toStringAsFixed(int fractionDigits) {
     return this.toDouble().toStringAsFixed(fractionDigits);
   }
-  String toStringAsExponential(int fractionDigits) {
+  String toStringAsExponential([int fractionDigits]) {
     return this.toDouble().toStringAsExponential(fractionDigits);
   }
   String toStringAsPrecision(int precision) {
     return this.toDouble().toStringAsPrecision(precision);
   }
+
   String toRadixString(int radix) {
     final table = const ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
                          "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
                          "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
                          "u", "v", "w", "x", "y", "z"];
-    if (radix < 2 || radix > 36) {
+    if (radix is! int || radix < 2 || radix > 36) {
       throw new ArgumentError(radix);
     }
     final bool isNegative = this < 0;
-    var value = isNegative ? -this : this;
+    int value = isNegative ? -this : this;
     List temp = new List();
     while (value > 0) {
-      var digit = value % radix;
+      int digit = value % radix;
       value ~/= radix;
       temp.add(digit);
     }

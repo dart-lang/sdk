@@ -5,7 +5,7 @@
 
 class ListTest {
   static void TestIterator() {
-    List<int> a = new List<int>(10);
+    List<int> a = new List<int>.fixedLength(10);
     int count = 0;
 
     // Basic iteration over ObjectList.
@@ -42,7 +42,7 @@ class ListTest {
 
   static void testMain() {
     int len = 10;
-    List a = new List(len);
+    List a = new List.fixedLength(len);
     Expect.equals(true, a is List);
     Expect.equals(len, a.length);
     a.forEach((element) { Expect.equals(null, element); });
@@ -51,17 +51,17 @@ class ListTest {
     Expect.throws(() => a[len], (e) => e is RangeError);
 
     Expect.throws(() {
-      List a = new List(4);
+      List a = new List.fixedLength(4);
       a.setRange(1, 1, a, null);
-    }, (e) => true);
+    });
 
     Expect.throws(() {
-      List a = new List(4);
+      List a = new List.fixedLength(4);
       a.setRange(10, 1, a, 1);
     }, (e) => e is RangeError);
 
-    a = new List(4);
-    List b = new List(4);
+    a = new List.fixedLength(4);
+    List b = new List.fixedLength(4);
     b.setRange(0, 4, a, 0);
 
     List<int> unsorted = [4, 3, 9, 12, -4, 9];
@@ -95,8 +95,8 @@ class ListTest {
     Expect.throws(() => unsorted[2.1],
                   (e) => e is ArgumentError || e is TypeError);
 
-    Expect.throws(() => new List(-1), (e) => true);
-    Expect.throws(() => new List(99999999999999999999999), (e) => true);
+    Expect.throws(() => new List.fixedLength(-1));
+    Expect.throws(() => new List.fixedLength(99999999999999999999999));
 
     List list = new List();
     // We cannot write just 'list.removeLast' due to issue 3769.

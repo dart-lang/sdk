@@ -6,6 +6,15 @@
 // VM implementation of double.
 
 patch class double {
-  /* patch */
-  static double parse(String string) native "Double_parse";
+  static double _parse(String string) native "Double_parse";
+
+  /* patch */ static double parse(String str,
+                                  [double handleError(String str)]) {
+    if (handleError == null) return _parse(str);
+    try {
+      return _parse(str);
+    } on FormatException {
+      return handleError(str);
+    }
+  }
 }

@@ -4,6 +4,7 @@
 
 library client;
 
+import 'dart:async';
 import 'dart:uri';
 
 import '../../../http/lib/http.dart' as http;
@@ -81,14 +82,14 @@ class Client extends http.BaseClient {
   /// will also automatically refresh this client's [Credentials] before sending
   /// the request if necessary.
   Future<http.StreamedResponse> send(http.BaseRequest request) {
-    return async.chain((_) {
+    return async.then((_) {
       if (!credentials.isExpired) return new Future.immediate(null);
       if (!credentials.canRefresh) throw new ExpirationException(credentials);
       return refreshCredentials();
-    }).chain((_) {
+    }).then((_) {
       request.headers['authorization'] = "Bearer ${credentials.accessToken}";
       return _httpClient.send(request);
-    }).transform((response) {
+    }).then((response) {
       if (response.statusCode != 401 ||
           !response.headers.containsKey('www-authenticate')) {
         return response;
@@ -122,7 +123,7 @@ class Client extends http.BaseClient {
   /// [newScopes]. These must be a subset of the scopes in the
   /// [Credentials.scopes] field of [Client.credentials].
   Future<Client> refreshCredentials([List<String> newScopes]) {
-    return async.chain((_) {
+    return async.then((_) {
       if (!credentials.canRefresh) {
         var prefix = "OAuth credentials";
         if (credentials.isExpired) prefix = "$prefix have expired and";
@@ -131,7 +132,7 @@ class Client extends http.BaseClient {
 
       return credentials.refresh(identifier, secret,
           newScopes: newScopes, httpClient: _httpClient);
-    }).transform((credentials) {
+    }).then((credentials) {
       _credentials = credentials;
       return this;
     });

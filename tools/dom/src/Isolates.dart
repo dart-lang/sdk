@@ -95,7 +95,7 @@ class _RemoteSendPortSync implements SendPortSync {
     var source = '$target-result';
     var result = null;
     var listener = (Event e) {
-      result = JSON.parse(_getPortSyncEventData(e));
+      result = json.parse(_getPortSyncEventData(e));
     };
     window.on[source].add(listener);
     _dispatchEvent(target, [source, message]);
@@ -167,7 +167,7 @@ class ReceivePortSync {
     _callback = callback;
     if (_listener == null) {
       _listener = (Event e) {
-        var data = JSON.parse(_getPortSyncEventData(e));
+        var data = json.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -198,7 +198,7 @@ class ReceivePortSync {
 get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
-  var event = new CustomEvent(receiver, false, false, JSON.stringify(message));
+  var event = new CustomEvent(receiver, false, false, json.stringify(message));
   window.$dom_dispatchEvent(event);
 }
 

@@ -29,7 +29,7 @@ class _BodyMatches extends BaseMatcher {
   bool matches(item, MatchState matchState) {
     if (item is! http.MultipartRequest) return false;
 
-    var future = consumeInputStream(item.finalize()).transform((bodyBytes) {
+    var future = consumeInputStream(item.finalize()).then((bodyBytes) {
       var body = decodeUtf8(bodyBytes);
       var contentType = new ContentType.fromString(
           item.headers['content-type']);

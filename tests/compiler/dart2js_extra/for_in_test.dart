@@ -23,10 +23,10 @@ testIterator(List expect, Iterable input) {
   Expect.equals(expect.length, i);
 }
 
-class MyIterable<T> implements Iterable<T> {
+class MyIterable<T> extends Iterable<T> {
   final List<T> values;
   MyIterable(List<T> values) : this.values = values;
-  Iterator iterator() {
+  Iterator get iterator {
     return new MyListIterator(values);
   }
 }
@@ -34,9 +34,10 @@ class MyIterable<T> implements Iterable<T> {
 class MyListIterator<T> implements Iterator<T> {
   final List<T> values;
   int index;
-  MyListIterator(List<T> values) : this.values = values, index = 0;
-  bool get hasNext => index < values.length;
-  T next() => values[index++];
+  MyListIterator(List<T> values) : this.values = values, index = -1;
+
+  bool moveNext() => ++index < values.length;
+  T current() => (0 <= index && index < length) ? values[index] : null;
 }
 
 void main() {

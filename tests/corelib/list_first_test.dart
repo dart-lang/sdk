@@ -4,7 +4,7 @@
 
 void test(List list) {
   if (list.isEmpty) {
-    Expect.throws(() => list.first, (e) => e is RangeError);
+    Expect.throws(() => list.first, (e) => e is StateError);
   } else {
     Expect.equals(list[0], list.first);
   }

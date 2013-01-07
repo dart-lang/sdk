@@ -27,7 +27,7 @@
 ///         "http://example.com/whatsit/create",
 ///         fields: {"name": "doodle", "color": "blue"})
 ///       .chain((response) => client.get(response.bodyFields['uri']))
-///       .transform((response) => print(response.body))
+///       .then((response) => print(response.body))
 ///       .onComplete((_) => client.close());
 ///
 /// You can also exert more fine-grained control over your requests and
@@ -53,6 +53,7 @@
 
 library http;
 
+import 'dart:async';
 import 'dart:scalarlist';
 import 'dart:uri';
 
@@ -168,6 +169,6 @@ Future<Uint8List> readBytes(url, {Map<String, String> headers}) =>
 Future _withClient(Future fn(Client)) {
   var client = new Client();
   var future = fn(client);
-  future.onComplete((_) => client.close());
+  future.catchError((_) {}).then((_) => client.close());
   return future;
 }

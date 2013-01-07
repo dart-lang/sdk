@@ -15,6 +15,7 @@
 const char* DartUtils::original_working_directory = NULL;
 const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kDartExtensionScheme = "dart-ext:";
+const char* DartUtils::kASyncLibURL = "dart:async";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kCryptoLibURL = "dart:crypto";
@@ -416,17 +417,17 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                      print);
 
   // Setup the 'timer' factory.
-  Dart_Handle url = NewString(kIsolateLibURL);
+  Dart_Handle url = NewString(kASyncLibURL);
   DART_CHECK_VALID(url);
-  Dart_Handle isolate_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(isolate_lib);
+  Dart_Handle async_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(async_lib);
   Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
   Dart_Handle timer_closure =
       Dart_Invoke(io_lib, NewString("_getTimerFactoryClosure"), 0, NULL);
   Dart_Handle args[1];
   args[0] = timer_closure;
   DART_CHECK_VALID(Dart_Invoke(
-      isolate_lib, NewString("_setTimerFactoryClosure"), 1, args));
+      async_lib, NewString("_setTimerFactoryClosure"), 1, args));
 
   // Set up package root if specified.
   if (package_root != NULL) {

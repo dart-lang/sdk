@@ -48,5 +48,8 @@ main() {
         });
       });
     });
+  }).catchError((e) {
+    port.close();
+    Expect.fail("File not found");
   });
 }

@@ -40,7 +40,7 @@ ABOVE_ZERO,
 main(check) {
   // Make sure value is an int.
   var value = check ? 42 : 54;
-  var a = new List(value);
+  var a = new List.fixedLength(value);
   var sum = 0;
   for (int i = 0; i < value; i++) {
     sum += a[i];
@@ -68,7 +68,7 @@ KEPT,
 
 """
 main() {
-  var a = new List(4);
+  var a = new List.fixedLength(4);
   return a[0];
 }
 """,
@@ -76,7 +76,7 @@ REMOVED,
 
 """
 main() {
-  var a = new List(4);
+  var a = new List.fixedLength(4);
   return a.removeLast();
 }
 """,
@@ -84,7 +84,7 @@ REMOVED,
 
 """
 main(value) {
-  var a = new List(value);
+  var a = new List.fixedLength(value);
   return a[value];
 }
 """,
@@ -92,7 +92,7 @@ KEPT,
 
 """
 main(value) {
-  var a = new List(1024);
+  var a = new List.fixedLength(1024);
   return a[1023 & value];
 }
 """,
@@ -100,7 +100,7 @@ REMOVED,
 
 """
 main(value) {
-  var a = new List(1024);
+  var a = new List.fixedLength(1024);
   return a[1024 & value];
 }
 """,
@@ -243,13 +243,13 @@ expect(String code, int kind) {
 
     case ONE_CHECK:
       RegExp regexp = new RegExp('ioore');
-      Iterator matches = regexp.allMatches(generated).iterator();
+      Iterator matches = regexp.allMatches(generated).iterator;
       checkNumberOfMatches(matches, 1);
       break;
 
     case ONE_ZERO_CHECK:
       RegExp regexp = new RegExp('< 0');
-      Iterator matches = regexp.allMatches(generated).iterator();
+      Iterator matches = regexp.allMatches(generated).iterator;
       checkNumberOfMatches(matches, 1);
       break;
   }

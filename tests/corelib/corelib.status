@@ -42,14 +42,13 @@ math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0
 math_test: Fail # issue 3333
 surrogate_pair_toUpper_test: Fail # Issue 6707
 
-# Bad test, assumes RegExp.allMatches returns a Collection.
-reg_exp_all_matches_test: Fail, OK # NoSuchMethodError : method not found: 'forEach'
-
 reg_exp4_test: Fail, OK # Expects exception from const constructor.
 
 big_integer_vm_test: Fail, OK # VM specific test.
 compare_to2_test: Fail, OK    # Requires bigint support.
 string_base_vm_test: Fail, OK # VM specific test.
+
+string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
@@ -68,3 +67,12 @@ compare_to2_test: Fail # inherited from VM
 null_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
 
+# Library changes
+[ $compiler == none ]
+future_test: Skip # Bug 6890 .TODO(ajohnsen): Fix this as part of library changes.
+
+[ $compiler == none || $compiler == dart2js || $compiler == dart2dart ]
+map_keys2_test: Fail # Generic types aren't right.
+
+[ $compiler == dart2js ]
+map_values2_test: Fail # Generic types aren't right

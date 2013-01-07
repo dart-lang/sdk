@@ -4,8 +4,14 @@
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
+io/test_runner_exit_code_test: Fail # used by both a test and the VM. Can be reenabled when we replace the precompiled dart executable in tools.
+status_expression_test: Fail # used by both a test and the VM. Can be reenabled when we replace the precompiled dart executable in tools.
+io/status_file_parser_test: Fail # used by both a test and the VM. Can be reenabled when we replace the precompiled dart executable in tools.
+
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 7520.
+
+io/skipping_dart2js_compilations_test: Fail # used by both a test and the VM. Can be reenabled when we replace the precompiled dart executable in tools.
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.

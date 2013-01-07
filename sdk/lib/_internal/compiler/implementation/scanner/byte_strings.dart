@@ -5,7 +5,7 @@
 /**
  * An abstract string representation.
  */
-class ByteString implements SourceString {
+abstract class ByteString extends Iterable<int> implements SourceString {
   final List<int> bytes;
   final int offset;
   final int length;
@@ -24,7 +24,7 @@ class ByteString implements SourceString {
     throw "should be overridden in subclass";
   }
 
-  Iterator<int> iterator() => new Utf8Decoder(bytes, offset, length);
+  Iterator<int> get iterator => new Utf8Decoder(bytes, offset, length);
 
   int get hashCode {
     if (_hashCode == null) {
@@ -66,7 +66,7 @@ class AsciiString extends ByteString {
     return string;
   }
 
-  Iterator<int> iterator() => new AsciiStringIterator(bytes);
+  Iterator<int> get iterator => new AsciiStringIterator(bytes);
 
   SourceString copyWithoutQuotes(int initial, int terminal) {
     return new AsciiString(bytes, offset + initial,
@@ -85,12 +85,22 @@ class AsciiStringIterator implements Iterator<int> {
   final List<int> bytes;
   int offset;
   final int end;
+  int _current;
+
   AsciiStringIterator(List<int> bytes)
       : this.bytes = bytes, offset = 0, end = bytes.length;
   AsciiStringIterator.range(List<int> bytes, int from, int length)
       : this.bytes = bytes, offset = from, end = from + length;
-  bool get hasNext => offset < end;
-  int next() => bytes[offset++];
+
+  int get current => _current;
+  bool moveNext() {
+    if (offset < end) {
+      _current = bytes[offset++];
+      return true;
+    }
+    _current = null;
+    return false;
+  }
 }
 
 
@@ -111,7 +121,7 @@ class Utf8String extends ByteString {
     throw "not implemented yet";
   }
 
-  Iterator<int> iterator() => new Utf8Decoder(bytes, 0, length);
+  Iterator<int> get iterator => new Utf8Decoder(bytes, 0, length);
 
   SourceString copyWithoutQuotes(int initial, int terminal) {
     assert((){

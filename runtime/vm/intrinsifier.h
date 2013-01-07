@@ -78,9 +78,6 @@ namespace dart {
   V(::, sin, Math_sin, 1273932041)                                             \
   V(::, cos, Math_cos, 1749547468)                                             \
   V(Object, ==, Object_equal, 2126956595)                                      \
-  V(_FixedSizeArrayIterator, get:hasNext,                                      \
-    FixedSizeArrayIterator_getHasNext, 682147711)                              \
-  V(_FixedSizeArrayIterator, next, FixedSizeArrayIterator_next, 1283926262)    \
   V(_StringBase, get:hashCode, String_getHashCode, 320803993)                  \
   V(_StringBase, get:isEmpty, String_getIsEmpty, 711547329)                    \
   V(_StringBase, get:length, String_getLength, 320803993)                      \
@@ -103,6 +100,9 @@ namespace dart {
   V(_Float64Array, [], Float64Array_getIndexed, 638830526)                     \
   V(_Float64Array, []=, Float64Array_setIndexed, 1948811847)                   \
   V(_ExternalUint8Array, [], ExternalUint8Array_getIndexed, 753790851)         \
+
+// TODO(srdjan): Implement _FixedSizeArrayIterator, get:current and
+//   _FixedSizeArrayIterator, moveNext.
 
 // Forward declarations.
 class Assembler;

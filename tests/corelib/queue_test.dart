@@ -41,17 +41,17 @@ class QueueTest {
       return (value == 10);
     }
 
-    Queue mapped = queue.map(mapTest);
+    Queue mapped = new Queue.from(queue.mappedBy(mapTest));
     checkQueue(mapped, 3, 111);
     checkQueue(queue, 3, 1110);
     Expect.equals(1, mapped.removeFirst());
     Expect.equals(100, mapped.removeLast());
     Expect.equals(10, mapped.removeFirst());
 
-    Queue other = queue.filter(is10);
+    Queue other = new Queue.from(queue.where(is10));
     checkQueue(other, 1, 10);
 
-    Expect.equals(true, queue.some(is10));
+    Expect.equals(true, queue.any(is10));
 
     bool isInstanceOfInt(int value) {
       return (value is int);
@@ -64,7 +64,7 @@ class QueueTest {
     bool is1(int value) {
       return (value == 1);
     }
-    Expect.equals(false, queue.some(is1));
+    Expect.equals(false, queue.any(is1));
 
     queue.clear();
     Expect.equals(0, queue.length);
@@ -98,7 +98,7 @@ class QueueTest {
       return (value > 1);
     }
 
-    other = queue.filter(isGreaterThanOne);
+    other = new Queue.from(queue.where(isGreaterThanOne));
     checkQueue(other, 2, 5);
 
     testAddAll();

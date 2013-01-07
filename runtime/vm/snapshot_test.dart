@@ -103,7 +103,8 @@ class TowersDisk {
 class Towers {
   List<TowersDisk> piles;
   int movesDone;
-  Towers(int disks) : piles = new List<TowersDisk>(3), movesDone = 0 {
+  Towers(int disks) 
+      : piles = new List<TowersDisk>.fixedLength(3), movesDone = 0 {
     build(0, disks);
   }
 
@@ -176,7 +177,7 @@ class SieveBenchmark extends BenchmarkBase {
 
   static int sieve(int size) {
     int primeCount = 0;
-    List<bool> flags = new List<bool>(size + 1);
+    List<bool> flags = new List<bool>.fixedLength(size + 1);
     for (int i = 1; i < size; i++) flags[i] = true;
     for (int i = 2; i < size; i++) {
       if (flags[i]) {
@@ -234,7 +235,7 @@ class Permute {
 
   int permute(int size) {
     permuteCount = 0;
-    List<int> list = new List<int>(size);
+    List<int> list = new List<int>.fixedLength(size);
     for (int i = 1; i < size; i++) list[i] = i - 1;
     doPermute(size - 1, list);
     return permuteCount;
@@ -297,10 +298,10 @@ class Queens {
   }
 
   static void queens() {
-    List<bool> a = new List<bool>(9);
-    List<bool> b = new List<bool>(17);
-    List<bool> c = new List<bool>(15);
-    List<int> x = new List<int>(9);
+    List<bool> a = new List<bool>.fixedLength(9);
+    List<bool> b = new List<bool>.fixedLength(17);
+    List<bool> c = new List<bool>.fixedLength(15);
+    List<int> x = new List<int>.fixedLength(9);
     b[1] = false;
     for (int i = -7; i <= 16; i++) {
       if ((i >= 1) && (i <= 8)) a[i] = true;
@@ -406,7 +407,7 @@ class SortData {
 
   SortData(int length) {
     Random r = new Random();
-    list = new List<int>(length);
+    list = new List<int>.fixedLength(length);
     for (int i = 0; i < length; i++) list[i] = r.random();
 
     int min, max;
@@ -1317,7 +1318,7 @@ message_test_main() {
     List local_list1 = ["Hello", "World", "Hello", 0xffffffffff];
     List local_list2 = [null, local_list1, local_list1 ];
     List local_list3 = [local_list2, 2.0, true, false, 0xffffffffff];
-    List sendObject = new List(5);
+    List sendObject = new List.fixedLength(5);
     sendObject[0] = local_list1;
     sendObject[1] = sendObject;
     sendObject[2] = local_list2;
@@ -1441,7 +1442,7 @@ class MandelbrotState {
 
   MandelbrotState() {
     _result = new List<List<int>>(N);
-    _lineProcessedBy = new List<LineProcessorClient>(N);
+    _lineProcessedBy = new List<LineProcessorClient>.fixedLength(N);
     _sent = 0;
     _missing = N;
     _validated = new Completer<bool>();
@@ -1521,7 +1522,7 @@ class LineProcessorClient {
 List<int> processLine(int y) {
   double inverseN = 2.0 / N;
   double Civ = y * inverseN - 1.0;
-  List<int> result = new List<int>(N);
+  List<int> result = new List<int>.fixedLength(N);
   for (int x = 0; x < N; x++) {
     double Crv = x * inverseN - 1.5;
 

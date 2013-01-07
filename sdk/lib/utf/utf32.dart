@@ -182,12 +182,14 @@ typedef Utf32BytesDecoder Utf32BytesDecoderProvider();
  * provides an iterator on demand and the iterator will only translate bytes
  * as requested by the user of the iterator. (Note: results are not cached.)
  */
-class IterableUtf32Decoder implements Iterable<int> {
+// TODO(floitsch): Consider removing the extend and switch to implements since
+// that's cheaper to allocate.
+class IterableUtf32Decoder extends Iterable<int> {
   final Utf32BytesDecoderProvider codeunitsProvider;
 
   IterableUtf32Decoder._(this.codeunitsProvider);
 
-  Utf32BytesDecoder iterator() => codeunitsProvider();
+  Utf32BytesDecoder get iterator => codeunitsProvider();
 }
 
 /**
@@ -196,6 +198,7 @@ class IterableUtf32Decoder implements Iterable<int> {
 class Utf32BytesDecoder implements _ListRangeIterator {
   final _ListRangeIterator utf32EncodedBytesIterator;
   final int replacementCodepoint;
+  int _current = null;
 
   Utf32BytesDecoder._fromListRangeIterator(
       this.utf32EncodedBytesIterator, this.replacementCodepoint);
@@ -219,21 +222,23 @@ class Utf32BytesDecoder implements _ListRangeIterator {
   }
 
   List<int> decodeRest() {
-    List<int> codeunits = new List<int>(remaining);
+    List<int> codeunits = new List<int>.fixedLength(remaining);
     int i = 0;
-    while (hasNext) {
-      codeunits[i++] = next();
+    while (moveNext()) {
+      codeunits[i++] = current;
     }
     return codeunits;
   }
 
-  bool get hasNext => utf32EncodedBytesIterator.hasNext;
+  int get current => _current;
 
-  int next() {
+  bool moveNext() {
+    _current = null;
     if (utf32EncodedBytesIterator.remaining < 4) {
       utf32EncodedBytesIterator.skip(utf32EncodedBytesIterator.remaining);
       if (replacementCodepoint != null) {
-          return replacementCodepoint;
+          _current = replacementCodepoint;
+          return true;
       } else {
         throw new ArgumentError(
             "Invalid UTF32 at ${utf32EncodedBytesIterator.position}");
@@ -241,9 +246,11 @@ class Utf32BytesDecoder implements _ListRangeIterator {
     } else {
       int codepoint = decode();
       if (_validCodepoint(codepoint)) {
-        return codepoint;
+        _current = codepoint;
+        return true;
       } else if (replacementCodepoint != null) {
-          return replacementCodepoint;
+        _current = replacementCodepoint;
+        return true;
       } else {
         throw new ArgumentError(
             "Invalid UTF32 at ${utf32EncodedBytesIterator.position}");
@@ -274,18 +281,23 @@ class Utf32beBytesDecoder extends Utf32BytesDecoder {
   Utf32beBytesDecoder(List<int> utf32EncodedBytes, [int offset = 0,
       int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      super._fromListRangeIterator((new _ListRange(utf32EncodedBytes, offset,
-      length)).iterator(), replacementCodepoint) {
+      super._fromListRangeIterator(
+          (new _ListRange(utf32EncodedBytes, offset, length)).iterator,
+          replacementCodepoint) {
     if (stripBom && hasUtf32beBom(utf32EncodedBytes, offset, length)) {
       skip();
     }
   }
 
   int decode() {
-    int value = utf32EncodedBytesIterator.next();
-    value = (value << 8) + utf32EncodedBytesIterator.next();
-    value = (value << 8) + utf32EncodedBytesIterator.next();
-    value = (value << 8) + utf32EncodedBytesIterator.next();
+    utf32EncodedBytesIterator.moveNext();
+    int value = utf32EncodedBytesIterator.current;
+    utf32EncodedBytesIterator.moveNext();
+    value = (value << 8) + utf32EncodedBytesIterator.current;
+    utf32EncodedBytesIterator.moveNext();
+    value = (value << 8) + utf32EncodedBytesIterator.current;
+    utf32EncodedBytesIterator.moveNext();
+    value = (value << 8) + utf32EncodedBytesIterator.current;
     return value;
   }
 }
@@ -298,18 +310,23 @@ class Utf32leBytesDecoder extends Utf32BytesDecoder {
   Utf32leBytesDecoder(List<int> utf32EncodedBytes, [int offset = 0,
       int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      super._fromListRangeIterator((new _ListRange(utf32EncodedBytes, offset,
-      length)).iterator(), replacementCodepoint) {
+      super._fromListRangeIterator(
+          (new _ListRange(utf32EncodedBytes, offset, length)).iterator,
+          replacementCodepoint) {
     if (stripBom && hasUtf32leBom(utf32EncodedBytes, offset, length)) {
       skip();
     }
   }
 
   int decode() {
-    int value = (utf32EncodedBytesIterator.next());
-    value += (utf32EncodedBytesIterator.next() << 8);
-    value += (utf32EncodedBytesIterator.next() << 16);
-    value += (utf32EncodedBytesIterator.next() << 24);
+    utf32EncodedBytesIterator.moveNext();
+    int value = utf32EncodedBytesIterator.current;
+    utf32EncodedBytesIterator.moveNext();
+    value += (utf32EncodedBytesIterator.current << 8);
+    utf32EncodedBytesIterator.moveNext();
+    value += (utf32EncodedBytesIterator.current << 16);
+    utf32EncodedBytesIterator.moveNext();
+    value += (utf32EncodedBytesIterator.current << 24);
     return value;
   }
 }

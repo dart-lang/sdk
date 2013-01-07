@@ -1672,7 +1672,7 @@ class ProcessQueue {
     var compiler = test.configuration['compiler'];
     var runners = _batchProcesses[compiler];
     if (runners == null) {
-      runners = new List<BatchRunnerProcess>(_maxProcesses);
+      runners = new List<BatchRunnerProcess>.fixedLength(_maxProcesses);
       for (int i = 0; i < _maxProcesses; i++) {
         runners[i] = new BatchRunnerProcess(test);
       }

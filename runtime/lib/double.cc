@@ -79,7 +79,20 @@ DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Double_trunc_div %f ~/ %f\n", left, right);
   }
-  return Double::New(trunc(left / right));
+  double result = trunc(left / right);
+  if (isinf(result) || isnan(result)) {
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, String::Handle(String::New(
+        "Result of truncating division is Infinity or NaN")));
+    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+  }
+  if ((Smi::kMinValue <= result) && (result <= Smi::kMaxValue)) {
+    return Smi::New(static_cast<intptr_t>(result));
+  } else if ((Mint::kMinValue <= result) && (result <= Mint::kMaxValue)) {
+    return Mint::New(static_cast<int64_t>(result));
+  } else {
+    return BigintOperations::NewFromDouble(result);
+  }
 }
 
 
@@ -191,7 +204,7 @@ DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
   if (isinf(arg.value()) || isnan(arg.value())) {
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, String::Handle(String::New("Infinity or NaN toInt")));
-    Exceptions::ThrowByType(Exceptions::kFormat, args);
+    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
   }
   double result = trunc(arg.value());
   if ((Smi::kMinValue <= result) && (result <= Smi::kMaxValue)) {

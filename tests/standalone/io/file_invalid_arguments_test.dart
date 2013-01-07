@@ -18,17 +18,15 @@ class FileTest {
 
     var errors = 0;
     var readListFuture = file.readList(buffer, offset, length);
-    readListFuture.handleException((e) {
+    readListFuture.then((bytes) {
+      Expect.fail('read list invalid arguments');
+    }).catchError((e) {
       errors++;
-      Expect.isTrue(e is FileIOException);
-      Expect.isTrue(e.toString().contains('Invalid arguments'));
+      Expect.isTrue(e.error is FileIOException);
+      Expect.isTrue(e.error.toString().contains('Invalid arguments'));
       file.close().then((ignore) {
         Expect.equals(1, errors);
       });
-      return true;
-    });
-    readListFuture.then((bytes) {
-      Expect.fail('read list invalid arguments');
     });
   }
 
@@ -46,12 +44,10 @@ class FileTest {
     var writeByteFuture = file.writeByte(value);
     writeByteFuture.then((ignore) {
       Expect.fail('write byte invalid argument');
-    });
-    writeByteFuture.handleException((s) {
-      Expect.isTrue(s is FileIOException);
-      Expect.isTrue(s.toString().contains('Invalid argument'));
+    }).catchError((s) {
+      Expect.isTrue(s.error is FileIOException);
+      Expect.isTrue(s.error.toString().contains('Invalid argument'));
       file.close();
-      return true;
     });
   }
 
@@ -69,12 +65,10 @@ class FileTest {
     var writeListFuture = file.writeList(buffer, offset, bytes);
     writeListFuture.then((ignore) {
       Expect.fail('write list invalid argument');
-    });
-    writeListFuture.handleException((s) {
-      Expect.isTrue(s is FileIOException);
-      Expect.isTrue(s.toString().contains('Invalid arguments'));
+    }).catchError((s) {
+      Expect.isTrue(s.error is FileIOException);
+      Expect.isTrue(s.error.toString().contains('Invalid arguments'));
       file.close();
-      return true;
     });
   }
 
@@ -112,10 +106,10 @@ class FileTest {
 
 main() {
   FileTest.testReadListInvalidArgs(12, 0, 1);
-  FileTest.testReadListInvalidArgs(new List(10), '0', 1);
-  FileTest.testReadListInvalidArgs(new List(10), 0, '1');
+  FileTest.testReadListInvalidArgs(new List.fixedLength(10), '0', 1);
+  FileTest.testReadListInvalidArgs(new List.fixedLength(10), 0, '1');
   FileTest.testWriteByteInvalidArgs('asdf');
   FileTest.testWriteListInvalidArgs(12, 0, 1);
-  FileTest.testWriteListInvalidArgs(new List(10), '0', 1);
-  FileTest.testWriteListInvalidArgs(new List(10), 0, '1');
+  FileTest.testWriteListInvalidArgs(new List.fixedLength(10), '0', 1);
+  FileTest.testWriteListInvalidArgs(new List.fixedLength(10), 0, '1');
 }

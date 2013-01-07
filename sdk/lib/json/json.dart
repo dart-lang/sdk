@@ -4,8 +4,6 @@
 
 library dart.json;
 
-import 'dart:math';
-
 // JSON parsing and serialization.
 
 /**
@@ -13,13 +11,12 @@ import 'dart:math';
  *
  * The [unsupportedObject] field holds that object that failed to be serialized.
  *
- * If an isn't directly serializable, the serializer calls the 'toJson' method
- * on the object. If that call fails, the error will be stored in the [cause]
- * field. If the call returns an object that isn't directly serializable,
- * the [cause] will be null.
+ * If an object isn't directly serializable, the serializer calls the 'toJson'
+ * method on the object. If that call fails, the error will be stored in the
+ * [cause] field. If the call returns an object that isn't directly
+ * serializable, the [cause] will be null.
  */
-class JsonUnsupportedObjectError {
-  // TODO: proper base class.
+class JsonUnsupportedObjectError implements Error {
   /** The object that could not be serialized. */
   final unsupportedObject;
   /** The exception thrown by object's [:toJson:] method, if any. */
@@ -38,405 +35,605 @@ class JsonUnsupportedObjectError {
 
 
 /**
- * Utility class to parse JSON and serialize objects to JSON.
+ * Parses [json] and build the corresponding parsed JSON value.
+ *
+ * Parsed JSON values are of the types [num], [String], [bool], [Null],
+ * [List]s of parsed JSON values or [Map]s from [String] to parsed
+ * JSON values.
+ *
+ * Throws [FormatException] if the input is not valid JSON text.
  */
-class JSON {
-  /**
-   * Parses [json] and build the corresponding parsed JSON value.
-   *
-   * Parsed JSON values are of the types [num], [String], [bool], [Null],
-   * [List]s of parsed JSON values or [Map]s from [String] to parsed
-   * JSON values.
-   *
-   * Throws [JSONParseException] if the input is not valid JSON text.
-   */
-  static parse(String json) {
-    return _JsonParser.parse(json);
+parse(String json, [reviver(var key, var value)]) {
+  BuildJsonListener listener;
+  if (reviver == null) {
+    listener = new BuildJsonListener();
+  } else {
+    listener = new ReviverJsonListener(reviver);
   }
+  new JsonParser(json, listener).parse();
+  return listener.result;
+}
 
-  /**
-   * Serializes [object] into a JSON string.
-   *
-   * Directly serializable types are [num], [String], [bool], [Null], [List]
-   * and [Map].
-   * For [List], the elements must all be serializable.
-   * For [Map], the keys must be [String] and the values must be serializable.
-   * If a value is any other type is attempted serialized, a "toJson()" method
-   * is invoked on the object and the result, which must be a directly
-   * serializable type, is serialized instead of the original value.
-   * If the object does not support this method, throws, or returns a
-   * value that is not directly serializable, a [JsonUnsupportedObjectError]
-   * exception is thrown. If the call throws (including the case where there
-   * is no nullary "toJson" method, the error is caught and stored in the
-   * [JsonUnsupportedObjectError]'s [:cause:] field.
-   *
-   * Objects should not change during serialization.
-   * If an object is serialized more than once, [stringify] is allowed to cache
-   * the JSON text for it. I.e., if an object changes after it is first
-   * serialized, the new values may or may not be reflected in the result.
-   */
-  static String stringify(Object object) {
-    return _JsonStringifier.stringify(object);
-  }
+/**
+ * Serializes [object] into a JSON string.
+ *
+ * Directly serializable types are [num], [String], [bool], [Null], [List]
+ * and [Map].
+ * For [List], the elements must all be serializable.
+ * For [Map], the keys must be [String] and the values must be serializable.
+ * If a value is any other type is attempted serialized, a "toJson()" method
+ * is invoked on the object and the result, which must be a directly
+ * serializable type, is serialized instead of the original value.
+ * If the object does not support this method, throws, or returns a
+ * value that is not directly serializable, a [JsonUnsupportedObjectError]
+ * exception is thrown. If the call throws (including the case where there
+ * is no nullary "toJson" method, the error is caught and stored in the
+ * [JsonUnsupportedObjectError]'s [:cause:] field.
+ *Json
+ * Objects should not change during serialization.
+ * If an object is serialized more than once, [stringify] is allowed to cache
+ * the JSON text for it. I.e., if an object changes after it is first
+ * serialized, the new values may or may not be reflected in the result.
+ */
+String stringify(Object object) {
+  return _JsonStringifier.stringify(object);
+}
 
-  /**
-   * Serializes [object] into [output] stream.
-   *
-   * Performs the same operations as [stringify] but outputs the resulting
-   * string to an existing [StringBuffer] instead of creating a new [String].
-   *
-   * If serialization fails by throwing, some data might have been added to
-   * [output], but it won't contain valid JSON text.
-   */
-  static void printOn(Object object, StringBuffer output) {
-    return _JsonStringifier.printOn(object, output);
-  }
+/**
+ * Serializes [object] into [output] stream.
+ *
+ * Performs the same operations as [stringify] but outputs the resulting
+ * string to an existing [StringBuffer] instead of creating a new [String].
+ *
+ * If serialization fails by throwing, some data might have been added to
+ * [output], but it won't contain valid JSON text.
+ */
+void printOn(Object object, StringBuffer output) {
+  return _JsonStringifier.printOn(object, output);
 }
 
 //// Implementation ///////////////////////////////////////////////////////////
 
-// TODO(ajohnsen): Introduce when we have a common exception interface for json.
-class JSONParseException {
-  JSONParseException(int position, String message) :
-      position = position,
-      message = 'JSONParseException: $message, at offset $position';
+// Simple API for JSON parsing.
 
-  String toString() => message;
-
-  final String message;
-  final int position;
+abstract class JsonListener {
+  void handleString(String value) {}
+  void handleNumber(num value) {}
+  void handleBool(bool value) {}
+  void handleNull() {}
+  void beginObject() {}
+  void propertyName() {}
+  void propertyValue() {}
+  void endObject() {}
+  void beginArray() {}
+  void arrayElement() {}
+  void endArray() {}
+  /** Called on failure to parse [source]. */
+  void fail(String source, int position, String message) {}
 }
 
-class _JsonParser {
-  static const int BACKSPACE = 8;
-  static const int TAB = 9;
-  static const int NEW_LINE = 10;
-  static const int FORM_FEED = 12;
-  static const int CARRIAGE_RETURN = 13;
-  static const int SPACE = 32;
-  static const int QUOTE = 34;
-  static const int PLUS = 43;
-  static const int COMMA = 44;
-  static const int MINUS = 45;
-  static const int DOT = 46;
-  static const int SLASH = 47;
-  static const int CHAR_0 = 48;
-  static const int CHAR_1 = 49;
-  static const int CHAR_2 = 50;
-  static const int CHAR_3 = 51;
-  static const int CHAR_4 = 52;
-  static const int CHAR_5 = 53;
-  static const int CHAR_6 = 54;
-  static const int CHAR_7 = 55;
-  static const int CHAR_8 = 56;
-  static const int CHAR_9 = 57;
-  static const int COLON = 58;
-  static const int CHAR_CAPITAL_E = 69;
-  static const int LBRACKET = 91;
-  static const int BACKSLASH = 92;
-  static const int RBRACKET = 93;
-  static const int CHAR_B = 98;
-  static const int CHAR_E = 101;
-  static const int CHAR_F = 102;
-  static const int CHAR_N = 110;
-  static const int CHAR_R = 114;
-  static const int CHAR_T = 116;
-  static const int CHAR_U = 117;
-  static const int LBRACE = 123;
-  static const int RBRACE = 125;
+/**
+ * A [JsonListener] that builds data objects from the parser events.
+ *
+ * This is a simple stack-based object builder. It keeps the most recently
+ * seen value in a variable, and uses it depending on the following event.
+ */
+class BuildJsonListener extends JsonListener {
+  /**
+   * Stack used to handle nested containers.
+   *
+   * The current container is pushed on the stack when a new one is
+   * started. If the container is a [Map], there is also a current [key]
+   * which is also stored on the stack.
+   */
+  List stack = [];
+  /** The current [Map] or [List] being built. */
+  var currentContainer;
+  /** The most recently read property key. */
+  String key;
+  /** The most recently read value. */
+  var value;
 
-  static const int STRING_LITERAL = QUOTE;
-  static const int NUMBER_LITERAL = MINUS;
-  static const int NULL_LITERAL = CHAR_N;
-  static const int FALSE_LITERAL = CHAR_F;
-  static const int TRUE_LITERAL = CHAR_T;
-
-  static const int WHITESPACE = SPACE;
-
-  static const int LAST_ASCII = RBRACE;
-
-  static const String NULL_STRING = "null";
-  static const String TRUE_STRING = "true";
-  static const String FALSE_STRING = "false";
-
-  static List<int> tokens;
-
-  final String json;
-  final int length;
-  int position = 0;
-
-  static parse(String json) {
-    return new _JsonParser(json).parseToplevel();
+  /** Pushes the currently active container (and key, if a [Map]). */
+  void pushContainer() {
+    if (currentContainer is Map) stack.add(key);
+    stack.add(currentContainer);
   }
 
-  _JsonParser(String json)
-      : json = json,
-        length = json.length {
-    if (tokens != null) return;
-
-    // Use a list as jump-table. It is faster than switch and if.
-    tokens = new List<int>(LAST_ASCII + 1);
-    tokens[TAB] = WHITESPACE;
-    tokens[NEW_LINE] = WHITESPACE;
-    tokens[CARRIAGE_RETURN] = WHITESPACE;
-    tokens[SPACE] = WHITESPACE;
-    tokens[CHAR_0] = NUMBER_LITERAL;
-    tokens[CHAR_1] = NUMBER_LITERAL;
-    tokens[CHAR_2] = NUMBER_LITERAL;
-    tokens[CHAR_3] = NUMBER_LITERAL;
-    tokens[CHAR_4] = NUMBER_LITERAL;
-    tokens[CHAR_5] = NUMBER_LITERAL;
-    tokens[CHAR_6] = NUMBER_LITERAL;
-    tokens[CHAR_7] = NUMBER_LITERAL;
-    tokens[CHAR_8] = NUMBER_LITERAL;
-    tokens[CHAR_9] = NUMBER_LITERAL;
-    tokens[MINUS] = NUMBER_LITERAL;
-    tokens[LBRACE] = LBRACE;
-    tokens[RBRACE] = RBRACE;
-    tokens[LBRACKET] = LBRACKET;
-    tokens[RBRACKET] = RBRACKET;
-    tokens[QUOTE] = STRING_LITERAL;
-    tokens[COLON] = COLON;
-    tokens[COMMA] = COMMA;
-    tokens[CHAR_N] = NULL_LITERAL;
-    tokens[CHAR_T] = TRUE_LITERAL;
-    tokens[CHAR_F] = FALSE_LITERAL;
+  /** Pops the top container from the [stack], including a key if applicable. */
+  void popContainer() {
+    value = currentContainer;
+    currentContainer = stack.removeLast();
+    if (currentContainer is Map) key = stack.removeLast();
   }
 
-  parseToplevel() {
-    final result = parseValue();
-    if (token() != null) {
-      error('Junk at the end of JSON input');
-    }
-    return result;
+  void handleString(String value) { this.value = value; }
+  void handleNumber(num value) { this.value = value; }
+  void handleBool(bool value) { this.value = value; }
+  void handleNull() { this.value = value; }
+
+  void beginObject() {
+    pushContainer();
+    currentContainer = {};
   }
 
-  parseValue() {
-    final int token = token();
-    if (token == null) {
-      error('Nothing to parse');
-    }
-    switch (token) {
-      case STRING_LITERAL: return parseString();
-      case NUMBER_LITERAL: return parseNumber();
-      case NULL_LITERAL: return expectKeyword(NULL_STRING, null);
-      case FALSE_LITERAL: return expectKeyword(FALSE_STRING, false);
-      case TRUE_LITERAL: return expectKeyword(TRUE_STRING, true);
-      case LBRACE: return parseObject();
-      case LBRACKET: return parseList();
-
-      default:
-        error('Unexpected token');
-    }
+  void propertyName() {
+    key = value;
+    value = null;
   }
 
-  Object expectKeyword(String word, Object value) {
-    for (int i = 0; i < word.length; i++) {
-      // Implicit end check in char().
-      if (char() != word.charCodeAt(i)) error("Expected keyword '$word'");
-      position++;
-    }
+  void propertyValue() {
+    Map map = currentContainer;
+    map[key] = value;
+    key = value = null;
+  }
+
+  void endObject() {
+    popContainer();
+  }
+
+  void beginArray() {
+    pushContainer();
+    currentContainer = [];
+  }
+
+  void arrayElement() {
+    List list = currentContainer;
+    currentContainer.add(value);
+    value = null;
+  }
+
+  void endArray() {
+    popContainer();
+  }
+
+  /** Read out the final result of parsing a JSON string. */
+  get result {
+    assert(currentContainer == null);
     return value;
   }
+}
 
-  parseObject() {
-    final object = {};
+typedef _Reviver(var key, var value);
 
-    position++;  // Eat '{'.
+class ReviverJsonListener extends BuildJsonListener {
+  final _Reviver reviver;
+  ReviverJsonListener(reviver(key, value)) : this.reviver = reviver;
 
-    if (!isToken(RBRACE)) {
-      while (true) {
-        final String key = parseString();
-        if (!isToken(COLON)) error("Expected ':' when parsing object");
-        position++;
-        object[key] = parseValue();
-
-        if (!isToken(COMMA)) break;
-        position++;  // Skip ','.
-      };
-
-      if (!isToken(RBRACE)) error("Expected '}' at end of object");
-    }
-    position++;
-
-    return object;
+  void arrayElement() {
+    List list = currentContainer;
+    value = reviver(list.length, value);
+    super.arrayElement();
   }
 
-  parseList() {
-    final list = [];
-
-    position++;  // Eat '['.
-
-    if (!isToken(RBRACKET)) {
-      while (true) {
-        list.add(parseValue());
-
-        if (!isToken(COMMA)) break;
-        position++;
-      };
-
-      if (!isToken(RBRACKET)) error("Expected ']' at end of list");
-    }
-    position++;
-
-    return list;
+  void propertyValue() {
+    value = reviver(key, value);
+    super.propertyValue();
   }
 
-  String parseString() {
-    if (!isToken(STRING_LITERAL)) error("Expected string literal");
-
-    position++;  // Eat '"'.
-
-    List<int> charCodes = new List<int>();
-    while (true) {
-      int c = char();
-      if (c == QUOTE) {
-        position++;
-        break;
-      }
-      if (c == BACKSLASH) {
-        position++;
-        if (position == length) {
-          error('\\ at the end of input');
-        }
-
-        switch (char()) {
-          case QUOTE:
-            c = QUOTE;
-            break;
-          case BACKSLASH:
-            c = BACKSLASH;
-            break;
-          case SLASH:
-            c = SLASH;
-            break;
-          case CHAR_B:
-            c = BACKSPACE;
-            break;
-          case CHAR_N:
-            c = NEW_LINE;
-            break;
-          case CHAR_R:
-            c = CARRIAGE_RETURN;
-            break;
-          case CHAR_F:
-            c = FORM_FEED;
-            break;
-          case CHAR_T:
-            c = TAB;
-            break;
-          case CHAR_U:
-            if (position + 5 > length) {
-              error('Invalid unicode esacape sequence');
-            }
-            final codeString = json.substring(position + 1, position + 5);
-            try {
-              c = int.parse('0x${codeString}');
-            } catch (e) {
-              error('Invalid unicode esacape sequence');
-            }
-            position += 4;
-            break;
-          default:
-            error('Invalid esacape sequence in string literal');
-        }
-      }
-      charCodes.add(c);
-      position++;
-    }
-
-    return new String.fromCharCodes(charCodes);
-  }
-
-  num parseNumber() {
-    if (!isToken(NUMBER_LITERAL)) error('Expected number literal');
-
-    final int startPos = position;
-    int char = char();
-    if (identical(char, MINUS)) char = nextChar();
-    if (identical(char, CHAR_0)) {
-      char = nextChar();
-    } else if (isDigit(char)) {
-      char = nextChar();
-      while (isDigit(char)) char = nextChar();
-    } else {
-      error('Expected digit when parsing number');
-    }
-
-    bool isInt = true;
-    if (identical(char, DOT)) {
-      char = nextChar();
-      if (isDigit(char)) {
-        char = nextChar();
-        isInt = false;
-        while (isDigit(char)) char = nextChar();
-      } else {
-        error('Expected digit following comma');
-      }
-    }
-
-    if (identical(char, CHAR_E) || identical(char, CHAR_CAPITAL_E)) {
-      char = nextChar();
-      if (identical(char, MINUS) || identical(char, PLUS)) char = nextChar();
-      if (isDigit(char)) {
-        char = nextChar();
-        isInt = false;
-        while (isDigit(char)) char = nextChar();
-      } else {
-        error('Expected digit following \'e\' or \'E\'');
-      }
-    }
-
-    String number = json.substring(startPos, position);
-    if (isInt) {
-      return int.parse(number);
-    } else {
-      return double.parse(number);
-    }
-  }
-
-  bool isChar(int char) {
-    if (position >= length) return false;
-    return json.charCodeAt(position) == char;
-  }
-
-  bool isDigit(int char) {
-    return char >= CHAR_0 && char <= CHAR_9;
-  }
-
-  bool isToken(int tokenKind) => token() == tokenKind;
-
-  int char() {
-    if (position >= length) {
-      error('Unexpected end of JSON stream');
-    }
-    return json.charCodeAt(position);
-  }
-
-  int nextChar() {
-    position++;
-    if (position >= length) return 0;
-    return json.charCodeAt(position);
-  }
-
-  int token() {
-    while (true) {
-      if (position >= length) return null;
-      int char = json.charCodeAt(position);
-      int token = tokens[char];
-      if (identical(token, WHITESPACE)) {
-        position++;
-        continue;
-      }
-      if (token == null) return 0;
-      return token;
-    }
-  }
-
-  void error(String message) {
-    throw message;
+  get result {
+    return reviver("", value);
   }
 }
+
+class JsonParser {
+  // A simple non-recursive state-based parser for JSON.
+  //
+  // Literal values accepted in states ARRAY_EMPTY, ARRAY_COMMA, OBJECT_COLON
+  // and strings also in OBJECT_EMPTY, OBJECT_COMMA.
+  //               VALUE  STRING  :  ,  }  ]        Transitions to
+  // EMPTY            X      X                   -> END
+  // ARRAY_EMPTY      X      X             @     -> ARRAY_VALUE / pop
+  // ARRAY_VALUE                     @     @     -> ARRAY_COMMA / pop
+  // ARRAY_COMMA      X      X                   -> ARRAY_VALUE
+  // OBJECT_EMPTY            X          @        -> OBJECT_KEY / pop
+  // OBJECT_KEY                   @              -> OBJECT_COLON
+  // OBJECT_COLON     X      X                   -> OBJECT_VALUE
+  // OBJECT_VALUE                    @  @        -> OBJECT_COMMA / pop
+  // OBJECT_COMMA            X                   -> OBJECT_KEY
+  // END
+  // Starting a new array or object will push the current state. The "pop"
+  // above means restoring this state and then marking it as an ended value.
+  // X means generic handling, @ means special handling for just that
+  // state - that is, values are handled generically, only punctuation
+  // cares about the current state.
+  // Values for states are chosen so bits 0 and 1 tell whether
+  // a string/value is allowed, and setting bits 0 through 2 after a value
+  // gets to the next state (not empty, doesn't allow a value).
+
+  // State building-block constants.
+  static const int INSIDE_ARRAY = 1;
+  static const int INSIDE_OBJECT = 2;
+  static const int AFTER_COLON = 3;  // Always inside object.
+
+  static const int ALLOW_STRING_MASK = 8;  // Allowed if zero.
+  static const int ALLOW_VALUE_MASK = 4;  // Allowed if zero.
+  static const int ALLOW_VALUE = 0;
+  static const int STRING_ONLY = 4;
+  static const int NO_VALUES = 12;
+
+  // Objects and arrays are "empty" until their first property/element.
+  static const int EMPTY = 0;
+  static const int NON_EMPTY = 16;
+  static const int EMPTY_MASK = 16;  // Empty if zero.
+
+
+  static const int VALUE_READ_BITS = NO_VALUES | NON_EMPTY;
+
+  // Actual states.
+  static const int STATE_INITIAL      = EMPTY | ALLOW_VALUE;
+  static const int STATE_END          = NON_EMPTY | NO_VALUES;
+
+  static const int STATE_ARRAY_EMPTY  = INSIDE_ARRAY | EMPTY | ALLOW_VALUE;
+  static const int STATE_ARRAY_VALUE  = INSIDE_ARRAY | NON_EMPTY | NO_VALUES;
+  static const int STATE_ARRAY_COMMA  = INSIDE_ARRAY | NON_EMPTY | ALLOW_VALUE;
+
+  static const int STATE_OBJECT_EMPTY = INSIDE_OBJECT | EMPTY | STRING_ONLY;
+  static const int STATE_OBJECT_KEY   = INSIDE_OBJECT | NON_EMPTY | NO_VALUES;
+  static const int STATE_OBJECT_COLON = AFTER_COLON | NON_EMPTY | ALLOW_VALUE;
+  static const int STATE_OBJECT_VALUE = AFTER_COLON | NON_EMPTY | NO_VALUES;
+  static const int STATE_OBJECT_COMMA = INSIDE_OBJECT | NON_EMPTY | STRING_ONLY;
+
+  // Character code constants.
+  static const int BACKSPACE       = 0x08;
+  static const int TAB             = 0x09;
+  static const int NEWLINE         = 0x0a;
+  static const int CARRIAGE_RETURN = 0x0d;
+  static const int FORM_FEED       = 0x0c;
+  static const int SPACE           = 0x20;
+  static const int QUOTE           = 0x22;
+  static const int PLUS            = 0x2b;
+  static const int COMMA           = 0x2c;
+  static const int MINUS           = 0x2d;
+  static const int DECIMALPOINT    = 0x2e;
+  static const int SLASH           = 0x2f;
+  static const int CHAR_0          = 0x30;
+  static const int CHAR_9          = 0x39;
+  static const int COLON           = 0x3a;
+  static const int CHAR_E          = 0x45;
+  static const int LBRACKET        = 0x5b;
+  static const int BACKSLASH       = 0x5c;
+  static const int RBRACKET        = 0x5d;
+  static const int CHAR_a          = 0x61;
+  static const int CHAR_b          = 0x62;
+  static const int CHAR_e          = 0x65;
+  static const int CHAR_f          = 0x66;
+  static const int CHAR_l          = 0x6c;
+  static const int CHAR_n          = 0x6e;
+  static const int CHAR_r          = 0x72;
+  static const int CHAR_s          = 0x73;
+  static const int CHAR_t          = 0x74;
+  static const int CHAR_u          = 0x75;
+  static const int LBRACE          = 0x7b;
+  static const int RBRACE          = 0x7d;
+
+  final String source;
+  final JsonListener listener;
+  JsonParser(this.source, this.listener);
+
+  /** Parses [source], or throws if it fails. */
+  void parse() {
+    final List<int> states = <int>[];
+    int state = STATE_INITIAL;
+    int position = 0;
+    int length = source.length;
+    while (position < length) {
+      int char = source.charCodeAt(position);
+      switch (char) {
+        case SPACE:
+        case CARRIAGE_RETURN:
+        case NEWLINE:
+        case TAB:
+          position++;
+          break;
+        case QUOTE:
+          if ((state & ALLOW_STRING_MASK) != 0) fail(position);
+          position = parseString(position + 1);
+          state |= VALUE_READ_BITS;
+          break;
+        case LBRACKET:
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
+          listener.beginArray();
+          states.add(state);
+          state = STATE_ARRAY_EMPTY;
+          position++;
+          break;
+        case LBRACE:
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
+          listener.beginObject();
+          states.add(state);
+          state = STATE_OBJECT_EMPTY;
+          position++;
+          break;
+        case CHAR_n:
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
+          position = parseNull(position);
+          state |= VALUE_READ_BITS;
+          break;
+        case CHAR_f:
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
+          position = parseFalse(position);
+          state |= VALUE_READ_BITS;
+          break;
+        case CHAR_t:
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
+          position = parseTrue(position);
+          state |= VALUE_READ_BITS;
+          break;
+        case COLON:
+          if (state != STATE_OBJECT_KEY) fail(position);
+          listener.propertyName();
+          state = STATE_OBJECT_COLON;
+          position++;
+          break;
+        case COMMA:
+          if (state == STATE_OBJECT_VALUE) {
+            listener.propertyValue();
+            state = STATE_OBJECT_COMMA;
+            position++;
+          } else if (state == STATE_ARRAY_VALUE) {
+            listener.arrayElement();
+            state = STATE_ARRAY_COMMA;
+            position++;
+          } else {
+            fail(position);
+          }
+          break;
+        case RBRACKET:
+          if (state == STATE_ARRAY_EMPTY) {
+            listener.endArray();
+          } else if (state == STATE_ARRAY_VALUE) {
+            listener.arrayElement();
+            listener.endArray();
+          } else {
+            fail(position);
+          }
+          state = states.removeLast() | VALUE_READ_BITS;
+          position++;
+          break;
+        case RBRACE:
+          if (state == STATE_OBJECT_EMPTY) {
+            listener.endObject();
+          } else if (state == STATE_OBJECT_VALUE) {
+            listener.propertyValue();
+            listener.endObject();
+          } else {
+            fail(position);
+          }
+          state = states.removeLast() | VALUE_READ_BITS;
+          position++;
+          break;
+        default:
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
+          position = parseNumber(char, position);
+          state |= VALUE_READ_BITS;
+          break;
+      }
+    }
+    if (state != STATE_END) fail(position);
+  }
+
+  /**
+   * Parses a "true" literal starting at [position].
+   *
+   * [:source[position]:] must be "t".
+   */
+  int parseTrue(int position) {
+    assert(source.charCodeAt(position) == CHAR_t);
+    if (source.length < position + 4) fail(position, "Unexpected identifier");
+    if (source.charCodeAt(position + 1) != CHAR_r ||
+        source.charCodeAt(position + 2) != CHAR_u ||
+        source.charCodeAt(position + 3) != CHAR_e) {
+      fail(position);
+    }
+    listener.handleBool(true);
+    return position + 4;
+  }
+
+  /**
+   * Parses a "false" literal starting at [position].
+   *
+   * [:source[position]:] must be "f".
+   */
+  int parseFalse(int position) {
+    assert(source.charCodeAt(position) == CHAR_f);
+    if (source.length < position + 5) fail(position, "Unexpected identifier");
+    if (source.charCodeAt(position + 1) != CHAR_a ||
+        source.charCodeAt(position + 2) != CHAR_l ||
+        source.charCodeAt(position + 3) != CHAR_s ||
+        source.charCodeAt(position + 4) != CHAR_e) {
+      fail(position);
+    }
+    listener.handleBool(false);
+    return position + 5;
+  }
+
+  /** Parses a "null" literal starting at [position].
+   *
+   * [:source[position]:] must be "n".
+   */
+  int parseNull(int position) {
+    assert(source.charCodeAt(position) == CHAR_n);
+    if (source.length < position + 4) fail(position, "Unexpected identifier");
+    if (source.charCodeAt(position + 1) != CHAR_u ||
+        source.charCodeAt(position + 2) != CHAR_l ||
+        source.charCodeAt(position + 3) != CHAR_l) {
+      fail(position);
+    }
+    listener.handleNull();
+    return position + 4;
+  }
+
+  int parseString(int position) {
+    // Format: '"'([^\x00-\x1f\\\"]|'\\'[bfnrt/\\"])*'"'
+    // Initial position is right after first '"'.
+    int start = position;
+    int char;
+    do {
+      if (position == source.length) {
+        fail(start - 1, "Unterminated string");
+      }
+      char = source.charCodeAt(position);
+      if (char == QUOTE) {
+        listener.handleString(source.substring(start, position));
+        return position + 1;
+      }
+      if (char < SPACE) {
+        fail(position, "Control character in string");
+      }
+      position++;
+    } while (char != BACKSLASH);
+    // Backslash escape detected. Collect character codes for rest of string.
+    int firstEscape = position - 1;
+    List<int> chars = <int>[];
+    while (true) {
+      if (position == source.length) {
+        fail(start - 1, "Unterminated string");
+      }
+      char = source.charCodeAt(position);
+      switch (char) {
+        case CHAR_b: char = BACKSPACE; break;
+        case CHAR_f: char = FORM_FEED; break;
+        case CHAR_n: char = NEWLINE; break;
+        case CHAR_r: char = CARRIAGE_RETURN; break;
+        case CHAR_t: char = TAB; break;
+        case SLASH:
+        case BACKSLASH:
+        case QUOTE:
+          break;
+        case CHAR_u: {
+          int hexStart = position - 1;
+          int value = 0;
+          for (int i = 0; i < 4; i++) {
+            position++;
+            if (position == source.length) {
+              fail(start - 1, "Unterminated string");
+            }
+            char = source.charCodeAt(position);
+            char -= 0x30;
+            if (char < 0) fail(hexStart, "Invalid unicode escape");
+            if (char < 10) {
+              value = value * 16 + char;
+            } else {
+              char = (char | 0x20) - 0x31;
+              if (char < 0 || char > 5) {
+                fail(hexStart, "Invalid unicode escape");
+              }
+              value = value * 16 + char + 10;
+            }
+          }
+          char = value;
+          break;
+        }
+        default:
+          if (char < SPACE) fail(position, "Control character in string");
+          fail(position, "Unrecognized string escape");
+      }
+      do {
+        chars.add(char);
+        position++;
+        if (position == source.length) fail(start - 1, "Unterminated string");
+        char = source.charCodeAt(position);
+        if (char == QUOTE) {
+          String result = new String.fromCharCodes(chars);
+          if (start < firstEscape) {
+            result = "${source.substring(start, firstEscape)}$result";
+          }
+          listener.handleString(result);
+          return position + 1;
+        }
+        if (char < SPACE) {
+          fail(position, "Control character in string");
+        }
+      } while (char != BACKSLASH);
+      position++;
+    }
+  }
+
+  int parseNumber(int char, int position) {
+    // Format:
+    //  '-'?('0'|[1-9][0-9]*)('.'[0-9]+)?([eE][+-]?[0-9]+)?
+    int start = position;
+    int length = source.length;
+    bool isDouble = false;
+    if (char == MINUS) {
+      position++;
+      if (position == length) fail(position, "Missing expected digit");
+      char = source.charCodeAt(position);
+    }
+    if (char < CHAR_0 || char > CHAR_9) {
+      fail(position, "Missing expected digit");
+    }
+    int handleLiteral(position) {
+      String literal = source.substring(start, position);
+      // This correctly creates -0 for doubles.
+      num value = (isDouble ? double.parse(literal) : int.parse(literal));
+      listener.handleNumber(value);
+      return position;
+    }
+    if (char == CHAR_0) {
+      position++;
+      if (position == length) return handleLiteral(position);
+      char = source.charCodeAt(position);
+      if (CHAR_0 <= char && char <= CHAR_9) {
+        fail(position);
+      }
+    } else {
+      do {
+        position++;
+        if (position == length) return handleLiteral(position);
+        char = source.charCodeAt(position);
+      } while (CHAR_0 <= char && char <= CHAR_9);
+    }
+    if (char == DECIMALPOINT) {
+      isDouble = true;
+      position++;
+      if (position == length) fail(position, "Missing expected digit");
+      char = source.charCodeAt(position);
+      if (char < CHAR_0 || char > CHAR_9) fail(position);
+      do {
+        position++;
+        if (position == length) return handleLiteral(position);
+        char = source.charCodeAt(position);
+      } while (CHAR_0 <= char && char <= CHAR_9);
+    }
+    if (char == CHAR_e || char == CHAR_E) {
+      isDouble = true;
+      position++;
+      if (position == length) fail(position, "Missing expected digit");
+      char = source.charCodeAt(position);
+      if (char == PLUS || char == MINUS) {
+        position++;
+        if (position == length) fail(position, "Missing expected digit");
+        char = source.charCodeAt(position);
+      }
+      if (char < CHAR_0 || char > CHAR_9) {
+        fail(position, "Missing expected digit");
+      }
+      do {
+        position++;
+        if (position == length) return handleLiteral(position);
+        char = source.charCodeAt(position);
+      } while (CHAR_0 <= char && char <= CHAR_9);
+    }
+    return handleLiteral(position);
+  }
+
+  void fail(int position, [String message]) {
+    if (message == null) message = "Unexpected character";
+    listener.fail(source, position, message);
+    // If the listener didn't throw, do it here.
+    String slice;
+    int sliceEnd = position + 20;
+    if (sliceEnd > source.length) {
+      slice = "'${source.substring(position)}'";
+    } else {
+      slice = "'${source.substring(position, sliceEnd)}...'";
+    }
+    throw new FormatException("Unexpected character at $position: $slice");
+  }
+}
+
 
 class _JsonStringifier {
   StringBuffer sb;
@@ -471,35 +668,35 @@ class _JsonStringifier {
       int charCode = s.charCodeAt(i);
       if (charCode < 32) {
         needsEscape = true;
-        charCodes.add(_JsonParser.BACKSLASH);
+        charCodes.add(JsonParser.BACKSLASH);
         switch (charCode) {
-        case _JsonParser.BACKSPACE:
-          charCodes.add(_JsonParser.CHAR_B);
+        case JsonParser.BACKSPACE:
+          charCodes.add(JsonParser.CHAR_b);
           break;
-        case _JsonParser.TAB:
-          charCodes.add(_JsonParser.CHAR_T);
+        case JsonParser.TAB:
+          charCodes.add(JsonParser.CHAR_t);
           break;
-        case _JsonParser.NEW_LINE:
-          charCodes.add(_JsonParser.CHAR_N);
+        case JsonParser.NEWLINE:
+          charCodes.add(JsonParser.CHAR_n);
           break;
-        case _JsonParser.FORM_FEED:
-          charCodes.add(_JsonParser.CHAR_F);
+        case JsonParser.FORM_FEED:
+          charCodes.add(JsonParser.CHAR_f);
           break;
-        case _JsonParser.CARRIAGE_RETURN:
-          charCodes.add(_JsonParser.CHAR_R);
+        case JsonParser.CARRIAGE_RETURN:
+          charCodes.add(JsonParser.CHAR_r);
           break;
         default:
-          charCodes.add(_JsonParser.CHAR_U);
+          charCodes.add(JsonParser.CHAR_u);
           charCodes.add(hexDigit((charCode >> 12) & 0xf));
           charCodes.add(hexDigit((charCode >> 8) & 0xf));
           charCodes.add(hexDigit((charCode >> 4) & 0xf));
           charCodes.add(hexDigit(charCode & 0xf));
           break;
         }
-      } else if (charCode == _JsonParser.QUOTE ||
-          charCode == _JsonParser.BACKSLASH) {
+      } else if (charCode == JsonParser.QUOTE ||
+          charCode == JsonParser.BACKSLASH) {
         needsEscape = true;
-        charCodes.add(_JsonParser.BACKSLASH);
+        charCodes.add(JsonParser.BACKSLASH);
         charCodes.add(charCode);
       } else {
         charCodes.add(charCode);

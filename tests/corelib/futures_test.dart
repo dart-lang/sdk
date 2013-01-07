@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library futures_test;
+import 'dart:async';
 import 'dart:isolate';
 
 Future testWaitEmpty() {
@@ -38,7 +39,7 @@ Future testForEach() {
   return Futures.forEach([1, 2, 3, 4, 5], (n) {
     seen.add(n);
     return new Future.immediate(null);
-  }).transform((_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
+  }).then((_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
 }
 
 Future testForEachWithException() {
@@ -47,10 +48,10 @@ Future testForEachWithException() {
     if (n == 4) throw 'correct exception';
     seen.add(n);
     return new Future.immediate(null);
-  }).transform((_) {
+  }).then((_) {
     throw 'incorrect exception';
-  }).transformException((e) {
-    Expect.equals('correct exception', e);
+  }).catchError((e) {
+    Expect.equals('correct exception', e.error);
   });
 }
 
@@ -63,7 +64,7 @@ main() {
   futures.add(testForEachEmpty());
   futures.add(testForEach());
 
-  // Use a receive port for blocking the test. 
+  // Use a receive port for blocking the test.
   // Note that if the test fails, the program will not end.
   ReceivePort port = new ReceivePort();
   Futures.wait(futures).then((List list) {

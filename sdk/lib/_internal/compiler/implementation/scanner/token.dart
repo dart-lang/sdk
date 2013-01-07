@@ -205,7 +205,7 @@ abstract class SourceString extends Iterable<int> {
   bool isPrivate();
 }
 
-class StringWrapper implements SourceString {
+class StringWrapper extends Iterable<int> implements SourceString {
   final String stringValue;
 
   const StringWrapper(String this.stringValue);
@@ -216,7 +216,7 @@ class StringWrapper implements SourceString {
     return other is SourceString && toString() == other.slowToString();
   }
 
-  Iterator<int> iterator() => new StringCodeIterator(stringValue);
+  Iterator<int> get iterator => new StringCodeIterator(stringValue);
 
   void printOn(StringBuffer sb) {
     sb.add(stringValue);
@@ -243,6 +243,7 @@ class StringCodeIterator implements Iterator<int> {
   final String string;
   int index;
   final int end;
+  int _current;
 
   StringCodeIterator(String string) :
     this.string = string, index = 0, end = string.length;
@@ -253,8 +254,14 @@ class StringCodeIterator implements Iterator<int> {
     assert(end <= string.length);
   }
 
-  bool get hasNext => index < end;
-  int next() => string.charCodeAt(index++);
+  int get current => _current;
+
+  bool moveNext() {
+    _current = null;
+    if (index >= end) return false;
+    _current = string.charCodeAt(index++);
+    return true;
+  }
 }
 
 class BeginGroupToken extends StringToken {

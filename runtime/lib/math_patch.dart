@@ -51,7 +51,7 @@ patch class Random {
 
 class _Random implements Random {
   // Internal state of the random number generator.
-  final _state = new List(2);
+  final _state = new List.fixedLength(2);
   static const kSTATE_LO = 0;
   static const kSTATE_HI = 1;
 

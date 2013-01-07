@@ -8,7 +8,7 @@ part of html;
 class $CLASSNAME$EXTENDS implements Map<String, String> $NATIVESPEC {
 
   // TODO(nweiz): update this when maps support lazy iteration
-  bool containsValue(String value) => values.some((e) => e == value);
+  bool containsValue(String value) => values.any((e) => e == value);
 
   bool containsKey(String key) => $dom_getItem(key) != null;
 

@@ -188,7 +188,7 @@ class _HttpHeaders implements HttpHeaders {
       if (value is int) {
         contentLength = value;
       } else if (value is String) {
-        contentLength = parseInt(value);
+        contentLength = int.parse(value);
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
@@ -237,7 +237,7 @@ class _HttpHeaders implements HttpHeaders {
           _port = HttpClient.DEFAULT_HTTP_PORT;
         } else {
           try {
-            _port = parseInt(value.substring(pos + 1));
+            _port = int.parse(value.substring(pos + 1));
           } on FormatException catch (e) {
             _port = null;
           }
@@ -630,7 +630,7 @@ class _Cookie implements Cookie {
         if (name == "expires") {
           expires = _HttpUtils.parseCookieDate(value);
         } else if (name == "max-age") {
-          maxAge = parseInt(value);
+          maxAge = int.parse(value);
         } else if (name == "domain") {
           domain = value;
         } else if (name == "path") {

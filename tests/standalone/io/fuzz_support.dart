@@ -4,7 +4,8 @@
 
 library fuzz_support;
 
-import "dart:io";
+import 'dart:async';
+import 'dart:io';
 
 const typeMapping = const {
   'null': null,
@@ -46,14 +47,7 @@ doItSync(Function f) {
 // Perform async operation and transform the future for the operation
 // into a future that never fails by treating errors as normal
 // completion.
-Future doItAsync(Function f) {
+Future doItAsync(void f()) {
   // Ignore value and errors.
-  var completer = new Completer();
-  var future = f();
-  future.handleException((e) {
-    completer.complete(true);
-    return true;
-  });
-  future.then((v) => completer.complete(true));
-  return completer.future;
+  return new Future.delayed(0, f).catchError((_) {}).then((_) => true);
 }

@@ -21,7 +21,7 @@ main() {
         a[i] = i;
       }
 
-      expect(a.filter((x) => x >= 1000).length, equals(24));
+      expect(a.where((x) => x >= 1000).length, equals(24));
   });
 
   test('filter_typed', () {
@@ -30,7 +30,7 @@ main() {
         a[i] = i;
       }
 
-      expect(a.filter((x) => x >= 1000).length, equals(24));
+      expect(a.where((x) => x >= 1000).length, equals(24));
   });
 
   test('contains', () {

@@ -16,17 +16,17 @@ main() {
     tearDown(stopServer);
 
     test('head', () {
-      expect(http.head(serverUrl).transform((response) {
+      expect(http.head(serverUrl).then(expectAsync1((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, equals(''));
-      }), completes);
+      })), completes);
     });
 
     test('get', () {
       expect(http.get(serverUrl, headers: {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value'
-      }).transform((response) {
+      }).then(expectAsync1((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'GET',
@@ -37,7 +37,7 @@ main() {
             'x-other-header': ['Other Value']
           },
         })));
-      }), completes);
+      })), completes);
     });
 
     test('post', () {
@@ -47,7 +47,7 @@ main() {
       }, fields: {
         'some-field': 'value',
         'other-field': 'other value'
-      }).transform((response) {
+      }).then(expectAsync1((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'POST',
@@ -62,7 +62,7 @@ main() {
           },
           'body': 'some-field=value&other-field=other+value'
         })));
-      }), completes);
+      })), completes);
     });
 
     test('post without fields', () {
@@ -70,7 +70,7 @@ main() {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value',
         'Content-Type': 'text/plain'
-      }).transform((response) {
+      }).then(expectAsync1((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'POST',
@@ -82,7 +82,7 @@ main() {
             'x-other-header': ['Other Value']
           }
         })));
-      }), completes);
+      })), completes);
     });
 
     test('put', () {
@@ -92,7 +92,7 @@ main() {
       }, fields: {
         'some-field': 'value',
         'other-field': 'other value'
-      }).transform((response) {
+      }).then(expectAsync1((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'PUT',
@@ -107,7 +107,7 @@ main() {
           },
           'body': 'some-field=value&other-field=other+value'
         })));
-      }), completes);
+      })), completes);
     });
 
     test('put without fields', () {
@@ -115,7 +115,7 @@ main() {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value',
         'Content-Type': 'text/plain'
-      }).transform((response) {
+      }).then(expectAsync1((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'PUT',
@@ -127,14 +127,14 @@ main() {
             'x-other-header': ['Other Value']
           }
         })));
-      }), completes);
+      })), completes);
     });
 
     test('delete', () {
       expect(http.delete(serverUrl, headers: {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value'
-      }).transform((response) {
+      }).then(expectAsync1((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'DELETE',
@@ -145,14 +145,14 @@ main() {
             'x-other-header': ['Other Value']
           }
         })));
-      }), completes);
+      })), completes);
     });
 
     test('read', () {
       expect(http.read(serverUrl, headers: {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value'
-      }), completion(parse(equals({
+      }).then(expectAsync1((val) => val)), completion(parse(equals({
         'method': 'GET',
         'path': '/',
         'headers': {
@@ -162,16 +162,17 @@ main() {
         },
       }))));
     });
-
+    
     test('read throws an error for a 4** status code', () {
-      expect(http.read(serverUrl.resolve('/error')), throwsHttpException);
+      expect(http.read(serverUrl.resolve('/error')).then((expectAsync1(x) => x)),
+             throwsHttpException);
     });
-
+    
     test('readBytes', () {
       var future = http.readBytes(serverUrl, headers: {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value'
-      }).transform((bytes) => new String.fromCharCodes(bytes));
+      }).then(expectAsync1((bytes) => new String.fromCharCodes(bytes)));
 
       expect(future, completion(parse(equals({
         'method': 'GET',
@@ -185,7 +186,8 @@ main() {
     });
 
     test('readBytes throws an error for a 4** status code', () {
-      expect(http.readBytes(serverUrl.resolve('/error')), throwsHttpException);
+      expect(http.readBytes(serverUrl.resolve('/error')).then((expectAsync1(x) => x)),
+             throwsHttpException);
     });
   });
 }

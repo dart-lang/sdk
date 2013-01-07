@@ -196,8 +196,8 @@ class NoSuchMethodError implements Error {
 /**
  * The operation was not allowed by the object.
  *
- * This [Error] is thrown when a class cannot implement
- * one of the methods in its signature.
+ * This [Error] is thrown when an instance cannot implement one of the methods
+ * in its signature.
  */
 class UnsupportedError implements Error {
   final String message;

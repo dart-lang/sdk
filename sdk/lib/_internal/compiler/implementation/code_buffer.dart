@@ -48,8 +48,8 @@ class CodeBuffer implements StringBuffer {
     buffer.add(other.getText());
   }
 
-  CodeBuffer addAll(Collection<Object> objects) {
-    for (Object obj in objects) {
+  CodeBuffer addAll(Iterable<Object> iterable) {
+    for (Object obj in iterable) {
       add(obj);
     }
     return this;

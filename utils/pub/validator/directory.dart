@@ -17,8 +17,8 @@ class DirectoryValidator extends Validator {
 
   Future validate() {
     return listDir(entrypoint.root.dir).chain((dirs) {
-      return Futures.wait(dirs.map((dir) {
-        return dirExists(dir).transform((exists) {
+      return Futures.wait(dirs.mappedBy((dir) {
+        return dirExists(dir).then((exists) {
           if (!exists) return;
 
           dir = basename(dir);

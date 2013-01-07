@@ -270,9 +270,21 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   bool isFixedSizeListConstructor(HInvokeStatic node) {
     Element element = node.target.element;
-    return element.getEnclosingClass() == compiler.listClass
-        && node.inputs.length == 2
-        && node.inputs[1].isInteger(types);
+    if (element.getEnclosingClass() != compiler.listClass) return false;
+    if (!element.isConstructor()) return false;
+    // Check that the constructor is called with an argument and that this
+    // argument is an integer.
+    // TODO(ngeoffray): maybe change the name of the function to reflect that
+    // we also look at the argument.
+    if (node.inputs.length != 2) return false;
+    if (!node.inputs[1].isInteger(types)) return false;
+
+    // TODO(ngeoffray): cache constructor.
+    FunctionElement fixedLengthListConstructor =
+        compiler.listClass.lookupConstructor(
+            new Selector.callConstructor(const SourceString("fixedLength"),
+                                         compiler.listClass.getLibrary()));
+    return element == fixedLengthListConstructor.defaultImplementation;
   }
 
   HInstruction visitInvokeStatic(HInvokeStatic node) {
@@ -608,7 +620,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitFieldGet(HFieldGet node) {
     if (node.element == backend.jsArrayLength) {
       if (node.receiver is HInvokeStatic) {
-        // Try to recognize the length getter with input [:new List(int):].
+        // Try to recognize the length getter with input
+        // [:new List.fixedLength(int):].
         HInvokeStatic call = node.receiver;
         if (isFixedSizeListConstructor(call)) {
           return call.inputs[1];
@@ -1090,8 +1103,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     // loop changes flags list to zero so we can use bitwise or when
     // propagating loop changes upwards.
     final int length = graph.blocks.length;
-    blockChangesFlags = new List<int>(length);
-    loopChangesFlags = new List<int>(length);
+    blockChangesFlags = new List<int>.fixedLength(length);
+    loopChangesFlags = new List<int>.fixedLength(length);
     for (int i = 0; i < length; i++) loopChangesFlags[i] = 0;
 
     // Run through all the basic blocks in the graph and fill in the
@@ -1167,7 +1180,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
   List<ValueSet> values;
 
   void visitGraph(HGraph graph) {
-    values = new List<ValueSet>(graph.blocks.length);
+    values = new List<ValueSet>.fixedLength(graph.blocks.length);
     for (int i = 0; i < graph.blocks.length; i++) {
       values[graph.blocks[i].id] = new ValueSet();
     }

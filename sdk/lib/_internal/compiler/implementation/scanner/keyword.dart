@@ -7,7 +7,7 @@ part of scanner;
 /**
  * A keyword in the Dart programming language.
  */
-class Keyword implements SourceString {
+class Keyword extends Iterable<int> implements SourceString {
   static const List<Keyword> values = const <Keyword> [
       const Keyword("assert"),
       const Keyword("break"),
@@ -102,7 +102,7 @@ class Keyword implements SourceString {
     return other is SourceString && toString() == other.slowToString();
   }
 
-  Iterator<int> iterator() => new StringCodeIterator(syntax);
+  Iterator<int> get iterator => new StringCodeIterator(syntax);
 
   void printOn(StringBuffer sb) {
     sb.add(syntax);
@@ -132,7 +132,8 @@ abstract class KeywordState {
   static KeywordState _KEYWORD_STATE;
   static KeywordState get KEYWORD_STATE {
     if (_KEYWORD_STATE == null) {
-      List<String> strings = new List<String>(Keyword.values.length);
+      List<String> strings =
+          new List<String>.fixedLength(Keyword.values.length);
       for (int i = 0; i < Keyword.values.length; i++) {
         strings[i] = Keyword.values[i].syntax;
       }
@@ -144,7 +145,7 @@ abstract class KeywordState {
 
   static KeywordState computeKeywordStateTable(int start, List<String> strings,
                                                int offset, int length) {
-    List<KeywordState> result = new List<KeywordState>(26);
+    List<KeywordState> result = new List<KeywordState>.fixedLength(26);
     assert(length != 0);
     int chunk = 0;
     int chunkStart = -1;

@@ -12,6 +12,10 @@ testUri(String uri, bool isAbsolute) {
   Expect.equals(isAbsolute, new Uri(uri).isAbsolute());
   Expect.stringEquals(uri, new Uri.fromString(uri).toString());
   Expect.stringEquals(uri, new Uri(uri).toString());
+
+  // Test equals and hashCode members.
+  Expect.equals(new Uri(uri), new Uri(uri));
+  Expect.equals(new Uri(uri).hashCode, new Uri(uri).hashCode);
 }
 
 testEncodeDecode(String orig, String encoded) {

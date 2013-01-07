@@ -23,6 +23,6 @@ main() {
 main() {
   String generated = compileAll(CODE);
   RegExp regexp = new RegExp(r'A\$0: function');
-  Iterator<Match> matches = regexp.allMatches(generated).iterator();
+  Iterator<Match> matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 1);
 }

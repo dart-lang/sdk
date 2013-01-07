@@ -14,7 +14,7 @@ main() {
   var isAnchorElement =
       predicate((x) => x is AnchorElement, 'is an AnchorElement');
 
-  Collection<String> _nodeStrings(Collection<Node> input) {
+  List<String> _nodeStrings(Iterable<Node> input) {
     var out = new List<String>();
     for (Node n in input) {
       if (n is Element) {
@@ -166,9 +166,9 @@ main() {
     test('accessors are wrapped', () {
       init();
       expect(children[0].tagName, "A");
-      expect(_nodeStrings(children.filter((e) => e.tagName == "I")), ["I"]);
+      expect(_nodeStrings(children.where((e) => e.tagName == "I")), ["I"]);
       expect(children.every((e) => e is Element), isTrue);
-      expect(children.some((e) => e.tagName == "U"), isTrue);
+      expect(children.any((e) => e.tagName == "U"), isTrue);
       expect(children.isEmpty, isFalse);
       expect(children.length, 4);
       expect(children[2].tagName, "I");

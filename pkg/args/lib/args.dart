@@ -353,7 +353,7 @@ class ArgParser {
   _setOption(Map results, _Option option, value) {
     // See if it's one of the allowed values.
     if (option.allowed != null) {
-      _validate(option.allowed.some((allow) => allow == value),
+      _validate(option.allowed.any((allow) => allow == value),
           '"$value" is not an allowed value for option "${option.name}".');
     }
 
@@ -544,7 +544,7 @@ class ArgResults {
   }
 
   /** Get the names of the options as a [Collection]. */
-  Collection<String> get options => _options.keys;
+  Collection<String> get options => _options.keys.toList();
 }
 
 class _Option {
@@ -630,8 +630,8 @@ class _Usage {
       if (option.help != null) write(2, option.help);
 
       if (option.allowedHelp != null) {
-        var allowedNames = option.allowedHelp.keys;
-        allowedNames.sort((a, b) => a.compareTo(b));
+        var allowedNames = option.allowedHelp.keys.toList();
+        allowedNames.sort();
         newline();
         for (var name in allowedNames) {
           write(1, getAllowedTitle(name));

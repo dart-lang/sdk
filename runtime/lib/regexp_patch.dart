@@ -5,10 +5,10 @@
 patch class RegExp {
   /* patch */ factory RegExp(String pattern,
                              {bool multiLine: false,
-                              bool ignoreCase: false}) {
+                              bool caseSensitive: true}) {
     return new _JSSyntaxRegExp(pattern,
                                multiLine: multiLine,
-                               ignoreCase: ignoreCase);
+                               caseSensitive: caseSensitive);
   }
 }
 
@@ -44,7 +44,7 @@ class _JSRegExpMatch implements Match {
   }
 
   List<String> groups(List<int> groupsSpec) {
-    var groupsList = new List<String>(groupsSpec.length);
+    var groupsList = new List<String>.fixedLength(groupsSpec.length);
     for (int i = 0; i < groupsSpec.length; i++) {
       groupsList[i] = group(groupsSpec[i]);
     }
@@ -66,7 +66,7 @@ class _JSSyntaxRegExp implements RegExp {
   factory _JSSyntaxRegExp(
       String pattern,
       {bool multiLine: false,
-       bool ignoreCase: false}) native "JSSyntaxRegExp_factory";
+       bool caseSensitive: true}) native "JSSyntaxRegExp_factory";
 
   Match firstMatch(String str) {
     List match = _ExecuteMatch(str, 0);
@@ -114,9 +114,9 @@ class _JSSyntaxRegExp implements RegExp {
 
   String get pattern native "JSSyntaxRegExp_getPattern";
 
-  bool get multiLine native "JSSyntaxRegExp_multiLine";
+  bool get isMultiLine native "JSSyntaxRegExp_getIsMultiLine";
 
-  bool get ignoreCase native "JSSyntaxRegExp_ignoreCase";
+  bool get isCaseSensitive native "JSSyntaxRegExp_getIsCaseSensitive";
 
   int get _groupCount native "JSSyntaxRegExp_getGroupCount";
 

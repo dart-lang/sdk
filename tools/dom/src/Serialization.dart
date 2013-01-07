@@ -90,15 +90,15 @@ abstract class _Serializer extends _MessageTraverser {
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
-    var keys = _serializeList(map.keys);
-    var values = _serializeList(map.values);
+    var keys = _serializeList(map.keys.toList());
+    var values = _serializeList(map.values.toList());
     // TODO(floitsch): we are losing the generic type.
     return ['map', id, keys, values];
   }
 
   _serializeList(List list) {
     int len = list.length;
-    var result = new List(len);
+    var result = new List.fixedLength(len);
     for (int i = 0; i < len; i++) {
       result[i] = _dispatch(list[i]);
     }

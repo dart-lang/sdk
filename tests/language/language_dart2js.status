@@ -70,6 +70,10 @@ factory_redirection_test/12: Fail
 factory_redirection_test/13: Fail
 factory_redirection_test/14: Fail
 
+double_to_string_as_exponential2_test: Fail # toStringAsExponential doesn't check if argument is an integer.
+double_to_string_as_fixed2_test: Fail # toStringAsFixed doesn't check if argument is an integer.
+double_to_string_as_precision2_test: Fail # toStringAsPrecision doesn't check if argument is an integer.
+
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
 compile_time_constant_checked_test/02: Fail, OK

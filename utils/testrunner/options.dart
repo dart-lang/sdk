@@ -200,7 +200,7 @@ ArgResults loadConfiguration(optionsParser) {
   var options = new List();
   // We first load options from a test.config file in the working directory.
   options.addAll(getFileContents('test.config', false).
-      filter((e) => e.trim().length > 0 && e[0] != '#'));
+      where((e) => e.trim().length > 0 && e[0] != '#'));
   // Next we look to see if the command line included a -testconfig argument,
   // and if so, load options from that file too; where these are not
   // multi-valued they will take precedence over the ones in test.config.
@@ -213,11 +213,11 @@ ArgResults loadConfiguration(optionsParser) {
           throw new Exception('Missing argument to $cfgarg');
         }
         options.addAll(getFileContents(commandLineArgs[++i], true).
-            filter((e) => e.trim().length > 0 && e[0] != '#'));
+            where((e) => e.trim().length > 0 && e[0] != '#'));
       } else if (commandLineArgs[i].startsWith('$cfgarg=')) {
         options.addAll(
             getFileContents(commandLineArgs[i].substring(cfgarg.length), true).
-                filter((e) => e.trim().length > 0 && e[0] != '#'));
+                where((e) => e.trim().length > 0 && e[0] != '#'));
       } else {
         throw new Exception('Missing argument to $cfgarg');
       }

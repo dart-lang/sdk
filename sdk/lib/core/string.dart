@@ -10,11 +10,23 @@ part of dart.core;
  * scalar character codes accessible through the [charCodeAt] or the
  * [charCodes] method.
  */
-abstract class String implements Comparable, Pattern, Sequence<String> {
+abstract class String implements Comparable, Pattern {
   /**
    * Allocates a new String for the specified [charCodes].
    */
   external factory String.fromCharCodes(List<int> charCodes);
+
+  /**
+   * Allocates a new String for the specified [charCode].
+   *
+   * The built string is of [length] one, if the [charCode] lies inside the
+   * basic multilingual plane (plane 0). Otherwise the [length] is 2 and
+   * the code units form a surrogate pair.
+   */
+  factory String.character(int charCode) {
+    List<int> charCodes = new List<int>.fixedLength(1, fill: charCode);
+    return new String.fromCharCodes(charCodes);
+  }
 
   /**
    * Gets the character (as [String]) at the given [index].
@@ -72,6 +84,22 @@ abstract class String implements Comparable, Pattern, Sequence<String> {
   String concat(String other);
 
   /**
+   * Returns a slice of this string from [startIndex] to [endIndex].
+   *
+   * If [startIndex] is omitted, it defaults to the start of the string.
+   *
+   * If [endIndex] is omitted, it defaults to the end of the string.
+   *
+   * If either index is negative, it's taken as a negative index from the
+   * end of the string. Their effective value is computed by adding the
+   * negative value to the [length] of the string.
+   *
+   * The effective indices, after  must be non-negative, no greater than the
+   * length of the string, and [endIndex] must not be less than [startIndex].
+   */
+  String slice([int startIndex, int endIndex]);
+
+  /**
    * Returns a substring of this string in the given range.
    * [startIndex] is inclusive and [endIndex] is exclusive.
    */
@@ -102,9 +130,19 @@ abstract class String implements Comparable, Pattern, Sequence<String> {
 
   /**
    * Returns a new string where all occurences of [from] in this string
-   * are replaced with [to].
+   * are replaced with [replace].
    */
-  String replaceAll(Pattern from, String to);
+  String replaceAll(Pattern from, var replace);
+
+  /**
+   * Returns a new string where all occurences of [from] in this string
+   * are replaced with a [String] depending on [replace].
+   *
+   *
+   * The [replace] function is called with the [Match] generated
+   * by the pattern, and its result is used as replacement.
+   */
+  String replaceAllMapped(Pattern from, String replace(Match match));
 
   /**
    * Splits the string around matches of [pattern]. Returns
@@ -116,6 +154,23 @@ abstract class String implements Comparable, Pattern, Sequence<String> {
    * Returns a list of the characters of this string.
    */
   List<String> splitChars();
+
+  /**
+   * Splits the string on the [pattern], then converts each part and each match.
+   *
+   * The pattern is used to split the string into parts and separating matches.
+   *
+   * Each match is converted to a string by calling [onMatch]. If [onMatch]
+   * is omitted, the matched string is used.
+   *
+   * Each non-matched part is converted by a call to [onNonMatch]. If
+   * [onNonMatch] is omitted, the non-matching part is used.
+   *
+   * Then all the converted parts are combined into the resulting string.
+   */
+  String splitMapJoin(Pattern pattern,
+                      {String onMatch(Match match),
+                       String onNonMatch(String nonMatch)});
 
   /**
    * Returns a list of the scalar character codes of this string.

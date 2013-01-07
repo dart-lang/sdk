@@ -15,6 +15,9 @@
  */
 
 library date_symbol_data;
+
+import 'dart:async';
+
 import "date_symbols.dart";
 import "src/date_format_internal.dart";
 import "date_time_patterns.dart";

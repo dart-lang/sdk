@@ -4,6 +4,7 @@
 
 library mirrors;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:uri';
 
@@ -194,9 +195,9 @@ abstract class InstanceMirror implements ObjectMirror {
 /**
  * Specialized [InstanceMirror] used for reflection on constant lists.
  */
-abstract class ListInstanceMirror
-    implements InstanceMirror, Sequence<Future<InstanceMirror>> {
-
+abstract class ListInstanceMirror implements InstanceMirror {
+  Future<InstanceMirror> operator[](int index);
+  int get length;
 }
 
 /**

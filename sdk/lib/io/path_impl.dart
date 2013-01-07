@@ -134,7 +134,7 @@ class _Path implements Path {
     }
     if (segs.last == '') segs.removeLast();  // Path ends with /.
     // No remaining segments can be ., .., or empty.
-    return !segs.some((s) => s == '' || s == '.' || s == '..');
+    return !segs.any((s) => s == '' || s == '.' || s == '..');
   }
 
   Path makeCanonical() {

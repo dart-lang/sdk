@@ -85,7 +85,7 @@ class _SendPortImpl implements SendPort {
     port.receive((value, ignoreReplyTo) {
       port.close();
       if (value is Exception) {
-        completer.completeException(value);
+        completer.completeError(value);
       } else {
         completer.complete(value);
       }
@@ -122,50 +122,17 @@ _getPortInternal() native "isolate_getPortInternal";
 
 ReceivePort _portInternal;
 
-patch ReceivePort get port {
-  if (_portInternal == null) {
-    _portInternal = _getPortInternal();
-  }
-  return _portInternal;
-}
-
-patch spawnFunction(void topLevelFunction(),
-    [bool UnhandledExceptionCallback(IsolateUnhandledException e)]) 
-    native "isolate_spawnFunction";
-
-patch spawnUri(String uri) native "isolate_spawnUri";
-
-patch class Timer {
-  /* patch */ factory Timer(int milliseconds, void callback(Timer timer)) {
-    if (_TimerFactory._factory == null) {
-      throw new UnsupportedError("Timer interface not supported.");
+patch class _Isolate {
+  /* patch */ static ReceivePort get port {
+    if (_portInternal == null) {
+      _portInternal = _getPortInternal();
     }
-    return _TimerFactory._factory(milliseconds, callback, false);
+    return _portInternal;
   }
 
-  /**
-   * Creates a new repeating timer. The [callback] is invoked every
-   * [milliseconds] millisecond until cancelled.
-   */
-  /* patch */ factory Timer.repeating(int milliseconds,
-                                      void callback(Timer timer)) {
-    if (_TimerFactory._factory == null) {
-      throw new UnsupportedError("Timer interface not supported.");
-    }
-    return _TimerFactory._factory(milliseconds, callback, true);
-  }
-}
+  /* patch */ static spawnFunction(void topLevelFunction(),
+      [bool UnhandledExceptionCallback(IsolateUnhandledException e)]) 
+      native "isolate_spawnFunction";
 
-typedef Timer _TimerFactoryClosure(int milliseconds,
-                                   void callback(Timer timer),
-                                   bool repeating);
-
-class _TimerFactory {
-  static _TimerFactoryClosure _factory;
-}
-
-// TODO(ahe): Warning: this is NOT called by Dartium. Instead, it sets
-// [_TimerFactory._factory] directly.
-void _setTimerFactoryClosure(_TimerFactoryClosure closure) {
-  _TimerFactory._factory = closure;
+  /* patch */ static spawnUri(String uri) native "isolate_spawnUri";
 }

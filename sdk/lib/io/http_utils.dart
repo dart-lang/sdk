@@ -207,7 +207,7 @@ class _HttpUtils {
       String tmp = date.substring(index, pos);
       index = pos + separator.length;
       try {
-        int value = parseInt(tmp);
+        int value = int.parse(tmp);
         return value;
       } on FormatException catch (e) {
         throw new HttpException("Invalid HTTP date $date");
@@ -300,7 +300,7 @@ class _HttpUtils {
     int toInt(String s) {
       int index = 0;
       for (; index < s.length && isDigit(s[index]); index++);
-      return parseInt(s.substring(0, index));
+      return int.parse(s.substring(0, index));
     }
 
     var tokens = [];

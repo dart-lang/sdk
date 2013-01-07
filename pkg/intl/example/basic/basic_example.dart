@@ -19,6 +19,7 @@ library intl_basic_example;
 // These can be replaced with package:intl/... references if using this in
 // a separate package.
 // TODO(alanknight): Replace these with package: once pub works in buildbots.
+import 'dart:async';
 import '../../lib/date_symbol_data_local.dart';
 import '../../lib/intl.dart';
 import '../../lib/message_lookup_local.dart';
@@ -57,8 +58,8 @@ runProgram(List<Future> _) {
   printForLocale(aDate, de, runAt);
   printForLocale(aDate, th, runAt);
   // Example making use of the return value from withLocale;
-  var useReturnValue = Intl.withLocale(th.locale, () => runAt('now', 'today'));
-  doThisWithTheOutput(useReturnValue);
+  Intl.withLocale(th.locale, () => runAt('now', 'today'))
+    .then(doThisWithTheOutput);
 }
 
 printForLocale(aDate, intl, operation) {
@@ -66,5 +67,7 @@ printForLocale(aDate, intl, operation) {
   var dayFormat = intl.date().add_yMMMMEEEEd();
   var time = hmsFormat.format(aDate);
   var day = dayFormat.format(aDate);
-  Intl.withLocale(intl.locale, () { doThisWithTheOutput(operation(time,day));});
+  Intl.withLocale(intl.locale, () {
+    operation(time,day).then(doThisWithTheOutput);
+  });
 }

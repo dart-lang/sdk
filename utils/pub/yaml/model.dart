@@ -90,7 +90,8 @@ class _SequenceNode extends _Node {
     return true;
   }
 
-  String toString() => '$tag [${Strings.join(content.map((e) => '$e'), ', ')}]';
+  String toString() =>
+      '$tag [${Strings.join(content.mappedBy((e) => '$e'), ', ')}]';
 
   int get hashCode => super.hashCode ^ _hashCode(content);
 
@@ -149,7 +150,7 @@ class _ScalarNode extends _Node {
       // TODO(nweiz): This could be faster if we used a RegExp to check for
       // special characters and short-circuited if they didn't exist.
 
-      var escapedValue = value.charCodes.map((c) {
+      var escapedValue = value.charCodes.mappedBy((c) {
         switch (c) {
         case _Parser.TAB: return "\\t";
         case _Parser.LF: return "\\n";
@@ -221,8 +222,9 @@ class _MappingNode extends _Node {
   }
 
   String toString() {
-    var strContent = Strings.join(content.keys.
-        map((k) => '${k}: ${content[k]}'), ', ');
+    var strContent = content.keys
+        .mappedBy((k) => '${k}: ${content[k]}')
+        .join(', ');
     return '$tag {$strContent}';
   }
 

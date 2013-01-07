@@ -53,7 +53,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       throw new ArgumentError("Arguments is not a List: $arguments");
     }
     int len = arguments.length;
-    _arguments = new List<String>(len);
+    _arguments = new List<String>.fixedLength(len);
     for (int i = 0; i < len; i++) {
       var arg = arguments[i];
       if (arg is !String) {
@@ -170,7 +170,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
         _out.close();
         _err.close();
         _exitHandler.close();
-        completer.completeException(
+        completer.completeError(
             new ProcessException(_path,
                                  _arguments,
                                  status._errorMessage,
@@ -194,7 +194,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       // callback when a process terminates.
       int exitDataRead = 0;
       final int EXIT_DATA_SIZE = 8;
-      List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
+      List<int> exitDataBuffer = new List<int>.fixedLength(EXIT_DATA_SIZE);
       _exitHandler.inputStream.onData = () {
 
         int exitCode(List<int> ints) {
@@ -206,9 +206,8 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 
         void handleExit() {
           _ended = true;
-          if (_onExit != null) {
-            _onExit(exitCode(exitDataBuffer));
-          }
+          _exitCode = exitCode(exitDataBuffer);
+          if (_onExit != null) _onExit(_exitCode);
           _out.close();
         }
 
@@ -257,12 +256,28 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     return _kill(this, signal._signalNumber);
   }
 
+  void add(List<int> data) {
+    stdin.write(data);
+  }
+
+  void close() {
+    stdin.close();
+  }
+
+  void signalError(ASyncError error) {
+    // TODO(ajohnsen): close?
+  }
+
+  Stream<List<int>> get stdoutStream
+    => new _InputStreamController(stdout).stream;
+
+  Stream<List<int>> get stderrStream
+    => new _InputStreamController(stderr).stream;
+
   bool _kill(Process p, int signal) native "Process_Kill";
 
   void set onExit(void callback(int exitCode)) {
-    if (_ended) {
-      throw new ProcessException(_path, _arguments, "Process killed");
-    }
+    if (_ended) callback(_exitCode);
     _onExit = callback;
   }
 
@@ -275,6 +290,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
   _Socket _out;
   _Socket _err;
   Socket _exitHandler;
+  int _exitCode;
   bool _ended;
   bool _started;
   Function _onExit;
@@ -346,11 +362,8 @@ class _NonInteractiveProcess {
         _stderrClosed = true;
         _checkDone();
       };
-    });
-
-    processFuture.handleException((error) {
-      _completer.completeException(error);
-      return true;
+    }).catchError((error) {
+      _completer.completeError(error.error);
     });
   }
 

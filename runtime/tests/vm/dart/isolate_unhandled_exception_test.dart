@@ -35,14 +35,15 @@ void main() {
 
   // Send a message that will cause an ignorable exception to be thrown.
   Future f = isolate_port.call('throw exception');
-  f.onComplete((future) {
+  f.catchError((error) {
     // Exception wasn't ignored as it was supposed to be.
-    Expect.equals(null, future.exception);
+    Expect.fail("Error not expected");
   });
 
   // Verify that isolate can still handle messages.
-  isolate_port.call('hi').onComplete((future) {
-    Expect.equals(null, future.exception);
-    Expect.equals('hello', future.value);
+  isolate_port.call('hi').then((value) {
+    Expect.equals('hello', value);
+  }, onError: (error) {
+    Expect.fail("Error not expected");
   });
 }

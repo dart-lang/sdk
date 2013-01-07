@@ -4,6 +4,7 @@
 
 library io_client;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'base_client.dart';
@@ -25,6 +26,7 @@ class IOClient extends BaseClient {
 
     var completer = new Completer<StreamedResponse>();
     var connection = _inner.openUrl(request.method, request.url);
+    bool completed = false;
     connection.followRedirects = request.followRedirects;
     connection.maxRedirects = request.maxRedirects;
     connection.onError = (e) {
@@ -33,9 +35,10 @@ class IOClient extends BaseClient {
         // onRequest or onResponse callbacks get passed to onError. If the
         // completer has already fired, we want to re-throw those exceptions
         // to the top level so that they aren't silently ignored.
-        if (completer.future.isComplete) throw e;
+        if (completed) throw e;
 
-        completer.completeException(e);
+        completed = true;
+        completer.completeError(e);
       });
     };
 
@@ -57,6 +60,9 @@ class IOClient extends BaseClient {
       var headers = <String>{};
       response.headers.forEach((key, value) => headers[key] = value);
 
+      if (completed) return;
+
+      completed = true;
       completer.complete(new StreamedResponse(
           response.inputStream,
           response.statusCode,

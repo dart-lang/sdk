@@ -328,7 +328,7 @@ class _HttpParser {
           case _State.RESPONSE_LINE_ENDING:
             _expect(byte, _CharCode.LF);
             _messageType == _MessageType.RESPONSE;
-             _statusCode = parseInt(
+             _statusCode = int.parse(
                  new String.fromCharCodes(_method_or_status_code));
             if (_statusCode < 100 || _statusCode > 599) {
               throw new HttpParserException("Invalid response status code");

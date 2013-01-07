@@ -150,16 +150,19 @@ abstract class SerializationRule {
    * iterator in a flat format.
    */
   pullStateFrom(Iterator stream) {
-    var numberOfEntries = stream.next();
+    stream.moveNext();
+    var numberOfEntries = stream.current;
     var ruleData = new List();
     for (var i = 0; i < numberOfEntries; i++) {
       var subLength = dataLengthIn(stream);
       var subList = [];
       ruleData.add(subList);
       for (var j = 0; j < subLength; j++) {
-        var a = stream.next();
-        var b = stream.next();
-        if (!(a is int)) {
+        stream.moveNext();
+        var a = stream.current;
+        stream.moveNext();
+        var b = stream.current;
+        if (a is! int) {
           // This wasn't a reference, just use the first object as a literal.
           // particularly used for the case of null.
           subList.add(a);
@@ -174,11 +177,11 @@ abstract class SerializationRule {
   /**
    * Return the length of the list of data we expect to see on a particular
    * iterator in a flat format. This may have been encoded in the stream if we
-   * are variable length, or it may be constant. Note that this is expressed in
-   *
+   * are variable length, or it may be constant. Returns null if the [Iterator]
+   * is empty.
    */
   dataLengthIn(Iterator stream) =>
-      writeLengthInFlatFormat ? stream.next() : dataLength;
+      writeLengthInFlatFormat ? (stream..moveNext()).current : dataLength;
 
   /**
    * If the data is fixed length, return it here. Unused in the non-flat
@@ -231,15 +234,19 @@ class ListRule extends SerializationRule {
     // TODO(alanknight): This is much too close to the basicRule implementation,
     // and I'd refactor them if I didn't think this whole mechanism needed to
     // change soon.
-    var length = stream.next();
+    stream.moveNext();
+    var length = stream.current;
     var ruleData = new List();
     for (var i = 0; i < length; i++) {
-      var subLength = stream.next();
+      stream.moveNext();
+      var subLength = stream.current;
       var subList = new List();
       ruleData.add(subList);
       for (var j = 0; j < subLength; j++) {
-        var a = stream.next();
-        var b = stream.next();
+        stream.moveNext();
+        var a = stream.current;
+        stream.moveNext();
+        var b = stream.current;
         if (!(a is int)) {
           // This wasn't a reference, just use the first object as a literal.
           // particularly used for the case of null.
@@ -320,10 +327,12 @@ class PrimitiveRule extends SerializationRule {
    * indicating the number of objects and then N simple objects.
    */
   pullStateFrom(Iterator stream) {
-    var length = stream.next();
+    stream.moveNext();
+    var length = stream.current;
     var ruleData = new List();
     for (var i = 0; i < length; i++) {
-      ruleData.add(stream.next());
+      stream.moveNext();
+      ruleData.add(stream.current);
     }
     return ruleData;
   }
@@ -487,7 +496,7 @@ abstract class CustomRule extends SerializationRule {
 
 /** Create a lazy list/map that will inflate its items on demand in [r]. */
 _lazy(l, Reader r) {
-  if (l is List) return new _LazyList(l, r);
+  if (l is List) return l.mappedBy(r.inflateReference);
   if (l is Map) return new _LazyMap(l, r);
   throw new SerializationException("Invalid type: must be Map or List - $l");
 }
@@ -510,14 +519,14 @@ class _LazyMap implements Map {
 
   int get length => _raw.length;
   bool get isEmpty => _raw.isEmpty;
-  List get keys => _raw.keys;
+  Iterable get keys => _raw.keys;
   bool containsKey(x) => _raw.containsKey(x);
 
   // These operations will work, but may be expensive, and are probably
   // best avoided.
   get _inflated => keysAndValues(_raw).map(_reader.inflateReference);
   bool containsValue(x) => _inflated.containsValue(x);
-  List get values => _inflated.values;
+  Iterable get values => _inflated.values;
   void forEach(f) => _inflated.forEach(f);
 
   // These operations are all invalid
@@ -526,56 +535,4 @@ class _LazyMap implements Map {
   putIfAbsent(x, y) => _throw();
   remove(x) => _throw();
   clear() => _throw();
-}
-
-/**
- * This provides an implementation of List that wraps a list which may
- * contain references to (potentially) non-inflated objects. If these
- * are accessed it will inflate them. This allows us to pass something that
- * looks like it's just a list of objects to a [CustomRule] without needing
- * to inflate all the references in advance.
- */
-class _LazyList implements List {
-  _LazyList(this._raw, this._reader);
-
-  List _raw;
-  Reader _reader;
-
-  // This is the only operation that really matters.
-  operator [](x) => _reader.inflateReference(_raw[x]);
-
-  int get length => _raw.length;
-  bool get isEmpty => _raw.isEmpty;
-  get first => _reader.inflateReference(_raw.first);
-  get last => _reader.inflateReference(_raw.last);
-
-  // These operations will work, but may be expensive, and are probably
-  // best avoided.
-  get _inflated => _raw.map(_reader.inflateReference);
-  map(f) => _inflated.map(f);
-  filter(f) => _inflated.filter(f);
-  bool contains(element) => _inflated.filter(element);
-  forEach(f) => _inflated.forEach(f);
-  reduce(x, f) => _inflated.reduce(x, f);
-  every(f) => _inflated(f);
-  some(f) => _inflated(f);
-  iterator() => _inflated.iterator();
-  indexOf(x, [pos = 0]) => _inflated.indexOf(x);
-  lastIndexOf(x, [pos]) => _inflated.lastIndexOf(x);
-
-  // These operations are all invalid
-  _throw() => throw new UnsupportedError("Not modifiable");
-  operator []=(x, y) => _throw();
-  add(x) => _throw();
-  addLast(x) => _throw();
-  addAll(x) => _throw();
-  sort([f]) => _throw();
-  clear() => _throw();
-  removeAt(x) => _throw();
-  removeLast() => _throw();
-  getRange(x, y) => _throw();
-  setRange(x, y, z, [a]) => _throw();
-  removeRange(x, y) => _throw();
-  insertRange(x, y, [z]) => _throw();
-  void set length(x) => _throw();
 }

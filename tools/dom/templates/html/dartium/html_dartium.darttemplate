@@ -7,11 +7,12 @@
 
 library html;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:nativewrappers';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
@@ -75,7 +76,7 @@ var _callPortLastResult = null;
 _callPortSync(num id, var message) {
   if (!_callPortInitialized) {
     window.on['js-result'].add((event) {
-      _callPortLastResult = JSON.parse(_getPortSyncEventData(event));
+      _callPortLastResult = json.parse(_getPortSyncEventData(event));
     }, false);
     _callPortInitialized = true;
   }

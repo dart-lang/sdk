@@ -161,7 +161,7 @@ class _DataAttributeMap implements Map<String, String> {
   // interface Map
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => values.some((v) => v == value);
+  bool containsValue(String value) => values.any((v) => v == value);
 
   bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
 

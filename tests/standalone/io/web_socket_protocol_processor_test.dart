@@ -72,7 +72,7 @@ List<int> createFrame(bool fin,
   frameSize += count;
   // No masking.
   assert(maskingKey == null);
-  List<int> frame = new List<int>(frameSize);
+  List<int> frame = new List<int>.fixedLength(frameSize);
   int frameIndex = 0;
   frame[frameIndex++] = (fin ? 0x80 : 0x00) | opcode;
   if (count < 126) {
@@ -133,7 +133,7 @@ void testFullMessages() {
 
   void runTest(int from, int to, int step) {
     for (int messageLength = from; messageLength < to; messageLength += step) {
-      List<int> message = new List<int>(messageLength);
+      List<int> message = new List<int>.fixedLength(messageLength);
       for (int i = 0; i < messageLength; i++) message[i] = i & 0xFF;
       testMessage(FRAME_OPCODE_TEXT, message);
       testMessage(FRAME_OPCODE_BINARY, message);
@@ -199,7 +199,7 @@ void testFragmentedMessages() {
 
   void runTest(int from, int to, int step) {
     for (int messageLength = from; messageLength < to; messageLength += step) {
-      List<int> message = new List<int>(messageLength);
+      List<int> message = new List<int>.fixedLength(messageLength);
       for (int i = 0; i < messageLength; i++) message[i] = i & 0xFF;
       testMessageFragmentation(FRAME_OPCODE_TEXT, message);
       testMessageFragmentation(FRAME_OPCODE_BINARY, message);

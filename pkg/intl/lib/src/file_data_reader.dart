@@ -9,6 +9,7 @@
 
 library file_data_reader;
 
+import 'dart:async';
 import 'dart:io';
 import 'intl_helpers.dart';
 

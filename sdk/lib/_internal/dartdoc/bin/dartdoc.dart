@@ -17,6 +17,7 @@
 library dartdoc;
 
 import 'dart:io';
+import 'dart:async';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../lib/dartdoc.dart';

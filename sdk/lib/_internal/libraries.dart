@@ -22,9 +22,11 @@ const int VM_PLATFORM = 2;
  */
 const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
-  "collection": const LibraryInfo(
-      "collection/collection.dart",
-      implementation: true),
+  "async": const LibraryInfo(
+      "async/async.dart",
+      dart2jsPatchPath: "_internal/compiler/implementation/lib/async_patch.dart"),
+
+  "collection": const LibraryInfo("collection/collection.dart"),
 
   "core": const LibraryInfo(
       "core/core.dart",

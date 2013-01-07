@@ -63,12 +63,12 @@ class LishCommand extends PubCommand {
         request.files.add(new http.MultipartFile.fromBytes(
             'file', packageBytes, filename: 'package.tar.gz'));
         return client.send(request);
-      }).chain(http.Response.fromStream).transform((response) {
+      }).chain(http.Response.fromStream).then((response) {
         var location = response.headers['location'];
         if (location == null) throw new PubHttpException(response);
         return location;
-      }).chain((location) => client.get(location))
-          .transform(handleJsonSuccess);
+      }).then((location) => client.get(location))
+          .then(handleJsonSuccess);
     }).transformException((e) {
       if (e is! PubHttpException) throw e;
       var url = e.response.request.url;
@@ -126,8 +126,8 @@ class LishCommand extends PubCommand {
       }
 
       return listDir(rootDir, recursive: true).chain((entries) {
-        return Futures.wait(entries.map((entry) {
-          return fileExists(entry).transform((isFile) {
+        return Futures.wait(entries.mappedBy((entry) {
+          return fileExists(entry).then((isFile) {
             // Skip directories.
             if (!isFile) return null;
 
@@ -140,13 +140,13 @@ class LishCommand extends PubCommand {
           });
         }));
       });
-    }).transform((files) => files.filter((file) {
+    }).then((files) => files.where((file) {
       if (file == null || _BLACKLISTED_FILES.contains(basename(file))) {
         return false;
       }
 
       return !splitPath(file).some(_BLACKLISTED_DIRECTORIES.contains);
-    }));
+    }).toList());
   }
 
   /// Returns the value associated with [key] in [map]. Throws a user-friendly
@@ -176,7 +176,7 @@ class LishCommand extends PubCommand {
         message = "Package has ${warnings.length} warning$s. Upload anyway";
       }
 
-      return confirm(message).transform((confirmed) {
+      return confirm(message).then((confirmed) {
         if (!confirmed) throw "Package upload canceled.";
       });
     });

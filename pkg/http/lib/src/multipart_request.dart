@@ -4,6 +4,7 @@
 
 library multipart_request;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:uri';
@@ -106,7 +107,7 @@ class MultipartRequest extends BaseRequest {
       writeAscii('--$boundary\r\n');
       writeAscii(_headerForFile(file));
       return writeInputToInput(file.finalize(), stream)
-        .transform((_) => writeLine());
+        .then((_) => writeLine());
     }).then((_) {
       // TODO(nweiz): pass any errors propagated through this future on to
       // the stream. See issue 3657.
@@ -156,7 +157,7 @@ class MultipartRequest extends BaseRequest {
   /// [length].
   String _boundaryString(int length) {
     var prefix = "dart-http-boundary-";
-    var list = new List<int>(length - prefix.length);
+    var list = new List<int>.fixedLength(length - prefix.length);
     for (var i = 0; i < list.length; i++) {
       list[i] = _BOUNDARY_CHARACTERS[
           _random.nextInt(_BOUNDARY_CHARACTERS.length)];

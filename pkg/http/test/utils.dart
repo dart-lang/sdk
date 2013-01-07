@@ -5,7 +5,7 @@
 library test_utils;
 
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:uri';
 
 import 'package:unittest/unittest.dart';
@@ -88,7 +88,7 @@ void startServer() {
         outputEncoding = Encoding.ASCII;
       }
 
-      var body = JSON.stringify(content);
+      var body = json.stringify(content);
       response.contentLength = body.length;
       response.outputStream.writeString(body, outputEncoding);
       response.outputStream.close();
@@ -118,7 +118,7 @@ class _Parse extends BaseMatcher {
 
     var parsed;
     try {
-      parsed = JSON.parse(item);
+      parsed = json.parse(item);
     } catch (e) {
       return false;
     }

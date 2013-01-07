@@ -33,10 +33,9 @@ void testCreateInNonExistent(Directory temp, Function done) {
   Expect.throws(() => inNonExistent.createSync(),
                 (e) => checkCreateInNonExistentFileException(e));
 
-  inNonExistent.create().handleException((e) {
-    checkCreateInNonExistentFileException(e);
+  inNonExistent.create().catchError((e) {
+    checkCreateInNonExistentFileException(e.error);
     done();
-    return true;
   });
 }
 
@@ -61,10 +60,9 @@ void testCreateTempInNonExistent(Directory temp, Function done) {
   Expect.throws(() => nonExistent.createTempSync(),
                 (e) => checkCreateTempInNonExistentFileException(e));
 
-  nonExistent.createTemp().handleException((e) {
-    checkCreateTempInNonExistentFileException(e);
+  nonExistent.createTemp().catchError((e) {
+    checkCreateTempInNonExistentFileException(e.error);
     done();
-    return true;
   });
 }
 
@@ -84,10 +82,9 @@ void testDeleteNonExistent(Directory temp, Function done) {
   Expect.throws(() => nonExistent.deleteSync(),
                 (e) => checkDeleteNonExistentFileException(e));
 
-  nonExistent.delete().handleException((e) {
-    checkDeleteNonExistentFileException(e);
+  nonExistent.delete().catchError((e) {
+    checkDeleteNonExistentFileException(e.error);
     done();
-    return true;
   });
 }
 
@@ -113,10 +110,9 @@ void testDeleteRecursivelyNonExistent(Directory temp, Function done) {
   Expect.throws(() => nonExistent.deleteSync(recursive: true),
                 (e) => checkDeleteRecursivelyNonExistentFileException(e));
 
-  nonExistent.delete(recursive: true).handleException((e) {
-    checkDeleteRecursivelyNonExistentFileException(e);
+  nonExistent.delete(recursive: true).catchError((e) {
+    checkDeleteRecursivelyNonExistentFileException(e.error);
     done();
-    return true;
   });
 }
 
@@ -154,11 +150,10 @@ void testRenameNonExistent(Directory temp, Function done) {
   Expect.throws(() => nonExistent.renameSync(newPath),
                 (e) => e is DirectoryIOException);
   var renameDone = nonExistent.rename(newPath);
-  renameDone.then((ignore) => Expect.fail('rename non existent'));
-  renameDone.handleException((e) {
-    Expect.isTrue(e is DirectoryIOException);
-    done();
-    return true;
+  renameDone.then((ignore) => Expect.fail('rename non existent'))
+            .catchError((e) {
+              Expect.isTrue(e.error is DirectoryIOException);
+            done();
   });
 }
 
@@ -171,12 +166,11 @@ void testRenameFileAsDirectory(Directory temp, Function done) {
   Expect.throws(() => d.renameSync(newPath),
                 (e) => e is DirectoryIOException);
   var renameDone = d.rename(newPath);
-  renameDone.then((ignore) => Expect.fail('rename file as directory'));
-  renameDone.handleException((e) {
-    Expect.isTrue(e is DirectoryIOException);
-    done();
-    return true;
-  });
+  renameDone.then((ignore) => Expect.fail('rename file as directory'))
+            .catchError((e) {
+              Expect.isTrue(e.error is DirectoryIOException);
+              done();
+            });
 }
 
 
@@ -188,13 +182,12 @@ testRenameOverwriteFile(Directory temp, Function done) {
   Expect.throws(() => temp1.renameSync(fileName),
                 (e) => e is DirectoryIOException);
   var renameDone = temp1.rename(fileName);
-  renameDone.then((ignore) => Expect.fail('rename dir overwrite file'));
-  renameDone.handleException((e) {
-    Expect.isTrue(e is DirectoryIOException);
-    temp1.deleteSync(recursive: true);
-    done();
-    return true;
-  });
+  renameDone.then((ignore) => Expect.fail('rename dir overwrite file'))
+            .catchError((e) {
+              Expect.isTrue(e.error is DirectoryIOException);
+              temp1.deleteSync(recursive: true);
+              done();
+            });
 }
 
 

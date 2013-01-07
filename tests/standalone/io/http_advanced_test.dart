@@ -7,8 +7,9 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "dart:isolate";
-import "dart:io";
+import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
 
 class TestServerMain {
   TestServerMain()
@@ -465,13 +466,13 @@ Future testFlush() {
 
 void main() {
   print('testHost()');
-  testHost().chain((_) {
+  testHost().then((_) {
   print('testExpires()');
-    return testExpires().chain((_) {
+    return testExpires().then((_) {
       print('testContentType()');
-      return testContentType().chain((_) {
+      return testContentType().then((_) {
         print('testCookies()');
-        return testCookies().chain((_) {
+        return testCookies().then((_) {
           print('testFlush()');
           return testFlush();
         });

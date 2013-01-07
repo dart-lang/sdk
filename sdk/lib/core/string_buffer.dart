@@ -27,7 +27,7 @@ abstract class StringBuffer {
   void addCharCode(int charCode);
 
   /// Adds all items in [objects] to the buffer.
-  void addAll(Collection objects);
+  void addAll(Iterable objects);
 
   /// Clears the string buffer.
   void clear();
@@ -66,7 +66,7 @@ class _StringBufferImpl implements StringBuffer {
   }
 
   /// Adds all items in [objects] to the buffer.
-  void addAll(Collection objects) {
+  void addAll(Iterable objects) {
     for (Object obj in objects) add(obj);
   }
 

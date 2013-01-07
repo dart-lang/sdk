@@ -171,7 +171,9 @@ class UnionType implements ConcreteType {
 
   ClassElement getUniqueType() {
     if (baseTypes.length == 1) {
-      BaseType uniqueBaseType = baseTypes.iterator().next();
+      var iterator = baseTypes.iterator;
+      iterator.moveNext();
+      BaseType uniqueBaseType = iterator.current;
       if (uniqueBaseType.isClass()) {
         ClassBaseType uniqueClassType = uniqueBaseType;
         return uniqueClassType.element;
@@ -190,14 +192,14 @@ class UnionType implements ConcreteType {
  * [: (A, D) :], [: (B, C) :] and finally [: (B, D) :].
  */
 class ConcreteTypeCartesianProduct
-    implements Iterable<ConcreteTypesEnvironment> {
+    extends Iterable<ConcreteTypesEnvironment> {
   final ConcreteTypesInferrer inferrer;
   final BaseType baseTypeOfThis;
   final Map<Element, ConcreteType> concreteTypes;
   ConcreteTypeCartesianProduct(this.inferrer, this.baseTypeOfThis,
                                this.concreteTypes);
-  Iterator iterator() => concreteTypes.isEmpty
-      ? [new ConcreteTypesEnvironment(inferrer, baseTypeOfThis)].iterator()
+  Iterator get iterator => concreteTypes.isEmpty
+      ? [new ConcreteTypesEnvironment(inferrer, baseTypeOfThis)].iterator
       : new ConcreteTypeCartesianProductIterator(inferrer, baseTypeOfThis,
                                                  concreteTypes);
   String toString() {
@@ -210,7 +212,8 @@ class ConcreteTypeCartesianProduct
 /**
  * An helper class for [ConcreteTypeCartesianProduct].
  */
-class ConcreteTypeCartesianProductIterator implements Iterator {
+class ConcreteTypeCartesianProductIterator
+    implements Iterator<ConcreteTypesEnvironment> {
   final ConcreteTypesInferrer inferrer;
   final BaseType baseTypeOfThis;
   final Map<Element, ConcreteType> concreteTypes;
@@ -218,6 +221,7 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
   final Map<Element, Iterator> state;
   int size = 1;
   int counter = 0;
+  ConcreteTypesEnvironment _current;
 
   ConcreteTypeCartesianProductIterator(this.inferrer, this.baseTypeOfThis,
       Map<Element, ConcreteType> concreteTypes)
@@ -234,9 +238,7 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
     }
   }
 
-  bool get hasNext {
-    return counter < size;
-  }
+  ConcreteTypesEnvironment get current => _current;
 
   ConcreteTypesEnvironment takeSnapshot() {
     Map<Element, ConcreteType> result = new Map<Element, ConcreteType>();
@@ -246,21 +248,26 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
     return new ConcreteTypesEnvironment.of(inferrer, result, baseTypeOfThis);
   }
 
-  ConcreteTypesEnvironment next() {
-    if (!hasNext) throw new StateError("No more elements");
+  bool moveNext() {
+    if (counter >= size) {
+      _current = null;
+      return false;
+    }
     Element keyToIncrement = null;
     for (final key in concreteTypes.keys) {
       final iterator = state[key];
-      if (iterator != null && iterator.hasNext) {
-        nextValues[key] = state[key].next();
+      if (iterator != null && iterator.moveNext()) {
+        nextValues[key] = state[key].current;
         break;
       }
-      Iterator newIterator = concreteTypes[key].baseTypes.iterator();
+      Iterator newIterator = concreteTypes[key].baseTypes.iterator;
       state[key] = newIterator;
-      nextValues[key] = newIterator.next();
+      newIterator.moveNext();
+      nextValues[key] = newIterator.current;
     }
     counter++;
-    return takeSnapshot();
+    _current = takeSnapshot();
+    return true;
   }
 }
 
@@ -676,8 +683,8 @@ class ConcreteTypesInferrer {
     if (argumentsTypes.positional.length < signature.requiredParameterCount) {
       return null;
     }
-    final Iterator<ConcreteType> remainingPositionalArguments =
-        argumentsTypes.positional.iterator();
+    final HasNextIterator<ConcreteType> remainingPositionalArguments =
+        new HasNextIterator<ConcreteType>(argumentsTypes.positional.iterator);
     // we attach each positional parameter to its corresponding positional
     // argument
     for (Link<Element> requiredParameters = signature.requiredParameters;

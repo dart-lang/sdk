@@ -196,8 +196,12 @@ abstract class _ByteArrayBase {
     }
   }
 
-  Collection map(f(element)) {
-    return Collections.map(this, new List(), f);
+  List mappedBy(f(int element)) {
+    return new MappedList<int, dynamic>(this, f);
+  }
+
+  String join([String separator]) {
+    return Collections.join(this, separator);
   }
 
   dynamic reduce(dynamic initialValue,
@@ -205,16 +209,48 @@ abstract class _ByteArrayBase {
     return Collections.reduce(this, initialValue, combine);
   }
 
-  Collection filter(bool f(element)) {
-    return Collections.filter(this, new List(), f);
+  Collection where(bool f(element)) {
+    return new WhereIterable<int>(this, f);
+  }
+
+  List<int> take(int n) {
+    return new ListView<int>(this, 0, n);
+  }
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) {
+    return new ListView<int>(this, n, null);
+  }
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
   }
 
   bool every(bool f(element)) {
     return Collections.every(this, f);
   }
 
-  bool some(bool f(element)) {
-    return Collections.some(this, f);
+  bool any(bool f(element)) {
+    return Collections.any(this, f);
+  }
+
+  int firstMatching(bool test(int value), {int orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   bool get isEmpty {
@@ -242,7 +278,7 @@ abstract class _ByteArrayBase {
         "Cannot add to a non-extendable array");
   }
 
-  void addAll(Collection value) {
+  void addAll(Iterable value) {
     throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
@@ -271,13 +307,25 @@ abstract class _ByteArrayBase {
         "Cannot remove from a non-extendable array");
   }
 
-  get first {
-    return this[0];
+  int get first {
+    if (length > 0) return this[0];
+    throw new StateError("No elements");
   }
 
-  get last {
-    return this[length - 1];
+  int get last {
+    if (length > 0) return this[length - 1];
+    throw new StateError("No elements");
   }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   void removeRange(int start, int length) {
     throw new UnsupportedError(
@@ -297,6 +345,14 @@ abstract class _ByteArrayBase {
     return new _ByteArrayView(this,
                               start * this.bytesPerElement(),
                               length * this.bytesPerElement());
+  }
+
+  List<int> toList() {
+    return new List<int>.from(this);
+  }
+
+  Set<int> toSet() {
+    return new Set<int>.from(this);
   }
 
   int _length() native "ByteArray_getLength";
@@ -436,7 +492,7 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
     _setIndexed(index, _toInt8(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -505,7 +561,7 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
     _setIndexed(index, _toUint8(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -576,7 +632,7 @@ class _Uint8ClampedArray extends _ByteArrayBase implements Uint8ClampedList {
     _setIndexed(index, _toClampedUint8(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -646,7 +702,7 @@ class _Int16Array extends _ByteArrayBase implements Int16List {
     _setIndexed(index, _toInt16(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -715,7 +771,7 @@ class _Uint16Array extends _ByteArrayBase implements Uint16List {
     _setIndexed(index, _toUint16(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -784,7 +840,7 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
     _setIndexed(index, _toInt32(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -854,7 +910,7 @@ class _Uint32Array extends _ByteArrayBase implements Uint32List {
     _setIndexed(index, _toUint32(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -923,7 +979,7 @@ class _Int64Array extends _ByteArrayBase implements Int64List {
     _setIndexed(index, _toInt64(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -992,7 +1048,7 @@ class _Uint64Array extends _ByteArrayBase implements Uint64List {
     _setIndexed(index, _toUint64(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -1061,7 +1117,7 @@ class _Float32Array extends _ByteArrayBase implements Float32List {
     _setIndexed(index, value);
   }
 
-  Iterator<double> iterator() {
+  Iterator<double> get iterator {
     return new _ByteArrayIterator<double>(this);
   }
 
@@ -1130,7 +1186,7 @@ class _Float64Array extends _ByteArrayBase implements Float64List {
     _setIndexed(index, value);
   }
 
-  Iterator<double> iterator() {
+  Iterator<double> get iterator {
     return new _ByteArrayIterator<double>(this);
   }
 
@@ -1184,7 +1240,7 @@ class _ExternalInt8Array extends _ByteArrayBase implements Int8List {
     _setIndexed(index, _toInt8(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -1234,7 +1290,7 @@ class _ExternalUint8Array extends _ByteArrayBase implements Uint8List {
     _setIndexed(index, _toUint8(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -1284,7 +1340,7 @@ class _ExternalInt16Array extends _ByteArrayBase implements Int16List {
     _setIndexed(index, _toInt16(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -1334,7 +1390,7 @@ class _ExternalUint16Array extends _ByteArrayBase implements Uint16List {
     _setIndexed(index, _toUint16(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -1386,7 +1442,7 @@ class _ExternalInt32Array extends _ByteArrayBase implements Int32List {
     _setIndexed(index, _toInt32(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -1438,7 +1494,7 @@ class _ExternalUint32Array extends _ByteArrayBase implements Uint32List {
     _setIndexed(index, _toUint32(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -1490,7 +1546,7 @@ class _ExternalInt64Array extends _ByteArrayBase implements Int64List {
     _setIndexed(index, _toInt64(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -1542,7 +1598,7 @@ class _ExternalUint64Array extends _ByteArrayBase implements Uint64List {
     _setIndexed(index, _toUint64(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -1594,7 +1650,7 @@ class _ExternalFloat32Array extends _ByteArrayBase implements Float32List {
     _setIndexed(index, value);
   }
 
-  Iterator<double> iterator() {
+  Iterator<double> get iterator {
     return new _ByteArrayIterator<double>(this);
   }
 
@@ -1646,7 +1702,7 @@ class _ExternalFloat64Array extends _ByteArrayBase implements Float64List {
     _setIndexed(index, value);
   }
 
-  Iterator<double> iterator() {
+  Iterator<double> get iterator {
     return new _ByteArrayIterator<double>(this);
   }
 
@@ -1690,25 +1746,29 @@ class _ExternalFloat64Array extends _ByteArrayBase implements Float64List {
 
 
 class _ByteArrayIterator<E> implements Iterator<E> {
+  final List<E> _array;
+  final int _length;
+  int _position;
+  E _current;
+
   _ByteArrayIterator(List array)
-    : _array = array, _length = array.length, _pos = 0 {
+      : _array = array, _length = array.length, _position = -1 {
     assert(array is _ByteArrayBase || array is _ByteArrayViewBase);
   }
 
-  bool get hasNext {
-   return _length > _pos;
-  }
-
-  E next() {
-    if (!hasNext) {
-      throw new StateError("No more elements");
+  bool moveNext() {
+    int nextPosition = _position + 1;
+    if (nextPosition < _length) {
+      _current = _array[nextPosition];
+      _position = nextPosition;
+      return true;
     }
-    return _array[_pos++];
+    _position = _length;
+    _current = null;
+    return false;
   }
 
-  final List<E> _array;
-  final int _length;
-  int _pos;
+  E get current => _current;
 }
 
 
@@ -1807,7 +1867,10 @@ class _ByteArrayView implements ByteArray {
 }
 
 
-class _ByteArrayViewBase {
+// TODO(floitsch): extending the collection adds extra cost (because of type
+// parameters). Consider copying the functions from Collection into this class
+// and just implementing Collection<int>.
+class _ByteArrayViewBase extends Collection<int> {
   num operator[](int index);
 
   // Methods implementing the Collection interface.
@@ -1817,27 +1880,6 @@ class _ByteArrayViewBase {
     for (var i = 0; i < len; i++) {
       f(this[i]);
     }
-  }
-
-  Collection map(f(element)) {
-    return Collections.map(this, new List(), f);
-  }
-
-  dynamic reduce(dynamic initialValue,
-                 dynamic combine(dynamic initialValue, element)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  Collection filter(bool f(element)) {
-    return Collections.filter(this, new List(), f);
-  }
-
-  bool every(bool f(element)) {
-    return Collections.every(this, f);
-  }
-
-  bool some(bool f(element)) {
-    return Collections.some(this, f);;
   }
 
   bool get isEmpty {
@@ -1863,7 +1905,7 @@ class _ByteArrayViewBase {
         "Cannot add to a non-extendable array");
   }
 
-  void addAll(Collection value) {
+  void addAll(Iterable value) {
     throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
@@ -1892,12 +1934,20 @@ class _ByteArrayViewBase {
         "Cannot remove from a non-extendable array");
   }
 
-  get first {
-    return this[0];
+  int get first {
+    if (length > 0) return this[0];
+    throw new StateError("No elements");
   }
 
-  get last {
-    return this[length - 1];
+  int get last {
+    if (length > 0) return this[length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
   }
 
   void removeRange(int start, int length) {
@@ -1942,7 +1992,7 @@ class _Int8ArrayView extends _ByteArrayViewBase implements Int8List {
     _array.setInt8(_offset + (index * _BYTES_PER_ELEMENT), _toInt8(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -2014,7 +2064,7 @@ class _Uint8ArrayView extends _ByteArrayViewBase implements Uint8List {
     _array.setUint8(_offset + (index * _BYTES_PER_ELEMENT), _toUint8(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -2086,7 +2136,7 @@ class _Int16ArrayView extends _ByteArrayViewBase implements Int16List {
     _array.setInt16(_offset + (index * _BYTES_PER_ELEMENT), _toInt16(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -2158,7 +2208,7 @@ class _Uint16ArrayView extends _ByteArrayViewBase implements Uint16List {
     _array.setUint16(_offset + (index * _BYTES_PER_ELEMENT), _toUint16(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -2230,7 +2280,7 @@ class _Int32ArrayView extends _ByteArrayViewBase implements Int32List {
     _array.setInt32(_offset + (index * _BYTES_PER_ELEMENT), _toInt32(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -2302,7 +2352,7 @@ class _Uint32ArrayView extends _ByteArrayViewBase implements Uint32List {
     _array.setUint32(_offset + (index * _BYTES_PER_ELEMENT), _toUint32(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -2374,7 +2424,7 @@ class _Int64ArrayView extends _ByteArrayViewBase implements Int64List {
     _array.setInt64(_offset + (index * _BYTES_PER_ELEMENT), _toInt64(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -2446,7 +2496,7 @@ class _Uint64ArrayView extends _ByteArrayViewBase implements Uint64List {
     _array.setUint64(_offset + (index * _BYTES_PER_ELEMENT), _toUint64(value));
   }
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     return new _ByteArrayIterator<int>(this);
   }
 
@@ -2518,7 +2568,7 @@ class _Float32ArrayView extends _ByteArrayViewBase implements Float32List {
     _array.setFloat32(_offset + (index * _BYTES_PER_ELEMENT), value);
   }
 
-  Iterator<double> iterator() {
+  Iterator<double> get iterator {
     return new _ByteArrayIterator<double>(this);
   }
 
@@ -2590,7 +2640,7 @@ class _Float64ArrayView extends _ByteArrayViewBase implements Float64List {
     _array.setFloat64(_offset + (index * _BYTES_PER_ELEMENT), value);
   }
 
-  Iterator<double> iterator() {
+  Iterator<double> get iterator {
     return new _ByteArrayIterator<double>(this);
   }
 

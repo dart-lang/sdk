@@ -215,7 +215,7 @@ void main() {
   tearDown(stopServer);
 
   test('head', () {
-    expect(new CurlClient().head(serverUrl).transform((response) {
+    expect(new CurlClient().head(serverUrl).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, equals(''));
     }), completes);
@@ -225,7 +225,7 @@ void main() {
     expect(new CurlClient().get(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'GET',
@@ -245,7 +245,7 @@ void main() {
     }, fields: {
       'some-field': 'value',
       'other-field': 'other value'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'POST',
@@ -268,7 +268,7 @@ void main() {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value',
       'Content-Type': 'text/plain'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'POST',
@@ -289,7 +289,7 @@ void main() {
     }, fields: {
       'some-field': 'value',
       'other-field': 'other value'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'PUT',
@@ -312,7 +312,7 @@ void main() {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value',
       'Content-Type': 'text/plain'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'PUT',
@@ -330,7 +330,7 @@ void main() {
     expect(new CurlClient().delete(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'DELETE',
@@ -366,7 +366,7 @@ void main() {
     var future = new CurlClient().readBytes(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
-    }).transform((bytes) => new String.fromCharCodes(bytes));
+    }).then((bytes) => new String.fromCharCodes(bytes));
 
     expect(future, completion(parse(equals({
       'method': 'GET',
@@ -389,11 +389,11 @@ void main() {
     request.headers[HttpHeaders.CONTENT_TYPE] =
       'application/json; charset=utf-8';
 
-    var future = client.send(request).chain((response) {
+    var future = client.send(request).then((response) {
       expect(response.statusCode, equals(200));
       return consumeInputStream(response.stream);
-    }).transform((bytes) => new String.fromCharCodes(bytes));
-    future.onComplete((_) => client.close());
+    }).then((bytes) => new String.fromCharCodes(bytes));
+    future.catchError((_) {}).then((_) => client.close());
 
     expect(future, completion(parse(equals({
       'method': 'POST',
@@ -411,7 +411,7 @@ void main() {
 
   test('with one redirect', () {
     var url = serverUrl.resolve('/redirect');
-    expect(new CurlClient().get(url).transform((response) {
+    expect(new CurlClient().get(url).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'GET',
@@ -433,7 +433,7 @@ void main() {
 
   test('with one redirect via HEAD', () {
     var url = serverUrl.resolve('/redirect');
-    expect(new CurlClient().head(url).transform((response) {
+    expect(new CurlClient().head(url).then((response) {
       expect(response.statusCode, equals(200));
     }), completes);
   });
@@ -451,8 +451,8 @@ void main() {
   test('without following redirects', () {
     var request = new http.Request('GET', serverUrl.resolve('/redirect'));
     request.followRedirects = false;
-    expect(new CurlClient().send(request).chain(http.Response.fromStream)
-        .transform((response) {
+    expect(new CurlClient().send(request).then(http.Response.fromStream)
+        .then((response) {
       expect(response.statusCode, equals(302));
       expect(response.isRedirect, true);
     }), completes);

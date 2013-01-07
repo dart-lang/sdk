@@ -33,7 +33,7 @@ class SpecialType {
  */
 class NativeEnqueuer {
   /// Initial entry point to native enqueuer.
-  void processNativeClasses(Collection<LibraryElement> libraries) {}
+  void processNativeClasses(Iterable<LibraryElement> libraries) {}
 
   /// Notification of a main Enqueuer worklist element.  For methods, adds
   /// information from metadata attributes, and computes types instantiated due
@@ -101,7 +101,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   /// Subclasses of [NativeEnqueuerBase] are constructed by the backend.
   NativeEnqueuerBase(this.world, this.compiler, this.enableLiveTypeAnalysis);
 
-  void processNativeClasses(Collection<LibraryElement> libraries) {
+  void processNativeClasses(Iterable<LibraryElement> libraries) {
     libraries.forEach(processNativeClassesInLibrary);
     processNativeClassesInLibrary(compiler.isolateHelperLibrary);
     if (!enableLiveTypeAnalysis) {
@@ -350,7 +350,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   enqueueUnusedClassesMatching(bool predicate(classElement),
                                cause,
                                [String reason]) {
-    Collection matches = unusedClasses.filter(predicate);
+    Iterable matches = unusedClasses.where(predicate);
     matches.forEach((c) => enqueueClass(c, cause));
   }
 
@@ -400,7 +400,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
   NativeCodegenEnqueuer(Enqueuer world, Compiler compiler, this.emitter)
     : super(world, compiler, compiler.enableNativeLiveTypeAnalysis);
 
-  void processNativeClasses(Collection<LibraryElement> libraries) {
+  void processNativeClasses(Iterable<LibraryElement> libraries) {
     super.processNativeClasses(libraries);
 
     // HACK HACK - add all the resolved classes.
@@ -454,6 +454,7 @@ void maybeEnableNative(Compiler compiler,
   String libraryName = uri.toString();
   if (library.entryCompilationUnit.script.name.contains(
           'dart/tests/compiler/dart2js_native')
+      || libraryName == 'dart:async'
       || libraryName == 'dart:html'
       || libraryName == 'dart:html_common'
       || libraryName == 'dart:indexed_db'

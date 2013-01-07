@@ -379,7 +379,7 @@ class _WebSocketConnectionBase {
     }
     _socket.onData = () {
       int available = _socket.available();
-      List<int> data = new List<int>(available);
+      List<int> data = new List<int>.fixedLength(available);
       int read = _socket.readList(data, 0, available);
       processor.update(data, 0, read);
     };
@@ -536,7 +536,7 @@ class _WebSocketConnectionBase {
     } else if (dataLength > 125) {
       headerSize += 2;
     }
-    List<int> header = new List<int>(headerSize);
+    List<int> header = new List<int>.fixedLength(headerSize);
     int index = 0;
     // Set FIN and opcode.
     header[index++] = 0x80 | opcode;
@@ -601,8 +601,8 @@ class _WebSocketHandler implements WebSocketHandler {
     response.headers.add(HttpHeaders.UPGRADE, "websocket");
     String key = request.headers.value("Sec-WebSocket-Key");
     SHA1 sha1 = new SHA1();
-    sha1.update("$key$_webSocketGUID".charCodes);
-    String accept = _Base64._encode(sha1.digest());
+    sha1.add("$key$_webSocketGUID".charCodes);
+    String accept = _Base64._encode(sha1.close());
     response.headers.add("Sec-WebSocket-Accept", accept);
     response.contentLength = 0;
 
@@ -722,7 +722,7 @@ class _WebSocketClientConnection
     }
 
     // Generate 16 random bytes. Use the last four bytes for the hash code.
-    List<int> nonce = new List<int>(16);
+    List<int> nonce = new List<int>.fixedLength(16);
     for (int i = 0; i < 4; i++) {
       int r = random.nextInt(0x100000000);
       intToBigEndianBytes(r, nonce, i * 4);
@@ -749,8 +749,8 @@ class _WebSocketClientConnection
       return false;
     }
     SHA1 sha1 = new SHA1();
-    sha1.update("$_nonce$_webSocketGUID".charCodes);
-    List<int> expectedAccept = sha1.digest();
+    sha1.add("$_nonce$_webSocketGUID".charCodes);
+    List<int> expectedAccept = sha1.close();
     List<int> receivedAccept = _Base64._decode(accept);
     if (expectedAccept.length != receivedAccept.length) return false;
     for (int i = 0; i < expectedAccept.length; i++) {

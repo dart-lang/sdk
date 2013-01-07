@@ -4,6 +4,7 @@
 
 library compiler;
 
+import 'dart:async';
 import 'dart:uri';
 import 'implementation/apiimpl.dart';
 

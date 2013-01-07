@@ -791,8 +791,9 @@ class ArrayInitializer extends Expression {
 
   static List<ArrayElement> _convert(List<Expression> expressions) {
     int index = 0;
-    return expressions.map(
-        (expression) => new ArrayElement(index++, expression));
+    return expressions.mappedBy(
+        (expression) => new ArrayElement(index++, expression))
+        .toList();
   }
 }
 
@@ -891,7 +892,8 @@ Call call(Expression target, List<Expression> arguments) {
 }
 
 Fun fun(List<String> parameterNames, Block body) {
-  return new Fun(parameterNames.map((n) => new Parameter(n)), body);
+  return new Fun(parameterNames.mappedBy((n) => new Parameter(n)).toList(),
+                 body);
 }
 
 Assignment assign(Expression leftHandSide, Expression value) {
