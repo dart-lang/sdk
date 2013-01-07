@@ -436,7 +436,6 @@ class Namer implements ClosureNamer {
         bool fixedName = false;
         if (kind == ElementKind.CLASS) {
           ClassElement classElement = element;
-          fixedName = classElement.isNative();
         }
         if (Elements.isInstanceField(element)) {
           fixedName = element.hasFixedBackendName();
