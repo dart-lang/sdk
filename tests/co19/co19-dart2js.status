@@ -177,8 +177,6 @@ LibTest/isolate/SendPort/send_A02_t06: Fail # Timer interface not supported; dar
 LibTest/isolate/SendPort/send_A03_t01: Fail # Timer interface not supported; dartbug.com/7728.
 LibTest/isolate/SendPort/send_A03_t02: Fail # Timer interface not supported; dartbug.com/7728.
 
-Language/11_Expressions/10_Expressions_A01_t01: Fail # issue 7737.
-
 LibTest/core/StringBuffer/addAll_A02_t01:  Fail, OK # co19 issue 355
 LibTest/core/StringBuffer/add_A02_t01:  Fail, OK # co19 issue 355
 LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355
@@ -266,6 +264,7 @@ Language/13_Libraries_and_Scripts/3_Parts_A02_t03: Fail # http://dartbug.com/502
 Language/13_Libraries_and_Scripts/3_Parts_A03_t01: Fail # http://dartbug.com/5022
 Language/14_Types/3_Type_Declarations/1_Typedef_A01_t01: Fail # http://dartbug.com/5022
 
+Language/11_Expressions/10_Expressions_A01_t01: Fail # issue 7737.
 
 [ $compiler == dart2js ]
 LibTest/core/int/operator_GT_A01_t01: Fail, OK # co19 issue 200
