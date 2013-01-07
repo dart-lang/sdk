@@ -1815,11 +1815,10 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
     if ((function_class.Name() == Symbols::List().raw()) &&
         (function.name() == Symbols::ListFactory().raw())) {
-      // If there are no arguments then the result is guaranteed to be a
-      // GrowableObjectArray. However if there is an argument the result
-      // is not guaranteed to be a fixed size array because the argument
-      // can be null.
       return kGrowableObjectArrayCid;
+    } else if ((function_class.Name() == Symbols::List().raw()) &&
+               (function.name() == Symbols::ListFixedLengthFactory().raw())) {
+      return kArrayCid;
     } else {
       if (IsRecognizedConstructor(function, Symbols::ObjectArray()) &&
           (node->arguments()->length() == 1)) {
