@@ -284,10 +284,10 @@ class Throws extends BaseMatcher {
     if (item is Future) {
       // Queue up an asynchronous expectation that validates when the future
       // completes.
-      item.then((value) {
+      item.then(wrapAsync((value) {
         expect(false, isTrue, reason:
             "Expected future to fail, but succeeded with '$value'.");
-      });
+      }));
 
       item.catchError((e) {
         var reason;

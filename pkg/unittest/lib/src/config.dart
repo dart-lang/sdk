@@ -132,7 +132,6 @@ class Configuration {
     _receivePort.close();
     if (success) {
       _postMessage('unittest-suite-success');
-      _receivePort.close();
     } else {
       throw new Exception('Some tests failed.');
     }

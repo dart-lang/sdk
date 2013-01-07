@@ -35,9 +35,9 @@ class _Completes extends BaseMatcher {
   bool matches(item, MatchState matchState) {
     if (item is! Future) return false;
 
-    item.then((value) {
+    item.then(wrapAsync((value) {
       if (_matcher != null) expect(value, _matcher);
-    });
+    }));
 
     item.catchError((e) {
       var reason = 'Expected future to complete successfully, but it failed '
