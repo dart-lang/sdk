@@ -389,6 +389,7 @@ class _FrozenElementList implements List {
 class _FrozenElementListIterator implements Iterator<Element> {
   final _FrozenElementList _list;
   int _index = 0;
+  Element _current;
 
   _FrozenElementListIterator(this._list);
 
@@ -414,7 +415,7 @@ class _FrozenElementListIterator implements Iterator<Element> {
    * Return [:null:] if the iterator is positioned before the first, or
    * after the last element.
    */
-  E get current => _current;
+  Element get current => _current;
 }
 
 class _ElementCssClassSet extends CssClassSet {
