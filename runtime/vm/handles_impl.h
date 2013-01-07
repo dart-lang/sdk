@@ -38,8 +38,12 @@ void Handles<kHandleSizeInWords,
   HandlesBlock* block = &first_scoped_block_;
   do {
     block->VisitObjectPointers(visitor);
+    if (block == scoped_blocks_) {
+      return;
+    }
     block = block->next_block();
   } while (block != NULL);
+  UNREACHABLE();
 }
 
 

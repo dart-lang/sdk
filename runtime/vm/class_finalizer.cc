@@ -111,6 +111,7 @@ bool ClassFinalizer::FinalizePendingClasses() {
   bool retval = true;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
+  HANDLESCOPE(isolate);
   ObjectStore* object_store = isolate->object_store();
   const Error& error = Error::Handle(object_store->sticky_error());
   if (!error.IsNull()) {
@@ -170,7 +171,7 @@ bool ClassFinalizer::FinalizePendingClasses() {
 // No cycles are allowed.
 void ClassFinalizer::CollectInterfaces(const Class& cls,
                                        const GrowableObjectArray& collected) {
-  const Array& interface_array = Array::ZoneHandle(cls.interfaces());
+  const Array& interface_array = Array::Handle(cls.interfaces());
   AbstractType& interface = AbstractType::Handle();
   Class& interface_class = Class::Handle();
   for (intptr_t i = 0; i < interface_array.Length(); i++) {

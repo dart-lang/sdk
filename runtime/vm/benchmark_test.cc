@@ -272,6 +272,8 @@ BENCHMARK(Dart2JSCompileAll) {
   char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
   char* script = NULL;
   if (dart_root != NULL) {
+    Isolate* isolate = Isolate::Current();
+    HANDLESCOPE(isolate);
     const char* kFormatStr =
         "import '%s/sdk/lib/_internal/compiler/compiler.dart';";
     intptr_t len = OS::SNPrint(NULL, 0, kFormatStr, dart_root) + 1;

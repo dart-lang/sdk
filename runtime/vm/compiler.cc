@@ -70,12 +70,12 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
     if (FLAG_trace_compiler) {
-      HANDLESCOPE(isolate);
       const String& script_url = String::Handle(script.url());
       // TODO(iposva): Extract script kind.
       OS::Print("Compiling %s '%s'\n", "", script_url.ToCString());
@@ -118,6 +118,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
+  HANDLESCOPE(isolate);
   ASSERT(isolate->ic_data_array() == Array::null());  // Must be reset to null.
   const intptr_t prev_deopt_id = isolate->deopt_id();
   isolate->set_deopt_id(0);
@@ -444,6 +445,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
 static RawError* CompileFunctionHelper(const Function& function,
                                        bool optimized) {
   Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
@@ -465,8 +467,11 @@ static RawError* CompileFunctionHelper(const Function& function,
                 function.ToFullyQualifiedCString(),
                 function.token_pos());
     }
-    Parser::ParseFunction(parsed_function);
-    parsed_function->AllocateVariables();
+    {
+      HANDLESCOPE(isolate);
+      Parser::ParseFunction(parsed_function);
+      parsed_function->AllocateVariables();
+    }
 
     const bool success =
         CompileParsedFunctionHelper(*parsed_function, optimized);
@@ -552,7 +557,6 @@ RawError* Compiler::CompileParsedFunction(
 
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
-  Isolate* isolate = Isolate::Current();
   Error& error = Error::Handle();
   Array& functions = Array::Handle(cls.functions());
   Function& func = Function::Handle();
@@ -568,8 +572,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     if (!func.HasCode() &&
         !func.is_abstract() &&
         !func.IsRedirectingFactory()) {
-      StackZone zone(isolate);
-      HANDLESCOPE(isolate);
       error = CompileFunction(func);
       if (!error.IsNull()) {
         return error.raw();
