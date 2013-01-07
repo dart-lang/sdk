@@ -138,8 +138,7 @@ class Unparser implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    // Check length to not print unnecessary whitespace.
-    if (node.modifiers.nodes.length > 0) {
+    if (!node.modifiers.nodes.isEmpty) {
       visit(node.modifiers);
       sb.add(' ');
     }
@@ -334,7 +333,7 @@ class Unparser implements Visitor {
 
   visitVariableDefinitions(VariableDefinitions node) {
     visit(node.modifiers);
-    if (node.modifiers.nodes.length > 0) {
+    if (!node.modifiers.nodes.isEmpty) {
       sb.add(' ');
     }
     if (node.type != null) {

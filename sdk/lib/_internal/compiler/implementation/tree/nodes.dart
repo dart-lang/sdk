@@ -288,7 +288,9 @@ class Send extends Expression {
     if (argumentsNode != null) argumentsNode.accept(visitor);
   }
 
-  int argumentCount() => (argumentsNode == null) ? -1 : argumentsNode.length;
+  int argumentCount() {
+    return (argumentsNode == null) ? -1 : argumentsNode.slowLength();
+  }
 
   bool get isSuperCall {
     return receiver != null &&
@@ -410,7 +412,7 @@ class NewExpression extends Expression {
   Token getEndToken() => send.getEndToken();
 }
 
-class NodeList extends Node implements Iterable<Node> {
+class NodeList extends Node {
   final Link<Node> nodes;
   final Token beginToken;
   final Token endToken;
@@ -426,7 +428,7 @@ class NodeList extends Node implements Iterable<Node> {
 
   NodeList asNodeList() => this;
 
-  int get length {
+  int slowLength() {
     int result = 0;
     for (Link<Node> cursor = nodes; !cursor.isEmpty; cursor = cursor.tail) {
       result++;
@@ -468,97 +470,6 @@ class NodeList extends Node implements Iterable<Node> {
       if (link.head.getBeginToken() != null) return link.head.getBeginToken();
     }
     return beginToken;
-  }
-
-  // ------------------- Iterable methods -------------------------------------
-  //
-  // TODO(floitsch): these functions should be pulled in through a mixin
-  // mechanism.
-  Iterable mappedBy(f(Node element)) => new MappedIterable(this, f);
-
-  Iterable<Node> where(bool f(Node element))
-      => new WhereIterable<Node>(this, f);
-
-  bool contains(Node element) {
-    for (Node e in this) {
-      if (e == element) return true;
-    }
-    return false;
-  }
-
-  void forEach(void f(Node element)) {
-    for (Node element in this) f(element);
-  }
-
-  String join([String separator]) => Collections.join(this, separator);
-
-  dynamic reduce(var initialValue,
-                 dynamic combine(var previousValue, Node element)) {
-    var value = initialValue;
-    for (Node element in this) value = combine(value, element);
-    return value;
-  }
-
-  bool every(bool f(Node element)) {
-    for (Node element in this) {
-      if (!f(element)) return false;
-    }
-    return true;
-  }
-
-  bool any(bool f(Node element)) {
-    for (Node element in this) {
-      if (f(element)) return true;
-    }
-    return false;
-  }
-
-  List<Node> toList() => new List<Node>.from(this);
-
-  Set<Node> toSet() => new Set<Node>.from(this);
-
-  Iterable<Node> take(int n) => new TakeIterable<Node>(this, n);
-
-  Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
-  }
-
-  Iterable<Node> skip(int n) => new SkipIterable<Node>(this, n);
-
-  Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
-  }
-
-  Node get first {
-    return Collections.first(this);
-  }
-
-  Node get last {
-    return Collections.last(this);
-  }
-
-  Node get single {
-    return Collections.single(this);
-  }
-
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
-
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
-
-  Node firstMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
-  }
-
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatching(this, test, orElse);
-  }
-
-  Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
-  }
-
-  Node elementAt(int index) {
-    return Collections.elementAt(this, index);
   }
 }
 

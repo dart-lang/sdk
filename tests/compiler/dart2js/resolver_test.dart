@@ -84,7 +84,7 @@ testTypeVariables() {
     VariableDefinitions definition = parseStatement(text);
     visitor.visit(definition.type);
     InterfaceType type = visitor.mapping.getType(definition.type);
-    Expect.equals(definition.type.typeArguments.length(),
+    Expect.equals(definition.type.typeArguments.slowLength(),
                   length(type.typeArguments));
     int index = 0;
     Link<DartType> arguments = type.typeArguments;
@@ -232,7 +232,7 @@ testLocalsTwo() {
   Expect.equals(0, scope.elements.length);
   Expect.equals(2, map(visitor).length);
 
-  List<Element> elements = map(visitor).values;
+  List<Element> elements = new List<Element>.from(map(visitor).values);
   Expect.notEquals(elements[0], elements[1]);
 }
 

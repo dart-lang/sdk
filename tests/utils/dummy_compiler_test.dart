@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Smoke test of the dart2js compiler API.
-
-import 'dart:async';
 library dummy_compiler;
 
-import '../../sdk/lib/_internal/compiler/compiler.dart';
+import 'dart:async';
 import 'dart:uri';
+
+import '../../sdk/lib/_internal/compiler/compiler.dart';
 
 Future<String> provider(Uri uri) {
   Completer<String> completer = new Completer<String>();

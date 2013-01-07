@@ -286,7 +286,9 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
     Expect.throws(() => data.reflectee, (_) => true);
     MapInstanceMirror mapData = data;
     Expect.equals(1, mapData.length);
-    Expect.stringEquals('foo', mapData.keys.iterator().next());
+    var it = mapData.keys.iterator;
+    Expect.isTrue(it.moveNext());
+    Expect.stringEquals('foo', it.current);
     mapData['foo'].then((InstanceMirror element) {
       Expect.isNotNull(element);
       Expect.isTrue(element.hasReflectee);

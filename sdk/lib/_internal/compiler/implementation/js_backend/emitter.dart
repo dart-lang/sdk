@@ -1408,7 +1408,7 @@ $lazyInitializerLogic
         : inInterceptor ? const ['self', 'target', 'receiver']
                         : const ['self', 'target'];
 
-    Collection<Element> typedefChecks =
+    Iterable<Element> typedefChecks =
         getTypedefChecksOn(member.computeType(compiler));
     bool hasTypedefChecks = !typedefChecks.isEmpty;
 
@@ -2089,7 +2089,8 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
 
   void computeNeededClasses() {
     instantiatedClasses =
-        compiler.codegenWorld.instantiatedClasses.where(computeClassFilter());
+        compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
+            .toSet();
     neededClasses = instantiatedClasses.toSet();
     for (ClassElement element in instantiatedClasses) {
       for (ClassElement superclass = element.superclass;

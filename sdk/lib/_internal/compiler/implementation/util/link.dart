@@ -57,6 +57,10 @@ class Link<T> extends Iterable<T> {
   }
 
   String toString() => "[]";
+
+  get length {
+    throw new UnsupportedError('get:length');
+  }
 }
 
 abstract class LinkBuilder<T> {

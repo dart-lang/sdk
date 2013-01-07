@@ -211,7 +211,10 @@ const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
   class Object {}
   class Type {}
   class Function {}
-  class List { List([length]); }
+  class List {
+    List();
+    List.fixedLength(length);
+  }
   abstract class Map {}
   class Closure {}
   class Null {}
