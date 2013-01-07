@@ -13,28 +13,51 @@ DEFINE_FLAG(bool, intrinsify, true, "Instrinsify when possible");
 
 
 static bool CompareNames(const char* test_name, const char* name) {
-  if (strcmp(test_name, name) == 0) {
+  static const char* kPrivateGetterPrefix = "get:_";
+  static const char* kPrivateSetterPrefix = "set:_";
+
+  if (test_name[0] == '_') {
+    if (name[0] != '_') {
+      return false;
+    }
+  } else if (strncmp(test_name,
+                     kPrivateGetterPrefix,
+                     strlen(kPrivateGetterPrefix)) == 0) {
+    if (strncmp(name,
+                kPrivateGetterPrefix,
+                strlen(kPrivateGetterPrefix)) != 0) {
+      return false;
+    }
+  } else if (strncmp(test_name,
+                     kPrivateSetterPrefix,
+                     strlen(kPrivateSetterPrefix)) == 0) {
+    if (strncmp(name,
+                kPrivateSetterPrefix,
+                strlen(kPrivateSetterPrefix)) != 0) {
+      return false;
+    }
+  } else {
+    return (strcmp(test_name, name) == 0);
+  }
+
+  // Check if the private class is member of core or scalarlist and matches
+  // the test_class_name.
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const Library& scalarlist_lib =
+      Library::Handle(Library::ScalarlistLibrary());
+  String& test_str = String::Handle(String::New(test_name));
+  String& test_str_with_key = String::Handle();
+  test_str_with_key =
+      String::Concat(test_str, String::Handle(core_lib.private_key()));
+  if (strcmp(test_str_with_key.ToCString(), name) == 0) {
     return true;
   }
-  if ((name[0] == '_') && (test_name[0] == '_')) {
-    // Check if the private class is member of core or scalarlist and matches
-    // the test_class_name.
-    const Library& core_lib = Library::Handle(Library::CoreLibrary());
-    const Library& scalarlist_lib =
-        Library::Handle(Library::ScalarlistLibrary());
-    String& test_str = String::Handle(String::New(test_name));
-    String& test_str_with_key = String::Handle();
-    test_str_with_key =
-        String::Concat(test_str, String::Handle(core_lib.private_key()));
-    if (strcmp(test_str_with_key.ToCString(), name) == 0) {
-      return true;
-    }
-    test_str_with_key =
-        String::Concat(test_str, String::Handle(scalarlist_lib.private_key()));
-    if (strcmp(test_str_with_key.ToCString(), name) == 0) {
-      return true;
-    }
+  test_str_with_key =
+      String::Concat(test_str, String::Handle(scalarlist_lib.private_key()));
+  if (strcmp(test_str_with_key.ToCString(), name) == 0) {
+    return true;
   }
+
   return false;
 }
 

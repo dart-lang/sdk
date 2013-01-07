@@ -217,15 +217,53 @@ ConstantInstr* GraphEntryInstr::constant_null() {
 }
 
 
+static bool StartsWith(const String& name, const char* prefix, intptr_t n) {
+  ASSERT(name.IsOneByteString());
+
+  if (name.Length() < n) {
+    return false;
+  }
+
+  for (intptr_t i = 0; i < n; i++) {
+    if (name.CharAt(i) != prefix[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
 static bool CompareNames(const Library& lib,
                          const char* test_name,
                          const String& name) {
-  // If both names are private mangle test_name before comparison.
-  if ((name.CharAt(0) == '_') && (test_name[0] == '_')) {
-    const String& test_name_symbol = String::Handle(Symbols::New(test_name));
-    return String::Handle(lib.PrivateName(test_name_symbol)).Equals(name);
+  const char* kPrivateGetterPrefix = "get:_";
+  const char* kPrivateSetterPrefix = "set:_";
+
+  if (test_name[0] == '_') {
+    if (name.CharAt(0) != '_') {
+      return false;
+    }
+  } else if (strncmp(test_name,
+                     kPrivateGetterPrefix,
+                     strlen(kPrivateGetterPrefix)) == 0) {
+    if (!StartsWith(name, kPrivateGetterPrefix, strlen(kPrivateGetterPrefix))) {
+      return false;
+    }
+  } else if (strncmp(test_name,
+                     kPrivateSetterPrefix,
+                     strlen(kPrivateSetterPrefix)) == 0) {
+    if (!StartsWith(name, kPrivateSetterPrefix, strlen(kPrivateSetterPrefix))) {
+      return false;
+    }
+  } else {
+    // Compare without mangling.
+    return name.Equals(test_name);
   }
-  return name.Equals(test_name);
+
+  // Both names are private. Mangle test_name before comparison.
+  const String& test_name_symbol = String::Handle(Symbols::New(test_name));
+  return String::Handle(lib.PrivateName(test_name_symbol)).Equals(name);
 }
 
 
@@ -235,6 +273,7 @@ static bool IsRecognizedLibrary(const Library& library) {
       || (library.raw() == Library::MathLibrary())
       || (library.raw() == Library::ScalarlistLibrary());
 }
+
 
 MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {
