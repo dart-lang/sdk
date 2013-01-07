@@ -571,7 +571,7 @@ class Primitives {
     // TODO(sra): For good concrete type analysis we need the JS-type to
     // specifically name the JavaScript Array implementation.  'List' matches
     // all the dart:html types that implement List<T>.
-    return JS('Object', r'new Array(#)', length);
+    return JS('=List', r'new Array(#)', length);
   }
 
   static List newFixedList(length) {
