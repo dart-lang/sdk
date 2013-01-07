@@ -8,6 +8,9 @@ async/future2_test: Fail # Bug 6890 .TODO(ajohnsen): Fix this as part of library
 [ $compiler == dart2js ]
 math/*: Skip
 mirrors/*: Skip
+async/future2_test: Fail # Bug 6890 .TODO(ajohnsen): Fix this as part of library changes.
+
+[ $compiler == dart2js && $runtime == d8 ]
 async/future_delayed_error_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/future_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/slow_consumer2_test: Fail # Timer interface not supported; dartbug.com/7728.
