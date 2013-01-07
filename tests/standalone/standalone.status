@@ -102,7 +102,7 @@ int_array_test: Skip  # This is a VM test
 medium_integer_test: Fail, OK # Test fails with JS number semantics: issue 1533.
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
 io/http_server_handler_test: Fail # Issue 7739.
-io/http_server_early_client_close_test: Fail # Issue 7739.
+io/http_server_early_client_close_test: Fail, Pass # Issue 7739 (passes in checked mode).
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
 debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
 
