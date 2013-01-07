@@ -30,7 +30,9 @@ abstract class Stream<T> {
    * The merged streams are paused and resumed in order to ensure the proper
    * order of output events.
    */
-  factory Stream.cyclic(Iterable<Stream> sources) = CyclicScheduleStream<T>;
+  factory Stream.cyclic(Iterable<Stream> sources) {
+    return new CyclicScheduleStream<T>(sources);
+  }
 
  /**
    * Create a stream that forwards data from the highest priority active source.
@@ -45,7 +47,9 @@ abstract class Stream<T> {
    * If a higher priority source stream completes without providing data,
    * it will have no effect on lower priority streams.
    */
-  factory Stream.superceding(Iterable<Stream<T>> sources) = SupercedeStream<T>;
+  factory Stream.superceding(Iterable<Stream<T>> sources) {
+    return new SupercedeStream<T>(sources);
+  }
 
   /**
    * Add a subscription to this stream.
