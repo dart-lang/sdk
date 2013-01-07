@@ -80,7 +80,7 @@ map_values2_test: Fail # Generic types aren't right
 iterable_to_list_test: Fail
 iterable_to_set_test: Fail
 
-# Issue 7334.
+# Issue 7734.
 string_replace_all_test: Crash
 
 [ $compiler == dart2js && $runtime == d8 && $checked ]
@@ -96,3 +96,12 @@ map_values_test: Fail
 queue_test: Fail
 reg_exp_all_matches_test: Fail
 set_test: Fail
+
+## Tests failing after merge of experimental library branch.
+[ $compiler == dart2js && $runtime == drt]
+# Tests fail due to bug in generics on constants, issue 6827
+iterable_to_list_test: Fail
+iterable_to_set_test: Fail
+
+# Issue 7734.
+string_replace_all_test: Crash
