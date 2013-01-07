@@ -126,9 +126,6 @@ class HtmlConfiguration extends Configuration {
 
   void onInit() {
     _installHandlers();
-  }
-
-  void onStart() {
     window.postMessage('unittest-suite-wait-for-done', '*');
   }
 
