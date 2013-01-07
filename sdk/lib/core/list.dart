@@ -36,9 +36,9 @@ abstract class List<E> implements Collection<E> {
    *
    * The length of the returned list is not fixed.
    */
-  factory List.from(Iterable<E> other) {
+  factory List.from(Iterable other) {
     var list = new List<E>();
-    for (var e in other) {
+    for (E e in other) {
       list.add(e);
     }
     return list;

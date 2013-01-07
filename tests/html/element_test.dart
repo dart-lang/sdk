@@ -59,6 +59,8 @@ main() {
       predicate((x) => x is AnchorElement, 'is an AnchorElement');
   var isElementList =
       predicate((x) => x is List<Element>, 'is a List<Element>');
+  var isElementIterable =
+      predicate((x) => x is Iterable<Element>, 'is an Iterable<Element>');
   var isHeadingElement =
       predicate((x) => x is HeadingElement, 'is a HeadingElement');
 
@@ -372,8 +374,8 @@ main() {
       var filtered = makeElementWithChildren().children.
         where((n) => n is ImageElement);
       expect(1, filtered.length);
-      expect(filtered[0], isImageElement);
-      expect(filtered, isElementList);
+      expect(filtered.first, isImageElement);
+      expect(filtered, isElementIterable);
     });
 
     test('every', () {
@@ -593,8 +595,8 @@ main() {
     test('where', () {
       var filtered = makeElList().where((n) => n is ImageElement);
       expect(filtered.length, 1);
-      expect(filtered[0], isImageElement);
-      expect(filtered, isElementList);
+      expect(filtered.first, isImageElement);
+      expect(filtered, isElementIterable);
     });
 
     test('getRange', () {
