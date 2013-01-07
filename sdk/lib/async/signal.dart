@@ -6,6 +6,10 @@
 
 /**
  *  A basic asynchronous notification.
+ *
+ *  *DEPRECATED*
+ *
+ *  This class is scheduled for removal. Please don't use.
  */
 abstract class Signal {
   factory Signal.delayed(int milliseconds) {
@@ -26,6 +30,10 @@ typedef _SignalCompleteHandler();
 
 /**
  * Simple [Signal] controller that creates a [Signal] and allows completing it.
+ *
+ *  *DEPRECATED*
+ *
+ *  This class is scheduled for removal. Please don't use.
  */
 class SignalCompleter {
   final Signal signal;
