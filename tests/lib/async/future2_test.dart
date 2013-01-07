@@ -6,6 +6,8 @@
 //                 Can Dart2JS on V8 somehow run it?
 
 // Tests for Future.immediate
+library future2_test;
+
 import 'dart:async';
 import 'dart:isolate';
 

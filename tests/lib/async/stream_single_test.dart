@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test the basic StreamController and StreamController.singleSubscription.
+library stream_single_test;
+
 import 'dart:async';
 import 'dart:isolate';
 import '../../../pkg/unittest/lib/unittest.dart';

@@ -39,7 +39,7 @@ crypto/hmac_sha256_test: Fail
 async/slow_consumer2_test: Fail # Issue 7726
 
 [ $compiler == none && $runtime == drt ]
-async/*: Fail # Issue 7731
+async/future2_test: Fail # Issue 7736
 
 [ $compiler == dart2js && $runtime == d8 && $checked ]
 # Issue 7733.

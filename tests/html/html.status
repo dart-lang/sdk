@@ -18,12 +18,6 @@ html/element_test/queryAll: Fail # Issue 7732.
 form_data_test: Skip # Issue 7751, crashes the test server
 xhr_cross_origin_test: Skip # Issue 7751, crashes the test server
 
-[ $compiler == none ]
-documentfragment_test: Fail # Issue 7732.
-typing_test: Fail # Issue 7732.
-queryall_test: Fail # Issue 7732.
-htmloptionscollection_test: Fail # Issue 7732.
-websql_test: Fail # Issue 7732.
 
 # Layout tests are only supported on DRT.
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]

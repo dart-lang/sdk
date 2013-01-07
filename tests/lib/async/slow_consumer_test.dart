@@ -4,6 +4,8 @@
 
 // VMOptions=--old_gen_heap_size=32
 
+library slow_consumer_test;
+
 import 'dart:async';
 import 'dart:isolate';
 
