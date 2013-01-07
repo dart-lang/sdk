@@ -89,7 +89,7 @@ void main() {
   InitializeSSL();
   // Test two connections in sequence.
   test({'certificateName': null})()
-      .then(test({'certificateName': 'localhost_cert'}))
+      .then((_) => test({'certificateName': 'localhost_cert'})())
       .then((_) {
     Expect.equals(2, numClientCertificatesReceived);
     keepAlive.close();

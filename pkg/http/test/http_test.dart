@@ -16,10 +16,10 @@ main() {
     tearDown(stopServer);
 
     test('head', () {
-      expect(http.head(serverUrl).then(expectAsync1((response) {
+      http.head(serverUrl).then(expectAsync1((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, equals(''));
-      })), completes);
+      }));
     });
 
     test('get', () {
@@ -162,12 +162,13 @@ main() {
         },
       }))));
     });
-    
+
     test('read throws an error for a 4** status code', () {
-      expect(http.read(serverUrl.resolve('/error')).then((expectAsync1(x) => x)),
-             throwsHttpException);
+      http.read(serverUrl.resolve('/error')).catchError(expectAsync1((e) {
+        expect(true, e.error is HttpException);
+      }));
     });
-    
+
     test('readBytes', () {
       var future = http.readBytes(serverUrl, headers: {
         'X-Random-Header': 'Value',
@@ -186,8 +187,9 @@ main() {
     });
 
     test('readBytes throws an error for a 4** status code', () {
-      expect(http.readBytes(serverUrl.resolve('/error')).then((expectAsync1(x) => x)),
-             throwsHttpException);
+      http.readBytes(serverUrl.resolve('/error')).catchError(expectAsync1((e) {
+        expect(true, e.error is HttpException);
+      }));
     });
   });
 }

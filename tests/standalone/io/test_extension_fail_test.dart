@@ -4,6 +4,7 @@
 //
 // Dart test program for testing native extensions.
 
+import "dart:async";
 import "dart:io";
 
 Future copyFileToDirectory(Path file, Path directory) {

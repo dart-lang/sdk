@@ -215,7 +215,7 @@ void main() {
 
     var request = new http.Request('POST', serverUrl.resolve('/loop?1'))
       ..maxRedirects = 2;
-    var future = request.send().catchError((AsyncError e) {
+    var future = request.send().catchError((e) {
       print("#maxRedirects test exception received");
       expect(e.error, isRedirectLimitExceededException);
       expect(e.error.redirects.length, equals(2));

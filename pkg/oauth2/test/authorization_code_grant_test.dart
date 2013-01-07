@@ -4,8 +4,9 @@
 
 library authorization_code_grant_test;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as JSON;
 import 'dart:uri';
 
 import '../../unittest/lib/unittest.dart';
@@ -89,8 +90,7 @@ void main() {
 
     test("can't be called twice", () {
       grant.getAuthorizationUrl(redirectUrl);
-      expectFutureThrows(grant.getAuthorizationUrl(redirectUrl),
-                        (e) => e is StateError);
+      expect(() => grant.getAuthorizationUrl(redirectUrl), throwsStateError);
     });
   });
 
@@ -104,7 +104,9 @@ void main() {
 
     test("can't be called twice", () {
       grant.getAuthorizationUrl(redirectUrl);
-      grant.handleAuthorizationResponse({'code': 'auth code'});
+      expectFutureThrows(
+          grant.handleAuthorizationResponse({'code': 'auth code'}),
+          (e) => e is FormatException);
       expectFutureThrows(
           grant.handleAuthorizationResponse({'code': 'auth code'}),
           (e) => e is StateError);
@@ -135,7 +137,7 @@ void main() {
       grant.getAuthorizationUrl(redirectUrl);
       expectFutureThrows(
           grant.handleAuthorizationResponse({'error': 'invalid_request'}),
-          (e) => e is AuthorizationException);
+          (e) => e is oauth2.AuthorizationException);
     });
 
     test('sends an authorization code request', () {
@@ -157,11 +159,10 @@ void main() {
         }), 200, headers: {'content-type': 'application/json'}));
       });
 
-      expect(grant.handleAuthorizationResponse({'code': 'auth code'}),
-          completion(predicate((client) {
+      grant.handleAuthorizationResponse({'code': 'auth code'})
+          .then(expectAsync1((client) {
             expect(client.credentials.accessToken, equals('access token'));
-            return true;
-          })));
+          }));
     });
   });
 
@@ -169,12 +170,16 @@ void main() {
     setUp(createGrant);
 
     test("can't be called before .getAuthorizationUrl", () {
-      expect(grant.handleAuthorizationCode('auth code'), throwsStateError);
+      expectFutureThrows(
+          grant.handleAuthorizationCode('auth code'),
+          (e) => e is StateError);
     });
 
     test("can't be called twice", () {
       grant.getAuthorizationUrl(redirectUrl);
-      grant.handleAuthorizationCode('auth code');
+      expectFutureThrows(
+          grant.handleAuthorizationCode('auth code'),
+          (e) => e is FormatException);
       expectFutureThrows(grant.handleAuthorizationCode('auth code'),
                          (e) => e is StateError);
     });

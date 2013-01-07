@@ -28,15 +28,17 @@ void main() {
     }).then((bytes) => new String.fromCharCodes(bytes));
     future.catchError((_) {}).then((_) => client.close());
 
-    expect(future, completion(parse(equals({
-      'method': 'POST',
-      'path': '/',
-      'headers': {
-        'content-type': ['application/json; charset=utf-8'],
-        'transfer-encoding': ['chunked']
-      },
-      'body': '{"hello": "world"}'
-    }))));
+    future.then(expectAsync1((content) {
+      expect(content, parse(equals({
+        'method': 'POST',
+        'path': '/',
+        'headers': {
+          'content-type': ['application/json; charset=utf-8'],
+          'transfer-encoding': ['chunked']
+        },
+        'body': '{"hello": "world"}'
+      })));
+    }));
 
     request.stream.writeString('{"hello": "world"}');
     request.stream.close();

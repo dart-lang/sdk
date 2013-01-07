@@ -4,8 +4,9 @@
 
 library client_test;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as JSON;
 import 'dart:uri';
 
 import '../../unittest/lib/unittest.dart';
@@ -23,6 +24,12 @@ void createHttpClient() {
   httpClient = new ExpectClient();
 }
 
+void expectFutureThrows(future, predicate) {
+  future.catchError(expectAsync1((AsyncError e) {
+    expect(predicate(e.error), isTrue);
+  }));
+}
+
 void main() {
   group('with expired credentials', () {
     setUp(createHttpClient);
@@ -34,7 +41,8 @@ void main() {
       var client = new oauth2.Client('identifier', 'secret', credentials,
           httpClient: httpClient);
 
-      expect(client.get(requestUri), throwsExpirationException);
+      expectFutureThrows(client.get(requestUri),
+                         (e) => e is oauth2.ExpirationException);
     });
 
     test("that can be refreshed refreshes the credentials and sends the "
@@ -114,7 +122,8 @@ void main() {
       var client = new oauth2.Client('identifier', 'secret', credentials,
           httpClient: httpClient);
 
-      expect(client.refreshCredentials(), throwsStateError);
+      expectFutureThrows(client.refreshCredentials(),
+                         (e) => e is StateError);
     });
   });
 
@@ -138,7 +147,8 @@ void main() {
                 headers: {'www-authenticate': authenticate}));
       });
 
-      expect(client.read(requestUri), throwsAuthorizationException);
+      expectFutureThrows(client.read(requestUri),
+                         (e) => e is oauth2.AuthorizationException);
     });
 
     test('passes through a 401 response without www-authenticate', () {

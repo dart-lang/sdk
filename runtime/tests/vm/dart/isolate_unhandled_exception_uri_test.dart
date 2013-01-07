@@ -4,6 +4,7 @@
 
 library isolate_unhandled_exception_uri_helper;
 
+import 'dart:async';
 import 'dart:isolate';
 
 // Tests that isolate code in another script keeps message handling working

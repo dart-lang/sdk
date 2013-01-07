@@ -19,7 +19,7 @@ import 'serialization_helpers.dart';
  */
 List<VariableMirror> publicFields(ClassMirror mirror) {
   var mine = mirror.variables.values.where(
-      (x) => !(x.isPrivate || x.isStatic));
+      (x) => !(x.isPrivate || x.isStatic)).toList();
   var mySuperclass = mirror.superclass;
   if (mySuperclass != mirror) {
     return append(publicFields(mirror.superclass), mine);

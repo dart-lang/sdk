@@ -8,7 +8,7 @@
 patch class int {
   static int _parse(String str) native "Integer_parse";
 
-  static void _throwFormatException(String source) {
+  static int _throwFormatException(String source) {
     throw new FormatException(source);
   }
 

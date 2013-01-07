@@ -4,6 +4,7 @@
 
 library isolate_unhandled_exception_test;
 
+import 'dart:async';
 import 'dart:isolate';
 
 // Tests that an isolate's keeps message handling working after
