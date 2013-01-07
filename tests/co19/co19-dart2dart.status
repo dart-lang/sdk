@@ -638,12 +638,5 @@ LibTest/core/Futures/wait_A01_t06: Fail # Future is in async library. co19 issue
 LibTest/core/Futures/wait_A02_t01: Fail # Future is in async library. co19 issue 367
 LibTest/core/Futures/wait_A02_t02: Fail # Future is in async library. co19 issue 367
 
-[ $compiler == dart2dart && $checked ]
-# Inherited from VM. Co19 issues due to library changes
-LibTest/core/Strings/concatAll_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
-LibTest/core/Strings/join_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
-
-# Issues with co19 test suite in unchecked mode.
-[ $compiler == dart2dart && $unchecked ]
 LibTest/core/Future/chain_A02_t05: Fail # Future is in async library. co19 issue 367
 LibTest/core/Future/transform_A02_t04: Fail # Future is in async library. co19 issue 367
