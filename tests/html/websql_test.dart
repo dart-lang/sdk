@@ -1,6 +1,7 @@
 library WebDBTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:async';
 import 'dart:html';
 
 void fail(message) {
