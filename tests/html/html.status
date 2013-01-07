@@ -12,7 +12,6 @@ xmlelement_test: Skip  # XML in dart:html is incomplete
 history_test/history: Fail, Pass # Issue 7676.
 
 html/measurement_test: Fail # Issue 7732.
-element_test/children: Fail # Issue 7732.
 html/element_test/_ElementList: Fail # Issue 7732.
 html/shadow_dom_test/ShadowDOM*tests: Fail # Issue 7732.
 html/element_test/queryAll: Fail # Issue 7732.

@@ -16548,13 +16548,15 @@ class SelectElement extends Element native "*HTMLSelectElement" {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    return this.children.where((e) => e is OptionElement).toList();
+    var options = this.children.where((e) => e is OptionElement).toList();
+    return new ListView<OptionElement>(options, 0, options.length);
   }
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
-      return this.options.where((o) => o.selected).toList();
+      var options = this.options.where((o) => o.selected).toList();
+      return new ListView<OptionElement>(options, 0, options.length);
     } else {
       return [this.options[this.selectedIndex]];
     }
