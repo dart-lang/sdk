@@ -4106,11 +4106,13 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
   bool IsRedundant(RangeBoundary length);
 
- private:
-  intptr_t array_type_;
-
   // Returns the length offset for array and string types.
   static intptr_t LengthOffsetFor(intptr_t class_id);
+
+  static bool IsFixedLengthArrayType(intptr_t class_id);
+
+ private:
+  intptr_t array_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };

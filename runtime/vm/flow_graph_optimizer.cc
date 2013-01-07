@@ -1868,8 +1868,6 @@ class RangeAnalysis : public ValueObject {
                                           CheckArrayBoundInstr* check);
   Definition* LoadArrayLength(CheckArrayBoundInstr* check);
 
-
-
   // Replace uses of the definition def that are dominated by instruction dom
   // with uses of other definition.
   void RenameDominatedUses(Definition* def,
@@ -2226,7 +2224,7 @@ Definition* RangeAnalysis::LoadArrayLength(CheckArrayBoundInstr* check) {
     // It will only be used in range boundaries.
     LoadFieldInstr* length_load = new LoadFieldInstr(
         check->array()->Copy(),
-        Array::length_offset(),
+        CheckArrayBoundInstr::LengthOffsetFor(check->array_type()),
         Type::ZoneHandle(Type::SmiType()),
         true);  // Immutable.
     length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
@@ -2243,8 +2241,7 @@ Definition* RangeAnalysis::LoadArrayLength(CheckArrayBoundInstr* check) {
 
 void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
     Definition* defn, CheckArrayBoundInstr* check) {
-  if ((check->array_type() != kArrayCid) &&
-      (check->array_type() != kImmutableArrayCid)) {
+  if (!CheckArrayBoundInstr::IsFixedLengthArrayType(check->array_type())) {
     return;
   }
 

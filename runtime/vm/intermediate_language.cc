@@ -2474,6 +2474,11 @@ void LoadFieldInstr::InferRange() {
     return;
   }
   if ((range_ == NULL) &&
+      (recognized_kind() == MethodRecognizer::kByteArrayBaseLength)) {
+    range_ = new Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+    return;
+  }
+  if ((range_ == NULL) &&
       (recognized_kind() == MethodRecognizer::kStringBaseLength)) {
     range_ = new Range(RangeBoundary::FromConstant(0),
                        RangeBoundary::FromConstant(String::kMaxElements));
@@ -2689,9 +2694,31 @@ bool Range::IsWithin(intptr_t min_int, intptr_t max_int) const {
 }
 
 
+bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+    case kInt64ArrayCid:
+    case kUint64ArrayCid:
+    case kFloat32ArrayCid:
+    case kFloat64ArrayCid:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
 bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   // Check that array has an immutable length.
-  if ((array_type() != kArrayCid) && (array_type() != kImmutableArrayCid)) {
+  if (!IsFixedLengthArrayType(array_type())) {
     return false;
   }
 
@@ -2730,20 +2757,23 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
   switch (class_id) {
     case kGrowableObjectArrayCid:
       return GrowableObjectArray::length_offset();
-    case kFloat64ArrayCid:
-      return Float64Array::length_offset();
-    case kFloat32ArrayCid:
-      return Float32Array::length_offset();
     case kOneByteStringCid:
     case kTwoByteStringCid:
       return String::length_offset();
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::length_offset();
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
-      return Uint8Array::length_offset();
     case kUint8ClampedArrayCid:
-      return Uint8ClampedArray::length_offset();
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+    case kInt64ArrayCid:
+    case kUint64ArrayCid:
+    case kFloat64ArrayCid:
+    case kFloat32ArrayCid:
     case kExternalUint8ArrayCid:
       return ByteArray::length_offset();
     default:
