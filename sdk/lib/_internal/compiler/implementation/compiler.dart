@@ -132,10 +132,12 @@ class TokenMap {
   Map<TokenKey,Token> comments = new Map<TokenKey,Token>();
 
   Token operator[] (Token key) {
+    if (key == null) return null;
     return comments[new TokenKey(key)];
   }
 
   void operator[]= (Token key, Token value) {
+    if (key == null) return;
     comments[new TokenKey(key)] = value;
   }
 }
