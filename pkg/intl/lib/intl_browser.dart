@@ -11,6 +11,7 @@
 
 library intl_browser;
 
+import "dart:async";
 import "dart:html";
 import "intl.dart";
 
