@@ -306,7 +306,7 @@ main() {
     var s = new Serialization()
       ..selfDescribing = false
       ..addRuleFor(a1,
-          constructor: 'with',
+          constructor: 'withData',
           constructorFields: ["street", "Kirkland", "WA", "98103"],
           fields: []);
     var out = s.write(a1);
