@@ -282,21 +282,21 @@ class Throws extends BaseMatcher {
 
   bool matches(item, MatchState matchState) {
     if (item is Future) {
+      var done = wrapAsync((fn) => fn());
+
       // Queue up an asynchronous expectation that validates when the future
       // completes.
-      item.then(wrapAsync((value) {
-        expect(false, isTrue, reason:
-            "Expected future to fail, but succeeded with '$value'.");
-      }));
-
-      item.catchError((e) {
+      item.then((value) {
+        done(() => expect(false, isTrue, reason:
+            "Expected future to fail, but succeeded with '$value'."));
+      }, onError: (e) {
         var reason;
         if (e.stackTrace != null) {
           var stackTrace = e.stackTrace.toString();
           stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
           reason = "Actual exception trace:\n$stackTrace";
         }
-        expect(e.error, _matcher, reason: reason);
+        done(() => expect(e.error, _matcher, reason: reason));
       });
 
       // It hasn't failed yet.
