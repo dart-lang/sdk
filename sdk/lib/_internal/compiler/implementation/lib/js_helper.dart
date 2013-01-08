@@ -699,7 +699,7 @@ class Primitives {
       JS('void', r'#.date = new Date(#)', receiver,
          receiver.millisecondsSinceEpoch);
     }
-    return JS('Date', r'#.date', receiver);
+    return JS('var', r'#.date', receiver);
   }
 
   // The getters for date and time parts below add a positive integer to ensure
