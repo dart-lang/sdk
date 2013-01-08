@@ -11,8 +11,8 @@
 // unoptimized code produces the correct result and is then run
 // in a loop to ensure optimization kicks in and some inlining is done.
 // Note: it appears that functions which have a throw are not inlined (func4)
-//       func2 and func1 are not getting inlined and I am not able to explain
-//       why inlining is not attempted on those.
+//       and functions that have try/catch in them are not optimized (func1).
+//       func2 is not inlined as func1 has not been optimized.
 
 class Test {
   String func1(var k) {
@@ -29,25 +29,25 @@ class Test {
   int func2(var i) {
     var result = 0;
     for (var k = 0; k <= 10; k++) {
-      result += func2a(i + k);
-    }
-    return result;
-  }
-  int func2a(var i) {
-    var result = 0;
-    for (var l = 0; l <= 1; l++) {
-      result += func3(i + l);
+      result += func3(i + k);
     }
     return result;
   }
   int func3(var i) {
     var result = 0;
-    for (var j = 0; j <= 10; j++) {
-      result += func4(i + j);
+    for (var l = 0; l <= 1; l++) {
+      result += func4(i + l);
     }
     return result;
   }
   int func4(var i) {
+    var result = 0;
+    for (var j = 0; j <= 10; j++) {
+      result += func5(i + j);
+    }
+    return result;
+  }
+  int func5(var i) {
     if (i >= 1030) throw "show me inlined functions";
     return i;
   }
@@ -59,16 +59,16 @@ main() {
   Expect.isTrue(result.contains("show me inlined functions"));
   Expect.isTrue(result.contains("Test.func1"));
   Expect.isTrue(result.contains("Test.func2"));
-  Expect.isTrue(result.contains("Test.func2a"));
   Expect.isTrue(result.contains("Test.func3"));
   Expect.isTrue(result.contains("Test.func4"));
+  Expect.isTrue(result.contains("Test.func"));
   for (var i = 0; i <= 200; i++) {
     result = x.func1(i);
   }
   Expect.isTrue(result.contains("show me inlined functions"));
   Expect.isTrue(result.contains("Test.func1"));
   Expect.isTrue(result.contains("Test.func2"));
-  Expect.isTrue(result.contains("Test.func2a"));
   Expect.isTrue(result.contains("Test.func3"));
   Expect.isTrue(result.contains("Test.func4"));
+  Expect.isTrue(result.contains("Test.func5"));
 }
