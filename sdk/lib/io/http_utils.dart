@@ -111,11 +111,11 @@ class _HttpUtils {
     sb.add(month[d.month - 1]);
     sb.add(" ");
     sb.add(d.year.toString());
-    d.hour < 9 ? sb.add(" 0") : sb.add(" ");
+    sb.add(d.hour < 9 ? " 0" : " ");
     sb.add(d.hour.toString());
-    d.minute < 9 ? sb.add(":0") : sb.add(":");
+    sb.add(d.minute < 9 ? ":0" : ":");
     sb.add(d.minute.toString());
-    d.second < 9 ? sb.add(":0") : sb.add(":");
+    sb.add(d.second < 9 ? ":0" : ":");
     sb.add(d.second.toString());
     sb.add(" GMT");
     return sb.toString();
