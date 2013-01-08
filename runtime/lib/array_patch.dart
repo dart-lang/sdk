@@ -8,16 +8,15 @@
 patch class List<E> {
   /* patch */ factory List([int length = 0]) {
     if ((length is! int) || (length < 0)) {
-      throw new ArgumentError("Length must be a positive integer: $length.");
+      _throwArgumentError(length);
     }
-    _GrowableObjectArray<E> result = new _GrowableObjectArray<E>();
-    result.length = length;
+    _GrowableObjectArray<E> result = new _GrowableObjectArray<E>(length);
     return result;
   }
 
   /* patch */ factory List.fixedLength(int length, {E fill: null}) {
     if ((length is! int) || (length < 0)) {
-      throw new ArgumentError("Length must be a positive integer: $length.");
+      _throwArgumentError(length);
     }
     _ObjectArray<E> result = new _ObjectArray<E>(length);
     if (fill != null) {
@@ -30,7 +29,7 @@ patch class List<E> {
 
   /* patch */ factory List.filled(int length, E fill) {
     if ((length is! int) || (length < 0)) {
-      throw new ArgumentError("Length must be a positive integer: $length.");
+      _throwArgumentError(length);
     }
     _GrowableObjectArray<E> result =
         new _GrowableObjectArray<E>.withCapacity(length < 4 ? 4 : length);
@@ -52,5 +51,9 @@ patch class List<E> {
       list.length = elements.length;
     }
     return list;
+  }
+
+  static void _throwArgumentError(int length) {
+    throw new ArgumentError("Length must be a positive integer: $length.");
   }
 }
