@@ -119,6 +119,8 @@ class HostedSource extends Source {
   /// this tries to translate into a more user friendly error message. Always
   /// throws an error, either the original one or a better one.
   void _throwFriendlyError(ex, package, url) {
+    ex = getRealError(ex);
+
     if (ex is PubHttpException && ex.response.statusCode == 404) {
       throw 'Could not find package "$package" at $url.';
     }

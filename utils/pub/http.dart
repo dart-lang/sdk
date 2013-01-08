@@ -14,6 +14,7 @@ import '../../pkg/http/lib/http.dart' as http;
 import 'curl_client.dart';
 import 'io.dart';
 import 'log.dart' as log;
+import 'utils.dart';
 
 // TODO(nweiz): make this configurable
 /// The amount of time in milliseconds to allow HTTP requests before assuming
@@ -57,6 +58,7 @@ class PubHttpClient extends http.BaseClient {
         throw new PubHttpException(response);
       });
     }).catchError((e) {
+      e = getRealError(e);
       if (e is SocketIOException &&
           e.osError != null &&
           (e.osError.errorCode == 8 ||
