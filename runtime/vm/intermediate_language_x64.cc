@@ -31,6 +31,33 @@ LocationSummary* Instruction::MakeCallSummary() {
 }
 
 
+LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps= 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::AnyOrConstant(value()));
+  return locs;
+}
+
+
+void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
+  // where PushArgument is handled by BindInstr::EmitNativeCode.
+  if (compiler->is_optimizing()) {
+    Location value = locs()->in(0);
+    if (value.IsRegister()) {
+      __ pushq(value.reg());
+    } else if (value.IsConstant()) {
+      __ PushObject(value.constant());
+    } else {
+      ASSERT(value.IsStackSlot());
+      __ pushq(value.ToStackSlotAddress());
+    }
+  }
+}
+
+
 LocationSummary* ReturnInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;

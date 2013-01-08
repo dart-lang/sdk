@@ -1340,19 +1340,6 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
 #define __ compiler_->assembler()->
 
 
-static Address ToStackSlotAddress(Location loc) {
-  const intptr_t index = loc.stack_index();
-  if (index < 0) {
-    const intptr_t offset = (1 - index)  * kWordSize;
-    return Address(RBP, offset);
-  } else {
-    const intptr_t offset =
-        (ParsedFunction::kFirstLocalSlotIndex - index) * kWordSize;
-    return Address(RBP, offset);
-  }
-}
-
-
 void ParallelMoveResolver::EmitMove(int index) {
   MoveOperands* move = moves_[index];
   const Location source = move->src();
@@ -1363,15 +1350,15 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movq(destination.reg(), source.reg());
     } else {
       ASSERT(destination.IsStackSlot());
-      __ movq(ToStackSlotAddress(destination), source.reg());
+      __ movq(destination.ToStackSlotAddress(), source.reg());
     }
   } else if (source.IsStackSlot()) {
     if (destination.IsRegister()) {
-      __ movq(destination.reg(), ToStackSlotAddress(source));
+      __ movq(destination.reg(), source.ToStackSlotAddress());
     } else {
       ASSERT(destination.IsStackSlot());
-      MoveMemoryToMemory(ToStackSlotAddress(destination),
-                         ToStackSlotAddress(source));
+      MoveMemoryToMemory(destination.ToStackSlotAddress(),
+                         source.ToStackSlotAddress());
     }
   } else if (source.IsXmmRegister()) {
     if (destination.IsXmmRegister()) {
@@ -1380,15 +1367,15 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movaps(destination.xmm_reg(), source.xmm_reg());
     } else {
       ASSERT(destination.IsDoubleStackSlot());
-      __ movsd(ToStackSlotAddress(destination), source.xmm_reg());
+      __ movsd(destination.ToStackSlotAddress(), source.xmm_reg());
     }
   } else if (source.IsDoubleStackSlot()) {
     if (destination.IsXmmRegister()) {
-      __ movsd(destination.xmm_reg(), ToStackSlotAddress(source));
+      __ movsd(destination.xmm_reg(), source.ToStackSlotAddress());
     } else {
       ASSERT(destination.IsDoubleStackSlot());
-      __ movsd(XMM0, ToStackSlotAddress(source));
-      __ movsd(ToStackSlotAddress(destination), XMM0);
+      __ movsd(XMM0, source.ToStackSlotAddress());
+      __ movsd(destination.ToStackSlotAddress(), XMM0);
     }
   } else {
     ASSERT(source.IsConstant());
@@ -1401,7 +1388,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       }
     } else {
       ASSERT(destination.IsStackSlot());
-      StoreObject(ToStackSlotAddress(destination), source.constant());
+      StoreObject(destination.ToStackSlotAddress(), source.constant());
     }
   }
 
@@ -1417,11 +1404,11 @@ void ParallelMoveResolver::EmitSwap(int index) {
   if (source.IsRegister() && destination.IsRegister()) {
     __ xchgq(destination.reg(), source.reg());
   } else if (source.IsRegister() && destination.IsStackSlot()) {
-    Exchange(source.reg(), ToStackSlotAddress(destination));
+    Exchange(source.reg(), destination.ToStackSlotAddress());
   } else if (source.IsStackSlot() && destination.IsRegister()) {
-    Exchange(destination.reg(), ToStackSlotAddress(source));
+    Exchange(destination.reg(), source.ToStackSlotAddress());
   } else if (source.IsStackSlot() && destination.IsStackSlot()) {
-    Exchange(ToStackSlotAddress(destination), ToStackSlotAddress(source));
+    Exchange(destination.ToStackSlotAddress(), source.ToStackSlotAddress());
   } else if (source.IsXmmRegister() && destination.IsXmmRegister()) {
     __ movaps(XMM0, source.xmm_reg());
     __ movaps(source.xmm_reg(), destination.xmm_reg());
@@ -1430,8 +1417,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
     ASSERT(destination.IsDoubleStackSlot() || source.IsDoubleStackSlot());
     XmmRegister reg = source.IsXmmRegister() ? source.xmm_reg()
                                              : destination.xmm_reg();
-    Address slot_address =
-        ToStackSlotAddress(source.IsXmmRegister() ? destination : source);
+    Address slot_address = source.IsXmmRegister()
+        ? destination.ToStackSlotAddress()
+        : source.ToStackSlotAddress();
 
     __ movsd(XMM0, slot_address);
     __ movsd(slot_address, reg);

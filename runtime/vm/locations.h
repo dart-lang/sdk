@@ -262,11 +262,15 @@ class Location : public ValueObject {
     return IndexField::decode(payload()) - kStackIndexBias;
   }
 
+  // Return a memory operand for stack slot locations.
+  Address ToStackSlotAddress() const;
+
   // Constants.
   static Location RegisterOrConstant(Value* value);
   static Location RegisterOrSmiConstant(Value* value);
   static Location FixedRegisterOrConstant(Value* value, Register reg);
   static Location FixedRegisterOrSmiConstant(Value* value, Register reg);
+  static Location AnyOrConstant(Value* value);
 
   const char* Name() const;
   void PrintTo(BufferFormatter* f) const;

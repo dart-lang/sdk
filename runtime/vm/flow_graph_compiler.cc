@@ -801,7 +801,8 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     } else if (loc.IsUnallocated() || loc.IsConstant()) {
       ASSERT(loc.IsConstant() ||
              ((loc.policy() == Location::kRequiresRegister) ||
-              (loc.policy() == Location::kWritableRegister)));
+              (loc.policy() == Location::kWritableRegister) ||
+              (loc.policy() == Location::kAny)));
       reg = AllocateFreeRegister(blocked_registers);
       locs->set_in(i, Location::RegisterLocation(reg));
     }

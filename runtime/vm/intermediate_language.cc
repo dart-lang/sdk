@@ -2253,28 +2253,6 @@ void CreateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps= 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  // TODO(fschneider): Use Any() once it is supported by all code generators.
-  locs->set_in(0, Location::RequiresRegister());
-  return locs;
-}
-
-
-void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
-  // where PushArgument is handled by BindInstr::EmitNativeCode.
-  // TODO(fschneider): Avoid special-casing for SSA mode here.
-  if (compiler->is_optimizing()) {
-    ASSERT(locs()->in(0).IsRegister());
-    __ PushRegister(locs()->in(0).reg());
-  }
-}
-
-
 Environment* Environment::From(const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
                                const Function& function) {
