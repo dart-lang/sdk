@@ -66,7 +66,7 @@ class _ChildrenElementList implements List {
   }
 
   Iterable<Element> where(bool f(Element element))
-      => new WhereIterable<Element>(this, f);
+      => new WhereIterable(this, f);
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
@@ -249,7 +249,7 @@ class _FrozenElementList implements List {
   }
 
   Iterable<Element> where(bool f(Element element))
-      => new WhereIterable<Element>(this, f);
+      => new WhereIterable(this, f);
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
