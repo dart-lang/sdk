@@ -11,10 +11,6 @@ xmlelement_test: Skip  # XML in dart:html is incomplete
 
 history_test/history: Fail, Pass # Issue 7676.
 
-form_data_test: Skip # Issue 7751, crashes the test server
-xhr_cross_origin_test: Skip # Issue 7751, crashes the test server
-
-
 # Layout tests are only supported on DRT.
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 *layout_test: Skip
