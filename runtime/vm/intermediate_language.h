@@ -3519,6 +3519,7 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
     return kUnboxedMint;
   }
 
+
   virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
@@ -3576,9 +3577,9 @@ class MathSqrtInstr : public TemplateDefinition<1> {
 class BinaryDoubleOpInstr : public TemplateDefinition<2> {
  public:
   BinaryDoubleOpInstr(Token::Kind op_kind,
-                             Value* left,
-                             Value* right,
-                             InstanceCallInstr* instance_call)
+                      Value* left,
+                      Value* right,
+                      InstanceCallInstr* instance_call)
       : op_kind_(op_kind) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
@@ -3623,6 +3624,8 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
 
   DECLARE_INSTRUCTION(BinaryDoubleOp)
   virtual RawAbstractType* CompileType() const;
+
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
  private:
   const Token::Kind op_kind_;
@@ -3681,6 +3684,8 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
     // was inherited from another instruction that could deoptimize.
     return deopt_id_;
   }
+
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
   DECLARE_INSTRUCTION(BinaryMintOp)
 
@@ -3852,6 +3857,8 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
   void PrintTo(BufferFormatter* f) const;
 
   virtual void InferRange();
+
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
  private:
   const Token::Kind op_kind_;

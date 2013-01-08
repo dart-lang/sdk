@@ -1380,6 +1380,181 @@ intptr_t BinaryDoubleOpInstr::ResultCid() const {
 }
 
 
+static bool ToIntegerConstant(Value* value, intptr_t* result) {
+  if (!value->BindsToConstant()) {
+    return false;
+  }
+
+  const Object& constant = value->BoundConstant();
+  if (constant.IsDouble()) {
+    const Double& double_constant = Double::Cast(constant);
+    *result = static_cast<intptr_t>(double_constant.value());
+    return (static_cast<double>(*result) == double_constant.value());
+  } else if (constant.IsSmi()) {
+    *result = Smi::Cast(constant).Value();
+    return true;
+  }
+
+  return false;
+}
+
+
+static Definition* CanonicalizeCommutativeArithmetic(
+  FlowGraphOptimizer* optimizer,
+  Definition* defn,
+  Token::Kind op,
+  intptr_t cid,
+  Value* left,
+  Value* right) {
+  ASSERT((cid == kSmiCid) || (cid == kDoubleCid) || (cid == kMintCid));
+
+  intptr_t left_value;
+  if (!ToIntegerConstant(left, &left_value)) {
+    return NULL;
+  }
+
+  switch (op) {
+    case Token::kMUL:
+      if (left_value == 1) {
+        if ((cid == kDoubleCid) &&
+            (right->definition()->representation() != kUnboxedDouble)) {
+          // Ensure that the result of the operation (right value) is coerced
+          // to double.
+          UnboxDoubleInstr* unbox =
+              new UnboxDoubleInstr(right->Copy(),
+                                   defn->DeoptimizationTarget());
+          optimizer->InsertBefore(defn,
+                                  unbox,
+                                  defn->env(),
+                                  Definition::kValue);
+          return unbox;
+        } else {
+          return right->definition();
+        }
+      } else if ((left_value == 0) && (cid != kDoubleCid)) {
+        // Can't apply this equivalence to double operation because
+        // 0.0 * NaN is NaN not 0.0.
+        return left->definition();
+      }
+      break;
+    case Token::kADD:
+      if ((left_value == 0) && (cid != kDoubleCid)) {
+        // Can't apply this equivalence to double operations because
+        // 0.0 + (-0.0) is 0.0 not -0.0.
+        return right->definition();
+      }
+      break;
+    case Token::kBIT_AND:
+      ASSERT(cid != kDoubleCid);
+      if (left_value == 0) {
+        return left->definition();
+      } else if (left_value == -1) {
+        return right->definition();
+      }
+      break;
+    case Token::kBIT_OR:
+      ASSERT(cid != kDoubleCid);
+      if (left_value == 0) {
+        return right->definition();
+      } else if (left_value == -1) {
+        return left->definition();
+      }
+      break;
+    case Token::kBIT_XOR:
+      ASSERT(cid != kDoubleCid);
+      if (left_value == 0) {
+        return right->definition();
+      }
+      break;
+    default:
+      break;
+  }
+
+  return NULL;
+}
+
+
+Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  Definition* result = NULL;
+
+  result = CanonicalizeCommutativeArithmetic(optimizer,
+                                             this,
+                                             op_kind(),
+                                             kDoubleCid,
+                                             left(),
+                                             right());
+  if (result != NULL) {
+    return result;
+  }
+
+  result = CanonicalizeCommutativeArithmetic(optimizer,
+                                             this,
+                                             op_kind(),
+                                             kDoubleCid,
+                                             right(),
+                                             left());
+  if (result != NULL) {
+    return result;
+  }
+
+  return this;
+}
+
+
+Definition* BinarySmiOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  Definition* result = NULL;
+
+  result = CanonicalizeCommutativeArithmetic(optimizer,
+                                             this,
+                                             op_kind(),
+                                             kSmiCid,
+                                             left(),
+                                             right());
+  if (result != NULL) {
+    return result;
+  }
+
+  result = CanonicalizeCommutativeArithmetic(optimizer,
+                                             this,
+                                             op_kind(),
+                                             kSmiCid,
+                                             right(),
+                                             left());
+  if (result != NULL) {
+    return result;
+  }
+
+  return this;
+}
+
+
+Definition* BinaryMintOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  Definition* result = NULL;
+
+  result = CanonicalizeCommutativeArithmetic(optimizer,
+                                             this,
+                                             op_kind(),
+                                             kMintCid,
+                                             left(),
+                                             right());
+  if (result != NULL) {
+    return result;
+  }
+
+  result = CanonicalizeCommutativeArithmetic(optimizer,
+                                             this,
+                                             op_kind(),
+                                             kMintCid,
+                                             right(),
+                                             left());
+  if (result != NULL) {
+    return result;
+  }
+
+  return this;
+}
+
+
 RawAbstractType* MathSqrtInstr::CompileType() const {
   return Type::Double();
 }
