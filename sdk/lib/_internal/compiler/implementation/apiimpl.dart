@@ -43,7 +43,8 @@ class Compiler extends leg.Compiler {
                           '--report-sdk-use-of-deprecated-language-features'),
             strips: getStrips(options),
             enableConcreteTypeInference:
-                hasOption(options, '--enable-concrete-type-inference')) {
+                hasOption(options, '--enable-concrete-type-inference'),
+            preserveComments: hasOption(options, '--preserve-comments')) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");
     }

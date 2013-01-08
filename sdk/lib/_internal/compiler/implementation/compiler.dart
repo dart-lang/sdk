@@ -103,6 +103,43 @@ abstract class Backend {
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {}
 }
 
+/**
+ * Key class used in [TokenMap] in which the hash code for a token is based
+ * on the [charOffset].
+ */
+class TokenKey {
+  final Token token;
+  TokenKey(this.token);
+  int get hashCode => token.charOffset;
+  operator==(other) => other is TokenKey && token == other.token;
+}
+
+/// Map of tokens and the first associated comment.
+/*
+ * This implementation was chosen among several candidates for its space/time
+ * efficiency by empirical tests of running dartdoc on dartdoc itself. Time
+ * measurements for the use of [Compiler.commentMap]:
+ *
+ * 1) Using [TokenKey] as key (this class): ~80 msec
+ * 2) Using [TokenKey] as key + storing a separate map in each script: ~120 msec
+ * 3) Using [Token] as key in a [Map]: ~38000 msec
+ * 4) Storing comments is new field in [Token]: ~20 msec
+ *    (Abandoned due to the increased memory usage)
+ * 5) Storing comments in an [Expando]: ~14000 msec
+ * 6) Storing token/comments pairs in a linked list: ~5400 msec
+ */
+class TokenMap {
+  Map<TokenKey,Token> comments = new Map<TokenKey,Token>();
+
+  Token operator[] (Token key) {
+    return comments[new TokenKey(key)];
+  }
+
+  void operator[]= (Token key, Token value) {
+    comments[new TokenKey(key)] = value;
+  }
+}
+
 abstract class Compiler implements DiagnosticListener {
   final Map<String, LibraryElement> libraries;
   final Stopwatch totalCompileTime = new Stopwatch();
@@ -110,6 +147,11 @@ abstract class Compiler implements DiagnosticListener {
   World world;
   String assembledCode;
   Types types;
+
+  /**
+   * Map from token to the first preceeding comment token.
+   */
+  final TokenMap commentMap = new TokenMap();
 
   final bool enableMinification;
   final bool enableTypeAssertions;
@@ -124,6 +166,11 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableNativeLiveTypeAnalysis;
   final bool rejectDeprecatedFeatures;
   final bool checkDeprecationInSdk;
+
+  /**
+   * If [:true:], comment tokens are collected in [commentMap] during scanning.
+   */
+  final bool preserveComments;
 
   bool disableInlining = false;
 
@@ -153,6 +200,8 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement typeClass;
   ClassElement mapClass;
   ClassElement jsInvocationMirrorClass;
+  /// Document class from dart:mirrors.
+  ClassElement documentClass;
   Element assertMethod;
   Element identicalFunction;
   Element functionApplyMethod;
@@ -247,6 +296,7 @@ abstract class Compiler implements DiagnosticListener {
             this.analyzeAll: false,
             this.rejectDeprecatedFeatures: false,
             this.checkDeprecationInSdk: false,
+            this.preserveComments: false,
             List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch() {
@@ -503,6 +553,13 @@ abstract class Compiler implements DiagnosticListener {
     jsInvocationMirrorClass.ensureResolved(this);
     invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(
         const SourceString('invokeOn'));
+
+    if (preserveComments) {
+      var uri = new Uri.fromComponents(scheme: 'dart', path: 'mirrors');
+      LibraryElement libraryElement =
+          libraryLoader.loadLibrary(uri, null, uri);
+      documentClass = libraryElement.find(const SourceString('Comment'));
+    }
   }
 
   void importHelperLibrary(LibraryElement library) {
@@ -902,6 +959,28 @@ abstract class Compiler implements DiagnosticListener {
       => interceptorsLibrary.findLocal(name);
 
   bool get isMockCompilation => false;
+
+  Token processAndStripComments(Token currentToken) {
+    Token firstToken = currentToken;
+    Token prevToken;
+    while (currentToken.kind != EOF_TOKEN) {
+      if (identical(currentToken.kind, COMMENT_TOKEN)) {
+        Token firstCommentToken = currentToken;
+        while (identical(currentToken.kind, COMMENT_TOKEN)) {
+          currentToken = currentToken.next;
+        }
+        commentMap[currentToken] = firstCommentToken;
+        if (prevToken == null) {
+          firstToken = currentToken;
+        } else {
+          prevToken.next = currentToken;
+        }
+      }
+      prevToken = currentToken;
+      currentToken = currentToken.next;
+    }
+    return firstToken;
+  }
 }
 
 class CompilerTask {

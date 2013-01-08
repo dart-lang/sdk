@@ -28,7 +28,11 @@ class ScannerTask extends CompilerTask {
 
   void scanElements(CompilationUnitElement compilationUnit) {
     Script script = compilationUnit.script;
-    Token tokens = new StringScanner(script.text).tokenize();
+    Token tokens = new StringScanner(script.text,
+        includeComments: compiler.preserveComments).tokenize();
+    if (compiler.preserveComments) {
+      tokens = compiler.processAndStripComments(tokens);
+    }
     compiler.dietParser.dietParse(compilationUnit, tokens);
   }
 }

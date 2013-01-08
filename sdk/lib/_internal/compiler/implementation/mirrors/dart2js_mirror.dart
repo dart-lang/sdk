@@ -12,7 +12,7 @@ import '../../compiler.dart' as diagnostics;
 import '../elements/elements.dart';
 import '../resolution/resolution.dart' show ResolverTask, ResolverVisitor;
 import '../apiimpl.dart' as api;
-import '../scanner/scannerlib.dart';
+import '../scanner/scannerlib.dart' hide SourceString;
 import '../ssa/ssa.dart';
 import '../dart2jslib.dart';
 import '../filenames.dart';
@@ -24,6 +24,7 @@ import '../dart2js.dart';
 import '../util/characters.dart';
 
 import 'mirrors.dart';
+import 'mirrors_util.dart';
 import 'util.dart';
 
 //------------------------------------------------------------------------------
@@ -392,7 +393,7 @@ class Dart2JsCompilation implements Compilation {
       packageUri = libraryUri;
     }
     _compiler = new api.Compiler(provider, handler,
-        libraryUri, packageUri, <String>[]);
+        libraryUri, packageUri, opts);
     var scriptUri = cwd.resolve(script.toString());
     // TODO(johnniwinther): Detect file not found
     _compiler.run(scriptUri);
@@ -409,7 +410,7 @@ class Dart2JsCompilation implements Compilation {
       packageUri = libraryUri;
     }
     _compiler = new LibraryCompiler(provider, handler,
-        libraryUri, packageUri, <String>[]);
+        libraryUri, packageUri, opts);
     var librariesUri = <Uri>[];
     for (Path library in libraries) {
       librariesUri.add(cwd.resolve(library.toString()));
@@ -442,7 +443,8 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
   bool get isPrivate => _isPrivate(simpleName);
 
   /**
-   * Returns the first token for the source of this declaration.
+   * Returns the first token for the source of this declaration, not including
+   * metadata annotations.
    */
   Token getBeginToken();
 
@@ -455,41 +457,10 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
    * Returns the script for the source of this declaration.
    */
   Script getScript();
-
-  SourceLocation get location {
-    Token beginToken = getBeginToken();
-    Script script = getScript();
-    SourceSpan span;
-    if (beginToken == null) {
-      span = new SourceSpan(script.uri, 0, 0);
-    } else {
-      Token endToken = getEndToken();
-      span = mirrors.compiler.spanFromTokens(beginToken, endToken, script.uri);
-    }
-    return new Dart2JsSourceLocation(script, span);
-  }
-}
-
-abstract class Dart2JsMemberMirror extends Dart2JsElementMirror
-    implements MemberMirror {
-
-  Dart2JsMemberMirror(Dart2JsMirrorSystem system, Element element)
-      : super(system, element);
-
-  bool get isConstructor => false;
-
-  bool get isVariable => false;
-
-  bool get isMethod => false;
-
-  bool get isStatic => false;
-
-  bool get isParameter => false;
 }
 
 abstract class Dart2JsTypeMirror extends Dart2JsDeclarationMirror
     implements TypeMirror {
-
 }
 
 abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
@@ -507,18 +478,10 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   String get displayName => simpleName;
 
   /**
-   * Computes the first token for this declaration using the first metadata
-   * annotation, the begin token of the element node or element position as
-   * indicator.
+   * Computes the first token for this declaration using the begin token of the
+   * element node or element position as indicator.
    */
   Token getBeginToken() {
-    if (!_element.metadata.isEmpty) {
-      for (MetadataAnnotation metadata in _element.metadata) {
-        if (metadata.beginToken != null) {
-          return metadata.beginToken;
-        }
-      }
-    }
     // TODO(johnniwinther): Avoid calling [parseNode].
     Node node = _element.parseNode(mirrors.compiler);
     if (node == null) {
@@ -540,24 +503,79 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     return node.getEndToken();
   }
 
+  /**
+   * Returns the first token for the source of this declaration, including
+   * metadata annotations.
+   */
+  Token getFirstToken() {
+    if (!_element.metadata.isEmpty) {
+      for (MetadataAnnotation metadata in _element.metadata) {
+        if (metadata.beginToken != null) {
+          return metadata.beginToken;
+        }
+      }
+    }
+    return getBeginToken();
+  }
+
   Script getScript() => _element.getCompilationUnit().script;
+
+  SourceLocation get location {
+    Token beginToken = getFirstToken();
+    Script script = getScript();
+    SourceSpan span;
+    if (beginToken == null) {
+      span = new SourceSpan(script.uri, 0, 0);
+    } else {
+      Token endToken = getEndToken();
+      span = mirrors.compiler.spanFromTokens(beginToken, endToken, script.uri);
+    }
+    return new Dart2JsSourceLocation(script, span);
+  }
 
   String toString() => _element.toString();
 
   int get hashCode => qualifiedName.hashCode;
 
+  void _appendCommentTokens(Token commentToken) {
+    while (commentToken != null && commentToken.kind == COMMENT_TOKEN) {
+      _metadata.add(new Dart2JsCommentInstanceMirror(
+          mirrors, commentToken.slowToString()));
+      commentToken = commentToken.next;
+    }
+  }
+
   List<InstanceMirror> get metadata {
     if (_metadata == null) {
       _metadata = <InstanceMirror>[];
       for (MetadataAnnotation metadata in _element.metadata) {
+        _appendCommentTokens(mirrors.compiler.commentMap[metadata.beginToken]);
         metadata.ensureResolved(mirrors.compiler);
         _metadata.add(
             _convertConstantToInstanceMirror(mirrors, metadata.value));
       }
+      _appendCommentTokens(mirrors.compiler.commentMap[getBeginToken()]);
     }
     // TODO(johnniwinther): Return an unmodifiable list instead.
     return new List<InstanceMirror>.from(_metadata);
   }
+}
+
+abstract class Dart2JsMemberMirror extends Dart2JsElementMirror
+    implements MemberMirror {
+
+  Dart2JsMemberMirror(Dart2JsMirrorSystem system, Element element)
+      : super(system, element);
+
+  bool get isConstructor => false;
+
+  bool get isVariable => false;
+
+  bool get isMethod => false;
+
+  bool get isStatic => false;
+
+  bool get isParameter => false;
 }
 
 //------------------------------------------------------------------------------
@@ -731,17 +749,10 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
   }
 
   /**
-   * Computes the first token of this library using the first metadata
-   * annotation or the first library tag as indicator.
+   * Computes the first token of this library using the first library tag as
+   * indicator.
    */
   Token getBeginToken() {
-    if (!_element.metadata.isEmpty) {
-      for (MetadataAnnotation metadata in _element.metadata) {
-        if (metadata.beginToken != null) {
-          return metadata.beginToken;
-        }
-      }
-    }
     if (_library.libraryTag != null) {
       return _library.libraryTag.getBeginToken();
     } else if (!_library.tags.isEmpty) {
@@ -1671,6 +1682,9 @@ class Dart2JsBoolConstantMirror extends Dart2JsConstantMirror {
   Dart2JsBoolConstantMirror(Dart2JsMirrorSystem mirrors, BoolConstant constant)
       : super(mirrors, constant);
 
+  Dart2JsBoolConstantMirror.fromBool(Dart2JsMirrorSystem mirrors, bool value)
+      : super(mirrors, value ? new TrueConstant() : new FalseConstant());
+
   BoolConstant get _constant => super._constant;
 
   bool get hasReflectee => true;
@@ -1682,6 +1696,11 @@ class Dart2JsStringConstantMirror extends Dart2JsConstantMirror {
   Dart2JsStringConstantMirror(Dart2JsMirrorSystem mirrors,
                               StringConstant constant)
       : super(mirrors, constant);
+
+  Dart2JsStringConstantMirror.fromString(Dart2JsMirrorSystem mirrors,
+                                         String text)
+      : super(mirrors,
+              new StringConstant(new DartString.literal(text), null));
 
   StringConstant get _constant => super._constant;
 
@@ -1802,5 +1821,48 @@ class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
           _convertConstantToInstanceMirror(mirrors, fieldConstant));
     }
     return super.getField(fieldName);
+  }
+}
+
+class Dart2JsCommentInstanceMirror implements CommentInstanceMirror {
+  final Dart2JsMirrorSystem mirrors;
+  final String text;
+  String _trimmedText;
+
+  Dart2JsCommentInstanceMirror(this.mirrors, this.text);
+
+  ClassMirror get type {
+    return new Dart2JsClassMirror(mirrors, mirrors.compiler.documentClass);
+  }
+
+  bool get isDocComment => text.startsWith('/**') || text.startsWith('///');
+
+  String get trimmedText {
+    if (_trimmedText == null) {
+      _trimmedText = stripComment(text);
+    }
+    return _trimmedText;
+  }
+
+  bool get hasReflectee => false;
+
+  get reflectee {
+    // TODO(johnniwinther): Which exception/error should be thrown here?
+    throw new UnsupportedError('InstanceMirror does not have a reflectee');
+  }
+
+  Future<InstanceMirror> getField(String fieldName) {
+    if (fieldName == 'isDocComment') {
+      return new Future.immediate(
+          new Dart2JsBoolConstantMirror.fromBool(mirrors, isDocComment));
+    } else if (fieldName == 'text') {
+      return new Future.immediate(
+          new Dart2JsStringConstantMirror.fromString(mirrors, text));
+    } else if (fieldName == 'trimmedText') {
+      return new Future.immediate(
+          new Dart2JsStringConstantMirror.fromString(mirrors, trimmedText));
+    }
+    // TODO(johnniwinther): Which exception/error should be thrown here?
+    throw new UnsupportedError('InstanceMirror does not have a reflectee');
   }
 }

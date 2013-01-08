@@ -14,7 +14,10 @@ main() {
 
 }
 
+/// Singleline doc comment.
 @Metadata // This is intentionally the type literal.
+// Singleline comment 1.
+// Singleline comment 2.
 @Metadata(null)
 @Metadata(true)
 @Metadata(false)
@@ -24,9 +27,11 @@ main() {
 @Metadata(const ["Foo"])
 @Metadata(const {'foo':"Foo"})
 @metadata
-class Foo {
+/** Multiline doc comment. */
+/* Multiline comment. */ class Foo {
 
 }
+
 
 abstract class Bar<E> {
 

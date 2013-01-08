@@ -113,3 +113,47 @@ class HierarchyIterator implements Iterator<ClassMirror> {
     }
   }
 }
+
+final RegExp _singleLineCommentStart = new RegExp(r'^///? ?(.*)');
+final RegExp _multiLineCommentStartEnd =
+    new RegExp(r'^/\*\*? ?([\s\S]*)\*/$', multiLine: true);
+final RegExp _multiLineCommentLineStart = new RegExp(r'^[ \t]*\* ?(.*)');
+
+/**
+ * Pulls the raw text out of a comment (i.e. removes the comment
+ * characters).
+ */
+String stripComment(String comment) {
+  Match match = _singleLineCommentStart.firstMatch(comment);
+  if (match != null) {
+    return match[1];
+  }
+  match = _multiLineCommentStartEnd.firstMatch(comment);
+  if (match != null) {
+    comment = match[1];
+    var sb = new StringBuffer();
+    List<String> lines = comment.split('\n');
+    for (int index = 0 ; index < lines.length ; index++) {
+      String line = lines[index];
+      if (index == 0) {
+        sb.add(line); // Add the first line unprocessed.
+        continue;
+      }
+      sb.add('\n');
+      match = _multiLineCommentLineStart.firstMatch(line);
+      if (match != null) {
+        sb.add(match[1]);
+      } else if (index < lines.length-1 || !line.trim().isEmpty) {
+        // Do not add the last line if it only contains white space.
+        // This interprets cases like
+        //     /*
+        //      * Foo
+        //      */
+        // as "\nFoo\n" and not as "\nFoo\n     ".
+        sb.add(line);
+      }
+    }
+    return sb.toString();
+  }
+  throw new ArgumentError('Invalid comment $comment');
+}

@@ -223,8 +223,6 @@ class Dartdoc {
    */
   List<LibraryMirror> _sortedLibraries;
 
-  CommentMap _comments;
-
   /** The library that we're currently generating docs for. */
   LibraryMirror _currentLibrary;
 
@@ -248,8 +246,7 @@ class Dartdoc {
   int get totalTypes => _totalTypes;
   int get totalMembers => _totalMembers;
 
-  Dartdoc()
-      : _comments = new CommentMap() {
+  Dartdoc() {
     // Patch in support for [:...:]-style code to the markdown parser.
     // TODO(rnystrom): Markdown already has syntax for this. Phase this out?
     md.InlineParser.syntaxes.insertRange(0, 1,
@@ -325,12 +322,14 @@ class Dartdoc {
   }
 
   void documentEntryPoint(Path entrypoint, Path libPath, Path pkgPath) {
-    final compilation = new Compilation(entrypoint, libPath, pkgPath);
+    final compilation = new Compilation(entrypoint, libPath, pkgPath,
+        <String>['--preserve-comments']);
     _document(compilation);
   }
 
   void documentLibraries(List<Path> libraryList, Path libPath, Path pkgPath) {
-    final compilation = new Compilation.library(libraryList, libPath, pkgPath);
+    final compilation = new Compilation.library(libraryList, libPath, pkgPath,
+        <String>['--preserve-comments']);
     _document(compilation);
   }
 
@@ -361,7 +360,7 @@ class Dartdoc {
 
     startFile("apidoc.json");
     var libraries = _sortedLibraries.mappedBy(
-        (lib) => new LibraryElement(lib.qualifiedName, lib, _comments))
+        (lib) => new LibraryElement(lib.qualifiedName, lib))
         .toList();
     write(json_serializer.serialize(libraries));
     endFile();
@@ -1471,21 +1470,11 @@ class Dartdoc {
   DocComment createDocComment(String text, [ClassMirror inheritedFrom]) =>
       new DocComment(text, inheritedFrom);
 
-
   /** Get the doc comment associated with the given library. */
-  DocComment getLibraryComment(LibraryMirror library) {
-    // Look for a comment for the entire library.
-    final comment = _comments.findLibrary(library.location);
-    if (comment == null) return null;
-    return createDocComment(comment);
-  }
+  DocComment getLibraryComment(LibraryMirror library) => getComment(library);
 
   /** Get the doc comment associated with the given type. */
-  DocComment getTypeComment(TypeMirror type) {
-    String comment = _comments.find(type.location);
-    if (comment == null) return null;
-    return createDocComment(comment);
-  }
+  DocComment getTypeComment(TypeMirror type) => getComment(type);
 
   /**
    * Get the doc comment associated with the given member.
@@ -1494,18 +1483,27 @@ class Dartdoc {
    * an inherited comment, favouring comments inherited from classes over
    * comments inherited from interfaces.
    */
-  DocComment getMemberComment(MemberMirror member) {
-    String comment = _comments.find(member.location);
+  DocComment getMemberComment(MemberMirror member) => getComment(member);
+
+  /**
+   * Get the doc comment associated with the given declaration.
+   *
+   * If no comment was found on a member, the hierarchy is traversed to find
+   * an inherited comment, favouring comments inherited from classes over
+   * comments inherited from interfaces.
+   */
+  DocComment getComment(DeclarationMirror mirror) {
+    String comment = computeComment(mirror);
     ClassMirror inheritedFrom = null;
     if (comment == null) {
-      if (member.owner is ClassMirror) {
+      if (mirror.owner is ClassMirror) {
         var iterable =
-            new HierarchyIterable(member.owner,
+            new HierarchyIterable(mirror.owner,
                                   includeType: false);
         for (ClassMirror type in iterable) {
-          var inheritedMember = type.members[member.simpleName];
+          var inheritedMember = type.members[mirror.simpleName];
           if (inheritedMember is MemberMirror) {
-            comment = _comments.find(inheritedMember.location);
+            comment = computeComment(inheritedMember);
             if (comment != null) {
               inheritedFrom = type;
               break;
@@ -1874,6 +1872,28 @@ class InternalError {
   final String message;
   const InternalError(this.message);
   String toString() => "InternalError: '$message'";
+}
+
+/**
+ * Computes the doc comment for the declaration mirror.
+*
+ * Multiple comments are concatenated with newlines in between.
+ */
+String computeComment(DeclarationMirror mirror) {
+  String text;
+  for (InstanceMirror metadata in mirror.metadata) {
+    if (metadata is CommentInstanceMirror) {
+      CommentInstanceMirror comment = metadata;
+      if (comment.isDocComment) {
+        if (text == null) {
+          text = comment.trimmedText;
+        } else {
+          text = '$text\n${comment.trimmedText}';
+        }
+      }
+    }
+  }
+  return text;
 }
 
 class DocComment {
