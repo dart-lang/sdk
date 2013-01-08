@@ -8,7 +8,6 @@ reg_exp_unicode_2_test: Fail # Bug 6592
 unicode_test: Fail        # Bug 6706
 *dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
-null_test: Fail           # Bug 5511
 
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
@@ -64,7 +63,6 @@ string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
-null_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
 
 # Library changes
