@@ -367,7 +367,9 @@ class ListIterator<E> implements Iterator<E> {
 
 class MappedList<S, T> extends NonExtensibleListMixin<T> {
   final List<S> _list;
-  final _Transformation<S, T> _f;
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode.
+  final /* _Transformation<S, T> */ _f;
 
   MappedList(this._list, T this._f(S element));
 

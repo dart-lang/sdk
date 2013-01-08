@@ -324,7 +324,9 @@ typedef void _FutureAction();
 
 /** Future returned by [Future.then] with no [:onError:] parameter. */
 class _ThenFuture<S, T> extends _TransformFuture<S, T> {
-  final _FutureOnValue<S> _onValue;
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode.
+  final /* _FutureOnValue<S> */ _onValue;
 
   _ThenFuture(this._onValue);
 

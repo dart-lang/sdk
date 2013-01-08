@@ -372,7 +372,9 @@ typedef T _Transformation<S, T>(S value);
 
 class MappedIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
-  final _Transformation<S, T> _f;
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode.
+  final /* _Transformation<S, T> */ _f;
 
   MappedIterable(this._iterable, T this._f(S element));
 
@@ -386,7 +388,9 @@ class MappedIterable<S, T> extends Iterable<T> {
 class MappedIterator<S, T> extends Iterator<T> {
   T _current;
   final Iterator<S> _iterator;
-  final _Transformation<S, T> _f;
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode.
+  final /* _Transformation<S, T> */ _f;
 
   MappedIterator(this._iterator, T this._f(S element));
 
