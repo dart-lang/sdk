@@ -91,7 +91,7 @@ class IsolateStream extends Stream<dynamic> {
     }
   }
 
-  StreamSubscription<T> listen(void onData(T event),
+  StreamSubscription listen(void onData(event),
                                { void onError(AsyncError error),
                                  void onDone(),
                                  bool unsubscribeOnError}) {
