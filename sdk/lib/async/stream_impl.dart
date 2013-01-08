@@ -644,7 +644,7 @@ class _StreamSubscriptionImpl<T> extends _StreamListener<T>
                                  implements StreamSubscription<T> {
   final bool _unsubscribeOnError;
   // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode.
+  // checked mode. http://dartbug.com/7733
   var /* _DataHandler<T> */ _onData;
   _ErrorHandler _onError;
   _DoneHandler _onDone;
