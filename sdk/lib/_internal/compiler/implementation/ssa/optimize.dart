@@ -270,21 +270,18 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   bool isFixedSizeListConstructor(HInvokeStatic node) {
     Element element = node.target.element;
-    if (element.getEnclosingClass() != compiler.listClass) return false;
-    if (!element.isConstructor()) return false;
-    // Check that the constructor is called with an argument and that this
-    // argument is an integer.
-    // TODO(ngeoffray): maybe change the name of the function to reflect that
-    // we also look at the argument.
-    if (node.inputs.length != 2) return false;
-    if (!node.inputs[1].isInteger(types)) return false;
-
-    // TODO(ngeoffray): cache constructor.
-    FunctionElement fixedLengthListConstructor =
+    if (backend.fixedLengthListConstructor == null) {
+      backend.fixedLengthListConstructor =
         compiler.listClass.lookupConstructor(
             new Selector.callConstructor(const SourceString("fixedLength"),
                                          compiler.listClass.getLibrary()));
-    return element == fixedLengthListConstructor.defaultImplementation;
+    }
+    // TODO(ngeoffray): checking if the second input is an integer
+    // should not be necessary but it currently makes it easier for
+    // other optimizations to reason on a fixed length constructor
+    // that we know takes an int.
+    return element == backend.fixedLengthListConstructor
+        && node.inputs[1].isInteger(types);
   }
 
   HInstruction visitInvokeStatic(HInvokeStatic node) {

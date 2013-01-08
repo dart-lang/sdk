@@ -639,6 +639,7 @@ class JavaScriptBackend extends Backend {
   Element jsStringSplit;
   Element jsStringConcat;
   Element getInterceptorMethod;
+  Element fixedLengthListConstructor;
   bool _interceptorsAreInitialized = false;
 
   final Namer namer;
