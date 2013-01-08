@@ -272,26 +272,37 @@ class BeginGroupToken extends StringToken {
 
 bool isUserDefinableOperator(String value) {
   return
-    (identical(value, '==')) ||
-    (identical(value, '~')) ||
-    (identical(value, '[]')) ||
-    (identical(value, '[]=')) ||
-    (identical(value, '*')) ||
-    (identical(value, '/')) ||
-    (identical(value, '%')) ||
-    (identical(value, '~/')) ||
-    (identical(value, '+')) ||
-    (identical(value, '-')) ||
-    (identical(value, '<<')) ||
-    (identical(value, '>>')) ||
-    (identical(value, '>=')) ||
-    (identical(value, '>')) ||
-    (identical(value, '<=')) ||
-    (identical(value, '<')) ||
-    (identical(value, '&')) ||
-    (identical(value, '^')) ||
-    (identical(value, '|'));
+      isBinaryOperator(value) ||
+      isMinusOperator(value) ||
+      isTernaryOperator(value) ||
+      isUnaryOperator(value);
 }
+
+bool isUnaryOperator(String value) => identical(value, '~');
+
+bool isBinaryOperator(String value) {
+  return
+      (identical(value, '==')) ||
+      (identical(value, '[]')) ||
+      (identical(value, '*')) ||
+      (identical(value, '/')) ||
+      (identical(value, '%')) ||
+      (identical(value, '~/')) ||
+      (identical(value, '+')) ||
+      (identical(value, '<<')) ||
+      (identical(value, '>>')) ||
+      (identical(value, '>=')) ||
+      (identical(value, '>')) ||
+      (identical(value, '<=')) ||
+      (identical(value, '<')) ||
+      (identical(value, '&')) ||
+      (identical(value, '^')) ||
+      (identical(value, '|'));
+}
+
+bool isTernaryOperator(String value) => identical(value, '[]=');
+
+bool isMinusOperator(String value) => identical(value, '-');
 
 class PrecedenceInfo {
   final SourceString value;

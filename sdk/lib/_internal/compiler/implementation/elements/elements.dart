@@ -22,7 +22,10 @@ import '../dart2jslib.dart' show invariant,
                                  Selector,
                                  Constant,
                                  Compiler;
-import '../scanner/scannerlib.dart' show Token, EOF_TOKEN;
+import '../scanner/scannerlib.dart' show Token,
+                                         EOF_TOKEN,
+                                         isUserDefinableOperator,
+                                         isMinusOperator;
 import '../util/util.dart';
 import '../resolution/resolution.dart';
 
@@ -1946,28 +1949,10 @@ class Elements {
   static SourceString constructOperatorNameOrNull(SourceString op,
                                                   bool isUnary) {
     String value = op.stringValue;
-    if ((identical(value, '==')) ||
-        (identical(value, '~')) ||
-        (identical(value, '[]')) ||
-        (identical(value, '[]=')) ||
-        (identical(value, '*')) ||
-        (identical(value, '/')) ||
-        (identical(value, '%')) ||
-        (identical(value, '~/')) ||
-        (identical(value, '+')) ||
-        (identical(value, '<<')) ||
-        (identical(value, '>>>')) ||
-        (identical(value, '>>')) ||
-        (identical(value, '>=')) ||
-        (identical(value, '>')) ||
-        (identical(value, '<=')) ||
-        (identical(value, '<')) ||
-        (identical(value, '&')) ||
-        (identical(value, '^')) ||
-        (identical(value, '|'))) {
-      return op;
-    } else if (identical(value, '-')) {
+    if (isMinusOperator(value)) {
       return isUnary ? const SourceString('unary-') : op;
+    } else if (isUserDefinableOperator(value)) {
+      return op;
     } else {
       return null;
     }
