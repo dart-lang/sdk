@@ -2267,9 +2267,6 @@ class HEquals extends HRelational {
       // If right is a number we don't need more than a number (no need to match
       // the exact type of right).
       if (right.isNumber(types)) return HType.NUMBER;
-      // String equality testing is much more common than array equality
-      // testing.
-      if (right.isIndexablePrimitive(types)) return HType.STRING;
       return types[right];
     }
     // String equality testing is much more common than array equality testing.
