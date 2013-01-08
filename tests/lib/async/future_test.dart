@@ -7,6 +7,171 @@ library future_test;
 import 'dart:async';
 import 'dart:isolate';
 
+testImmediate() {
+  final future = new Future<String>.immediate("42");
+  var port = new ReceivePort();
+  future.then((x) {
+    Expect.equals("42", x);
+    port.close();
+  });
+}
+
+testNeverComplete() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  future.then((v) => Except.fails("Value not expected"));
+  future.catchError((e) => Except.fails("Value not expected"));
+}
+
+testComplete() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+
+  completer.complete(3);
+
+  future.then((v) => Expect.equals(3, v));
+}
+
+// Tests for [then]
+
+testCompleteWithSuccessHandlerBeforeComplete() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+
+  int value;
+  future.then((int v) { value = v; });
+  Expect.isNull(value);
+  completer.complete(3);
+
+  Expect.equals(3, value);
+}
+
+testCompleteWithSuccessHandlerAfterComplete() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+
+  int after;
+  completer.complete(3);
+  Expect.isNull(after);
+
+  var port = new ReceivePort();
+  future.then((int v) { after = v; })
+    .then((_) {
+      Expect.equals(3, after);
+      port.close();
+    });
+}
+
+testCompleteManySuccessHandlers() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  int before;
+  int after1;
+  int after2;
+
+  var futures = [];
+  futures.add(future.then((int v) { before = v; }));
+  completer.complete(3);
+  futures.add(future.then((int v) { after1 = v; }));
+  futures.add(future.then((int v) { after2 = v; }));
+
+  var port = new ReceivePort();
+  new Future.wait(futures).then((_) {
+    Expect.equals(3, before);
+    Expect.equals(3, after1);
+    Expect.equals(3, after2);
+    port.close();
+  });
+}
+
+// Tests for [catchError]
+
+testException() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final ex = new Exception();
+
+  var port = new ReceivePort();
+  future
+      .then((v) { throw "Value not expected"; })
+      .catchError((e) {
+        Expect.equals(e.error, ex);
+        port.close();
+      }, test: (e) => e == ex);
+  completer.completeError(ex);
+}
+
+testExceptionNoSuccessListeners() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final ex = new Exception();
+  completer.completeException(ex); // future.then is not called, so no exception
+}
+
+testExceptionHandler() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final ex = new Exception();
+
+  var ex2;
+  var done = future.catchError((e) { ex2 = e.error; });
+  completer.completeError(ex);
+
+  var port = new ReceivePort();
+  done.then((_) {
+    Expect.equals(ex, ex2);
+    port.close();
+  });
+}
+
+testExceptionHandlerReturnsTrue() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final ex = new Exception();
+
+  bool reached = false;
+  future.catchError((e) { });
+  future.catchError((e) { reached = true; }, test: (e) => false)
+        .catchError((e) {});
+  completer.completeError(ex);
+  Expect.isFalse(reached);
+}
+
+testExceptionHandlerReturnsTrue2() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final ex = new Exception();
+
+  bool reached = false;
+  var done = future
+      .catchError((e) { }, test: (e) => false)
+      .catchError((e) { reached = true; });
+  completer.completeError(ex);
+
+  var port = new ReceivePort();
+  done.then((_) {
+    Expect.isTrue(reached);
+    port.close();
+  });
+}
+
+testExceptionHandlerReturnsFalse() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final ex = new Exception();
+
+  bool reached = false;
+
+  future.catchError((e) { });
+
+  future.catchError((e) { reached = true; }, test: (e) => false)
+        .catchError((e) { });
+
+  completer.completeError(ex);
+
+  Expect.isFalse(reached);
+}
+
 testFutureAsStreamCompleteAfter() {
   var completer = new Completer();
   bool gotValue = false;
@@ -184,6 +349,20 @@ testFutureWhenCompletePreValue() {
 }
 
 main() {
+  testImmediate();
+  testNeverComplete();
+
+  testComplete();
+  testCompleteWithSuccessHandlerBeforeComplete();
+  testCompleteWithSuccessHandlerAfterComplete();
+  testCompleteManySuccessHandlers();
+
+  testException();
+  testExceptionHandler();
+  testExceptionHandlerReturnsTrue();
+  testExceptionHandlerReturnsTrue2();
+  testExceptionHandlerReturnsFalse();
+
   testFutureAsStreamCompleteAfter();
   testFutureAsStreamCompleteBefore();
   testFutureAsStreamCompleteImmediate();

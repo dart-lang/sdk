@@ -2,13 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $runtime == vm ]
-async/future2_test: Fail # Bug 6890 .TODO(ajohnsen): Fix this as part of library changes.
-
 [ $compiler == dart2js ]
 math/*: Skip
 mirrors/*: Skip
-async/future2_test: Fail # Bug 6890 .TODO(ajohnsen): Fix this as part of library changes.
 
 [ $compiler == dart2js && $runtime == d8 ]
 async/future_delayed_error_test: Fail # Timer interface not supported; dartbug.com/7728.
@@ -18,7 +14,6 @@ async/slow_consumer_test: Fail # Timer interface not supported; dartbug.com/7728
 async/stream_controller_async_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_min_max_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_single_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/future2_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/futures_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/merge_stream_test: Fail # Timer interface not supported; dartbug.com/7728.
 
@@ -40,9 +35,6 @@ crypto/hmac_sha256_test: Fail
 
 [ $runtime == vm && $arch == x64 ]
 async/slow_consumer2_test: Fail # Issue 7726
-
-[ $compiler == none && $runtime == drt ]
-async/future2_test: Fail # Issue 7736
 
 [ $compiler == dart2js && $runtime == d8 && $checked ]
 # Issue 7733.
