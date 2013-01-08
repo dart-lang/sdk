@@ -160,7 +160,8 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
       }
       // A division by 0 means that we might not have a folded value.
       if (foldedValue == null) return null;
-      if (left.isInt() && right.isInt() && !isDivide()) {
+      if (left.isInt() && right.isInt() && !isDivide() ||
+          isTruncatingDivide()) {
         assert(foldedValue is int);
         return DART_CONSTANT_SYSTEM.createInt(foldedValue);
       } else {
@@ -171,6 +172,7 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
   }
 
   bool isDivide() => false;
+  bool isTruncatingDivide() => false;
   num foldInts(int left, int right) => foldNums(left, right);
   num foldNums(num left, num right);
 }
@@ -213,6 +215,7 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
     return ratio.truncate().toInt();
   }
   apply(left, right) => left ~/ right;
+  bool isTruncatingDivide() => true;
 }
 
 class DivideOperation extends ArithmeticNumOperation {
