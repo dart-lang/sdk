@@ -8399,7 +8399,7 @@ class _ChildrenElementList implements List {
   }
 
   Iterable<Element> where(bool f(Element element))
-      => new WhereIterable<Element>(this, f);
+      => new WhereIterable(this, f);
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
@@ -8582,7 +8582,7 @@ class _FrozenElementList implements List {
   }
 
   Iterable<Element> where(bool f(Element element))
-      => new WhereIterable<Element>(this, f);
+      => new WhereIterable(this, f);
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -8721,7 +8721,7 @@ class _FrozenElementList implements List {
 
 class _FrozenElementListIterator implements Iterator<Element> {
   final _FrozenElementList _list;
-  int _index = 0;
+  int _index = -1;
   Element _current;
 
   _FrozenElementListIterator(this._list);
@@ -19764,13 +19764,15 @@ class SelectElement extends _Element_Merged {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    return this.children.where((e) => e is OptionElement).toList();
+    var options = this.children.where((e) => e is OptionElement).toList();
+    return new ListView(options, 0, options.length);
   }
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
-      return this.options.where((o) => o.selected).toList();
+      var options = this.options.where((o) => o.selected).toList();
+      return new ListView(options, 0, options.length);
     } else {
       return [this.options[this.selectedIndex]];
     }

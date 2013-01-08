@@ -140,6 +140,10 @@ void _convertFile(File file, Map<String, List<String>> comments) {
     _anyErrors = true;
   });
 
+  for (var i = 0; i < fileLines.length; ++i) {
+    fileLines[i] = fileLines[i].replaceAll(new RegExp(r'\s+$'), '');
+  }
+
   // TODO(amouravski): file.writeAsStringSync('${Strings.join(fileLines, '\n')}\n');
   var outputStream = file.openOutputStream();
   outputStream.writeString(Strings.join(fileLines, '\n'));

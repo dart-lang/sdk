@@ -7199,7 +7199,7 @@ class _ChildrenElementList implements List {
   }
 
   Iterable<Element> where(bool f(Element element))
-      => new WhereIterable<Element>(this, f);
+      => new WhereIterable(this, f);
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
@@ -7382,7 +7382,7 @@ class _FrozenElementList implements List {
   }
 
   Iterable<Element> where(bool f(Element element))
-      => new WhereIterable<Element>(this, f);
+      => new WhereIterable(this, f);
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -16549,14 +16549,14 @@ class SelectElement extends Element native "*HTMLSelectElement" {
   // does not operate as a List.
   List<OptionElement> get options {
     var options = this.children.where((e) => e is OptionElement).toList();
-    return new ListView<OptionElement>(options, 0, options.length);
+    return new ListView(options, 0, options.length);
   }
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
       var options = this.options.where((o) => o.selected).toList();
-      return new ListView<OptionElement>(options, 0, options.length);
+      return new ListView(options, 0, options.length);
     } else {
       return [this.options[this.selectedIndex]];
     }
@@ -24800,9 +24800,9 @@ class KeyboardEventController {
 
 
 /**
- * Defines the keycode values for keys that are returned by
+ * Defines the keycode values for keys that are returned by 
  * KeyboardEvent.keyCode.
- *
+ * 
  * Important note: There is substantial divergence in how different browsers
  * handle keycodes and their variants in different locales/keyboard layouts. We
  * provide these constants to help make code processing keys more readable.
@@ -24810,7 +24810,7 @@ class KeyboardEventController {
 abstract class KeyCode {
   // These constant names were borrowed from Closure's Keycode enumeration
   // class.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html
+  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html  
   static const int WIN_KEY_FF_LINUX = 0;
   static const int MAC_ENTER = 3;
   static const int BACKSPACE = 8;
@@ -25005,12 +25005,12 @@ abstract class KeyCode {
         (keyCode >= A && keyCode <= Z)) {
       return true;
     }
-
+ 
     // Safari sends zero key code for non-latin characters.
     if (_Device.isWebKit && keyCode == 0) {
       return true;
     }
-
+ 
     return (keyCode == SPACE || keyCode == QUESTION_MARK || keyCode == NUM_PLUS
         || keyCode == NUM_MINUS || keyCode == NUM_PERIOD ||
         keyCode == NUM_DIVISION || keyCode == SEMICOLON ||
@@ -26879,7 +26879,7 @@ class FixedSizeListIterator<T> implements Iterator<T> {
   final int _length;  // Cache array length for faster access.
   int _position;
   T _current;
-
+  
   FixedSizeListIterator(List<T> array)
       : _array = array,
         _position = -1,
