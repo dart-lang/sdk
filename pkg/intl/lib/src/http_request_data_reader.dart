@@ -9,6 +9,7 @@
 
 library http_request_data_reader;
 
+import 'dart:async';
 import 'dart:html';
 import 'intl_helpers.dart';
 

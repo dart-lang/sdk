@@ -8,8 +8,9 @@
  */
 library date_symbol_data_json;
 
-import "date_symbols.dart";
-import "src/lazy_locale_data.dart";
+import 'dart:async';
+import 'date_symbols.dart';
+import 'src/lazy_locale_data.dart';
 import 'src/date_format_internal.dart';
 import 'src/http_request_data_reader.dart';
 
