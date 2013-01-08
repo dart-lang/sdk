@@ -104,7 +104,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // collection and counting stub.
     __ LoadObject(func_reg, function);
     __ incq(FieldAddress(func_reg, Function::usage_counter_offset()));
-    if (FlowGraphCompiler::CanOptimize() &&
+    if (compiler->CanOptimizeFunction() &&
         compiler->parsed_function().function().is_optimizable()) {
       // Do not optimize if usage count must be reported.
       __ cmpq(FieldAddress(func_reg, Function::usage_counter_offset()),

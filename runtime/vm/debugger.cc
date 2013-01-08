@@ -216,6 +216,30 @@ const char* Debugger::QualifiedFunctionName(const Function& func) {
 }
 
 
+bool Debugger::HasBreakpoint(const Function& func) {
+  if (!func.HasCode()) {
+    // If the function is not compiled yet, just check whether there
+    // is a user-defined latent breakpoint.
+    SourceBreakpoint* sbpt = src_breakpoints_;
+    while (sbpt != NULL) {
+      if (func.raw() == sbpt->function()) {
+        return true;
+      }
+      sbpt = sbpt->next_;
+    }
+    return false;
+  }
+  CodeBreakpoint* cbpt = code_breakpoints_;
+  while (cbpt != NULL) {
+    if (func.raw() == cbpt->function()) {
+      return true;
+    }
+    cbpt = cbpt->next_;
+  }
+  return false;
+}
+
+
 RawString* ActivationFrame::QualifiedFunctionName() {
   const Function& func = DartFunction();
   return String::New(Debugger::QualifiedFunctionName(func));
@@ -703,18 +727,6 @@ void Debugger::Shutdown() {
 }
 
 
-bool Debugger::IsActive() {
-  // TODO(hausner): The code generator uses this function to prevent
-  // generation of optimized code when Dart code is being debugged.
-  // This is probably not conservative enough (we could set the first
-  // breakpoint after optimized code has already been produced).
-  // Long-term, we need to be able to de-optimize code.
-  return (src_breakpoints_ != NULL) ||
-         (code_breakpoints_ != NULL) ||
-         (exc_pause_info_ != kNoPauseOnExceptions);
-}
-
-
 static RawFunction* ResolveLibraryFunction(
                         const Library& library,
                         const String& fname) {
@@ -748,27 +760,39 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 }
 
 
-// Deoptimize function if necessary. Does not patch return addresses on the
-// stack. If there are activation frames of this function on the stack,
-// the optimized code will be executed when the callee returns.
-void Debugger::EnsureFunctionIsDeoptimized(const Function& func) {
-  if (func.HasOptimizedCode()) {
-    if (FLAG_verbose_debug) {
-      OS::Print("Deoptimizing function %s\n",
-                String::Handle(func.name()).ToCString());
+// Deoptimize all functions in the isolate.
+// TODO(hausner): Actually we only need to deoptimize those functions
+// that inline the function that contains the newly created breakpoint.
+// We currently don't have this info so we deoptimize all functions.
+void Debugger::DeoptimizeWorld() {
+  // Deoptimize all functions in stack activation frames.
+  DeoptimizeAll();
+  // Iterate over all classes, deoptimize functions.
+  // TODO(hausner): Could possibly be combined with RemoveOptimizedCode()
+  const ClassTable& class_table = *isolate_->class_table();
+  Class& cls = Class::Handle();
+  Array& functions = Array::Handle();
+  Function& function = Function::Handle();
+  intptr_t num_classes = class_table.NumCids();
+  for (intptr_t i = 1; i < num_classes; i++) {
+    if (class_table.HasValidClassAt(i)) {
+      cls = class_table.At(i);
+      functions = cls.functions();
+      intptr_t num_functions = functions.IsNull() ? 0 : functions.Length();
+      for (intptr_t f = 0; f < num_functions; f++) {
+        function ^= functions.At(f);
+        ASSERT(!function.IsNull());
+        if (function.HasOptimizedCode()) {
+          function.SwitchToUnoptimizedCode();
+        }
+      }
     }
-    func.set_usage_counter(0);
-    func.set_deoptimization_counter(func.deoptimization_counter() + 1);
-    Compiler::CompileFunction(func);
-    ASSERT(!func.HasOptimizedCode());
   }
 }
 
 
 void Debugger::InstrumentForStepping(const Function& target_function) {
-  if (target_function.HasCode()) {
-    EnsureFunctionIsDeoptimized(target_function);
-  } else {
+  if (!target_function.HasCode()) {
     Compiler::CompileFunction(target_function);
     // If there were any errors, ignore them silently and return without
     // adding breakpoints to target.
@@ -776,6 +800,8 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
       return;
     }
   }
+  DeoptimizeWorld();
+  ASSERT(!target_function.HasOptimizedCode());
   Code& code = Code::Handle(target_function.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
@@ -972,7 +998,8 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     // The given token position is not within the target function.
     return NULL;
   }
-  EnsureFunctionIsDeoptimized(target_function);
+  DeoptimizeWorld();
+  ASSERT(!target_function.HasOptimizedCode());
 
   CodeBreakpoint* cbpt = NULL;
   SourceBreakpoint* source_bpt = NULL;
@@ -1027,7 +1054,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     const Function& closure =
         Function::Handle(target_function.ImplicitClosureFunction());
     if (closure.HasCode()) {
-      EnsureFunctionIsDeoptimized(closure);
+      ASSERT(!closure.HasOptimizedCode());
       CodeBreakpoint* closure_bpt =
           MakeCodeBreakpoint(closure, first_token_pos, last_token_pos);
       if ((closure_bpt != NULL) && (closure_bpt->src_bpt() == NULL)) {

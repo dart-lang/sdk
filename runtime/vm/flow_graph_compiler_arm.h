@@ -34,6 +34,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   virtual ~FlowGraphCompiler() { }
 
   static bool CanOptimize();
+  bool CanOptimizeFunction() const;
 
   void CompileGraph();
 

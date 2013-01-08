@@ -100,7 +100,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     __ LoadObject(func_reg, function);
     __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
-    if (FlowGraphCompiler::CanOptimize() &&
+    if (compiler->CanOptimizeFunction() &&
         compiler->parsed_function().function().is_optimizable()) {
       // Do not optimize if usage count must be reported.
       __ cmpl(FieldAddress(func_reg, Function::usage_counter_offset()),

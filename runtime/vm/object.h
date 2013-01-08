@@ -1174,6 +1174,10 @@ class Function : public Object {
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
   inline bool HasCode() const;
 
+  // Returns true if there is at least one debugger breakpoint
+  // set in this function.
+  bool HasBreakpoint() const;
+
   RawContextScope* context_scope() const;
   void set_context_scope(const ContextScope& value) const;
 

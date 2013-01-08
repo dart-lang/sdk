@@ -236,7 +236,6 @@ class Debugger {
 
   void Initialize(Isolate* isolate);
   void Shutdown();
-  bool IsActive();
 
   void NotifyCompilation(const Function& func);
 
@@ -263,6 +262,10 @@ class Debugger {
 
   // Called from Runtime when a breakpoint in Dart code is reached.
   void BreakpointCallback();
+
+  // Returns true if there is at least one breakpoint set in func.
+  // Checks for both user-defined and internal temporary breakpoints.
+  bool HasBreakpoint(const Function& func);
 
   DebuggerStackTrace* StackTrace() const { return stack_trace_; }
 
@@ -301,7 +304,7 @@ class Debugger {
     kStepOut
   };
 
-  void EnsureFunctionIsDeoptimized(const Function& func);
+  void DeoptimizeWorld();
   void InstrumentForStepping(const Function& target_function);
   SourceBreakpoint* SetBreakpoint(const Function& target_function,
                                   intptr_t first_token_pos,

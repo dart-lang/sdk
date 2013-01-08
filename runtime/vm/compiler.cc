@@ -499,9 +499,7 @@ static RawError* CompileFunctionHelper(const Function& function,
                 per_compile_timer.TotalElapsedTime());
     }
 
-    if (Isolate::Current()->debugger()->IsActive()) {
-      Isolate::Current()->debugger()->NotifyCompilation(function);
-    }
+    isolate->debugger()->NotifyCompilation(function);
 
     if (FLAG_disassemble) {
       DisassembleCode(function, optimized);

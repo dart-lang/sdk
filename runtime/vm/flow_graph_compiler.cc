@@ -184,8 +184,12 @@ void FlowGraphCompiler::InitCompiler() {
 
 bool FlowGraphCompiler::CanOptimize() {
   return !FLAG_report_usage_count &&
-         (FLAG_optimization_counter_threshold >= 0) &&
-         !Isolate::Current()->debugger()->IsActive();
+         (FLAG_optimization_counter_threshold >= 0);
+}
+
+
+bool FlowGraphCompiler::CanOptimizeFunction() const {
+  return CanOptimize() && !parsed_function().function().HasBreakpoint();
 }
 
 
@@ -451,7 +455,7 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 // Returns 'true' if code generation for this function is complete, i.e.,
 // no fall-through to regular code is needed.
 bool FlowGraphCompiler::TryIntrinsify() {
-  if (!CanOptimize()) return false;
+  if (!CanOptimizeFunction()) return false;
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !FLAG_enable_type_checks) {

@@ -1344,7 +1344,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
   const intptr_t kLowInvocationCount = -100000000;
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
-  if (isolate->debugger()->IsActive()) {
+  if (isolate->debugger()->HasBreakpoint(function)) {
     // We cannot set breakpoints in optimized code, so do not optimize
     // the function.
     function.set_usage_counter(0);

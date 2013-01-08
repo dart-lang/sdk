@@ -19,6 +19,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/datastream.h"
+#include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
@@ -3102,6 +3103,11 @@ void PatchClass::set_patched_class(const Class& value) const {
 
 void PatchClass::set_script(const Script& value) const {
   StorePointer(&raw_ptr()->script_, value.raw());
+}
+
+
+bool Function::HasBreakpoint() const {
+  return Isolate::Current()->debugger()->HasBreakpoint(*this);
 }
 
 
