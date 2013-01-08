@@ -4,8 +4,9 @@
 
 library validator_test;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 
 import 'test_pub.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
@@ -322,7 +323,7 @@ main() {
             expect(request.method, equals("GET"));
             expect(request.url.path, equals("/packages/foo.json"));
 
-            return new Future.immediate(new http.Response(JSON.stringify({
+            return new Future.immediate(new http.Response(json.stringify({
               "name": "foo",
               "uploaders": ["nweiz@google.com"],
               "versions": ["3.0.0-pre", "2.0.0", "1.0.0"]
@@ -348,7 +349,7 @@ main() {
             expect(request.method, equals("GET"));
             expect(request.url.path, equals("/packages/foo.json"));
 
-            return new Future.immediate(new http.Response(JSON.stringify({
+            return new Future.immediate(new http.Response(json.stringify({
               "name": "foo",
               "uploaders": ["nweiz@google.com"],
               "versions": ["3.0.0-pre", "2.0.0-pre"]
@@ -374,7 +375,7 @@ main() {
             expect(request.method, equals("GET"));
             expect(request.url.path, equals("/packages/foo.json"));
 
-            return new Future.immediate(new http.Response(JSON.stringify({
+            return new Future.immediate(new http.Response(json.stringify({
               "name": "foo",
               "uploaders": ["nweiz@google.com"],
               "versions": ["0.0.1", "0.0.2"]
@@ -466,7 +467,7 @@ main() {
             libPubspec("test_pkg", "1.0.0", [
               {'hosted': 'foo'}
             ]),
-            file("pubspec.lock", JSON.stringify({
+            file("pubspec.lock", json.stringify({
               'packages': {
                 'bar': {
                   'version': '1.2.3',
@@ -494,7 +495,7 @@ main() {
             libPubspec("test_pkg", "1.0.0", [
               {'hosted': 'foo'}
             ]),
-            file("pubspec.lock", JSON.stringify({
+            file("pubspec.lock", json.stringify({
               'packages': {
                 'foo': {
                   'version': '1.2.3',
@@ -521,7 +522,7 @@ main() {
             libPubspec("test_pkg", "1.0.0", [
               {'hosted': 'foo'}
             ]),
-            file("pubspec.lock", JSON.stringify({
+            file("pubspec.lock", json.stringify({
               'packages': {
                 'foo': {
                   'version': '0.1.2',
