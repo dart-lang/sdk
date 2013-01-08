@@ -1619,7 +1619,7 @@ class Dartdoc {
     }
     if (type.isDynamic) {
       // Do not generate links for Dynamic.
-      write('Dynamic');
+      write('dynamic');
       return;
     }
 
