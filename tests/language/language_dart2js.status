@@ -91,7 +91,6 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
-closure_cycles_test: Fail # Timer interface not supported; dartbug.com/7728.
 call_operator_test: Fail # Issue 7622.
 class_literal_test: Fail # Issue 7626.
 identical_closure2_test: Fail # Issues 563, 1533
@@ -378,3 +377,4 @@ label_test: Skip
 [ $runtime == d8 ]
 # Timer interface not supported.
 typed_message_test: Fail
+closure_cycles_test: Fail
