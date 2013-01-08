@@ -74,6 +74,8 @@ class HeapProfiler {
     kLong = 11
   };
 
+  static const int kObjectIdSize = sizeof(uint64_t);  // NOLINT
+
   HeapProfiler(Dart_FileWriteCallback callback, void* stream);
   ~HeapProfiler();
 
@@ -161,7 +163,7 @@ class HeapProfiler {
     void Write64(uint64_t value);
 
     // Appends an ID to the body.
-    void WritePointer(const void* value);
+    void WriteObjectId(const void* value);
 
    private:
     // A tag value that describes the record format.
@@ -195,7 +197,7 @@ class HeapProfiler {
     void Write64(uint64_t value);
 
     // Appends an ID to the current heap dump record.
-    void WritePointer(const void* value);
+    void WriteObjectId(const void* value);
 
    private:
     // The record instance that receives forwarded write calls.
