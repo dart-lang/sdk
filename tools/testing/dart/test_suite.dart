@@ -899,7 +899,7 @@ class StandardTestSuite extends TestSuite {
           filename,
           dartDir.append('pkg/unittest/test_controller.js')
               .relativeTo(htmlLocation),
-          dartDir.append('client/dart.js').relativeTo(htmlLocation),
+          dartDir.append('pkg/browser/lib/dart.js').relativeTo(htmlLocation),
           scriptType,
           new Path.fromNative(scriptPath).relativeTo(htmlLocation));
       }

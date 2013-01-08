@@ -1,0 +1,5 @@
+name: browser
+authors: ["Dart Team <misc@dartlang.org>"]
+homepage: http://www.dartlang.org
+description: >
+ The bootstrap dart.js script for Dart apps running in the browser.
