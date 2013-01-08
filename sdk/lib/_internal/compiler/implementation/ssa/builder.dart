@@ -3259,15 +3259,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         member = member.getOutermostEnclosingMemberOrTopLevel();
       }
       if (member.isFactoryConstructor()) {
-        if (localsHandler.isAccessedDirectly(type.element)
-            && !localsHandler.hasValueForDirectLocal(type.element)) {
-          // TODO(ahe): This is a hack to work around a compiler crash.
-          // Temporarily use "dynamic".
-          inputs.add(graph.addConstantNull(constantSystem));
-        } else {
-          // The type variable is stored in a parameter of the factory.
-          inputs.add(localsHandler.readLocal(type.element));
-        }
+        // The type variable is stored in a parameter of the factory.
+        inputs.add(localsHandler.readLocal(type.element));
       } else if (member.isInstanceMember()
                  || member.isGenerativeConstructor()) {
         // The type variable is stored in [this].

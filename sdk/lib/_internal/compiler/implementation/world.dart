@@ -59,39 +59,34 @@ class World {
     // (2) dependencies of classes in (1),
     // (3) subclasses of (2) and (3).
 
-    void potentiallyAddForRti(ClassElement cls, Function callback) {
+    void potentiallyAddForRti(ClassElement cls) {
       if (cls.typeVariables.isEmpty) return;
       if (classesNeedingRti.contains(cls)) return;
       classesNeedingRti.add(cls);
-      if (callback != null) {
-        callback();
-      }
+
       Set<ClassElement> classes = subtypes[cls];
-      if (classes == null) return;
-      classes.forEach((ClassElement sub) {
-        potentiallyAddForRti(sub, callback);
-      });
+      if (classes != null) {
+        classes.forEach((ClassElement sub) {
+          potentiallyAddForRti(sub);
+        });
+      }
+
+      Set<ClassElement> dependencies = rtiDependencies[cls];
+      if (dependencies != null) {
+        dependencies.forEach((ClassElement other) {
+          potentiallyAddForRti(other);
+        });
+      }
     }
 
     compiler.resolverWorld.isChecks.forEach((DartType type) {
       if (type is InterfaceType) {
         InterfaceType itf = type;
         if (!itf.isRaw) {
-          potentiallyAddForRti(itf.element, null);
+          potentiallyAddForRti(itf.element);
         }
       }
     });
-
-    List<ClassElement> worklist =
-        new List<ClassElement>.from(classesNeedingRti);
-    while (!worklist.isEmpty) {
-      Element e = worklist.removeLast();
-      Set<Element> dependencies = rtiDependencies[e];
-      if (dependencies == null) continue;
-      dependencies.forEach((Element other) {
-        potentiallyAddForRti(other, () => worklist.add(other));
-      });
-    }
   }
 
   bool needsRti(ClassElement cls) {
