@@ -584,7 +584,17 @@ bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
 
 
 bool Intrinsifier::UintClamped8Array_getIndexed(Assembler* assembler) {
-  return Uint8Array_setIndexed(assembler);
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ SmiUntag(EBX);
+  __ movzxb(EAX, FieldAddress(EAX,
+                              EBX,
+                              TIMES_1,
+                              Uint8ClampedArray::data_offset()));
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
 }
 
 
@@ -597,8 +607,9 @@ bool Intrinsifier::Uint8ClampedArray_setIndexed(Assembler* assembler) {
   // * EBX has the index into the array.
   // EBX contains the SMI index which is shifted by 1.
   __ SmiUntag(EBX);
-  // Free EBX for the value since we want a byte register.
-  __ movl(EDI, EBX);
+  // Free EBX for the value since we need a byte register.
+  __ leal(EAX, FieldAddress(EAX, EBX, TIMES_1,
+      Uint8ClampedArray::data_offset()));
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Value.
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
@@ -606,6 +617,7 @@ bool Intrinsifier::Uint8ClampedArray_setIndexed(Assembler* assembler) {
   __ SmiUntag(EBX);
   __ cmpl(EBX, Immediate(0xFF));
   __ j(BELOW_EQUAL, &store_value, Assembler::kNearJump);
+  // Clamp to 0x00 or 0xFF respectively.
   __ j(GREATER, &load_0xff,  Assembler::kNearJump);
   __ xorl(EBX, EBX);  // Zero.
   __ jmp(&store_value, Assembler::kNearJump);
@@ -613,7 +625,7 @@ bool Intrinsifier::Uint8ClampedArray_setIndexed(Assembler* assembler) {
   __ movl(EBX, Immediate(0xFF));
 
   __ Bind(&store_value);
-  __ movb(FieldAddress(EAX, EDI, TIMES_1, Uint8Array::data_offset()), BL);
+  __ movb(Address(EAX, 0), BL);
   __ ret();
   __ Bind(&fall_through);
   return false;

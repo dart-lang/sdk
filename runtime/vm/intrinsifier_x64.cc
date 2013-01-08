@@ -520,7 +520,17 @@ bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
 
 
 bool Intrinsifier::UintClamped8Array_getIndexed(Assembler* assembler) {
-  return Uint8Array_setIndexed(assembler);
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ SmiUntag(R12);
+  __ movzxb(RAX, FieldAddress(RAX,
+                              R12,
+                              TIMES_1,
+                              Uint8ClampedArray::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
 }
 
 
@@ -547,7 +557,8 @@ bool Intrinsifier::Uint8ClampedArray_setIndexed(Assembler* assembler) {
   __ movq(RDI, Immediate(0xFF));
 
   __ Bind(&store_value);
-  __ movb(FieldAddress(RAX, R12, TIMES_1, Uint8Array::data_offset()), RDI);
+  __ movb(
+      FieldAddress(RAX, R12, TIMES_1, Uint8ClampedArray::data_offset()), RDI);
   __ ret();
   __ Bind(&fall_through);
   return false;

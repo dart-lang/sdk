@@ -48,6 +48,13 @@ void testUnsignedByteArrayRange(bool check_throws) {
   byteArray[1] = 0;
   Expect.equals(0, byteArray[1]);
 
+  for (int i = 0; i < byteArray.length; i++) {
+    byteArray[i] = i;
+  }
+  for (int i = 0; i < byteArray.length; i++) {
+    Expect.equals(i, byteArray[i]);
+  }
+
   // These should eventually throw.
   byteArray[1] = 256;
   byteArray[1] = -1;
@@ -67,6 +74,12 @@ void testClampedUnsignedByteArrayRange(bool check_throws) {
   Expect.equals(255, byteArray[1]);
   byteArray[1] = 0;
   Expect.equals(0, byteArray[1]);
+  for (int i = 0; i < byteArray.length; i++) {
+    byteArray[i] = i;
+  }
+  for (int i = 0; i < byteArray.length; i++) {
+    Expect.equals(i, byteArray[i]);
+  }
 
   // These should eventually throw.
   byteArray[1] = 256;
