@@ -1382,6 +1382,11 @@ intptr_t BinaryDoubleOpInstr::ResultCid() const {
 
 static bool ToIntegerConstant(Value* value, intptr_t* result) {
   if (!value->BindsToConstant()) {
+    if (value->definition()->IsUnboxDouble()) {
+      return ToIntegerConstant(value->definition()->AsUnboxDouble()->value(),
+                               result);
+    }
+
     return false;
   }
 
@@ -1399,13 +1404,10 @@ static bool ToIntegerConstant(Value* value, intptr_t* result) {
 }
 
 
-static Definition* CanonicalizeCommutativeArithmetic(
-  FlowGraphOptimizer* optimizer,
-  Definition* defn,
-  Token::Kind op,
-  intptr_t cid,
-  Value* left,
-  Value* right) {
+static Definition* CanonicalizeCommutativeArithmetic(Token::Kind op,
+                                                     intptr_t cid,
+                                                     Value* left,
+                                                     Value* right) {
   ASSERT((cid == kSmiCid) || (cid == kDoubleCid) || (cid == kMintCid));
 
   intptr_t left_value;
@@ -1418,16 +1420,11 @@ static Definition* CanonicalizeCommutativeArithmetic(
       if (left_value == 1) {
         if ((cid == kDoubleCid) &&
             (right->definition()->representation() != kUnboxedDouble)) {
-          // Ensure that the result of the operation (right value) is coerced
-          // to double.
-          UnboxDoubleInstr* unbox =
-              new UnboxDoubleInstr(right->Copy(),
-                                   defn->DeoptimizationTarget());
-          optimizer->InsertBefore(defn,
-                                  unbox,
-                                  defn->env(),
-                                  Definition::kValue);
-          return unbox;
+          // Can't yet apply the equivalence because representation selection
+          // did not run yet. We need it to guarantee that right value is
+          // correctly coerced to double. The second canonicalization pass
+          // will apply this equivalence.
+          return NULL;
         } else {
           return right->definition();
         }
@@ -1477,9 +1474,7 @@ static Definition* CanonicalizeCommutativeArithmetic(
 Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   Definition* result = NULL;
 
-  result = CanonicalizeCommutativeArithmetic(optimizer,
-                                             this,
-                                             op_kind(),
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
                                              kDoubleCid,
                                              left(),
                                              right());
@@ -1487,9 +1482,7 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     return result;
   }
 
-  result = CanonicalizeCommutativeArithmetic(optimizer,
-                                             this,
-                                             op_kind(),
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
                                              kDoubleCid,
                                              right(),
                                              left());
@@ -1504,9 +1497,7 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 Definition* BinarySmiOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   Definition* result = NULL;
 
-  result = CanonicalizeCommutativeArithmetic(optimizer,
-                                             this,
-                                             op_kind(),
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
                                              kSmiCid,
                                              left(),
                                              right());
@@ -1514,9 +1505,7 @@ Definition* BinarySmiOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     return result;
   }
 
-  result = CanonicalizeCommutativeArithmetic(optimizer,
-                                             this,
-                                             op_kind(),
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
                                              kSmiCid,
                                              right(),
                                              left());
@@ -1531,9 +1520,7 @@ Definition* BinarySmiOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 Definition* BinaryMintOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   Definition* result = NULL;
 
-  result = CanonicalizeCommutativeArithmetic(optimizer,
-                                             this,
-                                             op_kind(),
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
                                              kMintCid,
                                              left(),
                                              right());
@@ -1541,9 +1528,7 @@ Definition* BinaryMintOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     return result;
   }
 
-  result = CanonicalizeCommutativeArithmetic(optimizer,
-                                             this,
-                                             op_kind(),
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
                                              kMintCid,
                                              right(),
                                              left());
