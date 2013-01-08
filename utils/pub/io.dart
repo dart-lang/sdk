@@ -779,7 +779,7 @@ Future<bool> extractTarGz(InputStream stream, destination) {
   var processFuture = startProcess("tar",
       ["--extract", "--gunzip", "--directory", destination]);
   processFuture.then((process) {
-    process.onExit = completer.complete;
+    process.onExit = (exitCode) => completer.complete(exitCode);
     stream.pipe(process.stdin);
     process.stdout.pipe(stdout, close: false);
     process.stderr.pipe(stderr, close: false);
