@@ -141,16 +141,24 @@ abstract class Completer<T> {
 
   factory Completer() => new _CompleterImpl<T>();
 
-  /** The future that will contain the value produced by this completer. */
+  /** The future that will contain the result provided to this completer. */
   Future get future;
 
-  /** Supply a value for [future]. */
-  void complete(T value);
+  /**
+   * Completes [future] with the supplied values.
+   *
+   * All listeners on the future will be immediately informed about the value.
+   */
+  void complete([T value]);
 
   /**
-   * Indicate in [future] that an exception occured while trying to produce its
-   * value. The argument [exception] should not be [:null:]. A [stackTrace]
-   * object can be provided as well to give the user information about where
+   * Complete [future] with an error.
+   *
+   * Completing a future with an error indicates that an exception was thrown
+   * while trying to produce a value.
+   *
+   * The argument [exception] should not be [:null:]. A [stackTrace]
+   * object can be provided as well, to give the user information about where
    * the error occurred. If omitted, it will be [:null:].
    */
   void completeError(Object exception, [Object stackTrace]);

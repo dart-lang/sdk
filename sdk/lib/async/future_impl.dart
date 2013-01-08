@@ -14,7 +14,7 @@ class _CompleterImpl<T> implements Completer<T> {
 
   _CompleterImpl() : future = new _FutureImpl<T>();
 
-  void complete(T value) {
+  void complete([T value]) {
     if (_isComplete) throw new StateError("Future already completed");
     _isComplete = true;
     _FutureImpl future = this.future;

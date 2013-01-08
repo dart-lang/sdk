@@ -15,7 +15,7 @@ testController() {
   test("StreamController.reduce", () {
     StreamController c = new StreamController();
     c.reduce(0, (a,b) => a + b)
-    .then(expectAsync1((int v) {
+     .then(expectAsync1((int v) {
         Expect.equals(42, v);
     }));
     c.add(10);
@@ -26,9 +26,7 @@ testController() {
   test("StreamController.reduce throws", () {
     StreamController c = new StreamController();
     c.reduce(0, (a,b) { throw "Fnyf!"; })
-            .catchError(expectAsync1((e) {
-              Expect.equals("Fnyf!", e.error);
-            }));
+     .catchError(expectAsync1((e) { Expect.equals("Fnyf!", e.error); }));
     c.add(42);
   });
 
@@ -36,7 +34,9 @@ testController() {
     StreamController c = new StreamController();
     var list = <int>[];
     c.pipeInto(new CollectionSink<int>(list))
-     .then(expectAsync0(() { Expect.listEquals(<int>[1,2,9,3,9], list); }));
+     .whenComplete(expectAsync0(() {
+        Expect.listEquals(<int>[1,2,9,3,9], list);
+      }));
     c.add(1);
     c.add(2);
     c.add(9);
@@ -67,7 +67,9 @@ testSingleController() {
     StreamController c = new StreamController.singleSubscription();
     var list = <int>[];
     c.pipeInto(new CollectionSink<int>(list))
-     .then(expectAsync0(() { Expect.listEquals(<int>[1,2,9,3,9], list); }));
+     .whenComplete(expectAsync0(() {
+        Expect.listEquals(<int>[1,2,9,3,9], list);
+      }));
     c.add(1);
     c.add(2);
     c.add(9);
@@ -290,8 +292,8 @@ testPause() {
     expectedEvents.add(42);
     c.add(42);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
-    SignalCompleter completer = new SignalCompleter();
-    actualEvents.pause(completer.signal);
+    Completer completer = new Completer();
+    actualEvents.pause(completer.future);
     c..add(43)..add(44)..close();
     Expect.listEquals(expectedEvents.events, actualEvents.events);
     completer.complete();
@@ -308,10 +310,10 @@ testPause() {
     expectedEvents.add(42);
     c.add(42);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
-    SignalCompleter completer = new SignalCompleter();
-    SignalCompleter completer2 = new SignalCompleter();
-    actualEvents.pause(completer.signal);
-    actualEvents.pause(completer2.signal);
+    Completer completer = new Completer();
+    Completer completer2 = new Completer();
+    actualEvents.pause(completer.future);
+    actualEvents.pause(completer2.future);
     c..add(43)..add(44)..close();
     Expect.listEquals(expectedEvents.events, actualEvents.events);
     completer.complete();
@@ -352,8 +354,8 @@ testPause() {
     expectedEvents.add(42);
     c.add(42);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
-    SignalCompleter completer = new SignalCompleter();
-    actualEvents.pause(completer.signal);
+    Completer completer = new Completer();
+    actualEvents.pause(completer.future);
     actualEvents.pause();
     c.add(43);
     c.add(44);
@@ -375,8 +377,8 @@ testPause() {
     expectedEvents.add(42);
     c.add(42);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
-    SignalCompleter completer = new SignalCompleter();
-    actualEvents.pause(completer.signal);
+    Completer completer = new Completer();
+    actualEvents.pause(completer.future);
     actualEvents.pause();
     c.add(43);
     c.add(44);

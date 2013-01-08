@@ -216,7 +216,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
    * subscriptions, e.g., a filtering stream pausing its own source if all its
    * subscribers are paused.
    */
-  void _pause(_StreamListener<T> listener, Signal resumeSignal) {
+  void _pause(_StreamListener<T> listener, Future resumeSignal) {
     assert(identical(listener._source, this));
     if (!listener._isSubscribed) {
       throw new StateError("Subscription has been canceled.");
@@ -225,7 +225,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
     bool wasPaused = _isPaused;
     _incrementPauseCount(listener);
     if (resumeSignal != null) {
-      resumeSignal.then(() { this._resume(listener, true); });
+      resumeSignal.whenComplete(() { this._resume(listener, true); });
     }
     if (!wasPaused) {
       _onPauseStateChange();
@@ -684,7 +684,7 @@ class _StreamSubscriptionImpl<T> extends _StreamListener<T>
     _source._cancel(this);
   }
 
-  void pause([Signal resumeSignal]) {
+  void pause([Future resumeSignal]) {
     _source._pause(this, resumeSignal);
   }
 
@@ -983,7 +983,7 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
     _handler = handleDone;
   }
 
-  void pause([Signal signal]) {
+  void pause([Future signal]) {
     if (_isComplete) {
       throw new StateError("Subscription has been canceled.");
     }

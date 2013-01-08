@@ -153,19 +153,19 @@ abstract class Stream<T> {
   }
 
   // Deprecated method, previously called 'pipe', retained for compatibility.
-  Signal pipeInto(Sink<T> sink,
+  Future pipeInto(Sink<T> sink,
                   {void onError(AsyncError error),
                    bool unsubscribeOnError}) {
-    SignalCompleter completer = new SignalCompleter();
+    Completer completer = new Completer();
     this.listen(
         sink.add,
         onError: onError,
         onDone: () {
           sink.close();
-          completer.complete();
+          completer.complete(null);
         },
         unsubscribeOnError: unsubscribeOnError);
-    return completer.signal;
+    return completer.future;
   }
 
 
@@ -716,13 +716,13 @@ abstract class StreamSubscription<T> {
    * Request that the stream pauses events until further notice.
    *
    * If [resumeSignal] is provided, the stream will undo the pause
-   * when the signal completes.
+   * when the future completes in any way.
    * A call to [resume] will also undo a pause.
    *
    * If the subscription is paused more than once, an equal number
    * of resumes must be performed to resume the stream.
    */
-  void pause([Signal resumeSignal]);
+  void pause([Future resumeSignal]);
 
   /**
    * Resume after a pause.

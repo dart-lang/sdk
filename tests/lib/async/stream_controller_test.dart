@@ -231,7 +231,7 @@ testSingleController() {
   c = new StreamController.singleSubscription();
   var list = <int>[];
   c.pipeInto(new CollectionSink<int>(list))
-   .then(() { Expect.listEquals(<int>[1,2,9,3,9], list); });
+   .whenComplete(() { Expect.listEquals(<int>[1,2,9,3,9], list); });
   c.add(1);
   c.add(2);
   c.add(9);

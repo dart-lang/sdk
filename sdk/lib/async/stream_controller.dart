@@ -80,7 +80,7 @@ class StreamController<T> extends Stream<T> implements StreamSink<T> {
   /**
    * Send or queue a data event.
    */
-  Signal add(T value) => _stream._add(value);
+  void add(T value) => _stream._add(value);
 
   /**
    * Send or enqueue an error event.

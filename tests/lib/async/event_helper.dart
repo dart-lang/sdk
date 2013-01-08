@@ -112,7 +112,7 @@ class Events implements StreamSink {
    * Should only be used when there is a subscription. That is, after a
    * call to [subscribeTo].
    */
-  void pause([Signal resumeSignal]) {
+  void pause([Future resumeSignal]) {
     throw new StateError("Not capturing events.");
   }
 
@@ -134,12 +134,12 @@ class Events implements StreamSink {
 
 class CaptureEvents extends Events {
   StreamSubscription subscription;
-  SignalCompleter onDoneSignal;
+  Completer onDoneSignal;
   bool unsubscribeOnError = false;
 
   CaptureEvents(Stream stream,
                 { bool unsubscribeOnError: false })
-      : onDoneSignal = new SignalCompleter() {
+      : onDoneSignal = new Completer() {
     this.unsubscribeOnError = unsubscribeOnError;
     subscription = stream.listen(add,
                                  onError: signalError,
@@ -149,15 +149,15 @@ class CaptureEvents extends Events {
 
   void signalError(AsyncError error) {
     super.signalError(error);
-    if (unsubscribeOnError) onDoneSignal.complete();
+    if (unsubscribeOnError) onDoneSignal.complete(null);
   }
 
   void close() {
     super.close();
-    if (onDoneSignal != null) onDoneSignal.complete();
+    if (onDoneSignal != null) onDoneSignal.complete(null);
   }
 
-  void pause([Signal resumeSignal]) {
+  void pause([Future resumeSignal]) {
     subscription.pause(resumeSignal);
   }
 
@@ -168,6 +168,6 @@ class CaptureEvents extends Events {
   bool get isPaused => subscription.isPaused;
 
   void onDone(void action()) {
-    onDoneSignal.signal.then(action);
+    onDoneSignal.future.whenComplete(action);
   }
 }

@@ -9,7 +9,6 @@
     'future.dart',
     'future_impl.dart',
     'merge_stream.dart',
-    'signal.dart',
     'stream.dart',
     'stream_controller.dart',
     'stream_impl.dart',
