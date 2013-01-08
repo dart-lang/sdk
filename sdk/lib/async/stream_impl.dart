@@ -179,8 +179,17 @@ abstract class _StreamImpl<T> extends Stream<T> {
 
   /** Update the stream's own pause count only. */
   void _updatePauseCount(int by) {
-    _state += by << _STREAM_PAUSE_COUNT_SHIFT;
+    int oldState = _state;
+    // We can't just _state += by << _STREAM_PAUSE_COUNT_SHIFT, since dart2js
+    // converts the result of the left-shift to a positive number.
+    if (by >= 0) {
+      _state = oldState + (by << _STREAM_PAUSE_COUNT_SHIFT);
+    } else {
+      _state = oldState - ((-by) << _STREAM_PAUSE_COUNT_SHIFT);
+    }
     assert(_state >= 0);
+    assert((_state >> _STREAM_PAUSE_COUNT_SHIFT) ==
+        (oldState >> _STREAM_PAUSE_COUNT_SHIFT) + by);
   }
 
   void _setClosed() {
