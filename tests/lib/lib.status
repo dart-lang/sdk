@@ -26,6 +26,9 @@ async/merge_stream_test: Fail # Timer interface not supported; dartbug.com/7728.
 crypto/sha256_test: Slow, Pass
 crypto/sha1_test: Slow, Pass
 
+async/merge_stream_test: Skip # dartbug.com/7756
+async/stream_controller_async_test: Skip # dartbug.com/7756
+
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
