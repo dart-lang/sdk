@@ -10,11 +10,11 @@ class Point {
 }
 
 main() {
-  // Smi.
+  // int.
   Expect.isTrue(myIdentical(42, 42));
   Expect.isFalse(myIdentical(42, 41));
 
-  // Double.
+  // double.
   Expect.isTrue(myIdentical(42.0, 42.0));
   Expect.isFalse(myIdentical(42.0, 41.0));
 
@@ -22,14 +22,7 @@ main() {
   Expect.isTrue(myIdentical(35184372088832,35184372088832));
   Expect.isFalse(myIdentical(35184372088832,35184372088831));
 
-  // Bigint (2^76).
-  Expect.isTrue(myIdentical(75557863725914323419136,
-                            75557863725914323419136));
-  Expect.isFalse(myIdentical(75557863725914323419136,
-                             75557863725914323419137));
-
   // Different types.
-  Expect.isFalse(myIdentical(42, 42.0));
   Expect.isFalse(myIdentical("hello", 41));
 
   // Points.
@@ -43,8 +36,7 @@ main() {
   // Identical strings are coalesced into single instances.
   Expect.isTrue(myIdentical(a, b));
 
-  // Null and NaN handling.
+  // Null handling.
   Expect.isFalse(myIdentical(42, null));
   Expect.isTrue(myIdentical(null, null));
-  Expect.isTrue(myIdentical(double.NAN, double.NAN));
 }

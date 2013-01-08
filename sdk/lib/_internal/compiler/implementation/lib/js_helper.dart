@@ -821,6 +821,12 @@ class Primitives {
     // TODO(ahe): How to safely access $?
     return JS('var', r'$[#]', className);
   }
+
+  static bool identical(a, b) {
+    return JS('bool', '# == null', a)
+      ? JS('bool', '# == null', b)
+      : JS('bool', '# === #', a, b);
+  }
 }
 
 /**
