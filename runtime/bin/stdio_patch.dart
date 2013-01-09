@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -35,7 +35,13 @@ patch class _StdIOUtils {
         throw new FileIOException("Unsupported stdin type");
     }
   }
+
+  static int _socketType(Socket socket) {
+    return _getSocketType(socket);
+  }
 }
+
 
 _getStdioHandle(Socket socket, int num) native "Socket_GetStdioHandle";
 _getStdioHandleType(int num) native "File_GetStdioHandleType";
+_getSocketType(Socket socket) native "Socket_GetType";
