@@ -49,6 +49,11 @@ class Link<T> extends Iterable<T> {
     return this.prepend(from.head).reversePrependAll(from.tail);
   }
 
+  Link<T> skip(int n) {
+    if (n == 0) return this;
+    throw new RangeError('Index $n out of range');
+  }
+
   void forEach(void f(T element)) {}
 
   bool operator ==(other) {

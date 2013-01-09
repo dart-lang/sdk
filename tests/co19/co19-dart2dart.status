@@ -125,31 +125,6 @@ Language/07_Classes/07_Classes_A04_t22: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t24: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t25: Fail # inherited from dart2js
 Language/07_Classes/10_Superinterfaces_A04_t01: Fail # http://dartbug.com/5519
-Language/07_Classes/1_Instance_Methods/2_Operators_A03_t01: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A03_t02: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t02: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t03: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t04: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t05: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t06: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t07: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t08: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t09: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t10: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t11: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t12: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t13: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t14: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t15: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t16: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t17: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t18: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A05_t02: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A06_t02: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t01: Fail # http://dartbug.com/5519
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t02: Fail # http://dartbug.com/5519
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail # http://dartbug.com/5519
 Language/07_Classes/1_Instance_Methods_A02_t02: Fail # http://dartbug.com/5519
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail # http://dartbug.com/5519
 Language/07_Classes/1_Instance_Methods_A06_t01: Fail # Inherited from dart2js

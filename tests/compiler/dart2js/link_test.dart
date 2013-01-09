@@ -19,6 +19,7 @@ main() {
   testFromList([0, 1, 2, 3]);
   testFromList([0, 1, 2, 3, 4]);
   testFromList([0, 1, 2, 3, 4, 5]);
+  testSkip();
 }
 
 testFromList(List list) {
@@ -43,4 +44,19 @@ test(Link link, List list) {
   }
   Expect.equals(list.length, i);
   Expect.isTrue(link.isEmpty);
+}
+
+testSkip() {
+  var nonEmptyLink = new Link.fromList([0, 1, 2, 3, 4, 5]);
+  for (int i = 0 ; i < 5; i++) {
+    var link = nonEmptyLink.skip(i);
+    Expect.isFalse(link.isEmpty);
+    Expect.equals(i, link.head);
+  }
+  Expect.isTrue(nonEmptyLink.skip(6).isEmpty);
+  Expect.throws(() => nonEmptyLink.skip(7), (e) => e is RangeError);
+
+  var emptyLink = const Link();
+  Expect.isTrue(emptyLink.skip(0).isEmpty);
+  Expect.throws(() => emptyLink.skip(1), (e) => e is RangeError);
 }

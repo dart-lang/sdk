@@ -68,6 +68,16 @@ class LinkEntry<T> extends Link<T> {
     return result;
   }
 
+  Link<T> skip(int n) {
+    Link<T> link = this;
+    for (int i = 0 ; i < n ; i++) {
+      if (link.isEmpty) {
+        throw new RangeError('Index $n out of range');
+      }
+      link = link.tail;
+    }
+    return link;
+  }
 
   bool get isEmpty => false;
 

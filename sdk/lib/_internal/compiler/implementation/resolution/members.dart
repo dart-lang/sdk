@@ -495,32 +495,36 @@ class ResolverTask extends CompilerTask {
     // TODO(johnniwinther): Should this be done on the implementation element as
     // well?
     cls.forEachMember((holder, member) {
-      // Perform various checks as side effect of "computing" the type.
-      member.computeType(compiler);
+      compiler.withCurrentElement(member, () {
+        // Perform various checks as side effect of "computing" the type.
+        member.computeType(compiler);
 
-      // Check modifiers.
-      if (member.isFunction() && member.modifiers.isFinal()) {
-        compiler.reportMessage(
-          compiler.spanFromElement(member),
-          MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER.error(),
-          Diagnostic.ERROR);
-      }
-      if (member.isConstructor()) {
-        final mismatchedFlagsBits =
-          member.modifiers.flags &
-          (Modifiers.FLAG_STATIC | Modifiers.FLAG_ABSTRACT);
-        if (mismatchedFlagsBits != 0) {
-          final mismatchedFlags =
-            new Modifiers.withFlags(null, mismatchedFlagsBits);
+        // Check modifiers.
+        if (member.isFunction() && member.modifiers.isFinal()) {
           compiler.reportMessage(
-            compiler.spanFromElement(member),
-            MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS.error([mismatchedFlags]),
-            Diagnostic.ERROR);
+              compiler.spanFromElement(member),
+              MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER.error(),
+              Diagnostic.ERROR);
         }
-        checkConstructorNameHack(holder, member);
-      }
-      checkAbstractField(member);
-      checkValidOverride(member, cls.lookupSuperMember(member.name));
+        if (member.isConstructor()) {
+          final mismatchedFlagsBits =
+              member.modifiers.flags &
+              (Modifiers.FLAG_STATIC | Modifiers.FLAG_ABSTRACT);
+          if (mismatchedFlagsBits != 0) {
+            final mismatchedFlags =
+                new Modifiers.withFlags(null, mismatchedFlagsBits);
+            compiler.reportMessage(
+                compiler.spanFromElement(member),
+                MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS.error(
+                    [mismatchedFlags]),
+                Diagnostic.ERROR);
+          }
+          checkConstructorNameHack(holder, member);
+        }
+        checkAbstractField(member);
+        checkValidOverride(member, cls.lookupSuperMember(member.name));
+        checkUserDefinableOperator(member);
+      });
     });
   }
 
@@ -586,6 +590,73 @@ class ResolverTask extends CompilerTask {
           compiler.spanFromElement(field.setter),
           MessageKind.SETTER_MISMATCH.error([mismatchedFlags]),
           Diagnostic.ERROR);
+    }
+  }
+
+  void checkUserDefinableOperator(Element member) {
+    FunctionElement function = member.asFunctionElement();
+    if (function == null) return;
+    String value = member.name.stringValue;
+    if (value == null) return;
+    if (!(isUserDefinableOperator(value) || identical(value, 'unary-'))) return;
+
+    int requiredParameterCount;
+    MessageKind messageKind;
+    FunctionSignature signature = function.computeSignature(compiler);
+    if (identical(value, 'unary-')) {
+      messageKind = MessageKind.MINUS_OPERATOR_BAD_ARITY;
+      requiredParameterCount = 0;
+    } else if (isMinusOperator(value)) {
+      messageKind = MessageKind.MINUS_OPERATOR_BAD_ARITY;
+      requiredParameterCount = 1;
+    } else if (isUnaryOperator(value)) {
+      messageKind = MessageKind.UNARY_OPERATOR_BAD_ARITY;
+      requiredParameterCount = 0;
+    } else if (isBinaryOperator(value)) {
+      messageKind = MessageKind.BINARY_OPERATOR_BAD_ARITY;
+      requiredParameterCount = 1;
+    } else if (isTernaryOperator(value)) {
+      messageKind = MessageKind.TERNARY_OPERATOR_BAD_ARITY;
+      requiredParameterCount = 2;
+    } else {
+      compiler.internalErrorOnElement(function,
+          'Unexpected user defined operator $value');
+    }
+    checkArity(function, requiredParameterCount, messageKind);
+  }
+
+  void checkArity(FunctionElement function,
+                  int requiredParameterCount, MessageKind messageKind) {
+    FunctionExpression node = function.parseNode(compiler);
+    FunctionSignature signature = function.computeSignature(compiler);
+    if (signature.requiredParameterCount != requiredParameterCount) {
+      Node errorNode = node;
+      if (node.parameters != null) {
+        if (signature.requiredParameterCount < requiredParameterCount) {
+          errorNode = node.parameters;
+        } else {
+          errorNode = node.parameters.nodes.skip(requiredParameterCount).head;
+        }
+      }
+      compiler.reportMessage(
+          compiler.spanFromNode(errorNode),
+          messageKind.error([function.name]),
+          Diagnostic.ERROR);
+    }
+    if (signature.optionalParameterCount != 0) {
+      Node errorNode =
+          node.parameters.nodes.skip(signature.requiredParameterCount).head;
+      if (signature.optionalParametersAreNamed) {
+        compiler.reportMessage(
+            compiler.spanFromNode(errorNode),
+            MessageKind.OPERATOR_NAMED_PARAMETERS.error([function.name]),
+            Diagnostic.ERROR);
+      } else {
+        compiler.reportMessage(
+            compiler.spanFromNode(errorNode),
+            MessageKind.OPERATOR_OPTIONAL_PARAMETERS.error([function.name]),
+            Diagnostic.ERROR);
+      }
     }
   }
 

@@ -671,11 +671,6 @@ Language/07_Classes/07_Classes_A04_t22: Fail # Checks that an abstract static op
 Language/07_Classes/07_Classes_A04_t24: Fail # Checks that a static abstract getter can't be used in place of a class member definition.
 Language/07_Classes/07_Classes_A04_t25: Fail # Checks that a static abstract setter can't be used in place of a class member definition.
 Language/07_Classes/10_Superinterfaces_A04_t01: Fail # Checks that it is a compile-time error if the same type appears more than once in the implements clause.
-Language/07_Classes/1_Instance_Methods/2_Operators_A06_t02: Fail # Checks that a compile-time error is produced if a user-defined operator ~ specifies one parameter.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t01: Fail # Checks that a compile-time error is produced if a user-defined operator [] specifies an optional named parameter.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t02: Fail # Checks that a compile-time error is produced if a user-defined operator [] specifies an optional named parameter in addition to the required one.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail # Checks that a compile-time error is produced if a user-defined operator []= specifies one optional named parameter.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail # Checks that a compile-time error is produced if a user-defined operator []= specifies one optional named parameter in addition to the two required ones
 Language/07_Classes/1_Instance_Methods_A02_t02: Fail # Checks that a compile-time error is produced if m1 has fewer named parameters than m2 (1 vs. 0) and neither have any required parameters.
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Checks that a compile-time error is produced if m1 has almost the same set of named  parameters as m2 except for one of them having a different name.
 Language/07_Classes/2_Getters_A01_t03: Fail # Checks that a compile-time error is produced if empty formal parameter list is present.
@@ -709,9 +704,6 @@ Language/11_Expressions/23_Relational_Expressions_A01_t13: Fail # Checks that a 
 Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # Checks that it is a compile-time error when a built-in identifier "abstract" is used as a type annotation of a local variable.
 Language/12_Statements/03_Variable_Declaration_A04_t01: Fail # Checks that if the variable declaration is prefixed with the const modifier, then variable must be initialized to a constant expression.
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
-
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t15: Fail # http://dartbug.com/7149
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t16: Fail # http://dartbug.com/7149
 
 #
 # Unexpected compile-time errors.
