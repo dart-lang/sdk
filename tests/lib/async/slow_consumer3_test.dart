@@ -59,15 +59,20 @@ Stream<List> dataGenerator(int bytesTotal, int chunkSize) {
 main() {
   var port = new ReceivePort();
   // The data provider can deliver 800MBs of data as fast as it is
-  // requested. The data is sent in 1MB chunks. The consumer has a buffer of
-  // 5MB. That is, it can accept a few packages without pausing its input.
+  // requested. The data is sent in 0.5MB chunks. The consumer has a buffer of
+  // 3MB. That is, it can accept a few packages without pausing its input.
+  //
+  // Notice that we aren't really counting bytes, but words, since we use normal
+  // lists where each entry takes up a full word. In 64-bit VMs this will be
+  // 8 bytes per entry, so the 3*MB buffer is picked to stay below 32 actual
+  // MiB.
   //
   // This test is limited to 32MB of heap-space (see VMOptions on top of the
   // file). If the consumer doesn't pause the data-provider it will run out of
   // heap-space.
 
-  dataGenerator(100 * MB, 1 * MB)
-    .pipe(new SlowConsumer(200 * MB, 5 * MB))
+  dataGenerator(100 * MB, 512 * KB)
+    .pipe(new SlowConsumer(200 * MB, 3 * MB))
     .then((count) {
       port.close();
       Expect.equals(100 * MB, count);
