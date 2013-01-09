@@ -32,6 +32,18 @@ abstract class Stream<T> {
   }
 
   /**
+   * Returns a multi-subscription stream that produces the same events as this.
+   *
+   * If this stream is single-subscription, return a new stream that allows
+   * multiple subscribers. It will subscribe to this stream when its first
+   * subscriber is added, and unsubscribe again when the last subscription is
+   * cancelled.
+   *
+   * If this stream is already multi-subscriber, it is returned unmodified.
+   */
+  Stream<T> asMultiSubscriberStream();
+
+  /**
    * Stream that outputs events from the [sources] in cyclic order.
    *
    * The merged streams are paused and resumed in order to ensure the proper

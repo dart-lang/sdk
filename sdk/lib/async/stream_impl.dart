@@ -412,7 +412,11 @@ abstract class _StreamImpl<T> extends Stream<T> {
  * arrive while still firing an old event.
  */
 class _SingleStreamImpl<T> extends _StreamImpl<T> {
-  _StreamSubscriptionImpl _subscriber = null;
+  _StreamListener _subscriber = null;
+
+  Stream<T> asMultiSubscriberStream() {
+    return new _ForwardingMultiStream<T, T>().._source = this;
+  }
 
   /** Whether one or more active subscribers have requested a pause. */
   bool get _isPaused => !_hasSubscribers || super._isPaused;
@@ -435,9 +439,9 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
         this, onData, onError, onDone, unsubscribeOnError);
   }
 
-  void _addListener(_StreamSubscriptionImpl subscription) {
+  void _addListener(_StreamListener subscription) {
     if (_hasSubscribers) {
-      throw new StateError("Stream has already subscriber.");
+      throw new StateError("Stream already has subscriber.");
     }
     _subscriber = subscription;
     subscription._setSubscribed(0);
@@ -457,7 +461,7 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
    * If an event is currently firing, the cancel is delayed
    * until after the subscriber has received the event.
    */
-  void _cancel(_StreamSubscriptionImpl subscriber) {
+  void _cancel(_StreamListener subscriber) {
     assert(identical(subscriber._source, this));
     // We allow unsubscribing the currently firing subscription during
     // the event firing, because it is indistinguishable from delaying it since
@@ -476,8 +480,8 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
   }
 
   void _forEachSubscriber(
-      void action(_StreamSubscriptionImpl<T> subscription)) {
-    _StreamSubscriptionImpl subscription = _subscriber;
+      void action(_StreamListener<T> subscription)) {
+    _StreamListener subscription = _subscriber;
     assert(subscription != null);
     _startFiring();
     action(subscription);
@@ -525,6 +529,8 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
   _MultiStreamImpl() {
     _nextLink = _previousLink = this;
   }
+
+  Stream<T> asMultiSubscriberStream() => this;
 
   // ------------------------------------------------------------------
   // Helper functions that can be overridden in subclasses.

@@ -5,20 +5,19 @@
 part of dart.async;
 
 /**
- * A pipe between two streams.
+ * A wrapper around a stream that allows independent subscribers.
  *
- * The default pipe subscribes to the [source] and sends on the
- * [stream].
+ * By default [this] subscribes to [_source] and forwards all events to its own
+ * subscribers. It does not subscribe until there is a subscriber, and
+ * unsubscribes again when there are no subscribers left.
  *
  * The events are passed through the [_handleData], [_handleError] and
  * [_handleDone] methods. Subclasses are supposed to add handling of some of
  * the events by overriding these methods.
  *
- * This class is intended for internal use only. Users can use the [PipeStream]
- * to configure similar behavior.
+ * This class is intended for internal use only.
  */
-abstract class _ForwardingStream<S, T> extends _MultiStreamImpl<T>
-                                       implements StreamTransformer<S, T> {
+class _ForwardingMultiStream<S, T> extends _MultiStreamImpl<T> {
   Stream<S> _source = null;
   StreamSubscription _subscription = null;
 
@@ -29,15 +28,6 @@ abstract class _ForwardingStream<S, T> extends _MultiStreamImpl<T>
     if (_isPaused) {
       _subscription.pause();
     }
-  }
-
-  Stream<T> bind(Stream<S> source) {
-    assert(_source == null);
-    _source = source;
-    if (_hasSubscribers) {
-      _subscribeToSource();
-    }
-    return this;
   }
 
   /**
@@ -82,13 +72,25 @@ abstract class _ForwardingStream<S, T> extends _MultiStreamImpl<T>
 }
 
 
+abstract class _ForwardingTransformer<S, T> extends _ForwardingMultiStream<S, T>
+                                            implements StreamTransformer<S, T> {
+  Stream<T> bind(Stream<S> source) {
+    assert(_source == null);
+    _source = source;
+    if (_hasSubscribers) {
+      _subscribeToSource();
+    }
+    return this;
+  }
+}
+
 // -------------------------------------------------------------------
-// Stream pipes used by the default Stream implementation.
+// Stream transformers used by the default Stream implementation.
 // -------------------------------------------------------------------
 
 typedef bool _Predicate<T>(T value);
 
-class WhereStream<T> extends _ForwardingStream<T, T> {
+class WhereStream<T> extends _ForwardingTransformer<T, T> {
   final _Predicate<T> _test;
 
   WhereStream(bool test(T value))
@@ -114,7 +116,7 @@ typedef T _Transformation<S, T>(S value);
 /**
  * A stream pipe that converts data events before passing them on.
  */
-class MapStream<S, T> extends _ForwardingStream<S, T> {
+class MapStream<S, T> extends _ForwardingTransformer<S, T> {
   final _Transformation _transform;
 
   MapStream(T transform(S event))
@@ -135,7 +137,7 @@ class MapStream<S, T> extends _ForwardingStream<S, T> {
 /**
  * A stream pipe that converts data events before passing them on.
  */
-class ExpandStream<S, T> extends _ForwardingStream<S, T> {
+class ExpandStream<S, T> extends _ForwardingTransformer<S, T> {
   final _Transformation<S, Iterable<T>> _expand;
 
   ExpandStream(Iterable<T> expand(S event))
@@ -161,7 +163,7 @@ typedef AsyncError _ErrorTransformation(AsyncError error);
  * A stream pipe that converts or disposes error events
  * before passing them on.
  */
-class HandleErrorStream<T> extends _ForwardingStream<T, T> {
+class HandleErrorStream<T> extends _ForwardingTransformer<T, T> {
   final _ErrorTransformation _transform;
 
   HandleErrorStream(AsyncError transform(AsyncError event))
@@ -192,7 +194,7 @@ typedef void _TransformDoneHandler<T>(StreamSink<T> sink);
  * this pipe.
  * The handler can then decide which events to send to the output
  */
-class PipeStream<S, T> extends _ForwardingStream<S, T> {
+class PipeStream<S, T> extends _ForwardingTransformer<S, T> {
   final _TransformDataHandler<S, T> _onData;
   final _TransformErrorHandler<T> _onError;
   final _TransformDoneHandler<T> _onDone;
@@ -264,7 +266,7 @@ class _StreamImplSink<T> implements StreamSink<T> {
  * this pipe.
  * The handler can then decide which events to send to the output
  */
-class TransformStream<S, T> extends _ForwardingStream<S, T> {
+class TransformStream<S, T> extends _ForwardingTransformer<S, T> {
   final StreamTransformer<S, T> _transform;
   StreamSink<T> _sink;
 
@@ -330,7 +332,7 @@ class _StreamTransformerFunctionWrapper<S, T>
 }
 
 
-class TakeStream<T> extends _ForwardingStream<T, T> {
+class TakeStream<T> extends _ForwardingTransformer<T, T> {
   int _remaining;
 
   TakeStream(int count)
@@ -352,7 +354,7 @@ class TakeStream<T> extends _ForwardingStream<T, T> {
 }
 
 
-class TakeWhileStream<T> extends _ForwardingStream<T, T> {
+class TakeWhileStream<T> extends _ForwardingTransformer<T, T> {
   final _Predicate<T> _test;
 
   TakeWhileStream(bool test(T value))
@@ -376,7 +378,7 @@ class TakeWhileStream<T> extends _ForwardingStream<T, T> {
   }
 }
 
-class SkipStream<T> extends _ForwardingStream<T, T> {
+class SkipStream<T> extends _ForwardingTransformer<T, T> {
   int _remaining;
 
   SkipStream(int count)
@@ -393,7 +395,7 @@ class SkipStream<T> extends _ForwardingStream<T, T> {
   }
 }
 
-class SkipWhileStream<T> extends _ForwardingStream<T, T> {
+class SkipWhileStream<T> extends _ForwardingTransformer<T, T> {
   final _Predicate<T> _test;
   bool _hasFailed = false;
 
@@ -422,7 +424,7 @@ class SkipWhileStream<T> extends _ForwardingStream<T, T> {
 
 typedef bool _Equality<T>(T a, T b);
 
-class DistinctStream<T> extends _ForwardingStream<T, T> {
+class DistinctStream<T> extends _ForwardingTransformer<T, T> {
   static var _SENTINEL = new Object();
 
   _Equality<T> _equals;
