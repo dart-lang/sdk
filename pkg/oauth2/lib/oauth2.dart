@@ -52,11 +52,11 @@
 ///         "http://my-site.com/oauth2-redirect");
 ///     
 ///     var credentialsFile = new File("~/.myapp/credentials.json");
-///     return credentialsFile.exists().chain((exists) {
+///     return credentialsFile.exists().then((exists) {
 ///       // If the OAuth2 credentials have already been saved from a previous
 ///       // run, we just want to reload them.
 ///       if (exists) {
-///         return credentialsFile.readAsText().transform((json) {
+///         return credentialsFile.readAsText().then((json) {
 ///           var credentials = new oauth2.Credentials.fromJson(json);
 ///           return new oauth2.Client(identifier, secret, credentials);
 ///         });
@@ -76,28 +76,28 @@
 ///       //
 ///       // `redirect` is an imaginary function that redirects the resource
 ///       // owner's browser.
-///       return redirect(grant.getAuthorizationUrl(redirectUrl)).chain((_) {
+///       return redirect(grant.getAuthorizationUrl(redirectUrl)).then((_) {
 ///         // Another imaginary function that listens for a request to
 ///         // `redirectUrl`.
 ///         return listen(redirectUrl);
-///       }).transform((request) {
+///       }).then((request) {
 ///         // Once the user is redirected to `redirectUrl`, pass the query
 ///         // parameters to the AuthorizationCodeGrant. It will validate them
 ///         // and extract the authorization code to create a new Client.
 ///         return grant.handleAuthorizationResponse(request.queryParameters);
 ///       })
-///     }).chain((client) {
+///     }).then((client) {
 ///       // Once you have a Client, you can use it just like any other HTTP
 ///       // client.
 ///       return client.read("http://example.com/protected-resources.txt")
-///           .transform((result) {
+///           .then((result) {
 ///         // Once we're done with the client, save the credentials file. This
 ///         // ensures that if the credentials were automatically refreshed
 ///         // while using the client, the new credentials are available for the
 ///         // next run of the program.
-///         return credentialsFile.open(FileMode.WRITE).chain((file) {
+///         return credentialsFile.open(FileMode.WRITE).then((file) {
 ///           return file.writeString(client.credentials.toJson());
-///         }).chain((file) => file.close()).transform((_) => result);
+///         }).then((file) => file.close()).then((_) => result);
 ///       });
 ///     }).then(print);
 library oauth2;
