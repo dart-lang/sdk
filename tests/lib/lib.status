@@ -18,6 +18,7 @@ async/stream_controller_async_test: Fail # Timer interface not supported; dartbu
 async/stream_from_iterable_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_min_max_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_single_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/stream_single_to_multi_subscriber_test: Fail # Timer interface not supported; dartbug.com/7728.
 
 [ $compiler == dart2js && $browser ]
 crypto/sha256_test: Slow, Pass
