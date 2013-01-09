@@ -41,6 +41,7 @@ DEFINE_FLAG(int, inlining_hotness, 10,
     "default 10%: calls above-equal 10% of max-count are inlined.");
 
 DECLARE_FLAG(bool, print_flow_graph);
+DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, verify_compiler);
 DECLARE_FLAG(bool, compiler_stats);
@@ -514,7 +515,8 @@ class CallSiteInliner : public ValueObject {
         callee_graph->ComputeUseLists();
       }
 
-      if (FLAG_trace_inlining && FLAG_print_flow_graph) {
+      if (FLAG_trace_inlining &&
+          (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
         OS::Print("Callee graph for inlining %s\n",
                   function.ToFullyQualifiedCString());
         FlowGraphPrinter printer(*callee_graph);
@@ -864,7 +866,8 @@ void FlowGraphInliner::Inline() {
       "Inlining calls in %s\n",
       flow_graph_->parsed_function().function().ToCString()));
 
-  if (FLAG_trace_inlining && FLAG_print_flow_graph) {
+  if (FLAG_trace_inlining &&
+      (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
     OS::Print("Before Inlining of %s\n", flow_graph_->
               parsed_function().function().ToFullyQualifiedCString());
     FlowGraphPrinter printer(*flow_graph_);
@@ -878,7 +881,7 @@ void FlowGraphInliner::Inline() {
     flow_graph_->RepairGraphAfterInlining();
     if (FLAG_trace_inlining) {
       OS::Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
-      if (FLAG_print_flow_graph) {
+      if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
         OS::Print("After Inlining of %s\n", flow_graph_->
                   parsed_function().function().ToFullyQualifiedCString());
         FlowGraphPrinter printer(*flow_graph_);

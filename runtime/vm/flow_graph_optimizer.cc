@@ -3663,15 +3663,7 @@ void ConstantPropagator::VisitGraphEntry(GraphEntryInstr* block) {
 
 
 void ConstantPropagator::VisitJoinEntry(JoinEntryInstr* block) {
-  ZoneGrowableArray<PhiInstr*>* phis = block->phis();
-  if (phis != NULL) {
-    for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
-      PhiInstr* phi = (*phis)[phi_idx];
-      if (phi == NULL) continue;
-      phi->Accept(this);
-    }
-  }
-
+  // Phis are visited when visiting Goto at a predecessor. See VisitGoto.
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     it.Current()->Accept(this);
   }
@@ -3712,6 +3704,12 @@ void ConstantPropagator::VisitReThrow(ReThrowInstr* instr) {
 
 void ConstantPropagator::VisitGoto(GotoInstr* instr) {
   SetReachable(instr->successor());
+
+  // Phi value depends on the reachability of a predecessor. We have
+  // to revisit phis every time a predecessor becomes reachable.
+  for (PhiIterator it(instr->successor()); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
 }
 
 
