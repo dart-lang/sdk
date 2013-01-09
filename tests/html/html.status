@@ -57,9 +57,6 @@ audiocontext_test: Pass, Fail
 [ $compiler == dart2js && $runtime == drt && $system == macos]
 audiobuffersourcenode_test: Pass, Fail
 
-[ $compiler == none && $runtime == drt && $system == linux]
-documentfragment_test: Pass, Timeout
-
 [$runtime == ie10 ]
 # TODO(efortuna, blois): Triage.
 audiobuffersourcenode_test: Fail
@@ -241,7 +238,6 @@ audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCssMatrix
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 document_test/getCssCanvasContext: Fail # FF does not support this.
-documentfragment_test: Fail
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
 element_types_test/supported_embed: Fail
@@ -297,4 +293,3 @@ isolates_test: Skip   # Timeout because leg does not support web workers.
 xhr_test: Skip # Timeout
 inner_frame_test: Skip # Timeout
 svg_3_test: Skip # Timeout
-documentfragment_test: Skip # Timeout
