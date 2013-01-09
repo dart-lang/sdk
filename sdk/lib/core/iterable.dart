@@ -19,6 +19,10 @@ part of dart.core;
 abstract class Iterable<E> {
   const Iterable();
 
+  factory Iterable.generate(int count, E generator(int index)) {
+    return new _GeneratorIterable<E>(count, generator);
+  }
+
   /**
    * Returns an [Iterator] that iterates over this [Iterable] object.
    */
@@ -587,4 +591,36 @@ class SkipWhileIterator<E> extends Iterator<E> {
   }
 
   E get current => _iterator.current;
+}
+
+
+typedef E _Generator<E>(int index);
+
+class _GeneratorIterable<E> extends Iterable<E> {
+  final int _count;
+  final _Generator<E> _generator;
+  _GeneratorIterable(this._count, this._generator);
+  Iterator<E> get iterator => new _GeneratorIterator(_count, _generator);
+}
+
+class _GeneratorIterator<E> implements Iterator<E> {
+  final int _count;
+  final _Generator<E> _generator;
+  int _index = 0;
+  E _current;
+
+  _GeneratorIterator(this._count, this._generator);
+
+  bool moveNext() {
+    if (_index < _count) {
+      _current = _generator(_index);
+      _index++;
+      return true;
+    } else {
+      _current = null;
+      return false;
+    }
+  }
+
+  E get current => _current;
 }

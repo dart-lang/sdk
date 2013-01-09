@@ -9,13 +9,15 @@ mirrors/*: Skip
 [ $compiler == dart2js && $runtime == d8 ]
 async/future_delayed_error_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/future_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/slow_consumer2_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/slow_consumer_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_controller_async_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_min_max_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_single_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/futures_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/merge_stream_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/slow_consumer2_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/slow_consumer3_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/slow_consumer_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/stream_controller_async_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/stream_from_iterable_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/stream_min_max_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/stream_single_test: Fail # Timer interface not supported; dartbug.com/7728.
 
 [ $compiler == dart2js && $browser ]
 crypto/sha256_test: Slow, Pass

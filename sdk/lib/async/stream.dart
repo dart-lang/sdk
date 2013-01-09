@@ -12,16 +12,23 @@ abstract class Stream<T> {
   Stream();
 
   factory Stream.fromFuture(Future<T> future) {
-    var controller = new StreamController<T>();
+    _StreamImpl<T> stream = new _MultiStreamImpl<T>();
     future.then((value) {
-        controller.add(value);
-        controller.close();
+        stream._add(value);
+        stream._close();
       },
       onError: (error) {
-        controller.signalError(error);
-        controller.close();
+        stream._signalError(error);
+        stream._close();
       });
-    return controller.stream;
+    return stream;
+  }
+
+  /**
+   * Creates a single-subscription stream that gets its data from [data].
+   */
+  factory Stream.fromIterable(Iterable<T> data) {
+    return new _IterableSingleStreamImpl<T>(data);
   }
 
   /**

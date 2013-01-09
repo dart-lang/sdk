@@ -442,8 +442,11 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
     _subscriber = subscription;
     subscription._setSubscribed(0);
     _onSubscriptionStateChange();
-    // TODO(floitsch): Should this be delayed?
-    _handlePendingEvents();
+    if (_hasPendingEvent) {
+      new Timer(0, (_) {
+        _handlePendingEvents();
+      });
+    }
   }
 
   /**
@@ -633,6 +636,58 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
     _InternalLinkList.remove(listener);
   }
 }
+
+
+/** Abstract superclass for streams that generate their own events. */
+abstract class _GeneratedSingleStreamImpl<T> extends _SingleStreamImpl<T> {
+  bool _isHandlingPendingEvents = false;
+  bool get _hasPendingEvent => !_isClosed;
+
+  /**
+   * Generate one (or possibly more) new events.
+   *
+   * The events should be added to the stream using [_add], [_signalError] and
+   * [_close].
+   */
+  void _generateNextEvent();
+
+  void _handlePendingEvents() {
+    // Avoid reentry from _add/_signalError/_close potentially called
+    // from _generateNextEvent.
+    if (_isHandlingPendingEvents) return;
+    _isHandlingPendingEvents = true;
+    while (!_isPaused && !_isClosed) {
+      // Call super's handle event in case _generateNextEvent generates
+      // more than one event, and the following ones are delayed.
+      super._handlePendingEvents();
+      if (!_isPaused && !_isClosed) {
+        _generateNextEvent();
+      }
+    }
+    _isHandlingPendingEvents = false;
+  }
+}
+
+
+/** Stream that gets its events from an [Iterable]. */
+class _IterableSingleStreamImpl<T> extends _GeneratedSingleStreamImpl<T> {
+  Iterator<T> _iterator;
+
+  _IterableSingleStreamImpl(Iterable<T> data) : _iterator = data.iterator;
+
+  void _generateNextEvent() {
+    try {
+      if (_iterator.moveNext()) {
+        _add(_iterator.current);
+        return;
+      }
+    } catch (e, s) {
+      _signalError(new AsyncError(e, s));
+    }
+    _close();
+  }
+}
+
 
 /**
  * The subscription class that the [StreamController] uses.
