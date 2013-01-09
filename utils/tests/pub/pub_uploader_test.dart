@@ -74,7 +74,7 @@ main() {
     server.handle('DELETE', '/packages/pkg/uploaders/email.json',
         (request, response) {
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         'success': {'message': 'Good job!'}
       }));
       response.outputStream.close();
@@ -96,7 +96,7 @@ main() {
     server.handle('POST', '/packages/test_pkg/uploaders.json',
         (request, response) {
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         'success': {'message': 'Good job!'}
       }));
       response.outputStream.close();
@@ -116,7 +116,7 @@ main() {
     server.handle('POST', '/packages/pkg/uploaders.json', (request, response) {
       response.statusCode = 400;
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         'error': {'message': 'Bad job!'}
       }));
       response.outputStream.close();
@@ -138,7 +138,7 @@ main() {
         (request, response) {
       response.statusCode = 400;
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         'error': {'message': 'Bad job!'}
       }));
       response.outputStream.close();

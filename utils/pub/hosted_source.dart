@@ -77,8 +77,9 @@ class HostedSource extends Source {
           .then((response) => response.stream),
       systemCache.createTempDir()
     ]).then((args) {
+      var stream = streamToInputStream(args[0]);
       tempDir = args[1];
-      return timeout(extractTarGz(args[0], tempDir), HTTP_TIMEOUT,
+      return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
           'fetching URL "$fullUrl"');
     }).then((_) {
       // Now that the install has succeeded, move it to the real location in
@@ -118,8 +119,8 @@ class HostedSource extends Source {
   /// When an error occurs trying to read something about [package] from [url],
   /// this tries to translate into a more user friendly error message. Always
   /// throws an error, either the original one or a better one.
-  void _throwFriendlyError(ex, package, url) {
-    ex = getRealError(ex);
+  void _throwFriendlyError(AsyncError asyncError, package, url) {
+    var ex = getRealError(asyncError);
 
     if (ex is PubHttpException && ex.response.statusCode == 404) {
       throw 'Could not find package "$package" at $url.';
@@ -135,7 +136,7 @@ class HostedSource extends Source {
     }
 
     // Otherwise re-throw the original exception.
-    throw ex;
+    throw asyncError;
   }
 
   /// Parses the description for a package.

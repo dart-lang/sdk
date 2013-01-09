@@ -42,12 +42,8 @@ class CurlClient extends http.BaseClient {
       var process;
       return startProcess(executable, arguments).then((process_) {
         process = process_;
-        if (requestStream.closed) {
-          process.stdin.close();
-        } else {
-          requestStream.pipe(process.stdin);
-        }
-
+        return requestStream.pipe(wrapOutputStream(process.stdin));
+      }).then((_) {
         return _waitForHeaders(process, expectBody: request.method != "HEAD");
       }).then((_) => new File(headerFile).readAsLines())
         .then((lines) => _buildResponse(request, process, lines));
@@ -126,8 +122,7 @@ class CurlClient extends http.BaseClient {
         return;
       }
 
-      chainToCompleter(consumeInputStream(process.stderr)
-            .then((stderrBytes) {
+      chainToCompleter(consumeInputStream(process.stderr).then((stderrBytes) {
         var message = new String.fromCharCodes(stderrBytes);
         log.fine('Got error reading headers from curl: $message');
         if (exitCode == 47) {
@@ -183,7 +178,8 @@ class CurlClient extends http.BaseClient {
       contentLength = int.parse(headers['content-length']);
     }
 
-    return new http.StreamedResponse(responseStream, status, contentLength,
+    return new http.StreamedResponse(
+        wrapInputStream(responseStream), status, contentLength,
         request: request,
         headers: headers,
         isRedirect: isRedirect,

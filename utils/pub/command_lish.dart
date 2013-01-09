@@ -19,6 +19,7 @@ import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
 import 'pub.dart';
+import 'utils.dart';
 import 'validator.dart';
 
 /// Handles the `lish` and `publish` pub commands.
@@ -69,9 +70,10 @@ class LishCommand extends PubCommand {
         if (location == null) throw new PubHttpException(response);
         return location;
       }).then((location) => client.get(location))
-          .then(handleJsonSuccess);
-    }).catchError((e) {
-      if (e is! PubHttpException) throw e;
+        .then(handleJsonSuccess);
+    }).catchError((asyncError) {
+      var e = getRealError(asyncError);
+      if (e is! PubHttpException) throw asyncError;
       var url = e.response.request.url;
       if (url.toString() == cloudStorageUrl.toString()) {
         // TODO(nweiz): the response may have XML-formatted information about
@@ -146,7 +148,7 @@ class LishCommand extends PubCommand {
         return false;
       }
 
-      return !splitPath(file).some(_BLACKLISTED_DIRECTORIES.contains);
+      return !splitPath(file).any(_BLACKLISTED_DIRECTORIES.contains);
     }).toList());
   }
 

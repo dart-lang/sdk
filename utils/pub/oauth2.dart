@@ -69,23 +69,13 @@ Future clearCredentials(SystemCache cache) {
 Future withClient(SystemCache cache, Future fn(Client client)) {
   return _getClient(cache).then((client) {
     var completer = new Completer();
-    var future = fn(client);
-    future.whenComplete(() {
-      try {
-        client.close();
-        // Be sure to save the credentials even when an error happens. Also be
-        // sure to pipe the exception from `future` to `completer`.
-        chainToCompleter(
-            _saveCredentials(cache, client.credentials).then((_) => future),
-            completer);
-      } catch (e, stackTrace) {
-        // whenComplete will drop exceptions on the floor. We want to ensure
-        // that any programming errors here don't go un-noticed. See issue 4127.
-        completer.completeError(e, stackTrace);
-      }
+    return asyncWhenComplete(fn(client), () {
+      client.close();
+      // Be sure to save the credentials even when an error happens.
+      return _saveCredentials(cache, client.credentials);
     });
-    return completer.future;
-  }).catchError((e) {
+  }).catchError((asyncError) {
+    var e = getRealError(asyncError);
     if (e is ExpirationException) {
       log.error("Pub's authorization to upload packages has expired and "
           "can't be automatically refreshed.");
@@ -96,7 +86,7 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
       log.error("$message.");
       return clearCredentials(cache).then((_) => withClient(cache, fn));
     } else {
-      throw e;
+      throw asyncError;
     }
   });
 }

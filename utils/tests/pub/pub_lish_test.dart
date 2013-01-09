@@ -5,7 +5,7 @@
 library pub_lish_test;
 
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 
 import 'test_pub.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
@@ -28,7 +28,7 @@ void handleUploadForm(ScheduledServer server, [Map body]) {
       }
 
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(JSON.stringify(body));
+      response.outputStream.writeString(json.stringify(body));
       response.outputStream.close();
     });
   });
@@ -59,7 +59,7 @@ main() {
     handleUpload(server);
 
     server.handle('GET', '/create', (request, response) {
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
       }));
       response.outputStream.close();
@@ -123,7 +123,7 @@ main() {
     handleUpload(server);
 
     server.handle('GET', '/create', (request, response) {
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
       }));
       response.outputStream.close();
@@ -145,7 +145,7 @@ main() {
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
       response.statusCode = 400;
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         'error': {'message': 'your request sucked'}
       }));
       response.outputStream.close();
@@ -192,7 +192,7 @@ main() {
 
     handleUploadForm(server, body);
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
-    expectLater(pub.nextErrLine(), equals(JSON.stringify(body)));
+    expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
 
     run();
@@ -215,7 +215,7 @@ main() {
 
     handleUploadForm(server, body);
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
-    expectLater(pub.nextErrLine(), equals(JSON.stringify(body)));
+    expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
 
     run();
@@ -231,7 +231,7 @@ main() {
     var body = {'url': 'http://example.com/upload'};
     handleUploadForm(server, body);
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
-    expectLater(pub.nextErrLine(), equals(JSON.stringify(body)));
+    expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
 
     run();
@@ -247,7 +247,7 @@ main() {
     var body = {'url': 'http://example.com/upload', 'fields': 12};
     handleUploadForm(server, body);
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
-    expectLater(pub.nextErrLine(), equals(JSON.stringify(body)));
+    expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
 
     run();
@@ -266,7 +266,7 @@ main() {
     };
     handleUploadForm(server, body);
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
-    expectLater(pub.nextErrLine(), equals(JSON.stringify(body)));
+    expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
 
     run();
@@ -326,7 +326,7 @@ main() {
 
     server.handle('GET', '/create', (request, response) {
       response.statusCode = 400;
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         'error': {'message': 'Your package was too boring.'}
       }));
       response.outputStream.close();
@@ -371,12 +371,12 @@ main() {
     var body = {'error': 'Your package was too boring.'};
     server.handle('GET', '/create', (request, response) {
       response.statusCode = 400;
-      response.outputStream.writeString(JSON.stringify(body));
+      response.outputStream.writeString(json.stringify(body));
       response.outputStream.close();
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
-    expectLater(pub.nextErrLine(), equals(JSON.stringify(body)));
+    expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
 
     run();
@@ -393,12 +393,12 @@ main() {
 
     var body = {'success': 'Your package was awesome.'};
     server.handle('GET', '/create', (request, response) {
-      response.outputStream.writeString(JSON.stringify(body));
+      response.outputStream.writeString(json.stringify(body));
       response.outputStream.close();
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
-    expectLater(pub.nextErrLine(), equals(JSON.stringify(body)));
+    expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
 
     run();

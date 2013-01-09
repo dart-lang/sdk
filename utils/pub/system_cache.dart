@@ -72,8 +72,8 @@ class SystemCache {
     var pending = _pendingInstalls[id];
     if (pending != null) return pending;
 
-    var future = id.source.installToSystemCache(id);
-    always(future, () => _pendingInstalls.remove(id));
+    var future = id.source.installToSystemCache(id)
+        .whenComplete(() => _pendingInstalls.remove(id));
     _pendingInstalls[id] = future;
     return future;
   }

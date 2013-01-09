@@ -13,12 +13,13 @@ import '../../../pkg/unittest/lib/unittest.dart';
 import '../../../pkg/http/lib/http.dart' as http;
 import '../../pub/curl_client.dart';
 import '../../pub/io.dart';
+import '../../pub/utils.dart';
 
-// TODO(rnystrom): All of the code from here to the "---..." line was copied
-// from pkg/http/test/utils.dart and pkg/http/lib/src/utils.dart. It's copied
-// here because http/test/utils.dart is now using "package:" imports and this
-// is not. You cannot mix those because you end up with duplicate copies of the
-// same library in memory. Since curl_client is going away soon anyway, I'm
+// TODO(rnystrom): All of the code from here to the first "---..." line was
+// copied from pkg/http/test/utils.dart and pkg/http/lib/src/utils.dart. It's
+// copied here because http/test/utils.dart is now using "package:" imports and
+// this is not. You cannot mix those because you end up with duplicate copies of
+// the same library in memory. Since curl_client is going away soon anyway, I'm
 // just copying the code here. Delete all of this when curl client is removed.
 
 /// Returns the [Encoding] that corresponds to [charset]. Throws a
@@ -153,7 +154,7 @@ class _Parse extends BaseMatcher {
 
     var parsed;
     try {
-      parsed = JSON.parse(item);
+      parsed = json.parse(item);
     } catch (e) {
       return false;
     }
@@ -167,6 +168,12 @@ class _Parse extends BaseMatcher {
   }
 }
 
+// ----------------------------------------------------------------------------
+
+// TODO(nweiz): All the code from here to the next "---..." line was also copied
+// from pkg/http/test/utils.dart. However, it was also modified to use
+// getRealError in order to work around issue 7781.
+
 // TODO(nweiz): remove this once it's built in to unittest
 /// A matcher for StateErrors.
 const isStateError = const _StateError();
@@ -177,7 +184,7 @@ const Matcher throwsStateError =
 
 class _StateError extends TypeMatcher {
   const _StateError() : super("StateError");
-  bool matches(item, MatchState matchState) => item is StateError;
+  bool matches(item, MatchState matchState) => getRealError(item) is StateError;
 }
 
 /// A matcher for HttpExceptions.
@@ -189,7 +196,8 @@ const Matcher throwsHttpException =
 
 class _HttpException extends TypeMatcher {
   const _HttpException() : super("HttpException");
-  bool matches(item, MatchState matchState) => item is HttpException;
+  bool matches(item, MatchState matchState) =>
+    getRealError(item) is HttpException;
 }
 
 /// A matcher for RedirectLimitExceededExceptions.
@@ -205,7 +213,7 @@ class _RedirectLimitExceededException extends TypeMatcher {
       super("RedirectLimitExceededException");
 
   bool matches(item, MatchState matchState) =>
-    item is RedirectLimitExceededException;
+    getRealError(item) is RedirectLimitExceededException;
 }
 
 // ----------------------------------------------------------------------------
@@ -391,9 +399,8 @@ void main() {
 
     var future = client.send(request).then((response) {
       expect(response.statusCode, equals(200));
-      return consumeInputStream(response.stream);
-    }).then((bytes) => new String.fromCharCodes(bytes));
-    future.catchError((_) {}).then((_) => client.close());
+      return response.stream.bytesToString();
+    }).whenComplete(client.close);
 
     expect(future, completion(parse(equals({
       'method': 'POST',
@@ -405,8 +412,8 @@ void main() {
       'body': '{"hello": "world"}'
     }))));
 
-    request.stream.writeString('{"hello": "world"}');
-    request.stream.close();
+    request.sink.add('{"hello": "world"}'.charCodes);
+    request.sink.close();
   });
 
   test('with one redirect', () {

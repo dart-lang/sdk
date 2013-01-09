@@ -4,6 +4,8 @@
 
 library validator;
 
+import 'dart:async';
+
 import 'entrypoint.dart';
 import 'log.dart' as log;
 import 'io.dart';

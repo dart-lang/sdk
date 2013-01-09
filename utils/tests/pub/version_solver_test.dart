@@ -449,14 +449,6 @@ testResolve(description, packages, {lockfile, result, Matcher error}) {
     } else if (error != null) {
       expect(future, throwsA(error));
     }
-
-    // If we aren't expecting an error, print some debugging info if we get one.
-    if (error == null) {
-      future.catchError((ex) {
-        print(ex);
-        print(future.stackTrace);
-      });
-    }
   });
 }
 

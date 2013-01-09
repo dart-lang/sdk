@@ -73,7 +73,10 @@ class IOClient extends BaseClient {
           reasonPhrase: response.reasonPhrase));
     };
 
-    return pipeCompleter.future.then((_) => completer.future);
+    return new Future.wait([
+      completer.future,
+      pipeCompleter.future
+    ]).then((values) => values.first);
   }
 
   /// Closes the client. This terminates all active connections. If a client

@@ -40,12 +40,6 @@ String padRight(String source, int length) {
   return result.toString();
 }
 
-/// Runs [fn] after [future] completes, whether it completes successfully or
-/// not. Essentially an asynchronous `finally` block.
-always(Future future, fn()) {
-  future.catchError((_) {}).then((_) => fn());
-}
-
 /// Flattens nested lists inside an iterable into a single list containing only
 /// non-list elements.
 List flatten(Iterable nested) {
@@ -124,6 +118,26 @@ void chainToCompleter(Future future, Completer completer) {
       onError: (e) => completer.completeError(e.error, e.stackTrace));
 }
 
+// TODO(nweiz): remove this when issue 7790 is fixed.
+/// Like [Future.whenComplete], except that [action] may return a [Future]. If
+/// it does, the returned [Future] won't complete until [action]'s [Future]
+/// completes.
+///
+/// The returned [Future] always has the same value as [future].
+Future asyncWhenComplete(Future future, Future action()) {
+  Future futurify(Future future) {
+    if (future != null) return future;
+    return new Future.immediate(null);
+  }
+
+  return future.then((result) => futurify(action()).then((_) => result),
+      onError: (e) {
+    return futurify(action()).then((_) {
+      throw e;
+    });
+  });
+}
+
 // TODO(nweiz): unify the following functions with the utility functions in
 // pkg/http.
 
@@ -193,4 +207,17 @@ getRealError(error) {
   }
 
   return error;
+}
+
+// TODO(nweiz): Remove this when #7781 is fixed.
+/// When an error is rethrown in an async callback, you can end up with nested
+/// AsyncErrors. This unwraps them to find the real originating stack trace.
+getRealStackTrace(error) {
+  var trace = null;
+  while (error is AsyncError) {
+    trace = error.stackTrace;
+    error = error.error;
+  }
+
+  return trace;
 }

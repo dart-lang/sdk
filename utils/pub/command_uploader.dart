@@ -17,6 +17,7 @@ import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
 import 'pub.dart';
+import 'utils.dart';
 
 /// Handles the `uploader` pub command.
 class UploaderCommand extends PubCommand {
@@ -75,8 +76,9 @@ class UploaderCommand extends PubCommand {
           return client.delete(url);
         }
       });
-    }).then(handleJsonSuccess).catchError((e) {
-      if (e is! PubHttpException) throw e;
+    }).then(handleJsonSuccess).catchError((asyncError) {
+      var e = getRealError(asyncError);
+      if (e is! PubHttpException) throw asyncError;
       handleJsonError(e.response);
     });
   }

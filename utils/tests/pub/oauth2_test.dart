@@ -5,7 +5,7 @@
 library oauth2_test;
 
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:uri';
 
 import 'test_pub.dart';
@@ -74,7 +74,7 @@ main() {
             new RegExp(r'(^|&)refresh_token=refresh\+token(&|$)')));
 
         response.headers.contentType = new ContentType("application", "json");
-        response.outputStream.writeString(JSON.stringify({
+        response.outputStream.writeString(json.stringify({
           "access_token": "new access token",
           "token_type": "bearer"
         }));
@@ -162,7 +162,7 @@ main() {
       response.statusCode = 401;
       response.headers.set('www-authenticate', 'Bearer error="invalid_token",'
           ' error_description="your token sucks"');
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         'error': {'message': 'your token sucks'}
       }));
       response.outputStream.close();
@@ -214,7 +214,7 @@ void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
       expect(body, matches(new RegExp(r'(^|&)code=access\+code(&|$)')));
 
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         "access_token": accessToken,
         "token_type": "bearer"
       }));

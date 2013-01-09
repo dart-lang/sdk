@@ -5,6 +5,7 @@
 library client_test;
 
 import 'dart:io';
+import 'dart:uri';
 
 import 'package:unittest/unittest.dart';
 import 'package:http/http.dart' as http;
@@ -34,6 +35,19 @@ void main() {
       },
       'body': '{"hello": "world"}'
     }))));
+
+    request.sink.add('{"hello": "world"}'.charCodes);
+    request.sink.close();
+  });
+
+  test('#send with an invalid URL', () {
+    var client = new http.Client();
+    var url = new Uri.fromString('http://http.invalid');
+    var request = new http.StreamedRequest("POST", url);
+    request.headers[HttpHeaders.CONTENT_TYPE] =
+        'application/json; charset=utf-8';
+
+    expect(client.send(request), throwsSocketIOException);
 
     request.sink.add('{"hello": "world"}'.charCodes);
     request.sink.close();

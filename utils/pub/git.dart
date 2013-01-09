@@ -65,21 +65,12 @@ Future<String> get _gitCommand {
 
 /// Checks whether [command] is the Git command for this computer.
 Future<bool> _tryGitCommand(String command) {
-  var completer = new Completer<bool>();
-
   // If "git --version" prints something familiar, git is working.
-  var future = runProcess(command, ["--version"]);
-
-  future
-    .then((results) {
-      var regex = new RegExp("^git version");
-      completer.complete(results.stdout.length == 1 &&
-                         regex.hasMatch(results.stdout[0]));
-    })
-    .catchError((err) {
-      // If the process failed, they probably don't have it.
-      completer.complete(false);
-    });
-
-  return completer.future;
+  return runProcess(command, ["--version"]).then((results) {
+    var regexp = new RegExp("^git version");
+    return results.stdout.length == 1 && regexp.hasMatch(results.stdout[0]);
+  }).catchError((err) {
+    // If the process failed, they probably don't have it.
+    return false;
+  });
 }

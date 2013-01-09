@@ -460,28 +460,20 @@ void run() {
     });
   }
 
-  final future = _setUpSandbox().then((sandboxDir) {
+  timeout(_setUpSandbox().then((sandboxDir) {
     createdSandboxDir = sandboxDir;
     return _runScheduled(sandboxDir, _scheduled);
-  });
-
-  future.catchError((e) {
+  }).catchError((e) {
     // If an error occurs during testing, delete the sandbox, throw the error so
     // that the test framework sees it, then finally call asyncDone so that the
     // test framework knows we're done doing asynchronous stuff.
-    var subFuture = _runScheduled(createdSandboxDir, _scheduledOnException)
-        .then((_) => cleanup());
-    subFuture.catchError((e) {
+    return _runScheduled(createdSandboxDir, _scheduledOnException)
+        .then((_) => registerException(e.error, e.stackTrace)).catchError((e) {
       print("Exception while cleaning up: ${e.error}");
       print(e.stackTrace);
       registerException(e.error, e.stackTrace);
-      return true;
     });
-    subFuture.then((_) => registerException(e.error, e.stackTrace));
-    return true;
-  });
-
-  timeout(future, _TIMEOUT, 'waiting for a test to complete')
+  }), _TIMEOUT, 'waiting for a test to complete')
       .then((_) => cleanup())
       .then((_) => asyncDone());
 }
@@ -841,17 +833,13 @@ abstract class Descriptor {
       }
 
       for (var match in matches) {
-        var future = validate(match);
-
-        future.catchError((e) {
+        var future = validate(match).then((_) {
+          successes++;
+          checkComplete();
+        }).catchError((e) {
           failures.add(e);
           checkComplete();
         });
-
-        future.then((_) {
-          successes++;
-          checkComplete();
-        }).catchError((_) {});
       }
       return completer.future;
     });
@@ -1120,7 +1108,7 @@ class TarFileDescriptor extends Descriptor {
       return create(tempDir);
     }).then((tar) {
       var sourceStream = tar.openInputStream();
-      pipeInputToInput(sourceStream, sinkStream).then((_) {
+      return pipeInputToInput(sourceStream, sinkStream).then((_) {
         tempDir.delete(recursive: true);
       });
     });

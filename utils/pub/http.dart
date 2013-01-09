@@ -7,7 +7,7 @@ library pub.http;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 
 // TODO(nweiz): Make this import better.
 import '../../pkg/http/lib/http.dart' as http;
@@ -57,8 +57,8 @@ class PubHttpClient extends http.BaseClient {
       return http.Response.fromStream(streamedResponse).then((response) {
         throw new PubHttpException(response);
       });
-    }).catchError((e) {
-      e = getRealError(e);
+    }).catchError((asyncError) {
+      var e = getRealError(asyncError);
       if (e is SocketIOException &&
           e.osError != null &&
           (e.osError.errorCode == 8 ||
@@ -67,7 +67,7 @@ class PubHttpClient extends http.BaseClient {
            e.osError.errorCode == 11004)) {
         throw 'Could not resolve URL "${request.url.origin}".';
       }
-      throw e;
+      throw asyncError;
     }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
   }
 }
@@ -112,7 +112,7 @@ void handleJsonError(http.Response response) {
 Map parseJsonResponse(http.Response response) {
   var value;
   try {
-    value = JSON.parse(response.body);
+    value = json.parse(response.body);
   } catch (e) {
     // TODO(nweiz): narrow this catch clause once issue 6775 is fixed.
     invalidServerResponse(response);
