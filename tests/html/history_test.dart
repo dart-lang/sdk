@@ -45,12 +45,15 @@ main() {
 
         expect(window.location.href.endsWith('dummy2'), isTrue);
 
-        expectAsync1Once(window.on.popState, (_) {
-          expect(window.history.length, length);
-          expect(window.location.href.endsWith('dummy1'), isTrue);
-        });
+        // Need to wait a frame or two to let the pushState events occur.
+        window.setTimeout(expectAsync0(() {
+          expectAsync1Once(window.on.popState, (_) {
+            expect(window.history.length, length);
+            expect(window.location.href.endsWith('dummy1'), isTrue);
+          });
 
-        window.history.back();
+          window.history.back();
+        }), 100);
       }, expectation);
     });
 

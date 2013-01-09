@@ -9,8 +9,6 @@ webgl_1_test: Skip  # Issue 1495
 xmldocument_test: Skip  # XML in dart:html is incomplete
 xmlelement_test: Skip  # XML in dart:html is incomplete
 
-history_test/history: Fail, Pass # Issue 7676.
-
 # Layout tests are only supported on DRT.
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 *layout_test: Skip
