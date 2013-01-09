@@ -25433,12 +25433,21 @@ class WebKitNamedFlow extends EventTarget {
 
 
 /// @domName WebSocket
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class WebSocket extends EventTarget {
   WebSocket.internal() : super.internal();
 
   ///@docsEditable true
   factory WebSocket(String url) => WebSocket._create(url);
   static WebSocket _create(String url) native "WebSocket_constructor_Callback";
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => true;
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WebSocketEvents get on =>

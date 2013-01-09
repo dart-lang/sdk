@@ -85,6 +85,7 @@ js_support_checks = {
   'HTMLProgressElement': "Element.isTagSupported('progress')",
   'HTMLShadowElement': "Element.isTagSupported('shadow')",
   'HTMLTrackElement': "Element.isTagSupported('track')",
+  'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
 }
 
 # Classes that offer only static methods, and therefore we should suppress

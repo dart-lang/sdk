@@ -628,30 +628,22 @@ _indexed_db_annotations = [
   "@Experimental()",
 ]
 
-_history_annotations = [
+_all_but_ie9_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX)",
   "@SupportedBrowser(SupportedBrowser.IE, '10')",
   "@SupportedBrowser(SupportedBrowser.SAFARI)",
 ]
 
+_history_annotations = _all_but_ie9_annotations
+
 # Annotations to be placed on generated members.
 # The table is indexed as:
 #   INTERFACE:     annotations to be added to the interface declaration
 #   INTERFACE.MEMBER: annotation to be added to the member declaration
 dart_annotations = {
-  'ArrayBuffer': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-    "@SupportedBrowser(SupportedBrowser.IE, '10')",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  ],
-  'ArrayBufferView': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-    "@SupportedBrowser(SupportedBrowser.IE, '10')",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  ],
+  'ArrayBuffer': _all_but_ie9_annotations,
+  'ArrayBufferView': _all_but_ie9_annotations,
   'DOMWindow.indexedDB': _indexed_db_annotations,
   'Element.webkitCreateShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
@@ -663,12 +655,7 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",
   ],
-  'HTMLDataListElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-    "@SupportedBrowser(SupportedBrowser.IE, '10')",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  ],
+  'HTMLDataListElement': _all_but_ie9_annotations,
   'HTMLDetailsElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
@@ -699,12 +686,7 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
-  'HTMLProgressElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-    "@SupportedBrowser(SupportedBrowser.IE, '10')",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  ],
+  'HTMLProgressElement': _all_but_ie9_annotations,
   'HTMLShadowElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",
@@ -720,6 +702,7 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",
   ],
+  'WebSocket': _all_but_ie9_annotations,
   'WorkerContext.indexedDB': _indexed_db_annotations,
 }
 

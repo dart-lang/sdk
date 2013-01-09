@@ -154,7 +154,7 @@ svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
-websocket_test: Fail
+websocket_test/supported: Fail
 window_open_test: Skip      # BUG(4016)
 xsltprocessor_test: Skip    # BUG(4016)
 isolates_test: Skip         # BUG(4016)
@@ -222,7 +222,6 @@ svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 typed_arrays_arraybuffer_test: Fail
 url_test: Fail
-websocket_test: Fail
 fileapi_test: Skip # Timeout.
 inner_frame_test: Skip # Timeout.
 js_interop_3_test: Skip # Timeout.
@@ -262,7 +261,6 @@ svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 transferables_test: Fail   # Issue 3392.
 websql_test: Fail # FF does not support web SQL
-websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
 # Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4"
 #    (NS_ERROR_DOM_BAD_URI) ...
 xhr_test: Fail

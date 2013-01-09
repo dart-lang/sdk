@@ -21071,11 +21071,20 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
 
 /// @domName WebSocket; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class WebSocket extends EventTarget native "*WebSocket" {
 
   ///@docsEditable true
   factory WebSocket(String url) => WebSocket._create(url);
   static WebSocket _create(String url) => JS('WebSocket', 'new WebSocket(#)', url);
+
+  /**
+   * Checks if this type is supported on the current platform
+   */
+  static bool get supported => JS('bool', 'typeof window.WebSocket != "undefined"');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WebSocketEvents get on =>
