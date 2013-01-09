@@ -318,8 +318,6 @@ main() {
     expect(fragment.attributes.isEmpty, isTrue);
     expect(fragment.classes.isEmpty, isTrue);
     expect(fragment.dataAttributes.isEmpty, isTrue);
-    expect(fragment.matchesSelector("foo"), isFalse);
-    expect(fragment.matchesSelector("*"), isFalse);
   });
 
   test('style', () {
