@@ -473,6 +473,17 @@ main() {
     });
   });
 
+  group('matches', () {
+    test('matches', () {
+      var element = new DivElement();
+      element.classes.add('test');
+
+      expect(element.matches('div'), true);
+      expect(element.matches('span'), false);
+      expect(element.matches('.test'), true);
+    });
+  });
+
   group('queryAll', () {
     List<Element> getQueryAll() {
       return new Element.html("""

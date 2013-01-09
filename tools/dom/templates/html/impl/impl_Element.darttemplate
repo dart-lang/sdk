@@ -819,6 +819,22 @@ $if DART2JS
         throw new ArgumentError("Invalid position ${where}");
     }
   }
+
+  /**
+   * Checks if this element matches the CSS selectors.
+   */
+  @Experimental()
+  bool matches(String selectors) {
+    if (JS('bool', '!!#.matches', this)) {
+      return JS('bool', '#.matches(#)', this, selectors);
+    } else if (JS('bool', '!!#.webkitMatchesSelector', this)) {
+      return JS('bool', '#.webkitMatchesSelector(#)', this, selectors);
+    } else if (JS('bool', '!!#.mozMatchesSelector', this)) {
+      return JS('bool', '#.mozMatchesSelector(#)', this, selectors);
+    } else if (JS('bool', '!!#.msMatchesSelector', this)) {
+      return JS('bool', '#.msMatchesSelector(#)', this, selectors);
+    }
+  }
 $else
 $endif
 

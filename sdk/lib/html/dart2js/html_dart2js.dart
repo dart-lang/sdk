@@ -6194,7 +6194,6 @@ class DocumentFragment extends Node native "*DocumentFragment" {
       _emptyStyleFuture();
   Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) =>
       _emptyStyleFuture();
-  bool matchesSelector(String selectors) => false;
 
   // Imperative Element methods are made into no-ops, as they are on parentless
   // elements.
@@ -7950,6 +7949,22 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     }
   }
 
+  /**
+   * Checks if this element matches the CSS selectors.
+   */
+  @Experimental()
+  bool matches(String selectors) {
+    if (JS('bool', '!!#.matches', this)) {
+      return JS('bool', '#.matches(#)', this, selectors);
+    } else if (JS('bool', '!!#.webkitMatchesSelector', this)) {
+      return JS('bool', '#.webkitMatchesSelector(#)', this, selectors);
+    } else if (JS('bool', '!!#.mozMatchesSelector', this)) {
+      return JS('bool', '#.mozMatchesSelector(#)', this, selectors);
+    } else if (JS('bool', '!!#.msMatchesSelector', this)) {
+      return JS('bool', '#.msMatchesSelector(#)', this, selectors);
+    }
+  }
+
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
@@ -8162,10 +8177,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @JSName('webkitCreateShadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25') @Experimental()
   ShadowRoot createShadowRoot() native;
-
-  /// @domName Element.webkitMatchesSelector; @docsEditable true
-  @JSName('webkitMatchesSelector')
-  bool matchesSelector(String selectors) native;
 
   /// @domName Element.webkitRequestFullScreen; @docsEditable true
   void webkitRequestFullScreen(int flags) native;

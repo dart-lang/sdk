@@ -7255,7 +7255,6 @@ class DocumentFragment extends Node {
       _emptyStyleFuture();
   Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) =>
       _emptyStyleFuture();
-  bool matchesSelector(String selectors) => false;
 
   // Imperative Element methods are made into no-ops, as they are on parentless
   // elements.
@@ -9331,7 +9330,7 @@ abstract class Element extends Node implements ElementTraversal {
 
 
   /** @domName Element.webkitMatchesSelector */
-  bool matchesSelector(String selectors) native "Element_webkitMatchesSelector_Callback";
+  bool matches(String selectors) native "Element_webkitMatchesSelector_Callback";
 
 
   /** @domName Element.webkitRequestFullScreen */

@@ -615,6 +615,12 @@ dart2js_annotations = {
       "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
 }
 
+# Placeholder to add experimental flag, implementation for this is
+# pending in a separate CL.
+dart_annotations = {
+  'Element.webkitMatchesSelector': ['@Experimental()'],
+}
+
 _indexed_db_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX, '15')",

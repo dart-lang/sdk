@@ -142,7 +142,7 @@ _renamed_html_members = {
     'Document.defaultView': 'window',
     'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
     'Element.webkitCreateShadowRoot': 'createShadowRoot',
-    'Element.webkitMatchesSelector' : 'matchesSelector',
+    'Element.webkitMatchesSelector' : 'matches',
     'Node.cloneNode': 'clone',
     'Node.nextSibling': 'nextNode',
     'Node.ownerDocument': 'document',

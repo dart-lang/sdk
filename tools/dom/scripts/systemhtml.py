@@ -42,6 +42,7 @@ _js_custom_members = set([
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
     'Element.insertAdjacentText',
+    'Element.webkitMatchesSelector',
     'Element.remove',
     'ElementEvents.mouseWheel',
     'HTMLCanvasElement.getContext',
