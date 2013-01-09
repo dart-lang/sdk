@@ -22,10 +22,6 @@ abstract class _ForwardingStream<S, T> extends _MultiStreamImpl<T>
   Stream<S> _source = null;
   StreamSubscription _subscription = null;
 
-  StreamController<T> _createController() {
-    return new _BaseForwardingController<T>(this);
-  }
-
   void _subscribeToSource() {
     _subscription = _source.listen(this._handleData,
                                    onError: this._handleError,
