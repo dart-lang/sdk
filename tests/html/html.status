@@ -90,6 +90,7 @@ localstorage_test: Fail
 measurement_test: Fail, Pass
 messageevent_test: Fail
 mutationobserver_test/supported: Fail
+native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 storage_test: Fail, Pass

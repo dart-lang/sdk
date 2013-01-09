@@ -343,7 +343,9 @@ call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: I
 
 [ $compiler == dart2js && $runtime == ie9 ]
 div_by_zero_test: Fail
+double_to_string_as_exponential3_test: Fail
 double_to_string_as_fixed_test: Fail
+double_to_string_as_precision3_test: Fail
 expect_test: Fail
 factory3_test: Fail
 stack_overflow_test: Fail
