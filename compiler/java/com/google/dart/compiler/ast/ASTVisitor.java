@@ -212,6 +212,10 @@ public class ASTVisitor<R> {
   public R visitFunctionTypeAlias(DartFunctionTypeAlias node) {
     return visitDeclaration(node);
   }
+  
+  public R visitClassTypeAlias(DartClassTypeAlias node) {
+    return visitDeclaration(node);
+  }
 
   public R visitIdentifier(DartIdentifier node) {
     return visitExpression(node);

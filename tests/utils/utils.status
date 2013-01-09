@@ -32,3 +32,6 @@ dart2js_test: Fail # http://dartbug.com/2264
 *: Skip
 
 [ $compiler == dartc ]
+
+# dart2js issue 7800
+dart2js_test: Fail

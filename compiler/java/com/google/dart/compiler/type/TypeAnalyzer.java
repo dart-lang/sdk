@@ -3210,10 +3210,33 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
 
         // Visit superclasses (without interfaces) and mark methods as implemented.
-        InterfaceType supertype = currentClass.getElement().getSupertype();
-        while (supertype != null) {
-          ClassElement superclass = supertype.getElement();
-          for (Element member : superclass.getMembers()) {
+        {
+          List<InterfaceType> superTypes = Lists.newArrayList();
+          superTypes.add(currentClass.getElement().getSupertype());
+          for (InterfaceType supertype : superTypes) {
+            while (supertype != null) {
+              ClassElement superclass = supertype.getElement();
+              for (Element member : superclass.getMembers()) {
+                String name = member.getName();
+                if (!Elements.isAbstractElement(member)) {
+                  superMembers.removeAll(name);
+                }
+                if (member instanceof FieldElement) {
+                  FieldElement field = (FieldElement) member;
+                  if (field.getSetter() != null) {
+                    superMembers.removeAll("setter " + name);
+                  }
+                }
+              }
+              supertype = supertype.getElement().getSupertype();
+            }
+          }
+        }
+        
+        // visit mixins
+        for (InterfaceType mixType : currentClass.getElement().getMixins()) {
+          ClassElement mixElement = mixType.getElement();
+          for (Element member : mixElement.getMembers()) {
             String name = member.getName();
             if (!Elements.isAbstractElement(member)) {
               superMembers.removeAll(name);
@@ -3225,7 +3248,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
               }
             }
           }
-          supertype = supertype.getElement().getSupertype();
         }
         
         // Remove artificial "setter " members.

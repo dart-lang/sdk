@@ -718,6 +718,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
   }
 
+  public void test_warnAbstract_onConcreteClassDeclaration_hasUnimplemented_mixin() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  foo();",
+        "}",
+        "class B extends Object with A {",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 5, 7, 1));
+  }
+
   /**
    * There was bug that implementing setter still caused warning.
    * <p>
@@ -6170,4 +6184,134 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertNotNull(expectedElement);
     assertSame(nameInInvocation.getElement(), expectedElement);
   }
+  
+  public void test_mixin_1() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "}",
+        "class B extends Object with A {", // no unimplemented methods warning
+        "}",
+        "main() {",
+        "  B b = new B();",
+        "  A a = b;", // no 'not assignable' warning
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+  
+  public void test_mixin_dontAddSupertypes() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  methodA() {}",
+        "}",
+        "class B extends A {",
+        "  methodB() {}",
+        "}",
+        "class C extends Object with B {",
+        "}",
+        "main() {",
+        "  C c = new C();",
+        "  A a = c;", // 'not assignable' warning - mixing is only "B" content
+        "  B b = c;", // OK
+        "  c.methodB();", // OK
+        "  c.methodA();", // 'no such member' warning - mixing is only "B" content
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 12, 9, 1),
+        errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 15, 5, 7));
+  }
+
+  public void test_mixin_dontAddSupertypes2() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  methodA();",
+        "}",
+        "abstract class B implements A {",
+        "  methodB() {}",
+        "}",
+        "class C extends Object with B {", // no unimplemented methods warning
+        "}",
+        "main() {",
+        "  C c = new C();",
+        "  A a = c;", // 'not assignable' warning - mixing is only "B" content
+        "  B b = c;", // OK
+        "  c.methodB();", // OK
+        "  c.methodA();", // 'no such member' warning - mixing is only "B" content
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 12, 9, 1),
+        errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 15, 5, 7));
+  }
+  
+  public void test_mixin_dontAddSupertypes3() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "}",
+        "class B extends A {",
+        "}",
+        "abstract class C {",
+        "  foo();",
+        "}",
+        "class D extends C with B {", // "foo" is not implemented, because NOT inherited from A
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 10, 7, 1));
+  }
+
+  public void test_mixin_dontLookSupertype_getter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  get fA => 42;",
+        "}",
+        "class B extends A {",
+        "  get fB => 42;",
+        "}",
+        "class C extends Object with B {",
+        "}",
+        "main() {",
+        "  C c = new C();",
+        "  print(c.fB);",
+        "  print(c.fA);",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.NOT_A_MEMBER_OF, 13, 11, 2));
+  }
+  
+  public void test_mixin_dontLookSupertype_setter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  set fA(x) {}",
+        "}",
+        "class B extends A {",
+        "  set fB(x) {}",
+        "}",
+        "class C extends Object with B {",
+        "}",
+        "main() {",
+        "  C c = new C();",
+        "  c.fB = 1;",
+        "  c.fA = 2;",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.NOT_A_MEMBER_OF, 13, 5, 2));
+  }
+  
 }

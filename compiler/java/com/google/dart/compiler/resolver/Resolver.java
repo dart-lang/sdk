@@ -22,6 +22,7 @@ import com.google.dart.compiler.ast.DartBreakStatement;
 import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartCommentNewName;
 import com.google.dart.compiler.ast.DartCommentRefName;
@@ -357,6 +358,21 @@ public class Resolver {
         }
       }
       return null;
+    }
+    
+    @Override
+    public Element visitClassTypeAlias(DartClassTypeAlias cls) {
+      ClassNodeElement classElement = cls.getElement();
+      try {
+        classElement.getAllSupertypes();
+      } catch (CyclicDeclarationException e) {
+        HasSourceInfo errorTarget = e.getElement();
+        if (errorTarget == null) {
+          errorTarget = cls;
+        }
+        onError(errorTarget, ResolverErrorCode.CYCLIC_CLASS, e.getElement().getName());
+      }
+      return classElement;
     }
 
     @Override

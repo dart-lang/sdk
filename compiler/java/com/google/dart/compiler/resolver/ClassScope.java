@@ -55,16 +55,29 @@ class ClassScope extends Scope {
         }
       }
     }
-    
+
     List<InterfaceType> interfaces = classElement.getInterfaces();
     for (int i = 0, size = interfaces.size(); i < size; i++) {
-      InterfaceType supertype = interfaces.get(i);
-      Element enclosing = supertype.getElement().getEnclosingElement();
-      ClassElement superclassElement = supertype.getElement();
-      if (!examinedTypes.contains(superclassElement)) {
-        ClassScope scope = new ClassScope(superclassElement,
+      InterfaceType intf = interfaces.get(i);
+      ClassElement intfElement = intf.getElement();
+      if (!examinedTypes.contains(intfElement)) {
+        Element enclosing = intf.getElement().getEnclosingElement();
+        ClassScope scope = new ClassScope(intfElement,
                                           new Scope("library", (LibraryElement) enclosing));
         element = scope.findElement(inLibrary, name, examinedTypes);
+        if (element != null) {
+          return element;
+        }
+      }
+    }
+    
+    List<InterfaceType> mixins = classElement.getMixins();
+    for (int i = 0, size = mixins.size(); i < size; i++) {
+      InterfaceType mixin = mixins.get(i);
+      ClassElement mixinElement = mixin.getElement();
+      if (!examinedTypes.contains(mixinElement)) {
+        MixinScope scope = new MixinScope(mixinElement, null);
+        element = scope.findElement(inLibrary, name);
         if (element != null) {
           return element;
         }

@@ -225,6 +225,10 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
     begin();
   }
 
+  protected void beginClassTypeInterface() {
+    begin();
+  }
+  
   protected void beginFunctionTypeInterface() {
     begin();
   }

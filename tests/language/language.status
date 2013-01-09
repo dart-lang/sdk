@@ -91,6 +91,9 @@ class_literal_test/none : Fail # Issue 7630.
 list_literal1_negative_test: Fail
 map_literal1_negative_test: Fail
 
+# test issue XXXX
+naming_test: Fail
+
 library_juxtaposition_test: Fail # Issue 6881
 new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
 redirecting_factory_infinite_steps_test/01: Fail # http://dartbug.com/6560

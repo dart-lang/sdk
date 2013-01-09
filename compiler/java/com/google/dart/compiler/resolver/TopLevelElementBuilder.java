@@ -14,6 +14,7 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
@@ -282,6 +283,19 @@ public class TopLevelElementBuilder {
       return null;
     }
 
+    @Override
+    public Void visitClassTypeAlias(DartClassTypeAlias node) {
+      ClassAliasElement element = Elements.classFromNode(node, library);
+      List<DartTypeParameter> parameterNodes = node.getTypeParameters();
+      List<TypeVariable> typeVariables = Elements.makeTypeVariables(parameterNodes, element);
+      element.setType(Types.interfaceType(
+          element,
+          Collections.<Type>unmodifiableList(typeVariables)));
+      node.setElement(element);
+      node.getName().setElement(element);
+      return null;
+    }
+    
     @Override
     public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
       FunctionAliasElement element = Elements.functionTypeAliasFromNode(node, library);
