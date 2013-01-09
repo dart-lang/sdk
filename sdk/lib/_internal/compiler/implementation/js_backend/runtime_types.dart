@@ -5,9 +5,11 @@
 part of js_backend;
 
 /// For each class, stores the possible class subtype tests that could succeed.
-abstract class TypeChecks implements Iterable<ClassElement> {
+abstract class TypeChecks {
   /// Get the set of checks required for class [element].
   Iterable<ClassElement> operator[](ClassElement element);
+  // Get the iterator for all classes that need type checks.
+  Iterator<ClassElement> get iterator;
 }
 
 class RuntimeTypeInformation {
