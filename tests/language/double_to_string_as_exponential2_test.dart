@@ -4,7 +4,6 @@
 // Test basic integer operations.
 
 main() {
-  // TODO(floitsch): verify that returned exception is correct type.
   Expect.throws(() => (1.0).toStringAsExponential(-1),
                 (e) => e is RangeError);
   Expect.throws(() => (1.0).toStringAsExponential(21),

@@ -629,7 +629,7 @@ abstract class Compiler implements DiagnosticListener {
     if (libraryName == 'dart:isolate'
         || libraryName == 'dart:html'
         // TODO(floitsch): create a separate async-helper library instead of
-        // importing the isolate-library just for async.
+        // importing the isolate-library just for TimerImpl.
         || libraryName == 'dart:async') {
       importIsolateHelperLibrary(library);
     }
