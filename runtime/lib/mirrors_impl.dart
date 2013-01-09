@@ -320,7 +320,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
       completer.complete(
           _apply(this, positionalArguments));
     } catch (exception) {
-      completer.completeException(exception);
+      completer.completeError(exception);
     }
     return completer.future;
   }
@@ -518,7 +518,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       completer.complete(
           _invokeConstructor(this, constructorName, positionalArguments));
     } catch (exception) {
-      completer.completeException(exception);
+      completer.completeError(exception);
     }
     return completer.future;
   }
@@ -952,7 +952,7 @@ class _Mirrors {
       try {
         completer.complete(currentMirrorSystem());
       } catch (exception) {
-        completer.completeException(exception);
+        completer.completeError(exception);
       }
     } else {
       // Make a remote mirror system

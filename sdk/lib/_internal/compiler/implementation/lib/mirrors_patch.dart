@@ -66,7 +66,7 @@ class _InstanceMirror extends InstanceMirror {
             JS('var', '#.apply(#, #)', method, reflectee, jsList);
         completer.complete(new _InstanceMirror(result));
       } else {
-        completer.completeException('not a method $memberName');
+        completer.completeError('not a method $memberName');
       }
     });
     return completer.future;

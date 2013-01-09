@@ -662,10 +662,10 @@ class _File extends _FileBase implements File {
         completer.complete(this);
       };
       stream.onError = (e) {
-        completer.completeException(e);
+        completer.completeError(e);
       };
     } catch (e) {
-      new Timer(0, (t) => completer.completeException(e));
+      new Timer(0, (t) => completer.completeError(e));
       return completer.future;
     }
     return completer.future;
@@ -685,7 +685,7 @@ class _File extends _FileBase implements File {
       return writeAsBytes(data, mode);
     } catch (e) {
       var completer = new Completer();
-      new Timer(0, (t) => completer.completeException(e));
+      new Timer(0, (t) => completer.completeError(e));
       return completer.future;
     }
   }
@@ -788,7 +788,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       // handlers without getting exceptions when registering the
       // then handler.
       new Timer(0, (t) {
-        completer.completeException(new FileIOException(
+        completer.completeError(new FileIOException(
             "Invalid arguments to read for file '$_name'"));
       });
       return completer.future;

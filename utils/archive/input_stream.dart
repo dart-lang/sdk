@@ -72,7 +72,7 @@ class ArchiveInputStream {
     var result = <Future<CompleteArchiveEntry>>[];
 
     this.onEntry = (entry) => result.add(entry.readAll());
-    this.onError = (e, stack) => completer.completeException(e, stack);
+    this.onError = (e, stack) => completer.completeError(e, stack);
     this.onClosed = () => completer.complete(result);
 
     return completer.future.then(Futures.wait);

@@ -101,13 +101,6 @@ testException() {
   completer.completeError(ex);
 }
 
-testExceptionNoSuccessListeners() {
-  final completer = new Completer<int>();
-  final future = completer.future;
-  final ex = new Exception();
-  completer.completeException(ex); // future.then is not called, so no exception
-}
-
 testExceptionHandler() {
   final completer = new Completer<int>();
   final future = completer.future;

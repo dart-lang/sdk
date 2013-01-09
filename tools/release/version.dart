@@ -49,20 +49,20 @@ class Version {
     Completer c = new Completer();
     f.exists().then((existed) {
       if (!existed) {
-        c.completeException("No VERSION file");
+        c.completeError("No VERSION file");
         return;
       }
       StringInputStream input = new StringInputStream(f.openInputStream());
       input.onLine = () {
         var line = input.readLine().trim();
         if (line == null) {
-          c.completeException(
+          c.completeError(
               "VERSION input file seems to be in the wrong format");
           return;
         }
         var values = line.split(" ");
         if (values.length != 2) {
-          c.completeException(
+          c.completeError(
               "VERSION input file seems to be in the wrong format");
           return;
         }
@@ -70,7 +70,7 @@ class Version {
         try {
           number = int.parse(values[1]);
         } catch (e) {
-          c.completeException("Can't parse version numbers, not an int");
+          c.completeError("Can't parse version numbers, not an int");
           return;
         }
         switch (values[0]) {
@@ -87,8 +87,8 @@ class Version {
             PATCH = number;
             break;
           default:
-            c.completeException("Wrong format in VERSION file, line does not "
-                                "contain one of {MAJOR, MINOR, BUILD, PATCH}");
+            c.completeError("Wrong format in VERSION file, line does not "
+                            "contain one of {MAJOR, MINOR, BUILD, PATCH}");
             return;
         }
       };

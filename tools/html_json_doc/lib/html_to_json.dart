@@ -58,8 +58,8 @@ Future<bool> convert(Path htmlPath, Path jsonPath) {
     outputStream.onClosed = () {
       completer.complete(_anyErrors);
     };
-    
-    outputStream.onError = completer.completeException;
+
+    outputStream.onError = completer.completeError;
   });
 
   return completer.future;

@@ -263,7 +263,7 @@ class WebDriverBase {
       };
       connection.onError = (e) {
         if (completer != null) {
-          completer.completeException(new WebDriverError(-1, e));
+          completer.completeError(new WebDriverError(-1, e));
           completer = null;
         }
       };
@@ -320,7 +320,7 @@ class WebDriverBase {
         };
       };
     } catch (e, s) {
-      completer.completeException(
+      completer.completeError(
           new WebDriverError(-1, e), s);
       completer = null;
     }

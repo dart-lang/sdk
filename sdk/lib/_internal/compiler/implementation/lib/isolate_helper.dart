@@ -624,7 +624,7 @@ class _BaseSendPort implements SendPort {
     port.receive((value, ignoreReplyTo) {
       port.close();
       if (value is Exception) {
-        completer.completeException(value);
+        completer.completeError(value);
       } else {
         completer.complete(value);
       }

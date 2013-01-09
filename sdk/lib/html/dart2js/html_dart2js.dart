@@ -26044,7 +26044,7 @@ void _completeMeasurementFutures() {
   if (completedRequests != null) {
     for (_MeasurementRequest request in completedRequests) {
       if (request.exception) {
-        request.completer.completeException(request.value);
+        request.completer.completeError(request.value);
       } else {
         request.completer.complete(request.value);
       }

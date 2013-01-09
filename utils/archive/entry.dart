@@ -211,7 +211,7 @@ class ArchiveEntry {
     var completer = new Completer<List<int>>();
 
     stream.onData = () => buffer.addAll(stream.read());
-    stream.onError = completer.completeException;
+    stream.onError = completer.completeError;
     stream.onClosed = () => completer.complete(buffer);
 
     return Futures.wait([call(CLONE, _id), completer.future])
