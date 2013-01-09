@@ -827,7 +827,7 @@ abstract class Descriptor {
       checkComplete() {
         if (failures.length + successes != matches.length) return;
         if (successes > 0) {
-          completer.complete(null);
+          completer.complete();
           return;
         }
 

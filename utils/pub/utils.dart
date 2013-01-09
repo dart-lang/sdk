@@ -120,11 +120,8 @@ Future sleep(int milliseconds) {
 /// Configures [future] so that its result (success or exception) is passed on
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
-  future
-    .then(completer.complete)
-    .catchError((e) {
-      completer.completeError(e.error, e.stackTrace);
-    });
+  future.then((value) => completer.complete(value),
+      onError: (e) => completer.completeError(e.error, e.stackTrace));
 }
 
 // TODO(nweiz): unify the following functions with the utility functions in
