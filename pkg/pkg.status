@@ -55,6 +55,8 @@ serialization/test/serialization_test: Skip
 
 [ $compiler == dart2js && $runtime == d8 ]
 args/test/args_test: Fail # Timer interface not supported; dartbug.com/7728.
+args/test/parse_test: Fail # Timer interface not supported; dartbug.com/7728.
+args/test/usage_test: Fail # Timer interface not supported; dartbug.com/7728.
 intl/test/bidi_format_test: Fail # Timer interface not supported; dartbug.com/7728.
 intl/test/bidi_utils_test: Fail # Timer interface not supported; dartbug.com/7728.
 intl/test/date_time_format_local_even_test: Fail # Timer interface not supported; dartbug.com/7728.
