@@ -131,6 +131,7 @@ cache_test: fail              # IE9 does not support ApplicationCache, but IE 10
 css_test: Fail
 dom_constructors_test: Fail
 element_test/additionalConstructors: Fail
+element_test/matches: Fail # IE9 does not support matches
 exceptions_test: Fail
 fileapi_test: Fail          # IE does not support filesystem APIs.
 history_test/supported_state: Fail
