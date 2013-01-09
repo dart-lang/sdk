@@ -76,6 +76,10 @@ int findBytes(List<int> data, List<int> pattern, [int startPos=0]) {
 
 /** A command executed as a step in a test case. */
 class Command {
+  static int nextHashCode = 0;
+  final int hashCode = nextHashCode++;
+  operator ==(other) => super == (other);
+
   /** Path to the executable of this command. */
   String executable;
 
