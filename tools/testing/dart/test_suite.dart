@@ -14,6 +14,7 @@
  */
 library test_suite;
 
+import "dart:async";
 import "dart:io";
 import "dart:isolate";
 import "status_file_parser.dart";
@@ -64,6 +65,7 @@ class FutureGroup {
   int _pending = 0;
   Completer<List> _completer = new Completer<List>();
   final List<Future> futures = <Future>[];
+  bool wasCompleted = false;
 
   /**
    * Wait for [task] to complete (assuming this barrier has not already been
@@ -72,19 +74,25 @@ class FutureGroup {
    */
   void add(Future task) {
     if (_pending == _FINISHED) {
-      throw new FutureAlreadyCompleteException();
+      throw new Exception("FutureFutureAlreadyCompleteException");
     }
     _pending++;
-    futures.add(task);
-    task.handleException(
-        (e) => _completer.completeException(e, task.stackTrace));
-    task.then((_) {
+    var handledTaskFuture = task.catchError((e) {
+      if (!wasCompleted) {
+        _completer.completeError(e.error, task.stackTrace);
+        wasCompleted = true;
+      }
+    }).then((_) {
       _pending--;
       if (_pending == 0) {
         _pending = _FINISHED;
-        _completer.complete(futures);
+        if (!wasCompleted) {
+          _completer.complete(futures);
+          wasCompleted = true;
+        }
       }
     });
+    futures.add(handledTaskFuture);
   }
 
   Future<List> get future => _completer.future;
@@ -272,8 +280,7 @@ void ccTestLister() {
         }
       };
       port.close();
-    });
-    processFuture.handleException((e) {
+    }).catchError((e) {
       print("Failed to list tests: $runnerPath --list");
       replyTo.send("");
       return true;
@@ -474,11 +481,11 @@ class StandardTestSuite extends TestSuite {
   List<String> additionalOptions(Path filePath) => [];
 
   void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]) {
-    updateDartium().chain((_) {
+    updateDartium().then((_) {
       doTest = onTest;
 
       return readExpectations();
-    }).chain((expectations) {
+    }).then((expectations) {
       testExpectations = expectations;
 
       // Checked if we have already found and generated the tests for
@@ -552,7 +559,7 @@ class StandardTestSuite extends TestSuite {
 
   Future enqueueTests() {
     Directory dir = new Directory.fromPath(suiteDir);
-    return dir.exists().chain((exists) {
+    return dir.exists().then((exists) {
       if (!exists) {
         print('Directory containing tests missing: ${suiteDir.toNativePath()}');
         return new Future.immediate(null);
@@ -1320,7 +1327,7 @@ class StandardTestSuite extends TestSuite {
 
     Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
     for (var match in matches) {
-      result.add(match[1].split(' ').filter((e) => e != ''));
+      result.add(match[1].split(' ').where((e) => e != '').toList());
     }
     if (result.isEmpty) result.add([]);
 
@@ -1330,7 +1337,7 @@ class StandardTestSuite extends TestSuite {
         throw new Exception(
             'More than one "// DartOptions=" line in test $filePath');
       }
-      dartOptions = match[1].split(' ').filter((e) => e != '');
+      dartOptions = match[1].split(' ').where((e) => e != '').toList();
     }
 
     matches = packageRootRegExp.allMatches(contents);
@@ -1358,7 +1365,7 @@ class StandardTestSuite extends TestSuite {
     List<String> otherScripts = new List<String>();
     matches = otherScriptsRegExp.allMatches(contents);
     for (var match in matches) {
-      otherScripts.addAll(match[1].split(' ').filter((e) => e != ''));
+      otherScripts.addAll(match[1].split(' ').where((e) => e != '').toList());
     }
 
     bool isMultitest = multiTestRegExp.hasMatch(contents);
@@ -1386,9 +1393,9 @@ class StandardTestSuite extends TestSuite {
     // top-level "groups" so tests running nested groups will be no-ops.
     RegExp numTests = new RegExp(r"\s*[^/]\s*group\('[^,']*");
     List<String> subtestNames = [];
-    Iterator matchesIter = numTests.allMatches(contents).iterator();
-    while(matchesIter.hasNext && isMultiHtmlTest) {
-      String fullMatch = matchesIter.next().group(0);
+    Iterator matchesIter = numTests.allMatches(contents).iterator;
+    while(matchesIter.moveNext() && isMultiHtmlTest) {
+      String fullMatch = matchesIter.current.group(0);
       subtestNames.add(fullMatch.substring(fullMatch.indexOf("'") + 1));
     }
 

@@ -21,6 +21,8 @@
  */
 
 library version;
+
+import "dart:async";
 import "dart:io";
 
 /**
@@ -47,22 +49,30 @@ class Version {
   Future<String> getVersion() {
     File f = new File(_versionFileName);
     Completer c = new Completer();
+
+    var wasCompletedWithError = false;
+    completeError(String msg) {
+      if (!wasCompletedWithError) {
+        c.completeError(msg);
+        wasCompletedWithError = true;
+      }
+    }
     f.exists().then((existed) {
       if (!existed) {
-        c.completeError("No VERSION file");
+        completeError("No VERSION file");
         return;
       }
       StringInputStream input = new StringInputStream(f.openInputStream());
       input.onLine = () {
         var line = input.readLine().trim();
         if (line == null) {
-          c.completeError(
+          completeError(
               "VERSION input file seems to be in the wrong format");
           return;
         }
         var values = line.split(" ");
         if (values.length != 2) {
-          c.completeError(
+          completeError(
               "VERSION input file seems to be in the wrong format");
           return;
         }
@@ -70,7 +80,7 @@ class Version {
         try {
           number = int.parse(values[1]);
         } catch (e) {
-          c.completeError("Can't parse version numbers, not an int");
+          completeError("Can't parse version numbers, not an int");
           return;
         }
         switch (values[0]) {
@@ -87,14 +97,14 @@ class Version {
             PATCH = number;
             break;
           default:
-            c.completeError("Wrong format in VERSION file, line does not "
+            completeError("Wrong format in VERSION file, line does not "
                             "contain one of {MAJOR, MINOR, BUILD, PATCH}");
             return;
         }
       };
       input.onClosed = () {
         // Only complete if we did not already complete with a failure.
-        if (!c.future.isComplete) {
+        if (!wasCompletedWithError) {
           getRevision().then((revision) {
             REVISION = revision;
             USERNAME = getUserName();
@@ -152,7 +162,7 @@ class Version {
     Path toolsDirectory = new Path.fromNative(_versionFileName).directoryPath;
     Path root = toolsDirectory.join(new Path(".."));
     options.workingDirectory = root.toNativePath();
-    return Process.run(command, arguments, options).transform((result) {
+    return Process.run(command, arguments, options).then((result) {
       if (result.exitCode != 0) {
         return 0;
       }

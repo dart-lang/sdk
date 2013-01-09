@@ -11,7 +11,10 @@
  */
 library test_runner;
 
-import "dart:io";
+import "dart:async";
+// We need to use the 'io' prefix here, otherwise io.exitCode will shadow
+// CommandOutput.exitCode in subclasses of CommandOutput.
+import "dart:io" as io;
 import "dart:isolate";
 import "dart:uri";
 import "status_file_parser.dart";
@@ -93,7 +96,7 @@ class Command {
   String commandLine;
 
   Command(this.executable, this.arguments, [this.environment = null]) {
-    if (Platform.operatingSystem == 'windows') {
+    if (io.Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
       // with the slashes going the other direction.
       // TODO(efortuna): Remove this when fixed (Issue 1306).
@@ -105,7 +108,7 @@ class Command {
   String toString() => commandLine;
 
   Future<bool> get outputIsUpToDate => new Future.immediate(false);
-  Path get expectedOutputFile => null;
+  io.Path get expectedOutputFile => null;
   bool get isPixelTest => false;
 }
 
@@ -125,11 +128,11 @@ class CompilationCommand extends Command {
     if (_neverSkipCompilation) return new Future.immediate(false);
 
     Future<List<Uri>> readDepsFile(String path) {
-      var file = new File(new Path(path).toNativePath());
+      var file = new io.File(new io.Path(path).toNativePath());
       if (!file.existsSync()) {
         return new Future.immediate(null);
       }
-      return file.readAsLines().transform((List<String> lines) {
+      return file.readAsLines().then((List<String> lines) {
         var dependencies = new List<Uri>();
         for (var line in lines) {
           line = line.trim();
@@ -141,7 +144,7 @@ class CompilationCommand extends Command {
       });
     }
 
-    return readDepsFile("$_outputFile.deps").transform((dependencies) {
+    return readDepsFile("$_outputFile.deps").then((dependencies) {
       if (dependencies != null) {
         dependencies.addAll(_bootstrapDependencies);
         var jsOutputLastModified = TestUtils.lastModifiedCache.getLastModified(
@@ -170,14 +173,14 @@ class DumpRenderTreeCommand extends Command {
    * This is used for example for pixel tests, where [expectedOutputPath] points
    * to a *png file.
    */
-  Path expectedOutputPath;
+  io.Path expectedOutputPath;
 
   DumpRenderTreeCommand(String executable,
                         String htmlFile,
                         List<String> options,
                         List<String> dartFlags,
                         Uri packageRootUri,
-                        Path this.expectedOutputPath)
+                        io.Path this.expectedOutputPath)
       : super(executable,
               _getArguments(options, htmlFile),
               _getEnvironment(dartFlags, packageRootUri));
@@ -188,7 +191,7 @@ class DumpRenderTreeCommand extends Command {
 
     var env = null;
     if (needDartFlags || needDartPackageRoot) {
-      env = new Map.from(Platform.environment);
+      env = new Map.from(io.Platform.environment);
       if (needDartFlags) {
         env['DART_FLAGS'] = Strings.join(dartFlags, " ");
       }
@@ -206,7 +209,7 @@ class DumpRenderTreeCommand extends Command {
     return arguments;
   }
 
-  Path get expectedOutputFile => expectedOutputPath;
+  io.Path get expectedOutputFile => expectedOutputPath;
   bool get isPixelTest => (expectedOutputFile != null &&
                            expectedOutputFile.filename.endsWith(".png"));
 }
@@ -559,7 +562,7 @@ class CommandOutputImpl implements CommandOutput {
     // The Java dartc runner and dart2js exits with code 253 in case
     // of unhandled exceptions.
     if (exitCode == 253) return true;
-    if (Platform.operatingSystem == 'windows') {
+    if (io.Platform.operatingSystem == 'windows') {
       // The VM uses std::abort to terminate on asserts.
       // std::abort terminates with exit code 3 on Windows.
       if (exitCode == 3) {
@@ -662,7 +665,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
      * content of the expected output.
      */
     var stdout = testCase.commandOutputs[command].stdout;
-    var file = new File.fromPath(command.expectedOutputFile);
+    var file = new io.File.fromPath(command.expectedOutputFile);
     if (file.existsSync()) {
       var bytesContentLength = "Content-Length:".charCodes;
       var bytesNewLine = "\n".charCodes;
@@ -919,7 +922,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
  */
 class RunningProcess {
   ProcessQueue processQueue;
-  Process process;
+  io.Process process;
   TestCase testCase;
   bool timedOut = false;
   Date startTime;
@@ -1057,7 +1060,7 @@ class RunningProcess {
     compilationSkipped = false;
   }
 
-  void drainStream(InputStream source, List<int> destination) {
+  void drainStream(io.InputStream source, List<int> destination) {
     void onDataHandler () {
       if (source.closed) {
         return;  // TODO(whesse): Remove when bug is fixed.
@@ -1092,21 +1095,21 @@ class RunningProcess {
         compilationSkipped = true;
         commandComplete(command, 0);
       } else {
-        ProcessOptions options = new ProcessOptions();
+        io.ProcessOptions options = new io.ProcessOptions();
         if (command.environment != null) {
           options.environment =
               new Map<String, String>.from(command.environment);
         } else {
           options.environment =
-              new Map<String, String>.from(Platform.environment);
+              new Map<String, String>.from(io.Platform.environment);
         }
 
         options.environment['DART_CONFIGURATION'] =
             TestUtils.configurationDir(testCase.configuration);
-        Future processFuture = Process.start(command.executable,
+        Future processFuture = io.Process.start(command.executable,
                                              command.arguments,
                                              options);
-        processFuture.then((Process p) {
+        processFuture.then((io.Process p) {
           process = p;
           process.onExit = processExitHandler;
           drainStream(process.stdout, stdout);
@@ -1119,8 +1122,7 @@ class RunningProcess {
           // If the timeout fired in between two commands, kill the just
           // started process immediately.
           if (timedOut) safeKill(process);
-        });
-        processFuture.handleException((e) {
+        }).catchError((e) {
           print("Process error:");
           print("  Command: $command");
           print("  Error: $e");
@@ -1136,11 +1138,11 @@ class RunningProcess {
     safeKill(process);
   }
 
-  void safeKill(Process p) {
+  void safeKill(io.Process p) {
     if (p != null) {
       try {
         p.kill();
-      } on ProcessException {
+      } on io.ProcessException {
         // Hopefully, this means that the process died on its own.
       }
     }
@@ -1161,9 +1163,9 @@ class BatchRunnerProcess {
   String _executable;
   List<String> _batchArguments;
 
-  Process _process;
-  StringInputStream _stdoutStream;
-  StringInputStream _stderrStream;
+  io.Process _process;
+  io.StringInputStream _stdoutStream;
+  io.StringInputStream _stderrStream;
 
   TestCase _currentTest;
   List<int> _testStdout;
@@ -1302,7 +1304,7 @@ class BatchRunnerProcess {
     if (_stderrDrained) _reportResult();
   }
 
-  void _readStdout(StringInputStream stream, List<int> buffer) {
+  void _readStdout(io.StringInputStream stream, List<int> buffer) {
     var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
     void onLineHandler() {
       if (ignoreStreams.value) {
@@ -1333,7 +1335,7 @@ class BatchRunnerProcess {
     stream.onLine = onLineHandler;
   }
 
-  void _readStderr(StringInputStream stream, List<int> buffer) {
+  void _readStderr(io.StringInputStream stream, List<int> buffer) {
     var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
     void onLineHandler() {
       if (ignoreStreams.value) {
@@ -1389,15 +1391,14 @@ class BatchRunnerProcess {
   }
 
   _startProcess(callback) {
-    Future processFuture = Process.start(_executable, _batchArguments);
-    processFuture.then((Process p) {
+    Future processFuture = io.Process.start(_executable, _batchArguments);
+    processFuture.then((io.Process p) {
       _process = p;
-      _stdoutStream = new StringInputStream(_process.stdout);
-      _stderrStream = new StringInputStream(_process.stderr);
+      _stdoutStream = new io.StringInputStream(_process.stdout);
+      _stderrStream = new io.StringInputStream(_process.stderr);
       _process.onExit = makeExitHandler(">>> TEST CRASH");
       callback();
-    });
-    processFuture.handleException((e) {
+    }).catchError((e) {
       print("Process error:");
       print("  Command: $_executable ${Strings.join(_batchArguments, ' ')}");
       print("  Error: $e");
@@ -1456,7 +1457,7 @@ class ProcessQueue {
    * Process running the selenium server .jar (only used for Safari and Opera
    * tests.)
    */
-  Process _seleniumServer = null;
+  io.Process _seleniumServer = null;
 
   /** True if we are in the process of starting the server. */
   bool _startingServer = false;
@@ -1528,7 +1529,7 @@ class ProcessQueue {
    * True if we are using a browser + platform combination that needs the
    * Selenium server jar.
    */
-  bool get _needsSelenium => (Platform.operatingSystem == 'macos' &&
+  bool get _needsSelenium => (io.Platform.operatingSystem == 'macos' &&
       browserUsed == 'safari') || browserUsed == 'opera';
 
   /** True if the Selenium Server is ready to be used. */
@@ -1551,17 +1552,17 @@ class ProcessQueue {
       // Check to see if the jar was already running before the program started.
       String cmd = 'ps';
       var arg = ['aux'];
-      if (Platform.operatingSystem == 'windows') {
+      if (io.Platform.operatingSystem == 'windows') {
         cmd = 'tasklist';
         arg.add('/v');
       }
 
-      Future processFuture = Process.start(cmd, arg);
-      processFuture.then((Process p) {
+      Future processFuture = io.Process.start(cmd, arg);
+      processFuture.then((io.Process p) {
         // Drain stderr to not leak resources.
         p.stderr.onData = p.stderr.read;
-        final StringInputStream stdoutStringStream =
-            new StringInputStream(p.stdout);
+        final io.StringInputStream stdoutStringStream =
+            new io.StringInputStream(p.stdout);
         stdoutStringStream.onLine = () {
           var line = stdoutStringStream.readLine();
           while (null != line) {
@@ -1576,8 +1577,7 @@ class ProcessQueue {
             _startSeleniumServer();
           }
         };
-      });
-      processFuture.handleException((e) {
+      }).catchError((e) {
         print("Error starting process:");
         print("  Command: $cmd ${Strings.join(arg, ' ')}");
         print("  Error: $e");
@@ -1603,7 +1603,7 @@ class ProcessQueue {
    * begin running tests.
    * source: Output(Stream) from the Java server.
    */
-  VoidFunction makeSeleniumServerHandler(StringInputStream source) {
+  VoidFunction makeSeleniumServerHandler(io.StringInputStream source) {
     void handler() {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = source.readLine();
@@ -1626,30 +1626,29 @@ class ProcessQueue {
   void _startSeleniumServer() {
     // Get the absolute path to the Selenium jar.
     String filePath = TestUtils.testScriptPath;
-    String pathSep = Platform.pathSeparator;
+    String pathSep = io.Platform.pathSeparator;
     int index = filePath.lastIndexOf(pathSep);
     filePath = '${filePath.substring(0, index)}${pathSep}testing${pathSep}';
-    var lister = new Directory(filePath).list();
+    var lister = new io.Directory(filePath).list();
     lister.onFile = (String file) {
       if (new RegExp(r"selenium-server-standalone-.*\.jar").hasMatch(file)
           && _seleniumServer == null) {
-        Future processFuture = Process.start('java', ['-jar', file]);
-        processFuture.then((Process server) {
+        Future processFuture = io.Process.start('java', ['-jar', file]);
+        processFuture.then((io.Process server) {
           _seleniumServer = server;
           // Heads up: there seems to an obscure data race of some form in
           // the VM between launching the server process and launching the test
           // tasks that disappears when you read IO (which is convenient, since
           // that is our condition for knowing that the server is ready).
-          StringInputStream stdoutStringStream =
-              new StringInputStream(_seleniumServer.stdout);
-          StringInputStream stderrStringStream =
-              new StringInputStream(_seleniumServer.stderr);
+          io.StringInputStream stdoutStringStream =
+              new io.StringInputStream(_seleniumServer.stdout);
+          io.StringInputStream stderrStringStream =
+              new io.StringInputStream(_seleniumServer.stderr);
           stdoutStringStream.onLine =
               makeSeleniumServerHandler(stdoutStringStream);
           stderrStringStream.onLine =
               makeSeleniumServerHandler(stderrStringStream);
-        });
-        processFuture.handleException((e) {
+        }).catchError((e) {
           print("Process error:");
           print("  Command: java -jar $file");
           print("  Error: $e");

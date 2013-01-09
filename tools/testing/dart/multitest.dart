@@ -4,6 +4,7 @@
 
 library multitest;
 
+import "dart:async";
 import "dart:io";
 import "test_suite.dart";
 
@@ -142,11 +143,12 @@ class _Annotation {
       return null;
     }
     var annotation = new _Annotation();
-    var parts = line.split('///')[1].split(':').map((s) => s.trim());
+    var parts = line.split('///')[1].split(':')
+        .mappedBy((s) => s.trim()).toList();
     annotation.key = parts[0];
     annotation.rest = parts[1];
     annotation.outcomesList = annotation.rest.split(',')
-        .map((s) => s.trim());
+        .mappedBy((s) => s.trim()).toList();
     return annotation;
   }
 }
@@ -214,7 +216,7 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
   }
 
   // Wait until all imports are copied before scheduling test cases.
-  return Futures.wait(futureCopies).transform((_) {
+  return Futures.wait(futureCopies).then((_) {
     String baseFilename = filePath.filenameWithoutExtension;
     for (String key in tests.keys) {
       final Path multitestFilename =

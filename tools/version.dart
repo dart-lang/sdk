@@ -12,8 +12,7 @@ void main() {
   Future f = version.getVersion();
   f.then((currentVersion) {
     print(currentVersion);
-  });
-  f.handleException((e) {
+  }).catchError((e) {
     print("Could not create version number, failed with: $e");
     return true;
   });

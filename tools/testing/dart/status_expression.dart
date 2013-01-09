@@ -175,14 +175,14 @@ class Scanner {
   String current;
 
   Scanner(this.tokens) {
-    tokenIterator = tokens.iterator();
+    tokenIterator = tokens.iterator;
     advance();
   }
 
   bool hasMore() => current != null;
 
   void advance() {
-    current = tokenIterator.hasNext ? tokenIterator.next() : null;
+    current = tokenIterator.moveNext() ? tokenIterator.current : null;
   }
 }
 
