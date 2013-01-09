@@ -21,26 +21,40 @@ void initUtils() {
   }
 }
 
-void shouldFail(value, Matcher matcher, expected) {
+void shouldFail(value, Matcher matcher, expected, {bool isAsync: false}) {
   configureExpectFailureHandler(_testHandler);
   errorCount = 0;
   errorString = '';
   expect(value, matcher);
-  configureExpectFailureHandler(null);
-  expect(errorCount, equals(1));
-  if (expected is String) {
-    expect(errorString, equalsIgnoringWhitespace(expected));
+  afterTest(_) {
+    configureExpectFailureHandler(null);
+    expect(errorCount, equals(1));
+    if (expected is String) {
+      expect(errorString, equalsIgnoringWhitespace(expected));
+    } else {
+     expect(errorString, expected);
+    }
+  }
+
+  if (isAsync) {
+    new Timer(0, expectAsync1(afterTest));
   } else {
-   expect(errorString, expected);
+    afterTest(null);
   }
 }
 
-void shouldPass(value, Matcher matcher) {
+void shouldPass(value, Matcher matcher, {bool isAsync: false}) {
   configureExpectFailureHandler(_testHandler);
   errorCount = 0;
   errorString = '';
   expect(value, matcher);
-  configureExpectFailureHandler(null);
-  expect(errorCount, equals(0));
+  afterTest(_) {
+    configureExpectFailureHandler(null);
+    expect(errorCount, equals(0));
+  }
+  if (isAsync) {
+    new Timer(0, expectAsync1(afterTest));
+  } else {
+    afterTest(null);
+  }
 }
-

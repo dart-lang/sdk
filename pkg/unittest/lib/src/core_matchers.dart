@@ -290,13 +290,16 @@ class Throws extends BaseMatcher {
         done(() => expect(false, isTrue, reason:
             "Expected future to fail, but succeeded with '$value'."));
       }, onError: (e) {
-        var reason;
-        if (e.stackTrace != null) {
-          var stackTrace = e.stackTrace.toString();
-          stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
-          reason = "Actual exception trace:\n$stackTrace";
-        }
-        done(() => expect(e.error, _matcher, reason: reason));
+        done(() {
+          if (_matcher == null) return;
+          var reason;
+          if (e.stackTrace != null) {
+            var stackTrace = e.stackTrace.toString();
+            stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
+            reason = "Actual exception trace:\n$stackTrace";
+          }
+          expect(e.error, _matcher, reason: reason);
+        });
       });
 
       // It hasn't failed yet.
