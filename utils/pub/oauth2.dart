@@ -81,7 +81,7 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
       } catch (e, stackTrace) {
         // whenComplete will drop exceptions on the floor. We want to ensure
         // that any programming errors here don't go un-noticed. See issue 4127.
-        completer.completeException(e, stackTrace);
+        completer.completeError(e, stackTrace);
       }
     });
     return completer.future;

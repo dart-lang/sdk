@@ -133,8 +133,8 @@ abstract class Future<T> {
  *     completer.complete(value);
  *
  *     // alternatively, if the service cannot produce the value, it
- *     // can provide an exception:
- *     completer.completeException(exception);
+ *     // can provide an error:
+ *     completer.completeError(error);
  *
  */
 abstract class Completer<T> {

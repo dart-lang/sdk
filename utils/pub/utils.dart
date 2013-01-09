@@ -104,13 +104,16 @@ bool endsWithPattern(String str, Pattern matcher) {
 }
 
 /// Returns the hex-encoded sha1 hash of [source].
-String sha1(String source) =>
-  CryptoUtils.bytesToHex(new SHA1().add(source.charCodes).close());
+String sha1(String source) {
+  var sha = new SHA1();
+  sha.add(source.charCodes);
+  return CryptoUtils.bytesToHex(sha.close());
+}
 
 /// Returns a [Future] that completes in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
-  new Timer(milliseconds, completer.complete);
+  new Timer(milliseconds, (_) => completer.complete());
   return completer.future;
 }
 

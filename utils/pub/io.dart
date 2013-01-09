@@ -131,12 +131,14 @@ Future<File> createFileFromStream(InputStream stream, path) {
   log.io("Creating $path from stream.");
 
   var completer = new Completer<File>();
+  var completed = false;
   var file = new File(path);
   var outputStream = file.openOutputStream();
   stream.pipe(outputStream);
 
   outputStream.onClosed = () {
     log.fine("Created $path from stream.");
+    completed = true;
     completer.complete(file);
   };
 
@@ -149,8 +151,9 @@ Future<File> createFileFromStream(InputStream stream, path) {
   }
 
   completeError(error) {
-    if (!completer.isComplete) {
-      completer.completeException(error, stackTrace);
+    if (!completed) {
+      completed = true;
+      completer.completeError(error, stackTrace);
     } else {
       log.fine("Got error after stream was closed: $error");
     }
@@ -263,7 +266,7 @@ Future<List<String>> listDir(dir,
     }
 
     var children = [];
-    lister.onError = (error) => completer.completeException(error, stackTrace);
+    lister.onError = (error) => completer.completeError(error, stackTrace);
     lister.onDir = (file) {
       if (!includeHiddenFiles && basename(file).startsWith('.')) return;
       file = join(dir, basename(file));
@@ -487,7 +490,7 @@ Future<String> readLine([StringInputStream stream]) {
 
   stream.onError = (e) {
     removeCallbacks();
-    completer.completeException(e, stackTrace);
+    completer.completeError(e, stackTrace);
   };
 
   return completer.future;
@@ -535,7 +538,7 @@ Future<List<int>> consumeInputStream(InputStream stream) {
   var buffer = <int>[];
   stream.onClosed = () => completer.complete(buffer);
   stream.onData = () => buffer.addAll(stream.read());
-  stream.onError = (e) => completer.completeException(e, stackTrace);
+  stream.onError = (e) => completer.completeError(e, stackTrace);
   return completer.future;
 }
 
@@ -555,7 +558,7 @@ Future<String> consumeStringInputStream(StringInputStream stream) {
   var buffer = new StringBuffer();
   stream.onClosed = () => completer.complete(buffer.toString());
   stream.onData = () => buffer.add(stream.read());
-  stream.onError = (e) => completer.completeException(e, stackTrace);
+  stream.onError = (e) => completer.completeError(e, stackTrace);
   return completer.future;
 }
 
@@ -671,7 +674,7 @@ Future timeout(Future input, int milliseconds, String description) {
   bool completed = false;
   var completer = new Completer();
   var timer = new Timer(milliseconds, (_) {
-    completer = true;
+    completed = true;
     completer.completeError(new TimeoutException(
         'Timed out while $description.'));
   });

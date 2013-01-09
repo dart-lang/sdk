@@ -834,9 +834,9 @@ abstract class Descriptor {
         var error = new StringBuffer();
         error.add("No files named $name in $dir were valid:\n");
         for (var failure in failures) {
-          error.add("  ").add(failure).add("\n");
+          error.add("  $failure\n");
         }
-        completer.completeException(
+        completer.completeError(
             new ExpectException(error.toString()), stackTrace);
       }
 
@@ -851,7 +851,7 @@ abstract class Descriptor {
         future.then((_) {
           successes++;
           checkComplete();
-        }).catchError(() {});
+        }).catchError((_) {});
       }
       return completer.future;
     });
