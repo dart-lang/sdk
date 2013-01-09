@@ -109,6 +109,7 @@ class _FutureImpl<T> implements Future<T> {
     // As each future completes, put its value into the corresponding
     // position in the list of values.
     int i = 0;
+    bool completed = false;
     for (Future future in futures) {
       int pos = i++;
       future.then((Object value) {
@@ -116,9 +117,9 @@ class _FutureImpl<T> implements Future<T> {
         if (--remaining == 0) {
           completer.complete(values);
         }
-      });
-      future.catchError((error) {
-        completer.completeError(error.error, error.stackTrace);
+      }).catchError((error) {
+        if (!completed) completer.completeError(error.error, error.stackTrace);
+        completed = true;
       });
     }
 

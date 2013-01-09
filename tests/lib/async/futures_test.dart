@@ -28,6 +28,51 @@ Future testCompleteBeforeWait() {
   return Futures.wait(futures);
 }
 
+Future testWaitWithMultipleValues() {
+  List<Future> futures = new List<Future>();
+  Completer c1 = new Completer();
+  Completer c2 = new Completer();
+  futures.add(c1.future);
+  futures.add(c2.future);
+  c1.complete(1);
+  c2.complete(2);
+  return Futures.wait(futures).then((values) {
+    Expect.listEquals([1, 2], values);
+  });
+}
+
+Future testWaitWithSingleError() {
+  List<Future> futures = new List<Future>();
+  Completer c1 = new Completer();
+  Completer c2 = new Completer();
+  futures.add(c1.future);
+  futures.add(c2.future);
+  c1.complete();
+  c2.completeError('correct error');
+
+  return Futures.wait(futures).then((_) {
+    throw 'incorrect error';
+  }).catchError((e) {
+    Expect.equals('correct error', e.error);
+  });
+}
+
+Future testWaitWithMultipleErrors() {
+  List<Future> futures = new List<Future>();
+  Completer c1 = new Completer();
+  Completer c2 = new Completer();
+  futures.add(c1.future);
+  futures.add(c2.future);
+  c1.completeError('correct error');
+  c2.completeError('incorrect error 1');
+
+  return Futures.wait(futures).then((_) {
+    throw 'incorrect error 2';
+  }).catchError((e) {
+    Expect.equals('correct error', e.error);
+  });
+}
+
 Future testForEachEmpty() {
   return Futures.forEach([], (_) {
     throw 'should not be called';
@@ -61,6 +106,9 @@ main() {
   futures.add(testWaitEmpty());
   futures.add(testCompleteAfterWait());
   futures.add(testCompleteBeforeWait());
+  futures.add(testWaitWithMultipleValues());
+  futures.add(testWaitWithSingleError());
+  futures.add(testWaitWithMultipleErrors());
   futures.add(testForEachEmpty());
   futures.add(testForEach());
 
@@ -68,7 +116,7 @@ main() {
   // Note that if the test fails, the program will not end.
   ReceivePort port = new ReceivePort();
   Futures.wait(futures).then((List list) {
-    Expect.equals(5, list.length);
+    Expect.equals(8, list.length);
     port.close();
   });
 }
