@@ -344,13 +344,14 @@ char* Directory::Current() {
 
 bool Directory::Create(const char* dir_name) {
   const wchar_t* system_name = StringUtils::Utf8ToWide(dir_name);
-  // If the directory already exists and is a directory do not
-  // attempt to create it again and treat it as a success.
-  if (ExistsHelper(system_name) == EXISTS) {
+  int create_status = CreateDirectoryW(system_name, NULL);
+  // If the directory already existed, treat it as a success.
+  if (create_status == 0 &&
+      GetLastError() == ERROR_ALREADY_EXISTS &&
+      ExistsHelper(system_name) == EXISTS) {
     free(const_cast<wchar_t*>(system_name));
     return true;
   }
-  int create_status = CreateDirectoryW(system_name, NULL);
   free(const_cast<wchar_t*>(system_name));
   return (create_status != 0);
 }
