@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'base_client.dart';
 import 'base_request.dart';
+import 'byte_stream.dart';
 import 'request.dart';
 import 'response.dart';
 import 'streamed_response.dart';
@@ -32,7 +33,7 @@ class MockClient extends BaseClient {
   /// [Response]s.
   MockClient(MockClientHandler fn)
     : this._((baseRequest, bodyStream) {
-      return consumeInputStream(bodyStream).then((bodyBytes) {
+      return bodyStream.toBytes().then((bodyBytes) {
         var request = new Request(baseRequest.method, baseRequest.url);
         request.persistentConnection = baseRequest.persistentConnection;
         request.followRedirects = baseRequest.followRedirects;
@@ -43,12 +44,8 @@ class MockClient extends BaseClient {
 
         return fn(request);
       }).then((response) {
-        var stream = new ListInputStream();
-        stream.write(response.bodyBytes);
-        stream.markEndOfStream();
-
         return new StreamedResponse(
-            stream,
+            new ByteStream.fromBytes(response.bodyBytes),
             response.statusCode,
             response.contentLength,
             request: baseRequest,
@@ -86,7 +83,7 @@ class MockClient extends BaseClient {
 /// A handler function that receives [StreamedRequest]s and sends
 /// [StreamedResponse]s. Note that [request] will be finalized.
 typedef Future<StreamedResponse> MockClientStreamHandler(
-    BaseRequest request, InputStream bodyStream);
+    BaseRequest request, ByteStream bodyStream);
 
 /// A handler function that receives [Request]s and sends [Response]s. Note that
 /// [request] will be finalized.

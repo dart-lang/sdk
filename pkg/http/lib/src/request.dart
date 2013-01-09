@@ -4,11 +4,13 @@
 
 library request;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:scalarlist';
 import 'dart:uri';
 
 import 'base_request.dart';
+import 'byte_stream.dart';
 import 'utils.dart';
 
 /// An HTTP request where the entire request body is known in advance.
@@ -131,15 +133,11 @@ class Request extends BaseRequest {
       _defaultEncoding = Encoding.UTF_8,
       _bodyBytes = new Uint8List(0);
 
-  /// Freeze all mutable fields and return an [InputStream] containing the
-  /// request body.
-  InputStream finalize() {
+  /// Freezes all mutable fields and returns a single-subscription [ByteStream]
+  /// containing the request body.
+  ByteStream finalize() {
     super.finalize();
-
-    var stream = new ListInputStream();
-    stream.write(bodyBytes);
-    stream.markEndOfStream();
-    return stream;
+    return new ByteStream.fromBytes(bodyBytes);
   }
 
   /// The `Content-Type` header of the request (if it exists) as a

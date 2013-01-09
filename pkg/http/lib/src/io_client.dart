@@ -42,6 +42,7 @@ class IOClient extends BaseClient {
       });
     };
 
+    var pipeCompleter = new Completer();
     connection.onRequest = (underlyingRequest) {
       underlyingRequest.contentLength = request.contentLength;
       underlyingRequest.persistentConnection = request.persistentConnection;
@@ -49,11 +50,9 @@ class IOClient extends BaseClient {
         underlyingRequest.headers.set(name, value);
       });
 
-      if (stream.closed) {
-        underlyingRequest.outputStream.close();
-      } else {
-        stream.pipe(underlyingRequest.outputStream);
-      }
+      chainToCompleter(
+          stream.pipe(wrapOutputStream(underlyingRequest.outputStream)),
+          pipeCompleter);
     };
 
     connection.onResponse = (response) {
@@ -64,7 +63,7 @@ class IOClient extends BaseClient {
 
       completed = true;
       completer.complete(new StreamedResponse(
-          response.inputStream,
+          wrapInputStream(response.inputStream),
           response.statusCode,
           response.contentLength,
           request: request,
@@ -74,7 +73,7 @@ class IOClient extends BaseClient {
           reasonPhrase: response.reasonPhrase));
     };
 
-    return completer.future;
+    return pipeCompleter.future.then((_) => completer.future);
   }
 
   /// Closes the client. This terminates all active connections. If a client

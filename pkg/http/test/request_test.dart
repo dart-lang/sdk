@@ -17,15 +17,11 @@ void main() {
 
     var request = new http.Request('POST', serverUrl);
     request.body = "hello";
-    var future = request.send().then((response) {
-      expect(response.statusCode, equals(200));
-      return consumeInputStream(response.stream);
-    }).then((bytes) => new String.fromCharCodes(bytes));
-    future.catchError((_) {}).then(expectAsync1((_) {
-      stopServer();
-    }));
 
-    expect(future, completion(parse(equals({
+    expect(request.send().then((response) {
+      expect(response.statusCode, equals(200));
+      return response.stream.bytesToString();
+    }).whenComplete(stopServer), completion(parse(equals({
       'method': 'POST',
       'path': '/',
       'headers': {
@@ -316,9 +312,7 @@ void main() {
     test('returns a stream that emits the request body', () {
       var request = new http.Request('POST', dummyUrl);
       request.body = "Hello, world!";
-      expect(
-          consumeInputStream(request.finalize())
-              .then((bytes) => new String.fromCharCodes(bytes)),
+      expect(request.finalize().bytesToString(),
           completion(equals("Hello, world!")));
     });
 

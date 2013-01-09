@@ -34,12 +34,11 @@ void main() {
 
   test('handles a streamed request', () {
     var client = new MockClient.streaming((request, bodyStream) {
-      return consumeInputStream(bodyStream).then((body) {
-        var stream = new ListInputStream();
+      return bodyStream.bytesToString().then((bodyString) {
+        var stream = new StreamController<List<int>>.singleSubscription();
         async.then((_) {
-          var bodyString = new String.fromCharCodes(body);
-          stream.write('Request body was "$bodyString"'.charCodes);
-          stream.markEndOfStream();
+          stream.add('Request body was "$bodyString"'.charCodes);
+          stream.close();
         });
 
         return new http.StreamedResponse(stream, 200, -1);

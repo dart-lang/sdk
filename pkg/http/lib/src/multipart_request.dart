@@ -11,6 +11,7 @@ import 'dart:uri';
 import 'dart:utf';
 
 import 'base_request.dart';
+import 'byte_stream.dart';
 import 'multipart_file.dart';
 import 'utils.dart';
 
@@ -51,7 +52,7 @@ class MultipartRequest extends BaseRequest {
           encodeUtf8(value).length + "\r\n".length;
     });
 
-    for (var file in files) {
+    for (var file in _files.collection) {
       length += "--".length + _BOUNDARY_LENGTH + "\r\n".length +
           _headerForFile(file).length +
           file.length + "\r\n".length;
@@ -68,33 +69,40 @@ class MultipartRequest extends BaseRequest {
   /// The form fields to send for this request.
   final Map<String, String> fields;
 
-  /// The files to upload for this request.
-  final List<MultipartFile> files;
+  /// The sink for files to upload for this request.
+  ///
+  /// This doesn't need to be closed. When the request is sent, whichever files
+  /// are written to this sink at that point will be used.
+  Sink<MultipartFile> get files => _files;
+
+  /// The private version of [files], typed so that the underlying collection is
+  /// accessible.
+  final CollectionSink<MultipartFile> _files;
 
   /// Creates a new [MultipartRequest].
   MultipartRequest(String method, Uri url)
     : super(method, url),
       fields = <String>{},
-      files = <MultipartFile>[];
+      _files = new CollectionSink<MultipartFile>(<MultipartFile>[]);
 
-  /// Freezes all mutable fields and returns an [InputStream] that will emit the
-  /// request body.
-  InputStream finalize() {
+  /// Freezes all mutable fields and returns a single-subscription [ByteStream]
+  /// that will emit the request body.
+  ByteStream finalize() {
     // TODO(nweiz): freeze fields and files
     var boundary = _boundaryString(_BOUNDARY_LENGTH);
     headers['content-type'] = 'multipart/form-data; boundary="$boundary"';
     headers['content-transfer-encoding'] = 'binary';
     super.finalize();
 
-    var stream = new ListInputStream();
+    var controller = new StreamController<List<int>>.singleSubscription();
 
     void writeAscii(String string) {
       assert(isPlainAscii(string));
-      stream.write(string.charCodes);
+      controller.add(string.charCodes);
     }
 
-    void writeUtf8(String string) => stream.write(encodeUtf8(string));
-    void writeLine() => stream.write([13, 10]); // \r\n
+    writeUtf8(String string) => controller.add(encodeUtf8(string));
+    writeLine() => controller.add([13, 10]); // \r\n
 
     fields.forEach((name, value) {
       writeAscii('--$boundary\r\n');
@@ -103,19 +111,19 @@ class MultipartRequest extends BaseRequest {
       writeLine();
     });
 
-    Futures.forEach(files, (file) {
+    Futures.forEach(_files.collection, (file) {
       writeAscii('--$boundary\r\n');
       writeAscii(_headerForFile(file));
-      return writeInputToInput(file.finalize(), stream)
+      return writeStreamToSink(file.finalize(), controller)
         .then((_) => writeLine());
     }).then((_) {
       // TODO(nweiz): pass any errors propagated through this future on to
       // the stream. See issue 3657.
       writeAscii('--$boundary--\r\n');
-      stream.markEndOfStream();
+      controller.close();
     });
 
-    return stream;
+    return new ByteStream(controller);
   }
 
   /// All character codes that are valid in multipart boundaries. From

@@ -7,6 +7,7 @@ library multipart_file;
 import 'dart:async';
 import 'dart:io';
 
+import 'byte_stream.dart';
 import 'utils.dart';
 
 /// A file to be uploaded as part of a [MultipartRequest]. This doesn't need to
@@ -16,7 +17,7 @@ class MultipartFile {
   final String field;
 
   /// The size of the file in bytes. This must be known in advance, even if this
-  /// file is created from an [InputStream].
+  /// file is created from a [ByteStream].
   final int length;
 
   /// The basename of the file. May be null.
@@ -26,21 +27,22 @@ class MultipartFile {
   final ContentType contentType;
 
   /// The stream that will emit the file's contents.
-  final InputStream _stream;
+  final ByteStream _stream;
 
   /// Whether [finalize] has been called.
   bool get isFinalized => _isFinalized;
   bool _isFinalized = false;
 
-  /// Creates a new [MultipartFile] from an [InputStream]. The length of the
-  /// file in bytes must be known in advance. If it's not, read the data from
-  /// the stream and use [MultipartFile.fromBytes] instead.
+  /// Creates a new [MultipartFile] from a chunked [Stream] of bytes. The length
+  /// of the file in bytes must be known in advance. If it's not, read the data
+  /// from the stream and use [MultipartFile.fromBytes] instead.
   ///
   /// [contentType] currently defaults to `application/octet-stream`, but in the
   /// future may be inferred from [filename].
-  MultipartFile(this.field, this._stream, this.length,
+  MultipartFile(this.field, Stream<List<int>> stream, this.length,
       {this.filename, ContentType contentType})
-    : this.contentType = contentType != null ? contentType :
+    : this._stream = toByteStream(stream),
+      this.contentType = contentType != null ? contentType :
           new ContentType("application", "octet-stream");
 
   /// Creates a new [MultipartFile] from a byte array.
@@ -49,9 +51,7 @@ class MultipartFile {
   /// future may be inferred from [filename].
   factory MultipartFile.fromBytes(String field, List<int> value,
       {String filename, ContentType contentType}) {
-    var stream = new ListInputStream();
-    stream.write(value);
-    stream.markEndOfStream();
+    var stream = new ByteStream.fromBytes(value);
     return new MultipartFile(field, stream, value.length,
         filename: filename,
         contentType: contentType);
@@ -87,16 +87,17 @@ class MultipartFile {
       {String filename, ContentType contentType}) {
     if (filename == null) filename = new Path(file.name).filename;
     return file.length().then((length) {
-      return new MultipartFile(field, file.openInputStream(), length,
+      var stream = wrapInputStream(file.openInputStream());
+      return new MultipartFile(field, stream, length,
           filename: filename,
           contentType: contentType);
     });
   }
 
   // Finalizes the file in preparation for it being sent as part of a
-  // [MultipartRequest]. This returns an [InputStream] that should emit the body
+  // [MultipartRequest]. This returns a [ByteStream] that should emit the body
   // of the file. The stream may be closed to indicate an empty file.
-  InputStream finalize() {
+  ByteStream finalize() {
     if (isFinalized) {
       throw new StateError("Can't finalize a finalized MultipartFile.");
     }

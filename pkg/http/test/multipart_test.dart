@@ -4,6 +4,7 @@
 
 library multipart_test;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:utf';
 
@@ -29,7 +30,7 @@ class _BodyMatches extends BaseMatcher {
   bool matches(item, MatchState matchState) {
     if (item is! http.MultipartRequest) return false;
 
-    var future = consumeInputStream(item.finalize()).then((bodyBytes) {
+    var future = item.finalize().toBytes().then((bodyBytes) {
       var body = decodeUtf8(bodyBytes);
       var contentType = new ContentType.fromString(
           item.headers['content-type']);
@@ -155,7 +156,7 @@ void main() {
 
   test('with a stream file', () {
     var request = new http.MultipartRequest('POST', dummyUrl);
-    var stream = new ListInputStream();
+    var stream = new StreamController.singleSubscription();
     request.files.add(new http.MultipartFile('file', stream, 5));
 
     expect(request, bodyMatches('''
@@ -167,14 +168,13 @@ void main() {
         --{{boundary}}--
         '''));
 
-    stream.write([104, 101, 108, 108, 111]);
-    stream.markEndOfStream();
+    stream.add([104, 101, 108, 108, 111]);
+    stream.close();
   });
 
   test('with an empty stream file', () {
     var request = new http.MultipartRequest('POST', dummyUrl);
-    var stream = new ListInputStream();
-    stream.markEndOfStream();
+    var stream = new StreamController.singleSubscription();
     request.files.add(new http.MultipartFile('file', stream, 0));
 
     expect(request, bodyMatches('''
@@ -185,6 +185,8 @@ void main() {
 
         --{{boundary}}--
         '''));
+
+    stream.close();
   });
 
   test('with a byte file', () {

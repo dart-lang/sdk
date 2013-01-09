@@ -21,26 +21,21 @@ void main() {
     request.headers[HttpHeaders.CONTENT_TYPE] =
       'application/json; charset=utf-8';
 
-    var future = client.send(request).then((response) {
+    expect(client.send(request).then((response) {
       expect(response.request, equals(request));
       expect(response.statusCode, equals(200));
-      return consumeInputStream(response.stream);
-    }).then(expectAsync1((bytes) => new String.fromCharCodes(bytes)));
-    future.catchError((_) {}).then((_) => client.close());
+      return response.stream.bytesToString();
+    }).whenComplete(client.close), completion(parse(equals({
+      'method': 'POST',
+      'path': '/',
+      'headers': {
+        'content-type': ['application/json; charset=utf-8'],
+        'transfer-encoding': ['chunked']
+      },
+      'body': '{"hello": "world"}'
+    }))));
 
-    future.then(expectAsync1((content) {
-      expect(content, parse(equals({
-        'method': 'POST',
-        'path': '/',
-        'headers': {
-          'content-type': ['application/json; charset=utf-8'],
-          'transfer-encoding': ['chunked']
-        },
-        'body': '{"hello": "world"}'
-      })));
-    }));
-
-    request.stream.writeString('{"hello": "world"}');
-    request.stream.close();
+    request.sink.add('{"hello": "world"}'.charCodes);
+    request.sink.close();
   });
 }

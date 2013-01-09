@@ -28,7 +28,7 @@
 ///         fields: {"name": "doodle", "color": "blue"})
 ///       .then((response) => client.get(response.bodyFields['uri']))
 ///       .then((response) => print(response.body))
-///       .onComplete((_) => client.close());
+///       .whenComplete(client.close);
 ///
 /// You can also exert more fine-grained control over your requests and
 /// responses by creating [Request] or [StreamedRequest] objects yourself and
@@ -63,6 +63,7 @@ import 'src/response.dart';
 export 'src/base_client.dart';
 export 'src/base_request.dart';
 export 'src/base_response.dart';
+export 'src/byte_stream.dart';
 export 'src/client.dart';
 export 'src/multipart_file.dart';
 export 'src/multipart_request.dart';
@@ -169,6 +170,5 @@ Future<Uint8List> readBytes(url, {Map<String, String> headers}) =>
 Future _withClient(Future fn(Client)) {
   var client = new Client();
   var future = fn(client);
-  future.catchError((_) {}).then((_) => client.close());
-  return future;
+  return future.whenComplete(client.close);
 }

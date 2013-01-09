@@ -4,6 +4,7 @@
 
 library test_utils;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
 import 'dart:uri';
@@ -103,6 +104,11 @@ void stopServer() {
   _server.close();
   _server = null;
 }
+
+// TODO(nweiz): remove this once issue 7785 is fixed.
+/// Buffers all input from an InputStream and returns it as a future.
+Future<List<int>> consumeInputStream(InputStream stream) =>
+  new http.ByteStream(wrapInputStream(stream)).toBytes();
 
 /// A matcher that matches JSON that parses to a value that matches the inner
 /// matcher.

@@ -98,7 +98,7 @@ abstract class BaseClient implements Client {
   /// Sends an HTTP request and asynchronously returns the response.
   ///
   /// Implementers should call [BaseRequest.finalize] to get the body of the
-  /// request as an [InputStream]. They shouldn't make any assumptions about the
+  /// request as a [ByteStream]. They shouldn't make any assumptions about the
   /// state of the stream; it could have data written to it asynchronously at a
   /// later point, or it could already be closed when it's returned.
   Future<StreamedResponse> send(BaseRequest request);

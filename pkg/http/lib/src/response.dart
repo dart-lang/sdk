@@ -66,7 +66,7 @@ class Response extends BaseResponse {
   /// Creates a new HTTP response by waiting for the full body to become
   /// available from a [StreamedResponse].
   static Future<Response> fromStream(StreamedResponse response) {
-    return consumeInputStream(response.stream).then((body) {
+    return response.stream.toBytes().then((body) {
       return new Response.bytes(
           body,
           response.statusCode,

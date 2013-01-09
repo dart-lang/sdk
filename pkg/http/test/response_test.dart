@@ -4,6 +4,7 @@
 
 library response_test;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:unittest/unittest.dart';
@@ -43,26 +44,26 @@ void main() {
 
   group('.fromStream()', () {
     test('sets body', () {
-      var stream = new ListInputStream();
+      var stream = new StreamController.singleSubscription();
       var streamResponse = new http.StreamedResponse(stream, 200, 13);
       var future = http.Response.fromStream(streamResponse)
         .then((response) => response.body);
       expect(future, completion(equals("Hello, world!")));
 
-      stream.write([72, 101, 108, 108, 111, 44, 32]);
-      stream.write([119, 111, 114, 108, 100, 33]);
-      stream.markEndOfStream();
+      stream.add([72, 101, 108, 108, 111, 44, 32]);
+      stream.add([119, 111, 114, 108, 100, 33]);
+      stream.close();
     });
 
     test('sets bodyBytes', () {
-      var stream = new ListInputStream();
+      var stream = new StreamController.singleSubscription();
       var streamResponse = new http.StreamedResponse(stream, 200, 5);
       var future = http.Response.fromStream(streamResponse)
         .then((response) => response.bodyBytes);
       expect(future, completion(equals([104, 101, 108, 108, 111])));
 
-      stream.write([104, 101, 108, 108, 111]);
-      stream.markEndOfStream();
+      stream.add([104, 101, 108, 108, 111]);
+      stream.close();
     });
   });
 }

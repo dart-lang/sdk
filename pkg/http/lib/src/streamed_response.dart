@@ -4,20 +4,25 @@
 
 library streamed_response;
 
+import 'dart:async';
 import 'dart:io';
 
+import 'byte_stream.dart';
 import 'base_response.dart';
 import 'base_request.dart';
+import 'utils.dart';
 
 /// An HTTP response where the response body is received asynchronously after
 /// the headers have been received.
 class StreamedResponse extends BaseResponse {
-  /// The stream from which the response body data can be read.
-  final InputStream stream;
+  /// The stream from which the response body data can be read. This should
+  /// always be a single-subscription stream.
+  final ByteStream stream;
 
-  /// Creates a new streaming response.
+  /// Creates a new streaming response. [stream] should be a single-subscription
+  /// stream.
   StreamedResponse(
-      this.stream,
+      Stream<List<int>> stream,
       int statusCode,
       int contentLength,
       {BaseRequest request,
@@ -32,5 +37,6 @@ class StreamedResponse extends BaseResponse {
         headers: headers,
         isRedirect: isRedirect,
         persistentConnection: persistentConnection,
-        reasonPhrase: reasonPhrase);
+        reasonPhrase: reasonPhrase),
+      this.stream = toByteStream(stream);
 }
