@@ -26,7 +26,7 @@ public class DartClassTypeAlias extends DartDeclaration<DartIdentifier> {
     super(name);
     this.typeParameters.addAll(typeParameters);
     this.modifiers = modifiers;
-    this.superclass = superclass;
+    this.superclass = becomeParentOf(superclass);
     this.mixins.addAll(mixins);
     this.interfaces.addAll(interfaces);
   }
