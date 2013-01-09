@@ -195,7 +195,7 @@
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'vm/bootstrap.h',
             '--var_name', 'dart::Bootstrap::async_source_',
-            '<@(_sources)',
+            '<@(async_dart)',
           ],
           'message': 'Generating ''<(async_cc_file)'' file.'
         },
