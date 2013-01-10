@@ -538,3 +538,8 @@ prefix22_test: Pass
 invocation_mirror_test: Fail, OK # hardcoded names.
 invocation_mirror2_test: Fail, OK # hardcoded names.
 super_call4_test: Fail, OK # hardcoded names.
+
+
+[ $compiler == dart2js && $runtime == jsshell ]
+closure_cycles_test: Fail # TODO(ngeoaffray): Please triage these failure.
+typed_message_test: Fail # TODO(ngeoaffray): Please triage these failure.

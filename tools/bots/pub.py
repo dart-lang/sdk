@@ -15,7 +15,7 @@ import sys
 
 import bot
 
-PUB_BUILDER = r'pub-(linux|mac|win)'
+PUB_BUILDER = r'pub-(linux|mac|win)(-russian)?'
 
 def PubConfig(name, is_buildbot):
   """Returns info for the current buildbot based on the name of the builder.

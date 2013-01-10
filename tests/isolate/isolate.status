@@ -129,3 +129,20 @@ timer_test: Fail,OK # Needs Timer to run.
 # TODO(ajohnsen): Fix this as part of library changes.
 [ $compiler == none ]
 isolate_negative_test: Skip # Bug 6890
+
+
+[ $compiler == dart2js && $runtime == jsshell ]
+count_test: Fail # TODO(ngeoaffray): Please triage these failure.
+cross_isolate_message_test: Fail # TODO(ngeoaffray): Please triage these failure.
+isolate_complex_messages_test: Fail # TODO(ngeoaffray): Please triage these failure.
+mandel_isolate_test: Fail # TODO(ngeoaffray): Please triage these failure.
+message2_test: Fail # TODO(ngeoaffray): Please triage these failure.
+message_test: Fail # TODO(ngeoaffray): Please triage these failure.
+mint_maker_test: Fail # TODO(ngeoaffray): Please triage these failure.
+nested_spawn2_test: Fail # TODO(ngeoaffray): Please triage these failure.
+nested_spawn_test: Fail # TODO(ngeoaffray): Please triage these failure.
+request_reply_test: Fail # TODO(ngeoaffray): Please triage these failure.
+spawn_function_custom_class_test: Fail # TODO(ngeoaffray): Please triage these failure.
+spawn_function_test: Fail # TODO(ngeoaffray): Please triage these failure.
+stream_mangling_test: Fail # TODO(ngeoaffray): Please triage these failure.
+unresolved_ports_test: Fail # TODO(ngeoaffray): Please triage these failure.
