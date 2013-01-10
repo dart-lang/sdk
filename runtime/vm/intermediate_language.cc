@@ -26,6 +26,7 @@ DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, max_polymorphic_checks);
+DECLARE_FLAG(bool, trace_optimization);
 
 Definition::Definition()
     : range_(NULL),
@@ -1685,6 +1686,43 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   }
   return this;
 }
+
+
+Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  // Only handle strict-compares.
+  if (comparison()->IsStrictCompare()) {
+    Definition* replacement = comparison()->Canonicalize(optimizer);
+    if (replacement == comparison() || replacement == NULL) return this;
+    ComparisonInstr* comp = replacement->AsComparison();
+    if (comp == NULL) return this;
+
+    // Replace the comparison if the replacement is used at this branch,
+    // and has exactly one use.
+    if ((comp->input_use_list()->instruction() == this) &&
+        (comp->input_use_list()->next_use() == NULL) &&
+        (comp->env_use_list() == NULL)) {
+      comp->RemoveFromGraph();
+      // It is safe to pass a NULL iterator because we're replacing the
+      // comparison wrapped in a BranchInstr which does not modify the
+      // linked list of instructions.
+      ReplaceWith(comp, NULL /* ignored */);
+      for (intptr_t i = 0; i < comp->InputCount(); ++i) {
+        Value* operand = comp->InputAt(i);
+        operand->set_instruction(this);
+      }
+      if (FLAG_trace_optimization) {
+        OS::Print("Merging comparison v%"Pd"\n", comp->ssa_temp_index());
+      }
+      // Clear the comparison's use list, temp index and ssa temp index since
+      // the value of the comparison is not used outside the branch anymore.
+      comp->set_input_use_list(NULL);
+      comp->ClearSSATempIndex();
+      comp->ClearTempIndex();
+    }
+  }
+  return this;
+}
+
 
 Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   if (!right()->BindsToConstant()) return this;

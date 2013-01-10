@@ -1035,6 +1035,7 @@ class Definition : public Instruction {
 
   intptr_t temp_index() const { return temp_index_; }
   void set_temp_index(intptr_t index) { temp_index_ = index; }
+  void ClearTempIndex() { temp_index_ = -1; }
 
   intptr_t ssa_temp_index() const { return ssa_temp_index_; }
   void set_ssa_temp_index(intptr_t index) {
@@ -1043,6 +1044,7 @@ class Definition : public Instruction {
     ssa_temp_index_ = index;
   }
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
+  void ClearSSATempIndex() { ssa_temp_index_ = -1; }
 
   bool is_used() const { return (use_kind_ != kEffect); }
   void set_use_kind(UseKind kind) { use_kind_ = kind; }
@@ -1526,6 +1528,8 @@ class BranchInstr : public ControlInstruction {
                    ForwardInstructionIterator* ignored) {
     comparison_ = other;
   }
+
+  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
 
   virtual void PrintTo(BufferFormatter* f) const;
 

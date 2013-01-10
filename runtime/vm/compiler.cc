@@ -210,8 +210,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       flow_graph->ComputeUseLists();
 
       // Do optimizations that depend on the propagated type information.
-      // TODO(srdjan): Should this be called CanonicalizeComputations?
-      optimizer.OptimizeComputations();
+      optimizer.Canonicalize();
 
       // Unbox doubles.
       flow_graph->ComputeUseLists();
@@ -224,7 +223,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       if (FLAG_constant_propagation) {
         ConstantPropagator::Optimize(flow_graph);
         // A canonicalization pass to remove e.g. smi checks on smi constants.
-        optimizer.OptimizeComputations();
+        optimizer.Canonicalize();
       }
       if (FLAG_common_subexpression_elimination) {
         if (DominatorBasedCSE::Optimize(flow_graph)) {

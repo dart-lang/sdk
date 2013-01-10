@@ -158,7 +158,7 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* it,
 }
 
 
-void FlowGraphOptimizer::OptimizeComputations() {
+void FlowGraphOptimizer::Canonicalize() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* entry = block_order_[i];
     entry->Accept(this);
@@ -1460,8 +1460,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 }
 
 
-// TODO(fschneider): Once we get rid of the distinction between Instruction
-// and computation, this helper can go away.
 static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
                                RelationalOpInstr* comp,
                                Instruction* instr) {
@@ -1503,8 +1501,6 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpInstr* instr) {
 }
 
 
-// TODO(fschneider): Once we get rid of the distinction between Instruction
-// and computation, this helper can go away.
 template <typename T>
 static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
                                   EqualityCompareInstr* comp,

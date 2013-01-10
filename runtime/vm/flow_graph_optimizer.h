@@ -27,7 +27,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   // Use propagated class ids to optimize, replace or eliminate instructions.
   void ApplyClassIds();
 
-  void OptimizeComputations();
+  void Canonicalize();
 
   void EliminateDeadPhis();
 
