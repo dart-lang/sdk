@@ -464,7 +464,10 @@ class ExportLink {
  */
 class LibraryDependencyNode {
   final LibraryElement library;
-  int get hashCode => ++hashCodeCounter; // VM implementation of hashCode is slow.
+
+  // TODO(ahe): Remove [hashCodeCounter] and [hashCode] when
+  // VM implementation of Object.hashCode is not slow.
+  final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;
 
 
