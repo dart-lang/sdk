@@ -434,7 +434,7 @@ class IsolateNatives {
         _globalState.currentManagerId = msg['id'];
         Function entryPoint = _getJSFunctionFromName(msg['functionName']);
         var replyTo = _deserializeMessage(msg['replyTo']);
-        _globalState.topEventLoop.enqueue(new IsolateContext(), function() {
+        _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
           _startIsolate(entryPoint, replyTo);
         }, 'worker-start');
         _globalState.topEventLoop.run();
