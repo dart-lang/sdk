@@ -10,12 +10,10 @@ void foo(var a, var b) {
 }
 """;
 
-
 const String BAR = r"""
 void bar(var eval, var $eval) {
 }
 """;
-
 
 const String PARAMETER_AND_TEMP = r"""
 void bar(var t0, var b) {
@@ -33,7 +31,7 @@ void bar(var t0, var b) {
 """;
 
 const String NO_LOCAL = r"""
-foo(bar, baz) {
+foo(bar, bar) {
   if (bar) {
     baz = 2;
   } else {
@@ -51,9 +49,11 @@ foo(param1, param2, param3) {
       if (param3) {
         a = 42;
       }
+      print(a);
     }
+    print(a);
   }
-  return a;
+  print(a);
 }
 """;
 
@@ -63,47 +63,32 @@ int foo(var start, bool test) {
   if (test) {
     result = 42;
   }
-  return result;
+  print(result);
 }
 """;
 
 main() {
   String generated = compile(FOO, entry: 'foo');
-  // TODO(ngeoffray): Use 'contains' when frog supports it.
-  RegExp regexp = new RegExp(r"function\(a, b\) {");
-  Expect.isTrue(regexp.hasMatch(generated));
+  Expect.isTrue(generated.contains(r"function(a, b) {"));
 
   generated = compile(BAR, entry: 'bar');
-  regexp = new RegExp(r"function\(eval\$, \$\$eval\) {");
-  Expect.isTrue(regexp.hasMatch(generated));
+  Expect.isTrue(generated.contains(r"function(eval$, $$eval) {"));
 
   generated = compile(PARAMETER_AND_TEMP, entry: 'bar');
-  regexp = new RegExp(r"print\(t0\)");
-  Expect.isTrue(regexp.hasMatch(generated));
+  Expect.isTrue(generated.contains(r"print(t00)"));
   // Check that the second 't0' got another name.
-  regexp = new RegExp(r"print\(t0_0\)");
-  Expect.isTrue(regexp.hasMatch(generated));
-
-  generated = compile(NO_LOCAL, entry: 'foo');
-  regexp = new RegExp("return baz");
-  Expect.isTrue(regexp.hasMatch(generated));
-  regexp = new RegExp(r"baz = 2");
-  Expect.isTrue(regexp.hasMatch(generated));
-  regexp = new RegExp(r"baz = 3");
-  Expect.isTrue(regexp.hasMatch(generated));
-  regexp = new RegExp("bar === true");
-  Expect.isTrue(regexp.hasMatch(generated));
+  Expect.isTrue(generated.contains(r"print(t01)"));
 
   generated = compile(MULTIPLE_PHIS_ONE_LOCAL, entry: 'foo');
-  regexp = new RegExp(r"var a = 2;");
-  Expect.isTrue(regexp.hasMatch(generated));
+  Expect.isTrue(generated.contains("var a;"));
+  // Check that there is only one var declaration.
+  checkNumberOfMatches(new RegExp("var").allMatches(generated).iterator, 1);
 
-  regexp = new RegExp(r"a = 2;");
-  Iterator matches = regexp.allMatches(generated).iterator;
-  Expect.isTrue(matches.moveNext());
-  Expect.isFalse(matches.moveNext());
+  generated = compile(NO_LOCAL, entry: 'foo');
+  Expect.isFalse(generated.contains('var'));
 
   generated = compile(PARAMETER_INIT, entry: 'foo');
-  regexp = new RegExp("var result = start;");
-  Expect.isTrue(regexp.hasMatch(generated));
+  Expect.isTrue(generated.contains('var result = test === true ? 42 : start'));
+  // Check that there is only one var declaration.
+  checkNumberOfMatches(new RegExp("var").allMatches(generated).iterator, 1);
 }
