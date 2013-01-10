@@ -236,7 +236,7 @@ class MockCompiler extends Compiler {
     return new Script(uri, sourceFile);
   }
 
-  Element lookupElementIn(ScopeContainerElement container, SourceString name) {
+  Element lookupElementIn(ScopeContainerElement container, name) {
     Element element = container.localLookup(name);
     return element != null
         ? element
