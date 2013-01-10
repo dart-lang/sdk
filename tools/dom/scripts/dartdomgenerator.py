@@ -204,7 +204,7 @@ def main():
   html_json_path = os.path.relpath('../docs/html_docs.json')
   svg_json_path = os.path.relpath('../docs/svg_docs.json')
 
-  path_to_dart = utils.DartBinary()
+  path_to_dart = utils.DartSdkBinary()
   html_command = ' '.join([path_to_dart, html_to_json_script,
                            '--mode=json-to-html', html_output_dir,
                            html_json_path])
