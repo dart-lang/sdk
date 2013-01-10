@@ -82,10 +82,10 @@ class ConstantHandler extends CompilerTask {
    * map. Returns the initial value (a constant) if it can be computed
    * statically. Returns [:null:] if the variable must be initialized lazily.
    *
-   * [WorkItem] must contain a [VariableElement] refering to a global or
+   * [work] must contain a [VariableElement] refering to a global or
    * static field.
    */
-  Constant compileWorkItem(WorkItem work) {
+  Constant compileWorkItem(CodegenWorkItem work) {
     return measure(() {
       assert(work.element.kind == ElementKind.FIELD
              || work.element.kind == ElementKind.PARAMETER

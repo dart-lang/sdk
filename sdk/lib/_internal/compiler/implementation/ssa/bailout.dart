@@ -66,7 +66,7 @@ class Environment {
 class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
   final Compiler compiler;
   final String name = 'SsaTypeGuardInserter';
-  final WorkItem work;
+  final CodegenWorkItem work;
   final HTypeMap types;
   bool calledInLoop = false;
   bool isRecursiveMethod = false;

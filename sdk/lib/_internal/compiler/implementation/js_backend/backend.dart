@@ -491,10 +491,9 @@ class ArgumentTypesRegistry {
     // TODO(sgjesse): These checks should use the codegenWorld and keep track
     // of changes to this information.
     Element element = node.element;
-    Universe resolverWorld = compiler.resolverWorld;
+    ResolutionUniverse resolverWorld = compiler.resolverWorld;
     if (element != null &&
-        (resolverWorld.hasFieldGetter(element, compiler) ||
-         resolverWorld.hasInvokedGetter(element, compiler))) {
+        resolverWorld.hasInvokedGetter(element, compiler)) {
       return;
     }
 
@@ -883,7 +882,7 @@ class JavaScriptBackend extends Backend {
     return new JavaScriptItemCompilationContext();
   }
 
-  void enqueueHelpers(Enqueuer world) {
+  void enqueueHelpers(ResolutionEnqueuer world) {
     enqueueAllTopLevelFunctions(compiler.jsHelperLibrary, world);
 
     jsIndexingBehaviorInterface =
@@ -900,7 +899,7 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void codegen(WorkItem work) {
+  void codegen(CodegenWorkItem work) {
     if (work.element.kind.category == ElementCategory.VARIABLE) {
       Constant initialValue = compiler.constantHandler.compileWorkItem(work);
       if (initialValue != null) {

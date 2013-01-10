@@ -42,7 +42,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return code;
   }
 
-  js.Expression generateCode(WorkItem work, HGraph graph) {
+  js.Expression generateCode(CodegenWorkItem work, HGraph graph) {
     if (work.element.isField()) {
       return generateLazyInitializer(work, graph);
     } else {
@@ -60,7 +60,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     });
   }
 
-  js.Expression generateMethod(WorkItem work, HGraph graph) {
+  js.Expression generateMethod(CodegenWorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       SsaOptimizedCodeGenerator codegen =
@@ -91,7 +91,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     });
   }
 
-  js.Expression generateBailoutMethod(WorkItem work, HGraph graph) {
+  js.Expression generateBailoutMethod(CodegenWorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen-bailout", graph);
 
@@ -162,7 +162,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   bool isGeneratingExpression = false;
 
   final JavaScriptBackend backend;
-  final WorkItem work;
+  final CodegenWorkItem work;
   final HTypeMap types;
 
   final Set<HInstruction> generateAtUseSite;
@@ -210,7 +210,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // if branches.
   SubGraph subGraph;
 
-  SsaCodeGenerator(this.backend, WorkItem work)
+  SsaCodeGenerator(this.backend, CodegenWorkItem work)
     : this.work = work,
       this.types =
           (work.compilationContext as JavaScriptItemCompilationContext).types,
@@ -229,7 +229,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   LibraryElement get currentLibrary => work.element.getLibrary();
   Compiler get compiler => backend.compiler;
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
-  Enqueuer get world => backend.compiler.enqueuer.codegen;
+  CodegenEnqueuer get world => backend.compiler.enqueuer.codegen;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);

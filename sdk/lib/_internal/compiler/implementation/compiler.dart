@@ -32,7 +32,7 @@ const String BUILD_ID = 'build number could not be determined';
 class ItemCompilationContext {
 }
 
-class WorkItem {
+abstract class WorkItem {
   final ItemCompilationContext compilationContext;
   /**
    * Documentation wanted -- johnniwinther
@@ -40,20 +40,48 @@ class WorkItem {
    * Invariant: [element] must be a declaration element.
    */
   final Element element;
-  TreeElements resolutionTree;
-  bool allowSpeculativeOptimization = true;
-  List<HTypeGuard> guards = const <HTypeGuard>[];
+  TreeElements get resolutionTree;
 
-  WorkItem(this.element, this.resolutionTree, this.compilationContext) {
+  WorkItem(this.element, this.compilationContext) {
     assert(invariant(element, element.isDeclaration));
   }
 
   bool isAnalyzed() => resolutionTree != null;
 
-  void run(Compiler compiler, Enqueuer world) {
+  void run(Compiler compiler, Enqueuer world);
+}
+
+/// [WorkItem] used exclusively by the [ResolutionEnqueuer].
+class ResolutionWorkItem extends WorkItem {
+  TreeElements resolutionTree;
+
+  ResolutionWorkItem(Element element,
+                     ItemCompilationContext compilationContext)
+      : super(element, compilationContext);
+
+  void run(Compiler compiler, ResolutionEnqueuer world) {
+    resolutionTree = compiler.analyze(this, world);
+  }
+}
+
+/// [WorkItem] used exclusively by the [CodegenEnqueuer].
+class CodegenWorkItem extends WorkItem {
+  final TreeElements resolutionTree;
+
+  bool allowSpeculativeOptimization = true;
+  List<HTypeGuard> guards = const <HTypeGuard>[];
+
+  CodegenWorkItem(Element element,
+                  TreeElements this.resolutionTree,
+                  ItemCompilationContext compilationContext)
+      : super(element, compilationContext) {
+    assert(invariant(element, resolutionTree != null,
+        message: 'Resolution tree is null for $element in codegen work item'));
+  }
+
+  void run(Compiler compiler, CodegenEnqueuer world) {
     js.Expression code = world.universe.generatedCode[element];
     if (code != null) return;
-    resolutionTree = compiler.analyze(this, world);
     compiler.codegen(this, world);
   }
 }
@@ -77,8 +105,8 @@ abstract class Backend {
     });
   }
 
-  void enqueueHelpers(Enqueuer world);
-  void codegen(WorkItem work);
+  void enqueueHelpers(ResolutionEnqueuer world);
+  void codegen(CodegenWorkItem work);
 
   // The backend determines the native resolution enqueuer, with a no-op
   // default, so tools like dart2dart can ignore the native classes.
@@ -338,8 +366,8 @@ abstract class Compiler implements DiagnosticListener {
         this, backend.constantSystem, isMetadata: true);
   }
 
-  Universe get resolverWorld => enqueuer.resolution.universe;
-  Universe get codegenWorld => enqueuer.codegen.universe;
+  ResolutionUniverse get resolverWorld => enqueuer.resolution.universe;
+  CodegenUniverse get codegenWorld => enqueuer.codegen.universe;
 
   int getNextFreeClassId() => nextFreeClassId++;
 
@@ -438,37 +466,6 @@ abstract class Compiler implements DiagnosticListener {
       totalCompileTime.stop();
     }
     return true;
-  }
-
-  void enableNoSuchMethod(Element element) {
-    // TODO(ahe): Move this method to Enqueuer.
-    if (enabledNoSuchMethod) return;
-    if (identical(element.getEnclosingClass(), objectClass)) {
-      enqueuer.resolution.registerDynamicInvocationOf(element);
-      return;
-    }
-    enabledNoSuchMethod = true;
-    Selector selector = new Selector.noSuchMethod();
-    enqueuer.resolution.registerInvocation(NO_SUCH_METHOD, selector);
-    enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
-
-    createInvocationMirrorElement =
-        findHelper(CREATE_INVOCATION_MIRROR);
-    enqueuer.resolution.addToWorkList(createInvocationMirrorElement);
-    enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
-  }
-
-  void enableIsolateSupport(LibraryElement element) {
-    // TODO(ahe): Move this method to Enqueuer.
-    isolateLibrary = element.patch;
-    enqueuer.resolution.addToWorkList(
-        isolateHelperLibrary.find(START_ROOT_ISOLATE));
-    enqueuer.resolution.addToWorkList(
-        isolateHelperLibrary.find(const SourceString('_currentIsolate')));
-    enqueuer.resolution.addToWorkList(
-        isolateHelperLibrary.find(const SourceString('_callInIsolate')));
-    enqueuer.codegen.addToWorkList(
-        isolateHelperLibrary.find(START_ROOT_ISOLATE));
   }
 
   bool hasIsolateSupport() => isolateLibrary != null;
@@ -673,6 +670,16 @@ abstract class Compiler implements DiagnosticListener {
 
     log('Compiling...');
     phase = PHASE_COMPILING;
+    // TODO(johnniwinther): Move these to [CodegenEnqueuer].
+    if (hasIsolateSupport()) {
+      enqueuer.codegen.addToWorkList(
+          isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE));
+    }
+    if (enabledNoSuchMethod) {
+      Selector selector = new Selector.noSuchMethod();
+      enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
+      enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
+    }
     processQueue(enqueuer.codegen, main);
     enqueuer.codegen.logSummary(log);
 
@@ -775,13 +782,10 @@ abstract class Compiler implements DiagnosticListener {
     return elements;
   }
 
-  TreeElements analyze(WorkItem work, Enqueuer world) {
-    if (work.isAnalyzed()) {
-      // TODO(ahe): Clean this up and find a better way for adding all resolved
-      // elements.
-      enqueuer.resolution.resolvedElements[work.element] = work.resolutionTree;
-      return work.resolutionTree;
-    }
+  TreeElements analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
+    assert(invariant(work.element, identical(world, enqueuer.resolution)));
+    assert(invariant(work.element, !work.isAnalyzed(),
+        message: 'Element ${work.element} has already been analyzed'));
     if (progress.elapsedMilliseconds > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
@@ -794,18 +798,14 @@ abstract class Compiler implements DiagnosticListener {
     Element element = work.element;
     TreeElements result = world.getCachedElements(element);
     if (result != null) return result;
-    if (!identical(world, enqueuer.resolution)) {
-      internalErrorOnElement(element,
-                             'Internal error: unresolved element: $element.');
-    }
     result = analyzeElement(element);
     assert(invariant(element, element.isDeclaration));
-    enqueuer.resolution.resolvedElements[element] = result;
+    world.resolvedElements[element] = result;
     return result;
   }
 
-  void codegen(WorkItem work, Enqueuer world) {
-    if (!identical(world, enqueuer.codegen)) return null;
+  void codegen(CodegenWorkItem work, CodegenEnqueuer world) {
+    assert(invariant(work.element, identical(world, enqueuer.codegen)));
     if (progress.elapsedMilliseconds > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.

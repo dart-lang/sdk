@@ -29,7 +29,7 @@ class SsaOptimizerTask extends CompilerTask {
     assert(graph.isValid());
   }
 
-  void optimize(WorkItem work, HGraph graph, bool speculative) {
+  void optimize(CodegenWorkItem work, HGraph graph, bool speculative) {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
     HTypeMap types = context.types;
@@ -61,7 +61,7 @@ class SsaOptimizerTask extends CompilerTask {
     });
   }
 
-  bool trySpeculativeOptimizations(WorkItem work, HGraph graph) {
+  bool trySpeculativeOptimizations(CodegenWorkItem work, HGraph graph) {
     if (work.element.isField()) {
       // Lazy initializers may not have bailout methods.
       return false;
@@ -90,7 +90,7 @@ class SsaOptimizerTask extends CompilerTask {
     });
   }
 
-  void prepareForSpeculativeOptimizations(WorkItem work, HGraph graph) {
+  void prepareForSpeculativeOptimizations(CodegenWorkItem work, HGraph graph) {
     JavaScriptItemCompilationContext context = work.compilationContext;
     HTypeMap types = context.types;
     measure(() {
@@ -118,7 +118,7 @@ class SsaOptimizerTask extends CompilerTask {
 class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   final String name = "SsaConstantFolder";
   final JavaScriptBackend backend;
-  final WorkItem work;
+  final CodegenWorkItem work;
   final ConstantSystem constantSystem;
   final HTypeMap types;
   HGraph graph;
@@ -326,7 +326,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         node.inputs.getRange(1, node.inputs.length - 1));
     if (type.isExact()) {
       HBoundedType concrete = type;
-      result.element = concrete.lookupMember(selector.name);
+      // TODO(johnniwinther): Add lookup by selector to HBoundedType.
+      Element element = concrete.lookupMember(selector.name);
+      if (selector.applies(element, compiler)) {
+        // The target is only valid if the selector applies.
+        result.element = element;
+      }
     }
     return result;
   }
@@ -758,7 +763,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final HTypeMap types;
   final Set<HInstruction> boundsChecked;
-  final WorkItem work;
+  final CodegenWorkItem work;
   final JavaScriptBackend backend;
   final String name = "SsaCheckInserter";
   HGraph graph;
@@ -1323,7 +1328,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
 class SsaConstructionFieldTypes
     extends HBaseVisitor implements OptimizationPhase {
   final JavaScriptBackend backend;
-  final WorkItem work;
+  final CodegenWorkItem work;
   final HTypeMap types;
   final String name = "SsaConstructionFieldTypes";
   final Set<HInstruction> thisUsers;
@@ -1334,7 +1339,7 @@ class SsaConstructionFieldTypes
   Map<Element, HType> currentFieldSetters;
 
   SsaConstructionFieldTypes(JavaScriptBackend this.backend,
-         WorkItem this.work,
+         CodegenWorkItem this.work,
          HTypeMap this.types)
       : thisUsers = new Set<HInstruction>(),
         allSetters = new Set<Element>(),

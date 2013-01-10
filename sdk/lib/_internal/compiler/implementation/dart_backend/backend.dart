@@ -196,7 +196,7 @@ class DartBackend extends Backend {
         stripAsserts = strips.indexOf('asserts') != -1,
         super(compiler);
 
-  void enqueueHelpers(Enqueuer world) {
+  void enqueueHelpers(ResolutionEnqueuer world) {
     // Right now resolver doesn't always resolve interfaces needed
     // for literals, so force them. TODO(antonm): fix in the resolver.
     final LITERAL_TYPE_NAMES = const [
@@ -208,7 +208,7 @@ class DartBackend extends Backend {
       classElement.ensureResolved(compiler);
     }
   }
-  void codegen(WorkItem work) { }
+  void codegen(CodegenWorkItem work) { }
   void processNativeClasses(Enqueuer world,
                             Iterable<LibraryElement> libraries) { }
 

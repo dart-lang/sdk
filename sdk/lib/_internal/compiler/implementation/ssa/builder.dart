@@ -165,7 +165,7 @@ class SsaBuilderTask extends CompilerTask {
       backend = backend,
       super(backend.compiler);
 
-  HGraph build(WorkItem work) {
+  HGraph build(CodegenWorkItem work) {
     return measure(() {
       Element element = work.element.implementation;
       HInstruction.idCounter = 0;
@@ -249,7 +249,7 @@ class SsaBuilderTask extends CompilerTask {
     });
   }
 
-  HGraph compileConstructor(SsaBuilder builder, WorkItem work) {
+  HGraph compileConstructor(SsaBuilder builder, CodegenWorkItem work) {
     // The body of the constructor will be generated in a separate function.
     final ClassElement classElement = work.element.getEnclosingClass();
     return builder.buildFactory(classElement.implementation,
@@ -919,7 +919,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   final SsaBuilderTask builder;
   final JavaScriptBackend backend;
   final Interceptors interceptors;
-  final WorkItem work;
+  final CodegenWorkItem work;
   final ConstantSystem constantSystem;
   bool methodInterceptionEnabled;
   HGraph graph;
@@ -957,7 +957,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   Compiler get compiler => builder.compiler;
   CodeEmitterTask get emitter => builder.emitter;
 
-  SsaBuilder(this.constantSystem, SsaBuilderTask builder, WorkItem work)
+  SsaBuilder(this.constantSystem, SsaBuilderTask builder, CodegenWorkItem work)
     : this.builder = builder,
       this.backend = builder.backend,
       this.work = work,
@@ -2945,7 +2945,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void registerForeignTypes(String specString) {
-    Enqueuer enqueuer = compiler.enqueuer.codegen;
+    CodegenEnqueuer enqueuer = compiler.enqueuer.codegen;
     for (final typeString in specString.split('|')) {
       if (typeString == '=List') {
         enqueuer.registerInstantiatedClass(compiler.listClass);

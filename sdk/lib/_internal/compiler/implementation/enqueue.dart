@@ -5,16 +5,16 @@
 part of dart2js;
 
 class EnqueueTask extends CompilerTask {
-  final Enqueuer codegen;
-  final Enqueuer resolution;
+  final ResolutionEnqueuer resolution;
+  final CodegenEnqueuer codegen;
 
   String get name => 'Enqueue';
 
   EnqueueTask(Compiler compiler)
-    : codegen = new Enqueuer('codegen enqueuer', compiler,
-                             compiler.backend.createItemCompilationContext),
-      resolution = new Enqueuer('resolution enqueuer', compiler,
-                                compiler.backend.createItemCompilationContext),
+    : resolution = new ResolutionEnqueuer(
+          compiler, compiler.backend.createItemCompilationContext),
+      codegen = new CodegenEnqueuer(
+          compiler, compiler.backend.createItemCompilationContext),
       super(compiler) {
     codegen.task = this;
     resolution.task = this;
@@ -25,22 +25,12 @@ class EnqueueTask extends CompilerTask {
   }
 }
 
-class Enqueuer {
+abstract class Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
   final Function itemCompilationContextCreator;
   final Map<String, Link<Element>> instanceMembersByName;
   final Set<ClassElement> seenClasses;
-  final Universe universe;
-  final Queue<WorkItem> queue;
-
-  /**
-   * Map from declaration elements to the [TreeElements] object holding the
-   * resolution mapping for the element implementation.
-   *
-   * Invariant: Key elements are declaration elements.
-   */
-  final Map<Element, TreeElements> resolvedElements;
 
   bool queueIsClosed = false;
   EnqueueTask task;
@@ -50,32 +40,15 @@ class Enqueuer {
            ItemCompilationContext itemCompilationContextCreator())
     : this.itemCompilationContextCreator = itemCompilationContextCreator,
       instanceMembersByName = new Map<String, Link<Element>>(),
-      seenClasses = new Set<ClassElement>(),
-      universe = new Universe(),
-      queue = new Queue<WorkItem>(),
-      resolvedElements = new Map<Element, TreeElements>();
+      seenClasses = new Set<ClassElement>();
 
-  bool get isResolutionQueue => identical(compiler.enqueuer.resolution, this);
+  Universe get universe;
 
-  TreeElements getCachedElements(Element element) {
-    // TODO(ngeoffray): Get rid of this check.
-    if (element.enclosingElement.isClosure()) {
-      closureMapping.ClosureClassElement cls = element.enclosingElement;
-      element = cls.methodElement;
-    }
-    Element owner = element.getOutermostEnclosingMemberOrTopLevel();
-    return compiler.enqueuer.resolution.resolvedElements[owner.declaration];
-  }
+  /// Returns [:true:] if this enqueuer is the resolution enqueuer.
+  bool get isResolutionQueue => false;
 
-  /**
-   * Unit test hook that returns code of an element as a String.
-   *
-   * Invariant: [element] must be a declaration element.
-   */
-  String lookupCode(Element element) {
-    assert(invariant(element, element.isDeclaration));
-    return js.prettyPrint(universe.generatedCode[element], compiler).getText();
-  }
+  /// Returns [:true:] if [member] has been processed by this enqueuer.
+  bool isProcessed(Element member);
 
   /**
    * Documentation wanted -- johnniwinther
@@ -85,18 +58,8 @@ class Enqueuer {
   void addToWorkList(Element element, [TreeElements elements]) {
     assert(invariant(element, element.isDeclaration));
     if (element.isForeign(compiler)) return;
-    if (queueIsClosed) {
-      if (isResolutionQueue && getCachedElements(element) != null) return;
-      compiler.internalErrorOnElement(element, "Work list is closed.");
-    }
-    if (elements == null) {
-      elements = getCachedElements(element);
-    }
-    if (isResolutionQueue) {
-      compiler.world.registerUsedElement(element);
-    }
 
-    queue.add(new WorkItem(element, elements, itemCompilationContextCreator()));
+    if (!addElementToWorkList(element, elements)) return;
 
     // Enable runtime type support if we discover a getter called runtimeType.
     // We have to enable runtime type before hitting the codegen, so
@@ -110,28 +73,17 @@ class Enqueuer {
       compiler.enabledInvokeOn = true;
     }
 
-    // Enable isolate support if we start using something from the
-    // isolate library.
-    LibraryElement library = element.getLibrary();
-    if (!compiler.hasIsolateSupport()
-        && library.uri.toString() == 'dart:isolate') {
-      compiler.enableIsolateSupport(library);
-    }
-
     nativeEnqueuer.registerElement(element);
   }
 
   /**
-   * Documentation wanted -- johnniwinther
+   * Adds [element] to the work list if it has not already been processed.
    *
-   * Invariant: [element] must be a declaration element.
+   * Returns [:true:] if the [element] should be processed.
    */
-  void eagerRecompile(Element element) {
-    assert(invariant(element, element.isDeclaration));
-    universe.generatedCode.remove(element);
-    universe.generatedBailoutCode.remove(element);
-    addToWorkList(element);
-  }
+  // TODO(johnniwinther): Change to 'Returns true if the element was added to
+  // the work list'?
+  bool addElementToWorkList(Element element, [TreeElements elements]);
 
   void registerInstantiatedClass(ClassElement cls) {
     if (universe.instantiatedClasses.contains(cls)) return;
@@ -165,8 +117,7 @@ class Enqueuer {
    */
   void processInstantiatedClassMember(ClassElement cls, Element member) {
     assert(invariant(member, member.isDeclaration));
-    if (universe.generatedCode.containsKey(member)) return;
-    if (resolvedElements[member] != null) return;
+    if (isProcessed(member)) return;
     if (!member.isInstanceMember()) return;
     if (member.isField()) {
       // Native fields need to go into instanceMembersByName as they are virtual
@@ -182,7 +133,7 @@ class Enqueuer {
 
     if (member.kind == ElementKind.FUNCTION) {
       if (member.name == Compiler.NO_SUCH_METHOD) {
-        compiler.enableNoSuchMethod(member);
+        enableNoSuchMethod(member);
       }
       if (universe.hasInvocation(member, compiler)) {
         return addToWorkList(member);
@@ -231,6 +182,8 @@ class Enqueuer {
       }
     }
   }
+
+  void enableNoSuchMethod(Element element) {}
 
   void onRegisterInstantiatedClass(ClassElement cls) {
     task.measure(() {
@@ -378,6 +331,192 @@ class Enqueuer {
     registerInvokedSetter(methodName, selector);
   }
 
+  void registerIsCheck(DartType type) {
+    universe.isChecks.add(type);
+  }
+
+  void forEach(f(WorkItem work));
+
+  void logSummary(log(message)) {
+    _logSpecificSummary(log);
+    nativeEnqueuer.logSummary(log);
+  }
+
+  /// Log summary specific to the concrete enqueuer.
+  void _logSpecificSummary(log(message));
+
+  String toString() => 'Enqueuer($name)';
+}
+
+/// [Enqueuer] which is specific to resolution.
+class ResolutionEnqueuer extends Enqueuer {
+  final ResolutionUniverse universe;
+
+  /**
+   * Map from declaration elements to the [TreeElements] object holding the
+   * resolution mapping for the element implementation.
+   *
+   * Invariant: Key elements are declaration elements.
+   */
+  final Map<Element, TreeElements> resolvedElements;
+
+  final Queue<ResolutionWorkItem> queue;
+
+  ResolutionEnqueuer(Compiler compiler,
+                     ItemCompilationContext itemCompilationContextCreator())
+      : super('resolution enqueuer', compiler, itemCompilationContextCreator),
+        resolvedElements = new Map<Element, TreeElements>(),
+        universe = new ResolutionUniverse(),
+        queue = new Queue<ResolutionWorkItem>();
+
+  bool get isResolutionQueue => true;
+
+  bool isProcessed(Element member) => resolvedElements.containsKey(member);
+
+  TreeElements getCachedElements(Element element) {
+    // TODO(ngeoffray): Get rid of this check.
+    if (element.enclosingElement.isClosure()) {
+      closureMapping.ClosureClassElement cls = element.enclosingElement;
+      element = cls.methodElement;
+    }
+    Element owner = element.getOutermostEnclosingMemberOrTopLevel();
+    return resolvedElements[owner.declaration];
+  }
+
+  /**
+   * Sets the resolved elements of [element] to [elements], or if [elements] is
+   * [:null:], to the elements found through [getCachedElements].
+   *
+   * Returns the resolved elements.
+   */
+  TreeElements ensureCachedElements(Element element, TreeElements elements) {
+    if (elements == null) {
+      elements = getCachedElements(element);
+    }
+    resolvedElements[element] = elements;
+    return elements;
+  }
+
+  bool addElementToWorkList(Element element, [TreeElements elements]) {
+    if (queueIsClosed) {
+      if (getCachedElements(element) != null) return false;
+      throw new SpannableAssertionFailure(element,
+                                          "Resolution work list is closed.");
+    }
+    if (elements == null) {
+      elements = getCachedElements(element);
+    }
+    compiler.world.registerUsedElement(element);
+
+    if (elements == null) {
+      queue.add(
+          new ResolutionWorkItem(element, itemCompilationContextCreator()));
+    }
+
+    // Enable isolate support if we start using something from the
+    // isolate library.
+    LibraryElement library = element.getLibrary();
+    if (!compiler.hasIsolateSupport()
+        && library.uri.toString() == 'dart:isolate') {
+      enableIsolateSupport(library);
+    }
+
+    return true;
+  }
+
+  void enableIsolateSupport(LibraryElement element) {
+    compiler.isolateLibrary = element.patch;
+    addToWorkList(
+        compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE));
+    addToWorkList(compiler.isolateHelperLibrary.find(
+        const SourceString('_currentIsolate')));
+    addToWorkList(compiler.isolateHelperLibrary.find(
+        const SourceString('_callInIsolate')));
+  }
+
+  void enableNoSuchMethod(Element element) {
+    if (compiler.enabledNoSuchMethod) return;
+    if (identical(element.getEnclosingClass(), compiler.objectClass)) {
+      registerDynamicInvocationOf(element);
+      return;
+    }
+    compiler.enabledNoSuchMethod = true;
+    Selector selector = new Selector.noSuchMethod();
+    registerInvocation(Compiler.NO_SUCH_METHOD, selector);
+
+    compiler.createInvocationMirrorElement =
+        compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);
+    addToWorkList(compiler.createInvocationMirrorElement);
+  }
+
+  void forEach(f(WorkItem work)) {
+    while (!queue.isEmpty) {
+      // TODO(johnniwinther): Find an optimal process order for resolution.
+      f(queue.removeLast());
+    }
+  }
+
+  void registerJsCall(Send node, ResolverVisitor resolver) {
+    nativeEnqueuer.registerJsCall(node, resolver);
+  }
+
+  void _logSpecificSummary(log(message)) {
+    log('Resolved ${resolvedElements.length} elements.');
+  }
+}
+
+/// [Enqueuer] which is specific to code generation.
+class CodegenEnqueuer extends Enqueuer {
+  final CodegenUniverse universe;
+
+  final Queue<CodegenWorkItem> queue;
+
+  CodegenEnqueuer(Compiler compiler,
+                  ItemCompilationContext itemCompilationContextCreator())
+      : super('codegen enqueuer', compiler, itemCompilationContextCreator),
+        universe = new CodegenUniverse(),
+        queue = new Queue<CodegenWorkItem>();
+
+  bool isProcessed(Element member) =>
+      universe.generatedCode.containsKey(member);
+
+  /**
+   * Unit test hook that returns code of an element as a String.
+   *
+   * Invariant: [element] must be a declaration element.
+   */
+  String assembleCode(Element element) {
+    assert(invariant(element, element.isDeclaration));
+    return js.prettyPrint(universe.generatedCode[element], compiler).getText();
+  }
+
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [element] must be a declaration element.
+   */
+  void eagerRecompile(Element element) {
+    assert(invariant(element, element.isDeclaration));
+    universe.generatedCode.remove(element);
+    universe.generatedBailoutCode.remove(element);
+    addToWorkList(element);
+  }
+
+  bool addElementToWorkList(Element element, [TreeElements elements]) {
+    if (queueIsClosed) {
+      throw new SpannableAssertionFailure(element,
+                                          "Codegen work list is closed.");
+    }
+    elements =
+        compiler.enqueuer.resolution.ensureCachedElements(element, elements);
+
+    CodegenWorkItem workItem = new CodegenWorkItem(
+        element, elements, itemCompilationContextCreator());
+    queue.add(workItem);
+
+    return true;
+  }
+
   void registerFieldGetter(SourceString getterName,
                            LibraryElement library,
                            DartType type) {
@@ -400,27 +539,14 @@ class Enqueuer {
     });
   }
 
-  void registerIsCheck(DartType type) {
-    universe.isChecks.add(type);
-  }
-
-  void registerJsCall(Send node, ResolverVisitor resolver) {
-    nativeEnqueuer.registerJsCall(node, resolver);
-  }
-  
-
   void forEach(f(WorkItem work)) {
-    while (!queue.isEmpty) {
-      f(queue.removeLast()); // TODO(kasperl): Why isn't this removeFirst?
+    while(!queue.isEmpty) {
+      // TODO(johnniwinther): Find an optimal process order for codegen.
+      f(queue.removeLast());
     }
   }
 
-  String toString() => 'Enqueuer($name)';
-
-  void logSummary(log(message)) {
-    log(isResolutionQueue
-        ? 'Resolved ${resolvedElements.length} elements.'
-        : 'Compiled ${universe.generatedCode.length} methods.');
-    nativeEnqueuer.logSummary(log);
+  void _logSpecificSummary(log(message)) {
+    log('Compiled ${universe.generatedCode.length} methods.');
   }
 }

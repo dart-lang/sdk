@@ -37,9 +37,13 @@ String compile(String code, {String entry: 'main',
   compiler.backend.enqueueHelpers(compiler.enqueuer.resolution);
   compiler.processQueue(compiler.enqueuer.resolution, element);
   var context = new js.JavaScriptItemCompilationContext();
-  leg.WorkItem work = new leg.WorkItem(element, null, context);
+  leg.ResolutionWorkItem resolutionWork =
+      new leg.ResolutionWorkItem(element, context);
+  resolutionWork.run(compiler, compiler.enqueuer.resolution);
+  leg.CodegenWorkItem work =
+      new leg.CodegenWorkItem(element, resolutionWork.resolutionTree, context);
   work.run(compiler, compiler.enqueuer.codegen);
-  return compiler.enqueuer.codegen.lookupCode(element);
+  return compiler.enqueuer.codegen.assembleCode(element);
 }
 
 MockCompiler compilerFor(String code, Uri uri, {bool analyzeAll: false}) {
@@ -111,7 +115,7 @@ int length(Link link) => link.isEmpty ? 0 : length(link.tail) + 1;
 void compileAndMatchFuzzy(String code, String entry, String regexp) {
   compileAndMatchFuzzyHelper(code, entry, regexp, true);
 }
- 
+
 void compileAndDoNotMatchFuzzy(String code, String entry, String regexp) {
   compileAndMatchFuzzyHelper(code, entry, regexp, false);
 }

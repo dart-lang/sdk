@@ -19,20 +19,6 @@ class Universe {
   /**
    * Documentation wanted -- johnniwinther
    *
-   * Invariant: Key elements are declaration elements.
-   */
-  Map<Element, js.Expression> generatedCode;
-
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: Key elements are declaration elements.
-   */
-  Map<Element, js.Expression> generatedBailoutCode;
-
-  /**
-   * Documentation wanted -- johnniwinther
-   *
    * Invariant: Elements are declaration elements.
    */
   // TODO(karlklose): these sets should be merged.
@@ -48,31 +34,15 @@ class Universe {
   final Map<SourceString, Set<Selector>> invokedNames;
   final Map<SourceString, Set<Selector>> invokedGetters;
   final Map<SourceString, Set<Selector>> invokedSetters;
-  final Map<SourceString, Set<Selector>> fieldGetters;
-  final Map<SourceString, Set<Selector>> fieldSetters;
   final Set<DartType> isChecks;
 
-  Universe() : generatedCode = new Map<Element, js.Expression>(),
-               generatedBailoutCode = new Map<Element, js.Expression>(),
-               instantiatedClasses = new Set<ClassElement>(),
+  Universe() : instantiatedClasses = new Set<ClassElement>(),
                instantiatedTypes = new Set<DartType>(),
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
                invokedNames = new Map<SourceString, Set<Selector>>(),
                invokedGetters = new Map<SourceString, Set<Selector>>(),
                invokedSetters = new Map<SourceString, Set<Selector>>(),
-               fieldGetters = new Map<SourceString, Set<Selector>>(),
-               fieldSetters = new Map<SourceString, Set<Selector>>(),
                isChecks = new Set<DartType>();
-
-  void addGeneratedCode(WorkItem work, js.Expression code) {
-    assert(invariant(work.element, work.element.isDeclaration));
-    generatedCode[work.element] = code;
-  }
-
-  void addBailoutCode(WorkItem work, js.Expression code) {
-    assert(invariant(work.element, work.element.isDeclaration));
-    generatedBailoutCode[work.element] = code;
-  }
 
   bool hasMatchingSelector(Set<Selector> selectors,
                            Element member,
@@ -94,6 +64,46 @@ class Universe {
 
   bool hasInvokedSetter(Element member, Compiler compiler) {
     return hasMatchingSelector(invokedSetters[member.name], member, compiler);
+  }
+}
+
+/// [Universe] which is specific to resolution.
+class ResolutionUniverse extends Universe {
+}
+
+/// [Universe] which is specific to code generation.
+class CodegenUniverse extends Universe {
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Key elements are declaration elements.
+   */
+  Map<Element, js.Expression> generatedCode;
+
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Key elements are declaration elements.
+   */
+  Map<Element, js.Expression> generatedBailoutCode;
+
+  final Map<SourceString, Set<Selector>> fieldGetters;
+  final Map<SourceString, Set<Selector>> fieldSetters;
+
+  CodegenUniverse()
+      : generatedCode = new Map<Element, js.Expression>(),
+        generatedBailoutCode = new Map<Element, js.Expression>(),
+        fieldGetters = new Map<SourceString, Set<Selector>>(),
+        fieldSetters = new Map<SourceString, Set<Selector>>();
+
+  void addGeneratedCode(CodegenWorkItem work, js.Expression code) {
+    assert(invariant(work.element, work.element.isDeclaration));
+    generatedCode[work.element] = code;
+  }
+
+  void addBailoutCode(CodegenWorkItem work, js.Expression code) {
+    assert(invariant(work.element, work.element.isDeclaration));
+    generatedBailoutCode[work.element] = code;
   }
 
   bool hasFieldGetter(Element member, Compiler compiler) {

@@ -1419,7 +1419,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       inCatchBlock = false,
       super(compiler);
 
-  Enqueuer get world => compiler.enqueuer.resolution;
+  ResolutionEnqueuer get world => compiler.enqueuer.resolution;
 
   Element lookup(Node node, SourceString name) {
     Element result = scope.lookup(name);
