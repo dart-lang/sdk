@@ -167,6 +167,47 @@ class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName HTMLAppletElement; @docsEditable true
+class AppletElement extends Element native "*HTMLAppletElement" {
+
+  /// @domName HTMLAppletElement.align; @docsEditable true
+  String align;
+
+  /// @domName HTMLAppletElement.alt; @docsEditable true
+  String alt;
+
+  /// @domName HTMLAppletElement.archive; @docsEditable true
+  String archive;
+
+  /// @domName HTMLAppletElement.code; @docsEditable true
+  String code;
+
+  /// @domName HTMLAppletElement.codeBase; @docsEditable true
+  String codeBase;
+
+  /// @domName HTMLAppletElement.height; @docsEditable true
+  String height;
+
+  /// @domName HTMLAppletElement.hspace; @docsEditable true
+  String hspace;
+
+  /// @domName HTMLAppletElement.name; @docsEditable true
+  String name;
+
+  /// @domName HTMLAppletElement.object; @docsEditable true
+  String object;
+
+  /// @domName HTMLAppletElement.vspace; @docsEditable true
+  String vspace;
+
+  /// @domName HTMLAppletElement.width; @docsEditable true
+  String width;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName DOMApplicationCache; @docsEditable true
 class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 

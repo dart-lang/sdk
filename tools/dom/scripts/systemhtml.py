@@ -327,10 +327,6 @@ class HtmlDartInterfaceGenerator(object):
   def GenerateInterface(self):
     interface_name = self._interface_type_info.interface_name()
 
-    # Check the interface to see if should be removed.
-    if self._renamer.FindInterface(interface_name):
-      return None
-
     factory_provider = None
     if interface_name in interface_factories:
       factory_provider = interface_factories[interface_name]
