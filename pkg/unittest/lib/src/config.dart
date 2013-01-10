@@ -38,7 +38,7 @@ class Configuration {
    */
   void onInit() {
     _receivePort = new ReceivePort();
-    notifyController('unittest-suite-wait-for-done');
+    _postMessage('unittest-suite-wait-for-done');
   }
 
   /** Called as soon as the unittest framework starts running. */
@@ -134,7 +134,7 @@ class Configuration {
    */
   void onDone(bool success) {
     if (success) {
-      notifyController('unittest-suite-success');
+      _postMessage('unittest-suite-success');
       _receivePort.close();
     } else {
       _receivePort.close();
@@ -166,7 +166,11 @@ class Configuration {
    * compact_vm_config), can safely override this method to avoid printing extra
    * mesages in the console.
    */
+  // TODO(sigmund): find a way to unify notifyController and _postMessage
   void notifyController(String message) {
+  }
+
+  _postMessage(String message) {
     // In dart2js browser tests, the JavaScript-based test controller
     // intercepts calls to print and listens for "secret" messages.
     print(message);
