@@ -67,6 +67,7 @@
     'code_observers.cc',
     'code_observers.h',
     'code_patcher.h',
+    'code_patcher.cc',
     'code_patcher_arm.cc',
     'code_patcher_ia32.cc',
     'code_patcher_ia32_test.cc',

@@ -2020,17 +2020,24 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 
 
 // Calls to runtime to ooptimized give function
-// EDX: function to be reoptimized.
-// EAX: result of function being optimized (preserved).
+// EDI: function to be reoptimized.
+// EDX: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   AssemblerMacros::EnterStubFrame(assembler);
-  __ pushl(EAX);
   __ pushl(EDX);
+  __ pushl(raw_null);  // Setup space on stack for return value.
+  __ pushl(EDI);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
-  __ popl(EDX);
-  __ popl(EAX);
+  __ popl(EAX);  // Discard argument.
+  __ popl(EAX);  // Get Code object
+  __ popl(EDX);  // Restore argument descriptor.
+  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ LeaveFrame();
-  __ ret();
+  __ jmp(EAX);
+  __ int3();
 }
 
 

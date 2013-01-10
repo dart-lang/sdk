@@ -240,6 +240,8 @@ class FlowGraphCompiler : public ValueObject {
                                                 Register index);
 
  private:
+  void EmitFrameEntry();
+
   void AddStaticCallTarget(const Function& function);
 
   void GenerateDeferredCode();

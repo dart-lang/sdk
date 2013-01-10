@@ -1339,15 +1339,18 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 
 // This is called from function that needs to be optimized.
 // The requesting function can be already optimized (reoptimization).
+// Returns the Code object where to continue execution.
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(arguments.ArgCount() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
   const intptr_t kLowInvocationCount = -100000000;
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
+  ASSERT(!function.IsNull());
   if (isolate->debugger()->HasBreakpoint(function)) {
     // We cannot set breakpoints in optimized code, so do not optimize
     // the function.
     function.set_usage_counter(0);
+    arguments.SetReturn(Code::Handle(function.CurrentCode()));
     return;
   }
   if (function.deoptimization_counter() >=
@@ -1357,12 +1360,14 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     }
     // TODO(srdjan): Investigate excessive deoptimization.
     function.set_usage_counter(kLowInvocationCount);
+    arguments.SetReturn(Code::Handle(function.CurrentCode()));
     return;
   }
   if ((FLAG_optimization_filter != NULL) &&
       (strstr(function.ToFullyQualifiedCString(),
               FLAG_optimization_filter) == NULL)) {
     function.set_usage_counter(kLowInvocationCount);
+    arguments.SetReturn(Code::Handle(function.CurrentCode()));
     return;
   }
   if (function.is_optimizable()) {
@@ -1383,6 +1388,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // TODO(5442338): Abort as this should not happen.
     function.set_usage_counter(kLowInvocationCount);
   }
+  arguments.SetReturn(Code::Handle(function.CurrentCode()));
 }
 
 

@@ -2249,6 +2249,7 @@ class PcDescriptors : public Object {
   enum Kind {
     kDeoptBefore = 0,  // Deoptimization continuation point before instruction.
     kDeoptAfter,       // Deoptimization continuation point after instruction.
+    kEntryPatch,       // Location where to patch entry.
     kPatchCode,        // Buffer for patching code entry.
     kLazyDeoptJump,    // Lazy deoptimization trampoline.
     kIcCall,           // IC call.

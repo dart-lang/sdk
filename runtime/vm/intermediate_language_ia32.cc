@@ -60,11 +60,10 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* ReturnInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(EAX));
-  locs->set_temp(0, Location::RegisterLocation(EDX));
   return locs;
 }
 
@@ -73,50 +72,8 @@ LocationSummary* ReturnInstr::MakeLocationSummary() const {
 // The entry needs to be patchable, no inlined objects are allowed in the area
 // that will be overwritten by the patch instruction: a jump).
 void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Function& function =
-      Function::ZoneHandle(compiler->parsed_function().function().raw());
   Register result = locs()->in(0).reg();
-  Register func_reg = locs()->temp(0).reg();
   ASSERT(result == EAX);
-  if (compiler->is_optimizing()) {
-    if (compiler->may_reoptimize()) {
-      // Increment of counter occurs only in optimized IC calls, as they
-      // can cause reoptimization.
-      Label done;
-      __ LoadObject(func_reg, function);
-      __ cmpl(FieldAddress(func_reg, Function::usage_counter_offset()),
-          Immediate(FLAG_optimization_counter_threshold));
-      __ j(LESS, &done, Assembler::kNearJump);
-      // Equal (or greater), optimize. Note that counter can reach equality
-      // only at return instruction.
-      // The stub call preserves result register (EAX).
-      ASSERT(func_reg == EDX);
-      compiler->GenerateCall(0,  // no token position.
-                             &StubCode::OptimizeFunctionLabel(),
-                             PcDescriptors::kOther,
-                             locs());
-      __ Bind(&done);
-    }
-  } else {
-    __ LoadObject(func_reg, function);
-    __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
-    if (compiler->CanOptimizeFunction() &&
-        compiler->parsed_function().function().is_optimizable()) {
-      // Do not optimize if usage count must be reported.
-      __ cmpl(FieldAddress(func_reg, Function::usage_counter_offset()),
-          Immediate(FLAG_optimization_counter_threshold));
-      Label not_yet_hot;
-      __ j(LESS, &not_yet_hot, Assembler::kNearJump);
-      // Equal (or greater), optimize.
-      // The stub call preserves result register (EAX).
-      ASSERT(func_reg == EDX);
-      compiler->GenerateCall(0,  // no token position.
-                             &StubCode::OptimizeFunctionLabel(),
-                             PcDescriptors::kOther,
-                             locs());
-      __ Bind(&not_yet_hot);
-    }
-  }
 #if defined(DEBUG)
   // TODO(srdjan): Fix for functions with finally clause.
   // A finally clause may leave a previously pushed return value if it

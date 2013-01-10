@@ -178,6 +178,31 @@ void FlowGraphCompiler::InitCompiler() {
   block_info_.Clear();
   for (int i = 0; i < block_order_.length(); ++i) {
     block_info_.Add(new BlockInfo());
+    if (is_optimizing()) {
+      BlockEntryInstr* entry = block_order_[i];
+      for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+        Instruction* current = it.Current();
+        const ICData* ic_data = NULL;
+        if (current->IsBranch()) {
+          current = current->AsBranch()->comparison();
+        }
+        // In optimized code, ICData is always set in the instructions.
+        if (current->IsInstanceCall()) {
+          ic_data = current->AsInstanceCall()->ic_data();
+          ASSERT(ic_data != NULL);
+        } else if (current->IsRelationalOp()) {
+          ic_data = current->AsRelationalOp()->ic_data();
+          ASSERT(ic_data != NULL);
+        } else if (current->IsEqualityCompare()) {
+          ic_data = current->AsEqualityCompare()->ic_data();
+          ASSERT(ic_data != NULL);
+        }
+        if ((ic_data != NULL) && (ic_data->NumberOfChecks() == 0)) {
+          may_reoptimize_ = true;
+          break;
+        }
+      }
+    }
   }
 }
 
@@ -516,7 +541,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     }
     // Emit IC call that will count and thus may need reoptimization at
     // return instruction.
-    may_reoptimize_ = true;
+    ASSERT(!is_optimizing() || may_reoptimize());
     switch (ic_data.num_args_tested()) {
       case 1:
         label_address = StubCode::OneArgOptimizedCheckInlineCacheEntryPoint();

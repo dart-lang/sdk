@@ -6580,6 +6580,7 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
     case PcDescriptors::kDeoptBefore:   return "deopt-before ";
     case PcDescriptors::kDeoptAfter:    return "deopt-after  ";
+    case PcDescriptors::kEntryPatch:    return "entry-patch  ";
     case PcDescriptors::kPatchCode:     return "patch        ";
     case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
     case PcDescriptors::kIcCall:        return "ic-call      ";
@@ -7273,7 +7274,7 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const {
     if ((descriptors.DeoptId(i) == deopt_id) &&
         (descriptors.DescriptorKind(i) == kind)) {
       uword pc = descriptors.PC(i);
-      ASSERT((EntryPoint() < pc) && (pc < (EntryPoint() + Size())));
+      ASSERT((EntryPoint() <= pc) && (pc < (EntryPoint() + Size())));
       return pc;
     }
   }

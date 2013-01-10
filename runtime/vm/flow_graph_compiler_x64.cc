@@ -19,10 +19,11 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
+DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, use_sse41);
-DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
@@ -865,6 +866,39 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
+void FlowGraphCompiler::EmitFrameEntry() {
+  const Function& function = parsed_function().function();
+  if (CanOptimizeFunction() && function.is_optimizable()) {
+    const bool can_optimize = !is_optimizing() || may_reoptimize();
+    const Register function_reg = RDI;
+    if (can_optimize) {
+      __ LoadObject(function_reg, function);
+    }
+    // Patch point is after the eventually inlined function object.
+    AddCurrentDescriptor(PcDescriptors::kEntryPatch,
+                         Isolate::kNoDeoptId,
+                         0);  // No token position.
+    if (can_optimize) {
+      // Reoptimization of optimized function is triggered by counting in
+      // IC stubs, but not at the entry of the function.
+      if (!is_optimizing()) {
+        __ incq(FieldAddress(function_reg, Function::usage_counter_offset()));
+      }
+      __ cmpq(FieldAddress(function_reg, Function::usage_counter_offset()),
+          Immediate(FLAG_optimization_counter_threshold));
+      ASSERT(function_reg == RDI);
+      __ j(GREATER_EQUAL, &StubCode::OptimizeFunctionLabel());
+    }
+  } else {
+    AddCurrentDescriptor(PcDescriptors::kEntryPatch,
+                     Isolate::kNoDeoptId,
+                     0);  // No token position.
+  }
+  __ Comment("Enter frame");
+  AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
+}
+
+
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
   if (TryIntrinsify()) {
@@ -876,14 +910,14 @@ void FlowGraphCompiler::CompileGraph() {
     __ jmp(&StubCode::FixCallersTargetLabel());
     return;
   }
-  // Specialized version of entry code from CodeGenerator::GenerateEntryCode.
+
+  EmitFrameEntry();
+
   const Function& function = parsed_function().function();
 
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_copied_params = parsed_function().num_copied_params();
   const int num_locals = parsed_function().num_stack_locals();
-  __ Comment("Enter frame");
-  AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
 
   // For optimized code, keep a bitmap of the frame in order to build
   // stackmaps for GC safepoints in the prologue.
@@ -1072,7 +1106,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // to inlining in optimized code, that function may not correspond to the
   // top-level function (parsed_function().function()) which could be
   // reoptimized and which counter needs to be incremented.
-  // Pass the function explicitly.
+  // Pass the function explicitly, it is used in IC stub.
   __ LoadObject(RDI, parsed_function().function());
   __ LoadObject(RBX, ic_data);
   __ LoadObject(R10, arguments_descriptor);
