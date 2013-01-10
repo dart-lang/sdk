@@ -12,3 +12,6 @@
 
 [ $system == windows ]
 io_test: Fail, Pass, Timeout # Issue 7505
+
+[ $system == linux ]
+pub_lish_test: Pass, Fail # Issue 7819
