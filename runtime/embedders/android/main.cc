@@ -14,26 +14,33 @@ SoundService* psound_service;
 void android_main(android_app* application) {
   Timer timer;
   Graphics graphics(application, &timer);
-  VMGlue vmGlue(&graphics);
-  InputService inputService(application, &vmGlue,
+  VMGlue vm_glue(&graphics);
+  InputService input_handler(application, &vm_glue,
       graphics.width(), graphics.height());
   SoundService sound_service(application);
-  psound_service = &sound_service;
-  Context context;
-  context.graphics = &graphics;
-  context.input_handler = &inputService;
-  context.sound_service = psound_service;
-  context.timer = &timer;
-  context.vm_glue = &vmGlue;
+  Context app_context;
+  app_context.graphics = &graphics;
+  app_context.input_handler = &input_handler;
+  app_context.sound_service = &sound_service;
+  app_context.timer = &timer;
+  app_context.vm_glue = &vm_glue;
   EventLoop eventLoop(application);
-  DartHost host(&context);
-  eventLoop.Run(&host, &context);
+  DartHost host(&app_context);
+  eventLoop.Run(&host, &app_context);
 }
 
-void PlayBackground(const char* path) {
-  psound_service->PlayBackground(path);
+int32_t PlayBackgroundSound(const char* path) {
+  return psound_service->PlayBackground(path);
 }
 
-void StopBackground() {
+void StopBackgroundSound() {
   psound_service->StopBackground();
+}
+
+int32_t LoadSoundSample(const char* path) {
+  return psound_service->LoadSample(path);
+}
+
+int32_t PlaySoundSample(const char* path) {
+  return psound_service->PlaySample(path);
 }

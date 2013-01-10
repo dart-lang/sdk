@@ -9,6 +9,8 @@
 
 #include "embedders/android/log.h"
 
+extern void CheckGLError(const char *function);
+
 Graphics::Graphics(android_app* application, Timer* timer)
     : application_(application),
       timer_(timer),
@@ -62,7 +64,7 @@ int32_t Graphics::Start() {
                   width_ > 0 &&
                   eglQuerySurface(display_, surface_, EGL_HEIGHT, &height_) &&
                   height_ > 0) {
-                glViewport(0, 0, width_, height_);
+                SetViewport(0, 0, width_, height_);
                 return 0;
               }
             }
@@ -96,3 +98,64 @@ void Graphics::Stop() {
 int32_t Graphics::Update() {
   return 0;
 }
+
+void Graphics::SwapBuffers() {
+  EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+  EGLSurface surface = eglGetCurrentSurface(EGL_DRAW);
+  eglSwapBuffers(display, surface);
+}
+
+void Graphics::SetViewport(int left, int top, int width, int height) {
+  glViewport(left, top, width, height);
+  CheckGLError("glViewPort");
+}
+
+int Graphics::BuildProgram(const char* vertexShaderSource,
+                                 const char* fragmentShaderSource) const {
+  int vertexShader = BuildShader(vertexShaderSource, GL_VERTEX_SHADER);
+  int fragmentShader = BuildShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
+  if (vertexShader < 0 || fragmentShader < 0) {
+    return -1;
+  }
+
+  GLuint programHandle = glCreateProgram();
+  glAttachShader(programHandle, static_cast<GLuint>(vertexShader));
+  glAttachShader(programHandle, static_cast<GLuint>(fragmentShader));
+  glLinkProgram(programHandle);
+
+  GLint linkSuccess;
+  glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
+  if (linkSuccess == GL_FALSE) {
+    GLint infoLogLength;
+    glGetProgramiv(programHandle, GL_INFO_LOG_LENGTH, &infoLogLength);
+    GLchar* strInfoLog = new GLchar[infoLogLength + 1];
+    glGetProgramInfoLog(programHandle, infoLogLength, NULL, strInfoLog);
+    strInfoLog[infoLogLength] = 0;
+    LOGE("Link failed: %s", strInfoLog);
+    delete[] strInfoLog;
+    return -1;
+  }
+  return static_cast<int>(programHandle);
+}
+
+int Graphics::BuildShader(const char* source, GLenum shaderType) const {
+  GLuint shaderHandle = glCreateShader(shaderType);
+  glShaderSource(shaderHandle, 1, &source, NULL);
+  glCompileShader(shaderHandle);
+
+  GLint compileSuccess;
+  glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compileSuccess);
+
+  if (compileSuccess == GL_FALSE) {
+    GLint infoLogLength = 0;
+    glGetShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &infoLogLength);
+    GLchar* strInfoLog = new GLchar[infoLogLength + 1];
+    glGetShaderInfoLog(shaderHandle, infoLogLength, NULL, strInfoLog);
+    strInfoLog[infoLogLength] = 0;
+    LOGE("Shader compile failed: %s", strInfoLog);
+    delete [] strInfoLog;
+    return -1;
+  }
+  return static_cast<int>(shaderHandle);
+}
+

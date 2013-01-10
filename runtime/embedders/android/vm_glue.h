@@ -25,7 +25,8 @@ class VMGlue {
   void FinishMainIsolate();
 
  private:
-  int Invoke(const char *function, int argc, Dart_Handle* args);
+  int Invoke(const char *function, int argc, Dart_Handle* args,
+             bool failIfNotDefined = true);
 
   static int ErrorExit(const char* format, ...);
   static Dart_Handle CheckError(Dart_Handle);

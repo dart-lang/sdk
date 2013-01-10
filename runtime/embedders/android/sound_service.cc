@@ -14,7 +14,11 @@ SoundService::SoundService(android_app* application)
       output_mix_(NULL),
       background_player_(NULL),
       background_player_if_(NULL),
-      background_player_seek_if_(NULL) {
+      background_player_seek_if_(NULL),
+      sample_player_(NULL),
+      sample_player_if_(NULL),
+      sample_player_queue_(NULL),
+      samples_() {
 }
 
 int32_t SoundService::Start() {
@@ -24,17 +28,25 @@ int32_t SoundService::Start() {
   const SLboolean k_engine_mix_reqs[] = { SL_BOOLEAN_TRUE };
   const SLInterfaceID k_output_mix_IIDs[] = {};
   const SLboolean k_output_mix_reqs[] = {};
-  if (slCreateEngine(&engine_, 0, NULL, 1, k_engine_mix_IIDs, k_engine_mix_reqs)
-      == SL_RESULT_SUCCESS &&
-      (*engine_)->Realize(engine_, SL_BOOLEAN_FALSE) == SL_RESULT_SUCCESS &&
-      (*engine_)->GetInterface(engine_, SL_IID_ENGINE, &engine_if_) ==
-          SL_RESULT_SUCCESS &&
-      (*engine_if_)->CreateOutputMix(engine_if_, &output_mix_, 0,
-                                    k_output_mix_IIDs, k_output_mix_reqs) ==
-          SL_RESULT_SUCCESS &&
-      (*output_mix_)->Realize(output_mix_, SL_BOOLEAN_FALSE) ==
-          SL_RESULT_SUCCESS) {
-    return 0;
+  int32_t res = slCreateEngine(&engine_, 0, NULL, 1,
+                               k_engine_mix_IIDs, k_engine_mix_reqs);
+  if (res == SL_RESULT_SUCCESS) {
+    res = (*engine_)->Realize(engine_, SL_BOOLEAN_FALSE);
+    if (res == SL_RESULT_SUCCESS) {
+      res = (*engine_)->GetInterface(engine_, SL_IID_ENGINE, &engine_if_);
+      if (res == SL_RESULT_SUCCESS) {
+        res = (*engine_if_)->CreateOutputMix(engine_if_, &output_mix_, 0,
+                                  k_output_mix_IIDs, k_output_mix_reqs);
+        if (res == SL_RESULT_SUCCESS) {
+          res = (*output_mix_)->Realize(output_mix_, SL_BOOLEAN_FALSE);
+          if (res == SL_RESULT_SUCCESS) {
+            if (StartSamplePlayer() == 0) {
+              return 0;
+            }
+          }
+        }
+      }
+    }
   }
   LOGI("Failed to start SoundService");
   Stop();
@@ -52,70 +64,87 @@ void SoundService::Stop() {
     engine_ = NULL;
     engine_if_ = NULL;
   }
+  if (sample_player_ != NULL) {
+    (*sample_player_)->Destroy(sample_player_);
+    sample_player_ = NULL;
+    sample_player_if_ = NULL;
+    sample_player_queue_ = NULL;
+  }
+  samples_.clear();
+}
+
+int32_t SoundService::CreateAudioPlayer(SLEngineItf engine_if,
+                                        const SLInterfaceID extra_if,
+                                        SLDataSource data_source,
+                                        SLDataSink data_sink,
+                                        SLObjectItf& player_out,
+                                        SLPlayItf& player_if_out) {
+  const SLuint32 SoundPlayerIIDCount = 2;
+  const SLInterfaceID SoundPlayerIIDs[] = { SL_IID_PLAY, extra_if };
+  const SLboolean SoundPlayerReqs[] = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
+  int32_t res = (*engine_if)->CreateAudioPlayer(engine_if,
+                                                &player_out,
+                                                &data_source,
+                                                &data_sink,
+                                                SoundPlayerIIDCount,
+                                                SoundPlayerIIDs,
+                                                SoundPlayerReqs);
+
+  if (res == SL_RESULT_SUCCESS) {
+    res = (*player_out)->Realize(player_out, SL_BOOLEAN_FALSE);
+    if (res == SL_RESULT_SUCCESS) {
+      res = (*player_out)->GetInterface(sample_player_,
+                                            SL_IID_PLAY,
+                                            &player_if_out);
+      if (res == SL_RESULT_SUCCESS) {
+        return 0;
+      }
+    }
+  }
+  return -1;
 }
 
 int32_t SoundService::PlayBackground(const char* path) {
+  LOGI("Creating audio player");
+
   Resource resource(application_, path);
-  if (resource.open() < 0) {
+  int fd = resource.descriptor();
+  if (fd < 0) {
     LOGI("Could not open file %s", path);
     return -1;
   }
-  LOGI("Saving FD data");
-  SLDataLocator_AndroidFD data_locator_in;
-  data_locator_in.locatorType = SL_DATALOCATOR_ANDROIDFD;
-  data_locator_in.fd = resource.descriptor();
-  data_locator_in.offset = resource.start();
-  data_locator_in.length = resource.length();
-  resource.close();
 
-  LOGI("Init data format");
-  SLDataFormat_MIME data_format;
-  data_format.formatType = SL_DATAFORMAT_MIME;
-  data_format.mimeType = NULL;
-  data_format.containerType = SL_CONTAINERTYPE_UNSPECIFIED;
+  SLDataLocator_AndroidFD data_locator_in = {
+      SL_DATALOCATOR_ANDROIDFD,
+      fd,
+      resource.start(),
+      resource.length()
+  };
+  SLDataFormat_MIME data_format = {
+      SL_DATAFORMAT_MIME,
+      NULL,
+      SL_CONTAINERTYPE_UNSPECIFIED
+  };
+  SLDataSource data_source = { &data_locator_in, &data_format };
 
-  LOGI("Init data source");
-  SLDataSource data_source;
-  data_source.pLocator = &data_locator_in;
-  data_source.pFormat = &data_format;
+  resource.Close();
 
-  LOGI("Init out locator");
-  SLDataLocator_OutputMix data_locator_out;
-  data_locator_out.locatorType = SL_DATALOCATOR_OUTPUTMIX;
-  data_locator_out.outputMix = output_mix_;
+  SLDataLocator_OutputMix data_locator_out =
+      { SL_DATALOCATOR_OUTPUTMIX, output_mix_ };
+  SLDataSink data_sink = { &data_locator_out, NULL };
 
-  LOGI("Init data sink");
-  SLDataSink data_sink;
-  data_sink.pLocator = &data_locator_out;
-  data_sink.pFormat = NULL;
+  int32_t res = CreateAudioPlayer(engine_if_,
+                                  SL_IID_SEEK,
+                                  data_source,
+                                  data_sink,
+                                  background_player_,
+                                  background_player_if_);
 
-  const SLInterfaceID k_background_player_IIDs[] = { SL_IID_PLAY, SL_IID_SEEK };
-  const SLboolean k_background_player_reqs[] =
-      { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
-
-  LOGI("Creating audio player");
-  if ((*engine_if_)->
-          CreateAudioPlayer(engine_if_, &background_player_,
-                            &data_source, &data_sink, 2,
-                            k_background_player_IIDs,
-                            k_background_player_reqs) != SL_RESULT_SUCCESS) {
+  if (res != SL_RESULT_SUCCESS) {
     LOGE("Couldn't create audio player");
     return -1;
   }
-  LOGI("Created audio player");
-  if ((*background_player_)->
-          Realize(background_player_, SL_BOOLEAN_FALSE) != SL_RESULT_SUCCESS) {
-    LOGE("Couldn't realize audio player");
-    return -1;
-  }
-  LOGI("Realized audio player");
-  if ((*background_player_)->
-          GetInterface(background_player_, SL_IID_PLAY,
-                       &background_player_if_) != SL_RESULT_SUCCESS) {
-    LOGE("Couldn't get player interface");
-    return -1;
-  }
-  LOGI("Got player interface");
+
   if ((*background_player_)->
           GetInterface(background_player_, SL_IID_SEEK,
                        &background_player_seek_if_) != SL_RESULT_SUCCESS) {
@@ -155,3 +184,93 @@ void SoundService::StopBackground() {
     }
   }
 }
+
+int32_t SoundService::StartSamplePlayer() {
+  SLDataLocator_AndroidSimpleBufferQueue data_locator_in = {
+    SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
+    1
+  };
+
+  SLDataFormat_PCM data_format= {
+    SL_DATAFORMAT_PCM,
+    1,
+    SL_SAMPLINGRATE_44_1,
+    SL_PCMSAMPLEFORMAT_FIXED_16,
+    SL_PCMSAMPLEFORMAT_FIXED_16,
+    SL_SPEAKER_FRONT_CENTER,
+    SL_BYTEORDER_LITTLEENDIAN
+  };
+
+  SLDataSource data_source = { &data_locator_in, &data_format };
+
+  SLDataLocator_OutputMix data_locator_out =
+      { SL_DATALOCATOR_OUTPUTMIX, output_mix_ };
+  SLDataSink data_sink = { &data_locator_out, NULL };
+
+  int32_t res = CreateAudioPlayer(engine_if_, SL_IID_BUFFERQUEUE,
+                                  data_source,
+                                  data_sink,
+                                  sample_player_, sample_player_if_);
+
+  if (res == SL_RESULT_SUCCESS) {
+    res = (*sample_player_)->GetInterface(sample_player_,
+                                          SL_IID_BUFFERQUEUE,
+                                          &sample_player_queue_);
+    if (res == SL_RESULT_SUCCESS) {
+      res = (*sample_player_if_)->SetPlayState(sample_player_if_,
+                                               SL_PLAYSTATE_PLAYING);
+      if (res == SL_RESULT_SUCCESS) {
+        return 0;
+      }
+    }
+  }
+  LOGE("Error while starting sample player");
+  return -1;
+}
+
+Sample* SoundService::GetSample(const char* path) {
+  for (samples_t::iterator sp = samples_.begin();
+       sp != samples_.end();
+       ++sp) {
+    Sample* sample = (*sp);
+    if (strcmp(sample->path(), path) == 0) {
+      return sample;
+    }
+  }
+  Sample* sample = new Sample(application_, path);
+  if (sample->Load() != 0) {
+    LOGI("Failed to load sample %s", path);
+    delete sample;
+    return NULL;
+  }
+  samples_.push_back(sample);
+  return sample;
+}
+
+int32_t SoundService::PlaySample(const char* path) {
+  SLuint32 state;
+  (*sample_player_)->GetState(sample_player_, &state);
+  if (state != SL_OBJECT_STATE_REALIZED) {
+    LOGE("Sample player has not been realized");
+  } else {
+    Sample* sample = GetSample(path);
+    if (sample != NULL) {
+      int16_t* buffer = reinterpret_cast<int16_t*>(sample->buffer_);
+      off_t len = sample->length_;
+
+      // Remove any current sample.
+      int32_t res = (*sample_player_queue_)->Clear(sample_player_queue_);
+      if (res == SL_RESULT_SUCCESS) {
+        res = (*sample_player_queue_)->Enqueue(sample_player_queue_,
+                                               buffer, len);
+        if (res == SL_RESULT_SUCCESS) {
+          return 0;
+        }
+        LOGE("Enqueueing sample failed");
+      }
+    }
+  }
+  return -1;
+}
+
+

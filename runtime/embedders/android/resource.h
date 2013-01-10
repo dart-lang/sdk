@@ -17,7 +17,7 @@ class Resource {
            asset_(NULL),
            descriptor_(-1),
            start_(0),
-           length_(0) {
+           length_(-1) {
     }
 
     const char* path() {
@@ -25,7 +25,14 @@ class Resource {
     }
 
     int32_t descriptor() {
-      return descriptor_;
+      if (Open() == 0) {
+        descriptor_ = AAsset_openFileDescriptor(asset_, &start_, &length_);
+        LOGI("%s has start %d, length %d, fd %d",
+             path_, static_cast<int>(start_), static_cast<int>(length_),
+             descriptor_);
+        return descriptor_;
+      }
+      return -1;
     }
 
     off_t start() {
@@ -33,29 +40,30 @@ class Resource {
     }
 
     off_t length() {
+      if (length_ < 0) {
+        length_ = AAsset_getLength(asset_);
+      }
       return length_;
     }
 
-    int32_t open() {
+    int32_t Open() {
+      LOGI("Attempting to open asset %s", path_);
       asset_ = AAssetManager_open(asset_manager_, path_, AASSET_MODE_UNKNOWN);
       if (asset_ != NULL) {
-        descriptor_ = AAsset_openFileDescriptor(asset_, &start_, &length_);
-        LOGI("%s has start %d, length %d, fd %d",
-             path_, static_cast<int>(start_),
-             static_cast<int>(length_), descriptor_);
         return 0;
       }
+      LOGE("Could not open asset %s", path_);
       return -1;
     }
 
-    void close() {
+    void Close() {
       if (asset_ != NULL) {
         AAsset_close(asset_);
         asset_ = NULL;
       }
     }
 
-    int32_t read(void* buffer, size_t count) {
+    int32_t Read(void* buffer, size_t count) {
       size_t actual = AAsset_read(asset_, buffer, count);
       return (actual == count) ? 0 : -1;
     }

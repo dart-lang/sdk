@@ -7,6 +7,8 @@
 
 #include <android_native_app_glue.h>
 #include <EGL/egl.h>
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 
 #include "embedders/android/timer.h"
 
@@ -18,7 +20,12 @@ class Graphics {
     const int32_t& width();
     int32_t Start();
     void Stop();
+    void SwapBuffers();
     int32_t Update();
+    void SetViewport(int left, int top, int width, int height);
+    int BuildProgram(const char* vertexShaderSource,
+                        const char* fragmentShaderSource) const;
+    int BuildShader(const char* source, GLenum shaderType) const;
 
   private:
     android_app* application_;

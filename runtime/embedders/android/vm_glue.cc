@@ -36,7 +36,7 @@ int VMGlue::ErrorExit(const char* format, ...) {
 
 Dart_Handle VMGlue::CheckError(Dart_Handle handle) {
   if (Dart_IsError(handle)) {
-    LOGE("Unexpected Error Handle");
+    LOGE("Unexpected Error Handle: %s", Dart_GetError(handle));
     Dart_PropagateError(handle);
   }
   return handle;
@@ -63,8 +63,8 @@ Dart_Handle VMGlue::LibraryTagHandler(Dart_LibraryTag tag,
   // Touch, Audio, etc.  All builtin libraries should be handled here
   // (or moved into a snapshot).
   if (strcmp(url, "android_extension.dart") == 0) {
-    Dart_Handle source =
-        VMGlue::LoadSourceFromFile("/data/data/com.google.dartndk/app_dart/android_extension.dart");
+    Dart_Handle source = VMGlue::LoadSourceFromFile(
+        "/data/data/com.google.dartndk/app_dart/android_extension.dart");
     Dart_Handle library = CheckError(Dart_LoadLibrary(urlHandle, source));
     CheckError(Dart_SetNativeResolver(library, ResolveName));
     return library;
@@ -111,7 +111,7 @@ bool VMGlue::CreateIsolateAndSetup(const char* script_uri,
 #define MAINSCRIPT  "/data/data/com.google.dartndk/app_dart/main.dart"
 
 const char* VM_FLAGS[] = {
-  "--enable_type_checks",
+  "--enable_type_checks",  // TODO(gram): This should be an option!
   "--trace_isolates",
   "--trace_natives",
 };
@@ -152,7 +152,7 @@ Dart_Handle VMGlue::LoadSourceFromFile(const char* url) {
   int length = sb.st_size;
   LOGI("Entry file %s is %d bytes.\n", url, length);
 
-  char* buffer = reinterpret_cast<char *>(malloc((length + 1) * sizeof(char)));
+  char* buffer = new char[length+1];
   if (read(fd, buffer, length) < 0) {
     LOGE("Could not read script %s.\n", url);
     return NULL;
@@ -161,7 +161,7 @@ Dart_Handle VMGlue::LoadSourceFromFile(const char* url) {
   fclose(file);
 
   Dart_Handle contents = CheckError(Dart_NewStringFromCString(buffer));
-  free(buffer);
+  delete[] buffer;
   return contents;
 }
 
@@ -194,7 +194,7 @@ int VMGlue::StartMainIsolate() {
 int VMGlue::CallSetup() {
   if (!initialized_script_) {
     initialized_script_ = true;
-    LOGI("Invoking setup");
+    LOGI("Invoking setup(0,0,%d,%d)", graphics_->width(), graphics_->height());
     Dart_EnterIsolate(isolate_);
     Dart_EnterScope();
     Dart_Handle args[2];
@@ -233,7 +233,7 @@ int VMGlue::OnMotionEvent(const char* pFunction, int64_t pWhen,
     args[0] = CheckError(Dart_NewInteger(pWhen));
     args[1] = CheckError(Dart_NewDouble(pMoveX));
     args[2] = CheckError(Dart_NewDouble(pMoveY));
-    int rtn = Invoke(pFunction, 3, args);
+    int rtn = Invoke(pFunction, 3, args, false);
     Dart_ExitScope();
     Dart_ExitIsolate();
     LOGI("Done %s", pFunction);
@@ -254,7 +254,7 @@ int VMGlue::OnKeyEvent(const char* function, int64_t when, int32_t flags,
     args[2] = CheckError(Dart_NewInteger(key_code));
     args[3] = CheckError(Dart_NewInteger(meta_state));
     args[4] = CheckError(Dart_NewInteger(repeat));
-    int rtn = Invoke(function, 5, args);
+    int rtn = Invoke(function, 5, args, false);
     Dart_ExitScope();
     Dart_ExitIsolate();
     LOGI("Done %s", function);
@@ -263,9 +263,10 @@ int VMGlue::OnKeyEvent(const char* function, int64_t when, int32_t flags,
   return -1;
 }
 
-int VMGlue::Invoke(const char* function, int argc, Dart_Handle* args) {
-  Dart_Handle result;
-
+int VMGlue::Invoke(const char* function,
+                   int argc,
+                   Dart_Handle* args,
+                   bool failIfNotDefined) {
   LOGI("in invoke(%s)", function);
 
   // Lookup the library of the root script.
@@ -275,13 +276,17 @@ int VMGlue::Invoke(const char* function, int argc, Dart_Handle* args) {
      return ErrorExit("Unable to find root library\n");
   }
 
-  // Lookup and invoke the appropriate function.
+  Dart_Handle nameHandle = Dart_NewStringFromCString(function);
+
   LOGI("invoking %s", function);
-  result =
-      Dart_Invoke(library, Dart_NewStringFromCString(function), argc, args);
+  Dart_Handle result = Dart_Invoke(library, nameHandle, argc, args);
 
   if (Dart_IsError(result)) {
-    return ErrorExit("%s\n", Dart_GetError(result));
+    if (failIfNotDefined) {
+      return ErrorExit("Invoke %s: %s\n", function, Dart_GetError(result));
+    } else {
+      LOGE("Invoke %s: %s", function, Dart_GetError(result));
+    }
   }
 
   // TODO(vsm): I don't think we need this.
@@ -289,7 +294,7 @@ int VMGlue::Invoke(const char* function, int argc, Dart_Handle* args) {
   LOGI("Entering Dart message loop");
   result = Dart_RunLoop();
   if (Dart_IsError(result)) {
-    return ErrorExit("%s\n", Dart_GetError(result));
+    return ErrorExit("Dart_RunLoop: %s\n", Dart_GetError(result));
   }
 
   LOGI("out invoke");

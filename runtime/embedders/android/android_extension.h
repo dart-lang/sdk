@@ -9,7 +9,9 @@
 
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc);
 
-void PlayBackground(const char* path);
-void StopBackground();
+extern int32_t PlayBackgroundSound(const char* path);
+extern void StopBackgroundSound();
+extern int32_t LoadSoundSample(const char* path);
+extern int32_t PlaySoundSample(const char* path);
 
 #endif  // EMBEDDERS_ANDROID_ANDROID_EXTENSION_H_
