@@ -153,8 +153,7 @@ class ArchiveInputStream {
     }).then((_) {
       if (entry.isInputOpen) return entry.inputComplete;
       return new Future.immediate(null);
-    });
-    future.whenComplete(() {
+    }).whenComplete(() {
       _currentEntry = null;
       entry.close();
     });

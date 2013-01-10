@@ -73,7 +73,7 @@ class SystemCache {
     if (pending != null) return pending;
 
     var future = id.source.installToSystemCache(id)
-        .whenComplete(() => _pendingInstalls.remove(id));
+        .whenComplete(() { _pendingInstalls.remove(id); });
     _pendingInstalls[id] = future;
     return future;
   }

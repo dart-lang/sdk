@@ -420,17 +420,16 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
       var result = _action();
       if (result is Future) {
         Future resultFuture = result;
-        result.then((_) {
+        resultFuture.then((_) {
           _setValue(value);
-        }, onError: (AsyncError e) {
-          _setError(e);
-        });
+        }, onError: _setError);
         return;
       }
     } catch (e, s) {
       _setError(new AsyncError(e, s));
       return;
     }
+
     _setValue(value);
   }
 
@@ -439,13 +438,10 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
       var result = _action();
       if (result is Future) {
         Future resultFuture = result;
-        result.then((_) {
+        // TODO(lrn): Find a way to combine [error] into [e].
+        resultFuture.then((_) {
           _setError(error);
-        }, onError: (AsyncError e) {
-          // TODO(lrn): Find a way to combine error into the
-          // resulting error.
-          _setError(e);
-        });
+        }, onError: _setError);
         return;
       }
     } catch (e, s) {
@@ -475,9 +471,9 @@ class _FutureWrapper<T> implements Future<T> {
     return _future.catchError(function, test: test);
   }
 
-  Future whenComplete(action()) {
+  Future<T> whenComplete(action()) {
     return _future.whenComplete(action);
   }
 
-  Stream<T> asStream() => new Stream.fromFuture(this);
+  Stream<T> asStream() => new Stream.fromFuture(_future);
 }
