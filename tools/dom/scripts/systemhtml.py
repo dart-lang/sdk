@@ -497,6 +497,15 @@ class Dart2JSBackend(HtmlDartGenerator):
     return js_support_checks.get(self._interface.doc_js_name)
 
   def EmitStaticFactory(self, constructor_info):
+    WITH_CUSTOM_STATIC_FACTORY = [
+        'AudioContext',
+        'Blob',
+        'MutationObserver',
+    ]
+
+    if self._interface.doc_js_name in WITH_CUSTOM_STATIC_FACTORY:
+      return
+
     has_optional = any(param_info.is_optional
         for param_info in constructor_info.param_infos)
 

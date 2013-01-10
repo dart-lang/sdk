@@ -8,6 +8,9 @@ part of web_audio;
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 $if DART2JS
+  static AudioContext _create() => JS('AudioContext',
+      'new (window.AudioContext || window.webkitAudioContext)()');
+
   GainNode createGain() {
     if (JS('bool', '#.createGain !== undefined', this)) {
       return JS('GainNode', '#.createGain()', this);

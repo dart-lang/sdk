@@ -151,8 +151,6 @@ class AudioContext extends EventTarget native "*AudioContext" {
 
   ///@docsEditable true
   factory AudioContext() => AudioContext._create();
-  static AudioContext _create() => JS('AudioContext',
-      'new (window.AudioContext || window.webkitAudioContext)()');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AudioContextEvents get on =>
@@ -226,6 +224,9 @@ class AudioContext extends EventTarget native "*AudioContext" {
 
   /// @domName AudioContext.startRendering; @docsEditable true
   void startRendering() native;
+
+  static AudioContext _create() => JS('AudioContext',
+      'new (window.AudioContext || window.webkitAudioContext)()');
 
   GainNode createGain() {
     if (JS('bool', '#.createGain !== undefined', this)) {

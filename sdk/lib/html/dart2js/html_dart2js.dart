@@ -576,7 +576,7 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Blob; @docsEditable true
+/// @domName Blob
 class Blob native "*Blob" {
 
   ///@docsEditable true
@@ -589,6 +589,16 @@ class Blob native "*Blob" {
     }
     return Blob._create(blobParts, type, endings);
   }
+
+  /// @domName Blob.size; @docsEditable true
+  final int size;
+
+  /// @domName Blob.type; @docsEditable true
+  final String type;
+
+  /// @domName Blob.slice; @docsEditable true
+  Blob slice([int start, int end, String contentType]) native;
+
   static Blob _create([List blobParts = null, String type, String endings]) {
     // TODO: validate that blobParts is a JS Array and convert if not.
     // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
@@ -607,16 +617,8 @@ class Blob native "*Blob" {
 
   static _create_bag() => JS('var', '{}');
   static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
-
-  /// @domName Blob.size; @docsEditable true
-  final int size;
-
-  /// @domName Blob.type; @docsEditable true
-  final String type;
-
-  /// @domName Blob.slice; @docsEditable true
-  Blob slice([int start, int end, String contentType]) native;
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13985,15 +13987,6 @@ class MutationObserver native "*MutationObserver" {
 
   ///@docsEditable true
   factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
-  static MutationObserver _create(MutationCallback callback) {
-    // Dummy statement to mark types as instantiated.
-    JS('MutationObserver|MutationRecord', '0');
-
-    return JS('MutationObserver',
-        'new(window.MutationObserver||window.WebKitMutationObserver||'
-        'window.MozMutationObserver)(#)',
-        convertDartClosureToJS(callback, 2));
-  }
 
   /// @domName MutationObserver.disconnect; @docsEditable true
   void disconnect() native;
@@ -14080,6 +14073,16 @@ class MutationObserver native "*MutationObserver" {
   // Call native function with no conversions.
   @JSName('observe')
   void _call(target, options) native;
+
+  static MutationObserver _create(MutationCallback callback) {
+    // Dummy statement to mark types as instantiated.
+    JS('MutationObserver|MutationRecord', '0');
+
+    return JS('MutationObserver',
+        'new(window.MutationObserver||window.WebKitMutationObserver||'
+        'window.MozMutationObserver)(#)',
+        convertDartClosureToJS(callback, 2));
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -327,14 +327,7 @@ class HtmlDartGenerator(object):
             inits.Emit('    if ($E != null) e.$E = $E;\n', E=param_info.name)
 
     if not constructor_info.pure_dart_constructor:
-      template_file = ('factoryprovider_%s.darttemplate' % self._interface.doc_js_name)
-      template = self._template_loader.TryLoad(template_file)
-      if template:
-        # There is a class specific factory.
-        # TODO(antonm): should move into the class template.
-        self._members_emitter.Emit(template)
-      else:
-        self.EmitStaticFactory(constructor_info)
+      self.EmitStaticFactory(constructor_info)
 
   def EmitHelpers(self, base_class):
     pass
