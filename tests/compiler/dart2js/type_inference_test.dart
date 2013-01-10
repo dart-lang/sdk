@@ -29,13 +29,14 @@ foo(int a) {
 
 const String TEST_THREE = r"""
 foo(a) {
-  print([]);
+  print([]); // Force a list to be instantiated.
   for (int b = 0; b < 10; b++) print(a[b]);
 }
 """;
 
 const String TEST_FOUR = r"""
-foo(String a) {
+foo(a) {
+  print([]); // Force a list to be instantiated.
   print(a[0]); // Force a type guard.
   while (true) print(a.length);
 }
@@ -50,7 +51,7 @@ foo(a) {
 
 const String TEST_FIVE_WITH_BAILOUT = r"""
 foo(a) {
-  print([]);
+  print([]); // Force a list to be instantiated.
   for (int i = 0; i < 1; i++) {
     a[0] = 1;
     print(a[1]);
@@ -60,7 +61,7 @@ foo(a) {
 
 const String TEST_SIX = r"""
 foo(a) {
-  print([]);
+  print([]); // Force a list to be instantiated.
   print(a[0]);
   while (true) {
     a[0] = a[1];

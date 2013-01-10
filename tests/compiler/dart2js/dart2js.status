@@ -6,7 +6,6 @@ identity_test: Fail # Issue 6638
 constant_folding_string_test: Fail
 pretty_parameter_test: Fail # TODO(floitsch): investigate.
 tree_shaking_test: Fail # Issue 4811
-for_in_test: Fail # http://dartbug.com/7727
 
 [ $checked ]
 field_type_inferer_test: Slow, Pass # Issue 6658.

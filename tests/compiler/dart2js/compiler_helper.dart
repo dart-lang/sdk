@@ -22,12 +22,14 @@ import "parser_helper.dart";
 
 String compile(String code, {String entry: 'main',
                              String coreSource: DEFAULT_CORELIB,
+                             String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
                              bool enableTypeAssertions: false,
                              bool minify: false,
                              bool analyzeAll: false}) {
   MockCompiler compiler =
       new MockCompiler(enableTypeAssertions: enableTypeAssertions,
                        coreSource: coreSource,
+                       interceptorsSource: interceptorsSource,
                        enableMinification: minify);
   compiler.parseScript(code);
   lego.Element element = compiler.mainApp.find(buildSourceString(entry));

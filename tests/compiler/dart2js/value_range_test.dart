@@ -221,9 +221,36 @@ const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
   class Dynamic_ {}
   bool identical(Object a, Object b) {}''';
 
+const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
+  class JSArray {
+    var length;
+    var removeLast;
+    operator[] (_) {}
+  }
+  class JSString {
+    var length;
+  }
+  class JSNumber {
+  }
+  class JSInt {
+  }
+  class JSDouble {
+  }
+  class JSNull {
+  }
+  class JSBool {
+  }
+  class JSFunction {
+  }
+  class ObjectInterceptor {
+  }
+  getInterceptor(x) {}''';
+
 expect(String code, int kind) {
-  String generated =
-      compile(code, coreSource: DEFAULT_CORELIB_WITH_LIST_INTERFACE);
+  String generated = compile(
+      code,
+      coreSource: DEFAULT_CORELIB_WITH_LIST_INTERFACE,
+      interceptorsSource: INTERCEPTORSLIB_WITH_MEMBERS);
   switch (kind) {
     case REMOVED:
       Expect.isTrue(!generated.contains('ioore'));

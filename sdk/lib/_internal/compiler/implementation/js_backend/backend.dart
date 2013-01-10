@@ -781,20 +781,20 @@ class JavaScriptBackend extends Backend {
       jsBoolClass = compiler.findInterceptor(const SourceString('JSBool'))];
 
     jsArrayClass.ensureResolved(compiler);
-    jsArrayLength =
-        jsArrayClass.lookupLocalMember(const SourceString('length'));
-    jsArrayRemoveLast =
-        jsArrayClass.lookupLocalMember(const SourceString('removeLast'));
-    jsArrayAdd =
-        jsArrayClass.lookupLocalMember(const SourceString('add'));
+    jsArrayLength = compiler.lookupElementIn(
+        jsArrayClass, const SourceString('length'));
+    jsArrayRemoveLast = compiler.lookupElementIn(
+        jsArrayClass, const SourceString('removeLast'));
+    jsArrayAdd = compiler.lookupElementIn(
+        jsArrayClass, const SourceString('add'));
 
     jsStringClass.ensureResolved(compiler);
-    jsStringLength =
-        jsStringClass.lookupLocalMember(const SourceString('length'));
-    jsStringSplit =
-        jsStringClass.lookupLocalMember(const SourceString('split'));
-    jsStringConcat =
-        jsStringClass.lookupLocalMember(const SourceString('concat'));
+    jsStringLength = compiler.lookupElementIn(
+        jsStringClass, const SourceString('length'));
+    jsStringSplit = compiler.lookupElementIn(
+        jsStringClass, const SourceString('split'));
+    jsStringConcat = compiler.lookupElementIn(
+        jsStringClass, const SourceString('concat'));
 
     for (ClassElement cls in classes) {
       if (cls != null) interceptedClasses[cls] = null;

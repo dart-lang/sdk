@@ -46,6 +46,5 @@ main() {
   Expect.isTrue(generated.contains("return 3;"));
 
   generated = compile(TEST_FOUR, entry: 'foo');
-  // TODO(6829): Re-enable this test.
-  // Expect.isTrue(generated.contains("push(2);"));
+  Expect.isTrue(generated.contains("push(2);"));
 }

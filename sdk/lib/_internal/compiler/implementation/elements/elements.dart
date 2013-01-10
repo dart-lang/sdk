@@ -429,7 +429,8 @@ class ErroneousElement extends Element implements FunctionElement {
 }
 
 /**
- * An ambiguous element represent multiple elements accessible by the same name.
+ * An ambiguous element represents multiple elements accessible by the same
+ * name.
  *
  * Ambiguous elements are created during handling of import/export scopes. If an
  * ambiguous element is encountered during resolution a warning/error should be

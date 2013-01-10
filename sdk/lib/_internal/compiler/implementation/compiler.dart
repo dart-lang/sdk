@@ -960,6 +960,14 @@ abstract class Compiler implements DiagnosticListener {
   Element findInterceptor(SourceString name)
       => interceptorsLibrary.findLocal(name);
 
+  Element lookupElementIn(ScopeContainerElement container, SourceString name) {
+    Element element = container.localLookup(name);
+    if (element == null) {
+      throw 'Could not find ${name.slowToString()} in $container';
+    }
+    return element;
+  }
+
   bool get isMockCompilation => false;
 
   Token processAndStripComments(Token currentToken) {

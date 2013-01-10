@@ -52,9 +52,11 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSArray {
     var length;
     operator[](index) {}
+    var add;
   }
   class JSString {
     var length;
+    operator[](index) {}
   }
   class JSNumber {
   }
@@ -232,6 +234,13 @@ class MockCompiler extends Compiler {
     SourceFile sourceFile = sourceFiles[uri.toString()];
     if (sourceFile == null) throw new ArgumentError(uri);
     return new Script(uri, sourceFile);
+  }
+
+  Element lookupElementIn(ScopeContainerElement container, SourceString name) {
+    Element element = container.localLookup(name);
+    return element != null
+        ? element
+        : new ErroneousElement(null, null, name, container);
   }
 }
 
