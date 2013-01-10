@@ -323,8 +323,6 @@ call_test: Fail # Issue 1604
 *: Skip
 
 [ $compiler == dart2dart ]
-class_cycle_test/02: Fail # Issue 7468 inherited from dart2js.
-class_cycle_test/03: Fail # Issue 7468 inherited from dart2js.
 built_in_identifier_prefix_test: Fail # Inherited from dart2js.
 const_factory_redirection_test: Fail # http://dartbug.com/6894
 compile_time_constant_h_test: Fail

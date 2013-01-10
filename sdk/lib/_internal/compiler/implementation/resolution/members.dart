@@ -2780,6 +2780,22 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           TypeAnnotation typeAnnotation = link.head;
           error(typeAnnotation.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
         } else {
+          if (interfaceType == element.supertype) {
+            compiler.reportMessage(
+                compiler.spanFromNode(node.superclass),
+                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
+                Diagnostic.ERROR);
+            compiler.reportMessage(
+                compiler.spanFromNode(link.head),
+                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
+                Diagnostic.ERROR);
+          }
+          if (interfaces.contains(interfaceType)) {
+            compiler.reportMessage(
+                compiler.spanFromNode(link.head),
+                MessageKind.DUPLICATE_IMPLEMENTS.error([interfaceType]),
+                Diagnostic.ERROR);
+          }
           interfaces = interfaces.prepend(interfaceType);
           if (isBlackListed(interfaceType)) {
             error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);

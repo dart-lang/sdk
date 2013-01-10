@@ -94,8 +94,6 @@ compile_time_constant_checked3_test/06: Fail, OK
 call_operator_test: Fail # Issue 7622.
 class_literal_test: Fail # Issue 7626.
 identical_closure2_test: Fail # Issues 563, 1533
-class_cycle_test/02: Fail # Issue 7468.
-class_cycle_test/03: Fail # Issue 7468.
 invocation_mirror_test: Fail
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6972
 number_identity2_test: Fail # Issue 563: identity of NaN

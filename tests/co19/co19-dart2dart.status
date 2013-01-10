@@ -124,7 +124,6 @@ Language/07_Classes/07_Classes_A04_t21: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t22: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t24: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t25: Fail # inherited from dart2js
-Language/07_Classes/10_Superinterfaces_A04_t01: Fail # http://dartbug.com/5519
 Language/07_Classes/1_Instance_Methods_A02_t02: Fail # http://dartbug.com/5519
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail # http://dartbug.com/5519
 Language/07_Classes/1_Instance_Methods_A06_t01: Fail # Inherited from dart2js

@@ -200,6 +200,12 @@ class MessageKind {
   static const CANNOT_IMPLEMENT = const MessageKind(
       "#{1} cannot be implemented");
 
+  static const DUPLICATE_EXTENDS_IMPLEMENTS = const MessageKind(
+      "Error: #{1} can not be both extended and implemented.");
+
+  static const DUPLICATE_IMPLEMENTS = const MessageKind(
+      "Error: #{1} must not occur more than once in the implements clause.");
+
   static const ILLEGAL_SUPER_SEND = const MessageKind(
       "#{1} cannot be called on super");
 

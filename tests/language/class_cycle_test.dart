@@ -12,12 +12,20 @@ class C {
 class Bar
     extends Foo  /// 00: compile-time error
     implements Foo  /// 01: compile-time error
-    implements C, C  /// 02: compile-time error
-    extends C implements C  /// 03: compile-time error
 {
 }
 
+class ImplementsC implements C
+, C  /// 02: compile-time error
+{}
+
+class ExtendsC extends C
+implements C  /// 03: compile-time error
+{}
+
 main() {
   Expect.isTrue(new Foo() is Foo);
+  Expect.isTrue(new ImplementsC() is C);
+  Expect.isTrue(new ExtendsC() is C);
 }
 
