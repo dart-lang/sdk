@@ -869,33 +869,13 @@ class Dart2JSBackend(HtmlDartGenerator):
           TARGET=target,
           PARAMS=', '.join(target_parameters))
 
-    def GenerateChecksAndCall(operation, argument_count):
-      GenerateCall(operation, argument_count,
-          self._OverloadChecks(
-            operation,
-            parameter_names,
-            argument_count,
-            can_omit_type_check=lambda type, pos: type == parameter_types[pos]))
-
-    # TODO: Optimize the dispatch to avoid repeated checks.
-    if len(operations) > 1:
-      for operation in operations:
-        for position, argument in enumerate(operation.arguments):
-          if self._IsOptional(operation, argument):
-            GenerateChecksAndCall(operation, position)
-        GenerateChecksAndCall(operation, len(operation.arguments))
-      body.Emit(
-          '    throw new ArgumentError("Incorrect number or type of arguments");'
-          '\n');
-    else:
-      operation = operations[0]
-      argument_count = len(operation.arguments)
-      for position, argument in list(enumerate(operation.arguments))[::-1]:
-        if self._IsOptional(operation, argument):
-          check = '?%s' % parameter_names[position]
-          GenerateCall(operation, position + 1, [check])
-          argument_count = position
-      GenerateCall(operation, argument_count, [])
+    self._GenerateDispatcherBody(
+        body,
+        operations,
+        parameter_names,
+        GenerateCall,
+        self._IsOptional,
+        can_omit_type_check=lambda type, pos: type == parameter_types[pos])
 
   def _AddInterfaceOperation(self, info, html_name):
     self._members_emitter.Emit(

@@ -1406,7 +1406,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     if ((imagedata_OR_sw is num || imagedata_OR_sw == null) && (sh is num || sh == null)) {
       return _createImageData_2(imagedata_OR_sw, sh);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -1428,7 +1428,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     if ((canvas_OR_image is ImageElement || canvas_OR_image == null) && (repetitionType is String || repetitionType == null)) {
       return _createPattern_2(canvas_OR_image, repetitionType);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -1480,7 +1480,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
       _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -1576,7 +1576,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
       _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -1676,7 +1676,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
       _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -6238,7 +6238,7 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
       _add_2(data_OR_file, type);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -13294,7 +13294,7 @@ class InputElement extends _Element_Merged implements
       _setRangeText_2(replacement, start, end, selectionMode);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -19073,7 +19073,7 @@ class RtcDataChannel extends EventTarget {
       _send_4(data);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -21707,7 +21707,7 @@ class TextAreaElement extends _Element_Merged {
       _setRangeText_2(replacement, start, end, selectionMode);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -23581,7 +23581,7 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -24644,7 +24644,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
       _bufferData_3(target, data_OR_size, usage);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -24668,7 +24668,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
       _bufferSubData_2(target, offset, data);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -25052,7 +25052,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
       _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -25104,7 +25104,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
       _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -25554,7 +25554,7 @@ class WebSocket extends EventTarget {
       _send_7(data);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 

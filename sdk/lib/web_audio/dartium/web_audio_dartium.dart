@@ -192,7 +192,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
       _start_3(when, grainOffset, grainDuration);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -264,7 +264,7 @@ class AudioContext extends EventTarget {
     if ((buffer_OR_numberOfChannels is ArrayBuffer || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is bool || mixToMono_OR_numberOfFrames == null) && !?sampleRate) {
       return _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -504,7 +504,7 @@ class AudioNode extends NativeFieldWrapperClass1 {
       _connect_2(destination, output);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 

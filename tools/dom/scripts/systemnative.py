@@ -488,34 +488,12 @@ class DartiumBackend(HtmlDartGenerator):
           dart_declaration, 'Callback', False)
       self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
 
-    def GenerateChecksAndCall(operation, argument_count):
-      GenerateCall(operation, argument_count,
-          self._OverloadChecks(operation, parameter_names, argument_count))
-
-    # TODO: Optimize the dispatch to avoid repeated checks.
-    if len(operations) > 1:
-      for operation in operations:
-        for position, argument in enumerate(operation.arguments):
-          if self._IsArgumentOptionalInWebCore(operation, argument):
-            GenerateChecksAndCall(operation, position)
-        GenerateChecksAndCall(operation, len(operation.arguments))
-      body.Emit('    throw "Incorrect number or type of arguments";\n');
-    else:
-      operation = operations[0]
-      argument_count = len(operation.arguments)
-      for position, argument in list(enumerate(operation.arguments))[::-1]:
-        if self._IsArgumentOptionalInWebCore(operation, argument):
-          check = '?%s' % parameter_names[position]
-          # argument_count instead of position + 1 is used here to cover one
-          # complicated case with the effectively optional argument in the middle.
-          # Consider foo(x, [Optional] y, [Optional=DefaultIsNullString] z)
-          # (as of now it's modelled after HTMLMediaElement.webkitAddKey).
-          # y is optional in WebCore, while z is not.
-          # In this case, if y was actually passed, we'd like to emit foo(x, y, z) invocation,
-          # not foo(x, y).
-          GenerateCall(operation, argument_count, [check])
-          argument_count = position
-      GenerateCall(operation, argument_count, [])
+    self._GenerateDispatcherBody(
+        body,
+        operations,
+        parameter_names,
+        GenerateCall,
+        self._IsArgumentOptionalInWebCore)
 
   def SecondaryContext(self, interface):
     pass

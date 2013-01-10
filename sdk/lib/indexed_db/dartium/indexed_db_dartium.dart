@@ -169,7 +169,7 @@ class Database extends EventTarget {
     if ((storeName_OR_storeNames is String || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
       return _transaction_3(storeName_OR_storeNames, mode);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -289,7 +289,7 @@ class Index extends NativeFieldWrapperClass1 {
     if (?key_OR_range) {
       return _count_3(key_OR_range);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -311,7 +311,7 @@ class Index extends NativeFieldWrapperClass1 {
     if (?key) {
       return _get_2(key);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -329,7 +329,7 @@ class Index extends NativeFieldWrapperClass1 {
     if (?key) {
       return _getKey_2(key);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -356,7 +356,7 @@ class Index extends NativeFieldWrapperClass1 {
     if (?key_OR_range && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -395,7 +395,7 @@ class Index extends NativeFieldWrapperClass1 {
     if (?key_OR_range && (direction is String || direction == null)) {
       return _openKeyCursor_5(key_OR_range, direction);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -599,7 +599,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if (?key_OR_range) {
       return _count_3(key_OR_range);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -621,7 +621,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((name is String || name == null) && (keyPath is String || keyPath == null) && (options is Map || options == null)) {
       return _createIndex_2(name, keyPath, options);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -639,7 +639,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if (?key_OR_keyRange) {
       return _delete_2(key_OR_keyRange);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -661,7 +661,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if (?key) {
       return _get_2(key);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -692,7 +692,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if (?key_OR_range && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
