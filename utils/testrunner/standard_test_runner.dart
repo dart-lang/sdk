@@ -115,11 +115,8 @@ class TestRunnerConfiguration extends unittest.Configuration {
     }
   }
 
-  void onDone(int passed, int failed, int errors,
-              List<unittest.TestCase> results,
-              String uncaughtError) {
-    var success = (passed > 0 && failed == 0 && errors == 0 &&
-        uncaughtError == null);
+  void onSummary(int passed, int failed, int errors,
+      List<unittest.TestCase> results, String uncaughtError) {
     if (!immediate) {
       for (final testCase in results) {
         dumpTestResult('$testfile ', testCase);
@@ -128,6 +125,9 @@ class TestRunnerConfiguration extends unittest.Configuration {
     if (summarize) {
       printSummary(passed, failed, errors, uncaughtError);
     }
+  }
+
+  void onDone(bool success) {
     if (notifyDone != null) {
       notifyDone(success ? 0 : -1);
     }
@@ -195,8 +195,8 @@ class TestRunnerChildConfiguration extends unittest.Configuration {
   get name => 'Test runner child configuration';
   get autoStart => false;
 
-  void onDone(int passed, int failed, int errors,
-              List<unittest.TestCase> results, String uncaughtError) {
+  void onSummary(int passed, int failed, int errors,
+      List<unittest.TestCase> results, String uncaughtError) {
     unittest.TestCase test = results[0];
     parentPort.send([test.result, test.runningTime.inMilliseconds,
                      test.message, test.stackTrace]);

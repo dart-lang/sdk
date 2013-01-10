@@ -38,7 +38,7 @@ class Configuration {
    */
   void onInit() {
     _receivePort = new ReceivePort();
-    _postMessage('unittest-suite-wait-for-done');
+    notifyController('unittest-suite-wait-for-done');
   }
 
   /** Called as soon as the unittest framework starts running. */
@@ -94,7 +94,7 @@ class Configuration {
    * When [uncaughtError] is not null, it contains an error that occured outside
    * of tests (e.g. setting up the test).
    */
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
     // Print each test's result.
     for (final t in _tests) {
@@ -126,12 +126,18 @@ class Configuration {
       }
       print('$passed PASSED, $failed FAILED, $errors ERRORS');
     }
+  }
 
+  /**
+   * Called when the unittest framework is done running. [success] indicates
+   * whether all tests passed successfully.
+   */
+  void onDone(bool success) {
     if (success) {
-      _postMessage('unittest-suite-success');
-    _receivePort.close();
+      notifyController('unittest-suite-success');
+      _receivePort.close();
     } else {
-    _receivePort.close();
+      _receivePort.close();
       throw new Exception('Some tests failed.');
     }
   }
@@ -149,7 +155,18 @@ class Configuration {
   handleExternalError(e, String message) =>
       _reportTestError('$message\nCaught $e', '');
 
-  _postMessage(String message) {
+  /**
+   * Send messages to the test controller code (see 'test_controller.js'). This
+   * is only needed to support browser tests with dart2js. Note: we could wrap
+   * tests and send the appropriate messages to the controller through the
+   * wrapper, but using wrappers has a noticeable overhead in the testing bots,
+   * so we use this approach instead.
+   *
+   * Configurations that will not run in DRT (such as vm_config and
+   * compact_vm_config), can safely override this method to avoid printing extra
+   * mesages in the console.
+   */
+  void notifyController(String message) {
     // In dart2js browser tests, the JavaScript-based test controller
     // intercepts calls to print and listens for "secret" messages.
     print(message);

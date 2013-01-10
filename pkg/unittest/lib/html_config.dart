@@ -131,11 +131,14 @@ class HtmlConfiguration extends Configuration {
 
   void onTestResult(TestCase testCase) {}
 
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
-    _uninstallHandlers();
     _showResultsInPage(passed, failed, errors, results, _isLayoutTest,
         uncaughtError);
+  }
+
+  void onDone(bool success) {
+    _uninstallHandlers();
     window.postMessage('unittest-suite-done', '*');
   }
 }

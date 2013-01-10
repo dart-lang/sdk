@@ -10,19 +10,20 @@ library unittest_vm_config;
 import 'dart:io';
 import 'unittest.dart';
 
-class VmConfiguration extends Configuration {
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
-      String uncaughtError) {
+class VMConfiguration extends Configuration {
+  void onDone(bool success) {
     try {
-      super.onDone(passed, failed, errors, results, uncaughtError);
-    } on Exception catch (ex) {
+      super.onDone(success);
+    } catch (ex) {
       // A non-zero exit code is used by the test infrastructure to detect
       // failure.
       exit(1);
     }
   }
+
+  void notifyController(String msg) {}
 }
 
-void useVmConfiguration() {
-  configure(new VmConfiguration());
+void useVMConfiguration() {
+  configure(new VMConfiguration());
 }

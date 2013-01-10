@@ -11,14 +11,15 @@
 library compact_vm_config;
 
 import 'dart:io';
-import 'package:unittest/unittest.dart';
+import 'unittest.dart';
+import 'vm_config.dart';
 
 const String _GREEN = '\u001b[32m';
 const String _RED = '\u001b[31m';
 const String _NONE = '\u001b[0m';
 const int MAX_LINE = 80;
 
-class CompactVMConfiguration extends Configuration {
+class CompactVMConfiguration extends VMConfiguration {
   Date _start;
   int _pass = 0;
   int _fail = 0;
@@ -60,7 +61,7 @@ class CompactVMConfiguration extends Configuration {
     return str.split("\n").mappedBy((line) => "  $line").join("\n");
   }
 
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
     var success = false;
     if (passed == 0 && failed == 0 && errors == 0) {
@@ -77,8 +78,6 @@ class CompactVMConfiguration extends Configuration {
       }
       print('$passed PASSED, $failed FAILED, $errors ERRORS');
     }
-
-    if (!success) exit(1);
   }
 
   int _lastLength = 0;
@@ -166,6 +165,8 @@ class CompactVMConfiguration extends Configuration {
     }
     return '...$res';
   }
+
+  void notifyController(String msg) {}
 }
 
 void useCompactVMConfiguration() {

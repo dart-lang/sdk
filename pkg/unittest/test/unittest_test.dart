@@ -61,15 +61,19 @@ class TestConfiguration extends Configuration {
 
   // The port to communicate with the parent isolate
   SendPort _port;
+  String _result;
 
   TestConfiguration(this._port);
 
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
-    var result = buildStatusString(passed, failed, errors, results,
+    _result = buildStatusString(passed, failed, errors, results,
         count: count, setup: setup, teardown: teardown,
         uncaughtError: uncaughtError);
-    _port.send(result);
+  }
+
+  void onDone(bool success) {
+    _port.send(_result);
   }
 }
 runTest() {

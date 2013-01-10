@@ -148,8 +148,11 @@ class ChildHtmlConfiguration extends Configuration {
         _Message.text(testCase.result, elapsed, testCase.message), '*');
   }
 
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
-              String uncaughtError) {
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
+      String uncaughtError) {
+  }
+
+  void onDone(bool success) {
     window.on.error.remove(_onErrorClosure);
   }
 }
@@ -274,8 +277,10 @@ class ParentHtmlConfiguration extends Configuration {
         '${testCase.description}//${testCase.message}';
   }
 
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
+  }
+  void onDone(bool success) {
     window.on.message.remove(_messageHandler);
     window.on.error.remove(_onErrorClosure);
     window.postMessage('done', '*'); // Unblock DRT
