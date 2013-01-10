@@ -139,11 +139,30 @@ abstract class ReceivePort {
 
 }
 
-// TODO(kasperl): Document this.
+/**
+ * [SendPortSync]s are created from [ReceivePortSync]s. Any message sent through
+ * a [SendPortSync] is delivered to its respective [ReceivePortSync]. There
+ * might be many [SendPortSync]s for the same [ReceivePortSync].
+ *
+ * [SendPortSync]s can be transmitted to other isolates.
+ */
 abstract class SendPortSync {
-
+  /**
+   * Sends a synchronous message to this send port and returns the result.
+   */
   callSync(var message);
 
+  /**
+   * Tests whether [other] is a [SendPortSync] pointing to the same
+   * [ReceivePortSync] as this one.
+   */
+  bool operator==(var other);
+
+  /**
+   * Returns an immutable hash code for this send port that is
+   * consistent with the == operator.
+   */
+  int get hashCode;
 }
 
 // The VM doesn't support accessing external globals in the same library. We

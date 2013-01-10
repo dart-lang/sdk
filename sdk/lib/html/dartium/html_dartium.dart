@@ -30560,6 +30560,11 @@ class _JsSendPortSync implements SendPortSync {
     return _deserialize(result);
   }
 
+  bool operator==(var other) {
+    return (other is _JsSendPortSync) && (_id == other._id);
+  }
+
+  int get hashCode => _id;
 }
 
 // TODO(vsm): Differentiate between Dart2Js and Dartium isolates.
@@ -30590,6 +30595,13 @@ class _RemoteSendPortSync implements SendPortSync {
     window.on[source].remove(listener);
     return result;
   }
+
+  bool operator==(var other) {
+    return (other is _RemoteSendPortSync) && (_isolateId == other._isolateId)
+      && (_portId == other._portId);
+  }
+
+  int get hashCode => _isolateId >> 16 + _portId;
 }
 
 // The receiver is in the same Dart isolate, compiled to JS.
@@ -30605,6 +30617,13 @@ class _LocalSendPortSync implements SendPortSync {
     var result = _receivePort._callback(copy);
     return _deserialize(_serialize(result));
   }
+
+  bool operator==(var other) {
+    return (other is _LocalSendPortSync)
+      && (_receivePort == other._receivePort);
+  }
+
+  int get hashCode => _receivePort.hashCode;
 }
 
 // TODO(vsm): Move this to dart:isolate.  This will take some
