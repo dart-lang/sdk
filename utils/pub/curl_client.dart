@@ -38,7 +38,6 @@ class CurlClient extends http.BaseClient {
     return withTempDir((tempDir) {
       var headerFile = join(tempDir, "curl-headers");
       var arguments = _argumentsForRequest(request, headerFile);
-      log.process(executable, arguments);
       var process;
       return startProcess(executable, arguments).then((process_) {
         process = process_;

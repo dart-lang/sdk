@@ -599,7 +599,18 @@ class _OutputStreamConsumer implements StreamConsumer<List<int>, dynamic> {
     // the following TODO.
     var completed = false;
     var completer = new Completer();
-    stream.listen((data) => _outputStream.write(data), onDone: () {
+    stream.listen((data) {
+      // Writing empty data to a closed stream can cause errors.
+      if (data.isEmpty) return;
+
+      // TODO(nweiz): remove this try/catch when issue 7836 is fixed.
+      try {
+        _outputStream.write(data);
+      } catch (e, stack) {
+        if (!completed) completer.completeError(e, stack);
+        completed = true;
+      }
+    }, onDone: () {
       _outputStream.close();
       // TODO(nweiz): wait until _outputStream.onClosed is called once issue
       // 7761 is fixed.
