@@ -69,7 +69,7 @@ Future clearCredentials(SystemCache cache) {
 Future withClient(SystemCache cache, Future fn(Client client)) {
   return _getClient(cache).then((client) {
     var completer = new Completer();
-    return asyncWhenComplete(fn(client), () {
+    return fn(client).whenComplete(() {
       client.close();
       // Be sure to save the credentials even when an error happens.
       return _saveCredentials(cache, client.credentials);

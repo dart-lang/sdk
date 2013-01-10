@@ -749,10 +749,10 @@ Future timeout(Future input, int milliseconds, String description) {
 /// will be deleted.
 Future withTempDir(Future fn(String path)) {
   var tempDir;
-  return asyncWhenComplete(createTempDir().then((dir) {
+  return createTempDir().then((dir) {
     tempDir = dir;
     return fn(tempDir.path);
-  }), () {
+  }).whenComplete(() {
     log.fine('Cleaning up temp directory ${tempDir.path}.');
     return deleteDir(tempDir);
   });
