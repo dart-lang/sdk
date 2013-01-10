@@ -12,6 +12,7 @@ import '../lib/intl.dart';
 import '../lib/message_lookup_local.dart';
 import '../example/basic/basic_example.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
+import 'dart:async';
 
 List list;
 
@@ -20,14 +21,23 @@ main() {
   setup(runAllTests, addToList);
 }
 
-addToList(x) {list.add(x);}
+var waitForIt = new Completer();
+
+addToList(x) {
+  list.add(x);
+  if (list.length == 4) waitForIt.complete(list);
+}
 
 runAllTests(_) {
   setup(runProgram, addToList);
+  waitForIt.future.then(actuallyRunTheTests);
+}
+
+actuallyRunTheTests(_) {
   test('Verify basic example printing localized messages', () {
-  expect(list[0], "Ran at 00:00:00 on Thursday, January 1, 1970");
-  expect(list[1], "Ausgedruckt am 00:00:00 am Donnerstag, 1. Januar 1970.");
-  expect(list[2], "วิ่ง 0:00:00 on วันพฤหัสบดี 1 มกราคม 1970.");
-  expect(list[3], "วิ่ง now on today.");
+    expect(list[0], "Ran at 00:00:00 on Thursday, January 1, 1970");
+    expect(list[1], "Ausgedruckt am 00:00:00 am Donnerstag, 1. Januar 1970.");
+    expect(list[2], "วิ่ง 0:00:00 on วันพฤหัสบดี 1 มกราคม 1970.");
+    expect(list[3], "วิ่ง now on today.");
   });
 }
