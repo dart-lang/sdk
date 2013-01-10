@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1688,6 +1688,12 @@ class _HttpClientConnection
     if (url == null) {
       url = new Uri.fromString(_response.headers.value(HttpHeaders.LOCATION));
     }
+    // Always set the content length to 0 for redirects.
+    var mutable = _request._headers._mutable;
+    _request._headers._mutable = true;
+    _request._headers.contentLength = 0;
+    _request._headers._mutable = mutable;
+    _request._bodyBytesWritten = 0;
     var redirect = new _RedirectInfo(_response.statusCode, method, url);
     // The actual redirect is postponed until both response and
     // request are done.
