@@ -4030,17 +4030,13 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
 // which shows up because of the use of setjmp.
 static void CompileSource(Isolate* isolate,
                           const Library& lib,
-                          const String& url,
-                          const String& source,
-                          RawScript::Kind kind,
+                          const Script& script,
                           Dart_Handle* result) {
-  bool update_lib_status = (kind == RawScript::kScriptTag ||
-                            kind == RawScript::kLibraryTag);
+  bool update_lib_status = (script.kind() == RawScript::kScriptTag ||
+                            script.kind() == RawScript::kLibraryTag);
   if (update_lib_status) {
     lib.SetLoadInProgress();
   }
-  const Script& script =
-      Script::Handle(isolate, Script::New(url, source, kind));
   ASSERT(isolate != NULL);
   const Error& error = Error::Handle(isolate, Compiler::Compile(lib, script));
   if (error.IsNull()) {
@@ -4081,13 +4077,56 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   library.set_debuggable(true);
   library.Register();
   isolate->object_store()->set_root_library(library);
+
+  const Script& script = Script::Handle(
+      isolate, Script::New(url_str, source_str, RawScript::kScriptTag));
   Dart_Handle result;
-  CompileSource(isolate,
-                library,
-                url_str,
-                source_str,
-                RawScript::kScriptTag,
-                &result);
+  CompileSource(isolate, library, script, &result);
+  return result;
+}
+
+
+DART_EXPORT Dart_Handle Dart_LoadEmbeddedScript(Dart_Handle url,
+                                                Dart_Handle source,
+                                                intptr_t line_offset,
+                                                intptr_t col_offset) {
+  TIMERSCOPE(time_script_loading);
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const String& url_str = Api::UnwrapStringHandle(isolate, url);
+  if (url_str.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, url, String);
+  }
+  const String& source_str = Api::UnwrapStringHandle(isolate, source);
+  if (source_str.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, source, String);
+  }
+  Library& library =
+      Library::Handle(isolate, isolate->object_store()->root_library());
+  if (!library.IsNull()) {
+    const String& library_url = String::Handle(isolate, library.url());
+    return Api::NewError("%s: A script has already been loaded from '%s'.",
+                         CURRENT_FUNC, library_url.ToCString());
+  }
+  if (line_offset < 0) {
+    return Api::NewError("%s: argument 'line_offset' must be positive number",
+                         CURRENT_FUNC);
+  }
+  if (col_offset < 0) {
+    return Api::NewError("%s: argument 'col_offset' must be positive number",
+                         CURRENT_FUNC);
+  }
+
+  library = Library::New(url_str);
+  library.set_debuggable(true);
+  library.Register();
+  isolate->object_store()->set_root_library(library);
+
+  const Script& script = Script::Handle(
+      isolate, Script::New(url_str, source_str, RawScript::kScriptTag));
+  script.SetLocationOffset(line_offset, col_offset);
+  Dart_Handle result;
+  CompileSource(isolate, library, script, &result);
   return result;
 }
 
@@ -4288,13 +4327,10 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     return Api::NewError("%s: library '%s' has already been loaded.",
                          CURRENT_FUNC, url_str.ToCString());
   }
+  const Script& script = Script::Handle(
+      isolate, Script::New(url_str, source_str, RawScript::kLibraryTag));
   Dart_Handle result;
-  CompileSource(isolate,
-                library,
-                url_str,
-                source_str,
-                RawScript::kLibraryTag,
-                &result);
+  CompileSource(isolate, library, script, &result);
   // Propagate the error out right now.
   if (::Dart_IsError(result)) {
     return result;
@@ -4371,9 +4407,10 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, source, String);
   }
+  const Script& script = Script::Handle(
+      isolate, Script::New(url_str, source_str, RawScript::kSourceTag));
   Dart_Handle result;
-  CompileSource(isolate, lib, url_str, source_str,
-                RawScript::kSourceTag, &result);
+  CompileSource(isolate, lib, script, &result);
   return result;
 }
 
@@ -4396,9 +4433,10 @@ DART_EXPORT Dart_Handle Dart_LoadPatch(Dart_Handle library,
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, patch_source, String);
   }
+  const Script& script = Script::Handle(
+      isolate, Script::New(url_str, source_str, RawScript::kPatchTag));
   Dart_Handle result;
-  CompileSource(isolate, lib, url_str, source_str,
-                RawScript::kPatchTag, &result);
+  CompileSource(isolate, lib, script, &result);
   return result;
 }
 

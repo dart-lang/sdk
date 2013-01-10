@@ -834,6 +834,10 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   stream ^= reader->ReadObjectImpl();
   script.set_tokens(stream);
 
+  script.raw_ptr()->line_offset_ = reader->Read<int32_t>();
+  script.raw_ptr()->col_offset_ = reader->Read<int32_t>();
+  script.raw_ptr()->kind_ = reader->Read<int8_t>();
+
   return script.raw();
 }
 
@@ -856,6 +860,10 @@ void RawScript::WriteTo(SnapshotWriter* writer,
   // Write out all the object pointer fields.
   writer->WriteObjectImpl(ptr()->url_);
   writer->WriteObjectImpl(ptr()->tokens_);
+
+  writer->Write<int32_t>(ptr()->line_offset_);
+  writer->Write<int32_t>(ptr()->col_offset_);
+  writer->Write<int8_t>(ptr()->kind_);
 }
 
 

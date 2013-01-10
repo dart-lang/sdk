@@ -2383,6 +2383,75 @@ TEST_CASE(Script) {
 }
 
 
+TEST_CASE(EmbeddedScript) {
+  const char* url_chars = "builtin:test-case";
+  const char* text =
+      /* 1 */ "<!DOCTYPE html>\n"
+      /* 2 */ "  ... more junk ...\n"
+      /* 3 */ "  <script type='application/dart'>main() {\n"
+      /* 4 */ "    return 'foo';\n"
+      /* 5 */ "  }\n"
+      /* 6 */ "</script>\n";
+  const char* line1 = text;
+  const char* line2 = strstr(line1, "\n") + 1;
+  const char* line3 = strstr(line2, "\n") + 1;
+  const char* line4 = strstr(line3, "\n") + 1;
+  const char* line5 = strstr(line4, "\n") + 1;
+
+  const int first_dart_line = 3;
+  ASSERT(strstr(line3, "main") != NULL);
+  const int last_dart_line = 5;
+  ASSERT(strstr(line5, "}") != NULL);
+
+  const char* script_begin = strstr(text, "main");
+  ASSERT(script_begin != NULL);
+  const char* script_end = strstr(text, "</script>");
+  ASSERT(script_end != NULL);
+  int script_length = script_end - script_begin;
+  ASSERT(script_length > 0);
+
+  // The Dart script starts on line 3 instead of 1, offset is 3 - 1 = 2.
+  int line_offset = 2;
+  // Dart script starts with "main" on line 3.
+  intptr_t col_offset = script_begin - line3;
+  ASSERT(col_offset > 0);
+
+  char* src_chars = strdup(script_begin);
+  src_chars[script_length] = '\0';
+
+  const String& url = String::Handle(String::New(url_chars));
+  const String& source = String::Handle(String::New(src_chars));
+  const Script& script = Script::Handle(
+      Script::New(url, source, RawScript::kSourceTag));
+  script.SetLocationOffset(line_offset, col_offset);
+
+  String& str = String::Handle();
+  str = script.GetLine(first_dart_line);
+  EXPECT_STREQ("main() {", str.ToCString());
+  str = script.GetLine(last_dart_line);
+  EXPECT_STREQ("  }", str.ToCString());
+
+
+  script.Tokenize(String::Handle(String::New("ABC")));
+  intptr_t line, col;
+  script.GetTokenLocation(0, &line, &col);
+  EXPECT_EQ(first_dart_line, line);
+  EXPECT_EQ(col, col_offset + 1);
+
+  script.GetTokenLocation(4, &line, &col);  // Token 'return'
+  EXPECT_EQ(4, line);  // 'return' is in line 4.
+  EXPECT_EQ(5, col);   // Four spaces before 'return'.
+
+  intptr_t first_idx, last_idx;
+  script.TokenRangeAtLine(3, &first_idx, &last_idx);
+  EXPECT_EQ(0, first_idx);  // Token 'main' is first token.
+  EXPECT_EQ(3, last_idx);   // Token { is last token.
+  script.TokenRangeAtLine(5, &first_idx, &last_idx);
+  EXPECT_EQ(7, first_idx);  // Token } is first and only token.
+  EXPECT_EQ(7, last_idx);
+}
+
+
 TEST_CASE(Context) {
   const int kNumVariables = 5;
   const Context& parent_context = Context::Handle(Context::New(0));

@@ -1846,7 +1846,11 @@ class Script : public Object {
   RawString* url() const { return raw_ptr()->url_; }
   bool HasSource() const;
   RawString* Source() const;
-  RawScript::Kind kind() const { return raw_ptr()->kind_; }
+  RawScript::Kind kind() const {
+    return static_cast<RawScript::Kind>(raw_ptr()->kind_);
+  }
+  intptr_t line_offset() const { return raw_ptr()->line_offset_; }
+  intptr_t col_offset() const { return raw_ptr()->col_offset_; }
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
 
@@ -1858,6 +1862,8 @@ class Script : public Object {
                         intptr_t from_column,
                         intptr_t to_line,
                         intptr_t to_column) const;
+
+  void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
   void GetTokenLocation(intptr_t token_pos,
                         intptr_t* line, intptr_t* column) const;

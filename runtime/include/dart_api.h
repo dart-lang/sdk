@@ -2609,6 +2609,24 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source);
 
 /**
+ * Loads the root script for the current isolate. The script can be
+ * embedded in another file, for example in an html file.
+ *
+ * TODO(turnidge): Document.
+ *
+ * \line_offset is the number of text lines before the
+ *   first line of the Dart script in the containing file.
+ *
+ * \col_offset is the number of characters before the first character
+ *   in the first line of the Dart script.
+ */
+DART_EXPORT Dart_Handle Dart_LoadEmbeddedScript(
+                                        Dart_Handle url,
+                                        Dart_Handle source,
+                                        intptr_t line_offset,
+                                        intptr_t col_offset);
+
+/**
  * Loads the root script for current isolate from a snapshot.
  *
  * \param buffer A buffer which contains a snapshot of the script.

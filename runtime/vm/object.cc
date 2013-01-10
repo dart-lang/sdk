@@ -5161,6 +5161,15 @@ void Script::Tokenize(const String& private_key) const {
 }
 
 
+void Script::SetLocationOffset(intptr_t line_offset,
+                               intptr_t col_offset) const {
+  ASSERT(line_offset >= 0);
+  ASSERT(col_offset >= 0);
+  raw_ptr()->line_offset_ = line_offset;
+  raw_ptr()->col_offset_ = col_offset;
+}
+
+
 void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
@@ -5169,8 +5178,13 @@ void Script::GetTokenLocation(intptr_t token_pos,
   intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
   Scanner scanner(src, Symbols::Empty());
   scanner.ScanTo(src_pos);
-  *line = scanner.CurrentPosition().line;
+  intptr_t relative_line = scanner.CurrentPosition().line;
+  *line = relative_line + line_offset();
   *column = scanner.CurrentPosition().column;
+  // On the first line of the script we must add the column offset.
+  if (relative_line == 1) {
+    *column += col_offset();
+  }
 }
 
 
@@ -5179,6 +5193,8 @@ void Script::TokenRangeAtLine(intptr_t line_number,
                               intptr_t* last_token_index) const {
   const String& src = String::Handle(Source());
   const TokenStream& tkns = TokenStream::Handle(tokens());
+  line_number -= line_offset();
+  if (line_number < 1) line_number = 1;
   Scanner scanner(src, Symbols::Empty());
   scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
   if (*first_token_index >= 0) {
@@ -5192,14 +5208,15 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 
 RawString* Script::GetLine(intptr_t line_number) const {
   const String& src = String::Handle(Source());
+  intptr_t relative_line_number = line_number - line_offset();
   intptr_t current_line = 1;
-  intptr_t line_start = -1;
-  intptr_t last_char = -1;
+  intptr_t line_start_idx = -1;
+  intptr_t last_char_idx = -1;
   for (intptr_t ix = 0;
-       (ix < src.Length()) && (current_line <= line_number);
+       (ix < src.Length()) && (current_line <= relative_line_number);
        ix++) {
-    if ((current_line == line_number) && (line_start < 0)) {
-      line_start = ix;
+    if ((current_line == relative_line_number) && (line_start_idx < 0)) {
+      line_start_idx = ix;
     }
     if (src.CharAt(ix) == '\n') {
       current_line++;
@@ -5208,14 +5225,15 @@ RawString* Script::GetLine(intptr_t line_number) const {
         current_line++;
       }
     } else {
-      last_char = ix;
+      last_char_idx = ix;
     }
   }
   // Guarantee that returned string is never NULL.
-  if (line_start >= 0) {
-    const String& line = String::Handle(
-        String::SubString(src, line_start, last_char - line_start + 1));
-    return line.raw();
+
+  if (line_start_idx >= 0) {
+    return String::SubString(src,
+                             line_start_idx,
+                             last_char_idx - line_start_idx + 1);
   } else {
     return Symbols::Empty().raw();
   }
@@ -5228,11 +5246,14 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t to_column) const {
   const String& src = String::Handle(Source());
   intptr_t length = src.Length();
-  intptr_t line = 1;
+  intptr_t line = 1 + line_offset();
   intptr_t column = 1;
   intptr_t lookahead = 0;
   intptr_t snippet_start = -1;
   intptr_t snippet_end = -1;
+  if (from_line - line_offset() == 1) {
+    column += col_offset();
+  }
   char c = src.CharAt(lookahead);
   while (lookahead != length) {
     if (snippet_start == -1) {
@@ -5286,6 +5307,7 @@ RawScript* Script::New(const String& url,
   result.set_url(String::Handle(Symbols::New(url)));
   result.set_source(source);
   result.set_kind(kind);
+  result.SetLocationOffset(0, 0);
   return result.raw();
 }
 
