@@ -102,13 +102,19 @@ abstract class Future<T> {
    *
    * This is the asynchronous equivalent of a "finally" block.
    *
-   * If the call to [action] does not throw, the returned future is completed
-   * with the same result as this future.
+   * The future returned by this call, [:f:], will complete the same way
+   * as this future unless an error occurs in the [action] call, or in
+   * a [Future] returned by the [action] call. If the call to [action]
+   * does not return a future, its return value is ignored.
    *
-   * If the call to [action] throws, the returned future is completed with the
+   * If the call to [action] throws, then [:f:] is completed with the
    * thrown error.
+   *
+   * If the call to [action] returns a [Future], [:f2:], then completion of
+   * [:f:] is delayed until [:f2:] completes. If [:f2:] completes with
+   * an error, that will be the result of [:f:] too.
    */
-  Future<T> whenComplete(void action());
+  Future<T> whenComplete(action());
 
   /**
    * Creates a [Stream] that sends [this]' completion value, data or error, to

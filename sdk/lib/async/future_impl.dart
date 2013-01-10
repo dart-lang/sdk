@@ -158,7 +158,7 @@ class _FutureImpl<T> implements Future<T> {
     }
   }
 
-  Future<T> whenComplete(void action()) {
+  Future<T> whenComplete(action()) {
     _WhenFuture<T> whenFuture = new _WhenFuture<T>(action);
     if (!_isComplete) {
       _addListener(whenFuture);
@@ -417,7 +417,16 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
 
   void _sendValue(T value) {
     try {
-      _action();
+      var result = _action();
+      if (result is Future) {
+        Future resultFuture = result;
+        result.then((_) {
+          _setValue(value);
+        }, onError: (AsyncError e) {
+          _setError(e);
+        });
+        return;
+      }
     } catch (e, s) {
       _setError(new AsyncError(e, s));
       return;
@@ -427,7 +436,18 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
 
   void _sendError(AsyncError error) {
     try {
-      _action();
+      var result = _action();
+      if (result is Future) {
+        Future resultFuture = result;
+        result.then((_) {
+          _setError(error);
+        }, onError: (AsyncError e) {
+          // TODO(lrn): Find a way to combine error into the
+          // resulting error.
+          _setError(e);
+        });
+        return;
+      }
     } catch (e, s) {
       error = new AsyncError.withCause(e, s, error);
     }
@@ -455,7 +475,7 @@ class _FutureWrapper<T> implements Future<T> {
     return _future.catchError(function, test: test);
   }
 
-  Future whenComplete(void action()) {
+  Future whenComplete(action()) {
     return _future.whenComplete(action);
   }
 

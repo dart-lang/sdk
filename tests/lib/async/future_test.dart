@@ -341,6 +341,110 @@ testFutureWhenCompletePreValue() {
   });
 }
 
+testFutureWhenValueFutureValue() {
+  var port = new ReceivePort();
+  int counter = 3;
+  countDown(int expect) {
+    Expect.equals(expect, counter);
+    if (--counter == 0) port.close();
+  }
+  var completer = new Completer();
+  completer.future.whenComplete(() {
+    countDown(3);
+    var completer2 = new Completer();
+    new Timer(10, (_) {
+      countDown(2);
+      completer2.complete(37);
+    });
+    return completer2.future;
+  }).then((v) {
+    Expect.equals(42, v);
+    countDown(1);
+  });
+
+  completer.complete(42);
+}
+
+testFutureWhenValueFutureError() {
+  var port = new ReceivePort();
+  int counter = 3;
+  countDown(int expect) {
+    Expect.equals(expect, counter);
+    if (--counter == 0) port.close();
+  }
+  var completer = new Completer();
+  completer.future.whenComplete(() {
+    countDown(3);
+    var completer2 = new Completer();
+    new Timer(10, (_) {
+      countDown(2);
+      completer2.completeError("Fail");
+    });
+    return completer2.future;
+  }).then((v) {
+    Expect.fail("should fail async");
+  }, onError: (AsyncError e) {
+    Expect.equals("Fail", e.error);
+    countDown(1);
+  });
+
+  completer.complete(42);
+}
+
+testFutureWhenErrorFutureValue() {
+  var port = new ReceivePort();
+  int counter = 3;
+  countDown(int expect) {
+    Expect.equals(expect, counter);
+    if (--counter == 0) port.close();
+  }
+  var completer = new Completer();
+  completer.future.whenComplete(() {
+    countDown(3);
+    var completer2 = new Completer();
+    new Timer(10, (_) {
+      countDown(2);
+      completer2.complete(37);
+    });
+    return completer2.future;
+  }).then((v) {
+    Expect.fail("should fail async");
+  }, onError: (AsyncError e) {
+    Expect.equals("Error", e.error);
+    countDown(1);
+  });
+
+  completer.completeError("Error");
+}
+
+testFutureWhenErrorFutureError() {
+  var port = new ReceivePort();
+  int counter = 3;
+  countDown(int expect) {
+    Expect.equals(expect, counter);
+    if (--counter == 0) port.close();
+  }
+  var completer = new Completer();
+  completer.future.whenComplete(() {
+    countDown(3);
+    var completer2 = new Completer();
+    new Timer(10, (_) {
+      countDown(2);
+      completer2.completeError("Fail");
+    });
+    return completer2.future;
+  }).then((v) {
+    Expect.fail("should fail async");
+  }, onError: (AsyncError e) {
+    Expect.equals("Fail", e.error);
+    countDown(1);
+  });
+
+  completer.completeError("Error");
+}
+
+
+
 main() {
   testImmediate();
   testNeverComplete();
@@ -366,5 +470,10 @@ main() {
   testFutureWhenCompleteError();
   testFutureWhenCompleteValueNewError();
   testFutureWhenCompleteErrorNewError();
+
+  testFutureWhenValueFutureValue();
+  testFutureWhenErrorFutureValue();
+  testFutureWhenValueFutureError();
+  testFutureWhenErrorFutureError();
 }
 
