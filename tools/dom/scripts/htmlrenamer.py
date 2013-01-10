@@ -38,6 +38,10 @@ html_interface_renames = {
     'XMLHttpRequestUpload': 'HttpRequestUpload',
 }
 
+html_interface_removes = {
+    'AppletElement',
+}
+
 # Members from the standard dom that should not be exposed publicly in dart:html
 # but need to be exposed internally to implement dart:html on top of a standard
 # browser.
@@ -422,6 +426,11 @@ _removed_html_members = set([
 class HtmlRenamer(object):
   def __init__(self, database):
     self._database = database
+
+  def FindInterface(self, interface):
+    if interface in html_interface_removes:
+      return interface
+    return None
 
   def RenameInterface(self, interface):
     if interface.id in html_interface_renames:
