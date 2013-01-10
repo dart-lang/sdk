@@ -505,7 +505,8 @@ $lazyInitializerLogic
     parameters.orderedForEachParameter((Element element) {
       String jsName = JsNames.getValid(element.name.slowToString());
       assert(jsName != receiverArgumentName);
-      if (count < positionalArgumentCount + extraArgumentCount) {
+      int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
+      if (count < optionalParameterStart) {
         parametersBuffer[count] = new js.Parameter(jsName);
         argumentsBuffer[count] = new js.VariableUse(jsName);
       } else {
@@ -515,7 +516,7 @@ $lazyInitializerLogic
           // The order of the named arguments is not the same as the
           // one in the real method (which is in Dart source order).
           argumentsBuffer[count] = new js.VariableUse(jsName);
-          parametersBuffer[selector.positionalArgumentCount + index] =
+          parametersBuffer[optionalParameterStart + index] =
               new js.Parameter(jsName);
         // Note that [elements] may be null for a synthesized [member].
         } else if (elements != null && elements.isParameterChecked(element)) {

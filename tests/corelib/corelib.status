@@ -76,6 +76,3 @@ map_values2_test: Fail # Generic types aren't right
 # Tests fail due to bug in generics on constants, issue 6827
 iterable_to_list_test: Fail
 iterable_to_set_test: Fail
-
-# Issue 7734.
-string_replace_all_test: Crash
