@@ -1873,35 +1873,14 @@ $lazyInitializerLogic
                            Element isolateMain) {
     String mainAccess = "${namer.isolateAccess(appMain)}";
     String currentIsolate = "${namer.CURRENT_ISOLATE}";
-    String mainEnsureGetter = '';
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
     if (!compiler.codegenWorld.staticFunctionsNeedingGetter.contains(appMain)) {
       Selector selector = new Selector.callClosure(0);
       String invocationName = "${namer.closureInvocationName(selector)}";
-      mainEnsureGetter = "$mainAccess.$invocationName = $mainAccess";
+      buffer.add("$mainAccess.$invocationName = $mainAccess");
     }
-    // TODO(ngeoffray): These globals are currently required by the isolate
-    // library. They should be removed.
-    buffer.add("""
-var \$globalThis = $currentIsolate;
-var \$globalState;
-var \$globals;
-var \$isWorker = false;
-var \$supportsWorkers = false;
-var \$thisScriptUrl;
-function \$static_init(){};
-
-function \$initGlobals(context) {
-  context.isolateStatics = new ${namer.isolateName}();
-}
-function \$setGlobals(context) {
-  $currentIsolate = context.isolateStatics;
-  \$globalThis = $currentIsolate;
-}
-$mainEnsureGetter
-""");
-  return "${namer.isolateAccess(isolateMain)}($mainAccess)";
+    return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
 
   emitMain(CodeBuffer buffer) {

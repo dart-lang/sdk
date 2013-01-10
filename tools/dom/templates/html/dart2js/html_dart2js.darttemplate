@@ -71,5 +71,4 @@ _callPortSync(int id, message) {
   return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
 
-// TODO(vsm): Plumb this properly.
-spawnDomFunction(f) => spawnFunction(f);
+spawnDomFunction(f) => IsolateNatives.spawnDomFunction(f);

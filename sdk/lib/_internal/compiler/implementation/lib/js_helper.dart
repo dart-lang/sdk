@@ -1145,14 +1145,21 @@ convertDartClosureToJS(closure, int arity) {
   if (closure == null) return null;
   var function = JS('var', r'#.$identity', closure);
   if (JS('bool', r'!!#', function)) return function;
+  // By fetching the current isolate before creating the JavaScript
+  // function, we prevent the compiler from inlining its use in
+  // the JavaScript function below (the compiler generates code for
+  // fetching the isolate before creating the JavaScript function).
+  // If it was inlined, the JavaScript function would not get the
+  // current isolate, but the one that is active when the callback
+  // executes.
+  var currentIsolate = JS_CURRENT_ISOLATE();
 
-  function = JS("var", r"""function() {
-    return #(#, #, #, arguments[0], arguments[1]);
-  }""",
-  DART_CLOSURE_TO_JS(invokeClosure),
-  closure,
-  JS_CURRENT_ISOLATE(),
-  arity);
+  function = JS("var",
+                r"""function(a, b) { return #(#, #, #, a, b); }""",
+                DART_CLOSURE_TO_JS(invokeClosure),
+                closure,
+                JS_CURRENT_ISOLATE(),
+                arity);
 
   JS('void', r'#.$identity = #', closure, function);
   return function;
