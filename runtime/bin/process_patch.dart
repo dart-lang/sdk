@@ -256,24 +256,6 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     return _kill(this, signal._signalNumber);
   }
 
-  void add(List<int> data) {
-    stdin.write(data);
-  }
-
-  void close() {
-    stdin.close();
-  }
-
-  void signalError(ASyncError error) {
-    // TODO(ajohnsen): close?
-  }
-
-  Stream<List<int>> get stdoutStream
-    => new _InputStreamController(stdout).stream;
-
-  Stream<List<int>> get stderrStream
-    => new _InputStreamController(stderr).stream;
-
   bool _kill(Process p, int signal) native "Process_Kill";
 
   void set onExit(void callback(int exitCode)) {

@@ -42,7 +42,7 @@ set exitCode(int status) {
  * [Process] is used to start new processes using the static
  * [start] and [run] methods.
  */
-abstract class Process extends StreamSink {
+abstract class Process {
   /**
    * Starts a process running the [executable] with the specified
    * [arguments]. Returns a [:Future<Process>:] that completes with a
@@ -101,10 +101,6 @@ abstract class Process extends StreamSink {
    * non-interactive.
    */
   OutputStream get stdin;
-
-
-  Stream<List<int>> get stdoutStream;
-  Stream<List<int>> get stderrStream;
 
   /**
    * Sets an exit handler which gets invoked when the process
