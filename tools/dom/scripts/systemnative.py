@@ -543,9 +543,6 @@ class DartiumBackend(HtmlDartGenerator):
     ext_attrs = node.ext_attrs
 
     cpp_arguments = []
-    requires_v8_scope = \
-        any((self._TypeInfo(argument.type.id).requires_v8_scope() for argument in arguments)) or\
-        self._interface.id.startswith('IDB')
     runtime_check = None
     raises_exceptions = raises_dom_exception or arguments
 
@@ -553,7 +550,6 @@ class DartiumBackend(HtmlDartGenerator):
     requires_stack_info = ext_attrs.get('CallWith') == 'ScriptArguments|ScriptState'
     if requires_stack_info:
       raises_exceptions = True
-      requires_v8_scope = True
       cpp_arguments = ['&state', 'scriptArguments.release()']
       # WebKit uses scriptArguments to reconstruct last argument, so
       # it's not needed and should be just removed.
@@ -563,7 +559,6 @@ class DartiumBackend(HtmlDartGenerator):
     requires_script_arguments = ext_attrs.get('CallWith') == 'ScriptArguments'
     if requires_script_arguments:
       raises_exceptions = True
-      requires_v8_scope = True
       cpp_arguments = ['scriptArguments.release()']
       # WebKit uses scriptArguments to reconstruct last argument, so
       # it's not needed and should be just removed.
@@ -640,10 +635,6 @@ class DartiumBackend(HtmlDartGenerator):
         '$!BODY'
         '        return;\n'
         '    }\n')
-
-    if requires_v8_scope:
-      body_emitter.Emit(
-          '        V8Scope v8scope;\n\n')
 
     if runtime_check:
       body_emitter.Emit(
