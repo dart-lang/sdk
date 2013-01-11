@@ -105,7 +105,7 @@ Future<Object> _convertFiles(Path htmlPath) {
 
   // Combine all JSON objects
   lister.onDone = (_) {
-    Future.wait(fileFutures).then((jsonList) {
+    Futures.wait(fileFutures).then((jsonList) {
       var convertedJson = {};
       jsonList.forEach((json) {
         final k = json.keys[0];
