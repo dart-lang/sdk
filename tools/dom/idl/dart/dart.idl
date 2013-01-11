@@ -320,7 +320,11 @@ interface SQLResultSetRowList {
 interface WebSocket {
   // Suppress the default since it has non-standard return type and add
   // overrides.
+  [Suppressed] boolean send(in ArrayBuffer data) raises(DOMException);
+  [Suppressed] boolean send(in ArrayBufferView data) raises(DOMException);
+  [Suppressed] boolean send(in Blob data) raises(DOMException);
   [Suppressed] boolean send(in DOMString data) raises(DOMException);
+
   [Custom] void send(DOMString data) raises(DOMException);
   [Custom] void send(Blob data) raises(DOMException);
   [Custom] void send(ArrayBuffer data) raises(DOMException);

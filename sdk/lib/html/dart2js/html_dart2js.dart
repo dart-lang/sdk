@@ -21138,7 +21138,7 @@ class WebSocket extends EventTarget native "*WebSocket" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName WebSocket.send; @docsEditable true
-  bool send(data) native;
+  void send(data) native;
 }
 
 /// @docsEditable true

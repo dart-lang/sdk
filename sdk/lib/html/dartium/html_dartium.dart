@@ -25528,62 +25528,9 @@ class WebSocket extends EventTarget {
   /** @domName WebSocket.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
-  bool send(data) {
-    if ((data is ArrayBuffer || data == null)) {
-      return _send_1(data);
-    }
-    if ((data is ArrayBufferView || data == null)) {
-      return _send_2(data);
-    }
-    if ((data is Blob || data == null)) {
-      return _send_3(data);
-    }
-    if ((data is String || data == null)) {
-      _send_4(data);
-      return;
-    }
-    if ((data is ArrayBufferView || data == null)) {
-      _send_5(data);
-      return;
-    }
-    if ((data is Blob || data == null)) {
-      _send_6(data);
-      return;
-    }
-    if ((data is ArrayBuffer || data == null)) {
-      _send_7(data);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
 
-
-  /** @domName WebSocket.send_1 */
-  bool _send_1(data) native "WebSocket_send_1_Callback";
-
-
-  /** @domName WebSocket.send_2 */
-  bool _send_2(data) native "WebSocket_send_2_Callback";
-
-
-  /** @domName WebSocket.send_3 */
-  bool _send_3(data) native "WebSocket_send_3_Callback";
-
-
-  /** @domName WebSocket.send_4 */
-  void _send_4(data) native "WebSocket_send_4_Callback";
-
-
-  /** @domName WebSocket.send_5 */
-  void _send_5(data) native "WebSocket_send_5_Callback";
-
-
-  /** @domName WebSocket.send_6 */
-  void _send_6(data) native "WebSocket_send_6_Callback";
-
-
-  /** @domName WebSocket.send_7 */
-  void _send_7(data) native "WebSocket_send_7_Callback";
+  /** @domName WebSocket.send */
+  void send(data) native "WebSocket_send_Callback";
 
 }
 
