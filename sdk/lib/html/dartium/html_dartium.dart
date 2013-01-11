@@ -10727,9 +10727,6 @@ class FileReaderSync extends NativeFieldWrapperClass1 {
 class FileSystem extends NativeFieldWrapperClass1 {
   FileSystem.internal();
 
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
 
   /** @domName DOMFileSystem.name */
   String get name native "DOMFileSystem_name_Getter";
@@ -26013,15 +26010,11 @@ class Window extends EventTarget implements WindowBase {
 
 
   /** @domName DOMWindow.webkitRequestFileSystem */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
-  void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
 
 
   /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
-  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
 }
 
@@ -26378,27 +26371,19 @@ class WorkerContext extends EventTarget {
 
 
   /** @domName WorkerContext.webkitRequestFileSystem */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
-  void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
 
 
   /** @domName WorkerContext.webkitRequestFileSystemSync */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
-  FileSystemSync requestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
+  FileSystemSync webkitRequestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
 
 
   /** @domName WorkerContext.webkitResolveLocalFileSystemSyncURL */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
-  EntrySync resolveLocalFileSystemSyncUrl(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
+  EntrySync webkitResolveLocalFileSystemSyncUrl(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
 
 
   /** @domName WorkerContext.webkitResolveLocalFileSystemURL */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
-  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
 
 }
 

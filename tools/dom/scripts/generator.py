@@ -628,11 +628,6 @@ _indexed_db_annotations = [
   "@Experimental()",
 ]
 
-_file_system_annotations = [
-  "@SupportedBrowser(SupportedBrowser.CHROME)",
-  "@Experimental()",
-]
-
 _all_but_ie9_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX)",
@@ -657,14 +652,10 @@ dart_annotations = {
   'ArrayBufferView': _all_but_ie9_annotations,
   'DOMWindow.indexedDB': _indexed_db_annotations,
   'DOMWindow.performance': _performance_annotations,
-  'DOMWindow.webkitRequestFileSystem': _file_system_annotations,
-  'DOMWindow.webkitResolveLocalFileSystemURL': _file_system_annotations,
   'Element.webkitCreateShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",
   ],
-  'FileSystem': _file_system_annotations,
-  'FileSystemSync': _file_system_annotations,
   'History.pushState': _history_annotations,
   'History.replaceState': _history_annotations,
   'HTMLContentElement': [
@@ -721,10 +712,6 @@ dart_annotations = {
   ],
   'WebSocket': _all_but_ie9_annotations,
   'WorkerContext.indexedDB': _indexed_db_annotations,
-  'WorkerContext.webkitRequestFileSystem': _file_system_annotations,
-  'WorkerContext.webkitRequestFileSystemSync': _file_system_annotations,
-  'WorkerContext.webkitResolveLocalFileSystemSyncURL': _file_system_annotations,
-  'WorkerContext.webkitResolveLocalFileSystemURL': _file_system_annotations,
 }
 
 def FindCommonAnnotations(interface_name, member_name=None):

@@ -70,7 +70,6 @@ _js_custom_members = set([
 
 js_support_checks = {
   'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
-  'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
   'HTMLContentElement': "Element.isTagSupported('content')",
   'HTMLDataListElement': "Element.isTagSupported('datalist')",
   'HTMLDetailsElement': "Element.isTagSupported('details')",

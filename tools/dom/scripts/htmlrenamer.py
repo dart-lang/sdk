@@ -153,14 +153,6 @@ _renamed_html_members = {
     'SvgElement.className': '$dom_svgClassName',
     'Url.createObjectURL': 'createObjectUrl',
     'Url.revokeObjectURL': 'revokeObjectUrl',
-    'Window.webkitRequestFileSystem': 'requestFileSystem',
-    'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
-    'WorkerContext.webkitRequestFileSystem': 'requestFileSystem',
-    'WorkerContext.webkitRequestFileSystemSync': 'requestFileSystemSync',
-    'WorkerContext.webkitResolveLocalFileSystemSyncURL':
-        'resolveLocalFileSystemSyncUrl',
-    'WorkerContext.webkitResolveLocalFileSystemURL':
-        'resolveLocalFileSystemUrl',
 }
 
 # Members and classes from the dom that should be removed completely from

@@ -9335,9 +9335,6 @@ class FileReaderSync native "*FileReaderSync" {
 /// @domName DOMFileSystem; @docsEditable true
 class FileSystem native "*DOMFileSystem" {
 
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => JS('bool', '!!(window.webkitRequestFileSystem)');
-
   /// @domName DOMFileSystem.name; @docsEditable true
   final String name;
 
@@ -21699,14 +21696,11 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   Point webkitConvertPointFromPageToNode(Node node, Point p) native;
 
   /// @domName DOMWindow.webkitRequestFileSystem; @docsEditable true
-  @JSName('webkitRequestFileSystem')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
-  void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
   /// @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemURL')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
-  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
 }
 
@@ -22046,24 +22040,18 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
   /// @domName WorkerContext.webkitRequestFileSystem; @docsEditable true
-  @JSName('webkitRequestFileSystem')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
-  void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
 
   /// @domName WorkerContext.webkitRequestFileSystemSync; @docsEditable true
-  @JSName('webkitRequestFileSystemSync')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
-  FileSystemSync requestFileSystemSync(int type, int size) native;
+  FileSystemSync webkitRequestFileSystemSync(int type, int size) native;
 
   /// @domName WorkerContext.webkitResolveLocalFileSystemSyncURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemSyncURL')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
-  EntrySync resolveLocalFileSystemSyncUrl(String url) native;
+  EntrySync webkitResolveLocalFileSystemSyncUrl(String url) native;
 
   /// @domName WorkerContext.webkitResolveLocalFileSystemURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemURL')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
-  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
 
   /**
