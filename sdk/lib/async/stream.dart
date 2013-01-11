@@ -181,7 +181,7 @@ abstract class Stream<T> {
         onError: onError,
         onDone: () {
           sink.close();
-          result.setValue(null);
+          result._setValue(null);
         },
         unsubscribeOnError: unsubscribeOnError);
     return result;

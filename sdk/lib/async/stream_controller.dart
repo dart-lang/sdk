@@ -85,10 +85,24 @@ class StreamController<T> extends Stream<T> implements StreamSink<T> {
   /**
    * Send or enqueue an error event.
    *
+   * If [error] is not an [AsyncError], [exception] and an optional [stackTrace]
+   * is combined into an [AsyncError] and sent this stream's listeners.
+   *
+   * Itherwise, if [error] is an [AsyncError], it is used directly as the
+   * error object reported to listeners, and the [stackTrace] is ignored.
+   *
    * If a subscription has requested to be unsubscribed on errors,
    * it will be unsubscribed after receiving this event.
    */
-  void signalError(AsyncError error) { _stream._signalError(error); }
+  void signalError(Object error, [Object stackTrace]) {
+    AsyncError asyncError;
+    if (error is AsyncError) {
+      asyncError = error;
+    } else {
+      asyncError = new AsyncError(error, stackTrace);
+    }
+    _stream._signalError(asyncError);
+  }
 
   /**
    * Send or enqueue a "done" message.

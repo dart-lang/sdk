@@ -443,7 +443,80 @@ testFutureWhenErrorFutureError() {
   completer.completeError("Error");
 }
 
+testFutureThenThrowsAsync() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  AsyncError error = new AsyncError(42, "st");
 
+  var port = new ReceivePort();
+  future.then((v) {
+    throw error;
+  }).catchError((AsyncError e) {
+    Expect.identical(error, e);
+    port.close();
+  });
+  completer.complete(0);
+}
+
+testFutureCatchThrowsAsync() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  AsyncError error = new AsyncError(42, "st");
+
+  var port = new ReceivePort();
+  future.catchError((AsyncError e) {
+    throw error;
+  }).catchError((AsyncError e) {
+    Expect.identical(error, e);
+    port.close();
+  });
+  completer.completeError(0);
+}
+
+testFutureCatchRethrowsAsync() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  AsyncError error;
+
+  var port = new ReceivePort();
+  future.catchError((AsyncError e) {
+    error = e;
+    throw e;
+  }).catchError((AsyncError e) {
+    Expect.identical(error, e);
+    port.close();
+  });
+  completer.completeError(0);
+}
+
+testFutureWhenThrowsAsync() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  AsyncError error = new AsyncError(42, "st");
+
+  var port = new ReceivePort();
+  future.whenComplete(() {
+    throw error;
+  }).catchError((AsyncError e) {
+    Expect.identical(error, e);
+    port.close();
+  });
+  completer.complete(0);
+}
+
+testCompleteWithAsyncError() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  AsyncError error = new AsyncError(42, "st");
+
+  var port = new ReceivePort();
+  future.catchError((AsyncError e) {
+    Expect.identical(error, e);
+    port.close();
+  });
+
+  completer.completeError(error);
+}
 
 main() {
   testImmediate();
@@ -453,6 +526,7 @@ main() {
   testCompleteWithSuccessHandlerBeforeComplete();
   testCompleteWithSuccessHandlerAfterComplete();
   testCompleteManySuccessHandlers();
+  testCompleteWithAsyncError();
 
   testException();
   testExceptionHandler();
@@ -475,5 +549,10 @@ main() {
   testFutureWhenErrorFutureValue();
   testFutureWhenValueFutureError();
   testFutureWhenErrorFutureError();
+
+  testFutureThenThrowsAsync();
+  testFutureCatchThrowsAsync();
+  testFutureWhenThrowsAsync();
+  testFutureCatchRethrowsAsync();
 }
 

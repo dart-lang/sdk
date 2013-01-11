@@ -36,17 +36,17 @@ abstract class Future<T> {
     return new _FutureImpl<T>.immediateError(error, stackTrace);
   }
 
-  // TODO(floitsch): I don't think the typing is right here.
-  // Otherwise new Future<int>.wait(...) would be a Future<List<int>>. Sounds
-  // wrong.
-  factory Future.wait(List<Future> futures)
-    => new _FutureImpl<List<T>>.wait(futures);
-
   factory Future.delayed(int milliseconds, dynamic value()) {
     var completer = new Completer<T>();
     new Timer(milliseconds, (_) => completer.complete(null));
     return completer.future.then((_) => value());
   }
+
+  // TODO(floitsch): I don't think the typing is right here.
+  // Otherwise new Future<int>.wait(...) would be a Future<List<int>>. Sounds
+  // wrong.
+  factory Future.wait(List<Future> futures)
+    => new _FutureImpl<List<T>>.wait(futures);
 
   /**
    * When this future completes with a value, then [onValue] is called with this
@@ -65,11 +65,12 @@ abstract class Future<T> {
    * Otherwise [:f:] is completed with the return value of [onValue].
    *
    * If [onValue] throws an exception, the returned future will receive the
-   * exception.
+   * exception. If the value thrown is an [AsyncError], it is used directly,
+   * as the error result, otherwise it is wrapped in an [AsyncError] first.
    *
    * If [onError] is provided, it is called if this future completes with an
    * error, and its return value/throw behavior is handled the same way as
-   * for [onValue].
+   * for [catchError] without a [:test:] argument.
    *
    * In most cases, it is more readable to use [catchError] separately, possibly
    * with a [:test:] parameter, instead of handling both value and error in a
@@ -78,12 +79,19 @@ abstract class Future<T> {
   Future then(onValue(T value), { onError(AsyncError asyncError) });
 
   /**
-   * If this future is complete with an error, [test] is called with the error.
+   * Handles errors emitted by this [Future].
+   *
+   * When this future completes with an error, first [test] is called with the
+   * error's value.
+   *
    * If [test] returns [true], [onError] is called with the error
    * wrapped in an [AsyncError]. The result of [onError] is handled exactly as
-   * [then]'s [onValue]. If [test] returns false, the exception is not handled
-   * by [onError]. If [test] is omitted, it defaults to a function that always
-   * returns true.
+   * [then]'s [onValue].
+   *
+   * If [test] returns false, the exception is not handled by [onError], but is
+   * emitted by the returned Future unmodified.
+   *
+   * If [test] is omitted, it defaults to a function that always returns true.
    *
    * Example:
    * foo
@@ -163,9 +171,13 @@ abstract class Completer<T> {
    * Completing a future with an error indicates that an exception was thrown
    * while trying to produce a value.
    *
-   * The argument [exception] should not be [:null:]. A [stackTrace]
-   * object can be provided as well, to give the user information about where
-   * the error occurred. If omitted, it will be [:null:].
+   * The argument [exception] should not be [:null:].
+   *
+   * If [exception] is an [AsyncError], it is used directly as the error
+   * message sent to the future's listeners, and [stackTrace] is ignored.
+   *
+   * Otherwise the [exception] and an optional [stackTrace] is combined into an
+   * [AsyncError] and sent to this future's listeners.
    */
   void completeError(Object exception, [Object stackTrace]);
 }

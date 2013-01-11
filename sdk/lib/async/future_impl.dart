@@ -24,11 +24,17 @@ class _CompleterImpl<T> implements Completer<T> {
   void completeError(Object error, [Object stackTrace = null]) {
     if (_isComplete) throw new StateError("Future already completed");
     _isComplete = true;
+    AsyncError asyncError;
+    if (error is AsyncError) {
+      asyncError = error;
+    } else {
+      asyncError = new AsyncError(error, stackTrace);
+    }
+    // Never complete an error in the same cycle. Otherwise users might
+    // not have a chance to register their error-handlers.
     new Timer(0, (_) {
-      // Never complete an error in the same cycle. Otherwise users might
-      // not have a chance to register their error-handlers.
       _FutureImpl future = this.future;
-      future._setError(new AsyncError(error, stackTrace));
+      future._setError(asyncError);
     });
   }
 }
@@ -93,7 +99,13 @@ class _FutureImpl<T> implements Future<T> {
   }
 
   _FutureImpl.immediateError(var error, [Object stackTrace]) {
-    new Timer(0, (_) { _setError(new AsyncError(error, stackTrace)); });
+    AsyncError asyncError;
+    if (error is AsyncError) {
+      asyncError = error;
+    } else {
+      asyncError = new AsyncError(error, stackTrace);
+    }
+    new Timer(0, (_) { _setError(asyncError); });
   }
 
   factory _FutureImpl.wait(Iterable<Future> futures) {
@@ -336,6 +348,9 @@ class _ThenFuture<S, T> extends _TransformFuture<S, T> {
     var result;
     try {
       result = _onValue(value);
+    } on AsyncError catch (e) {
+      _setError(e);
+      return;
     } catch (e, s) {
       _setError(new AsyncError(e, s));
       return;
@@ -380,6 +395,9 @@ class _CatchErrorFuture<T> extends _TransformFuture<T,T> {
     var result;
     try {
       result = _onError(error);
+    } on AsyncError catch (e) {
+      _setError(e);
+      return;
     } catch (e, s) {
       _setError(new AsyncError.withCause(e, s, error));
       return;
@@ -401,6 +419,9 @@ class _SubscribeFuture<S, T> extends _ThenFuture<S, T> {
     var result;
     try {
       result = _onError(error);
+    } on AsyncError catch (e) {
+      _setError(e);
+      return;
     } catch (e, s) {
       _setError(new AsyncError.withCause(e, s, error));
       return;
@@ -425,6 +446,9 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
         }, onError: _setError);
         return;
       }
+    } on AsyncError catch (e) {
+      _setError(e);
+      return;
     } catch (e, s) {
       _setError(new AsyncError(e, s));
       return;
@@ -444,6 +468,9 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
         }, onError: _setError);
         return;
       }
+    } on AsyncError catch (e) {
+      _setError(e);
+      return;
     } catch (e, s) {
       error = new AsyncError.withCause(e, s, error);
     }
