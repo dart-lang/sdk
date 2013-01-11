@@ -8,7 +8,7 @@
 #include "vm/globals.h"
 
 // Forward declarations.
-class tm;
+struct tm;
 
 namespace dart {
 
