@@ -9,6 +9,12 @@ import 'dart:uri';
 import 'closure.dart' as closureMapping;
 import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'elements/elements.dart';
+import 'elements/modelx.dart'
+    show ErroneousElementX,
+         CompilationUnitElementX,
+         LibraryElementX,
+         PrefixElementX,
+         VoidElementX;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'native_handler.dart' as native;
 import 'scanner/scanner_implementation.dart';

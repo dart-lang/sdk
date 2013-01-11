@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
-       hide SourceString;
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
 import 'mock_compiler.dart';
 import 'parser_helper.dart';
+
+import '../../../sdk/lib/_internal/compiler/implementation/elements/model.dart'
+    show ElementX;
+
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+    hide SourceString;
 
 DartType intType;
 DartType boolType;
@@ -445,7 +449,7 @@ analyze(String text, [expectedWarnings]) {
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
-  Element function = new Element(
+  Element function = new ElementX(
       buildSourceString(''), ElementKind.FUNCTION, compiler.mainApp);
   TreeElements elements = compiler.resolveNodeStatement(node, function);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,

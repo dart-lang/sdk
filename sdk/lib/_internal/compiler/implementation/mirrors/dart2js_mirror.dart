@@ -88,7 +88,7 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
 
 Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
     Dart2JsContainerMirror library, Element element) {
-  if (element is SynthesizedConstructorElement) {
+  if (element.isSynthesized) {
     return const <Dart2JsMemberMirror>[];
   } else if (element is VariableElement) {
     return <Dart2JsMemberMirror>[new Dart2JsFieldMirror(library, element)];
