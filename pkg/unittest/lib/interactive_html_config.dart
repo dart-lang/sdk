@@ -469,6 +469,7 @@ void _prepareDom() {
  * child, depedning on whether the URL has a search part.
  */
 void useInteractiveHtmlConfiguration() {
+  if (config != null) return;
   if (window.location.search == '') { // This is the parent.
     _prepareDom();
     configure(new ParentInteractiveHtmlConfiguration());

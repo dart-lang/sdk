@@ -165,10 +165,9 @@ class CompactVMConfiguration extends VMConfiguration {
     }
     return '...$res';
   }
-
-  void notifyController(String msg) {}
 }
 
 void useCompactVMConfiguration() {
+  if (config != null) return;
   configure(new CompactVMConfiguration());
 }

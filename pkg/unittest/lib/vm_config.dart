@@ -25,5 +25,6 @@ class VMConfiguration extends Configuration {
 }
 
 void useVMConfiguration() {
+  if (config != null) return;
   configure(new VMConfiguration());
 }

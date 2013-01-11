@@ -305,6 +305,7 @@ void _prepareDom() {
  * child, depending on whether the URL has a search part.
  */
 void useHtmlLayoutConfiguration() {
+  if (config != null) return;
   if (window.location.search == '') { // This is the parent.
     _prepareDom();
     configure(new ParentHtmlConfiguration());

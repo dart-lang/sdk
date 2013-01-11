@@ -144,5 +144,6 @@ class HtmlConfiguration extends Configuration {
 }
 
 void useHtmlConfiguration([bool isLayoutTest = false]) {
+  if (config != null) return;
   configure(new HtmlConfiguration(isLayoutTest));
 }

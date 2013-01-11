@@ -412,5 +412,6 @@ class HtmlEnhancedConfiguration extends Configuration {
 }
 
 void useHtmlEnhancedConfiguration([bool isLayoutTest = false]) {
+  if (config != null) return;
   configure(new HtmlEnhancedConfiguration(isLayoutTest));
 }
