@@ -2,13 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library args_test;
+library parse_test;
 
 import 'package:unittest/unittest.dart';
 import 'package:args/args.dart';
 
 main() {
   group('ArgParser.parse()', () {
+    test('does not destructively modify the argument list', () {
+      var parser = new ArgParser();
+      parser.addFlag('verbose');
+
+      var args = ['--verbose'];
+      var results = parser.parse(args);
+      expect(args, equals(['--verbose']));
+      expect(results['verbose'], isTrue);
+    });
+
     group('flags', () {
       test('are true if present', () {
         var parser = new ArgParser();

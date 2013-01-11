@@ -70,8 +70,57 @@ main() {
     test('throws if the option is unknown', () {
       var parser = new ArgParser();
       parser.addOption('mode', defaultsTo: 'debug');
-      expect(()=>parser.getDefault('undefined'),
-          throwsArgumentError);
+      throwsIllegalArg(() => parser.getDefault('undefined'));
+    });
+  });
+
+  group('ArgParser.commands', () {
+    test('returns an empty map if there are no commands', () {
+      var parser = new ArgParser();
+      expect(parser.commands, isEmpty);
+    });
+
+    test('returns the commands that were added', () {
+      var parser = new ArgParser();
+      parser.addCommand('hide');
+      parser.addCommand('seek');
+      expect(parser.commands, hasLength(2));
+      expect(parser.commands['hide'], isNotNull);
+      expect(parser.commands['seek'], isNotNull);
+    });
+
+    test('iterates over the commands in the order they were added', () {
+      var parser = new ArgParser();
+      parser.addCommand('a');
+      parser.addCommand('d');
+      parser.addCommand('b');
+      parser.addCommand('c');
+      expect(parser.commands.keys, equals(['a', 'd', 'b', 'c']));
+    });
+  });
+
+  group('ArgParser.options', () {
+    test('returns an empty map if there are no options', () {
+      var parser = new ArgParser();
+      expect(parser.options, isEmpty);
+    });
+
+    test('returns the options that were added', () {
+      var parser = new ArgParser();
+      parser.addFlag('hide');
+      parser.addOption('seek');
+      expect(parser.options, hasLength(2));
+      expect(parser.options['hide'], isNotNull);
+      expect(parser.options['seek'], isNotNull);
+    });
+
+    test('iterates over the options in the order they were added', () {
+      var parser = new ArgParser();
+      parser.addFlag('a');
+      parser.addOption('d');
+      parser.addFlag('b');
+      parser.addOption('c');
+      expect(parser.options.keys, equals(['a', 'd', 'b', 'c']));
     });
   });
 

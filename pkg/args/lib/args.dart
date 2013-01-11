@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -145,7 +145,29 @@
  *     var results = parser.parse(['--mode', 'on', '--mode', 'off']);
  *     print(results['mode']); // prints '[on, off]'
  *
- * ## Usage ##
+ * ## Defining commands ##
+ *
+ * In addition to *options*, you can also define *commands*. A command is a
+ * named argument that has its own set of options. For example, when you run:
+ *
+ *     $ git commit -a
+ *
+ * The executable is `git`, the command is `commit`, and the `-a` option is an
+ * option passed to the command. You can add a command like so:
+ *
+ *     var parser = new ArgParser();
+ *     var command = parser.addCommand("commit");
+ *     command.addFlag('all', abbr: 'a');
+ *
+ * It returns another [ArgParser] which you can use to define options and
+ * subcommands on that command. When an argument list is parsed, you can then
+ * determine which command was entered and what options were provided for it.
+ *
+ *     var results = parser.parse(['commit', '-a']);
+ *     print(results.command.name); // "commit"
+ *     print(results.command['a']); // true
+ *
+ * ## Displaying usage ##
  *
  * This library can also be used to automatically generate nice usage help
  * text like you get when you run a program with `--help`. To use this, you
@@ -179,7 +201,7 @@
  *
  *           [arm]       ARM Holding 32-bit chip
  *           [ia32]      Intel x86
- * 
+ *
  * To assist the formatting of the usage help, single line help text will
  * be followed by a single new line. Options with multi-line help text
  * will be followed by two new lines. This provides spatial diversity between
@@ -190,39 +212,42 @@
  */
 library args;
 
-import 'dart:math';
-
-// TODO(rnystrom): Use "package:" URL here when test.dart can handle pub.
-import 'src/utils.dart';
+import 'src/parser.dart';
+import 'src/usage.dart';
 
 /**
  * A class for taking a list of raw command line arguments and parsing out
  * options and flags from them.
  */
 class ArgParser {
-  static final _SOLO_OPT = new RegExp(r'^-([a-zA-Z0-9])$');
-  static final _ABBR_OPT = new RegExp(r'^-([a-zA-Z0-9]+)(.*)$');
-  static final _LONG_OPT = new RegExp(r'^--([a-zA-Z\-_0-9]+)(=(.*))?$');
-
-  final Map<String, _Option> _options;
+  /**
+   * The options that have been defined for this parser.
+   */
+  final Map<String, Option> options = <String, Option>{};
 
   /**
-   * The names of the options, in the order that they were added. This way we
-   * can generate usage information in the same order.
+   * The commands that have been defined for this parser.
    */
-  // TODO(rnystrom): Use an ordered map type, if one appears.
-  final List<String> _optionNames;
-
-  /** The current argument list being parsed. Set by [parse()]. */
-  List<String> _args;
-
-  /** Index of the current argument being parsed in [_args]. */
-  int _current;
+  final Map<String, ArgParser> commands = <String, ArgParser>{};
 
   /** Creates a new ArgParser. */
-  ArgParser()
-    : _options = <String, _Option>{},
-      _optionNames = <String>[];
+  ArgParser();
+
+  /**
+   * Defines a command. A command is a named argument which may in turn
+   * define its own options and subcommands. Returns an [ArgParser] that can
+   * be used to define the command's options.
+   */
+  ArgParser addCommand(String name) {
+    // Make sure the name isn't in use.
+    if (commands.containsKey(name)) {
+      throw new ArgumentError('Duplicate command "$name".');
+    }
+
+    var command = new ArgParser();
+    commands[name] = command;
+    return command;
+  }
 
   /**
    * Defines a flag. Throws an [ArgumentError] if:
@@ -254,7 +279,7 @@ class ArgParser {
       void callback(value), {bool isFlag, bool negatable: false,
       bool allowMultiple: false}) {
     // Make sure the name isn't in use.
-    if (_options.containsKey(name)) {
+    if (options.containsKey(name)) {
       throw new ArgumentError('Duplicate option "$name".');
     }
 
@@ -265,254 +290,70 @@ class ArgParser {
             'Abbreviation "$abbr" is longer than one character.');
       }
 
-      var existing = _findByAbbr(abbr);
+      var existing = findByAbbreviation(abbr);
       if (existing != null) {
         throw new ArgumentError(
             'Abbreviation "$abbr" is already used by "${existing.name}".');
       }
     }
 
-    _options[name] = new _Option(name, abbr, help, allowed, allowedHelp,
+    options[name] = new Option(name, abbr, help, allowed, allowedHelp,
         defaultsTo, callback, isFlag: isFlag, negatable: negatable,
         allowMultiple: allowMultiple);
-    _optionNames.add(name);
   }
 
   /**
    * Parses [args], a list of command-line arguments, matches them against the
    * flags and options defined by this parser, and returns the result.
    */
-  ArgResults parse(List<String> args) {
-    _args = args;
-    _current = 0;
-    var results = {};
-
-    // Initialize flags to their defaults.
-    _options.forEach((name, option) {
-      if (option.allowMultiple) {
-        results[name] = [];
-      } else {
-        results[name] = option.defaultValue;
-      }
-    });
-
-    // Parse the args.
-    for (_current = 0; _current < args.length; _current++) {
-      var arg = args[_current];
-
-      if (arg == '--') {
-        // Reached the argument terminator, so stop here.
-        _current++;
-        break;
-      }
-
-      // Try to parse the current argument as an option. Note that the order
-      // here matters.
-      if (_parseSoloOption(results)) continue;
-      if (_parseAbbreviation(results)) continue;
-      if (_parseLongOption(results)) continue;
-
-      // If we got here, the argument doesn't look like an option, so stop.
-      break;
-    }
-
-    // Set unspecified multivalued arguments to their default value,
-    // if any, and invoke the callbacks.
-    for (var name in _optionNames) {
-      var option = _options[name];
-      if (option.allowMultiple &&
-          results[name].length == 0 &&
-          option.defaultValue != null) {
-        results[name].add(option.defaultValue);
-      }
-      if (option.callback != null) option.callback(results[name]);
-    }
-
-    // Add in the leftover arguments we didn't parse.
-    return new ArgResults(results,
-        _args.getRange(_current, _args.length - _current));
-  }
+  ArgResults parse(List<String> args) =>
+      new Parser(null, this, args.toList()).parse();
 
   /**
    * Generates a string displaying usage information for the defined options.
    * This is basically the help text shown on the command line.
    */
-  String getUsage() {
-    return new _Usage(this).generate();
-  }
-
-  /**
-   * Called during parsing to validate the arguments. Throws a
-   * [FormatException] if [condition] is `false`.
-   */
-  _validate(bool condition, String message) {
-    if (!condition) throw new FormatException(message);
-  }
-
-  /** Validates and stores [value] as the value for [option]. */
-  _setOption(Map results, _Option option, value) {
-    // See if it's one of the allowed values.
-    if (option.allowed != null) {
-      _validate(option.allowed.any((allow) => allow == value),
-          '"$value" is not an allowed value for option "${option.name}".');
-    }
-
-    if (option.allowMultiple) {
-      results[option.name].add(value);
-    } else {
-      results[option.name] = value;
-    }
-  }
-
-  /**
-   * Pulls the value for [option] from the next argument in [_args] (where the
-   * current option is at index [_current]. Validates that there is a valid
-   * value there.
-   */
-  void _readNextArgAsValue(Map results, _Option option) {
-    _current++;
-    // Take the option argument from the next command line arg.
-    _validate(_current < _args.length,
-        'Missing argument for "${option.name}".');
-
-    // Make sure it isn't an option itself.
-    _validate(!_ABBR_OPT.hasMatch(_args[_current]) &&
-              !_LONG_OPT.hasMatch(_args[_current]),
-        'Missing argument for "${option.name}".');
-
-    _setOption(results, option, _args[_current]);
-  }
-
-  /**
-   * Tries to parse the current argument as a "solo" option, which is a single
-   * hyphen followed by a single letter. We treat this differently than
-   * collapsed abbreviations (like "-abc") to handle the possible value that
-   * may follow it.
-   */
-  bool _parseSoloOption(Map results) {
-    var soloOpt = _SOLO_OPT.firstMatch(_args[_current]);
-    if (soloOpt == null) return false;
-
-    var option = _findByAbbr(soloOpt[1]);
-    _validate(option != null,
-        'Could not find an option or flag "-${soloOpt[1]}".');
-
-    if (option.isFlag) {
-      _setOption(results, option, true);
-    } else {
-      _readNextArgAsValue(results, option);
-    }
-
-    return true;
-  }
-
-  /**
-   * Tries to parse the current argument as a series of collapsed abbreviations
-   * (like "-abc") or a single abbreviation with the value directly attached
-   * to it (like "-mrelease").
-   */
-  bool _parseAbbreviation(Map results) {
-    var abbrOpt = _ABBR_OPT.firstMatch(_args[_current]);
-    if (abbrOpt == null) return false;
-
-    // If the first character is the abbreviation for a non-flag option, then
-    // the rest is the value.
-    var c = abbrOpt[1].substring(0, 1);
-    var first = _findByAbbr(c);
-    if (first == null) {
-      _validate(false, 'Could not find an option with short name "-$c".');
-    } else if (!first.isFlag) {
-      // The first character is a non-flag option, so the rest must be the
-      // value.
-      var value = '${abbrOpt[1].substring(1)}${abbrOpt[2]}';
-      _setOption(results, first, value);
-    } else {
-      // If we got some non-flag characters, then it must be a value, but
-      // if we got here, it's a flag, which is wrong.
-      _validate(abbrOpt[2] == '',
-        'Option "-$c" is a flag and cannot handle value '
-        '"${abbrOpt[1].substring(1)}${abbrOpt[2]}".');
-
-      // Not an option, so all characters should be flags.
-      for (var i = 0; i < abbrOpt[1].length; i++) {
-        var c = abbrOpt[1].substring(i, i + 1);
-        var option = _findByAbbr(c);
-        _validate(option != null,
-            'Could not find an option with short name "-$c".');
-
-        // In a list of short options, only the first can be a non-flag. If
-        // we get here we've checked that already.
-        _validate(option.isFlag,
-            'Option "-$c" must be a flag to be in a collapsed "-".');
-
-        _setOption(results, option, true);
-      }
-    }
-
-    return true;
-  }
-
-  /**
-   * Tries to parse the current argument as a long-form named option, which
-   * may include a value like "--mode=release" or "--mode release".
-   */
-  bool _parseLongOption(Map results) {
-    var longOpt = _LONG_OPT.firstMatch(_args[_current]);
-    if (longOpt == null) return false;
-
-    var name = longOpt[1];
-    var option = _options[name];
-    if (option != null) {
-      if (option.isFlag) {
-        _validate(longOpt[3] == null,
-            'Flag option "$name" should not be given a value.');
-
-        _setOption(results, option, true);
-      } else if (longOpt[3] != null) {
-        // We have a value like --foo=bar.
-        _setOption(results, option, longOpt[3]);
-      } else {
-        // Option like --foo, so look for the value as the next arg.
-        _readNextArgAsValue(results, option);
-      }
-    } else if (name.startsWith('no-')) {
-      // See if it's a negated flag.
-      name = name.substring('no-'.length);
-      option = _options[name];
-      _validate(option != null, 'Could not find an option named "$name".');
-      _validate(option.isFlag, 'Cannot negate non-flag option "$name".');
-      _validate(option.negatable, 'Cannot negate option "$name".');
-
-      _setOption(results, option, false);
-    } else {
-      _validate(option != null, 'Could not find an option named "$name".');
-    }
-
-    return true;
-  }
-
-  /**
-   * Finds the option whose abbreviation is [abbr], or `null` if no option has
-   * that abbreviation.
-   */
-  _Option _findByAbbr(String abbr) {
-    for (var option in _options.values) {
-      if (option.abbreviation == abbr) return option;
-    }
-
-    return null;
-  }
+  String getUsage() => new Usage(this).generate();
 
   /**
    * Get the default value for an option. Useful after parsing to test
    * if the user specified something other than the default.
    */
   getDefault(String option) {
-    if (!_options.containsKey(option)) {
+    if (!options.containsKey(option)) {
       throw new ArgumentError('No option named $option');
     }
-    return _options[option].defaultValue;
+    return options[option].defaultValue;
   }
+
+  /**
+   * Finds the option whose abbreviation is [abbr], or `null` if no option has
+   * that abbreviation.
+   */
+  Option findByAbbreviation(String abbr) {
+    return options.values.firstMatching((option) => option.abbreviation == abbr,
+        orElse: () => null);
+  }
+}
+
+/**
+ * A command-line option. Includes both flags and options which take a value.
+ */
+class Option {
+  final String name;
+  final String abbreviation;
+  final List allowed;
+  final defaultValue;
+  final Function callback;
+  final String help;
+  final Map<String, String> allowedHelp;
+  final bool isFlag;
+  final bool negatable;
+  final bool allowMultiple;
+
+  Option(this.name, this.abbreviation, this.help, this.allowed,
+      this.allowedHelp, this.defaultValue, this.callback, {this.isFlag,
+      this.negatable, this.allowMultiple: false});
 }
 
 /**
@@ -524,6 +365,18 @@ class ArgResults {
   final Map _options;
 
   /**
+   * If these are the results for parsing a command's options, this will be
+   * the name of the command. For top-level results, this returns `null`.
+   */
+  final String name;
+
+  /**
+   * The command that was selected, or `null` if none was. This will contain
+   * the options that were selected for that command.
+   */
+  final ArgResults command;
+
+  /**
    * The remaining command-line arguments that were not parsed as options or
    * flags. If `--` was used to separate the options from the remaining
    * arguments, it will not be included in this list.
@@ -531,7 +384,7 @@ class ArgResults {
   final List<String> rest;
 
   /** Creates a new [ArgResults]. */
-  ArgResults(this._options, this.rest);
+  ArgResults(this._options, this.name, this.command, this.rest);
 
   /** Gets the parsed command-line option named [name]. */
   operator [](String name) {
@@ -547,239 +400,3 @@ class ArgResults {
   Collection<String> get options => _options.keys.toList();
 }
 
-class _Option {
-  final String name;
-  final String abbreviation;
-  final List allowed;
-  final defaultValue;
-  final Function callback;
-  final String help;
-  final Map<String, String> allowedHelp;
-  final bool isFlag;
-  final bool negatable;
-  final bool allowMultiple;
-
-  _Option(this.name, this.abbreviation, this.help, this.allowed,
-      this.allowedHelp, this.defaultValue, this.callback, {this.isFlag,
-      this.negatable, this.allowMultiple: false});
-}
-
-/**
- * Takes an [ArgParser] and generates a string of usage (i.e. help) text for its
- * defined options. Internally, it works like a tabular printer. The output is
- * divided into three horizontal columns, like so:
- *
- *     -h, --help  Prints the usage information
- *     |  |        |                                 |
- *
- * It builds the usage text up one column at a time and handles padding with
- * spaces and wrapping to the next line to keep the cells correctly lined up.
- */
-class _Usage {
-  static const NUM_COLUMNS = 3; // Abbreviation, long name, help.
-
-  /** The parser this is generating usage for. */
-  final ArgParser args;
-
-  /** The working buffer for the generated usage text. */
-  StringBuffer buffer;
-
-  /**
-   * The column that the "cursor" is currently on. If the next call to
-   * [write()] is not for this column, it will correctly handle advancing to
-   * the next column (and possibly the next row).
-   */
-  int currentColumn = 0;
-
-  /** The width in characters of each column. */
-  List<int> columnWidths;
-
-  /**
-   * The number of sequential lines of text that have been written to the last
-   * column (which shows help info). We track this so that help text that spans
-   * multiple lines can be padded with a blank line after it for separation.
-   * Meanwhile, sequential options with single-line help will be compacted next
-   * to each other.
-   */
-  int numHelpLines = 0;
-
-  /**
-   * How many newlines need to be rendered before the next bit of text can be
-   * written. We do this lazily so that the last bit of usage doesn't have
-   * dangling newlines. We only write newlines right *before* we write some
-   * real content.
-   */
-  int newlinesNeeded = 0;
-
-  _Usage(this.args);
-
-  /**
-   * Generates a string displaying usage information for the defined options.
-   * This is basically the help text shown on the command line.
-   */
-  String generate() {
-    buffer = new StringBuffer();
-
-    calculateColumnWidths();
-
-    for (var name in args._optionNames) {
-      var option = args._options[name];
-      write(0, getAbbreviation(option));
-      write(1, getLongOption(option));
-
-      if (option.help != null) write(2, option.help);
-
-      if (option.allowedHelp != null) {
-        var allowedNames = option.allowedHelp.keys.toList();
-        allowedNames.sort();
-        newline();
-        for (var name in allowedNames) {
-          write(1, getAllowedTitle(name));
-          write(2, option.allowedHelp[name]);
-        }
-        newline();
-      } else if (option.allowed != null) {
-        write(2, buildAllowedList(option));
-      } else if (option.defaultValue != null) {
-        if (option.isFlag && option.defaultValue == true) {
-          write(2, '(defaults to on)');
-        } else if (!option.isFlag) {
-          write(2, '(defaults to "${option.defaultValue}")');
-        }
-      }
-
-      // If any given option displays more than one line of text on the right
-      // column (i.e. help, default value, allowed options, etc.) then put a
-      // blank line after it. This gives space where it's useful while still
-      // keeping simple one-line options clumped together.
-      if (numHelpLines > 1) newline();
-    }
-
-    return buffer.toString();
-  }
-
-  String getAbbreviation(_Option option) {
-    if (option.abbreviation != null) {
-      return '-${option.abbreviation}, ';
-    } else {
-      return '';
-    }
-  }
-
-  String getLongOption(_Option option) {
-    if (option.negatable) {
-      return '--[no-]${option.name}';
-    } else {
-      return '--${option.name}';
-    }
-  }
-
-  String getAllowedTitle(String allowed) {
-    return '      [$allowed]';
-  }
-
-  void calculateColumnWidths() {
-    int abbr = 0;
-    int title = 0;
-    for (var name in args._optionNames) {
-      var option = args._options[name];
-
-      // Make room in the first column if there are abbreviations.
-      abbr = max(abbr, getAbbreviation(option).length);
-
-      // Make room for the option.
-      title = max(title, getLongOption(option).length);
-
-      // Make room for the allowed help.
-      if (option.allowedHelp != null) {
-        for (var allowed in option.allowedHelp.keys) {
-          title = max(title, getAllowedTitle(allowed).length);
-        }
-      }
-    }
-
-    // Leave a gutter between the columns.
-    title += 4;
-    columnWidths = [abbr, title];
-  }
-
-  newline() {
-    newlinesNeeded++;
-    currentColumn = 0;
-    numHelpLines = 0;
-  }
-
-  write(int column, String text) {
-    var lines = text.split('\n');
-
-    // Strip leading and trailing empty lines.
-    while (lines.length > 0 && lines[0].trim() == '') {
-      lines.removeRange(0, 1);
-    }
-
-    while (lines.length > 0 && lines[lines.length - 1].trim() == '') {
-      lines.removeLast();
-    }
-
-    for (var line in lines) {
-      writeLine(column, line);
-    }
-  }
-
-  writeLine(int column, String text) {
-    // Write any pending newlines.
-    while (newlinesNeeded > 0) {
-      buffer.add('\n');
-      newlinesNeeded--;
-    }
-
-    // Advance until we are at the right column (which may mean wrapping around
-    // to the next line.
-    while (currentColumn != column) {
-      if (currentColumn < NUM_COLUMNS - 1) {
-        buffer.add(padRight('', columnWidths[currentColumn]));
-      } else {
-        buffer.add('\n');
-      }
-      currentColumn = (currentColumn + 1) % NUM_COLUMNS;
-    }
-
-    if (column < columnWidths.length) {
-      // Fixed-size column, so pad it.
-      buffer.add(padRight(text, columnWidths[column]));
-    } else {
-      // The last column, so just write it.
-      buffer.add(text);
-    }
-
-    // Advance to the next column.
-    currentColumn = (currentColumn + 1) % NUM_COLUMNS;
-
-    // If we reached the last column, we need to wrap to the next line.
-    if (column == NUM_COLUMNS - 1) newlinesNeeded++;
-
-    // Keep track of how many consecutive lines we've written in the last
-    // column.
-    if (column == NUM_COLUMNS - 1) {
-      numHelpLines++;
-    } else {
-      numHelpLines = 0;
-    }
-  }
-
-  buildAllowedList(_Option option) {
-    var allowedBuffer = new StringBuffer();
-    allowedBuffer.add('[');
-    bool first = true;
-    for (var allowed in option.allowed) {
-      if (!first) allowedBuffer.add(', ');
-      allowedBuffer.add(allowed);
-      if (allowed == option.defaultValue) {
-        allowedBuffer.add(' (default)');
-      }
-      first = false;
-    }
-    allowedBuffer.add(']');
-    return allowedBuffer.toString();
-  }
-}
