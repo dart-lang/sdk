@@ -428,11 +428,11 @@ abstract class Compiler implements DiagnosticListener {
     throw new CompilerCancelledException(reason);
   }
 
-  SourceSpan spanFromSpannable(Spannable node) {
+  SourceSpan spanFromSpannable(Spannable node, [Uri uri]) {
     if (node is Node) {
-      return spanFromNode(node);
+      return spanFromNode(node, uri);
     } else if (node is Token) {
-      return spanFromTokens(node, node);
+      return spanFromTokens(node, node, uri);
     } else if (node is HInstruction) {
       return spanFromHInstruction(node);
     } else if (node is Element) {

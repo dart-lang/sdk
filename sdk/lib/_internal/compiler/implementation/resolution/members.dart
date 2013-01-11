@@ -391,7 +391,7 @@ class ResolverTask extends CompilerTask {
       if (cls.supertypeLoadState == STATE_DONE) return;
       if (cls.supertypeLoadState == STATE_STARTED) {
         compiler.reportMessage(
-          compiler.spanFromNode(from),
+          compiler.spanFromSpannable(from),
           MessageKind.CYCLIC_CLASS_HIERARCHY.error([cls.name]),
           Diagnostic.ERROR);
         cls.supertypeLoadState = STATE_DONE;
@@ -639,7 +639,7 @@ class ResolverTask extends CompilerTask {
         }
       }
       compiler.reportMessage(
-          compiler.spanFromNode(errorNode),
+          compiler.spanFromSpannable(errorNode),
           messageKind.error([function.name]),
           Diagnostic.ERROR);
     }
@@ -648,12 +648,12 @@ class ResolverTask extends CompilerTask {
           node.parameters.nodes.skip(signature.requiredParameterCount).head;
       if (signature.optionalParametersAreNamed) {
         compiler.reportMessage(
-            compiler.spanFromNode(errorNode),
+            compiler.spanFromSpannable(errorNode),
             MessageKind.OPERATOR_NAMED_PARAMETERS.error([function.name]),
             Diagnostic.ERROR);
       } else {
         compiler.reportMessage(
-            compiler.spanFromNode(errorNode),
+            compiler.spanFromSpannable(errorNode),
             MessageKind.OPERATOR_OPTIONAL_PARAMETERS.error([function.name]),
             Diagnostic.ERROR);
       }
@@ -1425,7 +1425,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element result = scope.lookup(name);
     if (!Elements.isUnresolved(result)) {
       if (!inInstanceContext && result.isInstanceMember()) {
-        compiler.reportMessage(compiler.spanFromNode(node),
+        compiler.reportMessage(compiler.spanFromSpannable(node),
             MessageKind.NO_INSTANCE_AVAILABLE.error([name]),
             Diagnostic.ERROR);
         return new ErroneousElementX(MessageKind.NO_INSTANCE_AVAILABLE,
@@ -1433,7 +1433,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
                                     name, enclosingElement);
       } else if (result.isAmbiguous()) {
         AmbiguousElement ambiguous = result;
-        compiler.reportMessage(compiler.spanFromNode(node),
+        compiler.reportMessage(compiler.spanFromSpannable(node),
             ambiguous.messageKind.error(ambiguous.messageArguments),
             Diagnostic.ERROR);
         return new ErroneousElementX(ambiguous.messageKind,
@@ -2147,11 +2147,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   void handleRedirectingFactoryBody(Return node) {
     if (!enclosingElement.isFactoryConstructor()) {
       compiler.reportMessage(
-          compiler.spanFromNode(node),
+          compiler.spanFromSpannable(node),
           MessageKind.FACTORY_REDIRECTION_IN_NON_FACTORY.error([]),
           Diagnostic.ERROR);
       compiler.reportMessage(
-          compiler.spanFromElement(enclosingElement),
+          compiler.spanFromSpannable(enclosingElement),
           MessageKind.MISSING_FACTORY_KEYWORD.error([]),
           Diagnostic.INFO);
     }
@@ -2782,17 +2782,17 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         } else {
           if (interfaceType == element.supertype) {
             compiler.reportMessage(
-                compiler.spanFromNode(node.superclass),
+                compiler.spanFromSpannable(node.superclass),
                 MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
                 Diagnostic.ERROR);
             compiler.reportMessage(
-                compiler.spanFromNode(link.head),
+                compiler.spanFromSpannable(link.head),
                 MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
                 Diagnostic.ERROR);
           }
           if (interfaces.contains(interfaceType)) {
             compiler.reportMessage(
-                compiler.spanFromNode(link.head),
+                compiler.spanFromSpannable(link.head),
                 MessageKind.DUPLICATE_IMPLEMENTS.error([interfaceType]),
                 Diagnostic.ERROR);
           }
@@ -2975,7 +2975,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
         loadSupertype(element, node);
       } else {
         compiler.reportMessage(
-          compiler.spanFromNode(node),
+          compiler.spanFromSpannable(node),
           MessageKind.CLASS_NAME_EXPECTED.error([]),
           Diagnostic.ERROR);
       }
@@ -3202,7 +3202,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
           if (compiler.rejectDeprecatedFeatures &&
               // TODO(ahe): Remove isPlatformLibrary check.
               !element.getLibrary().isPlatformLibrary) {
-            compiler.reportMessage(compiler.spanFromNode(formalParameters),
+            compiler.reportMessage(compiler.spanFromSpannable(formalParameters),
                                    MessageKind.EXTRA_FORMALS.error([]),
                                    Diagnostic.ERROR);
           } else {
@@ -3220,7 +3220,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                visitor.optionalParameterCount != 0)) {
       // If there are no formal parameters, we already reported an error above.
       if (formalParameters != null) {
-        compiler.reportMessage(compiler.spanFromNode(formalParameters),
+        compiler.reportMessage(compiler.spanFromSpannable(formalParameters),
                                MessageKind.ILLEGAL_SETTER_FORMALS.error([]),
                                Diagnostic.ERROR);
       }

@@ -505,21 +505,21 @@ class CompilationUnitElementX extends ContainerElementX implements CompilationUn
     LibraryElementX library = enclosingElement;
     if (library.entryCompilationUnit == this) {
       listener.reportMessage(
-          listener.spanFromNode(tag),
+          listener.spanFromSpannable(tag),
           MessageKind.ILLEGAL_DIRECTIVE.error(),
           api.Diagnostic.WARNING);
       return;
     }
     if (!localMembers.isEmpty) {
       listener.reportMessage(
-          listener.spanFromNode(tag),
+          listener.spanFromSpannable(tag),
           MessageKind.BEFORE_TOP_LEVEL.error(),
           api.Diagnostic.ERROR);
       return;
     }
     if (partTag != null) {
       listener.reportMessage(
-          listener.spanFromNode(tag),
+          listener.spanFromSpannable(tag),
           MessageKind.DUPLICATED_PART_OF.error(),
           api.Diagnostic.WARNING);
       return;
@@ -531,7 +531,7 @@ class CompilationUnitElementX extends ContainerElementX implements CompilationUn
       String actualName = libraryTag.name.toString();
       if (expectedName != actualName) {
         listener.reportMessage(
-            listener.spanFromNode(tag.name),
+            listener.spanFromSpannable(tag.name),
             MessageKind.LIBRARY_NAME_MISMATCH.error([expectedName]),
             api.Diagnostic.WARNING);
       }

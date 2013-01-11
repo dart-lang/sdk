@@ -225,12 +225,12 @@ class LibraryLoaderTask extends LibraryLoader {
       if (!identical(existing, library)) {
         Uri uri = library.entryCompilationUnit.script.uri;
         compiler.reportMessage(
-            compiler.spanFromNode(tag.name, uri),
+            compiler.spanFromSpannable(tag.name, uri),
             MessageKind.DUPLICATED_LIBRARY_NAME.error([name]),
             api.Diagnostic.WARNING);
         Uri existingUri = existing.entryCompilationUnit.script.uri;
         compiler.reportMessage(
-            compiler.spanFromNode(existing.libraryTag.name, existingUri),
+            compiler.spanFromSpannable(existing.libraryTag.name, existingUri),
             MessageKind.DUPLICATED_LIBRARY_NAME.error([name]),
             api.Diagnostic.WARNING);
       }

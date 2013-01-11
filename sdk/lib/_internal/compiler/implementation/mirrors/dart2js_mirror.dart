@@ -216,7 +216,7 @@ class Dart2JsDiagnosticListener implements DiagnosticListener {
     internalError(message, element: element);
   }
 
-  SourceSpan spanFromNode(Node node, [Uri uri]) {
+  SourceSpan spanFromSpannable(Node node, [Uri uri]) {
     // TODO(johnniwinther): implement this.
     throw 'unimplemented';
   }
