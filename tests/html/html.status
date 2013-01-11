@@ -28,24 +28,11 @@ audiocontext_test: Skip # Need to adjust to new API.
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 
-[ $compiler == none && $runtime == drt && $system == windows]
-audiobuffersourcenode_test: Skip
-audiocontext_test: Skip
-
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug]
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
-
-[ $compiler == dart2js && $runtime == drt && $system == windows]
-audiocontext_test: Fail # Issue 4517
-audioelement_test: Fail # Issue 4517
-blob_constructor_test: Fail # Issue 4517
-css_test: Fail # Issue 4517
-form_data_test: Fail # Possibly Issue 4517
-fileapi_test: Fail # Possibly Issue 4517
-websql_test: Pass, Fail # Possibly Issue 4517
 
 [ $compiler == none && $runtime == drt && $system == macos]
 audiocontext_test: Pass, Fail
@@ -59,7 +46,6 @@ audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 css_test: Fail
 document_test/getCssCanvasContext: Fail # IE does not support this.
-element_test/additionalConstructors: Fail
 element_test/click: Fail                # IE does not support firing this event.
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
@@ -124,7 +110,6 @@ blob_constructor_test: Fail
 cache_test: fail              # IE9 does not support ApplicationCache, but IE 10 does (and should work).
 css_test: Fail
 dom_constructors_test: Fail
-element_test/additionalConstructors: Fail
 element_test/matches: Fail # IE9 does not support matches
 exceptions_test: Fail
 fileapi_test: Fail          # IE does not support filesystem APIs.
@@ -180,13 +165,6 @@ fileapi_test: Fail # requestFileSystem not supported in Safari 6.
 node_test: Skip # Issue 6457
 shadow_dom_test/supported: Fail
 
-[ $runtime == opera && $system == windows ]
-htmlelement_test: Fail, Pass
-
-[ $runtime == opera && $system == macos ]
-element_test/constructors: Fail
-
-
 [ $runtime == opera ]
 document_test/getCssCanvasContext: Fail # Issue: 7413
 document_test/document: Fail # Issue: 7413
@@ -211,6 +189,7 @@ element_test/eventListening: Crash
 element_test/queryAll: Fail
 element_webkit_test: Fail
 exceptions_test: Fail
+htmlelement_test: Fail
 indexeddb_1_test/supported: Fail
 mutationobserver_test/supported: Fail
 performance_api_test: Fail
