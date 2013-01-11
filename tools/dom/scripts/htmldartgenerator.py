@@ -33,9 +33,7 @@ class HtmlDartGenerator(object):
     if self.HasSupportCheck():
       support_check = self.GetSupportCheck()
       self._members_emitter.Emit('\n'
-          '  /**\n'
-          '   * Checks if this type is supported on the current platform\n'
-          '   */\n'
+          '  /// Checks if this type is supported on the current platform.\n'
           '  static bool get supported => $SUPPORT_CHECK;\n',
           SUPPORT_CHECK=support_check)
 

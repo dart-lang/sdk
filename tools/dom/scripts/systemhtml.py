@@ -85,6 +85,7 @@ js_support_checks = {
   'HTMLProgressElement': "Element.isTagSupported('progress')",
   'HTMLShadowElement': "Element.isTagSupported('shadow')",
   'HTMLTrackElement': "Element.isTagSupported('track')",
+  'Performance': "JS('bool', '!!(window.performance)')",
   'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
 }
 

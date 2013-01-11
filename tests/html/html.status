@@ -152,7 +152,7 @@ element_test/elements: Crash, Fail # Issue: 7414
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
 element_types_test/supported_shadow: Fail
-performance_api_test: Fail # window.performance.timing not in Safari 6.
+performance_api_test/supported: Fail
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime: Fail
@@ -192,7 +192,7 @@ exceptions_test: Fail
 htmlelement_test: Fail
 indexeddb_1_test/supported: Fail
 mutationobserver_test/supported: Fail
-performance_api_test: Fail
+performance_api_test/supported: Fail
 serialized_script_value_test: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail

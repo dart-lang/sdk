@@ -565,9 +565,7 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
   factory ArrayBuffer(int length) => ArrayBuffer._create(length);
   static ArrayBuffer _create(int length) native "ArrayBuffer_constructor_Callback";
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -2036,9 +2034,7 @@ class ContentElement extends _Element_Merged {
   ///@docsEditable true
   factory ContentElement() => document.$dom_createElement("content");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -6172,9 +6168,7 @@ class DataListElement extends _Element_Merged {
   ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -6598,9 +6592,7 @@ class DetailsElement extends _Element_Merged {
   ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -9600,9 +9592,7 @@ class EmbedElement extends _Element_Merged {
   ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -14686,9 +14676,7 @@ class KeygenElement extends _Element_Merged {
   ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -15082,9 +15070,7 @@ class MapElement extends _Element_Merged {
 class MarqueeElement extends _Element_Merged {
   MarqueeElement.internal() : super.internal();
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -16350,9 +16336,7 @@ class MeterElement extends _Element_Merged {
   ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -17888,9 +17872,7 @@ class ObjectElement extends _Element_Merged {
   ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -18168,9 +18150,7 @@ class OutputElement extends _Element_Merged {
   ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -18366,8 +18346,14 @@ class ParamElement extends _Element_Merged {
 
 
 /// @domName Performance
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE)
 class Performance extends EventTarget {
   Performance.internal() : super.internal();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
 
   /** @domName Performance.memory */
@@ -18669,9 +18655,7 @@ class ProgressElement extends _Element_Merged {
   ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -19821,9 +19805,7 @@ class SelectElement extends _Element_Merged {
 class ShadowElement extends _Element_Merged {
   ShadowElement.internal() : super.internal();
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
 
@@ -22708,9 +22690,7 @@ class TrackElement extends _Element_Merged {
   ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   static const int ERROR = 3;
@@ -25475,9 +25455,7 @@ class WebSocket extends EventTarget {
   factory WebSocket(String url) => WebSocket._create(url);
   static WebSocket _create(String url) native "WebSocket_constructor_Callback";
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -25793,6 +25771,9 @@ class Window extends EventTarget implements WindowBase {
 
 
   /** @domName DOMWindow.performance */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE)
   Performance get performance native "DOMWindow_performance_Getter";
 
 

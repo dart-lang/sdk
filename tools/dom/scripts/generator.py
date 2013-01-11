@@ -637,6 +637,12 @@ _all_but_ie9_annotations = [
 
 _history_annotations = _all_but_ie9_annotations
 
+_performance_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+  "@SupportedBrowser(SupportedBrowser.IE)",
+]
+
 # Annotations to be placed on generated members.
 # The table is indexed as:
 #   INTERFACE:     annotations to be added to the interface declaration
@@ -645,6 +651,7 @@ dart_annotations = {
   'ArrayBuffer': _all_but_ie9_annotations,
   'ArrayBufferView': _all_but_ie9_annotations,
   'DOMWindow.indexedDB': _indexed_db_annotations,
+  'DOMWindow.performance': _performance_annotations,
   'Element.webkitCreateShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",
@@ -698,6 +705,7 @@ dart_annotations = {
   ],
   'IDBFactory': _indexed_db_annotations,
   'IDBDatabase': _indexed_db_annotations,
+  'Performance': _performance_annotations,
   'ShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",

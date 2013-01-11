@@ -347,9 +347,7 @@ class ArrayBuffer native "*ArrayBuffer" {
   factory ArrayBuffer(int length) => ArrayBuffer._create(length);
   static ArrayBuffer _create(int length) => JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', 'typeof window.ArrayBuffer != "undefined"');
 
   /// @domName ArrayBuffer.byteLength; @docsEditable true
@@ -1451,9 +1449,7 @@ class ContentElement extends Element native "*HTMLContentElement" {
   ///@docsEditable true
   factory ContentElement() => document.$dom_createElement("content");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('content');
 
   /// @domName HTMLContentElement.resetStyleInheritance; @docsEditable true
@@ -5283,9 +5279,7 @@ class DataListElement extends Element native "*HTMLDataListElement" {
   ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('datalist');
 
   /// @domName HTMLDataListElement.options; @docsEditable true
@@ -5512,9 +5506,7 @@ class DetailsElement extends Element native "*HTMLDetailsElement" {
   ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('details');
 
   /// @domName HTMLDetailsElement.open; @docsEditable true
@@ -8442,9 +8434,7 @@ class EmbedElement extends Element native "*HTMLEmbedElement" {
   ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('embed');
 
   /// @domName HTMLEmbedElement.align; @docsEditable true
@@ -12700,9 +12690,7 @@ class KeygenElement extends Element native "*HTMLKeygenElement" {
   ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('keygen') && (new Element.tag('keygen') is KeygenElement);
 
   /// @domName HTMLKeygenElement.autofocus; @docsEditable true
@@ -12921,9 +12909,7 @@ class MapElement extends Element native "*HTMLMapElement" {
 /// @domName HTMLMarqueeElement; @docsEditable true
 class MarqueeElement extends Element native "*HTMLMarqueeElement" {
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('marquee')&& (new Element.tag('marquee') is MarqueeElement);
 
   /// @domName HTMLMarqueeElement.behavior; @docsEditable true
@@ -13815,9 +13801,7 @@ class MeterElement extends Element native "*HTMLMeterElement" {
   ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('meter');
 
   /// @domName HTMLMeterElement.high; @docsEditable true
@@ -15196,9 +15180,7 @@ class ObjectElement extends Element native "*HTMLObjectElement" {
   ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('object');
 
   /// @domName HTMLObjectElement.code; @docsEditable true
@@ -15384,9 +15366,7 @@ class OutputElement extends Element native "*HTMLOutputElement" {
   ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('output');
 
   /// @domName HTMLOutputElement.defaultValue; @docsEditable true
@@ -15514,7 +15494,13 @@ class ParamElement extends Element native "*HTMLParamElement" {
 
 
 /// @domName Performance; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE)
 class Performance extends EventTarget native "*Performance" {
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.performance)');
 
   /// @domName Performance.memory; @docsEditable true
   final MemoryInfo memory;
@@ -15735,9 +15721,7 @@ class ProgressElement extends Element native "*HTMLProgressElement" {
   ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('progress');
 
   /// @domName HTMLProgressElement.labels; @docsEditable true
@@ -16618,9 +16602,7 @@ class SelectElement extends Element native "*HTMLSelectElement" {
 @Experimental()
 class ShadowElement extends Element native "*HTMLShadowElement" {
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('shadow');
 
   /// @domName HTMLShadowElement.olderShadowRoot; @docsEditable true
@@ -18881,9 +18863,7 @@ class TrackElement extends Element native "*HTMLTrackElement" {
   ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('track');
 
   static const int ERROR = 3;
@@ -21116,9 +21096,7 @@ class WebSocket extends EventTarget native "*WebSocket" {
   factory WebSocket(String url) => WebSocket._create(url);
   static WebSocket _create(String url) => JS('WebSocket', 'new WebSocket(#)', url);
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', 'typeof window.WebSocket != "undefined"');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
@@ -21525,6 +21503,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   final dynamic _parent;
 
   /// @domName Window.performance; @docsEditable true
+  @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.FIREFOX) @SupportedBrowser(SupportedBrowser.IE)
   final Performance performance;
 
   /// @domName Window.personalbar; @docsEditable true
