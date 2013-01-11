@@ -31,7 +31,8 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
 DECLARE_FLAG(bool, enable_type_checks);
 
 
-FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
+FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function,
+                                   InliningContext* inlining_context)
   : parsed_function_(parsed_function),
     num_copied_params_(parsed_function.num_copied_params()),
     // All parameters are copied if any parameter is.
@@ -39,17 +40,37 @@ FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
         ? parsed_function.function().num_fixed_parameters()
         : 0),
     num_stack_locals_(parsed_function.num_stack_locals()),
+    inlining_context_(inlining_context),
     last_used_block_id_(0),  // 0 is used for the graph entry.
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
-    graph_entry_(NULL),
-    inlining_context_(kNotInlining),
-    exits_(NULL) { }
+    graph_entry_(NULL) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(TargetEntryInstr* entry) {
   graph_entry_->AddCatchEntry(entry);
+}
+
+
+void ValueInliningContext::AddExit(ReturnInstr* exit) {
+  Data data = { NULL, exit };
+  exits_.Add(data);
+}
+
+
+int ValueInliningContext::LowestBlockIdFirst(const Data* a, const Data* b) {
+  return (a->exit_block->block_id() - b->exit_block->block_id());
+}
+
+
+void ValueInliningContext::SortExits() {
+  // Assign block entries here because we did not necessarily know them when
+  // the return exit was added to the array.
+  for (int i = 0; i < exits_.length(); ++i) {
+    exits_[i].exit_block = exits_[i].exit_return->GetBlock();
+  }
+  exits_.Sort(LowestBlockIdFirst);
 }
 
 
@@ -106,6 +127,18 @@ void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
     exit()->LinkTo(instruction);
     exit_ = instruction;
   }
+}
+
+
+void EffectGraphVisitor::AddReturnExit(intptr_t token_pos, Value* value) {
+  ASSERT(is_open());
+  ReturnInstr* return_instr = new ReturnInstr(token_pos, value);
+  AddInstruction(return_instr);
+  InliningContext* inlining_context = owner()->inlining_context();
+  if (inlining_context != NULL) {
+    inlining_context->AddExit(return_instr);
+  }
+  CloseFragment();
 }
 
 
@@ -526,10 +559,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     }
   }
 
-  ReturnInstr* return_instr = new ReturnInstr(node->token_pos(), return_value);
-  AddReturnExit(return_instr);
-  AddInstruction(return_instr);
-  CloseFragment();
+  AddReturnExit(node->token_pos(), return_value);
 }
 
 
@@ -3030,16 +3060,11 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 }
 
 
-FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context,
-                                        intptr_t initial_loop_depth) {
+FlowGraph* FlowGraphBuilder::BuildGraph(intptr_t initial_loop_depth) {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(parsed_function());
   }
-  // Set the inlining context.
-  ASSERT(inlining_context_ == kNotInlining);
-  inlining_context_ = context;
-  if (InInliningContext()) exits_ = new ZoneGrowableArray<ReturnInstr*>();
   // Compilation can be nested, preserve the computation-id.
   const Function& function = parsed_function().function();
   TargetEntryInstr* normal_entry =
@@ -3059,7 +3084,6 @@ FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context,
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
   FlowGraph* graph = new FlowGraph(*this, graph_entry_, last_used_block_id_);
-  if (InInliningContext()) graph->set_exits(exits_);
   return graph;
 }
 

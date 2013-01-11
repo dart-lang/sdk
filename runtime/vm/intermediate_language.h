@@ -1083,10 +1083,14 @@ class Definition : public Instruction {
   // Returns true if the propagated cid has changed.
   bool SetPropagatedCid(intptr_t cid);
 
-  Value* input_use_list() { return input_use_list_; }
+  bool HasUses() const {
+    return (input_use_list_ != NULL) || (env_use_list_ != NULL);
+  }
+
+  Value* input_use_list() const { return input_use_list_; }
   void set_input_use_list(Value* head) { input_use_list_ = head; }
 
-  Value* env_use_list() { return env_use_list_; }
+  Value* env_use_list() const { return env_use_list_; }
   void set_env_use_list(Value* head) { env_use_list_ = head; }
 
   // Replace uses of this definition with uses of other definition or value.

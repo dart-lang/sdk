@@ -16,19 +16,55 @@ class FlowGraph;
 class Instruction;
 class ParsedFunction;
 
+// An abstraction of the graph context in which an inlined call occurs.
+class InliningContext: public ZoneAllocated {
+ public:
+  virtual void AddExit(ReturnInstr* exit) = 0;
+};
+
+
+// The context of a call inlined for its value (including calls inlined for
+// their effects, i.e., when the value is ignored).  Collects normal exit
+// blocks and return values.
+class ValueInliningContext: public InliningContext {
+ public:
+  ValueInliningContext() : exits_(4) { }
+
+  BlockEntryInstr* ExitBlockAt(intptr_t i) const {
+    ASSERT(exits_[i].exit_block != NULL);
+    return exits_[i].exit_block;
+  }
+  Instruction* LastInstructionAt(intptr_t i) const {
+    return exits_[i].exit_return->previous();
+  }
+  Value* ValueAt(intptr_t i) const {
+    return exits_[i].exit_return->value();
+  }
+
+  intptr_t NumExits() { return exits_.length(); }
+  virtual void AddExit(ReturnInstr* exit);
+  void SortExits();
+
+ private:
+  struct Data {
+    BlockEntryInstr* exit_block;
+    ReturnInstr* exit_return;
+  };
+
+  static int LowestBlockIdFirst(const Data* a, const Data* b);
+
+  GrowableArray<Data> exits_;
+};
+
+
 // Build a flow graph from a parsed function's AST.
 class FlowGraphBuilder: public ValueObject {
  public:
-  explicit FlowGraphBuilder(const ParsedFunction& parsed_function);
+  // The inlining context is NULL if not inlining.
+  FlowGraphBuilder(const ParsedFunction& parsed_function,
+                   InliningContext* inlining_context);
 
-  enum InliningContext {
-    kNotInlining,
-    kValueContext,
-    kEffectContext,
-    kTestContext
-  };
-
-  FlowGraph* BuildGraph(InliningContext context, intptr_t initial_loop_depth);
+  FlowGraph* BuildGraph(intptr_t initial_loop_depth);
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
@@ -59,13 +95,8 @@ class FlowGraphBuilder: public ValueObject {
     return num_stack_locals_;
   }
 
-  bool InInliningContext() const { return inlining_context_ != kNotInlining; }
-  void AddReturnExit(ReturnInstr* return_instr) {
-    if (InInliningContext()) {
-      ASSERT(exits_ != NULL);
-      exits_->Add(return_instr);
-    }
-  }
+  bool InInliningContext() const { return (inlining_context_ != NULL); }
+  InliningContext* inlining_context() const { return inlining_context_; }
 
  private:
   intptr_t parameter_count() const {
@@ -80,14 +111,13 @@ class FlowGraphBuilder: public ValueObject {
   const intptr_t num_copied_params_;
   const intptr_t num_non_copied_params_;
   const intptr_t num_stack_locals_;  // Does not include any parameters.
+  InliningContext* const inlining_context_;
 
   intptr_t last_used_block_id_;
   intptr_t context_level_;
   intptr_t last_used_try_index_;
   intptr_t try_index_;
   GraphEntryInstr* graph_entry_;
-  InliningContext inlining_context_;
-  ZoneGrowableArray<ReturnInstr*>* exits_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
@@ -163,9 +193,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // This implementation shares state among visitors by using the builder.
   // The implementation is incorrect if a visitor that hits a return is not
   // actually added to the graph.
-  void AddReturnExit(ReturnInstr* return_instr) {
-    owner()->AddReturnExit(return_instr);
-  }
+  void AddReturnExit(intptr_t token_pos, Value* value);
 
  protected:
   Definition* BuildStoreTemp(const LocalVariable& local, Value* value);

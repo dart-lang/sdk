@@ -447,15 +447,15 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Build the callee graph.
-      FlowGraphBuilder builder(*parsed_function);
+      ValueInliningContext* inlining_context = new ValueInliningContext();
+      FlowGraphBuilder builder(*parsed_function, inlining_context);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_build_timer,
                          isolate);
-        callee_graph =
-            builder.BuildGraph(FlowGraphBuilder::kValueContext, loop_depth);
+        callee_graph = builder.BuildGraph(loop_depth);
       }
 
       // The parameter stubs are a copy of the actual arguments providing
@@ -574,7 +574,7 @@ class CallSiteInliner : public ValueObject {
                          isolate);
 
         // Plug result in the caller graph.
-        caller_graph_->InlineCall(call, callee_graph);
+        caller_graph_->InlineCall(call, callee_graph, inlining_context);
 
         // Remove push arguments of the call.
         for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -597,13 +597,11 @@ class CallSiteInliner : public ValueObject {
             callee_graph->graph_entry()->initial_definitions();
         for (intptr_t i = 0; i < defns->length(); ++i) {
           ConstantInstr* constant = (*defns)[i]->AsConstant();
-          if (constant == NULL ||
-              ((constant->input_use_list() == NULL) &&
-               (constant->env_use_list() == NULL))) {
-            continue;
+          if ((constant != NULL) && constant->HasUses()) {
+            constant->ReplaceUsesWith(
+                caller_graph_->AddConstantToInitialDefinitions(
+                    constant->value()));
           }
-          constant->ReplaceUsesWith(
-            caller_graph_->AddConstantToInitialDefinitions(constant->value()));
         }
       }
 

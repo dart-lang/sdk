@@ -131,8 +131,8 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* it,
                                       Instruction* current,
                                       Instruction* replacement,
                                       FlowGraph* graph) {
-  if ((replacement != NULL) && current->IsDefinition()) {
-    Definition* current_defn = current->AsDefinition();
+  Definition* current_defn = current->AsDefinition();
+  if ((replacement != NULL) && (current_defn != NULL)) {
     Definition* replacement_defn = replacement->AsDefinition();
     ASSERT(replacement_defn != NULL);
     current_defn->ReplaceUsesWith(replacement_defn);
@@ -144,14 +144,11 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* it,
                 replacement_defn->ssa_temp_index());
     }
   } else if (FLAG_trace_optimization) {
-    ASSERT(!current->IsDefinition() ||
-           ((current->AsDefinition()->input_use_list() == NULL) &&
-            (current->AsDefinition()->env_use_list() == NULL)));
-    if (current->IsDefinition()) {
-      OS::Print("Removing v%"Pd".\n",
-                current->AsDefinition()->ssa_temp_index());
-    } else {
+    if (current_defn == NULL) {
       OS::Print("Removing %s\n", current->DebugName());
+    } else {
+      ASSERT(!current_defn->HasUses());
+      OS::Print("Removing v%"Pd".\n", current_defn->ssa_temp_index());
     }
   }
   it->RemoveCurrentFromGraph();
