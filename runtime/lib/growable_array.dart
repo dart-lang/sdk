@@ -74,14 +74,14 @@ class _GrowableObjectArray<T> implements List<T> {
 
   factory _GrowableObjectArray(int length) {
     var data = new _ObjectArray<T>((length == 0) ? 4 : length);
-    var result = new _GrowableObjectArray<T>.fromObjectArray(data);
+    var result = new _GrowableObjectArray<T>.withData(data);
     result._setLength(length);
     return result;
   }
 
   factory _GrowableObjectArray.withCapacity(int capacity) {
     var data = new _ObjectArray<T>((capacity == 0)? 4 : capacity);
-    return new _GrowableObjectArray<T>.fromObjectArray(data);
+    return new _GrowableObjectArray<T>.withData(data);
   }
 
   factory _GrowableObjectArray.from(Collection<T> other) {
@@ -90,7 +90,7 @@ class _GrowableObjectArray<T> implements List<T> {
     return result;
   }
 
-  factory _GrowableObjectArray.fromObjectArray(_ObjectArray<T> data)
+  factory _GrowableObjectArray.withData(_ObjectArray<T> data)
     native "GrowableObjectArray_allocate";
 
   int get length native "GrowableObjectArray_getLength";

@@ -45,12 +45,12 @@ patch class List<E> {
   // Factory constructing a mutable List from a parser generated List literal.
   // [elements] contains elements that are already type checked.
   factory List._fromLiteral(List elements) {
-    var list = new List<E>();
-    if (elements.length > 0) {
-      list._setData(elements);
-      list.length = elements.length;
+    if (elements.isEmpty) {
+      return new _GrowableObjectArray<E>(0);
     }
-    return list;
+    var result = new _GrowableObjectArray<E>.withData(elements);
+    result._setLength(elements.length);
+    return result;
   }
 
   static void _throwArgumentError(int length) {
