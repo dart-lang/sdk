@@ -64,21 +64,3 @@ unittest/test/instance_test: Skip
 
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
-
-[ $compiler == dart2js && $runtime == jsshell ]
-args/test/args_test: Fail # TODO(ngeoaffray): Please triage these failure.
-args/test/parse_test: Fail # TODO(ngeoaffray): Please triage these failure.
-args/test/usage_test: Fail # TODO(ngeoaffray): Please triage these failure.
-intl/test/bidi_format_test: Fail # TODO(ngeoaffray): Please triage these failure.
-intl/test/bidi_utils_test: Fail # TODO(ngeoaffray): Please triage these failure.
-intl/test/date_time_format_local_even_test: Fail # TODO(ngeoaffray): Please triage these failure.
-intl/test/date_time_format_local_odd_test: Fail # TODO(ngeoaffray): Please triage these failure.
-intl/test/date_time_format_uninitialized_test: Fail # TODO(ngeoaffray): Please triage these failure.
-intl/test/intl_message_basic_example_test: Fail # TODO(ngeoaffray): Please triage these failure.
-intl/test/intl_test: Fail # TODO(ngeoaffray): Please triage these failure.
-intl/test/number_format_test: Fail # TODO(ngeoaffray): Please triage these failure.
-logging/test/logging_test: Fail # TODO(ngeoaffray): Please triage these failure.
-serialization/test/polyfill_identity_map_test: Fail # TODO(ngeoaffray): Please triage these failure.
-unittest/test/matchers_test: Fail # TODO(ngeoaffray): Please triage these failure.
-unittest/test/mock_test: Fail # TODO(ngeoaffray): Please triage these failure.
-unittest/test/unittest_test: Fail # TODO(ngeoaffray): Please triage these failure.
