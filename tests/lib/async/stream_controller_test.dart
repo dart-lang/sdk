@@ -63,7 +63,7 @@ testController() {
   sentEvents = new Events()..add("ab")..error("foo")..add("ab")..close();
   actualEvents = new Events.capture(c.handleError((v) {
         if (v.error is String) {
-          return new AsyncError("[${v.error}]",
+          throw new AsyncError("[${v.error}]",
                                 "other stack");
         }
       }), unsubscribeOnError: true);
@@ -115,7 +115,7 @@ testController() {
       c.where((v) => v is String)
        .mappedBy((v) => int.parse(v))
        .handleError((v) {
-          if (v.error is! FormatException) return v;
+          if (v.error is! FormatException) throw v;
         })
        .where((v) => v > 10),
       unsubscribeOnError: true);
@@ -203,7 +203,7 @@ testSingleController() {
   sentEvents = new Events()..add("ab")..error("foo")..add("ab")..close();
   actualEvents = new Events.capture(c.handleError((v) {
         if (v.error is String) {
-          return new AsyncError("[${v.error}]",
+          throw new AsyncError("[${v.error}]",
                                 "other stack");
         }
       }), unsubscribeOnError: true);
@@ -267,7 +267,7 @@ testSingleController() {
       c.where((v) => v is String)
        .mappedBy((v) => int.parse(v))
        .handleError((v) {
-          if (v.error is! FormatException) return v;
+          if (v.error is! FormatException) throw v;
         })
        .where((v) => v > 10),
       unsubscribeOnError: true);

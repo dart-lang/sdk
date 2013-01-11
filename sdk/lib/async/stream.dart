@@ -110,12 +110,18 @@ abstract class Stream<T> {
   /**
    * Create a wrapper Stream that intercepts some errors from this stream.
    *
-   * If the handler returns null, the error is considered handled.
-   * Otherwise the returned [AsyncError] is passed to the subscribers
-   * of the stream.
+   * If this stream sends an error that matches [test], then it is intercepted
+   * by the [handle] function.
+   *
+   * An [AsyncError] [:e:] is matched by a test function if [:test(e):] returns
+   * true. If [test] is omitted, every error is considered matching.
+   *
+   * If the error is intercepted, the [handle] function can decide what to do
+   * with it. It can throw if it wants to raise a new (or the same) error,
+   * or simply return to make the stream forget the error.
    */
-  Stream handleError(AsyncError handle(AsyncError error)) {
-    return this.transform(new HandleErrorStream<T>(handle));
+  Stream<T> handleError(void handle(AsyncError error), { bool test(error) }) {
+    return this.transform(new HandleErrorStream<T>(handle, test));
   }
 
   /**
@@ -154,12 +160,11 @@ abstract class Stream<T> {
     StreamSubscription subscription;
     subscription = this.listen(
       (T element) {
-        try {
-          value = combine(value, element);
-        } catch (e, s) {
-          subscription.cancel();
-          result._setError(new AsyncError(e, s));
-        }
+        _runUserCode(
+          () => combine(value, element),
+          (result) { value = result; },
+          _cancelAndError(subscription, result)
+        );
       },
       onError: (AsyncError e) {
         result._setError(e);
@@ -199,10 +204,16 @@ abstract class Stream<T> {
     StreamSubscription subscription;
     subscription = this.listen(
         (T element) {
-          if (element == match) {
-            subscription.cancel();
-            future._setValue(true);
-          }
+          _runUserCode(
+            () => match(element),
+            (bool isMatch) {
+              if (isMatch) {
+                subscription.cancel();
+                future._setValue(element);
+              }
+            },
+            _cancelAndError(subscription, future)
+          );
         },
         onError: future._setError,
         onDone: () {
@@ -223,10 +234,16 @@ abstract class Stream<T> {
     StreamSubscription subscription;
     subscription = this.listen(
         (T element) {
-          if (!test(element)) {
-            subscription.cancel();
-            future._setValue(false);
-          }
+          _runUserCode(
+            () => test(element),
+            (bool isMatch) {
+              if (!isMatch) {
+                subscription.cancel();
+                future._setValue(false);
+              }
+            },
+            _cancelAndError(subscription, future)
+          );
         },
         onError: future._setError,
         onDone: () {
@@ -247,10 +264,16 @@ abstract class Stream<T> {
     StreamSubscription subscription;
     subscription = this.listen(
         (T element) {
-          if (test(element)) {
-            subscription.cancel();
-            future._setValue(true);
-          }
+          _runUserCode(
+            () => test(element),
+            (bool isMatch) {
+              if (isMatch) {
+                subscription.cancel();
+                future._setValue(true);
+              }
+            },
+            _cancelAndError(subscription, future)
+          );
         },
         onError: future._setError,
         onDone: () {
@@ -294,7 +317,15 @@ abstract class Stream<T> {
       (T value) {
         min = value;
         subscription.onData((T value) {
-          if (compare(min, value) > 0) min = value;
+          _runUserCode(
+            () => compare(min, value) > 0,
+            (bool foundSmaller) {
+              if (foundSmaller) {
+                min = value;
+              }
+            },
+            _cancelAndError(subscription, future)
+          );
         });
       },
       onError: future._setError,
@@ -325,7 +356,15 @@ abstract class Stream<T> {
       (T value) {
         max = value;
         subscription.onData((T value) {
-          if (compare(max, value) < 0) max = value;
+          _runUserCode(
+            () => compare(max, value) < 0,
+            (bool foundGreater) {
+              if (foundGreater) {
+                max = value;
+              }
+            },
+            _cancelAndError(subscription, future)
+          );
         });
       },
       onError: future._setError,
@@ -546,30 +585,21 @@ abstract class Stream<T> {
     StreamSubscription subscription;
     subscription = this.listen(
       (T value) {
-        bool matches;
-        try {
-          matches = (true == test(value));
-        } catch (e, s) {
-          future._setError(new AsyncError(e, s));
-          subscription.cancel();
-          return;
-        }
-        if (matches) {
-          future._setValue(value);
-          subscription.cancel();
-        }
+        _runUserCode(
+          () => test(value),
+          (bool isMatch) {
+            if (isMatch) {
+              subscription.cancel();
+              future._setValue(value);
+            }
+          },
+          _cancelAndError(subscription, future)
+        );
       },
       onError: future._setError,
       onDone: () {
         if (defaultValue != null) {
-          T value;
-          try {
-            value = defaultValue();
-          } catch (e, s) {
-            future._setError(new AsyncError(e, s));
-            return;
-          }
-          future._setValue(value);
+          _runUserCode(defaultValue, future._setValue, future._setError);
           return;
         }
         future._setError(
@@ -593,18 +623,16 @@ abstract class Stream<T> {
     StreamSubscription subscription;
     subscription = this.listen(
       (T value) {
-        bool matches;
-        try {
-          matches = (true == test(value));
-        } catch (e, s) {
-          future._setError(new AsyncError(e, s));
-          subscription.cancel();
-          return;
-        }
-        if (matches) {
-          foundResult = true;
-          result = value;
-        }
+        _runUserCode(
+          () => true == test(value),
+          (bool isMatch) {
+            if (isMatch) {
+              foundResult = true;
+              result = value;
+            }
+          },
+          _cancelAndError(subscription, future)
+        );
       },
       onError: future._setError,
       onDone: () {
@@ -613,14 +641,7 @@ abstract class Stream<T> {
           return;
         }
         if (defaultValue != null) {
-          T value;
-          try {
-            value = defaultValue();
-          } catch (e, s) {
-            future._setError(new AsyncError(e, s));
-            return;
-          }
-          future._setValue(value);
+          _runUserCode(defaultValue, future._setValue, future._setError);
           return;
         }
         future._setError(
@@ -643,24 +664,22 @@ abstract class Stream<T> {
     StreamSubscription subscription;
     subscription = this.listen(
       (T value) {
-        bool matches;
-        try {
-          matches = (true == test(value));
-        } catch (e, s) {
-          future._setError(new AsyncError(e, s));
-          subscription.cancel();
-          return;
-        }
-        if (matches) {
-          if (foundResult) {
-            future._setError(new AsyncError(
-                new StateError('Multiple matches for "single"')));
-            subscription.cancel();
-            return;
-          }
-          foundResult = true;
-          result = value;
-        }
+        _runUserCode(
+          () => true == test(value),
+          (bool isMatch) {
+            if (isMatch) {
+              if (foundResult) {
+                subscription.cancel();
+                future._setError(new AsyncError(
+                    new StateError('Multiple matches for "single"')));
+                return;
+              }
+              foundResult = true;
+              result = value;
+            }
+          },
+          _cancelAndError(subscription, future)
+        );
       },
       onError: future._setError,
       onDone: () {
@@ -684,6 +703,7 @@ abstract class Stream<T> {
    * an error is reported.
    */
   Future<T> elementAt(int index) {
+    if (index is! int || index < 0) throw new ArgumentError(index);
     _FutureImpl<T> future = new _FutureImpl();
     StreamSubscription subscription;
     subscription = this.listen(

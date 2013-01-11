@@ -337,6 +337,8 @@ abstract class _StreamImpl<T> extends Stream<T> {
     _forEachSubscriber((subscriber) {
       try {
         subscriber._sendData(value);
+      } on AsyncError catch (e) {
+        e.throwDelayed();
       } catch (e, s) {
         new AsyncError(e, s).throwDelayed();
       }
@@ -352,6 +354,8 @@ abstract class _StreamImpl<T> extends Stream<T> {
     _forEachSubscriber((subscriber) {
       try {
         subscriber._sendError(error);
+      } on AsyncError catch (e) {
+        e.throwDelayed();
       } catch (e, s) {
         new AsyncError.withCause(e, s, error).throwDelayed();
       }
@@ -372,6 +376,8 @@ abstract class _StreamImpl<T> extends Stream<T> {
       _cancel(subscriber);
       try {
         subscriber._sendDone();
+      } on AsyncError catch (e) {
+        e.throwDelayed();
       } catch (e, s) {
         new AsyncError(e, s).throwDelayed();
       }

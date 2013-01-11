@@ -394,9 +394,61 @@ testPause() {
   });
 }
 
+testRethrow() {
+  AsyncError error = new AsyncError("UNIQUE", "UNIQUE");
+
+  testStream(name, streamValueTransform) {
+    test("rethrow-$name-value", () {
+      StreamController c = new StreamController();
+      Stream s = streamValueTransform(c.stream, (v) { throw error; });
+      s.listen((_) { Expect.fail("unexpected value"); }, onError: expectAsync1(
+          (AsyncError e) { Expect.identical(error, e); }));
+      c.add(null);
+      c.close();
+    });
+  }
+
+  testStreamError(name, streamErrorTransform) {
+    test("rethrow-$name-error", () {
+      StreamController c = new StreamController();
+      Stream s = streamErrorTransform(c.stream, (e) { throw error; });
+      s.listen((_) { Expect.fail("unexpected value"); }, onError: expectAsync1(
+          (AsyncError e) { Expect.identical(error, e); }));
+      c.signalError(null);
+      c.close();
+    });
+  }
+
+  testFuture(name, streamValueTransform) {
+    test("rethrow-$name-value", () {
+      StreamController c = new StreamController();
+      Future f = streamValueTransform(c.stream, (v) { throw error; });
+      f.then((v) { Expect.fail("unreachable"); },
+             onError: expectAsync1((e) { Expect.identical(error, e); }));
+      // Need two values to trigger compare for min/max.
+      c.add(0);
+      c.add(1);
+      c.close();
+    });
+  }
+
+  testStream("where", (s, act) => s.where(act));
+  testStream("mappedBy", (s, act) => s.mappedBy(act));
+  testStream("expand", (s, act) => s.expand(act));
+  testStream("where", (s, act) => s.where(act));
+  testStreamError("handleError", (s, act) => s.handleError(act));
+  testStreamError("handleTest", (s, act) => s.handleError((v) {}, test: act));
+  testFuture("every", (s, act) => s.every(act));
+  testFuture("any", (s, act) => s.any(act));
+  testFuture("min", (s, act) => s.min((a, b) => act(b)));
+  testFuture("max", (s, act) => s.max((a, b) => act(b)));
+  testFuture("reduce", (s, act) => s.reduce(0, (a,b) => act(b)));
+}
+
 main() {
   testController();
   testSingleController();
   testExtraMethods();
   testPause();
+  testRethrow();
 }

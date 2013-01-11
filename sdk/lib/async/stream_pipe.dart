@@ -4,6 +4,39 @@
 
 part of dart.async;
 
+/** Utility function to create an [AsyncError] if [error] isn't one already. */
+AsyncError _asyncError(Object error, Object stackTrace, [AsyncError cause]) {
+  if (error is AsyncError) return error;
+  if (cause == null) return new AsyncError(error, stackTrace);
+  return new AsyncError.withCause(error, stackTrace, cause);
+}
+
+/** Runs user code and takes actions depending on success or failure. */
+_runUserCode(userCode(), onSuccess(value), onError(AsyncError error),
+             { AsyncError cause }) {
+  var result;
+  try {
+    result = userCode();
+  } on AsyncError catch (e) {
+    return onError(e);
+  } catch (e, s) {
+    if (cause == null) {
+      onError(new AsyncError(e, s));
+    } else {
+      onError(new AsyncError.withCause(e, s, cause));
+    }
+  }
+  onSuccess(result);
+}
+
+/** Helper function to make an onError argument to [_runUserCode]. */
+_cancelAndError(StreamSubscription subscription, _FutureImpl future) =>
+  (AsyncError error) {
+    subscription.cancel();
+    future._setError(error);
+  };
+
+
 /**
  * A wrapper around a stream that allows independent subscribers.
  *
@@ -75,7 +108,7 @@ class _ForwardingMultiStream<S, T> extends _MultiStreamImpl<T> {
 abstract class _ForwardingTransformer<S, T> extends _ForwardingMultiStream<S, T>
                                             implements StreamTransformer<S, T> {
   Stream<T> bind(Stream<S> source) {
-    assert(_source == null);
+    if (_source != null) throw new StateError("Already bound to source.");
     _source = source;
     if (_hasSubscribers) {
       _subscribeToSource();
@@ -101,7 +134,7 @@ class WhereStream<T> extends _ForwardingTransformer<T, T> {
     try {
       satisfies = _test(inputEvent);
     } catch (e, s) {
-      _signalError(new AsyncError(e, s));
+      _signalError(_asyncError(e, s));
       return;
     }
     if (satisfies) {
@@ -127,7 +160,7 @@ class MapStream<S, T> extends _ForwardingTransformer<S, T> {
     try {
       outputEvent = _transform(inputEvent);
     } catch (e, s) {
-      _signalError(new AsyncError(e, s));
+      _signalError(_asyncError(e, s));
       return;
     }
     _add(outputEvent);
@@ -151,13 +184,14 @@ class ExpandStream<S, T> extends _ForwardingTransformer<S, T> {
     } catch (e, s) {
       // If either _expand or iterating the generated iterator throws,
       // we abort the iteration.
-      _signalError(new AsyncError(e, s));
+      _signalError(_asyncError(e, s));
     }
   }
 }
 
 
-typedef AsyncError _ErrorTransformation(AsyncError error);
+typedef void _ErrorTransformation(AsyncError error);
+typedef bool _ErrorTest(error);
 
 /**
  * A stream pipe that converts or disposes error events
@@ -165,18 +199,31 @@ typedef AsyncError _ErrorTransformation(AsyncError error);
  */
 class HandleErrorStream<T> extends _ForwardingTransformer<T, T> {
   final _ErrorTransformation _transform;
+  final _ErrorTest _test;
 
-  HandleErrorStream(AsyncError transform(AsyncError event))
-      : this._transform = transform;
+  HandleErrorStream(void transform(AsyncError event), bool test(error))
+      : this._transform = transform, this._test = test;
 
   void _handleError(AsyncError error) {
-    try {
-      error = _transform(error);
-      if (error == null) return;
-    } catch (e, s) {
-      error = new AsyncError.withCause(e, s, error);
+    bool matches = true;
+    if (_test != null) {
+      try {
+        matches = _test(error.error);
+      } catch (e, s) {
+        _signalError(_asyncError(e, s, error));
+        return;
+      }
     }
-    _signalError(error);
+    if (matches) {
+      try {
+        _transform(error);
+      } catch (e, s) {
+        _signalError(_asyncError(e, s, error));
+        return;
+      }
+    } else {
+      _signalError(error);
+    }
   }
 }
 
@@ -214,7 +261,7 @@ class PipeStream<S, T> extends _ForwardingTransformer<S, T> {
     try {
       return _onData(data, _sink);
     } catch (e, s) {
-      _signalError(new AsyncError(e, s));
+      _signalError(_asyncError(e, s));
     }
   }
 
@@ -222,7 +269,7 @@ class PipeStream<S, T> extends _ForwardingTransformer<S, T> {
     try {
       _onError(error, _sink);
     } catch (e, s) {
-      _signalError(new AsyncError.withCause(e, s, error));
+      _signalError(_asyncError(e, s, error));
     }
   }
 
@@ -230,7 +277,7 @@ class PipeStream<S, T> extends _ForwardingTransformer<S, T> {
     try {
       _onDone(_sink);
     } catch (e, s) {
-      _signalError(new AsyncError(e, s));
+      _signalError(_asyncError(e, s));
     }
   }
 
@@ -280,7 +327,7 @@ class TransformStream<S, T> extends _ForwardingTransformer<S, T> {
     try {
       return _transform.handleData(data, _sink);
     } catch (e, s) {
-      _controller.signalError(new AsyncError(e, s));
+      _controller.signalError(_asyncError(e, s));
     }
   }
 
@@ -288,7 +335,7 @@ class TransformStream<S, T> extends _ForwardingTransformer<S, T> {
     try {
       _transform.handleError(error, _sink);
     } catch (e, s) {
-      _controller.signalError(new AsyncError.withCause(e, s, error));
+      _controller.signalError(_asyncError(e, s, error));
     }
   }
 
@@ -296,7 +343,7 @@ class TransformStream<S, T> extends _ForwardingTransformer<S, T> {
     try {
       _transform.handleDone(_sink);
     } catch (e, s) {
-      _controller.signalError(new AsyncError(e, s));
+      _controller.signalError(_asyncError(e, s));
     }
   }
 }
@@ -367,7 +414,7 @@ class TakeWhileStream<T> extends _ForwardingTransformer<T, T> {
     try {
       satisfies = _test(inputEvent);
     } catch (e, s) {
-      _signalError(new AsyncError(e, s));
+      _signalError(_asyncError(e, s));
       // The test didn't say true. Didn't say false either, but we stop anyway.
       _close();
       return;
@@ -414,7 +461,7 @@ class SkipWhileStream<T> extends _ForwardingTransformer<T, T> {
     try {
       satisfies = _test(inputEvent);
     } catch (e, s) {
-      _signalError(new AsyncError(e, s));
+      _signalError(_asyncError(e, s));
       // A failure to return a boolean is considered "not matching".
       _hasFailed = true;
       return;
@@ -450,7 +497,7 @@ class DistinctStream<T> extends _ForwardingTransformer<T, T> {
           isEqual = _equals(_previous, inputEvent);
         }
       } catch (e, s) {
-        _signalError(new AsyncError(e, s));
+        _signalError(_asyncError(e, s));
         return null;
       }
       if (!isEqual) {

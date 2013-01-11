@@ -130,6 +130,8 @@ class StreamController<T> extends Stream<T> implements StreamSink<T> {
     _stream._forEachSubscriber(() {
       try {
         action();
+      } on AsyncError catch (e) {
+        e.throwDelayed();
       } catch (e, s) {
         new AsyncError(e, s).throwDelayed();
       }
