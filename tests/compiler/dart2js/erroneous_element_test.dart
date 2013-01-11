@@ -3,12 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart' 
-       show MessageKind;
 import 'parser_helper.dart';
 
+import '../../../sdk/lib/_internal/compiler/implementation/elements/model.dart'
+    show ErroneousElementX;
+
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+    show MessageKind;
+
 void main() {
-  ErroneousElement e = new ErroneousElement(MessageKind.GENERIC, ['error'],
-                                            buildSourceString('foo'), null);
+  ErroneousElement e = new ErroneousElementX(MessageKind.GENERIC, ['error'],
+                                             buildSourceString('foo'), null);
   Expect.stringEquals('<foo: error>', '$e');
 }

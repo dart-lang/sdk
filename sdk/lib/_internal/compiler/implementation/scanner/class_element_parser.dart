@@ -10,7 +10,7 @@ class ClassElementParser extends PartialParser {
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }
 
-class PartialClassElement extends ClassElement {
+class PartialClassElement extends ClassElementX {
   final Token beginToken;
   final Token endToken;
   ClassNode cachedNode;
@@ -160,7 +160,7 @@ class MemberListener extends NodeListener {
     pushNode(null);
     void buildFieldElement(SourceString name, Element fields) {
       Element element =
-          new VariableElement(name, fields, ElementKind.FIELD, null);
+          new VariableElementX(name, fields, ElementKind.FIELD, null);
       addMember(element);
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,

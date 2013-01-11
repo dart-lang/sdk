@@ -656,7 +656,7 @@ class ElementListener extends Listener {
     // Library tags are only allowed in the library file itself, not
     // in sourced files.
     LibraryElement library = compilationUnitElement.getLibrary();
-    return compilationUnitElement.localMembers.isEmpty
+    return !compilationUnitElement.hasMembers
       && library.entryCompilationUnit == compilationUnitElement;
   }
 
@@ -827,7 +827,7 @@ class ElementListener extends Listener {
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     void buildFieldElement(SourceString name, Element fields) {
-      pushElement(new VariableElement(name, fields, ElementKind.FIELD, null));
+      pushElement(new VariableElementX(name, fields, ElementKind.FIELD, null));
     }
     NodeList variables = makeNodeList(count, null, null, ",");
     TypeAnnotation type = popNode();
@@ -839,7 +839,7 @@ class ElementListener extends Listener {
 
   void buildFieldElements(Modifiers modifiers,
                           NodeList variables,
-                          ContainerElement enclosingElement,
+                          Element enclosingElement,
                           void buildFieldElement(SourceString name,
                                                  Element fields),
                           Token beginToken, Token endToken) {
@@ -1839,7 +1839,7 @@ class NodeListener extends ElementListener {
   }
 }
 
-class PartialFunctionElement extends FunctionElement {
+class PartialFunctionElement extends FunctionElementX {
   final Token beginToken;
   final Token getOrSet;
   final Token endToken;
@@ -1887,7 +1887,7 @@ class PartialFunctionElement extends FunctionElement {
   }
 }
 
-class PartialFieldListElement extends VariableListElement {
+class PartialFieldListElement extends VariableListElementX {
   final Token beginToken;
   final Token endToken;
 
@@ -1923,7 +1923,7 @@ class PartialFieldListElement extends VariableListElement {
   }
 }
 
-class PartialTypedefElement extends TypedefElement {
+class PartialTypedefElement extends TypedefElementX {
   final Token token;
 
   PartialTypedefElement(SourceString name, Element enclosing, this.token)
@@ -1948,7 +1948,7 @@ class PartialTypedefElement extends TypedefElement {
 }
 
 /// A [MetadataAnnotation] which is constructed on demand.
-class PartialMetadataAnnotation extends MetadataAnnotation {
+class PartialMetadataAnnotation extends MetadataAnnotationX {
   final Token beginToken;
   Expression cachedNode;
   Constant value;

@@ -7,14 +7,20 @@ library mock_compiler;
 import 'dart:uri';
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
-       hide TreeElementMapping;
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
 import 'parser_helper.dart';
+
+import '../../../sdk/lib/_internal/compiler/implementation/elements/model.dart'
+    show ElementX,
+         LibraryElementX,
+         ErroneousElementX;
+
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+    hide TreeElementMapping;
 
 class WarningMessage {
   Node node;
@@ -143,7 +149,7 @@ class MockCompiler extends Compiler {
   LibraryElement createLibrary(String name, String source) {
     Uri uri = new Uri.fromComponents(scheme: "source", path: name);
     var script = new Script(uri, new MockFile(source));
-    var library = new LibraryElement(script);
+    var library = new LibraryElementX(script);
     parseScript(source, library);
     library.setExports(library.localScope.values.toList());
     return library;
@@ -202,7 +208,7 @@ class MockCompiler extends Compiler {
 
   resolverVisitor() {
     Element mockElement =
-        new Element(buildSourceString(''), ElementKind.FUNCTION, mainApp);
+        new ElementX(buildSourceString(''), ElementKind.FUNCTION, mainApp);
     ResolverVisitor visitor =
         new ResolverVisitor(this, mockElement,
                             new CollectingTreeElements(mockElement));
@@ -240,7 +246,7 @@ class MockCompiler extends Compiler {
     Element element = container.localLookup(name);
     return element != null
         ? element
-        : new ErroneousElement(null, null, name, container);
+        : new ErroneousElementX(null, null, name, container);
   }
 }
 
@@ -278,7 +284,7 @@ void importLibrary(LibraryElement target, LibraryElement imported,
 
 LibraryElement mockLibrary(Compiler compiler, String source) {
   Uri uri = new Uri.fromComponents(scheme: "source");
-  var library = new LibraryElement(new Script(uri, new MockFile(source)));
+  var library = new LibraryElementX(new Script(uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
   return library;
 }

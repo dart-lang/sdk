@@ -8,6 +8,16 @@ import '../dart2jslib.dart' hide Diagnostic;
 import '../../compiler.dart' show Diagnostic;
 import '../tree/tree.dart';
 import '../elements/elements.dart';
+import '../elements/model.dart'
+    show FunctionElementX,
+         ErroneousElementX,
+         VariableElementX,
+         FieldParameterElementX,
+         VariableListElementX,
+         FunctionSignatureX,
+         SynthesizedConstructorElementX,
+         LabelElementX,
+         TargetElementX;
 import '../util/util.dart';
 import '../scanner/scannerlib.dart' show PartialMetadataAnnotation;
 

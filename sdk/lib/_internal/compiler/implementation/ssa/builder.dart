@@ -9,7 +9,7 @@ part of ssa;
  * methods. We need to override [Element.computeType] because our
  * optimizers may look at its declared type.
  */
-class InterceptedElement extends Element {
+class InterceptedElement extends ElementX {
   final HType ssaType;
   InterceptedElement(this.ssaType, Element enclosing)
       : super(const SourceString('receiver'),
@@ -1047,38 +1047,37 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   ConstructorBodyElement getConstructorBody(FunctionElement constructor) {
     assert(constructor.isGenerativeConstructor());
     assert(invariant(constructor, constructor.isImplementation));
-    if (constructor is SynthesizedConstructorElement) return null;
+    if (constructor.isSynthesized) return null;
     FunctionExpression node = constructor.parseNode(compiler);
     // If we know the body doesn't have any code, we don't generate it.
     if (!node.hasBody()) return null;
     if (node.hasEmptyBody()) return null;
     ClassElement classElement = constructor.getEnclosingClass();
     ConstructorBodyElement bodyElement;
-    for (Element backendMember in classElement.backendMembers) {
+    classElement.forEachBackendMember((Element backendMember) {
       if (backendMember.isGenerativeConstructorBody()) {
         ConstructorBodyElement body = backendMember;
         if (body.constructor == constructor) {
+          // TODO(kasperl): Find a way of stopping the iteration
+          // through the backend members.
           bodyElement = backendMember;
-          break;
         }
       }
-    }
+    });
     if (bodyElement == null) {
-      bodyElement = new ConstructorBodyElement(constructor);
+      bodyElement = new ConstructorBodyElementX(constructor);
       // [:resolveMethodElement:] require the passed element to be a
       // declaration.
       TreeElements treeElements =
           compiler.enqueuer.resolution.getCachedElements(
               constructor.declaration);
-      classElement.backendMembers =
-          classElement.backendMembers.prepend(bodyElement);
+      classElement.addBackendMember(bodyElement);
 
       if (constructor.isPatch) {
         // Create origin body element for patched constructors.
-        bodyElement.origin = new ConstructorBodyElement(constructor.origin);
+        bodyElement.origin = new ConstructorBodyElementX(constructor.origin);
         bodyElement.origin.patch = bodyElement;
-        classElement.origin.backendMembers =
-            classElement.origin.backendMembers.prepend(bodyElement.origin);
+        classElement.origin.addBackendMember(bodyElement.origin);
       }
       compiler.enqueuer.codegen.addToWorkList(bodyElement.declaration,
                                               treeElements);
@@ -1122,9 +1121,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     inliningStack.add(state);
     sourceElementStack.add(function);
     stack = <HInstruction>[];
-    returnElement = new Element(const SourceString("result"),
-                                ElementKind.VARIABLE,
-                                function);
+    // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
+    returnElement = new ElementX(const SourceString("result"),
+                                 ElementKind.VARIABLE,
+                                 function);
     localsHandler.updateLocal(returnElement,
                               graph.addConstantNull(constantSystem));
     elements = compiler.enqueuer.resolution.getCachedElements(function);
@@ -2021,7 +2021,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (jumpHandler.hasAnyBreak()) {
         TargetElement target = elements[loop];
         LabelElement label = target.addLabel(null, 'loop');
-        label.isBreakTarget = true;
+        label.setBreakTarget();
         SubGraph labelGraph = new SubGraph(conditionBlock, current);
         HLabeledBlockInformation labelInfo = new HLabeledBlockInformation(
                 new HSubGraphBlockInformation(labelGraph),
@@ -2198,7 +2198,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
         TargetElement target = elements[node];
         LabelElement label = target.addLabel(null, 'loop');
-        label.isBreakTarget = true;
+        label.setBreakTarget();
         HLabeledBlockInformation info = new HLabeledBlockInformation(
             new HSubGraphBlockInformation(bodyGraph), <LabelElement>[label]);
         loopEntryBlock.setBlockFlow(info, current);
@@ -2224,10 +2224,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     compiler.enqueuer.codegen.addToWorkList(callElement, elements);
     // TODO(ahe): This should be registered in codegen, not here.
     compiler.enqueuer.codegen.registerInstantiatedClass(closureClassElement);
-    assert(closureClassElement.localScope.isEmpty);
+    assert(!closureClassElement.hasLocalScopeMembers);
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    for (Element member in closureClassElement.backendMembers) {
+    closureClassElement.forEachBackendMember((Element member) {
       // The backendMembers also contains the call method(s). We are only
       // interested in the fields.
       if (member.isField()) {
@@ -2235,7 +2235,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         assert(capturedLocal != null);
         capturedVariables.add(localsHandler.readLocal(capturedLocal));
       }
-    }
+    });
 
     push(new HForeignNew(closureClassElement, capturedVariables));
   }
@@ -4538,8 +4538,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       localsHandler = new LocalsHandler.from(savedLocals);
       startCatchBlock = graph.addNewBlock();
       open(startCatchBlock);
+      // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
       // Note that the name of this element is irrelevant.
-      Element element = new Element(
+      Element element = new ElementX(
           const SourceString('exception'), ElementKind.PARAMETER, work.element);
       exception = new HParameterValue(element);
       add(exception);

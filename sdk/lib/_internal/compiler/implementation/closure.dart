@@ -9,6 +9,7 @@ import "dart2jslib.dart";
 import "scanner/scannerlib.dart" show Token;
 import "tree/tree.dart";
 import "util/util.dart";
+import "elements/model.dart" show ElementX, FunctionElementX, ClassElementX;
 
 abstract class ClosureNamer {
   SourceString getClosureVariableName(SourceString name, int id);
@@ -59,7 +60,7 @@ class ClosureTask extends CompilerTask {
   }
 }
 
-class ClosureFieldElement extends Element {
+class ClosureFieldElement extends ElementX {
   ClosureFieldElement(SourceString name, ClassElement enclosing)
       : super(name, ElementKind.FIELD, enclosing);
 
@@ -73,7 +74,7 @@ class ClosureFieldElement extends Element {
   String toString() => "ClosureFieldElement($name)";
 }
 
-class ClosureClassElement extends ClassElement {
+class ClosureClassElement extends ClassElementX {
   ClosureClassElement(SourceString name,
                       Compiler compiler,
                       this.methodElement,
@@ -99,12 +100,12 @@ class ClosureClassElement extends ClassElement {
   Element methodElement;
 }
 
-class BoxElement extends Element {
+class BoxElement extends ElementX {
   BoxElement(SourceString name, Element enclosingElement)
       : super(name, ElementKind.VARIABLE, enclosingElement);
 }
 
-class ThisElement extends Element {
+class ThisElement extends ElementX {
   ThisElement(Element enclosing)
       : super(const SourceString('this'), ElementKind.PARAMETER, enclosing);
 
@@ -115,7 +116,7 @@ class ThisElement extends Element {
   Token position() => enclosingElement.position();
 }
 
-class CheckVariableElement extends Element {
+class CheckVariableElement extends ElementX {
   Element parameter;
   CheckVariableElement(SourceString name, this.parameter, Element enclosing)
       : super(name, ElementKind.VARIABLE, enclosing);
@@ -282,8 +283,7 @@ class ClosureTranslator extends Visitor {
              (fieldCaptures.isEmpty && boxes.isEmpty));
       void addElement(Element element, SourceString name) {
         Element fieldElement = new ClosureFieldElement(name, closureElement);
-        closureElement.backendMembers =
-            closureElement.backendMembers.prepend(fieldElement);
+        closureElement.addBackendMember(fieldElement);
         data.capturedFieldMapping[fieldElement] = element;
         freeVariableMapping[element] = fieldElement;
       }
@@ -299,7 +299,7 @@ class ClosureTranslator extends Visitor {
             namer.getClosureVariableName(capturedElement.name, id);
         addElement(capturedElement, name);
       }
-      closureElement.backendMembers = closureElement.backendMembers.reverse();
+      closureElement.reverseBackendMembers();
     }
   }
 
@@ -462,7 +462,8 @@ class ClosureTranslator extends Visitor {
         SourceString boxedName =
             namer.getClosureVariableName(new SourceString(elementName),
                                          boxedFieldCounter++);
-        Element boxed = new Element(boxedName, ElementKind.FIELD, box);
+        // TODO(kasperl): Should this be a FieldElement instead?
+        Element boxed = new ElementX(boxedName, ElementKind.FIELD, box);
         // No need to rename the fields of a box, so we give them a native name
         // right now.
         boxed.setFixedBackendName(boxedName.slowToString());
@@ -546,11 +547,10 @@ class ClosureTranslator extends Visitor {
     ClassElement globalizedElement = new ClosureClassElement(
         closureName, compiler, element, element.getCompilationUnit());
     FunctionElement callElement =
-        new FunctionElement.from(Compiler.CALL_OPERATOR_NAME,
-                                 element,
-                                 globalizedElement);
-    globalizedElement.backendMembers =
-        globalizedElement.backendMembers.prepend(callElement);
+        new FunctionElementX.from(Compiler.CALL_OPERATOR_NAME,
+                                  element,
+                                  globalizedElement);
+    globalizedElement.addBackendMember(callElement);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     Element thisElement = closureData.thisElement;
