@@ -125,7 +125,7 @@ function(cls, desc) {
   }
 
   void generateNativeClass(ClassElement classElement) {
-    assert(!classElement.hasBackendMembers);
+    assert(classElement.backendMembers.isEmpty);
     nativeClasses.add(classElement);
 
     ClassBuilder builder = new ClassBuilder();

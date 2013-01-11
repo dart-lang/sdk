@@ -5,7 +5,6 @@
 library dart_backend;
 
 import '../elements/elements.dart';
-import '../elements/model.dart' show SynthesizedConstructorElementX;
 import '../dart2jslib.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';

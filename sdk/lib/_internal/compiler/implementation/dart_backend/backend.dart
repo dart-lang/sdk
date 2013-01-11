@@ -235,16 +235,15 @@ class DartBackend extends Backend {
           // TODO(smok): Figure out if there is a better way to fill local
           // members.
           element.parseNode(compiler);
-          classElement.forEachLocalMember((member) {
+          for (final member in classElement.localMembers) {
             final name = member.name.slowToString();
             // Skip operator names.
-            if (!name.startsWith(r'operator$')) {
-              // Fetch name of named constructors and factories if any,
-              // otherwise store regular name.
-              // TODO(antonm): better way to analyze the name.
-              fixedMemberNames.add(name.split(r'$').last);
-            }
-          });
+            if (name.startsWith(r'operator$')) continue;
+            // Fetch name of named constructors and factories if any,
+            // otherwise store regular name.
+            // TODO(antonm): better way to analyze the name.
+            fixedMemberNames.add(name.split(r'$').last);
+          }
         }
         // Even class names are added due to a delicate problem we have:
         // if one imports dart:core with a prefix, we cannot tell prefix.name
@@ -269,7 +268,7 @@ class DartBackend extends Backend {
     bool shouldOutput(Element element) {
       return !identical(element.kind, ElementKind.VOID)
           && isUserLibrary(element.getLibrary())
-          && !element.isSynthesized
+          && element is !SynthesizedConstructorElement
           && element is !AbstractFieldElement;
     }
 
@@ -361,8 +360,8 @@ class DartBackend extends Backend {
       // TODO(antonm): check with AAR team if there is better approach.
       // As an idea: provide template as a Dart code---class C { C.name(); }---
       // and then overwrite necessary parts.
-      SynthesizedConstructorElementX constructor =
-          new SynthesizedConstructorElementX(classElement);
+      SynthesizedConstructorElement constructor =
+          new SynthesizedConstructorElement(classElement);
       constructor.type = new FunctionType(
           compiler.types.voidType, const Link<DartType>(),
           constructor);

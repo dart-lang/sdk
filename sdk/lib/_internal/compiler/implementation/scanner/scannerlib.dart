@@ -8,13 +8,6 @@ import 'dart:uri';
 
 import 'scanner_implementation.dart';
 import '../elements/elements.dart';
-import '../elements/model.dart'
-    show FunctionElementX,
-         TypedefElementX,
-         VariableElementX,
-         VariableListElementX,
-         ClassElementX,
-         MetadataAnnotationX;
 import '../dart2jslib.dart';
 import '../native_handler.dart' as native;
 import '../string_validator.dart';

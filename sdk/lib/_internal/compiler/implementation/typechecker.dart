@@ -224,7 +224,7 @@ class VoidType extends DartType {
 
   SourceString get name => element.name;
 
-  final Element element;
+  final VoidElement element;
 
   DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
     // Void cannot be substituted.
@@ -612,8 +612,8 @@ class Types {
   final DynamicType dynamicType;
 
   factory Types(Compiler compiler, ClassElement dynamicElement) {
-    LibraryElement library = new LibraryElementX(new Script(null, null));
-    VoidType voidType = new VoidType(new VoidElementX(library));
+    LibraryElement library = new LibraryElement(new Script(null, null));
+    VoidType voidType = new VoidType(new VoidElement(library));
     DynamicType dynamicType = new DynamicType(dynamicElement);
     dynamicElement.rawType = dynamicElement.thisType = dynamicType;
     return new Types.internal(compiler, voidType, dynamicType);

@@ -18,12 +18,9 @@ import '../universe/universe.dart';
 import '../util/util.dart';
 import '../util/characters.dart';
 
-import '../scanner/scannerlib.dart'
-    show PartialFunctionElement, Token, PLUS_TOKEN;
-
-import '../elements/model.dart'
-    show ElementX,
-         ConstructorBodyElementX;
+import '../scanner/scannerlib.dart' show PartialFunctionElement,
+                                         Token,
+                                         PLUS_TOKEN;
 
 part 'bailout.dart';
 part 'builder.dart';

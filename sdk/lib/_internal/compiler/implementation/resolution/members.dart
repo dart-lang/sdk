@@ -1240,7 +1240,7 @@ class TypeResolver {
     DartType reportFailureAndCreateType(MessageKind messageKind,
                                         List messageArguments) {
       onFailure(node, messageKind, messageArguments);
-      var erroneousElement = new ErroneousElementX(
+      var erroneousElement = new ErroneousElement(
           messageKind, messageArguments, typeName.source, enclosingElement);
       var arguments = new LinkBuilder<DartType>();
       resolveTypeArguments(
@@ -1256,7 +1256,7 @@ class TypeResolver {
           scope, onFailure, whenResolved, arguments);
       if (hashTypeArgumentMismatch) {
         type = new MalformedType(
-            new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
+            new ErroneousElement(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
                 [node], typeName.source, enclosingElement),
                 type, arguments.toLink());
       }
@@ -1287,7 +1287,7 @@ class TypeResolver {
             scope, onFailure, whenResolved, arguments);
         if (hashTypeArgumentMismatch) {
           type = new MalformedType(
-              new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
+              new ErroneousElement(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
                   [node], typeName.source, enclosingElement),
               new InterfaceType(cls.declaration, arguments.toLink()));
         } else {
@@ -1307,7 +1307,7 @@ class TypeResolver {
             scope, onFailure, whenResolved, arguments);
         if (hashTypeArgumentMismatch) {
           type = new MalformedType(
-              new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
+              new ErroneousElement(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
                   [node], typeName.source, enclosingElement),
               new TypedefType(typdef, arguments.toLink()));
         } else {
@@ -1323,7 +1323,7 @@ class TypeResolver {
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER.message(
                   [node]));
           type = new MalformedType(
-              new ErroneousElementX(
+              new ErroneousElement(
                   MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
                   [node], typeName.source, enclosingElement),
                   element.computeType(compiler));
@@ -1428,7 +1428,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         compiler.reportMessage(compiler.spanFromNode(node),
             MessageKind.NO_INSTANCE_AVAILABLE.error([name]),
             Diagnostic.ERROR);
-        return new ErroneousElementX(MessageKind.NO_INSTANCE_AVAILABLE,
+        return new ErroneousElement(MessageKind.NO_INSTANCE_AVAILABLE,
                                     [name],
                                     name, enclosingElement);
       } else if (result.isAmbiguous()) {
@@ -1436,7 +1436,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         compiler.reportMessage(compiler.spanFromNode(node),
             ambiguous.messageKind.error(ambiguous.messageArguments),
             Diagnostic.ERROR);
-        return new ErroneousElementX(ambiguous.messageKind,
+        return new ErroneousElement(ambiguous.messageKind,
                                     ambiguous.messageArguments,
                                     name, enclosingElement);
       }
@@ -1448,9 +1448,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   TargetElement getOrCreateTargetElement(Node statement) {
     TargetElement element = mapping[statement];
     if (element == null) {
-      element = new TargetElementX(statement,
-                                   statementScope.nestingLevel,
-                                   enclosingElement);
+      element = new TargetElement(statement,
+                                  statementScope.nestingLevel,
+                                  enclosingElement);
       mapping[statement] = element;
     }
     return element;
@@ -1482,7 +1482,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
                                                  List<Node> arguments) {
     ResolutionWarning warning = new ResolutionWarning(kind, arguments);
     compiler.reportWarning(node, warning);
-    return new ErroneousElementX(kind, arguments, name, enclosingElement);
+    return new ErroneousElement(kind, arguments, name, enclosingElement);
   }
 
   Element visitIdentifier(Identifier node) {
@@ -1695,7 +1695,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       name = node.name.asIdentifier().source;
     }
 
-    FunctionElement function = new FunctionElementX.node(
+    FunctionElement function = new FunctionElement.node(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         enclosingElement);
     Scope oldScope = scope; // The scope is modified by [setupFunction].
@@ -2524,9 +2524,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         }
 
         TargetElement targetElement =
-            new TargetElementX(switchCase,
-                               statementScope.nestingLevel,
-                               enclosingElement);
+            new TargetElement(switchCase,
+                              statementScope.nestingLevel,
+                              enclosingElement);
         if (mapping[switchCase] != null) {
           // TODO(ahe): Talk to Lasse about this.
           mapping.remove(switchCase);
@@ -2534,8 +2534,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         mapping[switchCase] = targetElement;
 
         LabelElement labelElement =
-            new LabelElementX(label, labelName,
-                              targetElement, enclosingElement);
+            new LabelElement(label, labelName,
+                             targetElement, enclosingElement);
         mapping[label] = labelElement;
         continueLabels[labelName] = labelElement;
       }
@@ -2909,9 +2909,17 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
    */
   void addDefaultConstructorIfNeeded(ClassElement element) {
     if (element.hasConstructor) return;
-    FunctionElement constructor =
-        new SynthesizedConstructorElementX.forDefault(element, compiler);
+    SynthesizedConstructorElement constructor =
+      new SynthesizedConstructorElement(element);
     element.addToScope(constructor, compiler);
+    DartType returnType = compiler.types.voidType;
+    constructor.type = new FunctionType(returnType, const Link<DartType>(),
+                                        constructor);
+    constructor.cachedNode =
+      new FunctionExpression(new Identifier(element.position()),
+                             new NodeList.empty(),
+                             new Block(new NodeList.empty()),
+                             null, Modifiers.EMPTY, null, null);
   }
 
   isBlackListed(DartType type) {
@@ -3013,7 +3021,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
   VariableDefinitionsVisitor(Compiler compiler,
                              this.definitions, this.resolver, this.kind)
       : super(compiler) {
-    variables = new VariableListElementX.node(
+    variables = new VariableListElement.node(
         definitions, ElementKind.VARIABLE_LIST, resolver.enclosingElement);
   }
 
@@ -3033,7 +3041,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       SourceString name = visit(link.head);
       VariableElement element =
-          new VariableElementX(name, variables, kind, link.head);
+          new VariableElement(name, variables, kind, link.head);
       resolver.defineElement(link.head, element);
     }
   }
@@ -3089,11 +3097,11 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   }
 
   Element visitIdentifier(Identifier node) {
-    Element variables = new VariableListElementX.node(currentDefinitions,
+    Element variables = new VariableListElement.node(currentDefinitions,
         ElementKind.VARIABLE_LIST, enclosingElement);
     // Ensure a parameter is not typed 'void'.
     variables.computeType(compiler);
-    return new VariableElementX(node.source, variables,
+    return new VariableElement(node.source, variables,
         ElementKind.PARAMETER, node);
   }
 
@@ -3132,9 +3140,9 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       } else if (!fieldElement.isInstanceMember()) {
         error(node, MessageKind.NOT_INSTANCE_FIELD, [name]);
       }
-      Element variables = new VariableListElementX.node(currentDefinitions,
+      Element variables = new VariableListElement.node(currentDefinitions,
           ElementKind.VARIABLE_LIST, enclosingElement);
-      element = new FieldParameterElementX(name, fieldElement, variables, node);
+      element = new FieldParameterElement(name, fieldElement, variables, node);
     }
     return element;
   }
@@ -3144,9 +3152,9 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     if (node.receiver != null) {
       element = visitSend(node);
     } else if (node.selector.asIdentifier() != null) {
-      Element variables = new VariableListElementX.node(currentDefinitions,
+      Element variables = new VariableListElement.node(currentDefinitions,
           ElementKind.VARIABLE_LIST, enclosingElement);
-      element = new VariableElementX(node.selector.asIdentifier().source,
+      element = new VariableElement(node.selector.asIdentifier().source,
           variables, ElementKind.PARAMETER, node);
     }
     // Visit the value. The compile time constant handler will
@@ -3225,12 +3233,12 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                Diagnostic.ERROR);
       }
     }
-    return new FunctionSignatureX(parameters,
-                                  visitor.optionalParameters,
-                                  requiredParameterCount,
-                                  visitor.optionalParameterCount,
-                                  visitor.optionalParametersAreNamed,
-                                  returnType);
+    return new FunctionSignature(parameters,
+                                 visitor.optionalParameters,
+                                 requiredParameterCount,
+                                 visitor.optionalParameterCount,
+                                 visitor.optionalParametersAreNamed,
+                                 returnType);
   }
 
   // TODO(ahe): This is temporary.
@@ -3266,7 +3274,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     } else {
       ResolutionWarning warning  = new ResolutionWarning(kind, arguments);
       compiler.reportWarning(diagnosticNode, warning);
-      return new ErroneousElementX(kind, arguments, targetName, enclosing);
+      return new ErroneousElement(kind, arguments, targetName, enclosing);
     }
   }
 

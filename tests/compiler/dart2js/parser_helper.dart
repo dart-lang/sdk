@@ -9,18 +9,13 @@ import "dart:uri";
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart";
+import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart" 
+       hide SourceString;
 import "../../../sdk/lib/_internal/compiler/implementation/source_file.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
 
-import "../../../sdk/lib/_internal/compiler/implementation/elements/model.dart"
-    show CompilationUnitElementX,
-         LibraryElementX;
-
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
-    hide SourceString;
-
 export "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
-    show DiagnosticListener;
+       show DiagnosticListener;
 // TODO(ahe): We should have token library to export instead.
 export "../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart";
 
@@ -44,7 +39,7 @@ Node parseBodyCode(String text, Function parseMethod,
       new Script(
           new Uri.fromComponents(scheme: "source"),
           new MockFile(text));
-  LibraryElement library = new LibraryElementX(script);
+  LibraryElement library = new LibraryElement(script);
   library.canUseNative = true;
   NodeListener listener =
       new NodeListener(diagnosticHandler, library.entryCompilationUnit);
@@ -82,7 +77,7 @@ Link<Element> parseUnit(String text, Compiler compiler,
   Token tokens = scan(text);
   Uri uri = new Uri.fromComponents(scheme: "source");
   var script = new Script(uri, new MockFile(text));
-  var unit = new CompilationUnitElementX(script, library);
+  var unit = new CompilationUnitElement(script, library);
   int id = 0;
   ElementListener listener = new ElementListener(compiler, unit, () => id++);
   PartialParser parser = new PartialParser(listener);

@@ -698,7 +698,9 @@ abstract class Compiler implements DiagnosticListener {
     if (element.isClass()) {
       ClassElement cls = element;
       cls.ensureResolved(this);
-      cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
+      for (Element member in cls.localMembers) {
+        enqueuer.resolution.addToWorkList(member);
+      }
     } else {
       enqueuer.resolution.addToWorkList(element);
     }

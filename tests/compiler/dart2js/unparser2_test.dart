@@ -3,19 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
-
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
-    show DiagnosticListener,
-         Script;
-
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
-    show CompilationUnitElement,
-         LibraryElement;
-
-import "../../../sdk/lib/_internal/compiler/implementation/elements/model.dart"
-    show CompilationUnitElementX,
-         LibraryElementX;
+       show CompilationUnitElement, LibraryElement;
+import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
+import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
+       show DiagnosticListener, Script;
 
 main() {
   testClassDef();
@@ -57,8 +49,8 @@ void compareCode(String code) {
 String doUnparse(String source) {
   MessageCollector diagnosticListener = new MessageCollector();
   Script script = new Script(null, null);
-  LibraryElement lib = new LibraryElementX(script);
-  CompilationUnitElement element = new CompilationUnitElementX(script, lib);
+  LibraryElement lib = new LibraryElement(script);
+  CompilationUnitElement element = new CompilationUnitElement(script, lib);
   StringScanner scanner = new StringScanner(source);
   Token beginToken = scanner.tokenize();
   NodeListener listener = new NodeListener(diagnosticListener, element);

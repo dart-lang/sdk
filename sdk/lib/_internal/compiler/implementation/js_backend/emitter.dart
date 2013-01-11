@@ -8,7 +8,7 @@ part of js_backend;
  * A function element that represents a closure call. The signature is copied
  * from the given element.
  */
-class ClosureInvocationElement extends FunctionElementX {
+class ClosureInvocationElement extends FunctionElement {
   ClosureInvocationElement(SourceString name,
                            FunctionElement other)
       : super.from(name, other, other.enclosingElement),

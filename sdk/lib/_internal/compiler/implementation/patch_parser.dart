@@ -120,7 +120,6 @@ import "dart2jslib.dart" as leg;  // CompilerTask, Compiler.
 import "apiimpl.dart";
 import "scanner/scannerlib.dart";  // Scanner, Parsers, Listeners
 import "elements/elements.dart";
-import "elements/model.dart" show LibraryElementX, MetadataAnnotationX;
 import 'util/util.dart';
 
 class PatchParserTask extends leg.CompilerTask {
@@ -136,7 +135,7 @@ class PatchParserTask extends leg.CompilerTask {
                     Uri patchUri, LibraryElement originLibrary) {
 
     leg.Script script = compiler.readScript(patchUri, null);
-    var patchLibrary = new LibraryElementX(script, patchUri, originLibrary);
+    var patchLibrary = new LibraryElement(script, patchUri, originLibrary);
     handler.registerNewLibrary(patchLibrary);
     LinkBuilder<tree.LibraryTag> imports = new LinkBuilder<tree.LibraryTag>();
     compiler.withCurrentElement(patchLibrary.entryCompilationUnit, () {
@@ -499,7 +498,7 @@ class PatchMemberListener extends MemberListener implements PatchListener {
 }
 
 // TODO(ahe): Get rid of this class.
-class PatchMetadataAnnotation extends MetadataAnnotationX {
+class PatchMetadataAnnotation extends MetadataAnnotation {
   final leg.Constant value = null;
 
   PatchMetadataAnnotation() : super(STATE_DONE);

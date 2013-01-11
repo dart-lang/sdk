@@ -4,6 +4,8 @@
 
 import 'dart:uri';
 
+import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
+       hide TreeElementMapping, TreeElements, SourceString;
 import "../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
@@ -11,9 +13,6 @@ import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
 import "compiler_helper.dart";
 import "mock_compiler.dart";
 import "parser_helper.dart";
-
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
-    hide TreeElementMapping, TreeElements, SourceString;
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
@@ -533,7 +532,7 @@ testNewExpression() {
       compiler.parsedTree.asExpressionStatement().expression;
   Element element = elements[expression.send];
   Expect.equals(ElementKind.GENERATIVE_CONSTRUCTOR, element.kind);
-  Expect.isTrue(element.isSynthesized);
+  Expect.isTrue(element is SynthesizedConstructorElement);
 }
 
 testTopLevelFields() {
