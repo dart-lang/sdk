@@ -1254,25 +1254,44 @@ class TimerImpl implements Timer {
 
   TimerImpl(int milliseconds, void callback(Timer timer))
       : _once = true {
-    _handle = JS('int', '#.setTimeout(#, #)',
-                 globalThis,
-                 convertDartClosureToJS(() => callback(this), 0),
-                 milliseconds);
+    if (hasTimer() && !_globalState.isWorker) {
+      _handle = JS('int', '#.setTimeout(#, #)',
+                   globalThis,
+                   convertDartClosureToJS(() => callback(this), 0),
+                   milliseconds);
+    } else if (milliseconds != 0) {
+      throw new UnsupportedError("Non DOM isolate with timer greater than 0.");
+    } else {
+      // This makes a dependency between the async library and the
+      // event loop of the isolate library. The compiler makes sure
+      // that the event loop is compiled if [Timer] is used.
+      _globalState.topEventLoop.enqueue(_globalState.currentContext, () {
+        callback(this); 
+      }, 'timer');
+    }
   }
 
   TimerImpl.repeating(int milliseconds, void callback(Timer timer))
       : _once = false {
-    _handle = JS('int', '#.setInterval(#, #)',
-                 globalThis,
-                 convertDartClosureToJS(() => callback(this), 0),
-                 milliseconds);
+    if (hasTimer() && !_globalState.isWorker) {
+      _handle = JS('int', '#.setInterval(#, #)',
+                   globalThis,
+                   convertDartClosureToJS(() => callback(this), 0),
+                   milliseconds);
+    } else {
+      throw new UnsupportedError("Non DOM isolate with repeating timer.");
+    }
   }
 
   void cancel() {
-    if (_once) {
-      JS('void', '#.clearTimeout(#)', globalThis, _handle);
+    if (hasTimer() && !_globalState.isWorker) {
+      if (_once) {
+        JS('void', '#.clearTimeout(#)', globalThis, _handle);
+      } else {
+        JS('void', '#.clearInterval(#)', globalThis, _handle);
+      }
     } else {
-      JS('void', '#.clearInterval(#)', globalThis, _handle);
+      throw new UnsupportedError("Canceling a timer on a non DOM isolate.");
     }
   }
 }

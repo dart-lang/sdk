@@ -414,11 +414,20 @@ class ResolutionEnqueuer extends Enqueuer {
     }
 
     // Enable isolate support if we start using something from the
-    // isolate library.
+    // isolate library, or timers for the async library.
     LibraryElement library = element.getLibrary();
-    if (!compiler.hasIsolateSupport()
-        && library.uri.toString() == 'dart:isolate') {
-      enableIsolateSupport(library);
+    if (!compiler.hasIsolateSupport()) {
+      String uri = library.uri.toString();
+      if (uri == 'dart:isolate') {
+        enableIsolateSupport(library);
+      } else if (uri == 'dart:async') {
+        ClassElement cls = element.getEnclosingClass();
+        if (cls != null && cls.name == const SourceString('Timer')) {
+          // The [:Timer:] class uses the event queue of the isolate
+          // library, so we make sure that event queue is generated.
+          enableIsolateSupport(library);
+        }
+      }
     }
 
     return true;

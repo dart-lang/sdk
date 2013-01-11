@@ -9,7 +9,7 @@ import 'dart:async';
 main() {
   bool failed = false;
   try {
-    new Timer(0, (_) { });
+    new Timer(5, (_) { });
   } on UnsupportedError catch (e) {
     failed = true;
   }

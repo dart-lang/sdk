@@ -7,18 +7,11 @@ math/*: Skip
 mirrors/*: Skip
 
 [ $compiler == dart2js && $runtime == d8 ]
-async/future_delayed_error_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/future_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/futures_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/merge_stream_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/slow_consumer2_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/slow_consumer3_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/slow_consumer_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_controller_async_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_from_iterable_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_min_max_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_single_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_single_to_multi_subscriber_test: Fail # Timer interface not supported; dartbug.com/7728.
 
 [ $compiler == dart2js && $browser ]
 crypto/sha256_test: Slow, Pass
@@ -37,15 +30,15 @@ crypto/hmac_sha256_test: Fail
 async/slow_consumer2_test: Fail # Issue 7726
 
 [ $compiler == dart2js && $runtime == jsshell ]
-async/future_delayed_error_test: Fail # TODO(ngeoaffray): Please triage these failure.
-async/futures_test: Fail # TODO(ngeoaffray): Please triage these failure.
-async/future_test: Fail # TODO(ngeoaffray): Please triage these failure.
-async/merge_stream_test: Fail # TODO(ngeoaffray): Please triage these failure.
-async/slow_consumer2_test: Fail # TODO(ngeoaffray): Please triage these failure.
-async/slow_consumer3_test: Fail # TODO(ngeoaffray): Please triage these failure.
-async/slow_consumer_test: Fail # TODO(ngeoaffray): Please triage these failure.
-async/stream_controller_async_test: Fail # TODO(ngeoaffray): Please triage these failure.
-async/stream_from_iterable_test: Fail # TODO(ngeoaffray): Please triage these failure.
-async/stream_min_max_test: Fail # TODO(ngeoaffray): Please triage these failure.
-async/stream_single_test: Fail # TODO(ngeoaffray): Please triage these failure.
-async/stream_single_to_multi_subscriber_test: Fail # TODO(ngeoaffray): Please triage these failure.
+async/future_delayed_error_test: Fail # TODO(ngeoffray): Please triage these failure.
+async/futures_test: Fail # TODO(ngeoffray): Please triage these failure.
+async/future_test: Fail # TODO(ngeoffray): Please triage these failure.
+async/merge_stream_test: Fail # TODO(ngeoffray): Please triage these failure.
+async/slow_consumer2_test: Fail # TODO(ngeoffray): Please triage these failure.
+async/slow_consumer3_test: Fail # TODO(ngeoffray): Please triage these failure.
+async/slow_consumer_test: Fail # TODO(ngeoffray): Please triage these failure.
+async/stream_controller_async_test: Fail # TODO(ngeoffray): Please triage these failure.
+async/stream_from_iterable_test: Fail # TODO(ngeoffray): Please triage these failure.
+async/stream_min_max_test: Fail # TODO(ngeoffray): Please triage these failure.
+async/stream_single_test: Fail # TODO(ngeoffray): Please triage these failure.
+async/stream_single_to_multi_subscriber_test: Fail # TODO(ngeoffray): Please triage these failure.

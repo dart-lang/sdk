@@ -159,23 +159,7 @@ LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/sin_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/tan_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
-Language/11_Expressions/12_Spawning_an_Isolate_A01_t01: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/isolate_api/spawnFunction_A01_t02: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/ReceivePort/close_A01_t01: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/ReceivePort/close_A02_t01: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/ReceivePort/receive_A01_t01: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/ReceivePort/receive_A01_t03: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/ReceivePort/toSendPort_A01_t03: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/SendPort/call_A01_t01: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/SendPort/send_A02_t05: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/SendPort/send_A02_t06: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/SendPort/send_A03_t01: Fail # Timer interface not supported; dartbug.com/7728.
-LibTest/isolate/SendPort/send_A03_t02: Fail # Timer interface not supported; dartbug.com/7728.
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail # Issue 6750
 
 LibTest/core/StringBuffer/addAll_A02_t01:  Fail, OK # co19 issue 355
 LibTest/core/StringBuffer/add_A02_t01:  Fail, OK # co19 issue 355

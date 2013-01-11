@@ -29,8 +29,7 @@ class_test: Fail
 to_string_test: Fail # Issue 7179.
 
 [ $jscl ]
-timer_test: Fail, OK # Timer is only supported in browsers.
-mirror_test: Fail, OK # Timer is only supported in browsers.
+timer_test: Fail # Issue 7728.
 
 [ $runtime == none ]
 timer_negative_test: Fail, OK # A negative runtime test.

@@ -19,8 +19,8 @@ testImmediate() {
 testNeverComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
-  future.then((v) => Except.fails("Value not expected"));
-  future.catchError((e) => Except.fails("Value not expected"));
+  future.then((v) => Expect.fails("Value not expected"));
+  future.catchError((e) => Expect.fails("Value not expected"));
 }
 
 testComplete() {

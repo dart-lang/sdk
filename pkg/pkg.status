@@ -51,23 +51,6 @@ intl/test/intl_message_test: Skip
 intl/test/intl_message_basic_example_test: Skip
 serialization/test/serialization_test: Skip
 
-[ $compiler == dart2js && $runtime == d8 ]
-args/test/args_test: Fail # Timer interface not supported; dartbug.com/7728.
-args/test/parse_test: Fail # Timer interface not supported; dartbug.com/7728.
-args/test/usage_test: Fail # Timer interface not supported; dartbug.com/7728.
-intl/test/bidi_format_test: Fail # Timer interface not supported; dartbug.com/7728.
-intl/test/bidi_utils_test: Fail # Timer interface not supported; dartbug.com/7728.
-intl/test/date_time_format_local_even_test: Fail # Timer interface not supported; dartbug.com/7728.
-intl/test/date_time_format_local_odd_test: Fail # Timer interface not supported; dartbug.com/7728.
-intl/test/date_time_format_uninitialized_test: Fail # Timer interface not supported; dartbug.com/7728.
-intl/test/intl_test: Fail # Timer interface not supported; dartbug.com/7728.
-intl/test/number_format_test: Fail # Timer interface not supported; dartbug.com/7728.
-logging/test/logging_test: Fail # Timer interface not supported; dartbug.com/7728.
-serialization/test/polyfill_identity_map_test: Fail # Timer interface not supported; dartbug.com/7728.
-unittest/test/matchers_test: Fail # Timer interface not supported; dartbug.com/7728.
-unittest/test/mock_test: Fail # Timer interface not supported; dartbug.com/7728.
-unittest/test/unittest_test: Fail # Timer interface not supported; dartbug.com/7728.
-
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
