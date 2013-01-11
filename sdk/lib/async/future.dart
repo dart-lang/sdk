@@ -5,33 +5,97 @@
 part of dart.async;
 
 /**
- * A [Future] is used to obtain a value sometime in the future.  Receivers of a
- * [Future] can obtain the value by passing a callback to [then]. For example:
+ * A [Future] represents a delayed computation. It is used to obtain a not-yet
+ * available value, or error, sometime in the future.  Receivers of a
+ * [Future] can register callbacks that handle the value or error once it is
+ * available. For example:
  *
- *     Future<int> future = getFutureFromSomewhere();
- *     future.then((value) {
- *       print("I received the number $value");
+ *     Future<int> future = getFuture();
+ *     future.then((value) => handleValue(value))
+ *           .catchError((error) => handleError(error));
+ *
+ * A [Future] can be completed in two ways: with a value ("the future succeeds")
+ * or with an error ("the future fails"). Users can install callbacks for each
+ * case. The result of registering a pair of callbacks is a new Future (the
+ * "successor") which in turn is completed with the result of invoking the
+ * corresponding callback. The successor is completed with an error if the
+ * invoked callback throws. For example:
+ *
+ *     Future<int> successor = future.then((int value) {
+ *         // Invoked when the future is completed with a value.
+ *         return 42;  // The successor is completed with the value 42.
+ *       },
+ *       onError: (AsyncError e) {
+ *         // Invoked when the future is completed with an error.
+ *         if (canHandle(e)) {
+ *           return 499;  // The successor is completed with the value 499.
+ *         } else {
+ *           throw e;  // The successor is completed with the error e.
+ *         }
+ *       });
+ *
+ * If a future does not have a successor but is completed with an error, it
+ * forwards the error message to the global error-handler. This special casing
+ * makes sure that no error is silently dropped. However, it also means that
+ * error handlers should be installed early, so that they are present as soon
+ * as a future is completed with an error. The following example demonstrates
+ * this potential bug:
+ *
+ *     var future = getFuture();
+ *     new Timer(5, (_) {
+ *       // The error-handler is only attached 5ms after the future has been
+ *       // received. If the future fails in the mean-time it will forward the
+ *       // error to the global error-handler, even though there is code (just
+ *       // below) to handle the error.
+ *       future.then((value) { useValue(value); },
+ *                   onError: (e) { handleError(e); });
  *     });
  *
- * A future may complete by *succeeding* (producing a value) or *failing*
- * (producing an error, which may be handled with [catchError]).
+ * In general we discourage registering the two callbacks at the same time, but
+ * prefer to use [then] with one argument (the value handler), and to use
+ * [catchError] for handling errors. The missing callbacks (the error-handler
+ * for [then], and the value-handler for [catchError]), are automatically
+ * configured to "forward" the value/error. Separating value and error-handling
+ * into separate registration calls usually leads to code that is easier to
+ * reason about. In fact it makes asynchronous code very similar to synchronous
+ * code:
  *
- * When a future completes, the following actions happen in order:
+ *     // Synchronous code.
+ *     try {
+ *       int value = foo();
+ *       return bar(value);
+ *     } catch (e) {
+ *       return 499;
+ *     }
  *
- *   1. if the future suceeded, handlers registered with [then] are called.
- *   2. if the future failed, handlers registered with [catchError] are
- *      tested in sequence. Each test returning true is, have its handler
- *      called.
- *   4. if the future failed, and no handler registered with [catchError] it
- *      is accepting the error, an error is sent to the global error handler.
+ *  Equivalent asynchronous code, based on futures:
  *
- * [Future]s are usually not created directly, but with [Completer]s.
+ *     Future<int> future = foo();  // foo now returns a future.
+ *     future.then((int value) => bar(value))
+ *           .catchError((e) => 499);
+ *
+ * Similar to the synchronous code, the error handler (registered with
+ * [catchError]) is handling the errors for exceptions coming from calls to
+ * 'foo', as well as 'bar'. This would not be the case if the error-handler was
+ * registered at the same time as the value-handler.
+ *
+ * Futures can have more than one callback-pairs registered. Each successor is
+ * treated independently and is handled as if it was the only successor.
  */
+// TODO(floitsch): document chaining.
 abstract class Future<T> {
-  /** A future whose value is immediately available. */
+  /**
+   * A future whose value is available in the next event-loop iteration.
+   *
+   * See [Completer]s, for futures with values that are computed asynchronously.
+   */
   factory Future.immediate(T value) => new _FutureImpl<T>.immediate(value);
 
-  /** A future that completes with an error. */
+  /**
+   * A future that completes with an error in the next event-loop iteration.
+   *
+   * See [Completer]s, for futures with values that are computed asynchronously.
+   */
   factory Future.immediateError(var error, [Object stackTrace]) {
     return new _FutureImpl<T>.immediateError(error, stackTrace);
   }
@@ -40,10 +104,13 @@ abstract class Future<T> {
    * Creates a future that completes after a delay.
    *
    * The future will be completed after [milliseconds] have passed with
-   * the result of calling [value].
+   * the result of calling [value]. If [milliseconds] is 0, it completes at the
+   * earliest in the next event-loop iteration.
    *
    * If calling [value] throws, the created future will complete with the
    * error.
+   *
+   * See [Completer]s, for futures with values that are computed asynchronously.
    */
   factory Future.delayed(int milliseconds, T value()) {
     _FutureImpl<T> future = new _ThenFuture<dynamic, T>((_) => value());
@@ -55,8 +122,8 @@ abstract class Future<T> {
    * Wait for all the given futures to complete and collect their values.
    *
    * Returns a future which will complete once all the futures in a list are
-   * complete. If any of the futures in the list completes with an exception,
-   * the resulting future also completes with an exception. Otherwise the value
+   * complete. If any of the futures in the list completes with an error,
+   * the resulting future also completes with an error. Otherwise the value
    * of the returned future will be a list of all the values that were produced.
    */
   static Future<List> wait(Iterable<Future> futures) {
@@ -92,27 +159,23 @@ abstract class Future<T> {
    * value. If [this] future is already completed then the invocation of
    * [onValue] is delayed until the next event-loop iteration.
    *
-   * Returns a new [Future] [:f:].
+   * Returns a new [Future] `f` which is completed with the result of
+   * invoking [onValue] (if [this] completes with a value) or [onError] (if
+   * [this] completes with an error).
    *
-   * If [this] is completed with an error then [:f:] is completed with the same
-   * error. If [this] is completed with a value, then [:f:]'s completion value
-   * depends on the result of invoking [onValue] with [this]' completion value.
+   * If the invoked callback throws an exception, the returned future `f` is
+   * completed with the error. If the value thrown is an [AsyncError], it is
+   * used directly, as the error result. Otherwise it is wrapped in an
+   * [AsyncError] first.
    *
-   * If [onValue] returns a [Future] [:f2:] then [:f:] and [:f2:] are chained.
-   * That is, [:f:] is completed with the completion value of [:f2:].
+   * If the invoked callback returns a [Future] `f2` then `f` and `f2` are
+   * chained. That is, `f` is completed with the completion value of `f2`.
    *
-   * Otherwise [:f:] is completed with the return value of [onValue].
-   *
-   * If [onValue] throws an exception, the returned future will receive the
-   * exception. If the value thrown is an [AsyncError], it is used directly,
-   * as the error result, otherwise it is wrapped in an [AsyncError] first.
-   *
-   * If [onError] is provided, it is called if this future completes with an
-   * error, and its return value/throw behavior is handled the same way as
-   * for [catchError] without a [:test:] argument.
+   * If [onError] is not given, it is equivalent to `(e) { throw e; }`. That
+   * is, it forwards the error to `f`.
    *
    * In most cases, it is more readable to use [catchError] separately, possibly
-   * with a [:test:] parameter, instead of handling both value and error in a
+   * with a `test` parameter, instead of handling both value and error in a
    * single [then] call.
    */
   Future then(onValue(T value), { onError(AsyncError asyncError) });
@@ -120,23 +183,42 @@ abstract class Future<T> {
   /**
    * Handles errors emitted by this [Future].
    *
-   * When this future completes with an error, first [test] is called with the
-   * error's value.
+   * Returns a new [Future] `f`.
    *
-   * If [test] returns [true], [onError] is called with the error
-   * wrapped in an [AsyncError]. The result of [onError] is handled exactly as
-   * [then]'s [onValue].
+   * When [this] completes with a value, the value is forwarded to `f`
+   * unmodified. That is, `f` completes with the same value.
+   *
+   * When [this] completes with an error, [test] is called with the
+   * error's value. If the invocation returns [true], [onError] is called with
+   * the error wrapped in an [AsyncError]. The result of [onError] is handled
+   * exactly the same as for [then]'s [onError].
    *
    * If [test] returns false, the exception is not handled by [onError], but is
-   * emitted by the returned Future unmodified.
+   * thrown unmodified, thus forwarding it to `f`.
    *
    * If [test] is omitted, it defaults to a function that always returns true.
    *
    * Example:
-   * foo
-   *   .catchError(..., test: (e) => e is ArgumentError)
-   *   .catchError(..., test: (e) => e is NoSuchMethodError)
-   *   .then((v) { ... });
+   *
+   *     foo
+   *       .catchError(..., test: (e) => e is ArgumentError)
+   *       .catchError(..., test: (e) => e is NoSuchMethodError)
+   *       .then((v) { ... });
+   *
+   * This method is equivalent to:
+   *
+   *     Future catchError(onError(AsyncError asyncError),
+   *                       {bool test(Object error)}) {
+   *       this.then((v) => v,  // Forward the value.
+   *                 // But handle errors, if the [test] succeeds.
+   *                 onError: (AsyncError e) {
+   *                   if (test == null || test(e.error)) {
+   *                     return onError(e);
+   *                   }
+   *                   throw e;
+   *                 });
+   *     }
+   *
    */
   Future catchError(onError(AsyncError asyncError),
                     {bool test(Object error)});
@@ -149,17 +231,30 @@ abstract class Future<T> {
    *
    * This is the asynchronous equivalent of a "finally" block.
    *
-   * The future returned by this call, [:f:], will complete the same way
+   * The future returned by this call, `f`, will complete the same way
    * as this future unless an error occurs in the [action] call, or in
    * a [Future] returned by the [action] call. If the call to [action]
    * does not return a future, its return value is ignored.
    *
-   * If the call to [action] throws, then [:f:] is completed with the
+   * If the call to [action] throws, then `f` is completed with the
    * thrown error.
    *
-   * If the call to [action] returns a [Future], [:f2:], then completion of
-   * [:f:] is delayed until [:f2:] completes. If [:f2:] completes with
-   * an error, that will be the result of [:f:] too.
+   * If the call to [action] returns a [Future], `f2`, then completion of
+   * `f` is delayed until `f2` completes. If `f2` completes with
+   * an error, that will be the result of `f` too.
+   *
+   * This method is equivalent to:
+   *
+   *     Future<T> whenComplete(action()) {
+   *       this.then((v) {
+   *                   action();
+   *                   return v
+   *                 },
+   *                 onError: (AsyncError e) {
+   *                   action();
+   *                   throw e;
+   *                 });
+   *     }
    */
   Future<T> whenComplete(action());
 
@@ -210,7 +305,7 @@ abstract class Completer<T> {
    * Completing a future with an error indicates that an exception was thrown
    * while trying to produce a value.
    *
-   * The argument [exception] should not be [:null:].
+   * The argument [exception] should not be `null`.
    *
    * If [exception] is an [AsyncError], it is used directly as the error
    * message sent to the future's listeners, and [stackTrace] is ignored.
