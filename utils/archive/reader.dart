@@ -150,7 +150,7 @@ class ArchiveReader {
       addOption(SET_OPTION, option);
     }
 
-    return Futures.wait(pending);
+    return Future.wait(pending);
   }
 }
 

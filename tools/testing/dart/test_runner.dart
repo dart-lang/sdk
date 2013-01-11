@@ -1667,6 +1667,7 @@ class ProcessQueue {
         futures.add(runner.terminate());
       }
     }
+    // Change to Future.wait when updating binaries.
     return Futures.wait(futures);
   }
 

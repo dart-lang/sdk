@@ -131,7 +131,7 @@ class Entrypoint {
   /// [packageVersions], and writes a [LockFile].
   Future _installDependencies(List<PackageId> packageVersions) {
     return cleanDir(path).then((_) {
-      return Futures.wait(packageVersions.mappedBy((id) {
+      return Future.wait(packageVersions.mappedBy((id) {
         if (id.source is RootSource) return new Future.immediate(id);
         return install(id);
       }));
@@ -208,7 +208,7 @@ class Entrypoint {
       return _linkSecondaryPackageDir(dir)
         .then((_) => _listDirWithoutPackages(dir))
         .then((files) {
-        return Futures.wait(files.mappedBy((file) {
+        return Future.wait(files.mappedBy((file) {
           return dirExists(file).then((isDir) {
             if (!isDir) return new Future.immediate(null);
             return _linkSecondaryPackageDir(file);
@@ -223,7 +223,7 @@ class Entrypoint {
   /// files and `package` files.
   Future<List<String>> _listDirWithoutPackages(dir) {
     return listDir(dir).then((files) {
-      return Futures.wait(files.mappedBy((file) {
+      return Future.wait(files.mappedBy((file) {
         if (basename(file) == 'packages') return new Future.immediate([]);
         return dirExists(file).then((isDir) {
           if (!isDir) return new Future.immediate([]);

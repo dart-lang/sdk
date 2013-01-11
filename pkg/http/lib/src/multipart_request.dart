@@ -111,7 +111,7 @@ class MultipartRequest extends BaseRequest {
       writeLine();
     });
 
-    Futures.forEach(_files.collection, (file) {
+    Future.forEach(_files.collection, (file) {
       writeAscii('--$boundary\r\n');
       writeAscii(_headerForFile(file));
       return writeStreamToSink(file.finalize(), controller)

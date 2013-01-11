@@ -833,7 +833,7 @@ class ReceivePortImpl implements ReceivePort {
 _waitForPendingPorts(var message, void callback()) {
   final finder = new _PendingSendPortFinder();
   finder.traverse(message);
-  Futures.wait(finder.ports).then((_) => callback());
+  Future.wait(finder.ports).then((_) => callback());
 }
 
 

@@ -574,7 +574,7 @@ void confirmPublish(ScheduledProcess pub) {
 Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
   String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
 
-  return Futures.wait([
+  return Future.wait([
     ensureDir(pathInSandbox(appPath)),
     _awaitObject(args),
     tokenEndpoint == null ? new Future.immediate(null) : tokenEndpoint
@@ -915,7 +915,7 @@ class DirectoryDescriptor extends Descriptor {
       final childFutures =
           contents.mappedBy((child) => child.create(dir)).toList();
       // Only complete once all of the children have been created too.
-      return Futures.wait(childFutures).then((_) => dir);
+      return Future.wait(childFutures).then((_) => dir);
     });
   }
 
@@ -936,7 +936,7 @@ class DirectoryDescriptor extends Descriptor {
           contents.mappedBy((entry) => entry.validate(dir)).toList();
 
       // If they are all valid, the directory is valid.
-      return Futures.wait(entryFutures).then((entries) => null);
+      return Future.wait(entryFutures).then((entries) => null);
     });
   }
 
@@ -1072,7 +1072,7 @@ class TarFileDescriptor extends Descriptor {
     var tempDir;
     return createTempDir().then((_tempDir) {
       tempDir = _tempDir;
-      return Futures.wait(contents.mappedBy((child) => child.create(tempDir)));
+      return Future.wait(contents.mappedBy((child) => child.create(tempDir)));
     }).then((createdContents) {
       return consumeInputStream(createTarGz(createdContents, baseDir: tempDir));
     }).then((bytes) {
@@ -1482,7 +1482,7 @@ Future _awaitObject(object) {
   // Unroll nested futures.
   if (object is Future) return object.then(_awaitObject);
   if (object is Collection) {
-    return Futures.wait(object.mappedBy(_awaitObject).toList());
+    return Future.wait(object.mappedBy(_awaitObject).toList());
   }
   if (object is! Map) return new Future.immediate(object);
 
@@ -1491,7 +1491,7 @@ Future _awaitObject(object) {
     pairs.add(_awaitObject(value)
         .then((resolved) => new Pair(key, resolved)));
   });
-  return Futures.wait(pairs).then((resolvedPairs) {
+  return Future.wait(pairs).then((resolvedPairs) {
     var map = {};
     for (var pair in resolvedPairs) {
       map[pair.first] = pair.last;

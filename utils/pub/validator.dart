@@ -57,7 +57,7 @@ abstract class Validator {
     // 3356, which causes a bug if all validators are (synchronously) using
     // Future.immediate and an error is thrown before a handler is set up.
     return sleep(0).then((_) {
-      return Futures.wait(
+      return Future.wait(
           validators.mappedBy((validator) => validator.validate()));
     }).then((_) {
       var errors =

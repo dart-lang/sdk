@@ -28,5 +28,5 @@ void runEverything(Function getSubset) {
   var futures = DateFormat.allLocalesWithSymbols()
       .mappedBy((locale) => initializeDateFormatting(locale, null))
       .toList();
-  Futures.wait(futures).then((results) => runDateTests(getSubset()));
+  Future.wait(futures).then((results) => runDateTests(getSubset()));
 }

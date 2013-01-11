@@ -75,7 +75,7 @@ class ArchiveInputStream {
     this.onError = (e, stack) => completer.completeError(e, stack);
     this.onClosed = () => completer.complete(result);
 
-    return completer.future.then(Futures.wait);
+    return completer.future.then(Future.wait);
   }
 
   /**

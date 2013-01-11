@@ -76,7 +76,7 @@ testCompleteManySuccessHandlers() {
   futures.add(future.then((int v) { after2 = v; }));
 
   var port = new ReceivePort();
-  new Future.wait(futures).then((_) {
+  Future.wait(futures).then((_) {
     Expect.equals(3, before);
     Expect.equals(3, after1);
     Expect.equals(3, after2);

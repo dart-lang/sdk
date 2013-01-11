@@ -15,7 +15,7 @@ void testCreateRecursiveRace() {
   var keepAlive = new ReceivePort();
   var temp = new Directory('').createTempSync();
   var d = new Directory('${temp.path}/a/b/c/d/e');
-  Futures.wait([
+  Future.wait([
       d.create(recursive: true),
       d.create(recursive: true),
       d.create(recursive: true),

@@ -216,7 +216,7 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
   }
 
   // Wait until all imports are copied before scheduling test cases.
-  return Futures.wait(futureCopies).then((_) {
+  return Future.wait(futureCopies).then((_) {
     String baseFilename = filePath.filenameWithoutExtension;
     for (String key in tests.keys) {
       final Path multitestFilename =

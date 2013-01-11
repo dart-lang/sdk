@@ -117,7 +117,7 @@ class LishCommand extends PubCommand {
   Future<List<String>> get _filesToPublish {
     var rootDir = entrypoint.root.dir;
 
-    return Futures.wait([
+    return Future.wait([
       dirExists(join(rootDir, '.git')),
       git.isInstalled
     ]).then((results) {
@@ -129,7 +129,7 @@ class LishCommand extends PubCommand {
       }
 
       return listDir(rootDir, recursive: true).then((entries) {
-        return Futures.wait(entries.mappedBy((entry) {
+        return Future.wait(entries.mappedBy((entry) {
           return fileExists(entry).then((isFile) {
             // Skip directories.
             if (!isFile) return null;

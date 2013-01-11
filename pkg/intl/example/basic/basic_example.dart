@@ -37,7 +37,7 @@ void setup(Function program, Function output) {
   var thaiDatesFuture = initializeDateFormatting('th_TH', null);
   var germanMessagesFuture = initializeMessages('de_DE');
   var thaiMessagesFuture = initializeMessages('th_TH');
-  Futures.wait([germanDatesFuture, thaiDatesFuture, germanMessagesFuture,
+  Future.wait([germanDatesFuture, thaiDatesFuture, germanMessagesFuture,
                 thaiMessagesFuture]).then(program);
 }
 

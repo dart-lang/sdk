@@ -59,7 +59,7 @@ String relativeTo(target, base) => path.relative(target, from: base);
 /// completes with the result.
 Future<bool> exists(path) {
   path = _getPath(path);
-  return Futures.wait([fileExists(path), dirExists(path)]).then((results) {
+  return Future.wait([fileExists(path), dirExists(path)]).then((results) {
     return results[0] || results[1];
   });
 }
@@ -284,7 +284,7 @@ Future<List<String>> listDir(dir,
     };
 
     return completer.future.then((contents) {
-      return Futures.wait(children).then((childContents) {
+      return Future.wait(children).then((childContents) {
         contents.addAll(flatten(childContents));
         return contents;
       });

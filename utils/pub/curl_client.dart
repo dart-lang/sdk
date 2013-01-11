@@ -136,7 +136,7 @@ class CurlClient extends http.BaseClient {
     // prints the headers to stdout instead of the body. We want to wait until
     // all the headers are received to read them from the header file.
     if (!expectBody) {
-      return Futures.wait([
+      return Future.wait([
         consumeInputStream(process.stdout),
         completer.future
       ]);

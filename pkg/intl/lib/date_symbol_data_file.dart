@@ -33,7 +33,7 @@ Future initializeDateFormatting(String locale, String path) {
       reader2, (x) => x, availableLocalesForDateFormatting));
   return initializeIndividualLocaleDateFormatting(
       (symbols, patterns) {
-        return Futures.wait([
+        return Future.wait([
             symbols.initLocale(locale),
             patterns.initLocale(locale)]);
       });

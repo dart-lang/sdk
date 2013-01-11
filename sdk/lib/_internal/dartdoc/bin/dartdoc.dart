@@ -37,7 +37,7 @@ main() {
   final argParser = new ArgParser();
 
   final Path libPath = scriptDir.append('../../../../');
-  
+
   Path pkgPath;
 
   argParser.addFlag('no-code',
@@ -180,14 +180,14 @@ main() {
   final entrypoints = <Path>[];
   try {
     final option = argParser.parse(args);
-    
+
     // This checks to see if the root of all entrypoints is the same.
     // If it is not, then we display a warning, as package imports might fail.
     var entrypointRoot;
     for(final arg in option.rest) {
       var entrypoint = new Path.fromNative(arg);
       entrypoints.add(entrypoint);
-      
+
       if (entrypointRoot == null) {
         entrypointRoot = entrypoint.directoryPath;
       } else if (entrypointRoot.toNativePath() !=
@@ -208,7 +208,7 @@ main() {
     print(argParser.getUsage());
     exit(1);
   }
-  
+
   if (pkgPath == null) {
     pkgPath = entrypoints[0].directoryPath.append('packages/');
   }
@@ -221,7 +221,7 @@ main() {
   Future filesCopied = copyDirectory(scriptDir.append('../static'),
                                      dartdoc.outputDir);
 
-  Futures.wait([compiled, filesCopied]).then((_) {
+  Future.wait([compiled, filesCopied]).then((_) {
     dartdoc.cleanup();
     print('Documented ${dartdoc.totalLibraries} libraries, '
           '${dartdoc.totalTypes} types, and ${dartdoc.totalMembers} members.');

@@ -214,7 +214,7 @@ class ArchiveEntry {
     stream.onError = completer.completeError;
     stream.onClosed = () => completer.complete(buffer);
 
-    return Futures.wait([call(CLONE, _id), completer.future])
+    return Future.wait([call(CLONE, _id), completer.future])
       .then((list) => new CompleteArchiveEntry._(list[0], list[1]));
   }
 

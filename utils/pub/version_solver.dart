@@ -254,7 +254,7 @@ class ChangeVersion implements WorkItem {
 
     // The dependencies between the old and new version may be different. Walk
     // them both and update any constraints that differ between the two.
-    return Futures.wait([
+    return Future.wait([
         getDependencyRefs(solver, oldVersion),
         getDependencyRefs(solver, version)]).then((list) {
       var oldDependencyRefs = list[0];

@@ -27,7 +27,7 @@ runWith([Function getSubset]) {
 void runEverything(Function getSubset) {
   // Initialize all locales sequentially before running tests. Be sure not
   // to do it in parallel or we can run into ulimit problems on fast machines.
-  var futureList = Futures.forEach(DateFormat.allLocalesWithSymbols(),
+  var futureList = Future.forEach(DateFormat.allLocalesWithSymbols(),
       (locale) => initializeDateFormatting(locale, dataDirectory));
 
   test('Run all date formatting tests nested test', () {

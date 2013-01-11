@@ -61,7 +61,7 @@ void testSessions(int sessionCount) {
         });
     }));
   }
-  Futures.wait(futures).then((clientSessions) {
+  Future.wait(futures).then((clientSessions) {
     Expect.equals(sessions.length, sessionCount);
     Expect.setEquals(new Set.from(clientSessions), sessions);
     server.close();
@@ -86,8 +86,8 @@ void testTimeout(int sessionCount) {
   for (int i = 0; i < sessionCount; i++) {
     futures.add(connectGetSession(server.port));
   }
-  Futures.wait(futures).then((clientSessions) {
-    Futures.wait(timeouts).then((_) {
+  Future.wait(futures).then((clientSessions) {
+    Future.wait(timeouts).then((_) {
       futures = [];
       for (var id in clientSessions) {
         futures.add(connectGetSession(server.port, id).then((session) {
@@ -95,7 +95,7 @@ void testTimeout(int sessionCount) {
           Expect.notEquals(id, session);
         }));
       }
-      Futures.wait(futures).then((_) {
+      Future.wait(futures).then((_) {
         server.close();
       });
     });

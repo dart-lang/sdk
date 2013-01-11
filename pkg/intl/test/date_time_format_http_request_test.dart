@@ -29,7 +29,7 @@ void runEverything(_) {
   var futures = DateFormat.allLocalesWithSymbols()
       .mappedBy((locale) => initializeDateFormatting(locale, url))
       .toList();
-  Futures.wait(futures).then(expectAsync1((_) {
+  Future.wait(futures).then(expectAsync1((_) {
       runDateTests(smallSetOfLocales());
       shutDown();}));
 }

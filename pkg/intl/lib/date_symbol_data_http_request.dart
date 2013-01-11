@@ -31,7 +31,7 @@ Future initializeDateFormatting(String locale, String url) {
       reader2, (x) => x, availableLocalesForDateFormatting));
   return initializeIndividualLocaleDateFormatting(
       (symbols, patterns) {
-        return Futures.wait([
+        return Future.wait([
             symbols.initLocale(locale),
             patterns.initLocale(locale)]);
       });

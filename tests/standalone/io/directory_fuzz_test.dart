@@ -59,7 +59,7 @@ fuzzAsyncMethods() {
       futures.add(doItAsync(() => d.rename(v2)));
     });
   });
-  Futures.wait(futures).then((ignore) => port.close());
+  Future.wait(futures).then((ignore) => port.close());
 }
 
 main() {

@@ -59,7 +59,7 @@ fuzzAsyncMethods() {
       });
     });
   });
-  Futures.wait(futures).then((ignore) => port.close());
+  Future.wait(futures).then((ignore) => port.close());
 }
 
 
@@ -112,7 +112,7 @@ fuzzAsyncRandomAccessMethods() {
       futures.add(doItAsync(() => opened.writeList(p[0], p[1], p[2])));
     }
   }
-  Futures.wait(futures).then((ignore) {
+  Future.wait(futures).then((ignore) {
     for (var opened in openedFiles) {
       opened.closeSync();
     }

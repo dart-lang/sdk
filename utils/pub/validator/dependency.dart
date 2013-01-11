@@ -20,7 +20,7 @@ class DependencyValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    return Futures.forEach(entrypoint.root.pubspec.dependencies, (dependency) {
+    return Future.forEach(entrypoint.root.pubspec.dependencies, (dependency) {
       if (dependency.source is! HostedSource) {
         return _warnAboutSource(dependency);
       }

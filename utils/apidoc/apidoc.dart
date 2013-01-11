@@ -146,12 +146,12 @@ void main() {
     apidoc.includeApi = true;
     apidoc.includedLibraries = includedLibraries;
 
-    Futures.wait([copiedStatic, copiedApiDocStatic]).then((_) {
+    Future.wait([copiedStatic, copiedApiDocStatic]).then((_) {
       apidoc.documentLibraries(apidocLibraries, libPath, pkgPath);
 
       final compiled = doc.compileScript(mode, outputDir, libPath);
 
-      Futures.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
+      Future.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
         apidoc.cleanup();
       });
     });

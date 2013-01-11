@@ -36,17 +36,56 @@ abstract class Future<T> {
     return new _FutureImpl<T>.immediateError(error, stackTrace);
   }
 
-  factory Future.delayed(int milliseconds, dynamic value()) {
-    var completer = new Completer<T>();
-    new Timer(milliseconds, (_) => completer.complete(null));
-    return completer.future.then((_) => value());
+  /**
+   * Creates a future that completes after a delay.
+   *
+   * The future will be completed after [milliseconds] have passed with
+   * the result of calling [value].
+   *
+   * If calling [value] throws, the created future will complete with the
+   * error.
+   */
+  factory Future.delayed(int milliseconds, T value()) {
+    _FutureImpl<T> future = new _ThenFuture<dynamic, T>((_) => value());
+    new Timer(milliseconds, (_) => future._sendValue(null));
+    return future;
   }
 
-  // TODO(floitsch): I don't think the typing is right here.
-  // Otherwise new Future<int>.wait(...) would be a Future<List<int>>. Sounds
-  // wrong.
-  factory Future.wait(List<Future> futures)
-    => new _FutureImpl<List<T>>.wait(futures);
+  /**
+   * Wait for all the given futures to complete and collect their values.
+   *
+   * Returns a future which will complete once all the futures in a list are
+   * complete. If any of the futures in the list completes with an exception,
+   * the resulting future also completes with an exception. Otherwise the value
+   * of the returned future will be a list of all the values that were produced.
+   */
+  static Future<List> wait(Iterable<Future> futures) {
+    return new _FutureImpl<List>.wait(futures);
+  }
+
+  /**
+   * Perform an async operation for each element of the iterable, in turn.
+   *
+   * Runs [f] for each element in [input] in order, moving to the next element
+   * only when the [Future] returned by [f] completes. Returns a [Future] that
+   * completes when all elements have been processed.
+   *
+   * The return values of all [Future]s are discarded. Any errors will cause the
+   * iteration to stop and will be piped through the returned [Future].
+   */
+  static Future forEach(Iterable input, Future f(element)) {
+    _FutureImpl doneSignal = new _FutureImpl();
+    Iterator iterator = input.iterator;
+    void nextElement(_) {
+      if (iterator.moveNext()) {
+        f(iterator.current).then(nextElement, onError: doneSignal._setError);
+      } else {
+        doneSignal._setValue(null);
+      }
+    }
+    nextElement(null);
+    return doneSignal;
+  }
 
   /**
    * When this future completes with a value, then [onValue] is called with this
@@ -180,33 +219,4 @@ abstract class Completer<T> {
    * [AsyncError] and sent to this future's listeners.
    */
   void completeError(Object exception, [Object stackTrace]);
-}
-
-class Futures {
-  /**
-   * Returns a future which will complete once all the futures in a list are
-   * complete. If any of the futures in the list completes with an exception,
-   * the resulting future also completes with an exception. (The value of the
-   * returned future will be a list of all the values that were produced.)
-   */
-  static Future<List> wait(Iterable<Future> futures) {
-    return new _FutureImpl<List>.wait(futures);
-  }
-
-  /**
-   * Runs [f] for each element in [input] in order, moving to the next element
-   * only when the [Future] returned by [f] completes. Returns a [Future] that
-   * completes when all elements have been processed.
-   *
-   * The return values of all [Future]s are discarded. Any errors will cause the
-   * iteration to stop and will be piped through the returned [Future].
-   */
-  static Future forEach(Iterable input, Future f(element)) {
-    var iterator = input.iterator;
-    Future nextElement(_) {
-      if (!iterator.moveNext()) return new Future.immediate(null);
-      return f(iterator.current).then(nextElement);
-    }
-    return nextElement(null);
-  }
 }

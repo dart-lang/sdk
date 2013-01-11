@@ -73,7 +73,7 @@ class IOClient extends BaseClient {
           reasonPhrase: response.reasonPhrase));
     };
 
-    return new Future.wait([
+    return Future.wait([
       completer.future,
       pipeCompleter.future
     ]).then((values) => values.first);

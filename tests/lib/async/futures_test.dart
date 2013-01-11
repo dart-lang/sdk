@@ -8,14 +8,14 @@ import 'dart:isolate';
 
 Future testWaitEmpty() {
   List<Future> futures = new List<Future>();
-  return Futures.wait(futures);
+  return Future.wait(futures);
 }
 
 Future testCompleteAfterWait() {
   List<Future> futures = new List<Future>();
   Completer<Object> c = new Completer<Object>();
   futures.add(c.future);
-  Future future = Futures.wait(futures);
+  Future future = Future.wait(futures);
   c.complete(null);
   return future;
 }
@@ -25,7 +25,7 @@ Future testCompleteBeforeWait() {
   Completer c = new Completer();
   futures.add(c.future);
   c.complete(null);
-  return Futures.wait(futures);
+  return Future.wait(futures);
 }
 
 Future testWaitWithMultipleValues() {
@@ -36,7 +36,7 @@ Future testWaitWithMultipleValues() {
   futures.add(c2.future);
   c1.complete(1);
   c2.complete(2);
-  return Futures.wait(futures).then((values) {
+  return Future.wait(futures).then((values) {
     Expect.listEquals([1, 2], values);
   });
 }
@@ -50,7 +50,7 @@ Future testWaitWithSingleError() {
   c1.complete();
   c2.completeError('correct error');
 
-  return Futures.wait(futures).then((_) {
+  return Future.wait(futures).then((_) {
     throw 'incorrect error';
   }).catchError((e) {
     Expect.equals('correct error', e.error);
@@ -66,7 +66,7 @@ Future testWaitWithMultipleErrors() {
   c1.completeError('correct error');
   c2.completeError('incorrect error 1');
 
-  return Futures.wait(futures).then((_) {
+  return Future.wait(futures).then((_) {
     throw 'incorrect error 2';
   }).catchError((e) {
     Expect.equals('correct error', e.error);
@@ -74,14 +74,14 @@ Future testWaitWithMultipleErrors() {
 }
 
 Future testForEachEmpty() {
-  return Futures.forEach([], (_) {
+  return Future.forEach([], (_) {
     throw 'should not be called';
   });
 }
 
 Future testForEach() {
   var seen = <int>[];
-  return Futures.forEach([1, 2, 3, 4, 5], (n) {
+  return Future.forEach([1, 2, 3, 4, 5], (n) {
     seen.add(n);
     return new Future.immediate(null);
   }).then((_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
@@ -89,7 +89,7 @@ Future testForEach() {
 
 Future testForEachWithException() {
   var seen = <int>[];
-  return Futures.forEach([1, 2, 3, 4, 5], (n) {
+  return Future.forEach([1, 2, 3, 4, 5], (n) {
     if (n == 4) throw 'correct exception';
     seen.add(n);
     return new Future.immediate(null);
@@ -115,7 +115,7 @@ main() {
   // Use a receive port for blocking the test.
   // Note that if the test fails, the program will not end.
   ReceivePort port = new ReceivePort();
-  Futures.wait(futures).then((List list) {
+  Future.wait(futures).then((List list) {
     Expect.equals(8, list.length);
     port.close();
   });
