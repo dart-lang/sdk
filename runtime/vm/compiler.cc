@@ -44,15 +44,15 @@ DEFINE_FLAG(bool, common_subexpression_elimination, true,
 DEFINE_FLAG(bool, loop_invariant_code_motion, true,
     "Do loop invariant code motion.");
 DEFINE_FLAG(bool, propagate_types, true, "Do static type propagation.");
-DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
-    "How many times we allow deoptimization before we disallow"
-    " certain optimizations");
+DEFINE_FLAG(int, deoptimization_counter_threshold, 16,
+    "How many times we allow deoptimization before we disallow optimization.");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
+DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 
 
 // Compile a function. Should call only if the function has not been compiled.
@@ -482,6 +482,8 @@ static RawError* CompileFunctionHelper(const Function& function,
       if (FLAG_trace_compiler) {
         OS::Print("--> disabling optimizations for '%s'\n",
                   function.ToFullyQualifiedCString());
+      } else if (FLAG_trace_failed_optimization_attempts) {
+        OS::Print("Cannot optimize: %s\n", function.ToFullyQualifiedCString());
       }
       function.set_is_optimizable(false);
       isolate->set_long_jump_base(base);
