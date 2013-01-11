@@ -58,7 +58,7 @@ audiobuffersourcenode_test: Pass, Fail
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 css_test: Fail
-document_test/supports_cssCanvasContext: Fail
+document_test/getCssCanvasContext: Fail # IE does not support this.
 element_test/additionalConstructors: Fail
 element_test/click: Fail                # IE does not support firing this event.
 element_types_test/supported_content: Fail
@@ -97,7 +97,7 @@ xhr_test: Fail
 xsltprocessor_test: Fail
 
 [ $runtime == ie9 ]
-document_test/supports_cssCanvasContext: Fail
+document_test/getCssCanvasContext: Fail # IE does not support this.
 element_test/click: Fail                # IE does not support firing this event.
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
@@ -188,7 +188,7 @@ element_test/constructors: Fail
 
 
 [ $runtime == opera ]
-document_test/supports_cssCanvasContext: Fail
+document_test/getCssCanvasContext: Fail # Issue: 7413
 document_test/document: Fail # Issue: 7413
 form_data_test: Fail # Issue: 7413
 keyboard_event_test: Fail # Issue: 7413
@@ -232,7 +232,7 @@ audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCssMatrix
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
-document_test/supports_cssCanvasContext: Fail
+document_test/getCssCanvasContext: Fail # FF does not support this.
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
 element_types_test/supported_embed: Fail

@@ -10551,40 +10551,7 @@ class HtmlDocument extends Document native "*HTMLDocument" {
     return document.$dom_elementFromPoint(x, y);
   }
 
-  /**
-   * Checks if the getCssCanvasContext API is supported on the current platform.
-   *
-   * See also:
-   *
-   * * [getCssCanvasContext]
-   */
-  static bool get supportsCssCanvasContext =>
-      JS('bool', '!!(document.getCSSCanvasContext)');
-
-
-  /**
-   * Gets a CanvasRenderingContext which can be used as the CSS background of an
-   * element.
-   *
-   * CSS:
-   *
-   *     background: -webkit-canvas(backgroundCanvas)
-   *
-   * Generate the canvas:
-   *
-   *     var context = document.getCssCanvasContext('2d', 'backgroundCanvas',
-   *         100, 100);
-   *     context.fillStyle = 'red';
-   *     context.fillRect(0, 0, 100, 100);
-   *
-   * See also:
-   *
-   * * [supportsCssCanvasContext]
-   * * [CanvasElement.getContext]
-   */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
+  /** @domName Document.getCSSCanvasContext */
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
     return document.$dom_getCssCanvasContext(contextId, name, width, height);
