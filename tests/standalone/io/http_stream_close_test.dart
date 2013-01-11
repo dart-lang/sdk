@@ -34,11 +34,12 @@ main() {
     };
   };
 
-  var connection = client.postUrl(new Uri.fromString("http://127.0.0.1:${server.port}"));
-  connection.onError = (e) => throw e;
+  var connection = client.postUrl(
+      new Uri.fromString("http://127.0.0.1:${server.port}"));
+  connection.onError = (e) { throw e; };
   connection.onRequest = (request) {
     request.contentLength = "hello!".length;
-    request.outputStream.onError = (e) => throw e;
+    request.outputStream.onError = (e) { throw e; };
     request.outputStream.onClosed = () {
       clientOnClosed = true;
       checkDone();
