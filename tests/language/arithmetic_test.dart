@@ -282,18 +282,17 @@ class ArithmeticTest {
     Expect.equals(2.0, (2.1).round());
     Expect.equals(-2.0, (-2.1).round());
     Expect.equals(1.0, (0.5).round());
-    // TODO(floitsch): enable or adapt test, once we reached conclusion on
-    // b/4539188.
-    // Expect.equals(-0.0, (-0.5).round());
-    // TODO(srdjan): enable the following tests once isNegative works.
-    // Expect.equals(true, (-0.0).round().isNegative);
-    // Expect.equals(true, (-0.3).round().isNegative);
-    // Expect.equals(true, (-0.5).round().isNegative);
+    Expect.equals(0.0, (0.49999999999999994).round());
+    Expect.equals(-0.0, (-0.49999999999999994).round());
+    Expect.equals(-1.0, (-0.5).round());
+    Expect.equals(true, (-0.0).round().isNegative);
+    Expect.equals(true, (-0.3).round().isNegative);
+    Expect.equals(true, (-0.5).round().isNegative);
     Expect.equals(2.0, (1.5).round());
-    // TODO(floitsch): enable or adapt test, once we reached conclusion on
-    // b/4539188.
-    // Expect.equals(-1.0, (-1.5).round());
+    Expect.equals(-2.0, (-1.5).round());
     Expect.equals(1.0, (0.99).round());
+    Expect.equals(9007199254740991.0, (9007199254740991.0).round());
+    Expect.equals(-9007199254740991.0, (-9007199254740991.0).round());
 
     // -- toInt --.
     // Smi.

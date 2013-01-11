@@ -1225,22 +1225,38 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return true;
   }
 
-  if ((recognized_kind == MethodRecognizer::kDoubleToInteger) &&
-      (class_ids[0] == kDoubleCid)) {
-    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-    ASSERT(call->HasICData());
-    const ICData& ic_data = *call->ic_data();
-    Definition* d2i_instr = NULL;
-    if (ic_data.deopt_reason() == kDeoptDoubleToSmi) {
-      // Do not repeatedly deoptimize because result didn't fit into Smi.
-      d2i_instr = new DoubleToIntegerInstr(call->ArgumentAt(0)->value(), call);
-    } else {
-      // Optimistically assume result fits into Smi.
-      d2i_instr = new DoubleToSmiInstr(call->ArgumentAt(0)->value(), call);
+  if (class_ids[0] == kDoubleCid) {
+    if (recognized_kind == MethodRecognizer::kDoubleToInteger) {
+      AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+      ASSERT(call->HasICData());
+      const ICData& ic_data = *call->ic_data();
+      Definition* d2i_instr = NULL;
+      if (ic_data.deopt_reason() == kDeoptDoubleToSmi) {
+        // Do not repeatedly deoptimize because result didn't fit into Smi.
+        d2i_instr = new DoubleToIntegerInstr(call->ArgumentAt(0)->value(),
+                                             call);
+      } else {
+        // Optimistically assume result fits into Smi.
+        d2i_instr = new DoubleToSmiInstr(call->ArgumentAt(0)->value(), call);
+      }
+      call->ReplaceWith(d2i_instr, current_iterator());
+      RemovePushArguments(call);
+      return true;
     }
-    call->ReplaceWith(d2i_instr, current_iterator());
-    RemovePushArguments(call);
-    return true;
+    if ((recognized_kind == MethodRecognizer::kDoubleTruncate) ||
+        (recognized_kind == MethodRecognizer::kDoubleRound)) {
+      if (!CPUFeatures::sse4_1_supported()) {
+        return false;
+      }
+      AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+      DoubleToDoubleInstr* d2d_instr =
+          new DoubleToDoubleInstr(call->ArgumentAt(0)->value(),
+                                  call,
+                                  recognized_kind);
+      call->ReplaceWith(d2d_instr, current_iterator());
+      RemovePushArguments(call);
+      return true;
+    }
   }
 
   return false;
@@ -4186,6 +4202,12 @@ void ConstantPropagator::VisitDoubleToInteger(DoubleToIntegerInstr* instr) {
 
 
 void ConstantPropagator::VisitDoubleToSmi(DoubleToSmiInstr* instr) {
+  // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
   // TODO(kmillikin): Handle conversion.
   SetValue(instr, non_constant_);
 }

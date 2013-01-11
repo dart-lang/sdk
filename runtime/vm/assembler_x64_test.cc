@@ -1696,6 +1696,19 @@ ASSEMBLER_TEST_RUN(XorpdZeroing2, entry) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Pxor, assembler) {
+  __ pxor(XMM0, XMM0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Pxor, entry) {
+  typedef double (*PxorCode)(double d);
+  double res = reinterpret_cast<PxorCode>(entry)(12.3456e3);
+  EXPECT_FLOAT_EQ(0.0, res, 0.0);
+}
+
+
 ASSEMBLER_TEST_GENERATE(SquareRootDouble, assembler) {
   __ sqrtsd(XMM0, XMM0);
   __ ret();
@@ -1809,6 +1822,72 @@ ASSEMBLER_TEST_RUN(IntToDoubleConversion2, entry) {
   typedef double (*IntToDoubleConversion2Code)(int i);
   double res = reinterpret_cast<IntToDoubleConversion2Code>(entry)(3);
   EXPECT_FLOAT_EQ(3.0, res, 0.001);
+}
+
+ASSEMBLER_TEST_GENERATE(DoubleToDoubleTrunc, assembler) {
+  __ roundsd(XMM0, XMM0, Assembler::kRoundToZero);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, entry) {
+  typedef double (*DoubleToDoubleTruncCode)(double d);
+  double res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(12.3);
+  EXPECT_EQ(12.0, res);
+  res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(12.8);
+  EXPECT_EQ(12.0, res);
+  res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(-12.3);
+  EXPECT_EQ(-12.0, res);
+  res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(-12.8);
+  EXPECT_EQ(-12.0, res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
+  __ DoubleAbs(XMM0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleAbs, entry) {
+  typedef double (*DoubleAbsCode)(double d);
+  double val = -12.45;
+  double res =  reinterpret_cast<DoubleAbsCode>(entry)(val);
+  EXPECT_FLOAT_EQ(-val, res, 0.001);
+  val = 12.45;
+  res =  reinterpret_cast<DoubleAbsCode>(entry)(val);
+  EXPECT_FLOAT_EQ(val, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToDoubleRound, assembler) {
+  __ DoubleRound(XMM0, XMM0, XMM1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToDoubleRound, entry) {
+  typedef double (*DoubleToDoubleRoundCode)(double d);
+  double res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(12.3);
+  EXPECT_EQ(12.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(12.8);
+  EXPECT_EQ(13.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(0.5);
+  EXPECT_EQ(1.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-12.3);
+  EXPECT_EQ(-12.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-12.8);
+  EXPECT_EQ(-13.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-0.5);
+  EXPECT_EQ(-1.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(0.49999999999999994);
+  EXPECT_EQ(0.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-0.49999999999999994);
+  EXPECT_EQ(-0.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(9007199254740991.0);
+  EXPECT_EQ(9007199254740991.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-9007199254740991.0);
+  EXPECT_EQ(-9007199254740991.0, res);
 }
 
 

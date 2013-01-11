@@ -44,6 +44,8 @@ class FlowGraphOptimizer;
   V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 733149324)              \
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
+  V(_Double, truncate, DoubleTruncate, 620870996)                              \
+  V(_Double, round, DoubleRound, 620870996)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
 
 // Class that recognizes the name and owner of a function and returns the
@@ -254,6 +256,7 @@ class EmbeddedArray<T, 0> {
   M(SmiToDouble)                                                               \
   M(DoubleToInteger)                                                           \
   M(DoubleToSmi)                                                               \
+  M(DoubleToDouble)                                                            \
   M(CheckClass)                                                                \
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
@@ -511,6 +514,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class StringCharCodeAtInstr;
   friend class LICM;
   friend class DoubleToSmiInstr;
+  friend class DoubleToDoubleInstr;
 
   intptr_t deopt_id_;
   intptr_t lifetime_position_;  // Position used by register allocator.
@@ -4019,6 +4023,48 @@ class DoubleToSmiInstr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DoubleToSmiInstr);
+};
+
+
+class DoubleToDoubleInstr : public TemplateDefinition<1> {
+ public:
+  DoubleToDoubleInstr(Value* value,
+                      InstanceCallInstr* instance_call,
+                      MethodRecognizer::Kind recognized_kind)
+    : recognized_kind_(recognized_kind) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
+
+  DECLARE_INSTRUCTION(DoubleToDouble)
+  virtual RawAbstractType* CompileType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+ private:
+  const MethodRecognizer::Kind recognized_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleInstr);
 };
 
 

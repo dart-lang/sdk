@@ -809,6 +809,19 @@ void Assembler::pxor(XmmRegister dst, XmmRegister src) {
 }
 
 
+void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
+  ASSERT(CPUFeatures::sse4_1_supported());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x3A);
+  EmitUint8(0x0B);
+  EmitXmmRegisterOperand(dst, src);
+  // Mask precision exeption.
+  EmitUint8(static_cast<uint8_t>(mode) | 0x8);
+}
+
+
 void Assembler::fldl(const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xDD);
@@ -1720,6 +1733,38 @@ void Assembler::DoubleAbs(XmmRegister reg) {
   } double_abs_constant =
       {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
   andpd(reg, Address::Absolute(reinterpret_cast<uword>(&double_abs_constant)));
+}
+
+
+void Assembler::DoubleRound(XmmRegister dst, XmmRegister src, XmmRegister tmp) {
+  ASSERT(tmp != src);
+  static double kZeroFiveConst = 0.5;
+  static double kNegZeroFiveConst = -0.5;
+  static double kOneConst = 1.0;
+  static double kNegOneConst = -1.0;
+  Label is_negative, round;
+  if (src != dst) {
+    movsd(dst, src);
+  }
+  // Special handling: 0.5 -> 1.0, -0.5 -> -1.0;
+  Label done, equal_point5, equal_neg_point5;
+  movsd(tmp, Address::Absolute(reinterpret_cast<intptr_t>(&kZeroFiveConst)));
+  comisd(tmp, dst);
+  j(EQUAL, &equal_point5, Assembler::kNearJump);
+  movsd(tmp, Address::Absolute(reinterpret_cast<intptr_t>(&kNegZeroFiveConst)));
+  comisd(tmp, dst);
+  j(EQUAL, &equal_neg_point5, Assembler::kNearJump);
+
+  roundsd(dst, dst, Assembler::kRoundToNearest);
+  jmp(&done, Assembler::kNearJump);
+
+  Bind(&equal_point5);
+  movsd(dst, Address::Absolute(reinterpret_cast<intptr_t>(&kOneConst)));
+  jmp(&done);
+
+  Bind(&equal_neg_point5);
+  movsd(dst, Address::Absolute(reinterpret_cast<intptr_t>(&kNegOneConst)));
+  Bind(&done);
 }
 
 

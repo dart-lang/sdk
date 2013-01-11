@@ -1499,6 +1499,22 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print(",");
             PrintXmmRegister(rm);
             data += 2;
+          } else if (*data == 0x3A) {
+            data++;
+            if (*data == 0x0B) {
+              data++;
+              int mod, regop, rm;
+              GetModRm(*data, &mod, &regop, &rm);
+              Print("roundsd ");
+              PrintXmmRegister(regop);
+              Print(", ");
+              PrintXmmRegister(rm);
+              Print(", ");
+              PrintInt(data[1] & 3);
+              data += 2;
+            } else {
+              UNIMPLEMENTED();
+            }
           } else {
             UNIMPLEMENTED();
           }

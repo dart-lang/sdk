@@ -374,6 +374,16 @@ class Assembler : public ValueObject {
   void cvtss2sd(XmmRegister dst, XmmRegister src);
   void cvtsd2ss(XmmRegister dst, XmmRegister src);
 
+  void pxor(XmmRegister dst, XmmRegister src);
+
+  enum RoundingMode {
+    kRoundToNearest = 0x0,
+    kRoundDown      = 0x1,
+    kRoundUp        = 0x2,
+    kRoundToZero    = 0x3
+  };
+  void roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode);
+
   void xchgl(Register dst, Register src);
   void xchgq(Register dst, Register src);
 
@@ -482,6 +492,8 @@ class Assembler : public ValueObject {
   void xorpd(XmmRegister dst, const Address& src);
   void xorpd(XmmRegister dst, XmmRegister src);
 
+  void andpd(XmmRegister dst, const Address& src);
+
   void fldl(const Address& src);
   void fstpl(const Address& dst);
 
@@ -575,6 +587,7 @@ class Assembler : public ValueObject {
   void FloatNegate(XmmRegister f);
 
   void DoubleAbs(XmmRegister reg);
+  void DoubleRound(XmmRegister dst, XmmRegister src, XmmRegister tmp);
 
   void LockCmpxchgl(const Address& address, Register reg) {
     lock();

@@ -2321,6 +2321,33 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* DoubleToDoubleInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps =
+      (recognized_kind() == MethodRecognizer::kDoubleRound) ? 1 : 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresXmmRegister());
+  result->set_out(Location::RequiresXmmRegister());
+  if (recognized_kind() == MethodRecognizer::kDoubleRound) {
+    result->set_temp(0, Location::RequiresXmmRegister());
+  }
+  return result;
+}
+
+
+void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->in(0).xmm_reg();
+  XmmRegister result = locs()->out().xmm_reg();
+  if (recognized_kind() == MethodRecognizer::kDoubleTruncate) {
+    __ roundsd(result, value,  Assembler::kRoundToZero);
+  } else {
+    XmmRegister temp = locs()->temp(0).xmm_reg();
+    __ DoubleRound(result, value, temp);
+  }
+}
+
+
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
   return MakeCallSummary();
 }

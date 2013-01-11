@@ -641,6 +641,17 @@ void Assembler::xorpd(XmmRegister dst, XmmRegister src) {
 }
 
 
+void Assembler::andpd(XmmRegister dst, const Address& src) {
+  ASSERT(dst <= XMM15);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitOperandREX(dst, src, REX_NONE);
+  EmitUint8(0x0F);
+  EmitUint8(0x54);
+  EmitOperand(dst & 7, src);
+}
+
+
 void Assembler::cvtsi2sd(XmmRegister dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(dst <= XMM15);
@@ -686,6 +697,33 @@ void Assembler::cvtsd2ss(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x0F);
   EmitUint8(0x5A);
   EmitXmmRegisterOperand(dst & 7, src);
+}
+
+
+void Assembler::pxor(XmmRegister dst, XmmRegister src) {
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitREX_RB(dst, src);
+  EmitUint8(0x0F);
+  EmitUint8(0xEF);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitREX_RB(dst, src);
+  EmitUint8(0x0F);
+  EmitUint8(0x3A);
+  EmitUint8(0x0B);
+  EmitXmmRegisterOperand(dst, src);
+  // Mask precision exeption.
+  EmitUint8(static_cast<uint8_t>(mode) | 0x8);
 }
 
 
@@ -1751,6 +1789,53 @@ void Assembler::DoubleNegate(XmmRegister d) {
       {0x8000000000000000LL, 0x8000000000000000LL};
   movq(TMP, Immediate(reinterpret_cast<intptr_t>(&double_negate_constant)));
   xorpd(d, Address(TMP, 0));
+}
+
+
+void Assembler::DoubleAbs(XmmRegister reg) {
+  static const struct ALIGN16 {
+    uint64_t a;
+    uint64_t b;
+  } double_abs_constant =
+      {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
+  movq(TMP, Immediate(reinterpret_cast<intptr_t>(&double_abs_constant)));
+  andpd(reg, Address(TMP, 0));
+}
+
+
+void Assembler::DoubleRound(XmmRegister dst, XmmRegister src, XmmRegister tmp) {
+  ASSERT(tmp != src);
+  static double kZeroFiveConst = 0.5;
+  static double kNegZeroFiveConst = -0.5;
+  static double kOneConst = 1.0;
+  static double kNegOneConst = -1.0;
+  Label is_negative, round;
+  if (src != dst) {
+    movsd(dst, src);
+  }
+  // Special handling: 0.5 -> 1.0, -0.5 -> -1.0;
+  Label done, equal_point5, equal_neg_point5;
+  movq(TMP, Immediate(reinterpret_cast<intptr_t>(&kZeroFiveConst)));
+  movsd(tmp, Address(TMP, 0));
+  comisd(tmp, dst);
+  j(EQUAL, &equal_point5, Assembler::kNearJump);
+  movq(TMP, Immediate(reinterpret_cast<intptr_t>(&kNegZeroFiveConst)));
+  movsd(tmp, Address(TMP, 0));
+  comisd(tmp, dst);
+  j(EQUAL, &equal_neg_point5, Assembler::kNearJump);
+
+  roundsd(dst, dst, Assembler::kRoundToNearest);
+  jmp(&done, Assembler::kNearJump);
+
+  Bind(&equal_point5);
+  movq(TMP, Immediate(reinterpret_cast<intptr_t>(&kOneConst)));
+  movsd(dst, Address(TMP, 0));
+  jmp(&done);
+
+  Bind(&equal_neg_point5);
+  movq(TMP, Immediate(reinterpret_cast<intptr_t>(&kNegOneConst)));
+  movsd(dst, Address(TMP, 0));
+  Bind(&done);
 }
 
 
