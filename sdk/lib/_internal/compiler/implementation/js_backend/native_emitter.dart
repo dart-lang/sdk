@@ -262,19 +262,14 @@ function(cls, desc) {
       FunctionElement element,
       js.Block body,
       List<js.Parameter> parameters) {
-    String methodName;
-    Namer namer = backend.namer;
-    if (element.kind == ElementKind.FUNCTION) {
-      methodName = namer.instanceMethodName(element);
-    } else if (element.kind == ElementKind.GETTER) {
-      methodName = namer.getterName(element.getLibrary(), element.name);
-    } else if (element.kind == ElementKind.SETTER) {
-      methodName = namer.setterName(element.getLibrary(), element.name);
-    } else {
-      compiler.internalError("unexpected kind: '${element.kind}'",
-          element: element);
+    ElementKind kind = element.kind;
+    if (kind != ElementKind.FUNCTION &&
+        kind != ElementKind.GETTER &&
+        kind != ElementKind.SETTER) {
+      compiler.internalError("unexpected kind: '$kind'", element: element);
     }
 
+    String methodName = backend.namer.getName(element);
     return new js.Block(
         [generateMethodBodyWithPrototypeCheck(methodName, body, parameters)]);
   }

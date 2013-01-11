@@ -464,9 +464,7 @@ $lazyInitializerLogic
     ConstantHandler handler = compiler.constantHandler;
     List<SourceString> names = selector.getOrderedNamedArguments();
 
-    String invocationName =
-        namer.instanceMethodInvocationName(member.getLibrary(), member.name,
-                                           selector);
+    String invocationName = namer.invocationName(selector);
     if (alreadyGenerated.contains(invocationName)) return;
     alreadyGenerated.add(invocationName);
 
@@ -1086,16 +1084,11 @@ $lazyInitializerLogic
       List<js.Expression> arguments = <js.Expression>[];
       parameters.add(new js.Parameter('receiver'));
 
-      String name;
-      if (selector.isGetter()) {
-        name = backend.namer.getterName(selector.library, selector.name);
-      } else if (selector.isSetter()) {
-        name = backend.namer.setterName(selector.library, selector.name);
+      String name = backend.namer.invocationName(selector);
+      if (selector.isSetter()) {
         parameters.add(new js.Parameter('value'));
         arguments.add(new js.VariableUse('value'));
       } else {
-        name = backend.namer.instanceMethodInvocationName(
-            selector.library, selector.name, selector);
         for (int i = 0; i < selector.argumentCount; i++) {
           String argName = 'a$i';
           parameters.add(new js.Parameter(argName));
@@ -1489,7 +1482,7 @@ $lazyInitializerLogic
     }
 
     // And finally the getter.
-    String getterName = namer.getterName(member.getLibrary(), member.name);
+    String getterName = namer.getterName(member);
     String targetName = namer.instanceMethodName(member);
 
     List<js.Parameter> parameters = <js.Parameter>[];
@@ -1533,7 +1526,7 @@ $lazyInitializerLogic
 
     js.Expression buildGetter() {
       if (member.isGetter()) {
-        String getterName = namer.getterName(member.getLibrary(), member.name);
+        String getterName = namer.getterName(member);
         return new js.VariableUse('this').dot(getterName).callWith(
             isInterceptorClass
                 ? <js.Expression>[new js.VariableUse(receiverArgumentName)]
@@ -1541,20 +1534,16 @@ $lazyInitializerLogic
       } else {
         String fieldName = member.hasFixedBackendName()
             ? member.fixedBackendName()
-            : namer.instanceFieldName(memberLibrary, member.name);
+            : namer.instanceFieldName(member);
         return new js.VariableUse('this').dot(fieldName);
       }
     }
 
     for (Selector selector in selectors) {
       if (selector.applies(member, compiler)) {
-        String invocationName =
-            namer.instanceMethodInvocationName(memberLibrary, member.name,
-                                               selector);
-        SourceString callName = namer.closureInvocationSelectorName;
-        String closureCallName =
-            namer.instanceMethodInvocationName(memberLibrary, callName,
-                                               selector);
+        String invocationName = namer.invocationName(selector);
+        Selector callSelector = new Selector.callClosureFrom(selector);
+        String closureCallName = namer.invocationName(callSelector);
 
         List<js.Parameter> parameters = <js.Parameter>[];
         List<js.Expression> arguments = <js.Expression>[];
@@ -1878,7 +1867,7 @@ $lazyInitializerLogic
     // the isolate method, we must make sure that it exists.
     if (!compiler.codegenWorld.staticFunctionsNeedingGetter.contains(appMain)) {
       Selector selector = new Selector.callClosure(0);
-      String invocationName = "${namer.closureInvocationName(selector)}";
+      String invocationName = namer.invocationName(selector);
       buffer.add("$mainAccess.$invocationName = $mainAccess");
     }
     return "${namer.isolateAccess(isolateMain)}($mainAccess)";

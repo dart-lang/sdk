@@ -3104,7 +3104,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     visit(closure);
     List<HInstruction> inputs = <HInstruction>[pop()];
-    String invocationName = backend.namer.closureInvocationName(
+    String invocationName = backend.namer.invocationName(
         new Selector.callClosure(params.requiredParameterCount));
     push(new HForeign(new DartString.literal('#.$invocationName'),
                       const LiteralDartString('var'),
@@ -3175,8 +3175,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Constant nameConstant = constantSystem.createString(
         new DartString.literal(name.slowToString()), node);
 
-    String internalName = backend.namer.instanceMethodInvocationName(
-        currentLibrary, name, selector);
+    String internalName = backend.namer.invocationName(selector);
     Constant internalNameConstant =
         constantSystem.createString(new DartString.literal(internalName), node);
 

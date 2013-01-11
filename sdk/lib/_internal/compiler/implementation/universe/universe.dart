@@ -226,6 +226,10 @@ class Selector {
   /** Check whether this is a call to 'assert'. */
   bool isAssert() => isCall() && identical(name.stringValue, "assert");
 
+  /** Check whether this is a closure invocation call. */
+  bool isClosureCall() =>
+      isCall() && identical(name.stringValue, Compiler.CALL_OPERATOR_NAME);
+
   int get hashCode => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount => namedArguments.length;
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
@@ -255,8 +259,8 @@ class Selector {
 
   bool appliesUntyped(Element element, Compiler compiler) {
     if (Elements.isUnresolved(element)) return false;
+    if (name.isPrivate() && library != element.getLibrary()) return false;
     if (element.isForeign(compiler)) return true;
-
     if (element.isSetter()) return isSetter();
     if (element.isGetter()) return isGetter() || isCall();
     if (element.isField()) return isGetter() || isSetter() || isCall();

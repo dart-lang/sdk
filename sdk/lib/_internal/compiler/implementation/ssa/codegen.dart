@@ -1559,8 +1559,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     if (methodName == null) {
-      methodName = backend.namer.instanceMethodInvocationName(
-          node.selector.library, name, node.selector);
+      methodName = backend.namer.invocationName(node.selector);
       bool inLoop = node.block.enclosingLoopHeader != null;
 
       Selector selector = getOptimizedSelectorFor(node, node.selector);
@@ -1619,7 +1618,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     use(node.receiver);
     Selector setter = node.selector;
-    String name = backend.namer.setterName(setter.library, setter.name);
+    String name = backend.namer.invocationName(setter);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     Selector selector = getOptimizedSelectorFor(node, setter);
     world.registerDynamicSetter(setter.name, selector);
@@ -1636,7 +1635,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
     use(node.receiver);
     Selector getter = node.selector;
-    String name = backend.namer.getterName(getter.library, getter.name);
+    String name = backend.namer.invocationName(getter);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     world.registerDynamicGetter(
         getter.name, getOptimizedSelectorFor(node, getter));
@@ -1647,12 +1646,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeClosure(HInvokeClosure node) {
+    Selector call = new Selector.callClosureFrom(node.selector);
     use(node.receiver);
     push(jsPropertyCall(pop(),
-                        backend.namer.closureInvocationName(node.selector),
+                        backend.namer.invocationName(call),
                         visitArguments(node.inputs)),
          node);
-    Selector call = new Selector.callClosureFrom(node.selector);
     world.registerDynamicInvocation(call.name, call);
     // A closure can also be invoked through [HInvokeDynamicMethod] by
     // explicitly calling the [:call:] method. Therefore, we must also
@@ -1679,14 +1678,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         ClosureClassElement closure = currentClass;
         currentClass = closure.methodElement.getEnclosingClass();
       }
-      String fieldName;
-      if (currentClass.isShadowedByField(superMethod)) {
-        fieldName = backend.namer.shadowedFieldName(superMethod);
-      } else {
-        LibraryElement library = superMethod.getLibrary();
-        SourceString name = superMethod.name;
-        fieldName = backend.namer.instanceFieldName(library, name);
-      }
+      String fieldName = currentClass.isShadowedByField(superMethod)
+          ? backend.namer.shadowedFieldName(superMethod)
+          : backend.namer.instanceFieldName(superMethod);
       use(node.inputs[1]);
       js.PropertyAccess access =
           new js.PropertyAccess.field(pop(), fieldName);
@@ -1697,18 +1691,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         push(access, node);
       }
     } else {
-      String methodName;
-      if (superMethod.kind == ElementKind.FUNCTION ||
-          superMethod.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-        methodName = backend.namer.instanceMethodName(superMethod);
-      } else if (superMethod.kind == ElementKind.GETTER) {
-        methodName =
-            backend.namer.getterName(currentLibrary, superMethod.name);
-      } else {
-        assert(superMethod.kind == ElementKind.SETTER);
-        methodName =
-            backend.namer.setterName(currentLibrary, superMethod.name);
-      }
+      String methodName = backend.namer.getName(superMethod);
       String className = backend.namer.isolateAccess(superClass);
       js.VariableUse classReference = new js.VariableUse(className);
       js.PropertyAccess prototype =
