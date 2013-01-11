@@ -102,90 +102,23 @@ abstract class SerializationRule {
 
   /**
    * If we have [object] as part of our state, should we represent that
-   * directly, or should we make a reference for it. By default we use a
-   * reference for everything.
+   * directly, or should we make a reference for it. By default, true.
+   * This may also delegate to [writer].
    */
-  bool shouldUseReferenceFor(object, Writer w) => true;
+  bool shouldUseReferenceFor(object, Writer writer) => true;
 
   /**
-   * This writes the data from our internal representation into a List.
-   * It is used in order to write to a flat format, and is likely to be
-   * folded into a more general mechanism for supporting different output
-   * formats.
+   * Return true if the data this rule returns is variable length, so a
+   * length needs to be written for it if the format requires that. Return
+   * false if the results are always the same length.
    */
-  // TODO(alanknight): This really shouldn't exist, but is a temporary measure
-  // for writing to a a flat format until that's more fleshed out. It takes
-  // the internal representation of the rule's state, which is particularly
-  // bad. The default implementation treats the ruleData as a List of Lists
-  // of references.
-  void dumpStateInto(List ruleData, List target) {
-    // Needing the intermediate is also bad for performance, but tricky
-    // to do otherwise without a mechanism to precalculate the size.
-    var intermediate = new List();
-    var totalLength = 0;
-    for (var eachList in ruleData) {
-      if (writeLengthInFlatFormat) {
-        intermediate.add(eachList.length);
-      }
-      for (var eachRef in eachList) {
-        if (eachRef == null) {
-          intermediate..add(null)..add(null);
-        } else {
-          eachRef.writeToList(intermediate);
-        }
-      }
-    }
-    target.addAll(intermediate);
-  }
+  bool get hasVariableLengthEntries => true;
 
   /**
-   * Return true if this rule writes a length value before each entry in
-   * the flat format. Return false if the results are fixed length.
-   */
-  // TODO(alanknight): This should probably go away with more general formats.
-  bool get writeLengthInFlatFormat => false;
-
-  /**
-   * The inverse of dumpStateInto, this reads the rule's state from an
-   * iterator in a flat format.
-   */
-  pullStateFrom(Iterator stream) {
-    stream.moveNext();
-    var numberOfEntries = stream.current;
-    var ruleData = new List();
-    for (var i = 0; i < numberOfEntries; i++) {
-      var subLength = dataLengthIn(stream);
-      var subList = [];
-      ruleData.add(subList);
-      for (var j = 0; j < subLength; j++) {
-        stream.moveNext();
-        var a = stream.current;
-        stream.moveNext();
-        var b = stream.current;
-        if (a is! int) {
-          // This wasn't a reference, just use the first object as a literal.
-          // particularly used for the case of null.
-          subList.add(a);
-        } else {
-          subList.add(new Reference(this, a, b));
-        }
-      }
-    }
-    return ruleData;
-  }
-
-  /**
-   * Return the length of the list of data we expect to see on a particular
-   * iterator in a flat format. This may have been encoded in the stream if we
-   * are variable length, or it may be constant. Returns null if the [Iterator]
-   * is empty.
-   */
-  dataLengthIn(Iterator stream) =>
-      writeLengthInFlatFormat ? (stream..moveNext()).current : dataLength;
-
-  /**
-   * If the data is fixed length, return it here. Unused in the non-flat
-   * format, or if the data is variable length.
+   * If the data is fixed length, return it here. The format may or may not
+   * make use of this, depending on whether it already has enough information
+   * to determine the length on its own. If [hasVariableLengthEntries] is true
+   * this is ignored.
    */
   int get dataLength => 0;
 }
@@ -223,49 +156,7 @@ class ListRule extends SerializationRule {
     }
   }
 
-  /**
-   * When reading from a flat format we are given [stream] and need to pull as
-   * much data from it as we need. Our format is that we have an integer N
-   * indicating the number of objects and then for each object a length M,
-   * and then M references, where a reference is stored in the stream as two
-   * integers. Or, in the special case of null, two nulls.
-   */
-  pullStateFrom(Iterator stream) {
-    // TODO(alanknight): This is much too close to the basicRule implementation,
-    // and I'd refactor them if I didn't think this whole mechanism needed to
-    // change soon.
-    stream.moveNext();
-    var length = stream.current;
-    var ruleData = new List();
-    for (var i = 0; i < length; i++) {
-      stream.moveNext();
-      var subLength = stream.current;
-      var subList = new List();
-      ruleData.add(subList);
-      for (var j = 0; j < subLength; j++) {
-        stream.moveNext();
-        var a = stream.current;
-        stream.moveNext();
-        var b = stream.current;
-        if (!(a is int)) {
-          // This wasn't a reference, just use the first object as a literal.
-          // particularly used for the case of null.
-          subList.add(a);
-        } else {
-          subList.add(new Reference(this, a, b));
-        }
-      }
-    }
-    return ruleData;
-  }
-
-  /**
-   * Return true because we need to write the length of each list in the flat
-   * format. */
-  bool get writeLengthInFlatFormat => true;
-
-  /** Return the length of the next list when reading the flat format. */
-  int dataLengthIn(Iterator stream) => stream.next();
+  bool get hasVariableLengthEntries => true;
 }
 
 /**
@@ -310,32 +201,7 @@ class PrimitiveRule extends SerializationRule {
   bool shouldUseReferenceFor(object, Writer w) =>
       w.shouldUseReferencesForPrimitives;
 
-  /**
-   * This writes the data from our internal representation into a List.
-   * It is used in order to write to a flat format, and is likely to be
-   * folded into a more general mechanism for supporting different output
-   * formats. For primitives, the ruleData is our list of all the
-   * primitives and just add it into the target.
-   */
-  void dumpStateInto(List ruleData, List target) {
-    target.addAll(ruleData);
-  }
-
-  /**
-   * When reading from a flat format we are given [stream] and need to pull as
-   * much data from it as we need. Our format is that we have an integer N
-   * indicating the number of objects and then N simple objects.
-   */
-  pullStateFrom(Iterator stream) {
-    stream.moveNext();
-    var length = stream.current;
-    var ruleData = new List();
-    for (var i = 0; i < length; i++) {
-      stream.moveNext();
-      ruleData.add(stream.current);
-    }
-    return ruleData;
-  }
+  bool get hasVariableLengthEntries => false;
 }
 
 /** Typedef for the object construction closure used in ClosureRule. */
@@ -491,12 +357,12 @@ abstract class CustomRule extends SerializationRule {
   // We don't want to have to make the end user tell us how long the list is
   // separately, so write it out for each object, even though they're all
   // expected to be the same length.
-  get writeLengthInFlatFormat => true;
+  get hasVariableLengthEntries => true;
 }
 
 /** Create a lazy list/map that will inflate its items on demand in [r]. */
 _lazy(l, Reader r) {
-  if (l is List) return l.mappedBy(r.inflateReference);
+  if (l is List) return new _LazyList(l, r);
   if (l is Map) return new _LazyMap(l, r);
   throw new SerializationException("Invalid type: must be Map or List - $l");
 }
@@ -511,8 +377,8 @@ _lazy(l, Reader r) {
 class _LazyMap implements Map {
   _LazyMap(this._raw, this._reader);
 
-  Map _raw;
-  Reader _reader;
+  final Map _raw;
+  final Reader _reader;
 
   // This is the only operation that really matters.
   operator [](x) => _reader.inflateReference(_raw[x]);
@@ -524,15 +390,65 @@ class _LazyMap implements Map {
 
   // These operations will work, but may be expensive, and are probably
   // best avoided.
-  get _inflated => keysAndValues(_raw).map(_reader.inflateReference);
+  get _inflated => keysAndValues(_raw).mappedBy(_reader.inflateReference);
   bool containsValue(x) => _inflated.containsValue(x);
   Iterable get values => _inflated.values;
   void forEach(f) => _inflated.forEach(f);
 
   // These operations are all invalid
-  _throw() => throw new UnsupportedError("Not modifiable");
+  _throw() {
+    throw new UnsupportedError("Not modifiable");
+  }
   operator []=(x, y) => _throw();
   putIfAbsent(x, y) => _throw();
   remove(x) => _throw();
   clear() => _throw();
+}
+
+/**
+ * This provides an implementation of List that wraps a list which may
+ * contain references to (potentially) non-inflated objects. If these
+ * are accessed it will inflate them. This allows us to pass something that
+ * looks like it's just a list of objects to a [CustomRule] without needing
+ * to inflate all the references in advance.
+ */
+class _LazyList extends Iterable implements List {
+  _LazyList(this._raw, this._reader);
+
+  final List _raw;
+  final Reader _reader;
+
+  // This is the only operation that really matters.
+  operator [](x) => _reader.inflateReference(_raw[x]);
+
+  int get length => _raw.length;
+  bool get isEmpty => _raw.isEmpty;
+  get first => _reader.inflateReference(_raw.first);
+  get last => _reader.inflateReference(_raw.last);
+
+  // These operations, and other inherited methods that iterate over the whole
+  // list will work, but may be expensive, and are probably
+  // best avoided.
+  List get _inflated => _raw.mappedBy(_reader.inflateReference);
+  Iterator get iterator => _inflated.iterator;
+  indexOf(x, [pos = 0]) => _inflated.toList().indexOf(x);
+  lastIndexOf(x, [pos]) => _inflated.toList().lastIndexOf(x);
+
+  // These operations are all invalid
+  _throw() {
+    throw new UnsupportedError("Not modifiable");
+  }
+  operator []=(x, y) => _throw();
+  add(x) => _throw();
+  addLast(x) => _throw();
+  addAll(x) => _throw();
+  sort([f]) => _throw();
+  clear() => _throw();
+  removeAt(x) => _throw();
+  removeLast() => _throw();
+  getRange(x, y) => _throw();
+  setRange(x, y, z, [a]) => _throw();
+  removeRange(x, y) => _throw();
+  insertRange(x, y, [z]) => _throw();
+  void set length(x) => _throw();
 }

@@ -18,7 +18,7 @@ doNothing(x) => x;
 
 /** Concatenate two lists. Handle the case where one or both might be null. */
 // TODO(alanknight): Remove once issue 5342 is resolved.
-List append(Iterable a, Iterable b) {
+Iterable append(Iterable a, Iterable b) {
   if (a == null) {
     return (b == null) ? [] : new List.from(b);
   }
@@ -77,7 +77,7 @@ abstract class MapLikeIterable {
    * [collection] is a List, it will be the same as the map() method if the
    * [key] parameter wasn't passed.
    */
-  map(Function f) {
+  mappedBy(Function f) {
     var result = copyEmpty();
     forEach((key, value) {
        result[key] = f(key, value);
@@ -133,7 +133,7 @@ values(x) {
 mapValues(x, f) {
   if (x is Set) return x.mappedBy(f).toSet();
   if (x is Iterable) return x.mappedBy(f).toList();
-  if (x is Map) return new ListLikeIterable(x).map(f);
+  if (x is Map) return new ListLikeIterable(x).mappedBy(f);
   throw new ArgumentError("Invalid argument");
 }
 
@@ -158,7 +158,7 @@ class ListLikeIterable {
    * [collection] is a List, it will be the same as if map() had been called
    * directly on [collection].
    */
-  map(Function f) {
+  mappedBy(Function f) {
       var result = new Map();
       collection.forEach((key, value) => result[key] = f(value));
       return result;

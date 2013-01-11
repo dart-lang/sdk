@@ -230,37 +230,6 @@ class BasicRule extends SerializationRule {
   // mirrors. Should be changed to use a synchronous API once one is available,
   // or to be async, but that would be extremely ugly.
   _value(InstanceMirror mirror, _Field field) => field.valueIn(mirror);
-
-  /**
-   * When reading from a flat format we are given [stream] and need to pull as
-   * much data from it as we need. Our format is that we have an integer N
-   * indicating the number of objects and then for each object N fields, which
-   * are references, where a reference is stored in the stream as two integers.
-   * Or, in the special case of null, two nulls.
-   */
-  pullStateFrom(Iterator stream) {
-    stream.moveNext();
-    var dataLength = stream.current;
-    var ruleData = new List();
-    for (var i = 0; i < dataLength; i++) {
-      var subList = new List();
-      ruleData.add(subList);
-      for (var j = 0; j < fields.length; j++) {
-        stream.moveNext();
-        var a = stream.current;
-        stream.moveNext();
-        var b = stream.current;
-        if (!(a is int)) {
-          // This wasn't a reference, so just use the first object as a literal.
-          // particularly used for the case of null.
-          subList.add(a);
-        } else {
-          subList.add(new Reference(this, a, b));
-        }
-      }
-    }
-    return ruleData;
-  }
 }
 
 /**
@@ -363,10 +332,8 @@ class _NamedField extends _Field {
     setter(object, value);
   }
 
-  valueIn(InstanceMirror mirror) {
-    var futureValue = deprecatedFutureValue(mirror.getField(name));
-    return futureValue.reflectee;
-  }
+  valueIn(InstanceMirror mirror) =>
+      deprecatedFutureValue(mirror.getField(name)).reflectee;
 
   /** Return the function to use to set our value. */
   Function get setter =>
@@ -475,7 +442,7 @@ class _FieldList extends Iterable {
   int get length => allFields.length;
 
   /** Add all the fields which aren't on the exclude list. */
-  void addAllNotExplicitlyExcluded(List<String> aCollection) {
+  void addAllNotExplicitlyExcluded(Iterable<String> aCollection) {
     if (aCollection == null) return;
     var names = aCollection;
     names = names.where((x) => !_excludeFields.contains(x));
@@ -534,13 +501,10 @@ class _FieldList extends Iterable {
       constructorFields.mappedBy((x) => x.name).toList();
   List constructorFieldIndices() =>
       constructorFields.mappedBy((x) => x.index).toList();
-  List regularFields() =>
-      contents.where((x) => !x.usedInConstructor).toList();
-  List regularFieldNames() =>
-      regularFields().mappedBy((x) => x.name).toList();
+  List regularFields() => contents.where((x) => !x.usedInConstructor).toList();
+  List regularFieldNames() => regularFields().mappedBy((x) => x.name).toList();
   List regularFieldIndices() =>
       regularFields().mappedBy((x) => x.index).toList();
-
 
   /**
    * If we weren't given any non-constructor fields to use, figure out what
@@ -549,14 +513,14 @@ class _FieldList extends Iterable {
    * that are listed in the constructor fields.
    */
   void figureOutFields() {
-    List names(Collection<DeclarationMirror> mirrors) =>
-        mirrors.mappedBy((each) => each.simpleName).toList();
+    Iterable names(Iterable<DeclarationMirror> mirrors) =>
+        mirrors.mappedBy((each) => each.simpleName);
 
     if (!_shouldFigureOutFields || !regularFields().isEmpty) return;
     var fields = publicFields(mirror);
     var getters = publicGetters(mirror);
     var gettersWithSetters = getters.where( (each)
-        => mirror.setters["${each.simpleName}="] != null).toList();
+        => mirror.setters["${each.simpleName}="] != null);
     var gettersThatMatchConstructor = getters.where((each)
         => (named(each.simpleName) != null) &&
             (named(each.simpleName).usedInConstructor)).toList();
@@ -607,7 +571,7 @@ class Constructor {
     // TODO(alanknight): Handle named parameters
     Collection inflated = fieldNumbers.mappedBy(
         (x) => (x is int) ? reflect(r.inflateReference(state[x])) : reflect(x))
-        .toList();
+            .toList();
     var result = type.newInstance(name, inflated);
     return deprecatedFutureValue(result);
   }

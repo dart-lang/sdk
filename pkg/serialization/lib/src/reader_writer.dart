@@ -31,6 +31,8 @@ class Writer {
    */
   bool selfDescribing;
 
+  Format format = new SimpleMapFormat();
+
   /**
    * Objects that cannot be represented in-place in the serialized form need
    * to have references to them stored. The [Reference] objects are computed
@@ -59,69 +61,21 @@ class Writer {
    * related to a particular read/write, so the same one can be used
    * for multiple different Readers/Writers.
    */
-  Writer(this.serialization) {
+  Writer(this.serialization, [Format newFormat]) {
     trace = new Trace(this);
     selfDescribing = serialization.selfDescribing;
+    if (newFormat != null) format = newFormat;
   }
 
   /**
    * This is the main API for a [Writer]. It writes the objects and returns
-   * the serialized representation, currently a JSON format of a map
-   * whose data is either lists indexed by field position or maps indexed
-   * by field name, and holding either primitives or references. See [toMaps]
+   * the serialized representation, as determined by [format].
    */
-  // TODO(alanknight): Generalize the output representation. Probably requires
-  // introducing some sort of OutputFormat object.
-  String write(anObject) {
+  write(anObject) {
     trace.addRoot(anObject);
     trace.traceAll();
     _flatten();
-    return toStringFormat();
-  }
-
-  /**
-   * This is an alternate writing API that writes the objects and returns
-   * the serialized representation as a List of simple objects.
-   * See [toFlatFormat].
-   */
-  List writeFlat(anObject) {
-    shouldUseReferencesForPrimitives = true;
-    trace.addRoot(anObject);
-    trace.traceAll();
-    _flatten();
-    return toFlatFormat();
-  }
-
-  /**
-   * Write to a simple flat format. This format is at the proof of concept
-   * stage, so details are not finalized and are likely to change in the future.
-   * Right now this produces a List containing null, int, and String. This is
-   * more space-efficient than the map format created by [toStringFormat] or
-   * [toMaps], but is much less human-readable.
-   */
-  List toFlatFormat() {
-    var result = new List(3);
-    // TODO(alanknight): Don't make it call toMaps in order to make non-maps.
-    // As part of that, if writing flat, the rule serialization should be flat.
-    var stuff = toMaps();
-    result[0] = stuff["rules"];
-    var roots = new List();
-    stuff["roots"].forEach((x) => x.writeToList(roots));
-    result[2] = roots;
-
-    // TODO(alanknight): This needs serious generalization. Do we introduce
-    // an output format object that the rules talk to? Do we make use of the
-    // fact that rules talk to something that looks to them like a List. Do
-    // we then mandate that instead of saying they have complete charge of
-    // their own storage?
-    var flatData = [];
-    for (var eachRule in rules) {
-      var ruleData = stuff["data"][eachRule.number];
-      flatData.add(ruleData.length);
-      eachRule.dumpStateInto(ruleData, flatData);
-    }
-    result[1] = flatData;
-    return result;
+    return format.generateOutput(this);
   }
 
   /**
@@ -174,7 +128,20 @@ class Writer {
    * That depends on which format we're using, so a flat format will want
    * references, but the Map format can store them directly.
    */
-  bool shouldUseReferencesForPrimitives = false;
+  bool get shouldUseReferencesForPrimitives
+      => format.shouldUseReferencesForPrimitives;
+
+  /**
+   * Returns a serialized version of the [SerializationRule]s used to write
+   * the data, if [selfDescribing] is true, otherwise returns null.
+   */
+  serializedRules() {
+    if (!selfDescribing) return null;
+    var meta = serialization.ruleSerialization();
+    var writer = new Writer(meta);
+    writer.selfDescribing = false;
+    return writer.write(serialization._rules);
+  }
 
   /** Record a [state] entry for a particular rule. */
   void _addStateForRule(eachRule, state) {
@@ -222,45 +189,10 @@ class Writer {
   }
 
   /**
-   * Return the serialized data in string format. Currently hard-coded to
-   * our custom JSON format.
-   */
-  String toStringFormat() {
-    return json.stringify(toMaps());
-  }
-
-  /**
-   * Returns the full serialized structure as nested maps. The top-level
-   * has 3 fields, "rules" which may hold a definition of the rules used,
-   * "data" which holds the serialized data, and "roots", which holds
-   * [Reference] objects indicating the root objects. Note that roots are
-   * necessary because the data is organized in the same way as the object
-   * structure, it's a list of lists holding self-contained maps which only
-   * refer to other parts via [Reference] objects.
-   * This effectively defines a custom JSON serialization format, although
-   * the details of the format vary depending which rules were used.
-   */
-  Map toMaps() {
-    var result = new Map();
-    var savedRules;
-    if (selfDescribing) {
-      var meta = serialization._ruleSerialization();
-      var writer = new Writer(meta);
-      writer.selfDescribing = false;
-      savedRules = writer.write(serialization._rules);
-    }
-    result["rules"] = savedRules;
-    result["data"] = states;
-    result["roots"] = _rootReferences(trace.roots);
-    return result;
-  }
-
-  /**
    * Return a list of [Reference] objects pointing to our roots. This will be
    * stored in the output under "roots" in the default format.
    */
-  _rootReferences(roots) =>
-    roots.mappedBy(_referenceFor).toList();
+  _rootReferences() => trace.roots.mappedBy(_referenceFor).toList();
 
   /**
    * Given an object, return a reference for it if one exists. If there's
@@ -324,14 +256,17 @@ class Reader {
    */
   List<List> objects;
 
+  Format format = new SimpleMapFormat();
+
   /**
    * Creates a new [Reader] that uses the rules from its parent
    * [Serialization]. Serializations do not keep any state related to
    * a particular read or write operation, so the same one can be used
    * for multiple different Writers/Readers.
    */
-  Reader(this.serialization) {
+  Reader(this.serialization, [Format newFormat]) {
     selfDescribing = serialization.selfDescribing;
+    if (newFormat != null) format = newFormat;
   }
 
   /**
@@ -374,67 +309,28 @@ class Reader {
 
   /**
    * This is the primary method for a [Reader]. It takes the input data,
-   * currently hard-coded to expect our custom JSON format, and returns
-   * the root object.
+   * decodes it according to [format] and returns the root object.
    */
-  read(String input, [Map externals = const {}]) {
+  read(rawInput, [Map externals = const {}]) {
     namedObjects = externals;
-    var topLevel = json.parse(input);
-    var ruleString = topLevel["rules"];
-    readRules(ruleString, externals);
-    data = topLevel["data"];
+    var input = format.read(rawInput, this);
+    data = input["data"];
     rules.forEach(inflateForRule);
-    var roots = topLevel["roots"];
-    return inflateReference(roots.first);
+    return inflateReference(input["roots"].first);
   }
 
   /**
    * If the data we are reading from has rules written to it, read them back
    * and set them as the rules we will use.
    */
-  void readRules(String newRules, Map externals) {
+  void readRules(String newRules) {
     // TODO(alanknight): Replacing the serialization is kind of confusing.
     List rulesWeRead = (newRules == null) ?
-        null : serialization._ruleSerialization().read(newRules, externals);
+        null : serialization.ruleSerialization().read(newRules, namedObjects);
     if (rulesWeRead != null && !rulesWeRead.isEmpty) {
       serialization = new Serialization.blank();
       rulesWeRead.forEach(serialization.addRule);
     }
-  }
-
-  /**
-   * This is a hard-coded read method for a vaguely flat format. It's just a
-   * proof of concept of handling more flat formats right now, and needs a lot
-   * of fixing and generalization.
-   */
-  readFlat(List input, [Map externals = const {}]) {
-    // TODO(alanknight): Way too much code duplication with read. Numerous
-    // code smells.
-    namedObjects = externals;
-    var topLevel = input;
-    var ruleString = topLevel[0];
-    readRules(ruleString, externals);
-    var flatData = topLevel[1];
-    var stream = flatData.iterator;
-    var tempData = new List(rules.length);
-     for (var eachRule in rules) {
-       tempData[eachRule.number] = eachRule.pullStateFrom(stream);
-    }
-    data = tempData;
-    for (var eachRule in rules) {
-      inflateForRule(eachRule);
-    }
-    var rootsAsInts = topLevel[2];
-    var rootStream = rootsAsInts.iterator;
-    var roots = new List();
-    while (rootStream.moveNext()) {
-      var first = rootStream.current;
-      rootStream.moveNext();
-      var second = rootStream.current;
-      roots.add(new Reference(this, first, second));
-    }
-    var x = inflateReference(roots[0]);
-    return inflateReference(roots.first);
   }
 
   /**
@@ -509,6 +405,20 @@ class Reader {
   /** Given a reference, return the rule it references. */
   SerializationRule ruleFor(Reference reference) =>
       serialization._rules[reference.ruleNumber];
+
+  /**
+   * Return the primitive rule we are using. This is an ugly mechanism to
+   * support the extra information to reconstruct objects in the
+   * [SimpleJsonFormat].
+   */
+  SerializationRule _primitiveRule() {
+    for (var each in rules) {
+      if (each.runtimeType == PrimitiveRule) {
+        return each;
+      }
+    }
+    throw new SerializationException("No PrimitiveRule found");
+  }
 
   /**
    * Given a possible reference [anObject], call either [ifReference] or
@@ -634,6 +544,8 @@ class Reference {
     list.add(ruleNumber);
     list.add(objectNumber);
   }
+
+  toString() => "Reference $ruleNumber, $objectNumber";
 }
 
 /**

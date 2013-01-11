@@ -19,10 +19,10 @@
  *      String output = serialization.write(address);
  *
  * This creates a new serialization and adds a rule for address objects. Right
- * now it has to be passed an address instance because we can't write Address
- * as a literal. Then we ask the Serialization to write the address and we get
- * back a String which is a [JSON] representation of the state of it and related
- * objects.
+ * now it has to be passed an address instance because of limitations using
+ * Address as a literal. Then we ask the Serialization to write the address
+ * and we get back a String which is a [JSON] representation of the state of
+ * it and related objects.
  *
  * The version above used reflection to automatically identify the public
  * fields of the address object. We can also specify those fields explicitly.
@@ -44,9 +44,45 @@
  *            constructor: "",
  *            excludeFields: ["other", "stuff"]);
  *
+ * Writing Rules
+ * =============
  * We can also use a completely non-reflective rule to serialize and
- * de-serialize objects. This can be more cumbersome, but it does work in
- * dart2js, where mirrors are not yet implemented.
+ * de-serialize objects. This can be more work, but it does work in
+ * dart2js, where mirrors are not yet implemented. We can specify this in two
+ * ways. First, we can write our own SerializationRule class that has methods
+ * for our Address class.
+ *
+ *      class AddressRule extends CustomRule {
+ *        bool appliesTo(instance, Writer w) => instance.runtimeType == Address;
+ *        getState(instance) => [instance.street, instance.city];
+ *        create(state) => new Address();
+ *        setState(Address a, List state) {
+ *          a.street = state[0];
+ *          a.city = state[1];
+ *        }
+ *      }
+ *
+ * The class needs four different methods. The [appliesTo] method tells us if
+ * the rule should be used to write an object. In this example we use a test
+ * based on runtimeType. We could also use an "is Address" test, but if Address
+ * has subclasses that would find those as well, and we want a separate rule
+ * for each. The [getState] method should
+ * return all the state of the object that we want to recreate,
+ * and should be either a Map or a List. If you want to write to human-readable
+ * formats where it's useful to be able to look at the data as a map from
+ * field names to values, then it's better to return it as a map. Otherwise it's
+ * more efficient to return it as a list. You just need to be sure that the
+ * [create] and [setState] methods interpret the same way as [getState] does.
+ *
+ * The [create] method will create the new object and return it. While it's
+ * possible to create the object and set all its state in this one method, that
+ * increases the likelihood of problems with cycles. So it's better to use the
+ * minimum necessary information in [create] and do more of the work in
+ * [setState].
+ *
+ * The other way to do this is not creating a subclass, but by using a
+ * [ClosureRule] and giving it functions for how to create
+ * the address.
  *
  *      addressToMap(a) => {"number" : a.number, "street" : a.street,
  *          "city" : a.city};
@@ -54,30 +90,20 @@
  *      fillInAddress(Map m, Address a) => a.city = m["city"];
  *      var serialization = new Serialization()
  *        ..addRule(
- *            new ClosureToMapRule(anAddress.runtimeType,
+ *            new ClosureRule(anAddress.runtimeType,
  *                addressToMap, createAddress, fillInAddress);
  *
- * Note that there are three different functions provided. The addressToMap
- * function takes the fields we want serialized from the Address and puts them
- * into a map. The createAddress function creates a new address using a map like
- * the one returned by the first function. And the fillInAddress function fills
- * in any  remaining state in the created object.
+ * In this case we have created standalone functions rather than
+ * methods in a subclass and we pass them to the constructor of
+ * [ClosureRule]. In this case we've also had them use maps rather than
+ * lists for the state, but either would work as long as the rule is
+ * consistent with the representation it uses. We pass it the runtimeType
+ * of the object, and functions equivalent to the methods on [CustomRule]
  *
- * At the moment, however, using this rule increases the probability of problems
- * with cycles. The problem is that before passing values to the user-supplied
- * functions it has to inflate any references to be the real objects. Since it
- * doesn't know which ones the creation function uses it has to inflate all of
- * them. For example, consider a Node class with parent, leftChild, and
- * rightChild, and the parent field was final and set in the constructor. When
- * we inflate all of the values we will end up with a cycle and can't
- * de-serialize. If we know which fields are used by the constructor we can
- * inflate only those, which is what BasicRule does. We expect to make a richer
- * API for rules not using reflection, but there's a tension between providing
- * the serialization process with enough information and making it more work
- * to specify.
- *
+ * Constant Values
+ * ===============
  * There are cases where the constructor needs values that we can't easily get
- * the serialized object. For example, we may just want to pass null, or a
+ * from the serialized object. For example, we may just want to pass null, or a
  * constant value. To support this, we can specify as constructor fields
  * values that aren't field names. If any value isn't a String, it will be
  * treated as a constant and passed unaltered to the constructor.
@@ -93,34 +119,34 @@
  *
  * Writing
  * =======
- * To write objects, we use the write() methods. There are two variations.
+ * To write objects, we use the write() method.
  *
- *       String output = serialization.write(someObject);
- *       List output = serialization.writeFlat(someObject);
+ *       var output = serialization.write(someObject);
  *
- * The first uses a representation in which objects are represented as maps
- * keyed by field name, but in which references between objects have been
- * converted into Reference objects. This is then encoded as a [JSON] string.
+ * By default this uses a representation in which objects are represented as
+ * maps keyed by field name, but in which references between objects have been
+ * converted into Reference objects. This is then encoded as a [json] string.
  *
- * The second representation holds all the objects as a List of simple types.
- * For practical use you may want to convert that to a [JSON] or other encoded
- * representation as well.
+ * We can write objects in different formats by passing a [Format] object to
+ * the [write] method or by getting a [Writer] object. The available formats
+ * include the default, a simple "flat" format that doesn't include field names,
+ * and a simple JSON format that produces output more suitable for talking to
+ * services that expect JSON in a predefined format. Examples of these are
  *
- * Both representations are primarily intended as proofs of concept for
- * different types of representation, and we expect to generalize that to a
- * pluggable mechanism for different representations.
+ *      String output = serialization.write(address, new SimpleMapFormat());
+ *      List output = serialization.write(address, new SimpleFlatFormat());
+ *      Map output = serialization.write(address, new SimpleJsonFormat());
+ * Or, using a [Writer] explicitly
+ *      var writer = serialization.newWriter(new SimpleFlatFormat());
+ *      var output = writer.write(address);
+ *
+ * These representations are not yet considered stable.
  *
  * Reading
  * =======
- * To read objects, the corresponding methods are [read] and [readFlat].
+ * To read objects, the corresponding [read] method can be used.
  *
- *       List input = serialization.read(aString);
- *       List input = serialization.readFlat(aList);
- *
- * There is also a convenience method for the case of reading a single object.
- *
- *       Object result = serialization.readOne(aString);
- *       Object result = serialization.readOneFlat(aString);
+ *       Address input = serialization.read(aString);
  *
  * When reading, the serialization instance doing the reading must be configured
  * with compatible rules to the one doing the writing. It's possible for the
@@ -129,21 +155,27 @@
  * same. The simplest way to achieve this is by having the serialization
  * variable [selfDescribing] be true. In that case the rules themselves are also
  * stored along with the serialized data, and can be read back on the receiving
- * end. Note that this does not yet work for [ClosureToMapRule]. The
- * [selfDescribing] variable is true by default.
+ * end. Note that this may not work for all rules or all formats. The
+ * [selfDescribing] variable is true by default, but the [SimpleJsonFormat] does
+ * not support it, since the point is to provide a representation in a form
+ * other services might expect. Using CustomRule or ClosureRule also does not
+ * yet work with the [selfDescribing] variable.
  *
+ * Named Objects
+ * =============
  * When reading, some object references should not be serialized, but should be
  * connected up to other instances on the receiving side. A notable example of
  * this is when serialization rules have been stored. Instances of BasicRule
  * take a [ClassMirror] in their constructor, and we cannot serialize those. So
  * when we read the rules, we must provide a Map<String, Object> which maps from
  * the simple name of classes we are interested in to a [ClassMirror]. This can
- * be provided either in the [externalObjects] variable of the Serialization,
- * or as an additional parameter to the reading methods.
+ * be provided either in the [namedObjects] variable of the Serialization,
+ * or as an additional parameter to the reading and writing methods on the
+ * [Reader] or [Writer] respectively.
  *
  *     new Serialization()
  *       ..addRuleFor(new Person(), constructorFields: ["name"])
- *       ..externalObjects['Person'] = reflect(new Person()).type;
+ *       ..namedObjects['Person'] = reflect(new Person()).type;
  */
 library serialization;
 
@@ -155,6 +187,7 @@ import 'dart:json' as json;
 part 'src/reader_writer.dart';
 part 'src/serialization_rule.dart';
 part 'src/basic_rule.dart';
+part 'src/format.dart';
 
 /**
  * This class defines a particular serialization scheme, in terms of
@@ -291,13 +324,12 @@ class Serialization {
   }
 
   /**
-   * This is the basic method to write out an object graph rooted at
-   * [object] and return the result. Right now this is hard-coded to return
-   * a String from a custom [JSON] format, but that is likely to change to be
-   * more pluggable in the near future.
+   * This writes out an object graph rooted at [object] and returns the result.
+   * The [format] parameter determines the form of the result. The default
+   * format returns a String in [json] format.
    */
-  String write(Object object) {
-    return newWriter().write(object);
+  write(Object object, [Format format]) {
+    return newWriter(format).write(object);
   }
 
   /**
@@ -305,15 +337,8 @@ class Serialization {
    * want to do something more complex with the writer than just returning
    * the final result.
    */
-  Writer newWriter() => new Writer(this);
-
-  /**
-   * Write out the tree in a custom flat format, returning a list containing
-   * only "simple" types: num, String, and bool.
-   */
-  List writeFlat(Object object) {
-    return newWriter().writeFlat(object);
-  }
+  Writer newWriter([Format format]) =>
+      new Writer(this, format);
 
   /**
    * Read the serialized data from [input] and return the root object
@@ -333,13 +358,13 @@ class Serialization {
    * you want to do something more complex with the reader than just returning
    * the final result.
    */
-  Reader newReader() => new Reader(this);
+  Reader newReader([Format format]) => new Reader(this, format);
 
   /**
    * Return the list of SerializationRule that apply to [object]. For
    * internal use, but public because it's used in testing.
    */
-  List<SerializationRule> rulesFor(object, Writer w) {
+  Iterable<SerializationRule> rulesFor(object, Writer w) {
     // This has a couple of edge cases.
     // 1) The owning object may have indicated we should use a different
     // rule than the default.
@@ -363,17 +388,17 @@ class Serialization {
       target = object;
       candidateRules = _rules;
     }
-    List applicable =
-        candidateRules.where((each) => each.appliesTo(target, w)).toList();
+    Iterable applicable = candidateRules.where(
+        (each) => each.appliesTo(target, w));
 
     if (applicable.isEmpty) {
       return [addRuleFor(target)];
     }
 
     if (applicable.length == 1) return applicable;
-    var first = applicable[0];
+    var first = applicable.first;
     var finalRules = applicable.where(
-        (x) => !x.mustBePrimary || (x == first)).toList();
+        (x) => !x.mustBePrimary || (x == first));
 
     if (finalRules.isEmpty) throw new SerializationException(
         'No valid rule found for object $object');
@@ -386,7 +411,7 @@ class Serialization {
    * If there are new rule classes created, they will need to be described
    * here.
    */
-  Serialization _ruleSerialization() {
+  Serialization ruleSerialization() {
     // TODO(alanknight): There's an extensibility issue here with new rules.
     // TODO(alanknight): How to handle rules with closures? They have to
     // exist on the other side, but we might be able to hook them up by name,
