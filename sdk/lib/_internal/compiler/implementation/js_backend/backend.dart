@@ -485,18 +485,6 @@ class ArgumentTypesRegistry {
   void registerDynamicInvocation(HInvokeDynamic node,
                                  Selector selector,
                                  HTypeMap types) {
-    // If there are any getters for this method we cannot know anything about
-    // the types of the provided parameters. Use resolverWorld for now as that
-    // information does not change during compilation.
-    // TODO(sgjesse): These checks should use the codegenWorld and keep track
-    // of changes to this information.
-    Element element = node.element;
-    ResolutionUniverse resolverWorld = compiler.resolverWorld;
-    if (element != null &&
-        resolverWorld.hasInvokedGetter(element, compiler)) {
-      return;
-    }
-
     HTypeList providedTypes =
         new HTypeList.fromDynamicInvocation(node, selector, types);
     if (!selectorTypeMap.containsKey(selector)) {
@@ -556,6 +544,15 @@ class ArgumentTypesRegistry {
 
     // TODO(kasperl): What kind of non-members do we get here?
     if (!element.isMember()) return HTypeList.ALL_UNKNOWN;
+
+    // If there are any getters for this method we cannot know anything about
+    // the types of the provided parameters. Use resolverWorld for now as that
+    // information does not change during compilation.
+    // TODO(ngeoffray): These checks should use the codegenWorld and keep track
+    // of changes to this information.
+    if (compiler.resolverWorld.hasInvokedGetter(element, compiler)) {
+      return HTypeList.ALL_UNKNOWN;
+    }
 
     FunctionSignature signature = element.computeSignature(compiler);
     HTypeList found = null;
