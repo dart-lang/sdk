@@ -337,6 +337,8 @@ class TakeStream<T> extends _ForwardingTransformer<T, T> {
 
   TakeStream(int count)
       : this._remaining = count {
+    // This test is done early to avoid handling an async error
+    // in the _handleData method.
     if (count is! int) throw new ArgumentError(count);
   }
 
@@ -383,6 +385,8 @@ class SkipStream<T> extends _ForwardingTransformer<T, T> {
 
   SkipStream(int count)
       : this._remaining = count{
+    // This test is done early to avoid handling an async error
+    // in the _handleData method.
     if (count is! int) throw new ArgumentError(count);
   }
 

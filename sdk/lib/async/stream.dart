@@ -149,7 +149,7 @@ abstract class Stream<T> {
 
   /** Reduces a sequence of values by repeatedly applying [combine]. */
   Future reduce(var initialValue, combine(var previous, T element)) {
-    Completer completer = new Completer();
+    _FutureImpl result = new _FutureImpl();
     var value = initialValue;
     StreamSubscription subscription;
     subscription = this.listen(
@@ -158,33 +158,33 @@ abstract class Stream<T> {
           value = combine(value, element);
         } catch (e, s) {
           subscription.cancel();
-          completer.completeError(e, s);
+          result._setError(new AsyncError(e, s));
         }
       },
       onError: (AsyncError e) {
-        completer.completeError(e.error, e.stackTrace);
+        result._setError(e);
       },
       onDone: () {
-        completer.complete(value);
+        result._setValue(value);
       },
       unsubscribeOnError: true);
-    return completer.future;
+    return result;
   }
 
   // Deprecated method, previously called 'pipe', retained for compatibility.
   Future pipeInto(Sink<T> sink,
                   {void onError(AsyncError error),
                    bool unsubscribeOnError}) {
-    Completer completer = new Completer();
+    _FutureImpl<T> result = new _FutureImpl<T>();
     this.listen(
         sink.add,
         onError: onError,
         onDone: () {
           sink.close();
-          completer.complete(null);
+          result.setValue(null);
         },
         unsubscribeOnError: unsubscribeOnError);
-    return completer.future;
+    return result;
   }
 
 
