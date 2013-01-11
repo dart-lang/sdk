@@ -8,7 +8,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
 import 'mock_compiler.dart';
 import 'parser_helper.dart';
 
-import '../../../sdk/lib/_internal/compiler/implementation/elements/model.dart'
+import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
     show ElementX;
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'

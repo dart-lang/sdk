@@ -12,7 +12,7 @@ import "../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.da
 import "../../../sdk/lib/_internal/compiler/implementation/source_file.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
 
-import "../../../sdk/lib/_internal/compiler/implementation/elements/model.dart"
+import "../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart"
     show CompilationUnitElementX,
          LibraryElementX;
 

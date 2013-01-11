@@ -13,7 +13,7 @@ import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dar
     show CompilationUnitElement,
          LibraryElement;
 
-import "../../../sdk/lib/_internal/compiler/implementation/elements/model.dart"
+import "../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart"
     show CompilationUnitElementX,
          LibraryElementX;
 

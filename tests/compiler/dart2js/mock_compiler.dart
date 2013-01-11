@@ -14,7 +14,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
 import 'parser_helper.dart';
 
-import '../../../sdk/lib/_internal/compiler/implementation/elements/model.dart'
+import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
     show ElementX,
          LibraryElementX,
          ErroneousElementX;
