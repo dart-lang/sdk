@@ -522,8 +522,12 @@ void HeapProfiler::WriteClassDump(const RawClass* raw_class) {
     }
   }
   // instance size (in bytes)
-  // TODO(cshapiro): properly account for variable sized objects
-  sub.Write32(raw_class->ptr()->instance_size_in_words_);
+  intptr_t instance_size_in_words = raw_class->ptr()->instance_size_in_words_;
+  if (instance_size_in_words == 0) {
+    // TODO(iposva): Better accounting of variable sized VM classes.
+    instance_size_in_words = num_instance_fields;
+  }
+  sub.Write32(instance_size_in_words * kWordSize);
   // size of constant pool and number of records that follow:
   sub.Write16(0);
   // Number of static fields

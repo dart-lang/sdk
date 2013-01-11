@@ -496,6 +496,23 @@ void Object::RegisterSingletonClassNames() {
 }
 
 
+void Object::CreateInternalMetaData() {
+  // Initialize meta data for VM internal classes.
+  Class& cls = Class::Handle();
+  Array& fields = Array::Handle();
+  Field& fld = Field::Handle();
+  String& name = String::Handle();
+
+  // TODO(iposva): Add more of the VM classes here.
+  cls = context_class_;
+  fields = Array::New(1);
+  name = Symbols::New("@parent_");
+  fld = Field::New(name, false, false, false, cls, 0);
+  fields.SetAt(0, fld);
+  cls.SetFields(fields);
+}
+
+
 // Make unused space in an object whose type has been transformed safe
 // for traversing during GC.
 // The unused part of the transformed object is marked as an Array

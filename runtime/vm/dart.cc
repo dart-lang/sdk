@@ -113,6 +113,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     StubCode::InitOnce();
     Scanner::InitOnce();
     Symbols::InitOnce(vm_isolate_);
+    Object::CreateInternalMetaData();
     CPUFeatures::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.

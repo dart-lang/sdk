@@ -334,6 +334,7 @@ class Object {
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
   static void RegisterSingletonClassNames();
+  static void CreateInternalMetaData();
   static void MakeUnusedSpaceTraversable(const Object& obj,
                                          intptr_t original_size,
                                          intptr_t used_size);
