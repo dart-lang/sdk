@@ -9,6 +9,7 @@ library unittest_vm_config;
 
 import 'dart:io';
 import 'unittest.dart';
+import 'package:meta/meta.dart';
 
 class VMConfiguration extends Configuration {
   void onDone(bool success) {
@@ -28,3 +29,6 @@ void useVMConfiguration() {
   if (config != null) return;
   configure(new VMConfiguration());
 }
+
+@deprecated
+void useVmConfiguration() => useVMConfiguration();
