@@ -216,7 +216,7 @@ main() {
       expect(builder.normalize('.'), '.');
       expect(builder.normalize('..'), '..');
       expect(builder.normalize('a'), 'a');
-      expect(builder.normalize('C:/'), r'C:/');
+      expect(builder.normalize('C:/'), r'C:\');
       expect(builder.normalize(r'C:\'), r'C:\');
       expect(builder.normalize(r'\\'), r'\\');
     });
@@ -250,7 +250,7 @@ main() {
       expect(builder.normalize(r'\\..\..\..'), r'\\');
       expect(builder.normalize(r'\\..\../..\a'), r'\\a');
       expect(builder.normalize(r'c:\..'), r'c:\');
-      expect(builder.normalize(r'A:/..\..\..'), r'A:/');
+      expect(builder.normalize(r'A:/..\..\..'), r'A:\');
       expect(builder.normalize(r'b:\..\..\..\a'), r'b:\a');
       expect(builder.normalize(r'a\..'), '.');
       expect(builder.normalize(r'a\b\..'), 'a');
@@ -282,6 +282,10 @@ main() {
         expect(builder.relative(r'C:\root\path\a'), 'a');
         expect(builder.relative(r'C:\root\path\a\b.txt'), r'a\b.txt');
         expect(builder.relative(r'C:\root\a\b.txt'), r'..\a\b.txt');
+        expect(builder.relative(r'C:/'), r'..\..');
+        expect(builder.relative(r'C:/root'), '..');
+        expect(builder.relative(r'c:\'), r'..\..');
+        expect(builder.relative(r'c:\root'), '..');
       });
 
       test('given absolute path outside of root', () {
@@ -289,6 +293,10 @@ main() {
         expect(builder.relative(r'C:\root\path\a'), 'a');
         expect(builder.relative(r'C:\root\path\a\b.txt'), r'a\b.txt');
         expect(builder.relative(r'C:\root\a\b.txt'), r'..\a\b.txt');
+        expect(builder.relative(r'C:/a/b'), r'..\..\a\b');
+        expect(builder.relative(r'C:/root/path/a'), 'a');
+        expect(builder.relative(r'c:\a\b'), r'..\..\a\b');
+        expect(builder.relative(r'c:\root\path\a'), 'a');
       });
 
       test('given absolute path on different drive', () {

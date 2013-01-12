@@ -438,10 +438,14 @@ class Builder {
 
     // If the root prefixes don't match (for example, different drive letters
     // on Windows), then there is no relative path, so just return the absolute
-    // one.
-    // TODO(rnystrom): Drive letters are case-insentive on Windows. Should
-    // handle "C:\" and "c:\" being the same root.
-    if (fromParsed.root != pathParsed.root) return pathParsed.toString();
+    // one. In Windows, drive letters are case-insenstive and we allow
+    // calculation of relative paths, even if a path has not been normalized.
+    if (fromParsed.root != pathParsed.root &&
+        ((fromParsed.root ==  null || pathParsed.root == null) ||
+          fromParsed.root.toLowerCase().replaceAll('/', '\\') !=
+          pathParsed.root.toLowerCase().replaceAll('/', '\\'))) {
+      return pathParsed.toString();
+    }
 
     // Strip off their common prefix.
     while (fromParsed.parts.length > 0 && pathParsed.parts.length > 0 &&
@@ -644,6 +648,10 @@ class _ParsedPath {
     parts = newParts;
     separators = newSeparators;
 
+    // Normalize the Windows root if needed.
+    if (root != null && style == Style.windows) {
+      root = root.replaceAll('/', '\\');
+    }
     removeTrailingSeparators();
   }
 
