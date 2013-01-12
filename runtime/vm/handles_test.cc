@@ -12,13 +12,13 @@
 
 namespace dart {
 
-DECLARE_DEBUG_FLAG(bool, trace_handles_count);
+DECLARE_DEBUG_FLAG(bool, trace_handles);
 
 
 // Unit test for Zone handle allocation.
 TEST_CASE(AllocateZoneHandle) {
 #if defined(DEBUG)
-  FLAG_trace_handles_count = true;
+  FLAG_trace_handles = true;
 #endif
   // The previously run stub code generation may have created zone handles.
   int initial_count = VMHandles::ZoneHandleCount();
@@ -43,7 +43,7 @@ TEST_CASE(AllocateZoneHandle) {
 // Unit test for Scope handle allocation.
 TEST_CASE(AllocateScopeHandle) {
 #if defined(DEBUG)
-  FLAG_trace_handles_count = true;
+  FLAG_trace_handles = true;
 #endif
   int32_t handle_count = VMHandles::ScopedHandleCount();
   static const int kNumHandles = 65;

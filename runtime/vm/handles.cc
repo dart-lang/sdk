@@ -18,11 +18,20 @@
 namespace dart {
 
 DEFINE_FLAG(bool, verify_handles, false, "Verify handles.");
-DEFINE_DEBUG_FLAG(bool, trace_handles_count,
-                  false, "Trace count of handles allocated.");
+DEFINE_DEBUG_FLAG(bool, trace_handles,
+                  false, "Traces allocation of handles.");
 
 
 VMHandles::~VMHandles() {
+#ifdef DEBUG
+    if (FLAG_trace_handles) {
+      OS::PrintErr("***   Handle Counts for 0x(%"Px"):Zone = %d,Scoped = %d\n",
+                   reinterpret_cast<intptr_t>(this),
+                   CountZoneHandles(), CountScopedHandles());
+      OS::PrintErr("*** Deleting VM handle block 0x%"Px"\n",
+                   reinterpret_cast<intptr_t>(this));
+    }
+#endif
 }
 
 

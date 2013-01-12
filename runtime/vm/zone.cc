@@ -14,7 +14,7 @@
 
 namespace dart {
 
-DEFINE_DEBUG_FLAG(bool, trace_zone_sizes,
+DEFINE_DEBUG_FLAG(bool, trace_zones,
                   false, "Traces allocation sizes in the zone.");
 
 
@@ -84,7 +84,7 @@ Zone::Zone()
       handles_(),
       previous_(NULL) {
 #ifdef DEBUG
-    // Zap the entire initial buffer.
+  // Zap the entire initial buffer.
   memset(initial_buffer_.pointer(), kZapUninitializedByte,
          initial_buffer_.size());
 #endif
@@ -92,16 +92,16 @@ Zone::Zone()
 
 
 Zone::~Zone() {
+#if defined(DEBUG)
+  if (FLAG_trace_zones) {
+    DumpZoneSizes();
+  }
+#endif
   DeleteAll();
   if (HeapTrace::is_enabled()) {
     Isolate* isolate = Isolate::Current();
     isolate->heap()->trace()->TraceDeleteZone(this);
   }
-#if defined(DEBUG)
-  if (FLAG_trace_zone_sizes) {
-    DumpZoneSizes();
-  }
-#endif
 }
 
 
@@ -141,7 +141,9 @@ intptr_t Zone::SizeInBytes() const {
 uword Zone::AllocateExpand(intptr_t size) {
 #if defined(DEBUG)
   ASSERT(size >= 0);
-  if (FLAG_trace_zone_sizes) {
+  if (FLAG_trace_zones) {
+    OS::PrintErr("*** Expanding zone 0x%"Px"\n",
+                 reinterpret_cast<intptr_t>(this));
     DumpZoneSizes();
   }
   // Make sure the requested size is already properly aligned and that
@@ -205,8 +207,9 @@ void Zone::DumpZoneSizes() {
   for (Segment* s = large_segments_; s != NULL; s = s->next()) {
     size += s->size();
   }
-  OS::Print("Size in bytes allocated, Total = %"Pd" Large Segments = %"Pd"\n",
-            SizeInBytes(), size);
+  OS::PrintErr("***   Zone(0x%"Px") size in bytes,"
+               " Total = %"Pd" Large Segments = %"Pd"\n",
+               reinterpret_cast<intptr_t>(this), SizeInBytes(), size);
 }
 #endif
 
@@ -214,6 +217,13 @@ void Zone::DumpZoneSizes() {
 StackZone::StackZone(BaseIsolate* isolate)
     : StackResource(isolate),
       zone_() {
+#ifdef DEBUG
+  if (FLAG_trace_zones) {
+    OS::PrintErr("*** Starting a new Stack zone 0x%"Px"(0x%"Px")\n",
+                 reinterpret_cast<intptr_t>(this),
+                 reinterpret_cast<intptr_t>(&zone_));
+  }
+#endif
   zone_.Link(isolate->current_zone());
   isolate->set_current_zone(&zone_);
 }
@@ -222,6 +232,13 @@ StackZone::StackZone(BaseIsolate* isolate)
 StackZone::~StackZone() {
   ASSERT(isolate()->current_zone() == &zone_);
   isolate()->set_current_zone(zone_.previous_);
+#ifdef DEBUG
+  if (FLAG_trace_zones) {
+    OS::PrintErr("*** Deleting Stack zone 0x%"Px"(0x%"Px")\n",
+                 reinterpret_cast<intptr_t>(this),
+                 reinterpret_cast<intptr_t>(&zone_));
+  }
+#endif
 }
 
 

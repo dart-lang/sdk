@@ -10,11 +10,11 @@
 
 namespace dart {
 
-DECLARE_DEBUG_FLAG(bool, trace_zone_sizes);
+DECLARE_DEBUG_FLAG(bool, trace_zones);
 
 UNIT_TEST_CASE(AllocateZone) {
 #if defined(DEBUG)
-  FLAG_trace_zone_sizes = true;
+  FLAG_trace_zones = true;
 #endif
   Isolate* isolate = Isolate::Init(NULL);
   EXPECT(Isolate::Current() == isolate);
@@ -76,7 +76,7 @@ UNIT_TEST_CASE(AllocateZone) {
 
 UNIT_TEST_CASE(AllocGeneric_Success) {
 #if defined(DEBUG)
-  FLAG_trace_zone_sizes = true;
+  FLAG_trace_zones = true;
 #endif
   Isolate* isolate = Isolate::Init(NULL);
   EXPECT(Isolate::Current() == isolate);
@@ -100,7 +100,7 @@ UNIT_TEST_CASE(AllocGeneric_Success) {
 // This test is expected to crash.
 UNIT_TEST_CASE(AllocGeneric_Overflow) {
 #if defined(DEBUG)
-  FLAG_trace_zone_sizes = true;
+  FLAG_trace_zones = true;
 #endif
   Isolate* isolate = Isolate::Init(NULL);
   EXPECT(Isolate::Current() == isolate);
@@ -119,7 +119,7 @@ UNIT_TEST_CASE(AllocGeneric_Overflow) {
 
 UNIT_TEST_CASE(ZoneAllocated) {
 #if defined(DEBUG)
-  FLAG_trace_zone_sizes = true;
+  FLAG_trace_zones = true;
 #endif
   Isolate* isolate = Isolate::Init(NULL);
   EXPECT(Isolate::Current() == isolate);
