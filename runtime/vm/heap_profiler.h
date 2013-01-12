@@ -74,6 +74,27 @@ class HeapProfiler {
     kLong = 11
   };
 
+  // Object ids for fake classes.
+  //
+  // While not necessary to describe Dart programs, third party tools
+  // expect these types.  These tools also interpret id values as raw
+  // addresses so we space them by 8 to not look like compressed oops.
+  enum FakeClass {
+    kJavaLangClass = 1,
+    kJavaLangClassLoader = 9,
+    kJavaLangObject = 17,
+    kJavaLangString = 25,
+    kArrayObject = 33,
+    kArrayBoolean = 41,
+    kArrayChar = 49,
+    kArrayFloat = 57,
+    kArrayDouble = 65,
+    kArrayByte = 73,
+    kArrayShort = 81,
+    kArrayInt = 89,
+    kArrayLong = 97
+  };
+
   static const int kObjectIdSize = sizeof(uint64_t);  // NOLINT
 
   HeapProfiler(Dart_FileWriteCallback callback, void* stream);
@@ -219,14 +240,13 @@ class HeapProfiler {
   // Writes a record to the output stream.
   void WriteRecord(const Record& record);
 
-
   // Writes a string in utf-8 record to the output stream.
   void WriteStringInUtf8(const char* c_string);
   void WriteStringInUtf8(const RawString* raw_string);
 
-
   // Writes a load class record to the output stream.
   void WriteLoadClass(const RawClass* raw_class);
+  void WriteFakeLoadClass(FakeClass fake_class, const char* class_name);
 
   // Writes an empty stack trace to the output stream.
   void WriteStackTrace();
@@ -242,6 +262,7 @@ class HeapProfiler {
 
   // Writes a sub-record to the heap dump record.
   void WriteClassDump(const RawClass* raw_class);
+  void WriteFakeClassDump(FakeClass fake_class, FakeClass fake_super_class);
   void WriteInstanceDump(const RawObject* raw_obj);
   void WriteObjectArrayDump(const RawArray* raw_array);
   void WritePrimitiveArrayDump(const RawByteArray* raw_byte_array,
