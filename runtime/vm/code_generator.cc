@@ -1299,26 +1299,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 }
 
 
-static void PrintCaller(const char* msg) {
-  DartFrameIterator iterator;
-  StackFrame* top_frame = iterator.NextFrame();
-  ASSERT(top_frame != NULL);
-  const Function& top_function = Function::Handle(
-      top_frame->LookupDartFunction());
-  OS::PrintErr("Failed: '%s' %s @ %#"Px"\n",
-      msg, top_function.ToFullyQualifiedCString(), top_frame->pc());
-  StackFrame* caller_frame = iterator.NextFrame();
-  if (caller_frame != NULL) {
-    const Function& caller_function = Function::Handle(
-        caller_frame->LookupDartFunction());
-    const Code& code = Code::Handle(caller_frame->LookupDartCode());
-    OS::PrintErr("  -> caller: %s (%s)\n",
-        caller_function.ToFullyQualifiedCString(),
-        code.is_optimized() ? "optimized" : "unoptimized");
-  }
-}
-
-
 DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
   ASSERT(arguments.ArgCount() ==
          kTraceICCallRuntimeEntry.argument_count());
@@ -1356,7 +1336,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   if (function.deoptimization_counter() >=
       FLAG_deoptimization_counter_threshold) {
     if (FLAG_trace_failed_optimization_attempts) {
-      PrintCaller("Too Many Deoptimizations");
+      OS::PrintErr("Too Many Deoptimizations: %s\n",
+          function.ToFullyQualifiedCString());
     }
     // TODO(srdjan): Investigate excessive deoptimization.
     function.set_usage_counter(kLowInvocationCount);

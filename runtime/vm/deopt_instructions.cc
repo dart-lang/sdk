@@ -14,6 +14,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, compress_deopt_info, true,
             "Compress the size of the deoptimization info for optimized code.");
+DECLARE_FLAG(bool, trace_deoptimization);
 
 DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
                                              intptr_t to_frame_size,
@@ -450,6 +451,11 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // Increment the deoptimization counter. This effectively increments each
     // function occurring in the optimized frame.
     function.set_deoptimization_counter(function.deoptimization_counter() + 1);
+    if (FLAG_trace_deoptimization) {
+      OS::PrintErr("Deoptimizing inlined %s (count %d)\n",
+          function.ToFullyQualifiedCString(),
+          function.deoptimization_counter());
+    }
     // Clear invocation counter so that hopefully the function gets reoptimized
     // only after more feedback has been collected.
     function.set_usage_counter(0);
