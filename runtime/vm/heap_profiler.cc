@@ -305,7 +305,7 @@ void HeapProfiler::Write(const void* data, intptr_t size) {
 void HeapProfiler::WriteHeader() {
   const char magic[] = "JAVA PROFILE 1.0.1";
   Write(magic, sizeof(magic));
-  uint32_t size = htonl(8);
+  uint32_t size = htonl(kObjectIdSize);
   Write(&size, sizeof(size));
   uint64_t milliseconds = OS::GetCurrentTimeMillis();
   uint32_t hi = htonl((uint32_t)((milliseconds >> 32) & 0x00000000FFFFFFFF));
