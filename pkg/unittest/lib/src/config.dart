@@ -114,7 +114,7 @@ class Configuration {
     print('');
 
     var success = false;
-    if (passed == 0 && failed == 0 && errors == 0) {
+    if (passed == 0 && failed == 0 && errors == 0 && uncaughtError == null) {
       print('No tests found.');
       // This is considered a failure too.
     } else if (failed == 0 && errors == 0 && uncaughtError == null) {

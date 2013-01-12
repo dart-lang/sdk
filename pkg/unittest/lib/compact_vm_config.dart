@@ -64,7 +64,7 @@ class CompactVMConfiguration extends VMConfiguration {
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
     var success = false;
-    if (passed == 0 && failed == 0 && errors == 0) {
+    if (passed == 0 && failed == 0 && errors == 0 && uncaughtError == null) {
       print('\nNo tests ran.');
     } else if (failed == 0 && errors == 0 && uncaughtError == null) {
       _progressLine(_start, _pass, _fail, 'All tests pass', _GREEN);
