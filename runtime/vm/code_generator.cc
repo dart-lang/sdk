@@ -1438,35 +1438,10 @@ DEOPT_REASONS(DEOPT_REASON_ID_TO_TEXT)
 }
 
 
-static void GetDeoptInfoAtPc(const Code& code,
-                             uword pc,
-                             DeoptInfo* deopt_info,
-                             DeoptReasonId* deopt_reason) {
-  ASSERT(code.is_optimized());
-  const Instructions& instructions = Instructions::Handle(code.instructions());
-  uword code_entry = instructions.EntryPoint();
-  const Array& table = Array::Handle(code.deopt_info_array());
-  ASSERT(!table.IsNull());
-  // Linear search for the PC offset matching the target PC.
-  intptr_t length = DeoptTable::GetLength(table);
-  Smi& offset = Smi::Handle();
-  Smi& reason = Smi::Handle();
-  for (intptr_t i = 0; i < length; ++i) {
-    DeoptTable::GetEntry(table, i, &offset, deopt_info, &reason);
-    if (pc == (code_entry + offset.Value())) {
-      *deopt_reason = static_cast<DeoptReasonId>(reason.Value());
-      return;
-    }
-  }
-  *deopt_info = DeoptInfo::null();
-  *deopt_reason = kDeoptUnknown;
-}
-
-
 static void DeoptimizeAt(const Code& optimized_code, uword pc) {
-  DeoptInfo& deopt_info = DeoptInfo::Handle();
-  DeoptReasonId deopt_reason = kDeoptUnknown;
-  GetDeoptInfoAtPc(optimized_code, pc, &deopt_info, &deopt_reason);
+  intptr_t deopt_reason = kDeoptUnknown;
+  const DeoptInfo& deopt_info =
+      DeoptInfo::Handle(optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason));
   ASSERT(!deopt_info.IsNull());
   const Function& function = Function::Handle(optimized_code.function());
   const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
@@ -1599,16 +1574,16 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   ASSERT(optimized_code.is_optimized());
 
 
-  DeoptInfo& deopt_info = DeoptInfo::Handle();
-  DeoptReasonId deopt_reason = kDeoptUnknown;
-  GetDeoptInfoAtPc(optimized_code, caller_frame->pc(), &deopt_info,
-                   &deopt_reason);
+  intptr_t deopt_reason = kDeoptUnknown;
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(
+      optimized_code.GetDeoptInfoAtPc(caller_frame->pc(), &deopt_reason));
   ASSERT(!deopt_info.IsNull());
 
   CopyFrame(optimized_code, *caller_frame);
   if (FLAG_trace_deoptimization) {
     Function& function = Function::Handle(optimized_code.function());
-    OS::PrintErr("Deoptimizing (reason %d '%s') at pc %#"Px" '%s' (count %d)\n",
+    OS::PrintErr(
+        "Deoptimizing (reason %"Pd" '%s') at pc %#"Px" '%s' (count %d)\n",
         deopt_reason,
         DeoptReasonToText(deopt_reason),
         caller_frame->pc(),
@@ -1634,7 +1609,7 @@ END_LEAF_RUNTIME_ENTRY
 static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
                                         const DeoptInfo& deopt_info,
                                         const StackFrame& caller_frame,
-                                        DeoptReasonId deopt_reason) {
+                                        intptr_t deopt_reason) {
   const intptr_t len = deopt_info.TranslationLength();
   GrowableArray<DeoptInstr*> deopt_instructions(len);
   const Array& deopt_table = Array::Handle(code.deopt_info_array());
@@ -1654,7 +1629,7 @@ static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
                                       to_frame_size,
                                       Array::Handle(code.object_table()),
                                       num_args,
-                                      deopt_reason);
+                                      static_cast<DeoptReasonId>(deopt_reason));
   for (intptr_t to_index = len - 1; to_index >= 0; to_index--) {
     deopt_instructions[to_index]->Execute(&deopt_context, to_index);
   }
@@ -1692,15 +1667,15 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
   intptr_t* cpu_registers_copy = isolate->deopt_cpu_registers_copy();
   double* xmm_registers_copy = isolate->deopt_xmm_registers_copy();
 
-  DeoptInfo& deopt_info = DeoptInfo::Handle();
-  DeoptReasonId deopt_reason = kDeoptUnknown;
-  GetDeoptInfoAtPc(optimized_code, caller_frame->pc(), &deopt_info,
-                   &deopt_reason);
+  intptr_t deopt_reason = kDeoptUnknown;
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(
+      optimized_code.GetDeoptInfoAtPc(caller_frame->pc(), &deopt_reason));
   ASSERT(!deopt_info.IsNull());
 
-  const intptr_t caller_fp =
-      DeoptimizeWithDeoptInfo(optimized_code, deopt_info, *caller_frame,
-                              deopt_reason);
+  const intptr_t caller_fp = DeoptimizeWithDeoptInfo(optimized_code,
+                                                     deopt_info,
+                                                     *caller_frame,
+                                                     deopt_reason);
 
   isolate->SetDeoptFrameCopy(NULL, 0);
   isolate->set_deopt_cpu_registers_copy(NULL);

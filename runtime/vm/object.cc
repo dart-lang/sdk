@@ -7148,6 +7148,30 @@ void Code::set_static_calls_target_table(const Array& value) const {
 }
 
 
+RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc, intptr_t* deopt_reason) const {
+  ASSERT(is_optimized());
+  const Instructions& instrs = Instructions::Handle(instructions());
+  uword code_entry = instrs.EntryPoint();
+  const Array& table = Array::Handle(deopt_info_array());
+  ASSERT(!table.IsNull());
+  // Linear search for the PC offset matching the target PC.
+  intptr_t length = DeoptTable::GetLength(table);
+  Smi& offset = Smi::Handle();
+  Smi& reason = Smi::Handle();
+  DeoptInfo& info = DeoptInfo::Handle();
+  for (intptr_t i = 0; i < length; ++i) {
+    DeoptTable::GetEntry(table, i, &offset, &info, &reason);
+    if (pc == (code_entry + offset.Value())) {
+      ASSERT(!info.IsNull());
+      *deopt_reason = reason.Value();
+      return info.raw();
+    }
+  }
+  *deopt_reason = kDeoptUnknown;
+  return DeoptInfo::null();
+}
+
+
 RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
   RawObject* raw_code_offset =
       reinterpret_cast<RawObject*>(Smi::New(pc - EntryPoint()));

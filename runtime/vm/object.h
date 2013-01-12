@@ -2582,6 +2582,8 @@ class Code : public Object {
     return raw_ptr()->static_calls_target_table_;
   }
 
+  RawDeoptInfo* GetDeoptInfoAtPc(uword pc, intptr_t* deopt_reason) const;
+
   // Returns null if there is no static call at 'pc'.
   RawFunction* GetStaticCallTargetFunctionAt(uword pc) const;
   // Aborts if there is no static call at 'pc'.
