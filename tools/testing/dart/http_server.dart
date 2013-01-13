@@ -95,7 +95,7 @@ class TestingServerRunner {
           if (allowedPort != -1) {
             // Allow loading from localhost:$allowedPort in browsers.
             resp.headers.set("Access-Control-Allow-Origin",
-                "http://127.0.0.1:${allowedPort+1}");
+                "http://127.0.0.1:$allowedPort");
             resp.headers.set('Access-Control-Allow-Credentials', 'true');
           } else {
             // No allowedPort specified. Allow from anywhere (but cross-origin
