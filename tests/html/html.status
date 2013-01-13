@@ -55,6 +55,7 @@ element_types_test/supported_object: Fail
 element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
 exceptions_test: Fail
+form_data_test: Fail # TODO(efortuna): Issue 7875.
 fileapi_test: Fail
 inner_frame_test: Skip
 input_element_test/supported_date: Fail
@@ -64,7 +65,6 @@ input_element_test/supported_month: Fail
 input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 isolates_test: Skip
-localstorage_test: Fail
 measurement_test: Fail, Pass
 messageevent_test: Fail
 mutationobserver_test/supported: Fail
@@ -76,8 +76,9 @@ svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 svg_3_test: Fail
 websql_test: Fail
+websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 window_open_test: Skip
-xhr_test: Fail
+xhr_cross_origin_test: Fail # TODO(efortuna): Issue 7875.
 xsltprocessor_test: Fail
 
 [ $runtime == ie9 ]
