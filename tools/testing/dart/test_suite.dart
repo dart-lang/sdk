@@ -22,6 +22,7 @@ import "test_runner.dart";
 import "multitest.dart";
 import "drt_updater.dart";
 import "dart:uri";
+import '../../../pkg/path/lib/path.dart' as pathLib;
 
 part "browser_test.dart";
 
@@ -408,13 +409,19 @@ class StandardTestSuite extends TestSuite {
   final Path dartDir;
   Predicate<String> isTestFilePredicate;
   final bool listRecursively;
+  /**
+   * The set of servers that have been started to run these tests (Could be
+   * none).
+   */
+  List serverList;
 
   StandardTestSuite(Map configuration,
                     String suiteName,
                     Path suiteDirectory,
                     this.statusFilePaths,
                     {this.isTestFilePredicate,
-                    bool recursive: false})
+                    bool recursive: false,
+                    this.serverList: const []})
   : super(configuration, suiteName),
     dartDir = TestUtils.dartDir(),
     listRecursively = recursive,
@@ -446,16 +453,19 @@ class StandardTestSuite extends TestSuite {
    * instead of having to create a custom [StandardTestSuite] subclass. In
    * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
    * in test.dart, this will all be set up for you.
+   *
+   * The [StandardTestSuite] also optionally takes a list of servers that have
+   * been started up by the test harness, to be used by browser tests.
    */
   factory StandardTestSuite.forDirectory(
-      Map configuration, Path directory) {
+      Map configuration, Path directory, {List serverList : const []}) {
     final name = directory.filename;
 
     return new StandardTestSuite(configuration,
         name, directory,
         ['$directory/$name.status', '$directory/${name}_dart2js.status'],
         isTestFilePredicate: (filename) => filename.endsWith('_test.dart'),
-        recursive: true);
+        recursive: true, serverList: serverList);
   }
 
   Collection<Uri> get dart2JsBootstrapDependencies {
@@ -850,17 +860,19 @@ class StandardTestSuite extends TestSuite {
         // or indirectly through test_as_library.dart, if it is not.
         Path dartLibraryFilename = filePath;
         if (!isLibraryDefinition) {
-          dartLibraryFilename = new Path('test_as_library.dart');
-          File file = new File('$tempDir/$dartLibraryFilename');
+          dartLibraryFilename = new Path(tempDir).append(
+              'test_as_library.dart');
+          File file = new File(dartLibraryFilename.toNativePath());
           RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
-          dartLibrary.writeStringSync(wrapDartTestInLibrary(filePath));
+          dartLibrary.writeStringSync(
+              wrapDartTestInLibrary(filePath, file.name));
           dartLibrary.closeSync();
         }
 
         File file = new File(dartWrapperFilename);
         RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
         dartWrapper.writeStringSync(
-            dartTestWrapper(dartDir, dartLibraryFilename));
+            dartTestWrapper(dartDir, file.name, dartLibraryFilename));
         dartWrapper.closeSync();
       } else {
         dartWrapperFilename = filename;
@@ -882,12 +894,6 @@ class StandardTestSuite extends TestSuite {
           dartWrapperFilename : compiledDartWrapperFilename;
       // Create the HTML file for the test.
       RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
-      String filePrefix = '';
-      if (Platform.operatingSystem == 'windows') {
-        // Firefox on Windows does not like absolute file path names that start
-        // with 'C:' adding 'file:///' solves the problem.
-        filePrefix = 'file:///';
-      }
       String content = null;
       Path dir = filePath.directoryPath;
       String nameNoExt = filePath.filenameWithoutExtension;
@@ -896,10 +902,13 @@ class StandardTestSuite extends TestSuite {
       Path expectedOutput = null;
       if (new File.fromPath(pngPath).existsSync()) {
         expectedOutput = pngPath;
-        content = getHtmlLayoutContents(scriptType, '$filePrefix$scriptPath');
+        // TODO(efortuna): Unify path libraries in test.dart.
+        content = getHtmlLayoutContents(scriptType, pathLib.relative(scriptPath,
+            from: pathLib.dirname(htmlPath)));
       } else if (new File.fromPath(txtPath).existsSync()) {
         expectedOutput = txtPath;
-        content = getHtmlLayoutContents(scriptType, '$filePrefix$scriptPath');
+        content = getHtmlLayoutContents(scriptType, pathLib.relative(scriptPath,
+            from: pathLib.dirname(htmlPath)));
       } else {
         final htmlLocation = new Path.fromNative(htmlPath);
         content = getHtmlContents(
@@ -949,10 +958,17 @@ class StandardTestSuite extends TestSuite {
         }
 
         List<String> args = <String>[];
-        String fullHtmlPath = htmlPath.startsWith('http:') ? htmlPath :
-            (htmlPath.startsWith('/') ?
-             'file://$htmlPath' :
-             'file:///$htmlPath');
+        var basePath = TestUtils.dartDir().toString();
+        if (!htmlPath.startsWith('/') && !htmlPath.startsWith('http')) {
+          htmlPath = '/$htmlPath';
+        }
+        htmlPath = htmlPath.startsWith(basePath) ?
+            htmlPath.substring(basePath.length) : htmlPath;
+        String fullHtmlPath = htmlPath;
+        if (!htmlPath.startsWith('http')) {
+          fullHtmlPath = 'http://127.0.0.1:${serverList[0].port}$htmlPath?'
+              'crossOriginPort=${serverList[1].port}';
+        }
         if (info.optionsFromFile['isMultiHtmlTest']
             && subtestNames.length > 0) {
           fullHtmlPath = '${fullHtmlPath}#${subtestNames[subtestIndex]}';
@@ -976,7 +992,6 @@ class StandardTestSuite extends TestSuite {
 
           var dartFlags = [];
           var dumpRenderTreeOptions = [];
-          var packageRootUri;
 
           dumpRenderTreeOptions.add('--no-timeout');
 
@@ -987,16 +1002,6 @@ class StandardTestSuite extends TestSuite {
               dartFlags.add("--enable_type_checks");
             }
             dartFlags.addAll(vmOptions);
-          }
-          if (compiler == 'none') {
-            var packageRootPath = packageRoot(optionsFromFile['packageRoot']);
-            if (packageRootPath != null) {
-              var absolutePath =
-                  TestUtils.absolutePath(new Path(packageRootPath));
-              packageRootUri = new Uri.fromComponents(
-                  scheme: 'file',
-                  path: absolutePath.toString());
-            }
           }
 
           if (expectedOutput != null) {
@@ -1010,7 +1015,6 @@ class StandardTestSuite extends TestSuite {
                                                    fullHtmlPath,
                                                    dumpRenderTreeOptions,
                                                    dartFlags,
-                                                   packageRootUri,
                                                    expectedOutput));
         }
 
@@ -1104,7 +1108,8 @@ class StandardTestSuite extends TestSuite {
     var minified = configuration['minified'] ? '-minified' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
                   "$checked$minified";
-    Path generatedTestPath = new Path.fromNative(buildDir)
+    Path generatedTestPath = new Path.fromNative(dartDir.toNativePath())
+        .append(buildDir)
         .append('generated_tests')
         .append(dirName)
         .append(testUniqueName);
@@ -1756,9 +1761,30 @@ class TestUtils {
   }
 
   static String configurationDir(Map configuration) {
+    // For regular dart checkouts, the configDir by default is mode+arch.
+    // For Dartium, the configDir by default is mode (as defined by the Chrome
+    // build setup). We can detect this because in the dartium checkout, the
+    // "output" directory is a sibling of the dart directory instead of a child.
     var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
     var arch = configuration['arch'].toUpperCase();
-    return '$mode$arch';
+    if (currentWorkingDirectory != dartDir()) {
+      return '$mode$arch';
+    } else {
+      return mode;
+    }
+  }
+
+  /**
+   * Returns the path to the dart binary checked into the repo, used for
+   * bootstrapping test.dart.
+   */
+  static Path get dartTestExecutable {
+    var path = '${TestUtils.dartDir()}/tools/testing/bin/'
+        '${Platform.operatingSystem}/dart';
+    if (Platform.operatingSystem == 'windows') {
+      path = '$path.exe';
+    }
+    return new Path(path);
   }
 }
 

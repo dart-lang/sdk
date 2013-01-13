@@ -30211,18 +30211,16 @@ class _HttpRequestUtils {
 
   // Helper for factory HttpRequest.get
   static HttpRequest get(String url,
-                            onSuccess(HttpRequest request),
+                            onComplete(HttpRequest request),
                             bool withCredentials) {
     final request = new HttpRequest();
     request.open('GET', url, true);
 
     request.withCredentials = withCredentials;
 
-    // Status 0 is for local XHR request.
     request.on.readyStateChange.add((e) {
-      if (request.readyState == HttpRequest.DONE &&
-          (request.status == 200 || request.status == 0)) {
-        onSuccess(request);
+      if (request.readyState == HttpRequest.DONE) {
+        onComplete(request);
       }
     });
 

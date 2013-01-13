@@ -81,7 +81,7 @@ main() {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
-  
+
   if (!firstConf['append_flaky_log'])  {
     var file = new File(TestUtils.flakyFileName());
     if (file.existsSync()) {
@@ -104,11 +104,29 @@ main() {
     print(Strings.join(output_words, ' '));
   }
 
+  // Start global http servers that serve the entire dart repo.
+  // The http server is available on window.location.port, and a second server
+  // for cross-domain tests can be found by calling getCrossOriginPortNumber().
+  if (!listTests) {
+    // Only start the server if we are running browser tests.
+    var runningBrowserTests = configurations.any((config) {
+      return TestUtils.isBrowserRuntime(config['runtime']);
+    });
+    if (runningBrowserTests) {
+      TestingServerRunner.startHttpServer('127.0.0.1');
+      // We start two servers so that we can test cross-domain tests.
+      TestingServerRunner.startHttpServer('127.0.0.1',
+          allowedPort: TestingServerRunner.serverList[0].port);
+    }
+  }
+
   var configurationIterator = configurations.iterator;
   void enqueueConfiguration(ProcessQueue queue) {
     if (!configurationIterator.moveNext()) return;
 
     var conf = configurationIterator.current;
+    TestingServerRunner.setPackageRootDir(conf);
+
     for (String key in selectors.keys) {
       if (key == 'co19') {
         queue.addTestSuite(new Co19TestSuite(conf));
@@ -126,20 +144,10 @@ main() {
       final name = testSuiteDir.filename;
       if (selectors.containsKey(name)) {
         queue.addTestSuite(
-            new StandardTestSuite.forDirectory(conf, testSuiteDir));
+            new StandardTestSuite.forDirectory(conf, testSuiteDir,
+            serverList: TestingServerRunner.serverList));
       }
     }
-  }
-
-  // Start global http server that serves the entire dart repo.
-  // The http server is available on localhost:9876 for any
-  // test that needs to load resources from the repo over http.
-  if (!listTests) {
-    // Only start the server if we are running browser tests.
-    var runningBrowserTests = configurations.any((config) {
-      return TestUtils.isBrowserRuntime(config['runtime']);
-    });
-    if (runningBrowserTests) startHttpServer('127.0.0.1', 9876);
   }
 
   // Start process queue.
@@ -148,7 +156,7 @@ main() {
                    startTime,
                    printTiming,
                    enqueueConfiguration,
-                   () => terminateHttpServer(),
+                   () => TestingServerRunner.terminateHttpServers(),
                    verbose,
                    listTests);
 }

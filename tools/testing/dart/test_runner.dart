@@ -20,6 +20,7 @@ import "dart:uri";
 import "status_file_parser.dart";
 import "test_progress.dart";
 import "test_suite.dart";
+import "http_server.dart" as http_server;
 
 const int NO_TIMEOUT = 0;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
@@ -179,24 +180,19 @@ class DumpRenderTreeCommand extends Command {
                         String htmlFile,
                         List<String> options,
                         List<String> dartFlags,
-                        Uri packageRootUri,
                         io.Path this.expectedOutputPath)
       : super(executable,
               _getArguments(options, htmlFile),
-              _getEnvironment(dartFlags, packageRootUri));
+              _getEnvironment(dartFlags));
 
-  static Map _getEnvironment(List<String> dartFlags, Uri packageRootUri) {
+  static Map _getEnvironment(List<String> dartFlags) {
     var needDartFlags = dartFlags != null && dartFlags.length > 0;
-    var needDartPackageRoot = packageRootUri != null;
 
     var env = null;
-    if (needDartFlags || needDartPackageRoot) {
+    if (needDartFlags) {
       env = new Map.from(io.Platform.environment);
       if (needDartFlags) {
         env['DART_FLAGS'] = Strings.join(dartFlags, " ");
-      }
-      if (needDartPackageRoot) {
-        env['DART_PACKAGE_ROOT'] = packageRootUri.toString();
       }
     }
 
@@ -1711,6 +1707,16 @@ class ProcessQueue {
       }
       if (_verbose) {
         int i = 1;
+        if (test is BrowserTestCase) {
+          // Additional command for rerunning the steps locally after the fact.
+          print('$i. ${TestUtils.dartTestExecutable.toNativePath()} '
+              '${TestUtils.dartDir().toNativePath()}/tools/testing/dart/'
+              'http_server.dart -m ${test.configuration["mode"]} '
+              '-a ${test.configuration["arch"]} '
+              '-p ${http_server.TestingServerRunner.serverList[0].port} '
+              '-c ${http_server.TestingServerRunner.serverList[1].port}');
+          i++;
+        }
         for (Command command in test.commands) {
           print('$i. ${command.commandLine}');
           i++;
