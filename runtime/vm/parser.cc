@@ -6357,7 +6357,7 @@ RawString* Parser::FormatMessage(const Script& script,
   String& result = String::Handle();
   const String& msg = String::Handle(String::NewFormattedV(format, args));
   if (!script.IsNull()) {
-    const String& script_url = String::CheckedHandle(script.url());
+    const String& script_url = String::Handle(script.url());
     if (token_pos >= 0) {
       intptr_t line, column;
       script.GetTokenLocation(token_pos, &line, &column);
@@ -7386,11 +7386,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       String* ident = ExpectIdentifier("identifier expected");
       if (CurrentToken() == Token::kLPAREN) {
         // Identifier followed by a opening paren: method call.
-        if (left->IsPrimaryNode()
-            && left->AsPrimaryNode()->primary().IsClass()) {
+        if (left->IsPrimaryNode() &&
+            left->AsPrimaryNode()->primary().IsClass()) {
           // Static method call prefixed with class name.
-          Class& cls = Class::CheckedHandle(
-              left->AsPrimaryNode()->primary().raw());
+          const Class& cls = Class::Cast(left->AsPrimaryNode()->primary());
           selector = ParseStaticCall(cls, *ident, ident_pos);
         } else {
           selector = ParseInstanceCall(left, *ident);
@@ -7446,8 +7445,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         PrimaryNode* primary = left->AsPrimaryNode();
         const intptr_t primary_pos = primary->token_pos();
         if (primary->primary().IsFunction()) {
-          Function& func = Function::CheckedHandle(primary->primary().raw());
-          String& func_name = String::ZoneHandle(func.name());
+          const Function& func = Function::Cast(primary->primary());
+          const String& func_name = String::ZoneHandle(func.name());
           if (func.is_static()) {
             // Parse static function call.
             Class& cls = Class::Handle(func.Owner());

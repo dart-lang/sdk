@@ -5830,7 +5830,7 @@ RawObject* Library::LookupObject(const String& name) const {
 RawClass* Library::LookupClass(const String& name) const {
   Object& obj = Object::Handle(LookupObject(name));
   if (!obj.IsNull() && obj.IsClass()) {
-    return Class::CheckedHandle(obj.raw()).raw();
+    return Class::Cast(obj).raw();
   }
   return Class::null();
 }
@@ -5839,7 +5839,7 @@ RawClass* Library::LookupClass(const String& name) const {
 RawClass* Library::LookupLocalClass(const String& name) const {
   Object& obj = Object::Handle(LookupLocalObject(name));
   if (!obj.IsNull() && obj.IsClass()) {
-    return Class::CheckedHandle(obj.raw()).raw();
+    return Class::Cast(obj).raw();
   }
   return Class::null();
 }
@@ -6291,7 +6291,8 @@ const char* Library::ToCString() const {
 RawLibrary* LibraryPrefix::GetLibrary(int index) const {
   if ((index >= 0) || (index < num_imports())) {
     const Array& imports = Array::Handle(this->imports());
-    const Namespace& import = Namespace::CheckedHandle(imports.At(index));
+    Namespace& import = Namespace::Handle();
+    import ^= imports.At(index);
     return import.library();
   }
   return Library::null();
@@ -6824,7 +6825,8 @@ RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
   ASSERT(var_index < Length());
   const Array& names = Array::Handle(raw_ptr()->names_);
   ASSERT(Length() == names.Length());
-  const String& name = String::CheckedHandle(names.At(var_index));
+  String& name = String::Handle();
+  name ^= names.At(var_index);
   return name.raw();
 }
 
@@ -7101,8 +7103,9 @@ intptr_t Code::Comments::Length() const {
 
 
 intptr_t Code::Comments::PCOffsetAt(intptr_t idx) const {
-  return Smi::CheckedHandle(
-      comments_.At(idx * kNumberOfEntries + kPCOffsetEntry)).Value();
+  Smi& result = Smi::Handle();
+  result ^= comments_.At(idx * kNumberOfEntries + kPCOffsetEntry);
+  return result.Value();
 }
 
 
@@ -7112,9 +7115,10 @@ void Code::Comments::SetPCOffsetAt(intptr_t idx, intptr_t pc)  {
 }
 
 
-const String& Code::Comments::CommentAt(intptr_t idx) const {
-  return String::CheckedHandle(
-      comments_.At(idx * kNumberOfEntries + kCommentEntry));
+RawString* Code::Comments::CommentAt(intptr_t idx) const {
+  String& result = String::Handle();
+  result ^= comments_.At(idx * kNumberOfEntries + kCommentEntry);
+  return result.raw();
 }
 
 

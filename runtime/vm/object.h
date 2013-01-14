@@ -2599,7 +2599,7 @@ class Code : public Object {
     void SetCommentAt(intptr_t idx, const String& comment);
 
     intptr_t PCOffsetAt(intptr_t idx) const;
-    const String& CommentAt(intptr_t idx) const;
+    RawString* CommentAt(intptr_t idx) const;
 
    private:
     explicit Comments(const Array& comments);
