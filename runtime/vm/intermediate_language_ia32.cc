@@ -1210,23 +1210,35 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = class_id() == kFloat32ArrayCid ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (class_id() == kFloat32ArrayCid) {
-    locs->set_temp(0, Location::RequiresXmmRegister());
-  }
   locs->set_in(0, Location::RequiresRegister());
   locs->set_in(1, CanBeImmediateIndex(index())
                     ? Location::RegisterOrConstant(index())
                     : Location::RequiresRegister());
-  if (RequiredInputRepresentation(2) == kUnboxedDouble) {
-    // TODO(srdjan): Support Float64 constants.
-    locs->set_in(2, Location::RequiresXmmRegister());
-  } else {
-    locs->set_in(2, ShouldEmitStoreBarrier()
-                      ? Location::WritableRegister()
-                      : Location::RegisterOrConstant(value()));
+  switch (class_id()) {
+    case kArrayCid:
+      locs->set_in(2, ShouldEmitStoreBarrier()
+                        ? Location::WritableRegister()
+                        : Location::RegisterOrConstant(value()));
+      break;
+    case kUint8ArrayCid:
+      // TODO(fschneider): Add location constraint for byte registers (EAX,
+      // EBX, ECX, EDX) instead of using a fixed register.
+      locs->set_in(2, Location::FixedRegisterOrSmiConstant(value(), EAX));
+      break;
+    case kFloat32ArrayCid:
+      // Need temp register for float-to-double conversion.
+      locs->AddTemp(Location::RequiresXmmRegister());
+      // Fall through.
+    case kFloat64ArrayCid:
+      // TODO(srdjan): Support Float64 constants.
+      locs->set_in(2, Location::RequiresXmmRegister());
+      break;
+    default:
+      UNREACHABLE();
+      return NULL;
   }
   return locs;
 }
@@ -1242,32 +1254,47 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       FlowGraphCompiler::ElementAddressForIntIndex(
           class_id(), array, Smi::Cast(index.constant()).Value());
 
-  if (class_id() == kFloat32ArrayCid) {
-    // Convert to single precision.
-    __ cvtsd2ss(locs()->temp(0).xmm_reg(), locs()->in(2).xmm_reg());
-    // Store.
-    __ movss(element_address, locs()->temp(0).xmm_reg());
-    return;
-  }
-
-  if (class_id() == kFloat64ArrayCid) {
-    __ movsd(element_address, locs()->in(2).xmm_reg());
-    return;
-  }
-
-  ASSERT(class_id() == kArrayCid);
-  if (ShouldEmitStoreBarrier()) {
-    Register value = locs()->in(2).reg();
-    __ StoreIntoObject(array, element_address, value);
-    return;
-  }
-
-  if (locs()->in(2).IsConstant()) {
-    const Object& constant = locs()->in(2).constant();
-    __ StoreIntoObjectNoBarrier(array, element_address, constant);
-  } else {
-    Register value = locs()->in(2).reg();
-    __ StoreIntoObjectNoBarrier(array, element_address, value);
+  switch (class_id()) {
+    case kArrayCid:
+      if (ShouldEmitStoreBarrier()) {
+        Register value = locs()->in(2).reg();
+        __ StoreIntoObject(array, element_address, value);
+      } else if (locs()->in(2).IsConstant()) {
+        const Object& constant = locs()->in(2).constant();
+        __ StoreIntoObjectNoBarrier(array, element_address, constant);
+      } else {
+        Register value = locs()->in(2).reg();
+        __ StoreIntoObjectNoBarrier(array, element_address, value);
+      }
+      break;
+    case kUint8ArrayCid:
+      if (index.IsRegister()) {
+        __ SmiUntag(index.reg());
+      }
+      if (locs()->in(2).IsConstant()) {
+        const Smi& constant = Smi::Cast(locs()->in(2).constant());
+        __ movb(element_address,
+                Immediate(static_cast<int8_t>(constant.Value())));
+      } else {
+        ASSERT(locs()->in(2).reg() == EAX);
+        __ SmiUntag(EAX);
+        __ movb(element_address, AL);
+      }
+      if (index.IsRegister()) {
+        __ SmiTag(index.reg());  // Re-tag.
+      }
+      break;
+    case kFloat32ArrayCid:
+      // Convert to single precision.
+      __ cvtsd2ss(locs()->temp(0).xmm_reg(), locs()->in(2).xmm_reg());
+      // Store.
+      __ movss(element_address, locs()->temp(0).xmm_reg());
+      break;
+    case kFloat64ArrayCid:
+      __ movsd(element_address, locs()->in(2).xmm_reg());
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 

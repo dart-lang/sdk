@@ -545,8 +545,19 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   switch (class_id) {
     case kArrayCid:
     case kGrowableObjectArrayCid:
-      // Acceptable store index classes.
+      if (ArgIsAlwaysSmi(*call->ic_data(), 2)) {
+        value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
+      }
       break;
+    case kUint8ArrayCid:
+      // Check that value is always smi.
+      value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
+      if ((value_check.NumberOfChecks() != 1) ||
+          (value_check.GetReceiverClassIdAt(0) != kSmiCid)) {
+        return false;
+      }
+      break;
+
     case kFloat32ArrayCid:
     case kFloat64ArrayCid: {
       // Check that value is always double.
@@ -589,13 +600,16 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         type_args = new Value(load_type_args);
         break;
       }
+      case kUint8ArrayCid:
       case kFloat32ArrayCid:
       case kFloat64ArrayCid: {
         ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
         InsertBefore(call, null_constant, NULL, Definition::kValue);
         instantiator = new Value(null_constant);
         type_args = new Value(null_constant);
-        ASSERT(value_type.IsDoubleType());
+        ASSERT((class_id != kUint8ArrayCid) || value_type.IsIntType());
+        ASSERT((class_id != kFloat32ArrayCid && class_id != kFloat64ArrayCid) ||
+               value_type.IsDoubleType());
         ASSERT(value_type.IsInstantiated());
         break;
       }
@@ -619,21 +633,24 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   Value* value = call->ArgumentAt(2)->value();
   // Check if store barrier is needed.
   bool needs_store_barrier = true;
-  if ((class_id == kFloat32ArrayCid) || (class_id == kFloat64ArrayCid)) {
-    ASSERT(!value_check.IsNull());
-    InsertBefore(call,
-                 new CheckClassInstr(value->Copy(),
-                                     call->deopt_id(),
-                                     value_check),
-                 call->env(),
-                 Definition::kEffect);
-    needs_store_barrier = false;
-  } else if (ArgIsAlwaysSmi(*call->ic_data(), 2)) {
-    InsertBefore(call,
-                 new CheckSmiInstr(value->Copy(), call->deopt_id()),
-                 call->env(),
-                 Definition::kEffect);
-    needs_store_barrier = false;
+  if (!value_check.IsNull()) {
+    ASSERT(value_check.NumberOfChecks() == 1);
+    if (value_check.GetReceiverClassIdAt(0) == kSmiCid) {
+      InsertBefore(call,
+                   new CheckSmiInstr(value->Copy(), call->deopt_id()),
+                   call->env(),
+                   Definition::kEffect);
+      needs_store_barrier = false;
+    } else {
+      ASSERT(value_check.GetReceiverClassIdAt(0) == kDoubleCid);
+      InsertBefore(call,
+                   new CheckClassInstr(value->Copy(),
+                                       call->deopt_id(),
+                                       value_check),
+                   call->env(),
+                   Definition::kEffect);
+      needs_store_barrier = false;
+    }
   }
 
   Definition* array_op =

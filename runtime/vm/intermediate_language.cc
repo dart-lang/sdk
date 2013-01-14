@@ -1190,6 +1190,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
+    case kUint8ArrayCid:
       return kTagged;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :

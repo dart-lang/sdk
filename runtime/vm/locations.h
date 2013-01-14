@@ -428,8 +428,13 @@ class LocationSummary : public ZoneAllocated {
   }
 
   void set_temp(intptr_t index, Location loc) {
-    ASSERT(!always_calls() || loc.IsRegister());
+    ASSERT(!always_calls() || loc.IsMachineRegister());
     temp_locations_[index] = loc;
+  }
+
+  void AddTemp(Location loc) {
+    ASSERT(!always_calls() || loc.IsMachineRegister());
+    temp_locations_.Add(loc);
   }
 
   Location out() const {
