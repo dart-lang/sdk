@@ -79,7 +79,7 @@ Function test(Map options) {
 
 void InitializeSSL() {
   var testPkcertDatabase =
-      new Path.fromNative(new Options().script).directoryPath.append('pkcert/');
+      new Path(new Options().script).directoryPath.append('pkcert/');
   SecureSocket.initialize(database: testPkcertDatabase.toNativePath(),
                           password: 'dartdart');
 }

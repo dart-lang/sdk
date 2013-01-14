@@ -117,7 +117,7 @@ main() {
         'omitted the files are generated into ./docs/',
       callback: (outDir) {
         if(outDir != null) {
-          dartdoc.outputDir = new Path.fromNative(outDir);
+          dartdoc.outputDir = new Path(outDir);
         }
       });
 
@@ -164,7 +164,7 @@ main() {
         'If omitted the package directory is the SDK pkg/ dir',
       callback: (pkgDir) {
         if(pkgDir != null) {
-          pkgPath = new Path.fromNative(pkgDir);
+          pkgPath = new Path(pkgDir);
         }
       });
 
@@ -185,7 +185,7 @@ main() {
     // If it is not, then we display a warning, as package imports might fail.
     var entrypointRoot;
     for(final arg in option.rest) {
-      var entrypoint = new Path.fromNative(arg);
+      var entrypoint = new Path(arg);
       entrypoints.add(entrypoint);
 
       if (entrypointRoot == null) {

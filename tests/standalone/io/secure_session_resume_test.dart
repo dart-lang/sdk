@@ -108,7 +108,7 @@ const CLIENT_NAMES = const ['able', 'baker'];
 
 void main() {
   ReceivePort keepAlive = new ReceivePort();
-  Path scriptDir = new Path.fromNative(new Options().script).directoryPath;
+  Path scriptDir = new Path(new Options().script).directoryPath;
   Path certificateDatabase = scriptDir.append('pkcert');
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
                           password: 'dartdart',

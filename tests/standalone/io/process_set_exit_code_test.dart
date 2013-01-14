@@ -12,7 +12,7 @@ main() {
   var options = new Options();
   var executable = options.executable;
   var script = options.script;
-  var scriptDirectory = new Path.fromNative(script).directoryPath;
+  var scriptDirectory = new Path(script).directoryPath;
   var exitCodeScript =
       scriptDirectory.append('process_set_exit_code_script.dart');
   Process.run(executable, [exitCodeScript.toNativePath()]).then((result) {

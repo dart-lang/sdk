@@ -52,7 +52,7 @@ class FileUtils {
     }
     if (createJsDeps) {
       testJsDeps = _createFile(testJsDepsFilePath);
-      var path = suite.TestUtils.absolutePath(new Path.fromNative(tempDir.path))
+      var path = suite.TestUtils.absolutePath(new Path(tempDir.path))
           .append("test.dart");
       _writeToFile(testJsDeps, "file://$path");
     }
@@ -74,27 +74,27 @@ class FileUtils {
   }
 
   Path get scriptOutputPath {
-    return suite.TestUtils.absolutePath(new Path.fromNative(tempDir.path)
+    return suite.TestUtils.absolutePath(new Path(tempDir.path)
         .append('created_if_command_did_run.txt'));
   }
 
   Path get testDartFilePath {
-    return suite.TestUtils.absolutePath(new Path.fromNative(tempDir.path)
+    return suite.TestUtils.absolutePath(new Path(tempDir.path)
         .append('test.dart'));
   }
 
   Path get testJsFilePath {
-    return suite.TestUtils.absolutePath(new Path.fromNative(tempDir.path)
+    return suite.TestUtils.absolutePath(new Path(tempDir.path)
         .append('test.js'));
   }
 
   Path get testJsDepsFilePath {
-    return suite.TestUtils.absolutePath(new Path.fromNative(tempDir.path)
+    return suite.TestUtils.absolutePath(new Path(tempDir.path)
         .append('test.js.deps'));
   }
 
   Path get testSnapshotFilePath {
-    return suite.TestUtils.absolutePath(new Path.fromNative(tempDir.path)
+    return suite.TestUtils.absolutePath(new Path(tempDir.path)
         .append('test_dart2js.snapshot'));
   }
 
@@ -149,7 +149,7 @@ runner.TestCase makeTestCase(String testName,
                              TestCompletedHandler completedHandler) {
   var fileUtils = completedHandler.fileUtils;
   var config = new options.TestOptionsParser().parse(['--timeout', '2'])[0];
-  var scriptDirPath = new Path.fromNative(new Options().script).directoryPath;
+  var scriptDirPath = new Path(new Options().script).directoryPath;
   var createFileScript = scriptDirPath.
       append('skipping_dart2js_compilations_helper.dart').toNativePath();
   var executable = new Options().executable;

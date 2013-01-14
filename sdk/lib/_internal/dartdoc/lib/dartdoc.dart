@@ -70,7 +70,7 @@ const API_LOCATION = 'http://api.dartlang.org/';
 // TODO(johnniwinther): Convert to final (lazily initialized) variables when
 // the feature is supported.
 Path get scriptDir =>
-    new Path.fromNative(new Options().script).directoryPath;
+    new Path(new Options().script).directoryPath;
 
 /**
  * Deletes and recreates the output directory at [path] if it exists.
@@ -113,7 +113,7 @@ Future copyDirectory(Path from, Path to) {
   final lister = fromDir.list(recursive: false);
 
   lister.onFile = (String path) {
-    final name = new Path.fromNative(path).filename;
+    final name = new Path(path).filename;
     // TODO(rnystrom): Hackish. Ignore 'hidden' files like .DS_Store.
     if (name.startsWith('.')) return;
 
@@ -1848,7 +1848,7 @@ class Dartdoc {
       // 2) By ensuring that [filePath] does not have double slashes before
       // calling [relativeTo], or better, by making [relativeTo] handle double
       // slashes correctly.
-      Path filePath = new Path.fromNative(filename).canonicalize();
+      Path filePath = new Path(filename).canonicalize();
       Path relativeFilePath = filePath.relativeTo(outputDir);
       write("$relativeFilePath\n");
     };

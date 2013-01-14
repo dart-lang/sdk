@@ -43,6 +43,14 @@ io/secure_no_builtin_roots_test: Pass, Crash  # Issue 7157
 io/secure_socket_bad_certificate_test: Pass, Crash, Fail, Timeout  # Issue 7157
 io/directory_list_nonexistent_test: Skip # Issue 7157
 
+# Temporary suppression of test script unit tests, until we upload new binaries.
+# This should be removed within a couple of hours: TODO(whesse).
+status_expression_test: Skip
+test_runner_exit_code_test: Skip
+test_runner_test: Skip
+status_file_parser_test: Skip
+skipping_dart2js_compilations_test: Skip
+
 [ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser
 crypto/*: Skip # Don't run tests using dart:io in the browser

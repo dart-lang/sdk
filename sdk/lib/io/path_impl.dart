@@ -8,10 +8,10 @@ class _Path implements Path {
   final String _path;
   final bool isWindowsShare;
 
-  _Path(String source) : _path = source, isWindowsShare = false;
-
-  _Path.fromNative(String source)
+  _Path(String source)
       : _path = _clean(source), isWindowsShare = _isWindowsShare(source);
+
+  _Path.raw(String source) : _path = source, isWindowsShare = false;
 
   _Path._internal(String this._path, bool this.isWindowsShare);
 

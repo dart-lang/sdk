@@ -61,7 +61,7 @@ void main() {
         } else if (arg.startsWith('--include-lib=')) {
           includedLibraries.add(arg.substring('--include-lib='.length));
         } else if (arg.startsWith('--out=')) {
-          outputDir = new Path.fromNative(arg.substring('--out='.length));
+          outputDir = new Path(arg.substring('--out='.length));
         } else if (arg.startsWith('--pkg=')) {
           pkgPath = arg.substring('--pkg='.length);
         } else {
@@ -117,7 +117,7 @@ void main() {
 
   var lister = new Directory.fromPath(doc.scriptDir.append('../../pkg')).list();
   lister.onDir = (dirPath) {
-    var path = new Path.fromNative(dirPath);
+    var path = new Path(dirPath);
     var libName = path.filename;
 
     // TODO(rnystrom): Get rid of oldStylePath support when all packages are

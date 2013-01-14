@@ -16,7 +16,7 @@ main() {
   var port = new ReceivePort();
   var options = new Options();
   var executable = options.executable;
-  var scriptDir = new Path.fromNative(options.script).directoryPath;
+  var scriptDir = new Path(options.script).directoryPath;
   var script = scriptDir.append('regress_7191_script.dart').toNativePath();
   Process.start(executable, [script]).then((process) {
     process.stdin.write([0]);

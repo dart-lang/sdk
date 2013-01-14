@@ -81,7 +81,7 @@ class _Directory implements Directory {
     if (_path is !String) {
       throw new ArgumentError();
     }
-    var path = new Path.fromNative(_path);
+    var path = new Path(_path);
     var dirsToCreate = [];
     var terminator = path.isAbsolute ? '/' : '';
     while (path.toString() != terminator) {
@@ -122,7 +122,7 @@ class _Directory implements Directory {
   }
 
   void createRecursivelySync() {
-    var path = new Path.fromNative(_path);
+    var path = new Path(_path);
     var dirsToCreate = [];
     var terminator = path.isAbsolute ? '/' : '';
     while (path.toString() != terminator) {

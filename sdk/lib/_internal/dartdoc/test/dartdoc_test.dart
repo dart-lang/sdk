@@ -119,7 +119,7 @@ main() {
           '../../other/file.html'));
     });
   });
-  
+
   group('integration tests', () {
     test('no entrypoints', () {
       expect(_runDartdoc([], exitCode: 1), completes);
@@ -127,14 +127,14 @@ main() {
 
     test('library with no packages', () {
       expect(_runDartdoc(
-          [new Path.fromNative('test/test_files/other_place/'
+          [new Path('test/test_files/other_place/'
               'no_package_test_file.dart').toNativePath()]),
         completes);
     });
 
     test('library with packages', () {
       expect(_runDartdoc(
-          [new Path.fromNative('test/test_files/'
+          [new Path('test/test_files/'
               'package_test_file.dart').toNativePath()]),
         completes);
     });

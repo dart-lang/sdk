@@ -18,7 +18,7 @@ void runTests(String executable, String script, Iterator iterator) {
 }
 
 main() {
-  var scriptPath = new Path.fromNative(new Options().script);
+  var scriptPath = new Path(new Options().script);
   var scriptDirPath = scriptPath.directoryPath;
   var exitCodeScriptPath =
     scriptDirPath.append('test_runner_exit_code_script.dart');

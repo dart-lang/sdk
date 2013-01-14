@@ -981,7 +981,7 @@ class FileTest {
     var f = new File.fromPath(path);
     Expect.isTrue(f.existsSync());
     name = f.fullPathSync();
-    path = new Path.fromNative(name);
+    path = new Path(name);
     var g = new File.fromPath(path);
     Expect.isTrue(g.existsSync());
     Expect.equals(name, g.fullPathSync());

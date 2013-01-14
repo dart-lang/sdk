@@ -81,7 +81,7 @@ Future _copyFiles(Path fromDir, Path toDir) {
   final lister = htmlDir.list(recursive: false);
 
   lister.onFile = (String path) {
-    final name = new Path.fromNative(path).filename;
+    final name = new Path(path).filename;
 
     // Ignore private classes.
     if (name.startsWith('_')) return;

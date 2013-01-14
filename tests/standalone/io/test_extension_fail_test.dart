@@ -37,10 +37,10 @@ Path getExtensionPath(Path buildDirectory) {
 void main() {
   Options options = new Options();
 
-  Path scriptDirectory = new Path.fromNative(options.script).directoryPath;
-  Path buildDirectory = new Path.fromNative(options.executable).directoryPath;
+  Path scriptDirectory = new Path(options.script).directoryPath;
+  Path buildDirectory = new Path(options.executable).directoryPath;
   Directory tempDirectory = new Directory('').createTempSync();
-  Path testDirectory = new Path.fromNative(tempDirectory.path);
+  Path testDirectory = new Path(tempDirectory.path);
 
   // Copy test_extension shared library, test_extension.dart and
   // test_extension_fail_tester.dart to the temporary test directory.

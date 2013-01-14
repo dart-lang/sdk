@@ -34,10 +34,10 @@ DeclarationMirror findMirror(List<DeclarationMirror> list, String name) {
 }
 
 main() {
-  var scriptPath = new Path.fromNative(new Options().script);
+  var scriptPath = new Path(new Options().script);
   var dirPath = scriptPath.directoryPath;
-  var libPath = dirPath.join(new Path.fromNative('../../../sdk/'));
-  var inputPath = dirPath.join(new Path.fromNative('mirrors_helper.dart'));
+  var libPath = dirPath.join(new Path('../../../sdk/'));
+  var inputPath = dirPath.join(new Path('mirrors_helper.dart'));
   var compilation = new Compilation.library([inputPath], libPath, null,
       <String>['--preserve-comments']);
   Expect.isNotNull(compilation, "No compilation created");
