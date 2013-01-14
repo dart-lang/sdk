@@ -1664,7 +1664,7 @@ class ProcessQueue {
       }
     }
     // Change to Future.wait when updating binaries.
-    return Futures.wait(futures);
+    return Future.wait(futures);
   }
 
   BatchRunnerProcess _getBatchRunner(TestCase test) {

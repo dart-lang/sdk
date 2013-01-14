@@ -159,7 +159,7 @@ class Version {
     // "branch". Since we have both trunk and bleeding edge in the same
     // repository and since we always build TOT we need this to get the
     // right version number.
-    Path toolsDirectory = new Path.fromNative(_versionFileName).directoryPath;
+    Path toolsDirectory = new Path(_versionFileName).directoryPath;
     Path root = toolsDirectory.join(new Path(".."));
     options.workingDirectory = root.toNativePath();
     return Process.run(command, arguments, options).then((result) {
@@ -189,7 +189,7 @@ class Version {
   }
 
   bool isGitRepository() {
-    var currentPath = new Path.fromNative(new Directory.current().path);
+    var currentPath = new Path(new Directory.current().path);
     while (!new Directory.fromPath(currentPath.append(".git")).existsSync()) {
       currentPath = currentPath.directoryPath;
       if (currentPath.toString() == "/") {

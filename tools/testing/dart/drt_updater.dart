@@ -36,7 +36,7 @@ class _DartiumUpdater {
   }
 
   List<String> get _getUpdateCommand {
-    Path testScriptPath = new Path.fromNative(TestUtils.testScriptPath);
+    Path testScriptPath = new Path(TestUtils.testScriptPath);
     Path updateScriptPath = testScriptPath.directoryPath.append(script);
     List<String> command = [updateScriptPath.toNativePath()];
     if (null != option) {

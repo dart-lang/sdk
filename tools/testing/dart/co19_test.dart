@@ -38,7 +38,7 @@ void main() {
   Options options = new Options();
   File scriptFile = new File(options.script);
   Path scriptPath =
-      new Path.fromNative(scriptFile.fullPathSync())
+      new Path(scriptFile.fullPathSync())
       .directoryPath.directoryPath.directoryPath.append('test.dart');
   TestUtils.testScriptPath = scriptPath.toNativePath();
   var startTime = new Date.now();

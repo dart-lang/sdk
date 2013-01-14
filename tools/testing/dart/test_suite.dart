@@ -592,7 +592,7 @@ class StandardTestSuite extends TestSuite {
 
   void enqueueFile(String filename, FutureGroup group) {
     if (!isTestFile(filename)) return;
-    Path filePath = new Path.fromNative(filename);
+    Path filePath = new Path(filename);
 
     // Only run the tests that match the pattern.
     RegExp pattern = configuration['selectors'][suiteName];
@@ -910,14 +910,14 @@ class StandardTestSuite extends TestSuite {
         content = getHtmlLayoutContents(scriptType, pathLib.relative(scriptPath,
             from: pathLib.dirname(htmlPath)));
       } else {
-        final htmlLocation = new Path.fromNative(htmlPath);
+        final htmlLocation = new Path(htmlPath);
         content = getHtmlContents(
           filename,
           dartDir.append('pkg/unittest/test_controller.js')
               .relativeTo(htmlLocation),
           dartDir.append('pkg/browser/lib/dart.js').relativeTo(htmlLocation),
           scriptType,
-          new Path.fromNative(scriptPath).relativeTo(htmlLocation));
+          new Path(scriptPath).relativeTo(htmlLocation));
       }
       htmlTest.writeStringSync(content);
       htmlTest.closeSync();
@@ -1108,7 +1108,7 @@ class StandardTestSuite extends TestSuite {
     var minified = configuration['minified'] ? '-minified' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
                   "$checked$minified";
-    Path generatedTestPath = new Path.fromNative(dartDir.toNativePath())
+    Path generatedTestPath = new Path(dartDir.toNativePath())
         .append(buildDir)
         .append('generated_tests')
         .append(dirName)
@@ -1449,7 +1449,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
                             List<String> expectations)
       : super(configuration,
               suiteName,
-              new Path.fromNative(directoryPath),
+              new Path(directoryPath),
               expectations);
 
   List<String> additionalOptions(Path filePath) {
@@ -1618,7 +1618,7 @@ class TestUtils {
   static String testScriptPath = new Options().script;
   static LastModifiedCache lastModifiedCache = new LastModifiedCache();
   static Path currentWorkingDirectory =
-      new Path.fromNative(new Directory.current().path);
+      new Path(new Directory.current().path);
   /**
    * Creates a directory using a [relativePath] to an existing
    * [base] directory if that [relativePath] does not already exist.
@@ -1697,7 +1697,7 @@ class TestUtils {
 
   static Path dartDir() {
     File scriptFile = new File(testScriptPath);
-    Path scriptPath = new Path.fromNative(scriptFile.fullPathSync());
+    Path scriptPath = new Path(scriptFile.fullPathSync());
     return scriptPath.directoryPath.directoryPath;
   }
 

@@ -31,9 +31,11 @@ main() {
     // Pretend we're running test.dart so that TestUtils doesn't get confused
     // about the "current directory." This is only used if we're trying to run
     // this file independently for local testing.
-    TestUtils.testScriptPath = new Path.fromNative(
-        new Options().script).directoryPath.join(
-        new Path('../../test.dart')).canonicalize().toNativePath();
+    TestUtils.testScriptPath = new Path(new Options().script)
+        .directoryPath
+        .join(new Path('../../test.dart'))
+        .canonicalize()
+        .toNativePath();
     TestingServerRunner.setPackageRootDir({'mode': args['mode'],
         'arch': args['arch'], 'system': Platform.operatingSystem,
         'build_directory': ''});
