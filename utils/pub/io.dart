@@ -610,16 +610,15 @@ class _OutputStreamConsumer implements StreamConsumer<List<int>, dynamic> {
         if (!completed) completer.completeError(e, stack);
         completed = true;
       }
-    }, onDone: () {
-      _outputStream.close();
-      // TODO(nweiz): wait until _outputStream.onClosed is called once issue
-      // 7761 is fixed.
-      if (!completed) completer.complete(null);
-      completed = true;
-    });
+    }, onDone: () => _outputStream.close());
 
     _outputStream.onError = (e) {
       if (!completed) completer.completeError(e);
+      completed = true;
+    };
+
+    _outputStream.onClosed = () {
+      if (!completed) completer.complete();
       completed = true;
     };
 
