@@ -264,6 +264,7 @@ class HeapProfiler {
   void WriteClassDump(const RawClass* raw_class);
   void WriteFakeClassDump(FakeClass fake_class, FakeClass fake_super_class);
   void WriteInstanceDump(const RawObject* raw_obj);
+  void WriteSmiInstanceDump(const RawSmi* raw_smi);
   void WriteObjectArrayDump(const RawArray* raw_array);
   void WritePrimitiveArrayDump(const RawByteArray* raw_byte_array,
                                uint8_t tag,

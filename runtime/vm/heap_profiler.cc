@@ -141,6 +141,11 @@ HeapProfiler::HeapProfiler(Dart_FileWriteCallback callback, void* stream)
 
 
 HeapProfiler::~HeapProfiler() {
+  for (std::set<const RawSmi*>::iterator it = smi_table_.begin();
+       it != smi_table_.end();
+       ++it) {
+    WriteSmiInstanceDump(*it);
+  }
   delete heap_dump_record_;
 }
 
@@ -637,6 +642,7 @@ void HeapProfiler::WriteFakeClassDump(FakeClass fake_class,
 //  u4 - number of bytes that follow
 //  [value]* - instance field values (this class, followed by super class, etc)
 void HeapProfiler::WriteInstanceDump(const RawObject* raw_obj) {
+  ASSERT(raw_obj->IsHeapObject());
   SubRecord sub(kInstanceDump, this);
   // object ID
   sub.WriteObjectId(raw_obj);
@@ -685,6 +691,21 @@ void HeapProfiler::WriteInstanceDump(const RawObject* raw_obj) {
       }
     }
   }
+}
+
+
+// Write a specialized instance dump for "referenced" Smi objects.
+void HeapProfiler::WriteSmiInstanceDump(const RawSmi* raw_smi) {
+  ASSERT(!raw_smi->IsHeapObject());
+  SubRecord sub(kInstanceDump, this);
+  // object ID
+  sub.WriteObjectId(raw_smi);
+  // stack trace serial number
+  sub.Write32(0);
+  // class object ID
+  sub.WriteObjectId(Isolate::Current()->class_table()->At(kSmiCid));
+  // number of bytes that follow
+  sub.Write32(0);
 }
 
 
