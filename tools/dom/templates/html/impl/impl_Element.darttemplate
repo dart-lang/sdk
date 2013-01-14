@@ -24,7 +24,7 @@ class _ChildrenElementList implements List {
   }
 
   Set<Element> toSet() {
-    final output = new Set<Element>(_childElements.length);
+    final output = new Set<Element>();
     for (int i = 0, len = _childElements.length; i < len; i++) {
       output.add(_childElements[i]);
     }
@@ -210,11 +210,11 @@ class _ChildrenElementList implements List {
   }
 
   Element min([int compare(Element a, Element b)]) {
-    return _Collections.minInList(this, compare);
+    return Collections.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return _Collections.maxInList(this, compare);
+    return Collections.max(this, compare);
   }
 }
 
@@ -269,11 +269,14 @@ class _FrozenElementList implements List {
     return false;
   }
 
+  List<Element> toList() => new List<Element>.from(this);
+  Set<Element> toSet() => new Set<Element>.from(this);
+
   List<Element> take(int n) {
     return new ListView<Element>(this, 0, n);
   }
 
-  Iterable<Element> takeWhile(bool test(T value)) {
+  Iterable<Element> takeWhile(bool test(Element value)) {
     return new TakeWhileIterable<Element>(this, test);
   }
 
@@ -281,7 +284,7 @@ class _FrozenElementList implements List {
     return new ListView<Element>(this, n, null);
   }
 
-  Iterable<Element> skipWhile(bool test(T value)) {
+  Iterable<Element> skipWhile(bool test(Element value)) {
     return new SkipWhileIterable<Element>(this, test);
   }
 
@@ -378,11 +381,11 @@ class _FrozenElementList implements List {
   Element get single => _nodeList.single;
 
   Element min([int compare(Element a, Element b)]) {
-    return _Collections.minInList(this, compare);
+    return Collections.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return _Collections.maxInList(this, compare);
+    return Collections.max(this, compare);
   }
 }
 

@@ -114,6 +114,8 @@ class FilteredElementList implements List {
   }
   bool every(bool f(Element element)) => _filtered.every(f);
   bool any(bool f(Element element)) => _filtered.any(f);
+  List<Element> toList() => new List<Element>.from(this);
+  Set<Element> toSet() => new Set<Element>.from(this);
   Element firstMatching(bool test(Element value), {Element orElse()}) {
     return _filtered.firstMatching(test, orElse: orElse);
   }
@@ -126,7 +128,7 @@ class FilteredElementList implements List {
     return _filtered.singleMatching(test);
   }
 
-  E elementAt(int index) {
+  Element elementAt(int index) {
     return this[index];
   }
 

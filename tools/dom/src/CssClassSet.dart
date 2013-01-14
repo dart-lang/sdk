@@ -96,6 +96,29 @@ abstract class CssClassSet implements Set<String> {
   Set<String> intersection(Collection<String> other) =>
     readClasses().intersection(other);
 
+  String get first => readClasses().first;
+  String get last => readClasses().last;
+  String get single => readClasses().single;
+  List<String> toList() => readClasses().toList();
+  Set<String> toSet() => readClasses().toSet();
+  String min([int compare(String a, String b)]) =>
+      readClasses().min(compare);
+  String max([int compare(String a, String b)]) =>
+      readClasses().max(compare);
+  Iterable<String> take(int n) => readClasses().take(n);
+  Iterable<String> takeWhile(bool test(String value)) =>
+      readClasses().takeWhile(test);
+  Iterable<String> skip(int n) => readClasses().skip(n);
+  Iterable<String> skipWhile(bool test(String value)) =>
+      readClasses().skipWhile(test);
+  String firstMatching(bool test(String value), { String orElse() }) =>
+      readClasses().firstMatching(test, orElse: orElse);
+  String lastMatching(bool test(String value), {String orElse()}) =>
+      readClasses().lastMatching(test, orElse: orElse);
+  String singleMatching(bool test(String value)) =>
+      readClasses().singleMatching(test);
+  String elementAt(int index) => readClasses().elementAt(index);
+
   void clear() {
     _modify((s) => s.clear());
   }

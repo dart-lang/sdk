@@ -52,11 +52,11 @@ $else
 $endif
 
   Node min([int compare(Node a, Node b)]) {
-    return _Collections.minInList(this, compare);
+    return Collections.min(this, compare);
   }
 
   Node max([int compare(Node a, Node b)]) {
-    return _Collections.maxInList(this, compare);
+    return Collections.max(this, compare);
   }
 
   void add(Node value) {
@@ -124,6 +124,9 @@ $endif
   bool every(bool f(Node element)) => Collections.every(this, f);
 
   bool any(bool f(Node element)) => Collections.any(this, f);
+
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 

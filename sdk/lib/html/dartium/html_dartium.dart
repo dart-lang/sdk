@@ -7918,6 +7918,9 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 
   bool any(bool f(DomMimeType element)) => Collections.any(this, f);
 
+  List<DomMimeType> toList() => new List<DomMimeType>.from(this);
+  Set<DomMimeType> toSet() => new Set<DomMimeType>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<DomMimeType> take(int n) => new ListView<DomMimeType>(this, 0, n);
@@ -7999,9 +8002,9 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new StateError("More than one element");
   }
 
-  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) => _Collections.minInList(this, compare);
+  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) => Collections.min(this, compare);
 
-  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) => _Collections.maxInList(this, compare);
+  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) => Collections.max(this, compare);
 
   DomMimeType removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -8143,6 +8146,9 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   bool any(bool f(DomPlugin element)) => Collections.any(this, f);
 
+  List<DomPlugin> toList() => new List<DomPlugin>.from(this);
+  Set<DomPlugin> toSet() => new Set<DomPlugin>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<DomPlugin> take(int n) => new ListView<DomPlugin>(this, 0, n);
@@ -8224,9 +8230,9 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new StateError("More than one element");
   }
 
-  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) => _Collections.minInList(this, compare);
+  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) => Collections.min(this, compare);
 
-  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) => _Collections.maxInList(this, compare);
+  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) => Collections.max(this, compare);
 
   DomPlugin removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -8452,6 +8458,9 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
 
   bool any(bool f(String element)) => Collections.any(this, f);
 
+  List<String> toList() => new List<String>.from(this);
+  Set<String> toSet() => new Set<String>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<String> take(int n) => new ListView<String>(this, 0, n);
@@ -8533,9 +8542,9 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new StateError("More than one element");
   }
 
-  String min([int compare(String a, String b)]) => _Collections.minInList(this, compare);
+  String min([int compare(String a, String b)]) => Collections.min(this, compare);
 
-  String max([int compare(String a, String b)]) => _Collections.maxInList(this, compare);
+  String max([int compare(String a, String b)]) => Collections.max(this, compare);
 
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -8651,7 +8660,7 @@ class _ChildrenElementList implements List {
   }
 
   Set<Element> toSet() {
-    final output = new Set<Element>(_childElements.length);
+    final output = new Set<Element>();
     for (int i = 0, len = _childElements.length; i < len; i++) {
       output.add(_childElements[i]);
     }
@@ -8837,11 +8846,11 @@ class _ChildrenElementList implements List {
   }
 
   Element min([int compare(Element a, Element b)]) {
-    return _Collections.minInList(this, compare);
+    return Collections.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return _Collections.maxInList(this, compare);
+    return Collections.max(this, compare);
   }
 }
 
@@ -8896,11 +8905,14 @@ class _FrozenElementList implements List {
     return false;
   }
 
+  List<Element> toList() => new List<Element>.from(this);
+  Set<Element> toSet() => new Set<Element>.from(this);
+
   List<Element> take(int n) {
     return new ListView<Element>(this, 0, n);
   }
 
-  Iterable<Element> takeWhile(bool test(T value)) {
+  Iterable<Element> takeWhile(bool test(Element value)) {
     return new TakeWhileIterable<Element>(this, test);
   }
 
@@ -8908,7 +8920,7 @@ class _FrozenElementList implements List {
     return new ListView<Element>(this, n, null);
   }
 
-  Iterable<Element> skipWhile(bool test(T value)) {
+  Iterable<Element> skipWhile(bool test(Element value)) {
     return new SkipWhileIterable<Element>(this, test);
   }
 
@@ -9005,11 +9017,11 @@ class _FrozenElementList implements List {
   Element get single => _nodeList.single;
 
   Element min([int compare(Element a, Element b)]) {
-    return _Collections.minInList(this, compare);
+    return Collections.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return _Collections.maxInList(this, compare);
+    return Collections.max(this, compare);
   }
 }
 
@@ -10960,6 +10972,9 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 
   bool any(bool f(File element)) => Collections.any(this, f);
 
+  List<File> toList() => new List<File>.from(this);
+  Set<File> toSet() => new Set<File>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<File> take(int n) => new ListView<File>(this, 0, n);
@@ -11041,9 +11056,9 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new StateError("More than one element");
   }
 
-  File min([int compare(File a, File b)]) => _Collections.minInList(this, compare);
+  File min([int compare(File a, File b)]) => Collections.min(this, compare);
 
-  File max([int compare(File a, File b)]) => _Collections.maxInList(this, compare);
+  File max([int compare(File a, File b)]) => Collections.max(this, compare);
 
   File removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -11513,6 +11528,9 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   bool any(bool f(num element)) => Collections.any(this, f);
 
+  List<num> toList() => new List<num>.from(this);
+  Set<num> toSet() => new Set<num>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<num> take(int n) => new ListView<num>(this, 0, n);
@@ -11594,9 +11612,9 @@ class Float32Array extends ArrayBufferView implements List<num> {
     throw new StateError("More than one element");
   }
 
-  num min([int compare(num a, num b)]) => _Collections.minInList(this, compare);
+  num min([int compare(num a, num b)]) => Collections.min(this, compare);
 
-  num max([int compare(num a, num b)]) => _Collections.maxInList(this, compare);
+  num max([int compare(num a, num b)]) => Collections.max(this, compare);
 
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -11706,6 +11724,9 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   bool any(bool f(num element)) => Collections.any(this, f);
 
+  List<num> toList() => new List<num>.from(this);
+  Set<num> toSet() => new Set<num>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<num> take(int n) => new ListView<num>(this, 0, n);
@@ -11787,9 +11808,9 @@ class Float64Array extends ArrayBufferView implements List<num> {
     throw new StateError("More than one element");
   }
 
-  num min([int compare(num a, num b)]) => _Collections.minInList(this, compare);
+  num min([int compare(num a, num b)]) => Collections.min(this, compare);
 
-  num max([int compare(num a, num b)]) => _Collections.maxInList(this, compare);
+  num max([int compare(num a, num b)]) => Collections.max(this, compare);
 
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -12491,6 +12512,9 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => Collections.any(this, f);
 
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<Node> take(int n) => new ListView<Node>(this, 0, n);
@@ -12572,9 +12596,9 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => _Collections.minInList(this, compare);
+  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => _Collections.maxInList(this, compare);
+  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -12664,6 +12688,9 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => Collections.any(this, f);
 
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<Node> take(int n) => new ListView<Node>(this, 0, n);
@@ -12745,9 +12772,9 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => _Collections.minInList(this, compare);
+  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => _Collections.maxInList(this, compare);
+  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -14682,6 +14709,9 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => Collections.any(this, f);
 
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<int> take(int n) => new ListView<int>(this, 0, n);
@@ -14763,9 +14793,9 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
 
-  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -14875,6 +14905,9 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => Collections.any(this, f);
 
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<int> take(int n) => new ListView<int>(this, 0, n);
@@ -14956,9 +14989,9 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
 
-  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -15068,6 +15101,9 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => Collections.any(this, f);
 
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<int> take(int n) => new ListView<int>(this, 0, n);
@@ -15149,9 +15185,9 @@ class Int8Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
 
-  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -17561,6 +17597,9 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => Collections.any(this, f);
 
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<Node> take(int n) => new ListView<Node>(this, 0, n);
@@ -17642,9 +17681,9 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => _Collections.minInList(this, compare);
+  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => _Collections.maxInList(this, compare);
+  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -17860,11 +17899,11 @@ class _ChildNodeListLazy implements List {
   }
 
   Node min([int compare(Node a, Node b)]) {
-    return _Collections.minInList(this, compare);
+    return Collections.min(this, compare);
   }
 
   Node max([int compare(Node a, Node b)]) {
-    return _Collections.maxInList(this, compare);
+    return Collections.max(this, compare);
   }
 
   void add(Node value) {
@@ -17932,6 +17971,9 @@ class _ChildNodeListLazy implements List {
   bool every(bool f(Node element)) => Collections.every(this, f);
 
   bool any(bool f(Node element)) => Collections.any(this, f);
+
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
@@ -18335,6 +18377,9 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => Collections.any(this, f);
 
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<Node> take(int n) => new ListView<Node>(this, 0, n);
@@ -18416,9 +18461,9 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => _Collections.minInList(this, compare);
+  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => _Collections.maxInList(this, compare);
+  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -20884,6 +20929,9 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
   bool any(bool f(SourceBuffer element)) => Collections.any(this, f);
 
+  List<SourceBuffer> toList() => new List<SourceBuffer>.from(this);
+  Set<SourceBuffer> toSet() => new Set<SourceBuffer>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<SourceBuffer> take(int n) => new ListView<SourceBuffer>(this, 0, n);
@@ -20965,9 +21013,9 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new StateError("More than one element");
   }
 
-  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) => _Collections.minInList(this, compare);
+  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) => Collections.min(this, compare);
 
-  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) => _Collections.maxInList(this, compare);
+  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) => Collections.max(this, compare);
 
   SourceBuffer removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21151,6 +21199,9 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   bool any(bool f(SpeechGrammar element)) => Collections.any(this, f);
 
+  List<SpeechGrammar> toList() => new List<SpeechGrammar>.from(this);
+  Set<SpeechGrammar> toSet() => new Set<SpeechGrammar>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<SpeechGrammar> take(int n) => new ListView<SpeechGrammar>(this, 0, n);
@@ -21232,9 +21283,9 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new StateError("More than one element");
   }
 
-  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) => _Collections.minInList(this, compare);
+  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) => Collections.min(this, compare);
 
-  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) => _Collections.maxInList(this, compare);
+  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) => Collections.max(this, compare);
 
   SpeechGrammar removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21739,6 +21790,9 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
   bool any(bool f(Map element)) => Collections.any(this, f);
 
+  List<Map> toList() => new List<Map>.from(this);
+  Set<Map> toSet() => new Set<Map>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<Map> take(int n) => new ListView<Map>(this, 0, n);
@@ -21820,9 +21874,9 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new StateError("More than one element");
   }
 
-  Map min([int compare(Map a, Map b)]) => _Collections.minInList(this, compare);
+  Map min([int compare(Map a, Map b)]) => Collections.min(this, compare);
 
-  Map max([int compare(Map a, Map b)]) => _Collections.maxInList(this, compare);
+  Map max([int compare(Map a, Map b)]) => Collections.max(this, compare);
 
   Map removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -22968,6 +23022,9 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 
   bool any(bool f(TextTrackCue element)) => Collections.any(this, f);
 
+  List<TextTrackCue> toList() => new List<TextTrackCue>.from(this);
+  Set<TextTrackCue> toSet() => new Set<TextTrackCue>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<TextTrackCue> take(int n) => new ListView<TextTrackCue>(this, 0, n);
@@ -23049,9 +23106,9 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new StateError("More than one element");
   }
 
-  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) => _Collections.minInList(this, compare);
+  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) => Collections.min(this, compare);
 
-  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) => _Collections.maxInList(this, compare);
+  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) => Collections.max(this, compare);
 
   TextTrackCue removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -23143,6 +23200,9 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   bool any(bool f(TextTrack element)) => Collections.any(this, f);
 
+  List<TextTrack> toList() => new List<TextTrack>.from(this);
+  Set<TextTrack> toSet() => new Set<TextTrack>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<TextTrack> take(int n) => new ListView<TextTrack>(this, 0, n);
@@ -23224,9 +23284,9 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new StateError("More than one element");
   }
 
-  TextTrack min([int compare(TextTrack a, TextTrack b)]) => _Collections.minInList(this, compare);
+  TextTrack min([int compare(TextTrack a, TextTrack b)]) => Collections.min(this, compare);
 
-  TextTrack max([int compare(TextTrack a, TextTrack b)]) => _Collections.maxInList(this, compare);
+  TextTrack max([int compare(TextTrack a, TextTrack b)]) => Collections.max(this, compare);
 
   TextTrack removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -23482,6 +23542,9 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   bool any(bool f(Touch element)) => Collections.any(this, f);
 
+  List<Touch> toList() => new List<Touch>.from(this);
+  Set<Touch> toSet() => new Set<Touch>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<Touch> take(int n) => new ListView<Touch>(this, 0, n);
@@ -23563,9 +23626,9 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new StateError("More than one element");
   }
 
-  Touch min([int compare(Touch a, Touch b)]) => _Collections.minInList(this, compare);
+  Touch min([int compare(Touch a, Touch b)]) => Collections.min(this, compare);
 
-  Touch max([int compare(Touch a, Touch b)]) => _Collections.maxInList(this, compare);
+  Touch max([int compare(Touch a, Touch b)]) => Collections.max(this, compare);
 
   Touch removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -23916,6 +23979,9 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => Collections.any(this, f);
 
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<int> take(int n) => new ListView<int>(this, 0, n);
@@ -23997,9 +24063,9 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
 
-  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -24109,6 +24175,9 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => Collections.any(this, f);
 
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<int> take(int n) => new ListView<int>(this, 0, n);
@@ -24190,9 +24259,9 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
 
-  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -24302,6 +24371,9 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => Collections.any(this, f);
 
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<int> take(int n) => new ListView<int>(this, 0, n);
@@ -24383,9 +24455,9 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => _Collections.minInList(this, compare);
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
 
-  int max([int compare(int a, int b)]) => _Collections.maxInList(this, compare);
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -27997,6 +28069,9 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 
   bool any(bool f(ClientRect element)) => Collections.any(this, f);
 
+  List<ClientRect> toList() => new List<ClientRect>.from(this);
+  Set<ClientRect> toSet() => new Set<ClientRect>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<ClientRect> take(int n) => new ListView<ClientRect>(this, 0, n);
@@ -28078,9 +28153,9 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new StateError("More than one element");
   }
 
-  ClientRect min([int compare(ClientRect a, ClientRect b)]) => _Collections.minInList(this, compare);
+  ClientRect min([int compare(ClientRect a, ClientRect b)]) => Collections.min(this, compare);
 
-  ClientRect max([int compare(ClientRect a, ClientRect b)]) => _Collections.maxInList(this, compare);
+  ClientRect max([int compare(ClientRect a, ClientRect b)]) => Collections.max(this, compare);
 
   ClientRect removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -28161,6 +28236,9 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   bool every(bool f(CssRule element)) => Collections.every(this, f);
 
   bool any(bool f(CssRule element)) => Collections.any(this, f);
+
+  List<CssRule> toList() => new List<CssRule>.from(this);
+  Set<CssRule> toSet() => new Set<CssRule>.from(this);
 
   bool get isEmpty => this.length == 0;
 
@@ -28243,9 +28321,9 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new StateError("More than one element");
   }
 
-  CssRule min([int compare(CssRule a, CssRule b)]) => _Collections.minInList(this, compare);
+  CssRule min([int compare(CssRule a, CssRule b)]) => Collections.min(this, compare);
 
-  CssRule max([int compare(CssRule a, CssRule b)]) => _Collections.maxInList(this, compare);
+  CssRule max([int compare(CssRule a, CssRule b)]) => Collections.max(this, compare);
 
   CssRule removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -28326,6 +28404,9 @@ class _CssValueList extends CssValue implements List<CssValue> {
   bool every(bool f(CssValue element)) => Collections.every(this, f);
 
   bool any(bool f(CssValue element)) => Collections.any(this, f);
+
+  List<CssValue> toList() => new List<CssValue>.from(this);
+  Set<CssValue> toSet() => new Set<CssValue>.from(this);
 
   bool get isEmpty => this.length == 0;
 
@@ -28408,9 +28489,9 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new StateError("More than one element");
   }
 
-  CssValue min([int compare(CssValue a, CssValue b)]) => _Collections.minInList(this, compare);
+  CssValue min([int compare(CssValue a, CssValue b)]) => Collections.min(this, compare);
 
-  CssValue max([int compare(CssValue a, CssValue b)]) => _Collections.maxInList(this, compare);
+  CssValue max([int compare(CssValue a, CssValue b)]) => Collections.max(this, compare);
 
   CssValue removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -28628,6 +28709,9 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 
   bool any(bool f(Entry element)) => Collections.any(this, f);
 
+  List<Entry> toList() => new List<Entry>.from(this);
+  Set<Entry> toSet() => new Set<Entry>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<Entry> take(int n) => new ListView<Entry>(this, 0, n);
@@ -28709,9 +28793,9 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new StateError("More than one element");
   }
 
-  Entry min([int compare(Entry a, Entry b)]) => _Collections.minInList(this, compare);
+  Entry min([int compare(Entry a, Entry b)]) => Collections.min(this, compare);
 
-  Entry max([int compare(Entry a, Entry b)]) => _Collections.maxInList(this, compare);
+  Entry max([int compare(Entry a, Entry b)]) => Collections.max(this, compare);
 
   Entry removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -28792,6 +28876,9 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   bool every(bool f(EntrySync element)) => Collections.every(this, f);
 
   bool any(bool f(EntrySync element)) => Collections.any(this, f);
+
+  List<EntrySync> toList() => new List<EntrySync>.from(this);
+  Set<EntrySync> toSet() => new Set<EntrySync>.from(this);
 
   bool get isEmpty => this.length == 0;
 
@@ -28874,9 +28961,9 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new StateError("More than one element");
   }
 
-  EntrySync min([int compare(EntrySync a, EntrySync b)]) => _Collections.minInList(this, compare);
+  EntrySync min([int compare(EntrySync a, EntrySync b)]) => Collections.min(this, compare);
 
-  EntrySync max([int compare(EntrySync a, EntrySync b)]) => _Collections.maxInList(this, compare);
+  EntrySync max([int compare(EntrySync a, EntrySync b)]) => Collections.max(this, compare);
 
   EntrySync removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -28957,6 +29044,9 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   bool every(bool f(Gamepad element)) => Collections.every(this, f);
 
   bool any(bool f(Gamepad element)) => Collections.any(this, f);
+
+  List<Gamepad> toList() => new List<Gamepad>.from(this);
+  Set<Gamepad> toSet() => new Set<Gamepad>.from(this);
 
   bool get isEmpty => this.length == 0;
 
@@ -29039,9 +29129,9 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new StateError("More than one element");
   }
 
-  Gamepad min([int compare(Gamepad a, Gamepad b)]) => _Collections.minInList(this, compare);
+  Gamepad min([int compare(Gamepad a, Gamepad b)]) => Collections.min(this, compare);
 
-  Gamepad max([int compare(Gamepad a, Gamepad b)]) => _Collections.maxInList(this, compare);
+  Gamepad max([int compare(Gamepad a, Gamepad b)]) => Collections.max(this, compare);
 
   Gamepad removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -29122,6 +29212,9 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
   bool every(bool f(MediaStream element)) => Collections.every(this, f);
 
   bool any(bool f(MediaStream element)) => Collections.any(this, f);
+
+  List<MediaStream> toList() => new List<MediaStream>.from(this);
+  Set<MediaStream> toSet() => new Set<MediaStream>.from(this);
 
   bool get isEmpty => this.length == 0;
 
@@ -29204,9 +29297,9 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
     throw new StateError("More than one element");
   }
 
-  MediaStream min([int compare(MediaStream a, MediaStream b)]) => _Collections.minInList(this, compare);
+  MediaStream min([int compare(MediaStream a, MediaStream b)]) => Collections.min(this, compare);
 
-  MediaStream max([int compare(MediaStream a, MediaStream b)]) => _Collections.maxInList(this, compare);
+  MediaStream max([int compare(MediaStream a, MediaStream b)]) => Collections.max(this, compare);
 
   MediaStream removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -29287,6 +29380,9 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
 
   bool any(bool f(SpeechInputResult element)) => Collections.any(this, f);
+
+  List<SpeechInputResult> toList() => new List<SpeechInputResult>.from(this);
+  Set<SpeechInputResult> toSet() => new Set<SpeechInputResult>.from(this);
 
   bool get isEmpty => this.length == 0;
 
@@ -29369,9 +29465,9 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new StateError("More than one element");
   }
 
-  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) => _Collections.minInList(this, compare);
+  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) => Collections.min(this, compare);
 
-  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) => _Collections.maxInList(this, compare);
+  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) => Collections.max(this, compare);
 
   SpeechInputResult removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -29452,6 +29548,9 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
   bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
 
   bool any(bool f(SpeechRecognitionResult element)) => Collections.any(this, f);
+
+  List<SpeechRecognitionResult> toList() => new List<SpeechRecognitionResult>.from(this);
+  Set<SpeechRecognitionResult> toSet() => new Set<SpeechRecognitionResult>.from(this);
 
   bool get isEmpty => this.length == 0;
 
@@ -29534,9 +29633,9 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new StateError("More than one element");
   }
 
-  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => _Collections.minInList(this, compare);
+  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => Collections.min(this, compare);
 
-  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => _Collections.maxInList(this, compare);
+  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => Collections.max(this, compare);
 
   SpeechRecognitionResult removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -29617,6 +29716,9 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   bool every(bool f(StyleSheet element)) => Collections.every(this, f);
 
   bool any(bool f(StyleSheet element)) => Collections.any(this, f);
+
+  List<StyleSheet> toList() => new List<StyleSheet>.from(this);
+  Set<StyleSheet> toSet() => new Set<StyleSheet>.from(this);
 
   bool get isEmpty => this.length == 0;
 
@@ -29699,9 +29801,9 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new StateError("More than one element");
   }
 
-  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) => _Collections.minInList(this, compare);
+  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) => Collections.min(this, compare);
 
-  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) => _Collections.maxInList(this, compare);
+  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) => Collections.max(this, compare);
 
   StyleSheet removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -30179,6 +30281,29 @@ abstract class CssClassSet implements Set<String> {
 
   Set<String> intersection(Collection<String> other) =>
     readClasses().intersection(other);
+
+  String get first => readClasses().first;
+  String get last => readClasses().last;
+  String get single => readClasses().single;
+  List<String> toList() => readClasses().toList();
+  Set<String> toSet() => readClasses().toSet();
+  String min([int compare(String a, String b)]) =>
+      readClasses().min(compare);
+  String max([int compare(String a, String b)]) =>
+      readClasses().max(compare);
+  Iterable<String> take(int n) => readClasses().take(n);
+  Iterable<String> takeWhile(bool test(String value)) =>
+      readClasses().takeWhile(test);
+  Iterable<String> skip(int n) => readClasses().skip(n);
+  Iterable<String> skipWhile(bool test(String value)) =>
+      readClasses().skipWhile(test);
+  String firstMatching(bool test(String value), { String orElse() }) =>
+      readClasses().firstMatching(test, orElse: orElse);
+  String lastMatching(bool test(String value), {String orElse()}) =>
+      readClasses().lastMatching(test, orElse: orElse);
+  String singleMatching(bool test(String value)) =>
+      readClasses().singleMatching(test);
+  String elementAt(int index) => readClasses().elementAt(index);
 
   void clear() {
     _modify((s) => s.clear());

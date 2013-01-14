@@ -36,6 +36,9 @@ $endif
 
   bool any(bool f($E element)) => Collections.any(this, f);
 
+  List<$E> toList() => new List<$E>.from(this);
+  Set<$E> toSet() => new Set<$E>.from(this);
+
   bool get isEmpty => this.length == 0;
 
   List<$E> take(int n) => new ListView<$E>(this, 0, n);
@@ -123,9 +126,9 @@ $endif
     throw new StateError("More than one element");
   }
 
-  $E min([int compare($E a, $E b)]) => _Collections.minInList(this, compare);
+  $E min([int compare($E a, $E b)]) => Collections.min(this, compare);
 
-  $E max([int compare($E a, $E b)]) => _Collections.maxInList(this, compare);
+  $E max([int compare($E a, $E b)]) => Collections.max(this, compare);
 
   $E removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
