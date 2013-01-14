@@ -246,6 +246,9 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         optimizer.InferSmiRanges();
       }
 
+      // The final canonicalization pass before the code generation.
+      optimizer.Canonicalize();
+
       // Perform register allocation on the SSA graph.
       FlowGraphAllocator allocator(*flow_graph);
       allocator.AllocateRegisters();
