@@ -57,6 +57,8 @@ spawnDomFunction(f) => IsolateNatives.spawnDomFunction(f);
 /// @domName AbstractWorker; @docsEditable true
 class AbstractWorker extends EventTarget native "*AbstractWorker" {
 
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AbstractWorkerEvents get on =>
     new AbstractWorkerEvents(this);
@@ -72,6 +74,8 @@ class AbstractWorker extends EventTarget native "*AbstractWorker" {
   /// @domName AbstractWorker.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -211,6 +215,22 @@ class AppletElement extends Element native "*HTMLAppletElement" {
 /// @domName DOMApplicationCache; @docsEditable true
 class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
+  static const EventStreamProvider<Event> cachedEvent = const EventStreamProvider<Event>('cached');
+
+  static const EventStreamProvider<Event> checkingEvent = const EventStreamProvider<Event>('checking');
+
+  static const EventStreamProvider<Event> downloadingEvent = const EventStreamProvider<Event>('downloading');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> noUpdateEvent = const EventStreamProvider<Event>('noupdate');
+
+  static const EventStreamProvider<Event> obsoleteEvent = const EventStreamProvider<Event>('obsolete');
+
+  static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
+
+  static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ApplicationCacheEvents get on =>
     new ApplicationCacheEvents(this);
@@ -250,6 +270,22 @@ class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
   /// @domName DOMApplicationCache.update; @docsEditable true
   void update() native;
+
+  Stream<Event> get onCached => cachedEvent.forTarget(this);
+
+  Stream<Event> get onChecking => checkingEvent.forTarget(this);
+
+  Stream<Event> get onDownloading => downloadingEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onNoUpdate => noUpdateEvent.forTarget(this);
+
+  Stream<Event> get onObsolete => obsoleteEvent.forTarget(this);
+
+  Stream<Event> get onProgress => progressEvent.forTarget(this);
+
+  Stream<Event> get onUpdateReady => updateReadyEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -512,6 +548,14 @@ class BaseFontElement extends Element native "*HTMLBaseFontElement" {
 /// @domName BatteryManager; @docsEditable true
 class BatteryManager extends EventTarget native "*BatteryManager" {
 
+  static const EventStreamProvider<Event> chargingChangeEvent = const EventStreamProvider<Event>('chargingchange');
+
+  static const EventStreamProvider<Event> chargingTimeChangeEvent = const EventStreamProvider<Event>('chargingtimechange');
+
+  static const EventStreamProvider<Event> dischargingTimeChangeEvent = const EventStreamProvider<Event>('dischargingtimechange');
+
+  static const EventStreamProvider<Event> levelChangeEvent = const EventStreamProvider<Event>('levelchange');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BatteryManagerEvents get on =>
     new BatteryManagerEvents(this);
@@ -539,6 +583,14 @@ class BatteryManager extends EventTarget native "*BatteryManager" {
   /// @domName BatteryManager.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onChargingChange => chargingChangeEvent.forTarget(this);
+
+  Stream<Event> get onChargingTimeChange => chargingTimeChangeEvent.forTarget(this);
+
+  Stream<Event> get onDischargingTimeChange => dischargingTimeChangeEvent.forTarget(this);
+
+  Stream<Event> get onLevelChange => levelChangeEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -625,6 +677,32 @@ class Blob native "*Blob" {
 /// @domName HTMLBodyElement; @docsEditable true
 class BodyElement extends Element native "*HTMLBodyElement" {
 
+  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
+
+  static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
+
+  static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
+
+  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
+
+  static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
+
+  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
+
   ///@docsEditable true
   factory BodyElement() => document.$dom_createElement("body");
 
@@ -634,6 +712,32 @@ class BodyElement extends Element native "*HTMLBodyElement" {
 
   /// @domName HTMLBodyElement.vLink; @docsEditable true
   String vLink;
+
+  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<Event> get onOffline => offlineEvent.forTarget(this);
+
+  Stream<Event> get onOnline => onlineEvent.forTarget(this);
+
+  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
+
+  Stream<Event> get onResize => resizeEvent.forTarget(this);
+
+  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
+
+  Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -5463,6 +5567,8 @@ class DatabaseSync native "*DatabaseSync" {
 /// @domName DedicatedWorkerContext; @docsEditable true
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
@@ -5482,6 +5588,8 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
   void _postMessage_1(message, List messagePorts) native;
   @JSName('postMessage')
   void _postMessage_2(message) native;
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -5733,6 +5841,104 @@ class Document extends Node  native "*Document"
 {
 
 
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
+
+  static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
+
+  static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
+
+  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
+
+  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
+
+  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
+
+  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
+
+  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
+
+  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
+
+  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
+
+  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
+
+  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
+
+  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
+
+  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
+
+  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
+
+  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
+
+  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
+
+  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
+
+  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
+
+  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
+
+  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
+
+  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
+
+  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
+
+  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
+
+  static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
+
+  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
+
+  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
+
+  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
+
+  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
+
+  static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
+
+  static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
+
+  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
+
+  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
+
+  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
+
+  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
+
+  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
+
+  static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
+
+  static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
+
+  static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
+
+  static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DocumentEvents get on =>
     new DocumentEvents(this);
@@ -5948,6 +6154,104 @@ class Document extends Node  native "*Document"
   /// @domName Document.webkitExitPointerLock; @docsEditable true
   @JSName('webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native;
+
+  Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
+
+  Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
+
+  Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onChange => changeEvent.forTarget(this);
+
+  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+
+  Stream<Event> get onCopy => copyEvent.forTarget(this);
+
+  Stream<Event> get onCut => cutEvent.forTarget(this);
+
+  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<Event> get onInput => inputEvent.forTarget(this);
+
+  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+
+  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+
+  Stream<Event> get onPaste => pasteEvent.forTarget(this);
+
+  Stream<Event> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
+
+  Stream<Event> get onReset => resetEvent.forTarget(this);
+
+  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+
+  Stream<Event> get onSearch => searchEvent.forTarget(this);
+
+  Stream<Event> get onSelect => selectEvent.forTarget(this);
+
+  Stream<Event> get onSelectionChange => selectionChangeEvent.forTarget(this);
+
+  Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
+
+  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+
+  Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
+
+  Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
+
+  Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
+
+  Stream<Event> get onPointerLockError => pointerLockErrorEvent.forTarget(this);
 
 
   /**
@@ -7959,6 +8263,100 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   }
 
 
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
+
+  static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
+
+  static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
+
+  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
+
+  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
+
+  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
+
+  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
+
+  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
+
+  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
+
+  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
+
+  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
+
+  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
+
+  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
+
+  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
+
+  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
+
+  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
+
+  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
+
+  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
+
+  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
+
+  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
+
+  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
+
+  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
+
+  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
+
+  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
+
+  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
+
+  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
+
+  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
+
+  static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
+
+  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
+
+  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
+
+  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
+
+  static const EventStreamProvider<TouchEvent> touchEnterEvent = const EventStreamProvider<TouchEvent>('touchenter');
+
+  static const EventStreamProvider<TouchEvent> touchLeaveEvent = const EventStreamProvider<TouchEvent>('touchleave');
+
+  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
+
+  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
+
+  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
+
+  static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
+
+  static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
     new ElementEvents(this);
@@ -8179,6 +8577,100 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   /// @domName Element.webkitRequestPointerLock; @docsEditable true
   void webkitRequestPointerLock() native;
+
+  Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
+
+  Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
+
+  Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onChange => changeEvent.forTarget(this);
+
+  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+
+  Stream<Event> get onCopy => copyEvent.forTarget(this);
+
+  Stream<Event> get onCut => cutEvent.forTarget(this);
+
+  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<Event> get onInput => inputEvent.forTarget(this);
+
+  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+
+  Stream<Event> get onPaste => pasteEvent.forTarget(this);
+
+  Stream<Event> get onReset => resetEvent.forTarget(this);
+
+  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+
+  Stream<Event> get onSearch => searchEvent.forTarget(this);
+
+  Stream<Event> get onSelect => selectEvent.forTarget(this);
+
+  Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
+
+  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchEnter => touchEnterEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchLeave => touchLeaveEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+
+  Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
+
+  Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
+
+  Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
 
 }
 
@@ -8731,6 +9223,12 @@ class EventException native "*EventException" {
 /// @domName EventSource; @docsEditable true
 class EventSource extends EventTarget native "*EventSource" {
 
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
+
   ///@docsEditable true
   factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
   static EventSource _create(String scriptUrl) => JS('EventSource', 'new EventSource(#)', scriptUrl);
@@ -8765,6 +9263,12 @@ class EventSource extends EventTarget native "*EventSource" {
   /// @domName EventSource.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -9226,6 +9730,18 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 /// @domName FileReader; @docsEditable true
 class FileReader extends EventTarget native "*FileReader" {
 
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
+
+  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
+
+  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
+
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
   ///@docsEditable true
   factory FileReader() => FileReader._create();
   static FileReader _create() => JS('FileReader', 'new FileReader()');
@@ -9277,6 +9793,18 @@ class FileReader extends EventTarget native "*FileReader" {
   /// @domName FileReader.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -9371,6 +9899,18 @@ class FileSystemSync native "*DOMFileSystemSync" {
 /// @domName FileWriter; @docsEditable true
 class FileWriter extends EventTarget native "*FileWriter" {
 
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
+  static const EventStreamProvider<ProgressEvent> writeEvent = const EventStreamProvider<ProgressEvent>('write');
+
+  static const EventStreamProvider<ProgressEvent> writeEndEvent = const EventStreamProvider<ProgressEvent>('writeend');
+
+  static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileWriterEvents get on =>
     new FileWriterEvents(this);
@@ -9416,6 +9956,18 @@ class FileWriter extends EventTarget native "*FileWriter" {
 
   /// @domName FileWriter.write; @docsEditable true
   void write(Blob data) native;
+
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onWrite => writeEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onWriteEnd => writeEndEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onWriteStart => writeStartEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -9961,6 +10513,32 @@ class FrameElement extends Element native "*HTMLFrameElement" {
 /// @domName HTMLFrameSetElement; @docsEditable true
 class FrameSetElement extends Element native "*HTMLFrameSetElement" {
 
+  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
+
+  static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
+
+  static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
+
+  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
+
+  static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
+
+  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FrameSetElementEvents get on =>
     new FrameSetElementEvents(this);
@@ -9970,6 +10548,32 @@ class FrameSetElement extends Element native "*HTMLFrameSetElement" {
 
   /// @domName HTMLFrameSetElement.rows; @docsEditable true
   String rows;
+
+  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<Event> get onOffline => offlineEvent.forTarget(this);
+
+  Stream<Event> get onOnline => onlineEvent.forTarget(this);
+
+  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
+
+  Stream<Event> get onResize => resizeEvent.forTarget(this);
+
+  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
+
+  Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -10755,6 +11359,20 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
       _HttpRequestUtils.get(url, onComplete, true);
 
 
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
+
+  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
+
+  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
+
+  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
+
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
+  static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
+
   ///@docsEditable true
   factory HttpRequest() => HttpRequest._create();
   static HttpRequest _create() => JS('HttpRequest', 'new XMLHttpRequest()');
@@ -10965,6 +11583,20 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /// @domName XMLHttpRequest.setRequestHeader; @docsEditable true
   void setRequestHeader(String header, String value) native;
 
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
+
 }
 
 /**
@@ -11083,6 +11715,18 @@ class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProg
 /// @domName XMLHttpRequestUpload; @docsEditable true
 class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
 
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
+
+  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
+
+  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
+
+  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
+
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestUploadEvents get on =>
     new HttpRequestUploadEvents(this);
@@ -11098,6 +11742,18 @@ class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
   /// @domName XMLHttpRequestUpload.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -11277,6 +11933,8 @@ class InputElement extends Element implements
     return e;
   }
 
+  static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   InputElementEvents get on =>
     new InputElementEvents(this);
@@ -11451,6 +12109,8 @@ class InputElement extends Element implements
 
   /// @domName HTMLInputElement.stepUp; @docsEditable true
   void stepUp([int n]) native;
+
+  Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
 
 }
 
@@ -13025,6 +13685,56 @@ class MediaController extends EventTarget native "*MediaController" {
 /// @domName HTMLMediaElement; @docsEditable true
 class MediaElement extends Element native "*HTMLMediaElement" {
 
+  static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
+
+  static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
+
+  static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
+
+  static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
+
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
+  static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
+
+  static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
+
+  static const EventStreamProvider<Event> loadStartEvent = const EventStreamProvider<Event>('loadstart');
+
+  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
+
+  static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
+
+  static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
+
+  static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
+
+  static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
+
+  static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
+
+  static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
+
+  static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
+
+  static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
+
+  static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
+
+  static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
+
+  static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
+
+  static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
+
+  static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
+
+  static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
+
+  static const EventStreamProvider<MediaKeyEvent> keyMessageEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeymessage');
+
+  static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaElementEvents get on =>
     new MediaElementEvents(this);
@@ -13166,6 +13876,56 @@ class MediaElement extends Element native "*HTMLMediaElement" {
 
   /// @domName HTMLMediaElement.webkitGenerateKeyRequest; @docsEditable true
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) native;
+
+  Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
+
+  Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
+
+  Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
+
+  Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
+
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
+
+  Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
+
+  Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
+
+  Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
+
+  Stream<Event> get onPause => pauseEvent.forTarget(this);
+
+  Stream<Event> get onPlay => playEvent.forTarget(this);
+
+  Stream<Event> get onPlaying => playingEvent.forTarget(this);
+
+  Stream<Event> get onProgress => progressEvent.forTarget(this);
+
+  Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
+
+  Stream<Event> get onSeeked => seekedEvent.forTarget(this);
+
+  Stream<Event> get onSeeking => seekingEvent.forTarget(this);
+
+  Stream<Event> get onShow => showEvent.forTarget(this);
+
+  Stream<Event> get onStalled => stalledEvent.forTarget(this);
+
+  Stream<Event> get onSuspend => suspendEvent.forTarget(this);
+
+  Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
+
+  Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
+
+  Stream<Event> get onWaiting => waitingEvent.forTarget(this);
+
+  Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
+
+  Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
+
+  Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
+
+  Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -13429,6 +14189,8 @@ class MediaSource extends EventTarget native "*MediaSource" {
 /// @domName MediaStream; @docsEditable true
 class MediaStream extends EventTarget native "*MediaStream" {
 
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
   ///@docsEditable true
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => MediaStream._create(audioTracks, videoTracks);
   static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => JS('MediaStream', 'new MediaStream(#,#)', audioTracks, videoTracks);
@@ -13464,6 +14226,8 @@ class MediaStream extends EventTarget native "*MediaStream" {
   /// @domName MediaStream.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -13492,6 +14256,12 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 
 /// @domName MediaStreamTrack; @docsEditable true
 class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
+
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
+  static const EventStreamProvider<Event> muteEvent = const EventStreamProvider<Event>('mute');
+
+  static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackEvents get on =>
@@ -13526,6 +14296,12 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
   /// @domName MediaStreamTrack.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
+
+  Stream<Event> get onMute => muteEvent.forTarget(this);
+
+  Stream<Event> get onUnmute => unmuteEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -13561,6 +14337,10 @@ class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 /// @domName MediaStreamTrackList; @docsEditable true
 class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
 
+  static const EventStreamProvider<MediaStreamTrackEvent> addTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('addtrack');
+
+  static const EventStreamProvider<MediaStreamTrackEvent> removeTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('removetrack');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackListEvents get on =>
     new MediaStreamTrackListEvents(this);
@@ -13588,6 +14368,10 @@ class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
   /// @domName MediaStreamTrackList.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<MediaStreamTrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
+
+  Stream<MediaStreamTrackEvent> get onRemoveTrack => removeTrackEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -13701,6 +14485,8 @@ class MessageEvent extends Event native "*MessageEvent" {
 /// @domName MessagePort; @docsEditable true
 class MessagePort extends EventTarget native "*MessagePort" {
 
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MessagePortEvents get on =>
     new MessagePortEvents(this);
@@ -13738,6 +14524,8 @@ class MessagePort extends EventTarget native "*MessagePort" {
 
   /// @domName MessagePort.start; @docsEditable true
   void start() native;
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -15042,6 +15830,16 @@ class Notation extends Node native "*Notation" {
 /// @domName Notification; @docsEditable true
 class Notification extends EventTarget native "*Notification" {
 
+  static const EventStreamProvider<Event> clickEvent = const EventStreamProvider<Event>('click');
+
+  static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
+
+  static const EventStreamProvider<Event> displayEvent = const EventStreamProvider<Event>('display');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
+
   ///@docsEditable true
   factory Notification(String title, [Map options]) {
     if (!?options) {
@@ -15095,6 +15893,16 @@ class Notification extends EventTarget native "*Notification" {
 
   /// @domName Notification.show; @docsEditable true
   void show() native;
+
+  Stream<Event> get onClick => clickEvent.forTarget(this);
+
+  Stream<Event> get onClose => closeEvent.forTarget(this);
+
+  Stream<Event> get onDisplay => displayEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onShow => showEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -16000,6 +16808,14 @@ class RgbColor native "*RGBColor" {
 /// @domName RTCDataChannel; @docsEditable true
 class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
 
+  static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RtcDataChannelEvents get on =>
     new RtcDataChannelEvents(this);
@@ -16036,6 +16852,14 @@ class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
 
   /// @domName RTCDataChannel.send; @docsEditable true
   void send(data) native;
+
+  Stream<Event> get onClose => closeEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -16105,6 +16929,22 @@ class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 
 /// @domName RTCPeerConnection; @docsEditable true
 class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
+
+  static const EventStreamProvider<MediaStreamEvent> addStreamEvent = const EventStreamProvider<MediaStreamEvent>('addstream');
+
+  static const EventStreamProvider<RtcDataChannelEvent> dataChannelEvent = const EventStreamProvider<RtcDataChannelEvent>('datachannel');
+
+  static const EventStreamProvider<RtcIceCandidateEvent> iceCandidateEvent = const EventStreamProvider<RtcIceCandidateEvent>('icecandidate');
+
+  static const EventStreamProvider<Event> iceChangeEvent = const EventStreamProvider<Event>('icechange');
+
+  static const EventStreamProvider<Event> negotiationNeededEvent = const EventStreamProvider<Event>('negotiationneeded');
+
+  static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
+
+  static const EventStreamProvider<MediaStreamEvent> removeStreamEvent = const EventStreamProvider<MediaStreamEvent>('removestream');
+
+  static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
   ///@docsEditable true
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
@@ -16257,6 +17097,22 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void _updateIce_2(configuration) native;
   @JSName('updateIce')
   void _updateIce_3() native;
+
+  Stream<MediaStreamEvent> get onAddStream => addStreamEvent.forTarget(this);
+
+  Stream<RtcDataChannelEvent> get onDataChannel => dataChannelEvent.forTarget(this);
+
+  Stream<RtcIceCandidateEvent> get onIceCandidate => iceCandidateEvent.forTarget(this);
+
+  Stream<Event> get onIceChange => iceChangeEvent.forTarget(this);
+
+  Stream<Event> get onNegotiationNeeded => negotiationNeededEvent.forTarget(this);
+
+  Stream<Event> get onOpen => openEvent.forTarget(this);
+
+  Stream<MediaStreamEvent> get onRemoveStream => removeStreamEvent.forTarget(this);
+
+  Stream<Event> get onStateChange => stateChangeEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -16693,12 +17549,16 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
 /// @domName SharedWorkerContext; @docsEditable true
 class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
 
+  static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SharedWorkerContextEvents get on =>
     new SharedWorkerContextEvents(this);
 
   /// @domName SharedWorkerContext.name; @docsEditable true
   final String name;
+
+  Stream<Event> get onConnect => connectEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -17152,6 +18012,28 @@ class SpeechInputResult native "*SpeechInputResult" {
 /// @domName SpeechRecognition; @docsEditable true
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
+  static const EventStreamProvider<Event> audioEndEvent = const EventStreamProvider<Event>('audioend');
+
+  static const EventStreamProvider<Event> audioStartEvent = const EventStreamProvider<Event>('audiostart');
+
+  static const EventStreamProvider<Event> endEvent = const EventStreamProvider<Event>('end');
+
+  static const EventStreamProvider<SpeechRecognitionError> errorEvent = const EventStreamProvider<SpeechRecognitionError>('error');
+
+  static const EventStreamProvider<SpeechRecognitionEvent> noMatchEvent = const EventStreamProvider<SpeechRecognitionEvent>('nomatch');
+
+  static const EventStreamProvider<SpeechRecognitionEvent> resultEvent = const EventStreamProvider<SpeechRecognitionEvent>('result');
+
+  static const EventStreamProvider<Event> soundEndEvent = const EventStreamProvider<Event>('soundend');
+
+  static const EventStreamProvider<Event> soundStartEvent = const EventStreamProvider<Event>('soundstart');
+
+  static const EventStreamProvider<Event> speechEndEvent = const EventStreamProvider<Event>('speechend');
+
+  static const EventStreamProvider<Event> speechStartEvent = const EventStreamProvider<Event>('speechstart');
+
+  static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
+
   ///@docsEditable true
   factory SpeechRecognition() => SpeechRecognition._create();
   static SpeechRecognition _create() => JS('SpeechRecognition', 'new SpeechRecognition()');
@@ -17195,6 +18077,28 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
   /// @domName SpeechRecognition.stop; @docsEditable true
   void stop() native;
+
+  Stream<Event> get onAudioEnd => audioEndEvent.forTarget(this);
+
+  Stream<Event> get onAudioStart => audioStartEvent.forTarget(this);
+
+  Stream<Event> get onEnd => endEvent.forTarget(this);
+
+  Stream<SpeechRecognitionError> get onError => errorEvent.forTarget(this);
+
+  Stream<SpeechRecognitionEvent> get onNoMatch => noMatchEvent.forTarget(this);
+
+  Stream<SpeechRecognitionEvent> get onResult => resultEvent.forTarget(this);
+
+  Stream<Event> get onSoundEnd => soundEndEvent.forTarget(this);
+
+  Stream<Event> get onSoundStart => soundStartEvent.forTarget(this);
+
+  Stream<Event> get onSpeechEnd => speechEndEvent.forTarget(this);
+
+  Stream<Event> get onSpeechStart => speechStartEvent.forTarget(this);
+
+  Stream<Event> get onStart => startEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -18100,6 +19004,8 @@ class TextMetrics native "*TextMetrics" {
 /// @domName TextTrack; @docsEditable true
 class TextTrack extends EventTarget native "*TextTrack" {
 
+  static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackEvents get on =>
     new TextTrackEvents(this);
@@ -18139,6 +19045,8 @@ class TextTrack extends EventTarget native "*TextTrack" {
   /// @domName TextTrack.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onCueChange => cueChangeEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -18156,6 +19064,10 @@ class TextTrackEvents extends Events {
 
 /// @domName TextTrackCue; @docsEditable true
 class TextTrackCue extends EventTarget native "*TextTrackCue" {
+
+  static const EventStreamProvider<Event> enterEvent = const EventStreamProvider<Event>('enter');
+
+  static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
   ///@docsEditable true
   factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
@@ -18216,6 +19128,10 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
   /// @domName TextTrackCue.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onEnter => enterEvent.forTarget(this);
+
+  Stream<Event> get onExit => exitEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -18399,6 +19315,8 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 /// @domName TextTrackList; @docsEditable true
 class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, List<TextTrack> native "*TextTrackList" {
 
+  static const EventStreamProvider<TrackEvent> addTrackEvent = const EventStreamProvider<TrackEvent>('addtrack');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackListEvents get on =>
     new TextTrackListEvents(this);
@@ -18565,6 +19483,8 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   /// @domName TextTrackList.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<TrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -21092,6 +22012,14 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class WebSocket extends EventTarget native "*WebSocket" {
 
+  static const EventStreamProvider<CloseEvent> closeEvent = const EventStreamProvider<CloseEvent>('close');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
+
   ///@docsEditable true
   factory WebSocket(String url) => WebSocket._create(url);
   static WebSocket _create(String url) => JS('WebSocket', 'new WebSocket(#)', url);
@@ -21150,6 +22078,14 @@ class WebSocket extends EventTarget native "*WebSocket" {
 
   /// @domName WebSocket.send; @docsEditable true
   void send(data) native;
+
+  Stream<CloseEvent> get onClose => closeEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -21418,6 +22354,154 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   /// @domName Window.console; @docsEditable true
   Console get console => Console.safeConsole;
 
+
+  static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
+
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
+
+  static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
+
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
+
+  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
+
+  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
+
+  static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
+
+  static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
+
+  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
+
+  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
+
+  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
+
+  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
+
+  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
+
+  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
+
+  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
+
+  static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
+
+  static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
+
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
+
+  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
+
+  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
+
+  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
+
+  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
+
+  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
+
+  static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
+
+  static const EventStreamProvider<Event> loadStartEvent = const EventStreamProvider<Event>('loadstart');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
+
+  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
+
+  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
+
+  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
+
+  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
+
+  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
+
+  static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
+
+  static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
+
+  static const EventStreamProvider<Event> pageHideEvent = const EventStreamProvider<Event>('pagehide');
+
+  static const EventStreamProvider<Event> pageShowEvent = const EventStreamProvider<Event>('pageshow');
+
+  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
+
+  static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
+
+  static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
+
+  static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
+
+  static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
+
+  static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
+
+  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
+
+  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
+
+  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
+
+  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
+
+  static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
+
+  static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
+
+  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
+
+  static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
+
+  static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
+
+  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
+
+  static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
+
+  static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
+
+  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
+
+  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
+
+  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
+
+  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
+
+  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
+
+  static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
+
+  static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
+
+  static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
+
+  static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
+
+  static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
+
+  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WindowEvents get on =>
@@ -21702,6 +22786,154 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @JSName('webkitResolveLocalFileSystemURL')
   void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
+  Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
+
+  Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
+
+  Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
+
+  Stream<Event> get onChange => changeEvent.forTarget(this);
+
+  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+
+  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+
+  Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
+
+  Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+
+  Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
+
+  Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
+
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
+
+  Stream<Event> get onInput => inputEvent.forTarget(this);
+
+  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
+
+  Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
+
+  Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+
+  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+
+  Stream<Event> get onOffline => offlineEvent.forTarget(this);
+
+  Stream<Event> get onOnline => onlineEvent.forTarget(this);
+
+  Stream<Event> get onPageHide => pageHideEvent.forTarget(this);
+
+  Stream<Event> get onPageShow => pageShowEvent.forTarget(this);
+
+  Stream<Event> get onPause => pauseEvent.forTarget(this);
+
+  Stream<Event> get onPlay => playEvent.forTarget(this);
+
+  Stream<Event> get onPlaying => playingEvent.forTarget(this);
+
+  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
+
+  Stream<Event> get onProgress => progressEvent.forTarget(this);
+
+  Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
+
+  Stream<Event> get onReset => resetEvent.forTarget(this);
+
+  Stream<Event> get onResize => resizeEvent.forTarget(this);
+
+  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+
+  Stream<Event> get onSearch => searchEvent.forTarget(this);
+
+  Stream<Event> get onSeeked => seekedEvent.forTarget(this);
+
+  Stream<Event> get onSeeking => seekingEvent.forTarget(this);
+
+  Stream<Event> get onSelect => selectEvent.forTarget(this);
+
+  Stream<Event> get onStalled => stalledEvent.forTarget(this);
+
+  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
+
+  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+
+  Stream<Event> get onSuspend => suspendEvent.forTarget(this);
+
+  Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+
+  Stream<Event> get onUnload => unloadEvent.forTarget(this);
+
+  Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
+
+  Stream<Event> get onWaiting => waitingEvent.forTarget(this);
+
+  Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
+
+  Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
+
+  Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
+
+  Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
+
 }
 
 /// @docsEditable true
@@ -21939,6 +23171,8 @@ class WindowEvents extends Events {
 /// @domName Worker; @docsEditable true
 class Worker extends AbstractWorker native "*Worker" {
 
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
   ///@docsEditable true
   factory Worker(String scriptUrl) => Worker._create(scriptUrl);
   static Worker _create(String scriptUrl) => JS('Worker', 'new Worker(#)', scriptUrl);
@@ -21965,6 +23199,8 @@ class Worker extends AbstractWorker native "*Worker" {
 
   /// @domName Worker.terminate; @docsEditable true
   void terminate() native;
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -21982,6 +23218,8 @@ class WorkerEvents extends AbstractWorkerEvents {
 
 /// @domName WorkerContext
 class WorkerContext extends EventTarget native "*WorkerContext" {
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerContextEvents get on =>
@@ -22052,6 +23290,8 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   /// @domName WorkerContext.webkitResolveLocalFileSystemURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemURL')
   void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
 
 
   /**
@@ -24423,6 +25663,142 @@ class _Device {
 
 
 typedef void EventListener(Event event);
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * Adapter for exposing DOM events as Dart streams.
+ */
+class _EventStream<T extends Event> extends Stream<T> {
+  final EventTarget _target;
+  final String _eventType;
+  final bool _useCapture;
+
+  _EventStream(this._target, this._eventType, this._useCapture);
+
+  // DOM events are inherently multi-subscribers.
+  Stream<T> asMultiSubscriberStream() => this;
+
+  StreamSubscription<T> listen(void onData(T event),
+      { void onError(AsyncError error),
+      void onDone(),
+      bool unsubscribeOnError}) {
+
+    return new _EventStreamSubscription<T>(
+        this._target, this._eventType, onData, this._useCapture);
+  }
+}
+
+class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
+  int _pauseCount = 0;
+  EventTarget _target;
+  final String _eventType;
+  var _onData;
+  final bool _useCapture;
+
+  _EventStreamSubscription(this._target, this._eventType, this._onData,
+      this._useCapture) {
+    _tryResume();
+  }
+
+  void cancel() {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+
+    _unlisten();
+    // Clear out the target to indicate this is complete.
+    _target = null;
+    _onData = null;
+  }
+
+  bool get _canceled => _target == null;
+
+  void onData(void handleData(T event)) {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+    // Remove current event listener.
+    _unlisten();
+
+    _onData = handleData;
+    _tryResume();
+  }
+
+  /// Has no effect.
+  void onError(void handleError(AsyncError error)) {}
+
+  /// Has no effect.
+  void onDone(void handleDone()) {}
+
+  void pause([Future resumeSignal]) {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+    ++_pauseCount;
+    _unlisten();
+
+    if (resumeSignal != null) {
+      resumeSignal.whenComplete(resume);
+    }
+  }
+
+  bool get _paused => _pauseCount > 0;
+
+  void resume() {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+    if (!_paused) {
+      throw new StateError("Subscription is not paused.");
+    }
+    --_pauseCount;
+    _tryResume();
+  }
+
+  void _tryResume() {
+    if (_onData != null && !_paused) {
+      _target.$dom_addEventListener(_eventType, _onData, _useCapture);
+    }
+  }
+
+  void _unlisten() {
+    if (_onData != null) {
+      _target.$dom_removeEventListener(_eventType, _onData, _useCapture);
+    }
+  }
+}
+
+
+/**
+ * A factory to expose DOM events as Streams.
+ */
+class EventStreamProvider<T extends Event> {
+  final String _eventType;
+
+  const EventStreamProvider(this._eventType);
+
+  /**
+   * Gets a [Stream] for this event type, on the specified target.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent.forTarget(element, useCapture: true).listen(...);
+   *
+   * Or for listening to an event which will bubble through the DOM tree:
+   *
+   *     MediaElement.pauseEvent.forTarget(document.body).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
+    return new _EventStream(e, _eventType, useCapture);
+  }
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

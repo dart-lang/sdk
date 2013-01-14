@@ -1,5 +1,6 @@
 library svg;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
 import 'dart:html_common';
@@ -871,6 +872,86 @@ class DescElement extends SvgElement implements Stylable, LangSpace native "*SVG
 /// @domName SVGElementInstance; @docsEditable true
 class ElementInstance extends EventTarget native "*SVGElementInstance" {
 
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
+
+  static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
+
+  static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
+
+  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
+
+  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
+
+  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
+
+  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
+
+  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
+
+  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
+
+  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
+
+  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
+
+  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
+
+  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
+
+  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
+
+  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
+
+  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
+
+  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
+
+  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
+
+  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
+
+  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
+
+  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
+
+  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
+
+  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
+
+  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
+
+  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
+
+  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
+
+  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
+
+  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
+
+  static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
+
+  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
+
+  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementInstanceEvents get on =>
     new ElementInstanceEvents(this);
@@ -899,6 +980,86 @@ class ElementInstance extends EventTarget native "*SVGElementInstance" {
 
   /// @domName SVGElementInstance.previousSibling; @docsEditable true
   final ElementInstance previousSibling;
+
+  Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
+
+  Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
+
+  Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onChange => changeEvent.forTarget(this);
+
+  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+
+  Stream<Event> get onCopy => copyEvent.forTarget(this);
+
+  Stream<Event> get onCut => cutEvent.forTarget(this);
+
+  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<Event> get onInput => inputEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+
+  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+
+  Stream<Event> get onPaste => pasteEvent.forTarget(this);
+
+  Stream<Event> get onReset => resetEvent.forTarget(this);
+
+  Stream<Event> get onResize => resizeEvent.forTarget(this);
+
+  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+
+  Stream<Event> get onSearch => searchEvent.forTarget(this);
+
+  Stream<Event> get onSelect => selectEvent.forTarget(this);
+
+  Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
+
+  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+
+  Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
 
 /// @docsEditable true

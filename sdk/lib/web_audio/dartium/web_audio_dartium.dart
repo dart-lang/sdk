@@ -1,5 +1,6 @@
 library web_audio;
 
+import 'dart:async';
 import 'dart:html';
 import 'dart:nativewrappers';
 // DO NOT EDIT
@@ -221,6 +222,8 @@ class AudioBufferSourceNode extends AudioSourceNode {
 class AudioContext extends EventTarget {
   AudioContext.internal() : super.internal();
 
+  static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
+
   ///@docsEditable true
   factory AudioContext() => AudioContext._create();
   static AudioContext _create() native "AudioContext_constructor_Callback";
@@ -393,6 +396,8 @@ class AudioContext extends EventTarget {
 
   /** @domName AudioContext.startRendering */
   void startRendering() native "AudioContext_startRendering_Callback";
+
+  Stream<Event> get onComplete => completeEvent.forTarget(this);
 
 }
 

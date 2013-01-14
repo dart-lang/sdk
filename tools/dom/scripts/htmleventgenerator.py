@@ -182,6 +182,191 @@ _html_event_names = {
   'writestart': 'writeStart'
 }
 
+_html_event_types = {
+  '*.abort': ('abort', 'Event'),
+  '*.beforecopy': ('beforeCopy', 'Event'),
+  '*.beforecut': ('beforeCut', 'Event'),
+  '*.beforepaste': ('beforePaste', 'Event'),
+  '*.beforeunload': ('beforeUnload', 'Event'),
+  '*.blur': ('blur', 'Event'),
+  '*.canplay': ('canPlay', 'Event'),
+  '*.canplaythrough': ('canPlayThrough', 'Event'),
+  '*.change': ('change', 'Event'),
+  '*.click': ('click', 'MouseEvent'),
+  '*.contextmenu': ('contextMenu', 'MouseEvent'),
+  '*.copy': ('copy', 'Event'),
+  '*.cut': ('cut', 'Event'),
+  '*.dblclick': ('doubleClick', 'Event'),
+  '*.drag': ('drag', 'MouseEvent'),
+  '*.dragend': ('dragEnd', 'MouseEvent'),
+  '*.dragenter': ('dragEnter', 'MouseEvent'),
+  '*.dragleave': ('dragLeave', 'MouseEvent'),
+  '*.dragover': ('dragOver', 'MouseEvent'),
+  '*.dragstart': ('dragStart', 'MouseEvent'),
+  '*.drop': ('drop', 'MouseEvent'),
+  '*.durationchange': ('durationChange', 'Event'),
+  '*.emptied': ('emptied', 'Event'),
+  '*.ended': ('ended', 'Event'),
+  '*.error': ('error', 'Event'),
+  '*.focus': ('focus', 'Event'),
+  '*.hashchange': ('hashChange', 'HashChangeEvent'),
+  '*.input': ('input', 'Event'),
+  '*.invalid': ('invalid', 'Event'),
+  '*.keydown': ('keyDown', 'KeyboardEvent'),
+  '*.keypress': ('keyPress', 'KeyboardEvent'),
+  '*.keyup': ('keyUp', 'KeyboardEvent'),
+  '*.load': ('load', 'Event'),
+  '*.loadeddata': ('loadedData', 'Event'),
+  '*.loadedmetadata': ('loadedMetadata', 'Event'),
+  '*.message': ('message', 'MessageEvent'),
+  '*.mousedown': ('mouseDown', 'MouseEvent'),
+  '*.mousemove': ('mouseMove', 'MouseEvent'),
+  '*.mouseout': ('mouseOut', 'MouseEvent'),
+  '*.mouseover': ('mouseOver', 'MouseEvent'),
+  '*.mouseup': ('mouseUp', 'MouseEvent'),
+  '*.mousewheel': ('mouseWheel', 'WheelEvent'),
+  '*.offline': ('offline', 'Event'),
+  '*.online': ('online', 'Event'),
+  '*.paste': ('paste', 'Event'),
+  '*.pause': ('pause', 'Event'),
+  '*.play': ('play', 'Event'),
+  '*.playing': ('playing', 'Event'),
+  '*.popstate': ('popState', 'PopStateEvent'),
+  '*.ratechange': ('rateChange', 'Event'),
+  '*.reset': ('reset', 'Event'),
+  '*.resize': ('resize', 'Event'),
+  '*.scroll': ('scroll', 'Event'),
+  '*.search': ('search', 'Event'),
+  '*.seeked': ('seeked', 'Event'),
+  '*.seeking': ('seeking', 'Event'),
+  '*.select': ('select', 'Event'),
+  '*.selectstart': ('selectStart', 'Event'),
+  '*.stalled': ('stalled', 'Event'),
+  '*.storage': ('storage', 'StorageEvent'),
+  '*.submit': ('submit', 'Event'),
+  '*.suspend': ('suspend', 'Event'),
+  '*.timeupdate': ('timeUpdate', 'Event'),
+  '*.touchcancel': ('touchCancel', 'TouchEvent'),
+  '*.touchend': ('touchEnd', 'TouchEvent'),
+  '*.touchenter': ('touchEnter', 'TouchEvent'),
+  '*.touchleave': ('touchLeave', 'TouchEvent'),
+  '*.touchmove': ('touchMove', 'TouchEvent'),
+  '*.touchstart': ('touchStart', 'TouchEvent'),
+  '*.unload': ('unload', 'Event'),
+  '*.volumechange': ('volumeChange', 'Event'),
+  '*.waiting': ('waiting', 'Event'),
+  '*.webkitAnimationEnd': ('animationEnd', 'AnimationEvent'),
+  '*.webkitAnimationIteration': ('animationIteration', 'AnimationEvent'),
+  '*.webkitAnimationStart': ('animationStart', 'AnimationEvent'),
+  '*.webkitTransitionEnd': ('transitionEnd', 'TransitionEvent'),
+  '*.webkitfullscreenchange': ('fullscreenChange', 'Event'),
+  '*.webkitfullscreenerror': ('fullscreenError', 'Event'),
+  'AudioContext.complete': ('complete', 'Event'),
+  'BatteryManager.chargingchange': ('chargingChange', 'Event'),
+  'BatteryManager.chargingtimechange': ('chargingTimeChange', 'Event'),
+  'BatteryManager.dischargingtimechange': ('dischargingTimeChange', 'Event'),
+  'BatteryManager.levelchange': ('levelChange', 'Event'),
+  'DOMApplicationCache.cached': ('cached', 'Event'),
+  'DOMApplicationCache.checking': ('checking', 'Event'),
+  'DOMApplicationCache.downloading': ('downloading', 'Event'),
+  'DOMApplicationCache.noupdate': ('noUpdate', 'Event'),
+  'DOMApplicationCache.obsolete': ('obsolete', 'Event'),
+  'DOMApplicationCache.progress': ('progress', 'Event'),
+  'DOMApplicationCache.updateready': ('updateReady', 'Event'),
+  'Document.cuechange': ('cueChange', 'Event'),
+  'Document.readystatechange': ('readyStateChange', 'Event'),
+  'Document.selectionchange': ('selectionChange', 'Event'),
+  'Document.webkitpointerlockchange': ('pointerLockChange', 'Event'),
+  'Document.webkitpointerlockerror': ('pointerLockError', 'Event'),
+  'Element.cuechange': ('cueChange', 'Event'),
+  'EventSource.open': ('open', 'Event'),
+  'FileReader.abort': ('abort', 'ProgressEvent'),
+  'FileReader.load': ('load', 'ProgressEvent'),
+  'FileReader.loadend': ('loadEnd', 'ProgressEvent'),
+  'FileReader.loadstart': ('loadStart', 'ProgressEvent'),
+  'FileReader.progress': ('progress', 'ProgressEvent'),
+  'FileWriter.abort': ('abort', 'ProgressEvent'),
+  'FileWriter.progress': ('progress', 'ProgressEvent'),
+  'FileWriter.write': ('write', 'ProgressEvent'),
+  'FileWriter.writeend': ('writeEnd', 'ProgressEvent'),
+  'FileWriter.writestart': ('writeStart', 'ProgressEvent'),
+  'HTMLBodyElement.storage': ('storage', 'StorageEvent'),
+  'HTMLInputElement.webkitSpeechChange': ('speechChange', 'Event'),
+  'HTMLMediaElement.loadstart': ('loadStart', 'Event'),
+  'HTMLMediaElement.progress': ('progress', 'Event'),
+  'HTMLMediaElement.show': ('show', 'Event'),
+  'HTMLMediaElement.webkitkeyadded': ('keyAdded', 'MediaKeyEvent'),
+  'HTMLMediaElement.webkitkeyerror': ('keyError', 'MediaKeyEvent'),
+  'HTMLMediaElement.webkitkeymessage': ('keyMessage', 'MediaKeyEvent'),
+  'HTMLMediaElement.webkitneedkey': ('needKey', 'MediaKeyEvent'),
+  'IDBDatabase.versionchange': ('versionChange', 'UpgradeNeededEvent'),
+  'IDBOpenDBRequest.blocked': ('blocked', 'Event'),
+  'IDBOpenDBRequest.upgradeneeded': ('upgradeNeeded', 'VersionChangeEvent'),
+  'IDBRequest.success': ('success', 'Event'),
+  'IDBTransaction.complete': ('complete', 'Event'),
+  'IDBVersionChangeRequest.blocked': ('blocked', 'Event'),
+  'MediaController.play': ('play', 'Event'),
+  'MediaStreamTrack.mute': ('mute', 'Event'),
+  'MediaStreamTrack.unmute': ('unmute', 'Event'),
+  'MediaStreamTrackList.addtrack': ('addTrack', 'MediaStreamTrackEvent'),
+  'MediaStreamTrackList.removetrack': ('removeTrack', 'MediaStreamTrackEvent'),
+  'Notification.click': ('click', 'Event'),
+  'Notification.close': ('close', 'Event'),
+  'Notification.display': ('display', 'Event'),
+  'Notification.show': ('show', 'Event'),
+  'RTCDataChannel.close': ('close', 'Event'),
+  'RTCDataChannel.open': ('open', 'Event'),
+  'RTCPeerConnection.addstream': ('addStream', 'MediaStreamEvent'),
+  'RTCPeerConnection.connecting': ('connecting', 'MediaStreamEvent'),
+  'RTCPeerConnection.datachannel': ('dataChannel', 'RtcDataChannelEvent'),
+  'RTCPeerConnection.icecandidate': ('iceCandidate', 'RtcIceCandidateEvent'),
+  'RTCPeerConnection.icechange': ('iceChange', 'Event'),
+  'RTCPeerConnection.negotiationneeded': ('negotiationNeeded', 'Event'),
+  'RTCPeerConnection.open': ('open', 'Event'),
+  'RTCPeerConnection.removestream': ('removeStream', 'MediaStreamEvent'),
+  'RTCPeerConnection.statechange': ('stateChange', 'Event'),
+  'ScriptProcessorNode.audioprocess': ('audioProcess', 'AudioProcessingEvent'),
+  'SharedWorkerContext.connect': ('connect', 'Event'),
+  'SpeechRecognition.audioend': ('audioEnd', 'Event'),
+  'SpeechRecognition.audiostart': ('audioStart', 'Event'),
+  'SpeechRecognition.end': ('end', 'Event'),
+  'SpeechRecognition.error': ('error', 'SpeechRecognitionError'),
+  'SpeechRecognition.nomatch': ('noMatch', 'SpeechRecognitionEvent'),
+  'SpeechRecognition.result': ('result', 'SpeechRecognitionEvent'),
+  'SpeechRecognition.soundend': ('soundEnd', 'Event'),
+  'SpeechRecognition.soundstart': ('soundStart', 'Event'),
+  'SpeechRecognition.speechend': ('speechEnd', 'Event'),
+  'SpeechRecognition.speechstart': ('speechStart', 'Event'),
+  'SpeechRecognition.start': ('start', 'Event'),
+  'TextTrack.cuechange': ('cueChange', 'Event'),
+  'TextTrackCue.enter': ('enter', 'Event'),
+  'TextTrackCue.exit': ('exit', 'Event'),
+  'TextTrackList.addtrack': ('addTrack', 'TrackEvent'),
+  'WebSocket.close': ('close', 'CloseEvent'),
+  'WebSocket.open': ('open', 'Event'), # should be OpenEvent, but not exposed.
+  'Window.DOMContentLoaded': ('contentLoaded', 'Event'),
+  'Window.cuechange': ('cueChange', 'Event'),
+  'Window.devicemotion': ('deviceMotion', 'DeviceMotionEvent'),
+  'Window.deviceorientation': ('deviceOrientation', 'DeviceOrientationEvent'),
+  'Window.loadstart': ('loadStart', 'Event'),
+  'Window.pagehide': ('pageHide', 'Event'),
+  'Window.pageshow': ('pageShow', 'Event'),
+  'Window.progress': ('progress', 'Event'),
+  'XMLHttpRequest.abort': ('abort', 'ProgressEvent'),
+  'XMLHttpRequest.error': ('error', 'ProgressEvent'),
+  'XMLHttpRequest.load': ('load', 'ProgressEvent'),
+  'XMLHttpRequest.loadend': ('loadEnd', 'ProgressEvent'),
+  'XMLHttpRequest.loadstart': ('loadStart', 'ProgressEvent'),
+  'XMLHttpRequest.progress': ('progress', 'ProgressEvent'),
+  'XMLHttpRequest.readystatechange': ('readyStateChange', 'ProgressEvent'),
+  'XMLHttpRequestUpload.abort': ('abort', 'ProgressEvent'),
+  'XMLHttpRequestUpload.error': ('error', 'ProgressEvent'),
+  'XMLHttpRequestUpload.load': ('load', 'ProgressEvent'),
+  'XMLHttpRequestUpload.loadend': ('loadEnd', 'ProgressEvent'),
+  'XMLHttpRequestUpload.loadstart': ('loadStart', 'ProgressEvent'),
+  'XMLHttpRequestUpload.progress': ('progress', 'ProgressEvent'),
+}
+
 # These classes require an explicit declaration for the "on" method even though
 # they don't declare any unique events, because the concrete class hierarchy
 # doesn't match the interface hierarchy.
@@ -194,6 +379,76 @@ class HtmlEventGenerator(object):
     self._database = database
     self._renamer = renamer
     self._template_loader = template_loader
+
+  def EmitStreamProviders(self, interface, html_interface_name, custom_events,
+      members_emitter):
+    events = self._GetEvents(interface, html_interface_name, custom_events)
+    if not events:
+      return
+
+    for event_info in events:
+      (dom_name, html_name, event_type) = event_info
+      members_emitter.Emit(
+          "\n"
+          "  static const EventStreamProvider<$TYPE> $(NAME)Event = "
+          "const EventStreamProvider<$TYPE>('$DOM_NAME');\n",
+          NAME=html_name,
+          DOM_NAME=dom_name,
+          TYPE=event_type)
+
+  def EmitStreamGetters(self, interface, html_interface_name, custom_events,
+      members_emitter):
+    events = self._GetEvents(interface, html_interface_name, custom_events)
+    if not events:
+      return
+
+    for event_info in events:
+      (dom_name, html_name, event_type) = event_info
+      getter_name = 'on%s%s' % (html_name[:1].upper(), html_name[1:])
+
+      members_emitter.Emit(
+          "\n"
+          "  Stream<$TYPE> get $(NAME) => $PROVIDER.forTarget(this);\n",
+          NAME=getter_name,
+          PROVIDER=html_name + 'Event',
+          TYPE=event_type)
+
+  def _GetEvents(self, interface, html_interface_name, custom_events):
+    events = set([attr for attr in interface.attributes
+                  if attr.type.id == 'EventListener'])
+    if not events and interface.id not in _html_explicit_event_classes:
+      return None
+
+    dom_event_names = set()
+    for event in events:
+      dom_name = event.id[2:]
+      dom_name = _on_attribute_to_event_name_mapping.get(dom_name, dom_name)
+      dom_event_names.add(dom_name)
+    if html_interface_name in _html_manual_events:
+      dom_event_names.update(_html_manual_events[html_interface_name])
+
+    events = []
+    for dom_name in sorted(dom_event_names):
+      event_info = self._FindEventInfo(html_interface_name, dom_name)
+      if not event_info:
+        continue
+
+      (html_name, event_type) = event_info
+      full_event_name = '%sEvents.%s' % (html_interface_name, html_name)
+      if not full_event_name in custom_events:
+        events.append((dom_name, html_name, event_type))
+    return events
+
+  def _FindEventInfo(self, html_interface_name, dom_event_name):
+    key = '%s.%s' % (html_interface_name, dom_event_name)
+    if key in _html_event_types:
+      return _html_event_types[key]
+    key = '*.%s' % dom_event_name
+    if key in _html_event_types:
+      return _html_event_types[key]
+    _logger.warn('Cannot resolve event type for %s.%s' %
+        (html_interface_name, dom_event_name))
+    return None
 
   def ProcessInterface(self, interface, html_interface_name, custom_events,
                        events_implementation_emitter):

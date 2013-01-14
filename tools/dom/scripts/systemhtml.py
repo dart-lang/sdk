@@ -406,7 +406,13 @@ class HtmlDartInterfaceGenerator(object):
         DOMNAME=self._interface.doc_js_name,
         NATIVESPEC=self._backend.NativeSpec())
     self._backend.StartInterface(self._implementation_members_emitter)
+
     self._backend.EmitHelpers(base_class)
+    self._event_generator.EmitStreamProviders(
+        self._interface,
+        self._interface.doc_js_name,
+        self._backend.CustomJSMembers(),
+        self._implementation_members_emitter)
     self._backend.AddConstructors(
         constructors, factory_provider, factory_constructor_name)
 
@@ -426,6 +432,11 @@ class HtmlDartInterfaceGenerator(object):
 
     self._backend.AddMembers(self._interface)
     self._backend.AddSecondaryMembers(self._interface)
+    self._event_generator.EmitStreamGetters(
+        self._interface,
+        self._interface.doc_js_name,
+        self._backend.CustomJSMembers(),
+        self._implementation_members_emitter)
     self._backend.FinishInterface()
 
   def _ImplementationEmitter(self):
