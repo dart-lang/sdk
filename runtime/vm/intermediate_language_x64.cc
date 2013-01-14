@@ -918,12 +918,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static bool CanBeImmediateIndex(Value* index) {
+static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
   if (!index->definition()->IsConstant()) return false;
   const Object& constant = index->definition()->AsConstant()->value();
   if (!constant.IsSmi()) return false;
   const Smi& smi_const = Smi::Cast(constant);
-  int64_t disp = smi_const.AsInt64Value() * kWordSize + sizeof(RawArray);
+  const intptr_t scale = FlowGraphCompiler::ElementSizeFor(cid);
+  const intptr_t data_offset = FlowGraphCompiler::DataOffsetFor(cid);
+  const int64_t disp = smi_const.AsInt64Value() * scale + data_offset;
   return Utils::IsInt(32, disp);
 }
 
@@ -934,8 +936,9 @@ LocationSummary* StringCharCodeAtInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // TODO(fschneider): Allow immediate operands for the index.
-  locs->set_in(1, Location::RequiresRegister());
+  locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                    ? Location::RegisterOrSmiConstant(index())
+                    : Location::RequiresRegister());
   locs->set_out(Location::RequiresRegister());
   return locs;
 }
@@ -943,25 +946,30 @@ LocationSummary* StringCharCodeAtInstr::MakeLocationSummary() const {
 
 void StringCharCodeAtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register str = locs()->in(0).reg();
-  Register index = locs()->in(1).reg();
+  Location index = locs()->in(1);
   Register result = locs()->out().reg();
 
   ASSERT((class_id() == kOneByteStringCid) ||
          (class_id() == kTwoByteStringCid));
+
+  FieldAddress element_address = index.IsRegister() ?
+      FlowGraphCompiler::ElementAddressForRegIndex(
+          class_id(), str, index.reg()) :
+      FlowGraphCompiler::ElementAddressForIntIndex(
+          class_id(), str, Smi::Cast(index.constant()).Value());
+
   if (class_id() == kOneByteStringCid) {
-    __ SmiUntag(index);
-    __ movzxb(result, FieldAddress(str,
-                                   index,
-                                   TIMES_1,
-                                   OneByteString::data_offset()));
-    __ SmiTag(index);  // Retag index.
+    if (index.IsRegister()) {
+      __ SmiUntag(index.reg());
+    }
+    __ movzxb(result, element_address);
+    if (index.IsRegister()) {
+      __ SmiTag(index.reg());  // Retag index.
+    }
     __ SmiTag(result);
   } else {
     // Don't untag smi-index and use TIMES_1 for two byte strings.
-    __ movzxw(result, FieldAddress(str,
-                                   index,
-                                   TIMES_1,
-                                   TwoByteString::data_offset()));
+    __ movzxw(result, element_address);
     __ SmiTag(result);
   }
 }
@@ -997,8 +1005,8 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, CanBeImmediateIndex(index())
-                    ? Location::RegisterOrConstant(index())
+  locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                    ? Location::RegisterOrSmiConstant(index())
                     : Location::RequiresRegister());
   if (representation() == kUnboxedDouble) {
     locs->set_out(Location::RequiresXmmRegister());
@@ -1078,8 +1086,8 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, numTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, CanBeImmediateIndex(index())
-                    ? Location::RegisterOrConstant(index())
+  locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                    ? Location::RegisterOrSmiConstant(index())
                     : Location::RequiresRegister());
   switch (class_id()) {
     case kArrayCid:

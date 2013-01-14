@@ -232,6 +232,8 @@ class FlowGraphCompiler : public ValueObject {
   static bool EvaluateCondition(Condition condition, intptr_t l, intptr_t r);
 
   // Array/list element address computations.
+  static intptr_t DataOffsetFor(intptr_t cid);
+  static intptr_t ElementSizeFor(intptr_t cid);
   static FieldAddress ElementAddressForIntIndex(intptr_t cid,
                                                 Register array,
                                                 intptr_t offset);

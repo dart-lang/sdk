@@ -1027,54 +1027,76 @@ bool FlowGraphCompiler::EvaluateCondition(Condition condition,
 }
 
 
-FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
-                                                          Register array,
-                                                          intptr_t offset) {
+intptr_t FlowGraphCompiler::ElementSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
-    case kImmutableArrayCid: {
-      const intptr_t disp = offset * kWordSize + sizeof(RawArray);
-      ASSERT(Utils::IsInt(31, disp));
-      return FieldAddress(array, disp);
-    }
-    case kFloat32ArrayCid: {
-      const intptr_t disp =
-          offset * kFloatSize + Float32Array::data_offset();
-      ASSERT(Utils::IsInt(31, disp));
-      return FieldAddress(array, disp);
-    }
-    case kFloat64ArrayCid: {
-      const intptr_t disp =
-          offset * kDoubleSize + Float64Array::data_offset();
-      ASSERT(Utils::IsInt(31, disp));
-      return FieldAddress(array, disp);
-    }
-    case kUint8ArrayCid: {
-      const intptr_t disp = offset + Uint8Array::data_offset();
-      ASSERT(Utils::IsInt(31, disp));
-      return FieldAddress(array, disp);
-    }
-    case kUint8ClampedArrayCid: {
-      const intptr_t disp = offset + Uint8ClampedArray::data_offset();
-      ASSERT(Utils::IsInt(31, disp));
-      return FieldAddress(array, disp);
-    }
+    case kImmutableArrayCid:
+      return Array::kBytesPerElement;
+    case kFloat32ArrayCid:
+      return Float32Array::kBytesPerElement;
+    case kFloat64ArrayCid:
+      return Float64Array::kBytesPerElement;
+    case kUint8ArrayCid:
+      return Uint8Array::kBytesPerElement;
+    case kUint8ClampedArrayCid:
+      return Uint8ClampedArray::kBytesPerElement;
+    case kOneByteStringCid:
+      return OneByteString::kBytesPerElement;
+    case kTwoByteStringCid:
+      return TwoByteString::kBytesPerElement;
     default:
       UNIMPLEMENTED();
-      return FieldAddress(SPREG, 0);
+      return 0;
   }
+}
+
+
+intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return Array::data_offset();
+    case kFloat32ArrayCid:
+      return Float32Array::data_offset();
+    case kFloat64ArrayCid:
+      return Float64Array::data_offset();
+    case kUint8ArrayCid:
+      return Uint8Array::data_offset();
+    case kUint8ClampedArrayCid:
+      return Uint8ClampedArray::data_offset();
+    case kOneByteStringCid:
+      return OneByteString::data_offset();
+    case kTwoByteStringCid:
+      return TwoByteString::data_offset();
+    default:
+      UNIMPLEMENTED();
+      return Array::data_offset();
+  }
+}
+
+
+FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
+                                                          Register array,
+                                                          intptr_t index) {
+  const int64_t disp =
+      static_cast<int64_t>(index) * ElementSizeFor(cid) + DataOffsetFor(cid);
+  ASSERT(Utils::IsInt(32, disp));
+  return FieldAddress(array, static_cast<int32_t>(disp));
 }
 
 
 FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
                                                           Register array,
                                                           Register index) {
-  // Note that index is Smi, i.e, times 2.
+  // Note that index is smi-tagged, (i.e, times 2) for all arrays with element
+  // size > 1. For Uint8Array and OneByteString the index is expected to be
+  // untagged before accessing.
   ASSERT(kSmiTagShift == 1);
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
-      return FieldAddress(array, index, TIMES_HALF_WORD_SIZE, sizeof(RawArray));
+      return FieldAddress(
+          array, index, TIMES_HALF_WORD_SIZE, Array::data_offset());
     case kFloat32ArrayCid:
       return FieldAddress(array, index, TIMES_2, Float32Array::data_offset());
     case kFloat64ArrayCid:
@@ -1084,6 +1106,10 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
     case kUint8ClampedArrayCid:
       return
           FieldAddress(array, index, TIMES_1, Uint8ClampedArray::data_offset());
+    case kOneByteStringCid:
+      return FieldAddress(array, index, TIMES_1, OneByteString::data_offset());
+    case kTwoByteStringCid:
+      return FieldAddress(array, index, TIMES_1, TwoByteString::data_offset());
     default:
       UNIMPLEMENTED();
       return FieldAddress(SPREG, 0);

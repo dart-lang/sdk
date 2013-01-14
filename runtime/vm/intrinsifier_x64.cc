@@ -161,7 +161,7 @@ bool Intrinsifier::Array_getIndexed(Assembler* assembler) {
   __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
   // Note that RBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
-  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)));
+  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()));
   __ ret();
   __ Bind(&fall_through);
   return false;
@@ -191,7 +191,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   // Destroy RCX as we will not continue in the function.
   __ StoreIntoObject(RAX,
-                     FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)),
+                     FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()),
                      RDX);
   // Caller is responsible of preserving the value if necessary.
   __ ret();
@@ -304,7 +304,7 @@ bool Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
 
   // Note that RCX is Smi, i.e, times 4.
   ASSERT(kSmiTagShift == 1);
-  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)));
+  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()));
   __ ret();
   __ Bind(&fall_through);
   return false;
@@ -331,7 +331,7 @@ bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
   // Note that RCX is Smi, i.e, times 4.
   ASSERT(kSmiTagShift == 1);
   __ StoreIntoObject(RAX,
-                     FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)),
+                     FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()),
                      RDX);
   __ ret();
   __ Bind(&fall_through);
@@ -400,7 +400,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Value
   ASSERT(kSmiTagShift == 1);
   __ StoreIntoObject(RDX,
-                     FieldAddress(RDX, RCX, TIMES_4, sizeof(RawArray)),
+                     FieldAddress(RDX, RCX, TIMES_4, Array::data_offset()),
                      RAX);
   const Immediate raw_null =
       Immediate(reinterpret_cast<int64_t>(Object::null()));

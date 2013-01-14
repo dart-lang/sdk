@@ -161,7 +161,7 @@ bool Intrinsifier::Array_getIndexed(Assembler* assembler) {
   __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
   // Note that EBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
-  __ movl(EAX, FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)));
+  __ movl(EAX, FieldAddress(EAX, EBX, TIMES_2, Array::data_offset()));
   __ ret();
   __ Bind(&fall_through);
   return false;
@@ -238,7 +238,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
   // Destroy ECX as we will not continue in the function.
   __ movl(ECX, Address(ESP, + 1 * kWordSize));  // Value.
   __ StoreIntoObject(EAX,
-                     FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)),
+                     FieldAddress(EAX, EBX, TIMES_2, Array::data_offset()),
                      ECX);
   // Caller is responsible of preserving the value if necessary.
   __ ret();
@@ -350,7 +350,7 @@ bool Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
 
   // Note that EBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
-  __ movl(EAX, FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)));
+  __ movl(EAX, FieldAddress(EAX, EBX, TIMES_2, Array::data_offset()));
   __ ret();
   __ Bind(&fall_through);
   return false;
@@ -377,7 +377,7 @@ bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
   // Note that EBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
   __ StoreIntoObject(EAX,
-                     FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)),
+                     FieldAddress(EAX, EBX, TIMES_2, Array::data_offset()),
                      EDI);
   __ ret();
   __ Bind(&fall_through);
@@ -447,7 +447,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value
   ASSERT(kSmiTagShift == 1);
   __ StoreIntoObject(EDI,
-                     FieldAddress(EDI, EBX, TIMES_2, sizeof(RawArray)),
+                     FieldAddress(EDI, EBX, TIMES_2, Array::data_offset()),
                      EAX);
   const Immediate raw_null =
       Immediate(reinterpret_cast<int32_t>(Object::null()));
