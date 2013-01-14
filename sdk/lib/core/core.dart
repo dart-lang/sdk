@@ -17,7 +17,6 @@ part "exceptions.dart";
 part "expando.dart";
 part "expect.dart";
 part "function.dart";
-part "hashable.dart";
 part "identical.dart";
 part "int.dart";
 part "invocation_mirror.dart";

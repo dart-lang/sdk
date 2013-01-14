@@ -18,7 +18,6 @@
     'identical.dart',
     'int.dart',
     'invocation_mirror.dart',
-    'hashable.dart',
     'iterable.dart',
     'iterator.dart',
     'map.dart',
