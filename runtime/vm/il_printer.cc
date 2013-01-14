@@ -203,7 +203,17 @@ void Value::PrintTo(BufferFormatter* f) const {
 
 
 void ConstantInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("#%s", value().ToCString());
+  const char* cstr = value().ToCString();
+  const char* new_line = strchr(cstr, '\n');
+  if (new_line == NULL) {
+    f->Print("#%s", cstr);
+  } else {
+    const intptr_t pos = new_line - cstr;
+    char* buffer = Isolate::Current()->current_zone()->Alloc<char>(pos + 1);
+    strncpy(buffer, cstr, pos);
+    buffer[pos] = '\0';
+    f->Print("#%s\\n...", buffer);
+  }
 }
 
 
