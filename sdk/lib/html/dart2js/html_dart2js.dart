@@ -5527,17 +5527,6 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLDirectoryElement; @docsEditable true
-class DirectoryElement extends Element native "*HTMLDirectoryElement" {
-
-  /// @domName HTMLDirectoryElement.compact; @docsEditable true
-  bool compact;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName DirectoryEntry; @docsEditable true
 class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
@@ -23637,6 +23626,14 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 
   /// @domName CSSValueList.item; @docsEditable true
   CssValue item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName HTMLDirectoryElement; @docsEditable true
+class _DirectoryElement extends Element native "*HTMLDirectoryElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -16,6 +16,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'DOMURL': 'Url',
     'DOMWindow': 'Window',
     'HTMLDocument' : 'HtmlDocument',
+    'HTMLDirectoryElement' : '_DirectoryElement',
     'IDBAny': '_Any', # Suppressed, but needs to exist for Dartium.
     'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
@@ -274,6 +275,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'HTMLBodyElement.text',
     'HTMLBodyElement.vLink',
     'HTMLDListElement.compact',
+    'HTMLDirectoryElement.*',
     'HTMLDivElement.align',
     'HTMLFormElement.get:elements',
     'HTMLFrameElement.*',

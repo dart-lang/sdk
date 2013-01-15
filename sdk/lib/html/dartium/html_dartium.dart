@@ -6735,26 +6735,6 @@ class DeviceOrientationEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLDirectoryElement
-class DirectoryElement extends _Element_Merged {
-  DirectoryElement.internal() : super.internal();
-
-
-  /** @domName HTMLDirectoryElement.compact */
-  bool get compact native "HTMLDirectoryElement_compact_Getter";
-
-
-  /** @domName HTMLDirectoryElement.compact */
-  void set compact(bool value) native "HTMLDirectoryElement_compact_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName DirectoryEntry
 class DirectoryEntry extends Entry {
   DirectoryEntry.internal() : super.internal();
@@ -28304,6 +28284,18 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   /** @domName CSSValueList.item */
   CssValue item(int index) native "CSSValueList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName HTMLDirectoryElement
+class _DirectoryElement extends _Element_Merged {
+  _DirectoryElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
