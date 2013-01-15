@@ -21,7 +21,11 @@ main() {
 
 verifyLocale(_) {
   expect(Intl.systemLocale, isNot(equals("xx_YY")));
+  // Allow either en_US or just en type locales. Windows in particular may
+  // give us just ru for ru_RU
   var pattern = new RegExp(r"\w\w_[A-Z0-9]+");
+  var shortPattern = new RegExp(r"\w\w\");
   var match = pattern.hasMatch(Intl.systemLocale);
-  expect(match, isTrue);
+  var shortMatch = shortPattern.hasMatch(Intl.systemLocale);
+  expect(match || shortMatch, isTrue);
 }
