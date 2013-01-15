@@ -1752,7 +1752,8 @@ $lazyInitializerLogic
                           js.string(internalName),
                           new js.LiteralNumber('$type'),
                           new js.ArrayInitializer.from(
-                              parameters.mappedBy((param) => js.use(param.name)).toList()),
+                              parameters.mappedBy((param) => js.use(param.name))
+                                        .toList()),
                           new js.ArrayInitializer.from(argNames)])]);
       js.Expression function =
           new js.Fun(parameters,
@@ -2067,7 +2068,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     instantiatedClasses =
         compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
             .toSet();
-    neededClasses = instantiatedClasses.toSet();
+    neededClasses = new Set<ClassElement>.from(instantiatedClasses);
     for (ClassElement element in instantiatedClasses) {
       for (ClassElement superclass = element.superclass;
           superclass != null;
