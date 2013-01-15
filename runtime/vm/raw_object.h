@@ -858,12 +858,24 @@ class RawLocalVarDescriptors : public RawObject {
 
 
 class RawExceptionHandlers : public RawObject {
+ public:
+  struct HandlerInfo {
+    int16_t try_index;        // Try block index associated with handler.
+    int16_t outer_try_index;  // Try block index of enclosing try block.
+    intptr_t handler_pc;      // PC value of handler.
+  };
+ private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
-  RawSmi* length_;  // Number of exception handler entries.
+  // Number of exception handler entries.
+  intptr_t length_;
 
-  // Variable length data follows here.
-  intptr_t data_[0];
+  // Array with [length_] entries. Each entry is an array of all handled
+  // exception types.
+  RawArray* handled_types_data_;
+
+  // Exception handler info of length [length_].
+  HandlerInfo data_[0];
 };
 
 

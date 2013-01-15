@@ -187,7 +187,10 @@ class FlowGraphCompiler : public ValueObject {
   // the block order and if it is the given block.
   bool IsNextBlock(BlockEntryInstr* block_entry) const;
 
-  void AddExceptionHandler(intptr_t try_index, intptr_t pc_offset);
+  void AddExceptionHandler(intptr_t try_index,
+                           intptr_t outer_try_index,
+                           intptr_t pc_offset,
+                           const Array& handler_types);
   void AddCurrentDescriptor(PcDescriptors::Kind kind,
                             intptr_t deopt_id,
                             intptr_t token_pos);

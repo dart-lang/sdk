@@ -5969,6 +5969,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   const intptr_t handler_pos = TokenPos();
   OpenBlock();  // Start the catch block sequence.
   current_block_->scope->AddLabel(end_catch_label);
+  const GrowableObjectArray& handler_types =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
   while ((CurrentToken() == Token::kCATCH) || IsLiteral("on")) {
     const intptr_t catch_pos = TokenPos();
     CatchParamDesc exception_param;
@@ -6061,11 +6063,17 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
           catch_pos, Token::kIS, exception_var, exception_type);
       current_block_->statements->Add(
           new IfNode(catch_pos, type_cond_expr, catch_handler, NULL));
+      ASSERT(exception_type->type().IsInstantiated());
+      handler_types.Add(*exception_param.type);
     } else {
       // No exception type exists in the catch specifier so execute the
       // catch handler code unconditionally.
       current_block_->statements->Add(catch_handler);
       generic_catch_seen = true;
+      // This catch clause will handle all exceptions. We can safely forget
+      // all previous catch clause types.
+      handler_types.SetLength(0);
+      handler_types.Add(*exception_param.type);
     }
     SequenceNode* catch_clause = CloseBlock();
 
@@ -6118,11 +6126,13 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                       new LoadLocalNode(handler_pos, catch_excp_var),
                       new LoadLocalNode(handler_pos, catch_trace_var)));
   }
-  CatchClauseNode* catch_block = new CatchClauseNode(handler_pos,
-                                                     catch_handler_list,
-                                                     context_var,
-                                                     catch_excp_var,
-                                                     catch_trace_var);
+  CatchClauseNode* catch_block =
+      new CatchClauseNode(handler_pos,
+                          catch_handler_list,
+                          Array::ZoneHandle(Array::MakeArray(handler_types)),
+                          context_var,
+                          catch_excp_var,
+                          catch_trace_var);
 
   // Now create the try/catch ast node and return it. If there is a label
   // on the try/catch, close the block that's embedding the try statement

@@ -1804,7 +1804,9 @@ void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetBlockLabel(this));
   if (IsCatchEntry()) {
     compiler->AddExceptionHandler(catch_try_index(),
-                                  compiler->assembler()->CodeSize());
+                                  try_index(),
+                                  compiler->assembler()->CodeSize(),
+                                  catch_handler_types_);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());

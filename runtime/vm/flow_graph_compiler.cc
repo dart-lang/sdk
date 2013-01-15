@@ -296,8 +296,13 @@ void FlowGraphCompiler::GenerateDeferredCode() {
 
 
 void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
-                                            intptr_t pc_offset) {
-  exception_handlers_list_->AddHandler(try_index, pc_offset);
+                                            intptr_t outer_try_index,
+                                            intptr_t pc_offset,
+                                            const Array& handler_types) {
+  exception_handlers_list_->AddHandler(try_index,
+                                       outer_try_index,
+                                       pc_offset,
+                                       handler_types);
 }
 
 

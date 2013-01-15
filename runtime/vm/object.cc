@@ -6884,43 +6884,71 @@ intptr_t LocalVarDescriptors::Length() const {
 
 
 intptr_t ExceptionHandlers::Length() const {
-  return Smi::Value(raw_ptr()->length_);
+  return raw_ptr()->length_;
 }
 
 
-void ExceptionHandlers::SetLength(intptr_t value) const {
-  // This is only safe because we create a new Smi, which does not cause
-  // heap allocation.
-  raw_ptr()->length_ = Smi::New(value);
+void ExceptionHandlers::SetHandlerInfo(intptr_t index,
+                                       intptr_t try_index,
+                                       intptr_t outer_try_index,
+                                       intptr_t handler_pc) const {
+  ASSERT((index >= 0) && (index < Length()));
+  RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data_[index];
+  info->try_index = try_index;
+  info->outer_try_index = outer_try_index;
+  info->handler_pc = handler_pc;
+}
+
+void ExceptionHandlers::GetHandlerInfo(
+                            intptr_t index,
+                            RawExceptionHandlers::HandlerInfo* info) const {
+  ASSERT((index >= 0) && (index < Length()));
+  ASSERT(info != NULL);
+  RawExceptionHandlers::HandlerInfo* data = &raw_ptr()->data_[index];
+  info->try_index = data->try_index;
+  info->outer_try_index = data->outer_try_index;
+  info->handler_pc = data->handler_pc;
 }
 
 
 intptr_t ExceptionHandlers::TryIndex(intptr_t index) const {
-  return *(EntryAddr(index, kTryIndexEntry));
-}
-
-
-void ExceptionHandlers::SetTryIndex(intptr_t index, intptr_t value) const {
-  *(EntryAddr(index, kTryIndexEntry)) = value;
+  ASSERT((index >= 0) && (index < Length()));
+  return raw_ptr()->data_[index].try_index;
 }
 
 
 intptr_t ExceptionHandlers::HandlerPC(intptr_t index) const {
-  return *(EntryAddr(index, kHandlerPcEntry));
+  ASSERT((index >= 0) && (index < Length()));
+  return raw_ptr()->data_[index].handler_pc;
 }
 
 
-void ExceptionHandlers::SetHandlerPC(intptr_t index,
-                                     intptr_t value) const {
-  *(EntryAddr(index, kHandlerPcEntry)) = value;
+void ExceptionHandlers::SetHandledTypes(intptr_t index,
+                                        const Array& handled_types) const {
+  ASSERT((index >= 0) && (index < Length()));
+  const Array& handled_types_data =
+      Array::Handle(raw_ptr()->handled_types_data_);
+  handled_types_data.SetAt(index, handled_types);
+}
+
+
+RawArray* ExceptionHandlers::GetHandledTypes(intptr_t index) const {
+  ASSERT((index >= 0) && (index < Length()));
+  Array& array = Array::Handle(raw_ptr()->handled_types_data_);
+  array ^= array.At(index);
+  return array.raw();
+}
+
+
+void ExceptionHandlers::set_handled_types_data(const Array& value) const {
+  StorePointer(&raw_ptr()->handled_types_data_, value.raw());
 }
 
 
 RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   ASSERT(Object::exception_handlers_class() != Class::null());
-  if (num_handlers < 0 || num_handlers > kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in ExceptionHandlers::New: "
+  if (num_handlers < 0 || num_handlers >= kMaxHandlers) {
+    FATAL1("Fatal error in ExceptionHandlers::New(): "
            "invalid num_handlers %"Pd"\n",
            num_handlers);
   }
@@ -6932,8 +6960,10 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.SetLength(num_handlers);
+    result.raw_ptr()->length_ = num_handlers;
   }
+  const Array& handled_types_data = Array::Handle(Array::New(num_handlers));
+  result.set_handled_types_data(handled_types_data);
   return result.raw();
 }
 
@@ -6942,22 +6972,50 @@ const char* ExceptionHandlers::ToCString() const {
   if (Length() == 0) {
     return "No exception handlers\n";
   }
+  Array& handled_types = Array::Handle();
+  Type& type = Type::Handle();
+  RawExceptionHandlers::HandlerInfo info;
   // First compute the buffer size required.
-  const char* kFormat = "%"Pd" => %#"Px"\n";
+  const char* kFormat = "%"Pd" => %#"Px"  (%"Pd" types) (outer %"Pd")\n";
+  const char* kFormat2 = "  %d. %s\n";
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
-    len += OS::SNPrint(NULL, 0, kFormat, TryIndex(i), HandlerPC(i));
+    GetHandlerInfo(i, &info);
+    handled_types = GetHandledTypes(i);
+    ASSERT(!handled_types.IsNull());
+    intptr_t num_types = handled_types.Length();
+    len += OS::SNPrint(NULL, 0, kFormat,
+                       info.try_index,
+                       info.handler_pc,
+                       num_types,
+                       info.outer_try_index);
+    for (int k = 0; k < num_types; k++) {
+      type ^= handled_types.At(k);
+      ASSERT(!type.IsNull());
+      len += OS::SNPrint(NULL, 0, kFormat2, k, type.ToCString());
+    }
   }
   // Allocate the buffer.
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
-  intptr_t index = 0;
+  intptr_t num_chars = 0;
   for (intptr_t i = 0; i < Length(); i++) {
-    index += OS::SNPrint((buffer + index),
-                         (len - index),
-                         kFormat,
-                         TryIndex(i),
-                         HandlerPC(i));
+    GetHandlerInfo(i, &info);
+    handled_types = GetHandledTypes(i);
+    intptr_t num_types = handled_types.Length();
+    num_chars += OS::SNPrint((buffer + num_chars),
+                             (len - num_chars),
+                             kFormat,
+                             info.try_index,
+                             info.handler_pc,
+                             num_types,
+                             info.outer_try_index);
+    for (int k = 0; k < num_types; k++) {
+      type ^= handled_types.At(k);
+      num_chars += OS::SNPrint((buffer + num_chars),
+                               (len - num_chars),
+                               kFormat2, k, type.ToCString());
+    }
   }
   return buffer;
 }

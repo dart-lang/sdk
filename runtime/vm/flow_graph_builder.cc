@@ -2842,6 +2842,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
                              old_try_index,
                              loop_depth());
     catch_entry->set_catch_try_index(try_index);
+    catch_entry->set_catch_handler_types(catch_block->handler_types());
     owner()->AddCatchEntry(catch_entry);
     ASSERT(!for_catch_block.is_open());
     AppendFragment(catch_entry, for_catch_block);

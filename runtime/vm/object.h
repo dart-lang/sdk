@@ -2391,29 +2391,22 @@ class Stackmap : public Object {
 
 
 class ExceptionHandlers : public Object {
- private:
-  // Describes the layout of exception handler data.
-  enum {
-    kTryIndexEntry = 0,  // Try block index associated with handler.
-    kHandlerPcEntry,  // PC value of handler.
-    kNumberOfEntries
-  };
-
  public:
   intptr_t Length() const;
+
+  void GetHandlerInfo(intptr_t index,
+                      RawExceptionHandlers::HandlerInfo* info) const;
 
   intptr_t TryIndex(intptr_t index) const;
   intptr_t HandlerPC(intptr_t index) const;
 
-  void SetHandlerEntry(intptr_t index,
-                       intptr_t try_index,
-                       intptr_t handler_pc) const {
-    SetTryIndex(index, try_index);
-    SetHandlerPC(index, handler_pc);
-  }
+  void SetHandlerInfo(intptr_t index,
+                      intptr_t try_index,
+                      intptr_t outer_try_index,
+                      intptr_t handler_pc) const;
 
-  static const intptr_t kBytesPerElement = (kNumberOfEntries * kWordSize);
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  RawArray* GetHandledTypes(intptr_t index) const;
+  void SetHandledTypes(intptr_t index, const Array& handled_types) const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawExceptionHandlers) == OFFSET_OF(RawExceptionHandlers,
@@ -2421,9 +2414,9 @@ class ExceptionHandlers : public Object {
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(
-        sizeof(RawExceptionHandlers) + (len * kBytesPerElement));
+        sizeof(RawExceptionHandlers) +
+            (len * sizeof(RawExceptionHandlers::HandlerInfo)));
   }
 
   static RawExceptionHandlers* New(intptr_t num_handlers);
@@ -2432,17 +2425,12 @@ class ExceptionHandlers : public Object {
   // exception handler table to visit objects if any in the table.
 
  private:
-  void SetTryIndex(intptr_t index, intptr_t value) const;
-  void SetHandlerPC(intptr_t index, intptr_t value) const;
+  // Pick somewhat arbitrary maximum number of exception handlers
+  // for a function. This value is used to catch potentially
+  // malicious code.
+  static const intptr_t kMaxHandlers = 1024 * 1024;
 
-  void SetLength(intptr_t value) const;
-
-  intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
-    ASSERT((index >=0) && (index < Length()));
-    intptr_t data_index = (index * kNumberOfEntries) + entry_offset;
-    return &raw_ptr()->data_[data_index];
-  }
-
+  void set_handled_types_data(const Array& value) const;
   HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers, Object);
   friend class Class;
 };

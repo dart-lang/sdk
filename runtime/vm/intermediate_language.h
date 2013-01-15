@@ -978,7 +978,8 @@ class TargetEntryInstr : public BlockEntryInstr {
   TargetEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t loop_depth)
       : BlockEntryInstr(block_id, try_index, loop_depth),
         predecessor_(NULL),
-        catch_try_index_(CatchClauseNode::kInvalidTryIndex) { }
+        catch_try_index_(CatchClauseNode::kInvalidTryIndex),
+        catch_handler_types_(Array::ZoneHandle()) { }
 
   DECLARE_INSTRUCTION(TargetEntry)
 
@@ -1002,6 +1003,9 @@ class TargetEntryInstr : public BlockEntryInstr {
     return catch_try_index_;
   }
   void set_catch_try_index(intptr_t index) { catch_try_index_ = index; }
+  void set_catch_handler_types(const Array& handler_types) {
+    catch_handler_types_ = handler_types.raw();
+  }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
@@ -1017,6 +1021,7 @@ class TargetEntryInstr : public BlockEntryInstr {
 
   BlockEntryInstr* predecessor_;
   intptr_t catch_try_index_;
+  Array& catch_handler_types_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
 };
