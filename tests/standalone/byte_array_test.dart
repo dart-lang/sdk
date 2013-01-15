@@ -31,12 +31,30 @@ void testCreateClampedUint8ByteArray() {
   Expect.isTrue(clampedByteArray is Uint8ClampedList);
   Expect.isFalse(clampedByteArray is Uint8List);
   Expect.equals(0, clampedByteArray.length);
+  Expect.equals(0, clampedByteArray.lengthInBytes());
 
   clampedByteArray = new Uint8ClampedList(10);
   Expect.equals(10, clampedByteArray.length);
   for (int i = 0; i < 10; i++) {
     Expect.equals(0, clampedByteArray[i]);
   }
+}
+
+void testCreateExternalClampedUint8ByteArray() {
+  List externalClampedByteArray;
+
+  externalClampedByteArray = new Uint8ClampedList.transferable(0);
+  Expect.isTrue(externalClampedByteArray is Uint8ClampedList);
+  Expect.isFalse(externalClampedByteArray is Uint8List);
+  Expect.equals(0, externalClampedByteArray.length);
+  Expect.equals(0, externalClampedByteArray.lengthInBytes());
+
+  externalClampedByteArray = new Uint8ClampedList.transferable(10);
+  Expect.equals(10, externalClampedByteArray.length);
+  for (int i = 0; i < 10; i++) {
+    Expect.equals(0, externalClampedByteArray[i]);
+  }
+
 }
 
 void testUnsignedByteArrayRange(bool check_throws) {
@@ -66,7 +84,8 @@ void testUnsignedByteArrayRange(bool check_throws) {
   }
 }
 
-void testClampedUnsignedByteArrayRange(bool check_throws) {
+void testClampedUnsignedByteArrayRangeHelper(Uint8ClampedList byteArray,
+                                             bool check_throws) {
   Uint8ClampedList byteArray;
   byteArray = new Uint8ClampedList(10);
 
@@ -88,6 +107,18 @@ void testClampedUnsignedByteArrayRange(bool check_throws) {
   Expect.equals(0, byteArray[2]);
 }
 
+void testClampedUnsignedByteArrayRange(bool check_throws) {
+  testClampedUnsignedByteArrayRangeHelper(new Uint8ClampedList(10),
+                                          check_throws);
+}
+
+
+void testExternalClampedUnsignedByteArrayRange(bool check_throws) {
+  testClampedUnsignedByteArrayRangeHelper(new Uint8ClampedList.transferable(10),
+                                          check_throws);
+}
+
+
 void testByteArrayRange(bool check_throws) {
   Int8List byteArray;
   byteArray = new Int8List(10);
@@ -106,7 +137,6 @@ void testByteArrayRange(bool check_throws) {
     });
   }
 }
-
 
 void testSetRangeHelper(byteArray) {
   List<int> list = [10, 11, 12];
@@ -129,10 +159,11 @@ void testSetRangeHelper(byteArray) {
   Expect.equals(9, byteArray[2]);
 }
 
-
 void testSetRange() {
   testSetRangeHelper(new Uint8List(3));
+  testSetRangeHelper(new Uint8List.transferable(3));
   testSetRangeHelper(new Uint8ClampedList(3));
+  testSetRangeHelper(new Uint8ClampedList.transferable(3));
 }
 
 void testIndexOutOfRangeHelper(byteArray) {
@@ -149,7 +180,9 @@ void testIndexOutOfRangeHelper(byteArray) {
 
 void testIndexOutOfRange() {
   testIndexOutOfRangeHelper(new Uint8List(3));
+  testIndexOutOfRangeHelper(new Uint8List.transferable(3));
   testIndexOutOfRangeHelper(new Uint8ClampedList(3));
+  testIndexOutOfRangeHelper(new Uint8ClampedList.transferable(3));
 }
 
 void testIndexOfHelper(list) {
@@ -173,7 +206,9 @@ void testIndexOfHelper(list) {
 
 void testIndexOf() {
   testIndexOfHelper(new Uint8List(10));
+  testIndexOfHelper(new Uint8List.transferable(10));
   testIndexOfHelper(new Uint8ClampedList(10));
+  testIndexOfHelper(new Uint8ClampedList.transferable(10));
 }
 
 void testSubArrayHelper(list) {
@@ -219,16 +254,20 @@ void testSubArrayHelper(list) {
 
 void testSubArray() {
   testSubArrayHelper(new Uint8List(10));
+  testSubArrayHelper(new Uint8List.transferable(10));
   testSubArrayHelper(new Uint8ClampedList(10));
+  testSubArrayHelper(new Uint8ClampedList.transferable(10));
 }
 
 main() {
   for (int i = 0; i < 2000; i++) {
     testCreateUint8ByteArray();
     testCreateClampedUint8ByteArray();
+    testCreateExternalClampedUint8ByteArray();
     testByteArrayRange(false);
     testUnsignedByteArrayRange(false);
     testClampedUnsignedByteArrayRange(false);
+    testExternalClampedUnsignedByteArrayRange(false);
     testSetRange();
     testIndexOutOfRange();
     testIndexOf();
@@ -236,5 +275,6 @@ main() {
   }
   testByteArrayRange(true);
   testUnsignedByteArrayRange(true);
+  testExternalClampedUnsignedByteArrayRange(true);
 }
 

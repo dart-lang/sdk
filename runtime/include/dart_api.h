@@ -1672,6 +1672,26 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
                                                   Dart_PeerFinalizer callback);
 
 /**
+ * Returns a clamped ByteArray which references an external array of
+ * 8-bit bytes.
+ * A clamped ByteArray differs from ByteArray above in the indexed store
+ * operation where negative values are clamped to 0 and values above 255 are
+ * clamped to 255.
+ *
+ * \param value An array of 8-bit bytes. This array must not move.
+ * \param length The length of the array.
+ * \param peer An external pointer to associate with this byte array.
+ *
+ * \return The clamped ByteArray object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewExternalClampedByteArray(
+    uint8_t* data,
+    intptr_t length,
+    void* peer,
+    Dart_PeerFinalizer callback);
+
+/**
  * Retrieves the data pointer associated with an external ByteArray.
  */
 DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetData(Dart_Handle object,

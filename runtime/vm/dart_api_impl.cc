@@ -2240,6 +2240,22 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
 }
 
 
+DART_EXPORT Dart_Handle Dart_NewExternalClampedByteArray(
+    uint8_t* data,
+    intptr_t length,
+    void* peer,
+    Dart_PeerFinalizer callback) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (data == NULL && length != 0) {
+    RETURN_NULL_ERROR(data);
+  }
+  CHECK_LENGTH(length, ExternalUint8ClampedArray::kMaxElements);
+  return Api::NewHandle(
+      isolate, ExternalUint8ClampedArray::New(data, length, peer, callback));
+}
+
+
 DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetData(Dart_Handle object,
                                                       void** data) {
   Isolate* isolate = Isolate::Current();

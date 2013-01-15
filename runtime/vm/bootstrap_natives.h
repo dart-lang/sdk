@@ -178,6 +178,8 @@ namespace dart {
   V(ExternalInt8Array_setIndexed, 3)                                           \
   V(ExternalUint8Array_getIndexed, 2)                                          \
   V(ExternalUint8Array_setIndexed, 3)                                          \
+  V(ExternalUint8ClampedArray_getIndexed, 2)                                   \
+  V(ExternalUint8ClampedArray_setIndexed, 3)                                   \
   V(ExternalInt16Array_getIndexed, 2)                                          \
   V(ExternalInt16Array_setIndexed, 3)                                          \
   V(ExternalUint16Array_getIndexed, 2)                                         \

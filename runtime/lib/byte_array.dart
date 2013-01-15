@@ -1331,6 +1331,58 @@ class _ExternalUint8Array extends _ByteArrayBase implements Uint8List {
 }
 
 
+class _ExternalUint8ClampedArray
+  extends _ByteArrayBase implements Uint8ClampedList {
+
+  int operator[](int index) {
+    return _getIndexed(index);
+  }
+
+  int operator[]=(int index, int value) {
+    _setIndexed(index, _toClampedUint8(value));
+  }
+
+  Iterator<int> get iterator {
+    return new _ByteArrayIterator<int>(this);
+  }
+
+  List<int> getRange(int start, int length) {
+    _rangeCheck(this.length, start, length);
+    List<int> result = new Uint8ClampedList(length);
+    result.setRange(0, length, this, start);
+    return result;
+  }
+
+  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
+    if (from is _ExternalUint8ClampedArray || from is _Uint8ClampedArray) {
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
+    } else {
+      Arrays.copy(from, startFrom, this, start, length);
+    }
+  }
+
+  String toString() {
+    return Collections.collectionToString(this);
+  }
+
+  int bytesPerElement() {
+    return _BYTES_PER_ELEMENT;
+  }
+
+  int lengthInBytes() {
+    return _length() * _BYTES_PER_ELEMENT;
+  }
+
+  static const int _BYTES_PER_ELEMENT = 1;
+
+  int _getIndexed(int index) native "ExternalUint8ClampedArray_getIndexed";
+  int _setIndexed(int index, int value) native "ExternalUint8ClampedArray_setIndexed";
+}
+
+
 class _ExternalInt16Array extends _ByteArrayBase implements Int16List {
   int operator[](int index) {
     return _getIndexed(index);
