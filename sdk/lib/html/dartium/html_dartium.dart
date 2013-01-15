@@ -663,30 +663,6 @@ class ArrayBufferView extends NativeFieldWrapperClass1 {
 class Attr extends Node {
   Attr.internal() : super.internal();
 
-
-  /** @domName Attr.isId */
-  bool get isId native "Attr_isId_Getter";
-
-
-  /** @domName Attr.name */
-  String get name native "Attr_name_Getter";
-
-
-  /** @domName Attr.ownerElement */
-  Element get ownerElement native "Attr_ownerElement_Getter";
-
-
-  /** @domName Attr.specified */
-  bool get specified native "Attr_specified_Getter";
-
-
-  /** @domName Attr.value */
-  String get value native "Attr_value_Getter";
-
-
-  /** @domName Attr.value */
-  void set value(String value) native "Attr_value_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1004,14 +980,6 @@ class BodyElement extends _Element_Merged {
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BodyElementEvents get on =>
     new BodyElementEvents(this);
-
-
-  /** @domName HTMLBodyElement.vLink */
-  String get vLink native "HTMLBodyElement_vLink_Getter";
-
-
-  /** @domName HTMLBodyElement.vLink */
-  void set vLink(String value) native "HTMLBodyElement_vLink_Setter";
 
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
@@ -7685,34 +7653,6 @@ class DocumentFragment extends Node {
 class DocumentType extends Node {
   DocumentType.internal() : super.internal();
 
-
-  /** @domName DocumentType.entities */
-  NamedNodeMap get entities native "DocumentType_entities_Getter";
-
-
-  /** @domName DocumentType.internalSubset */
-  String get internalSubset native "DocumentType_internalSubset_Getter";
-
-
-  /** @domName DocumentType.name */
-  String get name native "DocumentType_name_Getter";
-
-
-  /** @domName DocumentType.notations */
-  NamedNodeMap get notations native "DocumentType_notations_Getter";
-
-
-  /** @domName DocumentType.publicId */
-  String get publicId native "DocumentType_publicId_Getter";
-
-
-  /** @domName DocumentType.systemId */
-  String get systemId native "DocumentType_systemId_Getter";
-
-
-  /** @domName DocumentType.remove */
-  void remove() native "DocumentType_remove_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12035,90 +11975,6 @@ class FormElement extends _Element_Merged {
 class FrameElement extends _Element_Merged {
   FrameElement.internal() : super.internal();
 
-
-  /** @domName HTMLFrameElement.contentWindow */
-  WindowBase get contentWindow native "HTMLFrameElement_contentWindow_Getter";
-
-
-  /** @domName HTMLFrameElement.frameBorder */
-  String get frameBorder native "HTMLFrameElement_frameBorder_Getter";
-
-
-  /** @domName HTMLFrameElement.frameBorder */
-  void set frameBorder(String value) native "HTMLFrameElement_frameBorder_Setter";
-
-
-  /** @domName HTMLFrameElement.height */
-  int get height native "HTMLFrameElement_height_Getter";
-
-
-  /** @domName HTMLFrameElement.location */
-  String get location native "HTMLFrameElement_location_Getter";
-
-
-  /** @domName HTMLFrameElement.location */
-  void set location(String value) native "HTMLFrameElement_location_Setter";
-
-
-  /** @domName HTMLFrameElement.longDesc */
-  String get longDesc native "HTMLFrameElement_longDesc_Getter";
-
-
-  /** @domName HTMLFrameElement.longDesc */
-  void set longDesc(String value) native "HTMLFrameElement_longDesc_Setter";
-
-
-  /** @domName HTMLFrameElement.marginHeight */
-  String get marginHeight native "HTMLFrameElement_marginHeight_Getter";
-
-
-  /** @domName HTMLFrameElement.marginHeight */
-  void set marginHeight(String value) native "HTMLFrameElement_marginHeight_Setter";
-
-
-  /** @domName HTMLFrameElement.marginWidth */
-  String get marginWidth native "HTMLFrameElement_marginWidth_Getter";
-
-
-  /** @domName HTMLFrameElement.marginWidth */
-  void set marginWidth(String value) native "HTMLFrameElement_marginWidth_Setter";
-
-
-  /** @domName HTMLFrameElement.name */
-  String get name native "HTMLFrameElement_name_Getter";
-
-
-  /** @domName HTMLFrameElement.name */
-  void set name(String value) native "HTMLFrameElement_name_Setter";
-
-
-  /** @domName HTMLFrameElement.noResize */
-  bool get noResize native "HTMLFrameElement_noResize_Getter";
-
-
-  /** @domName HTMLFrameElement.noResize */
-  void set noResize(bool value) native "HTMLFrameElement_noResize_Setter";
-
-
-  /** @domName HTMLFrameElement.scrolling */
-  String get scrolling native "HTMLFrameElement_scrolling_Getter";
-
-
-  /** @domName HTMLFrameElement.scrolling */
-  void set scrolling(String value) native "HTMLFrameElement_scrolling_Setter";
-
-
-  /** @domName HTMLFrameElement.src */
-  String get src native "HTMLFrameElement_src_Getter";
-
-
-  /** @domName HTMLFrameElement.src */
-  void set src(String value) native "HTMLFrameElement_src_Setter";
-
-
-  /** @domName HTMLFrameElement.width */
-  int get width native "HTMLFrameElement_width_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12160,22 +12016,6 @@ class FrameSetElement extends _Element_Merged {
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FrameSetElementEvents get on =>
     new FrameSetElementEvents(this);
-
-
-  /** @domName HTMLFrameSetElement.cols */
-  String get cols native "HTMLFrameSetElement_cols_Getter";
-
-
-  /** @domName HTMLFrameSetElement.cols */
-  void set cols(String value) native "HTMLFrameSetElement_cols_Setter";
-
-
-  /** @domName HTMLFrameSetElement.rows */
-  String get rows native "HTMLFrameSetElement_rows_Getter";
-
-
-  /** @domName HTMLFrameSetElement.rows */
-  void set rows(String value) native "HTMLFrameSetElement_rows_Setter";
 
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
@@ -12990,32 +12830,8 @@ class HtmlOptionsCollection extends HtmlCollection {
   HtmlOptionsCollection.internal() : super.internal();
 
 
-  /** @domName HTMLOptionsCollection.length */
-  int get length native "HTMLOptionsCollection_length_Getter";
-
-
-  /** @domName HTMLOptionsCollection.length */
-  void set length(int value) native "HTMLOptionsCollection_length_Setter";
-
-
-  /** @domName HTMLOptionsCollection.selectedIndex */
-  int get selectedIndex native "HTMLOptionsCollection_selectedIndex_Getter";
-
-
-  /** @domName HTMLOptionsCollection.selectedIndex */
-  void set selectedIndex(int value) native "HTMLOptionsCollection_selectedIndex_Setter";
-
-
   /** @domName HTMLOptionsCollection.numericIndexSetter */
   void operator[]=(int index, Node value) native "HTMLOptionsCollection_numericIndexSetter_Callback";
-
-
-  /** @domName HTMLOptionsCollection.namedItem */
-  Node namedItem(String name) native "HTMLOptionsCollection_namedItem_Callback";
-
-
-  /** @domName HTMLOptionsCollection.remove */
-  void remove(int index) native "HTMLOptionsCollection_remove_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15532,14 +15348,6 @@ class LegendElement extends _Element_Merged {
   factory LegendElement() => document.$dom_createElement("legend");
 
 
-  /** @domName HTMLLegendElement.align */
-  String get align native "HTMLLegendElement_align_Getter";
-
-
-  /** @domName HTMLLegendElement.align */
-  void set align(String value) native "HTMLLegendElement_align_Setter";
-
-
   /** @domName HTMLLegendElement.form */
   FormElement get form native "HTMLLegendElement_form_Getter";
 
@@ -17561,10 +17369,6 @@ class MutationRecord extends NativeFieldWrapperClass1 {
 class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   NamedNodeMap.internal();
 
-
-  /** @domName NamedNodeMap.length */
-  int get length native "NamedNodeMap_length_Getter";
-
   Node operator[](int index) native "NamedNodeMap_item_Callback";
 
   void operator[]=(int index, Node value) {
@@ -17714,32 +17518,8 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   // -- end List<Node> mixins.
 
 
-  /** @domName NamedNodeMap.getNamedItem */
-  Node getNamedItem(String name) native "NamedNodeMap_getNamedItem_Callback";
-
-
-  /** @domName NamedNodeMap.getNamedItemNS */
-  Node getNamedItemNS(String namespaceURI, String localName) native "NamedNodeMap_getNamedItemNS_Callback";
-
-
   /** @domName NamedNodeMap.item */
-  Node item(int index) native "NamedNodeMap_item_Callback";
-
-
-  /** @domName NamedNodeMap.removeNamedItem */
-  Node removeNamedItem(String name) native "NamedNodeMap_removeNamedItem_Callback";
-
-
-  /** @domName NamedNodeMap.removeNamedItemNS */
-  Node removeNamedItemNS(String namespaceURI, String localName) native "NamedNodeMap_removeNamedItemNS_Callback";
-
-
-  /** @domName NamedNodeMap.setNamedItem */
-  Node setNamedItem(Node node) native "NamedNodeMap_setNamedItem_Callback";
-
-
-  /** @domName NamedNodeMap.setNamedItemNS */
-  Node setNamedItemNS(Node node) native "NamedNodeMap_setNamedItemNS_Callback";
+  Node _item(int index) native "NamedNodeMap_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18101,42 +17881,6 @@ class Node extends EventTarget {
 
   Node.internal() : super.internal();
 
-  static const int ATTRIBUTE_NODE = 2;
-
-  static const int CDATA_SECTION_NODE = 4;
-
-  static const int COMMENT_NODE = 8;
-
-  static const int DOCUMENT_FRAGMENT_NODE = 11;
-
-  static const int DOCUMENT_NODE = 9;
-
-  static const int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
-
-  static const int DOCUMENT_POSITION_CONTAINS = 0x08;
-
-  static const int DOCUMENT_POSITION_DISCONNECTED = 0x01;
-
-  static const int DOCUMENT_POSITION_FOLLOWING = 0x04;
-
-  static const int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
-
-  static const int DOCUMENT_POSITION_PRECEDING = 0x02;
-
-  static const int DOCUMENT_TYPE_NODE = 10;
-
-  static const int ELEMENT_NODE = 1;
-
-  static const int ENTITY_NODE = 6;
-
-  static const int ENTITY_REFERENCE_NODE = 5;
-
-  static const int NOTATION_NODE = 12;
-
-  static const int PROCESSING_INSTRUCTION_NODE = 7;
-
-  static const int TEXT_NODE = 3;
-
 
   /** @domName Node.attributes */
   NamedNodeMap get $dom_attributes native "Node_attributes_Getter";
@@ -18168,6 +17912,10 @@ class Node extends EventTarget {
 
   /** @domName Node.nodeType */
   int get nodeType native "Node_nodeType_Getter";
+
+
+  /** @domName Node.nodeValue */
+  String get nodeValue native "Node_nodeValue_Getter";
 
 
   /** @domName Node.ownerDocument */
@@ -22448,14 +22196,6 @@ class TableRowElement extends _Element_Merged {
 /// @domName HTMLTableSectionElement
 class TableSectionElement extends _Element_Merged {
   TableSectionElement.internal() : super.internal();
-
-
-  /** @domName HTMLTableSectionElement.chOff */
-  String get chOff native "HTMLTableSectionElement_chOff_Getter";
-
-
-  /** @domName HTMLTableSectionElement.chOff */
-  void set chOff(String value) native "HTMLTableSectionElement_chOff_Setter";
 
 
   /** @domName HTMLTableSectionElement.rows */

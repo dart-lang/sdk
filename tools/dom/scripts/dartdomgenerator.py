@@ -9,6 +9,7 @@ import dartgenerator
 import database
 import fremontcutbuilder
 import logging.config
+import monitored
 import multiemitter
 import optparse
 import os
@@ -137,6 +138,8 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
 
   _logger.info('Flush...')
   emitters.Flush()
+
+  monitored.FinishMonitoring()
 
 def GenerateSingleFile(library_path, output_dir, generated_output_dir=None):
   library_dir = os.path.dirname(library_path)

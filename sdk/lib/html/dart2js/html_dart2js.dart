@@ -446,21 +446,6 @@ class ArrayBufferView native "*ArrayBufferView" {
 
 /// @domName Attr; @docsEditable true
 class Attr extends Node native "*Attr" {
-
-  /// @domName Attr.isId; @docsEditable true
-  final bool isId;
-
-  /// @domName Attr.name; @docsEditable true
-  final String name;
-
-  /// @domName Attr.ownerElement; @docsEditable true
-  final Element ownerElement;
-
-  /// @domName Attr.specified; @docsEditable true
-  final bool specified;
-
-  /// @domName Attr.value; @docsEditable true
-  String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -709,9 +694,6 @@ class BodyElement extends Element native "*HTMLBodyElement" {
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BodyElementEvents get on =>
     new BodyElementEvents(this);
-
-  /// @domName HTMLBodyElement.vLink; @docsEditable true
-  String vLink;
 
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
@@ -6465,27 +6447,6 @@ class DocumentFragment extends Node native "*DocumentFragment" {
 
 /// @domName DocumentType; @docsEditable true
 class DocumentType extends Node native "*DocumentType" {
-
-  /// @domName DocumentType.entities; @docsEditable true
-  final NamedNodeMap entities;
-
-  /// @domName DocumentType.internalSubset; @docsEditable true
-  final String internalSubset;
-
-  /// @domName DocumentType.name; @docsEditable true
-  final String name;
-
-  /// @domName DocumentType.notations; @docsEditable true
-  final NamedNodeMap notations;
-
-  /// @domName DocumentType.publicId; @docsEditable true
-  final String publicId;
-
-  /// @domName DocumentType.systemId; @docsEditable true
-  final String systemId;
-
-  /// @domName DocumentType.remove; @docsEditable true
-  void remove() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10332,45 +10293,6 @@ class FormElement extends Element native "*HTMLFormElement" {
 
 /// @domName HTMLFrameElement; @docsEditable true
 class FrameElement extends Element native "*HTMLFrameElement" {
-
-  /// @domName HTMLFrameElement.contentWindow; @docsEditable true
-  WindowBase get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  @JSName('contentWindow')
-  @Creates('Window|=Object') @Returns('Window|=Object')
-  final dynamic _contentWindow;
-
-  /// @domName HTMLFrameElement.frameBorder; @docsEditable true
-  String frameBorder;
-
-  /// @domName HTMLFrameElement.height; @docsEditable true
-  final int height;
-
-  /// @domName HTMLFrameElement.location; @docsEditable true
-  String location;
-
-  /// @domName HTMLFrameElement.longDesc; @docsEditable true
-  String longDesc;
-
-  /// @domName HTMLFrameElement.marginHeight; @docsEditable true
-  String marginHeight;
-
-  /// @domName HTMLFrameElement.marginWidth; @docsEditable true
-  String marginWidth;
-
-  /// @domName HTMLFrameElement.name; @docsEditable true
-  String name;
-
-  /// @domName HTMLFrameElement.noResize; @docsEditable true
-  bool noResize;
-
-  /// @domName HTMLFrameElement.scrolling; @docsEditable true
-  String scrolling;
-
-  /// @domName HTMLFrameElement.src; @docsEditable true
-  String src;
-
-  /// @domName HTMLFrameElement.width; @docsEditable true
-  final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10409,12 +10331,6 @@ class FrameSetElement extends Element native "*HTMLFrameSetElement" {
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FrameSetElementEvents get on =>
     new FrameSetElementEvents(this);
-
-  /// @domName HTMLFrameSetElement.cols; @docsEditable true
-  String cols;
-
-  /// @domName HTMLFrameSetElement.rows; @docsEditable true
-  String rows;
 
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
@@ -11149,24 +11065,6 @@ class HtmlFormControlsCollection extends HtmlCollection native "*HTMLFormControl
 
 /// @domName HTMLOptionsCollection; @docsEditable true
 class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollection" {
-
-  // Shadowing definition.
-  /// @domName HTMLOptionsCollection.length; @docsEditable true
-  int get length => JS("int", "#.length", this);
-
-  /// @domName HTMLOptionsCollection.length; @docsEditable true
-  void set length(int value) {
-    JS("void", "#.length = #", this, value);
-  }
-
-  /// @domName HTMLOptionsCollection.selectedIndex; @docsEditable true
-  int selectedIndex;
-
-  /// @domName HTMLOptionsCollection.namedItem; @docsEditable true
-  Node namedItem(String name) native;
-
-  /// @domName HTMLOptionsCollection.remove; @docsEditable true
-  void remove(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13149,9 +13047,6 @@ class LegendElement extends Element native "*HTMLLegendElement" {
   ///@docsEditable true
   factory LegendElement() => document.$dom_createElement("legend");
 
-  /// @domName HTMLLegendElement.align; @docsEditable true
-  String align;
-
   /// @domName HTMLLegendElement.form; @docsEditable true
   final FormElement form;
 }
@@ -14632,9 +14527,6 @@ class MutationRecord native "*MutationRecord" {
 /// @domName NamedNodeMap; @docsEditable true
 class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
 
-  /// @domName NamedNodeMap.length; @docsEditable true
-  int get length => JS("int", "#.length", this);
-
   Node operator[](int index) => JS("Node", "#[#]", this, index);
 
   void operator[]=(int index, Node value) {
@@ -14783,26 +14675,9 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 
   // -- end List<Node> mixins.
 
-  /// @domName NamedNodeMap.getNamedItem; @docsEditable true
-  Node getNamedItem(String name) native;
-
-  /// @domName NamedNodeMap.getNamedItemNS; @docsEditable true
-  Node getNamedItemNS(String namespaceURI, String localName) native;
-
   /// @domName NamedNodeMap.item; @docsEditable true
-  Node item(int index) native;
-
-  /// @domName NamedNodeMap.removeNamedItem; @docsEditable true
-  Node removeNamedItem(String name) native;
-
-  /// @domName NamedNodeMap.removeNamedItemNS; @docsEditable true
-  Node removeNamedItemNS(String namespaceURI, String localName) native;
-
-  /// @domName NamedNodeMap.setNamedItem; @docsEditable true
-  Node setNamedItem(Node node) native;
-
-  /// @domName NamedNodeMap.setNamedItemNS; @docsEditable true
-  Node setNamedItemNS(Node node) native;
+  @JSName('item')
+  Node _item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15149,42 +15024,6 @@ class Node extends EventTarget native "*Node" {
   }
 
 
-  static const int ATTRIBUTE_NODE = 2;
-
-  static const int CDATA_SECTION_NODE = 4;
-
-  static const int COMMENT_NODE = 8;
-
-  static const int DOCUMENT_FRAGMENT_NODE = 11;
-
-  static const int DOCUMENT_NODE = 9;
-
-  static const int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
-
-  static const int DOCUMENT_POSITION_CONTAINS = 0x08;
-
-  static const int DOCUMENT_POSITION_DISCONNECTED = 0x01;
-
-  static const int DOCUMENT_POSITION_FOLLOWING = 0x04;
-
-  static const int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
-
-  static const int DOCUMENT_POSITION_PRECEDING = 0x02;
-
-  static const int DOCUMENT_TYPE_NODE = 10;
-
-  static const int ELEMENT_NODE = 1;
-
-  static const int ENTITY_NODE = 6;
-
-  static const int ENTITY_REFERENCE_NODE = 5;
-
-  static const int NOTATION_NODE = 12;
-
-  static const int PROCESSING_INSTRUCTION_NODE = 7;
-
-  static const int TEXT_NODE = 3;
-
   /// @domName Node.attributes; @docsEditable true
   @JSName('attributes')
   final NamedNodeMap $dom_attributes;
@@ -15216,6 +15055,9 @@ class Node extends EventTarget native "*Node" {
 
   /// @domName Node.nodeType; @docsEditable true
   final int nodeType;
+
+  /// @domName Node.nodeValue; @docsEditable true
+  final String nodeValue;
 
   /// @domName Node.ownerDocument; @docsEditable true
   @JSName('ownerDocument')
@@ -18557,9 +18399,6 @@ class TableRowElement extends Element native "*HTMLTableRowElement" {
 
 /// @domName HTMLTableSectionElement; @docsEditable true
 class TableSectionElement extends Element native "*HTMLTableSectionElement" {
-
-  /// @domName HTMLTableSectionElement.chOff; @docsEditable true
-  String chOff;
 
   /// @domName HTMLTableSectionElement.rows; @docsEditable true
   final HtmlCollection rows;

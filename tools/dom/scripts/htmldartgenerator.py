@@ -129,7 +129,7 @@ class HtmlDartGenerator(object):
 
   def AddConstant(self, constant):
     const_name = self._renamer.RenameMember(
-        self._interface.id, constant, constant.id, dartify_name=False)
+        self._interface.id, constant, constant.id, 'get:', dartify_name=False)
     if not const_name:
       return
     type = TypeOrNothing(self._DartType(constant.type.id), constant.type.id)
