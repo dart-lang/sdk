@@ -9,7 +9,7 @@ part of dart.async;
 /// Initial and default state where the stream can receive and send events.
 const int _STREAM_OPEN = 0;
 /// The stream has received a request to complete, but hasn't done so yet.
-/// No further events can be aded to the stream.
+/// No further events can be added to the stream.
 const int _STREAM_CLOSED = 1;
 /// The stream has completed and will no longer receive or send events.
 /// Also counts as closed. The stream must not be paused when it's completed.
@@ -57,7 +57,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
    * stored here.
    * Also supports scheduling the events for later execution.
    */
-  _StreamImplEvents _pendingEvents;
+  _PendingEvents _pendingEvents;
 
   // ------------------------------------------------------------------
   // Stream interface.
@@ -326,15 +326,16 @@ abstract class _StreamImpl<T> extends Stream<T> {
   /** Add a pending event at the end of the pending event queue. */
   void _addPendingEvent(_DelayedEvent event) {
     if (_pendingEvents == null) _pendingEvents = new _StreamImplEvents();
-    _pendingEvents.add(event);
+    _StreamImplEvents events = _pendingEvents;
+    events.add(event);
   }
 
   /** Fire any pending events until the pending event queue. */
   void _handlePendingEvents() {
-    _StreamImplEvents events = _pendingEvents;
+    _PendingEvents events = _pendingEvents;
     if (events == null) return;
     while (!events.isEmpty && !_isPaused) {
-      events.removeFirst().perform(this);
+      events.handleNext(this);
     }
   }
 
@@ -430,7 +431,7 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
   _StreamListener _subscriber = null;
 
   /** Whether one or more active subscribers have requested a pause. */
-  bool get _isPaused => (!_hasSubscribers && !_isClosed) || super._isPaused;
+  bool get _isPaused => (!_hasSubscribers && !_isComplete) || super._isPaused;
 
   /** Whether there is currently a subscriber on this [Stream]. */
   bool get _hasSubscribers => _subscriber != null;
@@ -657,62 +658,62 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
 }
 
 
-/** Abstract superclass for streams that generate their own events. */
-abstract class _GeneratedSingleStreamImpl<T> extends _SingleStreamImpl<T> {
-  bool _isHandlingPendingEvents = false;
-  bool get _hasPendingEvent => !_isClosed;
-
-  void _schedulePendingEvents() {
-    if (_pendingEvents != null) {
-      _pendingEvents.schedule(this);
-    } else {
-      // In the case where there only pending events are generated ones.
-      new Timer(0, (_) { _handlePendingEvents(); });
-    }
+/** Stream that generates its own events. */
+class _GeneratedSingleStreamImpl<T> extends _SingleStreamImpl<T> {
+  /**
+   * Initializes the stream to have only the events provided by [events].
+   *
+   * A [_PendingEvents] implementation provides events that are handled
+   * by calling [_PendingEvents.handleNext] with the [_StreamImpl].
+   */
+  _GeneratedSingleStreamImpl(_PendingEvents events) {
+    _pendingEvents = events;
+    _setClosed();  // Closed for input since all events are already pending.
   }
 
-  /**
-   * Generate one (or possibly more) new events.
-   *
-   * The events should be added to the stream using [_add], [_signalError] and
-   * [_close].
-   */
-  void _generateNextEvent();
+  void _add(T value) {
+    throw new UnsupportedError("Cannot inject events into generated stream");
+  }
 
-  void _handlePendingEvents() {
-    // Avoid reentry from _add/_signalError/_close potentially called
-    // from _generateNextEvent.
-    if (_isHandlingPendingEvents) return;
-    _isHandlingPendingEvents = true;
-    while (!_isPaused && !_isClosed) {
-      // Call super's handle event in case _generateNextEvent generates
-      // more than one event, and the following ones are delayed.
-      super._handlePendingEvents();
-      if (!_isPaused && !_isClosed) {
-        _generateNextEvent();
-      }
-    }
-    _isHandlingPendingEvents = false;
+  void _signalError(AsyncError value) {
+    throw new UnsupportedError("Cannot inject events into generated stream");
+  }
+
+  void _close() {
+    throw new UnsupportedError("Cannot inject events into generated stream");
   }
 }
 
 
-/** Stream that gets its events from an [Iterable]. */
-class _IterableSingleStreamImpl<T> extends _GeneratedSingleStreamImpl<T> {
-  Iterator<T> _iterator;
+/** Pending events object that gets its events from an [Iterable]. */
+class _IterablePendingEvents<T> extends _PendingEvents {
+  final Iterator<T> _iterator;
+  /**
+   * Whether there are no more events to be sent.
+   *
+   * This starts out as [:false:] since there is always at least
+   * a 'done' event to be sent.
+   */
+  bool _isDone = false;
 
-  _IterableSingleStreamImpl(Iterable<T> data) : _iterator = data.iterator;
+  _IterablePendingEvents(Iterable<T> data) : _iterator = data.iterator;
 
-  void _generateNextEvent() {
+  bool get isEmpty => _isDone;
+
+  void handleNext(_StreamImpl<T> stream) {
+    if (_isDone) throw new StateError("No events pending.");
     try {
-      if (_iterator.moveNext()) {
-        _add(_iterator.current);
-        return;
+      _isDone = !_iterator.moveNext();
+      if (!_isDone) {
+        stream._sendData(_iterator.current);
+      } else {
+        stream._sendDone();
       }
     } catch (e, s) {
-      _signalError(new AsyncError(e, s));
+      stream._sendError(new AsyncError(e, s));
+      stream._sendDone();
+      _isDone = false;
     }
-    _close();
   }
 }
 
@@ -1000,12 +1001,8 @@ abstract class _StreamListener<T> extends _InternalLink {
   _sendDone();
 }
 
-/** Class holding pending events for a [_StreamImpl]. */
-class _StreamImplEvents {
-  /// Single linked list of [_DelayedEvent] objects.
-  _DelayedEvent firstPendingEvent = null;
-  /// Last element in the list of pending events. New events are added after it.
-  _DelayedEvent lastPendingEvent = null;
+/** Superclass for provider of pending events. */
+abstract class _PendingEvents {
   /**
    * Timer set when pending events are scheduled for execution.
    *
@@ -1015,7 +1012,7 @@ class _StreamImplEvents {
    */
   Timer scheduleTimer = null;
 
-  bool get isEmpty => lastPendingEvent == null;
+  bool get isEmpty;
 
   bool get isScheduled => scheduleTimer != null;
 
@@ -1033,6 +1030,21 @@ class _StreamImplEvents {
     scheduleTimer = null;
   }
 
+  void handleNext(_StreamImpl stream);
+}
+
+
+/** Class holding pending events for a [_StreamImpl]. */
+class _StreamImplEvents extends _PendingEvents {
+  /// Single linked list of [_DelayedEvent] objects.
+  _DelayedEvent firstPendingEvent = null;
+  /// Last element in the list of pending events. New events are added after it.
+  _DelayedEvent lastPendingEvent = null;
+
+  bool get isEmpty => lastPendingEvent == null;
+
+  bool get isScheduled => scheduleTimer != null;
+
   void add(_DelayedEvent event) {
     if (lastPendingEvent == null) {
       firstPendingEvent = lastPendingEvent = event;
@@ -1041,14 +1053,14 @@ class _StreamImplEvents {
     }
   }
 
-  _DelayedEvent removeFirst() {
+  void handleNext(_StreamImpl stream) {
     if (isScheduled) cancelSchedule();
     _DelayedEvent event = firstPendingEvent;
     firstPendingEvent = event.next;
     if (firstPendingEvent == null) {
       lastPendingEvent = null;
     }
-    return event;
+    event.perform(stream);
   }
 }
 

@@ -73,7 +73,8 @@ abstract class Stream<T> {
    * Creates a single-subscription stream that gets its data from [data].
    */
   factory Stream.fromIterable(Iterable<T> data) {
-    return new _IterableSingleStreamImpl<T>(data);
+    _PendingEvents iterableEvents = new _IterablePendingEvents<T>(data);
+    return new _GeneratedSingleStreamImpl<T>(iterableEvents);
   }
 
   /**
