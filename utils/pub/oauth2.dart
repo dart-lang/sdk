@@ -75,14 +75,15 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
       return _saveCredentials(cache, client.credentials);
     });
   }).catchError((asyncError) {
-    var e = getRealError(asyncError);
-    if (e is ExpirationException) {
+    if (asyncError.error is ExpirationException) {
       log.error("Pub's authorization to upload packages has expired and "
           "can't be automatically refreshed.");
       return withClient(cache, fn);
-    } else if (e is AuthorizationException) {
+    } else if (asyncError.error is AuthorizationException) {
       var message = "OAuth2 authorization failed";
-      if (e.description != null) message = "$message (${e.description})";
+      if (asyncError.error.description != null) {
+        message = "$message (${asyncError.error.description})";
+      }
       log.error("$message.");
       return clearCredentials(cache).then((_) => withClient(cache, fn));
     } else {

@@ -168,12 +168,6 @@ class _Parse extends BaseMatcher {
   }
 }
 
-// ----------------------------------------------------------------------------
-
-// TODO(nweiz): All the code from here to the next "---..." line was also copied
-// from pkg/http/test/utils.dart. However, it was also modified to use
-// getRealError in order to work around issue 7781.
-
 // TODO(nweiz): remove this once it's built in to unittest
 /// A matcher for StateErrors.
 const isStateError = const _StateError();
@@ -184,7 +178,7 @@ const Matcher throwsStateError =
 
 class _StateError extends TypeMatcher {
   const _StateError() : super("StateError");
-  bool matches(item, MatchState matchState) => getRealError(item) is StateError;
+  bool matches(item, MatchState matchState) => item is StateError;
 }
 
 /// A matcher for HttpExceptions.
@@ -196,8 +190,7 @@ const Matcher throwsHttpException =
 
 class _HttpException extends TypeMatcher {
   const _HttpException() : super("HttpException");
-  bool matches(item, MatchState matchState) =>
-    getRealError(item) is HttpException;
+  bool matches(item, MatchState matchState) => item is HttpException;
 }
 
 /// A matcher for RedirectLimitExceededExceptions.
@@ -213,7 +206,7 @@ class _RedirectLimitExceededException extends TypeMatcher {
       super("RedirectLimitExceededException");
 
   bool matches(item, MatchState matchState) =>
-    getRealError(item) is RedirectLimitExceededException;
+    item is RedirectLimitExceededException;
 }
 
 // ----------------------------------------------------------------------------

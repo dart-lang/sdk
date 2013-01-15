@@ -120,19 +120,18 @@ class HostedSource extends Source {
   /// this tries to translate into a more user friendly error message. Always
   /// throws an error, either the original one or a better one.
   void _throwFriendlyError(AsyncError asyncError, package, url) {
-    var ex = getRealError(asyncError);
-
-    if (ex is PubHttpException && ex.response.statusCode == 404) {
+    if (asyncError.error is PubHttpException &&
+        asyncError.error.response.statusCode == 404) {
       throw 'Could not find package "$package" at $url.';
     }
 
-    if (ex is TimeoutException) {
+    if (asyncError.error is TimeoutException) {
       throw 'Timed out trying to find package "$package" at $url.';
     }
 
-    if (ex is io.SocketIOException) {
+    if (asyncError.error is io.SocketIOException) {
       throw 'Got socket error trying to find package "$package" at $url.\n'
-          '${ex.osError}';
+          '${asyncError.error.osError}';
     }
 
     // Otherwise re-throw the original exception.

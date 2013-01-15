@@ -77,9 +77,8 @@ class UploaderCommand extends PubCommand {
         }
       });
     }).then(handleJsonSuccess).catchError((asyncError) {
-      var e = getRealError(asyncError);
-      if (e is! PubHttpException) throw asyncError;
-      handleJsonError(e.response);
+      if (asyncError.error is! PubHttpException) throw asyncError;
+      handleJsonError(asyncError.error.response);
     });
   }
 }

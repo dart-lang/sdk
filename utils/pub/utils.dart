@@ -177,27 +177,3 @@ void mapAddAll(Map destination, Map source) =>
 /// replacing `+` with ` `.
 String urlDecode(String encoded) =>
   decodeUriComponent(encoded.replaceAll("+", " "));
-
-// TODO(rnystrom): Remove this when #7781 is fixed.
-/// When an error is rethrown in an async callback, you can end up with nested
-/// AsyncErrors. This unwraps them to find the real originating error.
-getRealError(error) {
-  while (error is AsyncError) {
-    error = error.error;
-  }
-
-  return error;
-}
-
-// TODO(nweiz): Remove this when #7781 is fixed.
-/// When an error is rethrown in an async callback, you can end up with nested
-/// AsyncErrors. This unwraps them to find the real originating stack trace.
-getRealStackTrace(error) {
-  var trace = null;
-  while (error is AsyncError) {
-    trace = error.stackTrace;
-    error = error.error;
-  }
-
-  return trace;
-}

@@ -58,13 +58,12 @@ class PubHttpClient extends http.BaseClient {
         throw new PubHttpException(response);
       });
     }).catchError((asyncError) {
-      var e = getRealError(asyncError);
-      if (e is SocketIOException &&
-          e.osError != null &&
-          (e.osError.errorCode == 8 ||
-           e.osError.errorCode == -2 ||
-           e.osError.errorCode == -5 ||
-           e.osError.errorCode == 11004)) {
+      if (asyncError.error is SocketIOException &&
+          asyncError.error.osError != null &&
+          (asyncError.error.osError.errorCode == 8 ||
+           asyncError.error.osError.errorCode == -2 ||
+           asyncError.error.osError.errorCode == -5 ||
+           asyncError.error.osError.errorCode == 11004)) {
         throw 'Could not resolve URL "${request.url.origin}".';
       }
       throw asyncError;

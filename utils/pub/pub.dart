@@ -262,7 +262,7 @@ abstract class PubCommand {
     future
       .then((_) => cache_.deleteTempDir())
       .catchError((asyncError) {
-        var e = getRealError(asyncError);
+        var e = asyncError.error;
         if (e is PubspecNotFoundException && e.name == null) {
           e = 'Could not find a file named "pubspec.yaml" in the directory '
             '${path.current}.';
@@ -271,7 +271,7 @@ abstract class PubCommand {
             '${basename(path.current)}").';
         }
 
-        handleError(e, getRealStackTrace(asyncError));
+        handleError(e, asyncError.stackTrace);
       })
       // Explicitly exit on success to ensure that any dangling dart:io handles
       // don't cause the process to never terminate.
