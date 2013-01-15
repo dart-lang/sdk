@@ -85,7 +85,7 @@ def GetOutputParent():
 
 
 def BuildOptions():
-  options = optparse.OptionParser()
+  options = optparse.OptionParser(usage='usage: %prog [options] <output>')
   options.add_option("-m", "--mode",
       help='Build variant',
       metavar='[debug,release]')
@@ -102,9 +102,8 @@ def Main():
   (options, args) = parser.parse_args()
   
   if len(args) > 1:
-    print 'usage: tools/create_editor.py [options] <output>'
     parser.print_help()
-    return 0
+    return 1
   
   osName = utils.GuessOS()
   mode = 'debug'
