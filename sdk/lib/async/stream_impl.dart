@@ -429,12 +429,6 @@ abstract class _StreamImpl<T> extends Stream<T> {
 class _SingleStreamImpl<T> extends _StreamImpl<T> {
   _StreamListener _subscriber = null;
 
-  Stream<T> asMultiSubscriberStream() {
-    return new _SingleStreamMultiplexer<T>(this);
-  }
-
-  bool get isSingleSubscription => true;
-
   /** Whether one or more active subscribers have requested a pause. */
   bool get _isPaused => (!_hasSubscribers && !_isClosed) || super._isPaused;
 
@@ -549,9 +543,9 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
     _nextLink = _previousLink = this;
   }
 
-  Stream<T> asMultiSubscriberStream() => this;
-
   bool get isSingleSubscription => false;
+
+  Stream<T> asMultiSubscriberStream() => this;
 
   // ------------------------------------------------------------------
   // Helper functions that can be overridden in subclasses.

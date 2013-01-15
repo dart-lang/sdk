@@ -41,6 +41,11 @@ part of dart.async;
  * its events when they are ready, whether there are listeners or not.
  *
  * Multi-subscription streams are used for independent events/observers.
+ *
+ * The default implementation of [isSingleSubscription] and
+ * [asMultiSubscriptionStream] are assuming this is a single-subscription stream
+ * and a multi-subscription stream inheriting from [Stream] must override these
+ * to return [:false:] and [:this:] respectively.
  */
 abstract class Stream<T> {
   Stream();
@@ -71,8 +76,10 @@ abstract class Stream<T> {
     return new _IterableSingleStreamImpl<T>(data);
   }
 
-  /** Whether the stream is a single-subscription stream. */
-  bool get isSingleSubscription;
+  /**
+   * Whether the stream is a single-subscription stream.
+   */
+  bool get isSingleSubscription => true;
 
   /**
    * Returns a multi-subscription stream that produces the same events as this.
@@ -84,7 +91,9 @@ abstract class Stream<T> {
    *
    * If this stream is already multi-subscriber, it is returned unmodified.
    */
-  Stream<T> asMultiSubscriberStream();
+  Stream<T> asMultiSubscriberStream() {
+    return new _SingleStreamMultiplexer<T>(this);
+  }
 
   /**
    * Stream that outputs events from the [sources] in cyclic order.
