@@ -2,9 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Patch library for dart:mirrors.
- */
+// Patch library for dart:mirrors.
+
+// Yeah, seriously: mirrors in dart2js are experimental...
+const String _MIRROR_OPT_IN_MESSAGE = """
+
+This program is using an experimental feature called \"mirrors\".  As
+currently implemented, mirrors do not work with minification, and will
+cause spurious errors depending on how code was optimized.
+
+The authors of this program are aware of these problems and have
+decided the thrill of using an experimental feature is outweighing the
+risks.  Furthermore, the authors of this program understand that
+long-term, to fix the problems mentioned above, mirrors may have
+negative impact on size and performance of Dart programs compiled to
+JavaScript.
+""";
+
+bool _mirrorsEnabled = false;
 
 /**
  * Stub class for the mirror system.
@@ -20,6 +35,11 @@ patch Future<MirrorSystem> mirrorSystemOf(SendPort port) {
 }
 
 patch InstanceMirror reflect(Object reflectee) {
+  if (!_mirrorsEnabled && (_MIRROR_OPT_IN_MESSAGE == reflectee)) {
+    // Turn on mirrors and warn that it is an experimental feature.
+    _mirrorsEnabled = true;
+    print(reflectee);
+  }
   _ensureEnabled();
   return new _InstanceMirror(reflectee);
 }
@@ -87,6 +107,6 @@ class _ClassMirror extends ClassMirror {
 }
 
 _ensureEnabled() {
-  if (Primitives.mirrorsEnabled) return;
+  if (_mirrorsEnabled) return;
   throw new UnsupportedError('dart:mirrors is an experimental feature');
 }
