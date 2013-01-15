@@ -53,7 +53,7 @@ class B extends A {
 
 class ManyCallsTest {
   static testMain() {
-    var list = new List(10);
+    var list = new List.fixedLength(10);
     for (int i = 0; i < (list.length ~/ 2) ; i++) {
       list[i] = new A();
     }

@@ -34,7 +34,7 @@ class TypeTest {
       return 0;
     }
     try {
-      List<int> a = new List<int>(1);
+      List<int> a = new List<int>.fixedLength(1);
       a[0] = 0;
       a[index()]++;  // Type check succeeds, but does not create side effects.
       Expect.equals(1, a[0]);
@@ -377,7 +377,7 @@ class TypeTest {
   static int testListAssigment() {
     int result = 0;
     {
-      var a = new List(5);
+      var a = new List.fixedLength(5);
       List a0 = a;
       List<Object> ao = a;
       List<int> ai = a;
@@ -385,7 +385,7 @@ class TypeTest {
       List<String> as = a;
     }
     {
-      var a = new List<Object>(5);
+      var a = new List<Object>.fixedLength(5);
       List a0 = a;
       List<Object> ao = a;
       try {
@@ -438,7 +438,7 @@ class TypeTest {
       }
     }
     {
-      var a = new List<int>(5);
+      var a = new List<int>.fixedLength(5);
       List a0 = a;
       List<Object> ao = a;
       List<int> ai = a;
@@ -461,7 +461,7 @@ class TypeTest {
       }
     }
     {
-      var a = new List<num>(5);
+      var a = new List<num>.fixedLength(5);
       List a0 = a;
       List<Object> ao = a;
       try {
@@ -499,7 +499,7 @@ class TypeTest {
       }
     }
     {
-      var a = new List<String>(5);
+      var a = new List<String>.fixedLength(5);
       List a0 = a;
       List<Object> ao = a;
       try {

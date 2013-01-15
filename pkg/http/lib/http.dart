@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -26,9 +26,9 @@
 ///     client.post(
 ///         "http://example.com/whatsit/create",
 ///         fields: {"name": "doodle", "color": "blue"})
-///       .chain((response) => client.get(response.bodyFields['uri']))
-///       .transform((response) => print(response.body))
-///       .onComplete((_) => client.close());
+///       .then((response) => client.get(response.bodyFields['uri']))
+///       .then((response) => print(response.body))
+///       .whenComplete(client.close);
 ///
 /// You can also exert more fine-grained control over your requests and
 /// responses by creating [Request] or [StreamedRequest] objects yourself and
@@ -53,6 +53,7 @@
 
 library http;
 
+import 'dart:async';
 import 'dart:scalarlist';
 import 'dart:uri';
 
@@ -62,6 +63,7 @@ import 'src/response.dart';
 export 'src/base_client.dart';
 export 'src/base_request.dart';
 export 'src/base_response.dart';
+export 'src/byte_stream.dart';
 export 'src/client.dart';
 export 'src/multipart_file.dart';
 export 'src/multipart_request.dart';
@@ -168,6 +170,5 @@ Future<Uint8List> readBytes(url, {Map<String, String> headers}) =>
 Future _withClient(Future fn(Client)) {
   var client = new Client();
   var future = fn(client);
-  future.onComplete((_) => client.close());
-  return future;
+  return future.whenComplete(client.close);
 }

@@ -4,6 +4,7 @@
 
 #include "vm/locations.h"
 
+#include "vm/assembler.h"
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
 #include "vm/flow_graph_compiler.h"
@@ -74,6 +75,27 @@ Location Location::FixedRegisterOrSmiConstant(Value* value, Register reg) {
   return ((constant != NULL) && constant->value().IsSmi())
       ? Location::Constant(constant->value())
       : Location::RegisterLocation(reg);
+}
+
+
+Location Location::AnyOrConstant(Value* value) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  return (constant != NULL)
+      ? Location::Constant(constant->value())
+      : Location::Any();
+}
+
+
+Address Location::ToStackSlotAddress() const {
+  const intptr_t index = stack_index();
+  if (index < 0) {
+    const intptr_t offset = (1 - index)  * kWordSize;
+    return Address(FPREG, offset);
+  } else {
+    const intptr_t offset =
+        (ParsedFunction::kFirstLocalSlotIndex - index) * kWordSize;
+    return Address(FPREG, offset);
+  }
 }
 
 

@@ -26,6 +26,7 @@ DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, max_polymorphic_checks);
+DECLARE_FLAG(bool, trace_optimization);
 
 Definition::Definition()
     : range_(NULL),
@@ -217,15 +218,53 @@ ConstantInstr* GraphEntryInstr::constant_null() {
 }
 
 
+static bool StartsWith(const String& name, const char* prefix, intptr_t n) {
+  ASSERT(name.IsOneByteString());
+
+  if (name.Length() < n) {
+    return false;
+  }
+
+  for (intptr_t i = 0; i < n; i++) {
+    if (name.CharAt(i) != prefix[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
 static bool CompareNames(const Library& lib,
                          const char* test_name,
                          const String& name) {
-  // If both names are private mangle test_name before comparison.
-  if ((name.CharAt(0) == '_') && (test_name[0] == '_')) {
-    const String& test_name_symbol = String::Handle(Symbols::New(test_name));
-    return String::Handle(lib.PrivateName(test_name_symbol)).Equals(name);
+  const char* kPrivateGetterPrefix = "get:_";
+  const char* kPrivateSetterPrefix = "set:_";
+
+  if (test_name[0] == '_') {
+    if (name.CharAt(0) != '_') {
+      return false;
+    }
+  } else if (strncmp(test_name,
+                     kPrivateGetterPrefix,
+                     strlen(kPrivateGetterPrefix)) == 0) {
+    if (!StartsWith(name, kPrivateGetterPrefix, strlen(kPrivateGetterPrefix))) {
+      return false;
+    }
+  } else if (strncmp(test_name,
+                     kPrivateSetterPrefix,
+                     strlen(kPrivateSetterPrefix)) == 0) {
+    if (!StartsWith(name, kPrivateSetterPrefix, strlen(kPrivateSetterPrefix))) {
+      return false;
+    }
+  } else {
+    // Compare without mangling.
+    return name.Equals(test_name);
   }
-  return name.Equals(test_name);
+
+  // Both names are private. Mangle test_name before comparison.
+  const String& test_name_symbol = String::Handle(Symbols::New(test_name));
+  return String::Handle(lib.PrivateName(test_name_symbol)).Equals(name);
 }
 
 
@@ -235,6 +274,7 @@ static bool IsRecognizedLibrary(const Library& library) {
       || (library.raw() == Library::MathLibrary())
       || (library.raw() == Library::ScalarlistLibrary());
 }
+
 
 MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {
@@ -1092,6 +1132,7 @@ RawAbstractType* LoadIndexedInstr::CompileType() const {
     case kFloat64ArrayCid :
       return Type::Double();
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
       return Type::IntType();
     default:
@@ -1110,6 +1151,7 @@ intptr_t LoadIndexedInstr::ResultCid() const {
     case kFloat64ArrayCid :
       return kDoubleCid;
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
       return kSmiCid;
     default:
@@ -1124,6 +1166,7 @@ Representation LoadIndexedInstr::representation() const {
     case kArrayCid:
     case kImmutableArrayCid:
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
       return kTagged;
     case kFloat32ArrayCid :
@@ -1147,6 +1190,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
+    case kUint8ArrayCid:
       return kTagged;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
@@ -1338,6 +1382,166 @@ intptr_t BinaryDoubleOpInstr::ResultCid() const {
 }
 
 
+static bool ToIntegerConstant(Value* value, intptr_t* result) {
+  if (!value->BindsToConstant()) {
+    if (value->definition()->IsUnboxDouble()) {
+      return ToIntegerConstant(value->definition()->AsUnboxDouble()->value(),
+                               result);
+    }
+
+    return false;
+  }
+
+  const Object& constant = value->BoundConstant();
+  if (constant.IsDouble()) {
+    const Double& double_constant = Double::Cast(constant);
+    *result = static_cast<intptr_t>(double_constant.value());
+    return (static_cast<double>(*result) == double_constant.value());
+  } else if (constant.IsSmi()) {
+    *result = Smi::Cast(constant).Value();
+    return true;
+  }
+
+  return false;
+}
+
+
+static Definition* CanonicalizeCommutativeArithmetic(Token::Kind op,
+                                                     intptr_t cid,
+                                                     Value* left,
+                                                     Value* right) {
+  ASSERT((cid == kSmiCid) || (cid == kDoubleCid) || (cid == kMintCid));
+
+  intptr_t left_value;
+  if (!ToIntegerConstant(left, &left_value)) {
+    return NULL;
+  }
+
+  switch (op) {
+    case Token::kMUL:
+      if (left_value == 1) {
+        if ((cid == kDoubleCid) &&
+            (right->definition()->representation() != kUnboxedDouble)) {
+          // Can't yet apply the equivalence because representation selection
+          // did not run yet. We need it to guarantee that right value is
+          // correctly coerced to double. The second canonicalization pass
+          // will apply this equivalence.
+          return NULL;
+        } else {
+          return right->definition();
+        }
+      } else if ((left_value == 0) && (cid != kDoubleCid)) {
+        // Can't apply this equivalence to double operation because
+        // 0.0 * NaN is NaN not 0.0.
+        return left->definition();
+      }
+      break;
+    case Token::kADD:
+      if ((left_value == 0) && (cid != kDoubleCid)) {
+        // Can't apply this equivalence to double operations because
+        // 0.0 + (-0.0) is 0.0 not -0.0.
+        return right->definition();
+      }
+      break;
+    case Token::kBIT_AND:
+      ASSERT(cid != kDoubleCid);
+      if (left_value == 0) {
+        return left->definition();
+      } else if (left_value == -1) {
+        return right->definition();
+      }
+      break;
+    case Token::kBIT_OR:
+      ASSERT(cid != kDoubleCid);
+      if (left_value == 0) {
+        return right->definition();
+      } else if (left_value == -1) {
+        return left->definition();
+      }
+      break;
+    case Token::kBIT_XOR:
+      ASSERT(cid != kDoubleCid);
+      if (left_value == 0) {
+        return right->definition();
+      }
+      break;
+    default:
+      break;
+  }
+
+  return NULL;
+}
+
+
+Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  Definition* result = NULL;
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kDoubleCid,
+                                             left(),
+                                             right());
+  if (result != NULL) {
+    return result;
+  }
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kDoubleCid,
+                                             right(),
+                                             left());
+  if (result != NULL) {
+    return result;
+  }
+
+  return this;
+}
+
+
+Definition* BinarySmiOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  Definition* result = NULL;
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kSmiCid,
+                                             left(),
+                                             right());
+  if (result != NULL) {
+    return result;
+  }
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kSmiCid,
+                                             right(),
+                                             left());
+  if (result != NULL) {
+    return result;
+  }
+
+  return this;
+}
+
+
+Definition* BinaryMintOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  Definition* result = NULL;
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kMintCid,
+                                             left(),
+                                             right());
+  if (result != NULL) {
+    return result;
+  }
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kMintCid,
+                                             right(),
+                                             left());
+  if (result != NULL) {
+    return result;
+  }
+
+  return this;
+}
+
+
 RawAbstractType* MathSqrtInstr::CompileType() const {
   return Type::Double();
 }
@@ -1395,6 +1599,11 @@ RawAbstractType* DoubleToIntegerInstr::CompileType() const {
 
 RawAbstractType* DoubleToSmiInstr::CompileType() const {
   return Type::SmiType();
+}
+
+
+RawAbstractType* DoubleToDoubleInstr::CompileType() const {
+  return Type::Double();
 }
 
 
@@ -1483,6 +1692,43 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   }
   return this;
 }
+
+
+Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  // Only handle strict-compares.
+  if (comparison()->IsStrictCompare()) {
+    Definition* replacement = comparison()->Canonicalize(optimizer);
+    if (replacement == comparison() || replacement == NULL) return this;
+    ComparisonInstr* comp = replacement->AsComparison();
+    if (comp == NULL) return this;
+
+    // Replace the comparison if the replacement is used at this branch,
+    // and has exactly one use.
+    if ((comp->input_use_list()->instruction() == this) &&
+        (comp->input_use_list()->next_use() == NULL) &&
+        (comp->env_use_list() == NULL)) {
+      comp->RemoveFromGraph();
+      // It is safe to pass a NULL iterator because we're replacing the
+      // comparison wrapped in a BranchInstr which does not modify the
+      // linked list of instructions.
+      ReplaceWith(comp, NULL /* ignored */);
+      for (intptr_t i = 0; i < comp->InputCount(); ++i) {
+        Value* operand = comp->InputAt(i);
+        operand->set_instruction(this);
+      }
+      if (FLAG_trace_optimization) {
+        OS::Print("Merging comparison v%"Pd"\n", comp->ssa_temp_index());
+      }
+      // Clear the comparison's use list, temp index and ssa temp index since
+      // the value of the comparison is not used outside the branch anymore.
+      comp->set_input_use_list(NULL);
+      comp->ClearSSATempIndex();
+      comp->ClearTempIndex();
+    }
+  }
+  return this;
+}
+
 
 Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   if (!right()->BindsToConstant()) return this;
@@ -2051,28 +2297,6 @@ void CreateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps= 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  // TODO(fschneider): Use Any() once it is supported by all code generators.
-  locs->set_in(0, Location::RequiresRegister());
-  return locs;
-}
-
-
-void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
-  // where PushArgument is handled by BindInstr::EmitNativeCode.
-  // TODO(fschneider): Avoid special-casing for SSA mode here.
-  if (compiler->is_optimizing()) {
-    ASSERT(locs()->in(0).IsRegister());
-    __ PushRegister(locs()->in(0).reg());
-  }
-}
-
-
 Environment* Environment::From(const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
                                const Function& function) {
@@ -2155,7 +2379,7 @@ RangeBoundary RangeBoundary::LowerBound() const {
   if (IsConstant()) return *this;
   return Add(Range::ConstantMin(symbol()->range()),
              RangeBoundary::FromConstant(offset_),
-             MinSmi());
+             OverflowedMinSmi());
 }
 
 
@@ -2163,7 +2387,7 @@ RangeBoundary RangeBoundary::UpperBound() const {
   if (IsConstant()) return *this;
   return Add(Range::ConstantMax(symbol()->range()),
              RangeBoundary::FromConstant(offset_),
-             MaxSmi());
+             OverflowedMaxSmi());
 }
 
 
@@ -2313,8 +2537,8 @@ RangeBoundary RangeBoundary::Min(RangeBoundary a, RangeBoundary b) {
     return (a.offset() <= b.offset()) ? a : b;
   }
 
-  const intptr_t min_a = a.LowerBound().value();
-  const intptr_t min_b = b.LowerBound().value();
+  const intptr_t min_a = a.LowerBound().Clamp().value();
+  const intptr_t min_b = b.LowerBound().Clamp().value();
 
   return RangeBoundary::FromConstant(Utils::Minimum(min_a, min_b));
 }
@@ -2325,8 +2549,8 @@ RangeBoundary RangeBoundary::Max(RangeBoundary a, RangeBoundary b) {
     return (a.offset() >= b.offset()) ? a : b;
   }
 
-  const intptr_t max_a = a.UpperBound().value();
-  const intptr_t max_b = b.UpperBound().value();
+  const intptr_t max_a = a.UpperBound().Clamp().value();
+  const intptr_t max_b = b.UpperBound().Clamp().value();
 
   return RangeBoundary::FromConstant(Utils::Maximum(max_a, max_b));
 }
@@ -2432,6 +2656,11 @@ void LoadFieldInstr::InferRange() {
     return;
   }
   if ((range_ == NULL) &&
+      (recognized_kind() == MethodRecognizer::kByteArrayBaseLength)) {
+    range_ = new Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+    return;
+  }
+  if ((range_ == NULL) &&
       (recognized_kind() == MethodRecognizer::kStringBaseLength)) {
     range_ = new Range(RangeBoundary::FromConstant(0),
                        RangeBoundary::FromConstant(String::kMaxElements));
@@ -2460,8 +2689,9 @@ void StringCharCodeAtInstr::InferRange() {
 
 void LoadIndexedInstr::InferRange() {
   switch (class_id()) {
-    case kExternalUint8ArrayCid:
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(255));
       break;
@@ -2646,9 +2876,31 @@ bool Range::IsWithin(intptr_t min_int, intptr_t max_int) const {
 }
 
 
+bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+    case kInt64ArrayCid:
+    case kUint64ArrayCid:
+    case kFloat32ArrayCid:
+    case kFloat64ArrayCid:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
 bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   // Check that array has an immutable length.
-  if ((array_type() != kArrayCid) && (array_type() != kImmutableArrayCid)) {
+  if (!IsFixedLengthArrayType(array_type())) {
     return false;
   }
 
@@ -2687,18 +2939,23 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
   switch (class_id) {
     case kGrowableObjectArrayCid:
       return GrowableObjectArray::length_offset();
-    case kFloat64ArrayCid:
-      return Float64Array::length_offset();
-    case kFloat32ArrayCid:
-      return Float32Array::length_offset();
     case kOneByteStringCid:
     case kTwoByteStringCid:
       return String::length_offset();
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::length_offset();
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
-      return Uint8Array::length_offset();
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+    case kInt64ArrayCid:
+    case kUint64ArrayCid:
+    case kFloat64ArrayCid:
+    case kFloat32ArrayCid:
     case kExternalUint8ArrayCid:
       return ByteArray::length_offset();
     default:

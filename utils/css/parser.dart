@@ -37,7 +37,7 @@ class Parser {
   //          }
   //          <div>...</div>
   //       }
-  // 
+  //
   Stylesheet parse([bool nestedCSS = false, var erroMsgRedirector = null]) {
     // TODO(terry): Hack for migrating CSS errors back to template errors.
     _erroMsgRedirector = erroMsgRedirector;
@@ -199,7 +199,7 @@ class Parser {
   ///////////////////////////////////////////////////////////////////
   // Productions
   ///////////////////////////////////////////////////////////////////
-  
+
   processMedia([bool oneRequired = false]) {
     List<String> media = [];
 
@@ -656,7 +656,7 @@ class Parser {
     if (TokenKind.isIdentifier(_peekToken.kind)) {
       var propertyIdent = identifier();
       _eat(TokenKind.COLON);
-  
+
       decl = new Declaration(propertyIdent, processExpr(), _makeSpan(start));
 
       // Handle !important (prio)
@@ -763,11 +763,11 @@ class Parser {
       break;
     case TokenKind.INTEGER:
       t = _next();
-      value = Math.parseInt("${unary}${t.text}");
+      value = int.parse("${unary}${t.text}");
       break;
     case TokenKind.DOUBLE:
       t = _next();
-      value = Math.parseDouble("${unary}${t.text}");
+      value = double.parse("${unary}${t.text}");
       break;
     case TokenKind.SINGLE_QUOTE:
     case TokenKind.DOUBLE_QUOTE:
@@ -978,7 +978,7 @@ class Parser {
     if (!TokenKind.isIdentifier(tok.kind)) {
       _error('expected identifier, but found $tok', tok.span);
     }
-  
+
     return new Identifier(tok.text, _makeSpan(tok.start));
   }
 

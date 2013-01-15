@@ -1,9 +1,10 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/builtin.h"
 #include "bin/eventhandler.h"
+#include "bin/file.h"
 #include "bin/log.h"
 #include "bin/socket.h"
 
@@ -135,6 +136,17 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
 void Socket::GetError(intptr_t fd, OSError* os_error) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   os_error->SetCodeAndMessage(OSError::kSystem, handle->last_error());
+}
+
+
+int Socket::GetType(intptr_t fd) {
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  switch (GetFileType(handle->handle())) {
+    case FILE_TYPE_CHAR: return File::kTerminal;
+    case FILE_TYPE_PIPE: return File::kPipe;
+    case FILE_TYPE_DISK: return File::kFile;
+    default: return GetLastError == NO_ERROR ? File::kOther : -1;
+  }
 }
 
 

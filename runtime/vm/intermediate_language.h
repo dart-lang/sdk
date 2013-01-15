@@ -44,6 +44,8 @@ class FlowGraphOptimizer;
   V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 733149324)              \
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
+  V(_Double, truncate, DoubleTruncate, 620870996)                              \
+  V(_Double, round, DoubleRound, 620870996)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
 
 // Class that recognizes the name and owner of a function and returns the
@@ -254,6 +256,7 @@ class EmbeddedArray<T, 0> {
   M(SmiToDouble)                                                               \
   M(DoubleToInteger)                                                           \
   M(DoubleToSmi)                                                               \
+  M(DoubleToDouble)                                                            \
   M(CheckClass)                                                                \
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
@@ -511,6 +514,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class StringCharCodeAtInstr;
   friend class LICM;
   friend class DoubleToSmiInstr;
+  friend class DoubleToDoubleInstr;
 
   intptr_t deopt_id_;
   intptr_t lifetime_position_;  // Position used by register allocator.
@@ -1035,6 +1039,7 @@ class Definition : public Instruction {
 
   intptr_t temp_index() const { return temp_index_; }
   void set_temp_index(intptr_t index) { temp_index_ = index; }
+  void ClearTempIndex() { temp_index_ = -1; }
 
   intptr_t ssa_temp_index() const { return ssa_temp_index_; }
   void set_ssa_temp_index(intptr_t index) {
@@ -1043,6 +1048,7 @@ class Definition : public Instruction {
     ssa_temp_index_ = index;
   }
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
+  void ClearSSATempIndex() { ssa_temp_index_ = -1; }
 
   bool is_used() const { return (use_kind_ != kEffect); }
   void set_use_kind(UseKind kind) { use_kind_ = kind; }
@@ -1081,10 +1087,14 @@ class Definition : public Instruction {
   // Returns true if the propagated cid has changed.
   bool SetPropagatedCid(intptr_t cid);
 
-  Value* input_use_list() { return input_use_list_; }
+  bool HasUses() const {
+    return (input_use_list_ != NULL) || (env_use_list_ != NULL);
+  }
+
+  Value* input_use_list() const { return input_use_list_; }
   void set_input_use_list(Value* head) { input_use_list_ = head; }
 
-  Value* env_use_list() { return env_use_list_; }
+  Value* env_use_list() const { return env_use_list_; }
   void set_env_use_list(Value* head) { env_use_list_ = head; }
 
   // Replace uses of this definition with uses of other definition or value.
@@ -1527,6 +1537,8 @@ class BranchInstr : public ControlInstruction {
     comparison_ = other;
   }
 
+  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
@@ -1720,12 +1732,12 @@ class Range : public ZoneAllocated {
 
   static RangeBoundary ConstantMin(Range* range) {
     if (range == NULL) return RangeBoundary::MinSmi();
-    return range->min().LowerBound();
+    return range->min().LowerBound().Clamp();
   }
 
   static RangeBoundary ConstantMax(Range* range) {
     if (range == NULL) return RangeBoundary::MaxSmi();
-    return range->max().UpperBound();
+    return range->max().UpperBound().Clamp();
   }
 
   // Inclusive.
@@ -3519,6 +3531,7 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
     return kUnboxedMint;
   }
 
+
   virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
@@ -3576,9 +3589,9 @@ class MathSqrtInstr : public TemplateDefinition<1> {
 class BinaryDoubleOpInstr : public TemplateDefinition<2> {
  public:
   BinaryDoubleOpInstr(Token::Kind op_kind,
-                             Value* left,
-                             Value* right,
-                             InstanceCallInstr* instance_call)
+                      Value* left,
+                      Value* right,
+                      InstanceCallInstr* instance_call)
       : op_kind_(op_kind) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
@@ -3623,6 +3636,8 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
 
   DECLARE_INSTRUCTION(BinaryDoubleOp)
   virtual RawAbstractType* CompileType() const;
+
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
  private:
   const Token::Kind op_kind_;
@@ -3681,6 +3696,8 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
     // was inherited from another instruction that could deoptimize.
     return deopt_id_;
   }
+
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
   DECLARE_INSTRUCTION(BinaryMintOp)
 
@@ -3853,6 +3870,8 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   virtual void InferRange();
 
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+
  private:
   const Token::Kind op_kind_;
   InstanceCallInstr* instance_call_;
@@ -4007,6 +4026,48 @@ class DoubleToSmiInstr : public TemplateDefinition<1> {
 };
 
 
+class DoubleToDoubleInstr : public TemplateDefinition<1> {
+ public:
+  DoubleToDoubleInstr(Value* value,
+                      InstanceCallInstr* instance_call,
+                      MethodRecognizer::Kind recognized_kind)
+    : recognized_kind_(recognized_kind) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
+
+  DECLARE_INSTRUCTION(DoubleToDouble)
+  virtual RawAbstractType* CompileType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+ private:
+  const MethodRecognizer::Kind recognized_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleInstr);
+};
+
+
 class CheckClassInstr : public TemplateInstruction<1> {
  public:
   CheckClassInstr(Value* value,
@@ -4106,11 +4167,13 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
   bool IsRedundant(RangeBoundary length);
 
- private:
-  intptr_t array_type_;
-
   // Returns the length offset for array and string types.
   static intptr_t LengthOffsetFor(intptr_t class_id);
+
+  static bool IsFixedLengthArrayType(intptr_t class_id);
+
+ private:
+  intptr_t array_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };

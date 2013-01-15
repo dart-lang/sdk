@@ -5,29 +5,23 @@
 part of dart.io;
 
 /**
- * A Path, which is a String interpreted as a sequence of path segments,
- * which are strings, separated by forward slashes.
- * Paths are immutable wrappers of a String, that offer member functions for
- * useful path manipulations and queries.  Joining of paths and normalization
- * interpret '.' and '..' in the usual way.
+ * A Path is an immutable wrapper of a String, with additional member functions
+ * for useful path manipulations and queries.
+ * On the Windows platform, Path also converts from and to native paths.
+ *
+ * Joining of paths and path normalization handle '.' and '..' in the usual way.
  */
 abstract class Path {
-  /**
-   * Creates a Path from the String [source].  [source] is used as-is, so if
-   * the string does not consist of segments separated by forward slashes, the
-   * behavior may not be as expected.  Paths are immutable.
-   */
-  factory Path(String source) => new _Path(source);
-
   /**
    * Creates a Path from a String that uses the native filesystem's conventions.
    *
    * On Windows, this converts '\' to '/' and has special handling for drive
    * letters and shares.
    *
-   * If the path contains a drive letter a '/' is added before the drive letter.
+   * If the path starts with a drive letter, like 'C:',  a '/' is added
+   * before the drive letter.
    *
-   *     new Path.fromNative(r'c:\a\b').toString() == '/c:/a/b'
+   *     new Path(r'c:\a\b').toString() == '/c:/a/b'
    *
    * A path starting with '/c:/' (or any other character instead of 'c') is
    * treated specially.  Backwards links ('..') cannot cancel the drive letter.
@@ -35,13 +29,20 @@ abstract class Path {
    * If the path is a share path this is recorded in the Path object and
    * maintained in operations on the Path object.
    *
-   *     var share = new Path.fromNative(r'\\share\a\b\c');
+   *     var share = new Path(r'\\share\a\b\c');
    *     share.isWindowsShare == true
    *     share.toString() == '/share/a/b/c'
    *     share.toNativePath() == r'\\share\a\b\c'
    *     share.append('final').isWindowsShare == true
    */
-  factory Path.fromNative(String source) => new _Path.fromNative(source);
+  factory Path(String source) => new _Path(source);
+
+  /**
+   * Creates a Path from the String [source].  [source] is used as-is, so if
+   * the string does not consist of segments separated by forward slashes, the
+   * behavior may not be as expected.  Paths are immutable.
+   */
+  factory Path.raw(String source) => new _Path.raw(source);
 
   /**
    * Is this path the empty string?
@@ -128,7 +129,7 @@ abstract class Path {
 
   /**
    * Returns the path as a string.  If this path is constructed using
-   * new Path() or new Path.fromNative() on a non-Windows system, the
+   * new Path.raw(), or new Path() on a non-Windows system, the
    * returned value is the original string argument to the constructor.
    */
   String toString();

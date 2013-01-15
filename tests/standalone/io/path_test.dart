@@ -8,6 +8,7 @@ import "dart:io";
 
 void main() {
   testBaseFunctions();
+  testRaw();
   testCanonicalize();
   testJoinAppend();
   testRelativeTo();
@@ -58,30 +59,33 @@ void testBaseFunctions() {
 
   // Test the special path cleaning operations on the Windows platform.
   if (Platform.operatingSystem == 'windows') {
-    testGetters(new Path.fromNative(r"c:\foo\bar\fisk.hest"),
+    testGetters(new Path(r"c:\foo\bar\fisk.hest"),
                 ['/c:/foo/bar', 'fisk.hest', 'fisk', 'hest'],
                 'absolute canonical');
-    testGetters(new Path.fromNative("\\foo\\bar\\"),
+    testGetters(new Path("\\foo\\bar\\"),
                 ['/foo/bar', '', '', ''],
                 'absolute canonical trailing');
-    testGetters(new Path.fromNative("\\foo\\bar\\hest"),
+    testGetters(new Path("\\foo\\bar\\hest"),
                 ['/foo/bar', 'hest', 'hest', ''],
                 'absolute canonical');
-    testGetters(new Path.fromNative(r"foo/bar\hest/.fisk"),
+    testGetters(new Path(r"foo/bar\hest/.fisk"),
                 ['foo/bar/hest', '.fisk', '', 'fisk'],
                 'canonical');
-    testGetters(new Path.fromNative(r"foo//bar\\hest/\/.fisk."),
+    testGetters(new Path(r"foo//bar\\hest/\/.fisk."),
                 ['foo//bar//hest', '.fisk.', '.fisk', ''],
                 '');
   } else {
     // Make sure that backslashes are uninterpreted on other platforms.
-    testGetters(new Path.fromNative(r"/foo\bar/bif/fisk.hest"),
+    testGetters(new Path(r"c:\foo\bar\fisk.hest"),
+                ['', r'c:\foo\bar\fisk.hest', r'c:\foo\bar\fisk', 'hest'],
+                'canonical');
+    testGetters(new Path(r"/foo\bar/bif/fisk.hest"),
                 [r'/foo\bar/bif', 'fisk.hest', 'fisk', 'hest'],
                 'absolute canonical');
-    testGetters(new Path.fromNative(r"//foo\bar///bif////fisk.hest"),
+    testGetters(new Path(r"//foo\bar///bif////fisk.hest"),
                 [r'//foo\bar///bif', 'fisk.hest', 'fisk', 'hest'],
                 'absolute');
-    testGetters(new Path.fromNative(r"/foo\ bar/bif/gule\ fisk.hest"),
+    testGetters(new Path(r"/foo\ bar/bif/gule\ fisk.hest"),
                 [r'/foo\ bar/bif', r'gule\ fisk.hest', r'gule\ fisk', 'hest'],
                 'absolute canonical');
   }
@@ -102,6 +106,12 @@ void testGetters(Path path, List components, String properties) {
   Expect.equals(path.isCanonical, properties.contains('canonical'));
   Expect.equals(path.isAbsolute, properties.contains('absolute'));
   Expect.equals(path.hasTrailingSeparator, properties.contains('trailing'));
+}
+
+void testRaw() {
+  Expect.equals(new Path.raw('c:\\foo/bar bad').toString(), 'c:\\foo/bar bad');
+  Expect.equals(new Path.raw('').toString(), '');
+  Expect.equals(new Path.raw('\\bar\u2603\n.').toString(), '\\bar\u2603\n.');
 }
 
 void testCanonicalize() {
@@ -129,8 +139,13 @@ void testCanonicalize() {
   t('foo/bar/../../../joe/../..', '../..');
   t('a/b/c/../../..d/./.e/f././', 'a/..d/.e/f./');
   t('/%:/foo/../..', '/%:/');
-  t('c:/foo/../../..', '..');
-  t('c:/foo/../../bad/dad/./..', 'bad');
+  if (Platform.operatingSystem == 'windows') {
+    t('c:/foo/../../..', '/c:/');
+    t('c:/foo/../../bad/dad/./..', '/c:/bad');
+  } else {
+    t('c:/foo/../../..', '..');
+    t('c:/foo/../../bad/dad/./..', 'bad');
+  }
 }
 
 void testJoinAppend() {
@@ -201,7 +216,7 @@ void testRelativeTo() {
 void testWindowsShare() {
   // Windows share information only makes sense on Windows.
   if (Platform.operatingSystem != 'windows') return;
-  var path = new Path.fromNative(r'\\share\a\b\..\c');
+  var path = new Path(r'\\share\a\b\..\c');
   Expect.isTrue(path.isAbsolute);
   Expect.isTrue(path.isWindowsShare);
   Expect.isFalse(path.hasTrailingSeparator);

@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:io";
+import 'dart:async';
+import 'dart:io';
 
 const SESSION_ID = "DARTSESSID";
 
@@ -50,17 +51,17 @@ void testSessions(int sessionCount) {
 
   var futures = [];
   for (int i = 0; i < sessionCount; i++) {
-    futures.add(connectGetSession(server.port).chain((session) {
+    futures.add(connectGetSession(server.port).then((session) {
       Expect.isNotNull(session);
       Expect.isTrue(sessions.contains(session));
-      return connectGetSession(server.port, session).transform((session2) {
+      return connectGetSession(server.port, session).then((session2) {
         Expect.equals(session2, session);
         Expect.isTrue(sessions.contains(session2));
         return session2;
         });
     }));
   }
-  Futures.wait(futures).then((clientSessions) {
+  Future.wait(futures).then((clientSessions) {
     Expect.equals(sessions.length, sessionCount);
     Expect.setEquals(new Set.from(clientSessions), sessions);
     server.close();
@@ -85,16 +86,16 @@ void testTimeout(int sessionCount) {
   for (int i = 0; i < sessionCount; i++) {
     futures.add(connectGetSession(server.port));
   }
-  Futures.wait(futures).then((clientSessions) {
-    Futures.wait(timeouts).then((_) {
+  Future.wait(futures).then((clientSessions) {
+    Future.wait(timeouts).then((_) {
       futures = [];
       for (var id in clientSessions) {
-        futures.add(connectGetSession(server.port, id).transform((session) {
+        futures.add(connectGetSession(server.port, id).then((session) {
           Expect.isNotNull(session);
           Expect.notEquals(id, session);
         }));
       }
-      Futures.wait(futures).then((_) {
+      Future.wait(futures).then((_) {
         server.close();
       });
     });

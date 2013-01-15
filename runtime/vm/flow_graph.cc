@@ -30,7 +30,6 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     preorder_(),
     postorder_(),
     reverse_postorder_(),
-    exits_(NULL),
     invalid_dominator_tree_(true) {
   DiscoverBlocks();
 }
@@ -209,8 +208,7 @@ bool FlowGraph::ValidateUseLists() {
 
 static void ClearUseLists(Definition* defn) {
   ASSERT(defn != NULL);
-  ASSERT(defn->input_use_list() == NULL);
-  ASSERT(defn->env_use_list() == NULL);
+  ASSERT(!defn->HasUses());
   defn->set_input_use_list(NULL);
   defn->set_env_use_list(NULL);
 }
@@ -827,13 +825,6 @@ void FlowGraph::ReplacePredecessor(BlockEntryInstr* old_block,
 }
 
 
-// Helper to sort a list of blocks.
-static int LowestBlockIdFirst(BlockEntryInstr* const* a,
-                              BlockEntryInstr* const* b) {
-  return (*a)->block_id() - (*b)->block_id();
-}
-
-
 // Inline a flow graph at a call site.
 //
 // Assumes the callee graph was computed by BuildGraph with an inlining context
@@ -842,10 +833,11 @@ static int LowestBlockIdFirst(BlockEntryInstr* const* a,
 //
 // After inlining the caller graph will correctly have adjusted the pre/post
 // orders, the dominator tree and the use lists.
-void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
+void FlowGraph::InlineCall(Definition* call,
+                           FlowGraph* callee_graph,
+                           ValueInliningContext* inlining_context) {
   ASSERT(call->previous() != NULL);
   ASSERT(call->next() != NULL);
-  ASSERT(callee_graph->exits() != NULL);
   ASSERT(callee_graph->graph_entry()->SuccessorCount() == 1);
   ASSERT(callee_graph->max_block_id() > max_block_id());
   ASSERT(callee_graph->max_virtual_register_number() >
@@ -859,7 +851,6 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
 
   BlockEntryInstr* caller_entry = call->GetBlock();
   TargetEntryInstr* callee_entry = callee_graph->graph_entry()->normal_entry();
-  ZoneGrowableArray<ReturnInstr*>* callee_exits = callee_graph->exits();
 
   // Attach the outer environment on each instruction in the callee graph.
   for (BlockIterator block_it = callee_graph->postorder_iterator();
@@ -876,23 +867,23 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
     }
   }
 
-  // Insert the callee graph into the caller graph.
-  if (callee_exits->is_empty()) {
+  // Insert the callee graph into the caller graph.  First sort the list of
+  // exits by block id (recording block entries as a side effect).
+  inlining_context->SortExits();
+  if (inlining_context->NumExits() == 0) {
     // TODO(zerny): Add support for non-local exits, such as throw.
     UNREACHABLE();
-  } else if (callee_exits->length() == 1) {
-    ReturnInstr* exit = (*callee_exits)[0];
-    ASSERT(exit->previous() != NULL);
+  } else if (inlining_context->NumExits() == 1) {
     // For just one exit, replace the uses and remove the call from the graph.
-    call->ReplaceUsesWith(exit->value()->definition());
+    call->ReplaceUsesWith(inlining_context->ValueAt(0)->definition());
     call->previous()->LinkTo(callee_entry->next());
-    exit->previous()->LinkTo(call->next());
+    inlining_context->LastInstructionAt(0)->LinkTo(call->next());
     // In case of control flow, locally update the predecessors, phis and
     // dominator tree.
     // TODO(zerny): should we leave the dominator tree since we recompute it
     // after a full inlining pass?
     if (callee_graph->preorder().length() > 2) {
-      BlockEntryInstr* exit_block = exit->GetBlock();
+      BlockEntryInstr* exit_block = inlining_context->ExitBlockAt(0);
       // Pictorially, the graph structure is:
       //
       //   Bc : caller_entry    Bi : callee_entry
@@ -932,27 +923,19 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
       }
     }
   } else {
-    // Sort the list of exits by block id.
-    GrowableArray<BlockEntryInstr*> exits(callee_exits->length());
-    for (intptr_t i = 0; i < callee_exits->length(); ++i) {
-      exits.Add((*callee_exits)[i]->GetBlock());
-    }
-    exits.Sort(LowestBlockIdFirst);
     // Create a join of the returns.
     JoinEntryInstr* join =
         new JoinEntryInstr(++max_block_id_,
                            CatchClauseNode::kInvalidTryIndex,
                            caller_entry->loop_depth());
-    for (intptr_t i = 0; i < exits.length(); ++i) {
-      ReturnInstr* exit_instr = exits[i]->last_instruction()->AsReturn();
-      ASSERT(exit_instr != NULL);
-      exit_instr->previous()->Goto(join);
+    intptr_t count = inlining_context->NumExits();
+    for (intptr_t i = 0; i < count; ++i) {
+      inlining_context->LastInstructionAt(i)->Goto(join);
       // Directly add the predecessors of the join in ascending block id order.
-      join->predecessors_.Add(exits[i]);
+      join->predecessors_.Add(inlining_context->ExitBlockAt(i));
     }
     // If the call has uses, create a phi of the returns.
-    if ((call->input_use_list() != NULL) ||
-        (call->env_use_list() != NULL)) {
+    if (call->HasUses()) {
       // Environment count: length before call - argument count (+ return)
       intptr_t env_count = call->env()->Length() - call->ArgumentCount();
       // Add a phi of the return values.
@@ -960,13 +943,11 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
       PhiInstr* phi = join->phis()->Last();
       phi->set_ssa_temp_index(alloc_ssa_temp_index());
       phi->mark_alive();
-      for (intptr_t i = 0; i < exits.length(); ++i) {
-        ReturnInstr* exit_instr = exits[i]->last_instruction()->AsReturn();
-        ASSERT(exit_instr != NULL);
-        Value* use = exit_instr->value();
-        phi->SetInputAt(i, use);
-        use->set_instruction(phi);
-        use->set_use_index(i);
+      for (intptr_t i = 0; i < count; ++i) {
+        Value* value = inlining_context->ValueAt(i);
+        phi->SetInputAt(i, value);
+        value->set_instruction(phi);
+        value->set_use_index(i);
       }
       // Replace uses of the call with the phi.
       call->ReplaceUsesWith(phi);
@@ -977,10 +958,10 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
     // Replace the blocks after splitting (see comment in the len=1 case above).
     ReplacePredecessor(caller_entry, join);
     ReplacePredecessor(callee_entry, caller_entry);
-    // Update the last instruction pointers on each exit (ie, to the new goto).
-    for (intptr_t i = 0; i < exits.length(); ++i) {
-      exits[i]->set_last_instruction(
-          exits[i]->last_instruction()->previous()->next());
+    // Update the last instruction pointers on each exit block to the new goto.
+    for (intptr_t i = 0; i < count; ++i) {
+      inlining_context->ExitBlockAt(i)->set_last_instruction(
+          inlining_context->LastInstructionAt(i)->next());
     }
     // Mark that the dominator tree is invalid.
     // TODO(zerny): Compute the dominator frontier locally.

@@ -262,11 +262,15 @@ class Location : public ValueObject {
     return IndexField::decode(payload()) - kStackIndexBias;
   }
 
+  // Return a memory operand for stack slot locations.
+  Address ToStackSlotAddress() const;
+
   // Constants.
   static Location RegisterOrConstant(Value* value);
   static Location RegisterOrSmiConstant(Value* value);
   static Location FixedRegisterOrConstant(Value* value, Register reg);
   static Location FixedRegisterOrSmiConstant(Value* value, Register reg);
+  static Location AnyOrConstant(Value* value);
 
   const char* Name() const;
   void PrintTo(BufferFormatter* f) const;
@@ -424,8 +428,13 @@ class LocationSummary : public ZoneAllocated {
   }
 
   void set_temp(intptr_t index, Location loc) {
-    ASSERT(!always_calls() || loc.IsRegister());
+    ASSERT(!always_calls() || loc.IsMachineRegister());
     temp_locations_[index] = loc;
+  }
+
+  void AddTemp(Location loc) {
+    ASSERT(!always_calls() || loc.IsMachineRegister());
+    temp_locations_.Add(loc);
   }
 
   Location out() const {

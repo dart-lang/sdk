@@ -9,8 +9,9 @@
  */
 library json_serializer;
 
+import 'dart:async';
 import 'dart:mirrors';
-import 'dart:json';
+import 'dart:json' as json;
 
 String serialize(Object o) {
   var printer = new JsonPrinter();
@@ -45,9 +46,8 @@ void _serializeObject(String name, Object o, JsonPrinter printer) {
   // TODO(jacobr): this code works only because futures for mirrors return
   // immediately.
   for(String memberName in members) {
-    mirror.getField(memberName).then((result) {
-      _serialize(memberName, result.reflectee, printer);
-    });
+    var result = deprecatedFutureValue(mirror.getField(memberName));
+    _serialize(memberName, result.reflectee, printer);
   }
   printer.endObject();
 }
@@ -185,7 +185,7 @@ class JsonPrinter {
     } else {
       // Convenient hack to remove the pretty printing this serializer adds by
       // default.
-      return JSON.stringify(JSON.parse(_sb.toString()));
+      return json.stringify(json.parse(_sb.toString()));
     }
   }
 

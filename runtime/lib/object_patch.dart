@@ -11,6 +11,9 @@ patch class Object {
   static Random _hashCodeRnd = new Random();
 
   /* patch */ int get hashCode {
+    if (this == null) {
+      return 2011;  // The year Dart was announced and a prime.
+    }
     var result = _hashCodeExp[this];
     if (result == null) {
       result = _hashCodeRnd.nextInt(0x40000000);  // Stay in Smi range.

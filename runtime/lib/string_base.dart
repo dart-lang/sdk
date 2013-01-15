@@ -155,6 +155,41 @@ class _StringBase {
     return _substringUnchecked(startIndex, endIndex);
   }
 
+  String slice([int startIndex, int endIndex]) {
+    int start, end;
+    if (startIndex == null) {
+      start = 0;
+    } else if (startIndex is! int) {
+      throw new ArgumentError("startIndex is not int");
+    } else if (startIndex >= 0) {
+      start = startIndex;
+    } else {
+      start = this.length + startIndex;
+    }
+    if (start < 0 || start > this.length) {
+      throw new RangeError(
+          "startIndex out of range: $startIndex (length: $length)");
+    }
+    if (endIndex == null) {
+      end = this.length;
+    } else if (endIndex is! int) {
+      throw new ArgumentError("endIndex is not int");
+    } else if (endIndex >= 0) {
+      end = endIndex;
+    } else {
+      end = this.length + endIndex;
+    }
+    if (end < 0 || end > this.length) {
+      throw new RangeError(
+          "endIndex out of range: $endIndex (length: $length)");
+    }
+    if (end < start) {
+      throw new ArgumentError(
+          "End before start: $endIndex < $startIndex (length: $length)");
+    }
+    return _substringUnchecked(start, end);
+  }
+
   String _substringUnchecked(int startIndex, int endIndex) {
     assert(endIndex != null);
     assert((startIndex >= 0) && (startIndex <= this.length));
@@ -204,7 +239,7 @@ class _StringBase {
     if (pattern is String) {
       return indexOf(pattern, startIndex) >= 0;
     }
-    return pattern.allMatches(this.substring(startIndex)).iterator().hasNext;
+    return pattern.allMatches(this.substring(startIndex)).iterator.moveNext();
   }
 
   String replaceFirst(Pattern pattern, String replacement) {
@@ -216,9 +251,9 @@ class _StringBase {
     }
     StringBuffer buffer = new StringBuffer();
     int startIndex = 0;
-    Iterator iterator = pattern.allMatches(this).iterator();
-    if (iterator.hasNext) {
-      Match match = iterator.next();
+    Iterator iterator = pattern.allMatches(this).iterator;
+    if (iterator.moveNext()) {
+      Match match = iterator.current;
       buffer..add(this.substring(startIndex, match.start))
             ..add(replacement);
       startIndex = match.end;
@@ -231,7 +266,8 @@ class _StringBase {
       throw new ArgumentError("${pattern} is not a Pattern");
     }
     if (replacement is! String) {
-      throw new ArgumentError("${replacement} is not a String");
+      throw new ArgumentError(
+          "${replacement} is not a String or Match->String function");
     }
     StringBuffer buffer = new StringBuffer();
     int startIndex = 0;
@@ -243,13 +279,75 @@ class _StringBase {
     return (buffer..add(this.substring(startIndex))).toString();
   }
 
+  String replaceAllMapped(Pattern pattern, String replace(Match match)) {
+    return splitMapJoin(pattern, onMatch: replace);
+  }
+
+  static String _matchString(Match match) => match[0];
+  static String _stringIdentity(String string) => string;
+
+  String _splitMapJoinEmptyString(String onMatch(Match match),
+                                  String onNonMatch(String nonMatch)) {
+    // Pattern is the empty string.
+    StringBuffer buffer = new StringBuffer();
+    int length = this.length;
+    int i = 0;
+    buffer.add(onNonMatch(""));
+    while (i < length) {
+      buffer.add(onMatch(new _StringMatch(i, this, "")));
+      // Special case to avoid splitting a surrogate pair.
+      int code = this.charCodeAt(i);
+      if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
+        // Leading surrogate;
+        code = this.charCodeAt(i + 1);
+        if ((code & ~0x3FF) == 0xDC00) {
+          // Matching trailing surrogate.
+          buffer.add(onNonMatch(this.substring(i, i + 2)));
+          i += 2;
+          continue;
+        }
+      }
+      buffer.add(onNonMatch(this[i]));
+      i++;
+    }
+    buffer.add(onMatch(new _StringMatch(i, this, "")));
+    buffer.add(onNonMatch(""));
+    return buffer.toString();
+  }
+
+  String splitMapJoin(Pattern pattern,
+                      {String onMatch(Match match),
+                       String onNonMatch(String nonMatch)}) {
+    if (pattern is! Pattern) {
+      throw new ArgumentError("${pattern} is not a Pattern");
+    }
+    if (onMatch == null) onMatch = _matchString;
+    if (onNonMatch == null) onNonMatch = _stringIdentity;
+    if (pattern is String) {
+      String stringPattern = pattern;
+      if (stringPattern.isEmpty) {
+        return _splitMapJoinEmptyString(onMatch, onNonMatch);
+      }
+    }
+    StringBuffer buffer = new StringBuffer();
+    int startIndex = 0;
+    for (Match match in pattern.allMatches(this)) {
+      buffer.add(onNonMatch(this.substring(startIndex, match.start)));
+      buffer.add(onMatch(match).toString());
+      startIndex = match.end;
+    }
+    buffer.add(onNonMatch(this.substring(startIndex)));
+    return buffer.toString();
+  }
+
+
   /**
    * Convert all objects in [values] to strings and concat them
    * into a result string.
    */
   static String _interpolate(List values) {
     int numValues = values.length;
-    var stringList = new List(numValues);
+    var stringList = new List.fixedLength(numValues);
     for (int i = 0; i < numValues; i++) {
       stringList[i] = values[i].toString();
     }
@@ -284,8 +382,8 @@ class _StringBase {
       return splitChars();
     }
     int length = this.length;
-    Iterator iterator = pattern.allMatches(this).iterator();
-    if (length == 0 && iterator.hasNext) {
+    Iterator iterator = pattern.allMatches(this).iterator;
+    if (length == 0 && iterator.moveNext()) {
       // A matched empty string input returns the empty list.
       return <String>[];
     }
@@ -293,11 +391,11 @@ class _StringBase {
     int startIndex = 0;
     int previousIndex = 0;
     while (true) {
-      if (startIndex == length || !iterator.hasNext) {
+      if (startIndex == length || !iterator.moveNext()) {
         result.add(this._substringUnchecked(previousIndex, length));
         break;
       }
-      Match match = iterator.next();
+      Match match = iterator.current;
       if (match.start == length) {
         result.add(this._substringUnchecked(previousIndex, length));
         break;
@@ -315,7 +413,7 @@ class _StringBase {
 
   List<String> splitChars() {
     int len = this.length;
-    final result = new List<String>(len);
+    final result = new List<String>.fixedLength(len);
     for (int i = 0; i < len; i++) {
       result[i] = this[i];
     }
@@ -324,7 +422,7 @@ class _StringBase {
 
   List<int> get charCodes {
     int len = this.length;
-    final result = new List<int>(len);
+    final result = new List<int>.fixedLength(len);
     for (int i = 0; i < len; i++) {
       result[i] = this.charCodeAt(i);
     }
@@ -336,34 +434,38 @@ class _StringBase {
   String toLowerCase() native "String_toLowerCase";
 
   // Implementations of Strings methods follow below.
-  static String join(List<String> strings, String separator) {
-    final int length = strings.length;
-    if (length == 0) {
-      return "";
-    }
-
-    List stringsList = strings;
-    if (separator.length != 0) {
-      stringsList = new List(2 * length - 1);
-      stringsList[0] = strings[0];
-      int j = 1;
-      for (int i = 1; i < length; i++) {
-        stringsList[j++] = separator;
-        stringsList[j++] = strings[i];
+  static String join(Iterable<String> strings, String separator) {
+    bool first = true;
+    List<String> stringsList = <String>[];
+    for (String string in strings) {
+      if (first) {
+        first = false;
+      } else {
+        stringsList.add(separator);
       }
+
+      if (string is! String) {
+        throw new ArgumentError(Error.safeToString(string));
+      }
+      stringsList.add(string);
     }
     return concatAll(stringsList);
   }
 
-  static String concatAll(List<String> strings) {
+  static String concatAll(Iterable<String> strings) {
     _ObjectArray stringsArray;
     if (strings is _ObjectArray) {
       stringsArray = strings;
+      for (int i = 0; i < strings.length; i++) {
+        if (strings[i] is! String) throw new ArgumentError(strings[i]);
+      }
     } else {
       int len = strings.length;
       stringsArray = new _ObjectArray(len);
-      for (int i = 0; i < len; i++) {
-        stringsArray[i] = strings[i];
+      int i = 0;
+      for (String string in strings) {
+        if (string is! String) throw new ArgumentError(string);
+        stringsArray[i++] = string;
       }
     }
     return _concatAll(stringsArray);

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16,7 +16,7 @@ main() {
     tearDown(stopServer);
 
     test('head', () {
-      expect(http.head(serverUrl).transform((response) {
+      expect(http.head(serverUrl).then((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, equals(''));
       }), completes);
@@ -26,7 +26,7 @@ main() {
       expect(http.get(serverUrl, headers: {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value'
-      }).transform((response) {
+      }).then((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'GET',
@@ -47,7 +47,7 @@ main() {
       }, fields: {
         'some-field': 'value',
         'other-field': 'other value'
-      }).transform((response) {
+      }).then((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'POST',
@@ -70,7 +70,7 @@ main() {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value',
         'Content-Type': 'text/plain'
-      }).transform((response) {
+      }).then((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'POST',
@@ -92,7 +92,7 @@ main() {
       }, fields: {
         'some-field': 'value',
         'other-field': 'other value'
-      }).transform((response) {
+      }).then((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'PUT',
@@ -115,7 +115,7 @@ main() {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value',
         'Content-Type': 'text/plain'
-      }).transform((response) {
+      }).then((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'PUT',
@@ -134,7 +134,7 @@ main() {
       expect(http.delete(serverUrl, headers: {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value'
-      }).transform((response) {
+      }).then((response) {
         expect(response.statusCode, equals(200));
         expect(response.body, parse(equals({
           'method': 'DELETE',
@@ -152,7 +152,7 @@ main() {
       expect(http.read(serverUrl, headers: {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value'
-      }), completion(parse(equals({
+      }).then((val) => val), completion(parse(equals({
         'method': 'GET',
         'path': '/',
         'headers': {
@@ -171,7 +171,7 @@ main() {
       var future = http.readBytes(serverUrl, headers: {
         'X-Random-Header': 'Value',
         'X-Other-Header': 'Other Value'
-      }).transform((bytes) => new String.fromCharCodes(bytes));
+      }).then((bytes) => new String.fromCharCodes(bytes));
 
       expect(future, completion(parse(equals({
         'method': 'GET',

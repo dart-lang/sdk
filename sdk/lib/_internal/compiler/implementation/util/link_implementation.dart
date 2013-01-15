@@ -5,13 +5,21 @@
 part of util_implementation;
 
 class LinkIterator<T> implements Iterator<T> {
-  Link<T> current;
-  LinkIterator(Link<T> this.current);
-  bool get hasNext => !current.isEmpty;
-  T next() {
-    T result = current.head;
-    current = current.tail;
-    return result;
+  T _current;
+  Link<T> _link;
+
+  LinkIterator(Link<T> this._link);
+
+  T get current => _current;
+
+  bool moveNext() {
+    if (_link.isEmpty) {
+      _current = null;
+      return false;
+    }
+    _current = _link.head;
+    _link = _link.tail;
+    return true;
   }
 }
 
@@ -60,6 +68,16 @@ class LinkEntry<T> extends Link<T> {
     return result;
   }
 
+  Link<T> skip(int n) {
+    Link<T> link = this;
+    for (int i = 0 ; i < n ; i++) {
+      if (link.isEmpty) {
+        throw new RangeError('Index $n out of range');
+      }
+      link = link.tail;
+    }
+    return link;
+  }
 
   bool get isEmpty => false;
 

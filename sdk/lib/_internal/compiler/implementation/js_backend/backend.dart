@@ -44,8 +44,8 @@ class OptionalParameterTypes {
   final List<HType> types;
 
   OptionalParameterTypes(int optionalArgumentsCount)
-      : names = new List<SourceString>(optionalArgumentsCount),
-        types = new List<HType>(optionalArgumentsCount);
+      : names = new List<SourceString>.fixedLength(optionalArgumentsCount),
+        types = new List<HType>.fixedLength(optionalArgumentsCount);
 
   int get length => names.length;
   SourceString name(int index) => names[index];
@@ -71,10 +71,10 @@ class HTypeList {
   final List<SourceString> namedArguments;
 
   HTypeList(int length)
-      : types = new List<HType>(length),
+      : types = new List<HType>.fixedLength(length),
         namedArguments = null;
   HTypeList.withNamedArguments(int length, this.namedArguments)
-      : types = new List<HType>(length);
+      : types = new List<HType>.fixedLength(length);
   const HTypeList.withAllUnknown()
       : types = null,
         namedArguments = null;
@@ -485,19 +485,6 @@ class ArgumentTypesRegistry {
   void registerDynamicInvocation(HInvokeDynamic node,
                                  Selector selector,
                                  HTypeMap types) {
-    // If there are any getters for this method we cannot know anything about
-    // the types of the provided parameters. Use resolverWorld for now as that
-    // information does not change during compilation.
-    // TODO(sgjesse): These checks should use the codegenWorld and keep track
-    // of changes to this information.
-    Element element = node.element;
-    Universe resolverWorld = compiler.resolverWorld;
-    if (element != null &&
-        (resolverWorld.hasFieldGetter(element, compiler) ||
-         resolverWorld.hasInvokedGetter(element, compiler))) {
-      return;
-    }
-
     HTypeList providedTypes =
         new HTypeList.fromDynamicInvocation(node, selector, types);
     if (!selectorTypeMap.containsKey(selector)) {
@@ -557,6 +544,15 @@ class ArgumentTypesRegistry {
 
     // TODO(kasperl): What kind of non-members do we get here?
     if (!element.isMember()) return HTypeList.ALL_UNKNOWN;
+
+    // If there are any getters for this method we cannot know anything about
+    // the types of the provided parameters. Use resolverWorld for now as that
+    // information does not change during compilation.
+    // TODO(ngeoffray): These checks should use the codegenWorld and keep track
+    // of changes to this information.
+    if (compiler.resolverWorld.hasInvokedGetter(element, compiler)) {
+      return HTypeList.ALL_UNKNOWN;
+    }
 
     FunctionSignature signature = element.computeSignature(compiler);
     HTypeList found = null;
@@ -639,6 +635,7 @@ class JavaScriptBackend extends Backend {
   Element jsStringSplit;
   Element jsStringConcat;
   Element getInterceptorMethod;
+  Element fixedLengthListConstructor;
   bool _interceptorsAreInitialized = false;
 
   final Namer namer;
@@ -780,20 +777,20 @@ class JavaScriptBackend extends Backend {
       jsBoolClass = compiler.findInterceptor(const SourceString('JSBool'))];
 
     jsArrayClass.ensureResolved(compiler);
-    jsArrayLength =
-        jsArrayClass.lookupLocalMember(const SourceString('length'));
-    jsArrayRemoveLast =
-        jsArrayClass.lookupLocalMember(const SourceString('removeLast'));
-    jsArrayAdd =
-        jsArrayClass.lookupLocalMember(const SourceString('add'));
+    jsArrayLength = compiler.lookupElementIn(
+        jsArrayClass, const SourceString('length'));
+    jsArrayRemoveLast = compiler.lookupElementIn(
+        jsArrayClass, const SourceString('removeLast'));
+    jsArrayAdd = compiler.lookupElementIn(
+        jsArrayClass, const SourceString('add'));
 
     jsStringClass.ensureResolved(compiler);
-    jsStringLength =
-        jsStringClass.lookupLocalMember(const SourceString('length'));
-    jsStringSplit =
-        jsStringClass.lookupLocalMember(const SourceString('split'));
-    jsStringConcat =
-        jsStringClass.lookupLocalMember(const SourceString('concat'));
+    jsStringLength = compiler.lookupElementIn(
+        jsStringClass, const SourceString('length'));
+    jsStringSplit = compiler.lookupElementIn(
+        jsStringClass, const SourceString('split'));
+    jsStringConcat = compiler.lookupElementIn(
+        jsStringClass, const SourceString('concat'));
 
     for (ClassElement cls in classes) {
       if (cls != null) interceptedClasses[cls] = null;
@@ -882,7 +879,7 @@ class JavaScriptBackend extends Backend {
     return new JavaScriptItemCompilationContext();
   }
 
-  void enqueueHelpers(Enqueuer world) {
+  void enqueueHelpers(ResolutionEnqueuer world) {
     enqueueAllTopLevelFunctions(compiler.jsHelperLibrary, world);
 
     jsIndexingBehaviorInterface =
@@ -899,7 +896,7 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void codegen(WorkItem work) {
+  void codegen(CodegenWorkItem work) {
     if (work.element.kind.category == ElementCategory.VARIABLE) {
       Constant initialValue = compiler.constantHandler.compileWorkItem(work);
       if (initialValue != null) {
@@ -917,13 +914,13 @@ class JavaScriptBackend extends Backend {
     optimizer.optimize(work, graph, false);
     if (work.allowSpeculativeOptimization
         && optimizer.trySpeculativeOptimizations(work, graph)) {
-      CodeBuffer codeBuffer = generator.generateBailoutMethod(work, graph);
-      compiler.codegenWorld.addBailoutCode(work, codeBuffer);
+      js.Expression code = generator.generateBailoutMethod(work, graph);
+      compiler.codegenWorld.addBailoutCode(work, code);
       optimizer.prepareForSpeculativeOptimizations(work, graph);
       optimizer.optimize(work, graph, true);
     }
-    CodeBuffer codeBuffer = generator.generateCode(work, graph);
-    compiler.codegenWorld.addGeneratedCode(work, codeBuffer);
+    js.Expression code = generator.generateCode(work, graph);
+    compiler.codegenWorld.addGeneratedCode(work, code);
     invalidateAfterCodegen.forEach(compiler.enqueuer.codegen.eagerRecompile);
     invalidateAfterCodegen.clear();
   }

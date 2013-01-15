@@ -5,25 +5,28 @@
 part of dart.crypto;
 
 class _HMAC implements HMAC {
+  bool _isClosed = false;
+
   _HMAC(Hash this._hash, List<int> this._key) : _message = [];
 
-  HMAC update(List<int> data) {
+  add(List<int> data) {
+    if (_isClosed) throw new StateError("HMAC is closed");
     _message.addAll(data);
-    return this;
   }
 
-  List<int> digest() {
+  List<int> get digest {
     var blockSize = _hash.blockSize;
 
     // Hash the key if it is longer than the block size of the hash.
     if (_key.length > blockSize) {
       _hash = _hash.newInstance();
-      _key = _hash.update(_key).digest();
+      _hash.add(_key);
+      _key = _hash.close();
     }
 
     // Zero-pad the key until its size is equal to the block size of the hash.
     if (_key.length < blockSize) {
-      var newKey = new List(blockSize);
+      var newKey = new List.fixedLength(blockSize);
       newKey.setRange(0, _key.length, _key);
       for (var i = _key.length; i < blockSize; i++) {
         newKey[i] = 0;
@@ -32,14 +35,16 @@ class _HMAC implements HMAC {
     }
 
     // Compute inner padding.
-    var padding = new List(blockSize);
+    var padding = new List.fixedLength(blockSize);
     for (var i = 0; i < blockSize; i++) {
       padding[i] = 0x36 ^ _key[i];
     }
 
     // Inner hash computation.
     _hash = _hash.newInstance();
-    var innerHash = _hash.update(padding).update(_message).digest();
+    _hash.add(padding);
+    _hash.add(_message);
+    var innerHash = _hash.close();
 
     // Compute outer padding.
     for (var i = 0; i < blockSize; i++) {
@@ -48,11 +53,18 @@ class _HMAC implements HMAC {
 
     // Outer hash computation which is the result.
     _hash = _hash.newInstance();
-    return _hash.update(padding).update(innerHash).digest();
+    _hash.add(padding);
+    _hash.add(innerHash);
+    return _hash.close();
+  }
+
+  List<int> close() {
+    _isClosed = true;
+    return digest;
   }
 
   bool verify(List<int> digest) {
-    var computedDigest = this.digest();
+    var computedDigest = this.digest;
     if (digest.length != computedDigest.length) {
       throw new ArgumentError(
           'Invalid digest size: ${digest.length} in HMAC.verify. '

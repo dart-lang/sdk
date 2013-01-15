@@ -46,12 +46,6 @@ const double SQRT1_2 = 0.7071067811865476;
  */
 const double SQRT2 = 1.4142135623730951;
 
-/** Temporary redirect to [int.parse]. */
-int parseInt(String string) => int.parse(string);
-
-/** Temporary redirect to [double.parse]. */
-double parseDouble(String string) => double.parse(string);
-
 /**
   * Returns the lesser of two numbers.
   *

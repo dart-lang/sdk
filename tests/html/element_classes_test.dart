@@ -66,13 +66,13 @@ main() {
     expect(classes, unorderedEquals(['foo', 'bar', 'baz']));
   });
 
-  test('map', () {
-    expect(makeClassSet().map((c) => c.toUpperCase()),
+  test('mappedBy', () {
+    expect(makeClassSet().mappedBy((c) => c.toUpperCase()).toList(),
         unorderedEquals(['FOO', 'BAR', 'BAZ']));
   });
 
-  test('filter', () {
-    expect(makeClassSet().filter((c) => c.contains('a')),
+  test('where', () {
+    expect(makeClassSet().where((c) => c.contains('a')).toSet(),
         unorderedEquals(['bar', 'baz']));
   });
 
@@ -81,9 +81,9 @@ main() {
     expect(makeClassSet().every((c) => c.contains('a')), isFalse);
   });
 
-  test('some', () {
-    expect(makeClassSet().some((c) => c.contains('a')), isTrue);
-    expect(makeClassSet().some((c) => c is num), isFalse);
+  test('any', () {
+    expect(makeClassSet().any((c) => c.contains('a')), isTrue);
+    expect(makeClassSet().any((c) => c is num), isFalse);
   });
 
   test('isEmpty', () {

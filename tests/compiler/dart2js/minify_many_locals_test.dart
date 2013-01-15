@@ -16,7 +16,7 @@ main() {
     buffer.add("x$i+");
   }
   buffer.add("2000; return i; }");
-  var generated = compile(buffer.toString(), 'foo', minify: true);
+  var generated = compile(buffer.toString(), entry: 'foo', minify: true);
   RegExp re = new RegExp(r"\(a,b,c");
   Expect.isTrue(re.hasMatch(generated));
 

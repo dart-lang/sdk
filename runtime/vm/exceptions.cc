@@ -42,12 +42,31 @@ static bool FindExceptionHandler(uword* handler_pc,
   Smi& offset = Smi::Handle();
   while (!frame->IsEntryFrame()) {
     if (frame->IsDartFrame()) {
-      func = frame->LookupDartFunction();
       code = frame->LookupDartCode();
-      offset = Smi::New(frame->pc() - code.EntryPoint());
-      func_list.Add(func);
-      code_list.Add(code);
-      pc_offset_list.Add(offset);
+      if (code.is_optimized()) {
+        // For optimized frames, extract all the inlined functions if any
+        // into the stack trace.
+        InlinedFunctionsInDartFrameIterator optimized_frames(frame);
+        while (true) {
+          uword pc = 0;
+          func = optimized_frames.GetNextFunction(&pc);
+          if (func.IsNull()) {
+            break;
+          }
+          ASSERT(pc != 0);
+          code = func.unoptimized_code();
+          offset = Smi::New(pc - code.EntryPoint());
+          func_list.Add(func);
+          code_list.Add(code);
+          pc_offset_list.Add(offset);
+        }
+      } else {
+        offset = Smi::New(frame->pc() - code.EntryPoint());
+        func = code.function();
+        func_list.Add(func);
+        code_list.Add(code);
+        pc_offset_list.Add(offset);
+      }
       if (frame->FindExceptionHandler(handler_pc)) {
         *handler_sp = frame->sp();
         *handler_fp = frame->fp();
@@ -413,6 +432,10 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kFormat:
       library = Library::CoreLibrary();
       class_name = &Symbols::FormatException();
+      break;
+    case kUnsupported:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::UnsupportedError();
       break;
     case kStackOverflow:
       library = Library::CoreLibrary();

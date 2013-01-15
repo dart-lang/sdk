@@ -55,7 +55,7 @@ void testOutputStreamNoPendingWrite() {
           stream.close();
         }
         stream.onClosed = () {
-          List buffer = new List<int>(total);
+          List buffer = new List<int>.fixedLength(total);
           File fileSync = new File(fileName);
           var openedFile = fileSync.openSync();
           openedFile.readListSync(buffer, 0, total);

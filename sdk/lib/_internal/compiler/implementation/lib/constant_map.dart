@@ -13,7 +13,7 @@ class ConstantMap<V> implements Map<String, V> {
   final List<String> _keys;
 
   bool containsValue(V needle) {
-    return values.some((V value) => value == needle);
+    return values.any((V value) => value == needle);
   }
 
   bool containsKey(String key) {
@@ -30,12 +30,12 @@ class ConstantMap<V> implements Map<String, V> {
     _keys.forEach((String key) => f(key, this[key]));
   }
 
-  Collection<String> get keys => _keys;
+  Iterable<String> get keys {
+    return new _ConstantMapKeyIterable(this);
+  }
 
-  Collection<V> get values {
-    List<V> result = <V>[];
-    _keys.forEach((String key) => result.add(this[key]));
-    return result;
+  Iterable<V> get values {
+    return new MappedIterable<String, V>(_keys, (String key) => this[key]);
   }
 
   bool get isEmpty => length == 0;
@@ -65,4 +65,11 @@ class ConstantProtoMap<V> extends ConstantMap<V> {
     if (key == '__proto__') return _protoValue;
     return super[key];
   }
+}
+
+class _ConstantMapKeyIterable extends Iterable<String> {
+  ConstantMap _map;
+  _ConstantMapKeyIterable(this._map);
+
+  Iterator<String> get iterator => _map._keys.iterator;
 }

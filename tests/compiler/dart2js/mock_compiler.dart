@@ -7,14 +7,20 @@ library mock_compiler;
 import 'dart:uri';
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
-       hide TreeElementMapping;
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
 import 'parser_helper.dart';
+
+import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
+    show ElementX,
+         LibraryElementX,
+         ErroneousElementX;
+
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+    hide TreeElementMapping;
 
 class WarningMessage {
   Node node;
@@ -52,9 +58,11 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSArray {
     var length;
     operator[](index) {}
+    var add;
   }
   class JSString {
     var length;
+    operator[](index) {}
   }
   class JSNumber {
   }
@@ -141,9 +149,9 @@ class MockCompiler extends Compiler {
   LibraryElement createLibrary(String name, String source) {
     Uri uri = new Uri.fromComponents(scheme: "source", path: name);
     var script = new Script(uri, new MockFile(source));
-    var library = new LibraryElement(script);
+    var library = new LibraryElementX(script);
     parseScript(source, library);
-    library.setExports(library.localScope.values);
+    library.setExports(library.localScope.values.toList());
     return library;
   }
 
@@ -200,7 +208,7 @@ class MockCompiler extends Compiler {
 
   resolverVisitor() {
     Element mockElement =
-        new Element(buildSourceString(''), ElementKind.FUNCTION, mainApp);
+        new ElementX(buildSourceString(''), ElementKind.FUNCTION, mainApp);
     ResolverVisitor visitor =
         new ResolverVisitor(this, mockElement,
                             new CollectingTreeElements(mockElement));
@@ -233,12 +241,21 @@ class MockCompiler extends Compiler {
     if (sourceFile == null) throw new ArgumentError(uri);
     return new Script(uri, sourceFile);
   }
+
+  Element lookupElementIn(ScopeContainerElement container, name) {
+    Element element = container.localLookup(name);
+    return element != null
+        ? element
+        : new ErroneousElementX(null, null, name, container);
+  }
 }
 
 void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
   var fail = (message) => Expect.fail('$text: $message');
-  Iterator<MessageKind> expected = expectedWarnings.iterator();
-  Iterator<WarningMessage> found = foundWarnings.iterator();
+  HasNextIterator<MessageKind> expected =
+      new HasNextIterator(expectedWarnings.iterator);
+  HasNextIterator<WarningMessage> found =
+      new HasNextIterator(foundWarnings.iterator);
   while (expected.hasNext && found.hasNext) {
     Expect.equals(expected.next(), found.next().message.kind);
   }
@@ -267,7 +284,7 @@ void importLibrary(LibraryElement target, LibraryElement imported,
 
 LibraryElement mockLibrary(Compiler compiler, String source) {
   Uri uri = new Uri.fromComponents(scheme: "source");
-  var library = new LibraryElement(new Script(uri, new MockFile(source)));
+  var library = new LibraryElementX(new Script(uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
   return library;
 }

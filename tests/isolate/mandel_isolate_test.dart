@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library MandelIsolateTest;
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:math';
 import '../../pkg/unittest/lib/unittest.dart';
@@ -26,7 +27,7 @@ class MandelbrotState {
 
   MandelbrotState() {
     _result = new List<List<int>>(N);
-    _lineProcessedBy = new List<LineProcessorClient>(N);
+    _lineProcessedBy = new List<LineProcessorClient>.fixedLength(N);
     _sent = 0;
     _missing = N;
     _validated = new Completer<bool>();
@@ -106,7 +107,7 @@ class LineProcessorClient {
 List<int> processLine(int y) {
   double inverseN = 2.0 / N;
   double Civ = y * inverseN - 1.0;
-  List<int> result = new List<int>(N);
+  List<int> result = new List<int>.fixedLength(N);
   for (int x = 0; x < N; x++) {
     double Crv = x * inverseN - 1.5;
 

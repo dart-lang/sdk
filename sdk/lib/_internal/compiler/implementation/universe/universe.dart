@@ -9,26 +9,13 @@ import '../elements/elements.dart';
 import '../dart2jslib.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
+import '../js/js.dart' as js;
 
 part 'function_set.dart';
 part 'partial_type_tree.dart';
 part 'selector_map.dart';
 
 class Universe {
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: Key elements are declaration elements.
-   */
-  Map<Element, CodeBuffer> generatedCode;
-
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: Key elements are declaration elements.
-   */
-  Map<Element, CodeBuffer> generatedBailoutCode;
-
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -47,31 +34,15 @@ class Universe {
   final Map<SourceString, Set<Selector>> invokedNames;
   final Map<SourceString, Set<Selector>> invokedGetters;
   final Map<SourceString, Set<Selector>> invokedSetters;
-  final Map<SourceString, Set<Selector>> fieldGetters;
-  final Map<SourceString, Set<Selector>> fieldSetters;
   final Set<DartType> isChecks;
 
-  Universe() : generatedCode = new Map<Element, CodeBuffer>(),
-               generatedBailoutCode = new Map<Element, CodeBuffer>(),
-               instantiatedClasses = new Set<ClassElement>(),
+  Universe() : instantiatedClasses = new Set<ClassElement>(),
                instantiatedTypes = new Set<DartType>(),
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
                invokedNames = new Map<SourceString, Set<Selector>>(),
                invokedGetters = new Map<SourceString, Set<Selector>>(),
                invokedSetters = new Map<SourceString, Set<Selector>>(),
-               fieldGetters = new Map<SourceString, Set<Selector>>(),
-               fieldSetters = new Map<SourceString, Set<Selector>>(),
                isChecks = new Set<DartType>();
-
-  void addGeneratedCode(WorkItem work, CodeBuffer codeBuffer) {
-    assert(invariant(work.element, work.element.isDeclaration));
-    generatedCode[work.element] = codeBuffer;
-  }
-
-  void addBailoutCode(WorkItem work, CodeBuffer codeBuffer) {
-    assert(invariant(work.element, work.element.isDeclaration));
-    generatedBailoutCode[work.element] = codeBuffer;
-  }
 
   bool hasMatchingSelector(Set<Selector> selectors,
                            Element member,
@@ -93,6 +64,46 @@ class Universe {
 
   bool hasInvokedSetter(Element member, Compiler compiler) {
     return hasMatchingSelector(invokedSetters[member.name], member, compiler);
+  }
+}
+
+/// [Universe] which is specific to resolution.
+class ResolutionUniverse extends Universe {
+}
+
+/// [Universe] which is specific to code generation.
+class CodegenUniverse extends Universe {
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Key elements are declaration elements.
+   */
+  Map<Element, js.Expression> generatedCode;
+
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Key elements are declaration elements.
+   */
+  Map<Element, js.Expression> generatedBailoutCode;
+
+  final Map<SourceString, Set<Selector>> fieldGetters;
+  final Map<SourceString, Set<Selector>> fieldSetters;
+
+  CodegenUniverse()
+      : generatedCode = new Map<Element, js.Expression>(),
+        generatedBailoutCode = new Map<Element, js.Expression>(),
+        fieldGetters = new Map<SourceString, Set<Selector>>(),
+        fieldSetters = new Map<SourceString, Set<Selector>>();
+
+  void addGeneratedCode(CodegenWorkItem work, js.Expression code) {
+    assert(invariant(work.element, work.element.isDeclaration));
+    generatedCode[work.element] = code;
+  }
+
+  void addBailoutCode(CodegenWorkItem work, js.Expression code) {
+    assert(invariant(work.element, work.element.isDeclaration));
+    generatedBailoutCode[work.element] = code;
   }
 
   bool hasFieldGetter(Element member, Compiler compiler) {
@@ -215,6 +226,10 @@ class Selector {
   /** Check whether this is a call to 'assert'. */
   bool isAssert() => isCall() && identical(name.stringValue, "assert");
 
+  /** Check whether this is a closure invocation call. */
+  bool isClosureCall() =>
+      isCall() && identical(name.stringValue, Compiler.CALL_OPERATOR_NAME);
+
   int get hashCode => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount => namedArguments.length;
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
@@ -244,8 +259,8 @@ class Selector {
 
   bool appliesUntyped(Element element, Compiler compiler) {
     if (Elements.isUnresolved(element)) return false;
+    if (name.isPrivate() && library != element.getLibrary()) return false;
     if (element.isForeign(compiler)) return true;
-
     if (element.isSetter()) return isSetter();
     if (element.isGetter()) return isGetter() || isCall();
     if (element.isField()) return isGetter() || isSetter() || isCall();

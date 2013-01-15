@@ -135,7 +135,7 @@ abstract class BlockSyntax {
   /// Gets whether or not [parser]'s current line should end the previous block.
   static bool isAtBlockEnd(BlockParser parser) {
     if (parser.isDone) return true;
-    return syntaxes.some((s) => s.canParse(parser) && s.canEndBlock);
+    return syntaxes.any((s) => s.canParse(parser) && s.canEndBlock);
   }
 }
 

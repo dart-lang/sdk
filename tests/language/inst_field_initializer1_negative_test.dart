@@ -7,7 +7,7 @@
 class A {
   A() {}
   int x = 5;
-  int arr = new List(x);  // Illegal access to 'this'.
+  int arr = new List.fixedLength(x);  // Illegal access to 'this'.
                           // Also not a compile const expression.
 }
 

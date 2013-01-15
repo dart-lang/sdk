@@ -4,6 +4,7 @@
 
 library command_uploader;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:uri';
 
@@ -16,6 +17,7 @@ import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
 import 'pub.dart';
+import 'utils.dart';
 
 /// Handles the `uploader` pub command.
 class UploaderCommand extends PubCommand {
@@ -56,12 +58,12 @@ class UploaderCommand extends PubCommand {
       exit(exit_codes.USAGE);
     }
 
-    return new Future.immediate(null).chain((_) {
+    return new Future.immediate(null).then((_) {
       var package = commandOptions['package'];
       if (package != null) return new Future.immediate(package);
       return Entrypoint.load(path.current, cache)
-          .transform((entrypoint) => entrypoint.root.name);
-    }).chain((package) {
+          .then((entrypoint) => entrypoint.root.name);
+    }).then((package) {
       var uploader = commandOptions.rest[0];
       return oauth2.withClient(cache, (client) {
         if (command == 'add') {
@@ -74,9 +76,9 @@ class UploaderCommand extends PubCommand {
           return client.delete(url);
         }
       });
-    }).transform(handleJsonSuccess).transformException((e) {
-      if (e is! PubHttpException) throw e;
-      handleJsonError(e.response);
+    }).then(handleJsonSuccess).catchError((asyncError) {
+      if (asyncError.error is! PubHttpException) throw asyncError;
+      handleJsonError(asyncError.error.response);
     });
   }
 }

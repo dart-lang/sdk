@@ -4,6 +4,7 @@
 
 library io_client;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'base_client.dart';
@@ -25,6 +26,7 @@ class IOClient extends BaseClient {
 
     var completer = new Completer<StreamedResponse>();
     var connection = _inner.openUrl(request.method, request.url);
+    bool completed = false;
     connection.followRedirects = request.followRedirects;
     connection.maxRedirects = request.maxRedirects;
     connection.onError = (e) {
@@ -33,12 +35,14 @@ class IOClient extends BaseClient {
         // onRequest or onResponse callbacks get passed to onError. If the
         // completer has already fired, we want to re-throw those exceptions
         // to the top level so that they aren't silently ignored.
-        if (completer.future.isComplete) throw e;
+        if (completed) throw e;
 
-        completer.completeException(e);
+        completed = true;
+        completer.completeError(e);
       });
     };
 
+    var pipeCompleter = new Completer();
     connection.onRequest = (underlyingRequest) {
       underlyingRequest.contentLength = request.contentLength;
       underlyingRequest.persistentConnection = request.persistentConnection;
@@ -46,19 +50,20 @@ class IOClient extends BaseClient {
         underlyingRequest.headers.set(name, value);
       });
 
-      if (stream.closed) {
-        underlyingRequest.outputStream.close();
-      } else {
-        stream.pipe(underlyingRequest.outputStream);
-      }
+      chainToCompleter(
+          stream.pipe(wrapOutputStream(underlyingRequest.outputStream)),
+          pipeCompleter);
     };
 
     connection.onResponse = (response) {
       var headers = <String>{};
       response.headers.forEach((key, value) => headers[key] = value);
 
+      if (completed) return;
+
+      completed = true;
       completer.complete(new StreamedResponse(
-          response.inputStream,
+          wrapInputStream(response.inputStream),
           response.statusCode,
           response.contentLength,
           request: request,
@@ -68,7 +73,10 @@ class IOClient extends BaseClient {
           reasonPhrase: response.reasonPhrase));
     };
 
-    return completer.future;
+    return Future.wait([
+      completer.future,
+      pipeCompleter.future
+    ]).then((values) => values.first);
   }
 
   /// Closes the client. This terminates all active connections. If a client

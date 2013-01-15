@@ -79,7 +79,7 @@ class ForInTest {
 
   static void testClosure() {
     Set<int> set = getSmallSet();
-    List<Function> closures = new List(set.length);
+    List<Function> closures = new List.fixedLength(set.length);
     int index = 0;
     for (var i in set) {
       closures[index++] = () => i;

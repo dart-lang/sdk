@@ -17,6 +17,7 @@ class Script;
 
 class Bootstrap : public AllStatic {
  public:
+  static RawScript* LoadASyncScript(bool patch);
   static RawScript* LoadCoreScript(bool patch);
   static RawScript* LoadCollectionScript(bool patch);
   static RawScript* LoadMathScript(bool patch);
@@ -29,6 +30,8 @@ class Bootstrap : public AllStatic {
  private:
   static RawScript* LoadScript(const char* url, const char* source, bool patch);
 
+  static const char async_source_[];
+  static const char async_patch_[];
   static const char corelib_source_[];
   static const char corelib_patch_[];
   static const char collection_source_[];

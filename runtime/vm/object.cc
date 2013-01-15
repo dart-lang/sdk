@@ -19,6 +19,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/datastream.h"
+#include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
@@ -414,11 +415,14 @@ void Object::InitOnce() {
 
   ASSERT(class_class() != null_);
 
-  // Pre-allocate the Array and OneByteString class in the vm isolate so that
-  // we can create a symbol table and populate it with some frequently used
-  // strings as symbols.
+  // Pre-allocate classes in the vm isolate so that we can for example create a
+  // symbol table and populate it with some frequently used strings as symbols.
   cls = Class::New<Array>();
   isolate->object_store()->set_array_class(cls);
+  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
+  cls = Class::New<ImmutableArray>();
+  isolate->object_store()->set_immutable_array_class(cls);
+  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls = Class::NewStringClass(kOneByteStringCid);
   isolate->object_store()->set_one_byte_string_class(cls);
   cls = Class::NewStringClass(kTwoByteStringCid);
@@ -489,6 +493,23 @@ void Object::RegisterSingletonClassNames() {
   cls.set_name(Symbols::ObjectArray());
   cls = Dart::vm_isolate()->object_store()->one_byte_string_class();
   cls.set_name(Symbols::OneByteString());
+}
+
+
+void Object::CreateInternalMetaData() {
+  // Initialize meta data for VM internal classes.
+  Class& cls = Class::Handle();
+  Array& fields = Array::Handle();
+  Field& fld = Field::Handle();
+  String& name = String::Handle();
+
+  // TODO(iposva): Add more of the VM classes here.
+  cls = context_class_;
+  fields = Array::New(1);
+  name = Symbols::New("@parent_");
+  fld = Field::New(name, false, false, false, cls, 0);
+  fields.SetAt(0, fld);
+  cls.SetFields(fields);
 }
 
 
@@ -921,6 +942,20 @@ RawError* Object::Init(Isolate* isolate) {
   }
   Script& patch_script = Script::Handle(Bootstrap::LoadCoreScript(true));
   error = core_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  Library::InitASyncLibrary(isolate);
+  const Script& async_script =
+      Script::Handle(Bootstrap::LoadASyncScript(false));
+  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
+  ASSERT(!async_lib.IsNull());
+  error = Bootstrap::Compile(async_lib, async_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  patch_script = Bootstrap::LoadASyncScript(true);
+  error = async_lib.Patch(patch_script);
   if (!error.IsNull()) {
     return error.raw();
   }
@@ -2026,15 +2061,12 @@ bool Class::TypeTest(
   if (IsDynamicClass()) {
     return test_kind == kIsSubtypeOf;
   }
-  // Check for NullType, which is not a subtype of any type, but is more
-  // specific than any type.
+  // Check for NullType, which is only a subtype of ObjectType, of DynamicType,
+  // or of itself, and which is more specific than any type.
   if (IsNullClass()) {
-    // User code cannot refer to class Null, therefore, we can only encounter
-    // NullType here as the type of the null constant, which must be treated
-    // separately in 'instance of' checks. Therefore, the NullType can only
-    // be encountered here during optimizations in 'more specific than' tests.
-    ASSERT(test_kind == kIsMoreSpecificThan);
-    return true;
+    // We already checked for other.IsDynamicClass() above.
+    return (test_kind == kIsMoreSpecificThan) ||
+        other.IsObjectClass() || other.IsNullClass();
   }
   // Check for ObjectType. Any type that is not NullType or DynamicType (already
   // checked above), is more specific than ObjectType.
@@ -3088,6 +3120,11 @@ void PatchClass::set_patched_class(const Class& value) const {
 
 void PatchClass::set_script(const Script& value) const {
   StorePointer(&raw_ptr()->script_, value.raw());
+}
+
+
+bool Function::HasBreakpoint() const {
+  return Isolate::Current()->debugger()->HasBreakpoint(*this);
 }
 
 
@@ -5141,6 +5178,15 @@ void Script::Tokenize(const String& private_key) const {
 }
 
 
+void Script::SetLocationOffset(intptr_t line_offset,
+                               intptr_t col_offset) const {
+  ASSERT(line_offset >= 0);
+  ASSERT(col_offset >= 0);
+  raw_ptr()->line_offset_ = line_offset;
+  raw_ptr()->col_offset_ = col_offset;
+}
+
+
 void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
@@ -5149,8 +5195,13 @@ void Script::GetTokenLocation(intptr_t token_pos,
   intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
   Scanner scanner(src, Symbols::Empty());
   scanner.ScanTo(src_pos);
-  *line = scanner.CurrentPosition().line;
+  intptr_t relative_line = scanner.CurrentPosition().line;
+  *line = relative_line + line_offset();
   *column = scanner.CurrentPosition().column;
+  // On the first line of the script we must add the column offset.
+  if (relative_line == 1) {
+    *column += col_offset();
+  }
 }
 
 
@@ -5159,6 +5210,8 @@ void Script::TokenRangeAtLine(intptr_t line_number,
                               intptr_t* last_token_index) const {
   const String& src = String::Handle(Source());
   const TokenStream& tkns = TokenStream::Handle(tokens());
+  line_number -= line_offset();
+  if (line_number < 1) line_number = 1;
   Scanner scanner(src, Symbols::Empty());
   scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
   if (*first_token_index >= 0) {
@@ -5172,14 +5225,15 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 
 RawString* Script::GetLine(intptr_t line_number) const {
   const String& src = String::Handle(Source());
+  intptr_t relative_line_number = line_number - line_offset();
   intptr_t current_line = 1;
-  intptr_t line_start = -1;
-  intptr_t last_char = -1;
+  intptr_t line_start_idx = -1;
+  intptr_t last_char_idx = -1;
   for (intptr_t ix = 0;
-       (ix < src.Length()) && (current_line <= line_number);
+       (ix < src.Length()) && (current_line <= relative_line_number);
        ix++) {
-    if ((current_line == line_number) && (line_start < 0)) {
-      line_start = ix;
+    if ((current_line == relative_line_number) && (line_start_idx < 0)) {
+      line_start_idx = ix;
     }
     if (src.CharAt(ix) == '\n') {
       current_line++;
@@ -5188,14 +5242,15 @@ RawString* Script::GetLine(intptr_t line_number) const {
         current_line++;
       }
     } else {
-      last_char = ix;
+      last_char_idx = ix;
     }
   }
   // Guarantee that returned string is never NULL.
-  if (line_start >= 0) {
-    const String& line = String::Handle(
-        String::SubString(src, line_start, last_char - line_start + 1));
-    return line.raw();
+
+  if (line_start_idx >= 0) {
+    return String::SubString(src,
+                             line_start_idx,
+                             last_char_idx - line_start_idx + 1);
   } else {
     return Symbols::Empty().raw();
   }
@@ -5208,11 +5263,14 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t to_column) const {
   const String& src = String::Handle(Source());
   intptr_t length = src.Length();
-  intptr_t line = 1;
+  intptr_t line = 1 + line_offset();
   intptr_t column = 1;
   intptr_t lookahead = 0;
   intptr_t snippet_start = -1;
   intptr_t snippet_end = -1;
+  if (from_line - line_offset() == 1) {
+    column += col_offset();
+  }
   char c = src.CharAt(lookahead);
   while (lookahead != length) {
     if (snippet_start == -1) {
@@ -5266,6 +5324,7 @@ RawScript* Script::New(const String& url,
   result.set_url(String::Handle(Symbols::New(url)));
   result.set_source(source);
   result.set_kind(kind);
+  result.SetLocationOffset(0, 0);
   return result.raw();
 }
 
@@ -5771,7 +5830,7 @@ RawObject* Library::LookupObject(const String& name) const {
 RawClass* Library::LookupClass(const String& name) const {
   Object& obj = Object::Handle(LookupObject(name));
   if (!obj.IsNull() && obj.IsClass()) {
-    return Class::CheckedHandle(obj.raw()).raw();
+    return Class::Cast(obj).raw();
   }
   return Class::null();
 }
@@ -5780,7 +5839,7 @@ RawClass* Library::LookupClass(const String& name) const {
 RawClass* Library::LookupLocalClass(const String& name) const {
   Object& obj = Object::Handle(LookupLocalObject(name));
   if (!obj.IsNull() && obj.IsClass()) {
-    return Class::CheckedHandle(obj.raw()).raw();
+    return Class::Cast(obj).raw();
   }
   return Class::null();
 }
@@ -5975,6 +6034,14 @@ RawLibrary* Library::New(const String& url) {
 }
 
 
+void Library::InitASyncLibrary(Isolate* isolate) {
+  const String& url = String::Handle(Symbols::New("dart:async"));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
+  lib.Register();
+  isolate->object_store()->set_async_library(lib);
+}
+
+
 void Library::InitCoreLibrary(Isolate* isolate) {
   const String& core_lib_url = String::Handle(Symbols::New("dart:core"));
   const Library& core_lib =
@@ -6026,6 +6093,10 @@ void Library::InitIsolateLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:isolate"));
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
+  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
+  const Namespace& async_ns = Namespace::Handle(
+      Namespace::New(async_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(async_ns);
   isolate->object_store()->set_isolate_library(lib);
 }
 
@@ -6038,6 +6109,10 @@ void Library::InitMirrorsLibrary(Isolate* isolate) {
   const Namespace& isolate_ns = Namespace::Handle(
       Namespace::New(isolate_lib, Array::Handle(), Array::Handle()));
   lib.AddImport(isolate_ns);
+  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
+  const Namespace& async_ns = Namespace::Handle(
+      Namespace::New(async_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(async_ns);
   const Library& wrappers_lib =
       Library::Handle(Library::NativeWrappersLibrary());
   const Namespace& wrappers_ns = Namespace::Handle(
@@ -6163,6 +6238,11 @@ void Library::Register() const {
 }
 
 
+RawLibrary* Library::ASyncLibrary() {
+  return Isolate::Current()->object_store()->async_library();
+}
+
+
 RawLibrary* Library::CoreLibrary() {
   return Isolate::Current()->object_store()->core_library();
 }
@@ -6211,7 +6291,8 @@ const char* Library::ToCString() const {
 RawLibrary* LibraryPrefix::GetLibrary(int index) const {
   if ((index >= 0) || (index < num_imports())) {
     const Array& imports = Array::Handle(this->imports());
-    const Namespace& import = Namespace::CheckedHandle(imports.At(index));
+    Namespace& import = Namespace::Handle();
+    import ^= imports.At(index);
     return import.library();
   }
   return Library::null();
@@ -6539,6 +6620,7 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
     case PcDescriptors::kDeoptBefore:   return "deopt-before ";
     case PcDescriptors::kDeoptAfter:    return "deopt-after  ";
+    case PcDescriptors::kEntryPatch:    return "entry-patch  ";
     case PcDescriptors::kPatchCode:     return "patch        ";
     case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
     case PcDescriptors::kIcCall:        return "ic-call      ";
@@ -6743,7 +6825,8 @@ RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
   ASSERT(var_index < Length());
   const Array& names = Array::Handle(raw_ptr()->names_);
   ASSERT(Length() == names.Length());
-  const String& name = String::CheckedHandle(names.At(var_index));
+  String& name = String::Handle();
+  name ^= names.At(var_index);
   return name.raw();
 }
 
@@ -7020,8 +7103,9 @@ intptr_t Code::Comments::Length() const {
 
 
 intptr_t Code::Comments::PCOffsetAt(intptr_t idx) const {
-  return Smi::CheckedHandle(
-      comments_.At(idx * kNumberOfEntries + kPCOffsetEntry)).Value();
+  Smi& result = Smi::Handle();
+  result ^= comments_.At(idx * kNumberOfEntries + kPCOffsetEntry);
+  return result.Value();
 }
 
 
@@ -7031,9 +7115,10 @@ void Code::Comments::SetPCOffsetAt(intptr_t idx, intptr_t pc)  {
 }
 
 
-const String& Code::Comments::CommentAt(intptr_t idx) const {
-  return String::CheckedHandle(
-      comments_.At(idx * kNumberOfEntries + kCommentEntry));
+RawString* Code::Comments::CommentAt(intptr_t idx) const {
+  String& result = String::Handle();
+  result ^= comments_.At(idx * kNumberOfEntries + kCommentEntry);
+  return result.raw();
 }
 
 
@@ -7064,6 +7149,30 @@ void Code::set_object_table(const Array& array) const {
 
 void Code::set_static_calls_target_table(const Array& value) const {
   StorePointer(&raw_ptr()->static_calls_target_table_, value.raw());
+}
+
+
+RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc, intptr_t* deopt_reason) const {
+  ASSERT(is_optimized());
+  const Instructions& instrs = Instructions::Handle(instructions());
+  uword code_entry = instrs.EntryPoint();
+  const Array& table = Array::Handle(deopt_info_array());
+  ASSERT(!table.IsNull());
+  // Linear search for the PC offset matching the target PC.
+  intptr_t length = DeoptTable::GetLength(table);
+  Smi& offset = Smi::Handle();
+  Smi& reason = Smi::Handle();
+  DeoptInfo& info = DeoptInfo::Handle();
+  for (intptr_t i = 0; i < length; ++i) {
+    DeoptTable::GetEntry(table, i, &offset, &info, &reason);
+    if (pc == (code_entry + offset.Value())) {
+      ASSERT(!info.IsNull());
+      *deopt_reason = reason.Value();
+      return info.raw();
+    }
+  }
+  *deopt_reason = kDeoptUnknown;
+  return DeoptInfo::null();
 }
 
 
@@ -7232,7 +7341,7 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const {
     if ((descriptors.DeoptId(i) == deopt_id) &&
         (descriptors.DescriptorKind(i) == kind)) {
       uword pc = descriptors.PC(i);
-      ASSERT((EntryPoint() < pc) && (pc < (EntryPoint() + Size())));
+      ASSERT((EntryPoint() <= pc) && (pc < (EntryPoint() + Size())));
       return pc;
     }
   }
@@ -8348,42 +8457,10 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsMalformed());
-  const Class& cls = Class::Handle(clazz());
-  if (cls.IsNullClass()) {
-    if (!IsNull()) {
-      // We can only encounter Object::sentinel() or
-      // Object::transition_sentinel() if type checks were not eliminated at
-      // compile time. Both sentinels are instances of the Null class, but they
-      // are not the Object::null() instance.
-      ASSERT((raw() == Object::transition_sentinel().raw()) ||
-             (raw() == Object::sentinel().raw()));
-      ASSERT(!FLAG_eliminate_type_checks);
-      return true;  // We are doing an instance of test as part of a type check.
-    }
-    // The null instance can be returned from a void function.
-    if (other.IsVoidType()) {
-      return true;
-    }
-    // Otherwise, null is only an instance of Object and of dynamic.
-    // It is not necessary to fully instantiate the other type for this test.
-    Class& other_class = Class::Handle();
-    if (other.IsTypeParameter()) {
-      if (other_instantiator.IsNull()) {
-        return true;  // Other type is uninstantiated, i.e. dynamic.
-      }
-      const TypeParameter& other_type_param = TypeParameter::Cast(other);
-      const AbstractType& instantiated_other = AbstractType::Handle(
-          other_instantiator.TypeAt(other_type_param.index()));
-      ASSERT(instantiated_other.IsInstantiated());
-      other_class = instantiated_other.type_class();
-    } else {
-      other_class = other.type_class();
-    }
-    return other_class.IsObjectClass() || other_class.IsDynamicClass();
-  }
   if (other.IsVoidType()) {
     return false;
   }
+  const Class& cls = Class::Handle(clazz());
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
   const intptr_t num_type_arguments = cls.NumTypeArguments();
   if (num_type_arguments > 0) {

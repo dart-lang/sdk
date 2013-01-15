@@ -4,8 +4,9 @@
 
 library hosted_source;
 
+import 'dart:async';
 import 'dart:io' as io;
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:uri';
 
 // TODO(nweiz): Make this import better.
@@ -35,10 +36,12 @@ class HostedSource extends Source {
     var parsed = _parseDescription(description);
     var fullUrl = "${parsed.last}/packages/${parsed.first}.json";
 
-    return httpClient.read(fullUrl).transform((body) {
-      var doc = JSON.parse(body);
-      return doc['versions'].map((version) => new Version.parse(version));
-    }).transformException((ex) {
+    return httpClient.read(fullUrl).then((body) {
+      var doc = json.parse(body);
+      return doc['versions']
+          .mappedBy((version) => new Version.parse(version))
+          .toList();
+    }).catchError((ex) {
       _throwFriendlyError(ex, parsed.first, parsed.last);
     });
   }
@@ -50,9 +53,9 @@ class HostedSource extends Source {
     var fullUrl = "${parsed.last}/packages/${parsed.first}/versions/"
       "${id.version}.yaml";
 
-    return httpClient.read(fullUrl).transform((yaml) {
+    return httpClient.read(fullUrl).then((yaml) {
       return new Pubspec.parse(yaml, systemCache.sources);
-    }).transformException((ex) {
+    }).catchError((ex) {
       _throwFriendlyError(ex, id, parsed.last);
     });
   }
@@ -69,20 +72,21 @@ class HostedSource extends Source {
 
     // Download and extract the archive to a temp directory.
     var tempDir;
-    return Futures.wait([
+    return Future.wait([
       httpClient.send(new http.Request("GET", new Uri.fromString(fullUrl)))
-          .transform((response) => response.stream),
+          .then((response) => response.stream),
       systemCache.createTempDir()
-    ]).chain((args) {
+    ]).then((args) {
+      var stream = streamToInputStream(args[0]);
       tempDir = args[1];
-      return timeout(extractTarGz(args[0], tempDir), HTTP_TIMEOUT,
+      return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
           'fetching URL "$fullUrl"');
-    }).chain((_) {
+    }).then((_) {
       // Now that the install has succeeded, move it to the real location in
       // the cache. This ensures that we don't leave half-busted ghost
       // directories in the user's pub cache if an install fails.
       return renameDir(tempDir, destPath);
-    }).transform((_) => true);
+    }).then((_) => true);
   }
 
   /// The system cache directory for the hosted source contains subdirectories
@@ -115,22 +119,23 @@ class HostedSource extends Source {
   /// When an error occurs trying to read something about [package] from [url],
   /// this tries to translate into a more user friendly error message. Always
   /// throws an error, either the original one or a better one.
-  void _throwFriendlyError(ex, package, url) {
-    if (ex is PubHttpException && ex.response.statusCode == 404) {
+  void _throwFriendlyError(AsyncError asyncError, package, url) {
+    if (asyncError.error is PubHttpException &&
+        asyncError.error.response.statusCode == 404) {
       throw 'Could not find package "$package" at $url.';
     }
 
-    if (ex is TimeoutException) {
+    if (asyncError.error is TimeoutException) {
       throw 'Timed out trying to find package "$package" at $url.';
     }
 
-    if (ex is io.SocketIOException) {
+    if (asyncError.error is io.SocketIOException) {
       throw 'Got socket error trying to find package "$package" at $url.\n'
-          '${ex.osError}';
+          '${asyncError.error.osError}';
     }
 
     // Otherwise re-throw the original exception.
-    throw ex;
+    throw asyncError;
   }
 
   /// Parses the description for a package.

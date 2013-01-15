@@ -111,11 +111,11 @@ class _HttpUtils {
     sb.add(month[d.month - 1]);
     sb.add(" ");
     sb.add(d.year.toString());
-    d.hour < 9 ? sb.add(" 0") : sb.add(" ");
+    sb.add(d.hour < 9 ? " 0" : " ");
     sb.add(d.hour.toString());
-    d.minute < 9 ? sb.add(":0") : sb.add(":");
+    sb.add(d.minute < 9 ? ":0" : ":");
     sb.add(d.minute.toString());
-    d.second < 9 ? sb.add(":0") : sb.add(":");
+    sb.add(d.second < 9 ? ":0" : ":");
     sb.add(d.second.toString());
     sb.add(" GMT");
     return sb.toString();
@@ -207,7 +207,7 @@ class _HttpUtils {
       String tmp = date.substring(index, pos);
       index = pos + separator.length;
       try {
-        int value = parseInt(tmp);
+        int value = int.parse(tmp);
         return value;
       } on FormatException catch (e) {
         throw new HttpException("Invalid HTTP date $date");
@@ -300,7 +300,7 @@ class _HttpUtils {
     int toInt(String s) {
       int index = 0;
       for (; index < s.length && isDigit(s[index]); index++);
-      return parseInt(s.substring(0, index));
+      return int.parse(s.substring(0, index));
     }
 
     var tokens = [];

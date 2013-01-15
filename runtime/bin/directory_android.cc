@@ -391,7 +391,12 @@ char* Directory::Current() {
 bool Directory::Create(const char* dir_name) {
   // Create the directory with the permissions specified by the
   // process umask.
-  return (TEMP_FAILURE_RETRY(mkdir(dir_name, 0777)) == 0);
+  int result = TEMP_FAILURE_RETRY(mkdir(dir_name, 0777));
+  // If the directory already exists, treat it as a success.
+  if (result == -1 && errno == EEXISTS)  {
+    return (Exists(dir_name) == EXISTS);
+  }
+  return (result == 0);
 }
 
 

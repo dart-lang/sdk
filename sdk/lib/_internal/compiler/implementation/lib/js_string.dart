@@ -42,6 +42,16 @@ class JSString implements String {
     return stringReplaceAllUnchecked(this, from, to);
   }
 
+  String replaceAllMapped(Pattern from, String convert(Match match)) {
+    return this.splitMapJoin(from, onMatch: convert);
+  }
+
+  String splitMapJoin(Pattern from,
+                      {String onMatch(Match match),
+                       String onNonMatch(String nonMatch)}) {
+    return stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
+  }
+
   String replaceFirst(Pattern from, String to) {
     checkString(to);
     return stringReplaceFirstUnchecked(this, from, to);
@@ -81,6 +91,42 @@ class JSString implements String {
     return JS('String', r'#.substring(#, #)', this, startIndex, endIndex);
   }
 
+  String slice([int startIndex, int endIndex]) {
+    int start, end;
+    if (startIndex == null) {
+      start = 0;
+    } else if (startIndex is! int) {
+      throw new ArgumentError("startIndex is not int");
+    } else if (startIndex >= 0) {
+      start = startIndex;
+    } else {
+      start = this.length + startIndex;
+    }
+    if (start < 0 || start > this.length) {
+      throw new RangeError(
+          "startIndex out of range: $startIndex (length: $length)");
+    }
+    if (endIndex == null) {
+      end = this.length;
+    } else if (endIndex is! int) {
+      throw new ArgumentError("endIndex is not int");
+    } else if (endIndex >= 0) {
+      end = endIndex;
+    } else {
+      end = this.length + endIndex;
+    }
+    if (end < 0 || end > this.length) {
+      throw new RangeError(
+          "endIndex out of range: $endIndex (length: $length)");
+    }
+    if (end < start) {
+      throw new ArgumentError(
+          "End before start: $endIndex < $startIndex (length: $length)");
+    }
+    return JS('String', '#.substring(#, #)', this, start, end);
+  }
+
+
   String toLowerCase() {
     return JS('String', r'#.toLowerCase()', this);
   }
@@ -94,7 +140,7 @@ class JSString implements String {
   }
 
   List<int> get charCodes  {
-    List<int> result = new List<int>(length);
+    List<int> result = new List<int>.fixedLength(length);
     for (int i = 0; i < length; i++) {
       result[i] = JS('int', '#.charCodeAt(#)', this, i);
     }

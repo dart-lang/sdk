@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
-cascade_2_test: Fail # Issue 7689
 class_literal_test/01: Fail # Class literals are expression now; delete this test.
 class_literal_test/02: Fail # Class literals are expression now; delete this test.
 class_literal_test/05: Fail # Class literals are expression now; delete this test.
@@ -71,6 +70,10 @@ factory_redirection_test/12: Fail
 factory_redirection_test/13: Fail
 factory_redirection_test/14: Fail
 
+double_to_string_as_exponential2_test: Fail # toStringAsExponential doesn't check if argument is an integer.
+double_to_string_as_fixed2_test: Fail # toStringAsFixed doesn't check if argument is an integer.
+double_to_string_as_precision2_test: Fail # toStringAsPrecision doesn't check if argument is an integer.
+
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
 compile_time_constant_checked_test/02: Fail, OK
@@ -90,12 +93,10 @@ compile_time_constant_checked3_test/06: Fail, OK
 [ $compiler == dart2js ]
 call_operator_test: Fail # Issue 7622.
 class_literal_test: Fail # Issue 7626.
-identical_closure_test: Fail # Fix for identical closure has not been implemented in dart2js yet: https://chromiumcodereview.appspot.com/11612022/
-class_cycle_test/02: Fail # Issue 7468.
-class_cycle_test/03: Fail # Issue 7468.
+identical_closure2_test: Fail # Issues 563, 1533
 invocation_mirror_test: Fail
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6972
-number_identity2_test: Fail # identity of NaN
+number_identity2_test: Fail # Issue 563: identity of NaN
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
 double_int_to_string_test: Fail # Issue 1533 (double/integer distinction)
@@ -334,14 +335,17 @@ assign_top_method_test: Fail
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
+[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == ie9)]
+arithmetic_test: Fail # Issue 7881
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell)]
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
-double_to_string_as_fixed_test: Fail
 
 [ $compiler == dart2js && $runtime == ie9 ]
 div_by_zero_test: Fail
+double_to_string_as_exponential3_test: Fail
 double_to_string_as_fixed_test: Fail
+double_to_string_as_precision3_test: Fail
 expect_test: Fail
 factory3_test: Fail
 stack_overflow_test: Fail

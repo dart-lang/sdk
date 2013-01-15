@@ -34,7 +34,7 @@ abstract class CssClassSet implements Set<String> {
   bool get frozen => false;
 
   // interface Iterable - BEGIN
-  Iterator<String> iterator() => readClasses().iterator();
+  Iterator<String> get iterator => readClasses().iterator;
   // interface Iterable - END
 
   // interface Collection - BEGIN
@@ -42,13 +42,15 @@ abstract class CssClassSet implements Set<String> {
     readClasses().forEach(f);
   }
 
-  Collection map(f(String element)) => readClasses().map(f);
+  String join([String separator]) => readClasses().join(separator);
 
-  Collection<String> filter(bool f(String element)) => readClasses().filter(f);
+  Iterable mappedBy(f(String element)) => readClasses().mappedBy(f);
+
+  Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
   bool every(bool f(String element)) => readClasses().every(f);
 
-  bool some(bool f(String element)) => readClasses().some(f);
+  bool any(bool f(String element)) => readClasses().any(f);
 
   bool get isEmpty => readClasses().isEmpty;
 
@@ -76,13 +78,13 @@ abstract class CssClassSet implements Set<String> {
     return result;
   }
 
-  void addAll(Collection<String> collection) {
+  void addAll(Iterable<String> iterable) {
     // TODO - see comment above about validation
-    _modify((s) => s.addAll(collection));
+    _modify((s) => s.addAll(iterable));
   }
 
-  void removeAll(Collection<String> collection) {
-    _modify((s) => s.removeAll(collection));
+  void removeAll(Iterable<String> iterable) {
+    _modify((s) => s.removeAll(iterable));
   }
 
   bool isSubsetOf(Collection<String> collection) =>
@@ -93,6 +95,29 @@ abstract class CssClassSet implements Set<String> {
 
   Set<String> intersection(Collection<String> other) =>
     readClasses().intersection(other);
+
+  String get first => readClasses().first;
+  String get last => readClasses().last;
+  String get single => readClasses().single;
+  List<String> toList() => readClasses().toList();
+  Set<String> toSet() => readClasses().toSet();
+  String min([int compare(String a, String b)]) =>
+      readClasses().min(compare);
+  String max([int compare(String a, String b)]) =>
+      readClasses().max(compare);
+  Iterable<String> take(int n) => readClasses().take(n);
+  Iterable<String> takeWhile(bool test(String value)) =>
+      readClasses().takeWhile(test);
+  Iterable<String> skip(int n) => readClasses().skip(n);
+  Iterable<String> skipWhile(bool test(String value)) =>
+      readClasses().skipWhile(test);
+  String firstMatching(bool test(String value), { String orElse() }) =>
+      readClasses().firstMatching(test, orElse: orElse);
+  String lastMatching(bool test(String value), {String orElse()}) =>
+      readClasses().lastMatching(test, orElse: orElse);
+  String singleMatching(bool test(String value)) =>
+      readClasses().singleMatching(test);
+  String elementAt(int index) => readClasses().elementAt(index);
 
   void clear() {
     _modify((s) => s.clear());

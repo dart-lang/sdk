@@ -62,7 +62,7 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
   const String& function_name = String::Handle(function.name());
   const String& class_name =
       String::Handle(Class::Handle(function.Owner()).Name());
-  OS::Print("> Entering '%s.%s'\n",
+  OS::PrintErr("> Entering '%s.%s'\n",
       class_name.ToCString(), function_name.ToCString());
 }
 
@@ -74,7 +74,7 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
   const String& function_name = String::Handle(function.name());
   const String& class_name =
       String::Handle(Class::Handle(function.Owner()).Name());
-  OS::Print("< Exiting '%s.%s'\n",
+  OS::PrintErr("< Exiting '%s.%s'\n",
       class_name.ToCString(), function_name.ToCString());
 }
 
@@ -363,29 +363,29 @@ static void PrintTypeCheck(
   const Type& instance_type = Type::Handle(instance.GetType());
   ASSERT(instance_type.IsInstantiated());
   if (type.IsInstantiated()) {
-    OS::Print("%s: '%s' %"Pd" %s '%s' %"Pd" (pc: %#"Px").\n",
-              message,
-              String::Handle(instance_type.Name()).ToCString(),
-              Class::Handle(instance_type.type_class()).id(),
-              (result.raw() == Bool::True().raw()) ? "is" : "is !",
-              String::Handle(type.Name()).ToCString(),
-              Class::Handle(type.type_class()).id(),
-              caller_frame->pc());
+    OS::PrintErr("%s: '%s' %"Pd" %s '%s' %"Pd" (pc: %#"Px").\n",
+                 message,
+                 String::Handle(instance_type.Name()).ToCString(),
+                 Class::Handle(instance_type.type_class()).id(),
+                 (result.raw() == Bool::True().raw()) ? "is" : "is !",
+                 String::Handle(type.Name()).ToCString(),
+                 Class::Handle(type.type_class()).id(),
+                 caller_frame->pc());
   } else {
     // Instantiate type before printing.
     const AbstractType& instantiated_type =
         AbstractType::Handle(type.InstantiateFrom(instantiator_type_arguments));
-    OS::Print("%s: '%s' %s '%s' instantiated from '%s' (pc: %#"Px").\n",
-              message,
-              String::Handle(instance_type.Name()).ToCString(),
-              (result.raw() == Bool::True().raw()) ? "is" : "is !",
-              String::Handle(instantiated_type.Name()).ToCString(),
-              String::Handle(type.Name()).ToCString(),
-              caller_frame->pc());
+    OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#"Px").\n",
+                 message,
+                 String::Handle(instance_type.Name()).ToCString(),
+                 (result.raw() == Bool::True().raw()) ? "is" : "is !",
+                 String::Handle(instantiated_type.Name()).ToCString(),
+                 String::Handle(type.Name()).ToCString(),
+                 caller_frame->pc());
   }
   const Function& function = Function::Handle(
       caller_frame->LookupDartFunction());
-  OS::Print(" -> Function %s\n", function.ToFullyQualifiedCString());
+  OS::PrintErr(" -> Function %s\n", function.ToFullyQualifiedCString());
 }
 
 
@@ -492,7 +492,7 @@ static void UpdateTypeTestCache(
         (last_instantiator_type_arguments.raw() ==
          instantiator_type_arguments.raw())) {
       if (FLAG_trace_type_checks) {
-        OS::Print("%"Pd" ", i);
+        OS::PrintErr("%"Pd" ", i);
         if (type_arguments_replaced) {
           PrintTypeCheck("Duplicate cache entry (canonical.)", instance, type,
               instantiator_type_arguments, result);
@@ -518,7 +518,7 @@ static void UpdateTypeTestCache(
     if (!test_type.IsInstantiated()) {
       test_type = type.InstantiateFrom(instantiator_type_arguments);
     }
-    OS::Print("  Updated test cache %p ix: %"Pd" with (%"Pd", %p, %p, %s)\n"
+    OS::PrintErr("  Updated test cache %p ix: %"Pd" with (%"Pd", %p, %p, %s)\n"
         "    [%p %s %"Pd", %p %s]\n"
         "    [%p %s %"Pd", %p %s] %s\n",
         new_cache.raw(),
@@ -766,7 +766,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   CodePatcher::PatchStaticCallAt(caller_frame->pc(), target_code.EntryPoint());
   caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
   if (FLAG_trace_patching) {
-    OS::Print("PatchStaticCall: patching from %#"Px" to '%s' %#"Px"\n",
+    OS::PrintErr("PatchStaticCall: patching from %#"Px" to '%s' %#"Px"\n",
         caller_frame->pc(),
         target_function.ToFullyQualifiedCString(),
         target_code.EntryPoint());
@@ -874,7 +874,7 @@ static RawFunction* InlineCacheMissHandler(
     // Let the megamorphic stub handle special cases: NoSuchMethod,
     // closure calls.
     if (FLAG_trace_ic) {
-      OS::Print("InlineCacheMissHandler NULL code for receiver: %s\n",
+      OS::PrintErr("InlineCacheMissHandler NULL code for receiver: %s\n",
           receiver.ToCString());
     }
     return Function::null();
@@ -900,14 +900,14 @@ static RawFunction* InlineCacheMissHandler(
     if (FLAG_trace_ic_miss_in_optimized) {
       const Code& caller = Code::Handle(Code::LookupCode(caller_frame->pc()));
       if (caller.is_optimized()) {
-        OS::Print("IC miss in optimized code; call %s -> %s\n",
+        OS::PrintErr("IC miss in optimized code; call %s -> %s\n",
             Function::Handle(caller.function()).ToCString(),
             target_function.ToCString());
       }
     }
     if (FLAG_trace_ic) {
-      OS::Print("InlineCacheMissHandler %d call at %#"Px"' "
-                "adding <%s> id:%"Pd" -> <%s>\n",
+      OS::PrintErr("InlineCacheMissHandler %d call at %#"Px"' "
+                   "adding <%s> id:%"Pd" -> <%s>\n",
           args.length(),
           caller_frame->pc(),
           Class::Handle(receiver.clazz()).ToCString(),
@@ -1015,8 +1015,8 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   }
   ASSERT(!cls.IsNull());
   if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
-    OS::Print("Megamorphic IC miss, class=%s, function=%s\n",
-              cls.ToCString(), name.ToCString());
+    OS::PrintErr("Megamorphic IC miss, class=%s, function=%s\n",
+                 cls.ToCString(), name.ToCString());
   }
 
   intptr_t arg_count =
@@ -1299,26 +1299,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 }
 
 
-static void PrintCaller(const char* msg) {
-  DartFrameIterator iterator;
-  StackFrame* top_frame = iterator.NextFrame();
-  ASSERT(top_frame != NULL);
-  const Function& top_function = Function::Handle(
-      top_frame->LookupDartFunction());
-  OS::Print("Failed: '%s' %s @ %#"Px"\n",
-      msg, top_function.ToFullyQualifiedCString(), top_frame->pc());
-  StackFrame* caller_frame = iterator.NextFrame();
-  if (caller_frame != NULL) {
-    const Function& caller_function = Function::Handle(
-        caller_frame->LookupDartFunction());
-    const Code& code = Code::Handle(caller_frame->LookupDartCode());
-    OS::Print("  -> caller: %s (%s)\n",
-        caller_function.ToFullyQualifiedCString(),
-        code.is_optimized() ? "optimized" : "unoptimized");
-  }
-}
-
-
 DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
   ASSERT(arguments.ArgCount() ==
          kTraceICCallRuntimeEntry.argument_count());
@@ -1327,7 +1307,7 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
   DartFrameIterator iterator;
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
-  OS::Print("IC call @%#"Px": ICData: %p cnt:%"Pd" nchecks: %"Pd" %s %s\n",
+  OS::PrintErr("IC call @%#"Px": ICData: %p cnt:%"Pd" nchecks: %"Pd" %s %s\n",
       frame->pc(),
       ic_data.raw(),
       function.usage_counter(),
@@ -1339,30 +1319,36 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 
 // This is called from function that needs to be optimized.
 // The requesting function can be already optimized (reoptimization).
+// Returns the Code object where to continue execution.
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(arguments.ArgCount() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
   const intptr_t kLowInvocationCount = -100000000;
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
-  if (isolate->debugger()->IsActive()) {
+  ASSERT(!function.IsNull());
+  if (isolate->debugger()->HasBreakpoint(function)) {
     // We cannot set breakpoints in optimized code, so do not optimize
     // the function.
     function.set_usage_counter(0);
+    arguments.SetReturn(Code::Handle(function.CurrentCode()));
     return;
   }
   if (function.deoptimization_counter() >=
       FLAG_deoptimization_counter_threshold) {
     if (FLAG_trace_failed_optimization_attempts) {
-      PrintCaller("Too Many Deoptimizations");
+      OS::PrintErr("Too Many Deoptimizations: %s\n",
+          function.ToFullyQualifiedCString());
     }
     // TODO(srdjan): Investigate excessive deoptimization.
     function.set_usage_counter(kLowInvocationCount);
+    arguments.SetReturn(Code::Handle(function.CurrentCode()));
     return;
   }
   if ((FLAG_optimization_filter != NULL) &&
       (strstr(function.ToFullyQualifiedCString(),
               FLAG_optimization_filter) == NULL)) {
     function.set_usage_counter(kLowInvocationCount);
+    arguments.SetReturn(Code::Handle(function.CurrentCode()));
     return;
   }
   if (function.is_optimizable()) {
@@ -1378,11 +1364,12 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         function.usage_counter() - FLAG_reoptimization_counter_threshold);
   } else {
     if (FLAG_trace_failed_optimization_attempts) {
-      PrintCaller("Not Optimizable");
+      OS::PrintErr("Not Optimizable: %s\n", function.ToFullyQualifiedCString());
     }
     // TODO(5442338): Abort as this should not happen.
     function.set_usage_counter(kLowInvocationCount);
   }
+  arguments.SetReturn(Code::Handle(function.CurrentCode()));
 }
 
 
@@ -1411,7 +1398,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   CodePatcher::PatchStaticCallAt(frame->pc(), target_code.EntryPoint());
   caller_code.SetStaticCallTargetCodeAt(frame->pc(), target_code);
   if (FLAG_trace_patching) {
-    OS::Print("FixCallersTarget: patching from %#"Px" to '%s' %#"Px"\n",
+    OS::PrintErr("FixCallersTarget: patching from %#"Px" to '%s' %#"Px"\n",
         frame->pc(),
         Function::Handle(target_code.function()).ToFullyQualifiedCString(),
         target_code.EntryPoint());
@@ -1432,35 +1419,10 @@ DEOPT_REASONS(DEOPT_REASON_ID_TO_TEXT)
 }
 
 
-static void GetDeoptInfoAtPc(const Code& code,
-                             uword pc,
-                             DeoptInfo* deopt_info,
-                             DeoptReasonId* deopt_reason) {
-  ASSERT(code.is_optimized());
-  const Instructions& instructions = Instructions::Handle(code.instructions());
-  uword code_entry = instructions.EntryPoint();
-  const Array& table = Array::Handle(code.deopt_info_array());
-  ASSERT(!table.IsNull());
-  // Linear search for the PC offset matching the target PC.
-  intptr_t length = DeoptTable::GetLength(table);
-  Smi& offset = Smi::Handle();
-  Smi& reason = Smi::Handle();
-  for (intptr_t i = 0; i < length; ++i) {
-    DeoptTable::GetEntry(table, i, &offset, deopt_info, &reason);
-    if (pc == (code_entry + offset.Value())) {
-      *deopt_reason = static_cast<DeoptReasonId>(reason.Value());
-      return;
-    }
-  }
-  *deopt_info = DeoptInfo::null();
-  *deopt_reason = kDeoptUnknown;
-}
-
-
 static void DeoptimizeAt(const Code& optimized_code, uword pc) {
-  DeoptInfo& deopt_info = DeoptInfo::Handle();
-  DeoptReasonId deopt_reason = kDeoptUnknown;
-  GetDeoptInfoAtPc(optimized_code, pc, &deopt_info, &deopt_reason);
+  intptr_t deopt_reason = kDeoptUnknown;
+  const DeoptInfo& deopt_info =
+      DeoptInfo::Handle(optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason));
   ASSERT(!deopt_info.IsNull());
   const Function& function = Function::Handle(optimized_code.function());
   const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
@@ -1593,16 +1555,16 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   ASSERT(optimized_code.is_optimized());
 
 
-  DeoptInfo& deopt_info = DeoptInfo::Handle();
-  DeoptReasonId deopt_reason = kDeoptUnknown;
-  GetDeoptInfoAtPc(optimized_code, caller_frame->pc(), &deopt_info,
-                   &deopt_reason);
+  intptr_t deopt_reason = kDeoptUnknown;
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(
+      optimized_code.GetDeoptInfoAtPc(caller_frame->pc(), &deopt_reason));
   ASSERT(!deopt_info.IsNull());
 
   CopyFrame(optimized_code, *caller_frame);
   if (FLAG_trace_deoptimization) {
     Function& function = Function::Handle(optimized_code.function());
-    OS::Print("Deoptimizing (reason %d '%s') at pc %#"Px" '%s' (count %d)\n",
+    OS::PrintErr(
+        "Deoptimizing (reason %"Pd" '%s') at pc %#"Px" '%s' (count %d)\n",
         deopt_reason,
         DeoptReasonToText(deopt_reason),
         caller_frame->pc(),
@@ -1628,7 +1590,7 @@ END_LEAF_RUNTIME_ENTRY
 static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
                                         const DeoptInfo& deopt_info,
                                         const StackFrame& caller_frame,
-                                        DeoptReasonId deopt_reason) {
+                                        intptr_t deopt_reason) {
   const intptr_t len = deopt_info.TranslationLength();
   GrowableArray<DeoptInstr*> deopt_instructions(len);
   const Array& deopt_table = Array::Handle(code.deopt_info_array());
@@ -1648,13 +1610,13 @@ static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
                                       to_frame_size,
                                       Array::Handle(code.object_table()),
                                       num_args,
-                                      deopt_reason);
+                                      static_cast<DeoptReasonId>(deopt_reason));
   for (intptr_t to_index = len - 1; to_index >= 0; to_index--) {
     deopt_instructions[to_index]->Execute(&deopt_context, to_index);
   }
   if (FLAG_trace_deoptimization_verbose) {
     for (intptr_t i = 0; i < len; i++) {
-      OS::Print("*%"Pd". [%p] %#014"Px" [%s]\n",
+      OS::PrintErr("*%"Pd". [%p] %#014"Px" [%s]\n",
           i,
           &start[i],
           start[i],
@@ -1686,15 +1648,15 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
   intptr_t* cpu_registers_copy = isolate->deopt_cpu_registers_copy();
   double* xmm_registers_copy = isolate->deopt_xmm_registers_copy();
 
-  DeoptInfo& deopt_info = DeoptInfo::Handle();
-  DeoptReasonId deopt_reason = kDeoptUnknown;
-  GetDeoptInfoAtPc(optimized_code, caller_frame->pc(), &deopt_info,
-                   &deopt_reason);
+  intptr_t deopt_reason = kDeoptUnknown;
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(
+      optimized_code.GetDeoptInfoAtPc(caller_frame->pc(), &deopt_reason));
   ASSERT(!deopt_info.IsNull());
 
-  const intptr_t caller_fp =
-      DeoptimizeWithDeoptInfo(optimized_code, deopt_info, *caller_frame,
-                              deopt_reason);
+  const intptr_t caller_fp = DeoptimizeWithDeoptInfo(optimized_code,
+                                                     deopt_info,
+                                                     *caller_frame,
+                                                     deopt_reason);
 
   isolate->SetDeoptFrameCopy(NULL, 0);
   isolate->set_deopt_cpu_registers_copy(NULL);
@@ -1720,7 +1682,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
     *slot = Double::New(current->value());
 
     if (FLAG_trace_deoptimization_verbose) {
-      OS::Print("materializing double at %"Px": %g\n",
+      OS::PrintErr("materializing double at %"Px": %g\n",
                 reinterpret_cast<uword>(current->slot()),
                 current->value());
     }
@@ -1739,7 +1701,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
     *slot = Mint::New(current->value());
 
     if (FLAG_trace_deoptimization_verbose) {
-      OS::Print("materializing mint at %"Px": %"Pd64"\n",
+      OS::PrintErr("materializing mint at %"Px": %"Pd64"\n",
                 reinterpret_cast<uword>(current->slot()),
                 current->value());
     }
@@ -1759,8 +1721,8 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
     intptr_t line, column;
     script.GetTokenLocation(token_pos, &line, &column);
     String& line_string = String::Handle(script.GetLine(line));
-    OS::Print("  Function: %s\n", top_function.ToFullyQualifiedCString());
-    OS::Print("  Line %"Pd": '%s'\n", line, line_string.ToCString());
+    OS::PrintErr("  Function: %s\n", top_function.ToFullyQualifiedCString());
+    OS::PrintErr("  Line %"Pd": '%s'\n", line, line_string.ToCString());
   }
 }
 

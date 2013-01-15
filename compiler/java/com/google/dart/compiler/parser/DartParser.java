@@ -28,6 +28,7 @@ import com.google.dart.compiler.ast.DartCascadeExpression;
 import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartConditional;
 import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDeclaration;
@@ -351,7 +352,7 @@ public class DartParser extends CompletionHooksParserBase {
         } else if (peekPseudoKeyword(0, TYPEDEF_KEYWORD)
             && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID))) {
           consume(Token.IDENTIFIER);
-          node = done(parseFunctionTypeAlias());
+          node = done(parseTypeAlias());
         } else if (looksLikeDirective()) {
           reportErrorWithoutAdvancing(ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
           metadata = parseDirectives(unit, metadata);
@@ -977,22 +978,62 @@ public class DartParser extends CompletionHooksParserBase {
 
     // Parse the extends and implements clauses.
     DartTypeNode superType = null;
+    int withOffset = -1;
     int implementsOffset = -1;
+    List<DartTypeNode> mixins = null;
     List<DartTypeNode> interfaces = null;
     if (isParsingInterface) {
       if (optional(Token.EXTENDS)) {
         interfaces = parseTypeAnnotationList();
       }
     } else {
-      if (optional(Token.EXTENDS)) {
-        superType = parseTypeAnnotation();
+      boolean foundClause = true;
+      while (foundClause) {
+        if (optional(Token.EXTENDS)) {
+          if (mixins != null) {
+            reportErrorAtPosition(withOffset, withOffset + "with".length(),
+                ParserErrorCode.WITH_BEFORE_EXTENDS);
+          }
+          if (interfaces != null) {
+            reportErrorAtPosition(implementsOffset, implementsOffset + "implements".length(),
+                ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS);
+          }
+          if (superType == null) {
+            superType = parseTypeAnnotation();
+          } else {
+            reportError(position(), ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES);
+            parseTypeAnnotation();
+          }
+        } else if (optional(Token.WITH)) {
+          if (mixins == null) {
+            withOffset = position();
+            mixins = parseTypeAnnotationList();
+            if (interfaces != null) {
+              reportErrorAtPosition(implementsOffset, implementsOffset + "implements".length(),
+                  ParserErrorCode.IMPLEMENTS_BEFORE_WITH);
+            }
+          } else {
+            reportError(position(), ParserErrorCode.MULTIPLE_WITH_CLAUSES);
+            parseTypeAnnotationList();
+          }
+        } else if (optionalPseudoKeyword(IMPLEMENTS_KEYWORD)) {
+          if (interfaces == null) {
+            implementsOffset = position();
+            interfaces = parseTypeAnnotationList();
+          } else {
+            reportError(position(), ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES);
+            parseTypeAnnotationList();
+          }
+        } else {
+          foundClause = false;
+        }
       }
-      if (optionalPseudoKeyword(IMPLEMENTS_KEYWORD)) {
-        implementsOffset = position();
-        interfaces = parseTypeAnnotationList();
+      if (mixins != null && superType == null) {
+        reportErrorAtPosition(withOffset, withOffset + "with".length(),
+            ParserErrorCode.WITH_WITHOUT_EXTENDS);
       }
     }
-
+    
     // Deal with factory clause for interfaces.
     DartParameterizedTypeNode defaultClass = null;
     int defaultTokenOffset = -1;
@@ -1036,13 +1077,13 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     if (isParsingInterface) {
-      return done(new DartClass(tokenOffset, tokenLength, name, superType, implementsOffset,
-          interfaces, defaultTokenOffset, openBraceOffset, closeBraceOffset, members,
-          typeParameters, defaultClass));
+      return done(new DartClass(tokenOffset, tokenLength, name, null, superType, implementsOffset,
+          interfaces, mixins, defaultTokenOffset, openBraceOffset, closeBraceOffset, members,
+          typeParameters, defaultClass, true, Modifiers.NONE));
     } else {
       return done(new DartClass(tokenOffset, tokenLength, name, nativeName, superType,
-          implementsOffset, interfaces, defaultTokenOffset, openBraceOffset, closeBraceOffset,
-          members, typeParameters, modifiers));
+          implementsOffset, interfaces, mixins, defaultTokenOffset, openBraceOffset,
+          closeBraceOffset, members, typeParameters, null, false, modifiers));
     }
   }
 
@@ -1148,37 +1189,128 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   /**
+   * Parse a type alias.
+   * 
    * <pre>
-   * functionTypeAlias
-   *     : TYPEDEF functionPrefix typeParameters?
-   *       formalParameterList ';'
+   * typeAlias ::=
+   *     'typedef' typeAliasBody
+   * 
+   * typeAliasBody ::=
+   *     classTypeAlias
+   *   | functionTypeAlias
    *
-   * functionPrefix
-   *     : returnType? identifier
+   * classTypeAlias ::=
+   *     identifier typeParameters? '=' 'abstract'? mixinApplication
+   * 
+   * mixinApplication ::=
+   *     qualified withClause implementsClause? ';'
+   *
+   * functionTypeAlias ::=
+   *     functionPrefix typeParameterList? formalParameterList ';'
+   *
+   * functionPrefix ::=
+   *     returnType? name
    * </pre>
+   * 
+   * @return the type alias that was parsed
    */
-  private DartFunctionTypeAlias parseFunctionTypeAlias() {
-    beginFunctionTypeInterface();
+  private DartNodeWithMetadata parseTypeAlias() {
+    if (match(Token.IDENTIFIER)) {
+      Token next = peek(1);
+      if (next == Token.LT) {
+        int offset = skipTypeArguments(1, new DepthCounter());
+        next = peek(offset);
+        if (next != null && next == Token.ASSIGN) {
+          return parseClassTypeAlias();
+        }
+      } else if (next == Token.ASSIGN) {
+        return parseClassTypeAlias();
+      }
+    }
+    return parseFunctionTypeAlias();
+  }
 
-    DartTypeNode returnType = null;
-    if (peek(0) == Token.VOID) {
-      returnType = parseVoidType();
-    } else if (!isFunctionTypeAliasName()) {
-      returnType = parseTypeAnnotation();
+  /**
+   * Parse a class type alias.
+   * 
+   * <pre>
+   * classTypeAlias ::=
+   *     identifier typeParameters? '=' 'abstract'? mixinApplication
+   * 
+   * mixinApplication ::=
+   *     type withClause implementsClause? ';'
+   * </pre>
+   * 
+   * @return the class type alias that was parsed
+   */
+  private DartClassTypeAlias parseClassTypeAlias() {
+    beginClassTypeInterface();
+
+    Modifiers modifiers = Modifiers.NONE;
+    if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
+      modifiers = modifiers.makeAbstract();
     }
 
     DartIdentifier name = parseIdentifier();
     if (PSEUDO_KEYWORDS_SET.contains(name.getName())) {
       reportError(name, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     }
+    List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
+    
+    expect(Token.ASSIGN);
 
+    DartTypeNode superType = parseTypeAnnotation();
+
+    List<DartTypeNode> mixins = null;
+    if (optional(Token.WITH)) {
+      mixins = parseTypeAnnotationList();
+    }
+
+    List<DartTypeNode> interfaces = null;
+    if (optionalPseudoKeyword(IMPLEMENTS_KEYWORD)) {
+      interfaces = parseTypeAnnotationList();
+    }
+
+    expect(Token.SEMICOLON);
+    return done(new DartClassTypeAlias(name, typeParameters, modifiers, superType, mixins,
+        interfaces));
+  }
+  
+  /**
+   * Parse a function type alias.
+   * 
+   * <pre>
+   * functionTypeAlias ::=
+   *     functionPrefix typeParameterList? formalParameterList ';'
+   *
+   * functionPrefix ::=
+   *     returnType? name
+   * </pre>
+   * 
+   * @return the function type alias that was parsed
+   */
+  private DartFunctionTypeAlias parseFunctionTypeAlias() {
+    beginFunctionTypeInterface();
+    
+    DartTypeNode returnType = null;
+    if (peek(0) == Token.VOID) {
+      returnType = parseVoidType();
+    } else if (!isFunctionTypeAliasName()) {
+      returnType = parseTypeAnnotation();
+    }
+    
+    DartIdentifier name = parseIdentifier();
+    if (PSEUDO_KEYWORDS_SET.contains(name.getName())) {
+      reportError(name, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    }
+    
     List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
     FormalParameters params = parseFormalParameterList();
     expect(Token.SEMICOLON);
     validateNoDefaultParameterValues(
         params.val,
         ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF);
-
+    
     return done(new DartFunctionTypeAlias(name, returnType, params.val, typeParameters));
   }
 

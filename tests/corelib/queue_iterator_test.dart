@@ -9,21 +9,10 @@ class QueueIteratorTest {
     testEmptyQueue();
   }
 
-  static void testThrows(Iterator<int> it) {
-    Expect.equals(false, it.hasNext);
-    var exception = null;
-    try {
-      it.next();
-    } on StateError catch (e) {
-      exception = e;
-    }
-    Expect.equals(true, exception != null);
-  }
-
   static int sum(int expected, Iterator<int> it) {
     int count = 0;
-    while (it.hasNext) {
-      count += it.next();
+    while (it.moveNext()) {
+      count += it.current;
     }
     Expect.equals(expected, count);
   }
@@ -34,10 +23,10 @@ class QueueIteratorTest {
     queue.addLast(2);
     queue.addLast(3);
 
-    Iterator<int> it = queue.iterator();
-    Expect.equals(true, it.hasNext);
+    Iterator<int> it = queue.iterator;
     sum(6, it);
-    testThrows(it);
+    Expect.isFalse(it.moveNext());
+    Expect.isNull(it.current);
   }
 
   static void testLargeQueue() {
@@ -47,18 +36,18 @@ class QueueIteratorTest {
       count += i;
       queue.addLast(i);
     }
-    Iterator<int> it = queue.iterator();
-    Expect.equals(true, it.hasNext);
+    Iterator<int> it = queue.iterator;
     sum(count, it);
-    testThrows(it);
+    Expect.isFalse(it.moveNext());
+    Expect.isNull(it.current);
   }
 
   static void testEmptyQueue() {
     Queue<int> queue = new Queue<int>();
-    Iterator<int> it = queue.iterator();
-    Expect.equals(false, it.hasNext);
+    Iterator<int> it = queue.iterator;
     sum(0, it);
-    testThrows(it);
+    Expect.isFalse(it.moveNext());
+    Expect.isNull(it.current);
   }
 }
 

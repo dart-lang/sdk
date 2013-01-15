@@ -1,10 +1,11 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 library client_test;
 
 import 'dart:io';
+import 'dart:uri';
 
 import 'package:unittest/unittest.dart';
 import 'package:http/http.dart' as http;
@@ -21,14 +22,11 @@ void main() {
     request.headers[HttpHeaders.CONTENT_TYPE] =
       'application/json; charset=utf-8';
 
-    var future = client.send(request).chain((response) {
+    expect(client.send(request).then((response) {
       expect(response.request, equals(request));
       expect(response.statusCode, equals(200));
-      return consumeInputStream(response.stream);
-    }).transform((bytes) => new String.fromCharCodes(bytes));
-    future.onComplete((_) => client.close());
-
-    expect(future, completion(parse(equals({
+      return response.stream.bytesToString();
+    }).whenComplete(client.close), completion(parse(equals({
       'method': 'POST',
       'path': '/',
       'headers': {
@@ -38,7 +36,20 @@ void main() {
       'body': '{"hello": "world"}'
     }))));
 
-    request.stream.writeString('{"hello": "world"}');
-    request.stream.close();
+    request.sink.add('{"hello": "world"}'.charCodes);
+    request.sink.close();
+  });
+
+  test('#send with an invalid URL', () {
+    var client = new http.Client();
+    var url = new Uri.fromString('http://http.invalid');
+    var request = new http.StreamedRequest("POST", url);
+    request.headers[HttpHeaders.CONTENT_TYPE] =
+        'application/json; charset=utf-8';
+
+    expect(client.send(request), throwsSocketIOException);
+
+    request.sink.add('{"hello": "world"}'.charCodes);
+    request.sink.close();
   });
 }

@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:isolate";
-import "dart:crypto";
-import "dart:io";
-import "dart:uri";
-import "dart:utf";
+import 'dart:async';
+import 'dart:crypto';
+import 'dart:io';
+import 'dart:isolate';
+import 'dart:uri';
+import 'dart:utf';
 
 class Server {
   HttpServer server;
@@ -112,7 +113,7 @@ void testBasicNoCredentials() {
         makeRequest(
             new Uri.fromString("http://127.0.0.1:${server.port}/test$i/xxx")));
   }
-  Futures.wait(futures).then((_) {
+  Future.wait(futures).then((_) {
     server.shutdown();
     client.shutdown();
   });
@@ -149,7 +150,7 @@ void testBasicCredentials() {
         makeRequest(
             new Uri.fromString("http://127.0.0.1:${server.port}/test$i/xxx")));
   }
-  Futures.wait(futures).then((_) {
+  Future.wait(futures).then((_) {
     server.shutdown();
     client.shutdown();
   });
@@ -200,12 +201,12 @@ void testBasicAuthenticateCallback() {
     return futures;
   }
 
-  Futures.wait(makeRequests()).then((_) {
+  Future.wait(makeRequests()).then((_) {
     makeRequest(
         new Uri.fromString(
             "http://127.0.0.1:${server.port}/passwdchg")).then((_) {
       passwordChanged = true;
-      Futures.wait(makeRequests()).then((_) {
+      Future.wait(makeRequests()).then((_) {
         server.shutdown();
         client.shutdown();
       });

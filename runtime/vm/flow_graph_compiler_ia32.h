@@ -47,6 +47,8 @@ class FlowGraphCompiler : public ValueObject {
     current_block_ = value;
   }
   static bool CanOptimize();
+  bool CanOptimizeFunction() const;
+
   bool is_optimizing() const { return is_optimizing_; }
 
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
@@ -230,6 +232,8 @@ class FlowGraphCompiler : public ValueObject {
   static bool EvaluateCondition(Condition condition, intptr_t l, intptr_t r);
 
   // Array/list element address computations.
+  static intptr_t DataOffsetFor(intptr_t cid);
+  static intptr_t ElementSizeFor(intptr_t cid);
   static FieldAddress ElementAddressForIntIndex(intptr_t cid,
                                                 Register array,
                                                 intptr_t offset);
@@ -238,6 +242,8 @@ class FlowGraphCompiler : public ValueObject {
                                                 Register index);
 
  private:
+  void EmitFrameEntry();
+
   void AddStaticCallTarget(const Function& function);
 
   void GenerateDeferredCode();

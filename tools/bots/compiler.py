@@ -257,8 +257,11 @@ def CleanUpTemporaryFiles(system, browser):
      - browser: one of the browsers, see GetBuildInfo
   """
   if system.startswith('win'):
-    shutil.rmtree('C:\\Users\\chrome-bot\\AppData\\Local\\Temp',
-        ignore_errors=True)
+    temp_dir = 'C:\\Users\\chrome-bot\\AppData\\Local\\Temp'
+    for name in os.listdir(temp_dir):
+      fullname = os.path.join(temp_dir, name)
+      if os.path.isdir(fullname):
+        shutil.rmtree(fullname, ignore_errors=True)
   elif browser == 'ff' or 'opera':
     # Note: the buildbots run as root, so we can do this without requiring a
     # password. The command won't actually work on regular machines without

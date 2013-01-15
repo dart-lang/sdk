@@ -19,7 +19,7 @@ oauth2/test/*: Skip
 path/test/*: Skip
 
 # Skip tests that use local file access if we're running in any browser
-[ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt ]
+[ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt  || $runtime == jsshell]
 http/test/*: Skip
 oauth2/test/*: Skip
 path/test/*: Skip
@@ -36,14 +36,17 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
+[ $runtime == vm && $system == windows ]
+intl/test/find_default_locale_standalone_test: Pass, Fail  # Issue 7722
+
 # Skip http request tests on Dartium while resolving an odd
 # error there that causes the tests to timeout.
 [ $runtime == dartium || $runtime == drt ]
 intl/test/date_time_format_http_request_test: Skip
 
+[ $compiler == dart2js ]
 # Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.
-[ $compiler == dart2js ]
 intl/test/intl_message_test: Skip
 intl/test/intl_message_basic_example_test: Skip
 serialization/test/serialization_test: Skip

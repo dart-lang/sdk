@@ -45,8 +45,10 @@ const int UNICODE_UTF16_LO_MASK = 0x3ff;
  * Encode code points as UTF16 code units.
  */
 List<int> _codepointsToUtf16CodeUnits(
-    List<int> codepoints, [int offset = 0, int length,
-    int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
+    List<int> codepoints,
+    [int offset = 0,
+     int length,
+     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
 
   _ListRange listRange = new _ListRange(codepoints, offset, length);
   int encodedLength = 0;
@@ -62,7 +64,7 @@ List<int> _codepointsToUtf16CodeUnits(
     }
   }
 
-  List<int> codeUnitsBuffer = new List<int>(encodedLength);
+  List<int> codeUnitsBuffer = new List<int>.fixedLength(encodedLength);
   int j = 0;
   for (int value in listRange) {
     if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) ||
@@ -91,18 +93,18 @@ List<int> _utf16CodeUnitsToCodepoints(
     List<int> utf16CodeUnits, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   _ListRangeIterator source =
-      (new _ListRange(utf16CodeUnits, offset, length)).iterator();
+      (new _ListRange(utf16CodeUnits, offset, length)).iterator;
   Utf16CodeUnitDecoder decoder = new Utf16CodeUnitDecoder
       .fromListRangeIterator(source, replacementCodepoint);
-  List<int> codepoints = new List<int>(source.remaining);
+  List<int> codepoints = new List<int>.fixedLength(source.remaining);
   int i = 0;
-  while (decoder.hasNext) {
-    codepoints[i++] = decoder.next();
+  while (decoder.moveNext()) {
+    codepoints[i++] = decoder.current;
   }
   if (i == codepoints.length) {
     return codepoints;
   } else {
-    List<int> codepointTrunc = new List<int>(i);
+    List<int> codepointTrunc = new List<int>.fixedLength(i);
     codepointTrunc.setRange(0, i, codepoints);
     return codepointTrunc;
   }
@@ -117,26 +119,30 @@ List<int> _utf16CodeUnitsToCodepoints(
 class Utf16CodeUnitDecoder implements Iterator<int> {
   final _ListRangeIterator utf16CodeUnitIterator;
   final int replacementCodepoint;
+  int _current = null;
 
   Utf16CodeUnitDecoder(List<int> utf16CodeUnits, [int offset = 0, int length,
       int this.replacementCodepoint =
       UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      utf16CodeUnitIterator = (new _ListRange(utf16CodeUnits, offset, length))
-          .iterator();
+      utf16CodeUnitIterator =
+          (new _ListRange(utf16CodeUnits, offset, length)).iterator;
 
   Utf16CodeUnitDecoder.fromListRangeIterator(
       _ListRangeIterator this.utf16CodeUnitIterator,
       int this.replacementCodepoint);
 
-  Iterator<int> iterator() => this;
+  Iterator<int> get iterator => this;
 
-  bool get hasNext => utf16CodeUnitIterator.hasNext;
+  int get current => _current;
 
-  int next() {
-    int value = utf16CodeUnitIterator.next();
+  bool moveNext() {
+    _current = null;
+    if (!utf16CodeUnitIterator.moveNext()) return false;
+
+    int value = utf16CodeUnitIterator.current;
     if (value < 0) {
       if (replacementCodepoint != null) {
-        return replacementCodepoint;
+        _current = replacementCodepoint;
       } else {
         throw new ArgumentError(
             "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
@@ -144,35 +150,36 @@ class Utf16CodeUnitDecoder implements Iterator<int> {
     } else if (value < UNICODE_UTF16_RESERVED_LO ||
         (value > UNICODE_UTF16_RESERVED_HI && value <= UNICODE_PLANE_ONE_MAX)) {
       // transfer directly
-      return value;
+      _current = value;
     } else if (value < UNICODE_UTF16_SURROGATE_UNIT_1_BASE &&
-        utf16CodeUnitIterator.hasNext) {
+        utf16CodeUnitIterator.moveNext()) {
       // merge surrogate pair
-      int nextValue = utf16CodeUnitIterator.next();
+      int nextValue = utf16CodeUnitIterator.current;
       if (nextValue >= UNICODE_UTF16_SURROGATE_UNIT_1_BASE &&
           nextValue <= UNICODE_UTF16_RESERVED_HI) {
         value = (value - UNICODE_UTF16_SURROGATE_UNIT_0_BASE) << 10;
         value += UNICODE_UTF16_OFFSET +
             (nextValue - UNICODE_UTF16_SURROGATE_UNIT_1_BASE);
-        return value;
+        _current = value;
       } else {
         if (nextValue >= UNICODE_UTF16_SURROGATE_UNIT_0_BASE &&
            nextValue < UNICODE_UTF16_SURROGATE_UNIT_1_BASE) {
           utf16CodeUnitIterator.backup();
         }
         if (replacementCodepoint != null) {
-          return replacementCodepoint;
+          _current = replacementCodepoint;
         } else {
           throw new ArgumentError(
               "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
         }
       }
     } else if (replacementCodepoint != null) {
-      return replacementCodepoint;
+      _current = replacementCodepoint;
     } else {
       throw new ArgumentError(
           "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
     }
+    return true;
   }
 }
 
@@ -181,7 +188,9 @@ class Utf16CodeUnitDecoder implements Iterator<int> {
  * range within a source list. DO NOT MODIFY the underlying list while
  * iterating over it. The results of doing so are undefined.
  */
-class _ListRange implements Iterable {
+// TODO(floitsch): Consider removing the extend and switch to implements since
+// that's cheaper to allocate.
+class _ListRange extends Iterable {
   final List _source;
   final int _offset;
   final int _length;
@@ -201,7 +210,7 @@ class _ListRange implements Iterable {
     }
   }
 
-  _ListRangeIterator iterator() =>
+  _ListRangeIterator get iterator =>
       new _ListRangeIteratorImpl(_source, _offset, _offset + _length);
 
   int get length => _length;
@@ -213,8 +222,8 @@ class _ListRange implements Iterable {
  * and move forward/backward within the iterator.
  */
 abstract class _ListRangeIterator implements Iterator<int> {
-  bool hasNext;
-  int next();
+  bool moveNext();
+  int get current;
   int get position;
   void backup([by]);
   int get remaining;
@@ -226,11 +235,12 @@ class _ListRangeIteratorImpl implements _ListRangeIterator {
   int _offset;
   final int _end;
 
-  _ListRangeIteratorImpl(this._source, this._offset, this._end);
+  _ListRangeIteratorImpl(this._source, int offset, this._end)
+      : _offset = offset - 1;
 
-  bool get hasNext => _offset < _end;
+  int get current => _source[_offset];
 
-  int next() => _source[_offset++];
+  bool moveNext() => ++_offset < _end;
 
   int get position => _offset;
 
@@ -238,7 +248,7 @@ class _ListRangeIteratorImpl implements _ListRangeIterator {
     _offset -= by;
   }
 
-  int get remaining => _end - _offset;
+  int get remaining => _end - _offset - 1;
 
   void skip([int count = 1]) {
     _offset += count;

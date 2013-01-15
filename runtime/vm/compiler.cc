@@ -44,15 +44,15 @@ DEFINE_FLAG(bool, common_subexpression_elimination, true,
 DEFINE_FLAG(bool, loop_invariant_code_motion, true,
     "Do loop invariant code motion.");
 DEFINE_FLAG(bool, propagate_types, true, "Do static type propagation.");
-DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
-    "How many times we allow deoptimization before we disallow"
-    " certain optimizations");
+DEFINE_FLAG(int, deoptimization_counter_threshold, 16,
+    "How many times we allow deoptimization before we disallow optimization.");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
+DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 
 
 // Compile a function. Should call only if the function has not been compiled.
@@ -70,12 +70,12 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
     if (FLAG_trace_compiler) {
-      HANDLESCOPE(isolate);
       const String& script_url = String::Handle(script.url());
       // TODO(iposva): Extract script kind.
       OS::Print("Compiling %s '%s'\n", "", script_url.ToCString());
@@ -118,6 +118,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
+  HANDLESCOPE(isolate);
   ASSERT(isolate->ic_data_array() == Array::null());  // Must be reset to null.
   const intptr_t prev_deopt_id = isolate->deopt_id();
   isolate->set_deopt_id(0);
@@ -148,9 +149,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       }
 
       // Build the flow graph.
-      FlowGraphBuilder builder(parsed_function);
-      flow_graph = builder.BuildGraph(FlowGraphBuilder::kNotInlining,
-                                      0);  // The initial loop depth is zero.
+      FlowGraphBuilder builder(parsed_function, NULL);  // NULL = not inlining.
+      flow_graph = builder.BuildGraph(0);  // The initial loop depth is zero.
     }
 
     if (optimized) {
@@ -205,9 +205,11 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       // Use propagated class-ids to optimize further.
       optimizer.ApplyClassIds();
 
+      // Recompute use lists after applying class ids.
+      flow_graph->ComputeUseLists();
+
       // Do optimizations that depend on the propagated type information.
-      // TODO(srdjan): Should this be called CanonicalizeComputations?
-      optimizer.OptimizeComputations();
+      optimizer.Canonicalize();
 
       // Unbox doubles.
       flow_graph->ComputeUseLists();
@@ -220,7 +222,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       if (FLAG_constant_propagation) {
         ConstantPropagator::Optimize(flow_graph);
         // A canonicalization pass to remove e.g. smi checks on smi constants.
-        optimizer.OptimizeComputations();
+        optimizer.Canonicalize();
       }
       if (FLAG_common_subexpression_elimination) {
         if (DominatorBasedCSE::Optimize(flow_graph)) {
@@ -243,6 +245,9 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         flow_graph->ComputeUseLists();
         optimizer.InferSmiRanges();
       }
+
+      // The final canonicalization pass before the code generation.
+      optimizer.Canonicalize();
 
       // Perform register allocation on the SSA graph.
       FlowGraphAllocator allocator(*flow_graph);
@@ -444,6 +449,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
 static RawError* CompileFunctionHelper(const Function& function,
                                        bool optimized) {
   Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
@@ -465,8 +471,11 @@ static RawError* CompileFunctionHelper(const Function& function,
                 function.ToFullyQualifiedCString(),
                 function.token_pos());
     }
-    Parser::ParseFunction(parsed_function);
-    parsed_function->AllocateVariables();
+    {
+      HANDLESCOPE(isolate);
+      Parser::ParseFunction(parsed_function);
+      parsed_function->AllocateVariables();
+    }
 
     const bool success =
         CompileParsedFunctionHelper(*parsed_function, optimized);
@@ -475,6 +484,8 @@ static RawError* CompileFunctionHelper(const Function& function,
       if (FLAG_trace_compiler) {
         OS::Print("--> disabling optimizations for '%s'\n",
                   function.ToFullyQualifiedCString());
+      } else if (FLAG_trace_failed_optimization_attempts) {
+        OS::Print("Cannot optimize: %s\n", function.ToFullyQualifiedCString());
       }
       function.set_is_optimizable(false);
       isolate->set_long_jump_base(base);
@@ -491,9 +502,7 @@ static RawError* CompileFunctionHelper(const Function& function,
                 per_compile_timer.TotalElapsedTime());
     }
 
-    if (Isolate::Current()->debugger()->IsActive()) {
-      Isolate::Current()->debugger()->NotifyCompilation(function);
-    }
+    isolate->debugger()->NotifyCompilation(function);
 
     if (FLAG_disassemble) {
       DisassembleCode(function, optimized);
@@ -552,7 +561,6 @@ RawError* Compiler::CompileParsedFunction(
 
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
-  Isolate* isolate = Isolate::Current();
   Error& error = Error::Handle();
   Array& functions = Array::Handle(cls.functions());
   Function& func = Function::Handle();
@@ -568,8 +576,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     if (!func.HasCode() &&
         !func.is_abstract() &&
         !func.IsRedirectingFactory()) {
-      StackZone zone(isolate);
-      HANDLESCOPE(isolate);
       error = CompileFunction(func);
       if (!error.IsNull()) {
         return error.raw();

@@ -18,7 +18,7 @@ doNothing(x) => x;
 
 /** Concatenate two lists. Handle the case where one or both might be null. */
 // TODO(alanknight): Remove once issue 5342 is resolved.
-List append(List a, List b) {
+Iterable append(Iterable a, Iterable b) {
   if (a == null) {
     return (b == null) ? [] : new List.from(b);
   }
@@ -29,11 +29,11 @@ List append(List a, List b) {
 }
 
 /**
- * Return a sorted version of [aCollection], using the default sort criterion.
- * Always returns a List, regardless of the type of [aCollection].
+ * Return a sorted version of [anIterable], using the default sort criterion.
+ * Always returns a List, regardless of the type of [anIterable].
  */
-List sorted(aCollection) {
-  var result = new List.from(aCollection);
+List sorted(anIterable) {
+  var result = new List.from(anIterable);
   result.sort();
   return result;
 }
@@ -77,7 +77,7 @@ abstract class MapLikeIterable {
    * [collection] is a List, it will be the same as the map() method if the
    * [key] parameter wasn't passed.
    */
-  map(Function f) {
+  mappedBy(Function f) {
     var result = copyEmpty();
     forEach((key, value) {
        result[key] = f(key, value);
@@ -105,9 +105,10 @@ class MapLikeIterableForList extends MapLikeIterable {
   MapLikeIterableForList(collection) : super(collection);
 
   void forEach(f) {
-    Iterator iterator = collection.iterator();
+    Iterator iterator = collection.iterator;
     for (var i = 0; i < collection.length; i++) {
-      f(i, iterator.next());
+      iterator.moveNext();
+      f(i, iterator.current);
     }
   }
 
@@ -126,6 +127,13 @@ class MapLikeIterableForList extends MapLikeIterable {
 values(x) {
   if (x is Iterable) return x;
   if (x is Map) return new ListLikeIterable(x);
+  throw new ArgumentError("Invalid argument");
+}
+
+mapValues(x, f) {
+  if (x is Set) return x.mappedBy(f).toSet();
+  if (x is Iterable) return x.mappedBy(f).toList();
+  if (x is Map) return new ListLikeIterable(x).mappedBy(f);
   throw new ArgumentError("Invalid argument");
 }
 
@@ -150,7 +158,7 @@ class ListLikeIterable {
    * [collection] is a List, it will be the same as if map() had been called
    * directly on [collection].
    */
-  map(Function f) {
+  mappedBy(Function f) {
       var result = new Map();
       collection.forEach((key, value) => result[key] = f(value));
       return result;
@@ -159,7 +167,7 @@ class ListLikeIterable {
   /**
    * Return an iterator that behaves like a List iterator, taking one parameter.
    */
-  Iterator iterator() => collection.values.iterator();
+  Iterator get iterator => collection.values.iterator;
 }
 
 /**

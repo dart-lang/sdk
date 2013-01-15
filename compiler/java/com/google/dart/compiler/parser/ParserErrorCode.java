@@ -106,6 +106,8 @@ public enum ParserErrorCode implements ErrorCode {
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
   // TODO(zundel): error message needs JUnit test
   ILLEGAL_NUMBER_OF_PARAMETERS("Illegal number of parameters"),
+  IMPLEMENTS_BEFORE_EXTENDS("The extends clause must be before the implements clause"),
+  IMPLEMENTS_BEFORE_WITH("The with clause must be before the implements clause"),
   INCOMPLETE_STRING_LITERAL("Incomplete string literal"),
   INTERFACE_METHOD_WITH_BODY("Interface method cannot have a body"),
   // TODO(zundel): error message needs JUnit test
@@ -117,6 +119,9 @@ public enum ParserErrorCode implements ErrorCode {
   MISSING_FUNCTION_NAME(ErrorSeverity.WARNING, "a function name is required for a declaration"),
   MISSING_NAMED_PARAMETER_END("Expected '}' to close the list of named parameters"),
   MISSING_OPTIONAL_PARAMETER_END("Expected ']' to close the list of optional parameters"),
+  MULTIPLE_EXTENDS_CLAUSES("Each class definition can have at most one extends clause"),
+  MULTIPLE_IMPLEMENTS_CLAUSES("Each class definition can have at most one implements clause"),
+  MULTIPLE_WITH_CLAUSES("Each class definition can have at most one with clause"),
   NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
   NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
   NO_SOUP_FOR_YOU("Too many errors"),
@@ -148,7 +153,9 @@ public enum ParserErrorCode implements ErrorCode {
   URI_CANNOT_USE_INTERPOLATION("URIs cannot use string interpolation"),
   VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION("'var' is not allowed on a method definition"),
   VOID_FIELD("Field cannot be of type void"),
-  VOID_PARAMETER("Parameter cannot be of type void");
+  VOID_PARAMETER("Parameter cannot be of type void"),
+  WITH_BEFORE_EXTENDS("The extends clause must be before the with clause"),
+  WITH_WITHOUT_EXTENDS("The with clause cannot be used without an extends clause");
 
   private final ErrorSeverity severity;
   private final String message;

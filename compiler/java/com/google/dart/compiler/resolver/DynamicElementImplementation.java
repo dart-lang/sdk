@@ -79,6 +79,11 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   public List<InterfaceType> getInterfaces() {
     return Collections.<InterfaceType>emptyList();
   }
+  
+  @Override
+  public List<InterfaceType> getMixins() {
+    return Collections.<InterfaceType>emptyList();
+  }
 
   @Override
   public DynamicType getType() {

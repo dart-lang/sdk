@@ -673,7 +673,9 @@ class RawScript : public RawObject {
   RawTokenStream* tokens_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->tokens_); }
 
-  Kind kind_;
+  intptr_t line_offset_;
+  intptr_t col_offset_;
+  int8_t kind_;  // Of type Kind.
 };
 
 

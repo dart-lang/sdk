@@ -14,7 +14,7 @@ import 'dart:uri';
 // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
 
 String nativeToUriPath(String filename) {
-  return new Path.fromNative(filename).toString();
+  return new Path(filename).toString();
 }
 
 String uriPathToNative(String path) {

@@ -400,6 +400,14 @@ class Assembler : public ValueObject {
 
   void pxor(XmmRegister dst, XmmRegister src);
 
+  enum RoundingMode {
+    kRoundToNearest = 0x0,
+    kRoundDown      = 0x1,
+    kRoundUp        = 0x2,
+    kRoundToZero    = 0x3
+  };
+  void roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode);
+
   void flds(const Address& src);
   void fstps(const Address& dst);
 
@@ -531,7 +539,6 @@ class Assembler : public ValueObject {
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
-  void PushRegister(Register r);
   void PopRegister(Register r);
 
   void AddImmediate(Register reg, const Immediate& imm);
@@ -562,6 +569,7 @@ class Assembler : public ValueObject {
   void FloatNegate(XmmRegister f);
 
   void DoubleAbs(XmmRegister reg);
+  void DoubleRound(XmmRegister dst, XmmRegister src, XmmRegister tmp);
 
   void LockCmpxchgl(const Address& address, Register reg) {
     lock();

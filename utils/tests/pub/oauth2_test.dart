@@ -5,7 +5,7 @@
 library oauth2_test;
 
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:uri';
 
 import 'test_pub.dart';
@@ -68,13 +68,13 @@ main() {
     confirmPublish(pub);
 
     server.handle('POST', '/token', (request, response) {
-      return consumeInputStream(request.inputStream).transform((bytes) {
+      return consumeInputStream(request.inputStream).then((bytes) {
         var body = new String.fromCharCodes(bytes);
         expect(body, matches(
             new RegExp(r'(^|&)refresh_token=refresh\+token(&|$)')));
 
         response.headers.contentType = new ContentType("application", "json");
-        response.outputStream.writeString(JSON.stringify({
+        response.outputStream.writeString(json.stringify({
           "access_token": "new access token",
           "token_type": "bearer"
         }));
@@ -162,7 +162,7 @@ main() {
       response.statusCode = 401;
       response.headers.set('www-authenticate', 'Bearer error="invalid_token",'
           ' error_description="your token sucks"');
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         'error': {'message': 'your token sucks'}
       }));
       response.outputStream.close();
@@ -190,7 +190,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
       'Looks great! Are you ready to upload your package (y/n)? '
       'Pub needs your authorization to upload packages on your behalf.'));
 
-  expectLater(pub.nextLine().chain((line) {
+  expectLater(pub.nextLine().then((line) {
     var match = new RegExp(r'[?&]redirect_uri=([0-9a-zA-Z%+-]+)[$&]')
         .firstMatch(line);
     expect(match, isNotNull);
@@ -199,7 +199,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
     redirectUrl = addQueryParameters(redirectUrl, {'code': 'access code'});
     return (new http.Request('GET', redirectUrl)..followRedirects = false)
       .send();
-  }).transform((response) {
+  }).then((response) {
     expect(response.headers['location'],
         equals(['http://pub.dartlang.org/authorized']));
   }), anything);
@@ -209,12 +209,12 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
 
 void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
   server.handle('POST', '/token', (request, response) {
-    return consumeInputStream(request.inputStream).transform((bytes) {
+    return consumeInputStream(request.inputStream).then((bytes) {
       var body = new String.fromCharCodes(bytes);
       expect(body, matches(new RegExp(r'(^|&)code=access\+code(&|$)')));
 
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(JSON.stringify({
+      response.outputStream.writeString(json.stringify({
         "access_token": accessToken,
         "token_type": "bearer"
       }));

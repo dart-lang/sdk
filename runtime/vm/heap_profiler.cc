@@ -68,7 +68,7 @@ void HeapProfiler::Record::Write64(uint64_t value) {
 }
 
 
-void HeapProfiler::Record::WritePointer(const void* value) {
+void HeapProfiler::Record::WriteObjectId(const void* value) {
   Write64(reinterpret_cast<uint64_t>(value));
 }
 
@@ -108,8 +108,8 @@ void HeapProfiler::SubRecord::Write64(uint64_t value) {
 }
 
 
-void HeapProfiler::SubRecord::WritePointer(const void* value) {
-  record_->WritePointer(value);
+void HeapProfiler::SubRecord::WriteObjectId(const void* value) {
+  record_->WriteObjectId(value);
 }
 
 
@@ -119,11 +119,33 @@ HeapProfiler::HeapProfiler(Dart_FileWriteCallback callback, void* stream)
       heap_dump_record_(NULL) {
   WriteHeader();
   WriteStackTrace();
+  WriteFakeLoadClass(kJavaLangClass, "java.lang.Class");
+  WriteFakeLoadClass(kJavaLangClassLoader, "java.lang.ClassLoader");
+  WriteFakeLoadClass(kJavaLangObject, "java.lang.Object");
+  WriteFakeLoadClass(kJavaLangString, "java.lang.String");
+  WriteFakeLoadClass(kArrayObject, "Object[]");
+  WriteFakeLoadClass(kArrayBoolean, "bool[]");
+  WriteFakeLoadClass(kArrayChar, "char[]");
+  WriteFakeLoadClass(kArrayFloat, "float[]");
+  WriteFakeLoadClass(kArrayDouble, "double[]");
+  WriteFakeLoadClass(kArrayByte, "byte[]");
+  WriteFakeLoadClass(kArrayShort, "short[]");
+  WriteFakeLoadClass(kArrayInt, "int[]");
+  WriteFakeLoadClass(kArrayLong, "long[]");
   heap_dump_record_ = new Record(kHeapDump, this);
+  WriteFakeClassDump(kJavaLangClass, static_cast<FakeClass>(0));
+  WriteFakeClassDump(kJavaLangClassLoader, kJavaLangObject);
+  WriteFakeClassDump(kJavaLangObject, static_cast<FakeClass>(0));
+  WriteFakeClassDump(kJavaLangString, kJavaLangObject);
 }
 
 
 HeapProfiler::~HeapProfiler() {
+  for (std::set<const RawSmi*>::iterator it = smi_table_.begin();
+       it != smi_table_.end();
+       ++it) {
+    WriteSmiInstanceDump(*it);
+  }
   delete heap_dump_record_;
 }
 
@@ -196,7 +218,7 @@ const RawClass* HeapProfiler::GetSuperClass(const RawClass* raw_class) {
 
 void HeapProfiler::WriteRoot(const RawObject* raw_obj) {
   SubRecord sub(kRootUnknown, this);
-  sub.WritePointer(ObjectId(raw_obj));
+  sub.WriteObjectId(ObjectId(raw_obj));
 }
 
 
@@ -305,7 +327,7 @@ void HeapProfiler::Write(const void* data, intptr_t size) {
 void HeapProfiler::WriteHeader() {
   const char magic[] = "JAVA PROFILE 1.0.1";
   Write(magic, sizeof(magic));
-  uint32_t size = htonl(8);
+  uint32_t size = htonl(kObjectIdSize);
   Write(&size, sizeof(size));
   uint64_t milliseconds = OS::GetCurrentTimeMillis();
   uint32_t hi = htonl((uint32_t)((milliseconds >> 32) & 0x00000000FFFFFFFF));
@@ -368,7 +390,7 @@ void HeapProfiler::WriteStringInUtf8(const RawString* raw_string) {
     }
   }
   Record record(kStringInUtf8, this);
-  record.WritePointer(ObjectId(raw_string));
+  record.WriteObjectId(ObjectId(raw_string));
   for (intptr_t i = 0; i < length; ++i) {
     record.Write8(characters[i]);
   }
@@ -378,7 +400,7 @@ void HeapProfiler::WriteStringInUtf8(const RawString* raw_string) {
 
 void HeapProfiler::WriteStringInUtf8(const char* c_string) {
   Record record(kStringInUtf8, this);
-  record.WritePointer(c_string);
+  record.WriteObjectId(c_string);
   for (; *c_string != '\0'; ++c_string) {
     record.Write8(*c_string);
   }
@@ -397,20 +419,34 @@ void HeapProfiler::WriteLoadClass(const RawClass* raw_class) {
   // class serial number (always > 0)
   record.Write32(1);
   // class object ID
-  record.WritePointer(raw_class);
+  record.WriteObjectId(raw_class);
   // stack trace serial number
   record.Write32(0);
   // class name string ID
   if (raw_class->ptr()->name_ != String::null()) {
-    record.WritePointer(StringId(raw_class->ptr()->name_));
+    record.WriteObjectId(StringId(raw_class->ptr()->name_));
   } else {
     const char* format = "<an unnamed class with id %d>";
     intptr_t len = OS::SNPrint(NULL, 0, format, raw_class->ptr()->id_);
     char* str = new char[len + 1];
     OS::SNPrint(str, len + 1, format, raw_class->ptr()->id_);
-    record.WritePointer(StringId(str));
+    record.WriteObjectId(StringId(str));
     delete[] str;
   }
+}
+
+
+void HeapProfiler::WriteFakeLoadClass(FakeClass fake_class,
+                                      const char* class_name) {
+  Record record(kLoadClass, this);
+  // class serial number (always > 0)
+  record.Write32(1);
+  // class object ID
+  record.WriteObjectId(reinterpret_cast<void*>(fake_class));
+  // stack trace serial number
+  record.Write32(0);
+  // class name string ID
+  record.WriteObjectId(StringId(class_name));
 }
 
 
@@ -485,26 +521,26 @@ void HeapProfiler::WriteHeapDump() {
 void HeapProfiler::WriteClassDump(const RawClass* raw_class) {
   SubRecord sub(kClassDump, this);
   // class object ID
-  sub.WritePointer(ClassId(raw_class));
+  sub.WriteObjectId(ClassId(raw_class));
   // stack trace serial number
   sub.Write32(0);
   // super class object ID
   const RawClass* super_class = GetSuperClass(raw_class);
   if (super_class == Class::null()) {
-    sub.WritePointer(NULL);
+    sub.WriteObjectId(NULL);
   } else {
-    sub.WritePointer(ClassId(super_class));
+    sub.WriteObjectId(ClassId(super_class));
   }
   // class loader object ID
-  sub.WritePointer(NULL);
+  sub.WriteObjectId(NULL);
   // signers object ID
-  sub.WritePointer(NULL);
+  sub.WriteObjectId(NULL);
   // protection domain object ID
-  sub.WritePointer(NULL);
+  sub.WriteObjectId(NULL);
   // reserved
-  sub.WritePointer(NULL);
+  sub.WriteObjectId(NULL);
   // reserved
-  sub.WritePointer(NULL);
+  sub.WriteObjectId(NULL);
 
   intptr_t num_static_fields = 0;
   intptr_t num_instance_fields = 0;
@@ -522,8 +558,12 @@ void HeapProfiler::WriteClassDump(const RawClass* raw_class) {
     }
   }
   // instance size (in bytes)
-  // TODO(cshapiro): properly account for variable sized objects
-  sub.Write32(raw_class->ptr()->instance_size_in_words_);
+  intptr_t instance_size_in_words = raw_class->ptr()->instance_size_in_words_;
+  if (instance_size_in_words == 0) {
+    // TODO(iposva): Better accounting of variable sized VM classes.
+    instance_size_in_words = num_instance_fields;
+  }
+  sub.Write32(instance_size_in_words * kWordSize);
   // size of constant pool and number of records that follow:
   sub.Write16(0);
   // Number of static fields
@@ -536,11 +576,11 @@ void HeapProfiler::WriteClassDump(const RawClass* raw_class) {
       if (Field::StaticBit::decode(raw_field->ptr()->kind_bits_)) {
         ASSERT(raw_field->ptr()->name_ != String::null());
         // static field name string ID
-        sub.WritePointer(StringId(raw_field->ptr()->name_));
+        sub.WriteObjectId(StringId(raw_field->ptr()->name_));
         // type of static field
         sub.Write8(kObject);
         // value of entry
-        sub.WritePointer(ObjectId(raw_field->ptr()->value_));
+        sub.WriteObjectId(ObjectId(raw_field->ptr()->value_));
       }
     }
   }
@@ -554,13 +594,43 @@ void HeapProfiler::WriteClassDump(const RawClass* raw_class) {
       if (!Field::StaticBit::decode(raw_field->ptr()->kind_bits_)) {
         ASSERT(raw_field->ptr()->name_ != String::null());
         // field name string ID
-        sub.WritePointer(StringId(raw_field->ptr()->name_));
+        sub.WriteObjectId(StringId(raw_field->ptr()->name_));
         // type of field
         sub.Write8(kObject);
       }
     }
   }
 }
+
+void HeapProfiler::WriteFakeClassDump(FakeClass fake_class,
+                                      FakeClass fake_super_class) {
+  SubRecord sub(kClassDump, this);
+  // class object ID
+  sub.WriteObjectId(reinterpret_cast<void*>(fake_class));
+  // stack trace serial number
+  sub.Write32(0);
+  // super class object ID
+  sub.WriteObjectId(reinterpret_cast<void*>(fake_super_class));
+  // class loader object ID
+  sub.WriteObjectId(NULL);
+  // signers object ID
+  sub.WriteObjectId(NULL);
+  // protection domain object ID
+  sub.WriteObjectId(NULL);
+  // reserved
+  sub.WriteObjectId(NULL);
+  // reserved
+  sub.WriteObjectId(NULL);
+  // instance size (in bytes)
+  sub.Write32(0);
+  // size of constant pool and number of records that follow:
+  sub.Write16(0);
+  // Number of static fields
+  sub.Write16(0);
+  // Number of instance fields (not include super class's)
+  sub.Write16(0);
+}
+
 
 
 // INSTANCE DUMP - 0x21
@@ -572,13 +642,14 @@ void HeapProfiler::WriteClassDump(const RawClass* raw_class) {
 //  u4 - number of bytes that follow
 //  [value]* - instance field values (this class, followed by super class, etc)
 void HeapProfiler::WriteInstanceDump(const RawObject* raw_obj) {
+  ASSERT(raw_obj->IsHeapObject());
   SubRecord sub(kInstanceDump, this);
   // object ID
-  sub.WritePointer(raw_obj);
+  sub.WriteObjectId(raw_obj);
   // stack trace serial number
   sub.Write32(0);
   // class object ID
-  sub.WritePointer(ClassId(GetClass(raw_obj)));
+  sub.WriteObjectId(ClassId(GetClass(raw_obj)));
   // number of bytes that follow
   intptr_t num_instance_fields = 0;
   for (const RawClass* cls = GetClass(raw_obj);
@@ -596,7 +667,9 @@ void HeapProfiler::WriteInstanceDump(const RawObject* raw_obj) {
       }
     }
   }
-  sub.Write32(num_instance_fields * kWordSize);
+  int64_t num_instance_bytes = num_instance_fields * kObjectIdSize;
+  ASSERT(num_instance_bytes <= kMaxUint32);
+  sub.Write32(num_instance_bytes);
   // instance field values (this class, followed by super class, etc)
   for (const RawClass* cls = GetClass(raw_obj);
        cls != Class::null();
@@ -613,11 +686,26 @@ void HeapProfiler::WriteInstanceDump(const RawObject* raw_obj) {
               Smi::Value(reinterpret_cast<RawSmi*>(raw_field->ptr()->value_));
           intptr_t offset = offset_in_words * kWordSize;
           RawObject* ptr = *reinterpret_cast<RawObject**>(base + offset);
-          sub.WritePointer(ObjectId(ptr));
+          sub.WriteObjectId(ObjectId(ptr));
         }
       }
     }
   }
+}
+
+
+// Write a specialized instance dump for "referenced" Smi objects.
+void HeapProfiler::WriteSmiInstanceDump(const RawSmi* raw_smi) {
+  ASSERT(!raw_smi->IsHeapObject());
+  SubRecord sub(kInstanceDump, this);
+  // object ID
+  sub.WriteObjectId(raw_smi);
+  // stack trace serial number
+  sub.Write32(0);
+  // class object ID
+  sub.WriteObjectId(Isolate::Current()->class_table()->At(kSmiCid));
+  // number of bytes that follow
+  sub.Write32(0);
 }
 
 
@@ -632,17 +720,17 @@ void HeapProfiler::WriteInstanceDump(const RawObject* raw_obj) {
 void HeapProfiler::WriteObjectArrayDump(const RawArray* raw_array) {
   SubRecord sub(kObjectArrayDump, this);
   // array object ID
-  sub.WritePointer(raw_array);
+  sub.WriteObjectId(raw_array);
   // stack trace serial number
   sub.Write32(0);
   // number of elements
   intptr_t length = Smi::Value(raw_array->ptr()->length_);
   sub.Write32(length);
   // array class object ID
-  sub.WritePointer(NULL);
+  sub.WriteObjectId(reinterpret_cast<void*>(kArrayObject));
   // elements
   for (intptr_t i = 0; i < length; ++i) {
-    sub.WritePointer(ObjectId(raw_array->ptr()->data()[i]));
+    sub.WriteObjectId(ObjectId(raw_array->ptr()->data()[i]));
   }
 }
 
@@ -660,7 +748,7 @@ void HeapProfiler::WritePrimitiveArrayDump(const RawByteArray* raw_byte_array,
                                            const void* data) {
   SubRecord sub(kPrimitiveArrayDump, this);
   // array object ID
-  sub.WritePointer(raw_byte_array);
+  sub.WriteObjectId(raw_byte_array);
   // stack trace serial number
   sub.Write32(0);
   // number of elements

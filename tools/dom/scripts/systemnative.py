@@ -488,34 +488,12 @@ class DartiumBackend(HtmlDartGenerator):
           dart_declaration, 'Callback', False)
       self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
 
-    def GenerateChecksAndCall(operation, argument_count):
-      GenerateCall(operation, argument_count,
-          self._OverloadChecks(operation, parameter_names, argument_count))
-
-    # TODO: Optimize the dispatch to avoid repeated checks.
-    if len(operations) > 1:
-      for operation in operations:
-        for position, argument in enumerate(operation.arguments):
-          if self._IsArgumentOptionalInWebCore(operation, argument):
-            GenerateChecksAndCall(operation, position)
-        GenerateChecksAndCall(operation, len(operation.arguments))
-      body.Emit('    throw "Incorrect number or type of arguments";\n');
-    else:
-      operation = operations[0]
-      argument_count = len(operation.arguments)
-      for position, argument in list(enumerate(operation.arguments))[::-1]:
-        if self._IsArgumentOptionalInWebCore(operation, argument):
-          check = '?%s' % parameter_names[position]
-          # argument_count instead of position + 1 is used here to cover one
-          # complicated case with the effectively optional argument in the middle.
-          # Consider foo(x, [Optional] y, [Optional=DefaultIsNullString] z)
-          # (as of now it's modelled after HTMLMediaElement.webkitAddKey).
-          # y is optional in WebCore, while z is not.
-          # In this case, if y was actually passed, we'd like to emit foo(x, y, z) invocation,
-          # not foo(x, y).
-          GenerateCall(operation, argument_count, [check])
-          argument_count = position
-      GenerateCall(operation, argument_count, [])
+    self._GenerateDispatcherBody(
+        body,
+        operations,
+        parameter_names,
+        GenerateCall,
+        self._IsArgumentOptionalInWebCore)
 
   def SecondaryContext(self, interface):
     pass
@@ -543,9 +521,6 @@ class DartiumBackend(HtmlDartGenerator):
     ext_attrs = node.ext_attrs
 
     cpp_arguments = []
-    requires_v8_scope = \
-        any((self._TypeInfo(argument.type.id).requires_v8_scope() for argument in arguments)) or\
-        self._interface.id.startswith('IDB')
     runtime_check = None
     raises_exceptions = raises_dom_exception or arguments
 
@@ -553,7 +528,6 @@ class DartiumBackend(HtmlDartGenerator):
     requires_stack_info = ext_attrs.get('CallWith') == 'ScriptArguments|ScriptState'
     if requires_stack_info:
       raises_exceptions = True
-      requires_v8_scope = True
       cpp_arguments = ['&state', 'scriptArguments.release()']
       # WebKit uses scriptArguments to reconstruct last argument, so
       # it's not needed and should be just removed.
@@ -563,7 +537,6 @@ class DartiumBackend(HtmlDartGenerator):
     requires_script_arguments = ext_attrs.get('CallWith') == 'ScriptArguments'
     if requires_script_arguments:
       raises_exceptions = True
-      requires_v8_scope = True
       cpp_arguments = ['scriptArguments.release()']
       # WebKit uses scriptArguments to reconstruct last argument, so
       # it's not needed and should be just removed.
@@ -640,10 +613,6 @@ class DartiumBackend(HtmlDartGenerator):
         '$!BODY'
         '        return;\n'
         '    }\n')
-
-    if requires_v8_scope:
-      body_emitter.Emit(
-          '        V8Scope v8scope;\n\n')
 
     if runtime_check:
       body_emitter.Emit(

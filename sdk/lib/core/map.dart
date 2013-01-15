@@ -69,14 +69,15 @@ abstract class Map<K, V> {
   void forEach(void f(K key, V value));
 
   /**
-   * Returns a collection containing all the keys in the map.
+   * The keys of [this].
    */
-  Collection<K> get keys;
+  // TODO(floitsch): this should return a [Set].
+  Iterable<K> get keys;
 
   /**
-   * Returns a collection containing all the values in the map.
+   * The values of [this].
    */
-  Collection<V> get values;
+  Iterable<V> get values;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -168,8 +169,8 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     _numberOfEntries = 0;
     _numberOfDeleted = 0;
     _loadLimit = _computeLoadLimit(_INITIAL_CAPACITY);
-    _keys = new List(_INITIAL_CAPACITY);
-    _values = new List<V>(_INITIAL_CAPACITY);
+    _keys = new List.fixedLength(_INITIAL_CAPACITY);
+    _values = new List<V>.fixedLength(_INITIAL_CAPACITY);
   }
 
   factory _HashMapImpl.from(Map<K, V> other) {
@@ -275,8 +276,8 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     _loadLimit = _computeLoadLimit(newCapacity);
     List oldKeys = _keys;
     List<V> oldValues = _values;
-    _keys = new List(newCapacity);
-    _values = new List<V>(newCapacity);
+    _keys = new List.fixedLength(newCapacity);
+    _values = new List<V>.fixedLength(newCapacity);
     for (int i = 0; i < capacity; i++) {
       // [key] can be either of type [K] or [_DeletedKeySentinel].
       Object key = oldKeys[i];
@@ -351,54 +352,93 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
   }
 
   void forEach(void f(K key, V value)) {
-    int length = _keys.length;
-    for (int i = 0; i < length; i++) {
-      var key = _keys[i];
-      if ((key != null) && (!identical(key, _DELETED_KEY))) {
-        f(key, _values[i]);
-      }
+    Iterator<int> it = new _HashMapImplIndexIterator(this);
+    while (it.moveNext()) {
+      f(_keys[it.current], _values[it.current]);
     }
   }
 
+  Iterable<K> get keys => new _HashMapImplKeyIterable<K>(this);
 
-  Collection<K> get keys {
-    List<K> list = new List<K>(length);
-    int i = 0;
-    forEach((K key, V value) {
-      list[i++] = key;
-    });
-    return list;
-  }
-
-  Collection<V> get values {
-    List<V> list = new List<V>(length);
-    int i = 0;
-    forEach((K key, V value) {
-      list[i++] = value;
-    });
-    return list;
-  }
+  Iterable<V> get values => new _HashMapImplValueIterable<V>(this);
 
   bool containsKey(K key) {
     return (_probeForLookup(key) != -1);
   }
 
-  bool containsValue(V value) {
-    int length = _values.length;
-    for (int i = 0; i < length; i++) {
-      var key = _keys[i];
-      if ((key != null) && (!identical(key, _DELETED_KEY))) {
-        if (_values[i] == value) return true;
-      }
-    }
-    return false;
-  }
+  bool containsValue(V value) => values.contains(value);
 
   String toString() {
     return Maps.mapToString(this);
   }
 }
 
+class _HashMapImplKeyIterable<E> extends Iterable<E> {
+  final _HashMapImpl _map;
+  _HashMapImplKeyIterable(this._map);
+
+  Iterator<E> get iterator => new _HashMapImplKeyIterator<E>(_map);
+}
+
+class _HashMapImplValueIterable<E> extends Iterable<E> {
+  final _HashMapImpl _map;
+  _HashMapImplValueIterable(this._map);
+
+  Iterator<E> get iterator => new _HashMapImplValueIterator<E>(_map);
+}
+
+abstract class _HashMapImplIterator<E> implements Iterator<E> {
+  final _HashMapImpl _map;
+  int _index = -1;
+  E _current;
+
+  _HashMapImplIterator(this._map);
+
+  E _computeCurrentFromIndex(int index, List keys, List values);
+
+  bool moveNext() {
+    int length = _map._keys.length;
+    int newIndex = _index + 1;
+    while (newIndex < length) {
+      var key = _map._keys[newIndex];
+      if ((key != null) && (!identical(key, _HashMapImpl._DELETED_KEY))) {
+        _current = _computeCurrentFromIndex(newIndex, _map._keys, _map._values);
+        _index = newIndex;
+        return true;
+      }
+      newIndex++;
+    }
+    _index = length;
+    _current = null;
+    return false;
+  }
+
+  E get current => _current;
+}
+
+class _HashMapImplKeyIterator<E> extends _HashMapImplIterator<E> {
+  _HashMapImplKeyIterator(_HashMapImpl map) : super(map);
+
+  E _computeCurrentFromIndex(int index, List keys, List values) {
+    return keys[index];
+  }
+}
+
+class _HashMapImplValueIterator<E> extends _HashMapImplIterator<E> {
+  _HashMapImplValueIterator(_HashMapImpl map) : super(map);
+
+  E _computeCurrentFromIndex(int index, List keys, List values) {
+    return values[index];
+  }
+}
+
+class _HashMapImplIndexIterator extends _HashMapImplIterator<int> {
+  _HashMapImplIndexIterator(_HashMapImpl map) : super(map);
+
+  int _computeCurrentFromIndex(int index, List keys, List values) {
+    return index;
+  }
+}
 
 /**
  * A singleton sentinel used to represent when a key is deleted from the map.
@@ -473,25 +513,15 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
     return value;
   }
 
-  Collection<K> get keys {
-    List<K> list = new List<K>(length);
-    int index = 0;
-    _list.forEach((_KeyValuePair<K, V> entry) {
-      list[index++] = entry.key;
-    });
-    assert(index == length);
-    return list;
+  Iterable<K> get keys {
+    return new MappedIterable<_KeyValuePair<K, V>, K>(
+        _list, (_KeyValuePair<K, V> entry) => entry.key);
   }
 
 
-  Collection<V> get values {
-    List<V> list = new List<V>(length);
-    int index = 0;
-    _list.forEach((_KeyValuePair<K, V> entry) {
-      list[index++] = entry.value;
-    });
-    assert(index == length);
-    return list;
+  Iterable<V> get values {
+    return new MappedIterable<_KeyValuePair<K, V>, V>(
+        _list, (_KeyValuePair<K, V> entry) => entry.value);
   }
 
   void forEach(void f(K key, V value)) {
@@ -505,7 +535,7 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
   }
 
   bool containsValue(V value) {
-    return _list.some((_KeyValuePair<K, V> entry) {
+    return _list.any((_KeyValuePair<K, V> entry) {
       return (entry.value == value);
     });
   }
@@ -527,3 +557,4 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
     return Maps.mapToString(this);
   }
 }
+

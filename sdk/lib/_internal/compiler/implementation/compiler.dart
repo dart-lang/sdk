@@ -32,7 +32,7 @@ const String BUILD_ID = 'build number could not be determined';
 class ItemCompilationContext {
 }
 
-class WorkItem {
+abstract class WorkItem {
   final ItemCompilationContext compilationContext;
   /**
    * Documentation wanted -- johnniwinther
@@ -40,20 +40,48 @@ class WorkItem {
    * Invariant: [element] must be a declaration element.
    */
   final Element element;
-  TreeElements resolutionTree;
-  bool allowSpeculativeOptimization = true;
-  List<HTypeGuard> guards = const <HTypeGuard>[];
+  TreeElements get resolutionTree;
 
-  WorkItem(this.element, this.resolutionTree, this.compilationContext) {
+  WorkItem(this.element, this.compilationContext) {
     assert(invariant(element, element.isDeclaration));
   }
 
   bool isAnalyzed() => resolutionTree != null;
 
-  void run(Compiler compiler, Enqueuer world) {
-    CodeBuffer codeBuffer = world.universe.generatedCode[element];
-    if (codeBuffer != null) return;
+  void run(Compiler compiler, Enqueuer world);
+}
+
+/// [WorkItem] used exclusively by the [ResolutionEnqueuer].
+class ResolutionWorkItem extends WorkItem {
+  TreeElements resolutionTree;
+
+  ResolutionWorkItem(Element element,
+                     ItemCompilationContext compilationContext)
+      : super(element, compilationContext);
+
+  void run(Compiler compiler, ResolutionEnqueuer world) {
     resolutionTree = compiler.analyze(this, world);
+  }
+}
+
+/// [WorkItem] used exclusively by the [CodegenEnqueuer].
+class CodegenWorkItem extends WorkItem {
+  final TreeElements resolutionTree;
+
+  bool allowSpeculativeOptimization = true;
+  List<HTypeGuard> guards = const <HTypeGuard>[];
+
+  CodegenWorkItem(Element element,
+                  TreeElements this.resolutionTree,
+                  ItemCompilationContext compilationContext)
+      : super(element, compilationContext) {
+    assert(invariant(element, resolutionTree != null,
+        message: 'Resolution tree is null for $element in codegen work item'));
+  }
+
+  void run(Compiler compiler, CodegenEnqueuer world) {
+    js.Expression code = world.universe.generatedCode[element];
+    if (code != null) return;
     compiler.codegen(this, world);
   }
 }
@@ -77,8 +105,8 @@ abstract class Backend {
     });
   }
 
-  void enqueueHelpers(Enqueuer world);
-  void codegen(WorkItem work);
+  void enqueueHelpers(ResolutionEnqueuer world);
+  void codegen(CodegenWorkItem work);
 
   // The backend determines the native resolution enqueuer, with a no-op
   // default, so tools like dart2dart can ignore the native classes.
@@ -103,6 +131,45 @@ abstract class Backend {
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {}
 }
 
+/**
+ * Key class used in [TokenMap] in which the hash code for a token is based
+ * on the [charOffset].
+ */
+class TokenKey {
+  final Token token;
+  TokenKey(this.token);
+  int get hashCode => token.charOffset;
+  operator==(other) => other is TokenKey && token == other.token;
+}
+
+/// Map of tokens and the first associated comment.
+/*
+ * This implementation was chosen among several candidates for its space/time
+ * efficiency by empirical tests of running dartdoc on dartdoc itself. Time
+ * measurements for the use of [Compiler.commentMap]:
+ *
+ * 1) Using [TokenKey] as key (this class): ~80 msec
+ * 2) Using [TokenKey] as key + storing a separate map in each script: ~120 msec
+ * 3) Using [Token] as key in a [Map]: ~38000 msec
+ * 4) Storing comments is new field in [Token]: ~20 msec
+ *    (Abandoned due to the increased memory usage)
+ * 5) Storing comments in an [Expando]: ~14000 msec
+ * 6) Storing token/comments pairs in a linked list: ~5400 msec
+ */
+class TokenMap {
+  Map<TokenKey,Token> comments = new Map<TokenKey,Token>();
+
+  Token operator[] (Token key) {
+    if (key == null) return null;
+    return comments[new TokenKey(key)];
+  }
+
+  void operator[]= (Token key, Token value) {
+    if (key == null) return;
+    comments[new TokenKey(key)] = value;
+  }
+}
+
 abstract class Compiler implements DiagnosticListener {
   final Map<String, LibraryElement> libraries;
   final Stopwatch totalCompileTime = new Stopwatch();
@@ -110,6 +177,11 @@ abstract class Compiler implements DiagnosticListener {
   World world;
   String assembledCode;
   Types types;
+
+  /**
+   * Map from token to the first preceeding comment token.
+   */
+  final TokenMap commentMap = new TokenMap();
 
   final bool enableMinification;
   final bool enableTypeAssertions;
@@ -124,6 +196,11 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableNativeLiveTypeAnalysis;
   final bool rejectDeprecatedFeatures;
   final bool checkDeprecationInSdk;
+
+  /**
+   * If [:true:], comment tokens are collected in [commentMap] during scanning.
+   */
+  final bool preserveComments;
 
   bool disableInlining = false;
 
@@ -153,6 +230,8 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement typeClass;
   ClassElement mapClass;
   ClassElement jsInvocationMirrorClass;
+  /// Document class from dart:mirrors.
+  ClassElement documentClass;
   Element assertMethod;
   Element identicalFunction;
   Element functionApplyMethod;
@@ -247,6 +326,7 @@ abstract class Compiler implements DiagnosticListener {
             this.analyzeAll: false,
             this.rejectDeprecatedFeatures: false,
             this.checkDeprecationInSdk: false,
+            this.preserveComments: false,
             List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch() {
@@ -286,8 +366,8 @@ abstract class Compiler implements DiagnosticListener {
         this, backend.constantSystem, isMetadata: true);
   }
 
-  Universe get resolverWorld => enqueuer.resolution.universe;
-  Universe get codegenWorld => enqueuer.codegen.universe;
+  ResolutionUniverse get resolverWorld => enqueuer.resolution.universe;
+  CodegenUniverse get codegenWorld => enqueuer.codegen.universe;
 
   int getNextFreeClassId() => nextFreeClassId++;
 
@@ -348,11 +428,11 @@ abstract class Compiler implements DiagnosticListener {
     throw new CompilerCancelledException(reason);
   }
 
-  SourceSpan spanFromSpannable(Spannable node) {
+  SourceSpan spanFromSpannable(Spannable node, [Uri uri]) {
     if (node is Node) {
-      return spanFromNode(node);
+      return spanFromNode(node, uri);
     } else if (node is Token) {
-      return spanFromTokens(node, node);
+      return spanFromTokens(node, node, uri);
     } else if (node is HInstruction) {
       return spanFromHInstruction(node);
     } else if (node is Element) {
@@ -386,37 +466,6 @@ abstract class Compiler implements DiagnosticListener {
       totalCompileTime.stop();
     }
     return true;
-  }
-
-  void enableNoSuchMethod(Element element) {
-    // TODO(ahe): Move this method to Enqueuer.
-    if (enabledNoSuchMethod) return;
-    if (identical(element.getEnclosingClass(), objectClass)) {
-      enqueuer.resolution.registerDynamicInvocationOf(element);
-      return;
-    }
-    enabledNoSuchMethod = true;
-    Selector selector = new Selector.noSuchMethod();
-    enqueuer.resolution.registerInvocation(NO_SUCH_METHOD, selector);
-    enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
-
-    createInvocationMirrorElement =
-        findHelper(CREATE_INVOCATION_MIRROR);
-    enqueuer.resolution.addToWorkList(createInvocationMirrorElement);
-    enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
-  }
-
-  void enableIsolateSupport(LibraryElement element) {
-    // TODO(ahe): Move this method to Enqueuer.
-    isolateLibrary = element.patch;
-    enqueuer.resolution.addToWorkList(
-        isolateHelperLibrary.find(START_ROOT_ISOLATE));
-    enqueuer.resolution.addToWorkList(
-        isolateHelperLibrary.find(const SourceString('_currentIsolate')));
-    enqueuer.resolution.addToWorkList(
-        isolateHelperLibrary.find(const SourceString('_callInIsolate')));
-    enqueuer.codegen.addToWorkList(
-        isolateHelperLibrary.find(START_ROOT_ISOLATE));
   }
 
   bool hasIsolateSupport() => isolateLibrary != null;
@@ -503,6 +552,13 @@ abstract class Compiler implements DiagnosticListener {
     jsInvocationMirrorClass.ensureResolved(this);
     invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(
         const SourceString('invokeOn'));
+
+    if (preserveComments) {
+      var uri = new Uri.fromComponents(scheme: 'dart', path: 'mirrors');
+      LibraryElement libraryElement =
+          libraryLoader.loadLibrary(uri, null, uri);
+      documentClass = libraryElement.find(const SourceString('Comment'));
+    }
   }
 
   void importHelperLibrary(LibraryElement library) {
@@ -537,6 +593,7 @@ abstract class Compiler implements DiagnosticListener {
     bool nativeTest = library.entryCompilationUnit.script.name.contains(
         'dart/tests/compiler/dart2js_native');
     if (nativeTest
+        || libraryName == 'dart:async'
         || libraryName == 'dart:mirrors'
         || libraryName == 'dart:math'
         || libraryName == 'dart:html'
@@ -567,7 +624,10 @@ abstract class Compiler implements DiagnosticListener {
   void maybeEnableIsolateHelper(LibraryElement library) {
     String libraryName = library.uri.toString();
     if (libraryName == 'dart:isolate'
-        || libraryName == 'dart:html') {
+        || libraryName == 'dart:html'
+        // TODO(floitsch): create a separate async-helper library instead of
+        // importing the isolate-library just for TimerImpl.
+        || libraryName == 'dart:async') {
       importIsolateHelperLibrary(library);
     }
   }
@@ -610,6 +670,16 @@ abstract class Compiler implements DiagnosticListener {
 
     log('Compiling...');
     phase = PHASE_COMPILING;
+    // TODO(johnniwinther): Move these to [CodegenEnqueuer].
+    if (hasIsolateSupport()) {
+      enqueuer.codegen.addToWorkList(
+          isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE));
+    }
+    if (enabledNoSuchMethod) {
+      Selector selector = new Selector.noSuchMethod();
+      enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
+      enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
+    }
     processQueue(enqueuer.codegen, main);
     enqueuer.codegen.logSummary(log);
 
@@ -628,9 +698,7 @@ abstract class Compiler implements DiagnosticListener {
     if (element.isClass()) {
       ClassElement cls = element;
       cls.ensureResolved(this);
-      for (Element member in cls.localMembers) {
-        enqueuer.resolution.addToWorkList(member);
-      }
+      cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
     } else {
       enqueuer.resolution.addToWorkList(element);
     }
@@ -712,13 +780,10 @@ abstract class Compiler implements DiagnosticListener {
     return elements;
   }
 
-  TreeElements analyze(WorkItem work, Enqueuer world) {
-    if (work.isAnalyzed()) {
-      // TODO(ahe): Clean this up and find a better way for adding all resolved
-      // elements.
-      enqueuer.resolution.resolvedElements[work.element] = work.resolutionTree;
-      return work.resolutionTree;
-    }
+  TreeElements analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
+    assert(invariant(work.element, identical(world, enqueuer.resolution)));
+    assert(invariant(work.element, !work.isAnalyzed(),
+        message: 'Element ${work.element} has already been analyzed'));
     if (progress.elapsedMilliseconds > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
@@ -731,18 +796,14 @@ abstract class Compiler implements DiagnosticListener {
     Element element = work.element;
     TreeElements result = world.getCachedElements(element);
     if (result != null) return result;
-    if (!identical(world, enqueuer.resolution)) {
-      internalErrorOnElement(element,
-                             'Internal error: unresolved element: $element.');
-    }
     result = analyzeElement(element);
     assert(invariant(element, element.isDeclaration));
-    enqueuer.resolution.resolvedElements[element] = result;
+    world.resolvedElements[element] = result;
     return result;
   }
 
-  void codegen(WorkItem work, Enqueuer world) {
-    if (!identical(world, enqueuer.codegen)) return null;
+  void codegen(CodegenWorkItem work, CodegenEnqueuer world) {
+    assert(invariant(work.element, identical(world, enqueuer.codegen)));
     if (progress.elapsedMilliseconds > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
@@ -897,7 +958,37 @@ abstract class Compiler implements DiagnosticListener {
   Element findInterceptor(SourceString name)
       => interceptorsLibrary.findLocal(name);
 
+  Element lookupElementIn(ScopeContainerElement container, SourceString name) {
+    Element element = container.localLookup(name);
+    if (element == null) {
+      throw 'Could not find ${name.slowToString()} in $container';
+    }
+    return element;
+  }
+
   bool get isMockCompilation => false;
+
+  Token processAndStripComments(Token currentToken) {
+    Token firstToken = currentToken;
+    Token prevToken;
+    while (currentToken.kind != EOF_TOKEN) {
+      if (identical(currentToken.kind, COMMENT_TOKEN)) {
+        Token firstCommentToken = currentToken;
+        while (identical(currentToken.kind, COMMENT_TOKEN)) {
+          currentToken = currentToken.next;
+        }
+        commentMap[currentToken] = firstCommentToken;
+        if (prevToken == null) {
+          firstToken = currentToken;
+        } else {
+          prevToken.next = currentToken;
+        }
+      }
+      prevToken = currentToken;
+      currentToken = currentToken.next;
+    }
+    return firstToken;
+  }
 }
 
 class CompilerTask {

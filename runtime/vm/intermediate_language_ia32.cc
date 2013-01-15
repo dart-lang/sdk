@@ -31,13 +31,39 @@ LocationSummary* Instruction::MakeCallSummary() {
 }
 
 
+LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps= 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::AnyOrConstant(value()));
+  return locs;
+}
+
+
+void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
+  // where PushArgument is handled by BindInstr::EmitNativeCode.
+  if (compiler->is_optimizing()) {
+    Location value = locs()->in(0);
+    if (value.IsRegister()) {
+      __ pushl(value.reg());
+    } else if (value.IsConstant()) {
+      __ PushObject(value.constant());
+    } else {
+      ASSERT(value.IsStackSlot());
+      __ pushl(value.ToStackSlotAddress());
+    }
+  }
+}
+
+
 LocationSummary* ReturnInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(EAX));
-  locs->set_temp(0, Location::RegisterLocation(EDX));
   return locs;
 }
 
@@ -46,50 +72,8 @@ LocationSummary* ReturnInstr::MakeLocationSummary() const {
 // The entry needs to be patchable, no inlined objects are allowed in the area
 // that will be overwritten by the patch instruction: a jump).
 void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Function& function =
-      Function::ZoneHandle(compiler->parsed_function().function().raw());
   Register result = locs()->in(0).reg();
-  Register func_reg = locs()->temp(0).reg();
   ASSERT(result == EAX);
-  if (compiler->is_optimizing()) {
-    if (compiler->may_reoptimize()) {
-      // Increment of counter occurs only in optimized IC calls, as they
-      // can cause reoptimization.
-      Label done;
-      __ LoadObject(func_reg, function);
-      __ cmpl(FieldAddress(func_reg, Function::usage_counter_offset()),
-          Immediate(FLAG_optimization_counter_threshold));
-      __ j(LESS, &done, Assembler::kNearJump);
-      // Equal (or greater), optimize. Note that counter can reach equality
-      // only at return instruction.
-      // The stub call preserves result register (EAX).
-      ASSERT(func_reg == EDX);
-      compiler->GenerateCall(0,  // no token position.
-                             &StubCode::OptimizeFunctionLabel(),
-                             PcDescriptors::kOther,
-                             locs());
-      __ Bind(&done);
-    }
-  } else {
-    __ LoadObject(func_reg, function);
-    __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
-    if (FlowGraphCompiler::CanOptimize() &&
-        compiler->parsed_function().function().is_optimizable()) {
-      // Do not optimize if usage count must be reported.
-      __ cmpl(FieldAddress(func_reg, Function::usage_counter_offset()),
-          Immediate(FLAG_optimization_counter_threshold));
-      Label not_yet_hot;
-      __ j(LESS, &not_yet_hot, Assembler::kNearJump);
-      // Equal (or greater), optimize.
-      // The stub call preserves result register (EAX).
-      ASSERT(func_reg == EDX);
-      compiler->GenerateCall(0,  // no token position.
-                             &StubCode::OptimizeFunctionLabel(),
-                             PcDescriptors::kOther,
-                             locs());
-      __ Bind(&not_yet_hot);
-    }
-  }
 #if defined(DEBUG)
   // TODO(srdjan): Fix for functions with finally clause.
   // A finally clause may leave a previously pushed return value if it
@@ -1070,12 +1054,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static bool CanBeImmediateIndex(Value* index) {
+static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
   if (!index->definition()->IsConstant()) return false;
   const Object& constant = index->definition()->AsConstant()->value();
   if (!constant.IsSmi()) return false;
   const Smi& smi_const = Smi::Cast(constant);
-  int64_t disp = smi_const.AsInt64Value() * kWordSize + sizeof(RawArray);
+  const intptr_t scale = FlowGraphCompiler::ElementSizeFor(cid);
+  const intptr_t data_offset = FlowGraphCompiler::DataOffsetFor(cid);
+  const int64_t disp = smi_const.AsInt64Value() * scale + data_offset;
   return Utils::IsInt(32, disp);
 }
 
@@ -1086,8 +1072,9 @@ LocationSummary* StringCharCodeAtInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // TODO(fschneider): Allow immediate operands for the index.
-  locs->set_in(1, Location::RequiresRegister());
+  locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                    ? Location::RegisterOrSmiConstant(index())
+                    : Location::RequiresRegister());
   locs->set_out(Location::RequiresRegister());
   return locs;
 }
@@ -1095,25 +1082,30 @@ LocationSummary* StringCharCodeAtInstr::MakeLocationSummary() const {
 
 void StringCharCodeAtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register str = locs()->in(0).reg();
-  Register index = locs()->in(1).reg();
+  Location index = locs()->in(1);
   Register result = locs()->out().reg();
 
   ASSERT((class_id() == kOneByteStringCid) ||
          (class_id() == kTwoByteStringCid));
+
+  FieldAddress element_address = index.IsRegister() ?
+      FlowGraphCompiler::ElementAddressForRegIndex(
+          class_id(), str, index.reg()) :
+      FlowGraphCompiler::ElementAddressForIntIndex(
+          class_id(), str, Smi::Cast(index.constant()).Value());
+
   if (class_id() == kOneByteStringCid) {
-    __ SmiUntag(index);
-    __ movzxb(result, FieldAddress(str,
-                                   index,
-                                   TIMES_1,
-                                   OneByteString::data_offset()));
-    __ SmiTag(index);  // Retag index.
+    if (index.IsRegister()) {
+      __ SmiUntag(index.reg());
+    }
+    __ movzxb(result, element_address);
+    if (index.IsRegister()) {
+      __ SmiTag(index.reg());  // Retag index.
+    }
     __ SmiTag(result);
   } else {
     // Don't untag smi-index and use TIMES_1 for two byte strings.
-    __ movzxw(result, FieldAddress(str,
-                                   index,
-                                   TIMES_1,
-                                   TwoByteString::data_offset()));
+    __ movzxw(result, element_address);
     __ SmiTag(result);
   }
 }
@@ -1149,8 +1141,8 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, CanBeImmediateIndex(index())
-                    ? Location::RegisterOrConstant(index())
+  locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                    ? Location::RegisterOrSmiConstant(index())
                     : Location::RequiresRegister());
   if (representation() == kUnboxedDouble) {
     locs->set_out(Location::RequiresXmmRegister());
@@ -1206,7 +1198,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   Register result = locs()->out().reg();
-  if (class_id() == kUint8ArrayCid) {
+  if ((class_id() == kUint8ArrayCid) ||
+      (class_id() == kUint8ClampedArrayCid)) {
     if (index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
@@ -1225,23 +1218,35 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = class_id() == kFloat32ArrayCid ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (class_id() == kFloat32ArrayCid) {
-    locs->set_temp(0, Location::RequiresXmmRegister());
-  }
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, CanBeImmediateIndex(index())
-                    ? Location::RegisterOrConstant(index())
+  locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                    ? Location::RegisterOrSmiConstant(index())
                     : Location::RequiresRegister());
-  if (RequiredInputRepresentation(2) == kUnboxedDouble) {
-    // TODO(srdjan): Support Float64 constants.
-    locs->set_in(2, Location::RequiresXmmRegister());
-  } else {
-    locs->set_in(2, ShouldEmitStoreBarrier()
-                      ? Location::WritableRegister()
-                      : Location::RegisterOrConstant(value()));
+  switch (class_id()) {
+    case kArrayCid:
+      locs->set_in(2, ShouldEmitStoreBarrier()
+                        ? Location::WritableRegister()
+                        : Location::RegisterOrConstant(value()));
+      break;
+    case kUint8ArrayCid:
+      // TODO(fschneider): Add location constraint for byte registers (EAX,
+      // EBX, ECX, EDX) instead of using a fixed register.
+      locs->set_in(2, Location::FixedRegisterOrSmiConstant(value(), EAX));
+      break;
+    case kFloat32ArrayCid:
+      // Need temp register for float-to-double conversion.
+      locs->AddTemp(Location::RequiresXmmRegister());
+      // Fall through.
+    case kFloat64ArrayCid:
+      // TODO(srdjan): Support Float64 constants.
+      locs->set_in(2, Location::RequiresXmmRegister());
+      break;
+    default:
+      UNREACHABLE();
+      return NULL;
   }
   return locs;
 }
@@ -1257,32 +1262,47 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       FlowGraphCompiler::ElementAddressForIntIndex(
           class_id(), array, Smi::Cast(index.constant()).Value());
 
-  if (class_id() == kFloat32ArrayCid) {
-    // Convert to single precision.
-    __ cvtsd2ss(locs()->temp(0).xmm_reg(), locs()->in(2).xmm_reg());
-    // Store.
-    __ movss(element_address, locs()->temp(0).xmm_reg());
-    return;
-  }
-
-  if (class_id() == kFloat64ArrayCid) {
-    __ movsd(element_address, locs()->in(2).xmm_reg());
-    return;
-  }
-
-  ASSERT(class_id() == kArrayCid);
-  if (ShouldEmitStoreBarrier()) {
-    Register value = locs()->in(2).reg();
-    __ StoreIntoObject(array, element_address, value);
-    return;
-  }
-
-  if (locs()->in(2).IsConstant()) {
-    const Object& constant = locs()->in(2).constant();
-    __ StoreIntoObjectNoBarrier(array, element_address, constant);
-  } else {
-    Register value = locs()->in(2).reg();
-    __ StoreIntoObjectNoBarrier(array, element_address, value);
+  switch (class_id()) {
+    case kArrayCid:
+      if (ShouldEmitStoreBarrier()) {
+        Register value = locs()->in(2).reg();
+        __ StoreIntoObject(array, element_address, value);
+      } else if (locs()->in(2).IsConstant()) {
+        const Object& constant = locs()->in(2).constant();
+        __ StoreIntoObjectNoBarrier(array, element_address, constant);
+      } else {
+        Register value = locs()->in(2).reg();
+        __ StoreIntoObjectNoBarrier(array, element_address, value);
+      }
+      break;
+    case kUint8ArrayCid:
+      if (index.IsRegister()) {
+        __ SmiUntag(index.reg());
+      }
+      if (locs()->in(2).IsConstant()) {
+        const Smi& constant = Smi::Cast(locs()->in(2).constant());
+        __ movb(element_address,
+                Immediate(static_cast<int8_t>(constant.Value())));
+      } else {
+        ASSERT(locs()->in(2).reg() == EAX);
+        __ SmiUntag(EAX);
+        __ movb(element_address, AL);
+      }
+      if (index.IsRegister()) {
+        __ SmiTag(index.reg());  // Re-tag.
+      }
+      break;
+    case kFloat32ArrayCid:
+      // Convert to single precision.
+      __ cvtsd2ss(locs()->temp(0).xmm_reg(), locs()->in(2).xmm_reg());
+      // Store.
+      __ movss(element_address, locs()->temp(0).xmm_reg());
+      break;
+    case kFloat64ArrayCid:
+      __ movsd(element_address, locs()->in(2).xmm_reg());
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -2333,6 +2353,33 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cmpl(result, Immediate(0xC0000000));
   __ j(NEGATIVE, deopt);
   __ SmiTag(result);
+}
+
+
+LocationSummary* DoubleToDoubleInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps =
+      (recognized_kind() == MethodRecognizer::kDoubleRound) ? 1 : 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresXmmRegister());
+  result->set_out(Location::RequiresXmmRegister());
+  if (recognized_kind() == MethodRecognizer::kDoubleRound) {
+    result->set_temp(0, Location::RequiresXmmRegister());
+  }
+  return result;
+}
+
+
+void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->in(0).xmm_reg();
+  XmmRegister result = locs()->out().xmm_reg();
+  if (recognized_kind() == MethodRecognizer::kDoubleTruncate) {
+    __ roundsd(result, value,  Assembler::kRoundToZero);
+  } else {
+    XmmRegister temp = locs()->temp(0).xmm_reg();
+    __ DoubleRound(result, value, temp);
+  }
 }
 
 

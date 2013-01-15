@@ -4,8 +4,9 @@
 
 library mock_client_test;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:uri';
 
 import 'package:unittest/unittest.dart';
@@ -18,14 +19,14 @@ void main() {
   test('handles a request', () {
     var client = new MockClient((request) {
       return new Future.immediate(new http.Response(
-          JSON.stringify(request.bodyFields), 200,
+          json.stringify(request.bodyFields), 200,
           request: request, headers: {'content-type': 'application/json'}));
     });
 
     expect(client.post("http://example.com/foo", fields: {
       'field1': 'value1',
       'field2': 'value2'
-    }).transform((response) => response.body), completion(parse(equals({
+    }).then((response) => response.body), completion(parse(equals({
       'field1': 'value1',
       'field2': 'value2'
     }))));
@@ -33,12 +34,11 @@ void main() {
 
   test('handles a streamed request', () {
     var client = new MockClient.streaming((request, bodyStream) {
-      return consumeInputStream(bodyStream).transform((body) {
-        var stream = new ListInputStream();
+      return bodyStream.bytesToString().then((bodyString) {
+        var stream = new StreamController<List<int>>.singleSubscription();
         async.then((_) {
-          var bodyString = new String.fromCharCodes(body);
-          stream.write('Request body was "$bodyString"'.charCodes);
-          stream.markEndOfStream();
+          stream.add('Request body was "$bodyString"'.charCodes);
+          stream.close();
         });
 
         return new http.StreamedResponse(stream, 200, -1);
@@ -49,8 +49,8 @@ void main() {
     var request = new http.Request("POST", uri);
     request.body = "hello, world";
     var future = client.send(request)
-        .chain(http.Response.fromStream)
-        .transform((response) => response.body);
+        .then(http.Response.fromStream)
+        .then((response) => response.body);
     expect(future, completion(equals('Request body was "hello, world"')));
   });
 

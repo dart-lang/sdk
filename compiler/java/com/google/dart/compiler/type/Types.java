@@ -213,6 +213,10 @@ public class Types {
         intf = asSupertype(interfaceType, intf);
         types.addAll(getSuperTypes(intf));
       }
+      for (InterfaceType mixin : interfaceType.getElement().getMixins()) {
+        mixin = asSupertype(interfaceType, mixin);
+        types.add(mixin);
+      }
       if (!interfaceType.getElement().isInterface()) {
         InterfaceType superClass = interfaceType.getElement().getSupertype();
         superClass= asSupertype(interfaceType, superClass);
@@ -545,11 +549,17 @@ public class Types {
           }
         }
         // interfaces
-        for (InterfaceType intrface : tElement.getInterfaces()) {
-          InterfaceType result = checkedAsInstanceOf(asSupertype(ti, intrface), element,
+        for (InterfaceType intf : tElement.getInterfaces()) {
+          InterfaceType result = checkedAsInstanceOf(asSupertype(ti, intf), element,
                                                      variablesReferenced, checkedTypes);
           if (result != null) {
             return result;
+          }
+        }
+        // mixins
+        for (InterfaceType mixin : tElement.getMixins()) {
+          if (mixin.getElement().equals(element)) {
+            return asSupertype(ti, mixin);
           }
         }
         // no

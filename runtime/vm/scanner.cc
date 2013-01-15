@@ -916,7 +916,7 @@ void Scanner::ScanTo(intptr_t token_index) {
 void Scanner::TokenRangeAtLine(intptr_t line_number,
                                intptr_t* first_token_index,
                                intptr_t* last_token_index) {
-  ASSERT(line_number >= 0);
+  ASSERT(line_number > 0);
   ASSERT((first_token_index != NULL) && (last_token_index != NULL));
   Reset();
   *first_token_index = -1;

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -42,6 +42,7 @@
   V(Socket_GetError, 1)                                                        \
   V(Socket_GetStdioHandle, 2)                                                  \
   V(Socket_NewServicePort, 0)                                                  \
+  V(Socket_GetType, 1)                                                         \
   V(SecureSocket_Connect, 8)                                                   \
   V(SecureSocket_Destroy, 1)                                                   \
   V(SecureSocket_Handshake, 1)                                                 \

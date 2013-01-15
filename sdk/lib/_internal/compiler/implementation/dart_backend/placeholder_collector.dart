@@ -439,7 +439,7 @@ class PlaceholderCollector extends Visitor {
   static bool isPlainTypeName(TypeAnnotation typeAnnotation) {
     if (typeAnnotation.typeName is !Identifier) return false;
     if (typeAnnotation.typeArguments == null) return true;
-    if (typeAnnotation.typeArguments.length == 0) return true;
+    if (typeAnnotation.typeArguments.isEmpty) return true;
     return false;
   }
 

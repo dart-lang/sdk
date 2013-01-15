@@ -33,8 +33,8 @@ class JSArray<E> implements List<E> {
     return JS('var', r'#.pop()', this);
   }
 
-  List<E> filter(bool f(E element)) {
-    return Collections.filter(this, <E>[], f);
+  Iterable<E> where(bool f(E element)) {
+    return new WhereIterable<E>(this, f);
   }
 
   void addAll(Collection<E> collection) {
@@ -56,12 +56,53 @@ class JSArray<E> implements List<E> {
     return Collections.forEach(this, f);
   }
 
-  Collection map(f(E element)) {
-    return Collections.map(this, [], f);
+  List mappedBy(f(E element)) {
+    return new MappedList(this, f);
+  }
+
+  String join([String separator]) {
+    if (separator == null) separator = "";
+    var list = new List(this.length);
+    for (int i = 0; i < this.length; i++) {
+      list[i] = "${this[i]}";
+    }
+    return JS('String', "#.join(#)", list, separator);
+  }
+
+  List<E> take(int n) {
+    return new ListView<E>(this, 0, n);
+  }
+
+  Iterable<E> takeWhile(bool test(E value)) {
+    return new TakeWhileIterable<E>(this, test);
+  }
+
+  List<E> skip(int n) {
+    return new ListView<E>(this, n, null);
+  }
+
+  Iterable<E> skipWhile(bool test(E value)) {
+    return new SkipWhileIterable<E>(this, test);
   }
 
   reduce(initialValue, combine(previousValue, E element)) {
     return Collections.reduce(this, initialValue, combine);
+  }
+
+  E firstMatching(bool test(E value), {E orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  E lastMatching(bool test(E value), {E orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  E singleMatching(bool test(E value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  E elementAt(int index) {
+    return this[index];
   }
 
   List<E> getRange(int start, int length) {
@@ -85,9 +126,25 @@ class JSArray<E> implements List<E> {
     return listInsertRange(this, start, length, initialValue);
   }
 
-  E get last => this[length - 1];
+  E get first {
+    if (length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  E get first => this[0];
+  E get last {
+    if (length > 0) return this[length - 1];
+    throw new StateError("No elements");
+  }
+
+  E get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  E min([int compare(E a, E b)]) => Collections.min(this, compare);
+
+  E max([int compare(E a, E b)]) => Collections.max(this, compare);
 
   void removeRange(int start, int length) {
     checkGrowable(this, 'removeRange');
@@ -133,7 +190,7 @@ class JSArray<E> implements List<E> {
     Arrays.copy(from, startFrom, this, start, length);
   }
 
-  bool some(bool f(E element)) => Collections.some(this, f);
+  bool any(bool f(E element)) => Collections.any(this, f);
 
   bool every(bool f(E element)) => Collections.every(this, f);
 
@@ -164,7 +221,11 @@ class JSArray<E> implements List<E> {
 
   String toString() => Collections.collectionToString(this);
 
-  ListIterator iterator() => new ListIterator(this);
+  List<E> toList() => new List<E>.from(this);
+
+  Set<E> toSet() => new Set<E>.from(this);
+
+  _ArrayIterator get iterator => new _ArrayIterator(this);
 
   int get hashCode => Primitives.objectHashCode(this);
 
@@ -186,5 +247,29 @@ class JSArray<E> implements List<E> {
     if (index is !int) throw new ArgumentError(index);
     if (index >= length || index < 0) throw new RangeError.value(index);
     return JS('var', '#[#]', this, index);
+  }
+}
+
+/** Iterator for JavaScript Arrays. */
+class _ArrayIterator<T> implements Iterator<T> {
+  final List<T> _list;
+  int _position;
+  T _current;
+
+  _ArrayIterator(List<T> this._list) : _position = -1;
+
+  T get current => _current;
+
+  bool moveNext() {
+    int nextPosition = _position + 1;
+    int length = _list.length;
+    if (nextPosition < length) {
+      _position = nextPosition;
+      _current = _list[nextPosition];
+      return true;
+    }
+    _position = length;
+    _current = null;
+    return false;
   }
 }

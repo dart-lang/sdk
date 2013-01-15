@@ -22,12 +22,14 @@ import "parser_helper.dart";
 
 String compile(String code, {String entry: 'main',
                              String coreSource: DEFAULT_CORELIB,
+                             String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
                              bool enableTypeAssertions: false,
                              bool minify: false,
                              bool analyzeAll: false}) {
   MockCompiler compiler =
       new MockCompiler(enableTypeAssertions: enableTypeAssertions,
                        coreSource: coreSource,
+                       interceptorsSource: interceptorsSource,
                        enableMinification: minify);
   compiler.parseScript(code);
   lego.Element element = compiler.mainApp.find(buildSourceString(entry));
@@ -35,9 +37,13 @@ String compile(String code, {String entry: 'main',
   compiler.backend.enqueueHelpers(compiler.enqueuer.resolution);
   compiler.processQueue(compiler.enqueuer.resolution, element);
   var context = new js.JavaScriptItemCompilationContext();
-  leg.WorkItem work = new leg.WorkItem(element, null, context);
+  leg.ResolutionWorkItem resolutionWork =
+      new leg.ResolutionWorkItem(element, context);
+  resolutionWork.run(compiler, compiler.enqueuer.resolution);
+  leg.CodegenWorkItem work =
+      new leg.CodegenWorkItem(element, resolutionWork.resolutionTree, context);
   work.run(compiler, compiler.enqueuer.codegen);
-  return compiler.enqueuer.codegen.lookupCode(element);
+  return compiler.enqueuer.codegen.assembleCode(element);
 }
 
 MockCompiler compilerFor(String code, Uri uri, {bool analyzeAll: false}) {
@@ -78,15 +84,16 @@ String getIntTypeCheck(String variable) {
 }
 
 String getNumberTypeCheck(String variable) {
-  return "\\(typeof $variable ?!== ?'number'\\)";
+  return """\\(typeof $variable ?!== ?"number"\\)""";
 }
 
 bool checkNumberOfMatches(Iterator it, int nb) {
+  bool hasNext = it.moveNext();
   for (int i = 0; i < nb; i++) {
-    Expect.isTrue(it.hasNext, "Found less than $nb matches");
-    it.next();
+    Expect.isTrue(hasNext, "Found less than $nb matches");
+    hasNext = it.moveNext();
   }
-  Expect.isFalse(it.hasNext, "Found more than $nb matches");
+  Expect.isFalse(hasNext, "Found more than $nb matches");
 }
 
 void compileAndMatch(String code, String entry, RegExp regexp) {
@@ -108,7 +115,7 @@ int length(Link link) => link.isEmpty ? 0 : length(link.tail) + 1;
 void compileAndMatchFuzzy(String code, String entry, String regexp) {
   compileAndMatchFuzzyHelper(code, entry, regexp, true);
 }
- 
+
 void compileAndDoNotMatchFuzzy(String code, String entry, String regexp) {
   compileAndMatchFuzzyHelper(code, entry, regexp, false);
 }
@@ -126,4 +133,3 @@ void compileAndMatchFuzzyHelper(
     Expect.isFalse(new RegExp(regexp).hasMatch(generated));
   }
 }
-

@@ -9,9 +9,10 @@
  */
 
 library lazy_locale_data;
+import 'dart:async';
 import 'dart:uri';
 import 'intl_helpers.dart';
-import 'dart:json';
+import 'dart:json' as json;
 
 /**
  * This implements the very basic map-type operations which are used
@@ -99,7 +100,7 @@ class LazyLocaleData {
    */
   Future initLocale(String localeName) {
     var data = _reader.read(localeName);
-    return jsonData(data).transform( (input) {
+    return jsonData(data).then( (input) {
         map[localeName] = _creationFunction(input);});
   }
 
@@ -108,6 +109,6 @@ class LazyLocaleData {
    * return another future that parses the JSON into a usable format.
    */
   Future jsonData(Future input) {
-    return input.transform( (response) => JSON.parse(response));
+    return input.then( (response) => json.parse(response));
   }
 }

@@ -12,10 +12,10 @@ main() {
     test('lists a simple directory non-recursively', () {
       expect(withTempDir((path) {
         var future = writeTextFile(join(path, 'file1.txt'), '')
-            .chain((_) => writeTextFile(join(path, 'file2.txt'), ''))
-            .chain((_) => createDir(join(path, 'subdir')))
-            .chain((_) => writeTextFile(join(path, 'subdir', 'file3.txt'), ''))
-            .chain((_) => listDir(path));
+            .then((_) => writeTextFile(join(path, 'file2.txt'), ''))
+            .then((_) => createDir(join(path, 'subdir')))
+            .then((_) => writeTextFile(join(path, 'subdir', 'file3.txt'), ''))
+            .then((_) => listDir(path));
         expect(future, completion(unorderedEquals([
           join(path, 'file1.txt'),
           join(path, 'file2.txt'),
@@ -28,10 +28,10 @@ main() {
     test('lists a simple directory recursively', () {
       expect(withTempDir((path) {
         var future = writeTextFile(join(path, 'file1.txt'), '')
-            .chain((_) => writeTextFile(join(path, 'file2.txt'), ''))
-            .chain((_) => createDir(join(path, 'subdir')))
-            .chain((_) => writeTextFile(join(path, 'subdir', 'file3.txt'), ''))
-            .chain((_) => listDir(path, recursive: true));
+            .then((_) => writeTextFile(join(path, 'file2.txt'), ''))
+            .then((_) => createDir(join(path, 'subdir')))
+            .then((_) => writeTextFile(join(path, 'subdir', 'file3.txt'), ''))
+            .then((_) => listDir(path, recursive: true));
         expect(future, completion(unorderedEquals([
           join(path, 'file1.txt'),
           join(path, 'file2.txt'),
@@ -45,11 +45,11 @@ main() {
     test('ignores hidden files by default', () {
       expect(withTempDir((path) {
         var future = writeTextFile(join(path, 'file1.txt'), '')
-            .chain((_) => writeTextFile(join(path, 'file2.txt'), ''))
-            .chain((_) => writeTextFile(join(path, '.file3.txt'), ''))
-            .chain((_) => createDir(join(path, '.subdir')))
-            .chain((_) => writeTextFile(join(path, '.subdir', 'file3.txt'), ''))
-            .chain((_) => listDir(path, recursive: true));
+            .then((_) => writeTextFile(join(path, 'file2.txt'), ''))
+            .then((_) => writeTextFile(join(path, '.file3.txt'), ''))
+            .then((_) => createDir(join(path, '.subdir')))
+            .then((_) => writeTextFile(join(path, '.subdir', 'file3.txt'), ''))
+            .then((_) => listDir(path, recursive: true));
         expect(future, completion(unorderedEquals([
           join(path, 'file1.txt'),
           join(path, 'file2.txt')
@@ -61,11 +61,11 @@ main() {
     test('includes hidden files when told to', () {
       expect(withTempDir((path) {
         var future = writeTextFile(join(path, 'file1.txt'), '')
-            .chain((_) => writeTextFile(join(path, 'file2.txt'), ''))
-            .chain((_) => writeTextFile(join(path, '.file3.txt'), ''))
-            .chain((_) => createDir(join(path, '.subdir')))
-            .chain((_) => writeTextFile(join(path, '.subdir', 'file3.txt'), ''))
-            .chain((_) {
+            .then((_) => writeTextFile(join(path, 'file2.txt'), ''))
+            .then((_) => writeTextFile(join(path, '.file3.txt'), ''))
+            .then((_) => createDir(join(path, '.subdir')))
+            .then((_) => writeTextFile(join(path, '.subdir', 'file3.txt'), ''))
+            .then((_) {
               return listDir(path, recursive: true, includeHiddenFiles: true);
             });
         expect(future, completion(unorderedEquals([
@@ -83,18 +83,18 @@ main() {
       expect(withTempDir((path) {
         var dirToList = join(path, 'dir-to-list');
         var future = writeTextFile(join(path, 'file1.txt'), '')
-            .chain((_) => writeTextFile(join(path, 'file2.txt'), ''))
-            .chain((_) => createDir(dirToList))
-            .chain((_) {
+            .then((_) => writeTextFile(join(path, 'file2.txt'), ''))
+            .then((_) => createDir(dirToList))
+            .then((_) {
               return createSymlink(
                   join(path, 'file1.txt'),
                   join(dirToList, 'link1'));
-            }).chain((_) => createDir(join(dirToList, 'subdir')))
-            .chain((_) {
+            }).then((_) => createDir(join(dirToList, 'subdir')))
+            .then((_) {
               return createSymlink(
                   join(path, 'file2.txt'),
                   join(dirToList, 'subdir', 'link2'));
-            }).chain((_) => listDir(dirToList, recursive: true));
+            }).then((_) => listDir(dirToList, recursive: true));
         expect(future, completion(unorderedEquals([
           join(dirToList, 'link1'),
           join(dirToList, 'subdir'),
@@ -107,8 +107,8 @@ main() {
     test('works with recursive symlinks', () {
       expect(withTempDir((path) {
         var future = writeTextFile(join(path, 'file1.txt'), '')
-            .chain((_) => createSymlink(path, join(path, 'linkdir')))
-            .chain((_) => listDir(path, recursive: true));
+            .then((_) => createSymlink(path, join(path, 'linkdir')))
+            .then((_) => listDir(path, recursive: true));
         expect(future, completion(unorderedEquals([
           join(path, 'file1.txt'),
           join(path, 'linkdir')

@@ -14,6 +14,7 @@
  */
 library test_suite;
 
+import "dart:async";
 import "dart:io";
 import "dart:isolate";
 import "status_file_parser.dart";
@@ -21,6 +22,7 @@ import "test_runner.dart";
 import "multitest.dart";
 import "drt_updater.dart";
 import "dart:uri";
+import '../../../pkg/path/lib/path.dart' as pathLib;
 
 part "browser_test.dart";
 
@@ -64,6 +66,7 @@ class FutureGroup {
   int _pending = 0;
   Completer<List> _completer = new Completer<List>();
   final List<Future> futures = <Future>[];
+  bool wasCompleted = false;
 
   /**
    * Wait for [task] to complete (assuming this barrier has not already been
@@ -72,19 +75,25 @@ class FutureGroup {
    */
   void add(Future task) {
     if (_pending == _FINISHED) {
-      throw new FutureAlreadyCompleteException();
+      throw new Exception("FutureFutureAlreadyCompleteException");
     }
     _pending++;
-    futures.add(task);
-    task.handleException(
-        (e) => _completer.completeException(e, task.stackTrace));
-    task.then((_) {
+    var handledTaskFuture = task.catchError((e) {
+      if (!wasCompleted) {
+        _completer.completeError(e.error, task.stackTrace);
+        wasCompleted = true;
+      }
+    }).then((_) {
       _pending--;
       if (_pending == 0) {
         _pending = _FINISHED;
-        _completer.complete(futures);
+        if (!wasCompleted) {
+          _completer.complete(futures);
+          wasCompleted = true;
+        }
       }
     });
+    futures.add(handledTaskFuture);
   }
 
   Future<List> get future => _completer.future;
@@ -104,6 +113,19 @@ abstract class TestSuite {
   TestSuite(this.configuration, this.suiteName);
 
   /**
+   * Whether or not binaries should be found in the root build directory or
+   * in the built SDK.
+   */
+  bool get useSdk {
+    // The pub suite always uses the SDK.
+    // TODO(rnystrom): Eventually, all test suites should run out of the SDK
+    // and this check should go away.
+    if (suiteName == 'pub') return true;
+
+    return configuration['use_sdk'];
+  }
+
+  /**
    * The output directory for this suite's configuration.
    */
   String get buildDir => TestUtils.buildDir(configuration);
@@ -119,7 +141,7 @@ abstract class TestSuite {
     var name;
     switch (configuration['compiler']) {
       case 'dartc':
-        name = '$buildDir/$executableName';
+        name = executablePath;
       case 'dart2js':
       case 'dart2dart':
         var prefix = 'sdk/bin/';
@@ -146,15 +168,18 @@ abstract class TestSuite {
   }
 
   /**
-   * The file name of the executable used to run this suite's tests.
+   * The path to the executable used to run this suite's tests.
    */
-  String get executableName {
-    String suffix = getExecutableSuffix(configuration['compiler']);
+  String get executablePath {
+    var suffix = getExecutableSuffix(configuration['compiler']);
     switch (configuration['compiler']) {
       case 'none':
-        return 'dart$suffix';
+        if (useSdk) {
+          return '$buildDir/dart-sdk/bin/dart$suffix';
+        }
+        return '$buildDir/dart$suffix';
       case 'dartc':
-        return 'analyzer/bin/dart_analyzer$suffix';
+        return '$buildDir/analyzer/bin/dart_analyzer$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }
@@ -173,8 +198,9 @@ abstract class TestSuite {
   String get dartShellFileName {
     var name = configuration['dart'];
     if (name == '') {
-      name = '$buildDir/$executableName';
+      name = executablePath;
     }
+
     TestUtils.ensureExists(name, configuration);
     return name;
   }
@@ -255,8 +281,7 @@ void ccTestLister() {
         }
       };
       port.close();
-    });
-    processFuture.handleException((e) {
+    }).catchError((e) {
       print("Failed to list tests: $runnerPath --list");
       replyTo.send("");
       return true;
@@ -384,13 +409,19 @@ class StandardTestSuite extends TestSuite {
   final Path dartDir;
   Predicate<String> isTestFilePredicate;
   final bool listRecursively;
+  /**
+   * The set of servers that have been started to run these tests (Could be
+   * none).
+   */
+  List serverList;
 
   StandardTestSuite(Map configuration,
                     String suiteName,
                     Path suiteDirectory,
                     this.statusFilePaths,
                     {this.isTestFilePredicate,
-                    bool recursive: false})
+                    bool recursive: false,
+                    this.serverList: const []})
   : super(configuration, suiteName),
     dartDir = TestUtils.dartDir(),
     listRecursively = recursive,
@@ -422,29 +453,28 @@ class StandardTestSuite extends TestSuite {
    * instead of having to create a custom [StandardTestSuite] subclass. In
    * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
    * in test.dart, this will all be set up for you.
+   *
+   * The [StandardTestSuite] also optionally takes a list of servers that have
+   * been started up by the test harness, to be used by browser tests.
    */
   factory StandardTestSuite.forDirectory(
-      Map configuration, Path directory) {
+      Map configuration, Path directory, {List serverList : const []}) {
     final name = directory.filename;
 
     return new StandardTestSuite(configuration,
         name, directory,
         ['$directory/$name.status', '$directory/${name}_dart2js.status'],
         isTestFilePredicate: (filename) => filename.endsWith('_test.dart'),
-        recursive: true);
+        recursive: true, serverList: serverList);
   }
 
   Collection<Uri> get dart2JsBootstrapDependencies {
-    if (!useDart2JsFromSdk) return [];
+    if (!useSdk) return [];
 
     var snapshotPath = TestUtils.absolutePath(new Path(buildDir).join(
         new Path('dart-sdk/lib/_internal/compiler/'
                  'implementation/dart2js.dart.snapshot'))).toString();
     return [new Uri.fromComponents(scheme: 'file', path: snapshotPath)];
-  }
-
-  bool get useDart2JsFromSdk {
-    return configuration['use_sdk'];
   }
 
   /**
@@ -461,11 +491,11 @@ class StandardTestSuite extends TestSuite {
   List<String> additionalOptions(Path filePath) => [];
 
   void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]) {
-    updateDartium().chain((_) {
+    updateDartium().then((_) {
       doTest = onTest;
 
       return readExpectations();
-    }).chain((expectations) {
+    }).then((expectations) {
       testExpectations = expectations;
 
       // Checked if we have already found and generated the tests for
@@ -539,7 +569,7 @@ class StandardTestSuite extends TestSuite {
 
   Future enqueueTests() {
     Directory dir = new Directory.fromPath(suiteDir);
-    return dir.exists().chain((exists) {
+    return dir.exists().then((exists) {
       if (!exists) {
         print('Directory containing tests missing: ${suiteDir.toNativePath()}');
         return new Future.immediate(null);
@@ -562,7 +592,7 @@ class StandardTestSuite extends TestSuite {
 
   void enqueueFile(String filename, FutureGroup group) {
     if (!isTestFile(filename)) return;
-    Path filePath = new Path.fromNative(filename);
+    Path filePath = new Path(filename);
 
     // Only run the tests that match the pattern.
     RegExp pattern = configuration['selectors'][suiteName];
@@ -704,9 +734,9 @@ class StandardTestSuite extends TestSuite {
       String tempDir = createOutputDirectory(info.filePath, '');
       args.add('--out=$tempDir/out.js');
 
-       List<Command> commands = 
+       List<Command> commands =
            <Command>[new CompilationCommand("$tempDir/out.js",
-                                            !useDart2JsFromSdk,
+                                            !useSdk,
                                             dart2JsBootstrapDependencies,
                                             compilerPath,
                                             args)];
@@ -728,7 +758,7 @@ class StandardTestSuite extends TestSuite {
 
       List<Command> commands =
           <Command>[new CompilationCommand("$tempDir/out.dart",
-                                           !useDart2JsFromSdk,
+                                           !useSdk,
                                            dart2JsBootstrapDependencies,
                                            compilerPath,
                                            args)];
@@ -830,17 +860,19 @@ class StandardTestSuite extends TestSuite {
         // or indirectly through test_as_library.dart, if it is not.
         Path dartLibraryFilename = filePath;
         if (!isLibraryDefinition) {
-          dartLibraryFilename = new Path('test_as_library.dart');
-          File file = new File('$tempDir/$dartLibraryFilename');
+          dartLibraryFilename = new Path(tempDir).append(
+              'test_as_library.dart');
+          File file = new File(dartLibraryFilename.toNativePath());
           RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
-          dartLibrary.writeStringSync(wrapDartTestInLibrary(filePath));
+          dartLibrary.writeStringSync(
+              wrapDartTestInLibrary(filePath, file.name));
           dartLibrary.closeSync();
         }
 
         File file = new File(dartWrapperFilename);
         RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
         dartWrapper.writeStringSync(
-            dartTestWrapper(dartDir, dartLibraryFilename));
+            dartTestWrapper(dartDir, file.name, dartLibraryFilename));
         dartWrapper.closeSync();
       } else {
         dartWrapperFilename = filename;
@@ -862,12 +894,6 @@ class StandardTestSuite extends TestSuite {
           dartWrapperFilename : compiledDartWrapperFilename;
       // Create the HTML file for the test.
       RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
-      String filePrefix = '';
-      if (Platform.operatingSystem == 'windows') {
-        // Firefox on Windows does not like absolute file path names that start
-        // with 'C:' adding 'file:///' solves the problem.
-        filePrefix = 'file:///';
-      }
       String content = null;
       Path dir = filePath.directoryPath;
       String nameNoExt = filePath.filenameWithoutExtension;
@@ -876,19 +902,22 @@ class StandardTestSuite extends TestSuite {
       Path expectedOutput = null;
       if (new File.fromPath(pngPath).existsSync()) {
         expectedOutput = pngPath;
-        content = getHtmlLayoutContents(scriptType, '$filePrefix$scriptPath');
+        // TODO(efortuna): Unify path libraries in test.dart.
+        content = getHtmlLayoutContents(scriptType, pathLib.relative(scriptPath,
+            from: pathLib.dirname(htmlPath)));
       } else if (new File.fromPath(txtPath).existsSync()) {
         expectedOutput = txtPath;
-        content = getHtmlLayoutContents(scriptType, '$filePrefix$scriptPath');
+        content = getHtmlLayoutContents(scriptType, pathLib.relative(scriptPath,
+            from: pathLib.dirname(htmlPath)));
       } else {
-        final htmlLocation = new Path.fromNative(htmlPath);
+        final htmlLocation = new Path(htmlPath);
         content = getHtmlContents(
           filename,
           dartDir.append('pkg/unittest/test_controller.js')
               .relativeTo(htmlLocation),
-          dartDir.append('client/dart.js').relativeTo(htmlLocation),
+          dartDir.append('pkg/browser/lib/dart.js').relativeTo(htmlLocation),
           scriptType,
-          new Path.fromNative(scriptPath).relativeTo(htmlLocation));
+          new Path(scriptPath).relativeTo(htmlLocation));
       }
       htmlTest.writeStringSync(content);
       htmlTest.closeSync();
@@ -922,17 +951,24 @@ class StandardTestSuite extends TestSuite {
       do {
         List<Command> commandSet = new List<Command>.from(commands);
         if (subtestIndex != 0) {
-          // NOTE: The first time we enter this loop, all the compilation 
-          // commands will be executed. On subsequent loop iterations, we 
+          // NOTE: The first time we enter this loop, all the compilation
+          // commands will be executed. On subsequent loop iterations, we
           // don't need to do any compilations. Thus we set "commandSet = []".
           commandSet = [];
         }
 
         List<String> args = <String>[];
-        String fullHtmlPath = htmlPath.startsWith('http:') ? htmlPath :
-            (htmlPath.startsWith('/') ?
-             'file://$htmlPath' :
-             'file:///$htmlPath');
+        var basePath = TestUtils.dartDir().toString();
+        if (!htmlPath.startsWith('/') && !htmlPath.startsWith('http')) {
+          htmlPath = '/$htmlPath';
+        }
+        htmlPath = htmlPath.startsWith(basePath) ?
+            htmlPath.substring(basePath.length) : htmlPath;
+        String fullHtmlPath = htmlPath;
+        if (!htmlPath.startsWith('http')) {
+          fullHtmlPath = 'http://127.0.0.1:${serverList[0].port}$htmlPath?'
+              'crossOriginPort=${serverList[1].port}';
+        }
         if (info.optionsFromFile['isMultiHtmlTest']
             && subtestNames.length > 0) {
           fullHtmlPath = '${fullHtmlPath}#${subtestNames[subtestIndex]}';
@@ -956,7 +992,6 @@ class StandardTestSuite extends TestSuite {
 
           var dartFlags = [];
           var dumpRenderTreeOptions = [];
-          var packageRootUri;
 
           dumpRenderTreeOptions.add('--no-timeout');
 
@@ -967,16 +1002,6 @@ class StandardTestSuite extends TestSuite {
               dartFlags.add("--enable_type_checks");
             }
             dartFlags.addAll(vmOptions);
-          }
-          if (compiler == 'none') {
-            var packageRootPath = packageRoot(optionsFromFile['packageRoot']);
-            if (packageRootPath != null) {
-              var absolutePath = 
-                  TestUtils.absolutePath(new Path(packageRootPath));
-              packageRootUri = new Uri.fromComponents(
-                  scheme: 'file',
-                  path: absolutePath.toString());
-            }
           }
 
           if (expectedOutput != null) {
@@ -990,7 +1015,6 @@ class StandardTestSuite extends TestSuite {
                                                    fullHtmlPath,
                                                    dumpRenderTreeOptions,
                                                    dartFlags,
-                                                   packageRootUri,
                                                    expectedOutput));
         }
 
@@ -1047,7 +1071,7 @@ class StandardTestSuite extends TestSuite {
     }
     if (['dart2js', 'dart2dart'].contains(configuration['compiler'])) {
       return new CompilationCommand(outputFile,
-                                   !useDart2JsFromSdk,
+                                   !useSdk,
                                    dart2JsBootstrapDependencies,
                                    compilerPath,
                                    args);
@@ -1084,7 +1108,8 @@ class StandardTestSuite extends TestSuite {
     var minified = configuration['minified'] ? '-minified' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
                   "$checked$minified";
-    Path generatedTestPath = new Path.fromNative(buildDir)
+    Path generatedTestPath = new Path(dartDir.toNativePath())
+        .append(buildDir)
         .append('generated_tests')
         .append(dirName)
         .append(testUniqueName);
@@ -1307,7 +1332,7 @@ class StandardTestSuite extends TestSuite {
 
     Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
     for (var match in matches) {
-      result.add(match[1].split(' ').filter((e) => e != ''));
+      result.add(match[1].split(' ').where((e) => e != '').toList());
     }
     if (result.isEmpty) result.add([]);
 
@@ -1317,7 +1342,7 @@ class StandardTestSuite extends TestSuite {
         throw new Exception(
             'More than one "// DartOptions=" line in test $filePath');
       }
-      dartOptions = match[1].split(' ').filter((e) => e != '');
+      dartOptions = match[1].split(' ').where((e) => e != '').toList();
     }
 
     matches = packageRootRegExp.allMatches(contents);
@@ -1345,7 +1370,7 @@ class StandardTestSuite extends TestSuite {
     List<String> otherScripts = new List<String>();
     matches = otherScriptsRegExp.allMatches(contents);
     for (var match in matches) {
-      otherScripts.addAll(match[1].split(' ').filter((e) => e != ''));
+      otherScripts.addAll(match[1].split(' ').where((e) => e != '').toList());
     }
 
     bool isMultitest = multiTestRegExp.hasMatch(contents);
@@ -1373,9 +1398,9 @@ class StandardTestSuite extends TestSuite {
     // top-level "groups" so tests running nested groups will be no-ops.
     RegExp numTests = new RegExp(r"\s*[^/]\s*group\('[^,']*");
     List<String> subtestNames = [];
-    Iterator matchesIter = numTests.allMatches(contents).iterator();
-    while(matchesIter.hasNext && isMultiHtmlTest) {
-      String fullMatch = matchesIter.next().group(0);
+    Iterator matchesIter = numTests.allMatches(contents).iterator;
+    while(matchesIter.moveNext() && isMultiHtmlTest) {
+      String fullMatch = matchesIter.current.group(0);
       subtestNames.add(fullMatch.substring(fullMatch.indexOf("'") + 1));
     }
 
@@ -1399,7 +1424,7 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'dart2dart', 'dartc'];
+    var COMPILERS = const ['none', 'dart2dart'];
     var RUNTIMES = const ['none', 'vm', 'drt', 'dartium'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
@@ -1424,7 +1449,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
                             List<String> expectations)
       : super(configuration,
               suiteName,
-              new Path.fromNative(directoryPath),
+              new Path(directoryPath),
               expectations);
 
   List<String> additionalOptions(Path filePath) {
@@ -1593,7 +1618,7 @@ class TestUtils {
   static String testScriptPath = new Options().script;
   static LastModifiedCache lastModifiedCache = new LastModifiedCache();
   static Path currentWorkingDirectory =
-      new Path.fromNative(new Directory.current().path);
+      new Path(new Directory.current().path);
   /**
    * Creates a directory using a [relativePath] to an existing
    * [base] directory if that [relativePath] does not already exist.
@@ -1672,7 +1697,7 @@ class TestUtils {
 
   static Path dartDir() {
     File scriptFile = new File(testScriptPath);
-    Path scriptPath = new Path.fromNative(scriptFile.fullPathSync());
+    Path scriptPath = new Path(scriptFile.fullPathSync());
     return scriptPath.directoryPath.directoryPath;
   }
 
@@ -1736,9 +1761,30 @@ class TestUtils {
   }
 
   static String configurationDir(Map configuration) {
+    // For regular dart checkouts, the configDir by default is mode+arch.
+    // For Dartium, the configDir by default is mode (as defined by the Chrome
+    // build setup). We can detect this because in the dartium checkout, the
+    // "output" directory is a sibling of the dart directory instead of a child.
     var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
     var arch = configuration['arch'].toUpperCase();
-    return '$mode$arch';
+    if (currentWorkingDirectory != dartDir()) {
+      return '$mode$arch';
+    } else {
+      return mode;
+    }
+  }
+
+  /**
+   * Returns the path to the dart binary checked into the repo, used for
+   * bootstrapping test.dart.
+   */
+  static Path get dartTestExecutable {
+    var path = '${TestUtils.dartDir()}/tools/testing/bin/'
+        '${Platform.operatingSystem}/dart';
+    if (Platform.operatingSystem == 'windows') {
+      path = '$path.exe';
+    }
+    return new Path(path);
   }
 }
 

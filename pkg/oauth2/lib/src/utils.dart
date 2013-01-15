@@ -4,6 +4,7 @@
 
 library utils;
 
+import 'dart:async';
 import 'dart:uri';
 import 'dart:isolate';
 import 'dart:crypto';
@@ -38,7 +39,7 @@ String mapToQuery(Map<String, String> map) {
     value = (value == null || value.isEmpty) ? null : encodeUriComponent(value);
     pairs.add([key, value]);
   });
-  return Strings.join(pairs.map((pair) {
+  return Strings.join(pairs.mappedBy((pair) {
     if (pair[1] == null) return pair[0];
     return "${pair[0]}=${pair[1]}";
   }), "&");
@@ -112,8 +113,4 @@ class AuthenticateHeader {
 }
 
 /// Returns a [Future] that asynchronously completes to `null`.
-Future get async {
-  var completer = new Completer();
-  new Timer(0, (_) => completer.complete(null));
-  return completer.future;
-}
+Future get async => new Future.delayed(0, () => null);

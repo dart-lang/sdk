@@ -74,6 +74,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         vm_heap_(Dart::vm_isolate()->heap()),
         delayed_weak_stack_(),
         growth_policy_(PageSpace::kControlGrowth),
+        bytes_promoted_(0),
         visiting_old_pointers_(false),
         in_scavenge_pointer_(false) {}
 
@@ -107,6 +108,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       WeakProperty::Clear(it->second);
     }
   }
+
+  intptr_t bytes_promoted() const { return bytes_promoted_; }
 
  private:
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
@@ -184,6 +187,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
+          bytes_promoted_ += size;
           if (HeapTrace::is_enabled()) {
             heap_->trace()->TracePromotion(raw_addr, new_addr);
           }
@@ -196,6 +200,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           new_addr = heap_->TryAllocate(size, Heap::kOld, growth_policy_);
           if (new_addr != 0) {
             scavenger_->PushToPromotedStack(new_addr);
+            bytes_promoted_ += size;
             if (HeapTrace::is_enabled()) {
               heap_->trace()->TracePromotion(raw_addr, new_addr);
             }
@@ -242,6 +247,9 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   DelaySet delay_set_;
   GrowableArray<RawObject*> delayed_weak_stack_;
   PageSpace::GrowthPolicy growth_policy_;
+  // TODO(cshapiro): use this value to compute survival statistics for
+  // new space growth policy.
+  intptr_t bytes_promoted_;
 
   bool visiting_old_pointers_;
   bool in_scavenge_pointer_;

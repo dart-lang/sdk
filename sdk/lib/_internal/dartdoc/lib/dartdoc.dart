@@ -16,10 +16,11 @@
  */
 library dartdoc;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:uri';
-import 'dart:json';
+import 'dart:json' as json;
 
 import '../../compiler/implementation/mirrors/mirrors.dart';
 import '../../compiler/implementation/mirrors/mirrors_util.dart';
@@ -69,7 +70,7 @@ const API_LOCATION = 'http://api.dartlang.org/';
 // TODO(johnniwinther): Convert to final (lazily initialized) variables when
 // the feature is supported.
 Path get scriptDir =>
-    new Path.fromNative(new Options().script).directoryPath;
+    new Path(new Options().script).directoryPath;
 
 /**
  * Deletes and recreates the output directory at [path] if it exists.
@@ -112,7 +113,7 @@ Future copyDirectory(Path from, Path to) {
   final lister = fromDir.list(recursive: false);
 
   lister.onFile = (String path) {
-    final name = new Path.fromNative(path).filename;
+    final name = new Path(path).filename;
     // TODO(rnystrom): Hackish. Ignore 'hidden' files like .DS_Store.
     if (name.startsWith('.')) return;
 
@@ -140,7 +141,7 @@ Future<bool> compileScript(int mode, Path outputDir, Path libPath) {
     writeString(new File.fromPath(jsPath), jsCode);
     completer.complete(true);
   });
-  result.handleException((e) => completer.completeException(e));
+  result.catchError((e) => completer.completeError(e.error, e.stackTrace));
   return completer.future;
 }
 
@@ -222,8 +223,6 @@ class Dartdoc {
    */
   List<LibraryMirror> _sortedLibraries;
 
-  CommentMap _comments;
-
   /** The library that we're currently generating docs for. */
   LibraryMirror _currentLibrary;
 
@@ -247,8 +246,7 @@ class Dartdoc {
   int get totalTypes => _totalTypes;
   int get totalMembers => _totalMembers;
 
-  Dartdoc()
-      : _comments = new CommentMap() {
+  Dartdoc() {
     // Patch in support for [:...:]-style code to the markdown parser.
     // TODO(rnystrom): Markdown already has syntax for this. Phase this out?
     md.InlineParser.syntaxes.insertRange(0, 1,
@@ -324,20 +322,21 @@ class Dartdoc {
   }
 
   void documentEntryPoint(Path entrypoint, Path libPath, Path pkgPath) {
-    final compilation = new Compilation(entrypoint, libPath, pkgPath);
+    final compilation = new Compilation(entrypoint, libPath, pkgPath,
+        <String>['--preserve-comments']);
     _document(compilation);
   }
 
   void documentLibraries(List<Path> libraryList, Path libPath, Path pkgPath) {
-    final compilation = new Compilation.library(libraryList, libPath, pkgPath);
+    final compilation = new Compilation.library(libraryList, libPath, pkgPath,
+        <String>['--preserve-comments']);
     _document(compilation);
   }
 
   void _document(Compilation compilation) {
     // Sort the libraries by name (not key).
     _sortedLibraries = new List<LibraryMirror>.from(
-        compilation.mirrors.libraries.values.filter(
-            shouldIncludeLibrary));
+        compilation.mirrors.libraries.values.where(shouldIncludeLibrary));
     _sortedLibraries.sort((x, y) {
       return displayName(x).toUpperCase().compareTo(
           displayName(y).toUpperCase());
@@ -360,8 +359,9 @@ class Dartdoc {
     }
 
     startFile("apidoc.json");
-    var libraries = _sortedLibraries.map(
-        (lib) => new LibraryElement(lib.qualifiedName, lib, _comments));
+    var libraries = _sortedLibraries.mappedBy(
+        (lib) => new LibraryElement(lib.qualifiedName, lib))
+        .toList();
     write(json_serializer.serialize(libraries));
     endFile();
   }
@@ -544,7 +544,7 @@ class Dartdoc {
    */
   void docNavigationJson() {
     startFile('nav.json');
-    writeln(JSON.stringify(createNavigationInfo()));
+    writeln(json.stringify(createNavigationInfo()));
     endFile();
   }
 
@@ -560,7 +560,7 @@ class Dartdoc {
         // Ignore.
       }
     }
-    String jsonString = JSON.stringify(createNavigationInfo());
+    String jsonString = json.stringify(createNavigationInfo());
     String dartString = jsonString.replaceAll(r"$", r"\$");
     final filePath = tmpPath.append('nav.dart');
     writeString(new File.fromPath(filePath),
@@ -904,14 +904,14 @@ class Dartdoc {
       if (types == null) return;
 
       // Filter out injected types. (JavaScriptIndexingBehavior)
-      types = new List.from(types.filter((t) => t.library != null));
+      types = new List.from(types.where((t) => t.library != null));
 
       var publicTypes;
       if (showPrivate) {
         publicTypes = types;
       } else {
         // Skip private types.
-        publicTypes = new List.from(types.filter((t) => !t.isPrivate));
+        publicTypes = new List.from(types.where((t) => !t.isPrivate));
       }
       if (publicTypes.length == 0) return;
 
@@ -1210,12 +1210,12 @@ class Dartdoc {
     writeln('</div>');
   }
 
-  void docMethods(ContainerMirror host, String title, List<MethodMirror> methods,
+  void docMethods(ContainerMirror host, String title, List<Mirror> methods,
                   {bool allInherited}) {
     if (methods.length > 0) {
       writeln('<div${allInherited ? ' class="inherited"' : ''}>');
       writeln('<h3>$title</h3>');
-      for (final method in methods) {
+      for (MethodMirror method in methods) {
         docMethod(host, method);
       }
       writeln('</div>');
@@ -1470,21 +1470,11 @@ class Dartdoc {
   DocComment createDocComment(String text, [ClassMirror inheritedFrom]) =>
       new DocComment(text, inheritedFrom);
 
-
   /** Get the doc comment associated with the given library. */
-  DocComment getLibraryComment(LibraryMirror library) {
-    // Look for a comment for the entire library.
-    final comment = _comments.findLibrary(library.location);
-    if (comment == null) return null;
-    return createDocComment(comment);
-  }
+  DocComment getLibraryComment(LibraryMirror library) => getComment(library);
 
   /** Get the doc comment associated with the given type. */
-  DocComment getTypeComment(TypeMirror type) {
-    String comment = _comments.find(type.location);
-    if (comment == null) return null;
-    return createDocComment(comment);
-  }
+  DocComment getTypeComment(TypeMirror type) => getComment(type);
 
   /**
    * Get the doc comment associated with the given member.
@@ -1493,18 +1483,27 @@ class Dartdoc {
    * an inherited comment, favouring comments inherited from classes over
    * comments inherited from interfaces.
    */
-  DocComment getMemberComment(MemberMirror member) {
-    String comment = _comments.find(member.location);
+  DocComment getMemberComment(MemberMirror member) => getComment(member);
+
+  /**
+   * Get the doc comment associated with the given declaration.
+   *
+   * If no comment was found on a member, the hierarchy is traversed to find
+   * an inherited comment, favouring comments inherited from classes over
+   * comments inherited from interfaces.
+   */
+  DocComment getComment(DeclarationMirror mirror) {
+    String comment = computeComment(mirror);
     ClassMirror inheritedFrom = null;
     if (comment == null) {
-      if (member.owner is ClassMirror) {
+      if (mirror.owner is ClassMirror) {
         var iterable =
-            new HierarchyIterable(member.owner,
+            new HierarchyIterable(mirror.owner,
                                   includeType: false);
         for (ClassMirror type in iterable) {
-          var inheritedMember = type.members[member.simpleName];
+          var inheritedMember = type.members[mirror.simpleName];
           if (inheritedMember is MemberMirror) {
-            comment = _comments.find(inheritedMember.location);
+            comment = computeComment(inheritedMember);
             if (comment != null) {
               inheritedFrom = type;
               break;
@@ -1618,7 +1617,7 @@ class Dartdoc {
     }
     if (type.isDynamic) {
       // Do not generate links for Dynamic.
-      write('Dynamic');
+      write('dynamic');
       return;
     }
 
@@ -1671,6 +1670,9 @@ class Dartdoc {
     if (type.isVoid) {
       return 'void';
     }
+    if (type.isDynamic) {
+      return 'dynamic';
+    }
     if (type is TypeVariableMirror) {
       return type.simpleName;
     }
@@ -1699,7 +1701,8 @@ class Dartdoc {
     // See if it's an instantiation of a generic type.
     final typeArgs = type.typeArguments;
     if (typeArgs.length > 0) {
-      final args = Strings.join(typeArgs.map((arg) => typeName(arg)), ', ');
+      final args =
+          Strings.join(typeArgs.mappedBy((arg) => typeName(arg)), ', ');
       return '${type.originalDeclaration.simpleName}&lt;$args&gt;';
     }
 
@@ -1845,7 +1848,7 @@ class Dartdoc {
       // 2) By ensuring that [filePath] does not have double slashes before
       // calling [relativeTo], or better, by making [relativeTo] handle double
       // slashes correctly.
-      Path filePath = new Path.fromNative(filename).canonicalize();
+      Path filePath = new Path(filename).canonicalize();
       Path relativeFilePath = filePath.relativeTo(outputDir);
       write("$relativeFilePath\n");
     };
@@ -1869,6 +1872,28 @@ class InternalError {
   final String message;
   const InternalError(this.message);
   String toString() => "InternalError: '$message'";
+}
+
+/**
+ * Computes the doc comment for the declaration mirror.
+*
+ * Multiple comments are concatenated with newlines in between.
+ */
+String computeComment(DeclarationMirror mirror) {
+  String text;
+  for (InstanceMirror metadata in mirror.metadata) {
+    if (metadata is CommentInstanceMirror) {
+      CommentInstanceMirror comment = metadata;
+      if (comment.isDocComment) {
+        if (text == null) {
+          text = comment.trimmedText;
+        } else {
+          text = '$text\n${comment.trimmedText}';
+        }
+      }
+    }
+  }
+  return text;
 }
 
 class DocComment {

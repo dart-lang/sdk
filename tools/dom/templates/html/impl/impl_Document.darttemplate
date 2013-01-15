@@ -62,7 +62,7 @@ $!MEMBERS
       final mutableMatches = $dom_getElementsByName(
           selectors.substring(7,selectors.length - 2));
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
+      final copyOfMatches = new List<Element>.fixedLength(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }
@@ -70,7 +70,7 @@ $!MEMBERS
     } else if (new RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByTagName(selectors);
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
+      final copyOfMatches = new List<Element>.fixedLength(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }

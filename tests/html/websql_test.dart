@@ -1,6 +1,7 @@
 library WebDBTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:async';
 import 'dart:html';
 
 void fail(message) {
@@ -99,10 +100,10 @@ main() {
     createTransaction(db)
       // Attempt to clear out any tables which may be lurking from previous
       // runs.
-      .chain(dropTable(tableName, true))
-      .chain(createTable(tableName, columnName))
-      .chain(insert(tableName, columnName, 'Some text data'))
-      .chain(queryTable(tableName, (resultSet) {
+      .then(dropTable(tableName, true))
+      .then(createTable(tableName, columnName))
+      .then(insert(tableName, columnName, 'Some text data'))
+      .then(queryTable(tableName, (resultSet) {
         guardAsync(() {
           expect(resultSet.rows.length, 1);
           var row = resultSet.rows.item(0);
@@ -110,7 +111,7 @@ main() {
           expect(row[columnName], 'Some text data');
         });
       }))
-      .chain(dropTable(tableName))
+      .then(dropTable(tableName))
       .then(expectAsync1((tx) {}));
   });
 }

@@ -5,11 +5,11 @@
 main() {
   var matches =
       new RegExp("(a(b)((c|de)+))").allMatches("abcde abcde abcde");
-  var it = matches.iterator();
+  var it = matches.iterator;
   int start = 0;
   int end = 5;
-  while (it.hasNext) {
-    Match match = it.next();
+  while (it.moveNext()) {
+    Match match = it.current;
     Expect.equals(start, match.start);
     Expect.equals(end, match.end);
     start += 6;

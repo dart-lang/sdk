@@ -53,7 +53,7 @@ class StringScanner extends ArrayBasedScanner<SourceString> {
   }
 }
 
-class SubstringWrapper implements SourceString {
+class SubstringWrapper extends Iterable<int> implements SourceString {
   final String internalString;
   final int begin;
   final int end;
@@ -89,7 +89,7 @@ class SubstringWrapper implements SourceString {
 
   String get stringValue => null;
 
-  Iterator<int> iterator() =>
+  Iterator<int> get iterator =>
       new StringCodeIterator.substring(internalString, begin, end);
 
   SourceString copyWithoutQuotes(int initial, int terminal) {

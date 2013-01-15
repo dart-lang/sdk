@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -110,10 +110,14 @@ HttpServer setupServer() {
      (HttpRequest request) => request.path == "/303src",
      (HttpRequest request, HttpResponse response) {
        Expect.equals("POST", request.method);
-       response.headers.set(HttpHeaders.LOCATION,
-                            "http://127.0.0.1:${server.port}/303target");
-       response.statusCode = HttpStatus.SEE_OTHER;
-       response.outputStream.close();
+       Expect.equals(10, request.contentLength);
+       request.inputStream.onData = request.inputStream.read;
+       request.inputStream.onClosed = () {
+         response.headers.set(HttpHeaders.LOCATION,
+                              "http://127.0.0.1:${server.port}/303target");
+         response.statusCode = HttpStatus.SEE_OTHER;
+         response.outputStream.close();
+       };
      }
   );
   server.addRequestHandler(
@@ -287,6 +291,8 @@ void testAutoRedirect303POST() {
 
   void onRequest(HttpClientRequest request) {
     requestCount++;
+    request.contentLength = 10;
+    request.outputStream.write(new List<int>.fixedLength(10, fill: 0));
     request.outputStream.close();
   };
 

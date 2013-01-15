@@ -1,5 +1,6 @@
 library web_audio;
 
+import 'dart:async';
 import 'dart:html';
 import 'dart:nativewrappers';
 // DO NOT EDIT
@@ -192,7 +193,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
       _start_3(when, grainOffset, grainDuration);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -220,6 +221,8 @@ class AudioBufferSourceNode extends AudioSourceNode {
 /// @domName AudioContext
 class AudioContext extends EventTarget {
   AudioContext.internal() : super.internal();
+
+  static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
 
   ///@docsEditable true
   factory AudioContext() => AudioContext._create();
@@ -264,7 +267,7 @@ class AudioContext extends EventTarget {
     if ((buffer_OR_numberOfChannels is ArrayBuffer || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is bool || mixToMono_OR_numberOfFrames == null) && !?sampleRate) {
       return _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -394,6 +397,8 @@ class AudioContext extends EventTarget {
   /** @domName AudioContext.startRendering */
   void startRendering() native "AudioContext_startRendering_Callback";
 
+  Stream<Event> get onComplete => completeEvent.forTarget(this);
+
 }
 
 /// @docsEditable true
@@ -504,7 +509,7 @@ class AudioNode extends NativeFieldWrapperClass1 {
       _connect_2(destination, output);
       return;
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 

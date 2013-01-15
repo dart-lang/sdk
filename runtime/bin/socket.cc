@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -263,6 +263,22 @@ void FUNCTION_NAME(Socket_GetError)(Dart_NativeArguments args) {
   OSError os_error;
   Socket::GetError(socket, &os_error);
   Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Socket_GetType)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
+  intptr_t socket = 0;
+  Socket::GetSocketIdNativeField(socket_obj, &socket);
+  OSError os_error;
+  intptr_t type = Socket::GetType(socket);
+  if (type >= 0) {
+    Dart_SetReturnValue(args, Dart_NewInteger(type));
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
   Dart_ExitScope();
 }
 

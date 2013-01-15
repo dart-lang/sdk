@@ -4,6 +4,8 @@
 
 library utils;
 
+import 'dart:async';
+
 import '../../unittest/lib/unittest.dart';
 import '../../http/lib/http.dart' as http;
 import '../../http/lib/testing.dart';

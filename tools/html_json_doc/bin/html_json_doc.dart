@@ -35,7 +35,7 @@ main() {
       'HTML .dart files.'},
       callback: (m) => mode = m
   );
-  
+
   final argResults = argParser.parse(args);
 
   if (mode == null) {
@@ -46,8 +46,8 @@ main() {
     return;
   }
 
-  var htmlPath = new Path.fromNative(argResults.rest[0]);
-  var jsonPath = new Path.fromNative(argResults.rest[1]);
+  var htmlPath = new Path(argResults.rest[0]);
+  var jsonPath = new Path(argResults.rest[1]);
 
   var convertFuture;
   if (mode == 'html-to-json') {

@@ -200,6 +200,12 @@ class MessageKind {
   static const CANNOT_IMPLEMENT = const MessageKind(
       "#{1} cannot be implemented");
 
+  static const DUPLICATE_EXTENDS_IMPLEMENTS = const MessageKind(
+      "Error: #{1} can not be both extended and implemented.");
+
+  static const DUPLICATE_IMPLEMENTS = const MessageKind(
+      "Error: #{1} must not occur more than once in the implements clause.");
+
   static const ILLEGAL_SUPER_SEND = const MessageKind(
       "#{1} cannot be called on super");
 
@@ -257,6 +263,24 @@ class MessageKind {
 
   static const EXTRA_FORMALS = const MessageKind(
       "Error: Formal parameters are not allowed here.");
+
+  static const UNARY_OPERATOR_BAD_ARITY = const MessageKind(
+      "Error: Operator #{1} must have no parameters.");
+
+  static const MINUS_OPERATOR_BAD_ARITY = const MessageKind(
+      "Error: Operator - must have 0 or 1 parameters.");
+
+  static const BINARY_OPERATOR_BAD_ARITY = const MessageKind(
+      "Error: Operator #{1} must have exactly 1 parameter.");
+
+  static const TERNARY_OPERATOR_BAD_ARITY = const MessageKind(
+      "Error: Operator #{1} must have exactly 2 parameters.");
+
+  static const OPERATOR_OPTIONAL_PARAMETERS = const MessageKind(
+      "Error: Operator #{1} cannot have optional parameters.");
+
+  static const OPERATOR_NAMED_PARAMETERS = const MessageKind(
+      "Error: Operator #{1} cannot have named parameters.");
 
   // TODO(ahe): This message is hard to localize.  This is acceptable,
   // as it will be removed when we ship Dart version 1.0.

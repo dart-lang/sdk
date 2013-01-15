@@ -295,16 +295,6 @@ bool Intrinsifier::Object_equal(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
-  return false;
-}
-
-
-bool Intrinsifier::FixedSizeArrayIterator_getHasNext(Assembler* assembler) {
-  return false;
-}
-
-
 bool Intrinsifier::String_getHashCode(Assembler* assembler) {
   return false;
 }

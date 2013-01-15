@@ -6,7 +6,6 @@
 library pipeline;
 import 'dart:isolate';
 import 'dart:io';
-import 'dart:math';
 part 'pipeline_utils.dart';
 
 /**
@@ -84,7 +83,7 @@ startHTTPServerStage() {
         var r = new Random();
         tryStartHTTPServer(r, MAX_SERVER_TRIES);
       } else {
-        serverPort = parseInt(config["port"]);
+        serverPort = int.parse(config["port"]);
         // Start the HTTP server.
         serverId = startProcess(config["dart"],
             [ serverPath, '--port=$serverPort', '--root=$serverRoot']);

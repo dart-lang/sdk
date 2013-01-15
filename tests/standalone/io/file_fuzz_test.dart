@@ -5,10 +5,11 @@
 // 'fuzz' test the file APIs by providing unexpected type arguments. The test
 // passes if the VM does not crash.
 
-import "dart:io";
-import "dart:isolate";
+import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
 
-import "fuzz_support.dart";
+import 'fuzz_support.dart';
 
 fuzzSyncMethods() {
   typeMapping.forEach((k, v) {
@@ -58,7 +59,7 @@ fuzzAsyncMethods() {
       });
     });
   });
-  Futures.wait(futures).then((ignore) => port.close());
+  Future.wait(futures).then((ignore) => port.close());
 }
 
 
@@ -111,7 +112,7 @@ fuzzAsyncRandomAccessMethods() {
       futures.add(doItAsync(() => opened.writeList(p[0], p[1], p[2])));
     }
   }
-  Futures.wait(futures).then((ignore) {
+  Future.wait(futures).then((ignore) {
     for (var opened in openedFiles) {
       opened.closeSync();
     }

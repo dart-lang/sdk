@@ -13,6 +13,10 @@
 
 namespace dart {
 
+// A cache of VM heap allocated arguments descriptors.
+RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
+
+
 RawObject* DartEntry::InvokeDynamic(const Function& function,
                                     const Array& arguments) {
   const Array& arg_desc =
@@ -219,6 +223,9 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
                                    const Array& optional_arguments_names) {
   const intptr_t num_named_args =
       optional_arguments_names.IsNull() ? 0 : optional_arguments_names.Length();
+  if (num_named_args == 0) {
+    return ArgumentsDescriptor::New(num_arguments);
+  }
   const intptr_t num_pos_args = num_arguments - num_named_args;
 
   // Build the arguments descriptor array, which consists of the total
@@ -268,6 +275,16 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
 
 
 RawArray* ArgumentsDescriptor::New(intptr_t num_arguments) {
+  ASSERT(num_arguments >= 0);
+  if (num_arguments < kCachedDescriptorCount) {
+    return cached_args_descriptors_[num_arguments];
+  }
+  return NewNonCached(num_arguments);
+}
+
+
+RawArray* ArgumentsDescriptor::NewNonCached(intptr_t num_arguments,
+                                            bool canonicalize) {
   // Build the arguments descriptor array, which consists of the total
   // argument count; the positional argument count; and
   // a terminating null to simplify iterating in generated code.
@@ -286,8 +303,17 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments) {
 
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
-  descriptor ^= descriptor.Canonicalize();
+  if (canonicalize) {
+    descriptor ^= descriptor.Canonicalize();
+  }
   return descriptor.raw();
+}
+
+
+void ArgumentsDescriptor::InitOnce() {
+  for (int i = 0; i < kCachedDescriptorCount; i++) {
+    cached_args_descriptors_[i] = ArgumentsDescriptor::NewNonCached(i, false);
+  }
 }
 
 

@@ -147,6 +147,7 @@
  */
 library unittest;
 
+import 'dart:async';
 import 'dart:isolate';
 import 'matcher.dart';
 export 'matcher.dart';
@@ -736,7 +737,7 @@ void filterTests(testFilter) {
   } else if (testFilter is Function) {
     filterFunction = testFilter;
   }
-  _tests = _tests.filter(filterFunction);
+  _tests = _tests.where(filterFunction).toList();
 }
 
 /** Runs all queued tests, one at a time. */
@@ -821,19 +822,20 @@ _nextBatch() {
 /** Publish results on the page and notify controller. */
 _completeTests() {
   if (!_initialized) return;
-  int testsPassed_ = 0;
-  int testsFailed_ = 0;
-  int testsErrors_ = 0;
+  int passed = 0;
+  int failed = 0;
+  int errors = 0;
 
   for (TestCase t in _tests) {
     switch (t.result) {
-      case PASS:  testsPassed_++; break;
-      case FAIL:  testsFailed_++; break;
-      case ERROR: testsErrors_++; break;
+      case PASS:  passed++; break;
+      case FAIL:  failed++; break;
+      case ERROR: errors++; break;
     }
   }
-  _config.onDone(testsPassed_, testsFailed_, testsErrors_, _tests,
-      _uncaughtErrorMessage);
+  _config.onSummary(passed, failed, errors, _tests, _uncaughtErrorMessage);
+  _config.onDone(passed > 0 && failed == 0 && errors == 0 &&
+      _uncaughtErrorMessage == null);
   _initialized = false;
 }
 

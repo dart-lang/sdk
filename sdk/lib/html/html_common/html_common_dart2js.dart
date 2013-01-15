@@ -7,10 +7,12 @@ library html_common;
 import 'dart:collection';
 import 'dart:html';
 
+import 'metadata.dart';
+export 'metadata.dart';
+
 part 'conversions.dart';
 part 'filtered_element_list.dart';
 part 'lists.dart';
-part 'metadata.dart';
 
 // For annotating deprecated APIs.
 // TODO: remove once @deprecated is added to dart core.

@@ -4,8 +4,8 @@
 
 library pub_update_test;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 
 import '../../pub/lock_file.dart';
 import '../../pub/package.dart';
@@ -449,26 +449,16 @@ testResolve(description, packages, {lockfile, result, Matcher error}) {
     } else if (error != null) {
       expect(future, throwsA(error));
     }
-
-    // If we aren't expecting an error, print some debugging info if we get one.
-    if (error == null) {
-      future.handleException((ex) {
-        print(ex);
-        print(future.stackTrace);
-        return true;
-      });
-    }
   });
 }
 
-/**
- * A source used for testing. This both creates mock package objects and acts as
- * a source for them.
- *
- * In order to support testing packages that have the same name but different
- * descriptions, a package's name is calculated by taking the description string
- * and stripping off any trailing hyphen followed by non-hyphen characters.
- */
+/// A source used for testing. This both creates mock package objects and acts
+/// as a source for them.
+///
+/// In order to support testing packages that have the same name but different
+/// descriptions, a package's name is calculated by taking the description
+/// string and stripping off any trailing hyphen followed by non-hyphen
+/// characters.
 class MockSource extends Source {
   final Map<String, Map<Version, Package>> _packages;
 
@@ -479,7 +469,7 @@ class MockSource extends Source {
       : _packages = <String, Map<Version, Package>>{};
 
   Future<List<Version>> getVersions(String name, String description) {
-    return fakeAsync(() => _packages[description].keys);
+    return fakeAsync(() => _packages[description].keys.toList());
   }
 
   Future<Pubspec> describe(PackageId id) {
@@ -515,10 +505,8 @@ class MockSource extends Source {
   }
 }
 
-/**
- * A source used for testing that doesn't natively understand versioning,
- * similar to how the Git and SDK sources work.
- */
+/// A source used for testing that doesn't natively understand versioning,
+/// similar to how the Git and SDK sources work.
 class MockVersionlessSource extends Source {
   final Map<String, Package> _packages;
 

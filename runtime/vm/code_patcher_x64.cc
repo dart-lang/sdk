@@ -144,69 +144,6 @@ void CodePatcher::PatchInstanceCallAt(uword return_address, uword new_target) {
 }
 
 
-static void SwapCode(intptr_t num_bytes, char* a, char* b) {
-  for (intptr_t i = 0; i < num_bytes; i++) {
-    char tmp = *a;
-    *a = *b;
-    *b = tmp;
-    a++;
-    b++;
-  }
-}
-
-
-// The patch code buffer contains the jump code sequence which will be inserted
-// at entry point.
-void CodePatcher::PatchEntry(const Code& code) {
-  JumpPattern jmp_entry(code.EntryPoint());
-  ASSERT(!jmp_entry.IsValid());
-  const uword patch_buffer = code.GetPatchCodePc();
-  ASSERT(patch_buffer != 0);
-  JumpPattern jmp_patch(patch_buffer);
-  ASSERT(jmp_patch.IsValid());
-  const uword jump_target = jmp_patch.TargetAddress();
-  SwapCode(jmp_patch.pattern_length_in_bytes(),
-           reinterpret_cast<char*>(code.EntryPoint()),
-           reinterpret_cast<char*>(patch_buffer));
-  jmp_entry.SetTargetAddress(jump_target);
-}
-
-
-// The entry point is a jump code sequence, the patch code buffer contains
-// original code, the entry point contains the jump code sequence.
-void CodePatcher::RestoreEntry(const Code& code) {
-  JumpPattern jmp_entry(code.EntryPoint());
-  ASSERT(jmp_entry.IsValid());
-  const uword jump_target = jmp_entry.TargetAddress();
-  const uword patch_buffer = code.GetPatchCodePc();
-  ASSERT(patch_buffer != 0);
-  // 'patch_buffer' contains original entry code.
-  JumpPattern jmp_patch(patch_buffer);
-  ASSERT(!jmp_patch.IsValid());
-  SwapCode(jmp_patch.pattern_length_in_bytes(),
-           reinterpret_cast<char*>(code.EntryPoint()),
-           reinterpret_cast<char*>(patch_buffer));
-  ASSERT(jmp_patch.IsValid());
-  jmp_patch.SetTargetAddress(jump_target);
-}
-
-
-bool CodePatcher::CodeIsPatchable(const Code& code) {
-  JumpPattern jmp_entry(code.EntryPoint());
-  if (code.Size() < (jmp_entry.pattern_length_in_bytes() * 2)) {
-    return false;
-  }
-  uword limit = code.EntryPoint() + jmp_entry.pattern_length_in_bytes();
-  for (intptr_t i = 0; i < code.pointer_offsets_length(); i++) {
-    const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
-    if (addr < limit) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
 bool CodePatcher::IsDartCall(uword return_address) {
   return DartCallPattern::IsValid(return_address);
 }

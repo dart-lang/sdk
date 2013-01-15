@@ -49,16 +49,15 @@ bool _optionalBool(bool value) => value == true ? true : null;
  * [Element] describing a Dart library.
  */
 class LibraryElement extends Element {
-  LibraryElement(String name, LibraryMirror mirror, CommentMap comments)
-      : super('library', name, mirror.uri.toString(),
-              comments.findLibrary(mirror.location)) {
+  LibraryElement(String name, LibraryMirror mirror)
+      : super('library', name, mirror.uri.toString(), computeComment(mirror)) {
 
     mirror.functions.forEach((childName, childMirror) {
-      addChild(new MethodElement(childName, childMirror, comments));
+      addChild(new MethodElement(childName, childMirror));
     });
 
     mirror.getters.forEach((childName, childMirror) {
-      addChild(new GetterElement(childName, childMirror, comments));
+      addChild(new GetterElement(childName, childMirror));
     });
 
     mirror.variables.forEach((childName, childMirror) {
@@ -68,9 +67,9 @@ class LibraryElement extends Element {
     mirror.classes.forEach((className, classMirror) {
       if (!classMirror.isPrivate) {
         if (classMirror is TypedefMirror) {
-          addChild(new TypedefElement(className, classMirror, comments));
+          addChild(new TypedefElement(className, classMirror));
         } else {
-          addChild(new ClassElement(className, classMirror, comments));
+          addChild(new ClassElement(className, classMirror));
         }
       }
     });
@@ -86,9 +85,8 @@ class ClassElement extends Element {
   /** Interfaces the class implements. */
   List<Reference> interfaces;
 
-  ClassElement(String name, ClassMirror mirror, CommentMap comments)
-      : super('class', mirror.simpleName, name,
-              comments.find(mirror.location)),
+  ClassElement(String name, ClassMirror mirror)
+      : super('class', mirror.simpleName, name, computeComment(mirror)),
         superclass = mirror.superclass != null ?
             new Reference(mirror.superclass) : null {
     for (var interface in mirror.superinterfaces) {
@@ -99,11 +97,11 @@ class ClassElement extends Element {
     }
 
     mirror.methods.forEach((childName, childMirror) {
-      addChild(new MethodElement(childName, childMirror, comments));
+      addChild(new MethodElement(childName, childMirror));
     });
 
     mirror.getters.forEach((childName, childMirror) {
-      addChild(new GetterElement(childName, childMirror, comments));
+      addChild(new GetterElement(childName, childMirror));
     });
 
     mirror.variables.forEach((childName, childMirror) {
@@ -111,7 +109,7 @@ class ClassElement extends Element {
     });
 
     mirror.constructors.forEach((constructorName, methodMirror) {
-      addChild(new MethodElement(constructorName, methodMirror, comments, 'constructor'));
+      addChild(new MethodElement(constructorName, methodMirror, 'constructor'));
     });
   }
 }
@@ -124,9 +122,8 @@ class GetterElement extends Element {
   final Reference ref;
   final bool isStatic;
 
-  GetterElement(String name, MethodMirror mirror, CommentMap comments)
-      : super('property', mirror.simpleName, name,
-              comments.find(mirror.location)),
+  GetterElement(String name, MethodMirror mirror)
+      : super('property', mirror.simpleName, name, computeComment(mirror)),
         ref = mirror.returnType != null ?
             new Reference(mirror.returnType) : null,
         isStatic = _optionalBool(mirror.isStatic);
@@ -142,9 +139,9 @@ class MethodElement extends Element {
   final bool isOperator;
   final bool isStatic;
 
-  MethodElement(String name, MethodMirror mirror, CommentMap comments, [String kind = 'method'])
+  MethodElement(String name, MethodMirror mirror, [String kind = 'method'])
       : super(kind, name, '$name${mirror.parameters.length}()',
-              comments.find(mirror.location)),
+              computeComment(mirror)),
         returnType = mirror.returnType != null ?
             new Reference(mirror.returnType) : null,
         isSetter = _optionalBool(mirror.isSetter),
@@ -191,9 +188,8 @@ class VariableElement extends Element {
  * Element describing a typedef element.
  */
 class TypedefElement extends Element {
-  TypedefElement(String name, TypedefMirror mirror, CommentMap comments)
-      : super('typedef', mirror.simpleName, name,
-              comments.find(mirror.location));
+  TypedefElement(String name, TypedefMirror mirror)
+      : super('typedef', mirror.simpleName, name, computeComment(mirror));
 }
 
 /**

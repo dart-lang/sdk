@@ -37,7 +37,7 @@ bool _anyErrors = false;
  */
 Future<bool> convert(Path htmlPath, Path jsonPath) {
   var completer = new Completer();
-  
+
   // TODO(amouravski): make this transform once I know what I want this file to
   // return.
   _convertFiles(htmlPath).then((convertedJson) {
@@ -58,8 +58,8 @@ Future<bool> convert(Path htmlPath, Path jsonPath) {
     outputStream.onClosed = () {
       completer.complete(_anyErrors);
     };
-    
-    outputStream.onError = completer.completeException;
+
+    outputStream.onError = completer.completeError;
   });
 
   return completer.future;
@@ -82,7 +82,7 @@ Future<Object> _convertFiles(Path htmlPath) {
   final lister = htmlDir.list(recursive: false);
 
   lister.onFile = (String path) {
-    final name = new Path.fromNative(path).filename;
+    final name = new Path(path).filename;
 
     // Ignore private classes.
     if (name.startsWith('_')) return;
@@ -270,7 +270,7 @@ bool _listsEqual(List list1, List list2) {
  * Print JSON in a much nicer format.
  *
  * For example:
- * 
+ *
  *     {"foo":["bar","baz"],"boo":{"far:"faz"}}
  *
  * becomes:
@@ -293,7 +293,7 @@ String prettyPrintJson(Object json, [String indentation = '']) {
 
   if (json is List) {
     var recursiveOutput =
-        Strings.join(json.map((e) => 
+        Strings.join(json.map((e) =>
             prettyPrintJson(e, '$indentation  ')), ',\n');
     output = '$indentation[\n'
       '$recursiveOutput'

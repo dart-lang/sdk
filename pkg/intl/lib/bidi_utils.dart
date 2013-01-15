@@ -186,7 +186,7 @@ class Bidi {
   static bool isRtlLanguage(String languageString) {
     return new RegExp(r'^(ar|dv|he|iw|fa|nqo|ps|sd|ug|ur|yi|.*[-_]'
         r'(Arab|Hebr|Thaa|Nkoo|Tfng))(?!.*[-_](Latn|Cyrl)($|-|_))'
-        r'($|-|_)', ignoreCase : true).hasMatch(languageString);
+        r'($|-|_)', caseSensitive: false).hasMatch(languageString);
   }
 
   /**

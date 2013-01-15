@@ -14,7 +14,7 @@ testStoreIndexed() {
     }
   }
 
-  var a = new List(10);
+  var a = new List.fixedLength(10);
   for (var i = 0; i < 2000; i++) {
     var r = test(a, 3, 888, false);
     Expect.equals(3, r);

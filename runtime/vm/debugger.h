@@ -126,6 +126,7 @@ class ActivationFrame : public ZoneAllocated {
   uword sp() const { return sp_; }
 
   const Function& DartFunction();
+  const Code& DartCode();
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
   RawScript* SourceScript();
@@ -167,6 +168,7 @@ class ActivationFrame : public ZoneAllocated {
   const Context& ctx_;
 
   Function& function_;
+  Code& code_;
   intptr_t token_pos_;
   intptr_t pc_desc_index_;
   intptr_t line_number_;
@@ -234,7 +236,6 @@ class Debugger {
 
   void Initialize(Isolate* isolate);
   void Shutdown();
-  bool IsActive();
 
   void NotifyCompilation(const Function& func);
 
@@ -261,6 +262,10 @@ class Debugger {
 
   // Called from Runtime when a breakpoint in Dart code is reached.
   void BreakpointCallback();
+
+  // Returns true if there is at least one breakpoint set in func.
+  // Checks for both user-defined and internal temporary breakpoints.
+  bool HasBreakpoint(const Function& func);
 
   DebuggerStackTrace* StackTrace() const { return stack_trace_; }
 
@@ -299,7 +304,7 @@ class Debugger {
     kStepOut
   };
 
-  void EnsureFunctionIsDeoptimized(const Function& func);
+  void DeoptimizeWorld();
   void InstrumentForStepping(const Function& target_function);
   SourceBreakpoint* SetBreakpoint(const Function& target_function,
                                   intptr_t first_token_pos,

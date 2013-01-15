@@ -10,14 +10,14 @@ library testing;
 /// allows test code to set up a local request handler in order to fake a server
 /// that responds to HTTP requests:
 ///
-///     import 'dart:json';
+///     import 'dart:json' as json;
 ///     import 'package:http/testing.dart';
 ///
 ///     var client = new MockClient((request) {
 ///       if (request.url.path != "/data.json") {
 ///         return new Response("", 404);
 ///       }
-///       return new Response(JSON.stringify({
+///       return new Response(json.stringify({
 ///         'numbers': [1, 4, 15, 19, 214]
 ///       }, 200, headers: {
 ///         'content-type': 'application/json'

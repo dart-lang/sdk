@@ -723,3 +723,31 @@ class MirrorException implements Exception {
   String toString() => "MirrorException: '$_message'";
   final String _message;
 }
+
+/**
+ * Class used for encoding comments as metadata annotations.
+ */
+class Comment {
+  /**
+   * The comment text as written in the source text.
+   */
+  final String text;
+
+  /**
+   * The comment text without the start, end, and padding text.
+   *
+   * For example, if [text] is [: /** Comment text. */ :] then the [trimmedText]
+   * is [: Comment text. :].
+   */
+  final String trimmedText;
+
+  /**
+   * Is [:true:] if this comment is a documentation comment.
+   *
+   * That is, that the comment is either enclosed in [: /** ... */ :] or starts
+   * with [: /// :].
+   */
+  final bool isDocComment;
+
+  const Comment(this.text, this.trimmedText, this.isDocComment);
+}

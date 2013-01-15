@@ -21,19 +21,21 @@ main() {
       expect(fnComplete, isTrue);
       expect(timeout0, isFalse);
     }));
-    expect(computedStyle.isComplete, isFalse);
     fnComplete = true;
   });
 
   test('requestLayoutFrame', () {
     var computedStyle;
+    var computedStyleCalled = false;
     window.requestLayoutFrame(expectAsync0(() {
-      expect(computedStyle.isComplete, true);
+      expect(computedStyleCalled, true);
     }));
 
     final element = document.body;
     computedStyle = element.computedStyle;
-    expect(computedStyle.isComplete, isFalse);
+    computedStyle.then(expectAsync1((style) {
+      computedStyleCalled = true;
+    }));
   });
 
   // TODO(jacobr): add more tests that the results return by measurement

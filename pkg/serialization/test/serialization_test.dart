@@ -4,6 +4,7 @@
 
 library serialization_test;
 
+import 'dart:json' as json;
 import 'package:unittest/unittest.dart';
 import 'package:serialization/serialization.dart';
 import 'package:serialization/src/serialization_helpers.dart';
@@ -192,7 +193,7 @@ main() {
     var trace = new Trace(new Writer(s));
     trace.writer.trace = trace;
     trace.trace(n1);
-    var all = trace.writer.references.keys;
+    var all = trace.writer.references.keys.toSet();
     expect(all.length, 4);
     expect(all.contains(n1), isTrue);
     expect(all.contains(n2), isTrue);
@@ -207,7 +208,7 @@ main() {
     w.write(n1);
     expect(w.states.length, 4); // prims, lists, essential lists, basic
     var children = 0, name = 1, parent = 2;
-    List rootNode = w.states[3].filter((x) => x[name] == "1");
+    List rootNode = w.states[3].where((x) => x[name] == "1").toList();
     rootNode = rootNode.first;
     expect(rootNode[parent], isNull);
     var list = w.states[1].first;
@@ -234,6 +235,10 @@ main() {
 
   test('round-trip using Maps', () {
     runRoundTripTest(nodeSerializerUsingMaps);
+  });
+
+  test('round-trip, flat format, using maps', () {
+    runRoundTripTestFlat(nodeSerializerUsingMaps);
   });
 
   test('round-trip with Node CustomRule', () {
@@ -306,10 +311,10 @@ main() {
     var s = new Serialization()
       ..selfDescribing = false
       ..addRuleFor(a1,
-          constructor: 'with',
+          constructor: 'withData',
           constructorFields: ["street", "Kirkland", "WA", "98103"],
           fields: []);
-    var out = s.write(a1);
+    String out = s.write(a1);
     var newAddress = s.read(out);
     expect(newAddress.street, a1.street);
     expect(newAddress.city, "Kirkland");
@@ -317,6 +322,73 @@ main() {
     expect(newAddress.zip, "98103");
   });
 
+  test("Straight JSON format", () {
+    var s = new Serialization();
+    var writer = s.newWriter(new SimpleJsonFormat());
+    var out = writer.write(a1);
+    var reconstituted = json.parse(out);
+    expect(reconstituted.length, 4);
+    expect(reconstituted[0], "Seattle");
+  });
+
+  test("Straight JSON format, nested objects", () {
+    var p1 = new Person()..name = 'Alice'..address = a1;
+    var s = new Serialization();
+    var addressRule = s.addRuleFor(a1)..configureForMaps();
+    var personRule = s.addRuleFor(p1)..configureForMaps();
+    var writer = s.newWriter(new SimpleJsonFormat(storeRoundTripInfo: true));
+    var out = writer.write(p1);
+    var reconstituted = json.parse(out);
+    var expected = {
+      "name" : "Alice",
+      "rank" : null,
+      "serialNumber" : null,
+      "__rule" : personRule.number,
+      "address" : {
+        "street" : "N 34th",
+        "city" : "Seattle",
+        "state" : null,
+        "zip" : null,
+        "__rule" : addressRule.number
+      }
+    };
+    expect(expected, reconstituted);
+  });
+
+  test("Straight JSON format, round-trip", () {
+    // Note that we can't use the usual round-trip test because it has cycles.
+    var p1 = new Person()..name = 'Alice'..address = a1;
+    // Use maps for one rule, lists for the other.
+    var s = new Serialization()
+      ..addRuleFor(a1)
+      ..addRuleFor(p1).configureForMaps();
+    var writer = s.newWriter(new SimpleJsonFormat(storeRoundTripInfo: true));
+    var out = writer.write(p1);
+    var reader = s.newReader(new SimpleJsonFormat(storeRoundTripInfo: true));
+    var p2 = reader.read(out);
+    expect(p2.name, "Alice");
+    var a2 = p2.address;
+    expect(a2.street, "N 34th");
+    expect(a2.city, "Seattle");
+  });
+
+  test("Straight JSON format, round-trip with named objects", () {
+    // Note that we can't use the usual round-trip test because it has cycles.
+    var p1 = new Person()..name = 'Alice'..address = a1;
+    // Use maps for one rule, lists for the other.
+    var s = new Serialization()
+      ..addRule(new NamedObjectRule())
+      ..addRuleFor(a1)
+      ..addRuleFor(p1).configureForMaps()
+      ..namedObjects["foo"] = a1;
+    var writer = s.newWriter(new SimpleJsonFormat(storeRoundTripInfo: true));
+    var out = writer.write(p1);
+    var reader = s.newReader(new SimpleJsonFormat(storeRoundTripInfo: true));
+    var p2 = reader.read(out, {"foo" : 12});
+    expect(p2.name, "Alice");
+    var a2 = p2.address;
+    expect(a2, 12);
+  });
 }
 
 /******************************************************************************
@@ -355,9 +427,9 @@ Serialization metaSerialization() {
  * reader.
  */
 readBackSimple(Serialization s, object, Reader reader) {
-  var rule = s.rulesFor(object, null)[0];
+  var rule = s.rulesFor(object, null).first;
   reader.inflateForRule(rule);
-  var list2 = reader.allObjectsForRule(rule)[0];
+  var list2 = reader.allObjectsForRule(rule).first;
   return list2;
 }
 
@@ -470,11 +542,11 @@ runRoundTripTestFlat(serializerSetUp) {
   n2.parent = n1;
   n3.parent = n1;
   var s = serializerSetUp(n1);
-  var output = s.writeFlat(n2);
+  var output = s.write(n2, new SimpleFlatFormat());
   expect(output is List, isTrue);
   var s2 = serializerSetUp(n1);
-  var reader = new Reader(s2);
-  var m2 = reader.readFlat(output);
+  var reader = new Reader(s2, new SimpleFlatFormat());
+  var m2 = reader.read(output);
   var m1 = m2.parent;
   expect(m1 is Node, isTrue);
   var children = m1.children;
@@ -490,12 +562,12 @@ runRoundTripTestFlat(serializerSetUp) {
 /** Extract the state from [object] using the rules in [s] and return it. */
 states(object, Serialization s) {
   var rules = s.rulesFor(object, null);
-  return rules.map((x) => x.extractState(object, doNothing));
+  return rules.mappedBy((x) => x.extractState(object, doNothing)).toList();
 }
 
 /** A hard-coded rule for serializing Node instances. */
 class NodeRule extends CustomRule {
-  bool appliesTo(instance, _) => instance is Node;
+  bool appliesTo(instance, _) => instance.runtimeType == Node;
   getState(instance) => [instance.parent, instance.name, instance.children];
   create(state) => new Node(state[1]);
   setState(Node node, state) {

@@ -4,6 +4,8 @@
 
 library command_install;
 
+import 'dart:async';
+
 import 'entrypoint.dart';
 import 'log.dart' as log;
 import 'pub.dart';
@@ -14,7 +16,7 @@ class InstallCommand extends PubCommand {
   String get usage => "pub install";
 
   Future onRun() {
-    return entrypoint.installDependencies().transform((_) {
+    return entrypoint.installDependencies().then((_) {
       log.message("Dependencies installed!");
     });
   }

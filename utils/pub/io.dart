@@ -5,6 +5,7 @@
 /// Helper functionality to make working with IO easier.
 library io;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:json';
@@ -26,7 +27,7 @@ final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
 /// [File] objects.
 String join(part1, [part2, part3, part4, part5, part6, part7, part8]) {
   var parts = [part1, part2, part3, part4, part5, part6, part7, part8]
-      .map((part) => part == null ? null : _getPath(part));
+      .mappedBy((part) => part == null ? null : _getPath(part)).toList();
 
   return path.join(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5],
       parts[6], parts[7]);
@@ -58,7 +59,7 @@ String relativeTo(target, base) => path.relative(target, from: base);
 /// completes with the result.
 Future<bool> exists(path) {
   path = _getPath(path);
-  return Futures.wait([fileExists(path), dirExists(path)]).transform((results) {
+  return Future.wait([fileExists(path), dirExists(path)]).then((results) {
     return results[0] || results[1];
   });
 }
@@ -103,9 +104,9 @@ Future<File> writeTextFile(file, String contents, {dontLogContents: false}) {
     log.fine("Contents:\n$contents");
   }
 
-  return file.open(FileMode.WRITE).chain((opened) {
-    return opened.writeString(contents).chain((ignore) {
-        return opened.close().transform((_) {
+  return file.open(FileMode.WRITE).then((opened) {
+    return opened.writeString(contents).then((ignore) {
+        return opened.close().then((_) {
           log.fine("Wrote text file $path.");
           return file;
         });
@@ -130,12 +131,14 @@ Future<File> createFileFromStream(InputStream stream, path) {
   log.io("Creating $path from stream.");
 
   var completer = new Completer<File>();
+  var completed = false;
   var file = new File(path);
   var outputStream = file.openOutputStream();
   stream.pipe(outputStream);
 
   outputStream.onClosed = () {
     log.fine("Created $path from stream.");
+    completed = true;
     completer.complete(file);
   };
 
@@ -148,8 +151,9 @@ Future<File> createFileFromStream(InputStream stream, path) {
   }
 
   completeError(error) {
-    if (!completer.isComplete) {
-      completer.completeException(error, stackTrace);
+    if (!completed) {
+      completed = true;
+      completer.completeError(error, stackTrace);
     } else {
       log.fine("Got error after stream was closed: $error");
     }
@@ -177,29 +181,24 @@ Future<Directory> ensureDir(path) {
   log.fine("Ensuring directory $path exists.");
   if (path == '.') return new Future.immediate(new Directory('.'));
 
-  return dirExists(path).chain((exists) {
+  return dirExists(path).then((exists) {
     if (exists) {
       log.fine("Directory $path already exists.");
       return new Future.immediate(new Directory(path));
     }
 
-    return ensureDir(dirname(path)).chain((_) {
-      var completer = new Completer<Directory>();
-      var future = createDir(path);
-      future.handleException((error) {
-        if (error is! DirectoryIOException) return false;
+    return ensureDir(dirname(path)).then((_) {
+      return createDir(path).catchError((asyncError) {
+        if (asyncError.error is! DirectoryIOException) throw asyncError;
         // Error 17 means the directory already exists (or 183 on Windows).
-        if (error.osError.errorCode != 17 &&
-            error.osError.errorCode != 183) {
+        if (asyncError.error.osError.errorCode == 17 ||
+            asyncError.error.osError.errorCode == 183) {
           log.fine("Got 'already exists' error when creating directory.");
-          return false;
+          return _getDirectory(path);
         }
 
-        completer.complete(_getDirectory(path));
-        return true;
+        throw asyncError;
       });
-      future.then(completer.complete);
-      return completer.future;
     });
   });
 }
@@ -266,7 +265,7 @@ Future<List<String>> listDir(dir,
     }
 
     var children = [];
-    lister.onError = (error) => completer.completeException(error, stackTrace);
+    lister.onError = (error) => completer.completeError(error, stackTrace);
     lister.onDir = (file) {
       if (!includeHiddenFiles && basename(file).startsWith('.')) return;
       file = join(dir, basename(file));
@@ -284,8 +283,8 @@ Future<List<String>> listDir(dir,
       contents.add(join(dir, basename(file)));
     };
 
-    return completer.future.chain((contents) {
-      return Futures.wait(children).transform((childContents) {
+    return completer.future.then((contents) {
+      return Future.wait(children).then((childContents) {
         contents.addAll(flatten(childContents));
         return contents;
       });
@@ -310,10 +309,10 @@ Future<bool> dirExists(dir) {
 /// new empty directory will be created. Returns a [Future] that completes when
 /// the new clean directory is created.
 Future<Directory> cleanDir(dir) {
-  return dirExists(dir).chain((exists) {
+  return dirExists(dir).then((exists) {
     if (exists) {
       // Delete it first.
-      return deleteDir(dir).chain((_) => createDir(dir));
+      return deleteDir(dir).then((_) => createDir(dir));
     } else {
       // Just create it.
       return createDir(dir);
@@ -327,7 +326,7 @@ Future<Directory> renameDir(from, String to) {
   from = _getDirectory(from);
   log.io("Renaming directory ${from.path} to $to.");
 
-  return _attemptRetryable(() => from.rename(to)).transform((dir) {
+  return _attemptRetryable(() => from.rename(to)).then((dir) {
     log.fine("Renamed directory ${from.path} to $to.");
     return dir;
   });
@@ -349,14 +348,14 @@ Future _attemptRetryable(Future callback()) {
   var attempts = 0;
   makeAttempt(_) {
     attempts++;
-    return callback().transformException((e) {
+    return callback().catchError((e) {
       if (attempts >= 10) {
         throw 'Could not complete operation. Gave up after $attempts attempts.';
       }
 
       // Wait a bit and try again.
       log.fine("Operation failed, retrying (attempt $attempts).");
-      return sleep(500).chain(makeAttempt);
+      return sleep(500).then(makeAttempt);
     });
   }
 
@@ -385,7 +384,7 @@ Future<File> createSymlink(from, to) {
     args = ['/j', to, from];
   }
 
-  return runProcess(command, args).transform((result) {
+  return runProcess(command, args).then((result) {
     // TODO(rnystrom): Check exit code and output?
     return new File(to);
   });
@@ -400,7 +399,7 @@ Future<File> createPackageSymlink(String name, from, to,
     {bool isSelfLink: false}) {
   // See if the package has a "lib" directory.
   from = join(from, 'lib');
-  return dirExists(from).chain((exists) {
+  return dirExists(from).then((exists) {
     log.fine("Creating ${isSelfLink ? "self" : ""}link for package '$name'.");
     if (exists) return createSymlink(from, to);
 
@@ -451,7 +450,7 @@ final _stringStdin = new StringInputStream(stdin);
 Future<bool> confirm(String message) {
   log.fine('Showing confirm message: $message');
   stdout.writeString("$message (y/n)? ");
-  return readLine().transform((line) => new RegExp(r"^[yY]").hasMatch(line));
+  return readLine().then((line) => new RegExp(r"^[yY]").hasMatch(line));
 }
 
 /// Returns a single line read from a [StringInputStream]. By default, reads
@@ -490,7 +489,7 @@ Future<String> readLine([StringInputStream stream]) {
 
   stream.onError = (e) {
     removeCallbacks();
-    completer.completeException(e, stackTrace);
+    completer.completeError(e, stackTrace);
   };
 
   return completer.future;
@@ -538,7 +537,7 @@ Future<List<int>> consumeInputStream(InputStream stream) {
   var buffer = <int>[];
   stream.onClosed = () => completer.complete(buffer);
   stream.onData = () => buffer.addAll(stream.read());
-  stream.onError = (e) => completer.completeException(e, stackTrace);
+  stream.onError = (e) => completer.completeError(e, stackTrace);
   return completer.future;
 }
 
@@ -558,18 +557,73 @@ Future<String> consumeStringInputStream(StringInputStream stream) {
   var buffer = new StringBuffer();
   stream.onClosed = () => completer.complete(buffer.toString());
   stream.onData = () => buffer.add(stream.read());
-  stream.onError = (e) => completer.completeException(e, stackTrace);
+  stream.onError = (e) => completer.completeError(e, stackTrace);
   return completer.future;
 }
 
-/// Wrap an InputStream in a ListInputStream. This eagerly drains the [source]
-/// input stream. This is useful for spawned processes which will not exit until
-/// their output streams have been drained.
-/// TODO(rnystrom): We should use this logic anywhere we spawn a process.
-InputStream wrapInputStream(InputStream source) {
-  var sink = new ListInputStream();
-  pipeInputToInput(source, sink);
-  return sink;
+/// Wraps [stream] in a single-subscription [Stream] that emits the same data.
+Stream<List<int>> wrapInputStream(InputStream stream) {
+  var controller = new StreamController.singleSubscription();
+  if (stream.closed) return controller..close();
+
+  stream.onClosed = controller.close;
+  stream.onData = () => controller.add(stream.read());
+  stream.onError = (e) => controller.signalError(new AsyncError(e));
+  return controller.stream;
+}
+
+// TODO(nweiz): remove this ASAP (issue 7807).
+/// Wraps [stream] in an [InputStream].
+InputStream streamToInputStream(Stream<List<int>> stream) {
+  var inputStream = new ListInputStream();
+  stream.listen((chunk) => inputStream.write(chunk),
+      onDone: inputStream.markEndOfStream);
+  return inputStream;
+}
+
+/// Wraps [stream] in a [StreamConsumer] so that [Stream]s can by piped into it
+/// using [Stream.pipe].
+StreamConsumer<List<int>, dynamic> wrapOutputStream(OutputStream stream) =>
+  new _OutputStreamConsumer(stream);
+
+/// A [StreamConsumer] that pipes data into an [OutputStream].
+class _OutputStreamConsumer implements StreamConsumer<List<int>, dynamic> {
+  final OutputStream _outputStream;
+
+  _OutputStreamConsumer(this._outputStream);
+
+  Future consume(Stream<List<int>> stream) {
+    // TODO(nweiz): we have to manually keep track of whether or not the
+    // completer has completed since the output stream could signal an error
+    // after close() has been called but before it has shut down internally. See
+    // the following TODO.
+    var completed = false;
+    var completer = new Completer();
+    stream.listen((data) {
+      // Writing empty data to a closed stream can cause errors.
+      if (data.isEmpty) return;
+
+      // TODO(nweiz): remove this try/catch when issue 7836 is fixed.
+      try {
+        _outputStream.write(data);
+      } catch (e, stack) {
+        if (!completed) completer.completeError(e, stack);
+        completed = true;
+      }
+    }, onDone: () => _outputStream.close());
+
+    _outputStream.onError = (e) {
+      if (!completed) completer.completeError(e);
+      completed = true;
+    };
+
+    _outputStream.onClosed = () {
+      if (!completed) completer.complete();
+      completed = true;
+    };
+
+    return completer.future;
+  }
 }
 
 /// Spawns and runs the process located at [executable], passing in [args].
@@ -582,7 +636,7 @@ InputStream wrapInputStream(InputStream source) {
 Future<PubProcessResult> runProcess(String executable, List<String> args,
     {workingDir, Map<String, String> environment}) {
   return _doProcess(Process.run, executable, args, workingDir, environment)
-      .transform((result) {
+      .then((result) {
     // TODO(rnystrom): Remove this and change to returning one string.
     List<String> toLines(String output) {
       var lines = output.split(NEWLINE_PATTERN);
@@ -608,7 +662,7 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 Future<Process> startProcess(String executable, List<String> args,
     {workingDir, Map<String, String> environment}) =>
   _doProcess(Process.start, executable, args, workingDir, environment)
-    .transform((process) => new _WrappedProcess(process));
+    .then((process) => new _WrappedProcess(process));
 
 /// A wrapper around [Process] that buffers the stdout and stderr to avoid
 /// running into issue 7218.
@@ -625,11 +679,21 @@ class _WrappedProcess implements Process {
 
   _WrappedProcess(Process process)
     : _process = process,
-      stderr = wrapInputStream(process.stderr),
-      stdout = wrapInputStream(process.stdout);
+      stderr = _wrapInputStream(process.stderr),
+      stdout = _wrapInputStream(process.stdout);
 
   bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) =>
     _process.kill(signal);
+
+  /// Wrap an InputStream in a ListInputStream. This eagerly drains the [source]
+  /// input stream. This is useful for spawned processes which will not exit
+  /// until their output streams have been drained. TODO(rnystrom): We should
+  /// use this logic anywhere we spawn a process.
+  static InputStream _wrapInputStream(InputStream source) {
+    var sink = new ListInputStream();
+    pipeInputToInput(source, sink);
+    return sink;
+  }
 }
 
 /// Calls [fn] with appropriately modified arguments. [fn] should have the same
@@ -671,22 +735,21 @@ Future _doProcess(Function fn, String executable, List<String> args, workingDir,
 /// Note that timing out will not cancel the asynchronous operation behind
 /// [input].
 Future timeout(Future input, int milliseconds, String description) {
+  bool completed = false;
   var completer = new Completer();
   var timer = new Timer(milliseconds, (_) {
-    if (completer.future.isComplete) return;
-    completer.completeException(new TimeoutException(
+    completed = true;
+    completer.completeError(new TimeoutException(
         'Timed out while $description.'));
   });
-  input.handleException((e) {
-    if (completer.future.isComplete) return false;
-    timer.cancel();
-    completer.completeException(e, input.stackTrace);
-    return true;
-  });
   input.then((value) {
-    if (completer.future.isComplete) return;
+    if (completed) return;
     timer.cancel();
     completer.complete(value);
+  }).catchError((e) {
+    if (completed) return;
+    timer.cancel();
+    completer.completeError(e.error, e.stackTrace);
   });
   return completer.future;
 }
@@ -696,15 +759,13 @@ Future timeout(Future input, int milliseconds, String description) {
 /// will be deleted.
 Future withTempDir(Future fn(String path)) {
   var tempDir;
-  var future = createTempDir().chain((dir) {
+  return createTempDir().then((dir) {
     tempDir = dir;
     return fn(tempDir.path);
-  });
-  future.onComplete((_) {
+  }).whenComplete(() {
     log.fine('Cleaning up temp directory ${tempDir.path}.');
-    deleteDir(tempDir);
+    return deleteDir(tempDir);
   });
-  return future;
 }
 
 /// Tests whether or not the git command-line app is available for use.
@@ -712,16 +773,16 @@ Future<bool> get isGitInstalled {
   if (_isGitInstalledCache != null) {
     // TODO(rnystrom): The sleep is to pump the message queue. Can use
     // Future.immediate() when #3356 is fixed.
-    return sleep(0).transform((_) => _isGitInstalledCache);
+    return sleep(0).then((_) => _isGitInstalledCache);
   }
 
-  return _gitCommand.transform((git) => git != null);
+  return _gitCommand.then((git) => git != null);
 }
 
 /// Run a git process with [args] from [workingDir].
 Future<PubProcessResult> runGit(List<String> args,
     {String workingDir, Map<String, String> environment}) {
-  return _gitCommand.chain((git) => runProcess(git, args,
+  return _gitCommand.then((git) => runProcess(git, args,
         workingDir: workingDir, environment: environment));
 }
 
@@ -730,18 +791,18 @@ Future<PubProcessResult> runGit(List<String> args,
 Future<String> get _gitCommand {
   // TODO(nweiz): Just use Future.immediate once issue 3356 is fixed.
   if (_gitCommandCache != null) {
-    return sleep(0).transform((_) => _gitCommandCache);
+    return sleep(0).then((_) => _gitCommandCache);
   }
 
-  return _tryGitCommand("git").chain((success) {
+  return _tryGitCommand("git").then((success) {
     if (success) return new Future.immediate("git");
 
     // Git is sometimes installed on Windows as `git.cmd`
-    return _tryGitCommand("git.cmd").transform((success) {
+    return _tryGitCommand("git.cmd").then((success) {
       if (success) return "git.cmd";
       return null;
     });
-  }).transform((command) {
+  }).then((command) {
     _gitCommandCache = command;
     return command;
   });
@@ -758,12 +819,9 @@ Future<bool> _tryGitCommand(String command) {
     var regex = new RegExp("^git version");
     completer.complete(results.stdout.length == 1 &&
                        regex.hasMatch(results.stdout[0]));
-  });
-
-  future.handleException((err) {
+  }).catchError((err) {
     // If the process failed, they probably don't have it.
     completer.complete(false);
-    return true;
   });
 
   return completer.future;
@@ -784,17 +842,15 @@ Future<bool> extractTarGz(InputStream stream, destination) {
   var processFuture = startProcess("tar",
       ["--extract", "--gunzip", "--directory", destination]);
   processFuture.then((process) {
-    process.onExit = completer.complete;
+    process.onExit = (exitCode) => completer.complete(exitCode);
     stream.pipe(process.stdin);
     process.stdout.pipe(stdout, close: false);
     process.stderr.pipe(stderr, close: false);
-  });
-  processFuture.handleException((error) {
-    completer.completeException(error, processFuture.stackTrace);
-    return true;
+  }).catchError((e) {
+    completer.completeError(e.error, e.stackTrace);
   });
 
-  return completer.future.transform((exitCode) {
+  return completer.future.then((exitCode) {
     log.fine("Extracted .tar.gz stream to $destination. Exit code $exitCode.");
     // TODO(rnystrom): Does anything check this result value? If not, it should
     // throw on a bad exit code.
@@ -818,17 +874,17 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
   var tempDir;
 
   // TODO(rnystrom): Use withTempDir().
-  return createTempDir().chain((temp) {
+  return createTempDir().then((temp) {
     // Write the archive to a temp file.
     tempDir = temp;
     return createFileFromStream(stream, join(tempDir, 'data.tar.gz'));
-  }).chain((_) {
+  }).then((_) {
     // 7zip can't unarchive from gzip -> tar -> destination all in one step
     // first we un-gzip it to a tar file.
     // Note: Setting the working directory instead of passing in a full file
     // path because 7zip says "A full path is not allowed here."
     return runProcess(command, ['e', 'data.tar.gz'], workingDir: tempDir);
-  }).chain((result) {
+  }).then((result) {
     if (result.exitCode != 0) {
       throw 'Could not un-gzip (exit code ${result.exitCode}). Error:\n'
           '${Strings.join(result.stdout, "\n")}\n'
@@ -836,7 +892,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
     }
     // Find the tar file we just created since we don't know its name.
     return listDir(tempDir);
-  }).chain((files) {
+  }).then((files) {
     var tarFile;
     for (var file in files) {
       if (path.extension(file) == '.tar') {
@@ -849,7 +905,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
 
     // Untar the archive into the destination directory.
     return runProcess(command, ['x', tarFile], workingDir: destination);
-  }).chain((result) {
+  }).then((result) {
     if (result.exitCode != 0) {
       throw 'Could not un-tar (exit code ${result.exitCode}). Error:\n'
           '${Strings.join(result.stdout, "\n")}\n'
@@ -859,7 +915,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
     log.fine('Clean up 7zip temp directory ${tempDir.path}.');
     // TODO(rnystrom): Should also delete this if anything fails.
     return deleteDir(tempDir);
-  }).transform((_) => true);
+  }).then((_) => true);
 }
 
 /// Create a .tar.gz archive from a list of entries. Each entry can be a
@@ -878,17 +934,17 @@ InputStream createTarGz(List contents, {baseDir}) {
 
   if (baseDir == null) baseDir = path.current;
   baseDir = getFullPath(baseDir);
-  contents = contents.map((entry) {
+  contents = contents.mappedBy((entry) {
     entry = getFullPath(entry);
     if (!isBeneath(entry, baseDir)) {
       throw 'Entry $entry is not inside $baseDir.';
     }
     return relativeTo(entry, baseDir);
-  });
+  }).toList();
 
   if (Platform.operatingSystem != "windows") {
     var args = ["--create", "--gzip", "--directory", baseDir];
-    args.addAll(contents.map(_getPath));
+    args.addAll(contents.mappedBy(_getPath));
     // TODO(nweiz): It's possible that enough command-line arguments will make
     // the process choke, so at some point we should save the arguments to a
     // file and pass them in via --files-from for tar and -i@filename for 7zip.
@@ -908,7 +964,7 @@ InputStream createTarGz(List contents, {baseDir}) {
     // Create the tar file.
     var tarFile = join(tempDir, "intermediate.tar");
     var args = ["a", "-w$baseDir", tarFile];
-    args.addAll(contents.map((entry) => '-i!"$entry"'));
+    args.addAll(contents.mappedBy((entry) => '-i!"$entry"'));
 
     // Note: This line of code gets munged by create_sdk.py to be the correct
     // relative path to 7zip in the SDK.
@@ -919,12 +975,12 @@ InputStream createTarGz(List contents, {baseDir}) {
     // directory explicitly here intentionally. The former ensures that the
     // files added to the archive have the correct relative path in the archive.
     // The latter enables relative paths in the "-i" args to be resolved.
-    return runProcess(command, args, workingDir: baseDir).chain((_) {
+    return runProcess(command, args, workingDir: baseDir).then((_) {
       // GZIP it. 7zip doesn't support doing both as a single operation. Send
       // the output to stdout.
       args = ["a", "unused", "-tgzip", "-so", tarFile];
       return startProcess(command, args);
-    }).chain((process) {
+    }).then((process) {
       // Drain and discard 7zip's stderr. 7zip writes its normal output to
       // stderr. We don't want to show that since it's meaningless.
       // TODO(rnystrom): Should log this and display it if an actual error

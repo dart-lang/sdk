@@ -1089,11 +1089,9 @@ TEST_CASE(ByteArrayMisalignedMultiByteAccess) {
 }
 
 
-TEST_CASE(ExternalByteArrayAccess) {
-  uint8_t data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };
-  intptr_t data_length = ARRAY_SIZE(data);
-
-  Dart_Handle obj = Dart_NewExternalByteArray(data, data_length, NULL, NULL);
+static void ExternalByteArrayAccessTests(Dart_Handle obj,
+                                         uint8_t data[],
+                                         intptr_t data_length) {
   EXPECT_VALID(obj);
   EXPECT(Dart_IsByteArray(obj));
   EXPECT(Dart_IsByteArrayExternal(obj));
@@ -1145,6 +1143,61 @@ TEST_CASE(ExternalByteArrayAccess) {
     EXPECT_EQ(33 * i, data[i]);
   }
 }
+
+
+TEST_CASE(ExternalByteArrayAccess) {
+  uint8_t data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };
+  intptr_t data_length = ARRAY_SIZE(data);
+
+  Dart_Handle obj = Dart_NewExternalByteArray(data, data_length, NULL, NULL);
+  ExternalByteArrayAccessTests(obj, data, data_length);
+}
+
+
+TEST_CASE(ExternalClampedByteArrayAccess) {
+  uint8_t data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };
+  intptr_t data_length = ARRAY_SIZE(data);
+
+  Dart_Handle obj = Dart_NewExternalClampedByteArray(
+      data, data_length, NULL, NULL);
+  ExternalByteArrayAccessTests(obj, data, data_length);
+}
+
+
+TEST_CASE(ExternalUint8ClampedArrayAccess) {
+    const char* kScriptChars =
+      "testClamped(List a) {\n"
+      "  if (a[1] != 11) return false;\n"
+      "  a[1] = 3;\n"
+      "  if (a[1] != 3) return false;\n"
+      "  a[1] = -12;\n"
+      "  if (a[1] != 0) return false;\n"
+      "  a[1] = 1200;\n"
+      "  if (a[1] != 255) return false;\n"
+      "  return true;\n"
+      "}\n";
+
+  uint8_t data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };
+  intptr_t data_length = ARRAY_SIZE(data);
+  Dart_Handle obj = Dart_NewExternalClampedByteArray(
+      data, data_length, NULL, NULL);
+  EXPECT_VALID(obj);
+  Dart_Handle result;
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle args[1];
+  args[0] = obj;
+  result = Dart_Invoke(lib, NewString("testClamped"), 1, args);
+
+  // Check that result is true.
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsBoolean(result));
+  bool value = false;
+  result = Dart_BooleanValue(result, &value);
+  EXPECT_VALID(result);
+  EXPECT(value);
+}
+
 
 
 static void ExternalByteArrayCallbackFinalizer(void* peer) {

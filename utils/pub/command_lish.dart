@@ -4,6 +4,7 @@
 
 library command_lish;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:json';
 import 'dart:uri';
@@ -18,6 +19,7 @@ import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
 import 'pub.dart';
+import 'utils.dart';
 import 'validator.dart';
 
 /// Handles the `lish` and `publish` pub commands.
@@ -44,7 +46,7 @@ class LishCommand extends PubCommand {
       // TODO(nweiz): Cloud Storage can provide an XML-formatted error. We
       // should report that error and exit.
       var newUri = server.resolve("/packages/versions/new.json");
-      return client.get(newUri).chain((response) {
+      return client.get(newUri).then((response) {
         var parameters = parseJsonResponse(response);
 
         var url = _expectField(parameters, 'url', response);
@@ -63,33 +65,33 @@ class LishCommand extends PubCommand {
         request.files.add(new http.MultipartFile.fromBytes(
             'file', packageBytes, filename: 'package.tar.gz'));
         return client.send(request);
-      }).chain(http.Response.fromStream).transform((response) {
+      }).then(http.Response.fromStream).then((response) {
         var location = response.headers['location'];
         if (location == null) throw new PubHttpException(response);
         return location;
-      }).chain((location) => client.get(location))
-          .transform(handleJsonSuccess);
-    }).transformException((e) {
-      if (e is! PubHttpException) throw e;
-      var url = e.response.request.url;
+      }).then((location) => client.get(location))
+        .then(handleJsonSuccess);
+    }).catchError((asyncError) {
+      if (asyncError.error is! PubHttpException) throw asyncError;
+      var url = asyncError.error.response.request.url;
       if (url.toString() == cloudStorageUrl.toString()) {
         // TODO(nweiz): the response may have XML-formatted information about
         // the error. Try to parse that out once we have an easily-accessible
         // XML parser.
         throw 'Failed to upload the package.';
       } else if (url.origin == server.origin) {
-        handleJsonError(e.response);
+        handleJsonError(asyncError.error.response);
       }
     });
   }
 
   Future onRun() {
     var files;
-    return _filesToPublish.transform((f) {
+    return _filesToPublish.then((f) {
       files = f;
       log.fine('Archiving and publishing ${entrypoint.root}.');
       return createTarGz(files, baseDir: entrypoint.root.dir);
-    }).chain(consumeInputStream).chain((packageBytes) {
+    }).then(consumeInputStream).then((packageBytes) {
       // Show the package contents so the user can verify they look OK.
       var package = entrypoint.root;
       log.message(
@@ -97,7 +99,7 @@ class LishCommand extends PubCommand {
           '${generateTree(files)}');
 
       // Validate the package.
-      return _validate().chain((_) => _publish(packageBytes));
+      return _validate().then((_) => _publish(packageBytes));
     });
   }
 
@@ -114,10 +116,10 @@ class LishCommand extends PubCommand {
   Future<List<String>> get _filesToPublish {
     var rootDir = entrypoint.root.dir;
 
-    return Futures.wait([
+    return Future.wait([
       dirExists(join(rootDir, '.git')),
       git.isInstalled
-    ]).chain((results) {
+    ]).then((results) {
       if (results[0] && results[1]) {
         // List all files that aren't gitignored, including those not checked
         // in to Git.
@@ -125,9 +127,9 @@ class LishCommand extends PubCommand {
                         "--exclude-standard"]);
       }
 
-      return listDir(rootDir, recursive: true).chain((entries) {
-        return Futures.wait(entries.map((entry) {
-          return fileExists(entry).transform((isFile) {
+      return listDir(rootDir, recursive: true).then((entries) {
+        return Future.wait(entries.mappedBy((entry) {
+          return fileExists(entry).then((isFile) {
             // Skip directories.
             if (!isFile) return null;
 
@@ -140,13 +142,13 @@ class LishCommand extends PubCommand {
           });
         }));
       });
-    }).transform((files) => files.filter((file) {
+    }).then((files) => files.where((file) {
       if (file == null || _BLACKLISTED_FILES.contains(basename(file))) {
         return false;
       }
 
-      return !splitPath(file).some(_BLACKLISTED_DIRECTORIES.contains);
-    }));
+      return !splitPath(file).any(_BLACKLISTED_DIRECTORIES.contains);
+    }).toList());
   }
 
   /// Returns the value associated with [key] in [map]. Throws a user-friendly
@@ -158,7 +160,7 @@ class LishCommand extends PubCommand {
 
   /// Validates the package. Throws an exception if it's invalid.
   Future _validate() {
-    return Validator.runAll(entrypoint).chain((pair) {
+    return Validator.runAll(entrypoint).then((pair) {
       var errors = pair.first;
       var warnings = pair.last;
 
@@ -176,7 +178,7 @@ class LishCommand extends PubCommand {
         message = "Package has ${warnings.length} warning$s. Upload anyway";
       }
 
-      return confirm(message).transform((confirmed) {
+      return confirm(message).then((confirmed) {
         if (!confirmed) throw "Package upload canceled.";
       });
     });

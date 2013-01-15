@@ -7,26 +7,26 @@
 class RegExpAllMatchesTest {
   static testIterator() {
     var matches = new RegExp("foo").allMatches("foo foo");
-    Iterator it = matches.iterator();
-    Expect.equals(true, it.hasNext);
-    Expect.equals('foo', it.next().group(0));
-    Expect.equals(true, it.hasNext);
-    Expect.equals('foo', it.next().group(0));
-    Expect.equals(false, it.hasNext);
+    Iterator it = matches.iterator;
+    Expect.isTrue(it.moveNext());
+    Expect.equals('foo', it.current.group(0));
+    Expect.isTrue(it.moveNext());
+    Expect.equals('foo', it.current.group(0));
+    Expect.isFalse(it.moveNext());
 
     // Run two iterators over the same results.
-    it = matches.iterator();
-    Iterator it2 = matches.iterator();
-    Expect.equals(true, it.hasNext);
-    Expect.equals(true, it2.hasNext);
-    Expect.equals('foo', it.next().group(0));
-    Expect.equals('foo', it2.next().group(0));
-    Expect.equals(true, it.hasNext);
-    Expect.equals(true, it2.hasNext);
-    Expect.equals('foo', it.next().group(0));
-    Expect.equals('foo', it2.next().group(0));
-    Expect.equals(false, it.hasNext);
-    Expect.equals(false, it2.hasNext);
+    it = matches.iterator;
+    Iterator it2 = matches.iterator;
+    Expect.isTrue(it.moveNext());
+    Expect.isTrue(it2.moveNext());
+    Expect.equals('foo', it.current.group(0));
+    Expect.equals('foo', it2.current.group(0));
+    Expect.isTrue(it.moveNext());
+    Expect.isTrue(it2.moveNext());
+    Expect.equals('foo', it.current.group(0));
+    Expect.equals('foo', it2.current.group(0));
+    Expect.equals(false, it.moveNext());
+    Expect.equals(false, it2.moveNext());
   }
 
   static testForEach() {
@@ -40,7 +40,7 @@ class RegExpAllMatchesTest {
 
   static testMap() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
-    var mapped = matches.map((Match m) => "${m.group(0)}bar");
+    var mapped = matches.mappedBy((Match m) => "${m.group(0)}bar");
     Expect.equals(4, mapped.length);
     var strbuf = new StringBuffer();
     for (String s in mapped) {
@@ -51,7 +51,7 @@ class RegExpAllMatchesTest {
 
   static testFilter() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
-    var filtered = matches.filter((Match m) {
+    var filtered = matches.where((Match m) {
       return m.group(0) == 'foo';
     });
     Expect.equals(2, filtered.length);
@@ -74,13 +74,13 @@ class RegExpAllMatchesTest {
 
   static testSome() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
-    Expect.equals(true, matches.some((Match m) {
+    Expect.equals(true, matches.any((Match m) {
       return m.group(0).startsWith("fo");
     }));
-    Expect.equals(true, matches.some((Match m) {
+    Expect.equals(true, matches.any((Match m) {
       return m.group(0).startsWith("foo");
     }));
-    Expect.equals(false, matches.some((Match m) {
+    Expect.equals(false, matches.any((Match m) {
       return m.group(0).startsWith("fooo");
     }));
   }

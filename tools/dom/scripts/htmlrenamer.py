@@ -142,7 +142,7 @@ _renamed_html_members = {
     'Document.defaultView': 'window',
     'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
     'Element.webkitCreateShadowRoot': 'createShadowRoot',
-    'Element.webkitMatchesSelector' : 'matchesSelector',
+    'Element.webkitMatchesSelector' : 'matches',
     'Node.cloneNode': 'clone',
     'Node.nextSibling': 'nextNode',
     'Node.ownerDocument': 'document',
@@ -153,6 +153,14 @@ _renamed_html_members = {
     'SvgElement.className': '$dom_svgClassName',
     'Url.createObjectURL': 'createObjectUrl',
     'Url.revokeObjectURL': 'revokeObjectUrl',
+    'Window.webkitRequestFileSystem': 'requestFileSystem',
+    'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
+    'WorkerContext.webkitRequestFileSystem': 'requestFileSystem',
+    'WorkerContext.webkitRequestFileSystemSync': 'requestFileSystemSync',
+    'WorkerContext.webkitResolveLocalFileSystemSyncURL':
+        'resolveLocalFileSystemSyncUrl',
+    'WorkerContext.webkitResolveLocalFileSystemURL':
+        'resolveLocalFileSystemUrl',
 }
 
 # Members and classes from the dom that should be removed completely from

@@ -34,10 +34,10 @@ class IDLModule extends IDLNode {
             List<IDLNode> elements) {
     setExtAttrs(extAttrs);
     this.annotations = annotations;
-    this.interfaces = elements.filter((e) => e is IDLInterface);
-    this.typedefs = elements.filter((e) => e is IDLTypeDef);
+    this.interfaces = elements.where((e) => e is IDLInterface).toList();
+    this.typedefs = elements.where((e) => e is IDLTypeDef).toList();
     this.implementsStatements =
-        elements.filter((e) => e is IDLImplementsStatement);
+        elements.where((e) => e is IDLImplementsStatement).toList();
   }
 
   toString() => '<IDLModule $id $extAttrs $annotations>';
@@ -101,10 +101,10 @@ class IDLInterface extends IDLNode {
     this.annotations = ann;
     if (this.parents == null) this.parents = [];
 
-    operations = members.filter((e) => e is IDLOperation);
-    attributes = members.filter((e) => e is IDLAttribute);
-    constants = members.filter((e) => e is IDLConstant);
-    snippets = members.filter((e) => e is IDLSnippet);
+    operations = members.where((e) => e is IDLOperation).toList();
+    attributes = members.where((e) => e is IDLAttribute).toList();
+    constants = members.where((e) => e is IDLConstant).toList();
+    snippets = members.where((e) => e is IDLSnippet).toList();
 
     isSupplemental = extAttrs.has('Supplemental');
     isNoInterfaceObject = extAttrs.has('NoInterfaceObject');

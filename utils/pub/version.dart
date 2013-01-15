@@ -57,9 +57,9 @@ class Version implements Comparable, VersionConstraint {
     }
 
     try {
-      int major = parseInt(match[1]);
-      int minor = parseInt(match[2]);
-      int patch = parseInt(match[3]);
+      int major = int.parse(match[1]);
+      int minor = int.parse(match[2]);
+      int patch = int.parse(match[3]);
 
       String preRelease = match[5];
       String build = match[8];
@@ -190,14 +190,14 @@ class Version implements Comparable, VersionConstraint {
   /// Splits a string of dot-delimited identifiers into their component parts.
   /// Identifiers that are numeric are converted to numbers.
   List _splitParts(String text) {
-    return text.split('.').map((part) {
+    return text.split('.').mappedBy((part) {
       try {
-        return parseInt(part);
+        return int.parse(part);
       } on FormatException catch (ex) {
         // Not a number.
         return part;
       }
-    });
+    }).toList();
   }
 }
 
@@ -241,7 +241,7 @@ abstract class VersionConstraint {
   /// allow. If constraints is empty, then it returns a VersionConstraint that
   /// allows all versions.
   factory VersionConstraint.intersection(
-      Collection<VersionConstraint> constraints) {
+      Iterable<VersionConstraint> constraints) {
     var constraint = new VersionRange();
     for (var other in constraints) {
       constraint = constraint.intersect(other);

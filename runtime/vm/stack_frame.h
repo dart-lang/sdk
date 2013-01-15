@@ -225,6 +225,25 @@ class DartFrameIterator : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(DartFrameIterator);
 };
 
+
+// Iterator for iterating over all inlined dart functions in an optimized
+// dart frame (the iteration includes the function that is inlining the
+// other functions).
+class InlinedFunctionsInDartFrameIterator : public ValueObject {
+ public:
+  explicit InlinedFunctionsInDartFrameIterator(StackFrame* frame);
+  RawFunction* GetNextFunction(uword* pc);
+
+ private:
+  intptr_t index_;
+  StackFrame* frame_;
+  Function& func_;
+  DeoptInfo& deopt_info_;
+  Array& object_table_;
+
+  DISALLOW_COPY_AND_ASSIGN(InlinedFunctionsInDartFrameIterator);
+};
+
 }  // namespace dart
 
 #endif  // VM_STACK_FRAME_H_

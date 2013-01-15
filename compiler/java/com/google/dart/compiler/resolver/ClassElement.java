@@ -28,6 +28,8 @@ public interface ClassElement extends EnclosingElement {
   LibraryElement getLibrary();
 
   List<InterfaceType> getInterfaces();
+  
+  List<InterfaceType> getMixins();
 
   List<InterfaceType> getAllSupertypes() throws CyclicDeclarationException;
 

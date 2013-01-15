@@ -9,6 +9,7 @@
 
 library date_symbol_data_json;
 
+import 'dart:async';
 import "date_symbols.dart";
 import "src/lazy_locale_data.dart";
 import 'src/date_format_internal.dart';
@@ -32,7 +33,7 @@ Future initializeDateFormatting(String locale, String path) {
       reader2, (x) => x, availableLocalesForDateFormatting));
   return initializeIndividualLocaleDateFormatting(
       (symbols, patterns) {
-        return Futures.wait([
+        return Future.wait([
             symbols.initLocale(locale),
             patterns.initLocale(locale)]);
       });

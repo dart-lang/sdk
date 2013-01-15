@@ -14,8 +14,9 @@
  */
 library apidoc;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 import 'html_diff.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
@@ -60,7 +61,7 @@ void main() {
         } else if (arg.startsWith('--include-lib=')) {
           includedLibraries.add(arg.substring('--include-lib='.length));
         } else if (arg.startsWith('--out=')) {
-          outputDir = new Path.fromNative(arg.substring('--out='.length));
+          outputDir = new Path(arg.substring('--out='.length));
         } else if (arg.startsWith('--pkg=')) {
           pkgPath = arg.substring('--pkg='.length);
         } else {
@@ -87,7 +88,7 @@ void main() {
 
   print('Parsing MDN data...');
   final mdnFile = new File.fromPath(doc.scriptDir.append('mdn/database.json'));
-  final mdn = JSON.parse(mdnFile.readAsStringSync());
+  final mdn = json.parse(mdnFile.readAsStringSync());
 
   print('Cross-referencing dart:html...');
   HtmlDiff.initialize(libPath);
@@ -116,7 +117,7 @@ void main() {
 
   var lister = new Directory.fromPath(doc.scriptDir.append('../../pkg')).list();
   lister.onDir = (dirPath) {
-    var path = new Path.fromNative(dirPath);
+    var path = new Path(dirPath);
     var libName = path.filename;
 
     // TODO(rnystrom): Get rid of oldStylePath support when all packages are
@@ -145,12 +146,12 @@ void main() {
     apidoc.includeApi = true;
     apidoc.includedLibraries = includedLibraries;
 
-    Futures.wait([copiedStatic, copiedApiDocStatic]).then((_) {
+    Future.wait([copiedStatic, copiedApiDocStatic]).then((_) {
       apidoc.documentLibraries(apidocLibraries, libPath, pkgPath);
 
       final compiled = doc.compileScript(mode, outputDir, libPath);
 
-      Futures.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
+      Future.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
         apidoc.cleanup();
       });
     });
@@ -484,7 +485,10 @@ class Apidoc extends doc.Dartdoc {
       // Use the corresponding DOM type when searching MDN.
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
-      typeString = domTypes.iterator().next();
+      // TODO(floitsch): switch to domTypes.first, once that's implemented.
+      var iter = domTypes.iterator;
+      iter.moveNext();
+      typeString = iter.current;
     } else {
       // Not a DOM type.
       return null;
@@ -518,7 +522,10 @@ class Apidoc extends doc.Dartdoc {
       // Use the corresponding DOM member when searching MDN.
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
-      memberString = domMembers.iterator().next();
+      // TODO(floitsch): switch to domTypes.first, once that's implemented.
+      var iter = domMembers.iterator;
+      iter.moveNext();
+      memberString = iter.current;
     } else {
       // Not a DOM type.
       return null;

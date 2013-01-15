@@ -10,6 +10,8 @@
 library intl_helpers;
 import '../date_symbols.dart';
 
+import 'dart:async';
+
 /**
  * This is used as a marker for a locale data map that hasn't been initialized,
  * and will throw an exception on any usage that isn't the fallback

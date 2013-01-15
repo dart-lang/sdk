@@ -42,7 +42,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return code;
   }
 
-  CodeBuffer generateCode(WorkItem work, HGraph graph) {
+  js.Expression generateCode(CodegenWorkItem work, HGraph graph) {
     if (work.element.isField()) {
       return generateLazyInitializer(work, graph);
     } else {
@@ -50,19 +50,17 @@ class SsaCodeGeneratorTask extends CompilerTask {
     }
   }
 
-  CodeBuffer generateLazyInitializer(work, graph) {
+  js.Expression generateLazyInitializer(work, graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       SsaOptimizedCodeGenerator codegen =
           new SsaOptimizedCodeGenerator(backend, work);
       codegen.visitGraph(graph);
-      js.Block body = codegen.body;
-      js.Fun fun = new js.Fun(codegen.parameters, body);
-      return prettyPrint(fun);
+      return new js.Fun(codegen.parameters, codegen.body);
     });
   }
 
-  CodeBuffer generateMethod(WorkItem work, HGraph graph) {
+  js.Expression generateMethod(CodegenWorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       SsaOptimizedCodeGenerator codegen =
@@ -89,12 +87,11 @@ class SsaCodeGeneratorTask extends CompilerTask {
         body = codegen.body;
       }
 
-      js.Fun fun = buildJavaScriptFunction(element, codegen.parameters, body);
-      return prettyPrint(fun);
+      return buildJavaScriptFunction(element, codegen.parameters, body);
     });
   }
 
-  CodeBuffer generateBailoutMethod(WorkItem work, HGraph graph) {
+  js.Expression generateBailoutMethod(CodegenWorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen-bailout", graph);
 
@@ -107,7 +104,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       body.statements.add(codegen.body);
       js.Fun fun =
           buildJavaScriptFunction(work.element, codegen.newParameters, body);
-      return prettyPrint(fun);
+      return fun;
     });
   }
 }
@@ -130,7 +127,11 @@ class OrderedSet<T> {
 
   void forEach(f) => map.keys.forEach(f);
 
-  T get first => map.keys.iterator().next();
+  T get first {
+    var iterator = map.keys.iterator;
+    if (!iterator.moveNext()) throw new StateError("No elements");
+    return iterator.current;
+  }
 
   get length => map.length;
 }
@@ -161,7 +162,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   bool isGeneratingExpression = false;
 
   final JavaScriptBackend backend;
-  final WorkItem work;
+  final CodegenWorkItem work;
   final HTypeMap types;
 
   final Set<HInstruction> generateAtUseSite;
@@ -209,7 +210,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // if branches.
   SubGraph subGraph;
 
-  SsaCodeGenerator(this.backend, WorkItem work)
+  SsaCodeGenerator(this.backend, CodegenWorkItem work)
     : this.work = work,
       this.types =
           (work.compilationContext as JavaScriptItemCompilationContext).types,
@@ -228,7 +229,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   LibraryElement get currentLibrary => work.element.getLibrary();
   Compiler get compiler => backend.compiler;
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
-  Enqueuer get world => backend.compiler.enqueuer.codegen;
+  CodegenEnqueuer get world => backend.compiler.enqueuer.codegen;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
@@ -1146,7 +1147,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * Sequentialize a list of conceptually parallel copies. Parallel
    * copies may contain cycles, that this method breaks.
    */
-  void sequentializeCopies(List<Copy> copies,
+  void sequentializeCopies(Iterable<Copy> copies,
                            String tempName,
                            void doAssignment(String target, String source)) {
     // Map to keep track of the current location (ie the variable that
@@ -1229,7 +1230,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (handler == null) return;
 
     // Map the instructions to strings.
-    List<Copy> copies = handler.copies.map((Copy copy) {
+    Iterable<Copy> copies = handler.copies.mappedBy((Copy copy) {
       return new Copy(variableNames.getName(copy.source),
                       variableNames.getName(copy.destination));
     });
@@ -1558,8 +1559,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     if (methodName == null) {
-      methodName = backend.namer.instanceMethodInvocationName(
-          node.selector.library, name, node.selector);
+      methodName = backend.namer.invocationName(node.selector);
       bool inLoop = node.block.enclosingLoopHeader != null;
 
       Selector selector = getOptimizedSelectorFor(node, node.selector);
@@ -1618,7 +1618,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     use(node.receiver);
     Selector setter = node.selector;
-    String name = backend.namer.setterName(setter.library, setter.name);
+    String name = backend.namer.invocationName(setter);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     Selector selector = getOptimizedSelectorFor(node, setter);
     world.registerDynamicSetter(setter.name, selector);
@@ -1635,7 +1635,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
     use(node.receiver);
     Selector getter = node.selector;
-    String name = backend.namer.getterName(getter.library, getter.name);
+    String name = backend.namer.invocationName(getter);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     world.registerDynamicGetter(
         getter.name, getOptimizedSelectorFor(node, getter));
@@ -1646,12 +1646,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeClosure(HInvokeClosure node) {
+    Selector call = new Selector.callClosureFrom(node.selector);
     use(node.receiver);
     push(jsPropertyCall(pop(),
-                        backend.namer.closureInvocationName(node.selector),
+                        backend.namer.invocationName(call),
                         visitArguments(node.inputs)),
          node);
-    Selector call = new Selector.callClosureFrom(node.selector);
     world.registerDynamicInvocation(call.name, call);
     // A closure can also be invoked through [HInvokeDynamicMethod] by
     // explicitly calling the [:call:] method. Therefore, we must also
@@ -1678,14 +1678,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         ClosureClassElement closure = currentClass;
         currentClass = closure.methodElement.getEnclosingClass();
       }
-      String fieldName;
-      if (currentClass.isShadowedByField(superMethod)) {
-        fieldName = backend.namer.shadowedFieldName(superMethod);
-      } else {
-        LibraryElement library = superMethod.getLibrary();
-        SourceString name = superMethod.name;
-        fieldName = backend.namer.instanceFieldName(library, name);
-      }
+      String fieldName = currentClass.isShadowedByField(superMethod)
+          ? backend.namer.shadowedFieldName(superMethod)
+          : backend.namer.instanceFieldName(superMethod);
       use(node.inputs[1]);
       js.PropertyAccess access =
           new js.PropertyAccess.field(pop(), fieldName);
@@ -1696,18 +1691,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         push(access, node);
       }
     } else {
-      String methodName;
-      if (superMethod.kind == ElementKind.FUNCTION ||
-          superMethod.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-        methodName = backend.namer.instanceMethodName(superMethod);
-      } else if (superMethod.kind == ElementKind.GETTER) {
-        methodName =
-            backend.namer.getterName(currentLibrary, superMethod.name);
-      } else {
-        assert(superMethod.kind == ElementKind.SETTER);
-        methodName =
-            backend.namer.setterName(currentLibrary, superMethod.name);
-      }
+      String methodName = backend.namer.getName(superMethod);
       String className = backend.namer.isolateAccess(superClass);
       js.VariableUse classReference = new js.VariableUse(className);
       js.PropertyAccess prototype =
@@ -2193,7 +2177,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkTypeOf(HInstruction input, String cmp, String typeName) {
     use(input);
     js.Expression typeOf = new js.Prefix("typeof", pop());
-    push(new js.Binary(cmp, typeOf, new js.LiteralString("'$typeName'")));
+    push(new js.Binary(cmp, typeOf, js.string(typeName)));
   }
 
   void checkNum(HInstruction input, String cmp)
@@ -2501,14 +2485,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // or [propertyTypeCast].
         assert(!type.isMalformed);
         String additionalArgument = backend.namer.operatorIs(element);
-        arguments.add(new js.LiteralString("'$additionalArgument'"));
+        arguments.add(js.string(additionalArgument));
       } else if (parameterCount == 3) {
         // 3 arguments implies that the method is [malformedTypeCheck].
         assert(type.isMalformed);
         String reasons = fetchReasonsFromMalformedType(type);
-        arguments.add(new js.LiteralString("'$type'"));
+        arguments.add(js.string('$type'));
         // TODO(johnniwinther): Handle escaping correctly.
-        arguments.add(new js.LiteralString("'$reasons'"));
+        arguments.add(js.string(reasons));
       } else {
         assert(!type.isMalformed);
       }

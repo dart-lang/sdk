@@ -17,6 +17,7 @@ class FlowGraphBuilder;
 class GraphEntryInstr;
 class PhiInstr;
 class ReturnInstr;
+class ValueInliningContext;
 
 class BlockIterator : public ValueObject {
  public:
@@ -98,9 +99,6 @@ class FlowGraph : public ZoneAllocated {
     return graph_entry_;
   }
 
-  ZoneGrowableArray<ReturnInstr*>* exits() const { return exits_; }
-  void set_exits(ZoneGrowableArray<ReturnInstr*>* exits) { exits_ = exits; }
-
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
 
   intptr_t InstructionCount() const;
@@ -117,7 +115,9 @@ class FlowGraph : public ZoneAllocated {
   // body blocks for each loop header.
   void ComputeLoops(GrowableArray<BlockEntryInstr*>* loop_headers);
 
-  void InlineCall(Definition* call, FlowGraph* callee_graph);
+  void InlineCall(Definition* call,
+                  FlowGraph* callee_graph,
+                  ValueInliningContext* inlining_context);
   void RepairGraphAfterInlining();
 
   // TODO(zerny): Once the SSA is feature complete this should be removed.
@@ -177,7 +177,6 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> preorder_;
   GrowableArray<BlockEntryInstr*> postorder_;
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
-  ZoneGrowableArray<ReturnInstr*>* exits_;
   bool invalid_dominator_tree_;
 };
 

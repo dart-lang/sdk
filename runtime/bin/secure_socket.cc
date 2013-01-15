@@ -287,19 +287,32 @@ void SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
       Dart_InstanceGetClass(dart_buffer_object);
   Dart_Handle dart_buffer_size = ThrowIfError(
       Dart_GetField(external_buffer_class, DartUtils::NewString("SIZE")));
-  buffer_size_ = DartUtils::GetIntegerValue(dart_buffer_size);
-  if (buffer_size_ <= 0 || buffer_size_ > 1024 * 1024) {
+  int64_t buffer_size = DartUtils::GetIntegerValue(dart_buffer_size);
+  Dart_Handle dart_encrypted_buffer_size = ThrowIfError(
+      Dart_GetField(external_buffer_class,
+                    DartUtils::NewString("ENCRYPTED_SIZE")));
+  int64_t encrypted_buffer_size =
+      DartUtils::GetIntegerValue(dart_encrypted_buffer_size);
+  if (buffer_size <= 0 || buffer_size > 1024 * 1024) {
     Dart_ThrowException(
         DartUtils::NewString("Invalid buffer size in _ExternalBuffer"));
   }
+  if (encrypted_buffer_size <= 0 || encrypted_buffer_size > 1024 * 1024) {
+    Dart_ThrowException(DartUtils::NewString(
+        "Invalid encrypted buffer size in _ExternalBuffer"));
+  }
+  buffer_size_ = static_cast<int>(buffer_size);
+  encrypted_buffer_size_ = static_cast<int>(encrypted_buffer_size);
+
 
   Dart_Handle data_identifier = DartUtils::NewString("data");
   for (int i = 0; i < kNumBuffers; ++i) {
+    int size = isEncrypted(i) ? encrypted_buffer_size_ : buffer_size_;
     dart_buffer_objects_[i] = ThrowIfError(
         Dart_NewPersistentHandle(Dart_ListGetAt(dart_buffers_object, i)));
-    buffers_[i] = new uint8_t[buffer_size_];
+    buffers_[i] = new uint8_t[size];
     Dart_Handle data = ThrowIfError(
-      Dart_NewExternalByteArray(buffers_[i], buffer_size_, NULL, NULL));
+      Dart_NewExternalByteArray(buffers_[i], size, NULL, NULL));
     ThrowIfError(Dart_SetField(dart_buffer_objects_[i],
                                data_identifier,
                                data));
@@ -568,6 +581,7 @@ void SSLFilter::Destroy() {
 
 
 intptr_t SSLFilter::ProcessBuffer(int buffer_index) {
+  int size = isEncrypted(buffer_index) ? encrypted_buffer_size_ : buffer_size_;
   Dart_Handle buffer_object = dart_buffer_objects_[buffer_index];
   Dart_Handle start_object = ThrowIfError(
       Dart_GetField(buffer_object, string_start_));
@@ -576,17 +590,17 @@ intptr_t SSLFilter::ProcessBuffer(int buffer_index) {
   int64_t unsafe_start = DartUtils::GetIntegerValue(start_object);
   int64_t unsafe_length = DartUtils::GetIntegerValue(length_object);
   ASSERT(unsafe_start >= 0);
-  ASSERT(unsafe_start < buffer_size_);
+  ASSERT(unsafe_start < size);
   ASSERT(unsafe_length >= 0);
-  ASSERT(unsafe_length <= buffer_size_);
-  intptr_t start = static_cast<intptr_t>(unsafe_start);
-  intptr_t length = static_cast<intptr_t>(unsafe_length);
+  ASSERT(unsafe_length <= size);
+  int start = static_cast<int>(unsafe_start);
+  int length = static_cast<int>(unsafe_length);
   uint8_t* buffer = buffers_[buffer_index];
 
   int bytes_processed = 0;
   switch (buffer_index) {
     case kReadPlaintext: {
-      int bytes_free = buffer_size_ - start - length;
+      int bytes_free = size - start - length;
       bytes_processed = PR_Read(filter_,
                                 buffer + start + length,
                                 bytes_free);
@@ -607,7 +621,7 @@ intptr_t SSLFilter::ProcessBuffer(int buffer_index) {
       const uint8_t* buf2;
       unsigned int len1;
       unsigned int len2;
-      int bytes_free = buffer_size_ - start - length;
+      int bytes_free = size - start - length;
       memio_Private* secret = memio_GetSecret(filter_);
       memio_GetWriteParams(secret, &buf1, &len1, &buf2, &len2);
       int bytes_to_send =

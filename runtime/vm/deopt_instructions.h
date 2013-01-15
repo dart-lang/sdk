@@ -123,6 +123,12 @@ class DeoptInstr : public ZoneAllocated {
   // set the output parameter info_number to the index of the shared suffix.
   static intptr_t DecodeSuffix(intptr_t from_index, intptr_t* info_number);
 
+  // Get the function and return address which is encoded in this
+  // kRetAfterAddress deopt instruction.
+  static uword GetRetAfterAddress(intptr_t deopt_from_index,
+                                  const Array& object_table,
+                                  Function* func);
+
  protected:
   virtual DeoptInstr::Kind kind() const = 0;
   virtual intptr_t from_index() const = 0;

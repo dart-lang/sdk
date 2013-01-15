@@ -66,23 +66,24 @@ class HtmlEnhancedConfiguration extends Configuration {
     }
 
     cssElement.innerHtml = _htmlTestCSS;
+    window.postMessage('unittest-suite-wait-for-done', '*');
   }
 
   void onStart() {
-    window.postMessage('unittest-suite-wait-for-done', '*');
     // Listen for uncaught errors.
     window.on.error.add(_onErrorClosure);
   }
 
   void onTestResult(TestCase testCase) {}
 
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
-    _uninstallHandlers();
-
     _showInteractiveResultsInPage(passed, failed, errors, results,
         _isLayoutTest, uncaughtError);
+  }
 
+  void onDone(bool success) {
+    _uninstallHandlers();
     window.postMessage('unittest-suite-done', '*');
   }
 
@@ -172,10 +173,11 @@ class HtmlEnhancedConfiguration extends Configuration {
 
           previousGroup = test_.currentGroup;
 
-          var testsInGroup = results.filter(
-              (TestCase t) => t.currentGroup == previousGroup);
+          var testsInGroup = results
+              .where((TestCase t) => t.currentGroup == previousGroup)
+              .toList();
           var groupTotalTestCount = testsInGroup.length;
-          var groupTestPassedCount = testsInGroup.filter(
+          var groupTestPassedCount = testsInGroup.where(
               (TestCase t) => t.result == 'pass').length;
           groupPassFail = groupTotalTestCount == groupTestPassedCount;
           var passFailClass = "unittest-group-status unittest-group-"
@@ -410,5 +412,6 @@ class HtmlEnhancedConfiguration extends Configuration {
 }
 
 void useHtmlEnhancedConfiguration([bool isLayoutTest = false]) {
+  if (config != null) return;
   configure(new HtmlEnhancedConfiguration(isLayoutTest));
 }

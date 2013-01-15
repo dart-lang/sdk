@@ -27,9 +27,11 @@ abstract class num implements Comparable {
    * Truncating division operator.
    *
    * The result of the truncating division [:a ~/ b:] is equivalent to
-   * [:(a / b).truncate():].
+   * [:(a / b).truncate().toInt():].
    */
-  num operator ~/(num other);
+  // TODO(floitsch): this is currently not true: bignum1 / bignum2 will return
+  // NaN, whereas bignum1 ~/ bignum2 will give the correct result.
+  int operator ~/(num other);
 
   /** Negate operator. */
   num operator -();
@@ -78,6 +80,13 @@ abstract class num implements Comparable {
    */
   num truncate();
 
+  /**
+   * Clamps [this] to be in the range [lowerLimit]-[upperLimit]. The comparison
+   * is done using [compareTo] and therefore takes [:-0.0:] into account.
+   * It also implies that [double.NaN] is treated as the maximal double value.
+   */
+  num clamp(num lowerLimit, num upperLimit);
+
   /** Truncates this [num] to an integer and returns the result as an [int]. */
   int toInt();
 
@@ -91,32 +100,32 @@ abstract class num implements Comparable {
   double toDouble();
 
   /**
-   * Converts a [num] to a string representation with [fractionDigits]
-   * digits after the decimal point.
+   * Converts [this] to a string representation with [fractionDigits] digits
+   * after the decimal point.
+   *
+   * The parameter [fractionDigits] must be an integer satisfying:
+   * [:0 <= fractionDigits <= 20:].
    */
   String toStringAsFixed(int fractionDigits);
 
   /**
-   * Converts a [num] to a string in decimal exponential notation with
+   * Converts [this] to a string in decimal exponential notation with
    * [fractionDigits] digits after the decimal point.
+   *
+   * If [fractionDigits] is given then it must be an integer satisfying:
+   * [:0 <= fractionDigits <= 20:]. Without the parameter the returned string
+   * uses the shortest number of digits that accurately represent [this].
    */
-  String toStringAsExponential(int fractionDigits);
+  String toStringAsExponential([int fractionDigits]);
 
   /**
-   * Converts a [num] to a string representation with [precision]
-   * significant digits.
+   * Converts [this] to a string representation with [precision] significant
+   * digits.
+   *
+   * The parameter [precision] must be an integer satisfying:
+   * [:1 <= precision <= 21:].
    */
   String toStringAsPrecision(int precision);
 
-  /**
-   * Converts a [num] to a string representation in the given [radix].
-   *
-   * The [num] in converted to an [int] using [toInt]. That [int] is
-   * then converted to a string representation with the given
-   * [radix]. In the string representation, lower-case letters are
-   * used for digits above '9'.
-   *
-   * The [radix] argument must be an integer between 2 and 36.
-   */
-  String toRadixString(int radix);
+
 }

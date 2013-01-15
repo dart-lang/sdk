@@ -143,12 +143,10 @@ class DirectoryTest {
   static void testDeleteNonExistent() {
     // Test that deleting a non-existing directory fails.
     setupFutureHandlers(future) {
-      future.handleException((e) {
-        Expect.isTrue(e is DirectoryIOException);
-        return true;
-      });
       future.then((ignore) {
         Expect.fail("Deletion of non-existing directory should fail");
+      }).catchError((e) {
+        Expect.isTrue(e.error is DirectoryIOException);
       });
     }
 
@@ -176,14 +174,14 @@ class DirectoryTest {
           var long = new Directory("${buffer.toString()}");
           var errors = 0;
           onError(e) {
-            Expect.isTrue(e is DirectoryIOException);
+            Expect.isTrue(e.error is DirectoryIOException);
             if (++errors == 2) {
               d.delete(recursive: true).then((ignore) => port.close());
             }
             return true;
           }
-          long.delete().handleException(onError);
-          long.delete(recursive: true).handleException(onError);
+          long.delete().catchError(onError);
+          long.delete(recursive: true).catchError(onError);
         });
     });
   }
@@ -391,7 +389,7 @@ class DirectoryTest {
   static void testFromPath() {
     var name = new File('.').fullPathSync();
     Directory current1 = new Directory(name);
-    var path = new Path.fromNative(name);
+    var path = new Path(name);
     Directory current2 = new Directory.fromPath(path);
     Expect.equals(current1.path, current2.path);
     Expect.isTrue(current1.existsSync());
@@ -482,7 +480,7 @@ testCreateTempError() {
 
   var port = new ReceivePort();
   var future = new Directory(location).createTemp();
-  future.handleException((e) => port.close());
+  future.catchError((e) => port.close());
 }
 
 
@@ -550,14 +548,13 @@ testCreateDirExistingFile() {
     var subDir = new Directory(path);
     file.create().then((_) {
       subDir.create()
-        ..then((_) { Expect.fail("dir create should fail on existing file"); })
-        ..handleException((e) {
-            Expect.isTrue(e is DirectoryIOException);
-            temp.delete(recursive: true).then((_) {
-              port.close();
-            });
-            return true;
+        .then((_) { Expect.fail("dir create should fail on existing file"); })
+        .catchError((e) {
+          Expect.isTrue(e.error is DirectoryIOException);
+          temp.delete(recursive: true).then((_) {
+            port.close();
           });
+        });
     });
   });
 }

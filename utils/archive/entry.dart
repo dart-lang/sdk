@@ -50,7 +50,7 @@ class ArchiveEntry {
 
   /** Create a new [ArchiveEntry] with default values for all of its fields. */
   static Future<ArchiveEntry> create() {
-    return call(NEW).transform((properties) {
+    return call(NEW).then((properties) {
       return new archive.ArchiveEntry.internal(properties, null);
     });
   }
@@ -211,11 +211,11 @@ class ArchiveEntry {
     var completer = new Completer<List<int>>();
 
     stream.onData = () => buffer.addAll(stream.read());
-    stream.onError = completer.completeException;
+    stream.onError = completer.completeError;
     stream.onClosed = () => completer.complete(buffer);
 
-    return Futures.wait([call(CLONE, _id), completer.future])
-      .transform((list) => new CompleteArchiveEntry._(list[0], list[1]));
+    return Future.wait([call(CLONE, _id), completer.future])
+      .then((list) => new CompleteArchiveEntry._(list[0], list[1]));
   }
 
   /**
@@ -272,12 +272,12 @@ class ArchiveEntry {
 
     _input = new ListInputStream();
     // TODO(nweiz): Report errors once issue 3657 is fixed
-    var future = _consumeInput().chain((_) {
+    var future = _consumeInput().then((_) {
       if (!_input.closed) _input.markEndOfStream();
       // Asynchronously complete to give the InputStream callbacks a chance to
       // fire.
       return async();
-    }).transform((_) => inputCompleter.complete(null));
+    }).then((_) => inputCompleter.complete(null));
 
     future.handleException((e) {
       print(e);
@@ -307,11 +307,11 @@ class ArchiveEntry {
    */
   Future _consumeInput() {
     var data;
-    return call(read.DATA_BLOCK, _archiveId).chain((_data) {
+    return call(read.DATA_BLOCK, _archiveId).then((_data) {
       data = _data;
       // TODO(nweiz): This async() call is only necessary because of issue 4222.
       return async();
-    }).chain((_) {
+    }).then((_) {
       if (_input.closed || _archiveId == null || data == null) {
         return new Future.immediate(null);
       }

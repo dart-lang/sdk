@@ -4,6 +4,7 @@
 
 library base_client;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:scalarlist';
 import 'dart:uri';
@@ -72,7 +73,7 @@ abstract class BaseClient implements Client {
   /// For more fine-grained control over the request and response, use [send] or
   /// [get] instead.
   Future<String> read(url, {Map<String, String> headers}) {
-    return get(url, headers: headers).transform((response) {
+    return get(url, headers: headers).then((response) {
       _checkResponseSuccess(url, response);
       return response.body;
     });
@@ -88,7 +89,7 @@ abstract class BaseClient implements Client {
   /// For more fine-grained control over the request and response, use [send] or
   /// [get] instead.
   Future<Uint8List> readBytes(url, {Map<String, String> headers}) {
-    return get(url, headers: headers).transform((response) {
+    return get(url, headers: headers).then((response) {
       _checkResponseSuccess(url, response);
       return response.bodyBytes;
     });
@@ -97,7 +98,7 @@ abstract class BaseClient implements Client {
   /// Sends an HTTP request and asynchronously returns the response.
   ///
   /// Implementers should call [BaseRequest.finalize] to get the body of the
-  /// request as an [InputStream]. They shouldn't make any assumptions about the
+  /// request as a [ByteStream]. They shouldn't make any assumptions about the
   /// state of the stream; it could have data written to it asynchronously at a
   /// later point, or it could already be closed when it's returned.
   Future<StreamedResponse> send(BaseRequest request);
@@ -108,7 +109,7 @@ abstract class BaseClient implements Client {
       [Map<String, String> fields]) {
     // Wrap everything in a Future block so that synchronous validation errors
     // are passed asynchronously through the Future chain.
-    return async.chain((_) {
+    return async.then((_) {
       if (url is String) url = new Uri.fromString(url);
       var request = new Request(method, url);
 
@@ -116,7 +117,7 @@ abstract class BaseClient implements Client {
       if (fields != null && !fields.isEmpty) request.bodyFields = fields;
 
       return send(request);
-    }).chain(Response.fromStream);
+    }).then(Response.fromStream);
   }
 
   /// Throws an error if [response] is not successful.

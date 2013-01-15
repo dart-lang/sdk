@@ -368,7 +368,7 @@ Note: currently only implemented for dart2js.''',
         configuration[spec.name] = true;
       } else if (spec.type == 'int') {
         try {
-          configuration[spec.name] = parseInt(value);
+          configuration[spec.name] = int.parse(value);
         } catch (e) {
           print('Integer value expected for int option $name');
           exit(1);
@@ -395,7 +395,7 @@ Note: currently only implemented for dart2js.''',
     }
 
     List<Map> expandedConfigs = _expandConfigurations(configuration);
-    List<Map> result = expandedConfigs.filter(_isValidConfig);
+    List<Map> result = expandedConfigs.where(_isValidConfig).toList();
     return result.isEmpty ? null : result;
   }
 
@@ -665,7 +665,7 @@ Note: currently only implemented for dart2js.''',
    */
   _TestOptionSpecification _getSpecification(String name) {
     for (var option in _options) {
-      if (option.keys.some((key) => key == name)) {
+      if (option.keys.any((key) => key == name)) {
         return option;
       }
     }

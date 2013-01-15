@@ -114,6 +114,7 @@ public enum Token {
   VAR("var", 0),
   VOID("void", 0),
   WHILE("while", 0),
+  WITH("with", 0),
 
   /* Literals. */
   NULL_LITERAL("null", 0),

@@ -20,6 +20,6 @@ main() {
   Expect.isTrue(!generated.contains('eqB'));
 
   RegExp regexp = new RegExp('==');
-  Iterator<Match> matches = regexp.allMatches(generated).iterator();
+  Iterator<Match> matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 4);
 }

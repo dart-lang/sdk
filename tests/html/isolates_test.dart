@@ -20,7 +20,7 @@ void isolateEntry() {
   }
 
   // Check that JSON library was loaded to isolate.
-  JSON.stringify([1, 2, 3]);
+  stringify([1, 2, 3]);
 
   isolate.port.receive((message, replyTo) {
     replyTo.send(responseFor(message), null);

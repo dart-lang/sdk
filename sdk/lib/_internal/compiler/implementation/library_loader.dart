@@ -225,12 +225,12 @@ class LibraryLoaderTask extends LibraryLoader {
       if (!identical(existing, library)) {
         Uri uri = library.entryCompilationUnit.script.uri;
         compiler.reportMessage(
-            compiler.spanFromNode(tag.name, uri),
+            compiler.spanFromSpannable(tag.name, uri),
             MessageKind.DUPLICATED_LIBRARY_NAME.error([name]),
             api.Diagnostic.WARNING);
         Uri existingUri = existing.entryCompilationUnit.script.uri;
         compiler.reportMessage(
-            compiler.spanFromNode(existing.libraryTag.name, existingUri),
+            compiler.spanFromSpannable(existing.libraryTag.name, existingUri),
             MessageKind.DUPLICATED_LIBRARY_NAME.error([name]),
             api.Diagnostic.WARNING);
       }
@@ -267,7 +267,7 @@ class LibraryLoaderTask extends LibraryLoader {
     if (!path.isAbsolute()) throw new ArgumentError(path);
     Script sourceScript = compiler.readScript(path, part);
     CompilationUnitElement unit =
-        new CompilationUnitElement(sourceScript, library);
+        new CompilationUnitElementX(sourceScript, library);
     compiler.withCurrentElement(unit, () {
       compiler.scanner.scan(unit);
       if (unit.partTag == null) {
@@ -318,7 +318,7 @@ class LibraryLoaderTask extends LibraryLoader {
     LibraryElement createLibrary() {
       newLibrary = true;
       Script script = compiler.readScript(uri, node);
-      LibraryElement element = new LibraryElement(script, canonicalUri);
+      LibraryElement element = new LibraryElementX(script, canonicalUri);
       handler.registerNewLibrary(element);
       native.maybeEnableNative(compiler, element, uri);
       return element;
@@ -393,8 +393,8 @@ class ImportLink {
       SourceString prefix = import.prefix.source;
       Element e = importingLibrary.find(prefix);
       if (e == null) {
-        e = new PrefixElement(prefix, importingLibrary.entryCompilationUnit,
-                              import.getBeginToken());
+        e = new PrefixElementX(prefix, importingLibrary.entryCompilationUnit,
+                               import.getBeginToken());
         importingLibrary.addToScope(e, compiler);
       }
       if (!identical(e.kind, ElementKind.PREFIX)) {
@@ -464,7 +464,10 @@ class ExportLink {
  */
 class LibraryDependencyNode {
   final LibraryElement library;
-  int get hashCode => ++hashCodeCounter; // VM implementation of hashCode is slow.
+
+  // TODO(ahe): Remove [hashCodeCounter] and [hashCode] when
+  // VM implementation of Object.hashCode is not slow.
+  final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;
 
 
@@ -522,19 +525,14 @@ class LibraryDependencyNode {
    * the export scopes performed in [LibraryDependencyHandler.computeExports].
    */
   void registerInitialExports() {
-    pendingExportSet.addAll(
-        library.localScope.values.filter((Element element) {
-          // At this point [localScope] only contains members so we don't need
-          // to check for foreign or prefix elements.
-          return !element.name.isPrivate();
-        }));
+    pendingExportSet.addAll(library.getNonPrivateElementsInScope());
   }
 
   /**
    * Registers the compute export scope with the node library.
    */
   void registerExports() {
-    library.setExports(exportScope.values);
+    library.setExports(exportScope.values.toList());
   }
 
   /**
@@ -573,7 +571,7 @@ class LibraryDependencyNode {
             MessageKind.DUPLICATE_EXPORT.error([name]), api.Diagnostic.ERROR);
         compiler.reportMessage(compiler.spanFromElement(element),
             MessageKind.DUPLICATE_EXPORT.error([name]), api.Diagnostic.ERROR);
-        element = exportScope[name] = new ErroneousElement(
+        element = exportScope[name] = new ErroneousElementX(
             MessageKind.DUPLICATE_EXPORT, [name], name, library);
       }
     } else {

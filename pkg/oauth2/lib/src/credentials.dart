@@ -4,7 +4,8 @@
 
 library credentials;
 
-import 'dart:json';
+import 'dart:async';
+import 'dart:json' as JSON;
 import 'dart:uri';
 
 import '../../../http/lib/http.dart' as http;
@@ -152,7 +153,7 @@ class Credentials {
     if (httpClient == null) httpClient = new http.Client();
 
     var startTime = new Date.now();
-    return async.chain((_) {
+    return async.then((_) {
       if (refreshToken == null) {
         throw new StateError("Can't refresh credentials without a refresh "
             "token.");
@@ -173,10 +174,10 @@ class Credentials {
       if (!scopes.isEmpty) fields["scope"] = Strings.join(scopes, ' ');
 
       return httpClient.post(tokenEndpoint, fields: fields);
-    }).transform((response) {
+    }).then((response) {
       return handleAccessTokenResponse(
           response, tokenEndpoint, startTime, scopes);
-    }).transform((credentials) {
+    }).then((credentials) {
       // The authorization server may issue a new refresh token. If it doesn't,
       // we should re-use the one we already have.
       if (credentials.refreshToken != null) return credentials;

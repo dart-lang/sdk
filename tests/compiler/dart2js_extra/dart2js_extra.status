@@ -7,6 +7,8 @@ class_test: Fail
 statements_test: Fail
 typed_locals_test: Fail
 no_such_method_test: Fail # Wrong InvocationMirror.memberName.
+type_argument_factory_nocrash_test: Fail # Issue 7735
+
 
 [ $compiler == dart2js && $checked ]
 parameter_bailout_test: Fail, OK
@@ -27,8 +29,7 @@ class_test: Fail
 to_string_test: Fail # Issue 7179.
 
 [ $jscl ]
-timer_test: Fail, OK # Timer is only supported in browsers.
-mirror_test: Fail, OK # Timer is only supported in browsers.
+timer_test: Fail # Issue 7728.
 
 [ $runtime == none ]
 timer_negative_test: Fail, OK # A negative runtime test.

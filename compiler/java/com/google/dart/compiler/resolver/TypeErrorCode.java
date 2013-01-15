@@ -30,6 +30,7 @@ public enum TypeErrorCode implements ErrorCode {
       "All case expressions should be compiler-time constants of the same type - 'int' or 'String'. '%s' expected but '%s' found"),
   EXPECTED_POSITIONAL_ARGUMENT("Expected positional argument of type %s before named arguments"),
   EXTRA_ARGUMENT("extra argument"),
+  FIELD_GETTER_SETTER_SAME_STATIC("Field's getter and setter should be both static or not static"),
   FIELD_HAS_NO_GETTER("Field '%s' has no getter"),
   FIELD_HAS_NO_SETTER("Field '%s' has no setter"),
   FIELD_IS_FINAL("Field '%s' is final"),

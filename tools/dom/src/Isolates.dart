@@ -72,6 +72,11 @@ class _JsSendPortSync implements SendPortSync {
     return _deserialize(result);
   }
 
+  bool operator==(var other) {
+    return (other is _JsSendPortSync) && (_id == other._id);
+  }
+
+  int get hashCode => _id;
 }
 
 // TODO(vsm): Differentiate between Dart2Js and Dartium isolates.
@@ -95,13 +100,20 @@ class _RemoteSendPortSync implements SendPortSync {
     var source = '$target-result';
     var result = null;
     var listener = (Event e) {
-      result = JSON.parse(_getPortSyncEventData(e));
+      result = json.parse(_getPortSyncEventData(e));
     };
     window.on[source].add(listener);
     _dispatchEvent(target, [source, message]);
     window.on[source].remove(listener);
     return result;
   }
+
+  bool operator==(var other) {
+    return (other is _RemoteSendPortSync) && (_isolateId == other._isolateId)
+      && (_portId == other._portId);
+  }
+
+  int get hashCode => _isolateId >> 16 + _portId;
 }
 
 // The receiver is in the same Dart isolate, compiled to JS.
@@ -117,6 +129,13 @@ class _LocalSendPortSync implements SendPortSync {
     var result = _receivePort._callback(copy);
     return _deserialize(_serialize(result));
   }
+
+  bool operator==(var other) {
+    return (other is _LocalSendPortSync)
+      && (_receivePort == other._receivePort);
+  }
+
+  int get hashCode => _receivePort.hashCode;
 }
 
 // TODO(vsm): Move this to dart:isolate.  This will take some
@@ -167,7 +186,7 @@ class ReceivePortSync {
     _callback = callback;
     if (_listener == null) {
       _listener = (Event e) {
-        var data = JSON.parse(_getPortSyncEventData(e));
+        var data = json.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -198,7 +217,7 @@ class ReceivePortSync {
 get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
-  var event = new CustomEvent(receiver, false, false, JSON.stringify(message));
+  var event = new CustomEvent(receiver, false, false, json.stringify(message));
   window.$dom_dispatchEvent(event);
 }
 

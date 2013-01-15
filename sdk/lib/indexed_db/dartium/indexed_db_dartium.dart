@@ -1,5 +1,6 @@
 library indexed_db;
 
+import 'dart:async';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
@@ -119,6 +120,12 @@ class CursorWithValue extends Cursor {
 class Database extends EventTarget {
   Database.internal() : super.internal();
 
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<UpgradeNeededEvent> versionChangeEvent = const EventStreamProvider<UpgradeNeededEvent>('versionchange');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DatabaseEvents get on =>
     new DatabaseEvents(this);
@@ -169,7 +176,7 @@ class Database extends EventTarget {
     if ((storeName_OR_storeNames is String || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
       return _transaction_3(storeName_OR_storeNames, mode);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -183,6 +190,12 @@ class Database extends EventTarget {
 
   /** @domName IDBDatabase.transaction_3 */
   Transaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_3_Callback";
+
+  Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<UpgradeNeededEvent> get onVersionChange => versionChangeEvent.forTarget(this);
 
 }
 
@@ -289,7 +302,7 @@ class Index extends NativeFieldWrapperClass1 {
     if (?key_OR_range) {
       return _count_3(key_OR_range);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -311,7 +324,7 @@ class Index extends NativeFieldWrapperClass1 {
     if (?key) {
       return _get_2(key);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -329,7 +342,7 @@ class Index extends NativeFieldWrapperClass1 {
     if (?key) {
       return _getKey_2(key);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -356,7 +369,7 @@ class Index extends NativeFieldWrapperClass1 {
     if (?key_OR_range && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -395,7 +408,7 @@ class Index extends NativeFieldWrapperClass1 {
     if (?key_OR_range && (direction is String || direction == null)) {
       return _openKeyCursor_5(key_OR_range, direction);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -599,7 +612,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if (?key_OR_range) {
       return _count_3(key_OR_range);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -621,7 +634,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((name is String || name == null) && (keyPath is String || keyPath == null) && (options is Map || options == null)) {
       return _createIndex_2(name, keyPath, options);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -639,7 +652,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if (?key_OR_keyRange) {
       return _delete_2(key_OR_keyRange);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -661,7 +674,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if (?key) {
       return _get_2(key);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -692,7 +705,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if (?key_OR_range && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
-    throw "Incorrect number or type of arguments";
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 
@@ -742,9 +755,17 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 class OpenDBRequest extends Request implements EventTarget {
   OpenDBRequest.internal() : super.internal();
 
+  static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
+
+  static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   OpenDBRequestEvents get on =>
     new OpenDBRequestEvents(this);
+
+  Stream<Event> get onBlocked => blockedEvent.forTarget(this);
+
+  Stream<VersionChangeEvent> get onUpgradeNeeded => upgradeNeededEvent.forTarget(this);
 
 }
 
@@ -769,6 +790,10 @@ class OpenDBRequestEvents extends RequestEvents {
 /// @domName IDBRequest
 class Request extends EventTarget {
   Request.internal() : super.internal();
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RequestEvents get on =>
@@ -810,6 +835,10 @@ class Request extends EventTarget {
   /** @domName IDBRequest.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_removeEventListener_Callback";
 
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onSuccess => successEvent.forTarget(this);
+
 }
 
 /// @docsEditable true
@@ -833,6 +862,12 @@ class RequestEvents extends Events {
 /// @domName IDBTransaction
 class Transaction extends EventTarget {
   Transaction.internal() : super.internal();
+
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TransactionEvents get on =>
@@ -873,6 +908,12 @@ class Transaction extends EventTarget {
 
   /** @domName IDBTransaction.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_removeEventListener_Callback";
+
+  Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onComplete => completeEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
 
 }
 
@@ -937,9 +978,13 @@ class VersionChangeEvent extends Event {
 class VersionChangeRequest extends Request implements EventTarget {
   VersionChangeRequest.internal() : super.internal();
 
+  static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   VersionChangeRequestEvents get on =>
     new VersionChangeRequestEvents(this);
+
+  Stream<Event> get onBlocked => blockedEvent.forTarget(this);
 
 }
 

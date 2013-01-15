@@ -6,19 +6,20 @@ library curl_client_test;
 
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:uri';
 
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../../pkg/http/lib/http.dart' as http;
 import '../../pub/curl_client.dart';
 import '../../pub/io.dart';
+import '../../pub/utils.dart';
 
-// TODO(rnystrom): All of the code from here to the "---..." line was copied
-// from pkg/http/test/utils.dart and pkg/http/lib/src/utils.dart. It's copied
-// here because http/test/utils.dart is now using "package:" imports and this
-// is not. You cannot mix those because you end up with duplicate copies of the
-// same library in memory. Since curl_client is going away soon anyway, I'm
+// TODO(rnystrom): All of the code from here to the first "---..." line was
+// copied from pkg/http/test/utils.dart and pkg/http/lib/src/utils.dart. It's
+// copied here because http/test/utils.dart is now using "package:" imports and
+// this is not. You cannot mix those because you end up with duplicate copies of
+// the same library in memory. Since curl_client is going away soon anyway, I'm
 // just copying the code here. Delete all of this when curl client is removed.
 
 /// Returns the [Encoding] that corresponds to [charset]. Throws a
@@ -123,7 +124,7 @@ void startServer() {
         outputEncoding = Encoding.ASCII;
       }
 
-      var body = JSON.stringify(content);
+      var body = json.stringify(content);
       response.contentLength = body.length;
       response.outputStream.writeString(body, outputEncoding);
       response.outputStream.close();
@@ -153,7 +154,7 @@ class _Parse extends BaseMatcher {
 
     var parsed;
     try {
-      parsed = JSON.parse(item);
+      parsed = json.parse(item);
     } catch (e) {
       return false;
     }
@@ -215,7 +216,7 @@ void main() {
   tearDown(stopServer);
 
   test('head', () {
-    expect(new CurlClient().head(serverUrl).transform((response) {
+    expect(new CurlClient().head(serverUrl).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, equals(''));
     }), completes);
@@ -225,7 +226,7 @@ void main() {
     expect(new CurlClient().get(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'GET',
@@ -245,7 +246,7 @@ void main() {
     }, fields: {
       'some-field': 'value',
       'other-field': 'other value'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'POST',
@@ -268,7 +269,7 @@ void main() {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value',
       'Content-Type': 'text/plain'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'POST',
@@ -289,7 +290,7 @@ void main() {
     }, fields: {
       'some-field': 'value',
       'other-field': 'other value'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'PUT',
@@ -312,7 +313,7 @@ void main() {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value',
       'Content-Type': 'text/plain'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'PUT',
@@ -330,7 +331,7 @@ void main() {
     expect(new CurlClient().delete(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
-    }).transform((response) {
+    }).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'DELETE',
@@ -366,7 +367,7 @@ void main() {
     var future = new CurlClient().readBytes(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
-    }).transform((bytes) => new String.fromCharCodes(bytes));
+    }).then((bytes) => new String.fromCharCodes(bytes));
 
     expect(future, completion(parse(equals({
       'method': 'GET',
@@ -389,11 +390,10 @@ void main() {
     request.headers[HttpHeaders.CONTENT_TYPE] =
       'application/json; charset=utf-8';
 
-    var future = client.send(request).chain((response) {
+    var future = client.send(request).then((response) {
       expect(response.statusCode, equals(200));
-      return consumeInputStream(response.stream);
-    }).transform((bytes) => new String.fromCharCodes(bytes));
-    future.onComplete((_) => client.close());
+      return response.stream.bytesToString();
+    }).whenComplete(client.close);
 
     expect(future, completion(parse(equals({
       'method': 'POST',
@@ -405,13 +405,13 @@ void main() {
       'body': '{"hello": "world"}'
     }))));
 
-    request.stream.writeString('{"hello": "world"}');
-    request.stream.close();
+    request.sink.add('{"hello": "world"}'.charCodes);
+    request.sink.close();
   });
 
   test('with one redirect', () {
     var url = serverUrl.resolve('/redirect');
-    expect(new CurlClient().get(url).transform((response) {
+    expect(new CurlClient().get(url).then((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'GET',
@@ -433,7 +433,7 @@ void main() {
 
   test('with one redirect via HEAD', () {
     var url = serverUrl.resolve('/redirect');
-    expect(new CurlClient().head(url).transform((response) {
+    expect(new CurlClient().head(url).then((response) {
       expect(response.statusCode, equals(200));
     }), completes);
   });
@@ -451,8 +451,8 @@ void main() {
   test('without following redirects', () {
     var request = new http.Request('GET', serverUrl.resolve('/redirect'));
     request.followRedirects = false;
-    expect(new CurlClient().send(request).chain(http.Response.fromStream)
-        .transform((response) {
+    expect(new CurlClient().send(request).then(http.Response.fromStream)
+        .then((response) {
       expect(response.statusCode, equals(302));
       expect(response.isRedirect, true);
     }), completes);

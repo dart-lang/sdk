@@ -41,6 +41,7 @@ DEFINE_FLAG(int, inlining_hotness, 10,
     "default 10%: calls above-equal 10% of max-count are inlined.");
 
 DECLARE_FLAG(bool, print_flow_graph);
+DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, verify_compiler);
 DECLARE_FLAG(bool, compiler_stats);
@@ -446,15 +447,15 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Build the callee graph.
-      FlowGraphBuilder builder(*parsed_function);
+      ValueInliningContext* inlining_context = new ValueInliningContext();
+      FlowGraphBuilder builder(*parsed_function, inlining_context);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_build_timer,
                          isolate);
-        callee_graph =
-            builder.BuildGraph(FlowGraphBuilder::kValueContext, loop_depth);
+        callee_graph = builder.BuildGraph(loop_depth);
       }
 
       // The parameter stubs are a copy of the actual arguments providing
@@ -514,7 +515,8 @@ class CallSiteInliner : public ValueObject {
         callee_graph->ComputeUseLists();
       }
 
-      if (FLAG_trace_inlining && FLAG_print_flow_graph) {
+      if (FLAG_trace_inlining &&
+          (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
         OS::Print("Callee graph for inlining %s\n",
                   function.ToFullyQualifiedCString());
         FlowGraphPrinter printer(*callee_graph);
@@ -572,7 +574,7 @@ class CallSiteInliner : public ValueObject {
                          isolate);
 
         // Plug result in the caller graph.
-        caller_graph_->InlineCall(call, callee_graph);
+        caller_graph_->InlineCall(call, callee_graph, inlining_context);
 
         // Remove push arguments of the call.
         for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -595,13 +597,11 @@ class CallSiteInliner : public ValueObject {
             callee_graph->graph_entry()->initial_definitions();
         for (intptr_t i = 0; i < defns->length(); ++i) {
           ConstantInstr* constant = (*defns)[i]->AsConstant();
-          if (constant == NULL ||
-              ((constant->input_use_list() == NULL) &&
-               (constant->env_use_list() == NULL))) {
-            continue;
+          if ((constant != NULL) && constant->HasUses()) {
+            constant->ReplaceUsesWith(
+                caller_graph_->AddConstantToInitialDefinitions(
+                    constant->value()));
           }
-          constant->ReplaceUsesWith(
-            caller_graph_->AddConstantToInitialDefinitions(constant->value()));
         }
       }
 
@@ -864,7 +864,8 @@ void FlowGraphInliner::Inline() {
       "Inlining calls in %s\n",
       flow_graph_->parsed_function().function().ToCString()));
 
-  if (FLAG_trace_inlining && FLAG_print_flow_graph) {
+  if (FLAG_trace_inlining &&
+      (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
     OS::Print("Before Inlining of %s\n", flow_graph_->
               parsed_function().function().ToFullyQualifiedCString());
     FlowGraphPrinter printer(*flow_graph_);
@@ -878,7 +879,7 @@ void FlowGraphInliner::Inline() {
     flow_graph_->RepairGraphAfterInlining();
     if (FLAG_trace_inlining) {
       OS::Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
-      if (FLAG_print_flow_graph) {
+      if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
         OS::Print("After Inlining of %s\n", flow_graph_->
                   parsed_function().function().ToFullyQualifiedCString());
         FlowGraphPrinter printer(*flow_graph_);

@@ -10,7 +10,6 @@ part 'constant_map.dart';
 part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
-part 'mirror_opt_in_message.dart';
 
 // Performance critical helper methods.
 add(var a, var b) => (a is num && b is num)
@@ -339,19 +338,6 @@ String S(value) {
   return res;
 }
 
-class ListIterator<T> implements Iterator<T> {
-  int i;
-  List<T> list;
-  ListIterator(List<T> this.list) : i = 0;
-  bool get hasNext => i < JS('int', r'#.length', list);
-  T next() {
-    if (!hasNext) throw new StateError("No more elements");
-    var value = JS('', r'#[#]', list, i);
-    i += 1;
-    return value;
-  }
-}
-
 createInvocationMirror(name, internalName, type, arguments, argumentNames) =>
     new JSInvocationMirror(name, internalName, type, arguments, argumentNames);
 
@@ -412,8 +398,6 @@ class JSInvocationMirror implements InvocationMirror {
 class Primitives {
   static int hashCodeSeed = 0;
 
-  static bool mirrorsEnabled = false;
-
   static int objectHashCode(object) {
     int hash = JS('var', r'#.$identityHash', object);
     if (hash == null) {
@@ -430,11 +414,7 @@ class Primitives {
    * by defining a function in JavaScript called "dartPrint".
    */
   static void printString(String string) {
-    if ((MIRROR_OPT_IN_MESSAGE == string)) {
-      // Turn on mirrors. Also, make sure that this message isn't easy
-      // to suppress by not calling dartPrint.
-      mirrorsEnabled = true;
-    } else if (JS('bool', r'typeof dartPrint == "function"')) {
+    if (JS('bool', r'typeof dartPrint == "function"')) {
       // Support overriding print from JavaScript.
       JS('void', r'dartPrint(#)', string);
       return;
@@ -461,37 +441,97 @@ class Primitives {
     JS('void', "throw 'Unable to print message: ' + String(#)", string);
   }
 
-  static int parseInt(String string) {
-    checkString(string);
-    var match = JS('=List|Null',
-                   r'/^\s*[+-]?(?:0(x)[a-f0-9]+|\d+)\s*$/i.exec(#)',
-                   string);
-    if (match == null) {
-      throw new FormatException(string);
-    }
-    var base = 10;
-    if (match[1] != null) base = 16;
-    var result = JS('num', r'parseInt(#, #)', string, base);
-    if (result.isNaN) throw new FormatException(string);
-    return result;
+  static void _throwFormatException(String string) {
+    throw new FormatException(string);
   }
 
-  static double parseDouble(String string) {
-    checkString(string);
+  static int parseInt(String source,
+                      int radix,
+                      int handleError(String source)) {
+    if (handleError == null) handleError = _throwFormatException;
+
+    checkString(source);
+    var match = JS('=List|Null',
+        r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(#)',
+        source);
+    int digitsIndex = 1;
+    int hexIndex = 2;
+    int decimalIndex = 3;
+    int nonDecimalHexIndex = 4;
+    if (radix == null) {
+      radix = 10;
+      if (match != null) {
+        if (match[hexIndex] != null) {
+          // Cannot fail because we know that the digits are all hex.
+          return JS('num', r'parseInt(#, 16)', source);
+        }
+        if (match[decimalIndex] != null) {
+          // Cannot fail because we know that the digits are all decimal.
+          return JS('num', r'parseInt(#, 10)', source);
+        }
+        return handleError(source);
+      }
+    } else {
+      if (radix is! int) throw new ArgumentError("Radix is not an integer");
+      if (radix < 2 || radix > 36) {
+        throw new RangeError("Radix $radix not in range 2..36");
+      }
+      if (match != null) {
+        if (radix == 10 && match[decimalIndex] != null) {
+          // Cannot fail because we know that the digits are all decimal.
+          return JS('num', r'parseInt(#, 10)', source);
+        }
+        if (radix < 10 || match[decimalIndex] == null) {
+          // We know that the characters must be ASCII as otherwise the
+          // regexp wouldn't have matched. Calling toLowerCase is thus
+          // guaranteed to be a safe operation. If it wasn't ASCII, then
+          // "İ" would become "i", and we would accept it for radices greater
+          // than 18.
+          int maxCharCode;
+          if (radix <= 10) {
+            // Allow all digits less than the radix. For example 0, 1, 2 for
+            // radix 3.
+            // "0".charCodeAt(0) + radix - 1;
+            maxCharCode = 0x30 + radix - 1;
+          } else {
+            // Characters are located after the digits in ASCII. Therefore we
+            // only check for the character code. The regexp above made already
+            // sure that the string does not contain anything but digits or
+            // characters.
+            // "0".charCodeAt(0) + radix - 1;
+            maxCharCode = 0x61 + radix - 10 - 1;
+          }
+          String digitsPart = match[digitsIndex].toLowerCase();
+          for (int i = 0; i < digitsPart.length; i++) {
+            if (digitsPart.charCodeAt(i) > maxCharCode) {
+              return handleError(source);
+            }
+          }
+        }
+      }
+    }
+    if (match == null) return handleError(source);
+    return JS('num', r'parseInt(#, #)', source, radix);
+  }
+
+  static double parseDouble(String source, int handleError(String source)) {
+    checkString(source);
+    if (handleError == null) handleError = _throwFormatException;
     // Notice that JS parseFloat accepts garbage at the end of the string.
-    // Accept, ignoring leading and trailing whitespace:
+    // Accept only:
     // - NaN
     // - [+/-]Infinity
-    // -  a Dart double literal
+    // - a Dart double literal
+    // We do not allow leading or trailing whitespace.
     if (!JS('bool',
             r'/^\s*(?:NaN|[+-]?(?:Infinity|'
                 r'(?:\.\d+|\d+(?:\.\d+)?)(?:[eE][+-]?\d+)?))\s*$/.test(#)',
-            string)) {
-      throw new FormatException(string);
+            source)) {
+      return handleError(source);
     }
-    var result = JS('num', r'parseFloat(#)', string);
-    if (result.isNaN && string != 'NaN') {
-      throw new FormatException(string);
+    var result = JS('num', r'parseFloat(#)', source);
+    if (result.isNaN && source != 'NaN') {
+      return handleError(source);
     }
     return result;
   }
@@ -520,14 +560,17 @@ class Primitives {
     return "Instance of '$name'";
   }
 
-  static List newList(length) {
+  static List newGrowableList(length) {
     // TODO(sra): For good concrete type analysis we need the JS-type to
     // specifically name the JavaScript Array implementation.  'List' matches
     // all the dart:html types that implement List<T>.
-    if (length == null) return JS('=List', r'new Array()');
-    if ((length is !int) || (length < 0)) {
-      throw new ArgumentError(length);
-    }
+    return JS('=List', r'new Array(#)', length);
+  }
+
+  static List newFixedList(length) {
+    // TODO(sra): For good concrete type analysis we need the JS-type to
+    // specifically name the JavaScript Array implementation.  'List' matches
+    // all the dart:html types that implement List<T>.
     var result = JS('=List', r'new Array(#)', length);
     JS('void', r'#.fixed$length = #', result, true);
     return result;
@@ -649,7 +692,7 @@ class Primitives {
       JS('void', r'#.date = new Date(#)', receiver,
          receiver.millisecondsSinceEpoch);
     }
-    return JS('Date', r'#.date', receiver);
+    return JS('var', r'#.date', receiver);
   }
 
   // The getters for date and time parts below add a positive integer to ensure
@@ -771,6 +814,12 @@ class Primitives {
     // TODO(ahe): How to safely access $?
     return JS('var', r'$[#]', className);
   }
+
+  static bool identical(a, b) {
+    return JS('bool', '# == null', a)
+      ? JS('bool', '# == null', b)
+      : JS('bool', '# === #', a, b);
+  }
 }
 
 /**
@@ -855,37 +904,6 @@ checkString(value) {
 }
 
 class MathNatives {
-  static int parseInt(str) {
-    checkString(str);
-    if (!JS('bool',
-            r'/^\s*[+-]?(?:0[xX][abcdefABCDEF0-9]+|\d+)\s*$/.test(#)',
-            str)) {
-      throw new FormatException(str);
-    }
-    var trimmed = str.trim();
-    var base = 10;;
-    if ((trimmed.length > 2 && (trimmed[1] == 'x' || trimmed[1] == 'X')) ||
-        (trimmed.length > 3 && (trimmed[2] == 'x' || trimmed[2] == 'X'))) {
-      base = 16;
-    }
-    var ret = JS('num', r'parseInt(#, #)', trimmed, base);
-    if (ret.isNaN) throw new FormatException(str);
-    return ret;
-  }
-
-  static double parseDouble(String str) {
-    checkString(str);
-    var ret = JS('num', r'parseFloat(#)', str);
-    if (ret == 0 && (str.startsWith("0x") || str.startsWith("0X"))) {
-      // TODO(ahe): This is unspecified, but tested by co19.
-      ret = JS('num', r'parseInt(#)', str);
-    }
-    if (ret.isNaN && str != 'NaN' && str != '-NaN') {
-      throw new FormatException(str);
-    }
-    return ret;
-  }
-
   static double sqrt(num value)
     => JS('double', r'Math.sqrt(#)', checkNum(value));
 
@@ -1084,11 +1102,12 @@ class StackTrace {
  * a list of key, value, key, value, ..., etc.
  */
 makeLiteralMap(List keyValuePairs) {
-  Iterator iterator = keyValuePairs.iterator();
+  Iterator iterator = keyValuePairs.iterator;
   Map result = new LinkedHashMap();
-  while (iterator.hasNext) {
-    String key = iterator.next();
-    var value = iterator.next();
+  while (iterator.moveNext()) {
+    String key = iterator.current;
+    iterator.moveNext();
+    var value = iterator.current;
     result[key] = value;
   }
   return result;
@@ -1119,14 +1138,21 @@ convertDartClosureToJS(closure, int arity) {
   if (closure == null) return null;
   var function = JS('var', r'#.$identity', closure);
   if (JS('bool', r'!!#', function)) return function;
+  // By fetching the current isolate before creating the JavaScript
+  // function, we prevent the compiler from inlining its use in
+  // the JavaScript function below (the compiler generates code for
+  // fetching the isolate before creating the JavaScript function).
+  // If it was inlined, the JavaScript function would not get the
+  // current isolate, but the one that is active when the callback
+  // executes.
+  var currentIsolate = JS_CURRENT_ISOLATE();
 
-  function = JS("var", r"""function() {
-    return #(#, #, #, arguments[0], arguments[1]);
-  }""",
-  DART_CLOSURE_TO_JS(invokeClosure),
-  closure,
-  JS_CURRENT_ISOLATE(),
-  arity);
+  function = JS("var",
+                r"""function(a, b) { return #(#, #, #, a, b); }""",
+                DART_CLOSURE_TO_JS(invokeClosure),
+                closure,
+                JS_CURRENT_ISOLATE(),
+                arity);
 
   JS('void', r'#.$identity = #', closure, function);
   return function;

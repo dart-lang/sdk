@@ -59,7 +59,8 @@ class SSLFilter {
     kWritePlaintext,
     kReadEncrypted,
     kWriteEncrypted,
-    kNumBuffers
+    kNumBuffers,
+    kFirstEncrypted = kReadEncrypted
   };
 
   SSLFilter()
@@ -98,7 +99,8 @@ class SSLFilter {
   static dart::Mutex mutex_;  // To protect library initialization.
 
   uint8_t* buffers_[kNumBuffers];
-  int64_t buffer_size_;
+  int buffer_size_;
+  int encrypted_buffer_size_;
   Dart_Handle string_start_;
   Dart_Handle string_length_;
   Dart_Handle dart_buffer_objects_[kNumBuffers];
@@ -109,6 +111,9 @@ class SSLFilter {
   char* client_certificate_name_;
   PRFileDesc* filter_;
 
+  static bool isEncrypted(int i) {
+    return static_cast<BufferIndex>(i) >= kFirstEncrypted;
+  }
   void InitializeBuffers(Dart_Handle dart_this);
   void InitializePlatformData();
 

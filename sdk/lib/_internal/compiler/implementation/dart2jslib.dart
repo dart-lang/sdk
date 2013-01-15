@@ -9,6 +9,12 @@ import 'dart:uri';
 import 'closure.dart' as closureMapping;
 import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'elements/elements.dart';
+import 'elements/modelx.dart'
+    show ErroneousElementX,
+         CompilationUnitElementX,
+         LibraryElementX,
+         PrefixElementX,
+         VoidElementX;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'native_handler.dart' as native;
 import 'scanner/scanner_implementation.dart';
@@ -24,9 +30,15 @@ import '../compiler.dart' as api;
 import 'patch_parser.dart';
 import 'types/types.dart' as ti;
 import 'resolution/resolution.dart';
+import 'js/js.dart' as js;
 
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;
-export 'scanner/scannerlib.dart' show SourceString, isUserDefinableOperator;
+export 'scanner/scannerlib.dart' show SourceString,
+                                      isUserDefinableOperator,
+                                      isUnaryOperator,
+                                      isBinaryOperator,
+                                      isTernaryOperator,
+                                      isMinusOperator;
 export 'universe/universe.dart' show Selector;
 
 part 'code_buffer.dart';

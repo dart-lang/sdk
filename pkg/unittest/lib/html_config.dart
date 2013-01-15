@@ -126,23 +126,24 @@ class HtmlConfiguration extends Configuration {
 
   void onInit() {
     _installHandlers();
-  }
-
-  void onStart() {
     window.postMessage('unittest-suite-wait-for-done', '*');
   }
 
   void onTestResult(TestCase testCase) {}
 
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
-    _uninstallHandlers();
     _showResultsInPage(passed, failed, errors, results, _isLayoutTest,
         uncaughtError);
+  }
+
+  void onDone(bool success) {
+    _uninstallHandlers();
     window.postMessage('unittest-suite-done', '*');
   }
 }
 
 void useHtmlConfiguration([bool isLayoutTest = false]) {
+  if (config != null) return;
   configure(new HtmlConfiguration(isLayoutTest));
 }

@@ -224,7 +224,7 @@ class VoidType extends DartType {
 
   SourceString get name => element.name;
 
-  final VoidElement element;
+  final Element element;
 
   DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
     // Void cannot be substituted.
@@ -611,17 +611,15 @@ class Types {
   final VoidType voidType;
   final DynamicType dynamicType;
 
-  Types(Compiler compiler, ClassElement dynamicElement)
-    : this.with(compiler, dynamicElement,
-                new LibraryElement(new Script(null, null)));
-
-  Types.with(Compiler this.compiler,
-             ClassElement dynamicElement,
-             LibraryElement library)
-    : voidType = new VoidType(new VoidElement(library)),
-      dynamicType = new DynamicType(dynamicElement) {
-      dynamicElement.rawType = dynamicElement.thisType = dynamicType;
+  factory Types(Compiler compiler, ClassElement dynamicElement) {
+    LibraryElement library = new LibraryElementX(new Script(null, null));
+    VoidType voidType = new VoidType(new VoidElementX(library));
+    DynamicType dynamicType = new DynamicType(dynamicElement);
+    dynamicElement.rawType = dynamicElement.thisType = dynamicType;
+    return new Types.internal(compiler, voidType, dynamicType);
   }
+
+  Types.internal(this.compiler, this.voidType, this.dynamicType);
 
   /** Returns true if t is a subtype of s */
   bool isSubtype(DartType t, DartType s) {

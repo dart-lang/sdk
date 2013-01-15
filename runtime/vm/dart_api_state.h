@@ -21,6 +21,9 @@
 
 namespace dart {
 
+DECLARE_DEBUG_FLAG(bool, trace_zones);
+DECLARE_DEBUG_FLAG(bool, trace_handles);
+
 // Implementation of Zone support for very fast allocation of small chunks
 // of memory. The chunks cannot be deallocated individually, but instead
 // zones support deallocating all chunks in one fast operation when the
@@ -35,6 +38,13 @@ class ApiZone {
     if (isolate != NULL) {
       isolate->set_current_zone(&zone_);
     }
+#ifdef DEBUG
+    if (FLAG_trace_zones) {
+      OS::PrintErr("*** Starting a new Api zone 0x%"Px"(0x%"Px")\n",
+                   reinterpret_cast<intptr_t>(this),
+                   reinterpret_cast<intptr_t>(&zone_));
+    }
+#endif
   }
 
   // Delete all memory associated with the zone.
@@ -43,6 +53,13 @@ class ApiZone {
     if (isolate != NULL && isolate->current_zone() == &zone_) {
       isolate->set_current_zone(zone_.previous_);
     }
+#ifdef DEBUG
+    if (FLAG_trace_zones) {
+      OS::PrintErr("*** Deleting Api zone 0x%"Px"(0x%"Px")\n",
+                   reinterpret_cast<intptr_t>(this),
+                   reinterpret_cast<intptr_t>(&zone_));
+    }
+#endif
   }
 
   // Allocates an array sized to hold 'len' elements of type
@@ -220,8 +237,25 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
  public:
   LocalHandles() : Handles<kLocalHandleSizeInWords,
                            kLocalHandlesPerChunk,
-                           kOffsetOfRawPtrInLocalHandle>() { }
-  ~LocalHandles() { }
+                           kOffsetOfRawPtrInLocalHandle>() {
+#ifdef DEBUG
+    if (FLAG_trace_handles) {
+      OS::PrintErr("*** Starting a new Local handle block 0x%"Px"\n",
+                   reinterpret_cast<intptr_t>(this));
+    }
+#endif
+  }
+  ~LocalHandles() {
+#ifdef DEBUG
+    if (FLAG_trace_handles) {
+      OS::PrintErr("***   Handle Counts for 0x(%"Px"):Scoped = %d\n",
+                   reinterpret_cast<intptr_t>(this),
+                   CountHandles());
+      OS::PrintErr("*** Deleting Local handle block 0x%"Px"\n",
+                   reinterpret_cast<intptr_t>(this));
+    }
+#endif
+  }
 
 
   // Visit all object pointers stored in the various handles.
@@ -265,9 +299,25 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
   PersistentHandles() : Handles<kPersistentHandleSizeInWords,
                                 kPersistentHandlesPerChunk,
                                 kOffsetOfRawPtrInPersistentHandle>(),
-        free_list_(NULL) { }
+        free_list_(NULL) {
+#ifdef DEBUG
+    if (FLAG_trace_handles) {
+      OS::PrintErr("*** Starting a new Persistent handle block 0x%"Px"\n",
+                   reinterpret_cast<intptr_t>(this));
+    }
+#endif
+  }
   ~PersistentHandles() {
     free_list_ = NULL;
+#ifdef DEBUG
+    if (FLAG_trace_handles) {
+      OS::PrintErr("***   Handle Counts for 0x(%"Px"):Scoped = %d\n",
+                   reinterpret_cast<intptr_t>(this),
+                   CountHandles());
+      OS::PrintErr("*** Deleting Persistent handle block 0x%"Px"\n",
+                   reinterpret_cast<intptr_t>(this));
+    }
+#endif
   }
 
   // Accessors.

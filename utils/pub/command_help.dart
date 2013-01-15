@@ -4,6 +4,7 @@
 
 library command_help;
 
+import 'dart:async';
 import 'dart:io' as io;
 import 'exit_codes.dart' as exit_codes;
 import 'io.dart';

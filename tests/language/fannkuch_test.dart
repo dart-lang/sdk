@@ -8,7 +8,7 @@
 
 class FannkuchTest {
   static fannkuch(n) {
-    var p = new List(n), q = new List(n), s = new List(n);
+    var p = new List.fixedLength(n), q = new List.fixedLength(n), s = new List.fixedLength(n);
     var sign = 1, maxflips = 0, sum = 0, m = n - 1;
     for (var i = 0; i < n; i++) { p[i] = i; q[i] = i; s[i] = i; }
     do {

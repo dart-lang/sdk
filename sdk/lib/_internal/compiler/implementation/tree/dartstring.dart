@@ -11,7 +11,7 @@ part of tree;
  * representing its content after removing quotes and resolving escapes in
  * its source.
  */
-abstract class DartString implements Iterable<int> {
+abstract class DartString extends Iterable<int> {
   factory DartString.empty() => const LiteralDartString("");
   // This is a convenience constructor. If you need a const literal DartString,
   // use [const LiteralDartString(string)] directly.
@@ -28,17 +28,18 @@ abstract class DartString implements Iterable<int> {
   const DartString();
   int get length;
   bool get isEmpty => length == 0;
-  Iterator<int> iterator();
+  Iterator<int> get iterator;
   String slowToString();
 
   bool operator ==(var other) {
     if (other is !DartString) return false;
     DartString otherString = other;
     if (length != otherString.length) return false;
-    Iterator it1 = iterator();
-    Iterator it2 = otherString.iterator();
-    while (it1.hasNext) {
-      if (it1.next() != it2.next()) return false;
+    Iterator it1 = iterator;
+    Iterator it2 = otherString.iterator;
+    while (it1.moveNext()) {
+      if (!it2.moveNext()) return false;
+      if (it1.current != it2.current) return false;
     }
     return true;
   }
@@ -54,7 +55,7 @@ class LiteralDartString extends DartString {
   final String string;
   const LiteralDartString(this.string);
   int get length => string.length;
-  Iterator<int> iterator() => new StringCodeIterator(string);
+  Iterator<int> get iterator => new StringCodeIterator(string);
   String slowToString() => string;
   SourceString get source => new StringWrapper(string);
 }
@@ -67,7 +68,7 @@ abstract class SourceBasedDartString extends DartString {
   final SourceString source;
   final int length;
   SourceBasedDartString(this.source, this.length);
-  Iterator<int> iterator();
+  Iterator<int> get iterator;
 }
 
 /**
@@ -76,7 +77,7 @@ abstract class SourceBasedDartString extends DartString {
  */
 class RawSourceDartString extends SourceBasedDartString {
   RawSourceDartString(source, length) : super(source, length);
-  Iterator<int> iterator() => source.iterator();
+  Iterator<int> get iterator => source.iterator;
   String slowToString() {
     if (toStringCache != null) return toStringCache;
     toStringCache  = source.slowToString();
@@ -90,7 +91,7 @@ class RawSourceDartString extends SourceBasedDartString {
  */
 class EscapedSourceDartString extends SourceBasedDartString {
   EscapedSourceDartString(source, length) : super(source, length);
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     if (toStringCache != null) return new StringCodeIterator(toStringCache);
     return new StringEscapeIterator(source);
   }
@@ -98,8 +99,8 @@ class EscapedSourceDartString extends SourceBasedDartString {
     if (toStringCache != null) return toStringCache;
     StringBuffer buffer = new StringBuffer();
     StringEscapeIterator it = new StringEscapeIterator(source);
-    while (it.hasNext) {
-      buffer.addCharCode(it.next());
+    while (it.moveNext()) {
+      buffer.addCharCode(it.current);
     }
     toStringCache = buffer.toString();
     return toStringCache;
@@ -119,7 +120,7 @@ class ConsDartString extends DartString {
         this.right = right,
         length = left.length + right.length;
 
-  Iterator<int> iterator() => new ConsDartStringIterator(this);
+  Iterator<int> get iterator => new ConsDartStringIterator(this);
 
   String slowToString() {
     if (toStringCache != null) return toStringCache;
@@ -130,34 +131,39 @@ class ConsDartString extends DartString {
 }
 
 class ConsDartStringIterator implements Iterator<int> {
-  Iterator<int> current;
+  HasNextIterator<int> currentIterator;
   DartString right;
   bool hasNextLookAhead;
+  int _current = null;
+
   ConsDartStringIterator(ConsDartString cons)
-      : current = cons.left.iterator(),
+      : currentIterator = new HasNextIterator<int>(cons.left.iterator),
         right = cons.right {
-    hasNextLookAhead = current.hasNext;
+    hasNextLookAhead = currentIterator.hasNext;
     if (!hasNextLookAhead) {
       nextPart();
     }
   }
-  bool get hasNext {
-    return hasNextLookAhead;
-  }
-  int next() {
-    assert(hasNextLookAhead);
-    int result = current.next();
-    hasNextLookAhead = current.hasNext;
+
+  int get current => _current;
+
+  bool moveNext() {
+    if (!hasNextLookAhead) {
+      _current = null;
+      return false;
+    }
+    _current = currentIterator.next();
+    hasNextLookAhead = currentIterator.hasNext;
     if (!hasNextLookAhead) {
       nextPart();
     }
-    return result;
+    return true;
   }
   void nextPart() {
     if (right != null) {
-      current = right.iterator();
+      currentIterator = new HasNextIterator<int>(right.iterator);
       right = null;
-      hasNextLookAhead = current.hasNext;
+      hasNextLookAhead = currentIterator.hasNext;
     }
   }
 }
@@ -167,45 +173,63 @@ class ConsDartStringIterator implements Iterator<int> {
  */
 class StringEscapeIterator implements Iterator<int>{
   final Iterator<int> source;
-  StringEscapeIterator(SourceString source) : this.source = source.iterator();
-  bool get hasNext => source.hasNext;
-  int next() {
-    int code = source.next();
-    if (!identical(code, $BACKSLASH)) {
-      return code;
+  int _current = null;
+
+  StringEscapeIterator(SourceString source) : this.source = source.iterator;
+
+  int get current => _current;
+
+  bool moveNext() {
+    if (!source.moveNext()) {
+      _current = null;
+      return false;
     }
-    code = source.next();
-    if (identical(code, $n)) return $LF;
-    if (identical(code, $r)) return $CR;
-    if (identical(code, $t)) return $TAB;
-    if (identical(code, $b)) return $BS;
-    if (identical(code, $f)) return $FF;
-    if (identical(code, $v)) return $VTAB;
-    if (identical(code, $x)) {
-      int value = hexDigitValue(source.next());
-      value = value * 16 + hexDigitValue(source.next());
-      return value;
+    int code = source.current;
+    if (code != $BACKSLASH) {
+      _current = code;
+      return true;
     }
-    if (identical(code, $u)) {
-      int value = 0;
-      code = source.next();
-      if (identical(code, $OPEN_CURLY_BRACKET)) {
-        for (code = source.next();
-             code != $CLOSE_CURLY_BRACKET;
-             code = source.next()) {
-           value = value * 16 + hexDigitValue(code);
+    source.moveNext();
+    code = source.current;
+    switch (code) {
+      case $n: _current = $LF; break;
+      case $r: _current = $CR; break;
+      case $t: _current = $TAB; break;
+      case $b: _current = $BS; break;
+      case $f: _current = $FF; break;
+      case $v: _current = $VTAB; break;
+      case $x:
+        source.moveNext();
+        int value = hexDigitValue(source.current);
+        source.moveNext();
+        value = value * 16 + hexDigitValue(source.current);
+        _current = value;
+        break;
+      case $u:
+        int value = 0;
+        source.moveNext();
+        code = source.current;
+        if (code == $OPEN_CURLY_BRACKET) {
+          source.moveNext();
+          while (source.current != $CLOSE_CURLY_BRACKET) {
+            value = value * 16 + hexDigitValue(source.current);
+            source.moveNext();
+          }
+          _current = value;
+          break;
         }
-        return value;
-      }
-      // Four digit hex value.
-      value = hexDigitValue(code);
-      for (int i = 0; i < 3; i++) {
-        code = source.next();
-        value = value * 16 + hexDigitValue(code);
-      }
-      return value;
+        // Four digit hex value.
+        value = hexDigitValue(code);
+        for (int i = 0; i < 3; i++) {
+          source.moveNext();
+          value = value * 16 + hexDigitValue(source.current);
+        }
+        _current = value;
+        break;
+      default:
+        _current = code;
     }
-    return code;
+    return true;
   }
 }
 

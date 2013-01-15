@@ -29,7 +29,7 @@ class SsaOptimizerTask extends CompilerTask {
     assert(graph.isValid());
   }
 
-  void optimize(WorkItem work, HGraph graph, bool speculative) {
+  void optimize(CodegenWorkItem work, HGraph graph, bool speculative) {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
     HTypeMap types = context.types;
@@ -61,7 +61,7 @@ class SsaOptimizerTask extends CompilerTask {
     });
   }
 
-  bool trySpeculativeOptimizations(WorkItem work, HGraph graph) {
+  bool trySpeculativeOptimizations(CodegenWorkItem work, HGraph graph) {
     if (work.element.isField()) {
       // Lazy initializers may not have bailout methods.
       return false;
@@ -90,7 +90,7 @@ class SsaOptimizerTask extends CompilerTask {
     });
   }
 
-  void prepareForSpeculativeOptimizations(WorkItem work, HGraph graph) {
+  void prepareForSpeculativeOptimizations(CodegenWorkItem work, HGraph graph) {
     JavaScriptItemCompilationContext context = work.compilationContext;
     HTypeMap types = context.types;
     measure(() {
@@ -118,7 +118,7 @@ class SsaOptimizerTask extends CompilerTask {
 class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   final String name = "SsaConstantFolder";
   final JavaScriptBackend backend;
-  final WorkItem work;
+  final CodegenWorkItem work;
   final ConstantSystem constantSystem;
   final HTypeMap types;
   HGraph graph;
@@ -270,8 +270,17 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   bool isFixedSizeListConstructor(HInvokeStatic node) {
     Element element = node.target.element;
-    return element.getEnclosingClass() == compiler.listClass
-        && node.inputs.length == 2
+    if (backend.fixedLengthListConstructor == null) {
+      backend.fixedLengthListConstructor =
+        compiler.listClass.lookupConstructor(
+            new Selector.callConstructor(const SourceString("fixedLength"),
+                                         compiler.listClass.getLibrary()));
+    }
+    // TODO(ngeoffray): checking if the second input is an integer
+    // should not be necessary but it currently makes it easier for
+    // other optimizations to reason on a fixed length constructor
+    // that we know takes an int.
+    return element == backend.fixedLengthListConstructor
         && node.inputs[1].isInteger(types);
   }
 
@@ -317,7 +326,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         node.inputs.getRange(1, node.inputs.length - 1));
     if (type.isExact()) {
       HBoundedType concrete = type;
-      result.element = concrete.lookupMember(selector.name);
+      // TODO(johnniwinther): Add lookup by selector to HBoundedType.
+      Element element = concrete.lookupMember(selector.name);
+      if (selector.applies(element, compiler)) {
+        // The target is only valid if the selector applies.
+        result.element = element;
+      }
     }
     return result;
   }
@@ -608,7 +622,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitFieldGet(HFieldGet node) {
     if (node.element == backend.jsArrayLength) {
       if (node.receiver is HInvokeStatic) {
-        // Try to recognize the length getter with input [:new List(int):].
+        // Try to recognize the length getter with input
+        // [:new List.fixedLength(int):].
         HInvokeStatic call = node.receiver;
         if (isFixedSizeListConstructor(call)) {
           return call.inputs[1];
@@ -748,7 +763,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final HTypeMap types;
   final Set<HInstruction> boundsChecked;
-  final WorkItem work;
+  final CodegenWorkItem work;
   final JavaScriptBackend backend;
   final String name = "SsaCheckInserter";
   HGraph graph;
@@ -1090,8 +1105,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     // loop changes flags list to zero so we can use bitwise or when
     // propagating loop changes upwards.
     final int length = graph.blocks.length;
-    blockChangesFlags = new List<int>(length);
-    loopChangesFlags = new List<int>(length);
+    blockChangesFlags = new List<int>.fixedLength(length);
+    loopChangesFlags = new List<int>.fixedLength(length);
     for (int i = 0; i < length; i++) loopChangesFlags[i] = 0;
 
     // Run through all the basic blocks in the graph and fill in the
@@ -1167,7 +1182,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
   List<ValueSet> values;
 
   void visitGraph(HGraph graph) {
-    values = new List<ValueSet>(graph.blocks.length);
+    values = new List<ValueSet>.fixedLength(graph.blocks.length);
     for (int i = 0; i < graph.blocks.length; i++) {
       values[graph.blocks[i].id] = new ValueSet();
     }
@@ -1313,7 +1328,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
 class SsaConstructionFieldTypes
     extends HBaseVisitor implements OptimizationPhase {
   final JavaScriptBackend backend;
-  final WorkItem work;
+  final CodegenWorkItem work;
   final HTypeMap types;
   final String name = "SsaConstructionFieldTypes";
   final Set<HInstruction> thisUsers;
@@ -1324,7 +1339,7 @@ class SsaConstructionFieldTypes
   Map<Element, HType> currentFieldSetters;
 
   SsaConstructionFieldTypes(JavaScriptBackend this.backend,
-         WorkItem this.work,
+         CodegenWorkItem this.work,
          HTypeMap this.types)
       : thisUsers = new Set<HInstruction>(),
         allSetters = new Set<Element>(),

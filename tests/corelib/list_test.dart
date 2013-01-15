@@ -21,14 +21,14 @@ class ListTest {
 
   static void testClosures(List list) {
     testMap(val) {return val * 2 + 10; }
-    Collection mapped = list.map(testMap);
+    List mapped = list.mappedBy(testMap).toList();
     Expect.equals(mapped.length, list.length);
     for (var i = 0; i < list.length; i++) {
       Expect.equals(mapped[i], list[i]*2 + 10);
     }
 
     testFilter(val) { return val == 3; }
-    Collection filtered = list.filter(testFilter);
+    Iterable filtered = list.where(testFilter);
     Expect.equals(filtered.length, 1);
 
     testEvery(val) { return val != 11; }
@@ -36,20 +36,20 @@ class ListTest {
     Expect.equals(true, test);
 
     testSome(val) { return val == 1; }
-    test = list.some(testSome);
+    test = list.any(testSome);
     Expect.equals(true, test);
 
     testSomeFirst(val) { return val == 0; }
-    test = list.some(testSomeFirst);
+    test = list.any(testSomeFirst);
     Expect.equals(true, test);
 
     testSomeLast(val) { return val == (list.length - 1); }
-    test = list.some(testSomeLast);
+    test = list.any(testSomeLast);
     Expect.equals(true, test);
   }
 
   static void testList() {
-    List list = new List(4);
+    List list = new List.fixedLength(4);
     Expect.equals(list.length, 4);
     list[0] = 4;
     expectValues(list, 4, null, null, null);

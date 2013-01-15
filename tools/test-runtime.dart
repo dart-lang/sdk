@@ -64,19 +64,19 @@ main() {
     List output_words = configurations.length > 1 ?
         ['Test configurations:'] : ['Test configuration:'];
     for (Map conf in configurations) {
-      List settings =
-          ['compiler', 'runtime', 'mode', 'arch'].map((name) => conf[name]);
+      List settings = ['compiler', 'runtime', 'mode', 'arch']
+          .mappedBy((name) => conf[name]).toList();
       if (conf['checked']) settings.add('checked');
       output_words.add(Strings.join(settings, '_'));
     }
     print(Strings.join(output_words, ' '));
   }
 
-  var configurationIterator = configurations.iterator();
+  var configurationIterator = configurations.iterator;
   void enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.hasNext) return;
+    if (!configurationIterator.moveNext()) return;
 
-    var conf = configurationIterator.next();
+    var conf = configurationIterator.current;
     if (selectors.containsKey('co19')) {
       queue.addTestSuite(new Co19TestSuite(conf));
     }
@@ -100,7 +100,7 @@ main() {
   // test that needs to load resources from the repo over http.
   if (!listTests) {
     // Only start the server if we are running browser tests.
-    var runningBrowserTests = configurations.some((config) {
+    var runningBrowserTests = configurations.any((config) {
       return TestUtils.isBrowserRuntime(config['runtime']);
     });
     if (runningBrowserTests) startHttpServer('127.0.0.1', 9876);

@@ -4,10 +4,12 @@
 
 library mock_client;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'base_client.dart';
 import 'base_request.dart';
+import 'byte_stream.dart';
 import 'request.dart';
 import 'response.dart';
 import 'streamed_response.dart';
@@ -31,7 +33,7 @@ class MockClient extends BaseClient {
   /// [Response]s.
   MockClient(MockClientHandler fn)
     : this._((baseRequest, bodyStream) {
-      return consumeInputStream(bodyStream).chain((bodyBytes) {
+      return bodyStream.toBytes().then((bodyBytes) {
         var request = new Request(baseRequest.method, baseRequest.url);
         request.persistentConnection = baseRequest.persistentConnection;
         request.followRedirects = baseRequest.followRedirects;
@@ -41,13 +43,9 @@ class MockClient extends BaseClient {
         request.finalize();
 
         return fn(request);
-      }).transform((response) {
-        var stream = new ListInputStream();
-        stream.write(response.bodyBytes);
-        stream.markEndOfStream();
-
+      }).then((response) {
         return new StreamedResponse(
-            stream,
+            new ByteStream.fromBytes(response.bodyBytes),
             response.statusCode,
             response.contentLength,
             request: baseRequest,
@@ -62,7 +60,7 @@ class MockClient extends BaseClient {
   /// sends [StreamedResponse]s.
   MockClient.streaming(MockClientStreamHandler fn)
     : this._((request, bodyStream) {
-      return fn(request, bodyStream).transform((response) {
+      return fn(request, bodyStream).then((response) {
         return new StreamedResponse(
             response.stream,
             response.statusCode,
@@ -78,14 +76,14 @@ class MockClient extends BaseClient {
   /// Sends a request.
   Future<StreamedResponse> send(BaseRequest request) {
     var bodyStream = request.finalize();
-    return async.chain((_) => _handler(request, bodyStream));
+    return async.then((_) => _handler(request, bodyStream));
   }
 }
 
 /// A handler function that receives [StreamedRequest]s and sends
 /// [StreamedResponse]s. Note that [request] will be finalized.
 typedef Future<StreamedResponse> MockClientStreamHandler(
-    BaseRequest request, InputStream bodyStream);
+    BaseRequest request, ByteStream bodyStream);
 
 /// A handler function that receives [Request]s and sends [Response]s. Note that
 /// [request] will be finalized.

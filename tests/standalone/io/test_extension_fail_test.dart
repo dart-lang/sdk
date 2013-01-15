@@ -4,6 +4,7 @@
 //
 // Dart test program for testing native extensions.
 
+import "dart:async";
 import "dart:io";
 
 Future copyFileToDirectory(Path file, Path directory) {
@@ -36,31 +37,28 @@ Path getExtensionPath(Path buildDirectory) {
 void main() {
   Options options = new Options();
 
-  Path scriptDirectory = new Path.fromNative(options.script).directoryPath;
-  Path buildDirectory = new Path.fromNative(options.executable).directoryPath;
+  Path scriptDirectory = new Path(options.script).directoryPath;
+  Path buildDirectory = new Path(options.executable).directoryPath;
   Directory tempDirectory = new Directory('').createTempSync();
-  Path testDirectory = new Path.fromNative(tempDirectory.path);
+  Path testDirectory = new Path(tempDirectory.path);
 
   // Copy test_extension shared library, test_extension.dart and
   // test_extension_fail_tester.dart to the temporary test directory.
   copyFileToDirectory(getExtensionPath(buildDirectory),
-                      testDirectory).chain((_) {
+                      testDirectory).then((_) {
     Path extensionDartFile = scriptDirectory.append('test_extension.dart');
     return copyFileToDirectory(extensionDartFile, testDirectory);
-  }).chain((_) {
+  }).then((_) {
     Path testExtensionTesterFile =
         scriptDirectory.append('test_extension_fail_tester.dart');
     return copyFileToDirectory(testExtensionTesterFile, testDirectory);
-  }).chain((_) {
+  }).then((_) {
     Path script = testDirectory.append('test_extension_fail_tester.dart');
     return Process.run(options.executable, [script.toNativePath()]);
-  })..then((ProcessResult result) {
+  }).then((ProcessResult result) {
     print("ERR: ${result.stderr}\n\n");
     print("OUT: ${result.stdout}\n\n");
     Expect.equals(255, result.exitCode);
     Expect.isTrue(result.stderr.contains("Unhandled exception:\nball\n"));
-    tempDirectory.deleteSync(recursive: true);
-  })..handleException((_) {
-    tempDirectory.deleteSync(recursive: true);
-  });
+  }).whenComplete(() => tempDirectory.deleteSync(recursive: true));
 }

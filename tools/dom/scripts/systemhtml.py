@@ -42,6 +42,7 @@ _js_custom_members = set([
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
     'Element.insertAdjacentText',
+    'Element.webkitMatchesSelector',
     'Element.remove',
     'ElementEvents.mouseWheel',
     'HTMLCanvasElement.getContext',
@@ -69,6 +70,7 @@ _js_custom_members = set([
 
 js_support_checks = {
   'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
+  'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
   'HTMLContentElement': "Element.isTagSupported('content')",
   'HTMLDataListElement': "Element.isTagSupported('datalist')",
   'HTMLDetailsElement': "Element.isTagSupported('details')",
@@ -84,6 +86,8 @@ js_support_checks = {
   'HTMLProgressElement': "Element.isTagSupported('progress')",
   'HTMLShadowElement': "Element.isTagSupported('shadow')",
   'HTMLTrackElement': "Element.isTagSupported('track')",
+  'Performance': "JS('bool', '!!(window.performance)')",
+  'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
 }
 
 # Classes that offer only static methods, and therefore we should suppress
@@ -403,7 +407,13 @@ class HtmlDartInterfaceGenerator(object):
         DOMNAME=self._interface.doc_js_name,
         NATIVESPEC=self._backend.NativeSpec())
     self._backend.StartInterface(self._implementation_members_emitter)
+
     self._backend.EmitHelpers(base_class)
+    self._event_generator.EmitStreamProviders(
+        self._interface,
+        self._interface.doc_js_name,
+        self._backend.CustomJSMembers(),
+        self._implementation_members_emitter)
     self._backend.AddConstructors(
         constructors, factory_provider, factory_constructor_name)
 
@@ -423,6 +433,11 @@ class HtmlDartInterfaceGenerator(object):
 
     self._backend.AddMembers(self._interface)
     self._backend.AddSecondaryMembers(self._interface)
+    self._event_generator.EmitStreamGetters(
+        self._interface,
+        self._interface.doc_js_name,
+        self._backend.CustomJSMembers(),
+        self._implementation_members_emitter)
     self._backend.FinishInterface()
 
   def _ImplementationEmitter(self):
@@ -495,6 +510,15 @@ class Dart2JSBackend(HtmlDartGenerator):
     return js_support_checks.get(self._interface.doc_js_name)
 
   def EmitStaticFactory(self, constructor_info):
+    WITH_CUSTOM_STATIC_FACTORY = [
+        'AudioContext',
+        'Blob',
+        'MutationObserver',
+    ]
+
+    if self._interface.doc_js_name in WITH_CUSTOM_STATIC_FACTORY:
+      return
+
     has_optional = any(param_info.is_optional
         for param_info in constructor_info.param_infos)
 
@@ -858,33 +882,13 @@ class Dart2JSBackend(HtmlDartGenerator):
           TARGET=target,
           PARAMS=', '.join(target_parameters))
 
-    def GenerateChecksAndCall(operation, argument_count):
-      GenerateCall(operation, argument_count,
-          self._OverloadChecks(
-            operation,
-            parameter_names,
-            argument_count,
-            can_omit_type_check=lambda type, pos: type == parameter_types[pos]))
-
-    # TODO: Optimize the dispatch to avoid repeated checks.
-    if len(operations) > 1:
-      for operation in operations:
-        for position, argument in enumerate(operation.arguments):
-          if self._IsOptional(operation, argument):
-            GenerateChecksAndCall(operation, position)
-        GenerateChecksAndCall(operation, len(operation.arguments))
-      body.Emit(
-          '    throw new ArgumentError("Incorrect number or type of arguments");'
-          '\n');
-    else:
-      operation = operations[0]
-      argument_count = len(operation.arguments)
-      for position, argument in list(enumerate(operation.arguments))[::-1]:
-        if self._IsOptional(operation, argument):
-          check = '?%s' % parameter_names[position]
-          GenerateCall(operation, position + 1, [check])
-          argument_count = position
-      GenerateCall(operation, argument_count, [])
+    self._GenerateDispatcherBody(
+        body,
+        operations,
+        parameter_names,
+        GenerateCall,
+        self._IsOptional,
+        can_omit_type_check=lambda type, pos: type == parameter_types[pos])
 
   def _AddInterfaceOperation(self, info, html_name):
     self._members_emitter.Emit(

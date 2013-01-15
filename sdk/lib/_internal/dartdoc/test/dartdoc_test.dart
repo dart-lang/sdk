@@ -5,6 +5,7 @@
 /// Unit tests for doc.
 library dartdocTests;
 
+import 'dart:async';
 import 'dart:io';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
@@ -118,7 +119,7 @@ main() {
           '../../other/file.html'));
     });
   });
-  
+
   group('integration tests', () {
     test('no entrypoints', () {
       expect(_runDartdoc([], exitCode: 1), completes);
@@ -126,14 +127,14 @@ main() {
 
     test('library with no packages', () {
       expect(_runDartdoc(
-          [new Path.fromNative('test/test_files/other_place/'
+          [new Path('test/test_files/other_place/'
               'no_package_test_file.dart').toNativePath()]),
         completes);
     });
 
     test('library with packages', () {
       expect(_runDartdoc(
-          [new Path.fromNative('test/test_files/'
+          [new Path('test/test_files/'
               'package_test_file.dart').toNativePath()]),
         completes);
     });
@@ -146,7 +147,7 @@ Future _runDartdoc(List<String> arguments, {int exitCode: 0}) {
   var dartdoc = 'bin/dartdoc.dart';
   arguments.insertRange(0, 1, dartdoc);
   return Process.run(dartBin, arguments)
-      .transform((result) {
+      .then((result) {
         expect(result.exitCode, exitCode);
       });
 }

@@ -95,5 +95,15 @@ $if DART2JS
   // Call native function with no conversions.
   @JSName('observe')
   void _call(target, options) native;
+
+  static MutationObserver _create(MutationCallback callback) {
+    // Dummy statement to mark types as instantiated.
+    JS('MutationObserver|MutationRecord', '0');
+
+    return JS('MutationObserver',
+        'new(window.MutationObserver||window.WebKitMutationObserver||'
+        'window.MozMutationObserver)(#)',
+        convertDartClosureToJS(callback, 2));
+  }
 $endif
 }

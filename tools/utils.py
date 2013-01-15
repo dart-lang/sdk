@@ -319,6 +319,12 @@ def DartBinary():
     return os.path.join(dart_binary_prefix, GuessOS(), 'dart')
 
 
+def DartSdkBinary():
+  tools_dir = os.path.dirname(os.path.realpath(__file__))
+  dart_binary_prefix = os.path.join(tools_dir, '..', 'sdk' , 'bin')
+  return os.path.join(dart_binary_prefix, 'dart')
+
+
 if __name__ == "__main__":
   import sys
   Main(sys.argv)

@@ -26,6 +26,13 @@ RawScript* Bootstrap::LoadScript(const char* url,
 }
 
 
+RawScript* Bootstrap::LoadASyncScript(bool patch) {
+  const char* url = patch ? "dart:async-patch" : "dart:async";
+  const char* source = patch ? async_patch_ : async_source_;
+  return LoadScript(url, source, patch);
+}
+
+
 RawScript* Bootstrap::LoadCoreScript(bool patch) {
   // TODO(iposva): Use proper library name.
   const char* url = patch ? "dart:core-patch" : "bootstrap";

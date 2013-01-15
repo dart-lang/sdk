@@ -6,7 +6,6 @@ library JsInterop1Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
-import 'dart:json';
 
 injectSource(code) {
   final script = new ScriptElement();

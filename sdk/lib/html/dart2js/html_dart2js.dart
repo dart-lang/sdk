@@ -1,10 +1,11 @@
 library html;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:math';
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
@@ -47,8 +48,7 @@ _callPortSync(int id, message) {
   return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
 
-// TODO(vsm): Plumb this properly.
-spawnDomFunction(f) => spawnFunction(f);
+spawnDomFunction(f) => IsolateNatives.spawnDomFunction(f);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -56,6 +56,8 @@ spawnDomFunction(f) => spawnFunction(f);
 
 /// @domName AbstractWorker; @docsEditable true
 class AbstractWorker extends EventTarget native "*AbstractWorker" {
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AbstractWorkerEvents get on =>
@@ -72,6 +74,8 @@ class AbstractWorker extends EventTarget native "*AbstractWorker" {
   /// @domName AbstractWorker.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -211,6 +215,22 @@ class AppletElement extends Element native "*HTMLAppletElement" {
 /// @domName DOMApplicationCache; @docsEditable true
 class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
+  static const EventStreamProvider<Event> cachedEvent = const EventStreamProvider<Event>('cached');
+
+  static const EventStreamProvider<Event> checkingEvent = const EventStreamProvider<Event>('checking');
+
+  static const EventStreamProvider<Event> downloadingEvent = const EventStreamProvider<Event>('downloading');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> noUpdateEvent = const EventStreamProvider<Event>('noupdate');
+
+  static const EventStreamProvider<Event> obsoleteEvent = const EventStreamProvider<Event>('obsolete');
+
+  static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
+
+  static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ApplicationCacheEvents get on =>
     new ApplicationCacheEvents(this);
@@ -250,6 +270,22 @@ class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
   /// @domName DOMApplicationCache.update; @docsEditable true
   void update() native;
+
+  Stream<Event> get onCached => cachedEvent.forTarget(this);
+
+  Stream<Event> get onChecking => checkingEvent.forTarget(this);
+
+  Stream<Event> get onDownloading => downloadingEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onNoUpdate => noUpdateEvent.forTarget(this);
+
+  Stream<Event> get onObsolete => obsoleteEvent.forTarget(this);
+
+  Stream<Event> get onProgress => progressEvent.forTarget(this);
+
+  Stream<Event> get onUpdateReady => updateReadyEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -347,9 +383,7 @@ class ArrayBuffer native "*ArrayBuffer" {
   factory ArrayBuffer(int length) => ArrayBuffer._create(length);
   static ArrayBuffer _create(int length) => JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', 'typeof window.ArrayBuffer != "undefined"');
 
   /// @domName ArrayBuffer.byteLength; @docsEditable true
@@ -514,6 +548,14 @@ class BaseFontElement extends Element native "*HTMLBaseFontElement" {
 /// @domName BatteryManager; @docsEditable true
 class BatteryManager extends EventTarget native "*BatteryManager" {
 
+  static const EventStreamProvider<Event> chargingChangeEvent = const EventStreamProvider<Event>('chargingchange');
+
+  static const EventStreamProvider<Event> chargingTimeChangeEvent = const EventStreamProvider<Event>('chargingtimechange');
+
+  static const EventStreamProvider<Event> dischargingTimeChangeEvent = const EventStreamProvider<Event>('dischargingtimechange');
+
+  static const EventStreamProvider<Event> levelChangeEvent = const EventStreamProvider<Event>('levelchange');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BatteryManagerEvents get on =>
     new BatteryManagerEvents(this);
@@ -541,6 +583,14 @@ class BatteryManager extends EventTarget native "*BatteryManager" {
   /// @domName BatteryManager.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onChargingChange => chargingChangeEvent.forTarget(this);
+
+  Stream<Event> get onChargingTimeChange => chargingTimeChangeEvent.forTarget(this);
+
+  Stream<Event> get onDischargingTimeChange => dischargingTimeChangeEvent.forTarget(this);
+
+  Stream<Event> get onLevelChange => levelChangeEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -576,7 +626,7 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Blob; @docsEditable true
+/// @domName Blob
 class Blob native "*Blob" {
 
   ///@docsEditable true
@@ -589,6 +639,16 @@ class Blob native "*Blob" {
     }
     return Blob._create(blobParts, type, endings);
   }
+
+  /// @domName Blob.size; @docsEditable true
+  final int size;
+
+  /// @domName Blob.type; @docsEditable true
+  final String type;
+
+  /// @domName Blob.slice; @docsEditable true
+  Blob slice([int start, int end, String contentType]) native;
+
   static Blob _create([List blobParts = null, String type, String endings]) {
     // TODO: validate that blobParts is a JS Array and convert if not.
     // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
@@ -607,16 +667,8 @@ class Blob native "*Blob" {
 
   static _create_bag() => JS('var', '{}');
   static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
-
-  /// @domName Blob.size; @docsEditable true
-  final int size;
-
-  /// @domName Blob.type; @docsEditable true
-  final String type;
-
-  /// @domName Blob.slice; @docsEditable true
-  Blob slice([int start, int end, String contentType]) native;
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -624,6 +676,32 @@ class Blob native "*Blob" {
 
 /// @domName HTMLBodyElement; @docsEditable true
 class BodyElement extends Element native "*HTMLBodyElement" {
+
+  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
+
+  static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
+
+  static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
+
+  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
+
+  static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
+
+  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
   ///@docsEditable true
   factory BodyElement() => document.$dom_createElement("body");
@@ -634,6 +712,32 @@ class BodyElement extends Element native "*HTMLBodyElement" {
 
   /// @domName HTMLBodyElement.vLink; @docsEditable true
   String vLink;
+
+  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<Event> get onOffline => offlineEvent.forTarget(this);
+
+  Stream<Event> get onOnline => onlineEvent.forTarget(this);
+
+  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
+
+  Stream<Event> get onResize => resizeEvent.forTarget(this);
+
+  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
+
+  Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -776,23 +880,23 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
   int width;
 
   /**
-   * Returns a data URI containing a representation of the image in the 
-   * format specified by type (defaults to 'image/png'). 
-   * 
+   * Returns a data URI containing a representation of the image in the
+   * format specified by type (defaults to 'image/png').
+   *
    * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
-   * 
+   *
    * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
    * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
    * value is used. Note: the default value varies by browser.
-   * 
+   *
    * If the height or width of this canvas element is 0, then 'data:' is returned,
    * representing no data.
-   * 
-   * If the type requested is not 'image/png', and the returned value is 
+   *
+   * If the type requested is not 'image/png', and the returned value is
    * 'data:image/png', then the requested type is not supported.
-   * 
+   *
    * Example usage:
-   * 
+   *
    *     CanvasElement canvas = new CanvasElement();
    *     var ctx = canvas.context2d
    *     ..fillStyle = "rgb(200,0,0)"
@@ -806,13 +910,13 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
    *     var img = new ImageElement();
    *     img.src = dataUrl;
    *     document.body.children.add(img);
-   *     
+   *
    * See also:
-   * 
+   *
    * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
-   * 
+   *
    * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
-   * 
+   *
    * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
    */
   /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
@@ -1449,9 +1553,7 @@ class ContentElement extends Element native "*HTMLContentElement" {
   ///@docsEditable true
   factory ContentElement() => document.$dom_createElement("content");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('content');
 
   /// @domName HTMLContentElement.resetStyleInheritance; @docsEditable true
@@ -5281,9 +5383,7 @@ class DataListElement extends Element native "*HTMLDataListElement" {
   ///@docsEditable true
   factory DataListElement() => document.$dom_createElement("datalist");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('datalist');
 
   /// @domName HTMLDataListElement.options; @docsEditable true
@@ -5467,6 +5567,8 @@ class DatabaseSync native "*DatabaseSync" {
 /// @domName DedicatedWorkerContext; @docsEditable true
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
@@ -5486,6 +5588,8 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
   void _postMessage_1(message, List messagePorts) native;
   @JSName('postMessage')
   void _postMessage_2(message) native;
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -5510,9 +5614,7 @@ class DetailsElement extends Element native "*HTMLDetailsElement" {
   ///@docsEditable true
   factory DetailsElement() => document.$dom_createElement("details");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('details');
 
   /// @domName HTMLDetailsElement.open; @docsEditable true
@@ -5739,6 +5841,104 @@ class Document extends Node  native "*Document"
 {
 
 
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
+
+  static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
+
+  static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
+
+  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
+
+  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
+
+  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
+
+  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
+
+  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
+
+  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
+
+  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
+
+  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
+
+  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
+
+  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
+
+  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
+
+  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
+
+  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
+
+  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
+
+  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
+
+  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
+
+  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
+
+  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
+
+  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
+
+  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
+
+  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
+
+  static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
+
+  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
+
+  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
+
+  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
+
+  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
+
+  static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
+
+  static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
+
+  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
+
+  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
+
+  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
+
+  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
+
+  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
+
+  static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
+
+  static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
+
+  static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
+
+  static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DocumentEvents get on =>
     new DocumentEvents(this);
@@ -5955,6 +6155,104 @@ class Document extends Node  native "*Document"
   @JSName('webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native;
 
+  Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
+
+  Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
+
+  Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onChange => changeEvent.forTarget(this);
+
+  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+
+  Stream<Event> get onCopy => copyEvent.forTarget(this);
+
+  Stream<Event> get onCut => cutEvent.forTarget(this);
+
+  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<Event> get onInput => inputEvent.forTarget(this);
+
+  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+
+  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+
+  Stream<Event> get onPaste => pasteEvent.forTarget(this);
+
+  Stream<Event> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
+
+  Stream<Event> get onReset => resetEvent.forTarget(this);
+
+  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+
+  Stream<Event> get onSearch => searchEvent.forTarget(this);
+
+  Stream<Event> get onSelect => selectEvent.forTarget(this);
+
+  Stream<Event> get onSelectionChange => selectionChangeEvent.forTarget(this);
+
+  Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
+
+  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+
+  Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
+
+  Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
+
+  Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
+
+  Stream<Event> get onPointerLockError => pointerLockErrorEvent.forTarget(this);
+
 
   /**
    * Finds the first descendant element of this document that matches the
@@ -5999,7 +6297,7 @@ class Document extends Node  native "*Document"
       final mutableMatches = $dom_getElementsByName(
           selectors.substring(7,selectors.length - 2));
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
+      final copyOfMatches = new List<Element>.fixedLength(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }
@@ -6007,7 +6305,7 @@ class Document extends Node  native "*Document"
     } else if (new RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByTagName(selectors);
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
+      final copyOfMatches = new List<Element>.fixedLength(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }
@@ -6193,7 +6491,6 @@ class DocumentFragment extends Node native "*DocumentFragment" {
       _emptyStyleFuture();
   Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) =>
       _emptyStyleFuture();
-  bool matchesSelector(String selectors) => false;
 
   // Imperative Element methods are made into no-ops, as they are on parentless
   // elements.
@@ -6494,11 +6791,62 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 
   // From Iterable<DomMimeType>:
 
-  Iterator<DomMimeType> iterator() {
+  Iterator<DomMimeType> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<DomMimeType>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(DomMimeType element) => Collections.contains(this, element);
+
+  void forEach(void f(DomMimeType element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(DomMimeType element)) => new MappedList<DomMimeType, dynamic>(this, f);
+
+  Iterable<DomMimeType> where(bool f(DomMimeType element)) => new WhereIterable<DomMimeType>(this, f);
+
+  bool every(bool f(DomMimeType element)) => Collections.every(this, f);
+
+  bool any(bool f(DomMimeType element)) => Collections.any(this, f);
+
+  List<DomMimeType> toList() => new List<DomMimeType>.from(this);
+  Set<DomMimeType> toSet() => new Set<DomMimeType>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<DomMimeType> take(int n) => new ListView<DomMimeType>(this, 0, n);
+
+  Iterable<DomMimeType> takeWhile(bool test(DomMimeType value)) {
+    return new TakeWhileIterable<DomMimeType>(this, test);
+  }
+
+  List<DomMimeType> skip(int n) => new ListView<DomMimeType>(this, n, null);
+
+  Iterable<DomMimeType> skipWhile(bool test(DomMimeType value)) {
+    return new SkipWhileIterable<DomMimeType>(this, test);
+  }
+
+  DomMimeType firstMatching(bool test(DomMimeType value), { DomMimeType orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  DomMimeType lastMatching(bool test(DomMimeType value), {DomMimeType orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  DomMimeType singleMatching(bool test(DomMimeType value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  DomMimeType elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<DomMimeType>:
@@ -6511,28 +6859,9 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<DomMimeType> collection) {
+  void addAll(Iterable<DomMimeType> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(DomMimeType element) => Collections.contains(this, element);
-
-  void forEach(void f(DomMimeType element)) => Collections.forEach(this, f);
-
-  Collection map(f(DomMimeType element)) => Collections.map(this, [], f);
-
-  Collection<DomMimeType> filter(bool f(DomMimeType element)) =>
-     Collections.filter(this, <DomMimeType>[], f);
-
-  bool every(bool f(DomMimeType element)) => Collections.every(this, f);
-
-  bool some(bool f(DomMimeType element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<DomMimeType>:
   void set length(int value) {
@@ -6555,9 +6884,25 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     return Lists.lastIndexOf(this, element, start);
   }
 
-  DomMimeType get first => this[0];
+  DomMimeType get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  DomMimeType get last => this[length - 1];
+  DomMimeType get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  DomMimeType get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) => Collections.min(this, compare);
+
+  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) => Collections.max(this, compare);
 
   DomMimeType removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -6652,11 +6997,62 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
   // From Iterable<DomPlugin>:
 
-  Iterator<DomPlugin> iterator() {
+  Iterator<DomPlugin> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<DomPlugin>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(DomPlugin element) => Collections.contains(this, element);
+
+  void forEach(void f(DomPlugin element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(DomPlugin element)) => new MappedList<DomPlugin, dynamic>(this, f);
+
+  Iterable<DomPlugin> where(bool f(DomPlugin element)) => new WhereIterable<DomPlugin>(this, f);
+
+  bool every(bool f(DomPlugin element)) => Collections.every(this, f);
+
+  bool any(bool f(DomPlugin element)) => Collections.any(this, f);
+
+  List<DomPlugin> toList() => new List<DomPlugin>.from(this);
+  Set<DomPlugin> toSet() => new Set<DomPlugin>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<DomPlugin> take(int n) => new ListView<DomPlugin>(this, 0, n);
+
+  Iterable<DomPlugin> takeWhile(bool test(DomPlugin value)) {
+    return new TakeWhileIterable<DomPlugin>(this, test);
+  }
+
+  List<DomPlugin> skip(int n) => new ListView<DomPlugin>(this, n, null);
+
+  Iterable<DomPlugin> skipWhile(bool test(DomPlugin value)) {
+    return new SkipWhileIterable<DomPlugin>(this, test);
+  }
+
+  DomPlugin firstMatching(bool test(DomPlugin value), { DomPlugin orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  DomPlugin lastMatching(bool test(DomPlugin value), {DomPlugin orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  DomPlugin singleMatching(bool test(DomPlugin value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  DomPlugin elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<DomPlugin>:
@@ -6669,28 +7065,9 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<DomPlugin> collection) {
+  void addAll(Iterable<DomPlugin> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(DomPlugin element) => Collections.contains(this, element);
-
-  void forEach(void f(DomPlugin element)) => Collections.forEach(this, f);
-
-  Collection map(f(DomPlugin element)) => Collections.map(this, [], f);
-
-  Collection<DomPlugin> filter(bool f(DomPlugin element)) =>
-     Collections.filter(this, <DomPlugin>[], f);
-
-  bool every(bool f(DomPlugin element)) => Collections.every(this, f);
-
-  bool some(bool f(DomPlugin element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<DomPlugin>:
   void set length(int value) {
@@ -6713,9 +7090,25 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     return Lists.lastIndexOf(this, element, start);
   }
 
-  DomPlugin get first => this[0];
+  DomPlugin get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  DomPlugin get last => this[length - 1];
+  DomPlugin get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  DomPlugin get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) => Collections.min(this, compare);
+
+  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) => Collections.max(this, compare);
 
   DomPlugin removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -6869,11 +7262,62 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
 
   // From Iterable<String>:
 
-  Iterator<String> iterator() {
+  Iterator<String> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<String>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  // contains() defined by IDL.
+
+  void forEach(void f(String element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(String element)) => new MappedList<String, dynamic>(this, f);
+
+  Iterable<String> where(bool f(String element)) => new WhereIterable<String>(this, f);
+
+  bool every(bool f(String element)) => Collections.every(this, f);
+
+  bool any(bool f(String element)) => Collections.any(this, f);
+
+  List<String> toList() => new List<String>.from(this);
+  Set<String> toSet() => new Set<String>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<String> take(int n) => new ListView<String>(this, 0, n);
+
+  Iterable<String> takeWhile(bool test(String value)) {
+    return new TakeWhileIterable<String>(this, test);
+  }
+
+  List<String> skip(int n) => new ListView<String>(this, n, null);
+
+  Iterable<String> skipWhile(bool test(String value)) {
+    return new SkipWhileIterable<String>(this, test);
+  }
+
+  String firstMatching(bool test(String value), { String orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  String lastMatching(bool test(String value), {String orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  String singleMatching(bool test(String value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  String elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<String>:
@@ -6886,28 +7330,9 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<String> collection) {
+  void addAll(Iterable<String> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  // contains() defined by IDL.
-
-  void forEach(void f(String element)) => Collections.forEach(this, f);
-
-  Collection map(f(String element)) => Collections.map(this, [], f);
-
-  Collection<String> filter(bool f(String element)) =>
-     Collections.filter(this, <String>[], f);
-
-  bool every(bool f(String element)) => Collections.every(this, f);
-
-  bool some(bool f(String element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<String>:
   void set length(int value) {
@@ -6930,9 +7355,25 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     return Lists.lastIndexOf(this, element, start);
   }
 
-  String get first => this[0];
+  String get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  String get last => this[length - 1];
+  String get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  String get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  String min([int compare(String a, String b)]) => Collections.min(this, compare);
+
+  String max([int compare(String a, String b)]) => Collections.max(this, compare);
 
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -7012,10 +7453,18 @@ class _ChildrenElementList implements List {
     : _childElements = element.$dom_children,
       _element = element;
 
-  List<Element> _toList() {
-    final output = new List(_childElements.length);
+  List<Element> toList() {
+    final output = new List<Element>.fixedLength(_childElements.length);
     for (int i = 0, len = _childElements.length; i < len; i++) {
       output[i] = _childElements[i];
+    }
+    return output;
+  }
+
+  Set<Element> toSet() {
+    final output = new Set<Element>();
+    for (int i = 0, len = _childElements.length; i < len; i++) {
+      output.add(_childElements[i]);
     }
     return output;
   }
@@ -7028,44 +7477,69 @@ class _ChildrenElementList implements List {
     }
   }
 
-  List<Element> filter(bool f(Element element)) {
-    final output = [];
-    forEach((Element element) {
-      if (f(element)) {
-        output.add(element);
-      }
-    });
-    return new _FrozenElementList._wrap(output);
-  }
-
   bool every(bool f(Element element)) {
     for (Element element in this) {
       if (!f(element)) {
         return false;
       }
-    };
+    }
     return true;
   }
 
-  bool some(bool f(Element element)) {
+  bool any(bool f(Element element)) {
     for (Element element in this) {
       if (f(element)) {
         return true;
       }
-    };
+    }
     return false;
   }
 
-  Collection map(f(Element element)) {
-    final out = [];
-    for (Element el in this) {
-      out.add(f(el));
-    }
-    return out;
+  String join([String separator]) {
+    return Collections.joinList(this, separator);
   }
+
+  List mappedBy(f(Element element)) {
+    return new MappedList<Element, dynamic>(this, f);
+  }
+
+  Iterable<Element> where(bool f(Element element))
+      => new WhereIterable(this, f);
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
+  }
+
+  List<Element> take(int n) {
+    return new ListView<Element>(this, 0, n);
+  }
+
+  Iterable<Element> takeWhile(bool test(Element value)) {
+    return new TakeWhileIterable<Element>(this, test);
+  }
+
+  List<Element> skip(int n) {
+    return new ListView<Element>(this, n, null);
+  }
+
+  Iterable<Element> skipWhile(bool test(Element value)) {
+    return new SkipWhileIterable<Element>(this, test);
+  }
+
+  Element firstMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Element lastMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Element singleMatching(bool test(Element value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Element elementAt(int index) {
+    return this[index];
   }
 
   int get length {
@@ -7092,10 +7566,10 @@ class _ChildrenElementList implements List {
 
   Element addLast(Element value) => add(value);
 
-  Iterator<Element> iterator() => _toList().iterator();
+  Iterator<Element> get iterator => toList().iterator;
 
-  void addAll(Collection<Element> collection) {
-    for (Element element in collection) {
+  void addAll(Iterable<Element> iterable) {
+    for (Element element in iterable) {
       _element.$dom_appendChild(element);
     }
   }
@@ -7156,12 +7630,29 @@ class _ChildrenElementList implements List {
   }
 
   Element get first {
-    return _element.$dom_firstElementChild;
+    Element result = _element.$dom_firstElementChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
   }
 
 
   Element get last {
-    return _element.$dom_lastElementChild;
+    Element result = _element.$dom_lastElementChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+
+  Element get single {
+    if (length > 1) throw new StateError("More than one element");
+    return first;
+  }
+
+  Element min([int compare(Element a, Element b)]) {
+    return Collections.min(this, compare);
+  }
+
+  Element max([int compare(Element a, Element b)]) {
+    return Collections.max(this, compare);
   }
 }
 
@@ -7187,21 +7678,16 @@ class _FrozenElementList implements List {
     }
   }
 
-  Collection map(f(Element element)) {
-    final out = [];
-    for (Element el in this) {
-      out.add(f(el));
-    }
-    return out;
+  String join([String separator]) {
+    return Collections.joinList(this, separator);
   }
 
-  List<Element> filter(bool f(Element element)) {
-    final out = [];
-    for (Element el in this) {
-      if (f(el)) out.add(el);
-    }
-    return out;
+  List mappedBy(f(Element element)) {
+    return new MappedList<Element, dynamic>(this, f);
   }
+
+  Iterable<Element> where(bool f(Element element))
+      => new WhereIterable(this, f);
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -7212,13 +7698,48 @@ class _FrozenElementList implements List {
     return true;
   }
 
-  bool some(bool f(Element element)) {
+  bool any(bool f(Element element)) {
     for(Element element in this) {
       if (f(element)) {
         return true;
       }
     };
     return false;
+  }
+
+  List<Element> toList() => new List<Element>.from(this);
+  Set<Element> toSet() => new Set<Element>.from(this);
+
+  List<Element> take(int n) {
+    return new ListView<Element>(this, 0, n);
+  }
+
+  Iterable<Element> takeWhile(bool test(Element value)) {
+    return new TakeWhileIterable<Element>(this, test);
+  }
+
+  List<Element> skip(int n) {
+    return new ListView<Element>(this, n, null);
+  }
+
+  Iterable<Element> skipWhile(bool test(Element value)) {
+    return new SkipWhileIterable<Element>(this, test);
+  }
+
+  Element firstMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Element lastMatching(bool test(Element value), {Element orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Element singleMatching(bool test(Element value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Element elementAt(int index) {
+    return this[index];
   }
 
   bool get isEmpty => _nodeList.isEmpty;
@@ -7243,9 +7764,9 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  Iterator<Element> iterator() => new _FrozenElementListIterator(this);
+  Iterator<Element> get iterator => new _FrozenElementListIterator(this);
 
-  void addAll(Collection<Element> collection) {
+  void addAll(Iterable<Element> iterable) {
     throw new UnsupportedError('');
   }
 
@@ -7294,30 +7815,48 @@ class _FrozenElementList implements List {
   Element get first => _nodeList.first;
 
   Element get last => _nodeList.last;
+
+  Element get single => _nodeList.single;
+
+  Element min([int compare(Element a, Element b)]) {
+    return Collections.min(this, compare);
+  }
+
+  Element max([int compare(Element a, Element b)]) {
+    return Collections.max(this, compare);
+  }
 }
 
 class _FrozenElementListIterator implements Iterator<Element> {
   final _FrozenElementList _list;
-  int _index = 0;
+  int _index = -1;
+  Element _current;
 
   _FrozenElementListIterator(this._list);
 
   /**
-   * Gets the next element in the iteration. Throws a
-   * [StateError("No more elements")] if no element is left.
+   * Moves to the next element. Returns true if the iterator is positioned
+   * at an element. Returns false if it is positioned after the last element.
    */
-  Element next() {
-    if (!hasNext) {
-      throw new StateError("No more elements");
+  bool moveNext() {
+    int nextIndex = _index + 1;
+    if (nextIndex < _list.length) {
+      _current = _list[nextIndex];
+      _index = nextIndex;
+      return true;
     }
-
-    return _list[_index++];
+    _index = _list.length;
+    _current = null;
+    return false;
   }
 
   /**
-   * Returns whether the [Iterator] has elements left.
+   * Returns the element the [Iterator] is positioned at.
+   *
+   * Return [:null:] if the iterator is positioned before the first, or
+   * after the last element.
    */
-  bool get hasNext => _index < _list.length;
+  Element get current => _current;
 }
 
 class _ElementCssClassSet extends CssClassSet {
@@ -7341,7 +7880,7 @@ class _ElementCssClassSet extends CssClassSet {
 
   void writeClasses(Set<String> s) {
     List list = new List.from(s);
-    _element.$dom_className = Strings.join(list, ' ');
+    _element.$dom_className = s.join(' ');
   }
 }
 
@@ -7719,6 +8258,116 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     }
   }
 
+  /**
+   * Checks if this element matches the CSS selectors.
+   */
+  @Experimental()
+  bool matches(String selectors) {
+    if (JS('bool', '!!#.matches', this)) {
+      return JS('bool', '#.matches(#)', this, selectors);
+    } else if (JS('bool', '!!#.webkitMatchesSelector', this)) {
+      return JS('bool', '#.webkitMatchesSelector(#)', this, selectors);
+    } else if (JS('bool', '!!#.mozMatchesSelector', this)) {
+      return JS('bool', '#.mozMatchesSelector(#)', this, selectors);
+    } else if (JS('bool', '!!#.msMatchesSelector', this)) {
+      return JS('bool', '#.msMatchesSelector(#)', this, selectors);
+    }
+  }
+
+
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
+
+  static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
+
+  static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
+
+  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
+
+  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
+
+  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
+
+  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
+
+  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
+
+  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
+
+  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
+
+  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
+
+  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
+
+  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
+
+  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
+
+  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
+
+  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
+
+  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
+
+  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
+
+  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
+
+  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
+
+  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
+
+  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
+
+  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
+
+  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
+
+  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
+
+  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
+
+  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
+
+  static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
+
+  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
+
+  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
+
+  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
+
+  static const EventStreamProvider<TouchEvent> touchEnterEvent = const EventStreamProvider<TouchEvent>('touchenter');
+
+  static const EventStreamProvider<TouchEvent> touchLeaveEvent = const EventStreamProvider<TouchEvent>('touchleave');
+
+  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
+
+  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
+
+  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
+
+  static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
+
+  static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
@@ -7932,10 +8581,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @SupportedBrowser(SupportedBrowser.CHROME, '25') @Experimental()
   ShadowRoot createShadowRoot() native;
 
-  /// @domName Element.webkitMatchesSelector; @docsEditable true
-  @JSName('webkitMatchesSelector')
-  bool matchesSelector(String selectors) native;
-
   /// @domName Element.webkitRequestFullScreen; @docsEditable true
   void webkitRequestFullScreen(int flags) native;
 
@@ -7944,6 +8589,100 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   /// @domName Element.webkitRequestPointerLock; @docsEditable true
   void webkitRequestPointerLock() native;
+
+  Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
+
+  Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
+
+  Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onChange => changeEvent.forTarget(this);
+
+  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+
+  Stream<Event> get onCopy => copyEvent.forTarget(this);
+
+  Stream<Event> get onCut => cutEvent.forTarget(this);
+
+  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<Event> get onInput => inputEvent.forTarget(this);
+
+  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+
+  Stream<Event> get onPaste => pasteEvent.forTarget(this);
+
+  Stream<Event> get onReset => resetEvent.forTarget(this);
+
+  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+
+  Stream<Event> get onSearch => searchEvent.forTarget(this);
+
+  Stream<Event> get onSelect => selectEvent.forTarget(this);
+
+  Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
+
+  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchEnter => touchEnterEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchLeave => touchLeaveEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+
+  Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
+
+  Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
+
+  Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
 
 }
 
@@ -8199,9 +8938,7 @@ class EmbedElement extends Element native "*HTMLEmbedElement" {
   ///@docsEditable true
   factory EmbedElement() => document.$dom_createElement("embed");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('embed');
 
   /// @domName HTMLEmbedElement.align; @docsEditable true
@@ -8498,6 +9235,12 @@ class EventException native "*EventException" {
 /// @domName EventSource; @docsEditable true
 class EventSource extends EventTarget native "*EventSource" {
 
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
+
   ///@docsEditable true
   factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
   static EventSource _create(String scriptUrl) => JS('EventSource', 'new EventSource(#)', scriptUrl);
@@ -8532,6 +9275,12 @@ class EventSource extends EventTarget native "*EventSource" {
   /// @domName EventSource.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -8559,7 +9308,7 @@ class EventSourceEvents extends Events {
  * Events can either be accessed by string name (using the indexed getter) or by
  * getters exposed by subclasses. Use the getters exposed by subclasses when
  * possible for better compile-time type checks.
- * 
+ *
  * Using an indexed getter:
  *     events['mouseover'].add((e) => print("Mouse over!"));
  *
@@ -8622,7 +9371,7 @@ class EventListenerList {
  * [$dom_addEventListener], [$dom_dispatchEvent], and
  * [$dom_removeEventListener]) for compile-time type checks and a more concise
  * API.
- */ 
+ */
 class EventTarget native "*EventTarget" {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
@@ -8847,11 +9596,62 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 
   // From Iterable<File>:
 
-  Iterator<File> iterator() {
+  Iterator<File> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<File>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, File)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(File element) => Collections.contains(this, element);
+
+  void forEach(void f(File element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(File element)) => new MappedList<File, dynamic>(this, f);
+
+  Iterable<File> where(bool f(File element)) => new WhereIterable<File>(this, f);
+
+  bool every(bool f(File element)) => Collections.every(this, f);
+
+  bool any(bool f(File element)) => Collections.any(this, f);
+
+  List<File> toList() => new List<File>.from(this);
+  Set<File> toSet() => new Set<File>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<File> take(int n) => new ListView<File>(this, 0, n);
+
+  Iterable<File> takeWhile(bool test(File value)) {
+    return new TakeWhileIterable<File>(this, test);
+  }
+
+  List<File> skip(int n) => new ListView<File>(this, n, null);
+
+  Iterable<File> skipWhile(bool test(File value)) {
+    return new SkipWhileIterable<File>(this, test);
+  }
+
+  File firstMatching(bool test(File value), { File orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  File lastMatching(bool test(File value), {File orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  File singleMatching(bool test(File value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  File elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<File>:
@@ -8864,28 +9664,9 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<File> collection) {
+  void addAll(Iterable<File> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, File)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(File element) => Collections.contains(this, element);
-
-  void forEach(void f(File element)) => Collections.forEach(this, f);
-
-  Collection map(f(File element)) => Collections.map(this, [], f);
-
-  Collection<File> filter(bool f(File element)) =>
-     Collections.filter(this, <File>[], f);
-
-  bool every(bool f(File element)) => Collections.every(this, f);
-
-  bool some(bool f(File element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<File>:
   void set length(int value) {
@@ -8908,9 +9689,25 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     return Lists.lastIndexOf(this, element, start);
   }
 
-  File get first => this[0];
+  File get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  File get last => this[length - 1];
+  File get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  File get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  File min([int compare(File a, File b)]) => Collections.min(this, compare);
+
+  File max([int compare(File a, File b)]) => Collections.max(this, compare);
 
   File removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -8947,6 +9744,18 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 
 /// @domName FileReader; @docsEditable true
 class FileReader extends EventTarget native "*FileReader" {
+
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
+
+  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
+
+  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
+
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
   ///@docsEditable true
   factory FileReader() => FileReader._create();
@@ -8999,6 +9808,18 @@ class FileReader extends EventTarget native "*FileReader" {
   /// @domName FileReader.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -9057,6 +9878,9 @@ class FileReaderSync native "*FileReaderSync" {
 /// @domName DOMFileSystem; @docsEditable true
 class FileSystem native "*DOMFileSystem" {
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.webkitRequestFileSystem)');
+
   /// @domName DOMFileSystem.name; @docsEditable true
   final String name;
 
@@ -9092,6 +9916,18 @@ class FileSystemSync native "*DOMFileSystemSync" {
 
 /// @domName FileWriter; @docsEditable true
 class FileWriter extends EventTarget native "*FileWriter" {
+
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
+  static const EventStreamProvider<ProgressEvent> writeEvent = const EventStreamProvider<ProgressEvent>('write');
+
+  static const EventStreamProvider<ProgressEvent> writeEndEvent = const EventStreamProvider<ProgressEvent>('writeend');
+
+  static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileWriterEvents get on =>
@@ -9138,6 +9974,18 @@ class FileWriter extends EventTarget native "*FileWriter" {
 
   /// @domName FileWriter.write; @docsEditable true
   void write(Blob data) native;
+
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onWrite => writeEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onWriteEnd => writeEndEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onWriteStart => writeStartEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -9208,7 +10056,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   factory Float32Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat32Array_fromList(list);
 
-  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -9223,11 +10071,62 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   // From Iterable<num>:
 
-  Iterator<num> iterator() {
+  Iterator<num> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<num>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(num element) => Collections.contains(this, element);
+
+  void forEach(void f(num element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(num element)) => new MappedList<num, dynamic>(this, f);
+
+  Iterable<num> where(bool f(num element)) => new WhereIterable<num>(this, f);
+
+  bool every(bool f(num element)) => Collections.every(this, f);
+
+  bool any(bool f(num element)) => Collections.any(this, f);
+
+  List<num> toList() => new List<num>.from(this);
+  Set<num> toSet() => new Set<num>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<num> take(int n) => new ListView<num>(this, 0, n);
+
+  Iterable<num> takeWhile(bool test(num value)) {
+    return new TakeWhileIterable<num>(this, test);
+  }
+
+  List<num> skip(int n) => new ListView<num>(this, n, null);
+
+  Iterable<num> skipWhile(bool test(num value)) {
+    return new SkipWhileIterable<num>(this, test);
+  }
+
+  num firstMatching(bool test(num value), { num orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  num lastMatching(bool test(num value), {num orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  num singleMatching(bool test(num value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  num elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<num>:
@@ -9240,28 +10139,9 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<num> collection) {
+  void addAll(Iterable<num> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(num element) => Collections.contains(this, element);
-
-  void forEach(void f(num element)) => Collections.forEach(this, f);
-
-  Collection map(f(num element)) => Collections.map(this, [], f);
-
-  Collection<num> filter(bool f(num element)) =>
-     Collections.filter(this, <num>[], f);
-
-  bool every(bool f(num element)) => Collections.every(this, f);
-
-  bool some(bool f(num element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<num>:
   void set length(int value) {
@@ -9284,9 +10164,25 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     return Lists.lastIndexOf(this, element, start);
   }
 
-  num get first => this[0];
+  num get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  num get last => this[length - 1];
+  num get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  num get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  num min([int compare(num a, num b)]) => Collections.min(this, compare);
+
+  num max([int compare(num a, num b)]) => Collections.max(this, compare);
 
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -9334,7 +10230,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   factory Float64Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat64Array_fromList(list);
 
-  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 8;
@@ -9349,11 +10245,62 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   // From Iterable<num>:
 
-  Iterator<num> iterator() {
+  Iterator<num> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<num>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(num element) => Collections.contains(this, element);
+
+  void forEach(void f(num element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(num element)) => new MappedList<num, dynamic>(this, f);
+
+  Iterable<num> where(bool f(num element)) => new WhereIterable<num>(this, f);
+
+  bool every(bool f(num element)) => Collections.every(this, f);
+
+  bool any(bool f(num element)) => Collections.any(this, f);
+
+  List<num> toList() => new List<num>.from(this);
+  Set<num> toSet() => new Set<num>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<num> take(int n) => new ListView<num>(this, 0, n);
+
+  Iterable<num> takeWhile(bool test(num value)) {
+    return new TakeWhileIterable<num>(this, test);
+  }
+
+  List<num> skip(int n) => new ListView<num>(this, n, null);
+
+  Iterable<num> skipWhile(bool test(num value)) {
+    return new SkipWhileIterable<num>(this, test);
+  }
+
+  num firstMatching(bool test(num value), { num orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  num lastMatching(bool test(num value), {num orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  num singleMatching(bool test(num value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  num elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<num>:
@@ -9366,28 +10313,9 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<num> collection) {
+  void addAll(Iterable<num> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(num element) => Collections.contains(this, element);
-
-  void forEach(void f(num element)) => Collections.forEach(this, f);
-
-  Collection map(f(num element)) => Collections.map(this, [], f);
-
-  Collection<num> filter(bool f(num element)) =>
-     Collections.filter(this, <num>[], f);
-
-  bool every(bool f(num element)) => Collections.every(this, f);
-
-  bool some(bool f(num element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<num>:
   void set length(int value) {
@@ -9410,9 +10338,25 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     return Lists.lastIndexOf(this, element, start);
   }
 
-  num get first => this[0];
+  num get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  num get last => this[length - 1];
+  num get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  num get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  num min([int compare(num a, num b)]) => Collections.min(this, compare);
+
+  num max([int compare(num a, num b)]) => Collections.max(this, compare);
 
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -9593,6 +10537,32 @@ class FrameElement extends Element native "*HTMLFrameElement" {
 /// @domName HTMLFrameSetElement; @docsEditable true
 class FrameSetElement extends Element native "*HTMLFrameSetElement" {
 
+  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
+
+  static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
+
+  static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
+
+  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
+
+  static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
+
+  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FrameSetElementEvents get on =>
     new FrameSetElementEvents(this);
@@ -9602,6 +10572,32 @@ class FrameSetElement extends Element native "*HTMLFrameSetElement" {
 
   /// @domName HTMLFrameSetElement.rows; @docsEditable true
   String rows;
+
+  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<Event> get onOffline => offlineEvent.forTarget(this);
+
+  Stream<Event> get onOnline => onlineEvent.forTarget(this);
+
+  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
+
+  Stream<Event> get onResize => resizeEvent.forTarget(this);
+
+  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
+
+  Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -9835,11 +10831,62 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 
   // From Iterable<Node>:
 
-  Iterator<Node> iterator() {
+  Iterator<Node> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Node>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+
+  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+
+  bool every(bool f(Node element)) => Collections.every(this, f);
+
+  bool any(bool f(Node element)) => Collections.any(this, f);
+
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return new TakeWhileIterable<Node>(this, test);
+  }
+
+  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return new SkipWhileIterable<Node>(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), { Node orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Node>:
@@ -9852,28 +10899,9 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Node> collection) {
+  void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => Collections.every(this, f);
-
-  bool some(bool f(Node element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
   void set length(int value) {
@@ -9896,9 +10924,25 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Node get first => this[0];
+  Node get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Node get last => this[length - 1];
+  Node get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+
+  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -9956,11 +11000,62 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   // From Iterable<Node>:
 
-  Iterator<Node> iterator() {
+  Iterator<Node> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Node>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+
+  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+
+  bool every(bool f(Node element)) => Collections.every(this, f);
+
+  bool any(bool f(Node element)) => Collections.any(this, f);
+
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return new TakeWhileIterable<Node>(this, test);
+  }
+
+  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return new SkipWhileIterable<Node>(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), { Node orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Node>:
@@ -9973,28 +11068,9 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Node> collection) {
+  void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => Collections.every(this, f);
-
-  bool some(bool f(Node element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
   void set length(int value) {
@@ -10017,9 +11093,25 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Node get first => this[0];
+  Node get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Node get last => this[length - 1];
+  Node get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+
+  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -10083,7 +11175,40 @@ class HtmlDocument extends Document native "*HTMLDocument" {
     return document.$dom_elementFromPoint(x, y);
   }
 
-  /** @domName Document.getCSSCanvasContext */
+  /**
+   * Checks if the getCssCanvasContext API is supported on the current platform.
+   *
+   * See also:
+   *
+   * * [getCssCanvasContext]
+   */
+  static bool get supportsCssCanvasContext =>
+      JS('bool', '!!(document.getCSSCanvasContext)');
+
+
+  /**
+   * Gets a CanvasRenderingContext which can be used as the CSS background of an
+   * element.
+   *
+   * CSS:
+   *
+   *     background: -webkit-canvas(backgroundCanvas)
+   *
+   * Generate the canvas:
+   *
+   *     var context = document.getCssCanvasContext('2d', 'backgroundCanvas',
+   *         100, 100);
+   *     context.fillStyle = 'red';
+   *     context.fillRect(0, 0, 100, 100);
+   *
+   * See also:
+   *
+   * * [supportsCssCanvasContext]
+   * * [CanvasElement.getContext]
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
     return document.$dom_getCssCanvasContext(contextId, name, width, height);
@@ -10207,23 +11332,23 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
 
 /**
  * A utility for retrieving data from a URL.
- * 
+ *
  * HttpRequest can be used to obtain data from http, ftp, and file
- * protocols. 
- * 
+ * protocols.
+ *
  * For example, suppose we're developing these API docs, and we
  * wish to retrieve the HTML of the top-level page and print it out.
  * The easiest way to do that would be:
- * 
+ *
  *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
  *         (request) => print(request.responseText));
- * 
+ *
  * **Important**: With the default behavior of this class, your
  * code making the request should be served from the same origin (domain name,
  * port, and application layer protocol) as the URL you are trying to access
- * with HttpRequest. However, there are ways to 
+ * with HttpRequest. However, there are ways to
  * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
- * 
+ *
  * See also:
  *
  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
@@ -10234,7 +11359,7 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /**
    * Creates a URL get request for the specified `url`.
-   * 
+   *
    * After completing the request, the object will call the user-provided
    * [onComplete] callback.
    */
@@ -10246,8 +11371,8 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * Creates a URL GET request for the specified `url` with
    * credentials such a cookie (already) set in the header or
    * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2).
-   * 
-   * After completing the request, the object will call the user-provided 
+   *
+   * After completing the request, the object will call the user-provided
    * [onComplete] callback.
    *
    * A few other details to keep in mind when using credentials:
@@ -10256,13 +11381,27 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
-   * 
+   *
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   factory HttpRequest.getWithCredentials(String url,
       onComplete(HttpRequest request)) =>
       _HttpRequestUtils.get(url, onComplete, true);
 
+
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
+
+  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
+
+  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
+
+  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
+
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
+  static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
   ///@docsEditable true
   factory HttpRequest() => HttpRequest._create();
@@ -10326,7 +11465,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * The data received as a reponse from the request.
    *
    * The data could be in the
-   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a 
+   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a
    * [String]). `null` indicates request failure.
    */
   /// @domName XMLHttpRequest.response; @docsEditable true
@@ -10340,7 +11479,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   final String responseText;
 
   /**
-   * [String] telling the server the desired response format. 
+   * [String] telling the server the desired response format.
    *
    * Default is `String`.
    * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
@@ -10354,7 +11493,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   /**
    * The request response, or null on failure.
-   * 
+   *
    * The response is processed as
    * `text/xml` stream, unless responseType = 'document' and the request is
    * synchronous.
@@ -10386,7 +11525,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   /**
    * True if cross-site requests should use credentials such as cookies
-   * or authorization headers; false otherwise. 
+   * or authorization headers; false otherwise.
    *
    * This value is ignored for same-site requests.
    */
@@ -10396,7 +11535,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /**
    * Stop the current request.
    *
-   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or 
+   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
    * `LOADING`. If this method is not in the process of being sent, the method
    * has no effect.
    */
@@ -10413,11 +11552,11 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   /**
    * Retrieve all the response headers from a request.
-   * 
+   *
    * `null` if no headers have been received. For multipart requests,
    * `getAllResponseHeaders` will return the response headers for the current
    * part of the request.
-   * 
+   *
    * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
    * for a list of common response headers.
    */
@@ -10426,7 +11565,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   /**
    * Return the response header named `header`, or `null` if not found.
-   * 
+   *
    * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
    * for a list of common response headers.
    */
@@ -10435,11 +11574,11 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   /**
    * Specify the desired `url`, and `method` to use in making the request.
-   * 
+   *
    * By default the request is done asyncronously, with no user or password
    * authentication information. If `async` is false, the request will be send
    * synchronously.
-   * 
+   *
    * Calling `open` again on a currently active request is equivalent to
    * calling `abort`.
    */
@@ -10449,7 +11588,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
    * response.
-   * 
+   *
    * This value must be set before the request has been sent. See also the list
    * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
    */
@@ -10463,7 +11602,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /**
    * Send the request with any given `data`.
    *
-   * See also: 
+   * See also:
    * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())
    * from MDN.
    */
@@ -10474,15 +11613,29 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /// @domName XMLHttpRequest.setRequestHeader; @docsEditable true
   void setRequestHeader(String header, String value) native;
 
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
+
 }
 
 /**
  * A class that supports listening for and dispatching events that can fire when
- * making an HTTP request. 
- *  
+ * making an HTTP request.
+ *
  * Here's an example of adding an event handler that executes once an HTTP
  * request has fully loaded:
- * 
+ *
  *     httpRequest.on.loadEnd.add((e) => myCustomLoadEndHandler(e));
  *
  * Each property of this class is a read-only pointer to an [EventListenerList].
@@ -10530,7 +11683,7 @@ class HttpRequestEvents extends Events {
   EventListenerList get loadStart => this['loadstart'];
 
   /**
-   * Event listeners to be notified when data for the request 
+   * Event listeners to be notified when data for the request
    * is being sent or loaded.
    *
    * Progress events are fired every 50ms or for every byte transmitted,
@@ -10592,6 +11745,18 @@ class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProg
 /// @domName XMLHttpRequestUpload; @docsEditable true
 class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
 
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
+
+  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
+
+  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
+
+  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
+
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestUploadEvents get on =>
     new HttpRequestUploadEvents(this);
@@ -10607,6 +11772,18 @@ class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
   /// @domName XMLHttpRequestUpload.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
+
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -10786,6 +11963,8 @@ class InputElement extends Element implements
     return e;
   }
 
+  static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   InputElementEvents get on =>
     new InputElementEvents(this);
@@ -10960,6 +12139,8 @@ class InputElement extends Element implements
 
   /// @domName HTMLInputElement.stepUp; @docsEditable true
   void stepUp([int n]) native;
+
+  Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
 
 }
 
@@ -11567,7 +12748,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Int16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt16Array_fromList(list);
 
-  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -11582,11 +12763,62 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -11599,28 +12831,9 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -11643,9 +12856,25 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -11693,7 +12922,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Int32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt32Array_fromList(list);
 
-  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -11708,11 +12937,62 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -11725,28 +13005,9 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -11769,9 +13030,25 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -11819,7 +13096,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   factory Int8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt8Array_fromList(list);
 
-  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -11834,11 +13111,62 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -11851,28 +13179,9 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -11895,9 +13204,25 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -12064,9 +13389,7 @@ class KeygenElement extends Element native "*HTMLKeygenElement" {
   ///@docsEditable true
   factory KeygenElement() => document.$dom_createElement("keygen");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('keygen') && (new Element.tag('keygen') is KeygenElement);
 
   /// @domName HTMLKeygenElement.autofocus; @docsEditable true
@@ -12285,9 +13608,7 @@ class MapElement extends Element native "*HTMLMapElement" {
 /// @domName HTMLMarqueeElement; @docsEditable true
 class MarqueeElement extends Element native "*HTMLMarqueeElement" {
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('marquee')&& (new Element.tag('marquee') is MarqueeElement);
 
   /// @domName HTMLMarqueeElement.behavior; @docsEditable true
@@ -12402,6 +13723,56 @@ class MediaController extends EventTarget native "*MediaController" {
 
 /// @domName HTMLMediaElement; @docsEditable true
 class MediaElement extends Element native "*HTMLMediaElement" {
+
+  static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
+
+  static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
+
+  static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
+
+  static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
+
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
+  static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
+
+  static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
+
+  static const EventStreamProvider<Event> loadStartEvent = const EventStreamProvider<Event>('loadstart');
+
+  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
+
+  static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
+
+  static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
+
+  static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
+
+  static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
+
+  static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
+
+  static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
+
+  static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
+
+  static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
+
+  static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
+
+  static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
+
+  static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
+
+  static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
+
+  static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
+
+  static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
+
+  static const EventStreamProvider<MediaKeyEvent> keyMessageEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeymessage');
+
+  static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaElementEvents get on =>
@@ -12544,6 +13915,56 @@ class MediaElement extends Element native "*HTMLMediaElement" {
 
   /// @domName HTMLMediaElement.webkitGenerateKeyRequest; @docsEditable true
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) native;
+
+  Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
+
+  Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
+
+  Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
+
+  Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
+
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
+
+  Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
+
+  Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
+
+  Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
+
+  Stream<Event> get onPause => pauseEvent.forTarget(this);
+
+  Stream<Event> get onPlay => playEvent.forTarget(this);
+
+  Stream<Event> get onPlaying => playingEvent.forTarget(this);
+
+  Stream<Event> get onProgress => progressEvent.forTarget(this);
+
+  Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
+
+  Stream<Event> get onSeeked => seekedEvent.forTarget(this);
+
+  Stream<Event> get onSeeking => seekingEvent.forTarget(this);
+
+  Stream<Event> get onShow => showEvent.forTarget(this);
+
+  Stream<Event> get onStalled => stalledEvent.forTarget(this);
+
+  Stream<Event> get onSuspend => suspendEvent.forTarget(this);
+
+  Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
+
+  Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
+
+  Stream<Event> get onWaiting => waitingEvent.forTarget(this);
+
+  Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
+
+  Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
+
+  Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
+
+  Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -12807,6 +14228,8 @@ class MediaSource extends EventTarget native "*MediaSource" {
 /// @domName MediaStream; @docsEditable true
 class MediaStream extends EventTarget native "*MediaStream" {
 
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
   ///@docsEditable true
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => MediaStream._create(audioTracks, videoTracks);
   static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => JS('MediaStream', 'new MediaStream(#,#)', audioTracks, videoTracks);
@@ -12842,6 +14265,8 @@ class MediaStream extends EventTarget native "*MediaStream" {
   /// @domName MediaStream.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -12870,6 +14295,12 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 
 /// @domName MediaStreamTrack; @docsEditable true
 class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
+
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
+  static const EventStreamProvider<Event> muteEvent = const EventStreamProvider<Event>('mute');
+
+  static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackEvents get on =>
@@ -12904,6 +14335,12 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
   /// @domName MediaStreamTrack.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
+
+  Stream<Event> get onMute => muteEvent.forTarget(this);
+
+  Stream<Event> get onUnmute => unmuteEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -12939,6 +14376,10 @@ class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 /// @domName MediaStreamTrackList; @docsEditable true
 class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
 
+  static const EventStreamProvider<MediaStreamTrackEvent> addTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('addtrack');
+
+  static const EventStreamProvider<MediaStreamTrackEvent> removeTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('removetrack');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackListEvents get on =>
     new MediaStreamTrackListEvents(this);
@@ -12966,6 +14407,10 @@ class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
   /// @domName MediaStreamTrackList.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<MediaStreamTrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
+
+  Stream<MediaStreamTrackEvent> get onRemoveTrack => removeTrackEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -13079,6 +14524,8 @@ class MessageEvent extends Event native "*MessageEvent" {
 /// @domName MessagePort; @docsEditable true
 class MessagePort extends EventTarget native "*MessagePort" {
 
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MessagePortEvents get on =>
     new MessagePortEvents(this);
@@ -13116,6 +14563,8 @@ class MessagePort extends EventTarget native "*MessagePort" {
 
   /// @domName MessagePort.start; @docsEditable true
   void start() native;
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -13179,9 +14628,7 @@ class MeterElement extends Element native "*HTMLMeterElement" {
   ///@docsEditable true
   factory MeterElement() => document.$dom_createElement("meter");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('meter');
 
   /// @domName HTMLMeterElement.high; @docsEditable true
@@ -13384,15 +14831,6 @@ class MutationObserver native "*MutationObserver" {
 
   ///@docsEditable true
   factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
-  static MutationObserver _create(MutationCallback callback) {
-    // Dummy statement to mark types as instantiated.
-    JS('MutationObserver|MutationRecord', '0');
-
-    return JS('MutationObserver',
-        'new(window.MutationObserver||window.WebKitMutationObserver||'
-        'window.MozMutationObserver)(#)',
-        convertDartClosureToJS(callback, 2));
-  }
 
   /// @domName MutationObserver.disconnect; @docsEditable true
   void disconnect() native;
@@ -13479,6 +14917,16 @@ class MutationObserver native "*MutationObserver" {
   // Call native function with no conversions.
   @JSName('observe')
   void _call(target, options) native;
+
+  static MutationObserver _create(MutationCallback callback) {
+    // Dummy statement to mark types as instantiated.
+    JS('MutationObserver|MutationRecord', '0');
+
+    return JS('MutationObserver',
+        'new(window.MutationObserver||window.WebKitMutationObserver||'
+        'window.MozMutationObserver)(#)',
+        convertDartClosureToJS(callback, 2));
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13538,11 +14986,62 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 
   // From Iterable<Node>:
 
-  Iterator<Node> iterator() {
+  Iterator<Node> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Node>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+
+  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+
+  bool every(bool f(Node element)) => Collections.every(this, f);
+
+  bool any(bool f(Node element)) => Collections.any(this, f);
+
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return new TakeWhileIterable<Node>(this, test);
+  }
+
+  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return new SkipWhileIterable<Node>(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), { Node orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Node>:
@@ -13555,28 +15054,9 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Node> collection) {
+  void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => Collections.every(this, f);
-
-  bool some(bool f(Node element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
   void set length(int value) {
@@ -13599,9 +15079,25 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Node get first => this[0];
+  Node get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Node get last => this[length - 1];
+  Node get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+
+  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -13660,7 +15156,7 @@ class Navigator native "*Navigator" {
   /// @domName Navigator.language; @docsEditable true
   String get language => JS('String', '#.language || #.userLanguage', this,
       this);
-  
+
   /// @domName Navigator.appCodeName; @docsEditable true
   final String appCodeName;
 
@@ -13778,8 +15274,30 @@ class _ChildNodeListLazy implements List {
   _ChildNodeListLazy(this._this);
 
 
-  Node get first => JS('Node', '#.firstChild', _this);
-  Node get last => JS('Node', '#.lastChild', _this);
+  Node get first {
+    Node result = JS('Node', '#.firstChild', _this);
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+  Node get last {
+    Node result = JS('Node', '#.lastChild', _this);
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+  Node get single {
+    int l = this.length;
+    if (l == 0) throw new StateError("No elements");
+    if (l > 1) throw new StateError("More than one element");
+    return JS('Node', '#.firstChild', _this);
+  }
+
+  Node min([int compare(Node a, Node b)]) {
+    return Collections.min(this, compare);
+  }
+
+  Node max([int compare(Node a, Node b)]) {
+    return Collections.max(this, compare);
+  }
 
   void add(Node value) {
     _this.$dom_appendChild(value);
@@ -13790,8 +15308,8 @@ class _ChildNodeListLazy implements List {
   }
 
 
-  void addAll(Collection<Node> collection) {
-    for (Node node in collection) {
+  void addAll(Iterable<Node> iterable) {
+    for (Node node in iterable) {
       _this.$dom_appendChild(node);
     }
   }
@@ -13820,7 +15338,7 @@ class _ChildNodeListLazy implements List {
     _this.$dom_replaceChild(value, this[index]);
   }
 
-  Iterator<Node> iterator() => _this.$dom_childNodes.iterator();
+  Iterator<Node> get iterator => _this.$dom_childNodes.iterator;
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
@@ -13833,18 +15351,58 @@ class _ChildNodeListLazy implements List {
     return Collections.reduce(this, initialValue, combine);
   }
 
-  Collection map(f(Node element)) => Collections.map(this, [], f);
+  String join([String separator]) {
+    return Collections.joinList(this, separator);
+  }
 
-  Collection<Node> filter(bool f(Node element)) =>
-     Collections.filter(this, <Node>[], f);
+  List mappedBy(f(Node element)) =>
+      new MappedList<Node, dynamic>(this, f);
+
+  Iterable<Node> where(bool f(Node element)) =>
+     new WhereIterable<Node>(this, f);
 
   bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => Collections.some(this, f);
+  bool any(bool f(Node element)) => Collections.any(this, f);
+
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
   // From List<Node>:
+
+  List<Node> take(int n) {
+    return new ListView<Node>(this, 0, n);
+  }
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return new TakeWhileIterable<Node>(this, test);
+  }
+
+  List<Node> skip(int n) {
+    return new ListView<Node>(this, n, null);
+  }
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return new SkipWhileIterable<Node>(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
+  }
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
@@ -14156,11 +15714,62 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 
   // From Iterable<Node>:
 
-  Iterator<Node> iterator() {
+  Iterator<Node> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Node>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+
+  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+
+  bool every(bool f(Node element)) => Collections.every(this, f);
+
+  bool any(bool f(Node element)) => Collections.any(this, f);
+
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return new TakeWhileIterable<Node>(this, test);
+  }
+
+  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return new SkipWhileIterable<Node>(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), { Node orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Node>:
@@ -14173,28 +15782,9 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Node> collection) {
+  void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => Collections.every(this, f);
-
-  bool some(bool f(Node element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
   void set length(int value) {
@@ -14217,9 +15807,25 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Node get first => this[0];
+  Node get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Node get last => this[length - 1];
+  Node get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+
+  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -14271,6 +15877,16 @@ class Notation extends Node native "*Notation" {
 
 /// @domName Notification; @docsEditable true
 class Notification extends EventTarget native "*Notification" {
+
+  static const EventStreamProvider<Event> clickEvent = const EventStreamProvider<Event>('click');
+
+  static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
+
+  static const EventStreamProvider<Event> displayEvent = const EventStreamProvider<Event>('display');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
   ///@docsEditable true
   factory Notification(String title, [Map options]) {
@@ -14325,6 +15941,16 @@ class Notification extends EventTarget native "*Notification" {
 
   /// @domName Notification.show; @docsEditable true
   void show() native;
+
+  Stream<Event> get onClick => clickEvent.forTarget(this);
+
+  Stream<Event> get onClose => closeEvent.forTarget(this);
+
+  Stream<Event> get onDisplay => displayEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onShow => showEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -14410,9 +16036,7 @@ class ObjectElement extends Element native "*HTMLObjectElement" {
   ///@docsEditable true
   factory ObjectElement() => document.$dom_createElement("object");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('object');
 
   /// @domName HTMLObjectElement.code; @docsEditable true
@@ -14598,9 +16222,7 @@ class OutputElement extends Element native "*HTMLOutputElement" {
   ///@docsEditable true
   factory OutputElement() => document.$dom_createElement("output");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('output');
 
   /// @domName HTMLOutputElement.defaultValue; @docsEditable true
@@ -14728,7 +16350,13 @@ class ParamElement extends Element native "*HTMLParamElement" {
 
 
 /// @domName Performance; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE)
 class Performance extends EventTarget native "*Performance" {
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.performance)');
 
   /// @domName Performance.memory; @docsEditable true
   final MemoryInfo memory;
@@ -14949,9 +16577,7 @@ class ProgressElement extends Element native "*HTMLProgressElement" {
   ///@docsEditable true
   factory ProgressElement() => document.$dom_createElement("progress");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('progress');
 
   /// @domName HTMLProgressElement.labels; @docsEditable true
@@ -15230,6 +16856,14 @@ class RgbColor native "*RGBColor" {
 /// @domName RTCDataChannel; @docsEditable true
 class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
 
+  static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RtcDataChannelEvents get on =>
     new RtcDataChannelEvents(this);
@@ -15266,6 +16900,14 @@ class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
 
   /// @domName RTCDataChannel.send; @docsEditable true
   void send(data) native;
+
+  Stream<Event> get onClose => closeEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -15335,6 +16977,22 @@ class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 
 /// @domName RTCPeerConnection; @docsEditable true
 class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
+
+  static const EventStreamProvider<MediaStreamEvent> addStreamEvent = const EventStreamProvider<MediaStreamEvent>('addstream');
+
+  static const EventStreamProvider<RtcDataChannelEvent> dataChannelEvent = const EventStreamProvider<RtcDataChannelEvent>('datachannel');
+
+  static const EventStreamProvider<RtcIceCandidateEvent> iceCandidateEvent = const EventStreamProvider<RtcIceCandidateEvent>('icecandidate');
+
+  static const EventStreamProvider<Event> iceChangeEvent = const EventStreamProvider<Event>('icechange');
+
+  static const EventStreamProvider<Event> negotiationNeededEvent = const EventStreamProvider<Event>('negotiationneeded');
+
+  static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
+
+  static const EventStreamProvider<MediaStreamEvent> removeStreamEvent = const EventStreamProvider<MediaStreamEvent>('removestream');
+
+  static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
   ///@docsEditable true
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
@@ -15487,6 +17145,22 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void _updateIce_2(configuration) native;
   @JSName('updateIce')
   void _updateIce_3() native;
+
+  Stream<MediaStreamEvent> get onAddStream => addStreamEvent.forTarget(this);
+
+  Stream<RtcDataChannelEvent> get onDataChannel => dataChannelEvent.forTarget(this);
+
+  Stream<RtcIceCandidateEvent> get onIceCandidate => iceCandidateEvent.forTarget(this);
+
+  Stream<Event> get onIceChange => iceChangeEvent.forTarget(this);
+
+  Stream<Event> get onNegotiationNeeded => negotiationNeededEvent.forTarget(this);
+
+  Stream<Event> get onOpen => openEvent.forTarget(this);
+
+  Stream<MediaStreamEvent> get onRemoveStream => removeStreamEvent.forTarget(this);
+
+  Stream<Event> get onStateChange => stateChangeEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -15808,13 +17482,15 @@ class SelectElement extends Element native "*HTMLSelectElement" {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    return this.children.filter((e) => e is OptionElement);
+    var options = this.children.where((e) => e is OptionElement).toList();
+    return new ListView(options, 0, options.length);
   }
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
-      return this.options.filter((o) => o.selected);
+      var options = this.options.where((o) => o.selected).toList();
+      return new ListView(options, 0, options.length);
     } else {
       return [this.options[this.selectedIndex]];
     }
@@ -15830,9 +17506,7 @@ class SelectElement extends Element native "*HTMLSelectElement" {
 @Experimental()
 class ShadowElement extends Element native "*HTMLShadowElement" {
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('shadow');
 
   /// @domName HTMLShadowElement.olderShadowRoot; @docsEditable true
@@ -15923,12 +17597,16 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
 /// @domName SharedWorkerContext; @docsEditable true
 class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
 
+  static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SharedWorkerContextEvents get on =>
     new SharedWorkerContextEvents(this);
 
   /// @domName SharedWorkerContext.name; @docsEditable true
   final String name;
+
+  Stream<Event> get onConnect => connectEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -15980,11 +17658,62 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 
   // From Iterable<SourceBuffer>:
 
-  Iterator<SourceBuffer> iterator() {
+  Iterator<SourceBuffer> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<SourceBuffer>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(SourceBuffer element) => Collections.contains(this, element);
+
+  void forEach(void f(SourceBuffer element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(SourceBuffer element)) => new MappedList<SourceBuffer, dynamic>(this, f);
+
+  Iterable<SourceBuffer> where(bool f(SourceBuffer element)) => new WhereIterable<SourceBuffer>(this, f);
+
+  bool every(bool f(SourceBuffer element)) => Collections.every(this, f);
+
+  bool any(bool f(SourceBuffer element)) => Collections.any(this, f);
+
+  List<SourceBuffer> toList() => new List<SourceBuffer>.from(this);
+  Set<SourceBuffer> toSet() => new Set<SourceBuffer>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<SourceBuffer> take(int n) => new ListView<SourceBuffer>(this, 0, n);
+
+  Iterable<SourceBuffer> takeWhile(bool test(SourceBuffer value)) {
+    return new TakeWhileIterable<SourceBuffer>(this, test);
+  }
+
+  List<SourceBuffer> skip(int n) => new ListView<SourceBuffer>(this, n, null);
+
+  Iterable<SourceBuffer> skipWhile(bool test(SourceBuffer value)) {
+    return new SkipWhileIterable<SourceBuffer>(this, test);
+  }
+
+  SourceBuffer firstMatching(bool test(SourceBuffer value), { SourceBuffer orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  SourceBuffer lastMatching(bool test(SourceBuffer value), {SourceBuffer orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  SourceBuffer singleMatching(bool test(SourceBuffer value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  SourceBuffer elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<SourceBuffer>:
@@ -15997,28 +17726,9 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SourceBuffer> collection) {
+  void addAll(Iterable<SourceBuffer> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(SourceBuffer element) => Collections.contains(this, element);
-
-  void forEach(void f(SourceBuffer element)) => Collections.forEach(this, f);
-
-  Collection map(f(SourceBuffer element)) => Collections.map(this, [], f);
-
-  Collection<SourceBuffer> filter(bool f(SourceBuffer element)) =>
-     Collections.filter(this, <SourceBuffer>[], f);
-
-  bool every(bool f(SourceBuffer element)) => Collections.every(this, f);
-
-  bool some(bool f(SourceBuffer element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<SourceBuffer>:
   void set length(int value) {
@@ -16041,9 +17751,25 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     return Lists.lastIndexOf(this, element, start);
   }
 
-  SourceBuffer get first => this[0];
+  SourceBuffer get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  SourceBuffer get last => this[length - 1];
+  SourceBuffer get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  SourceBuffer get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) => Collections.min(this, compare);
+
+  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) => Collections.max(this, compare);
 
   SourceBuffer removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -16159,11 +17885,62 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   // From Iterable<SpeechGrammar>:
 
-  Iterator<SpeechGrammar> iterator() {
+  Iterator<SpeechGrammar> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<SpeechGrammar>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(SpeechGrammar element) => Collections.contains(this, element);
+
+  void forEach(void f(SpeechGrammar element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(SpeechGrammar element)) => new MappedList<SpeechGrammar, dynamic>(this, f);
+
+  Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) => new WhereIterable<SpeechGrammar>(this, f);
+
+  bool every(bool f(SpeechGrammar element)) => Collections.every(this, f);
+
+  bool any(bool f(SpeechGrammar element)) => Collections.any(this, f);
+
+  List<SpeechGrammar> toList() => new List<SpeechGrammar>.from(this);
+  Set<SpeechGrammar> toSet() => new Set<SpeechGrammar>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<SpeechGrammar> take(int n) => new ListView<SpeechGrammar>(this, 0, n);
+
+  Iterable<SpeechGrammar> takeWhile(bool test(SpeechGrammar value)) {
+    return new TakeWhileIterable<SpeechGrammar>(this, test);
+  }
+
+  List<SpeechGrammar> skip(int n) => new ListView<SpeechGrammar>(this, n, null);
+
+  Iterable<SpeechGrammar> skipWhile(bool test(SpeechGrammar value)) {
+    return new SkipWhileIterable<SpeechGrammar>(this, test);
+  }
+
+  SpeechGrammar firstMatching(bool test(SpeechGrammar value), { SpeechGrammar orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  SpeechGrammar lastMatching(bool test(SpeechGrammar value), {SpeechGrammar orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  SpeechGrammar singleMatching(bool test(SpeechGrammar value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  SpeechGrammar elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<SpeechGrammar>:
@@ -16176,28 +17953,9 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SpeechGrammar> collection) {
+  void addAll(Iterable<SpeechGrammar> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(SpeechGrammar element) => Collections.contains(this, element);
-
-  void forEach(void f(SpeechGrammar element)) => Collections.forEach(this, f);
-
-  Collection map(f(SpeechGrammar element)) => Collections.map(this, [], f);
-
-  Collection<SpeechGrammar> filter(bool f(SpeechGrammar element)) =>
-     Collections.filter(this, <SpeechGrammar>[], f);
-
-  bool every(bool f(SpeechGrammar element)) => Collections.every(this, f);
-
-  bool some(bool f(SpeechGrammar element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<SpeechGrammar>:
   void set length(int value) {
@@ -16220,9 +17978,25 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     return Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechGrammar get first => this[0];
+  SpeechGrammar get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  SpeechGrammar get last => this[length - 1];
+  SpeechGrammar get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  SpeechGrammar get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) => Collections.min(this, compare);
+
+  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) => Collections.max(this, compare);
 
   SpeechGrammar removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -16292,6 +18066,28 @@ class SpeechInputResult native "*SpeechInputResult" {
 /// @domName SpeechRecognition; @docsEditable true
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
+  static const EventStreamProvider<Event> audioEndEvent = const EventStreamProvider<Event>('audioend');
+
+  static const EventStreamProvider<Event> audioStartEvent = const EventStreamProvider<Event>('audiostart');
+
+  static const EventStreamProvider<Event> endEvent = const EventStreamProvider<Event>('end');
+
+  static const EventStreamProvider<SpeechRecognitionError> errorEvent = const EventStreamProvider<SpeechRecognitionError>('error');
+
+  static const EventStreamProvider<SpeechRecognitionEvent> noMatchEvent = const EventStreamProvider<SpeechRecognitionEvent>('nomatch');
+
+  static const EventStreamProvider<SpeechRecognitionEvent> resultEvent = const EventStreamProvider<SpeechRecognitionEvent>('result');
+
+  static const EventStreamProvider<Event> soundEndEvent = const EventStreamProvider<Event>('soundend');
+
+  static const EventStreamProvider<Event> soundStartEvent = const EventStreamProvider<Event>('soundstart');
+
+  static const EventStreamProvider<Event> speechEndEvent = const EventStreamProvider<Event>('speechend');
+
+  static const EventStreamProvider<Event> speechStartEvent = const EventStreamProvider<Event>('speechstart');
+
+  static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
+
   ///@docsEditable true
   factory SpeechRecognition() => SpeechRecognition._create();
   static SpeechRecognition _create() => JS('SpeechRecognition', 'new SpeechRecognition()');
@@ -16335,6 +18131,28 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
   /// @domName SpeechRecognition.stop; @docsEditable true
   void stop() native;
+
+  Stream<Event> get onAudioEnd => audioEndEvent.forTarget(this);
+
+  Stream<Event> get onAudioStart => audioStartEvent.forTarget(this);
+
+  Stream<Event> get onEnd => endEvent.forTarget(this);
+
+  Stream<SpeechRecognitionError> get onError => errorEvent.forTarget(this);
+
+  Stream<SpeechRecognitionEvent> get onNoMatch => noMatchEvent.forTarget(this);
+
+  Stream<SpeechRecognitionEvent> get onResult => resultEvent.forTarget(this);
+
+  Stream<Event> get onSoundEnd => soundEndEvent.forTarget(this);
+
+  Stream<Event> get onSoundStart => soundStartEvent.forTarget(this);
+
+  Stream<Event> get onSpeechEnd => speechEndEvent.forTarget(this);
+
+  Stream<Event> get onSpeechStart => speechStartEvent.forTarget(this);
+
+  Stream<Event> get onStart => startEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -16540,11 +18358,62 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   // From Iterable<Map>:
 
-  Iterator<Map> iterator() {
+  Iterator<Map> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Map>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Map element) => Collections.contains(this, element);
+
+  void forEach(void f(Map element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Map element)) => new MappedList<Map, dynamic>(this, f);
+
+  Iterable<Map> where(bool f(Map element)) => new WhereIterable<Map>(this, f);
+
+  bool every(bool f(Map element)) => Collections.every(this, f);
+
+  bool any(bool f(Map element)) => Collections.any(this, f);
+
+  List<Map> toList() => new List<Map>.from(this);
+  Set<Map> toSet() => new Set<Map>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Map> take(int n) => new ListView<Map>(this, 0, n);
+
+  Iterable<Map> takeWhile(bool test(Map value)) {
+    return new TakeWhileIterable<Map>(this, test);
+  }
+
+  List<Map> skip(int n) => new ListView<Map>(this, n, null);
+
+  Iterable<Map> skipWhile(bool test(Map value)) {
+    return new SkipWhileIterable<Map>(this, test);
+  }
+
+  Map firstMatching(bool test(Map value), { Map orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Map lastMatching(bool test(Map value), {Map orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Map singleMatching(bool test(Map value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Map elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Map>:
@@ -16557,28 +18426,9 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Map> collection) {
+  void addAll(Iterable<Map> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Map element) => Collections.contains(this, element);
-
-  void forEach(void f(Map element)) => Collections.forEach(this, f);
-
-  Collection map(f(Map element)) => Collections.map(this, [], f);
-
-  Collection<Map> filter(bool f(Map element)) =>
-     Collections.filter(this, <Map>[], f);
-
-  bool every(bool f(Map element)) => Collections.every(this, f);
-
-  bool some(bool f(Map element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Map>:
   void set length(int value) {
@@ -16601,9 +18451,25 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Map get first => this[0];
+  Map get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Map get last => this[length - 1];
+  Map get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Map get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Map min([int compare(Map a, Map b)]) => Collections.min(this, compare);
+
+  Map max([int compare(Map a, Map b)]) => Collections.max(this, compare);
 
   Map removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -16669,7 +18535,7 @@ class SqlTransactionSync native "*SQLTransactionSync" {
 class Storage implements Map<String, String>  native "*Storage" {
 
   // TODO(nweiz): update this when maps support lazy iteration
-  bool containsValue(String value) => values.some((e) => e == value);
+  bool containsValue(String value) => values.any((e) => e == value);
 
   bool containsKey(String key) => $dom_getItem(key) != null;
 
@@ -17195,6 +19061,8 @@ class TextMetrics native "*TextMetrics" {
 /// @domName TextTrack; @docsEditable true
 class TextTrack extends EventTarget native "*TextTrack" {
 
+  static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackEvents get on =>
     new TextTrackEvents(this);
@@ -17234,6 +19102,8 @@ class TextTrack extends EventTarget native "*TextTrack" {
   /// @domName TextTrack.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onCueChange => cueChangeEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -17251,6 +19121,10 @@ class TextTrackEvents extends Events {
 
 /// @domName TextTrackCue; @docsEditable true
 class TextTrackCue extends EventTarget native "*TextTrackCue" {
+
+  static const EventStreamProvider<Event> enterEvent = const EventStreamProvider<Event>('enter');
+
+  static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
   ///@docsEditable true
   factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
@@ -17311,6 +19185,10 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
   /// @domName TextTrackCue.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onEnter => enterEvent.forTarget(this);
+
+  Stream<Event> get onExit => exitEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -17345,11 +19223,62 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 
   // From Iterable<TextTrackCue>:
 
-  Iterator<TextTrackCue> iterator() {
+  Iterator<TextTrackCue> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<TextTrackCue>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(TextTrackCue element) => Collections.contains(this, element);
+
+  void forEach(void f(TextTrackCue element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(TextTrackCue element)) => new MappedList<TextTrackCue, dynamic>(this, f);
+
+  Iterable<TextTrackCue> where(bool f(TextTrackCue element)) => new WhereIterable<TextTrackCue>(this, f);
+
+  bool every(bool f(TextTrackCue element)) => Collections.every(this, f);
+
+  bool any(bool f(TextTrackCue element)) => Collections.any(this, f);
+
+  List<TextTrackCue> toList() => new List<TextTrackCue>.from(this);
+  Set<TextTrackCue> toSet() => new Set<TextTrackCue>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<TextTrackCue> take(int n) => new ListView<TextTrackCue>(this, 0, n);
+
+  Iterable<TextTrackCue> takeWhile(bool test(TextTrackCue value)) {
+    return new TakeWhileIterable<TextTrackCue>(this, test);
+  }
+
+  List<TextTrackCue> skip(int n) => new ListView<TextTrackCue>(this, n, null);
+
+  Iterable<TextTrackCue> skipWhile(bool test(TextTrackCue value)) {
+    return new SkipWhileIterable<TextTrackCue>(this, test);
+  }
+
+  TextTrackCue firstMatching(bool test(TextTrackCue value), { TextTrackCue orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  TextTrackCue lastMatching(bool test(TextTrackCue value), {TextTrackCue orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  TextTrackCue singleMatching(bool test(TextTrackCue value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  TextTrackCue elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<TextTrackCue>:
@@ -17362,28 +19291,9 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<TextTrackCue> collection) {
+  void addAll(Iterable<TextTrackCue> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(TextTrackCue element) => Collections.contains(this, element);
-
-  void forEach(void f(TextTrackCue element)) => Collections.forEach(this, f);
-
-  Collection map(f(TextTrackCue element)) => Collections.map(this, [], f);
-
-  Collection<TextTrackCue> filter(bool f(TextTrackCue element)) =>
-     Collections.filter(this, <TextTrackCue>[], f);
-
-  bool every(bool f(TextTrackCue element)) => Collections.every(this, f);
-
-  bool some(bool f(TextTrackCue element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<TextTrackCue>:
   void set length(int value) {
@@ -17406,9 +19316,25 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     return Lists.lastIndexOf(this, element, start);
   }
 
-  TextTrackCue get first => this[0];
+  TextTrackCue get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  TextTrackCue get last => this[length - 1];
+  TextTrackCue get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  TextTrackCue get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) => Collections.min(this, compare);
+
+  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) => Collections.max(this, compare);
 
   TextTrackCue removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -17449,6 +19375,8 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 /// @domName TextTrackList; @docsEditable true
 class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, List<TextTrack> native "*TextTrackList" {
 
+  static const EventStreamProvider<TrackEvent> addTrackEvent = const EventStreamProvider<TrackEvent>('addtrack');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackListEvents get on =>
     new TextTrackListEvents(this);
@@ -17466,11 +19394,62 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   // From Iterable<TextTrack>:
 
-  Iterator<TextTrack> iterator() {
+  Iterator<TextTrack> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<TextTrack>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(TextTrack element) => Collections.contains(this, element);
+
+  void forEach(void f(TextTrack element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(TextTrack element)) => new MappedList<TextTrack, dynamic>(this, f);
+
+  Iterable<TextTrack> where(bool f(TextTrack element)) => new WhereIterable<TextTrack>(this, f);
+
+  bool every(bool f(TextTrack element)) => Collections.every(this, f);
+
+  bool any(bool f(TextTrack element)) => Collections.any(this, f);
+
+  List<TextTrack> toList() => new List<TextTrack>.from(this);
+  Set<TextTrack> toSet() => new Set<TextTrack>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<TextTrack> take(int n) => new ListView<TextTrack>(this, 0, n);
+
+  Iterable<TextTrack> takeWhile(bool test(TextTrack value)) {
+    return new TakeWhileIterable<TextTrack>(this, test);
+  }
+
+  List<TextTrack> skip(int n) => new ListView<TextTrack>(this, n, null);
+
+  Iterable<TextTrack> skipWhile(bool test(TextTrack value)) {
+    return new SkipWhileIterable<TextTrack>(this, test);
+  }
+
+  TextTrack firstMatching(bool test(TextTrack value), { TextTrack orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  TextTrack lastMatching(bool test(TextTrack value), {TextTrack orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  TextTrack singleMatching(bool test(TextTrack value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  TextTrack elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<TextTrack>:
@@ -17483,28 +19462,9 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<TextTrack> collection) {
+  void addAll(Iterable<TextTrack> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(TextTrack element) => Collections.contains(this, element);
-
-  void forEach(void f(TextTrack element)) => Collections.forEach(this, f);
-
-  Collection map(f(TextTrack element)) => Collections.map(this, [], f);
-
-  Collection<TextTrack> filter(bool f(TextTrack element)) =>
-     Collections.filter(this, <TextTrack>[], f);
-
-  bool every(bool f(TextTrack element)) => Collections.every(this, f);
-
-  bool some(bool f(TextTrack element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<TextTrack>:
   void set length(int value) {
@@ -17527,9 +19487,25 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     return Lists.lastIndexOf(this, element, start);
   }
 
-  TextTrack get first => this[0];
+  TextTrack get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  TextTrack get last => this[length - 1];
+  TextTrack get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  TextTrack get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrack min([int compare(TextTrack a, TextTrack b)]) => Collections.min(this, compare);
+
+  TextTrack max([int compare(TextTrack a, TextTrack b)]) => Collections.max(this, compare);
 
   TextTrack removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -17570,6 +19546,8 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   /// @domName TextTrackList.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<TrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -17716,11 +19694,62 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   // From Iterable<Touch>:
 
-  Iterator<Touch> iterator() {
+  Iterator<Touch> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Touch>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Touch)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Touch element) => Collections.contains(this, element);
+
+  void forEach(void f(Touch element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Touch element)) => new MappedList<Touch, dynamic>(this, f);
+
+  Iterable<Touch> where(bool f(Touch element)) => new WhereIterable<Touch>(this, f);
+
+  bool every(bool f(Touch element)) => Collections.every(this, f);
+
+  bool any(bool f(Touch element)) => Collections.any(this, f);
+
+  List<Touch> toList() => new List<Touch>.from(this);
+  Set<Touch> toSet() => new Set<Touch>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Touch> take(int n) => new ListView<Touch>(this, 0, n);
+
+  Iterable<Touch> takeWhile(bool test(Touch value)) {
+    return new TakeWhileIterable<Touch>(this, test);
+  }
+
+  List<Touch> skip(int n) => new ListView<Touch>(this, n, null);
+
+  Iterable<Touch> skipWhile(bool test(Touch value)) {
+    return new SkipWhileIterable<Touch>(this, test);
+  }
+
+  Touch firstMatching(bool test(Touch value), { Touch orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Touch lastMatching(bool test(Touch value), {Touch orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Touch singleMatching(bool test(Touch value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Touch elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Touch>:
@@ -17733,28 +19762,9 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Touch> collection) {
+  void addAll(Iterable<Touch> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Touch)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Touch element) => Collections.contains(this, element);
-
-  void forEach(void f(Touch element)) => Collections.forEach(this, f);
-
-  Collection map(f(Touch element)) => Collections.map(this, [], f);
-
-  Collection<Touch> filter(bool f(Touch element)) =>
-     Collections.filter(this, <Touch>[], f);
-
-  bool every(bool f(Touch element)) => Collections.every(this, f);
-
-  bool some(bool f(Touch element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Touch>:
   void set length(int value) {
@@ -17777,9 +19787,25 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Touch get first => this[0];
+  Touch get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Touch get last => this[length - 1];
+  Touch get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Touch get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Touch min([int compare(Touch a, Touch b)]) => Collections.min(this, compare);
+
+  Touch max([int compare(Touch a, Touch b)]) => Collections.max(this, compare);
 
   Touch removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -17823,9 +19849,7 @@ class TrackElement extends Element native "*HTMLTrackElement" {
   ///@docsEditable true
   factory TrackElement() => document.$dom_createElement("track");
 
-  /**
-   * Checks if this type is supported on the current platform
-   */
+  /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('track');
 
   static const int ERROR = 3;
@@ -18011,7 +20035,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   factory Uint16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint16Array_fromList(list);
 
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -18026,11 +20050,62 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -18043,28 +20118,9 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -18087,9 +20143,25 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -18137,7 +20209,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   factory Uint32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint32Array_fromList(list);
 
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -18152,11 +20224,62 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -18169,28 +20292,9 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -18213,9 +20317,25 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -18263,7 +20383,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Uint8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8Array_fromList(list);
 
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -18278,11 +20398,62 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // From Iterable<int>:
 
-  Iterator<int> iterator() {
+  Iterator<int> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<int>:
@@ -18295,28 +20466,9 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<int> collection) {
+  void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(int element) => Collections.contains(this, element);
-
-  void forEach(void f(int element)) => Collections.forEach(this, f);
-
-  Collection map(f(int element)) => Collections.map(this, [], f);
-
-  Collection<int> filter(bool f(int element)) =>
-     Collections.filter(this, <int>[], f);
-
-  bool every(bool f(int element)) => Collections.every(this, f);
-
-  bool some(bool f(int element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<int>:
   void set length(int value) {
@@ -18339,9 +20491,25 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     return Lists.lastIndexOf(this, element, start);
   }
 
-  int get first => this[0];
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  int get last => this[length - 1];
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -18389,7 +20557,7 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
   factory Uint8ClampedArray.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromList(list);
 
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
   // Use implementation from Uint8Array.
@@ -19913,11 +22081,26 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
 
 /// @domName WebSocket; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class WebSocket extends EventTarget native "*WebSocket" {
+
+  static const EventStreamProvider<CloseEvent> closeEvent = const EventStreamProvider<CloseEvent>('close');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
   ///@docsEditable true
   factory WebSocket(String url) => WebSocket._create(url);
   static WebSocket _create(String url) => JS('WebSocket', 'new WebSocket(#)', url);
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', 'typeof window.WebSocket != "undefined"');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WebSocketEvents get on =>
@@ -19969,7 +22152,15 @@ class WebSocket extends EventTarget native "*WebSocket" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName WebSocket.send; @docsEditable true
-  bool send(data) native;
+  void send(data) native;
+
+  Stream<CloseEvent> get onClose => closeEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -20221,7 +22412,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
    * registered under [name].
    */
   SendPortSync lookupPort(String name) {
-    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
+    var port = json.parse(document.documentElement.attributes['dart-port:$name']);
     return _deserialize(port);
   }
 
@@ -20232,12 +22423,160 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
    */
   void registerPort(String name, var port) {
     var serialized = _serialize(port);
-    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
+    document.documentElement.attributes['dart-port:$name'] = json.stringify(serialized);
   }
 
   /// @domName Window.console; @docsEditable true
   Console get console => Console.safeConsole;
 
+
+  static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
+
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
+
+  static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
+
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
+
+  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
+
+  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
+
+  static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
+
+  static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
+
+  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
+
+  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
+
+  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
+
+  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
+
+  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
+
+  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
+
+  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
+
+  static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
+
+  static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
+
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
+
+  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
+
+  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
+
+  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
+
+  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
+
+  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
+
+  static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
+
+  static const EventStreamProvider<Event> loadStartEvent = const EventStreamProvider<Event>('loadstart');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
+
+  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
+
+  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
+
+  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
+
+  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
+
+  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
+
+  static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
+
+  static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
+
+  static const EventStreamProvider<Event> pageHideEvent = const EventStreamProvider<Event>('pagehide');
+
+  static const EventStreamProvider<Event> pageShowEvent = const EventStreamProvider<Event>('pageshow');
+
+  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
+
+  static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
+
+  static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
+
+  static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
+
+  static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
+
+  static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
+
+  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
+
+  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
+
+  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
+
+  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
+
+  static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
+
+  static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
+
+  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
+
+  static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
+
+  static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
+
+  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
+
+  static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
+
+  static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
+
+  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
+
+  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
+
+  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
+
+  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
+
+  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
+
+  static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
+
+  static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
+
+  static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
+
+  static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
+
+  static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
+
+  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WindowEvents get on =>
@@ -20323,6 +22662,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   final dynamic _parent;
 
   /// @domName Window.performance; @docsEditable true
+  @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.FIREFOX) @SupportedBrowser(SupportedBrowser.IE)
   final Performance performance;
 
   /// @domName Window.personalbar; @docsEditable true
@@ -20515,11 +22855,162 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   Point webkitConvertPointFromPageToNode(Node node, Point p) native;
 
   /// @domName DOMWindow.webkitRequestFileSystem; @docsEditable true
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
+  @JSName('webkitRequestFileSystem')
+  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
   /// @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemURL')
-  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+
+  Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
+
+  Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
+
+  Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
+
+  Stream<Event> get onChange => changeEvent.forTarget(this);
+
+  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+
+  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+
+  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+
+  Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
+
+  Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+
+  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+
+  Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
+
+  Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
+
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
+
+  Stream<Event> get onInput => inputEvent.forTarget(this);
+
+  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+
+  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
+
+  Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
+
+  Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+
+  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+
+  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+
+  Stream<Event> get onOffline => offlineEvent.forTarget(this);
+
+  Stream<Event> get onOnline => onlineEvent.forTarget(this);
+
+  Stream<Event> get onPageHide => pageHideEvent.forTarget(this);
+
+  Stream<Event> get onPageShow => pageShowEvent.forTarget(this);
+
+  Stream<Event> get onPause => pauseEvent.forTarget(this);
+
+  Stream<Event> get onPlay => playEvent.forTarget(this);
+
+  Stream<Event> get onPlaying => playingEvent.forTarget(this);
+
+  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
+
+  Stream<Event> get onProgress => progressEvent.forTarget(this);
+
+  Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
+
+  Stream<Event> get onReset => resetEvent.forTarget(this);
+
+  Stream<Event> get onResize => resizeEvent.forTarget(this);
+
+  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+
+  Stream<Event> get onSearch => searchEvent.forTarget(this);
+
+  Stream<Event> get onSeeked => seekedEvent.forTarget(this);
+
+  Stream<Event> get onSeeking => seekingEvent.forTarget(this);
+
+  Stream<Event> get onSelect => selectEvent.forTarget(this);
+
+  Stream<Event> get onStalled => stalledEvent.forTarget(this);
+
+  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
+
+  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+
+  Stream<Event> get onSuspend => suspendEvent.forTarget(this);
+
+  Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
+
+  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+
+  Stream<Event> get onUnload => unloadEvent.forTarget(this);
+
+  Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
+
+  Stream<Event> get onWaiting => waitingEvent.forTarget(this);
+
+  Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
+
+  Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
+
+  Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
+
+  Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
 }
 
@@ -20758,6 +23249,8 @@ class WindowEvents extends Events {
 /// @domName Worker; @docsEditable true
 class Worker extends AbstractWorker native "*Worker" {
 
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
   ///@docsEditable true
   factory Worker(String scriptUrl) => Worker._create(scriptUrl);
   static Worker _create(String scriptUrl) => JS('Worker', 'new Worker(#)', scriptUrl);
@@ -20784,6 +23277,8 @@ class Worker extends AbstractWorker native "*Worker" {
 
   /// @domName Worker.terminate; @docsEditable true
   void terminate() native;
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -20801,6 +23296,8 @@ class WorkerEvents extends AbstractWorkerEvents {
 
 /// @domName WorkerContext
 class WorkerContext extends EventTarget native "*WorkerContext" {
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerContextEvents get on =>
@@ -20859,18 +23356,26 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
   /// @domName WorkerContext.webkitRequestFileSystem; @docsEditable true
-  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
+  @JSName('webkitRequestFileSystem')
+  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
 
   /// @domName WorkerContext.webkitRequestFileSystemSync; @docsEditable true
-  FileSystemSync webkitRequestFileSystemSync(int type, int size) native;
+  @JSName('webkitRequestFileSystemSync')
+  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  FileSystemSync requestFileSystemSync(int type, int size) native;
 
   /// @domName WorkerContext.webkitResolveLocalFileSystemSyncURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemSyncURL')
-  EntrySync webkitResolveLocalFileSystemSyncUrl(String url) native;
+  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  EntrySync resolveLocalFileSystemSyncUrl(String url) native;
 
   /// @domName WorkerContext.webkitResolveLocalFileSystemURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemURL')
-  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
 
 
   /**
@@ -21150,11 +23655,62 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 
   // From Iterable<ClientRect>:
 
-  Iterator<ClientRect> iterator() {
+  Iterator<ClientRect> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<ClientRect>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ClientRect)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(ClientRect element) => Collections.contains(this, element);
+
+  void forEach(void f(ClientRect element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(ClientRect element)) => new MappedList<ClientRect, dynamic>(this, f);
+
+  Iterable<ClientRect> where(bool f(ClientRect element)) => new WhereIterable<ClientRect>(this, f);
+
+  bool every(bool f(ClientRect element)) => Collections.every(this, f);
+
+  bool any(bool f(ClientRect element)) => Collections.any(this, f);
+
+  List<ClientRect> toList() => new List<ClientRect>.from(this);
+  Set<ClientRect> toSet() => new Set<ClientRect>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<ClientRect> take(int n) => new ListView<ClientRect>(this, 0, n);
+
+  Iterable<ClientRect> takeWhile(bool test(ClientRect value)) {
+    return new TakeWhileIterable<ClientRect>(this, test);
+  }
+
+  List<ClientRect> skip(int n) => new ListView<ClientRect>(this, n, null);
+
+  Iterable<ClientRect> skipWhile(bool test(ClientRect value)) {
+    return new SkipWhileIterable<ClientRect>(this, test);
+  }
+
+  ClientRect firstMatching(bool test(ClientRect value), { ClientRect orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  ClientRect lastMatching(bool test(ClientRect value), {ClientRect orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  ClientRect singleMatching(bool test(ClientRect value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  ClientRect elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<ClientRect>:
@@ -21167,28 +23723,9 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<ClientRect> collection) {
+  void addAll(Iterable<ClientRect> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ClientRect)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(ClientRect element) => Collections.contains(this, element);
-
-  void forEach(void f(ClientRect element)) => Collections.forEach(this, f);
-
-  Collection map(f(ClientRect element)) => Collections.map(this, [], f);
-
-  Collection<ClientRect> filter(bool f(ClientRect element)) =>
-     Collections.filter(this, <ClientRect>[], f);
-
-  bool every(bool f(ClientRect element)) => Collections.every(this, f);
-
-  bool some(bool f(ClientRect element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<ClientRect>:
   void set length(int value) {
@@ -21211,9 +23748,25 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     return Lists.lastIndexOf(this, element, start);
   }
 
-  ClientRect get first => this[0];
+  ClientRect get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  ClientRect get last => this[length - 1];
+  ClientRect get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  ClientRect get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  ClientRect min([int compare(ClientRect a, ClientRect b)]) => Collections.min(this, compare);
+
+  ClientRect max([int compare(ClientRect a, ClientRect b)]) => Collections.max(this, compare);
 
   ClientRect removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21264,11 +23817,62 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
   // From Iterable<CssRule>:
 
-  Iterator<CssRule> iterator() {
+  Iterator<CssRule> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<CssRule>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(CssRule element) => Collections.contains(this, element);
+
+  void forEach(void f(CssRule element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(CssRule element)) => new MappedList<CssRule, dynamic>(this, f);
+
+  Iterable<CssRule> where(bool f(CssRule element)) => new WhereIterable<CssRule>(this, f);
+
+  bool every(bool f(CssRule element)) => Collections.every(this, f);
+
+  bool any(bool f(CssRule element)) => Collections.any(this, f);
+
+  List<CssRule> toList() => new List<CssRule>.from(this);
+  Set<CssRule> toSet() => new Set<CssRule>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<CssRule> take(int n) => new ListView<CssRule>(this, 0, n);
+
+  Iterable<CssRule> takeWhile(bool test(CssRule value)) {
+    return new TakeWhileIterable<CssRule>(this, test);
+  }
+
+  List<CssRule> skip(int n) => new ListView<CssRule>(this, n, null);
+
+  Iterable<CssRule> skipWhile(bool test(CssRule value)) {
+    return new SkipWhileIterable<CssRule>(this, test);
+  }
+
+  CssRule firstMatching(bool test(CssRule value), { CssRule orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  CssRule lastMatching(bool test(CssRule value), {CssRule orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  CssRule singleMatching(bool test(CssRule value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  CssRule elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<CssRule>:
@@ -21281,28 +23885,9 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<CssRule> collection) {
+  void addAll(Iterable<CssRule> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(CssRule element) => Collections.contains(this, element);
-
-  void forEach(void f(CssRule element)) => Collections.forEach(this, f);
-
-  Collection map(f(CssRule element)) => Collections.map(this, [], f);
-
-  Collection<CssRule> filter(bool f(CssRule element)) =>
-     Collections.filter(this, <CssRule>[], f);
-
-  bool every(bool f(CssRule element)) => Collections.every(this, f);
-
-  bool some(bool f(CssRule element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<CssRule>:
   void set length(int value) {
@@ -21325,9 +23910,25 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     return Lists.lastIndexOf(this, element, start);
   }
 
-  CssRule get first => this[0];
+  CssRule get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  CssRule get last => this[length - 1];
+  CssRule get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  CssRule get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  CssRule min([int compare(CssRule a, CssRule b)]) => Collections.min(this, compare);
+
+  CssRule max([int compare(CssRule a, CssRule b)]) => Collections.max(this, compare);
 
   CssRule removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21378,11 +23979,62 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 
   // From Iterable<CssValue>:
 
-  Iterator<CssValue> iterator() {
+  Iterator<CssValue> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<CssValue>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(CssValue element) => Collections.contains(this, element);
+
+  void forEach(void f(CssValue element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(CssValue element)) => new MappedList<CssValue, dynamic>(this, f);
+
+  Iterable<CssValue> where(bool f(CssValue element)) => new WhereIterable<CssValue>(this, f);
+
+  bool every(bool f(CssValue element)) => Collections.every(this, f);
+
+  bool any(bool f(CssValue element)) => Collections.any(this, f);
+
+  List<CssValue> toList() => new List<CssValue>.from(this);
+  Set<CssValue> toSet() => new Set<CssValue>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<CssValue> take(int n) => new ListView<CssValue>(this, 0, n);
+
+  Iterable<CssValue> takeWhile(bool test(CssValue value)) {
+    return new TakeWhileIterable<CssValue>(this, test);
+  }
+
+  List<CssValue> skip(int n) => new ListView<CssValue>(this, n, null);
+
+  Iterable<CssValue> skipWhile(bool test(CssValue value)) {
+    return new SkipWhileIterable<CssValue>(this, test);
+  }
+
+  CssValue firstMatching(bool test(CssValue value), { CssValue orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  CssValue lastMatching(bool test(CssValue value), {CssValue orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  CssValue singleMatching(bool test(CssValue value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  CssValue elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<CssValue>:
@@ -21395,28 +24047,9 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<CssValue> collection) {
+  void addAll(Iterable<CssValue> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(CssValue element) => Collections.contains(this, element);
-
-  void forEach(void f(CssValue element)) => Collections.forEach(this, f);
-
-  Collection map(f(CssValue element)) => Collections.map(this, [], f);
-
-  Collection<CssValue> filter(bool f(CssValue element)) =>
-     Collections.filter(this, <CssValue>[], f);
-
-  bool every(bool f(CssValue element)) => Collections.every(this, f);
-
-  bool some(bool f(CssValue element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<CssValue>:
   void set length(int value) {
@@ -21439,9 +24072,25 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
     return Lists.lastIndexOf(this, element, start);
   }
 
-  CssValue get first => this[0];
+  CssValue get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  CssValue get last => this[length - 1];
+  CssValue get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  CssValue get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  CssValue min([int compare(CssValue a, CssValue b)]) => Collections.min(this, compare);
+
+  CssValue max([int compare(CssValue a, CssValue b)]) => Collections.max(this, compare);
 
   CssValue removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21492,11 +24141,62 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   // From Iterable<Entry>:
 
-  Iterator<Entry> iterator() {
+  Iterator<Entry> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Entry>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Entry)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Entry element) => Collections.contains(this, element);
+
+  void forEach(void f(Entry element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Entry element)) => new MappedList<Entry, dynamic>(this, f);
+
+  Iterable<Entry> where(bool f(Entry element)) => new WhereIterable<Entry>(this, f);
+
+  bool every(bool f(Entry element)) => Collections.every(this, f);
+
+  bool any(bool f(Entry element)) => Collections.any(this, f);
+
+  List<Entry> toList() => new List<Entry>.from(this);
+  Set<Entry> toSet() => new Set<Entry>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Entry> take(int n) => new ListView<Entry>(this, 0, n);
+
+  Iterable<Entry> takeWhile(bool test(Entry value)) {
+    return new TakeWhileIterable<Entry>(this, test);
+  }
+
+  List<Entry> skip(int n) => new ListView<Entry>(this, n, null);
+
+  Iterable<Entry> skipWhile(bool test(Entry value)) {
+    return new SkipWhileIterable<Entry>(this, test);
+  }
+
+  Entry firstMatching(bool test(Entry value), { Entry orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Entry lastMatching(bool test(Entry value), {Entry orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Entry singleMatching(bool test(Entry value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Entry elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Entry>:
@@ -21509,28 +24209,9 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Entry> collection) {
+  void addAll(Iterable<Entry> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Entry)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Entry element) => Collections.contains(this, element);
-
-  void forEach(void f(Entry element)) => Collections.forEach(this, f);
-
-  Collection map(f(Entry element)) => Collections.map(this, [], f);
-
-  Collection<Entry> filter(bool f(Entry element)) =>
-     Collections.filter(this, <Entry>[], f);
-
-  bool every(bool f(Entry element)) => Collections.every(this, f);
-
-  bool some(bool f(Entry element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Entry>:
   void set length(int value) {
@@ -21553,9 +24234,25 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Entry get first => this[0];
+  Entry get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Entry get last => this[length - 1];
+  Entry get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Entry get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Entry min([int compare(Entry a, Entry b)]) => Collections.min(this, compare);
+
+  Entry max([int compare(Entry a, Entry b)]) => Collections.max(this, compare);
 
   Entry removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21606,11 +24303,62 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
   // From Iterable<EntrySync>:
 
-  Iterator<EntrySync> iterator() {
+  Iterator<EntrySync> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<EntrySync>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(EntrySync element) => Collections.contains(this, element);
+
+  void forEach(void f(EntrySync element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(EntrySync element)) => new MappedList<EntrySync, dynamic>(this, f);
+
+  Iterable<EntrySync> where(bool f(EntrySync element)) => new WhereIterable<EntrySync>(this, f);
+
+  bool every(bool f(EntrySync element)) => Collections.every(this, f);
+
+  bool any(bool f(EntrySync element)) => Collections.any(this, f);
+
+  List<EntrySync> toList() => new List<EntrySync>.from(this);
+  Set<EntrySync> toSet() => new Set<EntrySync>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<EntrySync> take(int n) => new ListView<EntrySync>(this, 0, n);
+
+  Iterable<EntrySync> takeWhile(bool test(EntrySync value)) {
+    return new TakeWhileIterable<EntrySync>(this, test);
+  }
+
+  List<EntrySync> skip(int n) => new ListView<EntrySync>(this, n, null);
+
+  Iterable<EntrySync> skipWhile(bool test(EntrySync value)) {
+    return new SkipWhileIterable<EntrySync>(this, test);
+  }
+
+  EntrySync firstMatching(bool test(EntrySync value), { EntrySync orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  EntrySync lastMatching(bool test(EntrySync value), {EntrySync orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  EntrySync singleMatching(bool test(EntrySync value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  EntrySync elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<EntrySync>:
@@ -21623,28 +24371,9 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<EntrySync> collection) {
+  void addAll(Iterable<EntrySync> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(EntrySync element) => Collections.contains(this, element);
-
-  void forEach(void f(EntrySync element)) => Collections.forEach(this, f);
-
-  Collection map(f(EntrySync element)) => Collections.map(this, [], f);
-
-  Collection<EntrySync> filter(bool f(EntrySync element)) =>
-     Collections.filter(this, <EntrySync>[], f);
-
-  bool every(bool f(EntrySync element)) => Collections.every(this, f);
-
-  bool some(bool f(EntrySync element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<EntrySync>:
   void set length(int value) {
@@ -21667,9 +24396,25 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     return Lists.lastIndexOf(this, element, start);
   }
 
-  EntrySync get first => this[0];
+  EntrySync get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  EntrySync get last => this[length - 1];
+  EntrySync get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  EntrySync get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  EntrySync min([int compare(EntrySync a, EntrySync b)]) => Collections.min(this, compare);
+
+  EntrySync max([int compare(EntrySync a, EntrySync b)]) => Collections.max(this, compare);
 
   EntrySync removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21720,11 +24465,62 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   // From Iterable<Gamepad>:
 
-  Iterator<Gamepad> iterator() {
+  Iterator<Gamepad> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<Gamepad>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Gamepad element) => Collections.contains(this, element);
+
+  void forEach(void f(Gamepad element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(Gamepad element)) => new MappedList<Gamepad, dynamic>(this, f);
+
+  Iterable<Gamepad> where(bool f(Gamepad element)) => new WhereIterable<Gamepad>(this, f);
+
+  bool every(bool f(Gamepad element)) => Collections.every(this, f);
+
+  bool any(bool f(Gamepad element)) => Collections.any(this, f);
+
+  List<Gamepad> toList() => new List<Gamepad>.from(this);
+  Set<Gamepad> toSet() => new Set<Gamepad>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<Gamepad> take(int n) => new ListView<Gamepad>(this, 0, n);
+
+  Iterable<Gamepad> takeWhile(bool test(Gamepad value)) {
+    return new TakeWhileIterable<Gamepad>(this, test);
+  }
+
+  List<Gamepad> skip(int n) => new ListView<Gamepad>(this, n, null);
+
+  Iterable<Gamepad> skipWhile(bool test(Gamepad value)) {
+    return new SkipWhileIterable<Gamepad>(this, test);
+  }
+
+  Gamepad firstMatching(bool test(Gamepad value), { Gamepad orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  Gamepad lastMatching(bool test(Gamepad value), {Gamepad orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  Gamepad singleMatching(bool test(Gamepad value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  Gamepad elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<Gamepad>:
@@ -21737,28 +24533,9 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<Gamepad> collection) {
+  void addAll(Iterable<Gamepad> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Gamepad element) => Collections.contains(this, element);
-
-  void forEach(void f(Gamepad element)) => Collections.forEach(this, f);
-
-  Collection map(f(Gamepad element)) => Collections.map(this, [], f);
-
-  Collection<Gamepad> filter(bool f(Gamepad element)) =>
-     Collections.filter(this, <Gamepad>[], f);
-
-  bool every(bool f(Gamepad element)) => Collections.every(this, f);
-
-  bool some(bool f(Gamepad element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<Gamepad>:
   void set length(int value) {
@@ -21781,9 +24558,25 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     return Lists.lastIndexOf(this, element, start);
   }
 
-  Gamepad get first => this[0];
+  Gamepad get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  Gamepad get last => this[length - 1];
+  Gamepad get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Gamepad get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Gamepad min([int compare(Gamepad a, Gamepad b)]) => Collections.min(this, compare);
+
+  Gamepad max([int compare(Gamepad a, Gamepad b)]) => Collections.max(this, compare);
 
   Gamepad removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21834,11 +24627,62 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 
   // From Iterable<MediaStream>:
 
-  Iterator<MediaStream> iterator() {
+  Iterator<MediaStream> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<MediaStream>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, MediaStream)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(MediaStream element) => Collections.contains(this, element);
+
+  void forEach(void f(MediaStream element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(MediaStream element)) => new MappedList<MediaStream, dynamic>(this, f);
+
+  Iterable<MediaStream> where(bool f(MediaStream element)) => new WhereIterable<MediaStream>(this, f);
+
+  bool every(bool f(MediaStream element)) => Collections.every(this, f);
+
+  bool any(bool f(MediaStream element)) => Collections.any(this, f);
+
+  List<MediaStream> toList() => new List<MediaStream>.from(this);
+  Set<MediaStream> toSet() => new Set<MediaStream>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<MediaStream> take(int n) => new ListView<MediaStream>(this, 0, n);
+
+  Iterable<MediaStream> takeWhile(bool test(MediaStream value)) {
+    return new TakeWhileIterable<MediaStream>(this, test);
+  }
+
+  List<MediaStream> skip(int n) => new ListView<MediaStream>(this, n, null);
+
+  Iterable<MediaStream> skipWhile(bool test(MediaStream value)) {
+    return new SkipWhileIterable<MediaStream>(this, test);
+  }
+
+  MediaStream firstMatching(bool test(MediaStream value), { MediaStream orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  MediaStream lastMatching(bool test(MediaStream value), {MediaStream orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  MediaStream singleMatching(bool test(MediaStream value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  MediaStream elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<MediaStream>:
@@ -21851,28 +24695,9 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<MediaStream> collection) {
+  void addAll(Iterable<MediaStream> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, MediaStream)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(MediaStream element) => Collections.contains(this, element);
-
-  void forEach(void f(MediaStream element)) => Collections.forEach(this, f);
-
-  Collection map(f(MediaStream element)) => Collections.map(this, [], f);
-
-  Collection<MediaStream> filter(bool f(MediaStream element)) =>
-     Collections.filter(this, <MediaStream>[], f);
-
-  bool every(bool f(MediaStream element)) => Collections.every(this, f);
-
-  bool some(bool f(MediaStream element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<MediaStream>:
   void set length(int value) {
@@ -21895,9 +24720,25 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     return Lists.lastIndexOf(this, element, start);
   }
 
-  MediaStream get first => this[0];
+  MediaStream get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  MediaStream get last => this[length - 1];
+  MediaStream get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  MediaStream get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  MediaStream min([int compare(MediaStream a, MediaStream b)]) => Collections.min(this, compare);
+
+  MediaStream max([int compare(MediaStream a, MediaStream b)]) => Collections.max(this, compare);
 
   MediaStream removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -21948,11 +24789,62 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   // From Iterable<SpeechInputResult>:
 
-  Iterator<SpeechInputResult> iterator() {
+  Iterator<SpeechInputResult> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<SpeechInputResult>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(SpeechInputResult element) => Collections.contains(this, element);
+
+  void forEach(void f(SpeechInputResult element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(SpeechInputResult element)) => new MappedList<SpeechInputResult, dynamic>(this, f);
+
+  Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) => new WhereIterable<SpeechInputResult>(this, f);
+
+  bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
+
+  bool any(bool f(SpeechInputResult element)) => Collections.any(this, f);
+
+  List<SpeechInputResult> toList() => new List<SpeechInputResult>.from(this);
+  Set<SpeechInputResult> toSet() => new Set<SpeechInputResult>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<SpeechInputResult> take(int n) => new ListView<SpeechInputResult>(this, 0, n);
+
+  Iterable<SpeechInputResult> takeWhile(bool test(SpeechInputResult value)) {
+    return new TakeWhileIterable<SpeechInputResult>(this, test);
+  }
+
+  List<SpeechInputResult> skip(int n) => new ListView<SpeechInputResult>(this, n, null);
+
+  Iterable<SpeechInputResult> skipWhile(bool test(SpeechInputResult value)) {
+    return new SkipWhileIterable<SpeechInputResult>(this, test);
+  }
+
+  SpeechInputResult firstMatching(bool test(SpeechInputResult value), { SpeechInputResult orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  SpeechInputResult lastMatching(bool test(SpeechInputResult value), {SpeechInputResult orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  SpeechInputResult singleMatching(bool test(SpeechInputResult value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  SpeechInputResult elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<SpeechInputResult>:
@@ -21965,28 +24857,9 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SpeechInputResult> collection) {
+  void addAll(Iterable<SpeechInputResult> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(SpeechInputResult element) => Collections.contains(this, element);
-
-  void forEach(void f(SpeechInputResult element)) => Collections.forEach(this, f);
-
-  Collection map(f(SpeechInputResult element)) => Collections.map(this, [], f);
-
-  Collection<SpeechInputResult> filter(bool f(SpeechInputResult element)) =>
-     Collections.filter(this, <SpeechInputResult>[], f);
-
-  bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
-
-  bool some(bool f(SpeechInputResult element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<SpeechInputResult>:
   void set length(int value) {
@@ -22009,9 +24882,25 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     return Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechInputResult get first => this[0];
+  SpeechInputResult get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  SpeechInputResult get last => this[length - 1];
+  SpeechInputResult get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  SpeechInputResult get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) => Collections.min(this, compare);
+
+  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) => Collections.max(this, compare);
 
   SpeechInputResult removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -22062,11 +24951,62 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 
   // From Iterable<SpeechRecognitionResult>:
 
-  Iterator<SpeechRecognitionResult> iterator() {
+  Iterator<SpeechRecognitionResult> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<SpeechRecognitionResult>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(SpeechRecognitionResult element) => Collections.contains(this, element);
+
+  void forEach(void f(SpeechRecognitionResult element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(SpeechRecognitionResult element)) => new MappedList<SpeechRecognitionResult, dynamic>(this, f);
+
+  Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) => new WhereIterable<SpeechRecognitionResult>(this, f);
+
+  bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
+
+  bool any(bool f(SpeechRecognitionResult element)) => Collections.any(this, f);
+
+  List<SpeechRecognitionResult> toList() => new List<SpeechRecognitionResult>.from(this);
+  Set<SpeechRecognitionResult> toSet() => new Set<SpeechRecognitionResult>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<SpeechRecognitionResult> take(int n) => new ListView<SpeechRecognitionResult>(this, 0, n);
+
+  Iterable<SpeechRecognitionResult> takeWhile(bool test(SpeechRecognitionResult value)) {
+    return new TakeWhileIterable<SpeechRecognitionResult>(this, test);
+  }
+
+  List<SpeechRecognitionResult> skip(int n) => new ListView<SpeechRecognitionResult>(this, n, null);
+
+  Iterable<SpeechRecognitionResult> skipWhile(bool test(SpeechRecognitionResult value)) {
+    return new SkipWhileIterable<SpeechRecognitionResult>(this, test);
+  }
+
+  SpeechRecognitionResult firstMatching(bool test(SpeechRecognitionResult value), { SpeechRecognitionResult orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  SpeechRecognitionResult lastMatching(bool test(SpeechRecognitionResult value), {SpeechRecognitionResult orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  SpeechRecognitionResult singleMatching(bool test(SpeechRecognitionResult value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  SpeechRecognitionResult elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<SpeechRecognitionResult>:
@@ -22079,28 +25019,9 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SpeechRecognitionResult> collection) {
+  void addAll(Iterable<SpeechRecognitionResult> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(SpeechRecognitionResult element) => Collections.contains(this, element);
-
-  void forEach(void f(SpeechRecognitionResult element)) => Collections.forEach(this, f);
-
-  Collection map(f(SpeechRecognitionResult element)) => Collections.map(this, [], f);
-
-  Collection<SpeechRecognitionResult> filter(bool f(SpeechRecognitionResult element)) =>
-     Collections.filter(this, <SpeechRecognitionResult>[], f);
-
-  bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
-
-  bool some(bool f(SpeechRecognitionResult element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<SpeechRecognitionResult>:
   void set length(int value) {
@@ -22123,9 +25044,25 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     return Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechRecognitionResult get first => this[0];
+  SpeechRecognitionResult get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  SpeechRecognitionResult get last => this[length - 1];
+  SpeechRecognitionResult get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  SpeechRecognitionResult get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => Collections.min(this, compare);
+
+  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => Collections.max(this, compare);
 
   SpeechRecognitionResult removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -22176,11 +25113,62 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   // From Iterable<StyleSheet>:
 
-  Iterator<StyleSheet> iterator() {
+  Iterator<StyleSheet> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
     return new FixedSizeListIterator<StyleSheet>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(StyleSheet element) => Collections.contains(this, element);
+
+  void forEach(void f(StyleSheet element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(StyleSheet element)) => new MappedList<StyleSheet, dynamic>(this, f);
+
+  Iterable<StyleSheet> where(bool f(StyleSheet element)) => new WhereIterable<StyleSheet>(this, f);
+
+  bool every(bool f(StyleSheet element)) => Collections.every(this, f);
+
+  bool any(bool f(StyleSheet element)) => Collections.any(this, f);
+
+  List<StyleSheet> toList() => new List<StyleSheet>.from(this);
+  Set<StyleSheet> toSet() => new Set<StyleSheet>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<StyleSheet> take(int n) => new ListView<StyleSheet>(this, 0, n);
+
+  Iterable<StyleSheet> takeWhile(bool test(StyleSheet value)) {
+    return new TakeWhileIterable<StyleSheet>(this, test);
+  }
+
+  List<StyleSheet> skip(int n) => new ListView<StyleSheet>(this, n, null);
+
+  Iterable<StyleSheet> skipWhile(bool test(StyleSheet value)) {
+    return new SkipWhileIterable<StyleSheet>(this, test);
+  }
+
+  StyleSheet firstMatching(bool test(StyleSheet value), { StyleSheet orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  StyleSheet lastMatching(bool test(StyleSheet value), {StyleSheet orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  StyleSheet singleMatching(bool test(StyleSheet value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  StyleSheet elementAt(int index) {
+    return this[index];
   }
 
   // From Collection<StyleSheet>:
@@ -22193,28 +25181,9 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<StyleSheet> collection) {
+  void addAll(Iterable<StyleSheet> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  bool contains(StyleSheet element) => Collections.contains(this, element);
-
-  void forEach(void f(StyleSheet element)) => Collections.forEach(this, f);
-
-  Collection map(f(StyleSheet element)) => Collections.map(this, [], f);
-
-  Collection<StyleSheet> filter(bool f(StyleSheet element)) =>
-     Collections.filter(this, <StyleSheet>[], f);
-
-  bool every(bool f(StyleSheet element)) => Collections.every(this, f);
-
-  bool some(bool f(StyleSheet element)) => Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
 
   // From List<StyleSheet>:
   void set length(int value) {
@@ -22237,9 +25206,25 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     return Lists.lastIndexOf(this, element, start);
   }
 
-  StyleSheet get first => this[0];
+  StyleSheet get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
 
-  StyleSheet get last => this[length - 1];
+  StyleSheet get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  StyleSheet get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) => Collections.min(this, compare);
+
+  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) => Collections.max(this, compare);
 
   StyleSheet removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -22431,7 +25416,7 @@ class _DataAttributeMap implements Map<String, String> {
   // interface Map
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => values.some((v) => v == value);
+  bool containsValue(String value) => values.any((v) => v == value);
 
   bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
 
@@ -22654,7 +25639,7 @@ abstract class CssClassSet implements Set<String> {
   bool get frozen => false;
 
   // interface Iterable - BEGIN
-  Iterator<String> iterator() => readClasses().iterator();
+  Iterator<String> get iterator => readClasses().iterator;
   // interface Iterable - END
 
   // interface Collection - BEGIN
@@ -22662,13 +25647,15 @@ abstract class CssClassSet implements Set<String> {
     readClasses().forEach(f);
   }
 
-  Collection map(f(String element)) => readClasses().map(f);
+  String join([String separator]) => readClasses().join(separator);
 
-  Collection<String> filter(bool f(String element)) => readClasses().filter(f);
+  Iterable mappedBy(f(String element)) => readClasses().mappedBy(f);
+
+  Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
   bool every(bool f(String element)) => readClasses().every(f);
 
-  bool some(bool f(String element)) => readClasses().some(f);
+  bool any(bool f(String element)) => readClasses().any(f);
 
   bool get isEmpty => readClasses().isEmpty;
 
@@ -22696,13 +25683,13 @@ abstract class CssClassSet implements Set<String> {
     return result;
   }
 
-  void addAll(Collection<String> collection) {
+  void addAll(Iterable<String> iterable) {
     // TODO - see comment above about validation
-    _modify((s) => s.addAll(collection));
+    _modify((s) => s.addAll(iterable));
   }
 
-  void removeAll(Collection<String> collection) {
-    _modify((s) => s.removeAll(collection));
+  void removeAll(Iterable<String> iterable) {
+    _modify((s) => s.removeAll(iterable));
   }
 
   bool isSubsetOf(Collection<String> collection) =>
@@ -22713,6 +25700,29 @@ abstract class CssClassSet implements Set<String> {
 
   Set<String> intersection(Collection<String> other) =>
     readClasses().intersection(other);
+
+  String get first => readClasses().first;
+  String get last => readClasses().last;
+  String get single => readClasses().single;
+  List<String> toList() => readClasses().toList();
+  Set<String> toSet() => readClasses().toSet();
+  String min([int compare(String a, String b)]) =>
+      readClasses().min(compare);
+  String max([int compare(String a, String b)]) =>
+      readClasses().max(compare);
+  Iterable<String> take(int n) => readClasses().take(n);
+  Iterable<String> takeWhile(bool test(String value)) =>
+      readClasses().takeWhile(test);
+  Iterable<String> skip(int n) => readClasses().skip(n);
+  Iterable<String> skipWhile(bool test(String value)) =>
+      readClasses().skipWhile(test);
+  String firstMatching(bool test(String value), { String orElse() }) =>
+      readClasses().firstMatching(test, orElse: orElse);
+  String lastMatching(bool test(String value), {String orElse()}) =>
+      readClasses().lastMatching(test, orElse: orElse);
+  String singleMatching(bool test(String value)) =>
+      readClasses().singleMatching(test);
+  String elementAt(int index) => readClasses().elementAt(index);
 
   void clear() {
     _modify((s) => s.clear());
@@ -22790,6 +25800,142 @@ class _Device {
 
 
 typedef void EventListener(Event event);
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * Adapter for exposing DOM events as Dart streams.
+ */
+class _EventStream<T extends Event> extends Stream<T> {
+  final EventTarget _target;
+  final String _eventType;
+  final bool _useCapture;
+
+  _EventStream(this._target, this._eventType, this._useCapture);
+
+  // DOM events are inherently multi-subscribers.
+  Stream<T> asMultiSubscriberStream() => this;
+
+  StreamSubscription<T> listen(void onData(T event),
+      { void onError(AsyncError error),
+      void onDone(),
+      bool unsubscribeOnError}) {
+
+    return new _EventStreamSubscription<T>(
+        this._target, this._eventType, onData, this._useCapture);
+  }
+}
+
+class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
+  int _pauseCount = 0;
+  EventTarget _target;
+  final String _eventType;
+  var _onData;
+  final bool _useCapture;
+
+  _EventStreamSubscription(this._target, this._eventType, this._onData,
+      this._useCapture) {
+    _tryResume();
+  }
+
+  void cancel() {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+
+    _unlisten();
+    // Clear out the target to indicate this is complete.
+    _target = null;
+    _onData = null;
+  }
+
+  bool get _canceled => _target == null;
+
+  void onData(void handleData(T event)) {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+    // Remove current event listener.
+    _unlisten();
+
+    _onData = handleData;
+    _tryResume();
+  }
+
+  /// Has no effect.
+  void onError(void handleError(AsyncError error)) {}
+
+  /// Has no effect.
+  void onDone(void handleDone()) {}
+
+  void pause([Future resumeSignal]) {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+    ++_pauseCount;
+    _unlisten();
+
+    if (resumeSignal != null) {
+      resumeSignal.whenComplete(resume);
+    }
+  }
+
+  bool get _paused => _pauseCount > 0;
+
+  void resume() {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+    if (!_paused) {
+      throw new StateError("Subscription is not paused.");
+    }
+    --_pauseCount;
+    _tryResume();
+  }
+
+  void _tryResume() {
+    if (_onData != null && !_paused) {
+      _target.$dom_addEventListener(_eventType, _onData, _useCapture);
+    }
+  }
+
+  void _unlisten() {
+    if (_onData != null) {
+      _target.$dom_removeEventListener(_eventType, _onData, _useCapture);
+    }
+  }
+}
+
+
+/**
+ * A factory to expose DOM events as Streams.
+ */
+class EventStreamProvider<T extends Event> {
+  final String _eventType;
+
+  const EventStreamProvider(this._eventType);
+
+  /**
+   * Gets a [Stream] for this event type, on the specified target.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent.forTarget(element, useCapture: true).listen(...);
+   *
+   * Or for listening to an event which will bubble through the DOM tree:
+   *
+   *     MediaElement.pauseEvent.forTarget(document.body).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
+    return new _EventStream(e, _eventType, useCapture);
+  }
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22941,7 +26087,7 @@ class KeyboardEventController {
 
   /** Determine if caps lock is one of the currently depressed keys. */
   bool get _capsLockOn =>
-      _keyDownList.some((var element) => element.keyCode == KeyCode.CAPS_LOCK);
+      _keyDownList.any((var element) => element.keyCode == KeyCode.CAPS_LOCK);
 
   /**
    * Given the previously recorded keydown key codes, see if we can determine
@@ -23170,7 +26316,7 @@ class KeyboardEventController {
       // keyCode/which for non printable keys.
       e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
     }
-    e._shadowAltKey = _keyDownList.some((var element) => element.altKey);
+    e._shadowAltKey = _keyDownList.any((var element) => element.altKey);
     _dispatch(e);
   }
 
@@ -23184,7 +26330,8 @@ class KeyboardEventController {
       }
     }
     if (toRemove != null) {
-      _keyDownList = _keyDownList.filter((element) => element != toRemove);
+      _keyDownList =
+          _keyDownList.where((element) => element != toRemove).toList();
     } else if (_keyDownList.length > 0) {
       // This happens when we've reached some international keyboard case we
       // haven't accounted for or we haven't correctly eliminated all browser
@@ -24024,18 +27171,16 @@ class _HttpRequestUtils {
 
   // Helper for factory HttpRequest.get
   static HttpRequest get(String url,
-                            onSuccess(HttpRequest request),
+                            onComplete(HttpRequest request),
                             bool withCredentials) {
     final request = new HttpRequest();
     request.open('GET', url, true);
 
     request.withCredentials = withCredentials;
 
-    // Status 0 is for local XHR request.
     request.on.readyStateChange.add((e) {
-      if (request.readyState == HttpRequest.DONE &&
-          (request.status == 200 || request.status == 0)) {
-        onSuccess(request);
+      if (request.readyState == HttpRequest.DONE) {
+        onComplete(request);
       }
     });
 
@@ -24117,6 +27262,11 @@ class _JsSendPortSync implements SendPortSync {
     return _deserialize(result);
   }
 
+  bool operator==(var other) {
+    return (other is _JsSendPortSync) && (_id == other._id);
+  }
+
+  int get hashCode => _id;
 }
 
 // TODO(vsm): Differentiate between Dart2Js and Dartium isolates.
@@ -24140,13 +27290,20 @@ class _RemoteSendPortSync implements SendPortSync {
     var source = '$target-result';
     var result = null;
     var listener = (Event e) {
-      result = JSON.parse(_getPortSyncEventData(e));
+      result = json.parse(_getPortSyncEventData(e));
     };
     window.on[source].add(listener);
     _dispatchEvent(target, [source, message]);
     window.on[source].remove(listener);
     return result;
   }
+
+  bool operator==(var other) {
+    return (other is _RemoteSendPortSync) && (_isolateId == other._isolateId)
+      && (_portId == other._portId);
+  }
+
+  int get hashCode => _isolateId >> 16 + _portId;
 }
 
 // The receiver is in the same Dart isolate, compiled to JS.
@@ -24162,6 +27319,13 @@ class _LocalSendPortSync implements SendPortSync {
     var result = _receivePort._callback(copy);
     return _deserialize(_serialize(result));
   }
+
+  bool operator==(var other) {
+    return (other is _LocalSendPortSync)
+      && (_receivePort == other._receivePort);
+  }
+
+  int get hashCode => _receivePort.hashCode;
 }
 
 // TODO(vsm): Move this to dart:isolate.  This will take some
@@ -24212,7 +27376,7 @@ class ReceivePortSync {
     _callback = callback;
     if (_listener == null) {
       _listener = (Event e) {
-        var data = JSON.parse(_getPortSyncEventData(e));
+        var data = json.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -24243,7 +27407,7 @@ class ReceivePortSync {
 get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
-  var event = new CustomEvent(receiver, false, false, JSON.stringify(message));
+  var event = new CustomEvent(receiver, false, false, json.stringify(message));
   window.$dom_dispatchEvent(event);
 }
 
@@ -24433,7 +27597,7 @@ void _completeMeasurementFutures() {
   if (completedRequests != null) {
     for (_MeasurementRequest request in completedRequests) {
       if (request.exception) {
-        request.completer.completeException(request.value);
+        request.completer.completeError(request.value);
       } else {
         request.completer.complete(request.value);
       }
@@ -24538,15 +27702,15 @@ abstract class _Serializer extends _MessageTraverser {
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
-    var keys = _serializeList(map.keys);
-    var values = _serializeList(map.values);
+    var keys = _serializeList(map.keys.toList());
+    var values = _serializeList(map.values.toList());
     // TODO(floitsch): we are losing the generic type.
     return ['map', id, keys, values];
   }
 
   _serializeList(List list) {
     int len = list.length;
-    var result = new List(len);
+    var result = new List.fixedLength(len);
     for (int i = 0; i < len; i++) {
       result[i] = _dispatch(list[i]);
     }
@@ -25274,31 +28438,53 @@ class Testing {
 
 
 // Iterator for arrays with fixed size.
-class FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
+class FixedSizeListIterator<T> implements Iterator<T> {
+  final List<T> _array;
+  final int _length;  // Cache array length for faster access.
+  int _position;
+  T _current;
+  
   FixedSizeListIterator(List<T> array)
-      : super(array),
+      : _array = array,
+        _position = -1,
         _length = array.length;
 
-  bool get hasNext => _length > _pos;
+  bool moveNext() {
+    int nextPosition = _position + 1;
+    if (nextPosition < _length) {
+      _current = _array[nextPosition];
+      _position = nextPosition;
+      return true;
+    }
+    _current = null;
+    _position = _length;
+    return false;
+  }
 
-  final int _length;  // Cache array length for faster access.
+  T get current => _current;
 }
 
 // Iterator for arrays with variable size.
 class _VariableSizeListIterator<T> implements Iterator<T> {
+  final List<T> _array;
+  int _position;
+  T _current;
+
   _VariableSizeListIterator(List<T> array)
       : _array = array,
-        _pos = 0;
+        _position = -1;
 
-  bool get hasNext => _array.length > _pos;
-
-  T next() {
-    if (!hasNext) {
-      throw new StateError("No more elements");
+  bool moveNext() {
+    int nextPosition = _position + 1;
+    if (nextPosition < _array.length) {
+      _current = _array[nextPosition];
+      _position = nextPosition;
+      return true;
     }
-    return _array[_pos++];
+    _current = null;
+    _position = _array.length;
+    return false;
   }
 
-  final List<T> _array;
-  int _pos;
+  T get current => _current;
 }

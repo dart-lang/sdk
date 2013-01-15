@@ -173,7 +173,7 @@ test3_2() {
   defaultTypes.update(0, p2, HType.BOOLEAN);
   defaultTypes.update(1, p3, HType.STRING);
 
-  HTypeList types
+  HTypeList types;
   Selector s;
   HTypeList result;
 

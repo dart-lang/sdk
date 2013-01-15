@@ -7,11 +7,12 @@
 
 library html;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:math';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
@@ -24,6 +25,7 @@ part '$AUXILIARY_DIR/CrossFrameTypes.dart';
 part '$AUXILIARY_DIR/CssClassSet.dart';
 part '$AUXILIARY_DIR/Device.dart';
 part '$AUXILIARY_DIR/EventListener.dart';
+part '$AUXILIARY_DIR/EventStreamProvider.dart';
 part '$AUXILIARY_DIR/KeyboardEventController.dart';
 part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';
@@ -70,5 +72,4 @@ _callPortSync(int id, message) {
   return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
 
-// TODO(vsm): Plumb this properly.
-spawnDomFunction(f) => spawnFunction(f);
+spawnDomFunction(f) => IsolateNatives.spawnDomFunction(f);

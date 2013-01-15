@@ -1,5 +1,5 @@
 import 'dart:html';
-import 'dart:json';
+import 'dart:json' as json;
 
 // Workaround for HTML lib missing feature.
 Range newRange() {
@@ -341,8 +341,8 @@ bool isSkippable(Node n) {
 
 void onEnd() {
   // Hideous hack to send JSON back to JS.
-  String dbJson = JSON.stringify(dbEntry);
-  // workaround bug in JSON parser.
+  String dbJson = json.stringify(dbEntry);
+  // workaround bug in json.parse.
   dbJson = dbJson.replaceAll("ZDARTIUMDOESNTESCAPESLASHNJXXXX", "\\n");
 
   // Use postMessage to end the JSON to JavaScript. TODO(jacobr): use a simple
@@ -449,22 +449,24 @@ String genPrettyHtmlFromElement(Element e) {
 class PostOrderTraversalIterator implements Iterator<Node> {
 
   Node _next;
+  Node _current;
 
   PostOrderTraversalIterator(Node start) {
     _next = _leftMostDescendent(start);
   }
 
+  Node get current => _current;
   bool get hasNext => _next != null;
 
-  Node next() {
-    if (_next == null) return null;
-    final ret = _next;
+  bool moveNext() {
+    _current = _next;
+    if (_next == null) return false;
     if (_next.nextNode != null) {
       _next = _leftMostDescendent(_next.nextNode);
     } else {
       _next = _next.parent;
     }
-    return ret;
+    return true;
   }
 
   static Node _leftMostDescendent(Node n) {
@@ -475,11 +477,11 @@ class PostOrderTraversalIterator implements Iterator<Node> {
   }
 }
 
-class PostOrderTraversal implements Iterable<Node> {
+class PostOrderTraversal extends Iterable<Node> {
   final Node _node;
   PostOrderTraversal(this._node);
 
-  Iterator<Node> iterator() => new PostOrderTraversalIterator(_node);
+  Iterator<Node> get iterator => new PostOrderTraversalIterator(_node);
 }
 
 /**
@@ -746,7 +748,7 @@ void scrapeSection(Element root, String sectionSelector, String currentType,
 
       // Figure out which column in the table contains member names by
       // tracking how many member names each column contains.
-      final numMatches = new List<int>(i);
+      final numMatches = new List<int>.fixedLength(i);
       for (int j = 0; j < i; j++) {
         numMatches[j] = 0;
       }
@@ -961,7 +963,7 @@ void markRemoved(var e) {
   }
 }
 
-// TODO(jacobr): remove this when the dartium JSON parser handles \n correctly.
+// TODO(jacobr): remove this when the dartium JSON parse handles \n correctly.
 String JSONFIXUPHACK(String value) {
   return value.replaceAll("\n", "ZDARTIUMDOESNTESCAPESLASHNJXXXX");
 }
@@ -1307,7 +1309,7 @@ void main() {
 void documentLoaded(event) {
   // Load the database of expected methods and properties with an HttpRequest.
   new HttpRequest.get('${window.location}.json', (req) {
-    data = JSON.parse(req.responseText);
+    data = json.parse(req.responseText);
     dbEntry = {'members': [], 'srcUrl': pageUrl};
     run();
   });

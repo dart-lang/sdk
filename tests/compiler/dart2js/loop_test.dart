@@ -29,17 +29,6 @@ foo(a) {
 const String TEST_THREE = r"""
 foo(a) {
   int x = 0;
-  for (int i in a) {
-    x += i;
-  }
-  return x;
-}
-""";
-
-
-const String TEST_FOUR = r"""
-foo(a) {
-  int x = 0;
   for (int i = 0; i < 10; i++) {
     if (i == 5) continue;
     x += i;
@@ -48,7 +37,7 @@ foo(a) {
 }
 """;
 
-const String TEST_FIVE = r"""
+const String TEST_FOUR = r"""
 foo(a) {
   int x = 0;
   int i = 0;
@@ -61,29 +50,13 @@ foo(a) {
 }
 """;
 
-const String TEST_SIX = r"""
-foo(a) {
-  int x = 0;
-  for (int i in a) {
-    if (i == 5) continue;
-    x += i;
-  }
-  return x;
-}
-""";
-
-
 main() {
   String generated = compile(TEST_ONE, entry: 'foo');
   Expect.isTrue(generated.contains(r'for ('));
   generated = compile(TEST_TWO, entry: 'foo');
   Expect.isTrue(!generated.contains(r'break'));
   generated = compile(TEST_THREE, entry: 'foo');
-  Expect.isTrue(!generated.contains(r'break'));
+  Expect.isTrue(generated.contains(r'continue'));
   generated = compile(TEST_FOUR, entry: 'foo');
-  Expect.isTrue(generated.contains(r'continue'));
-  generated = compile(TEST_FIVE, entry: 'foo');
-  Expect.isTrue(generated.contains(r'continue'));
-  generated = compile(TEST_SIX, entry: 'foo');
   Expect.isTrue(generated.contains(r'continue'));
 }

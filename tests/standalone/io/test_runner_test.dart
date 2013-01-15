@@ -4,6 +4,7 @@
 
 import "dart:io";
 import "dart:isolate";
+import "dart:async";
 import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/status_file_parser.dart";
 import "../../../tools/testing/dart/test_options.dart";
@@ -21,9 +22,9 @@ class TestController {
       throw "Unexpected output: ${output.result}";
     }
     print("stdout: ");
-    for (var line in output.stdout) print(line);
+    print(new String.fromCharCodes(output.stdout));
     print("stderr: ");
-    for (var line in output.stderr) print(line);
+    print(new String.fromCharCodes(output.stderr));
 
     print("Time: ${output.time}");
     print("Exit code: ${output.exitCode}");

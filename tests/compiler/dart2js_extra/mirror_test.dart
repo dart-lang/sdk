@@ -22,7 +22,7 @@ void test(void onDone(bool success)) {
 }
 
 void main() {
-  print("""
+  reflect("""
 
 This program is using an experimental feature called \"mirrors\".  As
 currently implemented, mirrors do not work with minification, and will

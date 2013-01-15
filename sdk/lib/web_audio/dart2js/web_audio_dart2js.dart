@@ -1,5 +1,6 @@
 library web_audio;
 
+import 'dart:async';
 import 'dart:html';
 // DO NOT EDIT
 // Auto-generated dart:audio library.
@@ -149,10 +150,10 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 /// @domName AudioContext
 class AudioContext extends EventTarget native "*AudioContext" {
 
+  static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
+
   ///@docsEditable true
   factory AudioContext() => AudioContext._create();
-  static AudioContext _create() => JS('AudioContext',
-      'new (window.AudioContext || window.webkitAudioContext)()');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AudioContextEvents get on =>
@@ -226,6 +227,11 @@ class AudioContext extends EventTarget native "*AudioContext" {
 
   /// @domName AudioContext.startRendering; @docsEditable true
   void startRendering() native;
+
+  Stream<Event> get onComplete => completeEvent.forTarget(this);
+
+  static AudioContext _create() => JS('AudioContext',
+      'new (window.AudioContext || window.webkitAudioContext)()');
 
   GainNode createGain() {
     if (JS('bool', '#.createGain !== undefined', this)) {

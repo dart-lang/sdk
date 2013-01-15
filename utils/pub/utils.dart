@@ -5,6 +5,7 @@
 /// Generic utility functions. Stuff that should possibly be in core.
 library utils;
 
+import 'dart:async';
 import 'dart:crypto';
 import 'dart:isolate';
 import 'dart:uri';
@@ -39,20 +40,9 @@ String padRight(String source, int length) {
   return result.toString();
 }
 
-/// Runs [fn] after [future] completes, whether it completes successfully or
-/// not. Essentially an asynchronous `finally` block.
-always(Future future, fn()) {
-  var completer = new Completer();
-  future.then((_) => fn());
-  future.handleException((_) {
-    fn();
-    return false;
-  });
-}
-
-/// Flattens nested collections into a single list containing only non-list
-/// elements.
-List flatten(Collection nested) {
+/// Flattens nested lists inside an iterable into a single list containing only
+/// non-list elements.
+List flatten(Iterable nested) {
   var result = [];
   helper(list) {
     for (var element in list) {
@@ -69,10 +59,11 @@ List flatten(Collection nested) {
 
 /// Asserts that [iter] contains only one element, and returns it.
 only(Iterable iter) {
-  var iterator = iter.iterator();
-  assert(iterator.hasNext);
-  var obj = iterator.next();
-  assert(!iterator.hasNext);
+  var iterator = iter.iterator;
+  var currentIsValid = iterator.moveNext();
+  assert(currentIsValid);
+  var obj = iterator.current;
+  assert(!iterator.moveNext());
   return obj;
 }
 
@@ -107,24 +98,24 @@ bool endsWithPattern(String str, Pattern matcher) {
 }
 
 /// Returns the hex-encoded sha1 hash of [source].
-String sha1(String source) =>
-  CryptoUtils.bytesToHex(new SHA1().update(source.charCodes).digest());
+String sha1(String source) {
+  var sha = new SHA1();
+  sha.add(source.charCodes);
+  return CryptoUtils.bytesToHex(sha.close());
+}
 
 /// Returns a [Future] that completes in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
-  new Timer(milliseconds, completer.complete);
+  new Timer(milliseconds, (_) => completer.complete());
   return completer.future;
 }
 
 /// Configures [future] so that its result (success or exception) is passed on
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
-  future.handleException((e) {
-    completer.completeException(e, future.stackTrace);
-    return true;
-  });
-  future.then(completer.complete);
+  future.then((value) => completer.complete(value),
+      onError: (e) => completer.completeError(e.error, e.stackTrace));
 }
 
 // TODO(nweiz): unify the following functions with the utility functions in
@@ -171,7 +162,7 @@ String mapToQuery(Map<String, String> map) {
     value = (value == null || value.isEmpty) ? null : encodeUriComponent(value);
     pairs.add([key, value]);
   });
-  return Strings.join(pairs.map((pair) {
+  return Strings.join(pairs.mappedBy((pair) {
     if (pair[1] == null) return pair[0];
     return "${pair[0]}=${pair[1]}";
   }), "&");

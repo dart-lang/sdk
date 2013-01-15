@@ -23,7 +23,6 @@ pseudo_kw_illegal_test/14: Fail  # Issue 356
 method_override2_test/00: Fail # Issue 7076.
 method_override2_test/02: Fail # Issue 7076.
 method_override2_test/03: Fail # Issue 7076.
-cascade_2_test: Fail # Issue 7665.
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail           # (Discussion ongoing)
@@ -62,7 +61,6 @@ gc_test: Skip  # Issue 1487, flaky.
 
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
-issue7513_test: Crash # Issue 7513
 
 [ $compiler == none && $unchecked ]
 
@@ -88,13 +86,18 @@ default_factory2_test/01: Fail # Issue 7075.
 [ $compiler == dartc ]
 class_literal_test/none : Fail # Issue 7630.
 
+# test issue 7749
+list_literal1_negative_test: Fail
+map_literal1_negative_test: Fail
+
+# test issue XXXX
+naming_test: Fail
+
 library_juxtaposition_test: Fail # Issue 6881
 new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
 redirecting_factory_infinite_steps_test/01: Fail # http://dartbug.com/6560
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
-bad_override_test/01: Fail, OK # issue 6578, warning expected on "static" modifier
-bad_override_test/02: Fail, OK # issue 6578, warning expected on "static" modifier
 const_locals_test: Fail
 const_nested_test: Fail
 application_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -154,8 +157,6 @@ is_not_class2_negative_test: Fail #  Runtime only test, rewrite as multitest
 library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530
 library6_negative_test: Fail # still a valid test? Issue 3650
-list_literal4_test: Fail # Issue 1343
-map_literal4_test: Fail # Issue 1343
 named_parameters_with_object_property_names_test: Fail # Issue 2137
 many_overridden_no_such_method_test: Fail
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -321,8 +322,6 @@ call_test: Fail # Issue 1604
 *: Skip
 
 [ $compiler == dart2dart ]
-class_cycle_test/02: Fail # Issue 7468 inherited from dart2js.
-class_cycle_test/03: Fail # Issue 7468 inherited from dart2js.
 built_in_identifier_prefix_test: Fail # Inherited from dart2js.
 const_factory_redirection_test: Fail # http://dartbug.com/6894
 compile_time_constant_h_test: Fail

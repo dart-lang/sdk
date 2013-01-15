@@ -21,7 +21,7 @@ patch class Expando<T> {
       }
     }
     if (doCompact) {
-      _data = _data.filter((e) => (e != null));
+      _data = _data.where((e) => (e != null)).toList();
     }
     return result;
   }
@@ -49,7 +49,7 @@ patch class Expando<T> {
       _data.add(new _WeakProperty(object, value));
     }
     if (doCompact) {
-      _data = _data.filter((e) => (e != null));
+      _data = _data.where((e) => (e != null)).toList();
     }
   }
 

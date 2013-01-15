@@ -113,13 +113,12 @@ class Utf16Tests extends TestClass {
 
   void testIterableMethods() {
     // empty input
-    Expect.isFalse(decodeUtf16AsIterable([]).iterator().hasNext);
+    Expect.isFalse(decodeUtf16AsIterable([]).iterator.moveNext());
 
     IterableUtf16Decoder koreanDecoder =
       decodeUtf16AsIterable(testKoreanCharSubsetUtf16beBom);
     // get the first character
-    Expect.equals(testKoreanCharSubset.charCodes[0],
-        koreanDecoder.iterator().next());
+    Expect.equals(testKoreanCharSubset.charCodes[0], koreanDecoder.first);
     // get the whole translation using the Iterable interface
     Expect.stringEquals(testKoreanCharSubset,
         new String.fromCharCodes(new List<int>.from(koreanDecoder)));

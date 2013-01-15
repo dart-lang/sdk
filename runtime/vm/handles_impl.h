@@ -11,7 +11,7 @@
 
 namespace dart {
 
-DECLARE_DEBUG_FLAG(bool, trace_handles_count);
+DECLARE_DEBUG_FLAG(bool, trace_handles);
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords,
@@ -38,8 +38,12 @@ void Handles<kHandleSizeInWords,
   HandlesBlock* block = &first_scoped_block_;
   do {
     block->VisitObjectPointers(visitor);
+    if (block == scoped_blocks_) {
+      return;
+    }
     block = block->next_block();
   } while (block != NULL);
+  UNREACHABLE();
 }
 
 
@@ -181,9 +185,10 @@ void Handles<kHandleSizeInWords,
              kHandlesPerChunk,
              kOffsetOfRawPtr>::SetupNextScopeBlock() {
 #if defined(DEBUG)
-  if (FLAG_trace_handles_count) {
-    OS::Print("Handle Counts:  Zone = %d, Scoped = %d\n",
-              CountZoneHandles(), CountScopedHandles());
+  if (FLAG_trace_handles) {
+    OS::PrintErr("***   Handle Counts for (0x%"Px"):Zone = %d,Scoped = %d\n",
+                 reinterpret_cast<intptr_t>(this),
+                 CountZoneHandles(), CountScopedHandles());
   }
 #endif
   if (scoped_blocks_->next_block() == NULL) {
@@ -235,9 +240,10 @@ void Handles<kHandleSizeInWords,
              kHandlesPerChunk,
              kOffsetOfRawPtr>::SetupNextZoneBlock() {
 #if defined(DEBUG)
-  if (FLAG_trace_handles_count) {
-    OS::Print("Handle Counts:  Zone = %d, Scoped = %d\n",
-              CountZoneHandles(), CountScopedHandles());
+  if (FLAG_trace_handles) {
+    OS::PrintErr("***   Handle Counts for (0x%"Px"):Zone = %d,Scoped = %d\n",
+                 reinterpret_cast<intptr_t>(this),
+                 CountZoneHandles(), CountScopedHandles());
   }
 #endif
   zone_blocks_ = new HandlesBlock(zone_blocks_);

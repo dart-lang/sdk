@@ -33,18 +33,16 @@ class Configuration {
    * Called as soon as the unittest framework becomes initialized. This is done
    * even before tests are added to the test framework. It might be used to
    * determine/debug errors that occur before the test harness starts executing.
+   * It is also used to tell the vm or browser that tests are going to be run
+   * asynchronously and that the process should wait until they are done.
    */
-  void onInit() {}
-
-  /**
-   * Called as soon as the unittest framework starts running. Used commonly to
-   * tell the vm or browser that tests are still running and the process should
-   * wait until they are done.
-   */
-  void onStart() {
+  void onInit() {
     _receivePort = new ReceivePort();
     _postMessage('unittest-suite-wait-for-done');
   }
+
+  /** Called as soon as the unittest framework starts running. */
+  void onStart() {}
 
   /**
    * Called when each test starts. Useful to show intermediate progress on
@@ -96,7 +94,7 @@ class Configuration {
    * When [uncaughtError] is not null, it contains an error that occured outside
    * of tests (e.g. setting up the test).
    */
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
     // Print each test's result.
     for (final t in _tests) {
@@ -116,7 +114,7 @@ class Configuration {
     print('');
 
     var success = false;
-    if (passed == 0 && failed == 0 && errors == 0) {
+    if (passed == 0 && failed == 0 && errors == 0 && uncaughtError == null) {
       print('No tests found.');
       // This is considered a failure too.
     } else if (failed == 0 && errors == 0 && uncaughtError == null) {
@@ -128,11 +126,18 @@ class Configuration {
       }
       print('$passed PASSED, $failed FAILED, $errors ERRORS');
     }
+  }
 
-    _receivePort.close();
+  /**
+   * Called when the unittest framework is done running. [success] indicates
+   * whether all tests passed successfully.
+   */
+  void onDone(bool success) {
     if (success) {
       _postMessage('unittest-suite-success');
+      _receivePort.close();
     } else {
+      _receivePort.close();
       throw new Exception('Some tests failed.');
     }
   }
@@ -141,7 +146,7 @@ class Configuration {
     // TODO(nweiz): Use this simpler code once issue 2980 is fixed.
     // return str.replaceAll(new RegExp("^", multiLine: true), "  ");
 
-    return Strings.join(str.split("\n").map((line) => "  $line"), "\n");
+    return Strings.join(str.split("\n").mappedBy((line) => "  $line"), "\n");
   }
 
   /** Handle errors that happen outside the tests. */
@@ -149,6 +154,21 @@ class Configuration {
   // Currently e.message works in dartium, but not in dartc.
   handleExternalError(e, String message) =>
       _reportTestError('$message\nCaught $e', '');
+
+  /**
+   * Send messages to the test controller code (see 'test_controller.js'). This
+   * is only needed to support browser tests with dart2js. Note: we could wrap
+   * tests and send the appropriate messages to the controller through the
+   * wrapper, but using wrappers has a noticeable overhead in the testing bots,
+   * so we use this approach instead.
+   *
+   * Configurations that will not run in DRT (such as vm_config and
+   * compact_vm_config), can safely override this method to avoid printing extra
+   * mesages in the console.
+   */
+  // TODO(sigmund): find a way to unify notifyController and _postMessage
+  void notifyController(String message) {
+  }
 
   _postMessage(String message) {
     // In dart2js browser tests, the JavaScript-based test controller

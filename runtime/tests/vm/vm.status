@@ -33,6 +33,9 @@ dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 dart/isolate_unhandled*: Skip
 
+[ $runtime == ff || $runtime == ie9 ]
+dart/inline_stack_frame_test: Skip
+
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
@@ -42,3 +45,9 @@ dart/*: Skip
 
 [ $arch == simarm ]
 dart/*: Skip
+
+# TODO(ajohnsen): Fix this as part of library changes.
+[ $compiler == none ]
+cc/CustomIsolates: Skip # Bug 6890
+cc/NewNativePort: Skip # Bug 6890
+cc/RunLoop_ExceptionParent: Skip # Bug 6890

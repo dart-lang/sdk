@@ -19,10 +19,11 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, print_ast);
-DECLARE_FLAG(bool, print_scopes);
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
+DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, print_ast);
+DECLARE_FLAG(bool, print_scopes);
 
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
@@ -863,6 +864,39 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
+void FlowGraphCompiler::EmitFrameEntry() {
+  const Function& function = parsed_function().function();
+  if (CanOptimizeFunction() && function.is_optimizable()) {
+    const bool can_optimize = !is_optimizing() || may_reoptimize();
+    const Register function_reg = EDI;
+    if (can_optimize) {
+      __ LoadObject(function_reg, function);
+    }
+    // Patch point is after the eventually inlined function object.
+    AddCurrentDescriptor(PcDescriptors::kEntryPatch,
+                         Isolate::kNoDeoptId,
+                         0);  // No token position.
+    if (can_optimize) {
+      // Reoptimization of optimized function is triggered by counting in
+      // IC stubs, but not at the entry of the function.
+      if (!is_optimizing()) {
+        __ incl(FieldAddress(function_reg, Function::usage_counter_offset()));
+      }
+      __ cmpl(FieldAddress(function_reg, Function::usage_counter_offset()),
+          Immediate(FLAG_optimization_counter_threshold));
+      ASSERT(function_reg == EDI);
+      __ j(GREATER_EQUAL, &StubCode::OptimizeFunctionLabel());
+    }
+  } else {
+    AddCurrentDescriptor(PcDescriptors::kEntryPatch,
+                         Isolate::kNoDeoptId,
+                         0);  // No token position.
+  }
+  __ Comment("Enter frame");
+  AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
+}
+
+
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
   if (TryIntrinsify()) {
@@ -873,14 +907,14 @@ void FlowGraphCompiler::CompileGraph() {
     __ jmp(&StubCode::FixCallersTargetLabel());
     return;
   }
-  // Specialized version of entry code from CodeGenerator::GenerateEntryCode.
+
+  EmitFrameEntry();
+
   const Function& function = parsed_function().function();
 
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_copied_params = parsed_function().num_copied_params();
   const int num_locals = parsed_function().num_stack_locals();
-  __ Comment("Enter frame");
-  AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
 
   // For optimized code, keep a bitmap of the frame in order to build
   // stackmaps for GC safepoints in the prologue.
@@ -1068,7 +1102,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // to inlining in optimized code, that function may not correspond to the
   // top-level function (parsed_function().function()) which could be
   // reoptimized and which counter needs to be incremented.
-  // Pass the function explicitly.
+  // Pass the function explicitly, it is used in IC stub.
   __ LoadObject(EDI, parsed_function().function());
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
@@ -1336,19 +1370,6 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
 #define __ compiler_->assembler()->
 
 
-static Address ToStackSlotAddress(Location loc) {
-  const intptr_t index = loc.stack_index();
-  if (index < 0) {
-    const intptr_t offset = (1 - index)  * kWordSize;
-    return Address(EBP, offset);
-  } else {
-    const intptr_t offset =
-        (ParsedFunction::kFirstLocalSlotIndex - index) * kWordSize;
-    return Address(EBP, offset);
-  }
-}
-
-
 void ParallelMoveResolver::EmitMove(int index) {
   MoveOperands* move = moves_[index];
   const Location source = move->src();
@@ -1359,15 +1380,15 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movl(destination.reg(), source.reg());
     } else {
       ASSERT(destination.IsStackSlot());
-      __ movl(ToStackSlotAddress(destination), source.reg());
+      __ movl(destination.ToStackSlotAddress(), source.reg());
     }
   } else if (source.IsStackSlot()) {
     if (destination.IsRegister()) {
-      __ movl(destination.reg(), ToStackSlotAddress(source));
+      __ movl(destination.reg(), source.ToStackSlotAddress());
     } else {
       ASSERT(destination.IsStackSlot());
-      MoveMemoryToMemory(ToStackSlotAddress(destination),
-                         ToStackSlotAddress(source));
+      MoveMemoryToMemory(destination.ToStackSlotAddress(),
+                         source.ToStackSlotAddress());
     }
   } else if (source.IsXmmRegister()) {
     if (destination.IsXmmRegister()) {
@@ -1376,15 +1397,15 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movaps(destination.xmm_reg(), source.xmm_reg());
     } else {
       ASSERT(destination.IsDoubleStackSlot());
-      __ movsd(ToStackSlotAddress(destination), source.xmm_reg());
+      __ movsd(destination.ToStackSlotAddress(), source.xmm_reg());
     }
   } else if (source.IsDoubleStackSlot()) {
     if (destination.IsXmmRegister()) {
-      __ movsd(destination.xmm_reg(), ToStackSlotAddress(source));
+      __ movsd(destination.xmm_reg(), source.ToStackSlotAddress());
     } else {
       ASSERT(destination.IsDoubleStackSlot());
-      __ movsd(XMM0, ToStackSlotAddress(source));
-      __ movsd(ToStackSlotAddress(destination), XMM0);
+      __ movsd(XMM0, source.ToStackSlotAddress());
+      __ movsd(destination.ToStackSlotAddress(), XMM0);
     }
   } else {
     ASSERT(source.IsConstant());
@@ -1397,7 +1418,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       }
     } else {
       ASSERT(destination.IsStackSlot());
-      StoreObject(ToStackSlotAddress(destination), source.constant());
+      StoreObject(destination.ToStackSlotAddress(), source.constant());
     }
   }
 
@@ -1413,11 +1434,11 @@ void ParallelMoveResolver::EmitSwap(int index) {
   if (source.IsRegister() && destination.IsRegister()) {
     __ xchgl(destination.reg(), source.reg());
   } else if (source.IsRegister() && destination.IsStackSlot()) {
-    Exchange(source.reg(), ToStackSlotAddress(destination));
+    Exchange(source.reg(), destination.ToStackSlotAddress());
   } else if (source.IsStackSlot() && destination.IsRegister()) {
-    Exchange(destination.reg(), ToStackSlotAddress(source));
+    Exchange(destination.reg(), source.ToStackSlotAddress());
   } else if (source.IsStackSlot() && destination.IsStackSlot()) {
-    Exchange(ToStackSlotAddress(destination), ToStackSlotAddress(source));
+    Exchange(destination.ToStackSlotAddress(), source.ToStackSlotAddress());
   } else if (source.IsXmmRegister() && destination.IsXmmRegister()) {
     __ movaps(XMM0, source.xmm_reg());
     __ movaps(source.xmm_reg(), destination.xmm_reg());
@@ -1426,8 +1447,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
     ASSERT(destination.IsDoubleStackSlot() || source.IsDoubleStackSlot());
     XmmRegister reg = source.IsXmmRegister() ? source.xmm_reg()
                                              : destination.xmm_reg();
-    Address slot_address =
-        ToStackSlotAddress(source.IsXmmRegister() ? destination : source);
+    Address slot_address = source.IsXmmRegister()
+        ? destination.ToStackSlotAddress()
+        : source.ToStackSlotAddress();
 
     __ movsd(XMM0, slot_address);
     __ movsd(slot_address, reg);

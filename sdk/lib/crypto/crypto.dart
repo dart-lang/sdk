@@ -16,27 +16,28 @@ part 'sha256.dart';
 /**
  * Interface for cryptographic hash functions.
  *
- * The [update] method is used to add data to the hash. The [digest] method
+ * The [add] method is used to add data to the hash. The [close] method
  * is used to extract the message digest.
  *
- * Once the [digest] method has been called no more data can be added using the
- * [update] method. If [update] is called after the first call to [digest] a
+ * Once the [close] method has been called no more data can be added using the
+ * [add] method. If [add] is called after the first call to [close] a
  * HashException is thrown.
  *
  * If multiple instances of a given Hash is needed the [newInstance]
  * method can provide a new instance.
  */
+// TODO(floitsch): make Hash implement Sink, StreamSink or similar.
 abstract class Hash {
   /**
    * Add a list of bytes to the hash computation.
    */
-  Hash update(List<int> data);
+  add(List<int> data);
 
   /**
    * Finish the hash computation and extract the message digest as
    * a list of bytes.
    */
-  List<int> digest();
+  List<int> close();
 
   /**
    * Returns a new instance of this hash function.
@@ -79,9 +80,10 @@ abstract class MD5 implements Hash {
 /**
  * Hash-based Message Authentication Code support.
  *
- * The [update] method is used to add data to the message. The [digest] method
- * is used to extract the message authentication code.
+ * The [add] method is used to add data to the message. The [digest] and
+ * [close] methods are used to extract the message authentication code.
  */
+// TODO(floitsch): make Hash implement Sink, StreamSink or similar.
 abstract class HMAC {
   /**
    * Create an [HMAC] object from a [Hash] and a key.
@@ -91,13 +93,18 @@ abstract class HMAC {
   /**
    * Add a list of bytes to the message.
    */
-  HMAC update(List<int> data);
+  add(List<int> data);
 
   /**
    * Perform the actual computation and extract the message digest
    * as a list of bytes.
    */
-  List<int> digest();
+  List<int> close();
+
+  /**
+   * Extract the message digest as a list of bytes without closing [this].
+   */
+  List<int> get digest;
 
   /**
    * Verify that the HMAC computed for the data so far matches the

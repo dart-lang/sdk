@@ -554,7 +554,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   final HTypeMap types;
   final ValueRangeInfo info;
 
-  WorkItem work;
+  CodegenWorkItem work;
   HGraph graph;
 
   SsaValueRangeAnalyzer(constantSystem, this.types, this.work)

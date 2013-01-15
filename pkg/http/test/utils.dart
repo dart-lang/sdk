@@ -4,8 +4,9 @@
 
 library test_utils;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:uri';
 
 import 'package:unittest/unittest.dart';
@@ -88,7 +89,7 @@ void startServer() {
         outputEncoding = Encoding.ASCII;
       }
 
-      var body = JSON.stringify(content);
+      var body = json.stringify(content);
       response.contentLength = body.length;
       response.outputStream.writeString(body, outputEncoding);
       response.outputStream.close();
@@ -104,6 +105,11 @@ void stopServer() {
   _server = null;
 }
 
+// TODO(nweiz): remove this once issue 7785 is fixed.
+/// Buffers all input from an InputStream and returns it as a future.
+Future<List<int>> consumeInputStream(InputStream stream) =>
+  new http.ByteStream(wrapInputStream(stream)).toBytes();
+
 /// A matcher that matches JSON that parses to a value that matches the inner
 /// matcher.
 Matcher parse(matcher) => new _Parse(matcher);
@@ -118,7 +124,7 @@ class _Parse extends BaseMatcher {
 
     var parsed;
     try {
-      parsed = JSON.parse(item);
+      parsed = json.parse(item);
     } catch (e) {
       return false;
     }
@@ -171,4 +177,16 @@ class _RedirectLimitExceededException extends TypeMatcher {
 
   bool matches(item, MatchState matchState) =>
     item is RedirectLimitExceededException;
+}
+
+/// A matcher for SocketIOExceptions.
+const isSocketIOException = const _SocketIOException();
+
+/// A matcher for functions that throw SocketIOException.
+const Matcher throwsSocketIOException =
+    const Throws(isSocketIOException);
+
+class _SocketIOException extends TypeMatcher {
+  const _SocketIOException() : super("SocketIOException");
+  bool matches(item, MatchState matchState) => item is SocketIOException;
 }

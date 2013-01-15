@@ -59,9 +59,9 @@ main() {
       }
     });
 
-  test('queryAll-filter', () {
+  test('queryAll-where', () {
       List<Element> all = queryAll('*');
-      List<CanvasElement> canvases = all.filter((e) => e is CanvasElement);
+      Iterable<CanvasElement> canvases = all.where((e) => e is CanvasElement);
       for (var e in canvases) {
         expect(e is CanvasElement, isTrue);
       }

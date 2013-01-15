@@ -4,6 +4,7 @@
 
 library curl_client;
 
+import 'dart:async';
 import 'dart:io';
 
 import '../../pkg/http/lib/http.dart' as http;
@@ -37,19 +38,14 @@ class CurlClient extends http.BaseClient {
     return withTempDir((tempDir) {
       var headerFile = join(tempDir, "curl-headers");
       var arguments = _argumentsForRequest(request, headerFile);
-      log.process(executable, arguments);
       var process;
-      return startProcess(executable, arguments).chain((process_) {
+      return startProcess(executable, arguments).then((process_) {
         process = process_;
-        if (requestStream.closed) {
-          process.stdin.close();
-        } else {
-          requestStream.pipe(process.stdin);
-        }
-
+        return requestStream.pipe(wrapOutputStream(process.stdin));
+      }).then((_) {
         return _waitForHeaders(process, expectBody: request.method != "HEAD");
-      }).chain((_) => new File(headerFile).readAsLines())
-        .transform((lines) => _buildResponse(request, process, lines));
+      }).then((_) => new File(headerFile).readAsLines())
+        .then((lines) => _buildResponse(request, process, lines));
     });
   }
 
@@ -125,8 +121,7 @@ class CurlClient extends http.BaseClient {
         return;
       }
 
-      chainToCompleter(consumeInputStream(process.stderr)
-            .transform((stderrBytes) {
+      chainToCompleter(consumeInputStream(process.stderr).then((stderrBytes) {
         var message = new String.fromCharCodes(stderrBytes);
         log.fine('Got error reading headers from curl: $message');
         if (exitCode == 47) {
@@ -141,7 +136,7 @@ class CurlClient extends http.BaseClient {
     // prints the headers to stdout instead of the body. We want to wait until
     // all the headers are received to read them from the header file.
     if (!expectBody) {
-      return Futures.wait([
+      return Future.wait([
         consumeInputStream(process.stdout),
         completer.future
       ]);
@@ -182,7 +177,8 @@ class CurlClient extends http.BaseClient {
       contentLength = int.parse(headers['content-length']);
     }
 
-    return new http.StreamedResponse(responseStream, status, contentLength,
+    return new http.StreamedResponse(
+        wrapInputStream(responseStream), status, contentLength,
         request: request,
         headers: headers,
         isRedirect: isRedirect,

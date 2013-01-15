@@ -113,7 +113,7 @@ List<int> encodeUtf16(String str) =>
 List<int> encodeUtf16be(String str, [bool writeBOM = false]) {
   List<int> utf16CodeUnits = _stringToUtf16CodeUnits(str);
   List<int> encoding =
-      new List<int>(2 * utf16CodeUnits.length + (writeBOM ? 2 : 0));
+      new List<int>.fixedLength(2 * utf16CodeUnits.length + (writeBOM ? 2 : 0));
   int i = 0;
   if (writeBOM) {
     encoding[i++] = UNICODE_UTF_BOM_HI;
@@ -133,7 +133,7 @@ List<int> encodeUtf16be(String str, [bool writeBOM = false]) {
 List<int> encodeUtf16le(String str, [bool writeBOM = false]) {
   List<int> utf16CodeUnits = _stringToUtf16CodeUnits(str);
   List<int> encoding =
-      new List<int>(2 * utf16CodeUnits.length + (writeBOM ? 2 : 0));
+      new List<int>.fixedLength(2 * utf16CodeUnits.length + (writeBOM ? 2 : 0));
   int i = 0;
   if (writeBOM) {
     encoding[i++] = UNICODE_UTF_BOM_LO;
@@ -188,13 +188,15 @@ typedef _ListRangeIterator _CodeUnitsProvider();
  * provides an iterator on demand and the iterator will only translate bytes
  * as requested by the user of the iterator. (Note: results are not cached.)
  */
-class IterableUtf16Decoder implements Iterable<int> {
+// TODO(floitsch): Consider removing the extend and switch to implements since
+// that's cheaper to allocate.
+class IterableUtf16Decoder extends Iterable<int> {
   final _CodeUnitsProvider codeunitsProvider;
   final int replacementCodepoint;
 
   IterableUtf16Decoder._(this.codeunitsProvider, this.replacementCodepoint);
 
-  Utf16CodeUnitDecoder iterator() =>
+  Utf16CodeUnitDecoder get iterator =>
       new Utf16CodeUnitDecoder.fromListRangeIterator(codeunitsProvider(),
           replacementCodepoint);
 }
@@ -207,6 +209,7 @@ class IterableUtf16Decoder implements Iterable<int> {
 class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
   final _ListRangeIterator utf16EncodedBytesIterator;
   final int replacementCodepoint;
+  int _current = null;
 
   Utf16BytesToCodeUnitsDecoder._fromListRangeIterator(
       this.utf16EncodedBytesIterator, this.replacementCodepoint);
@@ -235,33 +238,36 @@ class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
    * over-allocates the List containing results.
    */
   List<int> decodeRest() {
-    List<int> codeunits = new List<int>(remaining);
+    List<int> codeunits = new List<int>.fixedLength(remaining);
     int i = 0;
-    while (hasNext) {
-      codeunits[i++] = next();
+    while (moveNext()) {
+      codeunits[i++] = current;
     }
     if (i == codeunits.length) {
       return codeunits;
     } else {
-      List<int> truncCodeunits = new List<int>(i);
+      List<int> truncCodeunits = new List<int>.fixedLength(i);
       truncCodeunits.setRange(0, i, codeunits);
       return truncCodeunits;
     }
   }
 
-  bool get hasNext => utf16EncodedBytesIterator.hasNext;
+  int get current => _current;
 
-  int next() {
+  bool moveNext() {
+    _current = null;
     if (utf16EncodedBytesIterator.remaining < 2) {
-      utf16EncodedBytesIterator.next();
+      utf16EncodedBytesIterator.moveNext();
       if (replacementCodepoint != null) {
-        return replacementCodepoint;
+        _current = replacementCodepoint;
+        return true;
       } else {
         throw new ArgumentError(
             "Invalid UTF16 at ${utf16EncodedBytesIterator.position}");
       }
     } else {
-      return decode();
+      _current = decode();
+      return true;
     }
   }
 
@@ -288,16 +294,19 @@ class Utf16beBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
   Utf16beBytesToCodeUnitsDecoder(List<int> utf16EncodedBytes, [
       int offset = 0, int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      super._fromListRangeIterator((new _ListRange(utf16EncodedBytes, offset,
-      length)).iterator(), replacementCodepoint) {
+      super._fromListRangeIterator(
+          (new _ListRange(utf16EncodedBytes, offset, length)).iterator,
+          replacementCodepoint) {
     if (stripBom && hasUtf16beBom(utf16EncodedBytes, offset, length)) {
       skip();
     }
   }
 
   int decode() {
-    int hi = utf16EncodedBytesIterator.next();
-    int lo = utf16EncodedBytesIterator.next();
+    utf16EncodedBytesIterator.moveNext();
+    int hi = utf16EncodedBytesIterator.current;
+    utf16EncodedBytesIterator.moveNext();
+    int lo = utf16EncodedBytesIterator.current;
     return (hi << 8) + lo;
   }
 }
@@ -310,16 +319,19 @@ class Utf16leBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
   Utf16leBytesToCodeUnitsDecoder(List<int> utf16EncodedBytes, [
       int offset = 0, int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      super._fromListRangeIterator((new _ListRange(utf16EncodedBytes, offset,
-      length)).iterator(), replacementCodepoint) {
+      super._fromListRangeIterator(
+          (new _ListRange(utf16EncodedBytes, offset, length)).iterator,
+          replacementCodepoint) {
     if (stripBom && hasUtf16leBom(utf16EncodedBytes, offset, length)) {
       skip();
     }
   }
 
   int decode() {
-    int lo = utf16EncodedBytesIterator.next();
-    int hi = utf16EncodedBytesIterator.next();
+    utf16EncodedBytesIterator.moveNext();
+    int lo = utf16EncodedBytesIterator.current;
+    utf16EncodedBytesIterator.moveNext();
+    int hi = utf16EncodedBytesIterator.current;
     return (hi << 8) + lo;
   }
 }

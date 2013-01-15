@@ -106,22 +106,36 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
 
   @Override
   public Member lookupMember(String name) {
-    Element element = getElement().lookupLocalElement(name);
-    if (element != null) {
-      return new MemberImplementation(this, element);
+    Member member = lookupMember0(this, name);
+    if (member != null) {
+      return member;
     }
     InterfaceType supertype = getSupertype();
     if (supertype != null) {
-      Member member = supertype.lookupMember(name);
+      member = supertype.lookupMember(name);
       if (member != null) {
         return member;
       }
     }
     for (InterfaceType intrface : getInterfaces()) {
-      Member member = intrface.lookupMember(name);
+      member = intrface.lookupMember(name);
       if (member != null) {
         return member;
       }
+    }
+    for (InterfaceType mixin : getMixins()) {
+      member = lookupMember0(mixin, name);
+      if (member != null) {
+        return member;
+      }
+    }
+    return null;
+  }
+
+  private static Member lookupMember0(InterfaceType type, String name) {
+    Element element = type.getElement().lookupLocalElement(name);
+    if (element != null) {
+      return new MemberImplementation(type, element);
     }
     return null;
   }
@@ -136,11 +150,20 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
   }
 
   private List<InterfaceType> getInterfaces() {
-    List<InterfaceType> interfaces = getElement().getInterfaces();
-    List<InterfaceType> result = new ArrayList<InterfaceType>(interfaces.size());
+    List<InterfaceType> result = new ArrayList<InterfaceType>();
     List<Type> typeArguments = getArguments();
     List<Type> typeParameters = getElement().getTypeParameters();
-    for (InterfaceType type : interfaces) {
+    for (InterfaceType type : getElement().getInterfaces()) {
+      result.add(type.subst(typeArguments, typeParameters));
+    }
+    return result;
+  }
+  
+  private List<InterfaceType> getMixins() {
+    List<InterfaceType> result = new ArrayList<InterfaceType>();
+    List<Type> typeArguments = getArguments();
+    List<Type> typeParameters = getElement().getTypeParameters();
+    for (InterfaceType type : getElement().getMixins()) {
       result.add(type.subst(typeArguments, typeParameters));
     }
     return result;

@@ -11,6 +11,7 @@
 // Session resume is currently disabled - see issue
 // https://code.google.com/p/dart/issues/detail?id=7230
 
+import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
@@ -107,7 +108,7 @@ const CLIENT_NAMES = const ['able', 'baker'];
 
 void main() {
   ReceivePort keepAlive = new ReceivePort();
-  Path scriptDir = new Path.fromNative(new Options().script).directoryPath;
+  Path scriptDir = new Path(new Options().script).directoryPath;
   Path certificateDatabase = scriptDir.append('pkcert');
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
                           password: 'dartdart',

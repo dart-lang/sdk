@@ -9,9 +9,10 @@
 
 library date_time_format_test;
 
-import '../lib/intl.dart';
-import '../lib/date_time_patterns.dart';
-import '../lib/date_symbol_data_local.dart';
+import 'dart:async';
+import 'package:intl/intl.dart';
+import 'package:intl/date_time_patterns.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'date_time_format_test_core.dart';
 
 runWith([Function getSubset]) {
@@ -24,7 +25,8 @@ runWith([Function getSubset]) {
 
 void runEverything(Function getSubset) {
   // Initialize all locales and wait for them to finish before running tests.
-  var futures = DateFormat.allLocalesWithSymbols().map(
-      (locale) => initializeDateFormatting(locale, null));
-  Futures.wait(futures).then((results) => runDateTests(getSubset()));
+  var futures = DateFormat.allLocalesWithSymbols()
+      .mappedBy((locale) => initializeDateFormatting(locale, null))
+      .toList();
+  Future.wait(futures).then((results) => runDateTests(getSubset()));
 }

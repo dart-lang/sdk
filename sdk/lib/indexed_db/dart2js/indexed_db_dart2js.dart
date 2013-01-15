@@ -1,5 +1,6 @@
 library indexed_db;
 
+import 'dart:async';
 import 'dart:html';
 import 'dart:html_common';
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -215,6 +216,12 @@ class Database extends EventTarget native "*IDBDatabase" {
   Transaction _transaction(stores, mode) native;
 
 
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<UpgradeNeededEvent> versionChangeEvent = const EventStreamProvider<UpgradeNeededEvent>('versionchange');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DatabaseEvents get on =>
     new DatabaseEvents(this);
@@ -259,6 +266,12 @@ class Database extends EventTarget native "*IDBDatabase" {
   /// @domName IDBDatabase.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<UpgradeNeededEvent> get onVersionChange => versionChangeEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -794,9 +807,17 @@ class ObjectStore native "*IDBObjectStore" {
 /// @domName IDBOpenDBRequest; @docsEditable true
 class OpenDBRequest extends Request implements EventTarget native "*IDBOpenDBRequest" {
 
+  static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
+
+  static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   OpenDBRequestEvents get on =>
     new OpenDBRequestEvents(this);
+
+  Stream<Event> get onBlocked => blockedEvent.forTarget(this);
+
+  Stream<VersionChangeEvent> get onUpgradeNeeded => upgradeNeededEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -817,6 +838,10 @@ class OpenDBRequestEvents extends RequestEvents {
 
 /// @domName IDBRequest; @docsEditable true
 class Request extends EventTarget native "*IDBRequest" {
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RequestEvents get on =>
@@ -855,6 +880,10 @@ class Request extends EventTarget native "*IDBRequest" {
   /// @domName IDBRequest.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onSuccess => successEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -875,6 +904,12 @@ class RequestEvents extends Events {
 
 /// @domName IDBTransaction; @docsEditable true
 class Transaction extends EventTarget native "*IDBTransaction" {
+
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TransactionEvents get on =>
@@ -909,6 +944,12 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   /// @domName IDBTransaction.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  Stream<Event> get onComplete => completeEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
 }
 
 /// @docsEditable true
@@ -958,9 +999,13 @@ class VersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 /// @domName IDBVersionChangeRequest; @docsEditable true
 class VersionChangeRequest extends Request implements EventTarget native "*IDBVersionChangeRequest" {
 
+  static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
+
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   VersionChangeRequestEvents get on =>
     new VersionChangeRequestEvents(this);
+
+  Stream<Event> get onBlocked => blockedEvent.forTarget(this);
 }
 
 /// @docsEditable true

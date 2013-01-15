@@ -9,8 +9,9 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "dart:io";
-import "dart:math";
+import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 
 import "process_test_util.dart";
 

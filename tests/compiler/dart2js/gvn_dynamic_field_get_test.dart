@@ -27,7 +27,7 @@ main() {
   compiler.runCompiler(uri);
   String generated = compiler.assembledCode;
   RegExp regexp = new RegExp(r"get\$foo");
-  Iterator matches = regexp.allMatches(generated).iterator();
+  Iterator matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 1);
   var cls = findElement(compiler, 'A');
   Expect.isNotNull(cls);

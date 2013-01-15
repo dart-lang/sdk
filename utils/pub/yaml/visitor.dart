@@ -13,7 +13,8 @@ class _Visitor {
   visitScalar(_ScalarNode scalar) => scalar;
 
   /// Visits each node in [seq] and returns a list of the results.
-  visitSequence(_SequenceNode seq) => seq.content.map((e) => e.visit(this));
+  visitSequence(_SequenceNode seq)
+      => seq.content.mappedBy((e) => e.visit(this)).toList();
 
   /// Visits each key and value in [map] and returns a map of the results.
   visitMapping(_MappingNode map) {

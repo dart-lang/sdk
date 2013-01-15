@@ -39,5 +39,6 @@ class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
 }
 
 void useHtmlIndividualConfiguration([bool isLayoutTest = false]) {
+  if (unittest.config != null) return;
   unittest.configure(new HtmlIndividualConfiguration(isLayoutTest));
 }

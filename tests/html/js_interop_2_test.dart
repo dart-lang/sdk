@@ -26,6 +26,16 @@ var isolateTest = """
   window.registerPort('test', port.toSendPort());
 """;
 
+var portEqualityTest = """
+  function identity(data) {
+    return data;
+  }
+
+  var port = new ReceivePortSync();
+  port.receive(identity);
+  window.registerPort('identity', port.toSendPort());
+""";
+
 main() {
   useHtmlConfiguration();
 
@@ -38,5 +48,16 @@ main() {
 
     result = port.callSync('ignore');
     expect(result, isNull);
+  });
+
+  test('port-equality', () {
+    injectSource(portEqualityTest);
+
+    SendPortSync port1 = window.lookupPort('identity');
+    SendPortSync port2 = window.lookupPort('identity');
+    expect(port1, equals(port2));
+
+    SendPortSync port3 = port1.callSync(port2);
+    expect(port3, equals(port2));
   });
 }

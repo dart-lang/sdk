@@ -46,6 +46,75 @@ import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 import java.util.List;
 
 public class SyntaxTest extends AbstractParserTest {
+
+  public void test_parseClass_withBeforeExtends() throws Exception {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A with B extends C {}",
+        ""),
+        ParserErrorCode.WITH_BEFORE_EXTENDS, 2, 9);
+  }
+  
+  public void test_parseClass_implementsBeforeExtends() throws Exception {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A implements B extends C {}",
+        ""),
+        ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, 2, 9);
+  }
+
+  public void test_parseClass_multipleExtends() throws Exception {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A extends B extends C {}",
+        ""),
+        ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, 2, 19);
+  }
+  
+  public void test_parseClass_implementsBeforeWith() throws Exception {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A extends B implements C with D {}",
+        ""),
+        ParserErrorCode.IMPLEMENTS_BEFORE_WITH, 2, 19);
+  }
+
+  public void test_parseClass_multipleWith() throws Exception {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A extends B with C with D {}",
+        ""),
+        ParserErrorCode.MULTIPLE_WITH_CLAUSES, 2, 26);
+  }
+
+  public void test_parseClass_multipleImplements() throws Exception {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A implements B implements C {}",
+        ""),
+        ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, 2, 22);
+  }
+
+  public void test_parseClass_withWithoutExtends() throws Exception {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A with B, C {}",
+        ""),
+        ParserErrorCode.WITH_WITHOUT_EXTENDS, 2, 9);
+  }
+  
+  public void test_parseClass_with() throws Exception {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A extends B with C, D {}",
+        ""));
+    DartClass clazz = findNode(DartClass.class, "class A");
+    NodeList<DartTypeNode> mixins = clazz.getMixins();
+    assertEquals(2, mixins.size());
+    assertEquals("C", mixins.get(0).toString());
+    assertEquals("D", mixins.get(1).toString());
+  }
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=6881

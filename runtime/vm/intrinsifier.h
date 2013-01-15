@@ -64,7 +64,7 @@ namespace dart {
   V(_ObjectArray, get:length, Array_getLength, 405297088)                      \
   V(_ObjectArray, [], Array_getIndexed, 71937385)                              \
   V(_ObjectArray, []=, Array_setIndexed, 255863719)                            \
-  V(_GrowableObjectArray, .fromObjectArray, GArray_Allocate, 989879928)        \
+  V(_GrowableObjectArray, .withData, GArray_Allocate, 989879928)               \
   V(_GrowableObjectArray, get:length, GrowableArray_getLength, 725548050)      \
   V(_GrowableObjectArray, get:_capacity, GrowableArray_getCapacity, 725548050) \
   V(_GrowableObjectArray, [], GrowableArray_getIndexed, 581838973)             \
@@ -78,9 +78,6 @@ namespace dart {
   V(::, sin, Math_sin, 1273932041)                                             \
   V(::, cos, Math_cos, 1749547468)                                             \
   V(Object, ==, Object_equal, 2126956595)                                      \
-  V(_FixedSizeArrayIterator, get:hasNext,                                      \
-    FixedSizeArrayIterator_getHasNext, 682147711)                              \
-  V(_FixedSizeArrayIterator, next, FixedSizeArrayIterator_next, 1283926262)    \
   V(_StringBase, get:hashCode, String_getHashCode, 320803993)                  \
   V(_StringBase, get:isEmpty, String_getIsEmpty, 711547329)                    \
   V(_StringBase, get:length, String_getLength, 320803993)                      \
@@ -90,6 +87,8 @@ namespace dart {
   V(_Int8Array, []=, Int8Array_setIndexed, 1709956322)                         \
   V(_Uint8Array, [], Uint8Array_getIndexed, 578331916)                         \
   V(_Uint8Array, []=, Uint8Array_setIndexed, 121509844)                        \
+  V(_Uint8ClampedArray, [], UintClamped8Array_getIndexed, 327062422)           \
+  V(_Uint8ClampedArray, []=, Uint8ClampedArray_setIndexed, 2054663547)         \
   V(_Int16Array, [], Int16Array_getIndexed, 870098766)                         \
   V(_Uint16Array, [], Uint16Array_getIndexed, 1019828411)                      \
   V(_Int32Array, [], Int32Array_getIndexed, 1999321436)                        \
@@ -101,6 +100,9 @@ namespace dart {
   V(_Float64Array, [], Float64Array_getIndexed, 638830526)                     \
   V(_Float64Array, []=, Float64Array_setIndexed, 1948811847)                   \
   V(_ExternalUint8Array, [], ExternalUint8Array_getIndexed, 753790851)         \
+
+// TODO(srdjan): Implement _FixedSizeArrayIterator, get:current and
+//   _FixedSizeArrayIterator, moveNext.
 
 // Forward declarations.
 class Assembler;

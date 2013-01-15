@@ -103,24 +103,26 @@ abstract class ResolverTestCase extends TestCase {
 
   static DartClass makeClass(String name, DartTypeNode supertype, List<DartTypeNode> interfaces,
       String... typeParameters) {
-    List<DartTypeParameter> parameterNodes = new ArrayList<DartTypeParameter>();
-    for (String parameter : typeParameters) {
-      parameterNodes.add(makeTypeVariable(parameter));
-    }
-    List<DartNode> members = Arrays.<DartNode>asList();
-    return new DartClass(-1, 0, new DartIdentifier(name), null, supertype,
-                         -1, interfaces, -1, -1, -1, members, parameterNodes, Modifiers.NONE);
-  }
-
-  static DartClass makeInterface(String name, List<DartTypeNode> interfaces,
-      DartParameterizedTypeNode defaultClass, String... typeParameters) {
+    List<DartTypeNode> mixins = new ArrayList<DartTypeNode>();
     List<DartTypeParameter> parameterNodes = new ArrayList<DartTypeParameter>();
     for (String parameter : typeParameters) {
       parameterNodes.add(makeTypeVariable(parameter));
     }
     List<DartNode> members = Arrays.<DartNode> asList();
-    return new DartClass(-1, 0, new DartIdentifier(name), null, null, -1, interfaces, -1, -1, -1,
-        members, parameterNodes, defaultClass, true, Modifiers.NONE);
+    return new DartClass(-1, 0, new DartIdentifier(name), null, supertype, -1, interfaces, mixins,
+        -1, -1, -1, members, parameterNodes, null, false, Modifiers.NONE);
+  }
+
+  static DartClass makeInterface(String name, List<DartTypeNode> interfaces,
+      DartParameterizedTypeNode defaultClass, String... typeParameters) {
+    List<DartTypeNode> mixins = new ArrayList<DartTypeNode>();
+    List<DartTypeParameter> parameterNodes = new ArrayList<DartTypeParameter>();
+    for (String parameter : typeParameters) {
+      parameterNodes.add(makeTypeVariable(parameter));
+    }
+    List<DartNode> members = Arrays.<DartNode> asList();
+    return new DartClass(-1, 0, new DartIdentifier(name), null, null, -1, interfaces, mixins, -1,
+        -1, -1, members, parameterNodes, defaultClass, true, Modifiers.NONE);
   }
 
   static DartParameterizedTypeNode makeDefault(String name) {

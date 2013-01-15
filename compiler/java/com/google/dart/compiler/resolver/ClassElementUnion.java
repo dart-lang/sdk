@@ -74,6 +74,11 @@ public class ClassElementUnion implements ClassElement {
     }
     return interfaces;
   }
+  
+  @Override
+  public List<InterfaceType> getMixins() {
+    return ImmutableList.of();
+  }
 
   @Override
   public List<InterfaceType> getAllSupertypes() throws CyclicDeclarationException {

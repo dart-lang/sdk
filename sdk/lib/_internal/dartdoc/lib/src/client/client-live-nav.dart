@@ -6,7 +6,7 @@
 library client_live_nav;
 
 import 'dart:html';
-import 'dart:json';
+import 'dart:json' as jsonlib;
 import '../../../../compiler/implementation/source_file.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../classify.dart';
@@ -23,7 +23,7 @@ main() {
 
   // Request the navigation data so we can build the HTML for it.
   new HttpRequest.get('${prefix}nav.json', (request) {
-    var json = JSON.parse(request.responseText);
+    var json = jsonlib.parse(request.responseText);
     buildNavigation(json);
     setupSearch(json);
   });

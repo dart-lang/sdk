@@ -6,6 +6,7 @@ package com.google.dart.compiler.resolver;
 
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartObsoleteMetadata;
@@ -30,6 +31,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   private InterfaceType supertype;
   private InterfaceType defaultClass;
   private final List<InterfaceType> interfaces = Lists.newArrayList();
+  private final List<InterfaceType> mixins = Lists.newArrayList();
   private final boolean isInterface;
   private final String nativeName;
   private final DartObsoleteMetadata metadata;
@@ -71,6 +73,30 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
       declarationNameWithTypeParameter = createDeclarationName(node.getName(), node.getTypeParameters());
       openBraceOffset = node.getOpenBraceOffset();
       closeBraceOffset = node.getCloseBraceOffset();
+    } else {
+      isInterface = false;
+      metadata = DartObsoleteMetadata.EMPTY;
+      modifiers = Modifiers.NONE;
+      nameLocation = SourceInfo.UNKNOWN;
+      declarationNameWithTypeParameter = "";
+      openBraceOffset = -1;
+      closeBraceOffset = -1;
+    }
+  }
+  
+  ClassElementImplementation(DartClassTypeAlias node, String name,
+      LibraryElement library) {
+    super(node, name);
+    this.nativeName = null;
+    this.library = library;
+    if (node != null) {
+      isInterface = false;
+      metadata = node.getObsoleteMetadata();
+      modifiers = node.getModifiers();
+      nameLocation = node.getName().getSourceInfo();
+      declarationNameWithTypeParameter = createDeclarationName(node.getName(), node.getTypeParameters());
+      openBraceOffset = -1;
+      closeBraceOffset = -1;
     } else {
       isInterface = false;
       metadata = DartObsoleteMetadata.EMPTY;
@@ -162,6 +188,11 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   public List<InterfaceType> getInterfaces() {
     return interfaces;
   }
+  
+  @Override
+  public List<InterfaceType> getMixins() {
+    return mixins;
+  }
 
   @Override
   public ElementKind getKind() {
@@ -217,6 +248,10 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   void addInterface(InterfaceType type) {
     interfaces.add(type);
     type.registerSubClass(this);
+  }
+  
+  void addMixin(InterfaceType type) {
+    mixins.add(type);
   }
 
   Element findElement(String name) {
@@ -283,6 +318,15 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
     String nativeNameString = (nativeName == null ? null : nativeName.getValue());
     return new ClassElementImplementation(node, node.getClassName(), nativeNameString, library);
   }
+  
+  static class ClassAliasElementImplementation extends ClassElementImplementation implements ClassAliasElement {
+    ClassAliasElementImplementation(DartClassTypeAlias node, String name, LibraryElement library) {
+      super(node, name, library);
+    }
+  }
+  public static ClassAliasElement fromNode(DartClassTypeAlias node, LibraryElement library) {
+    return new ClassAliasElementImplementation(node, node.getClassName(), library);
+  }
 
   public static ClassElementImplementation named(String name) {
     return new ClassElementImplementation(null, name, null, null);
@@ -324,6 +368,9 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
     try {
       for (InterfaceType intf : getInterfaces()) {
         addInterfaceToSupertypes(interfaces, supertypes, intf);
+      }
+      for (InterfaceType mix : getMixins()) {
+        addInterfaceToSupertypes(interfaces, supertypes, mix);
       }
       for (InterfaceType intf : getInterfaces()) {
         for (InterfaceType t : intf.getElement().getAllSupertypes()) {

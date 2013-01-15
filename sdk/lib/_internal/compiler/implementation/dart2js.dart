@@ -4,6 +4,7 @@
 
 library dart2js;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:uri';
 import 'dart:utf';
@@ -287,8 +288,8 @@ void compile(List<String> argv) {
 
   // TODO(ahe): We expect the future to be complete and call value
   // directly. In effect, we don't support truly asynchronous API.
-  String code = api.compile(uri, libraryRoot, packageRoot, provider, handler,
-                            options).value;
+  String code = deprecatedFutureValue(
+      api.compile(uri, libraryRoot, packageRoot, provider, handler, options));
   if (code == null) {
     fail('Error: Compilation failed.');
   }
@@ -325,7 +326,7 @@ void writeString(Uri uri, String text) {
 String readAll(String filename) {
   var file = (new File(filename)).openSync(FileMode.READ);
   var length = file.lengthSync();
-  var buffer = new List<int>(length);
+  var buffer = new List<int>.fixedLength(length);
   var bytes = file.readListSync(buffer, 0, length);
   file.closeSync();
   return new String.fromCharCodes(new Utf8Decoder(buffer).decodeRest());

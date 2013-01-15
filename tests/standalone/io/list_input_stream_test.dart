@@ -78,7 +78,7 @@ void testListInputStream2() {
   ReceivePort donePort = new ReceivePort();
 
   void onData() {
-    List<int> x = new List<int>(2);
+    List<int> x = new List<int>.fixedLength(2);
     var bytesRead = stream.readInto(x);
     Expect.equals(2, bytesRead);
     Expect.equals(data[count++], x[0]);

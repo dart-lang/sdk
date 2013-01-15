@@ -4,6 +4,7 @@
 
 library mirrors;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:uri';
 
@@ -194,9 +195,9 @@ abstract class InstanceMirror implements ObjectMirror {
 /**
  * Specialized [InstanceMirror] used for reflection on constant lists.
  */
-abstract class ListInstanceMirror
-    implements InstanceMirror, Sequence<Future<InstanceMirror>> {
-
+abstract class ListInstanceMirror implements InstanceMirror {
+  Future<InstanceMirror> operator[](int index);
+  int get length;
 }
 
 /**
@@ -229,6 +230,32 @@ abstract class TypeInstanceMirror implements InstanceMirror {
    * constant.
    */
   TypeMirror get representedType;
+}
+
+/**
+ * Specialized [InstanceMirror] used for reflection on comments as metadata.
+ */
+abstract class CommentInstanceMirror implements InstanceMirror {
+  /**
+   * The comment text as written in the source text.
+   */
+  String get text;
+
+  /**
+   * The comment text without the start, end, and padding text.
+   *
+   * For example, if [text] is [: /** Comment text. */ :] then the [trimmedText]
+   * is [: Comment text. :].
+   */
+  String get trimmedText;
+
+  /**
+   * Is [:true:] if this comment is a documentation comment.
+   *
+   * That is, that the comment is either enclosed in [: /** ... */ :] or starts
+   * with [: /// :].
+   */
+  bool get isDocComment;
 }
 
 /**
@@ -708,13 +735,4 @@ abstract class SourceLocation {
    * Returns the text of this source.
    */
   String get sourceText;
-}
-
-/**
- * Class used for encoding dartdoc comments as metadata annotations.
- */
-class DartdocComment {
-  final String text;
-
-  const DartdocComment(this.text);
 }

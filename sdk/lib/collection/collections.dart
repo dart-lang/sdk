@@ -23,7 +23,7 @@ class Collections {
     }
   }
 
-  static bool some(Iterable iterable, bool f(o)) {
+  static bool any(Iterable iterable, bool f(o)) {
     for (final e in iterable) {
       if (f(e)) return true;
     }
@@ -37,13 +37,6 @@ class Collections {
     return true;
   }
 
-  static List map(Iterable source, List destination, f(o)) {
-    for (final e in source) {
-      destination.add(f(e));
-    }
-    return destination;
-  }
-
   static dynamic reduce(Iterable iterable,
                         dynamic initialValue,
                         dynamic combine(dynamic previousValue, element)) {
@@ -53,15 +46,162 @@ class Collections {
     return initialValue;
   }
 
-  static List filter(Iterable source, List destination, bool f(o)) {
-    for (final e in source) {
-      if (f(e)) destination.add(e);
-    }
-    return destination;
+  static bool isEmpty(Iterable iterable) {
+    return !iterable.iterator.moveNext();
   }
 
-  static bool isEmpty(Iterable iterable) {
-    return !iterable.iterator().hasNext;
+  static dynamic first(Iterable iterable) {
+    Iterator it = iterable.iterator;
+    if (!it.moveNext()) {
+      throw new StateError("No elements");
+    }
+    return it.current;
+  }
+
+  static dynamic last(Iterable iterable) {
+    Iterator it = iterable.iterator;
+    if (!it.moveNext()) {
+      throw new StateError("No elements");
+    }
+    dynamic result;
+    do {
+      result = it.current;
+    } while(it.moveNext());
+    return result;
+  }
+
+  static dynamic min(Iterable iterable, [int compare(var a, var b)]) {
+    if (compare == null) compare = Comparable.compare;
+    Iterator it = iterable.iterator;
+    if (!it.moveNext()) {
+      return null;
+    }
+    var min = it.current;
+    while (it.moveNext()) {
+      if (compare(min, it.current) > 0) min = it.current;
+    }
+    return min;
+  }
+
+  static dynamic max(Iterable iterable, [int compare(var a, var b)]) {
+    if (compare == null) compare = Comparable.compare;
+    Iterator it = iterable.iterator;
+    if (!it.moveNext()) {
+      return null;
+    }
+    var max = it.current;
+    while (it.moveNext()) {
+      if (compare(max, it.current) < 0) max = it.current;
+    }
+    return max;
+  }
+
+  static dynamic single(Iterable iterable) {
+    Iterator it = iterable.iterator;
+    if (!it.moveNext()) throw new StateError("No elements");
+    dynamic result = it.current;
+    if (it.moveNext()) throw new StateError("More than one element");
+    return result;
+  }
+
+  static dynamic firstMatching(Iterable iterable,
+                               bool test(dynamic value),
+                               dynamic orElse()) {
+    for (dynamic element in iterable) {
+      if (test(element)) return element;
+    }
+    if (orElse != null) return orElse();
+    throw new StateError("No matching element");
+  }
+
+  static dynamic lastMatching(Iterable iterable,
+                              bool test(dynamic value),
+                              dynamic orElse()) {
+    dynamic result = null;
+    bool foundMatching = false;
+    for (dynamic element in iterable) {
+      if (test(element)) {
+        result = element;
+        foundMatching = true;
+      }
+    }
+    if (foundMatching) return result;
+    if (orElse != null) return orElse();
+    throw new StateError("No matching element");
+  }
+
+  static dynamic lastMatchingInList(List list,
+                                    bool test(dynamic value),
+                                    dynamic orElse()) {
+    // TODO(floitsch): check that arguments are of correct type?
+    for (int i = list.length - 1; i >= 0; i--) {
+      dynamic element = list[i];
+      if (test(element)) return element;
+    }
+    if (orElse != null) return orElse();
+    throw new StateError("No matching element");
+  }
+
+  static dynamic singleMatching(Iterable iterable, bool test(dynamic value)) {
+    dynamic result = null;
+    bool foundMatching = false;
+    for (dynamic element in iterable) {
+      if (test(element)) {
+        if (foundMatching) {
+          throw new StateError("More than one matching element");
+        }
+        result = element;
+        foundMatching = true;
+      }
+    }
+    if (foundMatching) return result;
+    throw new StateError("No matching element");
+  }
+
+  static dynamic elementAt(Iterable iterable, int index) {
+    if (index is! int || index < 0) throw new RangeError.value(index);
+    int remaining = index;
+    for (dynamic element in iterable) {
+      if (remaining == 0) return element;
+      remaining--;
+    }
+    throw new RangeError.value(index);
+  }
+
+  static String join(Iterable iterable, [String separator]) {
+    Iterator iterator = iterable.iterator;
+    if (!iterator.moveNext()) return "";
+    StringBuffer buffer = new StringBuffer();
+    if (separator == null || separator == "") {
+      do {
+        buffer.add("${iterator.current}");
+      } while (iterator.moveNext());
+    } else {
+      buffer.add("${iterator.current}");
+      while (iterator.moveNext()) {
+        buffer.add(separator);
+        buffer.add("${iterator.current}");
+      }
+    }
+    return buffer.toString();
+  }
+
+  static String joinList(List<Object> list, [String separator]) {
+    if (list.isEmpty) return "";
+    if (list.length == 1) return "${list[0]}";
+    StringBuffer buffer = new StringBuffer();
+    if (separator == null || separator == "") {
+      for (int i = 0; i < list.length; i++) {
+        buffer.add("${list[i]}");
+      }
+    } else {
+      buffer.add("${list[0]}");
+      for (int i = 1; i < list.length; i++) {
+        buffer.add(separator);
+        buffer.add("${list[i]}");
+      }
+    }
+    return buffer.toString();
   }
 
   // TODO(jjb): visiting list should be an identityHashSet when it exists

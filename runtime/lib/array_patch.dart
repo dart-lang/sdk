@@ -6,22 +6,54 @@
 // returns a _GrowableObjectArray if length is null, otherwise returns
 // fixed size array.
 patch class List<E> {
-  /* patch */ factory List([int length = null]) {
-    if (length == null) {
-      return new _GrowableObjectArray<E>();
-    } else {
-      return new _ObjectArray<E>(length);
+  /* patch */ factory List([int length = 0]) {
+    if ((length is! int) || (length < 0)) {
+      _throwArgumentError(length);
     }
+    _GrowableObjectArray<E> result = new _GrowableObjectArray<E>(length);
+    return result;
+  }
+
+  /* patch */ factory List.fixedLength(int length, {E fill: null}) {
+    if ((length is! int) || (length < 0)) {
+      _throwArgumentError(length);
+    }
+    _ObjectArray<E> result = new _ObjectArray<E>(length);
+    if (fill != null) {
+      for (int i = 0; i < length; i++) {
+        result[i] = fill;
+      }
+    }
+    return result;
+  }
+
+  /* patch */ factory List.filled(int length, E fill) {
+    if ((length is! int) || (length < 0)) {
+      _throwArgumentError(length);
+    }
+    _GrowableObjectArray<E> result =
+        new _GrowableObjectArray<E>.withCapacity(length < 4 ? 4 : length);
+    result.length = length;
+    if (fill != null) {
+      for (int i = 0; i < length; i++) {
+        result[i] = fill;
+      }
+    }
+    return result;
   }
 
   // Factory constructing a mutable List from a parser generated List literal.
   // [elements] contains elements that are already type checked.
   factory List._fromLiteral(List elements) {
-    var list = new List<E>();
-    if (elements.length > 0) {
-      list._setData(elements);
-      list.length = elements.length;
+    if (elements.isEmpty) {
+      return new _GrowableObjectArray<E>(0);
     }
-    return list;
+    var result = new _GrowableObjectArray<E>.withData(elements);
+    result._setLength(elements.length);
+    return result;
+  }
+
+  static void _throwArgumentError(int length) {
+    throw new ArgumentError("Length must be a positive integer: $length.");
   }
 }

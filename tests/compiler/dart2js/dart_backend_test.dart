@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:uri';
 import 'parser_helper.dart';
 import 'mock_compiler.dart';
@@ -459,7 +460,7 @@ main() {
   FunctionExpression mainNode = mainElement.parseNode(compiler);
   FunctionExpression fooNode = mainNode.body.statements.nodes.head.function;
   LocalPlaceholder fooPlaceholder =
-      collector.functionScopes[mainElement].localPlaceholders.iterator().next();
+      collector.functionScopes[mainElement].localPlaceholders.first;
   Expect.isTrue(fooPlaceholder.nodes.contains(fooNode.name));
 }
 

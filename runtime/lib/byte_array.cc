@@ -674,6 +674,18 @@ DEFINE_NATIVE_ENTRY(ExternalUint8Array_setIndexed, 3) {
 }
 
 
+// ExternalUint8ClampedArray
+
+DEFINE_NATIVE_ENTRY(ExternalUint8ClampedArray_getIndexed, 2) {
+  UNALIGNED_GETTER(ExternalUint8ClampedArray, Smi, uint8_t);
+}
+
+
+DEFINE_NATIVE_ENTRY(ExternalUint8ClampedArray_setIndexed, 3) {
+  UNALIGNED_SETTER(ExternalUint8ClampedArray, Smi, Value, uint8_t);
+}
+
+
 // ExternalInt16Array
 
 DEFINE_NATIVE_ENTRY(ExternalInt16Array_getIndexed, 2) {

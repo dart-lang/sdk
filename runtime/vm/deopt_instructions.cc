@@ -14,6 +14,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, compress_deopt_info, true,
             "Compress the size of the deoptimization info for optimized code.");
+DECLARE_FLAG(bool, trace_deoptimization);
 
 DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
                                              intptr_t to_frame_size,
@@ -207,6 +208,13 @@ class DeoptRetAfterAddressInstr : public DeoptInstr {
     uword continue_at_pc = code.GetDeoptAfterPcAtDeoptId(deopt_id_);
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *to_addr = continue_at_pc;
+  }
+
+  static void GetEncodedValues(intptr_t from_index,
+                               intptr_t* object_table_index,
+                               intptr_t* deopt_id) {
+    *object_table_index = ObjectTableIndex::decode(from_index);
+    *deopt_id = DeoptId::decode(from_index);
   }
 
  private:
@@ -443,6 +451,11 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // Increment the deoptimization counter. This effectively increments each
     // function occurring in the optimized frame.
     function.set_deoptimization_counter(function.deoptimization_counter() + 1);
+    if (FLAG_trace_deoptimization) {
+      OS::PrintErr("Deoptimizing inlined %s (count %d)\n",
+          function.ToFullyQualifiedCString(),
+          function.deoptimization_counter());
+    }
     // Clear invocation counter so that hopefully the function gets reoptimized
     // only after more feedback has been collected.
     function.set_usage_counter(0);
@@ -560,6 +573,22 @@ class DeoptSuffixInstr : public DeoptInstr {
 intptr_t DeoptInstr::DecodeSuffix(intptr_t from_index, intptr_t* info_number) {
   *info_number = DeoptSuffixInstr::InfoNumber::decode(from_index);
   return DeoptSuffixInstr::SuffixLength::decode(from_index);
+}
+
+
+uword DeoptInstr::GetRetAfterAddress(intptr_t from_index,
+                                     const Array& object_table,
+                                     Function* func) {
+  ASSERT(!object_table.IsNull());
+  ASSERT(func != NULL);
+  intptr_t object_table_index;
+  intptr_t deopt_id;
+  DeoptRetAfterAddressInstr::GetEncodedValues(from_index,
+                                              &object_table_index,
+                                              &deopt_id);
+  *func ^= object_table.At(object_table_index);
+  const Code& code = Code::Handle(func->unoptimized_code());
+  return code.GetDeoptAfterPcAtDeoptId(deopt_id);
 }
 
 

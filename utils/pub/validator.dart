@@ -4,6 +4,8 @@
 
 library validator;
 
+import 'dart:async';
+
 import 'entrypoint.dart';
 import 'log.dart' as log;
 import 'io.dart';
@@ -54,11 +56,14 @@ abstract class Validator {
     // TODO(nweiz): The sleep 0 here forces us to go async. This works around
     // 3356, which causes a bug if all validators are (synchronously) using
     // Future.immediate and an error is thrown before a handler is set up.
-    return sleep(0).chain((_) {
-      return Futures.wait(validators.map((validator) => validator.validate()));
-    }).transform((_) {
-      var errors = flatten(validators.map((validator) => validator.errors));
-      var warnings = flatten(validators.map((validator) => validator.warnings));
+    return sleep(0).then((_) {
+      return Future.wait(
+          validators.mappedBy((validator) => validator.validate()));
+    }).then((_) {
+      var errors =
+          flatten(validators.mappedBy((validator) => validator.errors));
+      var warnings =
+          flatten(validators.mappedBy((validator) => validator.warnings));
 
       if (!errors.isEmpty) {
         log.error("Missing requirements:");

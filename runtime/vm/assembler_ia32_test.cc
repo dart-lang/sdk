@@ -1269,6 +1269,70 @@ ASSEMBLER_TEST_RUN(DoubleToIntConversionTrunc, entry) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(DoubleToDoubleTrunc, assembler) {
+  __ movsd(XMM3, Address(ESP, kWordSize));
+  __ roundsd(XMM2, XMM3, Assembler::kRoundToZero);
+  __ pushl(EAX);
+  __ pushl(EAX);
+  __ movsd(Address(ESP, 0), XMM2);
+  __ fldl(Address(ESP, 0));
+  __ popl(EAX);
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, entry) {
+  typedef double (*DoubleToDoubleTruncCode)(double d);
+  double res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(12.3);
+  EXPECT_EQ(12.0, res);
+  res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(12.8);
+  EXPECT_EQ(12.0, res);
+  res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(-12.3);
+  EXPECT_EQ(-12.0, res);
+  res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(-12.8);
+  EXPECT_EQ(-12.0, res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleToDoubleRound, assembler) {
+  __ movsd(XMM3, Address(ESP, kWordSize));
+  __ DoubleRound(XMM2, XMM3, XMM0);
+  __ pushl(EAX);
+  __ pushl(EAX);
+  __ movsd(Address(ESP, 0), XMM2);
+  __ fldl(Address(ESP, 0));
+  __ popl(EAX);
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleToDoubleRound, entry) {
+  typedef double (*DoubleToDoubleRoundCode)(double d);
+  double res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(12.3);
+  EXPECT_EQ(12.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(12.8);
+  EXPECT_EQ(13.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(0.5);
+  EXPECT_EQ(1.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-12.3);
+  EXPECT_EQ(-12.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-12.8);
+  EXPECT_EQ(-13.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-0.5);
+  EXPECT_EQ(-1.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(0.49999999999999994);
+  EXPECT_EQ(0.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-0.49999999999999994);
+  EXPECT_EQ(-0.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(9007199254740991.0);
+  EXPECT_EQ(9007199254740991.0, res);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-9007199254740991.0);
+  EXPECT_EQ(-9007199254740991.0, res);
+}
+
+
 static const double kDoubleConst = 3.226;
 
 ASSEMBLER_TEST_GENERATE(GlobalAddress, assembler) {

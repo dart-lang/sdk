@@ -59,6 +59,8 @@ main() {
       predicate((x) => x is AnchorElement, 'is an AnchorElement');
   var isElementList =
       predicate((x) => x is List<Element>, 'is a List<Element>');
+  var isElementIterable =
+      predicate((x) => x is Iterable<Element>, 'is an Iterable<Element>');
   var isHeadingElement =
       predicate((x) => x is HeadingElement, 'is a HeadingElement');
 
@@ -368,12 +370,12 @@ main() {
       expect(els[2], isInputElement);
     });
 
-    test('filter', () {
+    test('where', () {
       var filtered = makeElementWithChildren().children.
-        filter((n) => n is ImageElement);
+        where((n) => n is ImageElement);
       expect(1, filtered.length);
-      expect(filtered[0], isImageElement);
-      expect(filtered, isElementList);
+      expect(filtered.first, isImageElement);
+      expect(filtered, isElementIterable);
     });
 
     test('every', () {
@@ -382,10 +384,10 @@ main() {
       expect(el.children.every((n) => n is InputElement), isFalse);
     });
 
-    test('some', () {
+    test('any', () {
       var el = makeElementWithChildren();
-      expect(el.children.some((n) => n is InputElement), isTrue);
-      expect(el.children.some((n) => n is svg.SvgElement), isFalse);
+      expect(el.children.any((n) => n is InputElement), isTrue);
+      expect(el.children.any((n) => n is svg.SvgElement), isFalse);
     });
 
     test('isEmpty', () {
@@ -471,6 +473,17 @@ main() {
     });
   });
 
+  group('matches', () {
+    test('matches', () {
+      var element = new DivElement();
+      element.classes.add('test');
+
+      expect(element.matches('div'), true);
+      expect(element.matches('span'), false);
+      expect(element.matches('.test'), true);
+    });
+  });
+
   group('queryAll', () {
     List<Element> getQueryAll() {
       return new Element.html("""
@@ -506,13 +519,13 @@ main() {
       expect(els[2], isHRElement);
     });
 
-    test('map', () {
-      var texts = getQueryAll().map((el) => el.text);
+    test('mappedBy', () {
+      var texts = getQueryAll().mappedBy((el) => el.text).toList();
       expect(texts, equals(['Dart!', 'Hello', '']));
     });
 
-    test('filter', () {
-      var filtered = getQueryAll().filter((n) => n is SpanElement);
+    test('where', () {
+      var filtered = getQueryAll().where((n) => n is SpanElement).toList();
       expect(filtered.length, 1);
       expect(filtered[0], isSpanElement);
       expect(filtered, isElementList);
@@ -524,10 +537,10 @@ main() {
       expect(el.every((n) => n is SpanElement), isFalse);
     });
 
-    test('some', () {
+    test('any', () {
       var el = getQueryAll();
-      expect(el.some((n) => n is SpanElement), isTrue);
-      expect(el.some((n) => n is svg.SvgElement), isFalse);
+      expect(el.any((n) => n is SpanElement), isTrue);
+      expect(el.any((n) => n is svg.SvgElement), isFalse);
     });
 
     test('isEmpty', () {
@@ -590,11 +603,11 @@ main() {
   group('_ElementList', () {
     List<Element> makeElList() => makeElementWithChildren().children;
 
-    test('filter', () {
-      var filtered = makeElList().filter((n) => n is ImageElement);
+    test('where', () {
+      var filtered = makeElList().where((n) => n is ImageElement);
       expect(filtered.length, 1);
-      expect(filtered[0], isImageElement);
-      expect(filtered, isElementList);
+      expect(filtered.first, isImageElement);
+      expect(filtered, isElementIterable);
     });
 
     test('getRange', () {

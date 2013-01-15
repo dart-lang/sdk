@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "dart:io";
 import "dart:uri";
 import "dart:isolate";
@@ -64,7 +65,7 @@ Function test(Map options) {
       return completer.future;
     }
 
-    testConnect(true).chain(testConnect).then((_) {
+    testConnect(true).then(testConnect).then((_) {
         client.shutdown();
         server.close();
         Expect.throws(() => server.port);
@@ -78,7 +79,7 @@ Function test(Map options) {
 
 void InitializeSSL() {
   var testPkcertDatabase =
-      new Path.fromNative(new Options().script).directoryPath.append('pkcert/');
+      new Path(new Options().script).directoryPath.append('pkcert/');
   SecureSocket.initialize(database: testPkcertDatabase.toNativePath(),
                           password: 'dartdart');
 }
@@ -88,7 +89,7 @@ void main() {
   InitializeSSL();
   // Test two connections in sequence.
   test({'certificateName': null})()
-      .chain(test({'certificateName': 'localhost_cert'}))
+      .then((_) => test({'certificateName': 'localhost_cert'})())
       .then((_) {
     Expect.equals(2, numClientCertificatesReceived);
     keepAlive.close();

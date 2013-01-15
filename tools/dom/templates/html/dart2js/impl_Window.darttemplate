@@ -143,7 +143,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
    * registered under [name].
    */
   SendPortSync lookupPort(String name) {
-    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
+    var port = json.parse(document.documentElement.attributes['dart-port:$name']);
     return _deserialize(port);
   }
 
@@ -154,7 +154,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
    */
   void registerPort(String name, var port) {
     var serialized = _serialize(port);
-    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
+    document.documentElement.attributes['dart-port:$name'] = json.stringify(serialized);
   }
 
   /// @domName Window.console; @docsEditable true

@@ -9,8 +9,9 @@
 //
 // Test socket close events.
 
-import "dart:io";
-import "dart:isolate";
+import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
 
 const SERVERSHUTDOWN = -1;
 const ITERATIONS = 10;
@@ -51,7 +52,7 @@ class SocketClose {
         case 4:
         case 5:
         case 6:
-          List<int> b = new List<int>(5);
+          List<int> b = new List<int>.fixedLength(5);
           _readBytes += _socket.readList(b, 0, 5);
           if ((_readBytes % 5) == 0) {
             _dataEvents++;
@@ -219,7 +220,7 @@ class SocketCloseServer {
     var connection = data.connection;
 
     void readBytes(whenFiveBytes) {
-      List<int> b = new List<int>(5);
+      List<int> b = new List<int>.fixedLength(5);
       data.readBytes += connection.readList(b, 0, 5);
       if (data.readBytes == 5) {
         whenFiveBytes();

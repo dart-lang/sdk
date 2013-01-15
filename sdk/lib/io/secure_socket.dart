@@ -641,7 +641,10 @@ class _SecureSocket implements SecureSocket {
 
 
 class _ExternalBuffer {
+  // Performance is improved if a full buffer of plaintext fits
+  // in the encrypted buffer, when encrypted.
   static final int SIZE = 8 * 1024;
+  static final int ENCRYPTED_SIZE = 10 * 1024;
   _ExternalBuffer() : start = 0, length = 0;
 
   // TODO(whesse): Consider making this a circular buffer.  Only if it helps.
@@ -653,7 +656,7 @@ class _ExternalBuffer {
     }
   }
 
-  int get free => SIZE - (start + length);
+  int get free => data.length - (start + length);
 
   List data;  // This will be a ExternalByteArray, backed by C allocated data.
   int start;

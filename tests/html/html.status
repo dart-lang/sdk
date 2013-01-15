@@ -6,10 +6,6 @@ window_open_test: Skip # http://dartbug.com/5151
 
 event_test: Skip  # Issue 1996
 webgl_1_test: Skip  # Issue 1495
-xmldocument_test: Skip  # XML in dart:html is incomplete
-xmlelement_test: Skip  # XML in dart:html is incomplete
-
-history_test/history: Fail, Pass # Issue 7676.
 
 # Layout tests are only supported on DRT.
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
@@ -32,24 +28,11 @@ audiocontext_test: Skip # Need to adjust to new API.
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 
-[ $compiler == none && $runtime == drt && $system == windows]
-audiobuffersourcenode_test: Skip
-audiocontext_test: Skip
-
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug]
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
-
-[ $compiler == dart2js && $runtime == drt && $system == windows]
-audiocontext_test: Fail # Issue 4517
-audioelement_test: Fail # Issue 4517
-blob_constructor_test: Fail # Issue 4517
-css_test: Fail # Issue 4517
-form_data_test: Fail # Possibly Issue 4517
-fileapi_test: Fail # Possibly Issue 4517
-websql_test: Pass, Fail # Possibly Issue 4517
 
 [ $compiler == none && $runtime == drt && $system == macos]
 audiocontext_test: Pass, Fail
@@ -57,16 +40,12 @@ audiocontext_test: Pass, Fail
 [ $compiler == dart2js && $runtime == drt && $system == macos]
 audiobuffersourcenode_test: Pass, Fail
 
-[ $compiler == none && $runtime == drt && $system == linux]
-documentfragment_test: Pass, Timeout
-
 [$runtime == ie10 ]
 # TODO(efortuna, blois): Triage.
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 css_test: Fail
-document_test/getCssCanvasContext: Fail # IE does not support this.
-element_test/additionalConstructors: Fail
+document_test/supports_cssCanvasContext: Fail
 element_test/click: Fail                # IE does not support firing this event.
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
@@ -76,8 +55,8 @@ element_types_test/supported_object: Fail
 element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
 exceptions_test: Fail
-fileapi_test: Fail
-indexeddb_1_test/supported: Fail         # IE10 does not support from file://
+form_data_test: Fail # TODO(efortuna): Issue 7875.
+fileapi_test/supported: Fail
 inner_frame_test: Skip
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime: Fail
@@ -86,24 +65,25 @@ input_element_test/supported_month: Fail
 input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 isolates_test: Skip
-localstorage_test: Fail
 measurement_test: Fail, Pass
 messageevent_test: Fail
 mutationobserver_test/supported: Fail
+native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 storage_test: Fail, Pass
+streams_test: Fail # Bug 7888
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 svg_3_test: Fail
-url_test: Fail                           # IE10 does not support from file://
 websql_test: Fail
+websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 window_open_test: Skip
-xhr_test: Fail
+xhr_cross_origin_test: Fail # TODO(efortuna): Issue 7875.
 xsltprocessor_test: Fail
 
 [ $runtime == ie9 ]
-document_test/getCssCanvasContext: Fail # IE does not support this.
+document_test/supports_cssCanvasContext: Fail
 element_test/click: Fail                # IE does not support firing this event.
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
@@ -130,9 +110,9 @@ blob_constructor_test: Fail
 cache_test: fail              # IE9 does not support ApplicationCache, but IE 10 does (and should work).
 css_test: Fail
 dom_constructors_test: Fail
-element_test/additionalConstructors: Fail
+element_test/matches: Fail # IE9 does not support matches
 exceptions_test: Fail
-fileapi_test: Fail          # IE does not support filesystem APIs.
+fileapi_test/supported: Fail
 history_test/supported_state: Fail
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
@@ -152,12 +132,12 @@ mutationobserver_test/supported: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
-storage_test: Fail
+streams_test: Fail # Bug 7888
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
-websocket_test: Fail
+websocket_test/supported: Fail
 window_open_test: Skip      # BUG(4016)
 xsltprocessor_test: Skip    # BUG(4016)
 isolates_test: Skip         # BUG(4016)
@@ -172,7 +152,7 @@ element_test/elements: Crash, Fail # Issue: 7414
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
 element_types_test/supported_shadow: Fail
-performance_api_test: Fail # window.performance.timing not in Safari 6.
+performance_api_test/supported: Fail
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime: Fail
@@ -181,22 +161,15 @@ input_element_test/supported_month: Fail, Crash
 input_element_test/supported_range: Fail, Crash    # TODO(efortuna): Please triage this failure.
 input_element_test/supported_time: Fail, Crash
 input_element_test/supported_week: Fail, Crash
-fileapi_test: Fail # requestFileSystem not supported in Safari 6.
+fileapi_test/supported: Fail
 node_test: Skip # Issue 6457
 shadow_dom_test/supported: Fail
 
-[ $runtime == opera && $system == windows ]
-htmlelement_test: Fail, Pass
-
-[ $runtime == opera && $system == macos ]
-html/element_test/constructors: Fail
-
-
 [ $runtime == opera ]
-document_test/getCssCanvasContext: Fail # Issue: 7413
+document_test/supports_cssCanvasContext: Fail
+document_test/document: Fail # Issue: 7413
 form_data_test: Fail # Issue: 7413
 keyboard_event_test: Fail # Issue: 7413
-xmldocument_2_test: Fail # Issue: 7413
 element_test/eventListening: Fail # Issue: 7413
 element_test/children: Fail # Issue: 7413
 audiobuffersourcenode_test: Fail
@@ -216,16 +189,16 @@ element_test/eventListening: Crash
 element_test/queryAll: Fail
 element_webkit_test: Fail
 exceptions_test: Fail
+htmlelement_test: Fail
 indexeddb_1_test/supported: Fail
 mutationobserver_test/supported: Fail
-performance_api_test: Fail
+performance_api_test/supported: Fail
 serialized_script_value_test: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 typed_arrays_arraybuffer_test: Fail
 url_test: Fail
-websocket_test: Fail
 fileapi_test: Skip # Timeout.
 inner_frame_test: Skip # Timeout.
 js_interop_3_test: Skip # Timeout.
@@ -238,8 +211,7 @@ audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCssMatrix
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
-document_test/getCssCanvasContext: Fail # FF does not support this.
-documentfragment_test: Fail
+document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
 element_types_test/supported_embed: Fail
@@ -247,8 +219,7 @@ element_types_test/supported_keygen: Fail
 element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
-fileapi_test: Fail         # FF does not support filesystem APIs.
-indexeddb_1_test/supported: Fail  # FF disables indexedDB from file URLs.
+fileapi_test/supported: Fail
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
 input_element_test/supported_date: Fail
@@ -260,16 +231,13 @@ input_element_test/supported_week: Fail
 input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail
 shadow_dom_test/supported: Fail
+streams_test: Fail # Bug 7888
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 transferables_test: Fail   # Issue 3392.
 websql_test: Fail # FF does not support web SQL
-websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
-# Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4"
-#    (NS_ERROR_DOM_BAD_URI) ...
-xhr_test: Fail
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip
@@ -292,7 +260,5 @@ request_animation_frame_test: Skip # Async test hangs.
 isolates_test: Skip   # Timeout because leg does not support web workers.
 
 [ $compiler == dart2js && $runtime == ff ]
-xhr_test: Skip # Timeout
 inner_frame_test: Skip # Timeout
 svg_3_test: Skip # Timeout
-documentfragment_test: Skip # Timeout

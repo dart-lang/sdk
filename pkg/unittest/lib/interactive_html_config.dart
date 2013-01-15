@@ -160,9 +160,11 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
     parentWindow.postMessage(
         _Message.text(testCase.result, elapsed, testCase.message), '*');
   }
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
+      String uncaughtError) {
+  }
 
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
-              String uncaughtError) {
+  void onDone(bool success) {
     _uninstallErrorHandler();
   }
 }
@@ -407,8 +409,11 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
     actions.style.display = 'none';
   }
 
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
+  }
+
+  void onDone(bool success) {
     window.on.message.remove(_messageHandler);
     _uninstallErrorHandler();
     document.query('#busy').style.display = 'none';
@@ -464,6 +469,7 @@ void _prepareDom() {
  * child, depedning on whether the URL has a search part.
  */
 void useInteractiveHtmlConfiguration() {
+  if (config != null) return;
   if (window.location.search == '') { // This is the parent.
     _prepareDom();
     configure(new ParentInteractiveHtmlConfiguration());

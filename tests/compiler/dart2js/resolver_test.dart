@@ -4,8 +4,6 @@
 
 import 'dart:uri';
 
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
-       hide TreeElementMapping, TreeElements, SourceString;
 import "../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
@@ -13,6 +11,9 @@ import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
 import "compiler_helper.dart";
 import "mock_compiler.dart";
 import "parser_helper.dart";
+
+import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
+    hide TreeElementMapping, TreeElements, SourceString;
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
@@ -84,7 +85,7 @@ testTypeVariables() {
     VariableDefinitions definition = parseStatement(text);
     visitor.visit(definition.type);
     InterfaceType type = visitor.mapping.getType(definition.type);
-    Expect.equals(definition.type.typeArguments.length(),
+    Expect.equals(definition.type.typeArguments.slowLength(),
                   length(type.typeArguments));
     int index = 0;
     Link<DartType> arguments = type.typeArguments;
@@ -174,7 +175,7 @@ testThis() {
   FunctionExpression function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Map mapping = map(visitor);
-  List<Element> values = mapping.values;
+  List<Element> values = mapping.values.toList();
   Expect.equals(0, mapping.length);
   Expect.equals(0, compiler.warnings.length);
 
@@ -232,7 +233,7 @@ testLocalsTwo() {
   Expect.equals(0, scope.elements.length);
   Expect.equals(2, map(visitor).length);
 
-  List<Element> elements = map(visitor).values;
+  List<Element> elements = new List<Element>.from(map(visitor).values);
   Expect.notEquals(elements[0], elements[1]);
 }
 
@@ -245,7 +246,7 @@ testLocalsThree() {
   MethodScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(3, map(visitor).length);
-  List<Element> elements = map(visitor).values;
+  List<Element> elements = map(visitor).values.toList();
   Expect.equals(elements[0], elements[1]);
 }
 
@@ -258,7 +259,7 @@ testLocalsFour() {
   MethodScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(2, map(visitor).length);
-  List<Element> elements = map(visitor).values;
+  List<Element> elements = map(visitor).values.toList();
   Expect.notEquals(elements[0], elements[1]);
 }
 
@@ -325,8 +326,8 @@ testFor() {
   // Check that we have the expected nodes. This test relies on the mapping
   // field to be a linked hash map (preserving insertion order).
   Expect.isTrue(map(visitor) is LinkedHashMap);
-  List<Node> nodes = map(visitor).keys;
-  List<Element> elements = map(visitor).values;
+  List<Node> nodes = map(visitor).keys.toList();
+  List<Element> elements = map(visitor).values.toList();
 
 
   // for (int i = 0; i < 10; i = i + 1) { i = 5; };
@@ -532,7 +533,7 @@ testNewExpression() {
       compiler.parsedTree.asExpressionStatement().expression;
   Element element = elements[expression.send];
   Expect.equals(ElementKind.GENERATIVE_CONSTRUCTOR, element.kind);
-  Expect.isTrue(element is SynthesizedConstructorElement);
+  Expect.isTrue(element.isSynthesized);
 }
 
 testTopLevelFields() {

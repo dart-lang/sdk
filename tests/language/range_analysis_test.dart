@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for constructors and initializers.
 
-// Checks that range analysis does not enter infinite loop trying to propagate
+// Check that range analysis does not enter infinite loop trying to propagate
 // ranges through dependant phis.
-
-test() {
+bar() {
   var sum = 0;
   for (var i = 0; i < 10; i++) {
     for (var j = i - 1; j >= 0; j--) {
@@ -18,6 +17,27 @@ test() {
   return sum;
 }
 
+test1() {
+  for (var i = 0; i < 1000; i++) bar();
+}
+
+// Check that range analysis does not erroneously remove overflow check.
+test2() {
+  var width = 1073741823;
+  print(foo(width - 5000, width - 1));
+  print(foo(width - 5000, width));
+}
+
+foo(n, w) {
+  var x = 0;
+  for (var i = n; i <= w; i++) {
+    Expect.isTrue(i > 0);
+    x = i;
+  }
+  return x;
+}
+
 main() {
-  for (var i = 0; i < 1000; i++) test();
+  test1();
+  test2();
 }

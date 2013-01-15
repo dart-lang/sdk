@@ -17,15 +17,15 @@ void checkExpectedConnectionHeaders(HttpHeaders headers,
                                     bool persistentConnection) {
   Expect.equals("some-value1", headers.value("My-Connection-Header1"));
   Expect.equals("some-value2", headers.value("My-Connection-Header2"));
-  Expect.isTrue(headers[HttpHeaders.CONNECTION].some(
+  Expect.isTrue(headers[HttpHeaders.CONNECTION].any(
       (value) => value.toLowerCase() == "my-connection-header1"));
-  Expect.isTrue(headers[HttpHeaders.CONNECTION].some(
+  Expect.isTrue(headers[HttpHeaders.CONNECTION].any(
       (value) => value.toLowerCase() == "my-connection-header2"));
   if (persistentConnection) {
     Expect.equals(2, headers[HttpHeaders.CONNECTION].length);
   } else {
     Expect.equals(3, headers[HttpHeaders.CONNECTION].length);
-    Expect.isTrue(headers[HttpHeaders.CONNECTION].some(
+    Expect.isTrue(headers[HttpHeaders.CONNECTION].any(
         (value) => value.toLowerCase() == "close"));
   }
 }

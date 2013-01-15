@@ -85,12 +85,12 @@ main() {
     expect(someChecked.length, 4);
     expect(noneChecked.length, 4);
 
-    expect(eachChecked.some((x) => x.checked), isTrue);
-    expect(eachChecked.some((x) => !x.checked), isFalse);
-    expect(someChecked.some((x) => x.checked), isTrue);
-    expect(someChecked.some((x) => !x.checked), isTrue);
-    expect(noneChecked.some((x) => x.checked), isFalse);
-    expect(noneChecked.some((x) => !x.checked), isTrue);
+    expect(eachChecked.any((x) => x.checked), isTrue);
+    expect(eachChecked.any((x) => !x.checked), isFalse);
+    expect(someChecked.any((x) => x.checked), isTrue);
+    expect(someChecked.any((x) => !x.checked), isTrue);
+    expect(noneChecked.any((x) => x.checked), isFalse);
+    expect(noneChecked.any((x) => !x.checked), isTrue);
 
     root.remove();
   });
@@ -110,12 +110,12 @@ main() {
     expect(someChecked.length, 4);
     expect(noneChecked.length, 4);
 
-    expect(eachChecked.filter((x) => x.checked).length, 4);
-    expect(eachChecked.filter((x) => !x.checked).length, 0);
-    expect(someChecked.filter((x) => x.checked).length, 2);
-    expect(someChecked.filter((x) => !x.checked).length, 2);
-    expect(noneChecked.filter((x) => x.checked).length, 0);
-    expect(noneChecked.filter((x) => !x.checked).length, 4);
+    expect(eachChecked.where((x) => x.checked).length, 4);
+    expect(eachChecked.where((x) => !x.checked).length, 0);
+    expect(someChecked.where((x) => x.checked).length, 2);
+    expect(someChecked.where((x) => !x.checked).length, 2);
+    expect(noneChecked.where((x) => x.checked).length, 0);
+    expect(noneChecked.where((x) => !x.checked).length, 4);
 
     root.remove();
   });

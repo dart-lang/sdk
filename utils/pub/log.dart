@@ -5,6 +5,7 @@
 /// Message logging.
 library log;
 
+import 'dart:async';
 import 'dart:io';
 import 'io.dart';
 
@@ -97,7 +98,7 @@ Future ioAsync(String startMessage, Future operation,
     io(startMessage);
   }
 
-  return operation.transform((result) {
+  return operation.then((result) {
     if (endMessage == null) {
       io("End $startMessage.");
     } else {

@@ -615,6 +615,12 @@ dart2js_annotations = {
       "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
 }
 
+# Placeholder to add experimental flag, implementation for this is
+# pending in a separate CL.
+dart_annotations = {
+  'Element.webkitMatchesSelector': ['@Experimental()'],
+}
+
 _indexed_db_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX, '15')",
@@ -622,11 +628,24 @@ _indexed_db_annotations = [
   "@Experimental()",
 ]
 
-_history_annotations = [
+_file_system_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@Experimental()",
+]
+
+_all_but_ie9_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX)",
   "@SupportedBrowser(SupportedBrowser.IE, '10')",
   "@SupportedBrowser(SupportedBrowser.SAFARI)",
+]
+
+_history_annotations = _all_but_ie9_annotations
+
+_performance_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+  "@SupportedBrowser(SupportedBrowser.IE)",
 ]
 
 # Annotations to be placed on generated members.
@@ -634,35 +653,25 @@ _history_annotations = [
 #   INTERFACE:     annotations to be added to the interface declaration
 #   INTERFACE.MEMBER: annotation to be added to the member declaration
 dart_annotations = {
-  'ArrayBuffer': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-    "@SupportedBrowser(SupportedBrowser.IE, '10')",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  ],
-  'ArrayBufferView': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-    "@SupportedBrowser(SupportedBrowser.IE, '10')",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  ],
+  'ArrayBuffer': _all_but_ie9_annotations,
+  'ArrayBufferView': _all_but_ie9_annotations,
   'DOMWindow.indexedDB': _indexed_db_annotations,
+  'DOMWindow.performance': _performance_annotations,
+  'DOMWindow.webkitRequestFileSystem': _file_system_annotations,
+  'DOMWindow.webkitResolveLocalFileSystemURL': _file_system_annotations,
   'Element.webkitCreateShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",
   ],
+  'FileSystem': _file_system_annotations,
+  'FileSystemSync': _file_system_annotations,
   'History.pushState': _history_annotations,
   'History.replaceState': _history_annotations,
   'HTMLContentElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",
   ],
-  'HTMLDataListElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-    "@SupportedBrowser(SupportedBrowser.IE, '10')",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  ],
+  'HTMLDataListElement': _all_but_ie9_annotations,
   'HTMLDetailsElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
@@ -693,12 +702,7 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
-  'HTMLProgressElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-    "@SupportedBrowser(SupportedBrowser.IE, '10')",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  ],
+  'HTMLProgressElement': _all_but_ie9_annotations,
   'HTMLShadowElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",
@@ -710,11 +714,17 @@ dart_annotations = {
   ],
   'IDBFactory': _indexed_db_annotations,
   'IDBDatabase': _indexed_db_annotations,
+  'Performance': _performance_annotations,
   'ShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",
   ],
+  'WebSocket': _all_but_ie9_annotations,
   'WorkerContext.indexedDB': _indexed_db_annotations,
+  'WorkerContext.webkitRequestFileSystem': _file_system_annotations,
+  'WorkerContext.webkitRequestFileSystemSync': _file_system_annotations,
+  'WorkerContext.webkitResolveLocalFileSystemSyncURL': _file_system_annotations,
+  'WorkerContext.webkitResolveLocalFileSystemURL': _file_system_annotations,
 }
 
 def FindCommonAnnotations(interface_name, member_name=None):
@@ -806,9 +816,6 @@ class IDLTypeInfo(object):
 
   def vector_to_dart_template_parameter(self):
     return self.bindings_class()
-
-  def requires_v8_scope(self):
-    return self._data.requires_v8_scope
 
   def to_native_info(self, idl_node, interface_name):
     cls = self.bindings_class()
@@ -1078,7 +1085,6 @@ class TypeData(object):
                conversion_includes=None,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
-               requires_v8_scope=False,
                item_type=None, suppress_interface=False, is_typed_array=False):
     self.clazz = clazz
     self.dart_type = dart_type
@@ -1090,7 +1096,6 @@ class TypeData(object):
     self.conversion_includes = conversion_includes
     self.webcore_getter_name = webcore_getter_name
     self.webcore_setter_name = webcore_setter_name
-    self.requires_v8_scope = requires_v8_scope
     self.item_type = item_type
     self.suppress_interface = suppress_interface
     self.is_typed_array = is_typed_array
@@ -1124,7 +1129,7 @@ _idl_type_registry = {
     'float': TypeData(clazz='Primitive', dart_type='num', native_type='double'),
     'double': TypeData(clazz='Primitive', dart_type='num'),
 
-    'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue', requires_v8_scope=True),
+    'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'Array': TypeData(clazz='Primitive', dart_type='List'),
     'custom': TypeData(clazz='Primitive', dart_type='dynamic'),
     'Date': TypeData(clazz='Primitive', dart_type='Date', native_type='double'),
@@ -1132,7 +1137,7 @@ _idl_type_registry = {
     'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
     # TODO(vsm): This won't actually work until we convert the Map to
     # a native JS Map for JS DOM.
-    'Dictionary': TypeData(clazz='Primitive', dart_type='Map', requires_v8_scope=True),
+    'Dictionary': TypeData(clazz='Primitive', dart_type='Map'),
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'Flags': TypeData(clazz='Primitive', dart_type='Object'),

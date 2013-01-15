@@ -16,7 +16,7 @@ class IsolateSpawnException implements Exception {
  * the first communication between isolates (see [spawnFunction] and
  * [spawnUri]).
  */
-external ReceivePort get port;
+ReceivePort get port => _Isolate.port;
 
 /**
  * Creates and spawns an isolate that shares the same code as the current
@@ -33,9 +33,10 @@ external ReceivePort get port;
  *
  * See comments at the top of this library for more details.
  */
-// Note this feature is not yet available in the dartvm.
-external SendPort spawnFunction(void topLevelFunction(),
-    [bool UnhandledExceptionCallback(IsolateUnhandledException e)]);
+SendPort spawnFunction(void topLevelFunction(),
+    [bool UnhandledExceptionCallback(IsolateUnhandledException e)])
+    => _Isolate.spawnFunction(topLevelFunction, UnhandledExceptionCallback);
+
 /**
  * Creates and spawns an isolate whose code is available at [uri].  Like with
  * [spawnFunction], the child isolate will have a default [ReceivePort], and a
@@ -43,7 +44,7 @@ external SendPort spawnFunction(void topLevelFunction(),
  *
  * See comments at the top of this library for more details.
  */
-external SendPort spawnUri(String uri);
+SendPort spawnUri(String uri) => _Isolate.spawnUri(uri);
 
 /**
  * [SendPort]s are created from [ReceivePort]s. Any message sent through
@@ -138,11 +139,40 @@ abstract class ReceivePort {
 
 }
 
-// TODO(kasperl): Document this.
+/**
+ * [SendPortSync]s are created from [ReceivePortSync]s. Any message sent through
+ * a [SendPortSync] is delivered to its respective [ReceivePortSync]. There
+ * might be many [SendPortSync]s for the same [ReceivePortSync].
+ *
+ * [SendPortSync]s can be transmitted to other isolates.
+ */
 abstract class SendPortSync {
-
+  /**
+   * Sends a synchronous message to this send port and returns the result.
+   */
   callSync(var message);
 
+  /**
+   * Tests whether [other] is a [SendPortSync] pointing to the same
+   * [ReceivePortSync] as this one.
+   */
+  bool operator==(var other);
+
+  /**
+   * Returns an immutable hash code for this send port that is
+   * consistent with the == operator.
+   */
+  int get hashCode;
+}
+
+// The VM doesn't support accessing external globals in the same library. We
+// therefore create this wrapper class.
+// TODO(6997): Don't go through static class for external variables.
+abstract class _Isolate {
+  external static ReceivePort get port;
+  external static SendPort spawnFunction(void topLevelFunction(),
+    [bool UnhandledExceptionCallback(IsolateUnhandledException e)]);
+  external static SendPort spawnUri(String uri);
 }
 
 /**

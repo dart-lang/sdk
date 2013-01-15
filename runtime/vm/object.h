@@ -334,6 +334,7 @@ class Object {
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
   static void RegisterSingletonClassNames();
+  static void CreateInternalMetaData();
   static void MakeUnusedSpaceTraversable(const Object& obj,
                                          intptr_t original_size,
                                          intptr_t used_size);
@@ -1174,6 +1175,10 @@ class Function : public Object {
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
   inline bool HasCode() const;
 
+  // Returns true if there is at least one debugger breakpoint
+  // set in this function.
+  bool HasBreakpoint() const;
+
   RawContextScope* context_scope() const;
   void set_context_scope(const ContextScope& value) const;
 
@@ -1842,7 +1847,11 @@ class Script : public Object {
   RawString* url() const { return raw_ptr()->url_; }
   bool HasSource() const;
   RawString* Source() const;
-  RawScript::Kind kind() const { return raw_ptr()->kind_; }
+  RawScript::Kind kind() const {
+    return static_cast<RawScript::Kind>(raw_ptr()->kind_);
+  }
+  intptr_t line_offset() const { return raw_ptr()->line_offset_; }
+  intptr_t col_offset() const { return raw_ptr()->col_offset_; }
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
 
@@ -1854,6 +1863,8 @@ class Script : public Object {
                         intptr_t from_column,
                         intptr_t to_line,
                         intptr_t to_column) const;
+
+  void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
   void GetTokenLocation(intptr_t token_pos,
                         intptr_t* line, intptr_t* column) const;
@@ -2027,6 +2038,7 @@ class Library : public Object {
   static RawLibrary* GetLibrary(intptr_t index);
   static bool IsKeyUsed(intptr_t key);
 
+  static void InitASyncLibrary(Isolate* isolate);
   static void InitCoreLibrary(Isolate* isolate);
   static void InitCollectionLibrary(Isolate* isolate);
   static void InitMathLibrary(Isolate* isolate);
@@ -2035,6 +2047,7 @@ class Library : public Object {
   static void InitScalarlistLibrary(Isolate* isolate);
   static void InitNativeWrappersLibrary(Isolate* isolate);
 
+  static RawLibrary* ASyncLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* MathLibrary();
@@ -2243,6 +2256,7 @@ class PcDescriptors : public Object {
   enum Kind {
     kDeoptBefore = 0,  // Deoptimization continuation point before instruction.
     kDeoptAfter,       // Deoptimization continuation point after instruction.
+    kEntryPatch,       // Location where to patch entry.
     kPatchCode,        // Buffer for patching code entry.
     kLazyDeoptJump,    // Lazy deoptimization trampoline.
     kIcCall,           // IC call.
@@ -2568,6 +2582,8 @@ class Code : public Object {
     return raw_ptr()->static_calls_target_table_;
   }
 
+  RawDeoptInfo* GetDeoptInfoAtPc(uword pc, intptr_t* deopt_reason) const;
+
   // Returns null if there is no static call at 'pc'.
   RawFunction* GetStaticCallTargetFunctionAt(uword pc) const;
   // Aborts if there is no static call at 'pc'.
@@ -2583,7 +2599,7 @@ class Code : public Object {
     void SetCommentAt(intptr_t idx, const String& comment);
 
     intptr_t PCOffsetAt(intptr_t idx) const;
-    const String& CommentAt(intptr_t idx) const;
+    RawString* CommentAt(intptr_t idx) const;
 
    private:
     explicit Comments(const Array& comments);

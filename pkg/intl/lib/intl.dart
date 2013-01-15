@@ -16,6 +16,7 @@
  */
 library intl;
 
+import 'dart:async';
 import 'src/intl_helpers.dart';
 import 'dart:math';
 import 'date_symbols.dart';
@@ -127,7 +128,7 @@ class Intl {
    * will be extracted automatically but for the time being it must be passed
    * explicitly in the [name] and [args] arguments.
    */
-  static String message(String message_str, {final String desc: '',
+  static Future<String> message(String message_str, {final String desc: '',
       final Map examples: const {}, String locale, String name,
       List<String> args}) {
     return messageLookup.lookupMessage(

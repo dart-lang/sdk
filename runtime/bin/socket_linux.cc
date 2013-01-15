@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,9 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "bin/fdutils.h"
+#include "bin/file.h"
 #include "bin/log.h"
 #include "bin/socket.h"
 
@@ -136,6 +138,17 @@ void Socket::GetError(intptr_t fd, OSError* os_error) {
              &errno,
              reinterpret_cast<socklen_t*>(&len));
   os_error->SetCodeAndMessage(OSError::kSystem, errno);
+}
+
+
+int Socket::GetType(intptr_t fd) {
+  struct stat buf;
+  if (isatty(fd)) return File::kTerminal;
+  int result = fstat(fd, &buf);
+  if (result == -1) return -1;
+  if (S_ISFIFO(buf.st_mode)) return File::kPipe;
+  if (S_ISREG(buf.st_mode)) return File::kFile;
+  return File::kOther;
 }
 
 

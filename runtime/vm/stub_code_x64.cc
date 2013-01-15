@@ -1984,17 +1984,24 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 }
 
 // Calls to the runtime to optimize the given function.
-// RDX: function to be reoptimized.
-// RAX: result of function being optimized (preserved).
+// RDI: function to be reoptimized.
+// R10: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   AssemblerMacros::EnterStubFrame(assembler);
-  __ pushq(RAX);
-  __ pushq(RDX);
+  __ pushq(R10);
+  __ pushq(raw_null);  // Setup space on stack for return value.
+  __ pushq(RDI);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
-  __ popq(RDX);
-  __ popq(RAX);
+  __ popq(RAX);  // Disard argument.
+  __ popq(RAX);  // Get Code object.
+  __ popq(R10);  // Restore argument descriptor.
+  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
+  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ LeaveFrame();
-  __ ret();
+  __ jmp(RAX);
+  __ int3();
 }
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -72,7 +72,7 @@ List<int> createFrame(bool fin,
   frameSize += count;
   // No masking.
   assert(maskingKey == null);
-  List<int> frame = new List<int>(frameSize);
+  List<int> frame = new List<int>.fixedLength(frameSize);
   int frameIndex = 0;
   frame[frameIndex++] = (fin ? 0x80 : 0x00) | opcode;
   if (count < 126) {
@@ -107,7 +107,7 @@ void testFullMessages() {
 
     // Update the processor with one big chunk.
     messageCount++;
-    processor.update(frame, 0, frame.length);
+    processor.update(frame);
     Expect.isNull(mc.data);
     Expect.equals(0, processor._state);
 
@@ -116,7 +116,7 @@ void testFullMessages() {
       // Update the processor one byte at the time.
       messageCount++;
       for (int i = 0; i < frame.length; i++) {
-        processor.update(frame, i, 1);
+        processor.update(frame.getRange(i, 1));
       }
       Expect.equals(0, processor._state);
       Expect.isNull(mc.data);
@@ -124,7 +124,7 @@ void testFullMessages() {
       // Update the processor two bytes at the time.
       messageCount++;
       for (int i = 0; i < frame.length; i += 2) {
-        processor.update(frame, i, i + 1 < frame.length ? 2 : 1);
+        processor.update(frame.getRange(i, i + 1 < frame.length ? 2 : 1));
       }
       Expect.equals(0, processor._state);
       Expect.isNull(mc.data);
@@ -133,7 +133,7 @@ void testFullMessages() {
 
   void runTest(int from, int to, int step) {
     for (int messageLength = from; messageLength < to; messageLength += step) {
-      List<int> message = new List<int>(messageLength);
+      List<int> message = new List<int>.fixedLength(messageLength);
       for (int i = 0; i < messageLength; i++) message[i] = i & 0xFF;
       testMessage(FRAME_OPCODE_TEXT, message);
       testMessage(FRAME_OPCODE_BINARY, message);
@@ -177,7 +177,7 @@ void testFragmentedMessages() {
                                     payloadSize);
       frameCount++;
       messageIndex += payloadSize;
-      processor.update(frame, 0, frame.length);
+      processor.update(frame);
       remaining -= payloadSize;
       firstFrame = false;
     }
@@ -199,7 +199,7 @@ void testFragmentedMessages() {
 
   void runTest(int from, int to, int step) {
     for (int messageLength = from; messageLength < to; messageLength += step) {
-      List<int> message = new List<int>(messageLength);
+      List<int> message = new List<int>.fixedLength(messageLength);
       for (int i = 0; i < messageLength; i++) message[i] = i & 0xFF;
       testMessageFragmentation(FRAME_OPCODE_TEXT, message);
       testMessageFragmentation(FRAME_OPCODE_BINARY, message);

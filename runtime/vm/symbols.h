@@ -26,8 +26,8 @@ class ObjectPointerVisitor;
   V(This, "this")                                                              \
   V(Super, "super")                                                            \
   V(Call, "call")                                                              \
-  V(HasNext, "hasNext")                                                        \
-  V(Next, "next")                                                              \
+  V(Current, "current")                                                        \
+  V(MoveNext, "moveNext")                                                      \
   V(Value, "value")                                                            \
   V(ExprTemp, ":expr_temp")                                                    \
   V(AnonymousClosure, "<anonymous closure>")                                   \
@@ -44,6 +44,7 @@ class ObjectPointerVisitor;
   V(List, "List")                                                              \
   V(ListLiteralFactory, "List._fromLiteral")                                   \
   V(ListFactory, "List.")                                                      \
+  V(ListFixedLengthFactory, "List.fixedLength")                                \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
   V(ImmutableMap, "ImmutableMap")                                              \
@@ -166,6 +167,7 @@ class ObjectPointerVisitor;
   V(RangeError, "RangeError")                                                  \
   V(ArgumentError, "ArgumentError")                                            \
   V(FormatException, "FormatException")                                        \
+  V(UnsupportedError, "UnsupportedError")                                      \
   V(StackOverflowError, "StackOverflowError")                                  \
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(InternalError, "InternalError")                                            \

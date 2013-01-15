@@ -186,17 +186,22 @@ void ParsedFunction::AllocateVariables() {
                                scope,
                                &context_owner);
 
-  // If this function is not a closure function and if it contains captured
-  // variables, the context needs to be saved on entry and restored on exit.
+  // If this function allocates context variables, but none of its enclosing
+  // functions do, the context on entry is not linked as parent of the allocated
+  // context but saved on entry and restored on exit as to prevent memory leaks.
   // Add and allocate a local variable to this purpose.
-  if ((context_owner != NULL) && !function().IsClosureFunction()) {
-    LocalVariable* context_var =
-        new LocalVariable(function().token_pos(),
-                          Symbols::SavedEntryContextVar(),
-                          Type::ZoneHandle(Type::DynamicType()));
-    context_var->set_index(next_free_frame_index--);
-    scope->AddVariable(context_var);
-    set_saved_context_var(context_var);
+  if (context_owner != NULL) {
+    const ContextScope& context_scope =
+        ContextScope::Handle(function().context_scope());
+    if (context_scope.IsNull() || (context_scope.num_variables() == 0)) {
+      LocalVariable* context_var =
+          new LocalVariable(function().token_pos(),
+                            Symbols::SavedEntryContextVar(),
+                            Type::ZoneHandle(Type::DynamicType()));
+      context_var->set_index(next_free_frame_index--);
+      scope->AddVariable(context_var);
+      set_saved_context_var(context_var);
+    }
   }
 
   // Frame indices are relative to the frame pointer and are decreasing.
@@ -5591,17 +5596,18 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
 
   // Generate initialization of iterator variable.
   ArgumentListNode* no_args = new ArgumentListNode(collection_pos);
-  AstNode* get_iterator = new InstanceCallNode(
-      collection_pos, collection_expr, Symbols::GetIterator(), no_args);
+  AstNode* get_iterator = new InstanceGetterNode(
+      collection_pos, collection_expr, Symbols::GetIterator());
   AstNode* iterator_init =
       new StoreLocalNode(collection_pos, iterator_var, get_iterator);
   current_block_->statements->Add(iterator_init);
 
   // Generate while loop condition.
-  AstNode* iterator_has_next = new InstanceGetterNode(
+  AstNode* iterator_moveNext = new InstanceCallNode(
       collection_pos,
       new LoadLocalNode(collection_pos, iterator_var),
-      Symbols::HasNext());
+      Symbols::MoveNext(),
+      no_args);
 
   // Parse the for loop body. Ideally, we would use ParseNestedStatement()
   // here, but that does not work well because we have to insert an implicit
@@ -5610,11 +5616,10 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   OpenLoopBlock();
   current_block_->scope->AddLabel(label);
 
-  AstNode* iterator_next = new InstanceCallNode(
+  AstNode* iterator_current = new InstanceGetterNode(
       collection_pos,
       new LoadLocalNode(collection_pos, iterator_var),
-      Symbols::Next(),
-      no_args);
+      Symbols::Current());
 
   // Generate assignment of next iterator value to loop variable.
   AstNode* loop_var_assignment = NULL;
@@ -5622,13 +5627,13 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     // The for loop declares a new variable. Add it to the loop body scope.
     current_block_->scope->AddVariable(loop_var);
     loop_var_assignment =
-        new StoreLocalNode(loop_var_pos, loop_var, iterator_next);
+        new StoreLocalNode(loop_var_pos, loop_var, iterator_current);
   } else {
     AstNode* loop_var_primary =
         ResolveIdent(loop_var_pos, *loop_var_name, false);
     ASSERT(!loop_var_primary->IsPrimaryNode());
     loop_var_assignment =
-        CreateAssignmentNode(loop_var_primary, iterator_next);
+        CreateAssignmentNode(loop_var_primary, iterator_current);
     if (loop_var_assignment == NULL) {
       ErrorMsg(loop_var_pos, "variable or field '%s' is not assignable",
                loop_var_name->ToCString());
@@ -5651,7 +5656,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   SequenceNode* for_loop_statement = CloseBlock();
 
   AstNode* while_statement =
-      new WhileNode(forin_pos, label, iterator_has_next, for_loop_statement);
+      new WhileNode(forin_pos, label, iterator_moveNext, for_loop_statement);
   current_block_->statements->Add(while_statement);
 
   return CloseBlock();  // Implicit block around while loop.
@@ -6352,7 +6357,7 @@ RawString* Parser::FormatMessage(const Script& script,
   String& result = String::Handle();
   const String& msg = String::Handle(String::NewFormattedV(format, args));
   if (!script.IsNull()) {
-    const String& script_url = String::CheckedHandle(script.url());
+    const String& script_url = String::Handle(script.url());
     if (token_pos >= 0) {
       intptr_t line, column;
       script.GetTokenLocation(token_pos, &line, &column);
@@ -6912,9 +6917,10 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
   intptr_t cascade_pos = TokenPos();
   LocalVariable* cascade_receiver_var =
       CreateTempConstVariable(cascade_pos, "casc");
+  SequenceNode* cascade = new SequenceNode(cascade_pos, NULL);
   StoreLocalNode* save_cascade =
       new StoreLocalNode(cascade_pos, cascade_receiver_var, expr);
-  current_block_->statements->Add(save_cascade);
+  cascade->Add(save_cascade);
   while (CurrentToken() == Token::kCASCADE) {
     cascade_pos = TokenPos();
     LoadLocalNode* load_cascade_receiver =
@@ -6952,10 +6958,11 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
       }
       expr = assign_expr;
     }
-    current_block_->statements->Add(expr);
+    cascade->Add(expr);
   }
-  // Result of the cascade is the receiver.
-  return new LoadLocalNode(cascade_pos, cascade_receiver_var);
+  // The result is a pair of the (side effects of the) cascade sequence
+  // followed by the (value of the) receiver temp variable load.
+  return new LoadLocalNode(cascade_pos, cascade_receiver_var, cascade);
 }
 
 
@@ -7379,11 +7386,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       String* ident = ExpectIdentifier("identifier expected");
       if (CurrentToken() == Token::kLPAREN) {
         // Identifier followed by a opening paren: method call.
-        if (left->IsPrimaryNode()
-            && left->AsPrimaryNode()->primary().IsClass()) {
+        if (left->IsPrimaryNode() &&
+            left->AsPrimaryNode()->primary().IsClass()) {
           // Static method call prefixed with class name.
-          Class& cls = Class::CheckedHandle(
-              left->AsPrimaryNode()->primary().raw());
+          const Class& cls = Class::Cast(left->AsPrimaryNode()->primary());
           selector = ParseStaticCall(cls, *ident, ident_pos);
         } else {
           selector = ParseInstanceCall(left, *ident);
@@ -7439,8 +7445,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         PrimaryNode* primary = left->AsPrimaryNode();
         const intptr_t primary_pos = primary->token_pos();
         if (primary->primary().IsFunction()) {
-          Function& func = Function::CheckedHandle(primary->primary().raw());
-          String& func_name = String::ZoneHandle(func.name());
+          const Function& func = Function::Cast(primary->primary());
+          const String& func_name = String::ZoneHandle(func.name());
           if (func.is_static()) {
             // Parse static function call.
             Class& cls = Class::Handle(func.Owner());
@@ -7539,6 +7545,8 @@ AstNode* Parser::ParsePostfixExpr() {
         save,
         new LiteralNode(postfix_expr_pos, Smi::ZoneHandle(Smi::New(1))));
     AstNode* store = CreateAssignmentNode(left_expr, add);
+    // The result is a pair of the (side effects of the) store followed by
+    // the (value of the) initial value temp variable load.
     LoadLocalNode* load_res =
         new LoadLocalNode(postfix_expr_pos, temp, store);
     return load_res;

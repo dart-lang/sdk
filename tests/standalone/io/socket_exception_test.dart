@@ -68,7 +68,7 @@ class SocketExceptionTest {
       Expect.equals(true, !wrongExceptionCaught);
       exceptionCaught = false;
       try {
-        List<int> buffer = new List<int>(10);
+        List<int> buffer = new List<int>.fixedLength(10);
         client.readList(buffer, 0 , 10);
       } on SocketIOException catch(ex) {
         exceptionCaught = true;
@@ -79,7 +79,7 @@ class SocketExceptionTest {
       Expect.equals(true, !wrongExceptionCaught);
       exceptionCaught = false;
       try {
-        List<int> buffer = new List<int>(10);
+        List<int> buffer = new List<int>.fixedLength(10);
         client.writeList(buffer, 0, 10);
       } on SocketIOException catch(ex) {
         exceptionCaught = true;
@@ -90,7 +90,7 @@ class SocketExceptionTest {
       Expect.equals(true, !wrongExceptionCaught);
       exceptionCaught = false;
       try {
-        List<int> buffer = new List<int>(42);
+        List<int> buffer = new List<int>.fixedLength(42);
         input.readInto(buffer, 0, 12);
       } on SocketIOException catch(ex) {
         exceptionCaught = true;
@@ -101,7 +101,7 @@ class SocketExceptionTest {
       Expect.equals(true, !wrongExceptionCaught);
       exceptionCaught = false;
       try {
-        List<int> buffer = new List<int>(42);
+        List<int> buffer = new List<int>.fixedLength(42);
         output.writeFrom(buffer, 0, 12);
       } on SocketIOException catch(ex) {
         exceptionCaught = true;
@@ -126,7 +126,7 @@ class SocketExceptionTest {
     client.onConnect = () {
       Expect.equals(true, client != null);
       try {
-        List<int> buffer = new List<int>(10);
+        List<int> buffer = new List<int>.fixedLength(10);
         client.readList(buffer, -1, 1);
       } on RangeError catch (ex) {
         exceptionCaught = true;
@@ -138,7 +138,7 @@ class SocketExceptionTest {
       exceptionCaught = false;
 
       try {
-        List<int> buffer = new List<int>(10);
+        List<int> buffer = new List<int>.fixedLength(10);
         client.readList(buffer, 0, -1);
       } on RangeError catch (ex) {
         exceptionCaught = true;
@@ -150,7 +150,7 @@ class SocketExceptionTest {
       exceptionCaught = false;
 
       try {
-        List<int> buffer = new List<int>(10);
+        List<int> buffer = new List<int>.fixedLength(10);
         client.writeList(buffer, -1, 1);
       } on RangeError catch (ex) {
         exceptionCaught = true;
@@ -162,7 +162,7 @@ class SocketExceptionTest {
       exceptionCaught = false;
 
       try {
-        List<int> buffer = new List<int>(10);
+        List<int> buffer = new List<int>.fixedLength(10);
         client.writeList(buffer, 0, -1);
       } on RangeError catch (ex) {
         exceptionCaught = true;

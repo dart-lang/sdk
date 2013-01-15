@@ -4,6 +4,7 @@
 
 library drt_updater;
 
+import "dart:async";
 import "dart:io";
 
 import "test_suite.dart";
@@ -27,16 +28,15 @@ class _DartiumUpdater {
       print('Updating $name.');
       onUpdated = [() {updated = true;} ];
       _updatingProcess = Process.run('python', _getUpdateCommand);
-      _updatingProcess.handleException((e) {
+      _updatingProcess.then(_onUpdatedHandler).catchError((e) {
         print("Error starting $script process: $e");
         return false;
       });
-      _updatingProcess.then(_onUpdatedHandler);
     }
   }
 
   List<String> get _getUpdateCommand {
-    Path testScriptPath = new Path.fromNative(TestUtils.testScriptPath);
+    Path testScriptPath = new Path(TestUtils.testScriptPath);
     Path updateScriptPath = testScriptPath.directoryPath.append(script);
     List<String> command = [updateScriptPath.toNativePath()];
     if (null != option) {

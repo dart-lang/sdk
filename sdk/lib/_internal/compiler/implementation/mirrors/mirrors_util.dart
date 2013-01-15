@@ -53,14 +53,14 @@ LibraryMirror findLibrary(MemberMirror member) {
   throw new Exception('Unexpected owner: ${owner}');
 }
 
-class HierarchyIterable implements Iterable<ClassMirror> {
+class HierarchyIterable extends Iterable<ClassMirror> {
   final bool includeType;
   final ClassMirror type;
 
   HierarchyIterable(this.type, {bool includeType})
       : this.includeType = includeType;
 
-  Iterator<ClassMirror> iterator() =>
+  Iterator<ClassMirror> get iterator =>
       new HierarchyIterator(type, includeType: includeType);
 }
 
@@ -68,7 +68,7 @@ class HierarchyIterable implements Iterable<ClassMirror> {
  * [HierarchyIterator] iterates through the class hierarchy of the provided
  * type.
  *
- * First is the superclass relation is traversed, skipping [Object], next the
+ * First the superclass relation is traversed, skipping [Object], next the
  * superinterface relation and finally is [Object] visited. The supertypes are
  * visited in breadth first order and a superinterface is visited more than once
  * if implemented through multiple supertypes.
@@ -76,6 +76,7 @@ class HierarchyIterable implements Iterable<ClassMirror> {
 class HierarchyIterator implements Iterator<ClassMirror> {
   final Queue<ClassMirror> queue = new Queue<ClassMirror>();
   ClassMirror object;
+  ClassMirror _current;
 
   HierarchyIterator(ClassMirror type, {bool includeType}) {
     if (includeType) {
@@ -97,19 +98,62 @@ class HierarchyIterator implements Iterator<ClassMirror> {
     return type;
   }
 
-  ClassMirror next() {
-    ClassMirror type;
+  ClassMirror get current => _current;
+
+  bool moveNext() {
+    _current = null;
     if (queue.isEmpty) {
-      if (object == null) {
-        throw new StateError("No more elements");
-      }
-      type = object;
+      if (object == null) return false;
+      _current = object;
       object = null;
-      return type;
+      return true;
     } else {
-      return push(queue.removeFirst());
+      _current = push(queue.removeFirst());
+      return true;
     }
   }
+}
 
-  bool get hasNext => !queue.isEmpty || object != null;
+final RegExp _singleLineCommentStart = new RegExp(r'^///? ?(.*)');
+final RegExp _multiLineCommentStartEnd =
+    new RegExp(r'^/\*\*? ?([\s\S]*)\*/$', multiLine: true);
+final RegExp _multiLineCommentLineStart = new RegExp(r'^[ \t]*\* ?(.*)');
+
+/**
+ * Pulls the raw text out of a comment (i.e. removes the comment
+ * characters).
+ */
+String stripComment(String comment) {
+  Match match = _singleLineCommentStart.firstMatch(comment);
+  if (match != null) {
+    return match[1];
+  }
+  match = _multiLineCommentStartEnd.firstMatch(comment);
+  if (match != null) {
+    comment = match[1];
+    var sb = new StringBuffer();
+    List<String> lines = comment.split('\n');
+    for (int index = 0 ; index < lines.length ; index++) {
+      String line = lines[index];
+      if (index == 0) {
+        sb.add(line); // Add the first line unprocessed.
+        continue;
+      }
+      sb.add('\n');
+      match = _multiLineCommentLineStart.firstMatch(line);
+      if (match != null) {
+        sb.add(match[1]);
+      } else if (index < lines.length-1 || !line.trim().isEmpty) {
+        // Do not add the last line if it only contains white space.
+        // This interprets cases like
+        //     /*
+        //      * Foo
+        //      */
+        // as "\nFoo\n" and not as "\nFoo\n     ".
+        sb.add(line);
+      }
+    }
+    return sb.toString();
+  }
+  throw new ArgumentError('Invalid comment $comment');
 }

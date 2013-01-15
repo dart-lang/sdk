@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/flags.h"
+#include "vm/os.h"
 
 namespace dart {
 
@@ -59,6 +60,7 @@ namespace dart {
 class ObjectPointerVisitor;
 
 DECLARE_FLAG(bool, verify_handles);
+DECLARE_DEBUG_FLAG(bool, trace_handles);
 
 class HandleVisitor {
  public:
@@ -254,7 +256,14 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
 
   VMHandles() : Handles<kVMHandleSizeInWords,
                         kVMHandlesPerChunk,
-                        kOffsetOfRawPtr>() { }
+                        kOffsetOfRawPtr>() {
+#ifdef DEBUG
+    if (FLAG_trace_handles) {
+      OS::PrintErr("*** Starting a new VM handle block 0x%"Px"\n",
+                   reinterpret_cast<intptr_t>(this));
+    }
+#endif
+  }
   ~VMHandles();
 
   // Visit all object pointers stored in the various handles.

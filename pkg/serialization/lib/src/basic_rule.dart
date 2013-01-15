@@ -230,34 +230,6 @@ class BasicRule extends SerializationRule {
   // mirrors. Should be changed to use a synchronous API once one is available,
   // or to be async, but that would be extremely ugly.
   _value(InstanceMirror mirror, _Field field) => field.valueIn(mirror);
-
-  /**
-   * When reading from a flat format we are given [stream] and need to pull as
-   * much data from it as we need. Our format is that we have an integer N
-   * indicating the number of objects and then for each object N fields, which
-   * are references, where a reference is stored in the stream as two integers.
-   * Or, in the special case of null, two nulls.
-   */
-  pullStateFrom(Iterator stream) {
-    var dataLength = stream.next();
-    var ruleData = new List();
-    for (var i = 0; i < dataLength; i++) {
-      var subList = new List();
-      ruleData.add(subList);
-      for (var j = 0; j < fields.length; j++) {
-        var a = stream.next();
-        var b = stream.next();
-        if (!(a is int)) {
-          // This wasn't a reference, so just use the first object as a literal.
-          // particularly used for the case of null.
-          subList.add(a);
-        } else {
-          subList.add(new Reference(this, a, b));
-        }
-      }
-    }
-    return ruleData;
-  }
 }
 
 /**
@@ -360,7 +332,8 @@ class _NamedField extends _Field {
     setter(object, value);
   }
 
-  valueIn(InstanceMirror mirror) => mirror.getField(name).value.reflectee;
+  valueIn(InstanceMirror mirror) =>
+      deprecatedFutureValue(mirror.getField(name)).reflectee;
 
   /** Return the function to use to set our value. */
   Function get setter =>
@@ -404,7 +377,7 @@ class _ConstantField extends _Field {
  * are kept in a separate object, which also has the ability to compute the
  * default fields to use reflectively.
  */
-class _FieldList implements Iterable {
+class _FieldList extends Iterable {
   /**
    * All of our fields, indexed by name. Note that the names are not
    * necessarily strings.
@@ -469,15 +442,15 @@ class _FieldList implements Iterable {
   int get length => allFields.length;
 
   /** Add all the fields which aren't on the exclude list. */
-  void addAllNotExplicitlyExcluded(List<String> aCollection) {
+  void addAllNotExplicitlyExcluded(Iterable<String> aCollection) {
     if (aCollection == null) return;
     var names = aCollection;
-    names = names.filter((x) => !_excludeFields.contains(x));
+    names = names.where((x) => !_excludeFields.contains(x));
     addAllByName(names);
   }
 
   /** Add all the fields with the given names without any special properties. */
-  void addAllByName(List<String> names) {
+  void addAllByName(Iterable<String> names) {
     for (var each in names) {
       allFields.putIfAbsent(each, () => new _Field(each, this));
     }
@@ -493,7 +466,7 @@ class _FieldList implements Iterable {
     contents;
   }
 
-  Iterator iterator() => contents.iterator();
+  Iterator get iterator => contents.iterator;
 
   /** Return a cached, sorted list of all the fields. */
   List<_Field> get contents {
@@ -524,12 +497,14 @@ class _FieldList implements Iterable {
   }
 
   List get constructorFields => _constructorFields;
-  List constructorFieldNames() => constructorFields.map((x) => x.name);
-  List constructorFieldIndices() => constructorFields.map((x) => x.index);
-  List regularFields() => contents.filter((x) => !x.usedInConstructor);
-  List regularFieldNames() => regularFields().map((x) => x.name);
-  List regularFieldIndices() => regularFields().map((x) => x.index);
-
+  List constructorFieldNames() =>
+      constructorFields.mappedBy((x) => x.name).toList();
+  List constructorFieldIndices() =>
+      constructorFields.mappedBy((x) => x.index).toList();
+  List regularFields() => contents.where((x) => !x.usedInConstructor).toList();
+  List regularFieldNames() => regularFields().mappedBy((x) => x.name).toList();
+  List regularFieldIndices() =>
+      regularFields().mappedBy((x) => x.index).toList();
 
   /**
    * If we weren't given any non-constructor fields to use, figure out what
@@ -538,17 +513,17 @@ class _FieldList implements Iterable {
    * that are listed in the constructor fields.
    */
   void figureOutFields() {
-    List names(Collection<DeclarationMirror> mirrors) =>
-        mirrors.map((each) => each.simpleName);
+    Iterable names(Iterable<DeclarationMirror> mirrors) =>
+        mirrors.mappedBy((each) => each.simpleName);
 
     if (!_shouldFigureOutFields || !regularFields().isEmpty) return;
     var fields = publicFields(mirror);
     var getters = publicGetters(mirror);
-    var gettersWithSetters = getters.filter( (each)
+    var gettersWithSetters = getters.where( (each)
         => mirror.setters["${each.simpleName}="] != null);
-    var gettersThatMatchConstructor = getters.filter((each)
+    var gettersThatMatchConstructor = getters.where((each)
         => (named(each.simpleName) != null) &&
-            (named(each.simpleName).usedInConstructor));
+            (named(each.simpleName).usedInConstructor)).toList();
     addAllNotExplicitlyExcluded(names(fields));
     addAllNotExplicitlyExcluded(names(gettersWithSetters));
     addAllNotExplicitlyExcluded(names(gettersThatMatchConstructor));
@@ -594,10 +569,11 @@ class Constructor {
    */
   constructFrom(state, Reader r) {
     // TODO(alanknight): Handle named parameters
-    Collection inflated = fieldNumbers.map(
-        (x) => (x is int) ? reflect(r.inflateReference(state[x])) : reflect(x));
+    Collection inflated = fieldNumbers.mappedBy(
+        (x) => (x is int) ? reflect(r.inflateReference(state[x])) : reflect(x))
+            .toList();
     var result = type.newInstance(name, inflated);
-    return result.value;
+    return deprecatedFutureValue(result);
   }
 }
 

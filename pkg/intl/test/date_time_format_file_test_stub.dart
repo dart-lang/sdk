@@ -8,12 +8,13 @@
  */
 library date_time_format_file_test;
 
-import '../lib/intl.dart';
-import '../lib/date_symbol_data_file.dart';
+import 'dart:async';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_file.dart';
 import 'dart:io';
 import 'date_time_format_test_core.dart';
 import 'data_directory.dart';
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 runWith([Function getSubset]) {
   // Initialize one locale just so we know what the list is.
@@ -26,7 +27,7 @@ runWith([Function getSubset]) {
 void runEverything(Function getSubset) {
   // Initialize all locales sequentially before running tests. Be sure not
   // to do it in parallel or we can run into ulimit problems on fast machines.
-  var futureList = Futures.forEach(DateFormat.allLocalesWithSymbols(),
+  var futureList = Future.forEach(DateFormat.allLocalesWithSymbols(),
       (locale) => initializeDateFormatting(locale, dataDirectory));
 
   test('Run all date formatting tests nested test', () {

@@ -150,28 +150,27 @@ def print_server_error():
   sys.exit(1)
 
 def start_browser(browser, executable_path, html_out):
-  if browser == 'chrome':
+  if browser == 'chrome' or browser == 'dartium':
     # Note: you need ChromeDriver *in your path* to run Chrome, in addition to
     # installing Chrome. Also note that the build bot runs have a different path
     # from a normal user -- check the build logs.
-    return selenium.webdriver.Chrome()
-  elif browser == 'dartium':
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    dartium_dir = os.path.join(script_dir, '..', '..', 'client', 'tests',
-                               'dartium')
     options = selenium.webdriver.chrome.options.Options()
-    # enable ShadowDOM and style scoped for Dartium
-    options.add_argument('--enable-shadow-dom')
-    options.add_argument('--enable-style-scoped')
-    if executable_path is not None:
-      options.binary_location = executable_path
-    elif platform.system() == 'Windows':
-      options.binary_location = os.path.join(dartium_dir, 'chrome.exe')
-    elif platform.system() == 'Darwin':
-      options.binary_location = os.path.join(dartium_dir, 'Chromium.app',
-                                             'Contents', 'MacOS', 'Chromium')
-    else:
-      options.binary_location = os.path.join(dartium_dir, 'chrome')
+    if browser == 'dartium':
+      script_dir = os.path.dirname(os.path.abspath(__file__))
+      dartium_dir = os.path.join(script_dir, '..', '..', 'client', 'tests',
+                                 'dartium')
+      # enable ShadowDOM and style scoped for Dartium
+      options.add_argument('--enable-shadow-dom')
+      options.add_argument('--enable-style-scoped')
+      if executable_path is not None:
+        options.binary_location = executable_path
+      elif platform.system() == 'Windows':
+        options.binary_location = os.path.join(dartium_dir, 'chrome.exe')
+      elif platform.system() == 'Darwin':
+        options.binary_location = os.path.join(dartium_dir, 'Chromium.app',
+                                               'Contents', 'MacOS', 'Chromium')
+      else:
+        options.binary_location = os.path.join(dartium_dir, 'chrome')
     return selenium.webdriver.Chrome(chrome_options=options)
   elif browser == 'ff':
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -285,45 +284,53 @@ def run_batch_tests():
   signal.signal(signal.SIGTERM, lambda number, frame: close_browser(browser))
 
   try:
-    while True:
-      line = sys.stdin.readline()
-      if line == '--terminate\n':
-        print("Terminating selenium driver")
-        break
+    try:
+      while True:
+        line = sys.stdin.readline()
+        if line == '--terminate\n':
+          print("Terminating selenium driver")
+          break
 
-      (html_out, browser_name, executable_path,
-       timeout, mode, refresh) = parse_args(line.split())
+        (html_out, browser_name, executable_path,
+         timeout, mode, refresh) = parse_args(line.split())
 
-      # Sanity checks that test.dart is passing flags we can handle.
-      if mode != 'correctness':
-        print 'Batch test runner not compatible with perf testing'
-        return 1
-      if browser and current_browser_name != browser_name:
-        print('Batch test runner got multiple browsers: %s and %s'
-            % (current_browser_name, browser_name))
-        return 1
+        # Sanity checks that test.dart is passing flags we can handle.
+        if mode != 'correctness':
+          print 'Batch test runner not compatible with perf testing'
+          return 1
+        if browser and current_browser_name != browser_name:
+          print('Batch test runner got multiple browsers: %s and %s'
+              % (current_browser_name, browser_name))
+          return 1
 
-      # Start the browser on the first run
-      if browser is None:
-        current_browser_name = browser_name
-        browser = start_browser(browser_name, executable_path, html_out)
+        # Start the browser on the first run
+        if browser is None:
+          current_browser_name = browser_name
+          browser = start_browser(browser_name, executable_path, html_out)
 
-      source = run_test_in_browser(browser, html_out, timeout, mode, refresh)
+        source = run_test_in_browser(browser, html_out, timeout, mode, refresh)
 
-      # Test is done. Write end token to stderr and flush.
-      sys.stderr.write('>>> EOF STDERR\n')
-      sys.stderr.flush()
+        # Test is done. Write end token to stderr and flush.
+        sys.stderr.write('>>> EOF STDERR\n')
+        sys.stderr.flush()
 
-      # print one of:
-      # >>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}
-      status = report_results(mode, source, browser)
-      if status == 0:
-        print '>>> TEST PASS'
-      elif source == TIMEOUT_ERROR_MSG:
-        print '>>> TEST TIMEOUT'
-      else:
-        print '>>> TEST FAIL'
-      sys.stdout.flush()
+        # print one of:
+        # >>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}
+        status = report_results(mode, source, browser)
+        if status == 0:
+          print '>>> TEST PASS'
+        elif source == TIMEOUT_ERROR_MSG:
+          print '>>> TEST TIMEOUT'
+        else:
+          print '>>> TEST FAIL'
+        sys.stdout.flush()
+    except:
+      type, value, traceback = sys.exc_info()
+      print "run_selenium.py: Unexpected exception occured: "
+      print "    type: ", type
+      print "    value: ", value
+      print "    traceback: ", traceback
+      raise
   finally:
     sys.stdin.close()
     print("Closing browser");

@@ -38,7 +38,7 @@ void main() {
   Options options = new Options();
   File scriptFile = new File(options.script);
   Path scriptPath =
-      new Path.fromNative(scriptFile.fullPathSync())
+      new Path(scriptFile.fullPathSync())
       .directoryPath.directoryPath.directoryPath.append('test.dart');
   TestUtils.testScriptPath = scriptPath.toNativePath();
   var startTime = new Date.now();
@@ -60,10 +60,10 @@ void main() {
   var verbose = firstConfiguration['verbose'];
   var listTests = firstConfiguration['list'];
 
-  var configurationIterator = configurations.iterator();
+  var configurationIterator = configurations.iterator;
   void enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.hasNext) return;
-    var configuration = configurationIterator.next();
+    if (!configurationIterator.moveNext()) return;
+    var configuration = configurationIterator.current;
     for (String selector in selectors.keys) {
       if (selector == 'co19') {
         queue.addTestSuite(new Co19TestSuite(configuration));

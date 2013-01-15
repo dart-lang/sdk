@@ -161,7 +161,7 @@ bool Intrinsifier::Array_getIndexed(Assembler* assembler) {
   __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
   // Note that RBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
-  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)));
+  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()));
   __ ret();
   __ Bind(&fall_through);
   return false;
@@ -191,7 +191,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   // Destroy RCX as we will not continue in the function.
   __ StoreIntoObject(RAX,
-                     FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)),
+                     FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()),
                      RDX);
   // Caller is responsible of preserving the value if necessary.
   __ ret();
@@ -304,7 +304,7 @@ bool Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
 
   // Note that RCX is Smi, i.e, times 4.
   ASSERT(kSmiTagShift == 1);
-  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)));
+  __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()));
   __ ret();
   __ Bind(&fall_through);
   return false;
@@ -331,7 +331,7 @@ bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
   // Note that RCX is Smi, i.e, times 4.
   ASSERT(kSmiTagShift == 1);
   __ StoreIntoObject(RAX,
-                     FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)),
+                     FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()),
                      RDX);
   __ ret();
   __ Bind(&fall_through);
@@ -400,7 +400,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Value
   ASSERT(kSmiTagShift == 1);
   __ StoreIntoObject(RDX,
-                     FieldAddress(RDX, RCX, TIMES_4, sizeof(RawArray)),
+                     FieldAddress(RDX, RCX, TIMES_4, Array::data_offset()),
                      RAX);
   const Immediate raw_null =
       Immediate(reinterpret_cast<int64_t>(Object::null()));
@@ -513,6 +513,52 @@ bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
   __ cmpq(RDI, Immediate(0xFF));
   __ j(ABOVE, &fall_through, Assembler::kNearJump);
   __ movb(FieldAddress(RAX, R12, TIMES_1, Uint8Array::data_offset()), RDI);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::UintClamped8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ SmiUntag(R12);
+  __ movzxb(RAX, FieldAddress(RAX,
+                              R12,
+                              TIMES_1,
+                              Uint8ClampedArray::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint8ClampedArray_setIndexed(Assembler* assembler) {
+  Label fall_through, store_value, load_0xff;
+  // Verify that the array index is valid.
+  TestByteArraySetIndex(assembler, &fall_through);
+  // After TestByteArraySetIndex:
+  // * RAX has the base address of the byte array.
+  // * R12 has the index into the array.
+  // R12 contains the SMI index which is shifted by 1.
+  __ SmiUntag(R12);
+  __ movq(RDI, Address(RSP, + 1 * kWordSize));  // Value.
+  __ testq(RDI, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+
+  __ SmiUntag(RDI);
+  __ cmpq(RDI, Immediate(0xFF));
+  __ j(BELOW_EQUAL, &store_value, Assembler::kNearJump);
+  __ j(GREATER, &load_0xff,  Assembler::kNearJump);
+  __ xorq(RDI, RDI);  // Zero.
+  __ jmp(&store_value, Assembler::kNearJump);
+  __ Bind(&load_0xff);
+  __ movq(RDI, Immediate(0xFF));
+
+  __ Bind(&store_value);
+  __ movb(
+      FieldAddress(RAX, R12, TIMES_1, Uint8ClampedArray::data_offset()), RDI);
   __ ret();
   __ Bind(&fall_through);
   return false;
@@ -1441,98 +1487,6 @@ bool Intrinsifier::Object_equal(Assembler* assembler) {
   __ LoadObject(RAX, Bool::True());
   __ ret();
   return true;
-}
-
-
-static intptr_t GetOffsetForField(const char* class_name_p,
-                                  const char* field_name_p) {
-  const String& class_name = String::Handle(Symbols::New(class_name_p));
-  const String& field_name = String::Handle(Symbols::New(field_name_p));
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Class& cls =
-      Class::Handle(core_lib.LookupClassAllowPrivate(class_name));
-  ASSERT(!cls.IsNull());
-  const Field& field = Field::ZoneHandle(cls.LookupInstanceField(field_name));
-  ASSERT(!field.IsNull());
-  return field.Offset();
-}
-
-
-static const char* kFixedSizeArrayIteratorClassName = "_FixedSizeArrayIterator";
-
-// Class 'FixedSizeArrayIterator':
-//   T next() {
-//     return _array[_pos++];
-//   }
-// Intrinsify: return _array[_pos++];
-// TODO(srdjan): Throw a 'StateError' exception if the iterator
-// has no more elements.
-bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
-  Label fall_through;
-  const intptr_t array_offset =
-      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_array");
-  const intptr_t pos_offset =
-      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_pos");
-  ASSERT((array_offset >= 0) && (pos_offset >= 0));
-  // Receiver is not NULL.
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Receiver.
-  __ movq(RCX, FieldAddress(RAX, pos_offset));  // Field _pos.
-  // '_pos' cannot be greater than array length and therefore is always Smi.
-#if defined(DEBUG)
-  Label pos_ok;
-  __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(ZERO, &pos_ok, Assembler::kNearJump);
-  __ Stop("pos must be Smi");
-  __ Bind(&pos_ok);
-#endif
-  // Check that we are not trying to call 'next' when 'hasNext' is false.
-  __ movq(RAX, FieldAddress(RAX, array_offset));  // Field _array.
-  __ cmpq(RCX, FieldAddress(RAX, Array::length_offset()));  // Range check.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-
-  // RCX is Smi, i.e, times 2.
-  ASSERT(kSmiTagShift == 1);
-  __ movq(RDI, FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)));  // Result.
-  const Immediate value = Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
-  __ addq(RCX, value);  // _pos++.
-  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Receiver.
-  __ StoreIntoObjectNoBarrier(RAX,
-                              FieldAddress(RAX, pos_offset),
-                              RCX);  // Store _pos.
-  __ movq(RAX, RDI);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-// Class 'FixedSizeArrayIterator':
-//   bool get hasNext {
-//     return _length > _pos;
-//   }
-bool Intrinsifier::FixedSizeArrayIterator_getHasNext(Assembler* assembler) {
-  Label fall_through, is_true;
-  const intptr_t length_offset =
-      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_length");
-  const intptr_t pos_offset =
-      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_pos");
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));     // Receiver.
-  __ movq(RCX, FieldAddress(RAX, length_offset));  // Field _length.
-  __ movq(RAX, FieldAddress(RAX, pos_offset));     // Field _pos.
-  __ movq(RDI, RAX);
-  __ orq(RDI, RCX);
-  __ testq(RDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi _length/_pos.
-  __ cmpq(RCX, RAX);     // _length > _pos.
-  __ j(GREATER, &is_true, Assembler::kNearJump);
-  __ LoadObject(RAX, Bool::False());
-  __ ret();
-  __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True());
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
 }
 
 

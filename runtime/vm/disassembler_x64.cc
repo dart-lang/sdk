@@ -791,7 +791,7 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
     return obj.ToCString();
   }
 
-  const Class& clazz = Class::CheckedHandle(obj.clazz());
+  const Class& clazz = Class::Handle(obj.clazz());
   const char* full_class_name = clazz.ToCString();
   const char* format = "instance of %s";
   intptr_t len = OS::SNPrint(NULL, 0, format, full_class_name) + 1;
@@ -809,17 +809,18 @@ void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
   if (((addr & kSmiTagMask) == kHeapObjectTag) &&
       !Isolate::Current()->heap()->CodeContains(addr) &&
       Isolate::Current()->heap()->Contains(addr - kHeapObjectTag)) {
-    Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
+    const Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
     if (obj.IsArray()) {
-      const Array& arr = Array::CheckedHandle(obj.raw());
+      const Array& arr = Array::Cast(obj);
       intptr_t len = arr.Length();
       if (len > 5) len = 5;  // Print a max of 5 elements.
       AppendToBuffer("  Array[");
       int i = 0;
+      Object& element = Object::Handle();
       while (i < len) {
-        obj = arr.At(i);
+        element = arr.At(i);
         if (i > 0) AppendToBuffer(", ");
-        AppendToBuffer("%s", ObjectToCStringNoGC(obj));
+        AppendToBuffer("%s", ObjectToCStringNoGC(element));
         i++;
       }
       if (i < arr.Length()) AppendToBuffer(", ...");
@@ -1850,8 +1851,9 @@ void Disassembler::Disassemble(uword start,
     const intptr_t offset = pc - start;
     while (comment_finger < comments.Length() &&
            comments.PCOffsetAt(comment_finger) <= offset) {
-      formatter->Print("        ;; %s\n",
-                       comments.CommentAt(comment_finger).ToCString());
+      formatter->Print(
+          "        ;; %s\n",
+          String::Handle(comments.CommentAt(comment_finger)).ToCString());
       comment_finger++;
     }
     int instruction_length = DecodeInstruction(hex_buffer,

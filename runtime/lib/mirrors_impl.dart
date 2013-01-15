@@ -156,8 +156,8 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     try {
       completer.complete(
           _invoke(this, memberName, positionalArguments));
-    } catch (exception) {
-      completer.completeException(exception);
+    } catch (exception, s) {
+      completer.completeError(exception, s);
     }
     return completer.future;
   }
@@ -167,8 +167,8 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
       completer.complete(_getField(this, fieldName));
-    } catch (exception) {
-      completer.completeException(exception);
+    } catch (exception, s) {
+      completer.completeError(exception, s);
     }
     return completer.future;
   }
@@ -180,8 +180,8 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
       completer.complete(_setField(this, fieldName, arg));
-    } catch (exception) {
-      completer.completeException(exception);
+    } catch (exception, s) {
+      completer.completeError(exception, s);
     }
     return completer.future;
   }
@@ -320,7 +320,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
       completer.complete(
           _apply(this, positionalArguments));
     } catch (exception) {
-      completer.completeException(exception);
+      completer.completeError(exception);
     }
     return completer.future;
   }
@@ -518,7 +518,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       completer.complete(
           _invokeConstructor(this, constructorName, positionalArguments));
     } catch (exception) {
-      completer.completeException(exception);
+      completer.completeError(exception);
     }
     return completer.future;
   }
@@ -952,7 +952,7 @@ class _Mirrors {
       try {
         completer.complete(currentMirrorSystem());
       } catch (exception) {
-        completer.completeException(exception);
+        completer.completeError(exception);
       }
     } else {
       // Make a remote mirror system

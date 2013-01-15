@@ -42,7 +42,7 @@ void main() {
   Expect.equals(3, l1.length, "length-2");
 
   // Fixed size list.
-  var l2 = new List(5);
+  var l2 = new List.fixedLength(5);
   for (var i = 0; i < 5; i++) l2[i] = i;
   Expect.throws(() { l2.removeAt(2); },
                 (e) => e is UnsupportedError,

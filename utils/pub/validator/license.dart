@@ -4,6 +4,8 @@
 
 library pubspec_field_validator;
 
+import 'dart:async';
+
 import '../entrypoint.dart';
 import '../io.dart';
 import '../system_cache.dart';
@@ -15,10 +17,10 @@ class LicenseValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    return listDir(entrypoint.root.dir).transform((files) {
+    return listDir(entrypoint.root.dir).then((files) {
       var licenseLike = new RegExp(
           r"^([a-zA-Z0-9]+[-_])?(LICENSE|COPYING)(\..*)?$");
-      if (files.map(basename).some(licenseLike.hasMatch)) return;
+      if (files.mappedBy(basename).any(licenseLike.hasMatch)) return;
 
       errors.add(
           "You must have a COPYING or LICENSE file in the root directory.\n"

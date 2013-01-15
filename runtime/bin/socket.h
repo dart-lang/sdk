@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -38,6 +38,7 @@ class Socket {
   static intptr_t GetPort(intptr_t fd);
   static bool GetRemotePeer(intptr_t fd, char* host, intptr_t* port);
   static void GetError(intptr_t fd, OSError* os_error);
+  static int GetType(intptr_t fd);
   static intptr_t GetStdioHandle(int num);
 
   // Perform a IPv4 hostname lookup. Returns the hostname string in

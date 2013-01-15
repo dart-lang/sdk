@@ -53,6 +53,7 @@ class Exceptions : AllStatic {
     kArgument,
     kNoSuchMethod,
     kFormat,
+    kUnsupported,
     kStackOverflow,
     kOutOfMemory,
     kInternalError,

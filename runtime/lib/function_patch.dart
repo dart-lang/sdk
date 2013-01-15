@@ -13,10 +13,10 @@ patch class Function {
         (positionalArguments != null ? positionalArguments.length : 0);
     int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List(numArguments);
+    List arguments = new List.fixedLength(numArguments);
     arguments[0] = function;
     arguments.setRange(1, numPositionalArguments - 1, positionalArguments);
-    List names = new List(numNamedArguments);
+    List names = new List.fixedLength(numNamedArguments);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {

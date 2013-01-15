@@ -4,8 +4,9 @@
 
 library credentials_test;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as JSON;
 import 'dart:uri';
 
 import '../../unittest/lib/unittest.dart';
@@ -43,15 +44,19 @@ void main() {
     var credentials = new oauth2.Credentials(
         'access token', null, tokenEndpoint);
     expect(credentials.canRefresh, false);
-    expect(credentials.refresh('identifier', 'secret', httpClient: httpClient),
-        throwsStateError);
+    credentials.refresh('identifier', 'secret', httpClient: httpClient)
+        .catchError(expectAsync1((e) {
+          expect(e.error is StateError, isTrue);
+        }));
   });
 
   test("can't refresh without a token endpoint", () {
     var credentials = new oauth2.Credentials('access token', 'refresh token');
     expect(credentials.canRefresh, false);
-    expect(credentials.refresh('identifier', 'secret', httpClient: httpClient),
-        throwsStateError);
+    credentials.refresh('identifier', 'secret', httpClient: httpClient)
+        .catchError(expectAsync1((e) {
+          expect(e.error is StateError, isTrue);
+        }));
   });
 
   test("can refresh with a refresh token and a token endpoint", () {
@@ -79,7 +84,7 @@ void main() {
 
     
     expect(credentials.refresh('identifier', 'secret', httpClient: httpClient)
-        .transform((credentials) {
+        .then((credentials) {
       expect(credentials.accessToken, equals('new access token'));
       expect(credentials.refreshToken, equals('new refresh token'));
     }), completes);
@@ -108,7 +113,7 @@ void main() {
 
     
     expect(credentials.refresh('identifier', 'secret', httpClient: httpClient)
-        .transform((credentials) {
+        .then((credentials) {
       expect(credentials.accessToken, equals('new access token'));
       expect(credentials.refreshToken, equals('refresh token'));
     }), completes);

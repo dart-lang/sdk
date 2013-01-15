@@ -5,8 +5,8 @@
 import "dart:io";
 
 void runTests(String executable, String script, Iterator iterator) {
-  if (iterator.hasNext) {
-    var progressIndicator = iterator.next();
+  if (iterator.moveNext()) {
+    var progressIndicator = iterator.current;
     Process.run(executable, [script, progressIndicator]).then((result) {
       Expect.equals(1, result.exitCode);
       if (progressIndicator == 'buildbot') {
@@ -18,7 +18,7 @@ void runTests(String executable, String script, Iterator iterator) {
 }
 
 main() {
-  var scriptPath = new Path.fromNative(new Options().script);
+  var scriptPath = new Path(new Options().script);
   var scriptDirPath = scriptPath.directoryPath;
   var exitCodeScriptPath =
     scriptDirPath.append('test_runner_exit_code_script.dart');
@@ -26,6 +26,6 @@ main() {
   var executable = new Options().executable;
   var progressTypes = ['compact', 'color', 'line', 'verbose',
                        'status', 'buildbot'];
-  var iterator = progressTypes.iterator();
+  var iterator = progressTypes.iterator;
   runTests(executable, script, iterator);
 }

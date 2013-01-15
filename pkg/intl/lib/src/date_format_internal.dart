@@ -13,6 +13,7 @@
  */
 
 library date_format_internal;
+import 'dart:async';
 import 'intl_helpers.dart';
 import '../date_symbols.dart';
 

@@ -23,7 +23,7 @@ void checkFileEmpty(String fileName) {
 void checkFileContent(String fileName, String content) {
   RandomAccessFile pipeOut  = new File(fileName).openSync();
   int length = pipeOut.lengthSync();
-  List data = new List<int>(length);
+  List data = new List<int>.fixedLength(length);
   pipeOut.readListSync(data, 0, length);
   Expect.equals(content, new String.fromCharCodes(data));
   pipeOut.closeSync();
@@ -71,9 +71,9 @@ void test(String shellScript, String dartScript, String type) {
     process.stdout.onData = process.stdout.read;
     process.stderr.onData = process.stderr.read;
   });
-  future.handleException((ProcessException error) {
+  future.catchError((error) {
     dir.deleteSync(recursive: true);
-    Expect.fail(error.toString());
+    Expect.fail(error.error.toString());
   });
 }
 

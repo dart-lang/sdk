@@ -5,14 +5,16 @@
 /// Helpers for dealing with HTTP.
 library pub.http;
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 
 // TODO(nweiz): Make this import better.
 import '../../pkg/http/lib/http.dart' as http;
 import 'curl_client.dart';
 import 'io.dart';
 import 'log.dart' as log;
+import 'utils.dart';
 
 // TODO(nweiz): make this configurable
 /// The amount of time in milliseconds to allow HTTP requests before assuming
@@ -41,7 +43,7 @@ class PubHttpClient extends http.BaseClient {
 
     // TODO(nweiz): Ideally the timeout would extend to reading from the
     // response input stream, but until issue 3657 is fixed that's not feasible.
-    return timeout(inner.send(request).chain((streamedResponse) {
+    return timeout(inner.send(request).then((streamedResponse) {
       log.fine("Got response ${streamedResponse.statusCode} "
                "${streamedResponse.reasonPhrase}.");
 
@@ -52,19 +54,19 @@ class PubHttpClient extends http.BaseClient {
         return new Future.immediate(streamedResponse);
       }
 
-      return http.Response.fromStream(streamedResponse).transform((response) {
+      return http.Response.fromStream(streamedResponse).then((response) {
         throw new PubHttpException(response);
       });
-    }).transformException((e) {
-      if (e is SocketIOException &&
-          e.osError != null &&
-          (e.osError.errorCode == 8 ||
-           e.osError.errorCode == -2 ||
-           e.osError.errorCode == -5 ||
-           e.osError.errorCode == 11004)) {
+    }).catchError((asyncError) {
+      if (asyncError.error is SocketIOException &&
+          asyncError.error.osError != null &&
+          (asyncError.error.osError.errorCode == 8 ||
+           asyncError.error.osError.errorCode == -2 ||
+           asyncError.error.osError.errorCode == -5 ||
+           asyncError.error.osError.errorCode == 11004)) {
         throw 'Could not resolve URL "${request.url.origin}".';
       }
-      throw e;
+      throw asyncError;
     }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
   }
 }
@@ -109,7 +111,7 @@ void handleJsonError(http.Response response) {
 Map parseJsonResponse(http.Response response) {
   var value;
   try {
-    value = JSON.parse(response.body);
+    value = json.parse(response.body);
   } catch (e) {
     // TODO(nweiz): narrow this catch clause once issue 6775 is fixed.
     invalidServerResponse(response);

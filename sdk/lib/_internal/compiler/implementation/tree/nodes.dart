@@ -288,7 +288,9 @@ class Send extends Expression {
     if (argumentsNode != null) argumentsNode.accept(visitor);
   }
 
-  int argumentCount() => (argumentsNode == null) ? -1 : argumentsNode.length();
+  int argumentCount() {
+    return (argumentsNode == null) ? -1 : argumentsNode.slowLength();
+  }
 
   bool get isSuperCall {
     return receiver != null &&
@@ -410,7 +412,7 @@ class NewExpression extends Expression {
   Token getEndToken() => send.getEndToken();
 }
 
-class NodeList extends Node implements Iterable<Node> {
+class NodeList extends Node {
   final Link<Node> nodes;
   final Token beginToken;
   final Token endToken;
@@ -419,14 +421,14 @@ class NodeList extends Node implements Iterable<Node> {
 
   NodeList([this.beginToken, this.nodes, this.endToken, this.delimiter]);
 
-  Iterator<Node> iterator() => nodes.iterator();
+  Iterator<Node> get iterator => nodes.iterator;
 
   NodeList.singleton(Node node) : this(null, const Link<Node>().prepend(node));
   NodeList.empty() : this(null, const Link<Node>());
 
   NodeList asNodeList() => this;
 
-  int length() {
+  int slowLength() {
     int result = 0;
     for (Link<Node> cursor = nodes; !cursor.isEmpty; cursor = cursor.tail) {
       result++;
@@ -686,7 +688,7 @@ class LiteralInt extends Literal<int> {
     try {
       Token valueToken = token;
       if (identical(valueToken.kind, PLUS_TOKEN)) valueToken = valueToken.next;
-      return parseInt(valueToken.value.slowToString());
+      return int.parse(valueToken.value.slowToString());
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
     }
@@ -705,7 +707,7 @@ class LiteralDouble extends Literal<double> {
     try {
       Token valueToken = token;
       if (identical(valueToken.kind, PLUS_TOKEN)) valueToken = valueToken.next;
-      return parseDouble(valueToken.value.slowToString());
+      return double.parse(valueToken.value.slowToString());
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
     }

@@ -63,7 +63,7 @@ class _SomeElement extends _CollectionMatcher {
   _SomeElement(this._matcher);
 
   bool matches(item, MatchState matchState) {
-    return item.some( (e) => _matcher.matches(e, matchState) );
+    return item.any((e) => _matcher.matches(e, matchState));
   }
 
   Description describe(Description description) =>
@@ -143,7 +143,7 @@ class _UnorderedEquals extends BaseMatcher {
     } else if (expectedLength < actualLength) {
       return 'has too many elements (${actualLength} > ${expectedLength})';
     }
-    List<bool> matched = new List<bool>(actualLength);
+    List<bool> matched = new List<bool>.fixedLength(actualLength);
     for (var i = 0; i < actualLength; i++) {
       matched[i] = false;
     }

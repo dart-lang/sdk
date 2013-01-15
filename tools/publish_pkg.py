@@ -160,7 +160,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ''');
 
   replaceInFiles.append(
-    (r'(import|part)(\s+)(\'|")(\.\./)+pkg/', r'\1\2\3package:'))
+    (r'(import|part)(\s+)(\'|")(\.\./)+pkg/([^/]+/)lib/', r'\1\2\3package:\5'))
 
   # Replace '../*/pkg' imports and parts.
   for root, dirs, files in os.walk(os.path.join(tmpDir, pkgName)):

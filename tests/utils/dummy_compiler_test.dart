@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Smoke test of the dart2js compiler API.
-
 library dummy_compiler;
 
-import '../../sdk/lib/_internal/compiler/compiler.dart';
+import 'dart:async';
 import 'dart:uri';
+
+import '../../sdk/lib/_internal/compiler/compiler.dart';
 
 Future<String> provider(Uri uri) {
   Completer<String> completer = new Completer<String>();
@@ -38,8 +39,16 @@ Future<String> provider(Uri uri) {
       source = '';
     } else if (uri.path.endsWith('interceptors.dart')) {
       source = """class ObjectInterceptor {}
-                  class JSArray {}
-                  class JSString {}
+                  class JSArray {
+                    var length;
+                    var removeLast;
+                    var add;
+                  }
+                  class JSString {
+                    var length;
+                    var split;
+                    var concat;
+                  }
                   class JSFunction {}
                   class JSInt {}
                   class JSDouble {}

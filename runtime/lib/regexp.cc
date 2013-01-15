@@ -19,8 +19,8 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
   GET_NON_NULL_NATIVE_ARGUMENT(
       Instance, handle_multi_line, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(
-      Instance, handle_ignore_case, arguments->NativeArgAt(3));
-  bool ignore_case = handle_ignore_case.raw() == Bool::True().raw();
+      Instance, handle_case_sensitive, arguments->NativeArgAt(3));
+  bool ignore_case = handle_case_sensitive.raw() != Bool::True().raw();
   bool multi_line = handle_multi_line.raw() == Bool::True().raw();
   return Jscre::Compile(pattern, multi_line, ignore_case);
 }
@@ -33,17 +33,17 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getPattern, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_multiLine, 1) {
+DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getIsMultiLine, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
   return Bool::Get(regexp.is_multi_line());
 }
 
 
-DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ignoreCase, 1) {
+DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getIsCaseSensitive, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  return Bool::Get(regexp.is_ignore_case());
+  return Bool::Get(!regexp.is_ignore_case());
 }
 
 

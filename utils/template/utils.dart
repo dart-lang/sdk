@@ -7,7 +7,7 @@
 
 // TODO(jmesserly): we might want a version of this that return an iterable,
 // however JS, Python and Ruby versions are all eager.
-List map(Iterable source, mapper(source)) {
+List mappedBy(Iterable source, mapper(source)) {
   List result = new List();
   if (source is List) {
     List list = source; // TODO: shouldn't need this
@@ -24,26 +24,29 @@ List map(Iterable source, mapper(source)) {
 }
 
 reduce(Iterable source, callback, [initialValue]) {
-  final i = source.iterator();
+  final i = source.iterator;
 
   var current = initialValue;
-  if (current == null && i.hasNext) {
-    current = i.next();
+  if (current == null && i.moveNext()) {
+    current = i.current;
   }
-  while (i.hasNext) {
-    current = callback(current, i.next());
+  while (i.moveNext()) {
+    current = callback(current, i.current);
   }
   return current;
 }
 
 List zip(Iterable left, Iterable right, mapper(left, right)) {
   List result = new List();
-  var x = left.iterator();
-  var y = right.iterator();
-  while (x.hasNext && y.hasNext) {
-    result.add(mapper(x.next(), y.next()));
+  var x = left.iterator;
+  var y = right.iterator;
+  while (x.moveNext()) {
+    if (!y.moveNext()) {
+      throw new ArgumentError();
+    }
+    result.add(mapper(x.current, y.current));
   }
-  if (x.hasNext || y.hasNext) {
+  if (y.moveNext()) {
     throw new ArgumentError();
   }
   return result;

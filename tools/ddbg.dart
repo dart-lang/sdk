@@ -5,10 +5,9 @@
 // Simple interactive debugger shell that connects to the Dart VM's debugger
 // connection port.
 
-#import("dart:io");
-#import("dart:json");
-#import("dart:math", prefix: "Math");
-#import("dart:utf");
+import "dart:io";
+import "dart:json";
+import "dart:utf";
 
 
 Map<int, Completer> outstandingCommands;
@@ -67,9 +66,9 @@ Future sendCmd(Map<String, dynamic> cmd) {
   int id = cmd["id"];
   outstandingCommands[id] = completer;
   if (verbose) {
-    print("sending: '${JSON.stringify(cmd)}'");
+    print("sending: '${jsonStringify(cmd)}'");
   }
-  vmStream.writeString(JSON.stringify(cmd));
+  vmStream.writeString(jsonStringify(cmd));
   return completer.future;
 }
 
@@ -103,10 +102,10 @@ void processCommand(String cmdLine) {
     var url, line;
     if (args.length == 2) {
       url = stackTrace[0]["location"]["url"];
-      line = Math.parseInt(args[1]);
+      line = int.parse(args[1]);
     } else {
       url = args[1];
-      line = Math.parseInt(args[2]);
+      line = int.parse(args[2]);
     }
     var cmd = { "id": seqNum,
                 "command": "setBreakpoint",
@@ -118,19 +117,19 @@ void processCommand(String cmdLine) {
     var cmd = { "id": seqNum,
                 "command": "removeBreakpoint",
                 "params": { "isolateId" : isolate_id,
-                            "breakpointId": Math.parseInt(args[1]) } };
+                            "breakpointId": int.parse(args[1]) } };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
   } else if (command == "ls" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getScriptURLs",
                 "params": { "isolateId" : isolate_id,
-                            "libraryId": Math.parseInt(args[1]) } };
+                            "libraryId": int.parse(args[1]) } };
     sendCmd(cmd).then((result) => handleGetScriptsResponse(result));
   } else if (command == "po" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getObjectProperties",
                 "params": { "isolateId" : isolate_id,
-                            "objectId": Math.parseInt(args[1]) } };
+                            "objectId": int.parse(args[1]) } };
     sendCmd(cmd).then((result) => handleGetObjPropsResponse(result));
   } else if (command == "pl" && args.length >= 3) {
      var cmd;
@@ -138,47 +137,47 @@ void processCommand(String cmdLine) {
        cmd = { "id": seqNum,
                "command": "getListElements",
                "params": { "isolateId" : isolate_id,
-                           "objectId": Math.parseInt(args[1]),
-                           "index": Math.parseInt(args[2]) } };
+                           "objectId": int.parse(args[1]),
+                           "index": int.parse(args[2]) } };
     } else {
        cmd = { "id": seqNum,
                "command": "getListElements",
                "params": { "isolateId" : isolate_id,
-                           "objectId": Math.parseInt(args[1]),
-                           "index": Math.parseInt(args[2]),
-                           "length": Math.parseInt(args[3]) } };
+                           "objectId": int.parse(args[1]),
+                           "index": int.parse(args[2]),
+                           "length": int.parse(args[3]) } };
     }
     sendCmd(cmd).then((result) => handleGetListResponse(result));
   } else if (command == "pc" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getClassProperties",
                 "params": { "isolateId" : isolate_id,
-                            "classId": Math.parseInt(args[1]) } };
+                            "classId": int.parse(args[1]) } };
     sendCmd(cmd).then((result) => handleGetClassPropsResponse(result));
   } else if (command == "plib" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getLibraryProperties",
                 "params": {"isolateId" : isolate_id,
-                           "libraryId": Math.parseInt(args[1]) } };
+                           "libraryId": int.parse(args[1]) } };
     sendCmd(cmd).then((result) => handleGetLibraryPropsResponse(result));
   } else if (command == "slib" && args.length == 3) {
     var cmd = { "id": seqNum,
                 "command": "setLibraryProperties",
                 "params": {"isolateId" : isolate_id,
-                           "libraryId": Math.parseInt(args[1]),
+                           "libraryId": int.parse(args[1]),
                            "debuggingEnabled": args[2] } };
     sendCmd(cmd).then((result) => handleSetLibraryPropsResponse(result));
   } else if (command == "pg" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getGlobalVariables",
                 "params": { "isolateId" : isolate_id,
-                            "libraryId": Math.parseInt(args[1]) } };
+                            "libraryId": int.parse(args[1]) } };
     sendCmd(cmd).then((result) => handleGetGlobalVarsResponse(result));
   } else if (command == "gs" && args.length == 3) {
     var cmd = { "id": seqNum,
                 "command":  "getScriptSource",
                 "params": { "isolateId" : isolate_id,
-                            "libraryId": Math.parseInt(args[1]),
+                            "libraryId": int.parse(args[1]),
                             "url": args[2] } };
     sendCmd(cmd).then((result) => handleGetSourceResponse(result));
   } else if (command == "epi" && args.length == 2) {
@@ -190,7 +189,7 @@ void processCommand(String cmdLine) {
   } else if (command == "i" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "interrupt",
-                "params": { "isolateId": Math.parseInt(args[1]) } };
+                "params": { "isolateId": int.parse(args[1]) } };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
   } else if (command == "q") {
     quitShell();
@@ -412,7 +411,7 @@ void handlePausedEvent(msg) {
 
 
 void processVmMessage(String json) {
-  var msg = JSON.parse(json);
+  var msg = parseJson(json);
   if (msg == null) {
     return;
   }
@@ -483,7 +482,7 @@ void processVmData(String data) {
  * Skip past a JSON object value.
  * The object value must start with '{' and continues to the
  * matching '}'. No attempt is made to otherwise validate the contents
- * as JSON. If it is invalid, a later [JSON.parse] will fail.
+ * as JSON. If it is invalid, a later [parseJson] will fail.
  */
 int jsonObjectLength(String string) {
   int skipWhitespace(int index) {
@@ -509,14 +508,14 @@ int jsonObjectLength(String string) {
   index = skipWhitespace(index);
   // Bail out if the first non-whitespace character isn't '{'.
   if (index == string.length || string[index] != '{') return 0;
-  int nexting = 0;
+  int nesting = 0;
   while (index < string.length) {
     String char = string[index++];
     if (char == '{') {
-      nexting++;
+      nesting++;
     } else if (char == '}') {
-      nexting--;
-      if (nexting == 0) return index;
+      nesting--;
+      if (nesting == 0) return index;
     } else if (char == '"') {
       // Strings can contain braces. Skip their content.
       index = skipString(index);

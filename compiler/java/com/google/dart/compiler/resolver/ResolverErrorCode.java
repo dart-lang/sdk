@@ -13,6 +13,7 @@ import com.google.dart.compiler.SubSystem;
 public enum ResolverErrorCode implements ErrorCode {
   BLACK_LISTED_EXTENDS("'%s' can not be used as superclass"),
   BLACK_LISTED_IMPLEMENTS("'%s' can not be used as superinterface"),
+  BLACK_LISTED_MIXINS("'%s' can not be used as mixin"),
   BREAK_LABEL_RESOLVES_TO_CASE_OR_DEFAULT("break label resolves to case or default statement"),
   BUILT_IN_IDENTIFIER_AS_TYPE("Built-in identifier '%s' cannot be used as a type annotation"),
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
@@ -100,6 +101,7 @@ public enum ResolverErrorCode implements ErrorCode {
   DUPLICATE_PARAMETER("Duplicate parameter '%s'"),
   DUPLICATE_TOP_LEVEL_DECLARATION("duplicate top-level declaration %s at %s"),
   DUPLICATE_TYPE_VARIABLE("Duplicate type variable '%s'"),
+  DUPLICATE_WITH_TYPE("Duplicate type in the with clause"),
   // TODO(zundel): error message needs JUnit test, (reachable code?)
   EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS(
       "expected an instance field in the super class, but got %s"),
@@ -121,7 +123,6 @@ public enum ResolverErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_CONST("A factory cannot be const"),
   FIELD_DOES_NOT_HAVE_A_GETTER(ErrorSeverity.WARNING, "Field does not have a getter"),
   FIELD_DOES_NOT_HAVE_A_SETTER(ErrorSeverity.WARNING, "Field does not have a setter"),
-  FIELD_GETTER_SETTER_SAME_STATIC(ErrorSeverity.WARNING, "Field's getter and setter should be both static or not static"),
   FINAL_FIELD_MUST_BE_INITIALIZED("The final field %s must be initialized"),
   FORMAL_PARAMETER_NAME_EXPECTED("Formal parameter name expected"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
@@ -198,6 +199,7 @@ public enum ResolverErrorCode implements ErrorCode {
   STATIC_FINAL_REQUIRES_VALUE("Static final fields must have an initial value"),
   STATIC_METHOD_MUST_HAVE_BODY("Static method must have a body"),
   SUPER_CLASS_IN_IMPLEMENTS("Superclass in implements clause"),
+  SUPER_CLASS_IN_WITH("Superclass in with clause"),
   SUPER_IN_FACTORY_CONSTRUCTOR("Cannot use 'super' in a factory constructor"),
   SUPER_IN_STATIC_METHOD("Cannot use 'super' in a static method"),
   SUPER_OUTSIDE_OF_CONSTRUCTOR("Cannot use 'super' constructor outside of a constructor"),

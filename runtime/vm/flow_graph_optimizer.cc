@@ -131,8 +131,8 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* it,
                                       Instruction* current,
                                       Instruction* replacement,
                                       FlowGraph* graph) {
-  if ((replacement != NULL) && current->IsDefinition()) {
-    Definition* current_defn = current->AsDefinition();
+  Definition* current_defn = current->AsDefinition();
+  if ((replacement != NULL) && (current_defn != NULL)) {
     Definition* replacement_defn = replacement->AsDefinition();
     ASSERT(replacement_defn != NULL);
     current_defn->ReplaceUsesWith(replacement_defn);
@@ -144,21 +144,18 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* it,
                 replacement_defn->ssa_temp_index());
     }
   } else if (FLAG_trace_optimization) {
-    ASSERT(!current->IsDefinition() ||
-           ((current->AsDefinition()->input_use_list() == NULL) &&
-            (current->AsDefinition()->env_use_list() == NULL)));
-    if (current->IsDefinition()) {
-      OS::Print("Removing v%"Pd".\n",
-                current->AsDefinition()->ssa_temp_index());
-    } else {
+    if (current_defn == NULL) {
       OS::Print("Removing %s\n", current->DebugName());
+    } else {
+      ASSERT(!current_defn->HasUses());
+      OS::Print("Removing v%"Pd".\n", current_defn->ssa_temp_index());
     }
   }
   it->RemoveCurrentFromGraph();
 }
 
 
-void FlowGraphOptimizer::OptimizeComputations() {
+void FlowGraphOptimizer::Canonicalize() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* entry = block_order_[i];
     entry->Accept(this);
@@ -548,8 +545,19 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   switch (class_id) {
     case kArrayCid:
     case kGrowableObjectArrayCid:
-      // Acceptable store index classes.
+      if (ArgIsAlwaysSmi(*call->ic_data(), 2)) {
+        value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
+      }
       break;
+    case kUint8ArrayCid:
+      // Check that value is always smi.
+      value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
+      if ((value_check.NumberOfChecks() != 1) ||
+          (value_check.GetReceiverClassIdAt(0) != kSmiCid)) {
+        return false;
+      }
+      break;
+
     case kFloat32ArrayCid:
     case kFloat64ArrayCid: {
       // Check that value is always double.
@@ -592,13 +600,16 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         type_args = new Value(load_type_args);
         break;
       }
+      case kUint8ArrayCid:
       case kFloat32ArrayCid:
       case kFloat64ArrayCid: {
         ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
         InsertBefore(call, null_constant, NULL, Definition::kValue);
         instantiator = new Value(null_constant);
         type_args = new Value(null_constant);
-        ASSERT(value_type.IsDoubleType());
+        ASSERT((class_id != kUint8ArrayCid) || value_type.IsIntType());
+        ASSERT((class_id != kFloat32ArrayCid && class_id != kFloat64ArrayCid) ||
+               value_type.IsDoubleType());
         ASSERT(value_type.IsInstantiated());
         break;
       }
@@ -622,21 +633,24 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   Value* value = call->ArgumentAt(2)->value();
   // Check if store barrier is needed.
   bool needs_store_barrier = true;
-  if ((class_id == kFloat32ArrayCid) || (class_id == kFloat64ArrayCid)) {
-    ASSERT(!value_check.IsNull());
-    InsertBefore(call,
-                 new CheckClassInstr(value->Copy(),
-                                     call->deopt_id(),
-                                     value_check),
-                 call->env(),
-                 Definition::kEffect);
-    needs_store_barrier = false;
-  } else if (ArgIsAlwaysSmi(*call->ic_data(), 2)) {
-    InsertBefore(call,
-                 new CheckSmiInstr(value->Copy(), call->deopt_id()),
-                 call->env(),
-                 Definition::kEffect);
-    needs_store_barrier = false;
+  if (!value_check.IsNull()) {
+    ASSERT(value_check.NumberOfChecks() == 1);
+    if (value_check.GetReceiverClassIdAt(0) == kSmiCid) {
+      InsertBefore(call,
+                   new CheckSmiInstr(value->Copy(), call->deopt_id()),
+                   call->env(),
+                   Definition::kEffect);
+      needs_store_barrier = false;
+    } else {
+      ASSERT(value_check.GetReceiverClassIdAt(0) == kDoubleCid);
+      InsertBefore(call,
+                   new CheckClassInstr(value->Copy(),
+                                       call->deopt_id(),
+                                       value_check),
+                   call->env(),
+                   Definition::kEffect);
+      needs_store_barrier = false;
+    }
   }
 
   Definition* array_op =
@@ -658,6 +672,7 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kFloat32ArrayCid:
     case kFloat64ArrayCid:
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
       // Acceptable load index classes.
       break;
@@ -1227,22 +1242,38 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return true;
   }
 
-  if ((recognized_kind == MethodRecognizer::kDoubleToInteger) &&
-      (class_ids[0] == kDoubleCid)) {
-    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-    ASSERT(call->HasICData());
-    const ICData& ic_data = *call->ic_data();
-    Definition* d2i_instr = NULL;
-    if (ic_data.deopt_reason() == kDeoptDoubleToSmi) {
-      // Do not repeatedly deoptimize because result didn't fit into Smi.
-      d2i_instr = new DoubleToIntegerInstr(call->ArgumentAt(0)->value(), call);
-    } else {
-      // Optimistically assume result fits into Smi.
-      d2i_instr = new DoubleToSmiInstr(call->ArgumentAt(0)->value(), call);
+  if (class_ids[0] == kDoubleCid) {
+    if (recognized_kind == MethodRecognizer::kDoubleToInteger) {
+      AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+      ASSERT(call->HasICData());
+      const ICData& ic_data = *call->ic_data();
+      Definition* d2i_instr = NULL;
+      if (ic_data.deopt_reason() == kDeoptDoubleToSmi) {
+        // Do not repeatedly deoptimize because result didn't fit into Smi.
+        d2i_instr = new DoubleToIntegerInstr(call->ArgumentAt(0)->value(),
+                                             call);
+      } else {
+        // Optimistically assume result fits into Smi.
+        d2i_instr = new DoubleToSmiInstr(call->ArgumentAt(0)->value(), call);
+      }
+      call->ReplaceWith(d2i_instr, current_iterator());
+      RemovePushArguments(call);
+      return true;
     }
-    call->ReplaceWith(d2i_instr, current_iterator());
-    RemovePushArguments(call);
-    return true;
+    if ((recognized_kind == MethodRecognizer::kDoubleTruncate) ||
+        (recognized_kind == MethodRecognizer::kDoubleRound)) {
+      if (!CPUFeatures::sse4_1_supported()) {
+        return false;
+      }
+      AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+      DoubleToDoubleInstr* d2d_instr =
+          new DoubleToDoubleInstr(call->ArgumentAt(0)->value(),
+                                  call,
+                                  recognized_kind);
+      call->ReplaceWith(d2d_instr, current_iterator());
+      RemovePushArguments(call);
+      return true;
+    }
   }
 
   return false;
@@ -1264,15 +1295,10 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
   for (int i = 0; i < ic_data.NumberOfChecks(); i++) {
     cls = class_table.At(ic_data.GetReceiverClassIdAt(i));
     if (cls.HasTypeArguments()) return Bool::null();
-    bool is_subtype = false;
-    if (cls.IsNullClass()) {
-      is_subtype = type_class.IsDynamicClass() || type_class.IsObjectClass();
-    } else {
-      is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
-                                   type_class,
-                                   TypeArguments::Handle(),
-                                   NULL);
-    }
+    const bool is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
+                                            type_class,
+                                            TypeArguments::Handle(),
+                                            NULL);
     if (prev.IsNull()) {
       prev = is_subtype ? Bool::True().raw() : Bool::False().raw();
     } else {
@@ -1464,8 +1490,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 }
 
 
-// TODO(fschneider): Once we get rid of the distinction between Instruction
-// and computation, this helper can go away.
 static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
                                RelationalOpInstr* comp,
                                Instruction* instr) {
@@ -1507,8 +1531,6 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpInstr* instr) {
 }
 
 
-// TODO(fschneider): Once we get rid of the distinction between Instruction
-// and computation, this helper can go away.
 template <typename T>
 static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
                                   EqualityCompareInstr* comp,
@@ -1872,8 +1894,6 @@ class RangeAnalysis : public ValueObject {
                                           CheckArrayBoundInstr* check);
   Definition* LoadArrayLength(CheckArrayBoundInstr* check);
 
-
-
   // Replace uses of the definition def that are dominated by instruction dom
   // with uses of other definition.
   void RenameDominatedUses(Definition* def,
@@ -2230,7 +2250,7 @@ Definition* RangeAnalysis::LoadArrayLength(CheckArrayBoundInstr* check) {
     // It will only be used in range boundaries.
     LoadFieldInstr* length_load = new LoadFieldInstr(
         check->array()->Copy(),
-        Array::length_offset(),
+        CheckArrayBoundInstr::LengthOffsetFor(check->array_type()),
         Type::ZoneHandle(Type::SmiType()),
         true);  // Immutable.
     length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
@@ -2247,8 +2267,7 @@ Definition* RangeAnalysis::LoadArrayLength(CheckArrayBoundInstr* check) {
 
 void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
     Definition* defn, CheckArrayBoundInstr* check) {
-  if ((check->array_type() != kArrayCid) &&
-      (check->array_type() != kImmutableArrayCid)) {
+  if (!CheckArrayBoundInstr::IsFixedLengthArrayType(check->array_type())) {
     return;
   }
 
@@ -3670,15 +3689,7 @@ void ConstantPropagator::VisitGraphEntry(GraphEntryInstr* block) {
 
 
 void ConstantPropagator::VisitJoinEntry(JoinEntryInstr* block) {
-  ZoneGrowableArray<PhiInstr*>* phis = block->phis();
-  if (phis != NULL) {
-    for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
-      PhiInstr* phi = (*phis)[phi_idx];
-      if (phi == NULL) continue;
-      phi->Accept(this);
-    }
-  }
-
+  // Phis are visited when visiting Goto at a predecessor. See VisitGoto.
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     it.Current()->Accept(this);
   }
@@ -3719,6 +3730,12 @@ void ConstantPropagator::VisitReThrow(ReThrowInstr* instr) {
 
 void ConstantPropagator::VisitGoto(GotoInstr* instr) {
   SetReachable(instr->successor());
+
+  // Phi value depends on the reachability of a predecessor. We have
+  // to revisit phis every time a predecessor becomes reachable.
+  for (PhiIterator it(instr->successor()); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
 }
 
 
@@ -4202,6 +4219,12 @@ void ConstantPropagator::VisitDoubleToInteger(DoubleToIntegerInstr* instr) {
 
 
 void ConstantPropagator::VisitDoubleToSmi(DoubleToSmiInstr* instr) {
+  // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
   // TODO(kmillikin): Handle conversion.
   SetValue(instr, non_constant_);
 }

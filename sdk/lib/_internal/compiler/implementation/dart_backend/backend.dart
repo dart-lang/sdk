@@ -137,7 +137,7 @@ class DartBackend extends Backend {
     Set<DartType> processedTypes = new Set<DartType>();
     List<DartType> workQueue = new List<DartType>();
     workQueue.addAll(
-        classMembers.keys.map((classElement) => classElement.thisType));
+        classMembers.keys.mappedBy((classElement) => classElement.thisType));
     workQueue.addAll(compiler.resolverWorld.isChecks);
     Element typeErrorElement =
         compiler.coreLibrary.find(new SourceString('TypeError'));
@@ -196,7 +196,7 @@ class DartBackend extends Backend {
         stripAsserts = strips.indexOf('asserts') != -1,
         super(compiler);
 
-  void enqueueHelpers(Enqueuer world) {
+  void enqueueHelpers(ResolutionEnqueuer world) {
     // Right now resolver doesn't always resolve interfaces needed
     // for literals, so force them. TODO(antonm): fix in the resolver.
     final LITERAL_TYPE_NAMES = const [
@@ -208,9 +208,9 @@ class DartBackend extends Backend {
       classElement.ensureResolved(compiler);
     }
   }
-  void codegen(WorkItem work) { }
+  void codegen(CodegenWorkItem work) { }
   void processNativeClasses(Enqueuer world,
-                            Collection<LibraryElement> libraries) { }
+                            Iterable<LibraryElement> libraries) { }
 
   bool isUserLibrary(LibraryElement lib) {
     final INTERNAL_HELPERS = [
@@ -235,15 +235,16 @@ class DartBackend extends Backend {
           // TODO(smok): Figure out if there is a better way to fill local
           // members.
           element.parseNode(compiler);
-          for (final member in classElement.localMembers) {
+          classElement.forEachLocalMember((member) {
             final name = member.name.slowToString();
             // Skip operator names.
-            if (name.startsWith(r'operator$')) continue;
-            // Fetch name of named constructors and factories if any,
-            // otherwise store regular name.
-            // TODO(antonm): better way to analyze the name.
-            fixedMemberNames.add(name.split(r'$').last);
-          }
+            if (!name.startsWith(r'operator$')) {
+              // Fetch name of named constructors and factories if any,
+              // otherwise store regular name.
+              // TODO(antonm): better way to analyze the name.
+              fixedMemberNames.add(name.split(r'$').last);
+            }
+          });
         }
         // Even class names are added due to a delicate problem we have:
         // if one imports dart:core with a prefix, we cannot tell prefix.name
@@ -268,7 +269,7 @@ class DartBackend extends Backend {
     bool shouldOutput(Element element) {
       return !identical(element.kind, ElementKind.VOID)
           && isUserLibrary(element.getLibrary())
-          && element is !SynthesizedConstructorElement
+          && !element.isSynthesized
           && element is !AbstractFieldElement;
     }
 
@@ -360,8 +361,8 @@ class DartBackend extends Backend {
       // TODO(antonm): check with AAR team if there is better approach.
       // As an idea: provide template as a Dart code---class C { C.name(); }---
       // and then overwrite necessary parts.
-      SynthesizedConstructorElement constructor =
-          new SynthesizedConstructorElement(classElement);
+      SynthesizedConstructorElementX constructor =
+          new SynthesizedConstructorElementX(classElement);
       constructor.type = new FunctionType(
           compiler.types.voidType, const Link<DartType>(),
           constructor);
@@ -451,8 +452,8 @@ class DartBackend extends Backend {
   }
 
   void logResultBundleSizeInfo(Set<Element> topLevelElements) {
-    Collection<LibraryElement> referencedLibraries =
-        compiler.libraries.values.filter(isUserLibrary);
+    Iterable<LibraryElement> referencedLibraries =
+        compiler.libraries.values.where(isUserLibrary);
     // Sum total size of scripts in each referenced library.
     int nonPlatformSize = 0;
     for (LibraryElement lib in referencedLibraries) {
@@ -561,5 +562,5 @@ compareElements(e0, e1) {
   return compareBy((e) => e.position().charOffset)(e0, e1);
 }
 
-List<Element> sortElements(Collection<Element> elements) =>
+List<Element> sortElements(Iterable<Element> elements) =>
     sorted(elements, compareElements);

@@ -50,22 +50,10 @@ abstract class Queue<E> extends Collection<E> {
   void add(E value);
 
   /**
-   * Adds all elements of [collection] at the end of the queue. The
-   * length of the queue is extended by the length of [collection].
+   * Adds all elements of [iterable] at the end of the queue. The
+   * length of the queue is extended by the length of [iterable].
    */
-  void addAll(Collection<E> collection);
-
-  /**
-   * Returns the first element of the queue. Throws an
-   * [StateError] exception if this queue is empty.
-   */
-  E get first;
-
-  /**
-   * Returns the last element of the queue. Throws an
-   * [StateError] exception if this queue is empty.
-   */
-  E get last;
+  void addAll(Iterable<E> iterable);
 
   /**
    * Removes all elements in the queue. The size of the queue becomes zero.
@@ -172,7 +160,7 @@ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
  * WARNING: This class is temporary located in dart:core. It'll be removed
  * at some point in the near future.
  */
-class DoubleLinkedQueue<E> implements Queue<E> {
+class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   _DoubleLinkedQueueEntrySentinel<E> _sentinel;
 
   DoubleLinkedQueue() {
@@ -199,8 +187,8 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     addLast(value);
   }
 
-  void addAll(Collection<E> collection) {
-    for (final e in collection) {
+  void addAll(Iterable<E> iterable) {
+    for (final e in iterable) {
       add(e);
     }
   }
@@ -221,18 +209,20 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     return _sentinel._previous.element;
   }
 
+  E get single {
+    // Note that this also covers the case where the queue is empty.
+    if (identical(_sentinel._next, _sentinel._previous)) {
+      return _sentinel._next.element;
+    }
+    throw new StateError("More than one element");
+  }
+
   DoubleLinkedQueueEntry<E> lastEntry() {
     return _sentinel.previousEntry();
   }
 
   DoubleLinkedQueueEntry<E> firstEntry() {
     return _sentinel.nextEntry();
-  }
-
-  int get length {
-    int counter = 0;
-    forEach((E element) { counter++; });
-    return counter;
   }
 
   bool get isEmpty {
@@ -244,15 +234,6 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     _sentinel._previous = _sentinel;
   }
 
-  void forEach(void f(E element)) {
-    DoubleLinkedQueueEntry<E> entry = _sentinel._next;
-    while (!identical(entry, _sentinel)) {
-      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
-      f(entry._element);
-      entry = nextEntry;
-    }
-  }
-
   void forEachEntry(void f(DoubleLinkedQueueEntry<E> element)) {
     DoubleLinkedQueueEntry<E> entry = _sentinel._next;
     while (!identical(entry, _sentinel)) {
@@ -262,54 +243,7 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     }
   }
 
-  bool every(bool f(E element)) {
-    DoubleLinkedQueueEntry<E> entry = _sentinel._next;
-    while (!identical(entry, _sentinel)) {
-      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
-      if (!f(entry._element)) return false;
-      entry = nextEntry;
-    }
-    return true;
-  }
-
-  bool some(bool f(E element)) {
-    DoubleLinkedQueueEntry<E> entry = _sentinel._next;
-    while (!identical(entry, _sentinel)) {
-      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
-      if (f(entry._element)) return true;
-      entry = nextEntry;
-    }
-    return false;
-  }
-
-  Queue map(f(E element)) {
-    Queue other = new Queue();
-    DoubleLinkedQueueEntry<E> entry = _sentinel._next;
-    while (!identical(entry, _sentinel)) {
-      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
-      other.addLast(f(entry._element));
-      entry = nextEntry;
-    }
-    return other;
-  }
-
-  dynamic reduce(dynamic initialValue,
-                 dynamic combine(dynamic previousValue, E element)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
-  Queue<E> filter(bool f(E element)) {
-    Queue<E> other = new Queue<E>();
-    DoubleLinkedQueueEntry<E> entry = _sentinel._next;
-    while (!identical(entry, _sentinel)) {
-      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
-      if (f(entry._element)) other.addLast(entry._element);
-      entry = nextEntry;
-    }
-    return other;
-  }
-
-  _DoubleLinkedQueueIterator<E> iterator() {
+  _DoubleLinkedQueueIterator<E> get iterator {
     return new _DoubleLinkedQueueIterator<E>(_sentinel);
   }
 
@@ -319,22 +253,29 @@ class DoubleLinkedQueue<E> implements Queue<E> {
 }
 
 class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
-  final _DoubleLinkedQueueEntrySentinel<E> _sentinel;
-  DoubleLinkedQueueEntry<E> _currentEntry;
+  _DoubleLinkedQueueEntrySentinel<E> _sentinel;
+  DoubleLinkedQueueEntry<E> _currentEntry = null;
+  E _current;
 
-  _DoubleLinkedQueueIterator(_DoubleLinkedQueueEntrySentinel this._sentinel) {
-    _currentEntry = _sentinel;
-  }
+  _DoubleLinkedQueueIterator(_DoubleLinkedQueueEntrySentinel<E> sentinel)
+      : _sentinel = sentinel, _currentEntry = sentinel;
 
-  bool get hasNext {
-    return !identical(_currentEntry._next, _sentinel);
-  }
-
-  E next() {
-    if (!hasNext) {
-      throw new StateError("No more elements");
+  bool moveNext() {
+    // When [_currentEntry] it is set to [:null:] then it is at the end.
+    if (_currentEntry == null) {
+      assert(_current == null);
+      return false;
     }
     _currentEntry = _currentEntry._next;
-    return _currentEntry.element;
+    if (identical(_currentEntry, _sentinel)) {
+      _currentEntry = null;
+      _current = null;
+      _sentinel = null;
+      return false;
+    }
+    _current = _currentEntry.element;
+    return true;
   }
+
+  E get current => _current;
 }

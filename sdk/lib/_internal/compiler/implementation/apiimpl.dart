@@ -5,6 +5,7 @@
 library leg_apiimpl;
 
 import 'dart:uri';
+import 'dart:async';
 
 import '../compiler.dart' as api;
 import 'dart2jslib.dart' as leg;
@@ -42,7 +43,8 @@ class Compiler extends leg.Compiler {
                           '--report-sdk-use-of-deprecated-language-features'),
             strips: getStrips(options),
             enableConcreteTypeInference:
-                hasOption(options, '--enable-concrete-type-inference')) {
+                hasOption(options, '--enable-concrete-type-inference'),
+            preserveComments: hasOption(options, '--preserve-comments')) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");
     }
@@ -107,7 +109,7 @@ class Compiler extends leg.Compiler {
       try {
         // TODO(ahe): We expect the future to be complete and call value
         // directly. In effect, we don't support truly asynchronous API.
-        text = provider(translated).value;
+        text = deprecatedFutureValue(provider(translated));
       } catch (exception) {
         if (node != null) {
           cancel("$exception", node: node);

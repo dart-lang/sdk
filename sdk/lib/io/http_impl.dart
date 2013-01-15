@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -94,11 +94,11 @@ class _HttpRequestResponseBase {
     List<String> connection = headers[HttpHeaders.CONNECTION];
     if (_protocolVersion == "1.1") {
       if (connection == null) return true;
-      return !headers[HttpHeaders.CONNECTION].some(
+      return !headers[HttpHeaders.CONNECTION].any(
           (value) => value.toLowerCase() == "close");
     } else {
       if (connection == null) return false;
-      return headers[HttpHeaders.CONNECTION].some(
+      return headers[HttpHeaders.CONNECTION].any(
           (value) => value.toLowerCase() == "keep-alive");
     }
   }
@@ -500,6 +500,9 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     _writeDone();
     // Indicate to the connection that the response handling is done.
     _httpConnection._responseClosed();
+    if (_streamClosedHandler != null) {
+      new Timer(0, (_) => _streamClosedHandler());
+    }
   }
 
   void _streamSetNoPendingWriteHandler(callback()) {
@@ -508,8 +511,8 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     }
   }
 
-  void _streamSetCloseHandler(callback()) {
-    // TODO(sgjesse): Handle this.
+  void _streamSetClosedHandler(callback()) {
+    _streamClosedHandler = callback;
   }
 
   void _streamSetErrorHandler(callback(e)) {
@@ -621,6 +624,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   int _statusCode;  // Response status code.
   String _reasonPhrase;  // Response reason phrase.
   _HttpOutputStream _outputStream;
+  Function _streamClosedHandler;
   Function _streamErrorHandler;
 }
 
@@ -699,7 +703,7 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
   }
 
   void set onClosed(void callback()) {
-    _requestOrResponse._streamSetCloseHandler(callback);
+    _requestOrResponse._streamSetClosedHandler(callback);
   }
 
   void set onError(void callback(e)) {
@@ -1199,6 +1203,9 @@ class _HttpClientRequest
     // Ensure that any trailing data is written.
     _writeDone();
     _connection._requestClosed();
+    if (_streamClosedHandler != null) {
+      new Timer(0, (_) => _streamClosedHandler());
+    }
   }
 
   void _streamSetNoPendingWriteHandler(callback()) {
@@ -1207,8 +1214,8 @@ class _HttpClientRequest
     }
   }
 
-  void _streamSetCloseHandler(callback()) {
-    // TODO(sgjesse): Handle this.
+  void _streamSetClosedHandler(callback()) {
+    _streamClosedHandler = callback;
   }
 
   void _streamSetErrorHandler(callback(e)) {
@@ -1265,13 +1272,14 @@ class _HttpClientRequest
   Uri _uri;
   _HttpClientConnection _connection;
   _HttpOutputStream _outputStream;
+  Function _streamClosedHandler;
   Function _streamErrorHandler;
   bool _emptyBody = true;
 }
 
-
 class _HttpClientResponse
-    extends _HttpRequestResponseBase implements HttpClientResponse {
+    extends _HttpRequestResponseBase
+    implements HttpClientResponse {
   _HttpClientResponse(_HttpClientConnection connection)
       : super(connection) {
     _connection = connection;
@@ -1688,6 +1696,12 @@ class _HttpClientConnection
     if (url == null) {
       url = new Uri.fromString(_response.headers.value(HttpHeaders.LOCATION));
     }
+    // Always set the content length to 0 for redirects.
+    var mutable = _request._headers._mutable;
+    _request._headers._mutable = true;
+    _request._headers.contentLength = 0;
+    _request._headers._mutable = mutable;
+    _request._bodyBytesWritten = 0;
     var redirect = new _RedirectInfo(_response.statusCode, method, url);
     // The actual redirect is postponed until both response and
     // request are done.

@@ -17,7 +17,7 @@ class SocketManyConnectionsTest {
       : _receivePort = new ReceivePort(),
         _sendPort = null,
         _connections = 0,
-        _sockets = new List<Socket>(CONNECTIONS) {
+        _sockets = new List<Socket>.fixedLength(CONNECTIONS) {
     _sendPort = spawnFunction(startTestServer);
     initialize();
   }

@@ -17,8 +17,8 @@ import 'serialization_helpers.dart';
  * Return a list of all the public fields of a class, including inherited
  * fields.
  */
-List<VariableMirror> publicFields(ClassMirror mirror) {
-  var mine = mirror.variables.values.filter(
+Iterable<VariableMirror> publicFields(ClassMirror mirror) {
+  var mine = mirror.variables.values.where(
       (x) => !(x.isPrivate || x.isStatic));
   var mySuperclass = mirror.superclass;
   if (mySuperclass != mirror) {
@@ -42,13 +42,13 @@ bool hasField(String name, ClassMirror mirror) {
  * Return a list of all the getters of a class, including inherited
  * getters. Note that this allows private getters, but excludes statics.
  */
-List<MethodMirror> publicGetters(ClassMirror mirror) {
-  var mine = mirror.getters.values.filter((x) => !(x.isPrivate || x.isStatic));
+Iterable<MethodMirror> publicGetters(ClassMirror mirror) {
+  var mine = mirror.getters.values.where((x) => !(x.isPrivate || x.isStatic));
   var mySuperclass = mirror.superclass;
   if (mySuperclass != mirror) {
     return append(publicGetters(mirror.superclass), mine);
   } else {
-    return mine;
+    return mine.toList();
   }
 }
 
@@ -65,9 +65,9 @@ bool hasGetter(String name, ClassMirror mirror) {
  * Return a list of all the public getters of a class which have corresponding
  * setters.
  */
-List<MethodMirror> publicGettersWithMatchingSetters(ClassMirror mirror) {
+Iterable<MethodMirror> publicGettersWithMatchingSetters(ClassMirror mirror) {
   var setters = mirror.setters;
-  return publicGetters(mirror).filter((each) =>
+  return publicGetters(mirror).where((each) =>
     setters["${each.simpleName}="] != null);
 }
 

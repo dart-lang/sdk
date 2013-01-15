@@ -153,12 +153,13 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: F
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/parse_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/isolate/ReceivePort/receive_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A11_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/sin_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/tan_A01_t01: Fail # TODO(ahe): Please triage this failure.
+
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail # Issue 6750
 
 LibTest/core/StringBuffer/addAll_A02_t01:  Fail, OK # co19 issue 355
 LibTest/core/StringBuffer/add_A02_t01:  Fail, OK # co19 issue 355
@@ -171,17 +172,27 @@ Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
 [ $compiler == dart2js && ($system == linux || $system == macos)]
 LibTest/math/exp_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
+LibTest/math/parseDouble_A02_t01: Fail, OK # co19 issue 317
+LibTest/math/parseInt_A01_t01: Fail, OK # co19 issue 317
+LibTest/math/parseInt_A02_t01: Fail, OK # co19 issue 317
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
 
+
 [ $compiler == dart2js && $runtime == jsshell ]
-LibTest/core/double/round_A01_t01: Fail # TODO(ahe): Triage these tests.
-LibTest/core/double/toStringAsExponential_A01_t07: Fail # TODO(ahe): Triage these tests.
-LibTest/core/double/toStringAsFixed_A01_t05: Fail # TODO(ahe): Triage these tests.
-LibTest/core/double/toStringAsFixed_A01_t06: Fail # TODO(ahe): Triage these tests.
-LibTest/core/double/toStringAsPrecision_A01_t07: Fail # TODO(ahe): Triage these tests.
-LibTest/math/acos_A01_t01: Fail # TODO(ahe): Triage these tests.
-LibTest/math/asin_A01_t01: Fail # TODO(ahe): Triage these tests.
+Language/05_Variables/05_Variables_A13_t02: Fail # TODO(ngeoaffray): Please triage these failure.
+Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
+Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # TODO(ngeoaffray): Please triage these failure.
+Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # TODO(ngeoaffray): Please triage these failure.
+Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # TODO(ngeoaffray): Please triage these failure.
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # TODO(ngeoaffray): Please triage these failure.
+LibTest/core/double/round_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
+LibTest/core/int/operator_truncating_division_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # TODO(ngeoaffray): Please triage these failure.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # TODO(ngeoaffray): Please triage these failure.
+LibTest/math/acos_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
+LibTest/math/asin_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 
 [ $compiler == dart2js && $checked ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
@@ -242,7 +253,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # http://dartbu
 Language/13_Libraries_and_Scripts/3_Parts_A02_t03: Fail # http://dartbug.com/5022
 Language/13_Libraries_and_Scripts/3_Parts_A03_t01: Fail # http://dartbug.com/5022
 Language/14_Types/3_Type_Declarations/1_Typedef_A01_t01: Fail # http://dartbug.com/5022
-
 
 [ $compiler == dart2js ]
 LibTest/core/int/operator_GT_A01_t01: Fail, OK # co19 issue 200
@@ -355,12 +365,184 @@ Language/03_Overview/1_Scoping_A01_t41: Fail, OK # co19 issue 188
 Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.com/5021
 
 Language/03_Overview/2_Privacy_A01_t09: Fail, OK # co19 issue 198
-Language/03_Overview/2_Privacy_A01_t10: Fail, OK # co19 issue 198
 
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 308
 
 Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Pass, OK # co19 issue 316
+
+LibTest/core/Queue/some_A01_t06: Fail # behavior of some is undefined when underlying iterable changes, co19 issue 357
+LibTest/core/Queue/every_A01_t06: Fail # behavior of every is undefined when underlying iterable changes, co19 issue 357
+LibTest/core/Queue/forEach_A01_t04: Fail # behavior of forEach is undefined when underlying iterable changes, co19 issue 357
+
+LibTest/core/List/List_A02_t01: Fail # List constructors, co19 issue 358
+LibTest/core/List/List_A01_t02: Fail # List constructors, co19 issue 358
+LibTest/core/List/add_A02_t01: Fail # List constructors, co19 issue 358
+LibTest/core/List/addAll_A02_t01: Fail # List constructors, co19 issue 358
+LibTest/core/List/addLast_A02_t01: Fail # List constructors, co19 issue 358
+LibTest/core/List/clear_A02_t01: Fail # List constructors, co19 issue 358
+LibTest/core/List/insertRange_A02_t01: Fail # List constructors, co19 issue 358
+LibTest/core/List/length_A04_t01: Fail # List constructors, co19 issue 358
+LibTest/core/List/removeRange_A02_t01: Fail # List constructors, co19 issue 358
+LibTest/core/List/removeLast_A02_t01: Fail # List constructors, co19 issue 358
+
+LibTest/core/List/last_A02_t01: Fail # List.last throws a StateError, co19 issue 359
+
+LibTest/core/double/toInt_A01_t03: Fail # conversion to integer throws UnsupportedError for NaN/Infinity now, co19 issue 360
+LibTest/core/double/toInt_A01_t04: Fail # conversion to integer throws UnsupportedError for NaN/Infinity now, co19 issue 360
+
+LibTest/core/Match/end_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/Match/group_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/Match/group_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/Match/groupCount_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/Match/groups_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/Match/groups_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/Match/operator_subscript_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/Match/operator_subscript_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/Match/pattern_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/Match/start_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/Match/str_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/allMatches_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/firstMatch_A03_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/hasMatch_A01_t02: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/hasMatch_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/ignoreCase_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/multiLine_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/pattern_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A04_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/RegExp_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/RegExp_A01_t02: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/stringMatch_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/RegExp/stringMatch_A02_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/String/contains_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/String/replaceAll_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/String/replaceFirst_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/String/split_A01_t01: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+LibTest/core/String/split_A01_t02: Fail # Regexp multiLine, ignoreCase -> isMultiLine, isCaseSensitive, co19 issue 362
+
+LibTest/core/Set/some_A01_t03: Fail # some -> any, co19 issue 363
+LibTest/core/Set/some_A01_t02: Fail # some -> any, co19 issue 363
+LibTest/core/Set/some_A01_t01: Fail # some -> any, co19 issue 363
+LibTest/core/List/some_A02_t01: Fail # some -> any, co19 issue 363
+LibTest/core/List/some_A01_t02: Fail # some -> any, co19 issue 363
+LibTest/core/List/some_A01_t01: Fail # some -> any, co19 issue 363
+LibTest/core/Queue/some_A01_t05: Fail # some -> any, co19 issue 363
+LibTest/core/Queue/some_A01_t03: Fail # some -> any, co19 issue 363
+LibTest/core/Queue/some_A01_t02: Fail # some -> any, co19 issue 363
+LibTest/core/Queue/some_A01_t01: Fail # some -> any, co19 issue 363
+LibTest/core/Queue/some_A01_t04: Fail # some -> any, co19 issue 363
+
+LibTest/core/List/filter_A01_t01: Fail # filter->where, co19 issue 364
+LibTest/core/List/filter_A01_t02: Fail # filter->where, co19 issue 364
+LibTest/core/List/filter_A02_t01: Fail # filter->where, co19 issue 364
+LibTest/core/List/filter_A04_t01: Fail # filter->where, co19 issue 364
+LibTest/core/Queue/filter_A01_t01: Fail # filter->where, co19 issue 364
+LibTest/core/Queue/filter_A01_t02: Fail # filter->where, co19 issue 364
+LibTest/core/Queue/filter_A01_t03: Fail # filter->where, co19 issue 364
+LibTest/core/Queue/filter_A01_t04: Fail # filter->where, co19 issue 364
+LibTest/core/Queue/filter_A01_t05: Fail # filter->where, co19 issue 364
+LibTest/core/Queue/filter_A01_t06: Fail # filter->where, co19 issue 364
+LibTest/core/Set/filter_A01_t01: Fail # filter->where, co19 issue 364
+LibTest/core/Set/filter_A01_t02: Fail # filter->where, co19 issue 364
+LibTest/core/Set/filter_A01_t03: Fail # filter->where, co19 issue 364
+
+Language/12_Statements/06_For/2_For_in_A01_t01: Fail # iterator-change, co19 issue 365
+Language/12_Statements/06_For/2_For_in_A01_t05: Fail # iterator-change, co19 issue 365
+Language/12_Statements/07_While_A02_t01: Fail # iterator-change, co19 issue 365
+Language/12_Statements/08_Do_A02_t01: Fail # iterator-change, co19 issue 365
+LibTest/core/List/iterator_A01_t01: Fail # iterator-change, co19 issue 365
+LibTest/core/List/iterator_hasNext_A01_t01: Fail # iterator-change, co19 issue 365
+LibTest/core/List/iterator_next_A01_t01: Fail # iterator-change, co19 issue 365
+LibTest/core/List/iterator_next_A02_t01: Fail # iterator-change, co19 issue 365
+LibTest/core/List/List.from_A01_t01: Fail # iterator-change, co19 issue 365
+LibTest/core/Queue/iterator_A01_t01: Fail # iterator-change, co19 issue 365
+LibTest/core/Queue/iterator_A01_t02: Fail # iterator-change, co19 issue 365
+LibTest/core/Queue/iterator_hasNext_A01_t01: Fail # iterator-change, co19 issue 365
+LibTest/core/Queue/iterator_hasNext_A01_t02: Fail # iterator-change, co19 issue 365
+LibTest/core/Queue/iterator_next_A01_t01: Fail # iterator-change, co19 issue 365
+LibTest/core/Queue/iterator_next_A01_t02: Fail # iterator-change, co19 issue 365
+LibTest/core/Queue/iterator_next_A02_t01: Fail # iterator-change, co19 issue 365
+LibTest/core/Queue/Queue.from_A01_t02: Fail # iterator-change, co19 issue 365
+LibTest/core/RegExp/allMatches_A01_t01: Fail # iterator-change, co19 issue 365
+LibTest/core/Set/Set.from_A01_t02: Fail # iterator-change, co19 issue 365
+
+LibTest/core/Completer/Completer_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Completer/completeException_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Completer/completeException_A02_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Completer/completeException_A03_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Completer/completeException_A03_t02: Fail # Future is in async library. co19 issue 367
+LibTest/core/Completer/complete_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Completer/complete_A02_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Completer/complete_A02_t02: Fail # Future is in async library. co19 issue 367
+LibTest/core/Completer/future_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/Future.immediate_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A01_t02: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A01_t03: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A01_t04: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A01_t05: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A01_t06: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A01_t07: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A01_t08: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A01_t09: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A02_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A02_t02: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A02_t03: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A02_t04: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/chain_A03_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/exception_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/exception_A01_t02: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/exception_A02_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/handleException_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/handleException_A01_t02: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/handleException_A01_t03: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/handleException_A01_t04: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/handleException_A01_t05: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/handleException_A01_t06: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/handleException_A01_t07: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/hasValue_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/isComplete_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/then_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/then_A01_t02: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/then_A01_t03: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/then_A01_t04: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/then_A01_t05: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A01_t02: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A01_t03: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A01_t04: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A01_t05: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A01_t06: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A01_t07: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A02_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A02_t02: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A02_t03: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A03_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/value_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/value_A01_t02: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/value_A01_t03: Fail # Future is in async library. co19 issue 367
+LibTest/core/Futures/wait_A01_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Futures/wait_A01_t03: Fail # Future is in async library. co19 issue 367
+LibTest/core/Futures/wait_A01_t04: Fail # Future is in async library. co19 issue 367
+LibTest/core/Futures/wait_A01_t05: Fail # Future is in async library. co19 issue 367
+LibTest/core/Futures/wait_A01_t06: Fail # Future is in async library. co19 issue 367
+LibTest/core/Futures/wait_A02_t01: Fail # Future is in async library. co19 issue 367
+LibTest/core/Futures/wait_A02_t02: Fail # Future is in async library. co19 issue 367
+
+# Issues with co19 test suite in checked mode.
+[ $compiler == dart2js && $checked ]
+LibTest/isolate/SendPort/call_A01_t01: Fail # Future is in async library. co19 issue 367
+
+# Issues with co19 test suite in unchecked mode.
+[ $compiler == dart2js && $unchecked ]
+LibTest/core/Future/chain_A02_t05: Fail # Future is in async library. co19 issue 367
+LibTest/core/Future/transform_A02_t04: Fail # Future is in async library. co19 issue 367
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
@@ -477,12 +659,6 @@ Language/07_Classes/07_Classes_A04_t21: Fail # Checks that a static operator can
 Language/07_Classes/07_Classes_A04_t22: Fail # Checks that an abstract static operator can't be used in place of a class member definition./
 Language/07_Classes/07_Classes_A04_t24: Fail # Checks that a static abstract getter can't be used in place of a class member definition.
 Language/07_Classes/07_Classes_A04_t25: Fail # Checks that a static abstract setter can't be used in place of a class member definition.
-Language/07_Classes/10_Superinterfaces_A04_t01: Fail # Checks that it is a compile-time error if the same type appears more than once in the implements clause.
-Language/07_Classes/1_Instance_Methods/2_Operators_A06_t02: Fail # Checks that a compile-time error is produced if a user-defined operator ~ specifies one parameter.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t01: Fail # Checks that a compile-time error is produced if a user-defined operator [] specifies an optional named parameter.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t02: Fail # Checks that a compile-time error is produced if a user-defined operator [] specifies an optional named parameter in addition to the required one.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail # Checks that a compile-time error is produced if a user-defined operator []= specifies one optional named parameter.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail # Checks that a compile-time error is produced if a user-defined operator []= specifies one optional named parameter in addition to the two required ones
 Language/07_Classes/1_Instance_Methods_A02_t02: Fail # Checks that a compile-time error is produced if m1 has fewer named parameters than m2 (1 vs. 0) and neither have any required parameters.
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Checks that a compile-time error is produced if m1 has almost the same set of named  parameters as m2 except for one of them having a different name.
 Language/07_Classes/2_Getters_A01_t03: Fail # Checks that a compile-time error is produced if empty formal parameter list is present.
@@ -516,9 +692,6 @@ Language/11_Expressions/23_Relational_Expressions_A01_t13: Fail # Checks that a 
 Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # Checks that it is a compile-time error when a built-in identifier "abstract" is used as a type annotation of a local variable.
 Language/12_Statements/03_Variable_Declaration_A04_t01: Fail # Checks that if the variable declaration is prefixed with the const modifier, then variable must be initialized to a constant expression.
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
-
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t15: Fail # http://dartbug.com/7149
-Language/07_Classes/1_Instance_Methods/2_Operators_A04_t16: Fail # http://dartbug.com/7149
 
 #
 # Unexpected compile-time errors.

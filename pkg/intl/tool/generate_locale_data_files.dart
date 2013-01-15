@@ -17,7 +17,7 @@ import '../lib/date_symbol_data_local.dart';
 import '../lib/date_time_patterns.dart';
 import '../lib/intl.dart';
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 import '../test/data_directory.dart';
 
 main() {
@@ -68,10 +68,10 @@ void writeSymbols(locale, symbols) {
 void writePatterns(locale, patterns) {
   var file = new File('${dataDirectory}patterns/${locale}.json');
   var outputStream = file.openOutputStream();
-  outputStream.writeString(JSON.stringify(patterns));
+  outputStream.writeString(json.stringify(patterns));
   outputStream.close();
 }
 
 void writeToJSON(dynamic data, OutputStream out) {
-  out.writeString(JSON.stringify(data.serializeToMap()));
+  out.writeString(json.stringify(data.serializeToMap()));
 }

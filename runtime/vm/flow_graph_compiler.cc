@@ -178,14 +178,43 @@ void FlowGraphCompiler::InitCompiler() {
   block_info_.Clear();
   for (int i = 0; i < block_order_.length(); ++i) {
     block_info_.Add(new BlockInfo());
+    if (is_optimizing()) {
+      BlockEntryInstr* entry = block_order_[i];
+      for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+        Instruction* current = it.Current();
+        const ICData* ic_data = NULL;
+        if (current->IsBranch()) {
+          current = current->AsBranch()->comparison();
+        }
+        // In optimized code, ICData is always set in the instructions.
+        if (current->IsInstanceCall()) {
+          ic_data = current->AsInstanceCall()->ic_data();
+          ASSERT(ic_data != NULL);
+        } else if (current->IsRelationalOp()) {
+          ic_data = current->AsRelationalOp()->ic_data();
+          ASSERT(ic_data != NULL);
+        } else if (current->IsEqualityCompare()) {
+          ic_data = current->AsEqualityCompare()->ic_data();
+          ASSERT(ic_data != NULL);
+        }
+        if ((ic_data != NULL) && (ic_data->NumberOfChecks() == 0)) {
+          may_reoptimize_ = true;
+          break;
+        }
+      }
+    }
   }
 }
 
 
 bool FlowGraphCompiler::CanOptimize() {
   return !FLAG_report_usage_count &&
-         (FLAG_optimization_counter_threshold >= 0) &&
-         !Isolate::Current()->debugger()->IsActive();
+         (FLAG_optimization_counter_threshold >= 0);
+}
+
+
+bool FlowGraphCompiler::CanOptimizeFunction() const {
+  return CanOptimize() && !parsed_function().function().HasBreakpoint();
 }
 
 
@@ -451,7 +480,7 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 // Returns 'true' if code generation for this function is complete, i.e.,
 // no fall-through to regular code is needed.
 bool FlowGraphCompiler::TryIntrinsify() {
-  if (!CanOptimize()) return false;
+  if (!CanOptimizeFunction()) return false;
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !FLAG_enable_type_checks) {
@@ -512,7 +541,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     }
     // Emit IC call that will count and thus may need reoptimization at
     // return instruction.
-    may_reoptimize_ = true;
+    ASSERT(!is_optimizing() || may_reoptimize());
     switch (ic_data.num_args_tested()) {
       case 1:
         label_address = StubCode::OneArgOptimizedCheckInlineCacheEntryPoint();
@@ -801,7 +830,8 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     } else if (loc.IsUnallocated() || loc.IsConstant()) {
       ASSERT(loc.IsConstant() ||
              ((loc.policy() == Location::kRequiresRegister) ||
-              (loc.policy() == Location::kWritableRegister)));
+              (loc.policy() == Location::kWritableRegister) ||
+              (loc.policy() == Location::kAny)));
       reg = AllocateFreeRegister(blocked_registers);
       locs->set_in(i, Location::RegisterLocation(reg));
     }
@@ -997,55 +1027,89 @@ bool FlowGraphCompiler::EvaluateCondition(Condition condition,
 }
 
 
-FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
-                                                          Register array,
-                                                          intptr_t offset) {
+intptr_t FlowGraphCompiler::ElementSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
-    case kImmutableArrayCid: {
-      const intptr_t disp = offset * kWordSize + sizeof(RawArray);
-      ASSERT(Utils::IsInt(31, disp));
-      return FieldAddress(array, disp);
-    }
-    case kFloat32ArrayCid: {
-      const intptr_t disp =
-          offset * kFloatSize + Float32Array::data_offset();
-      ASSERT(Utils::IsInt(31, disp));
-      return FieldAddress(array, disp);
-    }
-    case kFloat64ArrayCid: {
-      const intptr_t disp =
-          offset * kDoubleSize + Float64Array::data_offset();
-      ASSERT(Utils::IsInt(31, disp));
-      return FieldAddress(array, disp);
-    }
-    case kUint8ArrayCid: {
-      const intptr_t disp = offset + Uint8Array::data_offset();
-      ASSERT(Utils::IsInt(31, disp));
-      return FieldAddress(array, disp);
-    }
+    case kImmutableArrayCid:
+      return Array::kBytesPerElement;
+    case kFloat32ArrayCid:
+      return Float32Array::kBytesPerElement;
+    case kFloat64ArrayCid:
+      return Float64Array::kBytesPerElement;
+    case kUint8ArrayCid:
+      return Uint8Array::kBytesPerElement;
+    case kUint8ClampedArrayCid:
+      return Uint8ClampedArray::kBytesPerElement;
+    case kOneByteStringCid:
+      return OneByteString::kBytesPerElement;
+    case kTwoByteStringCid:
+      return TwoByteString::kBytesPerElement;
     default:
       UNIMPLEMENTED();
-      return FieldAddress(SPREG, 0);
+      return 0;
   }
+}
+
+
+intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return Array::data_offset();
+    case kFloat32ArrayCid:
+      return Float32Array::data_offset();
+    case kFloat64ArrayCid:
+      return Float64Array::data_offset();
+    case kUint8ArrayCid:
+      return Uint8Array::data_offset();
+    case kUint8ClampedArrayCid:
+      return Uint8ClampedArray::data_offset();
+    case kOneByteStringCid:
+      return OneByteString::data_offset();
+    case kTwoByteStringCid:
+      return TwoByteString::data_offset();
+    default:
+      UNIMPLEMENTED();
+      return Array::data_offset();
+  }
+}
+
+
+FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
+                                                          Register array,
+                                                          intptr_t index) {
+  const int64_t disp =
+      static_cast<int64_t>(index) * ElementSizeFor(cid) + DataOffsetFor(cid);
+  ASSERT(Utils::IsInt(32, disp));
+  return FieldAddress(array, static_cast<int32_t>(disp));
 }
 
 
 FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
                                                           Register array,
                                                           Register index) {
-  // Note that index is Smi, i.e, times 2.
+  // Note that index is smi-tagged, (i.e, times 2) for all arrays with element
+  // size > 1. For Uint8Array and OneByteString the index is expected to be
+  // untagged before accessing.
   ASSERT(kSmiTagShift == 1);
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
-      return FieldAddress(array, index, TIMES_HALF_WORD_SIZE, sizeof(RawArray));
+      return FieldAddress(
+          array, index, TIMES_HALF_WORD_SIZE, Array::data_offset());
     case kFloat32ArrayCid:
       return FieldAddress(array, index, TIMES_2, Float32Array::data_offset());
     case kFloat64ArrayCid:
       return FieldAddress(array, index, TIMES_4, Float64Array::data_offset());
     case kUint8ArrayCid:
       return FieldAddress(array, index, TIMES_1, Uint8Array::data_offset());
+    case kUint8ClampedArrayCid:
+      return
+          FieldAddress(array, index, TIMES_1, Uint8ClampedArray::data_offset());
+    case kOneByteStringCid:
+      return FieldAddress(array, index, TIMES_1, OneByteString::data_offset());
+    case kTwoByteStringCid:
+      return FieldAddress(array, index, TIMES_1, TwoByteString::data_offset());
     default:
       UNIMPLEMENTED();
       return FieldAddress(SPREG, 0);

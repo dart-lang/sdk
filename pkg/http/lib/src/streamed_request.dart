@@ -4,9 +4,11 @@
 
 library streamed_request;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:uri';
 
+import 'byte_stream.dart';
 import 'base_request.dart';
 
 /// An HTTP request where the request body is sent asynchronously after the
@@ -15,36 +17,29 @@ import 'base_request.dart';
 /// When the request is sent via [BaseClient.send], only the headers and
 /// whatever data has already been written to [StreamedRequest.stream] will be
 /// sent immediately. More data will be sent as soon as it's written to
-/// [StreamedRequest.stream], and when the stream is closed the request will
-/// end.
+/// [StreamedRequest.sink], and when the sink is closed the request will end.
 class StreamedRequest extends BaseRequest {
-  /// The stream to which to write data that will be sent as the request body.
+  /// The sink to which to write data that will be sent as the request body.
   /// This may be safely written to before the request is sent; the data will be
   /// buffered.
   ///
   /// Closing this signals the end of the request.
-  final OutputStream stream;
+  Sink<List<int>> get sink => _controller.sink;
 
-  /// The stream from which the [BaseClient] will read the data in [stream] once
-  /// the request has been finalized.
-  final ListInputStream _inputStream;
+  /// The controller for [sink], from which [BaseRequest] will read data for
+  /// [finalize].
+  final StreamController<List<int>> _controller;
 
   /// Creates a new streaming request.
   StreamedRequest(String method, Uri url)
     : super(method, url),
-      stream = new ListOutputStream(),
-      _inputStream = new ListInputStream() {
-    ListOutputStream outputStream = stream;
-    // TODO(nweiz): pipe errors from the output stream to the input stream once
-    // issue 3657 is fixed
-    outputStream.onData = () => _inputStream.write(outputStream.read());
-    outputStream.onClosed = _inputStream.markEndOfStream;
-  }
+      _controller = new StreamController<List<int>>.singleSubscription();
 
-  /// Freezes all mutable fields other than [stream] and returns an [InputStream]
-  /// that emits the data being written to [stream].
-  InputStream finalize() {
+  /// Freezes all mutable fields other than [stream] and returns a
+  /// single-subscription [ByteStream] that emits the data being written to
+  /// [sink].
+  ByteStream finalize() {
     super.finalize();
-    return _inputStream;
+    return new ByteStream(_controller);
   }
 }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
@@ -85,13 +86,13 @@ void testEarlyClose() {
   HttpServer server = new HttpServer();
   server.listen("127.0.0.1", 0);
   void runTest(Iterator it) {
-    if (it.hasNext) {
-      it.next().execute(server).then((_) => runTest(it));
+    if (it.moveNext()) {
+      it.current.execute(server).then((_) => runTest(it));
     } else {
       server.close();
     }
   }
-  runTest(tests.iterator());
+  runTest(tests.iterator);
 }
 
 void main() {

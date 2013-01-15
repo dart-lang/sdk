@@ -4,6 +4,7 @@
 
 library lib_validator;
 
+import 'dart:async';
 import 'dart:io';
 
 import '../entrypoint.dart';
@@ -22,15 +23,15 @@ class LibValidator extends Validator {
   Future validate() {
     var libDir = join(entrypoint.root.dir, "lib");
 
-    return dirExists(libDir).chain((libDirExists) {
+    return dirExists(libDir).then((libDirExists) {
       if (!libDirExists) {
         errors.add('You must have a "lib" directory.\n'
             "Without that, users cannot import any code from your package.");
         return new Future.immediate(null);
       }
 
-      return listDir(libDir).transform((files) {
-        files = files.map((file) => relativeTo(file, libDir));
+      return listDir(libDir).then((files) {
+        files = files.mappedBy((file) => relativeTo(file, libDir)).toList();
         if (files.isEmpty) {
           errors.add('You must have a non-empty "lib" directory.\n'
               "Without that, users cannot import any code from your package.");

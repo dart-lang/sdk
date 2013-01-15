@@ -4,7 +4,7 @@
 
 library multiple_timer_test;
 
-import 'dart:isolate';
+import 'dart:async';
 import '../../pkg/unittest/lib/unittest.dart';
 
 const int TIMEOUT1 = 1000;
@@ -49,7 +49,7 @@ main() {
       _message++;
     }
 
-    _order = new List<int>(4);
+    _order = new List<int>.fixedLength(4);
     _order[0] = 2;
     _order[1] = 0;
     _order[2] = 3;

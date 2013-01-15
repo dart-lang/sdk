@@ -12,6 +12,7 @@ import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SubSystem;
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -338,6 +339,10 @@ public class ResolutionContext implements ResolutionErrorListener {
 
   void pushFunctionAliasScope(DartFunctionTypeAlias x) {
     pushScope(x.getName().getName() == null ? "<function>" : x.getName().getName());
+  }
+  
+  void pushClassAliasScope(DartClassTypeAlias x) {
+    pushScope(x.getName().getName() == null ? "<classTypeAlias>" : x.getName().getName());
   }
 
   AssertionError internalError(HasSourceInfo node, String message, Object... arguments) {

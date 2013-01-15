@@ -12,6 +12,8 @@
  */
 library matcher;
 
+import 'dart:async';
+
 part 'src/basematcher.dart';
 part 'src/collection_matchers.dart';
 part 'src/core_matchers.dart';

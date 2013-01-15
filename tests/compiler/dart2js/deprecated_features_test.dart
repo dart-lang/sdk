@@ -4,8 +4,10 @@
 
 // Test that deprecated language features are diagnosed correctly.
 
-import '../../../sdk/lib/_internal/compiler/compiler.dart';
+import 'dart:async';
 import 'dart:uri';
+
+import '../../../sdk/lib/_internal/compiler/compiler.dart';
 import '../../utils/dummy_compiler_test.dart' as dummy;
 
 main() {
@@ -31,10 +33,11 @@ main() {
     return (new Completer<String>()..complete(source)).future;
   }
 
-  String code = compile(new Uri.fromComponents(scheme: 'main'),
-                        new Uri.fromComponents(scheme: 'lib', path: '/'),
-                        new Uri.fromComponents(scheme: 'package', path: '/'),
-                        provider, handler).value;
+  String code = deprecatedFutureValue(
+      compile(new Uri.fromComponents(scheme: 'main'),
+              new Uri.fromComponents(scheme: 'lib', path: '/'),
+              new Uri.fromComponents(scheme: 'package', path: '/'),
+              provider, handler));
   if (code == null) {
     throw 'Compilation failed: ${messages}';
   }

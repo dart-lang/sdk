@@ -45,29 +45,31 @@ class StringValidator {
   }
 
   static StringQuoting quotingFromString(SourceString sourceString) {
-    Iterator<int> source = sourceString.iterator();
+    Iterator<int> source = sourceString.iterator;
     bool raw = false;
     int quoteLength = 1;
-    int quoteChar = source.next();
-    if (identical(quoteChar, $r)) {
+    source.moveNext();
+    int quoteChar = source.current;
+    if (quoteChar == $r) {
       raw = true;
-      quoteChar = source.next();
+      source.moveNext();
+      quoteChar = source.current;
     }
     assert(quoteChar == $SQ || quoteChar == $DQ);
     // String has at least one quote. Check it if has three.
     // If it only have two, the string must be an empty string literal,
     // and end after the second quote.
     bool multiline = false;
-    if (source.hasNext && source.next() == quoteChar && source.hasNext) {
-      int code = source.next();
+    if (source.moveNext() && source.current == quoteChar && source.moveNext()) {
+      int code = source.current;
       assert(code == quoteChar);  // If not, there is a bug in the parser.
       quoteLength = 3;
       // Check if a multiline string starts with a newline (CR, LF or CR+LF).
-      if (source.hasNext) {
-        code = source.next();
+      if (source.moveNext()) {
+        code = source.current;
         if (code == $CR) {
           quoteLength += 1;
-          if (source.hasNext && source.next() == $LF) {
+          if (source.moveNext() && source.current == $LF) {
             quoteLength += 1;
           }
         } else if (code == $LF) {
@@ -99,7 +101,9 @@ class StringValidator {
     bool containsEscape = false;
     bool previousWasLeadSurrogate = false;
     bool invalidUtf16 = false;
-    for(Iterator<int> iter = string.iterator(); iter.hasNext; length++) {
+    for(HasNextIterator<int> iter = new HasNextIterator(string.iterator);
+        iter.hasNext;
+        length++) {
       index++;
       int code = iter.next();
       if (code == $BACKSLASH) {
@@ -130,14 +134,17 @@ class StringValidator {
         } else if (code == $u) {
           int escapeStart = index - 1;
           index++;
-          code = iter.next();
+          code = iter.hasNext ? iter.next() : 0;
           int value = 0;
           if (code == $OPEN_CURLY_BRACKET) {
             // expect 1-6 hex digits.
             int count = 0;
-            index++;
-            code = iter.next();
-            do {
+            while (iter.hasNext) {
+              code = iter.next();
+              index++;
+              if (code == $CLOSE_CURLY_BRACKET) {
+                break;
+              }
               if (!isHexDigit(code)) {
                 stringParseError("Invalid character in escape sequence",
                                  token, index);
@@ -145,20 +152,24 @@ class StringValidator {
               }
               count++;
               value = value * 16 + hexDigitValue(code);
-              index++;
-              code = iter.next();
-            } while (code != $CLOSE_CURLY_BRACKET);
-            if (count > 6) {
+            }
+            if (code != $CLOSE_CURLY_BRACKET || count == 0 || count > 6) {
+              int errorPosition = index - count;
+              if (count > 6) errorPosition += 6;
               stringParseError("Invalid character in escape sequence",
-                               token, index - (count - 6));
+                               token, errorPosition);
               return null;
             }
           } else {
             // Expect four hex digits, including the one just read.
             for (int i = 0; i < 4; i++) {
               if (i > 0) {
-                index++;
-                code = iter.next();
+                if (iter.hasNext) {
+                  index++;
+                  code = iter.next();
+                } else {
+                  code = 0;
+                }
               }
               if (!isHexDigit(code)) {
                 stringParseError("Invalid character in escape sequence",

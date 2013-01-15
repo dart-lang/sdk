@@ -8,9 +8,12 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilerContext;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
@@ -60,6 +63,34 @@ public class SupertypeResolver {
       ResolutionContext classContext = topLevelContext.extend(classElement);
 
       DartTypeNode superclassNode = node.getSuperclass();
+      List<DartTypeNode> mixins = node.getMixins();
+      List<DartTypeNode> interfaces = node.getInterfaces();
+
+      visitClassLike(classElement, classContext, superclassNode, mixins, interfaces,
+          node.getDefaultClass());
+      return null;
+    }
+
+    @Override
+    public Void visitClassTypeAlias(DartClassTypeAlias node) {
+      ClassElement classElement = node.getElement();
+      
+      // Make sure that the type parameters are in scope before resolving the
+      // super class and interfaces
+      ResolutionContext classContext = topLevelContext.extend(classElement);
+      
+      DartTypeNode superclassNode = node.getSuperclass();
+      List<DartTypeNode> mixins = node.getMixins();
+      List<DartTypeNode> interfaces = node.getInterfaces();
+      
+      visitClassLike(classElement, classContext, superclassNode, mixins, interfaces, null);
+      return null;
+    }
+
+    private void visitClassLike(ClassElement classElement, ResolutionContext classContext,
+        DartTypeNode superclassNode, List<DartTypeNode> mixins, List<DartTypeNode> interfaces,
+        DartParameterizedTypeNode defaultClassNode) {
+      Source source = classElement.getSourceInfo().getSource();
       InterfaceType supertype;
       if (superclassNode == null) {
         supertype = typeProvider.getObjectType();
@@ -73,7 +104,7 @@ public class SupertypeResolver {
       }
       if (supertype != null) {
         if (Elements.isTypeNode(superclassNode, BLACK_LISTED_TYPES)
-            && !Elements.isCoreLibrarySource(node.getSourceInfo().getSource())) {
+            && !Elements.isCoreLibrarySource(source)) {
           topLevelContext.onError(
               superclassNode,
               ResolverErrorCode.BLACK_LISTED_EXTENDS,
@@ -84,21 +115,21 @@ public class SupertypeResolver {
         assert classElement.getName().equals("Object") : classElement;
       }
 
-      if (node.getDefaultClass() != null) {
-        Element defaultClassElement = classContext.resolveName(node.getDefaultClass().getExpression());
+      if (defaultClassNode != null) {
+        Element defaultClassElement = classContext.resolveName(defaultClassNode.getExpression());
         if (ElementKind.of(defaultClassElement).equals(ElementKind.CLASS)) {
           Elements.setDefaultClass(classElement, (InterfaceType)defaultClassElement.getType());
-          node.getDefaultClass().setType(defaultClassElement.getType());
+          defaultClassNode.setType(defaultClassElement.getType());
         }
       }
 
-      if (node.getInterfaces() != null) {
+      if (interfaces != null) {
         Set<InterfaceType> seenImplement = Sets.newHashSet();
-        for (DartTypeNode intNode : node.getInterfaces()) {
+        for (DartTypeNode intNode : interfaces) {
           InterfaceType intType = classContext.resolveInterface(intNode, false, false);
           // May be type which can not be used as interface.
           if (Elements.isTypeNode(intNode, BLACK_LISTED_TYPES)
-              && !Elements.isCoreLibrarySource(node.getSourceInfo().getSource())) {
+              && !Elements.isCoreLibrarySource(source)) {
             topLevelContext.onError(intNode, ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, intNode);
             continue;
           }
@@ -122,8 +153,36 @@ public class SupertypeResolver {
           Elements.addInterface(classElement, intType);
         }
       }
+      
+      if (mixins != null) {
+        Set<InterfaceType> seenMixin = Sets.newHashSet();
+        for (DartTypeNode mixNode : mixins) {
+          InterfaceType mixType = classContext.resolveInterface(mixNode, false, false);
+          // May be type which can not be used as interface.
+          if (Elements.isTypeNode(mixNode, BLACK_LISTED_TYPES)
+              && !Elements.isCoreLibrarySource(source)) {
+            topLevelContext.onError(mixNode, ResolverErrorCode.BLACK_LISTED_MIXINS, mixNode);
+            continue;
+          }
+          // May be unresolved type, error already reported, ignore.
+          if (mixType.getKind() == TypeKind.DYNAMIC) {
+            continue;
+          }
+          // check for uniqueness
+          if (seenMixin.contains(mixType)) {
+            topLevelContext.onError(mixNode, ResolverErrorCode.DUPLICATE_WITH_TYPE);
+            continue;
+          }
+          if (Objects.equal(mixType, supertype)) {
+            topLevelContext.onError(mixNode, ResolverErrorCode.SUPER_CLASS_IN_WITH);
+            continue;
+          }
+          seenMixin.add(mixType);
+          // OK, add
+          Elements.addMixin(classElement, mixType);
+        }
+      }
       setBoundsOnTypeParameters(classElement.getTypeParameters(), classContext);
-      return null;
     }
 
     @Override

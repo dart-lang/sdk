@@ -11,7 +11,9 @@ part 'hmac_sha1_test_vectors.dart';
 
 void testStandardVectors(inputs, keys, macs) {
   for (var i = 0; i < inputs.length; i++) {
-    var d = new HMAC(new SHA1(), keys[i]).update(inputs[i]).digest();
+    var hmac = new HMAC(new SHA1(), keys[i]);
+    hmac.add(inputs[i]);
+    var d = hmac.close();
     Expect.isTrue(CryptoUtils.bytesToHex(d).startsWith(macs[i]), '$i');
   }
 }

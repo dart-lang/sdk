@@ -4,6 +4,7 @@
 
 library sdk_source;
 
+import 'dart:async';
 import 'io.dart';
 import 'package.dart';
 import 'pubspec.dart';
@@ -30,14 +31,14 @@ class SdkSource extends Source {
   /// inferred from the revision number of the SDK itself.
   Future<Pubspec> describe(PackageId id) {
     var version;
-    return readTextFile(join(rootDir, "revision")).chain((revision) {
+    return readTextFile(join(rootDir, "revision")).then((revision) {
       version = new Version.parse("0.0.0-r.${revision.trim()}");
       // Read the pubspec for the package's dependencies.
       return _getPackagePath(id);
-    }).chain((packageDir) {
+    }).then((packageDir) {
       // TODO(rnystrom): What if packageDir is null?
       return Package.load(id.name, packageDir, systemCache.sources);
-    }).transform((package) {
+    }).then((package) {
       // Ignore the pubspec's version, and use the SDK's.
       return new Pubspec(id.name, version, package.pubspec.dependencies);
     });
@@ -46,10 +47,10 @@ class SdkSource extends Source {
   /// Since all the SDK files are already available locally, installation just
   /// involves symlinking the SDK library into the packages directory.
   Future<bool> install(PackageId id, String destPath) {
-    return _getPackagePath(id).chain((path) {
+    return _getPackagePath(id).then((path) {
       if (path == null) return new Future<bool>.immediate(false);
 
-      return createPackageSymlink(id.name, path, destPath).transform(
+      return createPackageSymlink(id.name, path, destPath).then(
           (_) => true);
     });
   }
@@ -60,14 +61,14 @@ class SdkSource extends Source {
   Future<String> _getPackagePath(PackageId id) {
     // Look in "pkg" first.
     var pkgPath = join(rootDir, "pkg", id.description);
-    return exists(pkgPath).chain((found) {
+    return exists(pkgPath).then((found) {
       if (found) return new Future<String>.immediate(pkgPath);
 
       // Not in "pkg", so try "lib".
       // TODO(rnystrom): Get rid of this when all SDK packages are moved from
       // "lib" to "pkg".
       var libPath = join(rootDir, "lib", id.description);
-      return exists(libPath).transform((found) => found ? libPath : null);
+      return exists(libPath).then((found) => found ? libPath : null);
     });
   }
 }

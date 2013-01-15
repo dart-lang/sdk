@@ -37,15 +37,15 @@ class TestSuite {
       print("OK -- ALL TESTS PASS (${results.length} run)");
     } else {
       for(TestResult r in
-          results.filter(bool _(TestResult r) => !(r is PassedTest))) {
+          results.where(bool _(TestResult r) => !(r is PassedTest))) {
         print(r);
       }
       int passedTests =
-          results.filter(bool _(TestResult r) => r is PassedTest).length;
+          results.where(bool _(TestResult r) => r is PassedTest).length;
       int failures =
-          results.filter(bool _(TestResult r) => r is FailedTest).length;
+          results.where(bool _(TestResult r) => r is FailedTest).length;
       int errors =
-          results.filter(bool _(TestResult r) => r is TestError).length;
+          results.where(bool _(TestResult r) => r is TestError).length;
       print("FAIL -- TESTS RUN: ${results.length}");
       print("        PASSED: ${passedTests}");
       print("        FAILED: ${failures}");

@@ -4,5 +4,8 @@
 
 library dart.isolate;
 
+import "dart:async";
+
 part "base.dart";
-part "timer.dart";
+part "isolate_stream.dart";
+part "mangler.dart";

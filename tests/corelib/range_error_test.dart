@@ -14,7 +14,7 @@ class RangeErrorTest {
     testListRead(list, -1);
     testListRead(list, 1);
 
-    list = new List(1);
+    list = new List.fixedLength(1);
     testListRead(list, -1);
     testListRead(list, 1);
 
@@ -33,7 +33,7 @@ class RangeErrorTest {
     testListWrite(list, -1);
     testListWrite(list, 1);
 
-    list = new List(1);
+    list = new List.fixedLength(1);
     testListWrite(list, -1);
     testListWrite(list, 1);
 

@@ -791,8 +791,9 @@ class ArrayInitializer extends Expression {
 
   static List<ArrayElement> _convert(List<Expression> expressions) {
     int index = 0;
-    return expressions.map(
-        (expression) => new ArrayElement(index++, expression));
+    return expressions.mappedBy(
+        (expression) => new ArrayElement(index++, expression))
+        .toList();
   }
 }
 
@@ -864,7 +865,7 @@ Binary equals(Expression left, Expression right) {
   return new Binary('==', left, right);
 }
 
-LiteralString string(String value) => new LiteralString("'$value'");
+LiteralString string(String value) => new LiteralString('"$value"');
 
 If if_(Expression condition, Node then, [Node otherwise]) {
   return (otherwise == null)
@@ -882,12 +883,17 @@ PropertyAccess fieldAccess(Expression receiver, String fieldName) {
 
 Block emptyBlock() => new Block.empty();
 
+Block block1(Statement statement) => new Block(<Statement>[statement]);
+
+Block block2(Statement s1, Statement s2) => new Block(<Statement>[s1, s2]);
+
 Call call(Expression target, List<Expression> arguments) {
   return new Call(target, arguments);
 }
 
 Fun fun(List<String> parameterNames, Block body) {
-  return new Fun(parameterNames.map((n) => new Parameter(n)), body);
+  return new Fun(parameterNames.mappedBy((n) => new Parameter(n)).toList(),
+                 body);
 }
 
 Assignment assign(Expression leftHandSide, Expression value) {
