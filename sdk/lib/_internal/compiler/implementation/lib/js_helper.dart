@@ -879,7 +879,7 @@ $throw(ex) {
   if (ex == null) ex = const NullThrownError();
   var wrapper = new DartError(ex);
 
-  if (JS('bool', 'Error.captureStackTrace')) {
+  if (JS('bool', '!!Error.captureStackTrace')) {
     // Use V8 API for recording a "fast" stack trace (this installs a
     // "stack" property getter on [wrapper]).
     JS('void', r'Error.captureStackTrace(#, #)',
@@ -931,7 +931,7 @@ class DartError {
     // trace and Chrome even applies source maps to the stack
     // trace. Remeber, this method is only ever invoked by the browser
     // when an uncaught exception occurs.
-    if (JS('bool', 'Error.captureStackTrace') || (stack == null)) {
+    if (JS('bool', '!!Error.captureStackTrace') || (stack == null)) {
       return dartException.toString();
     } else {
       return '$dartException\n$stack';

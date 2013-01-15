@@ -3072,14 +3072,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   FunctionSignature handleForeignRawFunctionRef(Send node, String name) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
-      compiler.cancel('$name requires exactly one argument',
+      compiler.cancel('"$name" requires exactly one argument',
                       node: node.argumentsNode);
     }
     Node closure = node.arguments.head;
     Element element = elements[closure];
     if (!Elements.isStaticOrTopLevelFunction(element)) {
       compiler.cancel(
-          '$name requires a static or top-level method',
+          '"$name" requires a static or top-level method',
           node: closure);
     }
     FunctionElement function = element;
@@ -3090,7 +3090,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     FunctionSignature params = implementation.computeSignature(compiler);
     if (params.optionalParameterCount != 0) {
       compiler.cancel(
-          '$name does not handle closure with optional parameters',
+          '"$name" does not handle closure with optional parameters',
           node: closure);
     }
     visit(closure);
