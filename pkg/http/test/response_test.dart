@@ -44,7 +44,7 @@ void main() {
 
   group('.fromStream()', () {
     test('sets body', () {
-      var stream = new StreamController.singleSubscription();
+      var stream = new StreamController();
       var streamResponse = new http.StreamedResponse(stream, 200, 13);
       var future = http.Response.fromStream(streamResponse)
         .then((response) => response.body);
@@ -56,7 +56,7 @@ void main() {
     });
 
     test('sets bodyBytes', () {
-      var stream = new StreamController.singleSubscription();
+      var stream = new StreamController();
       var streamResponse = new http.StreamedResponse(stream, 200, 5);
       var future = http.Response.fromStream(streamResponse)
         .then((response) => response.bodyBytes);

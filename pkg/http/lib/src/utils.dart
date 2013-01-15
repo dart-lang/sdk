@@ -155,7 +155,7 @@ Stream onDone(Stream stream, void onDone()) {
 ByteStream wrapInputStream(InputStream stream) {
   if (stream.closed) return emptyStream;
 
-  var controller = new StreamController.singleSubscription();
+  var controller = new StreamController();
   stream.onClosed = controller.close;
   stream.onData = () => controller.add(stream.read());
   stream.onError = (e) => controller.signalError(new AsyncError(e));
@@ -242,7 +242,7 @@ Stream get emptyStream => streamFromIterable([]);
 /// Creates a single-subscription stream that emits the items in [iter] and then
 /// ends.
 Stream streamFromIterable(Iterable iter) {
-  var stream = new StreamController.singleSubscription();
+  var stream = new StreamController();
   iter.forEach(stream.add);
   stream.close();
   return stream.stream;
@@ -253,8 +253,8 @@ Stream streamFromIterable(Iterable iter) {
 /// errors from [stream]. This is useful if [stream] is single-subscription but
 /// multiple subscribers are necessary.
 Pair<Stream, Stream> tee(Stream stream) {
-  var controller1 = new StreamController.singleSubscription();
-  var controller2 = new StreamController.singleSubscription();
+  var controller1 = new StreamController();
+  var controller2 = new StreamController();
   stream.listen((value) {
     controller1.add(value);
     controller2.add(value);

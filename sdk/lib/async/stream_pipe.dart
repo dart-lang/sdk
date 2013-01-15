@@ -48,11 +48,9 @@ _cancelAndError(StreamSubscription subscription, _FutureImpl future) =>
  * [_handleDone] methods. Subclasses are supposed to add handling of some of
  * the events by overriding these methods.
  *
- * This class is intended for internal use only.
- */
-/**
- *
  * Handles backwards propagation of subscription and pause.
+ *
+ * This class is intended for internal use only.
  */
 class _ForwardingStreamTransformer<S, T> implements StreamTransformer<S, T> {
   Stream<T> _stream;

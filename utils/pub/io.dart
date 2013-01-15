@@ -563,8 +563,11 @@ Future<String> consumeStringInputStream(StringInputStream stream) {
 
 /// Wraps [stream] in a single-subscription [Stream] that emits the same data.
 Stream<List<int>> wrapInputStream(InputStream stream) {
-  var controller = new StreamController.singleSubscription();
-  if (stream.closed) return controller..close();
+  var controller = new StreamController();
+  if (stream.closed) {
+    controller.close();
+    return controller.stream;
+  }
 
   stream.onClosed = controller.close;
   stream.onData = () => controller.add(stream.read());

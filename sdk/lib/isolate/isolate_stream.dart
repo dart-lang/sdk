@@ -52,7 +52,7 @@ class _CloseToken {
 class IsolateStream extends Stream<dynamic> {
   bool _isClosed = false;
   final ReceivePort _port;
-  StreamController _controller = new StreamController();
+  StreamController _controller = new StreamController.multiSubscription();
 
   IsolateStream._fromOriginalReceivePort(this._port) {
     _port.receive((message, replyTo) {

@@ -13,7 +13,7 @@ import 'event_helper.dart';
 testController() {
   // Test reduce
   test("StreamController.reduce", () {
-    StreamController c = new StreamController();
+    StreamController c = new StreamController.multiSubscription();
     c.reduce(0, (a,b) => a + b)
      .then(expectAsync1((int v) {
         Expect.equals(42, v);
@@ -24,14 +24,14 @@ testController() {
   });
 
   test("StreamController.reduce throws", () {
-    StreamController c = new StreamController();
+    StreamController c = new StreamController.multiSubscription();
     c.reduce(0, (a,b) { throw "Fnyf!"; })
      .catchError(expectAsync1((e) { Expect.equals("Fnyf!", e.error); }));
     c.add(42);
   });
 
   test("StreamController.pipeInto", () {
-    StreamController c = new StreamController();
+    StreamController c = new StreamController.multiSubscription();
     var list = <int>[];
     c.pipeInto(new CollectionSink<int>(list))
      .whenComplete(expectAsync0(() {
@@ -48,7 +48,7 @@ testController() {
 
 testSingleController() {
   test("Single-subscription StreamController.reduce", () {
-    StreamController c = new StreamController.singleSubscription();
+    StreamController c = new StreamController();
     c.reduce(0, (a,b) => a + b)
     .then(expectAsync1((int v) { Expect.equals(42, v); }));
     c.add(10);
@@ -57,14 +57,14 @@ testSingleController() {
   });
 
   test("Single-subscription StreamController.reduce throws", () {
-    StreamController c = new StreamController.singleSubscription();
+    StreamController c = new StreamController();
     c.reduce(0, (a,b) { throw "Fnyf!"; })
             .catchError(expectAsync1((e) { Expect.equals("Fnyf!", e.error); }));
     c.add(42);
   });
 
   test("Single-subscription StreamController.pipeInto", () {
-    StreamController c = new StreamController.singleSubscription();
+    StreamController c = new StreamController();
     var list = <int>[];
     c.pipeInto(new CollectionSink<int>(list))
      .whenComplete(expectAsync0(() {
@@ -79,7 +79,7 @@ testSingleController() {
   });
 
   test("Single-subscription StreamController subscription changes", () {
-    StreamController c = new StreamController.singleSubscription();
+    StreamController c = new StreamController();
     StreamSink sink = c.sink;
     Stream stream = c.stream;
     int counter = 0;
@@ -103,7 +103,7 @@ testSingleController() {
   test("Single-subscription StreamController events are buffered when"
        " there is no subscriber",
        () {
-    StreamController c = new StreamController.singleSubscription();
+    StreamController c = new StreamController();
     StreamSink sink = c.sink;
     Stream stream = c.stream;
     int counter = 0;
@@ -122,7 +122,7 @@ testSingleController() {
   // Test subscription changes while firing.
   test("Single-subscription StreamController subscription changes while firing",
        () {
-    StreamController c = new StreamController.singleSubscription();
+    StreamController c = new StreamController();
     StreamSink sink = c.sink;
     Stream stream = c.stream;
     int counter = 0;

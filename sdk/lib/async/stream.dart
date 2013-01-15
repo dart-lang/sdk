@@ -8,9 +8,49 @@ part of dart.async;
 // Core Stream types
 // -------------------------------------------------------------------
 
+/**
+ * A source of asynchronous data events.
+ *
+ * A Stream provides a sequence of events. Each event is either a data event or
+ * an error event, representing the result of a single computation. When the
+ * Stream is exhausted, it may send a single "done" event.
+ *
+ * You can [listen] on a stream to receive the events it sends. When you listen,
+ * you receive a [StreamSubscription] object that can be used to stop listening,
+ * or to temporarily pause events from the stream.
+ *
+ * When an event is fired, all listeners at that time are informed.
+ * If a listener is added or removed while an event is being fired, the change
+ * will only take effect after the event is completely fired.
+ *
+ * Streams always respect "pause" requests. If necessary they need to buffer
+ * their input, but often, and preferably, they can simply request their input
+ * to pause too.
+ *
+ * There are two kinds of streams: Single-subscription streams and
+ * multi-subscription streams.
+ *
+ * A single-subscription stream allows only a single listener in its entire
+ * life-cycle. It holds back events until it gets a listener, and it exhausts
+ * itself when the listener is unsubscribed, even if the stream wasn't done.
+ *
+ * Single-subscription streams are generally used for streaming parts of
+ * contiguous data like file I/O.
+ *
+ * A multi-subscription stream allows any number of listeners, and it fires
+ * its events when they are ready, whether there are listeners or not.
+ *
+ * Multi-subscription streams are used for independent events/observers.
+ */
 abstract class Stream<T> {
   Stream();
 
+  /**
+   * Creates a new single-subscription stream from the future.
+   *
+   * When the future completes, the stream will fire one event, either
+   * data or error, and then close with a done-event.
+   */
   factory Stream.fromFuture(Future<T> future) {
     _StreamImpl<T> stream = new _MultiStreamImpl<T>();
     future.then((value) {

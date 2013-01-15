@@ -42,7 +42,7 @@ class StreamController<T> extends Stream<T> implements StreamSink<T> {
   /**
    * A controller with a [stream] that supports multiple subscribers.
    */
-  StreamController() {
+  StreamController.multiSubscription() {
     _stream = new _MultiControllerStream<T>(onSubscriptionStateChange,
                                             onPauseStateChange);
   }
@@ -51,7 +51,7 @@ class StreamController<T> extends Stream<T> implements StreamSink<T> {
    * The controller will buffer all incoming events until the subscriber is
    * registered.
    */
-  StreamController.singleSubscription() {
+  StreamController() {
     _stream = new _SingleControllerStream<T>(onSubscriptionStateChange,
                                              onPauseStateChange);
   }

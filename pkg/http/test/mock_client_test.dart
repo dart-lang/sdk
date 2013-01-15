@@ -35,7 +35,7 @@ void main() {
   test('handles a streamed request', () {
     var client = new MockClient.streaming((request, bodyStream) {
       return bodyStream.bytesToString().then((bodyString) {
-        var stream = new StreamController<List<int>>.singleSubscription();
+        var stream = new StreamController<List<int>>();
         async.then((_) {
           stream.add('Request body was "$bodyString"'.charCodes);
           stream.close();
