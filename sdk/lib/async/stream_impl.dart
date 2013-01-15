@@ -712,7 +712,7 @@ class _IterablePendingEvents<T> extends _PendingEvents {
     } catch (e, s) {
       stream._sendError(new AsyncError(e, s));
       stream._sendDone();
-      _isDone = false;
+      _isDone = true;
     }
   }
 }
