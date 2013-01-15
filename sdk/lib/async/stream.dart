@@ -31,6 +31,9 @@ abstract class Stream<T> {
     return new _IterableSingleStreamImpl<T>(data);
   }
 
+  /** Whether the stream is a single-subscription stream. */
+  bool get isSingleSubscription;
+
   /**
    * Returns a multi-subscription stream that produces the same events as this.
    *
@@ -96,7 +99,7 @@ abstract class Stream<T> {
    * but it only sends the data events that satisfy the [test].
    */
   Stream<T> where(bool test(T event)) {
-    return this.transform(new WhereStream<T>(test));
+    return this.transform(new WhereTransformer<T>(test));
   }
 
   /**
@@ -104,7 +107,7 @@ abstract class Stream<T> {
    * to a new value using the [convert] function.
    */
   Stream mappedBy(convert(T event)) {
-    return this.transform(new MapStream<T, dynamic>(convert));
+    return this.transform(new MapTransformer<T, dynamic>(convert));
   }
 
   /**
@@ -120,8 +123,9 @@ abstract class Stream<T> {
    * with it. It can throw if it wants to raise a new (or the same) error,
    * or simply return to make the stream forget the error.
    */
+   // TODO(lrn): Say what to do if you want to convert the error to a value.
   Stream<T> handleError(void handle(AsyncError error), { bool test(error) }) {
-    return this.transform(new HandleErrorStream<T>(handle, test));
+    return this.transform(new HandleErrorTransformer<T>(handle, test));
   }
 
   /**
@@ -133,7 +137,8 @@ abstract class Stream<T> {
    * in order.
    */
   Stream expand(Iterable convert(T value)) {
-    return this.transform(new ExpandStream<T, dynamic>(convert));
+    return this.transform(
+        new ExpandTransformer<T, dynamic>(convert));
   }
 
   /**
@@ -435,7 +440,7 @@ abstract class Stream<T> {
    * so will the returned stream.
    */
   Stream<T> take(int count) {
-    return this.transform(new TakeStream(count));
+    return this.transform(new TakeTransformer<T>(count));
   }
 
   /**
@@ -447,14 +452,14 @@ abstract class Stream<T> {
    * a value that [test] doesn't accept.
    */
   Stream<T> takeWhile(bool test(T value)) {
-    return this.transform(new TakeWhileStream(test));
+    return this.transform(new TakeWhileTransformer<T>(test));
   }
 
   /**
    * Skips the first [count] data events from this stream.
    */
   Stream<T> skip(int count) {
-    return this.transform(new SkipStream(count));
+    return this.transform(new SkipTransformer<T>(count));
   }
 
   /**
@@ -466,7 +471,7 @@ abstract class Stream<T> {
    * event data, the returned stream will have the same events as this stream.
    */
   Stream<T> skipWhile(bool test(T value)) {
-    return this.transform(new SkipWhileStream(test));
+    return this.transform(new SkipWhileTransformer<T>(test));
   }
 
   /**
@@ -479,7 +484,7 @@ abstract class Stream<T> {
    * omitted, the '==' operator on the last provided data element is used.
    */
   Stream<T> distinct([bool equals(T previous, T next)]) {
-    return this.transform(new DistinctStream(equals));
+    return this.transform(new DistinctTransformer<T>(equals));
   }
 
   /**
@@ -489,7 +494,7 @@ abstract class Stream<T> {
    * equivalent to [:this.elementAt(0):]
    */
   Future<T> get first {
-    _FutureImpl<T> future = new _FutureImpl();
+    _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     subscription = this.listen(
       (T value) {
@@ -704,7 +709,7 @@ abstract class Stream<T> {
    */
   Future<T> elementAt(int index) {
     if (index is! int || index < 0) throw new ArgumentError(index);
-    _FutureImpl<T> future = new _FutureImpl();
+    _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     subscription = this.listen(
       (T value) {
@@ -786,6 +791,8 @@ class StreamView<T> extends Stream<T> {
 
   StreamView(this._stream);
 
+  bool get isSingleSubscription => _stream.isSingleSubscription;
+
   StreamSubscription<T> listen(void onData(T value),
                                { void onError(AsyncError error),
                                  void onDone(),
@@ -838,7 +845,9 @@ abstract class StreamTransformer<S, T> {
   factory StreamTransformer.from({
       void onData(S data, StreamSink<T> sink),
       void onError(AsyncError error, StreamSink<T> sink),
-      void onDone(StreamSink<T> sink)}) = _StreamTransformerFunctionWrapper;
+      void onDone(StreamSink<T> sink)}) {
+    return new _StreamTransformerImpl<S, T>(onData, onError, onDone);
+  }
 
   Stream<T> bind(Stream<S> stream);
 }

@@ -56,6 +56,8 @@ class StreamController<T> extends Stream<T> implements StreamSink<T> {
                                              onPauseStateChange);
   }
 
+  bool get isSingleSubscription => _stream.isSingleSubscription;
+
   StreamSubscription listen(void onData(T data),
                             { void onError(AsyncError error),
                               void onDone(),

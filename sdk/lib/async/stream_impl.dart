@@ -421,8 +421,10 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
   _StreamListener _subscriber = null;
 
   Stream<T> asMultiSubscriberStream() {
-    return new _ForwardingMultiStream<T, T>().._source = this;
+    return new _SingleStreamMultiplexer<T>(this);
   }
+
+  bool get isSingleSubscription => true;
 
   /** Whether one or more active subscribers have requested a pause. */
   bool get _isPaused => !_hasSubscribers || super._isPaused;
@@ -537,6 +539,8 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
   }
 
   Stream<T> asMultiSubscriberStream() => this;
+
+  bool get isSingleSubscription => false;
 
   // ------------------------------------------------------------------
   // Helper functions that can be overridden in subclasses.
@@ -1091,5 +1095,42 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
       _timer = null;
     }
     _pauseCount = 0;
+  }
+}
+
+class _SingleStreamMultiplexer<T> extends _MultiStreamImpl<T> {
+  final _SingleStreamImpl<T> _source;
+  StreamSubscription<T> _subscription;
+
+  _SingleStreamMultiplexer(this._source);
+
+  void _onPauseStateChange() {
+    if (_isPaused) {
+      if (_subscription != null) {
+        _subscription.pause();
+      }
+    } else {
+      if (_subscription != null) {
+        _subscription.resume();
+      }
+    }
+  }
+
+  /**
+    * Subscribe or unsubscribe on [_source] depending on whether
+    * [_stream] has subscribers.
+    */
+  void _onSubscriptionStateChange() {
+    if (_hasSubscribers) {
+      assert(_subscription == null);
+      _subscription = _source.listen(this._add,
+                                     onError: this._signalError,
+                                     onDone: this._close);
+    } else {
+      // TODO(lrn): Check why this can happen.
+      if (_subscription == null) return;
+      _subscription.cancel();
+      _subscription = null;
+    }
   }
 }
