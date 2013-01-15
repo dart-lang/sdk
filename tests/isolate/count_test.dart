@@ -30,6 +30,12 @@ void main() {
 
     local.receive(expectAsync2((int message, SendPort replyTo) {
       if (message == -1) {
+        // [count] is '11' because when we sent '9' to [remote],
+        // the other isolate will send another message '18', that this
+        // isolate will receive. Then this isolate will send '10' to
+        // [remote] and increment [count]. Note that this last '10'
+        // message will not be received by the other isolate, since it
+        // received '-1' before.
         expect(count, 11);
         local.close();
         return;

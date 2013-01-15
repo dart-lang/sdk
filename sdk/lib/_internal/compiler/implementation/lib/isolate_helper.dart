@@ -162,10 +162,8 @@ class _Manager {
     bool isWorkerDefined = globalWorker != null;
 
     isWorker = !isWindowDefined && globalPostMessageDefined;
-    supportsWorkers = false;
-    // TODO(7795): Enable web workers when Timers are supported.
-    // supportsWorkers = isWorker
-    //    || (isWorkerDefined && IsolateNatives.thisScript != null);
+    supportsWorkers = isWorker
+       || (isWorkerDefined && IsolateNatives.thisScript != null);
     fromCommandLine = !isWindowDefined && !isWorker;
   }
 
@@ -183,9 +181,14 @@ class _Manager {
   }
 
 
-  /** Close the worker running this code if all isolates are done. */
+  /**
+   * Close the worker running this code if all isolates are done and
+   * there is no active timer.
+   */
   void maybeCloseWorker() {
-    if (isolates.isEmpty) {
+    if (isWorker
+        && isolates.isEmpty
+        && topEventLoop.activeTimerCount == 0) {
       mainManager.postMessage(_serializeMessage({'command': 'close'}));
     }
   }
@@ -209,8 +212,7 @@ class _IsolateContext {
   }
 
   /**
-   * Run [code] in the context of the isolate represented by [this]. Note this
-   * is called from JavaScript (see $wrap_call in corejs.dart).
+   * Run [code] in the context of the isolate represented by [this].
    */
   dynamic eval(Function code) {
     var old = _globalState.currentContext;
@@ -253,9 +255,10 @@ class _IsolateContext {
 
 /** Represent the event loop on a javascript thread (DOM or worker). */
 class _EventLoop {
-  Queue<_IsolateEvent> events;
+  final Queue<_IsolateEvent> events = new Queue<_IsolateEvent>();
+  int activeTimerCount = 0;
 
-  _EventLoop() : events = new Queue<_IsolateEvent>();
+  _EventLoop();
 
   void enqueue(isolate, fn, msg) {
     events.addLast(new _IsolateEvent(isolate, fn, msg));
@@ -266,26 +269,28 @@ class _EventLoop {
     return events.removeFirst();
   }
 
+  void checkOpenReceivePortsFromCommandLine() {
+    if (_globalState.rootContext != null
+        && _globalState.isolates.containsKey(_globalState.rootContext.id)
+        && _globalState.fromCommandLine
+        && _globalState.rootContext.ports.isEmpty) {
+      // We want to reach here only on the main [_Manager] and only
+      // on the command-line.  In the browser the isolate might
+      // still be alive due to DOM callbacks, but the presumption is
+      // that on the command-line, no future events can be injected
+      // into the event queue once it's empty.  Node has setTimeout
+      // so this presumption is incorrect there.  We think(?) that
+      // in d8 this assumption is valid.
+      throw new Exception("Program exited with open ReceivePorts.");
+    }
+  }
+
   /** Process a single event, if any. */
   bool runIteration() {
     final event = dequeue();
     if (event == null) {
-      if (_globalState.isWorker) {
-        _globalState.maybeCloseWorker();
-      } else if (_globalState.rootContext != null &&
-                 _globalState.isolates.containsKey(
-                     _globalState.rootContext.id) &&
-                 _globalState.fromCommandLine &&
-                 _globalState.rootContext.ports.isEmpty) {
-        // We want to reach here only on the main [_Manager] and only
-        // on the command-line.  In the browser the isolate might
-        // still be alive due to DOM callbacks, but the presumption is
-        // that on the command-line, no future events can be injected
-        // into the event queue once it's empty.  Node has setTimeout
-        // so this presumption is incorrect there.  We think(?) that
-        // in d8 this assumption is valid.
-        throw new Exception("Program exited with open ReceivePorts.");
-      }
+      checkOpenReceivePortsFromCommandLine();
+      _globalState.maybeCloseWorker();
       return false;
     }
     event.process();
@@ -311,8 +316,7 @@ class _EventLoop {
   }
 
   /**
-   * Call [_runHelper] but ensure that worker exceptions are propragated. Note
-   * this is called from JavaScript (see $wrap_call in corejs.dart).
+   * Call [_runHelper] but ensure that worker exceptions are propragated.
    */
   void run() {
     if (!_globalState.isWorker) {
@@ -434,9 +438,17 @@ class IsolateNatives {
         _globalState.currentManagerId = msg['id'];
         Function entryPoint = _getJSFunctionFromName(msg['functionName']);
         var replyTo = _deserializeMessage(msg['replyTo']);
-        _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
+        var context = new _IsolateContext();
+        _globalState.topEventLoop.enqueue(context, function() {
           _startIsolate(entryPoint, replyTo);
         }, 'worker-start');
+        // Make sure we always have a current context in this worker.
+        // TODO(7907): This is currently needed because we're using
+        // Timers to implement Futures, and this isolate library
+        // implementation uses Futures. We should either stop using
+        // Futures in this library, or re-adapt if Futures get a
+        // different implementation.
+        _globalState.currentContext = context;
         _globalState.topEventLoop.run();
         break;
       case 'spawn-worker':
@@ -733,10 +745,15 @@ class _WorkerSendPort extends _BaseSendPort implements SendPort {
           'replyTo': replyTo});
 
       if (_globalState.isWorker) {
-        // communication from one worker to another go through the main worker:
+        // Communication from one worker to another go through the
+        // main worker.
         _globalState.mainManager.postMessage(workerMessage);
       } else {
-        _globalState.managers[_workerId].postMessage(workerMessage);
+        // Deliver the message only if the worker is still alive.
+        _ManagerStub manager = _globalState.managers[_workerId];
+        if (manager != null) {
+          manager.postMessage(workerMessage);
+        }
       }
     });
   }
@@ -1250,48 +1267,67 @@ class _Deserializer {
 
 class TimerImpl implements Timer {
   final bool _once;
+  bool _inEventLoop = false;
   int _handle;
 
   TimerImpl(int milliseconds, void callback(Timer timer))
       : _once = true {
-    if (hasTimer() && !_globalState.isWorker) {
-      _handle = JS('int', '#.setTimeout(#, #)',
-                   globalThis,
-                   convertDartClosureToJS(() => callback(this), 0),
-                   milliseconds);
-    } else if (milliseconds != 0) {
-      throw new UnsupportedError("Non DOM isolate with timer greater than 0.");
-    } else {
+    if (milliseconds == 0 && (!hasTimer() || _globalState.isWorker)) {
       // This makes a dependency between the async library and the
       // event loop of the isolate library. The compiler makes sure
       // that the event loop is compiled if [Timer] is used.
+      // TODO(7907): In case of web workers, we need to use the event
+      // loop instead of setTimeout, to make sure the futures get executed in
+      // order.
       _globalState.topEventLoop.enqueue(_globalState.currentContext, () {
         callback(this); 
       }, 'timer');
+      _inEventLoop = true;
+    } else if (hasTimer()) {
+      _globalState.topEventLoop.activeTimerCount++;
+      void internalCallback() {
+        callback(this);
+        _handle = null;
+        _globalState.topEventLoop.activeTimerCount--;
+      }
+      _handle = JS('int', '#.setTimeout(#, #)',
+                   globalThis,
+                   convertDartClosureToJS(internalCallback, 0),
+                   milliseconds);
+    } else {
+      assert(milliseconds > 0);
+      throw new UnsupportedError("Timer greater than 0.");
     }
   }
 
   TimerImpl.repeating(int milliseconds, void callback(Timer timer))
       : _once = false {
-    if (hasTimer() && !_globalState.isWorker) {
+    if (hasTimer()) {
+      _globalState.topEventLoop.activeTimerCount++;
       _handle = JS('int', '#.setInterval(#, #)',
                    globalThis,
-                   convertDartClosureToJS(() => callback(this), 0),
+                   convertDartClosureToJS(() { callback(this); }, 0),
                    milliseconds);
     } else {
-      throw new UnsupportedError("Non DOM isolate with repeating timer.");
+      throw new UnsupportedError("Repeating timer.");
     }
   }
 
   void cancel() {
-    if (hasTimer() && !_globalState.isWorker) {
+    if (hasTimer()) {
+      if (_inEventLoop) {
+        throw new UnsupportedError("Timer in event loop cannot be canceled.");
+      }
+      if (_handle == null) return;
+      _globalState.topEventLoop.activeTimerCount--;
       if (_once) {
         JS('void', '#.clearTimeout(#)', globalThis, _handle);
       } else {
         JS('void', '#.clearInterval(#)', globalThis, _handle);
       }
+      _handle = null;
     } else {
-      throw new UnsupportedError("Canceling a timer on a non DOM isolate.");
+      throw new UnsupportedError("Canceling a timer.");
     }
   }
 }
