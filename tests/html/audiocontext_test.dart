@@ -21,10 +21,10 @@ main() {
       ArrayBufferView arrayBufferView = new Float32Array.fromList([]);
       try {
         // Test that native overload is chosen correctly. Native implementation
-        // should throw 'SYNTAX_ERR' DomException because the buffer is empty.
+        // should throw 'SyntaxError' DomException because the buffer is empty.
         AudioBuffer buffer = ctx.createBuffer(arrayBufferView.buffer, false);
       } catch (e) {
-        expect(e.code, equals(DomException.SYNTAX_ERR));
+        expect(e.name, DomException.SYNTAX);
       }
   });
 

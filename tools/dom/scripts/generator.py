@@ -640,6 +640,12 @@ _all_but_ie9_annotations = [
   "@SupportedBrowser(SupportedBrowser.SAFARI)",
 ]
 
+_webkit_experimental_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  "@Experimental()",
+]
+
 _history_annotations = _all_but_ie9_annotations
 
 _performance_annotations = [
@@ -664,6 +670,7 @@ dart_annotations = {
   ],
   'DOMWindow.indexedDB': _indexed_db_annotations,
   'DOMWindow.performance': _performance_annotations,
+  'DOMWindow.webkitNotifications': _webkit_experimental_annotations,
   'DOMWindow.webkitRequestFileSystem': _file_system_annotations,
   'DOMWindow.webkitResolveLocalFileSystemURL': _file_system_annotations,
   'Element.webkitCreateShadowRoot': [
@@ -679,21 +686,13 @@ dart_annotations = {
     "@Experimental()",
   ],
   'HTMLDataListElement': _all_but_ie9_annotations,
-  'HTMLDetailsElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-    "@Experimental()",
-  ],
+  'HTMLDetailsElement': _webkit_experimental_annotations,
   'HTMLEmbedElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.IE)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
-  'HTMLKeygenElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-    "@Experimental()",
-  ],
+  'HTMLKeygenElement': _webkit_experimental_annotations,
   'HTMLMeterElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
@@ -721,6 +720,7 @@ dart_annotations = {
   ],
   'IDBFactory': _indexed_db_annotations,
   'IDBDatabase': _indexed_db_annotations,
+  'NotificationCenter': _webkit_experimental_annotations,
   'Performance': _performance_annotations,
   'ShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",

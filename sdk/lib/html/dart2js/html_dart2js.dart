@@ -6456,75 +6456,53 @@ class DomError native "*DOMError" {
   /// @domName DOMError.name; @docsEditable true
   final String name;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMException; @docsEditable true
+/// @domName DOMException
 class DomException native "*DOMException" {
 
-  static const int ABORT_ERR = 20;
+  static const String INDEX_SIZE = 'IndexSizeError';
+  static const String HIERARCHY_REQUEST = 'HierarchyRequestError';
+  static const String WRONG_DOCUMENT = 'WrongDocumentError';
+  static const String INVALID_CHARACTER = 'InvalidCharacterError';
+  static const String NO_MODIFICATION_ALLOWED = 'NoModificationAllowedError';
+  static const String NOT_FOUND = 'NotFoundError';
+  static const String NOT_SUPPORTED = 'NotSupportedError';
+  static const String INVALID_STATE = 'InvalidStateError';
+  static const String SYNTAX = 'SyntaxError';
+  static const String INVALID_MODIFICATION = 'InvalidModificationError';
+  static const String NAMESPACE = 'NamespaceError';
+  static const String INVALID_ACCESS = 'InvalidAccessError';
+  static const String TYPE_MISMATCH = 'TypeMismatchError';
+  static const String SECURITY = 'SecurityError';
+  static const String NETWORK = 'NetworkError';
+  static const String ABORT = 'AbortError';
+  static const String URL_MISMATCH = 'URLMismatchError';
+  static const String QUOTA_EXCEEDED = 'QuotaExceededError';
+  static const String TIMEOUT = 'TimeoutError';
+  static const String INVALID_NODE_TYPE = 'InvalidNodeTypeError';
+  static const String DATA_CLONE = 'DataCloneError';
 
-  static const int DATA_CLONE_ERR = 25;
-
-  static const int DOMSTRING_SIZE_ERR = 2;
-
-  static const int HIERARCHY_REQUEST_ERR = 3;
-
-  static const int INDEX_SIZE_ERR = 1;
-
-  static const int INUSE_ATTRIBUTE_ERR = 10;
-
-  static const int INVALID_ACCESS_ERR = 15;
-
-  static const int INVALID_CHARACTER_ERR = 5;
-
-  static const int INVALID_MODIFICATION_ERR = 13;
-
-  static const int INVALID_NODE_TYPE_ERR = 24;
-
-  static const int INVALID_STATE_ERR = 11;
-
-  static const int NAMESPACE_ERR = 14;
-
-  static const int NETWORK_ERR = 19;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NOT_SUPPORTED_ERR = 9;
-
-  static const int NO_DATA_ALLOWED_ERR = 6;
-
-  static const int NO_MODIFICATION_ALLOWED_ERR = 7;
-
-  static const int QUOTA_EXCEEDED_ERR = 22;
-
-  static const int SECURITY_ERR = 18;
-
-  static const int SYNTAX_ERR = 12;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TYPE_MISMATCH_ERR = 17;
-
-  static const int URL_MISMATCH_ERR = 21;
-
-  static const int VALIDATION_ERR = 16;
-
-  static const int WRONG_DOCUMENT_ERR = 4;
-
-  /// @domName DOMException.code; @docsEditable true
-  final int code;
+  String get name {
+    var errorName = JS('String', '#.name', this);
+    // Although Safari nightly has updated the name to SecurityError, Safari 5
+    // and 6 still return SECURITY_ERR.
+    if (_Device.isWebKit && errorName == 'SECURITY_ERR') return 'SecurityError';
+    // Chrome release still uses old string, remove this line when Chrome stable
+    // also prints out SyntaxError.
+    if (_Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
+    return errorName;
+  }
 
   /// @domName DOMException.message; @docsEditable true
   final String message;
 
-  /// @domName DOMException.name; @docsEditable true
-  final String name;
-
   /// @domName DOMException.toString; @docsEditable true
   String toString() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15571,7 +15549,13 @@ class NotificationEvents extends Events {
 
 
 /// @domName NotificationCenter; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class NotificationCenter native "*NotificationCenter" {
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.webkitNotifications)');
 
   /// @domName NotificationCenter.checkPermission; @docsEditable true
   int checkPermission() native;
@@ -22309,7 +22293,9 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   final dynamic _top;
 
   /// @domName DOMWindow.webkitNotifications; @docsEditable true
-  final NotificationCenter webkitNotifications;
+  @JSName('webkitNotifications')
+  @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.SAFARI) @Experimental()
+  final NotificationCenter notifications;
 
   /// @domName DOMWindow.webkitStorageInfo; @docsEditable true
   final StorageInfo webkitStorageInfo;

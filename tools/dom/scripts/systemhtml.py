@@ -45,6 +45,7 @@ _js_custom_members = set([
     'Element.webkitMatchesSelector',
     'Element.remove',
     'ElementEvents.mouseWheel',
+    'DOMException.name',
     'HTMLCanvasElement.getContext',
     'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
@@ -87,6 +88,7 @@ js_support_checks = {
   'HTMLProgressElement': "Element.isTagSupported('progress')",
   'HTMLShadowElement': "Element.isTagSupported('shadow')",
   'HTMLTrackElement': "Element.isTagSupported('track')",
+  'NotificationCenter': "JS('bool', '!!(window.webkitNotifications)')",
   'Performance': "JS('bool', '!!(window.performance)')",
   'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
 }

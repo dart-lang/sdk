@@ -7669,60 +7669,6 @@ class DomError extends NativeFieldWrapperClass1 {
 class DomException extends NativeFieldWrapperClass1 {
   DomException.internal();
 
-  static const int ABORT_ERR = 20;
-
-  static const int DATA_CLONE_ERR = 25;
-
-  static const int DOMSTRING_SIZE_ERR = 2;
-
-  static const int HIERARCHY_REQUEST_ERR = 3;
-
-  static const int INDEX_SIZE_ERR = 1;
-
-  static const int INUSE_ATTRIBUTE_ERR = 10;
-
-  static const int INVALID_ACCESS_ERR = 15;
-
-  static const int INVALID_CHARACTER_ERR = 5;
-
-  static const int INVALID_MODIFICATION_ERR = 13;
-
-  static const int INVALID_NODE_TYPE_ERR = 24;
-
-  static const int INVALID_STATE_ERR = 11;
-
-  static const int NAMESPACE_ERR = 14;
-
-  static const int NETWORK_ERR = 19;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NOT_SUPPORTED_ERR = 9;
-
-  static const int NO_DATA_ALLOWED_ERR = 6;
-
-  static const int NO_MODIFICATION_ALLOWED_ERR = 7;
-
-  static const int QUOTA_EXCEEDED_ERR = 22;
-
-  static const int SECURITY_ERR = 18;
-
-  static const int SYNTAX_ERR = 12;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TYPE_MISMATCH_ERR = 17;
-
-  static const int URL_MISMATCH_ERR = 21;
-
-  static const int VALIDATION_ERR = 16;
-
-  static const int WRONG_DOCUMENT_ERR = 4;
-
-
-  /** @domName DOMCoreException.code */
-  int get code native "DOMCoreException_code_Getter";
-
 
   /** @domName DOMCoreException.message */
   String get message native "DOMCoreException_message_Getter";
@@ -18486,8 +18432,14 @@ class NotificationEvents extends Events {
 
 
 /// @domName NotificationCenter
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class NotificationCenter extends NativeFieldWrapperClass1 {
   NotificationCenter.internal();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
 
   /** @domName NotificationCenter.checkPermission */
@@ -26839,7 +26791,10 @@ class Window extends EventTarget implements WindowBase {
 
 
   /** @domName DOMWindow.webkitNotifications */
-  NotificationCenter get webkitNotifications native "DOMWindow_webkitNotifications_Getter";
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  NotificationCenter get notifications native "DOMWindow_webkitNotifications_Getter";
 
 
   /** @domName DOMWindow.webkitStorageInfo */
