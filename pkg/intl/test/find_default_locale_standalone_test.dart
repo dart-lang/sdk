@@ -22,7 +22,7 @@ main() {
 verifyLocale(_) {
   expect(Intl.systemLocale, isNot(equals("xx_YY")));
   var pattern = new RegExp(r"\w\w_[A-Z0-9]+");
-  var shortPattern = new RegExp(r"\w\w\");
+  var shortPattern = new RegExp(r"\w\w");
   var match = pattern.hasMatch(Intl.systemLocale);
   var shortMatch = shortPattern.hasMatch(Intl.systemLocale);
   expect(match || shortMatch, isTrue);
