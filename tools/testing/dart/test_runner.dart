@@ -17,10 +17,11 @@ import "dart:async";
 import "dart:io" as io;
 import "dart:isolate";
 import "dart:uri";
+import "http_server.dart" as http_server;
 import "status_file_parser.dart";
 import "test_progress.dart";
 import "test_suite.dart";
-import "http_server.dart" as http_server;
+import "utils.dart";
 
 const int NO_TIMEOUT = 0;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
@@ -625,7 +626,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     // and the virtual framebuffer X server didn't hook up, or DRT crashed with
     // a core dump. Sometimes DRT crashes after it has set the stdout to PASS,
     // so we have to do this check first.
-    var stderrLines = new String.fromCharCodes(super.stderr).split("\n");
+    var stderrLines = decodeUtf8(super.stderr).split("\n");
     for (String line in stderrLines) {
       // TODO(kustermann,ricow): Issue: 7564
       // This seems to happen quite frequently, we need to figure out why.
@@ -700,7 +701,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain' followed by 'PASS'.
     bool has_content_type = false;
-    var stdoutLines = new String.fromCharCodes(super.stdout).split("\n");
+    var stdoutLines = decodeUtf8(super.stdout).split("\n");
     for (String line in stdoutLines) {
       switch (line) {
         case 'Content-Type: text/plain':
@@ -773,7 +774,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     List<String> staticWarnings = [];
 
     // Read the returned list of errors and stuff them away.
-    var stderrLines = new String.fromCharCodes(super.stderr).split("\n");
+    var stderrLines = decodeUtf8(super.stderr).split("\n");
     for (String line in stderrLines) {
       if (line.length == 0) continue;
       List<String> fields = splitMachineError(line);
@@ -949,9 +950,9 @@ class RunningProcess {
         && testCase.configuration['verbose']) {
       print(testCase.displayName);
 
-      print(new String.fromCharCodes(lastCommandOutput.stderr));
+      print(decodeUtf8(lastCommandOutput.stderr));
       if (!lastCommandOutput.command.isPixelTest) {
-        print(new String.fromCharCodes(lastCommandOutput.stdout));
+        print(decodeUtf8(lastCommandOutput.stdout));
       } else {
         print("DRT pixel test failed! stdout is not printed because it "
               "contains binary data!");
@@ -1319,7 +1320,8 @@ class BatchRunnerProcess {
         } else if (line.startsWith('>>> ')) {
           throw new Exception('Unexpected command from dartc batch runner.');
         } else {
-          buffer.addAll("$line\n".charCodes);
+          buffer.addAll(decodeUtf8(line));
+          buffer.addAll("\n".charCodes);
         }
         line = stream.readLine();
       }
@@ -1346,7 +1348,8 @@ class BatchRunnerProcess {
         if (line.startsWith('>>> EOF STDERR')) {
           _stderrDone();
         } else {
-          buffer.addAll("$line\n".charCodes);
+          buffer.addAll(decodeUtf8(line));
+          buffer.addAll("\n".charCodes);
         }
         line = stream.readLine();
       }

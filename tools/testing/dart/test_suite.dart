@@ -17,11 +17,12 @@ library test_suite;
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+import "dart:uri";
+import "drt_updater.dart";
+import "multitest.dart";
 import "status_file_parser.dart";
 import "test_runner.dart";
-import "multitest.dart";
-import "drt_updater.dart";
-import "dart:uri";
+import "utils.dart";
 import '../../../pkg/path/lib/path.dart' as pathLib;
 
 part "browser_test.dart";
@@ -1309,18 +1310,9 @@ class StandardTestSuite extends TestSuite {
     RegExp sourceOrImportRegExp =
         new RegExp("^(#source|#import|part)[ \t]+[\('\"]", multiLine: true);
 
-    // Read the entire file into a byte buffer and transform it to a
-    // String. This will treat the file as ascii but the only parts
-    // we are interested in will be ascii in any case.
-    RandomAccessFile file = new File.fromPath(filePath).openSync(FileMode.READ);
-    List chars = new List(file.lengthSync());
-    var offset = 0;
-    while (offset != chars.length) {
-      offset += file.readListSync(chars, offset, chars.length - offset);
-    }
-    file.closeSync();
-    String contents = new String.fromCharCodes(chars);
-    chars = null;
+    var bytes = new File.fromPath(filePath).readAsBytesSync();
+    String contents = decodeUtf8(bytes);
+    bytes = null;
 
     // Find the options in the file.
     List<List> result = new List<List>();
