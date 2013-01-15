@@ -751,9 +751,7 @@ abstract class _HttpConnectionBase {
     };
     _socket.onClosed = _httpParser.streamDone;
     _socket.onError = _httpParser.streamError;
-    // Ignore errors in the socket output stream as this is getting
-    // the same errors as the socket itself.
-    _socket.outputStream.onError = (e) => null;
+    _socket.outputStream.onError = _httpParser.streamError;
   }
 
   bool _write(List<int> data, [bool copyBuffer = false]);
@@ -876,13 +874,23 @@ class _HttpConnection extends _HttpConnectionBase {
   }
 
   void _onError(e) {
-    onError(e);
+    // Don't report errors for a request parser when HTTP parser is in
+    // idle state. Clients can close the connection and cause a
+    // connection reset by peer error which is OK.
+    _onClosed();
+    if (_state == _HttpConnectionBase.IDLE) return;
+
     // Propagate the error to the streams.
-    if (_request != null && _request._streamErrorHandler != null) {
+    if (_request != null &&
+        !_isRequestDone &&
+        _request._streamErrorHandler != null) {
       _request._streamErrorHandler(e);
-    }
-    if (_response != null && _response._streamErrorHandler != null) {
+    } else if (_response != null &&
+        !_isResponseDone &&
+        _response._streamErrorHandler != null) {
       _response._streamErrorHandler(e);
+    } else {
+      onError(e);
     }
     if (_socket != null) _socket.close();
   }
