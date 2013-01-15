@@ -377,35 +377,22 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
 
   bool isAmbiguous() => true;
 }
-class ContainerElementX extends ElementX {
-  Link<Element> localMembers = const Link<Element>();
 
-  ContainerElementX(name, kind, enclosingElement)
-    : super(name, kind, enclosingElement);
+class ScopeX {
+  final Map<SourceString, Element> contents = new Map<SourceString, Element>();
 
-  void addMember(Element element, DiagnosticListener listener) {
-    localMembers = localMembers.prepend(element);
-  }
-}
+  bool get isEmpty => contents.isEmpty;
+  Iterable<Element> get values => contents.values;
 
-class ScopeContainerElementX extends ContainerElementX
-    implements ScopeContainerElement {
-  final Map<SourceString, Element> localScope;
-
-  ScopeContainerElementX(name, kind, enclosingElement)
-    : super(name, kind, enclosingElement),
-      localScope = new Map<SourceString, Element>();
-
-  void addMember(Element element, DiagnosticListener listener) {
-    super.addMember(element, listener);
-    addToScope(element, listener);
+  Element lookup(SourceString name) {
+    return contents[name];
   }
 
-  void addToScope(Element element, DiagnosticListener listener) {
+  void add(Element element, DiagnosticListener listener) {
     if (element.isAccessor()) {
-      addAccessorToScope(element, localScope[element.name], listener);
+      addAccessor(element, contents[element.name], listener);
     } else {
-      Element existing = localScope.putIfAbsent(element.name, () => element);
+      Element existing = contents.putIfAbsent(element.name, () => element);
       if (!identical(existing, element)) {
         // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
         listener.cancel('duplicate definition', token: element.position());
@@ -414,17 +401,8 @@ class ScopeContainerElementX extends ContainerElementX
     }
   }
 
-  Element localLookup(SourceString elementName) {
-    Element result = localScope[elementName];
-    if (result == null && isPatch) {
-      ScopeContainerElementX element = origin;
-      result = element.localScope[elementName];
-    }
-    return result;
-  }
-
   /**
-   * Adds a definition for an [accessor] (getter or setter) to a container.
+   * Adds a definition for an [accessor] (getter or setter) to a scope.
    * The definition binds to an abstract field that can hold both a getter
    * and a setter.
    *
@@ -436,9 +414,9 @@ class ScopeContainerElementX extends ContainerElementX
    * element, they are enclosed by the class or compilation unit, as is the
    * abstract field.
    */
-  void addAccessorToScope(Element accessor,
-                          Element existing,
-                          DiagnosticListener listener) {
+  void addAccessor(Element accessor,
+                   Element existing,
+                   DiagnosticListener listener) {
     void reportError(Element other) {
       // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
       listener.cancel('duplicate definition of ${accessor.name.slowToString()}',
@@ -473,14 +451,16 @@ class ScopeContainerElementX extends ContainerElementX
       } else {
         field.setter = accessor;
       }
-      addToScope(field, listener);
+      add(field, listener);
     }
   }
 }
 
-class CompilationUnitElementX extends ContainerElementX implements CompilationUnitElement {
+class CompilationUnitElementX extends ElementX
+    implements CompilationUnitElement {
   final Script script;
   PartOf partTag;
+  Link<Element> localMembers = const Link<Element>();
 
   CompilationUnitElementX(Script script, LibraryElement library)
     : this.script = script,
@@ -492,7 +472,7 @@ class CompilationUnitElementX extends ContainerElementX implements CompilationUn
 
   void addMember(Element element, DiagnosticListener listener) {
     // Keep a list of top level members.
-    super.addMember(element, listener);
+    localMembers = localMembers.prepend(element);
     // Provide the member to the library to build scope.
     if (enclosingElement.isPatch) {
       getImplementationLibrary().addMember(element, listener);
@@ -541,7 +521,7 @@ class CompilationUnitElementX extends ContainerElementX implements CompilationUn
   bool get hasMembers => !localMembers.isEmpty;
 }
 
-class LibraryElementX extends ScopeContainerElementX implements LibraryElement {
+class LibraryElementX extends ElementX implements LibraryElement {
   final Uri uri;
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
@@ -549,6 +529,8 @@ class LibraryElementX extends ScopeContainerElementX implements LibraryElement {
   Link<LibraryTag> tags = const Link<LibraryTag>();
   LibraryName libraryTag;
   bool canUseNative = false;
+  Link<Element> localMembers = const Link<Element>();
+  final ScopeX localScope = new ScopeX();
 
   /**
    * If this library is patched, [patch] points to the patch library.
@@ -628,6 +610,23 @@ class LibraryElementX extends ScopeContainerElementX implements LibraryElement {
     }
   }
 
+  void addMember(Element element, DiagnosticListener listener) {
+    localMembers = localMembers.prepend(element);
+    addToScope(element, listener);
+  }
+
+  void addToScope(Element element, DiagnosticListener listener) {
+    localScope.add(element, listener);
+  }
+
+  Element localLookup(SourceString elementName) {
+    Element result = localScope.lookup(elementName);
+    if (result == null && isPatch) {
+      result = origin.localLookup(elementName);
+    }
+    return result;
+  }
+
   /**
    * Returns [:true:] if the export scope has already been computed for this
    * library.
@@ -663,10 +662,10 @@ class LibraryElementX extends ScopeContainerElementX implements LibraryElement {
    * elements have been imported.
    */
   Element find(SourceString elementName) {
-    Element result = localScope[elementName];
+    Element result = localScope.lookup(elementName);
     if (result != null) return result;
     if (origin != null) {
-      result = origin.localScope[elementName];
+      result = origin.localScope.lookup(elementName);
       if (result != null) return result;
     }
     result = importScope[elementName];
@@ -683,7 +682,7 @@ class LibraryElementX extends ScopeContainerElementX implements LibraryElement {
   Element findLocal(SourceString elementName) {
     // TODO(johnniwinther): How to handle injected elements in the patch
     // library?
-    Element result = localScope[elementName];
+    Element result = localScope.lookup(elementName);
     if (result == null || result.getLibrary() != this) return null;
     return result;
   }
@@ -1306,9 +1305,9 @@ class TypeDeclarationElementX {
   }
 }
 
-abstract class ClassElementX extends ScopeContainerElementX
-    implements ClassElement {
+abstract class BaseClassElementX extends ElementX implements ClassElement {
   final int id;
+
   /**
    * The type of [:this:] for this class declaration.
    *
@@ -1352,16 +1351,21 @@ abstract class ClassElementX extends ScopeContainerElementX
 
   Link<DartType> allSupertypes;
 
-  // Lazily applied patch of class members.
-  ClassElement patch = null;
-  ClassElement origin = null;
+  BaseClassElementX(SourceString name,
+                    Element enclosing,
+                    this.id,
+                    int initialState)
+      : supertypeLoadState = initialState,
+        resolutionState = initialState,
+        super(name, ElementKind.CLASS, enclosing);
 
-  ClassElementX(SourceString name, Element enclosing, this.id, int initialState)
-    : supertypeLoadState = initialState,
-      resolutionState = initialState,
-      super(name, ElementKind.CLASS, enclosing);
+  int get hashCode => id;
+  ClassElement get patch => super.patch;
+  ClassElement get origin => super.origin;
+  ClassElement get declaration => super.declaration;
+  ClassElement get implementation => super.implementation;
 
-  ClassNode parseNode(Compiler compiler);
+  bool get hasBackendMembers => !backendMembers.isEmpty;
 
   InterfaceType computeType(compiler) {
     if (thisType == null) {
@@ -1388,15 +1392,6 @@ abstract class ClassElementX extends ScopeContainerElementX
     }
     return thisType;
   }
-
-  bool get isPatched => patch != null;
-  bool get isPatch => origin != null;
-
-  ClassElement get declaration => super.declaration;
-  ClassElement get implementation => super.implementation;
-
-  bool get hasBackendMembers => !backendMembers.isEmpty;
-  bool get hasLocalScopeMembers => !localScope.isEmpty;
 
   /**
    * Return [:true:] if this element is the [:Object:] class for the [compiler].
@@ -1438,7 +1433,6 @@ abstract class ClassElementX extends ScopeContainerElementX
       }
     }
   }
-
   /**
    * Lookup super members for the class. This will ignore constructors.
    */
@@ -1584,14 +1578,6 @@ abstract class ClassElementX extends ScopeContainerElementX
     return validateConstructorLookupResults(selector, result, noMatch);
   }
 
-  bool get hasConstructor {
-    // Search in scope to be sure we search patched constructors.
-    for (var element in localScope.values) {
-      if (element.isConstructor()) return true;
-    }
-    return false;
-  }
-
   Link<Element> get constructors {
     // TODO(ajohnsen): See if we can avoid this method at some point.
     Link<Element> result = const Link<Element>();
@@ -1679,10 +1665,6 @@ abstract class ClassElementX extends ScopeContainerElementX
                   includeSuperMembers: includeSuperMembers);
   }
 
-  void forEachLocalMember(void f(Element member)) {
-    localMembers.reverse().forEach(f);
-  }
-
   void forEachBackendMember(void f(Element member)) {
     backendMembers.forEach(f);
   }
@@ -1716,7 +1698,54 @@ abstract class ClassElementX extends ScopeContainerElementX
   void setNative(String name) {
     nativeTagInfo = new SourceString(name);
   }
-  int get hashCode => id;
+}
+
+
+abstract class ClassElementX extends BaseClassElementX {
+  // Lazily applied patch of class members.
+  ClassElement patch = null;
+  ClassElement origin = null;
+
+  Link<Element> localMembers = const Link<Element>();
+  final ScopeX localScope = new ScopeX();
+
+  ClassElementX(SourceString name, Element enclosing, int id, int initialState)
+      : super(name, enclosing, id, initialState);
+
+  ClassNode parseNode(Compiler compiler);
+
+  bool get isPatched => patch != null;
+  bool get isPatch => origin != null;
+  bool get hasLocalScopeMembers => !localScope.isEmpty;
+
+  void addMember(Element element, DiagnosticListener listener) {
+    localMembers = localMembers.prepend(element);
+    addToScope(element, listener);
+  }
+
+  void addToScope(Element element, DiagnosticListener listener) {
+    localScope.add(element, listener);
+  }
+
+  Element localLookup(SourceString elementName) {
+    Element result = localScope.lookup(elementName);
+    if (result == null && isPatch) {
+      result = origin.localLookup(elementName);
+    }
+    return result;
+  }
+
+  void forEachLocalMember(void f(Element member)) {
+    localMembers.reverse().forEach(f);
+  }
+
+  bool get hasConstructor {
+    // Search in scope to be sure we search patched constructors.
+    for (var element in localScope.values) {
+      if (element.isConstructor()) return true;
+    }
+    return false;
+  }
 
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
 
@@ -1728,6 +1757,39 @@ abstract class ClassElementX extends ScopeContainerElementX
     } else {
       return super.toString();
     }
+  }
+}
+
+class MixinApplicationElementX extends BaseClassElementX {
+  MixinApplicationElementX(SourceString name,
+                           Element enclosing,
+                           int id,
+                           int initialState)
+      : super(name, enclosing, id, initialState);
+
+  // TODO(kasperl): The analyzer complains when I don't have these two
+  // fields. This is pretty weird. I cannot replace them with getters.
+  final ClassElement patch = null;
+  final ClassElement origin = null;
+
+  bool get hasConstructor => false;
+  bool get hasLocalScopeMembers => false;
+
+  Element localLookup(SourceString name) {
+    // TODO(kasperl): Unimplemented for now.
+    return null;
+  }
+
+  void forEachLocalMember(void f(Element member)) {
+    // TODO(kasperl): Unimplemented for now.
+  }
+
+  void addMember(Element element, DiagnosticListener listener) {
+    throw new UnsupportedError("cannot add member to $this");
+  }
+
+  void addToScope(Element element, DiagnosticListener listener) {
+    throw new UnsupportedError("cannot add to scope of $this");
   }
 }
 

@@ -169,7 +169,6 @@ abstract class Element implements Spannable {
   bool impliesType();
 
   Token position();
-  Token findMyName(Token token);
 
   CompilationUnitElement getCompilationUnit();
   LibraryElement getLibrary();
@@ -687,7 +686,6 @@ abstract class ClassElement extends TypeDeclarationElement
 
   Element lookupSuperInterfaceMember(SourceString memberName,
                                      LibraryElement fromLibrary);
-
 
   Element validateConstructorLookupResults(Selector selector,
                                            Element result,
