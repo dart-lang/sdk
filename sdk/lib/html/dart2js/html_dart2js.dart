@@ -8489,11 +8489,12 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
-  static final _CUSTOM_PARENT_TAG_MAP = const {
+  static const _CUSTOM_PARENT_TAG_MAP = const {
     'body' : 'html',
     'head' : 'html',
     'caption' : 'table',
     'td': 'tr',
+    'th': 'tr',
     'colgroup': 'table',
     'col' : 'colgroup',
     'tr' : 'tbody',
@@ -8501,6 +8502,19 @@ class _ElementFactoryProvider {
     'tfoot' : 'table',
     'thead' : 'table',
     'track' : 'audio',
+  };
+
+  // TODO(jmesserly): const set would be better
+  static const _TABLE_TAGS = const {
+    'caption': null,
+    'col': null,
+    'colgroup': null,
+    'tbody': null,
+    'td': null,
+    'tfoot': null,
+    'th': null,
+    'thead': null,
+    'tr': null,
   };
 
   /** @domName Document.createElement */
@@ -8516,27 +8530,87 @@ class _ElementFactoryProvider {
     final match = _START_TAG_REGEXP.firstMatch(html);
     if (match != null) {
       tag = match.group(1).toLowerCase();
-      if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
-        parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      if (_Device.isIE && _TABLE_TAGS.containsKey(tag)) {
+        return _createTableForIE(html, tag);
       }
+      parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      if (parentTag == null) parentTag = 'div';
     }
-    final Element temp = new Element.tag(parentTag);
+
+    final temp = new Element.tag(parentTag);
     temp.innerHtml = html;
 
     Element element;
     if (temp.children.length == 1) {
       element = temp.children[0];
     } else if (parentTag == 'html' && temp.children.length == 2) {
-      // Work around for edge case in WebKit and possibly other browsers where
-      // both body and head elements are created even though the inner html
-      // only contains a head or body element.
+      // In html5 the root <html> tag will always have a <body> and a <head>,
+      // even though the inner html only contains one of them.
       element = temp.children[tag == 'head' ? 0 : 1];
     } else {
-      throw new ArgumentError('HTML had ${temp.children.length} '
-          'top level elements but 1 expected');
+      _singleNode(temp.children);
     }
     element.remove();
     return element;
+  }
+
+  /**
+   * IE table elements don't support innerHTML (even in standards mode).
+   * Instead we use a div and inject the table element in the innerHtml string.
+   * This technique works on other browsers too, but it's probably slower,
+   * so we only use it when running on IE.
+   *
+   * See also innerHTML:
+   * <http://msdn.microsoft.com/en-us/library/ie/ms533897(v=vs.85).aspx>
+   * and Building Tables Dynamically:
+   * <http://msdn.microsoft.com/en-us/library/ie/ms532998(v=vs.85).aspx>.
+   */
+  static Element _createTableForIE(String html, String tag) {
+    var div = new Element.tag('div');
+    div.innerHtml = '<table>$html</table>';
+    var table = _singleNode(div.children);
+    Element element;
+    switch (tag) {
+      case 'td':
+      case 'th':
+        element = _singleNode(_singleNode(table.rows).cells);
+        break;
+      case 'tr':
+        element = _singleNode(table.rows);
+        break;
+      case 'tbody':
+        element = _singleNode(table.tBodies);
+        break;
+      case 'thead':
+        element = table.tHead;
+        break;
+      case 'tfoot':
+        element = table.tFoot;
+        break;
+      case 'caption':
+        element = table.caption;
+        break;
+      case 'colgroup':
+        element = _getColgroup(table);
+        break;
+      case 'col':
+        element = _singleNode(_getColgroup(table).children);
+        break;
+    }
+    element.remove();
+    return element;
+  }
+
+  static TableColElement _getColgroup(TableElement table) {
+    // TODO(jmesserly): is there a better way to do this?
+    return _singleNode(table.children.where((n) => n.tagName == 'COLGROUP')
+        .toList());
+  }
+
+  static Node _singleNode(List<Node> list) {
+    if (list.length == 1) return list[0];
+    throw new ArgumentError('HTML had ${list.length} '
+        'top level elements but 1 expected');
   }
 
   /** @domName Document.createElement */

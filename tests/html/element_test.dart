@@ -105,6 +105,129 @@ main() {
 
     test('.html has no parent', () =>
         expect(new Element.html('<br/>').parent, isNull));
+
+    test('.html table', () {
+      // http://developers.whatwg.org/tabular-data.html#tabular-data
+      var node = new Element.html('''
+<table>
+ <caption>Characteristics with positive and negative sides</caption>
+ <thead>
+  <tr>
+   <th id="n"> Negative
+   <th> Characteristic
+   <th> Positive
+ <tbody>
+  <tr>
+   <td headers="n r1"> Sad
+   <th id="r1"> Mood
+   <td> Happy
+  <tr>
+   <td headers="n r2"> Failing
+   <th id="r2"> Grade
+   <td> Passing
+</table>''');
+      expect(node, predicate((x) => x is TableElement, 'is a TableElement'));
+      expect(node.tagName, 'TABLE');
+      expect(node.parent, isNull);
+      expect(node.caption.innerHtml,
+          'Characteristics with positive and negative sides');
+      expect(node.tHead.rows.length, 1);
+      expect(node.tHead.rows[0].cells.length, 3);
+      expect(node.tBodies.length, 1);
+      expect(node.tBodies[0].rows.length, 2);
+      expect(node.tBodies[0].rows[1].cells.mappedBy((c) => c.innerHtml),
+          [' Failing\n   ', ' Grade\n   ', ' Passing\n']);
+    });
+
+    test('.html caption', () {
+      var node = new Element.html('<caption><p>Table 1.');
+      expect(node, predicate((x) => x is TableCaptionElement,
+          'is a TableCaptionElement'));
+      expect(node.tagName, 'CAPTION');
+      expect(node.parent, isNull);
+      expect(node.innerHtml, '<p>Table 1.</p>');
+    });
+
+    test('.html colgroup', () {
+      var node = new Element.html('<colgroup> <col> <col> <col>');
+      expect(node, predicate((x) => x is TableColElement,
+          'is a TableColElement'));
+      expect(node.tagName, 'COLGROUP');
+      expect(node.parent, isNull);
+      expect(node.innerHtml, ' <col> <col> <col>');
+    });
+
+    test('.html col', () {
+      var node = new Element.html('<col span="2">');
+      expect(node, predicate((x) => x is TableColElement,
+          'is a TableColElement'));
+      expect(node.tagName, 'COL');
+      expect(node.parent, isNull);
+      expect(node.outerHtml, '<col span="2">');
+    });
+
+    test('.html tbody', () {
+      var innerHtml = '<tr><td headers="n r1">Sad</td><td>Happy</td></tr>';
+      var node = new Element.html('<tbody>$innerHtml');
+      expect(node, predicate((x) => x is TableSectionElement,
+          'is a TableSectionElement'));
+      expect(node.tagName, 'TBODY');
+      expect(node.parent, isNull);
+      expect(node.rows.length, 1);
+      expect(node.rows[0].cells.length, 2);
+      expect(node.innerHtml, innerHtml);
+    });
+
+    test('.html thead', () {
+      var innerHtml = '<tr><th id="n">Negative</th><th>Positive</th></tr>';
+      var node = new Element.html('<thead>$innerHtml');
+      expect(node, predicate((x) => x is TableSectionElement,
+          'is a TableSectionElement'));
+      expect(node.tagName, 'THEAD');
+      expect(node.parent, isNull);
+      expect(node.rows.length, 1);
+      expect(node.rows[0].cells.length, 2);
+      expect(node.innerHtml, innerHtml);
+    });
+
+    test('.html tfoot', () {
+      var innerHtml = '<tr><th>percentage</th><td>34.3%</td></tr>';
+      var node = new Element.html('<tfoot>$innerHtml');
+      expect(node, predicate((x) => x is TableSectionElement,
+          'is a TableSectionElement'));
+      expect(node.tagName, 'TFOOT');
+      expect(node.parent, isNull);
+      expect(node.rows.length, 1);
+      expect(node.rows[0].cells.length, 2);
+      expect(node.innerHtml, innerHtml);
+    });
+
+    test('.html tr', () {
+      var node = new Element.html('<tr><td>foo<td>bar');
+      expect(node, predicate((x) => x is TableRowElement,
+          'is a TableRowElement'));
+      expect(node.tagName, 'TR');
+      expect(node.parent, isNull);
+      expect(node.cells.mappedBy((c) => c.innerHtml), ['foo', 'bar']);
+    });
+
+    test('.html td', () {
+      var node = new Element.html('<td>foobar');
+      expect(node, predicate((x) => x is TableCellElement,
+          'is a TableCellElement'));
+      expect(node.tagName, 'TD');
+      expect(node.parent, isNull);
+      expect(node.innerHtml, 'foobar');
+    });
+
+    test('.html th', () {
+      var node = new Element.html('<th>foobar');
+      expect(node, predicate((x) => x is TableCellElement,
+          'is a TableCellElement'));
+      expect(node.tagName, 'TH');
+      expect(node.parent, isNull);
+      expect(node.innerHtml, 'foobar');
+    });
   });
 
   group('eventListening', () {
