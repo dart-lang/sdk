@@ -1320,7 +1320,7 @@ class BatchRunnerProcess {
         } else if (line.startsWith('>>> ')) {
           throw new Exception('Unexpected command from dartc batch runner.');
         } else {
-          buffer.addAll(decodeUtf8(line));
+          buffer.addAll(encodeUtf8(line));
           buffer.addAll("\n".charCodes);
         }
         line = stream.readLine();
@@ -1348,7 +1348,7 @@ class BatchRunnerProcess {
         if (line.startsWith('>>> EOF STDERR')) {
           _stderrDone();
         } else {
-          buffer.addAll(decodeUtf8(line));
+          buffer.addAll(encodeUtf8(line));
           buffer.addAll("\n".charCodes);
         }
         line = stream.readLine();
