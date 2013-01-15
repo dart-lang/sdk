@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -62,9 +62,9 @@ class _WebSocketProtocolProcessor {
   /**
    * Process data received from the underlying communication channel.
    */
-  void update(List<int> buffer, int offset, int count) {
-    int index = offset;
-    int lastIndex = offset + count;
+  void update(List<int> buffer) {
+    int index = 0;
+    int lastIndex = buffer.length;
     try {
       if (_state == CLOSED) {
         throw new WebSocketException("Data on closed connection");
@@ -375,13 +375,10 @@ class _WebSocketConnectionBase {
     processor.onPong = _onWebSocketPong;
     processor.onClosed = _onWebSocketClosed;
     if (unparsedData != null) {
-      processor.update(unparsedData, 0, unparsedData.length);
+      processor.update(unparsedData);
     }
     _socket.onData = () {
-      int available = _socket.available();
-      List<int> data = new List<int>.fixedLength(available);
-      int read = _socket.readList(data, 0, available);
-      processor.update(data, 0, read);
+      processor.update(_socket.read());
     };
     _socket.onClosed = () {
       processor.closed();
