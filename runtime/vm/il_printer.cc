@@ -128,6 +128,7 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
     if (count > 0) {
       f->Print(" #%"Pd, count);
     }
+    f->Print(" <%p>", static_cast<void*>(target.raw()));
   }
   f->Print("]");
 }
@@ -323,7 +324,12 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  instance_call()->PrintOperandsTo(f);
+  f->Print("%s", instance_call()->function_name().ToCString());
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    f->Print(", ");
+    ArgumentAt(i)->value()->PrintTo(f);
+  }
+  PrintICData(f, ic_data());
 }
 
 

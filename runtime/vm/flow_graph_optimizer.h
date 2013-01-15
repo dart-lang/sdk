@@ -53,6 +53,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   // Attempt to build ICData for call using propagated class-ids.
   bool TryCreateICData(InstanceCallInstr* call);
 
+  void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
+
   intptr_t PrepareIndexedOp(InstanceCallInstr* call,
                             intptr_t class_id,
                             Value** array,

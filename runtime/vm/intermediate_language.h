@@ -2912,7 +2912,9 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
  public:
   AllocateObjectInstr(ConstructorCallNode* node,
                       ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : ast_node_(*node), arguments_(arguments) {
+      : ast_node_(*node),
+        arguments_(arguments),
+        cid_(Class::Handle(node->constructor().Owner()).id()) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 2));
   }
@@ -2934,11 +2936,12 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
 
   virtual bool HasSideEffect() const { return true; }
 
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
+  virtual intptr_t ResultCid() const { return cid_; }
 
  private:
   const ConstructorCallNode& ast_node_;
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
+  const intptr_t cid_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };

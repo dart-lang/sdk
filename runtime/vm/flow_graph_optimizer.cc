@@ -56,6 +56,9 @@ void FlowGraphOptimizer::ApplyClassIds() {
             VisitInstanceCall(call);
           }
         }
+      } else if (it.Current()->IsPolymorphicInstanceCall()) {
+        SpecializePolymorphicInstanceCall(
+            it.Current()->AsPolymorphicInstanceCall());
       } else if (it.Current()->IsStrictCompare()) {
         VisitStrictCompare(it.Current()->AsStrictCompare());
       } else if (it.Current()->IsBranch()) {
@@ -114,6 +117,52 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return true;
   }
   return false;
+}
+
+
+static const ICData& SpecializeICData(const ICData& ic_data, intptr_t cid) {
+  ASSERT(ic_data.num_args_tested() == 1);
+
+  if ((ic_data.NumberOfChecks() == 1) &&
+      (ic_data.GetReceiverClassIdAt(0) == cid)) {
+    return ic_data;  // Nothing to do
+  }
+
+  const ICData& new_ic_data = ICData::ZoneHandle(ICData::New(
+      Function::Handle(ic_data.function()),
+      String::Handle(ic_data.target_name()),
+      ic_data.deopt_id(),
+      ic_data.num_args_tested()));
+
+  const Function& function =
+      Function::Handle(ic_data.GetTargetForReceiverClassId(cid));
+  if (!function.IsNull()) {
+    new_ic_data.AddReceiverCheck(cid, function);
+  }
+
+  return new_ic_data;
+}
+
+
+void FlowGraphOptimizer::SpecializePolymorphicInstanceCall(
+    PolymorphicInstanceCallInstr* call) {
+  if (!call->with_checks()) {
+    return;  // Already specialized.
+  }
+
+  const intptr_t receiver_cid  = call->ArgumentAt(0)->value()->ResultCid();
+  if (receiver_cid == kDynamicCid) {
+    return;  // No information about receiver was infered.
+  }
+
+  const ICData& ic_data = SpecializeICData(call->ic_data(), receiver_cid);
+
+  const bool with_checks = false;
+  PolymorphicInstanceCallInstr* specialized =
+      new PolymorphicInstanceCallInstr(call->instance_call(),
+                                       ic_data,
+                                       with_checks);
+  call->ReplaceWith(specialized, current_iterator());
 }
 
 

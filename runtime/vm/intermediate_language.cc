@@ -1748,12 +1748,19 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 
 Instruction* CheckClassInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   const intptr_t value_cid = value()->ResultCid();
-  const intptr_t num_checks = unary_checks().NumberOfChecks();
-  if ((num_checks == 1) &&
-      (value_cid == unary_checks().GetReceiverClassIdAt(0))) {
-    // No checks needed.
-    return NULL;
+  if (value_cid == kDynamicCid) {
+    return this;
   }
+
+  const intptr_t num_checks = unary_checks().NumberOfChecks();
+
+  for (intptr_t i = 0; i < num_checks; i++) {
+    if (value_cid == unary_checks().GetReceiverClassIdAt(i)) {
+      // No checks needed.
+      return NULL;
+    }
+  }
+
   return this;
 }
 
