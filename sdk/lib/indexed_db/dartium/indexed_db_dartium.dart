@@ -166,7 +166,7 @@ class Database extends EventTarget {
   /** @domName IDBDatabase.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_removeEventListener_Callback";
 
-  Transaction transaction(storeName_OR_storeNames, /*DOMString*/ mode) {
+  Transaction transaction(storeName_OR_storeNames, String mode) {
     if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
       return _transaction_1(storeName_OR_storeNames, mode);
     }
@@ -241,7 +241,7 @@ class IdbFactory extends NativeFieldWrapperClass1 {
   /** @domName IDBFactory.deleteDatabase */
   VersionChangeRequest deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
 
-  OpenDBRequest open(/*DOMString*/ name, [/*long long*/ version]) {
+  OpenDBRequest open(String name, [int version]) {
     if (?version) {
       return _open_1(name, version);
     }
@@ -353,7 +353,7 @@ class Index extends NativeFieldWrapperClass1 {
   /** @domName IDBIndex.getKey_2 */
   Request _getKey_2(key) native "IDBIndex_getKey_2_Callback";
 
-  Request openCursor([key_OR_range, /*DOMString*/ direction]) {
+  Request openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range && !?direction) {
       return _openCursor_1();
     }
@@ -392,7 +392,7 @@ class Index extends NativeFieldWrapperClass1 {
   /** @domName IDBIndex.openCursor_5 */
   Request _openCursor_5(key_OR_range, direction) native "IDBIndex_openCursor_5_Callback";
 
-  Request openKeyCursor([key_OR_range, /*DOMString*/ direction]) {
+  Request openKeyCursor([key_OR_range, String direction]) {
     if (!?key_OR_range && !?direction) {
       return _openKeyCursor_1();
     }
@@ -495,7 +495,7 @@ class KeyRange extends NativeFieldWrapperClass1 {
   /** @domName IDBKeyRange.upperOpen */
   bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
 
-  static KeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [/*boolean*/ lowerOpen, /*boolean*/ upperOpen]) {
+  static KeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]) {
     if (?upperOpen) {
       return _bound_1(lower, upper, lowerOpen, upperOpen);
     }
@@ -517,7 +517,7 @@ class KeyRange extends NativeFieldWrapperClass1 {
   /** @domName IDBKeyRange.bound_3 */
   static KeyRange _bound_3(lower, upper) native "IDBKeyRange_bound_3_Callback";
 
-  static KeyRange lowerBound_(/*IDBKey*/ bound, [/*boolean*/ open]) {
+  static KeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       return _lowerBound_1(bound, open);
     }
@@ -536,7 +536,7 @@ class KeyRange extends NativeFieldWrapperClass1 {
   /** @domName IDBKeyRange.only_ */
   static KeyRange only_(/*IDBKey*/ value) native "IDBKeyRange_only__Callback";
 
-  static KeyRange upperBound_(/*IDBKey*/ bound, [/*boolean*/ open]) {
+  static KeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       return _upperBound_1(bound, open);
     }
@@ -583,7 +583,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   /** @domName IDBObjectStore.transaction */
   Transaction get transaction native "IDBObjectStore_transaction_Getter";
 
-  Request add(/*any*/ value, [/*IDBKey*/ key]) {
+  Request add(Object value, [/*IDBKey*/ key]) {
     if (?key) {
       return _add_1(value, key);
     }
@@ -627,7 +627,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   /** @domName IDBObjectStore.count_3 */
   Request _count_3(key_OR_range) native "IDBObjectStore_count_3_Callback";
 
-  Index createIndex(/*DOMString*/ name, keyPath, [/*Dictionary*/ options]) {
+  Index createIndex(String name, keyPath, [Map options]) {
     if ((name is String || name == null) && (keyPath is List<String> || keyPath == null) && (options is Map || options == null)) {
       return _createIndex_1(name, keyPath, options);
     }
@@ -689,7 +689,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   /** @domName IDBObjectStore.index */
   Index index(String name) native "IDBObjectStore_index_Callback";
 
-  Request openCursor([key_OR_range, /*DOMString*/ direction]) {
+  Request openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range && !?direction) {
       return _openCursor_1();
     }
@@ -728,7 +728,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   /** @domName IDBObjectStore.openCursor_5 */
   Request _openCursor_5(key_OR_range, direction) native "IDBObjectStore_openCursor_5_Callback";
 
-  Request put(/*any*/ value, [/*IDBKey*/ key]) {
+  Request put(Object value, [/*IDBKey*/ key]) {
     if (?key) {
       return _put_1(value, key);
     }

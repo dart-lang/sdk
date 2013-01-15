@@ -608,7 +608,7 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
   /** @domName ArrayBuffer.byteLength */
   int get byteLength native "ArrayBuffer_byteLength_Getter";
 
-  ArrayBuffer slice(/*long*/ begin, [/*long*/ end]) {
+  ArrayBuffer slice(int begin, [int end]) {
     if (?end) {
       return _slice_1(begin, end);
     }
@@ -906,7 +906,7 @@ class Blob extends NativeFieldWrapperClass1 {
   /** @domName Blob.type */
   String get type native "Blob_type_Getter";
 
-  Blob slice([/*long long*/ start, /*long long*/ end, /*DOMString*/ contentType]) {
+  Blob slice([int start, int end, String contentType]) {
     if (?contentType) {
       return _slice_1(start, end, contentType);
     }
@@ -1469,7 +1469,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.closePath */
   void closePath() native "CanvasRenderingContext2D_closePath_Callback";
 
-  ImageData createImageData(imagedata_OR_sw, [/*float*/ sh]) {
+  ImageData createImageData(imagedata_OR_sw, [num sh]) {
     if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) && !?sh) {
       return _createImageData_1(imagedata_OR_sw);
     }
@@ -1491,7 +1491,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.createLinearGradient */
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
 
-  CanvasPattern createPattern(canvas_OR_image, /*DOMString*/ repetitionType) {
+  CanvasPattern createPattern(canvas_OR_image, String repetitionType) {
     if ((canvas_OR_image is CanvasElement || canvas_OR_image == null) && (repetitionType is String || repetitionType == null)) {
       return _createPattern_1(canvas_OR_image, repetitionType);
     }
@@ -1513,7 +1513,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.createRadialGradient */
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
-  void drawImage(canvas_OR_image_OR_video, /*float*/ sx_OR_x, /*float*/ sy_OR_y, [/*float*/ sw_OR_width, /*float*/ height_OR_sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh]) {
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
     if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
@@ -1597,7 +1597,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.fillRect */
   void fillRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_fillRect_Callback";
 
-  void fillText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
+  void fillText(String text, num x, num y, [num maxWidth]) {
     if (?maxWidth) {
       _fillText_1(text, x, y, maxWidth);
       return;
@@ -1637,7 +1637,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.moveTo */
   void moveTo(num x, num y) native "CanvasRenderingContext2D_moveTo_Callback";
 
-  void putImageData(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       _putImageData_1(imagedata, dx, dy);
       return;
@@ -1693,7 +1693,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.stroke */
   void stroke() native "CanvasRenderingContext2D_stroke_Callback";
 
-  void strokeRect(/*float*/ x, /*float*/ y, /*float*/ width, /*float*/ height, [/*float*/ lineWidth]) {
+  void strokeRect(num x, num y, num width, num height, [num lineWidth]) {
     if (?lineWidth) {
       _strokeRect_1(x, y, width, height, lineWidth);
       return;
@@ -1709,7 +1709,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.strokeRect_2 */
   void _strokeRect_2(x, y, width, height) native "CanvasRenderingContext2D_strokeRect_2_Callback";
 
-  void strokeText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
+  void strokeText(String text, num x, num y, [num maxWidth]) {
     if (?maxWidth) {
       _strokeText_1(text, x, y, maxWidth);
       return;
@@ -1737,7 +1737,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.webkitGetImageDataHD */
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
 
-  void webkitPutImageDataHD(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       _webkitPutImageDataHD_1(imagedata, dx, dy);
       return;
@@ -6054,7 +6054,7 @@ class CssStyleSheet extends StyleSheet {
   /** @domName CSSStyleSheet.rules */
   List<CssRule> get rules native "CSSStyleSheet_rules_Getter";
 
-  int addRule(/*DOMString*/ selector, /*DOMString*/ style, [/*unsigned long*/ index]) {
+  int addRule(String selector, String style, [int index]) {
     if (?index) {
       return _addRule_1(selector, style, index);
     }
@@ -6295,7 +6295,7 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
   /** @domName DataTransferItemList.length */
   int get length native "DataTransferItemList_length_Getter";
 
-  void add(data_OR_file, [/*DOMString*/ type]) {
+  void add(data_OR_file, [String type]) {
     if ((data_OR_file is File || data_OR_file == null) && !?type) {
       _add_1(data_OR_file);
       return;
@@ -6347,7 +6347,7 @@ class DataView extends ArrayBufferView {
   }
   static DataView _create(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
 
-  num getFloat32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  num getFloat32(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getFloat32_1(byteOffset, littleEndian);
     }
@@ -6362,7 +6362,7 @@ class DataView extends ArrayBufferView {
   /** @domName DataView.getFloat32_2 */
   num _getFloat32_2(byteOffset) native "DataView_getFloat32_2_Callback";
 
-  num getFloat64(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  num getFloat64(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getFloat64_1(byteOffset, littleEndian);
     }
@@ -6377,7 +6377,7 @@ class DataView extends ArrayBufferView {
   /** @domName DataView.getFloat64_2 */
   num _getFloat64_2(byteOffset) native "DataView_getFloat64_2_Callback";
 
-  int getInt16(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  int getInt16(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getInt16_1(byteOffset, littleEndian);
     }
@@ -6392,7 +6392,7 @@ class DataView extends ArrayBufferView {
   /** @domName DataView.getInt16_2 */
   int _getInt16_2(byteOffset) native "DataView_getInt16_2_Callback";
 
-  int getInt32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  int getInt32(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getInt32_1(byteOffset, littleEndian);
     }
@@ -6411,7 +6411,7 @@ class DataView extends ArrayBufferView {
   /** @domName DataView.getInt8 */
   int getInt8(int byteOffset) native "DataView_getInt8_Callback";
 
-  int getUint16(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  int getUint16(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getUint16_1(byteOffset, littleEndian);
     }
@@ -6426,7 +6426,7 @@ class DataView extends ArrayBufferView {
   /** @domName DataView.getUint16_2 */
   int _getUint16_2(byteOffset) native "DataView_getUint16_2_Callback";
 
-  int getUint32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  int getUint32(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getUint32_1(byteOffset, littleEndian);
     }
@@ -6445,7 +6445,7 @@ class DataView extends ArrayBufferView {
   /** @domName DataView.getUint8 */
   int getUint8(int byteOffset) native "DataView_getUint8_Callback";
 
-  void setFloat32(/*unsigned long*/ byteOffset, /*float*/ value, {/*boolean*/ littleEndian}) {
+  void setFloat32(int byteOffset, num value, {bool littleEndian}) {
     if (?littleEndian) {
       _setFloat32_1(byteOffset, value, littleEndian);
       return;
@@ -6461,7 +6461,7 @@ class DataView extends ArrayBufferView {
   /** @domName DataView.setFloat32_2 */
   void _setFloat32_2(byteOffset, value) native "DataView_setFloat32_2_Callback";
 
-  void setFloat64(/*unsigned long*/ byteOffset, /*double*/ value, {/*boolean*/ littleEndian}) {
+  void setFloat64(int byteOffset, num value, {bool littleEndian}) {
     if (?littleEndian) {
       _setFloat64_1(byteOffset, value, littleEndian);
       return;
@@ -6477,7 +6477,7 @@ class DataView extends ArrayBufferView {
   /** @domName DataView.setFloat64_2 */
   void _setFloat64_2(byteOffset, value) native "DataView_setFloat64_2_Callback";
 
-  void setInt16(/*unsigned long*/ byteOffset, /*short*/ value, {/*boolean*/ littleEndian}) {
+  void setInt16(int byteOffset, int value, {bool littleEndian}) {
     if (?littleEndian) {
       _setInt16_1(byteOffset, value, littleEndian);
       return;
@@ -6493,7 +6493,7 @@ class DataView extends ArrayBufferView {
   /** @domName DataView.setInt16_2 */
   void _setInt16_2(byteOffset, value) native "DataView_setInt16_2_Callback";
 
-  void setInt32(/*unsigned long*/ byteOffset, /*long*/ value, {/*boolean*/ littleEndian}) {
+  void setInt32(int byteOffset, int value, {bool littleEndian}) {
     if (?littleEndian) {
       _setInt32_1(byteOffset, value, littleEndian);
       return;
@@ -6513,7 +6513,7 @@ class DataView extends ArrayBufferView {
   /** @domName DataView.setInt8 */
   void setInt8(int byteOffset, int value) native "DataView_setInt8_Callback";
 
-  void setUint16(/*unsigned long*/ byteOffset, /*unsigned short*/ value, {/*boolean*/ littleEndian}) {
+  void setUint16(int byteOffset, int value, {bool littleEndian}) {
     if (?littleEndian) {
       _setUint16_1(byteOffset, value, littleEndian);
       return;
@@ -6529,7 +6529,7 @@ class DataView extends ArrayBufferView {
   /** @domName DataView.setUint16_2 */
   void _setUint16_2(byteOffset, value) native "DataView_setUint16_2_Callback";
 
-  void setUint32(/*unsigned long*/ byteOffset, /*unsigned long*/ value, {/*boolean*/ littleEndian}) {
+  void setUint32(int byteOffset, int value, {bool littleEndian}) {
     if (?littleEndian) {
       _setUint32_1(byteOffset, value, littleEndian);
       return;
@@ -8559,7 +8559,7 @@ class DomTokenList extends NativeFieldWrapperClass1 {
   /** @domName DOMTokenList.toString */
   String toString() native "DOMTokenList_toString_Callback";
 
-  bool toggle(/*DOMString*/ token, [/*boolean*/ force]) {
+  bool toggle(String token, [bool force]) {
     if (?force) {
       return _toggle_1(token, force);
     }
@@ -9641,7 +9641,7 @@ abstract class Element extends Node implements ElementTraversal {
   /** @domName Element.scrollByPages */
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
 
-  void scrollIntoView([/*boolean*/ centerIfNeeded]) {
+  void scrollIntoView([bool centerIfNeeded]) {
     if (?centerIfNeeded) {
       _scrollIntoViewIfNeeded_1(centerIfNeeded);
       return;
@@ -10143,7 +10143,7 @@ class Entry extends NativeFieldWrapperClass1 {
   /** @domName Entry.name */
   String get name native "Entry_name_Getter";
 
-  void copyTo(/*DirectoryEntry*/ parent, [/*DOMString*/ name, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
+  void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (?name) {
       _copyTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -10167,7 +10167,7 @@ class Entry extends NativeFieldWrapperClass1 {
   /** @domName Entry.getParent */
   void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native "Entry_getParent_Callback";
 
-  void moveTo(/*DirectoryEntry*/ parent, [/*DOMString*/ name, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
+  void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (?name) {
       _moveTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -11103,7 +11103,7 @@ class FileReader extends EventTarget {
   /** @domName FileReader.readAsDataURL */
   void readAsDataUrl(Blob blob) native "FileReader_readAsDataURL_Callback";
 
-  void readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
+  void readAsText(Blob blob, [String encoding]) {
     if (?encoding) {
       _readAsText_1(blob, encoding);
       return;
@@ -11187,7 +11187,7 @@ class FileReaderSync extends NativeFieldWrapperClass1 {
   /** @domName FileReaderSync.readAsDataURL */
   String readAsDataUrl(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
 
-  String readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
+  String readAsText(Blob blob, [String encoding]) {
     if (?encoding) {
       return _readAsText_1(blob, encoding);
     }
@@ -11588,7 +11588,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
   /** @domName Float32Array.setElements */
   void setElements(Object array, [int offset]) native "Float32Array_setElements_Callback";
 
-  Float32Array subarray(/*long*/ start, [/*long*/ end]) {
+  Float32Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -11784,7 +11784,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
   /** @domName Float64Array.setElements */
   void setElements(Object array, [int offset]) native "Float64Array_setElements_Callback";
 
-  Float64Array subarray(/*long*/ start, [/*long*/ end]) {
+  Float64Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -13815,7 +13815,7 @@ class InputElement extends _Element_Merged implements
   /** @domName HTMLInputElement.setCustomValidity */
   void setCustomValidity(String error) native "HTMLInputElement_setCustomValidity_Callback";
 
-  void setRangeText(/*DOMString*/ replacement, [/*unsigned long*/ start, /*unsigned long*/ end, /*DOMString*/ selectionMode]) {
+  void setRangeText(String replacement, [int start, int end, String selectionMode]) {
     if ((replacement is String || replacement == null) && !?start && !?end && !?selectionMode) {
       _setRangeText_1(replacement);
       return;
@@ -13839,7 +13839,7 @@ class InputElement extends _Element_Merged implements
   /** @domName HTMLInputElement.setSelectionRange */
   void setSelectionRange(int start, int end, [String direction]) native "HTMLInputElement_setSelectionRange_Callback";
 
-  void stepDown([/*long*/ n]) {
+  void stepDown([int n]) {
     if (?n) {
       _stepDown_1(n);
       return;
@@ -13855,7 +13855,7 @@ class InputElement extends _Element_Merged implements
   /** @domName HTMLInputElement.stepDown_2 */
   void _stepDown_2() native "HTMLInputElement_stepDown_2_Callback";
 
-  void stepUp([/*long*/ n]) {
+  void stepUp([int n]) {
     if (?n) {
       _stepUp_1(n);
       return;
@@ -14645,7 +14645,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
   /** @domName Int16Array.setElements */
   void setElements(Object array, [int offset]) native "Int16Array_setElements_Callback";
 
-  Int16Array subarray(/*long*/ start, [/*long*/ end]) {
+  Int16Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -14841,7 +14841,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
   /** @domName Int32Array.setElements */
   void setElements(Object array, [int offset]) native "Int32Array_setElements_Callback";
 
-  Int32Array subarray(/*long*/ start, [/*long*/ end]) {
+  Int32Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -15037,7 +15037,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
   /** @domName Int8Array.setElements */
   void setElements(Object array, [int offset]) native "Int8Array_setElements_Callback";
 
-  Int8Array subarray(/*long*/ start, [/*long*/ end]) {
+  Int8Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -16056,7 +16056,7 @@ class MediaElement extends _Element_Merged {
   /** @domName HTMLMediaElement.webkitVideoDecodedByteCount */
   int get webkitVideoDecodedByteCount native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
-  TextTrack addTextTrack(/*DOMString*/ kind, [/*DOMString*/ label, /*DOMString*/ language]) {
+  TextTrack addTextTrack(String kind, [String label, String language]) {
     if (?language) {
       return _addTextTrack_1(kind, label, language);
     }
@@ -16094,7 +16094,7 @@ class MediaElement extends _Element_Merged {
   /** @domName HTMLMediaElement.play */
   void play() native "HTMLMediaElement_play_Callback";
 
-  void webkitAddKey(/*DOMString*/ keySystem, /*Uint8Array*/ key, [/*Uint8Array*/ initData, /*DOMString*/ sessionId]) {
+  void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) {
     if (?initData) {
       _webkitAddKey_1(keySystem, key, initData, sessionId);
       return;
@@ -16114,7 +16114,7 @@ class MediaElement extends _Element_Merged {
   /** @domName HTMLMediaElement.webkitCancelKeyRequest */
   void webkitCancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
-  void webkitGenerateKeyRequest(/*DOMString*/ keySystem, [/*Uint8Array*/ initData]) {
+  void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) {
     if (?initData) {
       _webkitGenerateKeyRequest_1(keySystem, initData);
       return;
@@ -21091,7 +21091,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   // -- end List<SpeechGrammar> mixins.
 
-  void addFromString(/*DOMString*/ string, [/*float*/ weight]) {
+  void addFromString(String string, [num weight]) {
     if (?weight) {
       _addFromString_1(string, weight);
       return;
@@ -21107,7 +21107,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   /** @domName SpeechGrammarList.addFromString_2 */
   void _addFromString_2(string) native "SpeechGrammarList_addFromString_2_Callback";
 
-  void addFromUri(/*DOMString*/ src, [/*float*/ weight]) {
+  void addFromUri(String src, [num weight]) {
     if (?weight) {
       _addFromUri_1(src, weight);
       return;
@@ -22445,7 +22445,7 @@ class TextAreaElement extends _Element_Merged {
   /** @domName HTMLTextAreaElement.setCustomValidity */
   void setCustomValidity(String error) native "HTMLTextAreaElement_setCustomValidity_Callback";
 
-  void setRangeText(/*DOMString*/ replacement, [/*unsigned long*/ start, /*unsigned long*/ end, /*DOMString*/ selectionMode]) {
+  void setRangeText(String replacement, [int start, int end, String selectionMode]) {
     if ((replacement is String || replacement == null) && !?start && !?end && !?selectionMode) {
       _setRangeText_1(replacement);
       return;
@@ -22465,7 +22465,7 @@ class TextAreaElement extends _Element_Merged {
   /** @domName HTMLTextAreaElement.setRangeText_2 */
   void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLTextAreaElement_setRangeText_2_Callback";
 
-  void setSelectionRange(/*long*/ start, /*long*/ end, [/*DOMString*/ direction]) {
+  void setSelectionRange(int start, int end, [String direction]) {
     if (?direction) {
       _setSelectionRange_1(start, end, direction);
       return;
@@ -23867,7 +23867,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   /** @domName Uint16Array.setElements */
   void setElements(Object array, [int offset]) native "Uint16Array_setElements_Callback";
 
-  Uint16Array subarray(/*long*/ start, [/*long*/ end]) {
+  Uint16Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -24063,7 +24063,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   /** @domName Uint32Array.setElements */
   void setElements(Object array, [int offset]) native "Uint32Array_setElements_Callback";
 
-  Uint32Array subarray(/*long*/ start, [/*long*/ end]) {
+  Uint32Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -24259,7 +24259,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   /** @domName Uint8Array.setElements */
   void setElements(Object array, [int offset]) native "Uint8Array_setElements_Callback";
 
-  Uint8Array subarray(/*long*/ start, [/*long*/ end]) {
+  Uint8Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -24311,7 +24311,7 @@ class Uint8ClampedArray extends Uint8Array {
   /** @domName Uint8ClampedArray.setElements */
   void setElements(Object array, [int offset]) native "Uint8ClampedArray_setElements_Callback";
 
-  Uint8ClampedArray subarray(/*long*/ start, [/*long*/ end]) {
+  Uint8ClampedArray subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -25410,7 +25410,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   /** @domName WebGLRenderingContext.blendFuncSeparate */
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
 
-  void bufferData(/*unsigned long*/ target, data_OR_size, /*unsigned long*/ usage) {
+  void bufferData(int target, data_OR_size, int usage) {
     if ((target is int || target == null) && (data_OR_size is ArrayBuffer || data_OR_size == null) && (usage is int || usage == null)) {
       _bufferData_1(target, data_OR_size, usage);
       return;
@@ -25438,7 +25438,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   /** @domName WebGLRenderingContext.bufferData_3 */
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_3_Callback";
 
-  void bufferSubData(/*unsigned long*/ target, /*long long*/ offset, data) {
+  void bufferSubData(int target, int offset, data) {
     if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBuffer || data == null)) {
       _bufferSubData_1(target, offset, data);
       return;
@@ -25810,7 +25810,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   /** @domName WebGLRenderingContext.stencilOpSeparate */
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
-  void texImage2D(/*unsigned long*/ target, /*long*/ level, /*unsigned long*/ internalformat, /*long*/ format_OR_width, /*long*/ height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [/*unsigned long*/ format, /*unsigned long*/ type, /*ArrayBufferView*/ pixels]) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
     if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (format is int || format == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
@@ -25862,7 +25862,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   /** @domName WebGLRenderingContext.texParameteri */
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
-  void texSubImage2D(/*unsigned long*/ target, /*long*/ level, /*long*/ xoffset, /*long*/ yoffset, /*long*/ format_OR_width, /*long*/ height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [/*unsigned long*/ type, /*ArrayBufferView*/ pixels]) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
     if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
@@ -26281,7 +26281,7 @@ class WebSocket extends EventTarget {
   /** @domName WebSocket.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
 
-  void close([/*unsigned short*/ code, /*DOMString*/ reason]) {
+  void close([int code, String reason]) {
     if (?reason) {
       _close_1(code, reason);
       return;

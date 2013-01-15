@@ -180,7 +180,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
   /** @domName AudioBufferSourceNode.playbackState */
   int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
 
-  void start(/*double*/ when, [/*double*/ grainOffset, /*double*/ grainDuration]) {
+  void start(num when, [num grainOffset, num grainDuration]) {
     if ((when is num || when == null) && !?grainOffset && !?grainDuration) {
       _start_1(when);
       return;
@@ -260,7 +260,7 @@ class AudioContext extends EventTarget {
   /** @domName AudioContext.createBiquadFilter */
   BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
 
-  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [/*float*/ sampleRate]) {
+  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) {
     if ((buffer_OR_numberOfChannels is int || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is int || mixToMono_OR_numberOfFrames == null) && (sampleRate is num || sampleRate == null)) {
       return _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate);
     }
@@ -282,7 +282,7 @@ class AudioContext extends EventTarget {
   /** @domName AudioContext.createBufferSource */
   AudioBufferSourceNode createBufferSource() native "AudioContext_createBufferSource_Callback";
 
-  ChannelMergerNode createChannelMerger([/*unsigned long*/ numberOfInputs]) {
+  ChannelMergerNode createChannelMerger([int numberOfInputs]) {
     if (?numberOfInputs) {
       return _createChannelMerger_1(numberOfInputs);
     }
@@ -297,7 +297,7 @@ class AudioContext extends EventTarget {
   /** @domName AudioContext.createChannelMerger_2 */
   ChannelMergerNode _createChannelMerger_2() native "AudioContext_createChannelMerger_2_Callback";
 
-  ChannelSplitterNode createChannelSplitter([/*unsigned long*/ numberOfOutputs]) {
+  ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) {
     if (?numberOfOutputs) {
       return _createChannelSplitter_1(numberOfOutputs);
     }
@@ -316,7 +316,7 @@ class AudioContext extends EventTarget {
   /** @domName AudioContext.createConvolver */
   ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
 
-  DelayNode createDelay([/*double*/ maxDelayTime]) {
+  DelayNode createDelay([num maxDelayTime]) {
     if (?maxDelayTime) {
       return _createDelay_1(maxDelayTime);
     }
@@ -359,7 +359,7 @@ class AudioContext extends EventTarget {
   /** @domName AudioContext.createPanner */
   PannerNode createPanner() native "AudioContext_createPanner_Callback";
 
-  ScriptProcessorNode createScriptProcessor(/*unsigned long*/ bufferSize, [/*unsigned long*/ numberOfInputChannels, /*unsigned long*/ numberOfOutputChannels]) {
+  ScriptProcessorNode createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
     if (?numberOfOutputChannels) {
       return _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
     }
@@ -500,7 +500,7 @@ class AudioNode extends NativeFieldWrapperClass1 {
   /** @domName AudioNode.numberOfOutputs */
   int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
-  void connect(destination, /*unsigned long*/ output, [/*unsigned long*/ input]) {
+  void connect(destination, int output, [int input]) {
     if ((destination is AudioNode || destination == null) && (output is int || output == null) && (input is int || input == null)) {
       _connect_1(destination, output, input);
       return;
