@@ -419,10 +419,19 @@ class ArithmeticTest {
     for (var i = 0; i < 10; i++) Expect.equals(0x40000000, div(a, b));
   }
 
+  static mySqrt(var x) => sqrt(x);
+
+  static testSqrtDeopt() {
+    for (var i = 0; i < 10; i++) mySqrt(4.0);
+    Expect.equals(2.0, mySqrt(4.0));
+    Expect.throws(() => mySqrt("abc"));
+  }
+
   static testMain() {
     for (int i = 0; i < 1500; i++) {
       runOne();
       testSmiDivDeopt();
+      testSqrtDeopt();
     }
   }
 }

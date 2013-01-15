@@ -2179,6 +2179,13 @@ LocationSummary* StaticCallInstr::MakeLocationSummary() const {
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label skip_call;
+  if (!compiler->is_optimizing()) {
+    // Some static calls can be optimized by the optimizing compiler (e.g. sqrt)
+    // and therefore need a deoptimization descriptor.
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                                   deopt_id(),
+                                   token_pos());
+  }
   if (function().name() == Symbols::EqualOperator().raw()) {
     compiler->EmitSuperEqualityCallPrologue(locs()->out().reg(), &skip_call);
   }
