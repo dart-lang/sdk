@@ -1184,7 +1184,7 @@ class _PairMatcher extends BaseMatcher {
 
 /// The time (in milliseconds) to wait for scheduled events that could run
 /// forever.
-const _SCHEDULE_TIMEOUT = 5000;
+const _SCHEDULE_TIMEOUT = 10000;
 
 /// A class representing a [Process] that is scheduled to run in the course of
 /// the test. This class allows actions on the process to be scheduled
