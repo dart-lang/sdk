@@ -6,20 +6,18 @@ import 'dart:html';
 
 class StreamHelper {
   var _a;
-  var _b;
   StreamHelper() {
     _a = new TextInputElement();
     document.body.append(_a);
-    _b = new TextInputElement();
-    document.body.append(_b);
   }
 
+  Element get element => _a;
   Stream<Event> get stream => _a.onFocus;
 
   // Causes an event on a to be fired.
   void pulse() {
-    _b.focus();
-    _a.focus();
+    var event = new Event('focus');
+    _a.$dom_dispatchEvent(event);
   }
 }
 
@@ -27,15 +25,14 @@ main() {
   useHtmlConfiguration();
 
   test('simple', () {
-    var a = new TextInputElement();
-    document.body.append(a);
+    var helper = new StreamHelper();
 
     var callCount = 0;
-    a.onFocus.listen((Event e) {
+    helper.stream.listen((Event e) {
       ++callCount;
     });
 
-    a.focus();
+    helper.pulse();
     expect(callCount, 1);
   });
 
@@ -44,8 +41,8 @@ main() {
     var parent = new DivElement();
     document.body.append(parent);
 
-    var child = new TextInputElement();
-    parent.append(child);
+    var helper = new StreamHelper();
+    parent.append(helper.element);
 
     var childCallCount = 0;
     var parentCallCount = 0;
@@ -54,12 +51,13 @@ main() {
       expect(childCallCount, 0);
     });
 
-    Element.focusEvent.forTarget(child, useCapture: true).listen((Event e) {
-      ++childCallCount;
-      expect(parentCallCount, 1);
-    });
+    Element.focusEvent.forTarget(helper.element, useCapture: true).listen(
+        (Event e) {
+          ++childCallCount;
+          expect(parentCallCount, 1);
+        });
 
-    child.focus();
+    helper.pulse();
     expect(childCallCount, 1);
     expect(parentCallCount, 1);
   });

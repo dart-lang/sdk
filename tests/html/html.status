@@ -72,7 +72,6 @@ native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 storage_test: Fail, Pass
-streams_test: Fail # Bug 7888
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 svg_3_test: Fail
@@ -132,7 +131,6 @@ mutationobserver_test/supported: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
-streams_test: Fail # Bug 7888
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
@@ -230,7 +228,6 @@ input_element_test/supported_week: Fail
 input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail
 shadow_dom_test/supported: Fail
-streams_test: Fail # Bug 7888
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
