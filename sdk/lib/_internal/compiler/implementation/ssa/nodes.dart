@@ -1355,7 +1355,7 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
       return HType.UNKNOWN;
     } else if (selector.kind == SelectorKind.OPERATOR) {
       HType propagatedType = types[this];
-      if (selector.name == const SourceString('-') && input == inputs[1]) {
+      if (selector.name == const SourceString('unary-') && input == inputs[1]) {
         // If the outgoing type should be a number (integer, double or both) we
         // want the outgoing type to be the input too.
         // If we don't know the outgoing type we try to make it a number.
@@ -1378,7 +1378,7 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
     if (!isInterceptorCall) return HType.UNKNOWN;
 
     if (selector.kind == SelectorKind.OPERATOR) {
-      if (selector.name == const SourceString('-')) {
+      if (selector.name == const SourceString('unary-')) {
         HType operandType = types[inputs[1]];
         if (operandType.isNumber()) return operandType;
       } else if (selector.name == const SourceString('~')) {
@@ -2401,6 +2401,24 @@ class HInterceptor extends HInstruction {
   void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
     setUseGvn();
+  }
+
+  HType computeDesiredTypeForInput(HInstruction input,
+                                   HTypeMap types,
+                                   Compiler compiler) {
+    if (interceptedClasses.length != 1) return HType.UNKNOWN;
+    // If the only class being intercepted is of type number, we
+    // make this interceptor call say it wants that class as input.
+    Element interceptor = interceptedClasses.toList()[0];
+    JavaScriptBackend backend = compiler.backend;
+    if (interceptor == backend.jsNumberClass) {
+      return HType.NUMBER;
+    } else if (interceptor == backend.jsIntClass) {
+      return HType.INTEGER;
+    } else if (interceptor == backend.jsDoubleClass) {
+      return HType.DOUBLE;
+    }
+    return HType.UNKNOWN;
   }
 
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;

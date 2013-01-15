@@ -240,7 +240,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return new HIndexAssign(node.inputs[1], node.inputs[2], node.inputs[3]);
       }
     } else if (selector.kind == SelectorKind.OPERATOR) {
-      if (selector.name == const SourceString('-')) {
+      if (selector.name == const SourceString('unary-')) {
         if (input.isNumber(types)) {
           return new HNegate(input);
         }
