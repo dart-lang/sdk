@@ -33,7 +33,7 @@ dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 dart/isolate_unhandled*: Skip
 
-[ $runtime == ff ]
+[ $runtime == ff || $runtime == ie9 ]
 dart/inline_stack_frame_test: Skip
 
 [ $compiler == dart2dart ]
