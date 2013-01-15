@@ -1081,7 +1081,7 @@ class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
 class TypeData(object):
   def __init__(self, clazz, dart_type=None, native_type=None,
                merged_interface=None, merged_into=None,
-               custom_to_dart=None, custom_to_native=None,
+               custom_to_dart=False, custom_to_native=False,
                conversion_includes=None,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
