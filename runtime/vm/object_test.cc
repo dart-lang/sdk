@@ -2488,17 +2488,17 @@ TEST_CASE(ContextScope) {
       new LocalScope(parent_scope, local_scope_function_level, 0);
 
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
-  const String& a = String::ZoneHandle(String::New("a"));
+  const String& a = String::ZoneHandle(Symbols::New("a"));
   LocalVariable* var_a =
       new LocalVariable(Scanner::kDummyTokenIndex, a, dynamic_type);
   parent_scope->AddVariable(var_a);
 
-  const String& b = String::ZoneHandle(String::New("b"));
+  const String& b = String::ZoneHandle(Symbols::New("b"));
   LocalVariable* var_b =
       new LocalVariable(Scanner::kDummyTokenIndex, b, dynamic_type);
   local_scope->AddVariable(var_b);
 
-  const String& c = String::ZoneHandle(String::New("c"));
+  const String& c = String::ZoneHandle(Symbols::New("c"));
   LocalVariable* var_c =
       new LocalVariable(Scanner::kDummyTokenIndex, c, dynamic_type);
   parent_scope->AddVariable(var_c);

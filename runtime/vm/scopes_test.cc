@@ -12,18 +12,18 @@ namespace dart {
 TEST_CASE(LocalScope) {
   // Allocate a couple of local variables first.
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
-  const String& a = String::ZoneHandle(String::New("a"));
+  const String& a = String::ZoneHandle(Symbols::New("a"));
   LocalVariable* var_a =
       new LocalVariable(Scanner::kDummyTokenIndex, a, dynamic_type);
   LocalVariable* inner_var_a =
       new LocalVariable(Scanner::kDummyTokenIndex, a, dynamic_type);
-  const String& b = String::ZoneHandle(String::New("b"));
+  const String& b = String::ZoneHandle(Symbols::New("b"));
   LocalVariable* var_b =
       new LocalVariable(Scanner::kDummyTokenIndex, b, dynamic_type);
-  const String& c = String::ZoneHandle(String::New("c"));
+  const String& c = String::ZoneHandle(Symbols::New("c"));
   LocalVariable* var_c =
       new LocalVariable(Scanner::kDummyTokenIndex, c, dynamic_type);
-  const String& L = String::ZoneHandle(String::New("L"));
+  const String& L = String::ZoneHandle(Symbols::New("L"));
   SourceLabel* label_L =
       new SourceLabel(Scanner::kDummyTokenIndex, L, SourceLabel::kFor);
 

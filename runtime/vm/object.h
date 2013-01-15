@@ -3900,7 +3900,16 @@ class String : public Instance {
   intptr_t Length() const { return Smi::Value(raw_ptr()->length_); }
   static intptr_t length_offset() { return OFFSET_OF(RawString, length_); }
 
-  virtual intptr_t Hash() const;
+  intptr_t Hash() const {
+    intptr_t result = Smi::Value(raw_ptr()->hash_);
+    if (result != 0) {
+      return result;
+    }
+    result = String::Hash(*this, 0, this->Length());
+    this->SetHash(result);
+    return result;
+  }
+
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
   static intptr_t Hash(const uint8_t* characters, intptr_t len);

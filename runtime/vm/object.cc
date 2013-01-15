@@ -10180,17 +10180,6 @@ class StringHasher : ValueObject {
 };
 
 
-intptr_t String::Hash() const {
-  intptr_t result = Smi::Value(raw_ptr()->hash_);
-  if (result != 0) {
-    return result;
-  }
-  result = String::Hash(*this, 0, this->Length());
-  this->SetHash(result);
-  return result;
-}
-
-
 intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
   ASSERT(begin_index >= 0);
   ASSERT(len >= 0);
