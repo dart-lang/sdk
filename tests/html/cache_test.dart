@@ -1,14 +1,28 @@
 library CacheTest;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
 main() {
-  useHtmlConfiguration();
-  test('ApplicationCache', () {
-    ApplicationCache appCache = window.applicationCache;
-    expect(cacheStatusToString(appCache.status), equals("UNCACHED"));
+  useHtmlIndividualConfiguration();
+
+  group('supported', () {
+    test('supported', () {
+      expect(ApplicationCache.supported, true);
+    });
   });
+
+  group('ApplicationCache', () {
+    test('ApplicationCache', () {
+      var expectation = ApplicationCache.supported ? returnsNormally : throws;
+      expect(() {
+        ApplicationCache appCache = window.applicationCache;
+        expect(cacheStatusToString(appCache.status), "UNCACHED");
+      }, expectation);
+
+    });
+  });
+
 }
 
 String cacheStatusToString(int status) {

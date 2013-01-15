@@ -107,7 +107,7 @@ websql_test: Fail # IE does not support web SQL
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
-cache_test: fail              # IE9 does not support ApplicationCache, but IE 10 does (and should work).
+cache_test/supported: Fail
 css_test: Fail
 dom_constructors_test: Fail
 element_test/matches: Fail # IE9 does not support matches
@@ -173,7 +173,6 @@ keyboard_event_test: Fail # Issue: 7413
 element_test/eventListening: Fail # Issue: 7413
 element_test/children: Fail # Issue: 7413
 audiobuffersourcenode_test: Fail
-cache_test: Fail
 canvas_test: Pass,Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail

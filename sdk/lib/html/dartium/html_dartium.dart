@@ -381,6 +381,11 @@ class AppletElement extends _Element_Merged {
 
 
 /// @domName DOMApplicationCache
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.OPERA)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ApplicationCache extends EventTarget {
   ApplicationCache.internal() : super.internal();
 
@@ -399,6 +404,9 @@ class ApplicationCache extends EventTarget {
   static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
 
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ApplicationCacheEvents get on =>

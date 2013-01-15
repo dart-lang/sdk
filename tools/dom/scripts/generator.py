@@ -655,6 +655,13 @@ _performance_annotations = [
 dart_annotations = {
   'ArrayBuffer': _all_but_ie9_annotations,
   'ArrayBufferView': _all_but_ie9_annotations,
+  'DOMApplicationCache': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.IE, '10')",
+    "@SupportedBrowser(SupportedBrowser.OPERA)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
   'DOMWindow.indexedDB': _indexed_db_annotations,
   'DOMWindow.performance': _performance_annotations,
   'DOMWindow.webkitRequestFileSystem': _file_system_annotations,

@@ -15,6 +15,7 @@ class SupportedBrowser {
   static const String CHROME = "Chrome";
   static const String FIREFOX = "Firefox";
   static const String IE = "Internet Explorer";
+  static const String OPERA = "Opera";
   static const String SAFARI = "Safari";
 
   /// The name of the browser.

@@ -33,6 +33,7 @@ String typeNameInWebKitCommon(tag) {
 String typeNameInOpera(obj) {
   String name = JS('String', '#', constructorNameFallback(obj));
   if (name == 'Window') return 'DOMWindow';
+  if (name == 'ApplicationCache') return 'DOMApplicationCache';
   return name;
 }
 

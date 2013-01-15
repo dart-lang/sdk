@@ -213,6 +213,11 @@ class AppletElement extends Element native "*HTMLAppletElement" {
 
 
 /// @domName DOMApplicationCache; @docsEditable true
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.OPERA)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
   static const EventStreamProvider<Event> cachedEvent = const EventStreamProvider<Event>('cached');
@@ -230,6 +235,9 @@ class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
   static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
 
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.applicationCache)');
 
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ApplicationCacheEvents get on =>
