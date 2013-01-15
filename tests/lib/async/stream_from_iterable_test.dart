@@ -36,21 +36,26 @@ main() {
                                             .mappedBy((i) => "$i")).run();
 
   Iterable<int> iter = new Iterable.generate(25, (i) => i * 2);
-  new Stream.fromIterable(iter).toList().then(expectAsync1((actual) {
-    List expected = iter.toList();
-    Expect.equals(25, expected.length);
-    Expect.listEquals(expected, actual);
-  }));
 
-  new Stream.fromIterable(iter)
-    .mappedBy((i) => i * 3)
-    .toList()
-    .then(expectAsync1((actual) {
-       List expected = iter.mappedBy((i) => i * 3).toList();
-       Expect.listEquals(expected, actual);
+  test("iterable-toList", () {
+    new Stream.fromIterable(iter).toList().then(expectAsync1((actual) {
+      List expected = iter.toList();
+      Expect.equals(25, expected.length);
+      Expect.listEquals(expected, actual);
     }));
+  });
 
-  {  // Test pause.
+  test("iterable-mapped-toList", () {
+    new Stream.fromIterable(iter)
+      .mappedBy((i) => i * 3)
+      .toList()
+      .then(expectAsync1((actual) {
+         List expected = iter.mappedBy((i) => i * 3).toList();
+         Expect.listEquals(expected, actual);
+      }));
+  });
+
+  test("iterable-paused", () {
     Stream stream = new Stream.fromIterable(iter);
     Events actual = new Events();
     StreamSubscription subscription;
@@ -63,5 +68,5 @@ main() {
       Events expected = new Events.fromIterable(iter);
       Expect.listEquals(expected.events, actual.events);
     }));
-  }
+  });
 }
