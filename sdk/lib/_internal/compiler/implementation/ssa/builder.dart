@@ -3070,16 +3070,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  void handleForeignDartClosureToJs(Send node) {
+  FunctionSignature handleForeignRawFunctionRef(Send node, String name) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
-      compiler.cancel('Exactly one argument required',
+      compiler.cancel('$name requires exactly one argument',
                       node: node.argumentsNode);
     }
     Node closure = node.arguments.head;
     Element element = elements[closure];
     if (!Elements.isStaticOrTopLevelFunction(element)) {
       compiler.cancel(
-          'JS_TO_CLOSURE requires a static or top-level method',
+          '$name requires a static or top-level method',
           node: closure);
     }
     FunctionElement function = element;
@@ -3090,10 +3090,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     FunctionSignature params = implementation.computeSignature(compiler);
     if (params.optionalParameterCount != 0) {
       compiler.cancel(
-          'JS_TO_CLOSURE does not handle closure with optional parameters',
+          '$name does not handle closure with optional parameters',
           node: closure);
     }
     visit(closure);
+    return params;
+  }
+
+  void handleForeignDartClosureToJs(Send node, String name) {
+    FunctionSignature params = handleForeignRawFunctionRef(node, name);
     List<HInstruction> inputs = <HInstruction>[pop()];
     String invocationName = backend.namer.invocationName(
         new Selector.callClosure(params.requiredParameterCount));
@@ -3139,7 +3144,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (name == const SourceString('JS_CALL_IN_ISOLATE')) {
       handleForeignJsCallInIsolate(node);
     } else if (name == const SourceString('DART_CLOSURE_TO_JS')) {
-      handleForeignDartClosureToJs(node);
+      handleForeignDartClosureToJs(node, 'DART_CLOSURE_TO_JS');
+    } else if (name == const SourceString('RAW_DART_FUNCTION_REF')) {
+      handleForeignRawFunctionRef(node, 'RAW_DART_FUNCTION_REF');
     } else if (name == const SourceString('JS_SET_CURRENT_ISOLATE')) {
       handleForeignSetCurrentIsolate(node);
     } else if (name == const SourceString('JS_CREATE_ISOLATE')) {

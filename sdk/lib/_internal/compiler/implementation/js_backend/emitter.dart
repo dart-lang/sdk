@@ -390,11 +390,14 @@ $lazyInitializerLogic
         $isolate[fieldName] = sentinelInProgress;
         try {
           result = $isolate[fieldName] = lazyValue();
-        } catch (e) {
-          if ($isolate[fieldName] === sentinelInProgress) {
-            $isolate[fieldName] = null;
+        } finally {
+""" // Use try-finally, not try-catch/throw as it destroys the stack trace.
+"""
+          if (result === sentinelUndefined) {
+            if ($isolate[fieldName] === sentinelInProgress) {
+              $isolate[fieldName] = null;
+            }
           }
-          throw e;
         }
       } else if (result === sentinelInProgress) {
         $cyclicThrow(staticName);

@@ -870,30 +870,81 @@ class MathNatives {
 }
 
 /**
- * Throws the given Dart object as an exception by wrapping it in a
- * proper JavaScript error object and then throwing that. That gives
- * us a reasonable stack trace on most JavaScript implementations. The
- * code in [unwrapException] deals with getting the original Dart
+ * Wrap the given Dart object and record a stack trace.
+ *
+ * The code in [unwrapException] deals with getting the original Dart
  * object out of the wrapper again.
  */
 $throw(ex) {
   if (ex == null) ex = const NullThrownError();
-  var jsError = JS('var', r'new Error()');
-  JS('void', r'#.name = #', jsError, ex);
-  JS('void', r'#.description = #', jsError, ex);
-  JS('void', r'#.dartException = #', jsError, ex);
-  JS('void', r'#.toString = #', jsError,
-     DART_CLOSURE_TO_JS(toStringWrapper));
-  JS('void', r'throw #', jsError);
+  var wrapper = new DartError(ex);
+
+  if (JS('bool', 'Error.captureStackTrace')) {
+    // Use V8 API for recording a "fast" stack trace (this installs a
+    // "stack" property getter on [wrapper]).
+    JS('void', r'Error.captureStackTrace(#, #)',
+       wrapper, RAW_DART_FUNCTION_REF($throw));
+  } else {
+    // Otherwise, produce a stack trace and record it in the wrapper.
+    // This is a slower way to create a stack trace which works on
+    // some browsers, but may simply evaluate to null.
+    String stackTrace = JS('', 'new Error().stack');
+    JS('void', '#.stack = #', wrapper, stackTrace);
+  }
+  return wrapper;
 }
 
 /**
- * This method is installed as JavaScript toString method on exception
- * objects in [$throw]. So JavaScript 'this' binds to an instance of
- * JavaScript Error to which we have added a property 'dartException'
- * which holds a Dart object.
+ * Wrapper class for throwing exceptions.
  */
-toStringWrapper() => JS('', r'this.dartException').toString();
+class DartError {
+  /// The Dart object (or primitive JavaScript value) which was thrown.
+  final dartException;
+
+  DartError(this.dartException) {
+    // Install a toString method that the JavaScript system will call
+    // to format uncaught exceptions.
+    JS('void', '#.toString = #', this, DART_CLOSURE_TO_JS(toStringWrapper));
+  }
+
+  /**
+   * V8/Chrome installs a property getter, "stack", when calling
+   * Error.captureStackTrace (see [$throw]). In [$throw], we make sure
+   * that this property is always set.
+   */
+  String get stack => JS('', '#.stack', this);
+
+  /**
+   * This method can be invoked by calling toString from
+   * JavaScript. See the constructor of this class.
+   *
+   * We only expect this method to be called (indirectly) by the
+   * browser when an uncaught exception occurs. Instance of this class
+   * should never escape into Dart code (except for [$throw] above).
+   */
+  String toString() {
+    // If Error.captureStackTrace is available, accessing stack from
+    // this method would cause recursion because the stack property
+    // (on this object) is actually a getter which calls toString on
+    // this object (via the wrapper installed in this class'
+    // constructor). Fortunately, both Chrome and d8 prints the stack
+    // trace and Chrome even applies source maps to the stack
+    // trace. Remeber, this method is only ever invoked by the browser
+    // when an uncaught exception occurs.
+    if (JS('bool', 'Error.captureStackTrace') || (stack == null)) {
+      return dartException.toString();
+    } else {
+      return '$dartException\n$stack';
+    }
+  }
+
+  /**
+   * This method is installed as JavaScript toString method on
+   * [DartError].  So JavaScript 'this' binds to an instance of
+   * DartError.
+   */
+  static toStringWrapper() => JS('', r'this').toString();
+}
 
 makeLiteralListConst(list) {
   JS('bool', r'#.immutable$list = #', list, true);
