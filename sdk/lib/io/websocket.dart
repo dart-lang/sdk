@@ -24,7 +24,7 @@ abstract class WebSocketStatus {
 }
 
 /**
- * The web socket protocol is implemented by a HTTP server handler
+ * The web socket protocol is implemented by a HTTP or HTTPS server handler
  * which can be instantiated like this:
  *
  *     WebSocketHandler wsHandler = new WebSocketHandler();
@@ -61,10 +61,12 @@ abstract class WebSocketHandler {
  */
 abstract class WebSocketConnection {
   /**
-   * Sets the callback to be called when a message have been
+   * Sets the callback to be called when a message has been
    * received. The type on [message] is either [:String:] or
    * [:List<int>:] depending on whether it is a text or binary
    * message. If the message is empty [message] will be [:null:].
+   * If [message] is a [:List<int>:] then it will contain byte values
+   * from 0 to 255.
    */
   void set onMessage(void callback(message));
 
@@ -72,7 +74,7 @@ abstract class WebSocketConnection {
    * Sets the callback to be called when the web socket connection is
    * closed. [status] indicate the reason for closing. For network
    * errors the value of [status] will be
-   * WebSocketStatus.ABNORMAL_CLOSURE]. In this callbach it is
+   * WebSocketStatus.ABNORMAL_CLOSURE]. In this callback it is
    * possible to call [close] if [close] has not already been called.
    * If [close] has still not been called after the close callback
    * returns the received close status will automatically be echoed
@@ -81,8 +83,8 @@ abstract class WebSocketConnection {
   void set onClosed(void callback(int status, String reason));
 
   /**
-   * Sends a message. The [message] must be a [:String:] a
-   * [:List<int>:] or [:null:].
+   * Sends a message. The [message] must be a [:String:], a
+   * [:List<int>:] containing bytes, or [:null:].
    */
   send(Object message);
 
@@ -91,11 +93,6 @@ abstract class WebSocketConnection {
    * and [reason] are [:null:].
    */
   close([int status, String reason]);
-
-  /**
-   * WebSocketConnection is hashable.
-   */
-  int get hashCode;
 }
 
 
@@ -104,8 +101,8 @@ abstract class WebSocketConnection {
  */
 abstract class WebSocketClientConnection {
   /**
-   * Creates a new web socket client connection based on a HTTP client
-   * connection. The HTTP client connection must be freshly opened.
+   * Creates a new web socket client connection based on a HTTP(S) client
+   * connection. The HTTP or HTTPS client connection must be freshly opened.
    */
   factory WebSocketClientConnection(HttpClientConnection conn,
                                     [List<String> protocols]) {
@@ -115,7 +112,7 @@ abstract class WebSocketClientConnection {
   /**
    * Sets the callback to be called when the request object for the
    * opening handshake request is ready. This callback can be used if
-   * one need to add additional headers to the opening handshake
+   * one needs to add additional headers to the opening handshake
    * request.
    */
   void set onRequest(void callback(HttpClientRequest request));
@@ -127,16 +124,18 @@ abstract class WebSocketClientConnection {
   void set onOpen(void callback());
 
   /**
-   * Sets the callback to be called when a message have been
+   * Sets the callback to be called when a message has been
    * received. The type of [message] is either [:String:] or
-   * [:List<int>:] depending on whether it is a text or binary
+   * [:List<int>:], depending on whether it is a text or binary
    * message. If the message is empty [message] will be [:null:].
+   * If the message is a [:List<int>:] then it will contain byte values
+   * from 0 to 255.
    */
   void set onMessage(void callback(message));
 
   /**
    * Sets the callback to be called when the web socket connection is
-   * closed. [status] indicate the reason for closing. For network
+   * closed. [status] indicates the reason for closing. For network
    * errors the value of [status] will be
    * WebSocketStatus.ABNORMAL_CLOSURE].
    */
@@ -146,16 +145,16 @@ abstract class WebSocketClientConnection {
    * Sets the callback to be called when the response object for the
    * opening handshake did not cause a web socket connection
    * upgrade. This will be called in case the response status code is
-   * not 101 (Switching Protocols). If this callback is not set the
-   * [:onError:] callback will be called if the server did not upgrade
-   * the connection.
+   * not 101 (Switching Protocols). If this callback is not set and the
+   * server does not upgrade the connection, the [:onError:] callback will
+   * be called.
    */
   void set onNoUpgrade(void callback(HttpClientResponse response));
 
   /**
    * Sends a message. The [message] must be a [:String:] or a
-   * [:List<int>:]. To send an empty message use either an empty
-   * [:String:] or an empty [:List<int>:]. [:null:] cannot be used.
+   * [:List<int>:] containing bytes. To send an empty message send either
+   * an empty [:String:] or an empty [:List<int>:]. [:null:] cannot be sent.
    */
   send(message);
 
@@ -164,11 +163,6 @@ abstract class WebSocketClientConnection {
    * and [reason] are [:null:].
    */
   close([int status, String reason]);
-
-  /**
-   * WebSocketClientConnection is hashable.
-   */
-  int get hashCode;
 }
 
 
@@ -186,6 +180,9 @@ abstract class MessageEvent extends Event {
    * The type of [message] is either [:String:] or [:List<int>:]
    * depending on whether it is a text or binary message. If the
    * message is empty [message] will be [:null:]
+   * If the message is a [:List<int>:] then it will contain byte values
+   * from 0 to 255.
+
    */
   get data;
 }
@@ -285,14 +282,14 @@ abstract class WebSocket {
   void close(int code, String reason);
 
   /**
-   * Sets the callback to be called when a message have been
+   * Sets the callback to be called when a message has been
    * received.
    */
   void set onmessage(void callback(MessageEvent event));
 
   /**
    * Sends data on the web socket connection. The data in [data] must
-   * be either a [:String:] or [:List<int>:] holding bytes.
+   * be either a [:String:], or a [:List<int>:] holding bytes.
    */
   void send(data);
 }
