@@ -16,24 +16,10 @@ part of dart.async;
  * its [stream].
  * This class can be used to create a simple stream that others
  * can listen on, and to push events to that stream.
- * For more specialized streams, the [createStream] method can be
- * overridden to return a specialization of [ControllerStream], and
- * other public methods can be overridden too (but it's recommended
- * that the overriding method calls its super method).
  *
- * A [StreamController] may have zero or more subscribers.
- *
- * If it has subscribers, it may also be paused by any number of its
- * subscribers. When paused, all incoming events are queued. It is the
- * responsibility of the user of this stream to prevent incoming events when
- * the controller is paused. When there are no pausing subscriptions left,
- * either due to them resuming, or due to the pausing subscriptions
- * unsubscribing, events are resumed.
- *
- * When "close" is invoked (but not necessarily when the done event is fired,
- * depending on pause state) the stream controller is closed.
- * When the done event is fired to a subscriber, the subscriber is automatically
- * unsubscribed.
+ * It's possible to check whether the stream is paused or not, and whether
+ * it has subscribers or not, as well as getting a callback when either of
+ * these change.
  */
 class StreamController<T> extends Stream<T> implements StreamSink<T> {
   _StreamImpl<T> _stream;
@@ -57,6 +43,8 @@ class StreamController<T> extends Stream<T> implements StreamSink<T> {
   }
 
   bool get isSingleSubscription => _stream.isSingleSubscription;
+
+  Stream<T> asMultiSubscriptionStream() => _stream.asMultiSubscriptionStream();
 
   StreamSubscription listen(void onData(T data),
                             { void onError(AsyncError error),
@@ -87,10 +75,10 @@ class StreamController<T> extends Stream<T> implements StreamSink<T> {
   /**
    * Send or enqueue an error event.
    *
-   * If [error] is not an [AsyncError], [exception] and an optional [stackTrace]
+   * If [error] is not an [AsyncError], [error] and an optional [stackTrace]
    * is combined into an [AsyncError] and sent this stream's listeners.
    *
-   * Itherwise, if [error] is an [AsyncError], it is used directly as the
+   * Otherwise, if [error] is an [AsyncError], it is used directly as the
    * error object reported to listeners, and the [stackTrace] is ignored.
    *
    * If a subscription has requested to be unsubscribed on errors,

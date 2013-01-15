@@ -57,7 +57,7 @@ abstract class Stream<T> {
    * data or error, and then close with a done-event.
    */
   factory Stream.fromFuture(Future<T> future) {
-    _StreamImpl<T> stream = new _MultiStreamImpl<T>();
+    _StreamImpl<T> stream = new _SingleStreamImpl<T>();
     future.then((value) {
         stream._add(value);
         stream._close();
@@ -392,10 +392,10 @@ abstract class Stream<T> {
   }
 
   /**
-   * Finds the least element in the stream.
+   * Finds the largest element in the stream.
    *
    * If the stream is empty, the result is [:null:].
-   * Otherwise the result is an value from the stream that is not greater
+   * Otherwise the result is an value from the stream that is not smaller
    * than any other value from the stream (according to [compare], which must
    * be a [Comparator]).
    *
@@ -782,7 +782,7 @@ abstract class Stream<T> {
 /**
  * A control object for the subscription on a [Stream].
  *
- * When you subscribe on a [Stream] using [Stream.subscribe],
+ * When you subscribe on a [Stream] using [Stream.listen],
  * a [StreamSubscription] object is returned. This object
  * is used to later unsubscribe again, or to temporarily pause
  * the stream's events.
@@ -809,7 +809,9 @@ abstract class StreamSubscription<T> {
    * Request that the stream pauses events until further notice.
    *
    * If [resumeSignal] is provided, the stream will undo the pause
-   * when the future completes in any way.
+   * when the future completes. If the future completes with an error,
+   * it will not be handled!
+   *
    * A call to [resume] will also undo a pause.
    *
    * If the subscription is paused more than once, an equal number
