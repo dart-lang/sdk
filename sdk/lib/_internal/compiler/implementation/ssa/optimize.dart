@@ -230,8 +230,25 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     Selector selector = node.selector;
 
-    if (node.isIndexOperatorOnIndexablePrimitive(types)) {
-      return new HIndex(node.inputs[1], node.inputs[2]);
+    // TODO(ngeoffray): Move this logic into a separate class.
+    if (selector.kind == SelectorKind.INDEX
+        && input.isIndexablePrimitive(types)) {
+      if (selector.name == const SourceString('[]')) {
+        return new HIndex(node.inputs[1], node.inputs[2]);
+      } else if (input.isMutableArray(types)) {
+        assert(selector.name == const SourceString('[]='));
+        return new HIndexAssign(node.inputs[1], node.inputs[2], node.inputs[3]);
+      }
+    } else if (selector.kind == SelectorKind.OPERATOR) {
+      if (selector.name == const SourceString('-')) {
+        if (input.isNumber(types)) {
+          return new HNegate(input);
+        }
+      } else if (selector.name == const SourceString('~')) {
+        if (input.isNumber(types)) {
+          return new HBitNot(input);
+        }
+      }
     }
 
     SourceString selectorName = selector.name;
@@ -346,14 +363,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // -0.0 is a double but will pass the runtime integer check.
         node.alwaysFalse = true;
       }
-    }
-    return node;
-  }
-
-  HInstruction visitIndexAssign(HIndexAssign node) {
-    if (!node.receiver.canBePrimitive(types)) {
-      Selector selector = new Selector.indexSet();
-      return fromPrimitiveInstructionToDynamicInvocation(node, selector);
     }
     return node;
   }
@@ -832,7 +841,6 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     }
     index = insertBoundsCheck(node, node.receiver, index);
     node.changeUse(node.index, index);
-    assert(node.isBuiltin(types));
   }
 
   void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {

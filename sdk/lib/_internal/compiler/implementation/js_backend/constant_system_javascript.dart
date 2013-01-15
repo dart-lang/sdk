@@ -141,7 +141,7 @@ class JavaScriptIdentityOperation implements BinaryOperation {
  * Constant system following the semantics for Dart code that has been
  * compiled to JavaScript.
  */
-class JavaScriptConstantSystem implements ConstantSystem {
+class JavaScriptConstantSystem extends ConstantSystem {
   const int BITS31 = 0x8FFFFFFF;
   const int BITS32 = 0xFFFFFFFF;
   // The maximum integer value a double can represent without losing

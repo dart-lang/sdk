@@ -58,6 +58,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSArray {
     var length;
     operator[](index) {}
+    operator[]=(index, value) {}
     var add;
   }
   class JSString {

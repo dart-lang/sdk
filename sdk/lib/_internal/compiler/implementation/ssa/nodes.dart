@@ -261,7 +261,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInvokeBinary(HInvokeBinary node) => visitInvokeStatic(node);
   visitInvokeDynamic(HInvokeDynamic node) => visitInvoke(node);
   visitInvokeDynamicField(HInvokeDynamicField node) => visitInvokeDynamic(node);
-  visitInvokeUnary(HInvokeUnary node) => visitInvokeStatic(node);
+  visitInvokeUnary(HInvokeUnary node) => visitInstruction(node);
   visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
   visitControlFlow(HControlFlow node) => visitInstruction(node);
   visitFieldAccess(HFieldAccess node) => visitInstruction(node);
@@ -293,7 +293,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIdentity(HIdentity node) => visitRelational(node);
   visitIf(HIf node) => visitConditionalBranch(node);
   visitIndex(HIndex node) => visitInstruction(node);
-  visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
+  visitIndexAssign(HIndexAssign node) => visitInstruction(node);
   visitIntegerCheck(HIntegerCheck node) => visitCheck(node);
   visitInterceptor(HInterceptor node) => visitInstruction(node);
   visitInvokeClosure(HInvokeClosure node)
@@ -1329,6 +1329,7 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   bool isIndexOperatorOnIndexablePrimitive(HTypeMap types) {
     return isInterceptorCall
         && selector.kind == SelectorKind.INDEX
+        && selector.name == const SourceString('[]')
         && inputs[1].isIndexablePrimitive(types);
   }
 
@@ -1337,18 +1338,55 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
                                    Compiler compiler) {
     // TODO(ngeoffray): Move this logic into a different class that
     // will know what type it wants for a given selector.
-    if (selector.kind != SelectorKind.INDEX) return HType.UNKNOWN;
     if (!isInterceptorCall) return HType.UNKNOWN;
 
-    HInstruction index = inputs[2];
-    if (input == inputs[1] &&
-        (index.isTypeUnknown(types) || index.isNumber(types))) {
-      return HType.INDEXABLE_PRIMITIVE;
+    if (selector.kind == SelectorKind.INDEX) {
+      HInstruction index = inputs[2];
+      if (input == inputs[1] &&
+          (index.isTypeUnknown(types) || index.isNumber(types))) {
+        return selector.name == const SourceString('[]')
+            ? HType.INDEXABLE_PRIMITIVE
+            : HType.MUTABLE_ARRAY;
+      }
+      // The index should be an int when the receiver is a string or array.
+      // However it turns out that inserting an integer check in the optimized
+      // version is cheaper than having another bailout case. This is true,
+      // because the integer check will simply throw if it fails.
+      return HType.UNKNOWN;
+    } else if (selector.kind == SelectorKind.OPERATOR) {
+      HType propagatedType = types[this];
+      if (selector.name == const SourceString('-') && input == inputs[1]) {
+        // If the outgoing type should be a number (integer, double or both) we
+        // want the outgoing type to be the input too.
+        // If we don't know the outgoing type we try to make it a number.
+        if (propagatedType.isNumber()) return propagatedType;
+        if (propagatedType.isUnknown()) return HType.NUMBER;
+      } else if (selector.name == const SourceString('~')
+                 && input == inputs[1]) {
+        if (propagatedType.isUnknown() || propagatedType.isNumber()) {
+          return HType.INTEGER;
+        }
+      }
+      return HType.UNKNOWN;
     }
-    // The index should be an int when the receiver is a string or array.
-    // However it turns out that inserting an integer check in the optimized
-    // version is cheaper than having another bailout case. This is true,
-    // because the integer check will simply throw if it fails.
+    return HType.UNKNOWN;
+  }
+
+  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
+    // TODO(ngeoffray): Move this logic into a different class that
+    // will know what type it has for a given selector.
+    if (!isInterceptorCall) return HType.UNKNOWN;
+
+    if (selector.kind == SelectorKind.OPERATOR) {
+      if (selector.name == const SourceString('-')) {
+        HType operandType = types[inputs[1]];
+        if (operandType.isNumber()) return operandType;
+      } else if (selector.name == const SourceString('~')) {
+        // All bitwise operations on primitive types either produce an
+        // integer or throw an error.
+        if (inputs[1].isPrimitive(types)) return HType.INTEGER;
+      }
+    }
     return HType.UNKNOWN;
   }
 }
@@ -1840,52 +1878,26 @@ class HBitXor extends HBinaryBitOp {
   bool dataEquals(HInstruction other) => true;
 }
 
-abstract class HInvokeUnary extends HInvokeStatic {
-  HInvokeUnary(HStatic target, HInstruction input)
-      : super(<HInstruction>[target, input]);
+abstract class HInvokeUnary extends HInstruction {
+  HInvokeUnary(HInstruction input) : super(<HInstruction>[input]);
 
-  HInstruction get operand => inputs[1];
+  HInstruction get operand => inputs[0];
 
   void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
-    // A unary arithmetic expression can take part in global value
-    // numbering and does not have any side-effects if its input is a
-    // number.
-    if (isBuiltin(types)) {
-      setUseGvn();
-    } else {
-      setAllSideEffects();
-    }
+    setUseGvn();
   }
-
-  bool isBuiltin(HTypeMap types) => operand.isNumber(types);
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    HType operandType = types[operand];
-    if (operandType.isNumber()) return operandType;
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    HType propagatedType = types[this];
-    // If the outgoing type should be a number (integer, double or both) we
-    // want the outgoing type to be the input too.
-    // If we don't know the outgoing type we try to make it a number.
-    if (propagatedType.isNumber()) return propagatedType;
-    if (propagatedType.isUnknown()) return HType.NUMBER;
-    return HType.UNKNOWN;
-  }
-
-  HType computeLikelyType(HTypeMap types, Compiler compiler) => HType.NUMBER;
 
   UnaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HNegate extends HInvokeUnary {
-  HNegate(HStatic target, HInstruction input) : super(target, input);
+  HNegate(HInstruction input) : super(input);
   accept(HVisitor visitor) => visitor.visitNegate(this);
+
+  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
+    return types[operand];
+  }
 
   UnaryOperation operation(ConstantSystem constantSystem)
       => constantSystem.negate;
@@ -1895,28 +1907,10 @@ class HNegate extends HInvokeUnary {
 }
 
 class HBitNot extends HInvokeUnary {
-  HBitNot(HStatic target, HInstruction input) : super(target, input);
+  HBitNot(HInstruction input) : super(input);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    // All bitwise operations on primitive types either produce an
-    // integer or throw an error.
-    if (operand.isPrimitive(types)) return HType.INTEGER;
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    HType propagatedType = types[this];
-    // Bit operations only work on integers. If there is no desired output
-    // type or if it as a number we want to get an integer as input.
-    if (propagatedType.isUnknown() || propagatedType.isNumber()) {
-      return HType.INTEGER;
-    }
-    return HType.UNKNOWN;
-  }
-
+  
+  HType get guaranteedType => HType.INTEGER;
   UnaryOperation operation(ConstantSystem constantSystem)
       => constantSystem.bitNot;
   int typeCode() => HInstruction.BIT_NOT_TYPECODE;
@@ -2485,48 +2479,22 @@ class HIndex extends HInstruction {
   bool dataEquals(HIndex other) => true;
 }
 
-class HIndexAssign extends HInvokeStatic {
-  HIndexAssign(HStatic target,
-               HInstruction receiver,
+class HIndexAssign extends HInstruction {
+  HIndexAssign(HInstruction receiver,
                HInstruction index,
                HInstruction value)
-      : super(<HInstruction>[target, receiver, index, value]);
-  toString() => 'index assign operator';
+      : super(<HInstruction>[receiver, index, value]);
+  String toString() => 'index assign operator';
   accept(HVisitor visitor) => visitor.visitIndexAssign(this);
 
-  HInstruction get receiver => inputs[1];
-  HInstruction get index => inputs[2];
-  HInstruction get value => inputs[3];
+  HInstruction get receiver => inputs[0];
+  HInstruction get index => inputs[1];
+  HInstruction get value => inputs[2];
 
   void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
-    if (isBuiltin(types)) {
-      setChangesIndex();
-    } else {
-      setAllSideEffects();
-    }
+    setChangesIndex();
   }
-
-  // Note, that we don't have a computeTypeFromInputTypes, since [HIndexAssign]
-  // is never used as input.
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    if (input == receiver &&
-        (index.isTypeUnknown(types) || index.isNumber(types))) {
-      return HType.MUTABLE_ARRAY;
-    }
-    // The index should be an int when the receiver is a string or array.
-    // However it turns out that inserting an integer check in the optimized
-    // version is cheaper than having another bailout case. This is true,
-    // because the integer check will simply throw if it fails.
-    return HType.UNKNOWN;
-  }
-
-  bool isBuiltin(HTypeMap types)
-      => receiver.isMutableArray(types) && index.isInteger(types);
-  bool isJsStatement(HTypeMap types) => !isBuiltin(types);
 }
 
 class HIs extends HInstruction {

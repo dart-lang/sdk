@@ -48,6 +48,8 @@ abstract class ConstantSystem {
   BinaryOperation get subtract;
   BinaryOperation get truncatingDivide;
 
+  const ConstantSystem();
+
   Constant createInt(int i);
   Constant createDouble(double d);
   // We need a diagnostic node to report errors in case the string is malformed.
@@ -69,4 +71,10 @@ abstract class ConstantSystem {
   bool isBool(Constant constant);
   /** Returns true if the [constant] is null at runtime. */
   bool isNull(Constant constant);
+
+  Operation lookupUnary(SourceString operator) {
+    if (operator == const SourceString('-')) return negate;
+    if (operator == const SourceString('~')) return bitNot;
+    return null;
+  }
 }

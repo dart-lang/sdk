@@ -1279,19 +1279,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeUnary(HInvokeUnary node, String op) {
-    if (node.isBuiltin(types)) {
-      use(node.operand);
-      push(new js.Prefix(op, pop()), node);
-    } else {
-      visitInvokeStatic(node);
-    }
+    use(node.operand);
+    push(new js.Prefix(op, pop()), node);
   }
 
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
   visitBitInvokeUnary(HInvokeUnary node, String op) {
     visitInvokeUnary(node, op);
-    if (node.isBuiltin(types) && requiresUintConversion(node)) {
+    if (requiresUintConversion(node)) {
       push(new js.Binary(">>>", pop(), new js.LiteralNumber("0")), node);
     }
   }
@@ -2143,17 +2139,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitIndexAssign(HIndexAssign node) {
-    if (node.isBuiltin(types)) {
-      use(node.inputs[1]);
-      js.Expression receiver = pop();
-      use(node.inputs[2]);
-      js.Expression index = pop();
-      use(node.inputs[3]);
-      push(new js.Assignment(new js.PropertyAccess(receiver, index), pop()),
-           node);
-    } else {
-      visitInvokeStatic(node);
-    }
+    use(node.receiver);
+    js.Expression receiver = pop();
+    use(node.index);
+    js.Expression index = pop();
+    use(node.value);
+    push(new js.Assignment(new js.PropertyAccess(receiver, index), pop()),
+         node);
   }
 
   void checkInt(HInstruction input, String cmp) {

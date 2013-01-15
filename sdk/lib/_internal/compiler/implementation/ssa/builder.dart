@@ -2299,28 +2299,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(!identical(op.token.kind, PLUS_TOKEN));
     HInstruction operand = pop();
 
-    HInstruction target =
-        new HStatic(interceptors.getPrefixOperatorInterceptor(op));
-    add(target);
-    HInvokeUnary result;
-    String value = op.source.stringValue;
-    switch (value) {
-      case "-": result = new HNegate(target, operand); break;
-      case "~": result = new HBitNot(target, operand); break;
-      default:
-        compiler.internalError('Unexpected unary operator: $value.', node: op);
-        break;
-    }
     // See if we can constant-fold right away. This avoids rewrites later on.
     if (operand is HConstant) {
+      UnaryOperation operation = constantSystem.lookupUnary(op.source);
       HConstant constant = operand;
-      Constant folded =
-          result.operation(constantSystem).fold(constant.constant);
+      Constant folded = operation.fold(constant.constant);
       if (folded != null) {
         stack.add(graph.addConstant(folded));
         return;
       }
     }
+
+    HInvokeDynamicMethod result =
+        buildInvokeDynamic(node, elements.getSelector(node), operand, []);
     pushWithPosition(result, node);
   }
 
@@ -3640,8 +3631,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  HInvokeDynamicMethod buildInvokeDynamicWithOneArgument(
-      Node node, Selector selector, HInstruction receiver, HInstruction arg0) {
+  HInvokeDynamicMethod buildInvokeDynamic(Node node,
+                                          Selector selector,
+                                          HInstruction receiver,
+                                          List<HInstruction> arguments) {
     Set<ClassElement> interceptedClasses =
         getInterceptedClassesOn(node, selector);
     List<HInstruction> inputs = <HInstruction>[];
@@ -3649,7 +3642,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       inputs.add(invokeInterceptor(interceptedClasses, receiver, node));
     }
     inputs.add(receiver);
-    inputs.add(arg0);
+    inputs.addAll(arguments);
     return new HInvokeDynamicMethod(selector, inputs);
   }
 
@@ -3678,47 +3671,41 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (!methodInterceptionEnabled) {
         assert(identical(op.source.stringValue, '='));
         visitDynamicSend(node);
+      } else if (const SourceString("=") == op.source) {
+        visitDynamicSend(node);
+        HInvokeDynamicMethod method = pop();
+        // Push the value.
+        stack.add(method.inputs.last);
       } else {
-        HStatic target = new HStatic(
-            interceptors.getIndexAssignmentInterceptor());
-        add(target);
         visit(node.receiver);
         HInstruction receiver = pop();
         visit(node.argumentsNode);
-        if (const SourceString("=") == op.source) {
-          HInstruction value = pop();
-          HInstruction index = pop();
-          add(new HIndexAssign(target, receiver, index, value));
+        HInstruction value;
+        HInstruction index;
+        // Compound assignments are considered as being prefix.
+        bool isCompoundAssignment = op.source.stringValue.endsWith('=');
+        bool isPrefix = !node.isPostfix;
+        Element getter = elements[node.selector];
+        if (isCompoundAssignment) {
+          value = pop();
+          index = pop();
+        } else {
+          index = pop();
+          value = graph.addConstantInt(1, constantSystem);
+        }
+
+        HInvokeDynamicMethod left = buildInvokeDynamic(
+            node, new Selector.index(), receiver, [index]);
+        add(left);
+        visitBinary(left, op, value);
+        value = pop();
+        HInvokeDynamicMethod assign = buildInvokeDynamic(
+            node, new Selector.indexSet(), receiver, [index, value]);
+        add(assign);
+        if (isPrefix) {
           stack.add(value);
         } else {
-          HInstruction value;
-          HInstruction index;
-          bool isCompoundAssignment = op.source.stringValue.endsWith('=');
-          // Compound assignments are considered as being prefix.
-          bool isPrefix = !node.isPostfix;
-          Element getter = elements[node.selector];
-          if (isCompoundAssignment) {
-            value = pop();
-            index = pop();
-          } else {
-            index = pop();
-            value = graph.addConstantInt(1, constantSystem);
-          }
-
-          HInvokeDynamicMethod left = buildInvokeDynamicWithOneArgument(
-              node, new Selector.index(), receiver, index);
-          add(left);
-          Element opElement = elements[op];
-          visitBinary(left, op, value);
-          value = pop();
-          HInstruction assign = new HIndexAssign(
-              target, receiver, index, value);
-          add(assign);
-          if (isPrefix) {
-            stack.add(value);
-          } else {
-            stack.add(left);
-          }
+          stack.add(left);
         }
       }
     } else if (const SourceString("=") == op.source) {

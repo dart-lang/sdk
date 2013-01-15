@@ -60,39 +60,6 @@ leB(var a, var b) => (a is num && b is num)
     ? JS('bool', r'# <= #', a, b)
     : identical(le$slow(a, b), true);
 
-index(var a, var index) {
-  // The type test may cause a NoSuchMethodError to be thrown but
-  // that matches the specification of what the indexing operator is
-  // supposed to do.
-  bool isJsArrayOrString = JS('bool',
-      r'typeof # == "string" || #.constructor === Array',
-      a, a);
-  if (isJsArrayOrString) {
-    var key = JS('int', '# >>> 0', index);
-    if (identical(key, index) && key < JS('int', r'#.length', a)) {
-      return JS('var', r'#[#]', a, key);
-    }
-  }
-  return index$slow(a, index);
-}
-
-indexSet(var a, var index, var value) {
-  // The type test may cause a NoSuchMethodError to be thrown but
-  // that matches the specification of what the indexing operator is
-  // supposed to do.
-  bool isMutableJsArray = JS('bool',
-      r'#.constructor === Array && !#.immutable$list',
-      a, a);
-  if (isMutableJsArray) {
-    var key = JS('int', '# >>> 0', index);
-    if (identical(key, index) && key < JS('int', r'#.length', a)) {
-      JS('void', r'#[#] = #', a, key, value);
-      return;
-    }
-  }
-  indexSet$slow(a, index, value);
-}
-
 /**
  * Returns true if both arguments are numbers.
  *
@@ -277,47 +244,6 @@ xor(var a, var b) {
     return JS('num', r'(# ^ #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a ^ b);
-}
-
-not(var a) {
-  if (JS('bool', r'typeof # === "number"', a)) {
-    return JS('num', r'(~#) >>> 0', a);
-  }
-  return UNINTERCEPTED(~a);
-}
-
-neg(var a) {
-  if (JS('bool', r'typeof # === "number"', a)) return JS('num', r'-#', a);
-  return UNINTERCEPTED(-a);
-}
-
-index$slow(var a, var index) {
-  if (a is String || isJsArray(a)) {
-    if (index is !int) {
-      if (index is !num) throw new ArgumentError(index);
-      if (!identical(index.truncate(), index)) throw new ArgumentError(index);
-    }
-    if (index < 0 || index >= a.length) {
-      throw new RangeError.value(index);
-    }
-    return JS('', r'#[#]', a, index);
-  }
-  return UNINTERCEPTED(a[index]);
-}
-
-void indexSet$slow(var a, var index, var value) {
-  if (isJsArray(a)) {
-    if (index is !int) {
-      throw new ArgumentError(index);
-    }
-    if (index < 0 || index >= a.length) {
-      throw new RangeError.value(index);
-    }
-    checkMutable(a, 'indexed set');
-    JS('void', r'#[#] = #', a, index, value);
-    return;
-  }
-  UNINTERCEPTED(a[index] = value);
 }
 
 checkMutable(list, reason) {

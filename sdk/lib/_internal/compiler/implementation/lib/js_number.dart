@@ -142,6 +142,8 @@ class JSNumber {
   }
 
   int get hashCode => this & 0x1FFFFFFF;
+
+  num operator -() => JS('num', r'-#', this);
 }
 
 class JSInt extends JSNumber {
@@ -152,6 +154,8 @@ class JSInt extends JSNumber {
   bool get isOdd => (this & 1) == 1;
 
   Type get runtimeType => int;
+
+  int operator ~() => JS('num', r'(~#) >>> 0', this);
 }
 
 class JSDouble extends JSNumber {

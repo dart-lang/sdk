@@ -172,7 +172,7 @@ class JSArray<E> implements List<E> {
   }
 
   void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
-    checkMutable(this, 'indexed set');
+    checkMutable(this, 'set range');
     if (length == 0) return;
     checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
     checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
@@ -247,6 +247,13 @@ class JSArray<E> implements List<E> {
     if (index is !int) throw new ArgumentError(index);
     if (index >= length || index < 0) throw new RangeError.value(index);
     return JS('var', '#[#]', this, index);
+  }
+
+  void operator []=(int index, E value) {
+    checkMutable(this, 'indexed set');
+    if (index is !int) throw new ArgumentError(index);
+    if (index >= length || index < 0) throw new RangeError.value(index);
+    JS('void', r'#[#] = #', this, index, value);
   }
 }
 

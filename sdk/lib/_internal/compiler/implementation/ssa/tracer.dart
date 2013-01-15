@@ -229,7 +229,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitBitAnd(HBitAnd node) => visitInvokeStatic(node);
 
-  String visitBitNot(HBitNot node) => visitInvokeStatic(node);
+  String visitBitNot(HBitNot node) {
+    String operand = temporaryId(node.operand);
+    return "~$operand";
+  }
 
   String visitBitOr(HBitOr node) => visitInvokeStatic(node);
 
@@ -312,7 +315,12 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Index: $receiver[$index]";
   }
 
-  String visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
+  String visitIndexAssign(HIndexAssign node) {
+    String receiver = temporaryId(node.receiver);
+    String index = temporaryId(node.index);
+    String value = temporaryId(node.value);
+    return "IndexAssign: $receiver[$index] = $value";
+  }
 
   String visitIntegerCheck(HIntegerCheck node) {
     String value = temporaryId(node.value);
@@ -393,7 +401,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitMultiply(HMultiply node) => visitInvokeStatic(node);
 
-  String visitNegate(HNegate node) => visitInvokeStatic(node);
+  String visitNegate(HNegate node) {
+    String operand = temporaryId(node.operand);
+    return "-$operand";
+  }
 
   String visitNot(HNot node) => "Not: ${temporaryId(node.inputs[0])}";
 
