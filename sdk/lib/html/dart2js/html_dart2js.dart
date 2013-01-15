@@ -14527,6 +14527,9 @@ class MutationRecord native "*MutationRecord" {
 /// @domName NamedNodeMap; @docsEditable true
 class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
 
+  /// @domName NamedNodeMap.length; @docsEditable true
+  int get length => JS("int", "#.length", this);
+
   Node operator[](int index) => JS("Node", "#[#]", this, index);
 
   void operator[]=(int index, Node value) {
@@ -14675,9 +14678,26 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 
   // -- end List<Node> mixins.
 
+  /// @domName NamedNodeMap.getNamedItem; @docsEditable true
+  Node getNamedItem(String name) native;
+
+  /// @domName NamedNodeMap.getNamedItemNS; @docsEditable true
+  Node getNamedItemNS(String namespaceURI, String localName) native;
+
   /// @domName NamedNodeMap.item; @docsEditable true
-  @JSName('item')
-  Node _item(int index) native;
+  Node item(int index) native;
+
+  /// @domName NamedNodeMap.removeNamedItem; @docsEditable true
+  Node removeNamedItem(String name) native;
+
+  /// @domName NamedNodeMap.removeNamedItemNS; @docsEditable true
+  Node removeNamedItemNS(String namespaceURI, String localName) native;
+
+  /// @domName NamedNodeMap.setNamedItem; @docsEditable true
+  Node setNamedItem(Node node) native;
+
+  /// @domName NamedNodeMap.setNamedItemNS; @docsEditable true
+  Node setNamedItemNS(Node node) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

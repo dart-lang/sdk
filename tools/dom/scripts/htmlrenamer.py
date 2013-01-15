@@ -362,7 +362,6 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'HTMLTitleElement.text',
     'HTMLUListElement.compact',
     'HTMLUListElement.type',
-    'NamedNodeMap.*',
     'Node.compareDocumentPosition',
     'Node.get:ATTRIBUTE_NODE',
     'Node.get:CDATA_SECTION_NODE',

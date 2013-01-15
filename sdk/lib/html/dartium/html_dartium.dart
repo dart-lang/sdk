@@ -17369,6 +17369,10 @@ class MutationRecord extends NativeFieldWrapperClass1 {
 class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   NamedNodeMap.internal();
 
+
+  /** @domName NamedNodeMap.length */
+  int get length native "NamedNodeMap_length_Getter";
+
   Node operator[](int index) native "NamedNodeMap_item_Callback";
 
   void operator[]=(int index, Node value) {
@@ -17518,8 +17522,32 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   // -- end List<Node> mixins.
 
 
+  /** @domName NamedNodeMap.getNamedItem */
+  Node getNamedItem(String name) native "NamedNodeMap_getNamedItem_Callback";
+
+
+  /** @domName NamedNodeMap.getNamedItemNS */
+  Node getNamedItemNS(String namespaceURI, String localName) native "NamedNodeMap_getNamedItemNS_Callback";
+
+
   /** @domName NamedNodeMap.item */
-  Node _item(int index) native "NamedNodeMap_item_Callback";
+  Node item(int index) native "NamedNodeMap_item_Callback";
+
+
+  /** @domName NamedNodeMap.removeNamedItem */
+  Node removeNamedItem(String name) native "NamedNodeMap_removeNamedItem_Callback";
+
+
+  /** @domName NamedNodeMap.removeNamedItemNS */
+  Node removeNamedItemNS(String namespaceURI, String localName) native "NamedNodeMap_removeNamedItemNS_Callback";
+
+
+  /** @domName NamedNodeMap.setNamedItem */
+  Node setNamedItem(Node node) native "NamedNodeMap_setNamedItem_Callback";
+
+
+  /** @domName NamedNodeMap.setNamedItemNS */
+  Node setNamedItemNS(Node node) native "NamedNodeMap_setNamedItemNS_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
